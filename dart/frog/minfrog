@@ -751,14 +751,14 @@ HashMapImplementation.prototype._probeForAdding = function(key) {
   var insertionIndex = (-1);
   while (true) {
     var existingKey = this._keys.$index(hash);
-    if (existingKey == null) {
+    if (null == existingKey) {
       if (insertionIndex < (0)) return hash;
       return insertionIndex;
     }
     else if ($eq(existingKey, key)) {
       return hash;
     }
-    else if ((insertionIndex < (0)) && (const$0000 == existingKey)) {
+    else if ((insertionIndex < (0)) && ((null == const$0000 ? null == (existingKey) : const$0000 === existingKey))) {
       insertionIndex = hash;
     }
     hash = HashMapImplementation._nextProbe(hash, numberOfProbes++, this._keys.get$length());
@@ -770,7 +770,7 @@ HashMapImplementation.prototype._probeForLookup = function(key) {
   var initialHash = hash;
   while (true) {
     var existingKey = this._keys.$index(hash);
-    if (existingKey == null) return (-1);
+    if (null == existingKey) return (-1);
     if ($eq(existingKey, key)) return hash;
     hash = HashMapImplementation._nextProbe(hash, numberOfProbes++, this._keys.get$length());
   }
@@ -801,7 +801,7 @@ HashMapImplementation.prototype._grow = function(newCapacity) {
   for (var i = (0);
    i < capacity; i++) {
     var key = oldKeys.$index(i);
-    if (key == null || key == const$0000) {
+    if (null == key || (null == key ? null == (const$0000) : key === const$0000)) {
       continue;
     }
     var value = oldValues.$index(i);
@@ -812,9 +812,10 @@ HashMapImplementation.prototype._grow = function(newCapacity) {
   this._numberOfDeleted = (0);
 }
 HashMapImplementation.prototype.$setindex = function(key, value) {
+  var $0;
   this._ensureCapacity();
   var index = this._probeForAdding(key);
-  if ((this._keys.$index(index) == null) || (this._keys.$index(index) == const$0000)) {
+  if ((null == this._keys.$index(index)) || ((($0 = this._keys.$index(index)) == null ? null == (const$0000) : $0 === const$0000))) {
     this._numberOfEntries++;
   }
   this._keys.$setindex(index, key);
@@ -855,7 +856,7 @@ HashMapImplementation.prototype.forEach = function(f) {
   for (var i = (0);
    i < length; i++) {
     var key = this._keys.$index(i);
-    if ((key != null) && (key != const$0000)) {
+    if ((null != key) && ((null == key ? null != (const$0000) : key !== const$0000))) {
       f(key, this._values.$index(i));
     }
   }
@@ -1040,8 +1041,9 @@ function HashSetIterator(set_) {
   this._advance();
 }
 HashSetIterator.prototype.hasNext = function() {
+  var $0;
   if (this._nextValidIndex >= this._entries.get$length()) return false;
-  if (this._entries.$index(this._nextValidIndex) == const$0000) {
+  if ((($0 = this._entries.$index(this._nextValidIndex)) == null ? null == (const$0000) : $0 === const$0000)) {
     this._advance();
   }
   return this._nextValidIndex < this._entries.get$length();
@@ -1062,7 +1064,7 @@ HashSetIterator.prototype._advance = function() {
     if (++this._nextValidIndex >= length) break;
     entry = this._entries.$index(this._nextValidIndex);
   }
-  while ((entry == null) || (entry == deletedKey))
+  while ((null == entry) || ((null == entry ? null == (deletedKey) : entry === deletedKey)))
 }
 // ********** Code for _DeletedKeySentinel **************
 function _DeletedKeySentinel() {
@@ -1091,18 +1093,18 @@ LinkedHashMapImplementation.prototype.$setindex = function(key, value) {
 }
 LinkedHashMapImplementation.prototype.$index = function(key) {
   var entry = this._dart_coreimpl_map.$index(key);
-  if (entry == null) return null;
+  if (null == entry) return null;
   return entry.get$element().get$value();
 }
 LinkedHashMapImplementation.prototype.remove = function(key) {
   var entry = this._dart_coreimpl_map.remove(key);
-  if (entry == null) return null;
+  if (null == entry) return null;
   entry.remove();
   return entry.get$element().get$value();
 }
 LinkedHashMapImplementation.prototype.putIfAbsent = function(key, ifAbsent) {
   var value = this.$index(key);
-  if ((this.$index(key) == null) && !(this.containsKey(key))) {
+  if ((null == this.$index(key)) && !(this.containsKey(key))) {
     value = ifAbsent();
     this.$setindex(key, value);
   }
@@ -1242,11 +1244,12 @@ DoubleLinkedQueue.prototype.get$length = function() {
   return counter;
 }
 DoubleLinkedQueue.prototype.isEmpty = function() {
-  return (this._sentinel._next == this._sentinel);
+  var $0;
+  return ((($0 = this._sentinel._next) == null ? null == (this._sentinel) : $0 === this._sentinel));
 }
 DoubleLinkedQueue.prototype.forEach = function(f) {
   var entry = this._sentinel._next;
-  while (entry != this._sentinel) {
+  while ((null == entry ? null != (this._sentinel) : entry !== this._sentinel)) {
     var nextEntry = entry._next;
     f(entry._element);
     entry = nextEntry;
@@ -1254,7 +1257,7 @@ DoubleLinkedQueue.prototype.forEach = function(f) {
 }
 DoubleLinkedQueue.prototype.every = function(f) {
   var entry = this._sentinel._next;
-  while (entry != this._sentinel) {
+  while ((null == entry ? null != (this._sentinel) : entry !== this._sentinel)) {
     var nextEntry = entry._next;
     if (!f(entry._element)) return false;
     entry = nextEntry;
@@ -1263,7 +1266,7 @@ DoubleLinkedQueue.prototype.every = function(f) {
 }
 DoubleLinkedQueue.prototype.some = function(f) {
   var entry = this._sentinel._next;
-  while (entry != this._sentinel) {
+  while ((null == entry ? null != (this._sentinel) : entry !== this._sentinel)) {
     var nextEntry = entry._next;
     if (f(entry._element)) return true;
     entry = nextEntry;
@@ -1273,7 +1276,7 @@ DoubleLinkedQueue.prototype.some = function(f) {
 DoubleLinkedQueue.prototype.map = function(f) {
   var other = new DoubleLinkedQueue();
   var entry = this._sentinel._next;
-  while (entry != this._sentinel) {
+  while ((null == entry ? null != (this._sentinel) : entry !== this._sentinel)) {
     var nextEntry = entry._next;
     other.addLast(f(entry._element));
     entry = nextEntry;
@@ -1283,7 +1286,7 @@ DoubleLinkedQueue.prototype.map = function(f) {
 DoubleLinkedQueue.prototype.filter = function(f) {
   var other = new DoubleLinkedQueue();
   var entry = this._sentinel._next;
-  while (entry != this._sentinel) {
+  while ((null == entry ? null != (this._sentinel) : entry !== this._sentinel)) {
     var nextEntry = entry._next;
     if (f(entry._element)) other.addLast(entry._element);
     entry = nextEntry;
@@ -1304,7 +1307,8 @@ function _DoubleLinkedQueueIterator(_sentinel) {
   this._currentEntry = this._sentinel;
 }
 _DoubleLinkedQueueIterator.prototype.hasNext = function() {
-  return this._currentEntry._next != this._sentinel;
+  var $0;
+  return (($0 = this._currentEntry._next) == null ? null != (this._sentinel) : $0 !== this._sentinel);
 }
 _DoubleLinkedQueueIterator.prototype.next = function() {
   if (!this.hasNext()) {
@@ -1319,11 +1323,11 @@ function StopwatchImplementation() {
   this._stop = null;
 }
 StopwatchImplementation.prototype.start = function() {
-  if (this._start == null) {
+  if (null == this._start) {
     this._start = Clock.now();
   }
   else {
-    if (this._stop == null) {
+    if (null == this._stop) {
       return;
     }
     this._start = Clock.now() - (this._stop - this._start);
@@ -1333,16 +1337,16 @@ StopwatchImplementation.prototype.get$start = function() {
   return this.start.bind(this);
 }
 StopwatchImplementation.prototype.stop = function() {
-  if (this._start == null) {
+  if (null == this._start) {
     return;
   }
   this._stop = Clock.now();
 }
 StopwatchImplementation.prototype.elapsed = function() {
-  if (this._start == null) {
+  if (null == this._start) {
     return (0);
   }
-  return (this._stop == null) ? (Clock.now() - this._start) : (this._stop - this._start);
+  return (null == this._stop) ? (Clock.now() - this._start) : (this._stop - this._start);
 }
 StopwatchImplementation.prototype.elapsedInMs = function() {
   return $truncdiv((this.elapsed() * (1000)), this.frequency());
@@ -1363,7 +1367,7 @@ StringBufferImpl.prototype.isEmpty = function() {
 }
 StringBufferImpl.prototype.add = function(obj) {
   var str = obj.toString$0();
-  if (str == null || str.isEmpty()) return this;
+  if (null == str || str.isEmpty()) return this;
   this._buffer.add(str);
   this._dart_coreimpl_length = this._dart_coreimpl_length + str.length;
   return this;
@@ -1939,9 +1943,9 @@ MethodAnalyzer.prototype._bindArguments = function(args) {
     }
     else {
       currentArg = args.getValue(p.get$name());
-      if (currentArg == null) {
+      if (null == currentArg) {
         p.genValue(this.method, this._frame);
-        if (p.get$value() == null) {
+        if (null == p.get$value()) {
           $globals.world.warning("missing argument at call - does not match");
         }
         currentArg = p.get$value();
@@ -1962,7 +1966,7 @@ MethodAnalyzer.prototype.visitValue = function(node) {
 }
 MethodAnalyzer.prototype.visitTypedValue = function(node, expectedType) {
   var val = this.visitValue(node);
-  return val == null ? null : val.convertTo(this._frame, expectedType);
+  return null == val ? null : val.convertTo(this._frame, expectedType);
 }
 MethodAnalyzer.prototype.visitVoid = function(node) {
   return this.visitValue(node);
@@ -2001,9 +2005,9 @@ MethodAnalyzer.prototype._resolveBare = function(name, node) {
   var member = type.getMember(name);
   if ($eq(member) || $ne(member.get$declaringType(), type)) {
     var libMember = this._frame.get$library().lookup(name, node.span);
-    if (libMember != null) return libMember;
+    if (null != libMember) return libMember;
   }
-  if (member != null && !member.get$isStatic() && this._frame.get$isStatic()) {
+  if (null != member && !member.get$isStatic() && this._frame.get$isStatic()) {
     $globals.world.error("cannot refer to instance member from static method", node.span);
   }
   return member;
@@ -2121,7 +2125,7 @@ MethodAnalyzer.prototype.visitTryStatement = function(node) {
       var catch_ = node.catches.$index(i);
       this._pushBlock(catch_);
       this._createDI(catch_.get$exception());
-      if (catch_.get$trace() != null) {
+      if (null != catch_.get$trace()) {
         this._createDI(catch_.get$trace());
       }
       catch_.get$body().visit(this);
@@ -2196,7 +2200,7 @@ MethodAnalyzer.prototype.visitCallExpression = function(node) {
       return target.get(position).invoke(this._frame, ":call", node, this._visitArgs(node.arguments));
     }
     var member = this._resolveBare(name, varExpr.name);
-    if (member != null) {
+    if (null != member) {
       return member.invoke(this._frame, node, this._frame.makeThisValue(node), this._visitArgs(node.arguments));
     }
     else {
@@ -2254,7 +2258,7 @@ MethodAnalyzer.prototype._visitVarAssign = function(kind, xn, yn, node) {
   }
   else {
     var member = this._resolveBare(name, xn.name);
-    if (member != null) {
+    if (null != member) {
       member._set(this._frame, node, this._frame.makeThisValue(node), value);
     }
     else {
@@ -2365,8 +2369,8 @@ MethodAnalyzer.prototype.visitMapExpression = function(node) {
   var values = [];
   var valueType = $globals.world.varType, keyType = $globals.world.stringType;
   var mapType = $globals.world.mapType;
-  if (node.valueType != null) {
-    if (node.keyType != null) {
+  if (null != node.valueType) {
+    if (null != node.keyType) {
       keyType = this.method.resolveType(node.keyType, true, !node.isConst);
       if (!keyType.get$isString()) {
         $globals.world.error("the key type of a map literal must be \"String\"", keyType.get$span());
@@ -2418,7 +2422,7 @@ MethodAnalyzer.prototype.visitVarExpression = function(node) {
     return slot.get(node);
   }
   var member = this._resolveBare(name, node.name);
-  if (member != null) {
+  if (null != member) {
     if ((member instanceof TypeMember)) {
       return new PureStaticValue(member.get$dynamic().get$type(), node.span, true, true);
     }
@@ -2523,7 +2527,7 @@ CallFrame.prototype.lookup = function(name) {
 CallFrame.prototype.create = function(name, staticType, node, isFinal, value) {
   var slot = new VariableSlot(this._scope, name, staticType, node, isFinal, value);
   var existingSlot = this._scope._lookup(name);
-  if (existingSlot != null) {
+  if (null != existingSlot) {
     if ($eq(existingSlot.get$scope(), this)) {
       $globals.world.error(("duplicate name \"" + name + "\""), node.span);
     }
@@ -2553,7 +2557,7 @@ function VariableSlot(scope, name, staticType, node, isFinal, value) {
   this.node = node;
   this.staticType = staticType;
   this.isFinal = isFinal;
-  if (this.value != null) {
+  if (null != this.value) {
     this.value = this.value.convertTo(this.scope.frame, this.staticType);
   }
 }
@@ -2570,13 +2574,13 @@ VariableSlot.prototype.get = function(position) {
   return this.scope.frame._makeValue(this.staticType, position);
 }
 VariableSlot.prototype.set = function(newValue) {
-  if (newValue != null) {
+  if (null != newValue) {
     newValue = newValue.convertTo(this.scope.frame, this.staticType);
   }
   this.value = Value.union(this.value, newValue);
 }
 VariableSlot.prototype.toString = function() {
-  var valueString = this.value != null ? (" = " + this.value.get$type().name) : "";
+  var valueString = null != this.value ? (" = " + this.value.get$type().name) : "";
   return ("" + this.staticType.name + " " + this.name + valueString);
 }
 VariableSlot.prototype.set$1 = VariableSlot.prototype.set;
@@ -2728,15 +2732,17 @@ BlockScope.prototype.snapshot = function() {
 }
 BlockScope.prototype.unionWith = function(other) {
   var $this = this; // closure support
+  var $0;
   var changed = false;
   if (this.parent != null) {
     changed = this.parent.unionWith(other.parent);
   }
-  if (this._vars._lang_map != other._vars._lang_map) {
+  if ((($0 = this._vars._lang_map) == null ? null != (other._vars._lang_map) : $0 !== other._vars._lang_map)) {
     other._vars.forEach((function (key, otherVar) {
+      var $0;
       var myVar = $this._vars.$index(key);
       var v = Value.union(myVar.value, otherVar.value);
-      if (myVar.value != v) {
+      if ((($0 = myVar.value) == null ? null != (v) : $0 !== v)) {
         $this._vars.$setindex(key, myVar.replaceValue(v));
         changed = true;
       }
@@ -3213,7 +3219,7 @@ WorldGenerator.prototype.globalForStaticField = function(field, exp, dependencie
   this.hasStatics = true;
   var key = ("" + field.declaringType.get$jsname() + "." + field.get$jsname());
   var ret = this.globals.$index(key);
-  if (ret == null) {
+  if (null == ret) {
     ret = new GlobalValue(exp.get$type(), exp.get$code(), field.isFinal, field, null, exp, exp.span, dependencies);
     this.globals.$setindex(key, ret);
   }
@@ -3222,7 +3228,7 @@ WorldGenerator.prototype.globalForStaticField = function(field, exp, dependencie
 WorldGenerator.prototype.globalForConst = function(exp, dependencies) {
   var key = $add($add(exp.get$type().get$jsname(), ":"), exp.get$code());
   var ret = this.globals.$index(key);
-  if (ret == null) {
+  if (null == ret) {
     var ns = this.globals.get$length().toString$0();
     while (ns.get$length() < (4)) ns = $add("0", ns);
     var name = ("const$" + ns);
@@ -3261,7 +3267,7 @@ WorldGenerator.prototype.writeTypes = function(lib) {
     var type = $$i.next();
     if (type.get$isUsed() && type.get$isClass()) {
       this.writeType(type);
-      if (type.get$isGeneric() && type != $globals.world.listFactoryType) {
+      if (type.get$isGeneric() && (null == type ? null != ($globals.world.listFactoryType) : type !== $globals.world.listFactoryType)) {
         var $$list = this._orderValues(type.get$_concreteTypes());
         for (var $i0 = $$list.iterator(); $i0.hasNext(); ) {
           var ct = $i0.next();
@@ -3337,6 +3343,7 @@ WorldGenerator.prototype._maybeIsTest = function(onType, checkType) {
   }
 }
 WorldGenerator.prototype.writeType = function(type) {
+  var $0, $1;
   if (type.isWritten) return;
   type.isWritten = true;
   this.writeType(type.get$genericType());
@@ -3362,7 +3369,7 @@ WorldGenerator.prototype.writeType = function(type) {
     }
   }
   if (!type.get$isTop()) {
-    if (type.get$genericType() != type) {
+    if ((($0 = type.get$genericType()) == null ? null != (type) : $0 !== type)) {
       this.corejs.ensureInheritsHelper();
       this.writer.writeln(("$inherits(" + type.get$jsname() + ", " + type.get$genericType().get$jsname() + ");"));
     }
@@ -3389,7 +3396,7 @@ WorldGenerator.prototype.writeType = function(type) {
         if (c.get$isConstructor() && c.get$constructorName() == "") wroteStandard = true;
       }
     }
-    if (!wroteStandard && (!type.get$isNative() || type.get$genericType() != type)) {
+    if (!wroteStandard && (!type.get$isNative() || (($1 = type.get$genericType()) == null ? null != (type) : $1 !== type))) {
       this.writer.writeln(("function " + type.get$jsname() + "() {}"));
     }
   }
@@ -3898,7 +3905,7 @@ MethodGenerator.prototype.evalBody = function(newObject, args) {
     }
     else {
       currentArg = args.getValue(p.get$name());
-      if (currentArg == null) {
+      if (null == currentArg) {
         p.genValue(this.method, this);
         currentArg = p.get$value();
       }
@@ -3954,7 +3961,7 @@ MethodGenerator.prototype.evalBody = function(newObject, args) {
     for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
       var field = $$i.next();
       var value = fields.$index(field);
-      if (value != null) {
+      if (null != value) {
         this.writer.writeln(("this." + field.get$jsname() + " = " + value.get$code() + ";"));
       }
     }
@@ -3962,7 +3969,7 @@ MethodGenerator.prototype.evalBody = function(newObject, args) {
   if ($ne(initializerCall)) {
     this.evalInitializerCall(newObject, initializerCall, fieldsSet);
   }
-  if (this.method.get$isConstructor() && newObject != null && newObject.get$isConst()) {
+  if (this.method.get$isConstructor() && null != newObject && newObject.get$isConst()) {
     newObject.validateInitialized(this.method.get$span());
   }
   else if (this.method.get$isConstructor()) {
@@ -3971,13 +3978,13 @@ MethodGenerator.prototype.evalBody = function(newObject, args) {
     for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
       var field = $$i.next();
       var value = fields.$index(field);
-      if (value == null && field.get$isFinal() && $eq(field.get$declaringType(), this.method.declaringType) && !newObject.get$dynamic().get$seenNativeInitializer()) {
+      if (null == value && field.get$isFinal() && $eq(field.get$declaringType(), this.method.declaringType) && !newObject.get$dynamic().get$seenNativeInitializer()) {
         $globals.world.error(("uninitialized final field \"" + field.get$name() + "\""), field.get$span(), this.method.get$span());
       }
     }
   }
   var body = this.method.get$definition().get$dynamic().get$body();
-  if (body == null) {
+  if (null == body) {
     if (!this.method.get$isConstructor() && !this.method.get$isNative()) {
       $globals.world.error(("unexpected empty body for " + this.method.name), this.method.get$definition().get$span());
     }
@@ -4077,7 +4084,8 @@ MethodGenerator.prototype._pushBlock = function(node, reentrant) {
   this._scope = new BlockScope(this, this._scope, node, reentrant);
 }
 MethodGenerator.prototype._popBlock = function(node) {
-  if (this._scope.node != node) {
+  var $0;
+  if ((($0 = this._scope.node) == null ? null != (node) : $0 !== node)) {
     function spanOf(n) {
       return $ne(n) ? n.get$span() : null;
     }
@@ -4830,8 +4838,8 @@ MethodGenerator.prototype.visitMapExpression = function(node) {
   var values = [];
   var valueType = $globals.world.varType, keyType = $globals.world.stringType;
   var mapType = $globals.world.mapType;
-  if (node.valueType != null) {
-    if (node.keyType != null) {
+  if (null != node.valueType) {
+    if (null != node.keyType) {
       keyType = this.method.resolveType(node.keyType, true, !node.isConst);
       if (!keyType.get$isString()) {
         $globals.world.error("the key type of a map literal must be \"String\"", keyType.get$span());
@@ -5072,7 +5080,7 @@ Member.prototype.get$library = function() {
   return this.declaringType.get$library();
 }
 Member.prototype.get$isPrivate = function() {
-  return this.name != null && this.name.startsWith("_");
+  return null != this.name && this.name.startsWith("_");
 }
 Member.prototype.get$isConstructor = function() {
   return false;
@@ -5136,13 +5144,13 @@ Member.prototype.get$parameters = function() {
   return [];
 }
 Member.prototype.get$preciseMemberSet = function() {
-  if (this._preciseMemberSet == null) {
+  if (null == this._preciseMemberSet) {
     this._preciseMemberSet = new MemberSet(this, false);
   }
   return this._preciseMemberSet;
 }
 Member.prototype.get$potentialMemberSet = function() {
-  if (this._potentialMemberSet == null) {
+  if (null == this._potentialMemberSet) {
     if (this.name == ":call") {
       this._potentialMemberSet = this.get$preciseMemberSet();
       return this._potentialMemberSet;
@@ -5154,14 +5162,14 @@ Member.prototype.get$potentialMemberSet = function() {
       var subtype = $$i.next();
       if (!subtype.get$isClass()) continue;
       var mem = subtype.get$members().$index(this.name);
-      if (mem != null) {
+      if (null != mem) {
         if (mem.isDefinedOn(this.declaringType)) {
           mems.add(mem);
         }
       }
       else if (!this.declaringType.get$isClass()) {
         mem = subtype.getMember(this.name);
-        if (mem != null && mem.isDefinedOn(this.declaringType)) {
+        if (null != mem && mem.isDefinedOn(this.declaringType)) {
           mems.add(mem);
         }
       }
@@ -5175,7 +5183,7 @@ Member.prototype.get$potentialMemberSet = function() {
       }
       for (var $$i = mems.iterator(); $$i.hasNext(); ) {
         var mem = $$i.next();
-        if (this._potentialMemberSet == null) {
+        if (null == this._potentialMemberSet) {
           this._potentialMemberSet = new MemberSet(mem, false);
         }
         else {
@@ -5478,7 +5486,7 @@ Library.prototype.resolve = function() {
 }
 Library.prototype._addTopName = function(name, member, localSpan) {
   var existing = this._topNames.$index(name);
-  if (existing == null) {
+  if (null == existing) {
     this._topNames.$setindex(name, member);
   }
   else {
@@ -5792,7 +5800,7 @@ function TypeMember(type) {
 }
 TypeMember.prototype.get$type = function() { return this.type; };
 TypeMember.prototype.get$span = function() {
-  return this.type.definition == null ? null : this.type.definition.span;
+  return null == this.type.definition ? null : this.type.definition.span;
 }
 TypeMember.prototype.get$isStatic = function() {
   return true;
@@ -5849,7 +5857,7 @@ FieldMember.prototype.override = function(other) {
 }
 FieldMember.prototype.providePropertySyntax = function() {
   this._providePropertySyntax = true;
-  if (this.genericMember != null) {
+  if (null != this.genericMember) {
     this.genericMember.providePropertySyntax();
   }
 }
@@ -6016,8 +6024,8 @@ PropertyMember.prototype.get$returnType = function() {
 }
 PropertyMember.prototype.makeConcrete = function(concreteType) {
   var ret = new PropertyMember(this.name, concreteType);
-  if (this.getter != null) ret.set$getter(this.getter.makeConcrete(concreteType));
-  if (this.setter != null) ret.set$setter(this.setter.makeConcrete(concreteType));
+  if (null != this.getter) ret.set$getter(this.getter.makeConcrete(concreteType));
+  if (null != this.setter) ret.set$setter(this.setter.makeConcrete(concreteType));
   ret.set$_jsname(this._jsname);
   return ret;
 }
@@ -6117,8 +6125,8 @@ MethodMember.prototype.makeConcrete = function(concreteType) {
   return ret;
 }
 MethodMember.prototype.get$methodData = function() {
-  if (this.genericMember != null) return this.genericMember.get$dynamic().get$methodData();
-  if (this._methodData == null) {
+  if (null != this.genericMember) return this.genericMember.get$dynamic().get$methodData();
+  if (null == this._methodData) {
     this._methodData = new MethodData(this);
   }
   return this._methodData;
@@ -6388,11 +6396,11 @@ MethodMember.prototype.invoke = function(context, node, target, args) {
     return this._invokeBuiltin(context, node, target, args, argsCode);
   }
   if (this.isFactory) {
-    return new Value(target.get$type(), ("" + this.get$generatedFactoryName() + "(" + argsString + ")"), node != null ? node.span : null);
+    return new Value(target.get$type(), ("" + this.get$generatedFactoryName() + "(" + argsString + ")"), null != node ? node.span : null);
   }
   if (this.isStatic) {
     if (this.declaringType.get$isTop()) {
-      return new Value(this.get$inferredResult(), ("" + this.get$jsname() + "(" + argsString + ")"), node != null ? node.span : null);
+      return new Value(this.get$inferredResult(), ("" + this.get$jsname() + "(" + argsString + ")"), null != node ? node.span : null);
     }
     return new Value(this.get$inferredResult(), ("" + this.declaringType.get$jsname() + "." + this.get$jsname() + "(" + argsString + ")"), node.span);
   }
@@ -6454,7 +6462,7 @@ MethodMember.prototype._invokeBuiltin = function(context, node, target, args, ar
         code = ("" + target.get$code() + " " + op + " " + argsCode.$index((0)));
       }
     }
-    if (code != null) {
+    if (null != code) {
       return new Value(this.get$inferredResult(), code, node.span);
     }
   }
@@ -6868,7 +6876,7 @@ MethodCallData.prototype.matches = function(other) {
   return $eq(this.method, other.method);
 }
 MethodCallData.prototype.run = function() {
-  if (this._methodGenerator != null) return;
+  if (null != this._methodGenerator) return;
   this._methodGenerator = new MethodGenerator(this.method, this.data.context);
   this._methodGenerator.run();
 }
@@ -6887,12 +6895,12 @@ function MethodData(baseMethod, context) {
 MethodData.prototype.get$body = function() { return this.body; };
 MethodData.prototype.set$body = function(value) { return this.body = value; };
 MethodData.prototype.analyze = function() {
-  if (this.body == null) return;
+  if (null == this.body) return;
   var ma = new MethodAnalyzer(this.baseMethod, this.body);
   ma.analyze$1(this.context);
 }
 MethodData.prototype.eval = function(method, newObject, args) {
-  if (method != this.baseMethod) {
+  if ((null == method ? null != (this.baseMethod) : method !== this.baseMethod)) {
     if (!this.needsTypeParams) method = this.baseMethod;
   }
   var gen = new MethodGenerator(method, this.context);
@@ -6910,8 +6918,8 @@ MethodData.prototype.invokeCall = function(callData) {
   callData.run();
 }
 MethodData.prototype.run = function(method) {
-  if (this.body == null && !method.get$isConstructor() && !method.get$isNative()) return;
-  if (method != this.baseMethod) {
+  if (null == this.body && !method.get$isConstructor() && !method.get$isNative()) return;
+  if ((null == method ? null != (this.baseMethod) : method !== this.baseMethod)) {
     if (!this.needsTypeParams) method = this.baseMethod;
   }
   var callData = new MethodCallData(this, method);
@@ -7292,7 +7300,7 @@ TokenizerBase._hexDigit = function(c) {
 }
 TokenizerBase.prototype.readHex = function(hexLength) {
   var maxIndex;
-  if (hexLength == null) {
+  if (null == hexLength) {
     maxIndex = this._text.length - (1);
   }
   else {
@@ -7303,7 +7311,7 @@ TokenizerBase.prototype.readHex = function(hexLength) {
   while (this._lang_index < maxIndex) {
     var digit = TokenizerBase._hexDigit(this._text.charCodeAt(this._lang_index));
     if ($eq(digit, (-1))) {
-      if (hexLength == null) {
+      if (null == hexLength) {
         return result;
       }
       else {
@@ -10418,11 +10426,12 @@ Parser.prototype.formalParameterList = function() {
   return formals;
 }
 Parser.prototype.identifierForType = function() {
+  var $0;
   var tok = this._lang_next();
   if (!this._isIdentifier(tok.get$kind())) {
     this._lang_error(("expected identifier, but found " + tok), tok.get$span());
   }
-  if (tok.get$kind() != (70) && tok.get$kind() != (80)) {
+  if ((($0 = tok.get$kind()) == null ? null != ((70)) : $0 !== (70)) && tok.get$kind() != (80)) {
     this._lang_error(("" + tok + " may not be used as a type name"), tok.get$span());
   }
   return new Identifier(tok.get$text(), this._makeSpan(tok.get$start()));
@@ -11317,7 +11326,7 @@ Type.prototype.get$typeofName = function() {
   return null;
 }
 Type.prototype.get$fullname = function() {
-  return this.get$library().name != null ? ("" + this.get$library().name + "." + this.name) : this.name;
+  return null != this.get$library().name ? ("" + this.get$library().name + "." + this.name) : this.name;
 }
 Type.prototype.get$members = function() {
   return null;
@@ -11472,6 +11481,7 @@ Type.prototype._isDirectSupertypeOf = function(other) {
   }
 }
 Type.prototype.isSubtypeOf = function(other) {
+  var $0;
   if ($eq(this, other)) return true;
   if (this.get$isVar() || other.get$isVar()) return true;
   if (other._isDirectSupertypeOf(this)) return true;
@@ -11480,7 +11490,7 @@ Type.prototype.isSubtypeOf = function(other) {
   if ($ne(call) && $ne(otherCall)) {
     return Type._isFunctionSubtypeOf(call, otherCall);
   }
-  if (this.get$genericType() == other.get$genericType()) {
+  if ((($0 = this.get$genericType()) == null ? null == (other.get$genericType()) : $0 === other.get$genericType())) {
     for (var i = (0);
      i < this.get$typeArgsInOrder().get$length(); i++) {
       if (!this.get$typeArgsInOrder().$index(i).get$dynamic().isSubtypeOf(other.get$typeArgsInOrder().$index(i))) {
@@ -11710,7 +11720,7 @@ DefinedType.prototype.set$isNative = function(value) { return this.isNative = va
 DefinedType.prototype.get$baseGenericType = function() { return this.baseGenericType; };
 DefinedType.prototype.set$baseGenericType = function(value) { return this.baseGenericType = value; };
 DefinedType.prototype.get$genericType = function() {
-  return this.baseGenericType == null ? this : this.baseGenericType;
+  return null == this.baseGenericType ? this : this.baseGenericType;
 }
 DefinedType.prototype.setDefinition = function(def) {
   this.definition = def;
@@ -11837,7 +11847,7 @@ DefinedType.prototype._cycleInClassExtends = function() {
   seen.add(this);
   var ancestor = this.get$parent();
   while ($ne(ancestor)) {
-    if (ancestor == this) {
+    if ((null == ancestor ? null == (this) : ancestor === this)) {
       return true;
     }
     if (seen.contains$1(ancestor)) {
@@ -11854,7 +11864,7 @@ DefinedType.prototype._cycleInInterfaceExtends = function() {
   seen.add(this);
   function _helper(ancestor) {
     if ($eq(ancestor)) return false;
-    if (ancestor == $this) return true;
+    if ((null == ancestor ? null == ($this) : ancestor === $this)) return true;
     if (seen.contains$1(ancestor)) {
       return false;
     }
@@ -12122,7 +12132,7 @@ DefinedType.prototype.getMember = function(memberName) {
       return member;
     }
     var rr = member.makeConcrete(this);
-    if (member.get$definition() != null || (member instanceof PropertyMember)) {
+    if (null != member.get$definition() || (member instanceof PropertyMember)) {
       rr.resolve();
     }
     else {
@@ -12327,8 +12337,8 @@ Value.comma = function(x, y) {
   return new Value(y.get$type(), ("(" + x.get$code() + ", " + y.get$code() + ")"), null);
 }
 Value.union = function(x, y) {
-  if (y == null || $eq(x, y)) return x;
-  if (x == null) return y;
+  if (null == y || $eq(x, y)) return x;
+  if (null == x) return y;
   var ret = x._tryUnion(y);
   if ($ne(ret)) return ret;
   ret = y._tryUnion(x);
@@ -12462,12 +12472,29 @@ Value.prototype.binop = function(kind, other, context, node) {
       return new Value($globals.world.nonNullBool, code, node.get$span());
 
     case (50):
-
-      return new Value($globals.world.nonNullBool, ("" + this.get$code() + " == " + other.get$code()), node.get$span());
-
     case (51):
 
-      return new Value($globals.world.nonNullBool, ("" + this.get$code() + " != " + other.get$code()), node.get$span());
+      var op = kind == (50) ? "==" : "!=";
+      if (this.get$code() == "null") {
+        return new Value($globals.world.nonNullBool, ("null " + op + " " + other.get$code()), node.get$span());
+      }
+      else if (other.get$code() == "null") {
+        return new Value($globals.world.nonNullBool, ("null " + op + " " + this.get$code()), node.get$span());
+      }
+      else {
+        var ret;
+        var check;
+        if (this.get$needsTemp()) {
+          var tmp = context.forceTemp(this);
+          ret = tmp.get$code();
+          check = ("(" + ret + " = " + this.get$code() + ") == null");
+        }
+        else {
+          ret = this.get$code();
+          check = ("null == " + this.get$code());
+        }
+        return new Value($globals.world.nonNullBool, ("(" + check + " ? null " + op + " (" + other.get$code() + ") : " + ret + " " + op + "= " + other.get$code() + ")"), node.get$span());
+      }
 
     case (48):
 
@@ -12524,7 +12551,7 @@ Value.prototype.get$isPreciseType = function() {
 Value.prototype._missingMemberError = function(context, name, node) {
   var onStaticType = false;
   if ($ne(this.get$type(), this.get$staticType())) {
-    onStaticType = this.get$staticType().getMember(name) != null;
+    onStaticType = null != this.get$staticType().getMember(name);
   }
   if (!onStaticType && context.get$showWarnings() && !this._isVarOrParameterType(this.get$staticType()) && !this._hasOverriddenNoSuchMethod()) {
     var typeName = this.get$staticType().name;
@@ -12896,7 +12923,7 @@ PureStaticValue.prototype._typeAssert = function(context, toType) {
   return this._changeStaticType(toType);
 }
 PureStaticValue.prototype._changeStaticType = function(toType) {
-  if (toType == this.get$type()) return this;
+  if ((null == toType ? null == (this.get$type()) : toType === this.get$type())) return this;
   return new PureStaticValue(toType, this.span, this.isConst, this.isType);
 }
 PureStaticValue.prototype.invokeNoSuchMethod$3 = PureStaticValue.prototype.invokeNoSuchMethod;
@@ -13494,7 +13521,7 @@ ObjectValue.prototype.get$fields = function() { return this.fields; };
 ObjectValue.prototype.get$seenNativeInitializer = function() { return this.seenNativeInitializer; };
 ObjectValue.prototype.set$seenNativeInitializer = function(value) { return this.seenNativeInitializer = value; };
 ObjectValue.prototype.get$code = function() {
-  if (this._code == null) this.validateInitialized(null);
+  if (null == this._code) this.validateInitialized(null);
   return this._code;
 }
 ObjectValue.prototype.initFields = function() {
@@ -13514,14 +13541,14 @@ ObjectValue.prototype.setField = function(field, value, duringInit) {
   if (this.isConst && !value.get$isConst()) {
     $globals.world.error("used of non-const value in const intializer", value.span);
   }
-  if (currentValue == null) {
+  if (null == currentValue) {
     this.fields.$setindex(field, value);
     if (field.get$isFinal() && !duringInit) {
       $globals.world.error("cannot initialize final fields outside of initializer", value.span);
     }
   }
   else {
-    if (field.get$isFinal() && field.computeValue() == null) {
+    if (field.get$isFinal() && null == field.computeValue()) {
       $globals.world.error("reassignment of field not allowed", value.span, field.get$span());
     }
     else {
@@ -13542,7 +13569,7 @@ ObjectValue.prototype.validateInitialized = function(span) {
     buf.add(field.get$name());
     buf.add(": ");
     buf.add("{\"value\": ");
-    if (this.fields.$index(field) == null) {
+    if (null == this.fields.$index(field)) {
       $globals.world.error(("Required field \"" + field.get$name() + "\" was not initialized"), span, field.get$span());
       buf.add("null");
     }
@@ -13646,13 +13673,13 @@ BareValue.prototype.get$code = function() {
   return this._code;
 }
 BareValue.prototype._ensureCode = function() {
-  if (this._code == null) this._code = this.isType ? this.get$type().get$jsname() : this.home._makeThisCode();
+  if (null == this._code) this._code = this.isType ? this.get$type().get$jsname() : this.home._makeThisCode();
 }
 BareValue.prototype._tryResolveMember = function(context, name, node) {
   var member = this.get$type().getMember(name);
   if ($eq(member) || $ne(member.get$declaringType(), this.get$type())) {
     var libMember = this.home.get$library().lookup(name, this.span);
-    if (libMember != null) {
+    if (null != libMember) {
       return libMember.get$preciseMemberSet();
     }
   }
@@ -13717,7 +13744,7 @@ function VariableValue(staticType, code, span, isFinal, value) {
 VariableValue.prototype.get$isFinal = function() { return this.isFinal; };
 VariableValue.prototype.get$value = function() { return this.value; };
 VariableValue._unwrap = function(v) {
-  if (v == null) return null;
+  if (null == v) return null;
   if ((v instanceof VariableValue)) {
     v = v.get$dynamic().get$value();
   }
@@ -13730,13 +13757,13 @@ VariableValue.prototype.get$needsTemp = function() {
   return false;
 }
 VariableValue.prototype.get$type = function() {
-  return this.value != null ? this.value.get$type() : this.get$staticType();
+  return null != this.value ? this.value.get$type() : this.get$staticType();
 }
 VariableValue.prototype.get$staticType = function() {
   return this.type;
 }
 VariableValue.prototype.get$isConst = function() {
-  return this.value != null ? this.value.get$isConst() : false;
+  return null != this.value ? this.value.get$isConst() : false;
 }
 VariableValue.prototype.replaceValue = function(v) {
   return new VariableValue(this.get$staticType(), this.get$code(), this.span, this.isFinal, v);
@@ -13864,7 +13891,7 @@ World.prototype._addJavascriptTopName = function(named, name) {
     this._topNames.$setindex(name, named);
     return;
   }
-  if (existing == named) {
+  if ((null == existing ? null == (named) : existing === named)) {
     return;
   }
   this.info($add(("mangling matching top level name \"" + named.get$jsname() + "\" in "), ("both \"" + named.get$library().get$jsname() + "\" and \"" + existing.get$library().get$jsname() + "\"")));

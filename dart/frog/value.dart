@@ -379,13 +379,33 @@ class Value {
       case TokenKind.OR:
         final code = '${code} ${node.op} ${other.code}';
         return new Value(world.nonNullBool, code, node.span);
-      // TODO(jimhug): Wrong on primitives, need new fix for null == undefined
+
       case TokenKind.EQ_STRICT:
-        return new Value(world.nonNullBool, '${code} == ${other.code}',
-          node.span);
       case TokenKind.NE_STRICT:
-        return new Value(world.nonNullBool, '${code} != ${other.code}',
-          node.span);
+        var op = kind == TokenKind.EQ_STRICT ? '==' : '!=';
+        if (code == 'null') {
+          return new Value(world.nonNullBool,
+            'null ${op} ${other.code}', node.span);
+        } else if (other.code == 'null') {
+          return new Value(world.nonNullBool,
+            'null ${op} ${code}', node.span);
+        } else {
+          // TODO(jimhug): Add check to see if we can just use op on this type
+          // TODO(jimhug): Optimize case of other.needsTemp == false.
+          var ret;
+          var check;
+          if (needsTemp) {
+            var tmp = context.forceTemp(this);
+            ret = tmp.code;
+            check = '(${ret} = ${code}) == null';
+          } else {
+            ret = code;
+            check = 'null == ${code}';
+          }
+          return new Value(world.nonNullBool,
+            '(${check} ? null ${op} (${other.code}) : ${ret} ${op}= ${other.code})',
+            node.span);
+        }
 
       case TokenKind.EQ:
         if (other.code == 'null') {
