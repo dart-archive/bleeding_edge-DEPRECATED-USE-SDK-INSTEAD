@@ -1712,6 +1712,7 @@ Fs.prototype.readFileSync = function(filename, encoding) {
 Fs.prototype.writeFileSync = function(filename, data, encoding) {
   this._fs.writeFileSync(filename, data, encoding);
 }
+// ********** Code for fs_Stats **************
 // ********** Code for fs_FSWatcher **************
 // ********** Code for top level **************
 function get$fs() {

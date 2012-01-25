@@ -413,7 +413,7 @@ class Fs {
 
 Fs get fs() => new Fs.from(require('fs'));
 
-class Stats native "fs.Stats" {
+class Stats native "*Stats" {
   bool isFile() native;
   bool isDirectory() native;
   bool isBlockDevice() native;
