@@ -38,6 +38,7 @@ class FrogOptions {
   bool dietParse = false;
   bool compileOnly = false;
   bool inferTypes = false;
+  bool checkOnly = false;
 
   // Specifies non-compliant behavior where array bounds checks are
   // not implemented in generated code.
@@ -107,6 +108,10 @@ class FrogOptions {
 
         case '--compile_all':
           compileAll = true;
+          break;
+
+        case '--check-only':
+          checkOnly = true;
           break;
 
         case '--diet-parse':

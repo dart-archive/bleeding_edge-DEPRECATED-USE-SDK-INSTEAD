@@ -3625,9 +3625,14 @@ WorldGenerator.prototype.writeDynamicDispatchMetadata = function() {
     }
     this.writer.enterBlock("var table = [");
     this.writer.comment("// [dynamic-dispatch-tag, tags of classes implementing dynamic-dispatch-tag]");
+    var needsComma = false;
     for (var $$i = dispatchTypes.iterator(); $$i.hasNext(); ) {
       var type = $$i.next();
-      this.writer.writeln(("['" + type.get$nativeName() + "', " + tagDefns.$index(type.get$nativeName()) + "],"));
+      if (needsComma) {
+        this.writer.write(", ");
+      }
+      this.writer.writeln(("['" + type.get$nativeName() + "', " + tagDefns.$index(type.get$nativeName()) + "]"));
+      needsComma = true;
     }
     this.writer.exitBlock("];");
     this.writer.writeln("$dynamicSetMetadata(table);");
@@ -13529,9 +13534,11 @@ ObjectValue.prototype.validateInitialized = function(span) {
   buf.add("Object.create(");
   buf.add(("" + this.get$type().get$jsname() + ".prototype, "));
   buf.add("{");
+  var addComma = false;
   var $$list = this.fields.getKeys();
   for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
     var field = $$i.next();
+    if (addComma) buf.add(", ");
     buf.add(field.get$name());
     buf.add(": ");
     buf.add("{\"value\": ");
@@ -13542,7 +13549,8 @@ ObjectValue.prototype.validateInitialized = function(span) {
     else {
       buf.add(this.fields.$index(field).get$code());
     }
-    buf.add(", writeable: false}, ");
+    buf.add(", writeable: false}");
+    addComma = true;
   }
   buf.add("})");
   this._code = buf.toString$0();
@@ -13966,6 +13974,7 @@ World.prototype.runCompilationPhases = function() {
     $this.analyzeCode(lib);
   })
   );
+  if ($globals.options.checkOnly) return;
   this.withTiming("generate code", (function () {
     $this.generateCode(lib);
   })
@@ -14043,7 +14052,7 @@ World.prototype.get$resolveAll = function() {
 World.prototype.findMainMethod = function(lib) {
   var main = lib.lookup("main", lib.get$span());
   if ($eq(main)) {
-    this.fatal("no main method specified");
+    if (!$globals.options.checkOnly) this.fatal("no main method specified");
   }
   return main;
 }
@@ -14150,6 +14159,7 @@ World.prototype.withTiming = function(name, f) {
 // ********** Code for FrogOptions **************
 function FrogOptions(homedir, args, files) {
   this.legOnly = false;
+  this.checkOnly = false;
   this.disableBoundsChecks = false;
   this.maxInferenceIterations = (4);
   this.throwOnWarnings = false;
@@ -14217,6 +14227,11 @@ function FrogOptions(homedir, args, files) {
       case "--compile_all":
 
         this.compileAll = true;
+        break;
+
+      case "--check-only":
+
+        this.checkOnly = true;
         break;
 
       case "--diet-parse":

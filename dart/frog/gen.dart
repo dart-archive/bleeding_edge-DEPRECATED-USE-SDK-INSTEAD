@@ -686,8 +686,13 @@ class WorldGenerator {
       writer.comment(
           '// [dynamic-dispatch-tag, '
           + 'tags of classes implementing dynamic-dispatch-tag]');
+      bool needsComma = false;
       for (final type in dispatchTypes) {
-        writer.writeln("['${type.nativeName}', ${tagDefns[type.nativeName]}],");
+        if (needsComma) {
+          writer.write(', ');
+        }
+        writer.writeln("['${type.nativeName}', ${tagDefns[type.nativeName]}]");
+        needsComma = true;
       }
       writer.exitBlock('];');
       writer.writeln('\$dynamicSetMetadata(table);');

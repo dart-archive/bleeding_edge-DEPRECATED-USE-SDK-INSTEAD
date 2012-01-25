@@ -407,6 +407,8 @@ class World {
       withTiming('await translation', experimentalAwaitPhase);
     }
     withTiming('analyze pass', () { analyzeCode(lib); });
+    if (options.checkOnly) return;
+
     withTiming('generate code', () { generateCode(lib); });
   }
 
@@ -480,7 +482,7 @@ class World {
   findMainMethod(Library lib) {
     var main = lib.lookup('main', lib.span);
     if (main == null) {
-      fatal('no main method specified');
+      if (!options.checkOnly) fatal('no main method specified');
     }
     return main;
   }

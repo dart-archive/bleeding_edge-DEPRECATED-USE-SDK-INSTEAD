@@ -1374,7 +1374,9 @@ class ObjectValue extends EvaluatedValue {
     buf.add('${type.jsname}.prototype, ');
 
     buf.add('{');
+    bool addComma = false;
     for (var field in fields.getKeys()) {
+      if (addComma) buf.add(', ');
       buf.add(field.name);
       buf.add(': ');
       buf.add('{"value": ');
@@ -1385,7 +1387,8 @@ class ObjectValue extends EvaluatedValue {
       } else {
         buf.add(fields[field].code);
       }
-      buf.add(', writeable: false}, ');
+      buf.add(', writeable: false}');
+      addComma = true;
     }
     buf.add('})');
     _code = buf.toString();
