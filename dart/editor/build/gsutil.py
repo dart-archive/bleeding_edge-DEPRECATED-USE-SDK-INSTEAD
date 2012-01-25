@@ -20,7 +20,7 @@ class GsUtil(object):
 
   _gsutil = None
   _dryrun = False
-  _useshell = False
+  _useshell = False  # this also implies windows
 
   def __init__(self, dryrun=False, gsutil_loc=None):
     """Initialize the class by finding the gsutil programs location.
@@ -110,7 +110,7 @@ class GsUtil(object):
       list of the uri's for the elements in the bucket
     """
     args = []
-    args.append(self._gsutil)
+    args.extend(self._CommandGsutil())
     args.append('ls')
     args.append(bucket)
 
@@ -151,14 +151,24 @@ class GsUtil(object):
     Returns:
       returns the exit code of gsutil copy
     """
-    cmd = [self._gsutil, 'cp']
+    cmd = []
+    cmd.extend(self._CommandGsutil())
+    cmd.append('cp')
     if recursive_flag:
       cmd.append('-r')
     if public_flag:
       cmd.append('-a')
       cmd.append('public-read')
+    index_col = from_uri.find(':')
+    from_url = from_uri
+    if index_col < 0:
+      from_url = r'file://' + from_uri
+    else:
+      scheme = from_uri[:index_col]
+      if len(scheme) <= 1:
+        from_url = r'file://' + from_uri
 
-    cmd.append(from_uri)
+    cmd.append(from_url)
     cmd.append(to_uri)
 
     print ' '.join(cmd)
@@ -182,7 +192,7 @@ class GsUtil(object):
       item_uri: the uri fo the item to remove
     """
     args = []
-    args.append(self._gsutil)
+    args.extend(self._CommandGsutil())
     args.append('rm')
     args.append(item_uri)
     #echo the command to the screen
@@ -208,7 +218,7 @@ class GsUtil(object):
       the ACL for the object or None if it could not be found
     """
     args = []
-    args.append(self._gsutil)
+    args.extend(self._CommandGsutil())
     args.append('getacl')
     args.append(item_uri)
     #echo the command to the screen
@@ -320,7 +330,7 @@ class GsUtil(object):
             containing the xml document for the ACL
     """
     args = []
-    args.append(self._gsutil)
+    args.extend(self._CommandGsutil())
     args.append('setacl')
     args.append(acl)
     args.append(object_uri)
@@ -348,3 +358,14 @@ class GsUtil(object):
     print error_line_seperator
     print error_line_seperator
 
+  def _CommandGsutil(self):
+    """Execute a gsutil command.
+
+    Returns:
+      the command to execute gsutil
+    """
+    args = []
+    if self._useshell:
+      args.append('python')
+    args.append(self._gsutil)
+    return args

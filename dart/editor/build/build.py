@@ -242,16 +242,17 @@ def main():
 
     #this code handles getting the revision on the developer machine
     #where it can be 123, 123M 123:125M
-    revision = options.revision
+    print 'revision(in)   = {0}|'.format(options.revision)
+    revision = options.revision.rstrip()
     lastc = revision[-1]
     if lastc.isalpha():
       revision = revision[0:-1]
     index = revision.find(':')
     if index > -1:
       revision = revision[0:index]
-    print 'revision       = {0}'.format(revision)
-
+    print 'revision       = {0}|'.format(revision)
     buildout = os.path.join(buildroot, options.out)
+    sys.stdout.flush()
 
     #get user name if it does not start with chrome then deploy
     # to the test bucket otherwise deploy to the continuous bucket
@@ -324,7 +325,7 @@ def main():
     #the ant script writes a property file in a known location so
     #we can read it. This build script is currently not using any post
     #processing
-    properties = _ReadPropertyFile(ant_property_file.name)
+    properties = _ReadPropertyFile(buildos, ant_property_file.name)
 
     if not properties:
       raise Exception('no data was found in file {0}'.
@@ -342,7 +343,7 @@ def main():
 
     #return on any builder but dart-editor
     if buildos:
-      found_zips = _FindRcpZipFiles(properties['build.out'])
+      found_zips = _FindRcpZipFiles(buildout)
       if not found_zips:
         _PrintError('could not find any zipped up RCP files.'
                     '  The Ant build must have failed')
@@ -372,7 +373,7 @@ def main():
                         'buildTests.xml',
                         revision, options.name, buildroot, buildout,
                         editorpath, buildos)
-    properties = _ReadPropertyFile(ant_property_file.name)
+    properties = _ReadPropertyFile(buildos, ant_property_file.name)
     if status and properties['build.runtime']:
       #if there is a build.runtime and the status is not
       #zero see if there are any *.log entries
@@ -384,10 +385,11 @@ def main():
       os.remove(ant_property_file.name)
 
 
-def _ReadPropertyFile(property_file):
+def _ReadPropertyFile(buildos, property_file):
   """Read a property file and return a dictionary of key/value pares.
 
   Args:
+    buildos: the os the build is running under
     property_file: the file to read
 
   Returns:
@@ -399,8 +401,19 @@ def _ReadPropertyFile(property_file):
     #ignore comments
     if not line.startswith('#'):
       parts = line.split('=')
+
       key = str(parts[0]).strip()
       value = str(parts[1]).strip()
+      #the property file is written from java so all of the \ are escaped
+      #this will clean up the code
+      # e.g. build.out = c\:\\Users\\testing\\dart-all/dart will be read into
+      #      python as build.out = c\\:\\\\Users\\\\testing\\\\dart-all/dart
+      # this code will convert the above to:
+      #      c:/Users/testing/dart-all/dart
+      # os.path.normpath will convert the path to the appropriate os path
+      if buildos is not None and buildos.find('win'):
+        value = value.replace(r'\:', ':')
+        value = value.replace(r'\\', '/')
       properties[key] = value
 
   return properties
@@ -481,9 +494,10 @@ def _DeployArtifacts(fromd, to, tmp, svnid, gsu):
     artifacts = []
     for zipfile in glob.glob(os.path.join(fromd, '*.zip')):
       artifacts.append(zipfile)
+      print 'copying {0} to {1}'.format(zipfile, deploydir)
       shutil.copy2(zipfile, deploydir)
 
-    status = gsu.Copy(svnid, to, False, True)
+    status = gsu.Copy(deploydir, to, False, True)
     if status:
       _PrintError('the push to Google Storage of {0} failed'.format(svnid))
     else:
@@ -506,8 +520,6 @@ def _DeployArtifacts(fromd, to, tmp, svnid, gsu):
 
   finally:
     os.chdir(cwd)
-    if deploydir:
-      shutil.rmtree(deploydir)
 
   return status
 
@@ -603,6 +615,8 @@ def _FindRcpZipFiles(out_dir):
   Returns:
     a collection of rcp zip files
   """
+  out_dir = os.path.normpath(out_dir)
+  print '_FindRcpZipFiles({0})'.format(out_dir)
   rcp_out_dir = os.listdir(out_dir)
   found_zips = []
   for element in rcp_out_dir:

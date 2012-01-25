@@ -8,7 +8,6 @@ import os
 import platform
 import tempfile
 import unittest
-import urllib
 import gsutil
 
 
@@ -16,7 +15,7 @@ class TestGsutil(unittest.TestCase):
   """Class to test the gsutil.py class."""
   test_prefix = 'gs://'
   test_bucket = 'dart-editor-archive-testing'
-  test_folder = 'testing'
+  test_folder = 'unit-testing'
   build_count = 3
 
   def setUp(self):
@@ -158,7 +157,7 @@ class TestGsutil(unittest.TestCase):
     try:
       upload_file.write('test file {0}'.format(object_id))
       upload_file.close()
-      file_uri = urllib.pathname2url(upload_file.name)
+      file_uri = upload_file.name
       full_gs_uri = '{0}/{1}'.format(object_uri,
                                      os.path.basename(upload_file.name))
       self._gsu.Copy(file_uri, full_gs_uri, False)
