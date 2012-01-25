@@ -3105,6 +3105,9 @@ WorldGenerator.prototype.analyze = function() {
     var $list0 = lib.get$types().getValues();
     for (var $i0 = $list0.iterator(); $i0.hasNext(); ) {
       var type = $i0.next();
+      if (type.get$library().get$isDom() || type.get$isHiddenNativeType()) {
+        if (type.get$isClass()) type.markUsed();
+      }
       ntypes += (1);
       var allMembers = [];
       allMembers.addAll(type.get$constructors().getValues());
@@ -3254,12 +3257,6 @@ WorldGenerator.prototype.writeTypes = function(lib) {
   }
   lib.topType.markUsed();
   var orderedTypes = this._orderValues(lib.types);
-  for (var $$i = orderedTypes.iterator(); $$i.hasNext(); ) {
-    var type = $$i.next();
-    if ((type.get$library().get$isDom() || type.get$isHiddenNativeType()) && type.get$isClass()) {
-      type.markUsed();
-    }
-  }
   for (var $$i = orderedTypes.iterator(); $$i.hasNext(); ) {
     var type = $$i.next();
     if (type.get$isUsed() && type.get$isClass()) {

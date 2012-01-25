@@ -37,13 +37,25 @@ class WorldGenerator {
   WorldGenerator(this.main, this.writer)
     : globals = {}, corejs = new CoreJs();
 
+
+
+
   analyze() {
     // Walk all code and find all NewExpressions - to determine possible types
     int nlibs=0, ntypes=0, nmems=0, nnews=0;
-    //Set<Type> newedTypes = new Set<Type>();
     for (var lib in world.libraries.getValues()) {
       nlibs += 1;
       for (var type in lib.types.getValues()) {
+        // TODO(jmesserly): we can't accurately track if DOM types are
+        // created or not, so we need to prepare to handle them.
+        // This should be fixed by tightening up the return types in DOM.
+        // Until then, this 'analysis' just marks all the DOM types as used.
+        // TODO(jimhug): Do we still need this?  Or do/can we handle this by
+        // using return values?
+        if (type.library.isDom || type.isHiddenNativeType) {
+          if (type.isClass) type.markUsed();
+        }
+
         ntypes += 1;
         var allMembers = [];
         allMembers.addAll(type.constructors.getValues());
@@ -224,17 +236,6 @@ class WorldGenerator {
     lib.topType.markUsed(); // TODO(jimhug): EGREGIOUS HACK
 
     var orderedTypes = _orderValues(lib.types);
-
-    // TODO(jmesserly): we can't accurately track if DOM types are
-    // created or not, so we need to prepare to handle them.
-    // This should be fixed by tightening up the return types in DOM.
-    // Until then, this 'analysis' just marks all the DOM types as used.
-    for (var type in orderedTypes) {
-      if ((type.library.isDom || type.isHiddenNativeType) &&
-          type.isClass) {
-        type.markUsed();
-      }
-    }
 
     for (var type in orderedTypes) {
       if (type.isUsed && type.isClass) {
