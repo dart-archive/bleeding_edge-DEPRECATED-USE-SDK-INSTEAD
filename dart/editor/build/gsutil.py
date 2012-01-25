@@ -365,7 +365,7 @@ class GsUtil(object):
       the command to execute gsutil
     """
     args = []
-    if self._useshell:
-      args.append('python')
+#    if self._useshell:
+#      args.append('python')
     args.append(self._gsutil)
     return args
