@@ -248,7 +248,7 @@ build system.  The PDE build system has to run under Eclipse.
         
         <!-- dart:builtin -->
         <copy todir="${libraries.out.dir}/builtin">
-            <fileset dir="${build.source.root}/runtime/bin" includes="*.dart"/>
+            <fileset dir="${build.source.root}/runtime/bin" includes="builtin.dart"/>
         </copy>
         
         <!-- dart:nativewrappers -->
@@ -256,29 +256,55 @@ build system.  The PDE build system has to run under Eclipse.
         <echo file="${libraries.out.dir}/nativewrappers/nativewrappers.dart">
 #library("nativewrappers");
 
-#source("../builtin/buffer_list.dart");
-#source("../builtin/chunked_stream.dart");
-#source("../builtin/directory.dart");
-#source("../builtin/directory_impl.dart");
-#source("../builtin/file.dart");
-#source("../builtin/file_impl.dart");
-#source("../builtin/input_stream.dart");
-#source("../builtin/list_stream.dart");
-#source("../builtin/output_stream.dart");
-#source("../builtin/platform.dart");
-#source("../builtin/platform_impl.dart");
-#source("../builtin/process.dart");
-#source("../builtin/socket.dart");
-#source("../builtin/socket_impl.dart");
-#source("../builtin/socket_stream.dart");
-#source("../builtin/stream_util.dart");
-#source("../builtin/string_stream.dart");
-#source("../builtin/timer.dart");
+class NativeFieldWrapperClass1 { }
+
+class NativeFieldWrapperClass2 { }
+
+class NativeFieldWrapperClass3 { }
+
+class NativeFieldWrapperClass4 { }
         </echo>
-        <!-- #source("../builtin/eventhandler.dart"); -->
-        <!-- #source("../builtin/timer_impl.dart"); -->        
-        <!-- #source("../builtin/process_impl.dart"); -->
-        
+
+        <!-- dart:io -->
+        <copy todir="${libraries.out.dir}/io">
+            <fileset dir="${build.source.root}/runtime/bin" includes="**/*.dart">
+                <exclude name="builtin.dart" />
+                <exclude name="io.dart" />
+            </fileset>
+        </copy>
+        <echo file="${libraries.out.dir}/io/io.dart"><![CDATA[
+#library('io');
+
+#import('dart:coreimpl');
+#import('dart:nativewrappers');
+
+#source('buffer_list.dart');
+#source('chunked_stream.dart');
+#source('directory.dart');
+#source('directory_impl.dart');
+#source('file.dart');
+#source('file_impl.dart');
+#source('input_stream.dart');
+#source('list_stream.dart');
+#source('output_stream.dart');
+#source('platform.dart');
+#source('platform_impl.dart');
+#source('process.dart');
+#source('process_impl.dart');
+#source('socket.dart');
+#source('socket_impl.dart');
+#source('socket_stream.dart');
+#source('stdio.dart');
+#source('stream_util.dart');
+#source('string_stream.dart');
+#source('timer.dart');
+#source('timer_impl.dart');
+
+// This is a hack to work-around the wrong version of coreimpl being
+// used for the VM configuration.
+class ObjectArray<T> { }
+        ]]></echo>
+
         <makeReadonly directoryName="${libraries.out.dir}"/>
     </target>
     
