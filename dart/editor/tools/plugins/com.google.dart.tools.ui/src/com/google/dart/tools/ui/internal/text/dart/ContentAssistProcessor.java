@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUIMessages;
 import com.google.dart.tools.ui.Messages;
@@ -24,7 +25,6 @@ import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jface.action.LegacyActionTools;
 import org.eclipse.jface.bindings.TriggerSequence;
@@ -82,8 +82,8 @@ import java.util.List;
  * </p>
  */
 public class ContentAssistProcessor implements IContentAssistProcessor {
-  // can this be read from options distributed with rcp app?
-  private static final boolean DEBUG = true | "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/ResultCollector"));
+
+  private static final boolean DEBUG = DartCoreDebug.ENABLE_CONTENT_ASSIST_TIMING;
 
   /**
    * Dialog settings key for the "all categories are disabled" warning dialog. See

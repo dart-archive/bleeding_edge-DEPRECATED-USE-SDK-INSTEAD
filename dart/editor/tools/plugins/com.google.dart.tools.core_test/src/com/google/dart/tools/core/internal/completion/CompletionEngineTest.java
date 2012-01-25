@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.completion;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartModelException;
 
 import junit.framework.TestCase;
@@ -173,6 +174,24 @@ public class CompletionEngineTest extends TestCase {
   public void testCommentSnippets032() throws Exception {
     test("class Bar<T extends Fooa> {const B!1ara();}", "1+BadNumberFormatException", "1+Bara",
         "1-Map");
+  }
+
+  public void testCommentSnippets033() throws Exception {
+    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
+      test("t1() {var x;if (x is List) {x.!1add(3);}}", "1+add", "1+length");
+    }
+  }
+
+  public void testCommentSnippets034() throws Exception {
+    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
+      test("t2() {var q=[0],z=q.!1length;q.!2isEmpty();}", "1+length", "2+isEmpty");
+    }
+  }
+
+  public void testCommentSnippets035() throws Exception {
+    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
+      test("t3() {var x=new List(), y=x.!1length();x.!2isEmpty();}", "1+length", "2+isEmpty");
+    }
   }
 
   public void testCompletion_alias_field() throws Exception {

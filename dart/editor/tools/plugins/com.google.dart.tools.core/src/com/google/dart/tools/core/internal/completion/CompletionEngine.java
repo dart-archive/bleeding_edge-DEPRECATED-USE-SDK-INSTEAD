@@ -66,6 +66,7 @@ import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeAnalyzer;
 import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.completion.CompletionMetrics;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
@@ -164,7 +165,7 @@ public class CompletionEngine {
 
     @Override
     public void resolveLibraryTime(long ms) {
-      if (DEBUG_TIMING) {
+      if (DartCoreDebug.ENABLE_CONTENT_ASSIST_TIMING) {
         System.out.println("Code Assist (resolve library): " + ms);
       }
     }
@@ -852,7 +853,8 @@ public class CompletionEngine {
   }
 
   private static class SyntheticIdentifier extends DartIdentifier {
-    int srcStart, srcLen;
+    private static final long serialVersionUID = 1L;
+    private int srcStart, srcLen;
 
     SyntheticIdentifier(String name, int srcStart, int srcLen) {
       super(name);
@@ -872,7 +874,6 @@ public class CompletionEngine {
   }
 
   private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/CompletionEngine"));
-  private static final boolean DEBUG_TIMING = true | "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/ResultCollector"));
 
   public static char[][] createDefaultParameterNames(int length) {
     char[][] names = new char[length][];
@@ -1006,7 +1007,7 @@ public class CompletionEngine {
     this.monitor = monitor;
     typeCache = new HashMap<Object, Object>();
     metrics = requestor.getMetrics();
-    if (metrics == null && (DEBUG || DEBUG_TIMING)) {
+    if (metrics == null && (DEBUG || DartCoreDebug.ENABLE_CONTENT_ASSIST_TIMING)) {
       metrics = new DebugMetrics();
     }
   }
@@ -1108,7 +1109,8 @@ public class CompletionEngine {
     }
     DartNode analyzedNode = null;
     if (resolvedNode != null) {
-      long resolutionStartTime = DEBUG_TIMING ? System.currentTimeMillis() : 0L;
+      long resolutionStartTime = DartCoreDebug.ENABLE_CONTENT_ASSIST_TIMING
+          ? System.currentTimeMillis() : 0L;
       analyzedNode = DartCompilerUtilities.analyzeDelta(library, source, parsedUnit, resolvedNode,
           completionPosition, parseErrors);
       if (metrics != null) {
@@ -1202,6 +1204,9 @@ public class CompletionEngine {
           type = element.getType();
         }
       }
+    }
+    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT && target instanceof DartIdentifier) {
+      type = TypeRefiner.refineType((DartIdentifier) target, type, typeProvider);
     }
     return type;
   }
