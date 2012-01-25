@@ -264,6 +264,16 @@ class InvokeKey {
       if (!(member.parameters.length == bareArgs && namedArgs == null)) {
         needsVarCall = true;
       }
+      // TODO(jimhug): Egregious hack for isolates + DOM - see
+      // Value._maybeWrapFunction for more details.
+      if (member.library == world.dom) {
+        for (var p in member.parameters) {
+          if (p.type.getCallMethod() != null) {
+            needsVarCall = true;
+          }
+        }
+      }
+
       // TODO(jimhug): Should create a less specific version of args.
       if (member.canInvoke(context, args)) {
         if (member.isMethod) {

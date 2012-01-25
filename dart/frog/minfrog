@@ -6829,6 +6829,15 @@ InvokeKey.prototype.addMembers = function(members, context, target, args) {
     if (!(member.get$parameters().get$length() == this.bareArgs && this.namedArgs == null)) {
       this.needsVarCall = true;
     }
+    if ($eq(member.get$library(), $globals.world.dom)) {
+      var $$list = member.get$parameters();
+      for (var $i0 = $$list.iterator(); $i0.hasNext(); ) {
+        var p = $i0.next();
+        if (p.get$type().getCallMethod() != null) {
+          this.needsVarCall = true;
+        }
+      }
+    }
     if (member.canInvoke(context, args)) {
       if (member.get$isMethod()) {
         this.returnType = MemberSet.unionTypes(this.returnType, member.get$returnType());
