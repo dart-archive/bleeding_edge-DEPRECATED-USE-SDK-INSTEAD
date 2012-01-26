@@ -49,8 +49,11 @@ import java.io.File;
 
 /**
  * Launch a Dart server application.
+ * 
+ * @deprecated
  */
 
+@Deprecated
 @SuppressWarnings("restriction")
 public class RunInServerAction extends Action implements ISelectionListener,
     ISelectionChangedListener, IPartListener {

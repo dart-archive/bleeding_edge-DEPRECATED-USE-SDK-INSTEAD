@@ -13,86 +13,41 @@
  */
 package com.google.dart.tools.debug.ui.internal.preferences;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdk;
-import com.google.dart.tools.debug.core.ChromeBrowserConfig;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.IInputValidator;
-import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.util.Util;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.eclipse.ui.dialogs.ListDialog;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * The preference page for Dart debugging.
  */
 public class DebugPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
-  private class ProgramLabelProvider extends LabelProvider {
-    @Override
-    public Image getImage(Object element) {
-      ImageData data = ((Program) element).getImageData();
-      return (data == null) ? null : new Image(Display.getDefault(), data);
-    }
-
-    @Override
-    public String getText(Object element) {
-      return ((Program) element).getName();
-    }
-  }; //$NON-NLS-1$
-
   public static final String PAGE_ID = "com.google.dart.tools.debug.debugPreferencePage"; //$NON-NLS-1$
-  private List<ChromeBrowserConfig> browsers;
 
-  private TableViewer browserViewer;
   private Text vmField;
-
-  private Text browserField;
-  private Button removeBrowserButton;
-
-  private Button renameBrowserButton;
-
-  private Button browseButton;
-
-  private Button defaultBrowserButton;
-
-  private Button selectBrowserButton;
 
   /**
    * Create a new preference page.
    */
   public DebugPreferencePage() {
-    setDescription("Dart Launch Preferences");
+//    setDescription("Dart Launch Preferences");
   }
 
   @Override
@@ -107,14 +62,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
       DartDebugCorePlugin.getPlugin().setDartVmExecutablePath(vmField.getText());
     }
 
-    if (defaultBrowserButton != null) {
-      if (defaultBrowserButton.getSelection()) {
-        DartDebugCorePlugin.getPlugin().setDefaultBrowser(true);
-      } else {
-        DartDebugCorePlugin.getPlugin().setDefaultBrowser(false);
-        DartDebugCorePlugin.getPlugin().setBrowserExecutablePath(browserField.getText());
-      }
-    }
     return true;
   }
 
@@ -124,17 +71,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     GridDataFactory.fillDefaults().grab(true, false).indent(0, 10).align(SWT.FILL, SWT.BEGINNING).applyTo(
         composite);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
-
-    // Browser
-    if (!DartCoreDebug.DEBUGGER) {
-      createBrowserConfig(composite);
-
-      if (DartDebugCorePlugin.getPlugin().getBrowserExecutablePath() != null) {
-        browserField.setText(DartDebugCorePlugin.getPlugin().getBrowserExecutablePath());
-      }
-
-      updateEnablements(DartDebugCorePlugin.getPlugin().getIsDefaultBrowser());
-    }
 
     // Dart VM
     if (!DartSdk.isInstalled()) { // no sdk is installed
@@ -155,50 +91,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     if (filePath != null) {
       vmField.setText(filePath);
     }
-  }
-
-  private void createBrowserConfig(Composite parent) {
-    Group browserGroup = new Group(parent, SWT.NONE);
-    browserGroup.setText(DebugPreferenceMessages.DebugPreferencePage_BrowserTitle);
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(browserGroup);
-    GridLayoutFactory.swtDefaults().numColumns(3).spacing(5, 2).applyTo(browserGroup);
-
-    defaultBrowserButton = new Button(browserGroup, SWT.RADIO);
-    defaultBrowserButton.setText(DebugPreferenceMessages.DebugPreferencePage_DefaultBrowserText);
-    defaultBrowserButton.addSelectionListener(new SelectionAdapter() {
-
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        updateEnablements(true);
-      }
-    });
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(defaultBrowserButton);
-    selectBrowserButton = new Button(browserGroup, SWT.RADIO);
-    selectBrowserButton.setText(DebugPreferenceMessages.DebugPreferencePage_SelectBrowserText);
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(selectBrowserButton);
-    selectBrowserButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        updateEnablements(false);
-      }
-    });
-
-    browserField = new Text(browserGroup, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.swtDefaults().indent(15, 0).align(SWT.FILL, SWT.CENTER).hint(100, SWT.DEFAULT).grab(
-        true, false).applyTo(browserField);
-    browserField.setEnabled(false);
-    browseButton = new Button(browserGroup, SWT.PUSH);
-    browseButton.setText(DebugPreferenceMessages.DebugPreferencePage_Browse);
-    browseButton.setEnabled(false);
-    PixelConverter converter = new PixelConverter(browseButton);
-    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(browseButton);
-    browseButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        handleBrowserConfigBrowseButton();
-      }
-    });
   }
 
   private void createVmConfig(Composite composite) {
@@ -224,175 +116,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
         handleVmBrowseButton();
       }
     });
-  }
-
-  private String findUniqueName(String name, int count, List<ChromeBrowserConfig> existingBrowsers) {
-    String tempName = name + (count == 0 ? "" : count); //$NON-NLS-1$
-
-    for (ChromeBrowserConfig browser : existingBrowsers) {
-      if (tempName.equals(browser.getName())) {
-        return findUniqueName(tempName, ++count, existingBrowsers);
-      }
-    }
-
-    return tempName;
-  }
-
-  private String findUniqueName(String name, List<ChromeBrowserConfig> existingBrowsers) {
-    // strip .exe from the name -
-    if (name.endsWith(".exe")) { //$NON-NLS-1$
-      name = name.substring(0, name.length() - ".exe".length()); //$NON-NLS-1$
-    }
-
-    return findUniqueName(name, 0, existingBrowsers);
-  }
-
-  @SuppressWarnings("unused")
-  private void handleAddButton() {
-    FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
-    fileDialog.setText("Select Chrome based browser"); //$NON-NLS-1$
-
-    String path = fileDialog.open();
-
-    if (path != null) {
-      path = patchupPath(path);
-
-      if (path == null) {
-        // Let the user know the path was invalid -
-        MessageDialog.openWarning(getShell(), "Error Locating Executable", //$NON-NLS-1$
-            "Unable to locate a browser executable."); //$NON-NLS-1$
-      } else {
-        ChromeBrowserConfig browserConfig = new ChromeBrowserConfig();
-
-        browserConfig.setName(findUniqueName(new File(path).getName(), browsers));
-        browserConfig.setPath(path);
-
-        browsers.add(browserConfig);
-
-        browserViewer.refresh();
-      }
-    }
-  }
-
-  private void handleBrowserConfigBrowseButton() {
-
-    ListDialog listDialog = new ListDialog(getShell());
-    listDialog.setTitle(DebugPreferenceMessages.DebugPreferencePage_DialogTitle);
-    listDialog.setMessage(DebugPreferenceMessages.DebugPreferencePage_DialogMessage);
-
-    listDialog.setLabelProvider(new ProgramLabelProvider());
-    listDialog.setContentProvider(new ArrayContentProvider());
-    listDialog.setInput(Program.getPrograms());
-
-    if (listDialog.open() == Window.OK) {
-      Object[] result = listDialog.getResult();
-      browserField.setText(((Program) result[0]).getName());
-    }
-
-  }
-
-  @SuppressWarnings("unused")
-  private void handleRemoveButton() {
-    ChromeBrowserConfig browserConfig = (ChromeBrowserConfig) ((IStructuredSelection) browserViewer.getSelection()).getFirstElement();
-
-    browsers.remove(browserConfig);
-
-    browserViewer.refresh();
-
-    updateButtons();
-  }
-
-  @SuppressWarnings("unused")
-  private void handleRenameButton() {
-    final ChromeBrowserConfig browserConfig = (ChromeBrowserConfig) ((IStructuredSelection) browserViewer.getSelection()).getFirstElement();
-
-    InputDialog inputDialog = new InputDialog(getShell(), "Enter Browser Name", //$NON-NLS-1$
-        "Enter the new name for the browser configuration:", browserConfig.getName(), //$NON-NLS-1$
-        new IInputValidator() {
-          @Override
-          public String isValid(String newText) {
-            if (newText == null || newText.isEmpty()) {
-              return "The name must not be empty."; //$NON-NLS-1$
-            }
-
-            for (ChromeBrowserConfig other : browsers) {
-              if (other == browserConfig) {
-                continue;
-              }
-
-              if (newText.equals(other.getName())) {
-                return "A browser configuration with that name already exists."; //$NON-NLS-1$
-              }
-            }
-
-            return null;
-          }
-        });
-
-    if (inputDialog.open() == Window.OK) {
-      browserConfig.setName(inputDialog.getValue());
-
-      browserViewer.refresh();
-    }
-  }
-
-  private String patchupPath(String path) {
-    if (path == null) {
-      return path;
-    }
-
-    File file = new File(path);
-
-    if (file.isDirectory() && Util.isMac()) {
-      // Applications on the mac are actually 'blessed' directories.
-
-      // /Applications/Chromium.app/Contents/MacOS/Chromium
-      // /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
-      String name = file.getName();
-
-      if (name.endsWith(".app")) { //$NON-NLS-1$
-        name = name.substring(0, name.length() - ".app".length()); //$NON-NLS-1$
-
-        // Or look in Info.plist for <key>CFBundleExecutable</key><string>app.name</string>?
-
-        path = path + "/Contents/MacOS/" + name; //$NON-NLS-1$
-
-        File appFile = new File(path);
-
-        if (appFile.exists() && appFile.isFile()) {
-          return path;
-        } else {
-          return null;
-        }
-      } else {
-        return null;
-      }
-    } else if (file.isDirectory()) {
-      return null;
-    } else {
-      return path;
-    }
-  }
-
-  private void updateButtons() {
-    boolean hasSelection = !browserViewer.getSelection().isEmpty();
-
-    renameBrowserButton.setEnabled(hasSelection);
-    removeBrowserButton.setEnabled(hasSelection);
-  }
-
-  private void updateEnablements(boolean isDefaultBrowser) {
-    if (isDefaultBrowser) {
-      defaultBrowserButton.setSelection(true);
-      selectBrowserButton.setSelection(false);
-      browserField.setEnabled(false);
-      browseButton.setEnabled(false);
-    } else {
-      defaultBrowserButton.setSelection(false);
-      selectBrowserButton.setSelection(true);
-      browserField.setEnabled(true);
-      browseButton.setEnabled(true);
-    }
   }
 
 }

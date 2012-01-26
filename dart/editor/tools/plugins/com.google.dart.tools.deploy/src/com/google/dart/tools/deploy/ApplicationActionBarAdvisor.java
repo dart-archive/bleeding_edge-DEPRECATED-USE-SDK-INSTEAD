@@ -16,8 +16,6 @@ package com.google.dart.tools.deploy;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.ui.launch.DartRunAction;
 import com.google.dart.tools.debug.ui.launch.ManageLaunchesAction;
-import com.google.dart.tools.debug.ui.launch.RunInBrowserAction;
-import com.google.dart.tools.debug.ui.launch.RunInServerAction;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
@@ -170,9 +168,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   // IDE-specific actions
 //  private IAction newWizardAction;
-
-  private RunInBrowserAction runInBrowserAction;
-  private RunInServerAction runServerAction;
 
   private DartRunAction dartRunAction;
 
@@ -432,12 +427,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       // Add the group for applications to contribute
       helpToolBar.add(new GroupMarker(IWorkbenchActionConstants.GROUP_APP));
 
-      if (DartCoreDebug.DEBUGGER) {
-        helpToolBar.add(dartRunAction);
-      } else {
-        helpToolBar.add(runInBrowserAction);
-        helpToolBar.add(runServerAction);
-      }
+      helpToolBar.add(dartRunAction);
 
       // Add to the cool bar manager
       coolBar.add(actionBarConfigurer.createToolBarContributionItem(helpToolBar,
@@ -474,9 +464,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   protected void makeActions(final IWorkbenchWindow window) {
     // @issue should obtain from ConfigurationItemFactory
     statusLineItem = new StatusLineContributionItem("ModeContributionItem"); //$NON-NLS-1$
-
-    runInBrowserAction = new RunInBrowserAction(window);
-    runServerAction = new RunInServerAction(window);
 
     dartRunAction = new DartRunAction(window);
 
@@ -1002,13 +989,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(new Separator());
 
-    if (DartCoreDebug.DEBUGGER) {
-      menu.add(new DartRunAction(window, true));
-      menu.add(new ManageLaunchesAction(window));
-    } else {
-      menu.add(runInBrowserAction);
-      menu.add(runServerAction);
-    }
+    menu.add(new DartRunAction(window, true));
+    menu.add(new ManageLaunchesAction(window));
 
     menu.add(new Separator());
 

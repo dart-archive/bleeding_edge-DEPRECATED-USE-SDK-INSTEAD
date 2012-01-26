@@ -40,8 +40,6 @@ public class DartCoreDebug {
   public static final boolean DEPLOY_FROG = isOptionTrue("deploy/frog");
   public static final boolean FROG = isOptionTrue("debug/frog");
 
-  public static final boolean DEBUGGER = isOptionTrue("debugger");
-
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
   public static final boolean ENABLE_TYPE_REFINEMENT = isOptionTrue("debug/RefineTypes");
 

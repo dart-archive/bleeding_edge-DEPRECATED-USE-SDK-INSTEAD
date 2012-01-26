@@ -420,9 +420,7 @@ public class DartcBuildHandler {
       MetricsMessenger.getSingleton().fireUpdates(config,
           new Path(libSource.getName()).lastSegment());
 
-      if (!DartCoreDebug.DEBUGGER) {
-        emitArtifactDetailsToConsole(libImpl);
-      }
+//        emitArtifactDetailsToConsole(libImpl);
 
       // TODO(brianwilkerson) Figure out how to get the library units out of the compiler so that
       // they can be used to drive the indexer.

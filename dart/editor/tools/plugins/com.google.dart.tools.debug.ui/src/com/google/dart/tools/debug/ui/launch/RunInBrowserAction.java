@@ -14,7 +14,6 @@
 package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.builder.DartBuilder;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartElement;
@@ -74,7 +73,10 @@ import java.util.Set;
 
 /**
  * A menu for opening html files in the system browser.
+ * 
+ * @deprecated
  */
+@Deprecated
 public class RunInBrowserAction extends AbstractInstrumentedAction implements
     ISelectionChangedListener, ISelectionListener, IPartListener, IViewActionDelegate {
 
@@ -241,7 +243,7 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
                 }
               }
 
-              if (DartCoreDebug.DEBUGGER) {
+              if (DartSdk.isInstalled()) {
                 // check if Dartium is available and launch as first option
                 File dartiumFile = DartSdk.getInstance().getDartiumExecutable();
                 if (dartiumFile != null) {
