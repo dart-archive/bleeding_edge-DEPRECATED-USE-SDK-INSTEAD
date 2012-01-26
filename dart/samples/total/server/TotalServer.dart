@@ -18,7 +18,7 @@ void main() {
 }
 
 class TotalServer extends IsolatedServer {
-  final String CLIENT_DIR = '../../../client/samples/total/src';
+  final String CLIENT_DIR = '../client';
   final String OUTPUT_DIR = 'out';
 
   TotalServer() : super() {
@@ -39,7 +39,7 @@ class TotalServer extends IsolatedServer {
     for (String fileName in [
              '123.png',
              'fake-profile-photo.png',
-             'fake-sandbar-controls.png',
+             'fake-profile-controls.png',
              'favicon.png',
              'graphobject.png',
              'inner-menu-bg.png',

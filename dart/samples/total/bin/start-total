@@ -36,7 +36,7 @@ def BuildDart(mode):
 def RunTotal(mode):
   subprocess.call(
     [GetOutputPath(mode), 'TotalRunner.dart'],
-    cwd = herePath('src'))
+    cwd = herePath('server'))
 
 if __name__ == '__main__':
   parser = optparse.OptionParser()
