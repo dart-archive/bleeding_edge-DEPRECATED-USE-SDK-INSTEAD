@@ -521,10 +521,8 @@ class ObjectArray<T> { }
 
         <!-- Total -->
         <copy todir="${samples.out.dir}/total">
-            <fileset dir="${build.source.root}/client/samples/total">
-              <exclude name="bin/**"/>
-              <exclude name=".project"/>
-              <exclude name="src/Server.dart"/>
+            <fileset dir="${build.source.root}/samples/total">
+                <exclude name="bin/**"/>
             </fileset>
         </copy>
 
