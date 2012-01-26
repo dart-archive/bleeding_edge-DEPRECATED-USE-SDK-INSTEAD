@@ -25,6 +25,7 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubMonitor;
 
 import java.io.File;
@@ -43,7 +44,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
    * @return the application file (may not exist)
    */
   public static File getJsAppArtifactFile(IPath sourceLocation) {
-    return sourceLocation.addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
+    return sourceLocation.addFileExtension(JavascriptBackend.EXTENSION_JS).toFile();
   }
 
   /**
@@ -56,7 +57,18 @@ public class DartBuilder extends IncrementalProjectBuilder {
     return getJsAppArtifactFile(source.getLocation());
   }
 
+  /**
+   * Answer the JavaScript application file path for the specified source.
+   * 
+   * @param source the application source file (not <code>null</code>)
+   * @return the application file path (may not exist)
+   */
+  public static IPath getJsAppArtifactPath(IPath libraryPath) {
+    return Path.fromOSString(getJsAppArtifactFile(libraryPath).getAbsolutePath());
+  }
+
   private final DartcBuildHandler dartcBuildHandler = new DartcBuildHandler();
+
   private final FrogBuildHandler frogBuilderHandler = new FrogBuildHandler();
 
   private boolean firstBuildThisSession = true;
@@ -65,7 +77,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
   @Override
   protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
     // TODO(keertip) : remove call to dartc if frog is being used, once indexer is independent
-    // If bleeding edge, then dartc does not produce any js files
+    // If building using frog, then dartc does not produce any js files
     if (firstBuildThisSession || hasDartSourceChanged()) {
       if (DartCoreDebug.BUILD_FROG) {
         SubMonitor subMonitor = SubMonitor.convert(monitor, 100);

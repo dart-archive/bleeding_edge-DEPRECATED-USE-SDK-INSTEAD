@@ -5,6 +5,7 @@
   <body>
     <h1>%title%</h1>
     <h2 id="status">dart is not running</h2>
-    <script type="text/javascript" src="%dartPath%"></script>
+    <script type="application/dart" src="%dartSrcPath%"></script>
+    <script src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script>
   </body>
 </html>

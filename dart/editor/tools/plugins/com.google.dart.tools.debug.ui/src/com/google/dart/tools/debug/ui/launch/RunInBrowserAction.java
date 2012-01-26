@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.internal.builder.DartBuilder;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -110,7 +110,7 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
   public static final String ACTION_ID = DartDebugUIPlugin.PLUGIN_ID + ".runInBrowserAction"; //$NON-NLS-1$
 
   public static File getJsAppArtifactFile(IPath sourceLocation) {
-    return sourceLocation.addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
+    return DartBuilder.getJsAppArtifactFile(sourceLocation);
   }
 
   private IWorkbenchWindow window;

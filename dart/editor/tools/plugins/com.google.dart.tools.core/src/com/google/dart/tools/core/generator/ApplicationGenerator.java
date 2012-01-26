@@ -178,6 +178,7 @@ public class ApplicationGenerator extends AbstractGenerator {
     String htmlFileName = appendIfNoExtension(applicationName, HTML_FILENAME_EXTENSION);
     File iHtmlFile = getSystemFile(htmlFileName);
     substitutions.put("title", className);
+    substitutions.put("dartSrcPath", applicationFileName);
     substitutions.put("dartPath", applicationFileName + "." + JavascriptBackend.EXTENSION_APP_JS);
     execute("generated-html.txt", iHtmlFile, substitutions, monitor); //$NON-NLS-1$
     subMonitor.newChild(100);

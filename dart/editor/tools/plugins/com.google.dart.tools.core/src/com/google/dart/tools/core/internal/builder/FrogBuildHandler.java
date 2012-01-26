@@ -92,8 +92,6 @@ public class FrogBuildHandler {
     }
   }
 
-  private static final String APP_JS_EXTENSION = ".app.js";
-
   public IProject[] build(IProgressMonitor monitor, IProject project) throws CoreException {
     DartProject proj = DartCore.create(project);
 
@@ -141,7 +139,8 @@ public class FrogBuildHandler {
     for (DartLibrary library : dartProject.getDartLibraries()) {
       IPath libraryPath = library.getCorrespondingResource().getLocation();
       // Determine the Javascript output file location.
-      IPath outputPath = Path.fromPortableString(libraryPath.toPortableString() + APP_JS_EXTENSION);
+      //IPath outputPath = Path.fromPortableString(libraryPath.toPortableString() + JavascriptBackend.EXTENSION_APP_JS);
+      IPath outputPath = DartBuilder.getJsAppArtifactPath(libraryPath);
 
       IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(
           outputPath.toFile().toURI());
@@ -160,7 +159,8 @@ public class FrogBuildHandler {
     CompileResponseHandler responseHandler = new CompileResponseHandler(project, latch);
 
     IPath libraryPath = library.getCorrespondingResource().getLocation();
-    IPath outputPath = Path.fromPortableString(libraryPath.toPortableString() + APP_JS_EXTENSION);
+    //IPath outputPath = Path.fromPortableString(libraryPath.toPortableString() + JavascriptBackend.EXTENSION_APP_JS);
+    IPath outputPath = DartBuilder.getJsAppArtifactPath(libraryPath);
 
     // Don't try and generate Javascript from non-application libraries.
     if (!((DartLibraryImpl) library).hasMain()) {

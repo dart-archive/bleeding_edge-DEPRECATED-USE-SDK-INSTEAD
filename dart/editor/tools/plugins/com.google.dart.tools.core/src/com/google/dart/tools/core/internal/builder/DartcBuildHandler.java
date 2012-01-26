@@ -24,6 +24,7 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.backend.js.AbstractJsBackend;
+import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.tools.core.DartCore;
@@ -71,7 +72,8 @@ public class DartcBuildHandler {
 
   /**
    * An artifact provider for tracking prerequisite projects. All artifacts are cached in memory via
-   * {@link RootArtifactProvider} except for the final app.js file which is written to disk.
+   * {@link RootArtifactProvider} except for the final app.js file which is written to disk as a
+   * *.js file
    */
   private class ArtifactProvider extends CachingArtifactProvider {
     private final RootArtifactProvider rootProvider = RootArtifactProvider.getInstance();
@@ -192,6 +194,10 @@ public class DartcBuildHandler {
      * @return the file or <code>null</code> if it is not specified
      */
     private File getAppJsFile(Source source, String part, String extension) throws AssertionError {
+
+      // DartC currently generates *.js files for each class; we cache these files in memory
+      // When DartC asks for a the *.app.js file, we return a *.js file on disk
+
       if (!AbstractJsBackend.EXTENSION_APP_JS.equals(extension) || !"".equals(part)) {
         return null;
       }
@@ -327,6 +333,14 @@ public class DartcBuildHandler {
           file.delete();
         }
       }
+
+      // Delete the older style .app.js file, if it exists
+      // TODO (danrubel): remove after sufficient time has passed for old files to be cleaned up
+      file = libResource.getLocation().addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
+      if (file.exists()) {
+        file.delete();
+      }
+
       // Call the Dart to JS compiler
       final LibrarySource libSource = libImpl.getLibrarySourceFile();
       final CompilerMetrics metrics = new CompilerMetrics();
