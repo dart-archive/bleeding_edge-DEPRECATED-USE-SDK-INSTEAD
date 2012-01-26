@@ -28,7 +28,7 @@ public class DartHtmlGeneratorTest extends DartFileGeneratorTest {
     DartHtmlGenerator generator = getGenerator();
     generator.setName("MyNewWebPage");
     generator.setTitle("SomeRandomTitle");
-    generator.setDartAppFile(getLibFolder().getFile(new Path("js/ANewDartType.app.js")));
+    generator.setDartAppFile(getLibFolder().getFile(new Path("ANewDartType.dart")));
     IStatus status = generator.validate();
     assertTrue(status.getMessage(), status.isOK());
     generator.execute(new NullProgressMonitor());
