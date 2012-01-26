@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -636,34 +636,32 @@ class AbstractScanner<T> implements Scanner {
   }
 
   int tokenizeSingleLineString(int next, int q1, int start) {
-    while (next !== $EOF) {
-      if (next === q1) {
-        appendByteStringToken(STRING_INFO, utf8String(start, 0));
-        return advance();
-      } else if (next === $BACKSLASH) {
+    while (next !== q1) {
+      if (next === $BACKSLASH) {
         next = advance();
-        if (next === $EOF) {
-          throw new MalformedInputException("unterminated string literal",
-                                            charOffset);
-        }
       } else if (next === $$) {
-        beginToken();
-        next = advance();
-        if (next === $OPEN_CURLY_BRACKET) {
-          next = tokenizeInterpolatedExpression(next, start);
-        } else {
-          next = tokenizeInterpolatedIdentifier(next, start);
-        }
+        next = tokenizeStringInterpolation(start);
         start = byteOffset;
         continue;
-      } else if (next === $LF || next === $CR) {
+      }
+      if (next <= $CR && (next === $LF || next === $CR || next === $EOF)) {
         throw new MalformedInputException("unterminated string literal",
                                           charOffset);
       }
       next = advance();
     }
-    throw new MalformedInputException("unterminated string literal",
-                                      charOffset);
+    appendByteStringToken(STRING_INFO, utf8String(start, 0));
+    return advance();
+  }
+
+  int tokenizeStringInterpolation(int start) {
+    beginToken();
+    int next = advance();
+    if (next === $OPEN_CURLY_BRACKET) {
+      return tokenizeInterpolatedExpression(next, start);
+    } else {
+      return tokenizeInterpolatedIdentifier(next, start);
+    }
   }
 
   int tokenizeInterpolatedExpression(int next, int start) {
