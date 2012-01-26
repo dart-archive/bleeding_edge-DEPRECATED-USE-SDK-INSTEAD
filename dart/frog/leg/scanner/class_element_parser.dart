@@ -84,7 +84,7 @@ class MemberListener extends NodeListener {
              ? ElementKind.GETTER : ElementKind.SETTER;
     }
     Element memberElement =
-        new PartialFunctionElement(name, beginToken, endToken,
+        new PartialFunctionElement(name, beginToken, getOrSet, endToken,
                                    kind, method.modifiers, enclosingElement);
     enclosingElement.addMember(memberElement, canceler);
   }
@@ -101,8 +101,8 @@ class MemberListener extends NodeListener {
     Identifier name = method.name;
     ElementKind kind = ElementKind.FUNCTION;
     Element memberElement =
-        new PartialFunctionElement(name.source, factoryKeyword, endToken, kind,
-                                   method.modifiers, enclosingElement);
+        new PartialFunctionElement(name.source, factoryKeyword, null, endToken,
+                                   kind, method.modifiers, enclosingElement);
     enclosingElement.addMember(memberElement, canceler);
   }
 

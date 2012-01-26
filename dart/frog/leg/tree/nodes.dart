@@ -48,8 +48,9 @@ interface Visitor<R> {
 }
 
 Token firstBeginToken(Node first, Node second) {
-  return (first !== null) ? first.getBeginToken()
-                          : second.getBeginToken();
+  if (first !== null) return first.getBeginToken();
+  if (second !== null) return second.getBeginToken();
+  return null;
 }
 
 /**
@@ -521,8 +522,10 @@ class FunctionExpression extends Expression {
   final Modifiers modifiers;
   final NodeList initializers;
 
+  final Token getOrSet;
+
   FunctionExpression(this.name, this.parameters, this.body, this.returnType,
-                     this.modifiers, this.initializers);
+                     this.modifiers, this.initializers, this.getOrSet);
 
   FunctionExpression asFunctionExpression() => this;
 
@@ -536,8 +539,10 @@ class FunctionExpression extends Expression {
   }
 
   Token getBeginToken() {
-    if (returnType === null) return firstBeginToken(name, parameters);
-    return returnType.getBeginToken();
+    Token token = firstBeginToken(modifiers, returnType);
+    if (token !== null) return token;
+    if (getOrSet !== null) return getOrSet;
+    return firstBeginToken(name, parameters);
   }
 
   Token getEndToken() {

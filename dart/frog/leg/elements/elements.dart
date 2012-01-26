@@ -349,7 +349,7 @@ class SynthesizedConstructorElement extends FunctionElement {
         new Identifier.synthetic(''),
         new NodeList.empty(),
         new Block(new NodeList.empty()),
-        null, null, null);
+        null, null, null, null);
     return cachedNode;
   }
 

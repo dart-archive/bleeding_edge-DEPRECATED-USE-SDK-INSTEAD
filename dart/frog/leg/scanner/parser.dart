@@ -353,11 +353,14 @@ class Parser {
     Token start = token;
     listener.beginTopLevelMember(token);
     token = parseModifiers(token);
+    Token getOrSet = findGetOrSet(token);
+    if (token === getOrSet) token = token.next;
     Token peek = peekAfterType(token);
-    while (isIdentifier(peek)) {
+    if (isIdentifier(peek)) {
+      // Skip type.
       token = peek;
-      peek = peekAfterType(token);
     }
+    if (token === getOrSet) token = token.next;
     token = parseIdentifier(token);
     bool isField;
     while (true) {
@@ -393,7 +396,7 @@ class Parser {
     } else {
       token = parseFormalParameters(token);
       token = parseFunctionBody(token, false);
-      listener.endTopLevelMethod(start, token);
+      listener.endTopLevelMethod(start, getOrSet, token);
     }
     return token.next;
   }
@@ -532,6 +535,35 @@ class Parser {
     return (value === 'get') || (value === 'set');
   }
 
+  Token findGetOrSet(Token token) {
+    if (isGetOrSet(token)) {
+      if (optional('<', token.next)) {
+        // For example: get<T> ...
+        final Token peek = peekAfterType(token);
+        if (isGetOrSet(peek) && isIdentifier(peek.next)) {
+          // For example: get<T> get identifier
+          return peek;
+        }
+      } else {
+        // For example: get ...
+        if (isGetOrSet(token.next) && isIdentifier(token.next.next)) {
+          // For example: get get identifier
+          return token.next;
+        } else {
+          // For example: get identifier
+          return token;
+        }
+      }
+    } else {
+      final Token peek = peekAfterType(token);
+      if (isGetOrSet(peek) && isIdentifier(peek.next)) {
+        // type? get identifier
+        return token;
+      }
+    }
+    return null;
+  }
+
   Token parseMember(Token token) {
     if (optional('factory', token)) {
       return parseFactoryMethod(token);
@@ -539,40 +571,14 @@ class Parser {
     Token start = token;
     listener.beginMember(token);
     token = parseModifiers(token);
-    Token peek;
-    Token getOrSet;
-    if (isGetOrSet(token)) {
-      if (optional('<', token.next)) {
-        // For example: get<T> ...
-        peek = peekAfterType(token);
-        if (isGetOrSet(peek) && isIdentifier(peek.next)) {
-          // For example: get<T> get identifier
-          getOrSet = peek;
-          token = peek.next;
-        }
-      } else {
-        // For example: get ...
-        if (isGetOrSet(token.next) && isIdentifier(token.next.next)) {
-          // For example: get get identifier
-          getOrSet = token.next;
-          token = token.next.next;
-        } else {
-          // For example: get identifier
-          getOrSet = token;
-          token = token.next;
-        }
-      }
-    } else {
-      peek = peekAfterType(token);
-      if (isGetOrSet(peek) && isIdentifier(peek.next)) {
-        // type? get identifier
-        getOrSet = token;
-        token = peek.next;
-      } else if (isIdentifier(peek)) {
-        token = peek;
-        peek = peekAfterType(token);
-      }
+    Token getOrSet = findGetOrSet(token);
+    if (token === getOrSet) token = token.next;
+    Token peek = peekAfterType(token);
+    if (isIdentifier(peek)) {
+      // Skip type.
+      token = peek;
     }
+    if (token === getOrSet) token = token.next;
     if (optional('operator', token)) {
       token = parseOperatorName(token);
     } else {
@@ -679,10 +685,12 @@ class Parser {
       (value === '|');
   }
 
-  Token parseFunction(Token token) {
+  Token parseFunction(Token token, Token getOrSet) {
     listener.beginFunction(token);
     token = parseModifiers(token);
+    if (getOrSet === token) token = token.next;
     token = parseReturnTypeOpt(token);
+    if (getOrSet === token) token = token.next;
     listener.beginFunctionName(token);
     token = parseIdentifier(token);
     token = parseQualifiedRestOpt(token);
@@ -690,7 +698,7 @@ class Parser {
     token = parseFormalParameters(token);
     token = parseInitializersOpt(token);
     token = parseFunctionBody(token, false);
-    listener.endFunction(token);
+    listener.endFunction(getOrSet, token);
     return token.next;
   }
 
@@ -714,7 +722,7 @@ class Parser {
     listener.handleNoInitializers();
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true);
-    listener.endFunction(token);
+    listener.endFunction(null, token);
     return isBlock ? token.next : token;
   }
 
@@ -828,7 +836,7 @@ class Parser {
         if (optional('{', afterParens) || optional('=>', afterParens)) {
           // We are looking at "type identifier '(' ... ')'" followed
           // by '=>' or '{'.
-          return parseFunction(token);
+          return parseFunction(token, null);
         }
       }
       // Fall-through to expression statement.
@@ -839,7 +847,7 @@ class Parser {
         BeginGroupToken begin = token.next;
         String afterParens = begin.endGroup.next.stringValue;
         if (afterParens === '{' || afterParens === '=>') {
-          return parseFunction(token);
+          return parseFunction(token, null);
         }
       }
     }
@@ -998,7 +1006,7 @@ class Parser {
       } else if (value === 'const') {
         return parseConstExpression(token);
       } else if (value === 'void') {
-        return parseFunction(token);
+        return parseFunction(token, null);
       } else if (isIdentifier(token)) {
         return parseSendOrFunctionLiteral(token);
       } else {

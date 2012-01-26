@@ -88,7 +88,7 @@ class Listener {
   void beginFunction(Token token) {
   }
 
-  void endFunction(Token token) {
+  void endFunction(Token getOrSet, Token endToken) {
   }
 
   void beginFunctionBody(Token token) {
@@ -217,7 +217,7 @@ class Listener {
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
   }
 
-  void endTopLevelMethod(Token beginToken, Token endToken) {
+  void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
   }
 
   void beginTryStatement(Token token) {
@@ -509,12 +509,12 @@ class ElementListener extends Listener {
     canceler.cancel("typedef is not implemented", token: typedefKeyword);
   }
 
-  void endTopLevelMethod(Token beginToken, Token endToken) {
+  void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     Identifier name = popNode();
     Modifiers modifiers = popNode();
-    pushElement(new PartialFunctionElement(name.source, beginToken, endToken,
-                                           ElementKind.FUNCTION, modifiers,
-                                           compilationUnitElement));
+    pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
+                                           endToken, ElementKind.FUNCTION,
+                                           modifiers, compilationUnitElement));
   }
 
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
@@ -729,14 +729,14 @@ class NodeListener extends ElementListener {
     pushNode(new VariableDefinitions(null, modifiers, variables, endToken));
   }
 
-  void endTopLevelMethod(Token beginToken, Token endToken) {
+  void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     Statement body = popNode();
     NodeList formalParameters = popNode();
     Identifier name = popNode();
     Modifiers modifiers = popNode();
-    pushElement(new PartialFunctionElement(name.source, beginToken, endToken,
-                                           ElementKind.FUNCTION, modifiers,
-                                           compilationUnitElement));
+    pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
+                                           endToken, ElementKind.FUNCTION,
+                                           modifiers, compilationUnitElement));
   }
 
   void endFormalParameter(Token token, Token thisKeyword) {
@@ -852,7 +852,7 @@ class NodeListener extends ElementListener {
     pushNode(null);
   }
 
-  void endFunction(Token token) {
+  void endFunction(Token getOrSet, Token endToken) {
     Statement body = popNode();
     NodeList initializers = popNode();
     NodeList formals = popNode();
@@ -861,7 +861,7 @@ class NodeListener extends ElementListener {
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formals, body, type,
-                                    modifiers, initializers));
+                                    modifiers, initializers, getOrSet));
   }
 
   void endVariablesDeclaration(int count, Token endToken) {
@@ -985,7 +985,7 @@ class NodeListener extends ElementListener {
     Expression name = popNode();
     Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formalParameters, body, null,
-                                    modifiers, initializers));
+                                    modifiers, initializers, getOrSet));
   }
 
   void handleLiteralMap(int count, Token beginToken, Token constKeyword,
@@ -1071,13 +1071,13 @@ class NodeListener extends ElementListener {
     pushNode(makeNodeList(count, beginToken, endToken, ','));
   }
 
-  void handleFunctionTypedFormalParameter(Token token) {
+  void handleFunctionTypedFormalParameter(Token endToken) {
     NodeList formals = popNode();
     Identifier name = popNode();
     TypeAnnotation returnType = popNode();
     pushNode(null); // Signal "no type" to endFormalParameter.
     pushNode(new FunctionExpression(name, formals, null, returnType,
-                                    null, null));
+                                    null, null, null));
   }
 
   void handleValuedFormalParameter(Token equals, Token token) {
@@ -1172,7 +1172,7 @@ class NodeListener extends ElementListener {
     handleModifiers(1);
     Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formals, body, null,
-                                    modifiers, null));
+                                    modifiers, null, null));
   }
 
   void endForInStatement(Token beginToken, Token inKeyword, Token endToken) {
@@ -1186,7 +1186,8 @@ class NodeListener extends ElementListener {
   void endUnamedFunction(Token token) {
     Statement body = popNode();
     NodeList formals = popNode();
-    pushNode(new FunctionExpression(null, formals, body, null, null, null));
+    pushNode(new FunctionExpression(null, formals, body, null,
+                                    null, null, null));
   }
 
   void handleIsOperator(Token operathor, Token not, Token endToken) {
@@ -1217,10 +1218,13 @@ class NodeListener extends ElementListener {
 
 class PartialFunctionElement extends FunctionElement {
   final Token beginToken;
+  final Token getOrSet;
   final Token endToken;
 
   PartialFunctionElement(SourceString name,
-                         Token this.beginToken, Token this.endToken,
+                         Token this.beginToken,
+                         Token this.getOrSet,
+                         Token this.endToken,
                          ElementKind kind,
                          Modifiers modifiers,
                          Element enclosing)
@@ -1228,7 +1232,8 @@ class PartialFunctionElement extends FunctionElement {
 
   FunctionExpression parseNode(Canceler canceler, Logger logger) {
     if (cachedNode != null) return cachedNode;
-    cachedNode = parse(canceler, logger, (p) => p.parseFunction(beginToken));
+    cachedNode = parse(canceler, logger,
+                       (p) => p.parseFunction(beginToken, getOrSet));
     return cachedNode;
   }
 
