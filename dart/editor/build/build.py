@@ -272,11 +272,13 @@ def main():
     if username.startswith('chrome'):
       from_bucket = 'gs://dart-dump-render-tree'
       to_bucket = 'gs://dart-editor-archive-continuous'
+      staging_bucket = 'gs://dart-editor-build'
       run_sdk_build = True
       running_on_buildbot = True
     else:
       from_bucket = 'gs://dart-editor-archive-testing'
       to_bucket = 'gs://dart-editor-archive-testing'
+      staging_bucket = 'gs://dart-editor-archive-testing'
       run_sdk_build = False
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
@@ -349,8 +351,9 @@ def main():
                     '  The Ant build must have failed')
         return 1
       else:
-        _DeployRcpsToTest(buildos, 'gs://dart-editor-archive-testing/testing',
-                          found_zips, gsu)
+        _DeployToStaging(buildos, staging_bucket, found_zips, gsu)
+        _WriteTagFile(buildos, staging_bucket, revision, gsu)
+#        _MoveStagingToContinuous(to_bucket_stage, to_bucket)
       return 0
 
     #if the build passed run the deploy artifacts
@@ -524,7 +527,7 @@ def _DeployArtifacts(fromd, to, tmp, svnid, gsu):
   return status
 
 
-def _DeployRcpsToTest(build_os, to_bucket, zip_files, gsu):
+def _DeployToStaging(build_os, to_bucket, zip_files, gsu):
   """Deploy the build RCP's to the test bucket.
 
   Args:
@@ -537,10 +540,33 @@ def _DeployRcpsToTest(build_os, to_bucket, zip_files, gsu):
                                                        build_os)
   for element in zip_files:
     base_name = os.path.basename(element)
-    to = '{0}/{1}/{2}'.format(to_bucket, build_os, base_name)
+    to = '{0}/staging/{1}/{2}'.format(to_bucket, build_os, base_name)
     status = gsu.Copy(element, to)
     if not status:
       _SetAcl(to, gsu)
+
+
+def _WriteTagFile(build_os, to_bucket, svnid, gsu):
+  """Write a tag file to the given bucket.
+
+  Args:
+    build_os: the os the build is running on
+    to_bucket: the Google Storage bucket to copy to
+    svnid: the revision id forthis build
+    gsu: the gsutil object
+  """
+  print '_WriteTagFile({0}, {1})'.format(build_os, to_bucket)
+  gs_object = '{0}/tags/done-{1}-{2}'.format(to_bucket, svnid, build_os)
+  tag_file = tempfile.NamedTemporaryFile(prefix='done', delete=False)
+  tag_file_name = tag_file.name
+  try:
+    tag_file.write(svnid)
+  finally:
+    tag_file.close()
+    status = gsu.Copy(tag_file_name, gs_object)
+    os.remove(tag_file_name)
+    if not status:
+      _SetAcl(gs_object, gsu)
 
 
 def _SetAclOnArtifacts(to, bucket_tags, gsu):
