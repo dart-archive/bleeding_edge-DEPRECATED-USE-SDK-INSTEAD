@@ -554,7 +554,7 @@ class Parser {
           return token;
         }
       }
-    } else {
+    } else if (token.stringValue !== 'operator') {
       final Token peek = peekAfterType(token);
       if (isGetOrSet(peek) && isIdentifier(peek.next)) {
         // type? get identifier
@@ -574,7 +574,7 @@ class Parser {
     Token getOrSet = findGetOrSet(token);
     if (token === getOrSet) token = token.next;
     Token peek = peekAfterType(token);
-    if (isIdentifier(peek)) {
+    if (isIdentifier(peek) && token.stringValue !== 'operator') {
       // Skip type.
       token = peek;
     }
@@ -692,7 +692,11 @@ class Parser {
     token = parseReturnTypeOpt(token);
     if (getOrSet === token) token = token.next;
     listener.beginFunctionName(token);
-    token = parseIdentifier(token);
+    if (optional('operator', token)) {
+      token = parseOperatorName(token);
+    } else {
+      token = parseIdentifier(token);
+    }
     token = parseQualifiedRestOpt(token);
     listener.endFunctionName(token);
     token = parseFormalParameters(token);

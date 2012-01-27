@@ -215,7 +215,8 @@ function(child, parent) {
 
     compiler.universe.invokedNames.forEach((SourceString methodName,
                                             Set<int> arities) {
-      if (objectClass.lookupLocalMember(methodName) === null) {
+      if (objectClass.lookupLocalMember(methodName) === null
+          && methodName != Namer.OPERATOR_EQUALS) {
         for (int arity in arities) {
           String jsName = namer.instanceMethodName(methodName, arity);
           generateMethod(methodName.stringValue, jsName, arity);

@@ -64,12 +64,15 @@ class MemberListener extends NodeListener {
     Node methodName = method.name;
     if (methodName.asSend() != null) {
       Send send = methodName.asSend();
-      // TODO(karlklose): find a better place for the construction of the name.
       Identifier receiver = send.receiver.asIdentifier();
       Identifier selector = send.selector.asIdentifier();
-      SourceString className = receiver.source;
-      SourceString constructorName = selector.source;
-      name = new SourceString('$className.$constructorName');
+      if (selector.asOperator() != null) {
+        name = Elements.constructOperatorName(
+            receiver.source, selector.source);
+      } else {
+        name = Elements.constructConstructorName(
+            receiver.source, selector.source);
+      }
     } else {
       name = methodName.asIdentifier().source;
     }

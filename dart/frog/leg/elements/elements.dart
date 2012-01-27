@@ -411,7 +411,7 @@ class ClassElement extends ContainerElement {
     //                  instead of creating the name here?
     SourceString name;
     if (constructorName !== const SourceString('')) {
-      name = new SourceString('$className.$constructorName');
+      name = Elements.constructConstructorName(className, constructorName);
     } else {
       name = className;
     }
@@ -470,5 +470,38 @@ class Elements {
     if (element === null) return false;
     // foo() with foo a local or a parameter.
     return element.isVariable() || element.isParameter();
+  }
+
+  static SourceString constructConstructorName(SourceString receiver,
+                                               SourceString selector) {
+    return new SourceString('$receiver\$$selector');
+  }
+
+  static SourceString constructOperatorName(SourceString receiver,
+                                            SourceString selector,
+                                            [bool isPrefix = false]) {
+    String str = selector.stringValue;
+    if (str === '==' || str === '!=') return Namer.OPERATOR_EQUALS;
+
+    if (str === '~') str = 'not';
+    else if (str === 'negate' || (str === '-' && isPrefix)) str = 'negate';
+    else if (str === '[]') str = 'index';
+    else if (str === '[]=') str = 'indexSet';
+    else if (str === '*' || str === '*=') str = 'mul';
+    else if (str === '/' || str === '/=') str = 'div';
+    else if (str === '%' || str === '%=') str = 'mod';
+    else if (str === '~/' || str === '~/=') str = 'tdiv';
+    else if (str === '+' || str === '+=') str = 'add';
+    else if (str === '-' || str === '-=') str = 'sub';
+    else if (str === '<<' || str === '<<=') str = 'shl';
+    else if (str === '>>' || str === '>>=') str = 'shr';
+    else if (str === '>=') str = 'ge';
+    else if (str === '>') str = 'gt';
+    else if (str === '<=') str = 'le';
+    else if (str === '<') str = 'lt';
+    else if (str === '&' || str === '&=') str = 'and';
+    else if (str === '^' || str === '^=') str = 'xor';
+    else if (str === '|' || str === '|=') str = 'or';
+    return new SourceString('$receiver\$$str');
   }
 }

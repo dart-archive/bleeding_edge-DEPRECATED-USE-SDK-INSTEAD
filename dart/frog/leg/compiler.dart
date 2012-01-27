@@ -134,8 +134,10 @@ class Compiler implements Canceler, Logger {
     scanner.scan(currentElement);
     // Make our special function a foreign kind.
     universe.define(new ForeignElement(const SourceString('JS')), this);
-    universe.define(new ForeignElement(const SourceString('UNINTERCEPTED')),
-                    this);
+    universe.define(new ForeignElement(
+        const SourceString('UNINTERCEPTED')), this);
+    universe.define(new ForeignElement(
+        const SourceString('JS_HAS_EQUALS')), this);
     // TODO(ngeoffray): Lazily add this method.
     universe.invokedNames[NO_SUCH_METHOD] = new Set<int>.from(<int>[2]);
   }

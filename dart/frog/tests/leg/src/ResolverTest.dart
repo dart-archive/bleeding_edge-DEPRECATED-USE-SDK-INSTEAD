@@ -517,7 +517,7 @@ testInitializers() {
                 A.a() : this.b(0);
                 A.b(int i);
               }""";
-  resolveConstructor(script, "A a = new A.a();", "A", "A.a", 1,
+  resolveConstructor(script, "A a = new A.a();", "A", @"A$a", 1,
                      [], []);
 
   script = """class A {
@@ -525,7 +525,7 @@ testInitializers() {
                 A.a() : i = 42, this(0);
                 A(int i);
               }""";
-  resolveConstructor(script, "A a = new A.a();", "A", "A.a", 2,
+  resolveConstructor(script, "A a = new A.a();", "A", @"A$a", 2,
                      [], [MessageKind.REDIRECTING_CTOR_HAS_INITIALIZER]);
 
   script = """class A {

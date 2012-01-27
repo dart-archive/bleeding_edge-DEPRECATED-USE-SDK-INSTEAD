@@ -238,7 +238,7 @@ class SsaBuilder implements Visitor {
     add(newObject);
 
     // Call the method body.
-    SourceString methodName = compiler.namer.getConstructorName(bodyElement);
+    SourceString methodName = bodyElement.name;
 
     List bodyCallInputs = <HInstruction>[];
     bodyCallInputs.add(newObject);
@@ -905,7 +905,22 @@ class SsaBuilder implements Visitor {
   visitDynamicSend(Send node) {
     var inputs = <HInstruction>[];
 
-    SourceString dartMethodName = node.selector.asIdentifier().source;
+    SourceString dartMethodName;
+    bool isNotEquals = false;
+    if (node.isIndex && !node.arguments.tail.isEmpty()) {
+      dartMethodName = Elements.constructOperatorName(
+          const SourceString('operator'),
+          const SourceString('[]='));
+    } else if (node.selector.asOperator() != null) {
+      SourceString name = node.selector.asIdentifier().source;
+      isNotEquals = name.stringValue === '!=';
+      dartMethodName = Elements.constructOperatorName(
+          const SourceString('operator'),
+          name,
+          node.argumentsNode is Prefix);
+    } else {
+      dartMethodName = node.selector.asIdentifier().source;
+    }
 
     Element interceptor = null;
     if (methodInterceptionEnabled) {
@@ -938,6 +953,11 @@ class SsaBuilder implements Visitor {
 
     // The first entry in the inputs list is the receiver.
     push(new HInvokeDynamicMethod(dartMethodName, inputs));
+
+    if (isNotEquals) {
+      HNot not = new HNot(popBoolified());
+      push(not);
+    }
   }
 
   visitClosureSend(Send node) {
@@ -968,7 +988,7 @@ class SsaBuilder implements Visitor {
         // argument, which is the type, and the second argument,
         // which is the foreign code.
         link = link.tail.tail;
-        var inputs = <HInstruction>[];
+        List<HInstruction> inputs = <HInstruction>[];
         addVisitedSendArgumentsToList(link, inputs);
         LiteralString type = node.arguments.head;
         LiteralString literal = node.arguments.tail.head;
@@ -986,6 +1006,17 @@ class SsaBuilder implements Visitor {
         disableMethodInterception();
         visit(expression);
         enableMethodInterception();
+        break;
+      case "JS_HAS_EQUALS":
+        List<HInstruction> inputs = <HInstruction>[];
+        if (!node.arguments.tail.isEmpty()) {
+          compiler.cancel('More than one expression in JS_HAS_EQUALS()');
+        }
+        addVisitedSendArgumentsToList(node.arguments, inputs);
+        String name = compiler.namer.instanceMethodName(
+            Namer.OPERATOR_EQUALS, 1);
+        push(new HForeign(
+            new SourceString('\$0.$name'), const SourceString('bool'), inputs));
         break;
       default:
         throw "Unknown foreign: ${node.selector}";
@@ -1017,7 +1048,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitSend(Send node) {
-    if (node.selector is Operator) {
+    if (node.selector is Operator && methodInterceptionEnabled) {
       visitOperatorSend(node);
     } else if (node.isPropertyAccess) {
       generateGetter(node, elements[node]);
@@ -1061,41 +1092,49 @@ class SsaBuilder implements Visitor {
   visitSendSet(SendSet node) {
     Operator op = node.assignmentOperator;
     if (node.isIndex) {
-      HStatic target = new HStatic(interceptors.getIndexAssignmentInterceptor());
-      add(target);
-      visit(node.receiver);
-      HInstruction receiver = pop();
-      visit(node.argumentsNode);
-      if (const SourceString("=") == op.source) {
-        HInstruction value = pop();
-        HInstruction index = pop();
-        push(new HIndexAssign(target, receiver, index, value));
+      if (!methodInterceptionEnabled) {
+        assert(op.source.stringValue === '=');
+        visitDynamicSend(node);
       } else {
-        HInstruction value;
-        HInstruction index;
-        bool isCompoundAssignment = op.source.stringValue.endsWith('=');
-        bool isPrefix = !node.isPostfix;  // Compound assignments are prefix.
-        Element getter = elements[node.selector];
-        if (isCompoundAssignment) {
-          value = pop();
-          index = pop();
+        HStatic target = new HStatic(
+            interceptors.getIndexAssignmentInterceptor());
+        add(target);
+        visit(node.receiver);
+        HInstruction receiver = pop();
+        visit(node.argumentsNode);
+        if (const SourceString("=") == op.source) {
+          HInstruction value = pop();
+          HInstruction index = pop();
+          push(new HIndexAssign(target, receiver, index, value));
         } else {
-          index = pop();
-          value = new HLiteral(1, HType.INTEGER);
-          add(value);
-        }
-        HStatic indexMethod = new HStatic(interceptors.getIndexInterceptor());
-        add(indexMethod);
-        HInstruction left = new HIndex(indexMethod, receiver, index);
-        add(left);
-        Element opElement = elements[op];
-        visitBinary(left, op, value);
-        HInstruction assign = new HIndexAssign(target, receiver, index, pop());
-        add(assign);
-        if (isPrefix) {
-          stack.add(assign);
-        } else {
-          stack.add(left);
+          HInstruction value;
+          HInstruction index;
+          bool isCompoundAssignment = op.source.stringValue.endsWith('=');
+          // Compound assignments are considered as being prefix.
+          bool isPrefix = !node.isPostfix;
+          Element getter = elements[node.selector];
+          if (isCompoundAssignment) {
+            value = pop();
+            index = pop();
+          } else {
+            index = pop();
+            value = new HLiteral(1, HType.INTEGER);
+            add(value);
+          }
+          HStatic indexMethod = new HStatic(interceptors.getIndexInterceptor());
+          add(indexMethod);
+          HInstruction left = new HIndex(indexMethod, receiver, index);
+          add(left);
+          Element opElement = elements[op];
+          visitBinary(left, op, value);
+          HInstruction assign = new HIndexAssign(
+              target, receiver, index, pop());
+          add(assign);
+          if (isPrefix) {
+            stack.add(assign);
+          } else {
+            stack.add(left);
+          }
         }
       }
     } else if (const SourceString("=") == op.source) {

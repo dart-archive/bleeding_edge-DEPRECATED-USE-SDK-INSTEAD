@@ -56,28 +56,28 @@ add(var a, var b) {
     // operator, since that's what we are defining here.
     throw "calling toString() on right hand operand of operator + did not return a String";
   }
-  throw "Unimplemented user-defined +.";
+  return UNINTERCEPTED(a + b);
 }
 
 div(var a, var b) {
   if (checkNumbers(a, b, "num/ expects a number as second operand.")) {
     return JS("num", @"$0 / $1", a, b);
   }
-  throw "Unimplemented user-defined /.";
+  return UNINTERCEPTED(a / b);
 }
 
 mul(var a, var b) {
   if (checkNumbers(a, b, "num* expects a number as second operand.")) {
     return JS("num", @"$0 * $1", a, b);
   }
-  throw "Unimplemented user-defined *.";
+  return UNINTERCEPTED(a * b);
 }
 
 sub(var a, var b) {
   if (checkNumbers(a, b, "num- expects a number as second operand.")) {
     return JS("num", @"$0 - $1", a, b);
   }
-  throw "Unimplemented user-defined binary -.";
+  return UNINTERCEPTED(a - b);
 }
 
 mod(var a, var b) {
@@ -92,7 +92,7 @@ mod(var a, var b) {
       return result + b;
     }
   }
-  throw "Unimplemented user-defined %.";
+  return UNINTERCEPTED(a % b);
 }
 
 tdiv(var a, var b) {
@@ -106,13 +106,13 @@ tdiv(var a, var b) {
       return JS("num", @"Math.floor($0)", tmp);
     }
   }
-  throw "Unimplemented user-defined ~/.";
+  return UNINTERCEPTED(a ~/ b);
 }
 
 eq(var a, var b) {
   if (JS("bool", @"typeof $0 === 'object'", a)) {
-    if (JS("bool", @"$0.$equals", a)) {
-      return JS("bool", @"$0.$equals($1) === true", a, b);
+    if (JS_HAS_EQUALS(a)) {
+      return UNINTERCEPTED(a == b) === true;
     } else {
       return JS("bool", @"$0 === $1", a, b);
     }
@@ -127,8 +127,8 @@ eqq(var a, var b) {
 
 eqNull(var a) {
   if (JS("bool", @"typeof $0 === 'object'", a)) {
-    if (JS("bool", @"$0.$equals", a)) {
-      return JS("bool", @"$0.$equals(void 0) === true", a);
+    if (JS_HAS_EQUALS(a)) {
+      return UNINTERCEPTED(a == null) === true;
     } else {
       return false;
     }
@@ -141,28 +141,28 @@ gt(var a, var b) {
   if (checkNumbers(a, b, "num> expects a number as second operand.")) {
     return JS("bool", @"$0 > $1", a, b);
   }
-  throw "Unimplemented user-defined binary >.";
+  return UNINTERCEPTED(a > b);
 }
 
 ge(var a, var b) {
   if (checkNumbers(a, b, "num>= expects a number as second operand.")) {
     return JS("bool", @"$0 >= $1", a, b);
   }
-  throw "Unimplemented user-defined binary >=.";
+  return UNINTERCEPTED(a >= b);
 }
 
 lt(var a, var b) {
   if (checkNumbers(a, b, "num< expects a number as second operand.")) {
     return JS("bool", @"$0 < $1", a, b);
   }
-  throw "Unimplemented user-defined binary <.";
+  return UNINTERCEPTED(a < b);
 }
 
 le(var a, var b) {
   if (checkNumbers(a, b, "num<= expects a number as second operand.")) {
     return JS("bool", @"$0 <= $1", a, b);
   }
-  throw "Unimplemented user-defined binary <=.";
+  return UNINTERCEPTED(a <= b);
 }
 
 shl(var a, var b) {
@@ -170,7 +170,7 @@ shl(var a, var b) {
   if (checkNumbers(a, b, "int<< expects an int as second operand.")) {
     return JS("num", @"$0 << $1", a, b);
   }
-  throw "Unimplemented user-defined binary <<.";
+  return UNINTERCEPTED(a << b);
 }
 
 shr(var a, var b) {
@@ -178,7 +178,7 @@ shr(var a, var b) {
   if (checkNumbers(a, b, "int>> expects an int as second operand.")) {
     return JS("num", @"$0 >> $1", a, b);
   }
-  throw "Unimplemented user-defined binary >>.";
+  return UNINTERCEPTED(a >> b);
 }
 
 and(var a, var b) {
@@ -186,7 +186,7 @@ and(var a, var b) {
   if (checkNumbers(a, b, "int& expects an int as second operand.")) {
     return JS("num", @"$0 & $1", a, b);
   }
-  throw "Unimplemented user-defined binary &.";
+  return UNINTERCEPTED(a & b);
 }
 
 or(var a, var b) {
@@ -194,7 +194,7 @@ or(var a, var b) {
   if (checkNumbers(a, b, "int| expects an int as second operand.")) {
     return JS("num", @"$0 | $1", a, b);
   }
-  throw "Unimplemented user-defined binary |.";
+  return UNINTERCEPTED(a | b);
 }
 
 xor(var a, var b) {
@@ -202,17 +202,17 @@ xor(var a, var b) {
   if (checkNumbers(a, b, "int^ expects an int as second operand.")) {
     return JS("num", @"$0 ^ $1", a, b);
   }
-  throw "Unimplemented user-defined binary ^.";
+  return UNINTERCEPTED(a ^ b);
 }
 
 not(var a) {
   if (JS("bool", @"typeof $0 === 'number'", a)) return JS("num", @"~$0", a);
-  throw "Unimplemented user-defined ~.";
+  return UNINTERCEPTED(~a);
 }
 
 neg(var a) {
   if (JS("bool", @"typeof $0 === 'number'", a)) return JS("num", @"-$0", a);
-  throw "Unimplemented user-defined unary-.";
+  return UNINTERCEPTED(-a);
 }
 
 index(var a, var index) {
@@ -221,7 +221,7 @@ index(var a, var index) {
     if (index < 0 || index >= a.length) $throw('Out of bounds');
     return JS("Object", @"$0[$1]", a, index);
   }
-  throw "Unimplemented user-defined [].";
+  return UNINTERCEPTED(a[index]);
 }
 
 indexSet(var a, var index, var value) {
@@ -230,7 +230,7 @@ indexSet(var a, var index, var value) {
     if (index < 0 || index >= a.length) $throw('Out of bounds');
     return JS("Object", @"$0[$1] = $2", a, index, value);
   }
-  throw "Unimplemented user-defined []=.";
+  return UNINTERCEPTED(a[index] = value);
 }
 
 builtin$add$1(var receiver, var value) {
@@ -238,14 +238,14 @@ builtin$add$1(var receiver, var value) {
     JS("Object", @"$0.push($1)", receiver, value);
     return;
   }
-  throw "Unimplemented user-defined add().";
+  return UNINTERCEPTED(receiver.add(value));
 }
 
 builtin$removeLast$0(var receiver) {
   if (isJSArray(receiver)) {
     return JS("Object", @"$0.pop()", receiver);
   }
-  throw "Unimplemented user-defined removeLast().";
+  return UNINTERCEPTED(receiver.removeLast());
 }
 
 builtin$filter$1(var receiver, var predicate) {
@@ -253,7 +253,7 @@ builtin$filter$1(var receiver, var predicate) {
     return JS("Object", @"$0.filter(function(v) { return $1(v) === true; })",
               receiver, predicate);
   }
-  throw "Unimplemented user-defined filter().";
+  return UNINTERCEPTED(receiver.filter(predicate));
 }
 
 
@@ -261,7 +261,7 @@ builtin$get$length(var receiver) {
   if (JS("bool", @"typeof $0 === 'string'", receiver) || isJSArray(receiver)) {
     return JS("num", @"$0.length", receiver);
   }
-  throw "Unimplemented user-defined length.";
+  return UNINTERCEPTED(receiver.length);
 }
 
 
@@ -377,6 +377,8 @@ class ListIterator<T> /* implements Iterator<T> */ {
 }
 
 class Expect {
+  // TODO(ngeoffray): add optional message parameters to these
+  // methods.
   static void equals(var expected, var actual) {
     if (expected == actual) return;
     _fail('Expect.equals(expected: <$expected>, actual:<$actual> fails.');
@@ -387,12 +389,31 @@ class Expect {
   }
 
   static void _fail(String message) {
-    throw message;
+    $throw(message);
   }
 
   static void isTrue(var actual) {
     if (actual === true) return;
     _fail("Expect.isTrue($actual) fails.");
+  }
+
+  static void isFalse(var actual) {
+    if (actual === false) return;
+    _fail("Expect.isFalse($actual) fails.");
+  }
+
+  static void listEquals(List expected, List actual) {
+    // We check on length at the end in order to provide better error
+    // messages when an unexpected item is inserted in a list.
+    if (expected.length != actual.length) {
+      _fail('list not equals');
+    }
+
+    for (int i = 0; i < expected.length; i++) {
+      if (expected[i] != actual[i]) {
+        _fail('list not equals');
+      }
+    }
   }
 }
 

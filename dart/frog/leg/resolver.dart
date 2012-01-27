@@ -652,7 +652,7 @@ class FullResolverVisitor extends ResolverVisitor {
       Identifier selector = typeName.asSend().selector.asIdentifier();
       SourceString className = receiver.source;
       SourceString name = selector.source;
-      constructorName = new SourceString('$className.$name');
+      constructorName = Elements.constructConstructorName(className, name);
     } else {
       constructorName = typeName.asIdentifier().source;
     }

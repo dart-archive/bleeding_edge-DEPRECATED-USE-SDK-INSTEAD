@@ -9,6 +9,7 @@ class Namer {
   final Compiler compiler;
 
   static final CLOSURE_INVOCATION_NAME = const SourceString('\$call');
+  static final OPERATOR_EQUALS = const SourceString('operator\$eq');
 
   static Set<String> _jsReserved = null;
   Set<String> get jsReserved() {
@@ -60,9 +61,9 @@ class Namer {
   String _computeGuess(Element element) {
     assert(!element.isInstanceMember());
     if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-      SourceString name = getConstructorName(element);
       FunctionElement functionElement = element;
-      return instanceMethodName(name, functionElement.parameterCount(compiler));
+      return instanceMethodName(
+          element.name, functionElement.parameterCount(compiler));
     } else {
       // TODO(floitsch): deal with named constructors.
       String name = '${element.name}';
@@ -83,11 +84,6 @@ class Namer {
     return '${getName(element)}\$bailout';
   }
 
-  SourceString getConstructorName(FunctionElement constructor) {
-    String dartName = constructor.name.stringValue;
-    return new SourceString(dartName.replaceFirst('\.', '\$'));
-  }
-
   /**
    * Returns a preferred JS-id for the given element. The returned id is
    * guaranteed to be a valid JS-id. Globals and static fields are furthermore
@@ -101,7 +97,7 @@ class Namer {
       SourceString name;
       if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
         ConstructorBodyElement bodyElement = element;
-        SourceString name = getConstructorName(bodyElement.constructor);
+        SourceString name = bodyElement.constructor.name;
         return instanceMethodName(name, bodyElement.parameterCount(compiler));
       } else if (element.kind == ElementKind.FUNCTION) {
         FunctionElement functionElement = element;
