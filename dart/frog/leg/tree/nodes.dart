@@ -617,10 +617,94 @@ class LiteralBool extends Literal<bool> {
   accept(Visitor visitor) => visitor.visitLiteralBool(this);
 }
 
+
+class StringQuoting {
+  static final StringQuoting SINGLELINE_DQ =
+      const StringQuoting($DQ, raw: false, multiline: false);
+  static final StringQuoting RAW_SINGLELINE_DQ =
+      const StringQuoting($DQ, raw: true, multiline: false);
+  static final StringQuoting MULTILINE_DQ =
+      const StringQuoting($DQ, raw: false, multiline: true);
+  static final StringQuoting RAW_MULTILINE_DQ =
+      const StringQuoting($DQ, raw: true, multiline: true);
+  static final StringQuoting SINGLELINE_SQ =
+      const StringQuoting($SQ, raw: false, multiline: false);
+  static final StringQuoting RAW_SINGLELINE_SQ =
+      const StringQuoting($SQ, raw: true, multiline: false);
+  static final StringQuoting MULTILINE_SQ =
+      const StringQuoting($SQ, raw: false, multiline: true);
+  static final StringQuoting RAW_MULTILINE_SQ =
+      const StringQuoting($SQ, raw: true, multiline: true);
+  static final List<StringQuoting> mapping = const <StringQuoting>[
+    SINGLELINE_DQ,
+    RAW_SINGLELINE_DQ,
+    MULTILINE_DQ,
+    RAW_MULTILINE_DQ,
+    SINGLELINE_SQ,
+    RAW_SINGLELINE_SQ,
+    MULTILINE_DQ,
+    RAW_MULTILINE_SQ
+  ];
+  final bool raw;
+  final bool multiline;
+  final int quote;
+  const StringQuoting(this.quote, [bool raw, bool multiline])
+      : this.raw = raw, this.multiline = multiline;
+  String get quoteChar() => quote === $DQ ? '"' : "'";
+
+  int get leftQuoteLength() => (raw ? 1 : 0) + (multiline ? 3 : 1);
+  int get rightQuoteLength() => multiline ? 3 : 1;
+  static StringQuoting get(int quote, bool raw, bool multiline) =>
+    mapping[(raw ? 1 : 0) + (multiline ? 2 : 0) + (quote === $SQ ? 4 : 0)];
+}
+
+/**
+ * A wrapper around a SourceString that stores extra information about
+ * the (potentially implicit) quoting style of the original string.
+ * For most strings, the quotes are included in the [source], but
+ * parts of strings from a string interpolation might be missing one or
+ * both quotes.
+ */
+class QuotedString {
+  // A source-backed string literal without the quotes.
+  final SourceString source;
+  // The quoting style of the original string literal.
+  // Whether it's raw or multi-line impacts the interpretation of
+  // the string literal content. Whether it's single- or double-quoted
+  // is only used as a hint later.
+  final StringQuoting quoting;
+  /** Actual length of the corresponding, parsed, Dart string */
+  final int length;
+
+  const QuotedString(this.source, this.quoting, this.length);
+  /**
+   * Construct a [QuotedString] containing exactly the given string.
+   * The choice of quoting ensures that all characters of the original
+   * string are valid and has their exact meaning.
+   */
+  QuotedString.literal(String string)
+      : source = new SourceString(string),
+        quoting = StringQuoting.RAW_MULTILINE_DQ,
+        length = string.length;
+
+  bool isEmpty() => source.isEmpty();
+  Iterator<int> iterator() => source.iterator();
+
+  bool definitlyEquals(QuotedString other) {
+    return source === other.source && quoting === other.quoting;
+  }
+}
+
+
 class LiteralString extends Literal<SourceString> {
-  LiteralString(Token token) : super(token, null);
+  /** Set on validated string literals. */
+  final QuotedString quotedString = null;
+
+  LiteralString(Token token, this.quotedString) : super(token, null);
 
   LiteralString asLiteralString() => this;
+
+  bool isValidated() => quotedString !== null;
 
   SourceString get value() => token.value;
 

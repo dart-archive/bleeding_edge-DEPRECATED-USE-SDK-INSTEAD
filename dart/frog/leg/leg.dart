@@ -12,6 +12,7 @@
 #import('ssa/ssa.dart');
 #import('tree/tree.dart');
 #import('util/util.dart');
+#import('string_validator.dart');
 
 #source('compiler.dart');
 #source('compile_time_constants.dart');

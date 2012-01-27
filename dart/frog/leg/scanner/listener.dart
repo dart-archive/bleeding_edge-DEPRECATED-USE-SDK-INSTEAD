@@ -152,16 +152,16 @@ class Listener {
   void endLabelledStatement(Token colon) {
   }
 
-  void beginLibraryTag(Token token) {
-  }
-
-  void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
-  }
-
   void beginLiteralMapEntry(Token token) {
   }
 
   void endLiteralMapEntry(Token colon, Token endToken) {
+  }
+
+  void beginLiteralString(Token token) {
+  }
+
+  void endLiteralString(int interpolationCount) {
   }
 
   void beginMember(Token token) {
@@ -182,6 +182,12 @@ class Listener {
 
   void endReturnStatement(bool hasExpression,
                           Token beginToken, Token endToken) {
+  }
+
+  void beginScriptTag(Token token) {
+  }
+
+  void endScriptTag(bool hasPrefix, Token beginToken, Token endToken) {
   }
 
   void beginSend(Token token) {
@@ -335,9 +341,6 @@ class Listener {
   void handleLiteralNull(Token token) {
   }
 
-  void handleLiteralString(Token token) {
-  }
-
   void handleModifier(Token token) {
   }
 
@@ -371,7 +374,7 @@ class Listener {
   void handleQualified(Token period) {
   }
 
-  void handleStringInterpolationParts(int count) {
+  void handleStringPart(Token token) {
   }
 
   void handleSuperExpression(Token token) {
@@ -454,20 +457,44 @@ class ParserError {
 class ElementListener extends Listener {
   final DiagnosticListener listener;
   final CompilationUnitElement compilationUnitElement;
+  final StringValidator stringValidator;
+  Link<StringQuoting> interpolationScope;
 
   Link<Node> nodes = const EmptyLink<Node>();
 
-  ElementListener(DiagnosticListener this.listener,
-                  CompilationUnitElement this.compilationUnitElement);
+  ElementListener(DiagnosticListener listener,
+                  CompilationUnitElement this.compilationUnitElement)
+      : this.listener = listener,
+        stringValidator = new StringValidator(listener),
+        interpolationScope = const EmptyLink<StringQuoting>();
 
-  void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
+  void pushQuoting(StringQuoting quoting) {
+    interpolationScope = interpolationScope.prepend(quoting);
+  }
+
+  StringQuoting popQuoting() {
+    StringQuoting result = interpolationScope.head;
+    interpolationScope = interpolationScope.tail;
+    return result;
+  }
+
+  LiteralString popLiteralString() {
+    Node node = popNode();
+    if (node is !LiteralString) {
+      listener.cancel("String is not a compile time constant", node: node);
+      return null;
+    }
+    return node;
+  }
+
+  void endScriptTag(bool hasPrefix, Token beginToken, Token endToken) {
     LiteralString prefix = null;
     Identifier argumentName = null;
     if (hasPrefix) {
-      prefix = popNode();
+      prefix = popLiteralString();
       argumentName = popNode();
     }
-    LiteralString firstArgument = popNode();
+    LiteralString firstArgument = popLiteralString();
     Identifier tag = popNode();
     compilationUnitElement.addTag(new ScriptTag(tag, firstArgument,
                                                 argumentName, prefix,
@@ -672,8 +699,55 @@ class ElementListener extends Listener {
     return new NodeList(beginToken, nodes, endToken, sourceDelimiter);
   }
 
-  void handleLiteralString(Token token) {
-    pushNode(new LiteralString(token));
+  void beginLiteralString(Token token) {
+    SourceString source = token.value;
+    StringQuoting quoting = StringValidator.quotingFromString(source);
+    pushQuoting(quoting);
+    // Just wrap the token for now. At the end of the interpolation,
+    // when we know how many there are, go back and validate the tokens.
+    pushNode(new LiteralString(token, null));
+  }
+
+  void handleStringPart(Token token) {
+    // Just push an unvalidated token now, and replace it when we know the
+    // end of the interpolation.
+    pushNode(new LiteralString(token, null));
+  }
+
+  void endLiteralString(int count) {
+    StringQuoting quoting = popQuoting();
+
+    Link<StringInterpolationPart> parts =
+        const EmptyLink<StringInterpolationPart>();
+    // Parts of the string interpolation are popped in reverse order,
+    // starting with the last literal string part.
+    bool isLast = true;
+    for (int i = 0; i < count; i++) {
+      LiteralString string = popNode();
+      QuotedString validation =
+          stringValidator.validateInterpolationPart(string.token, quoting,
+                                                    isFirst: false,
+                                                    isLast: isLast);
+      // Replace the unvalidated LiteralString with a new LiteralString
+      // object that has the validation result included.
+      string = new LiteralString(string.token, validation);
+      Expression expression = popNode();
+      parts = parts.prepend(new StringInterpolationPart(expression, string));
+      isLast = false;
+    }
+
+    LiteralString string = popNode();
+    QuotedString validation =
+        stringValidator.validateInterpolationPart(string.token, quoting,
+                                                  isFirst: true,
+                                                  isLast: isLast);
+    string = new LiteralString(string.token, validation);
+    if (isLast) {
+      pushNode(string);
+    } else {
+      NodeList nodes = new NodeList(null, parts, null, null);
+      pushNode(new StringInterpolation(string, nodes));
+    }
   }
 }
 
@@ -1047,21 +1121,6 @@ class NodeListener extends ElementListener {
     Expression expression = popNode();
     Identifier name = popNode();
     pushNode(new NamedArgument(name, colon, expression));
-  }
-
-  void handleStringInterpolationParts(int count) {
-    Link<StringInterpolationPart> parts =
-      const EmptyLink<StringInterpolationPart>();
-    for (int i = 0; i < count; i++) {
-      LiteralString string = popNode();
-      Expression expression = popNode();
-      parts = parts.prepend(new StringInterpolationPart(expression, string));
-    }
-    if (!parts.isEmpty()) {
-      LiteralString string = popNode();
-      NodeList nodes = new NodeList(null, parts, null, null);
-      pushNode(new StringInterpolation(string, nodes));
-    }
   }
 
   void endOptionalFormalParameters(int count,

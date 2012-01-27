@@ -6,6 +6,7 @@
 
 #import('../scanner/scannerlib.dart');
 #import('../util/util.dart');
+#import('../util/characters.dart');
 
 #source('nodes.dart');
 #source('unparser.dart');

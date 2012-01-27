@@ -22,7 +22,7 @@ class Parser {
       } else if (value === 'typedef') {
         token = parseNamedFunctionAlias(token);
       } else if (value === '#') {
-        token = parseLibraryTags(token);
+        token = parseScriptTags(token);
       } else {
         token = parseTopLevelMember(token);
       }
@@ -233,9 +233,9 @@ class Parser {
   }
 
 
-  Token parseString(Token token) {
+  Token parseStringPart(Token token) {
     if (token.kind === STRING_TOKEN) {
-      listener.handleLiteralString(token);
+      listener.handleStringPart(token);
       return token.next;
     } else {
       return listener.expected('string', token);
@@ -436,21 +436,21 @@ class Parser {
     return token;
   }
 
-  Token parseLibraryTags(Token token) {
+  Token parseScriptTags(Token token) {
     Token begin = token;
-    listener.beginLibraryTag(token);
+    listener.beginScriptTag(token);
     token = parseIdentifier(token.next);
     token = expect('(', token);
-    token = parseString(token);
+    token = parseLiteralString(token);
     bool hasPrefix = false;
     if (optional(',', token)) {
       hasPrefix = true;
       token = parseIdentifier(token.next);
       token = expect(':', token);
-      token = parseString(token);
+      token = parseLiteralString(token);
     }
     token = expect(')', token);
-    listener.endLibraryTag(hasPrefix, begin, token);
+    listener.endScriptTag(hasPrefix, begin, token);
     return expectSemicolon(token);
   }
 
@@ -1207,16 +1207,17 @@ class Parser {
   }
 
   Token parseLiteralString(Token token) {
-    listener.handleLiteralString(token);
+    listener.beginLiteralString(token);
     token = token.next;
     int interpolationCount = 0;
     while (optional('\${', token)) {
-      token = parseExpression(token.next);
+      token = token.next;
+      token = parseExpression(token);
       token = expect('}', token);
-      token = parseString(token);
+      token = parseStringPart(token);
       ++interpolationCount;
     }
-    listener.handleStringInterpolationParts(interpolationCount);
+    listener.endLiteralString(interpolationCount);
     return token;
   }
 

@@ -107,3 +107,25 @@ final int $TILDE = 126;
 final int $DEL = 127;
 final int $LS = 0x2028;
 final int $PS = 0x2029;
+
+final int $FIRST_SURROGATE = 0xd800;
+final int $LAST_SURROGATE = 0xdfff;
+final int $LAST_CODE_POINT = 0x10ffff;
+
+bool isHexDigit(int characterCode) {
+  if (characterCode <= $9) return $0 <= characterCode;
+  characterCode |= $a ^ $A;
+  return ($a <= characterCode && characterCode <= $f);
+}
+
+int hexDigitValue(int hexDigit) {
+  assert(isHexDigit(hexDigit));
+  // hexDigit is one of '0'..'9', 'A'..'F' and 'a'..'f'.
+  if (hexDigit <= $9) return hexDigit - $0;
+  return (hexDigit | ($a ^ $A)) - ($a - 10);
+}
+
+bool isUnicodeScalarValue(int value) {
+  return value < $FIRST_SURROGATE ||
+      (value > $LAST_SURROGATE && value <= $LAST_CODE_POINT);
+}

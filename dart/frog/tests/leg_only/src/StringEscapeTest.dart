@@ -64,11 +64,10 @@ testUEscapes() {
   }
   // No characters above 0xffff until Leg supports that.
   var long =
-      "\u{0}\u{00}\u{000}\u{0000}\u{00000}\u{000000}\u{0000000}" +
+      "\u{0}\u{00}\u{000}\u{0000}\u{00000}\u{000000}" +
       "\u{1}\u{01}\u{001}\u{00001}" +
-      "\u{ffff}\u{0ffff}\u{00ffff}\u{000ffff}";
-  var longValues = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
-                    0xffff, 0xffff, 0xffff, 0xffff];
+      "\u{ffff}\u{0ffff}\u{00ffff}";
+  var longValues = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0xffff, 0xffff, 0xffff];
   Expect.equals(longValues.length, long.length);
   for (int i = 0; i < longValues.length; i++) {
     Expect.equals(longValues[i], long.charCodeAt(i));

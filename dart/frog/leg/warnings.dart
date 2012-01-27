@@ -142,5 +142,5 @@ class CompileTimeConstantError {
   CompileTimeConstantError.message(this.message);
   CompileTimeConstantError(MessageKind kind, List<Type> arguments)
     : message = new Message(kind, arguments);
-  String toString() => message.toString();  
+  String toString() => message.toString();
 }
