@@ -252,7 +252,33 @@ Running SWTBot UI tests
 Install SWTBot (see optional installation step above)
 Import com.google.dart.tools.ui.swtbot_test (if not already imported)
 
-Right click on DartEditorUiTest and select Run > Run Configurations...
+    <Bug platform="Mac">
+      Bug Description: (Mac only): 
+        There is a bug when running SWTBot in Eclipse 3.7.0 on Mac 10.6.8 (and others?)
+        Key events posted with Display.post() do not honor Shift key state
+        https://bugs.eclipse.org/bugs/show_bug.cgi?id=363309
+      Workaround:
+        If the SWTBot tests cannot successfully drive the open file dialog
+          (fails to auto-type uppercase characters),
+        then ...
+          Open the "Plug-ins" view
+          Select "org.eclipse.swt.cocoa.macosx.x86_64"
+          Import As > Source Project
+          Edit org.eclipse.swt.internal.cocoa.OS.java
+            Replace
+              public static final int kCGSessionEventTap = 1;
+            with
+              public static final int kCGHIDEventTap = 0;
+          Edit org.eclipse.swt.widgets.Display
+            Replace
+              OS.CGEventPost(OS.kCGSessionEventTap, eventRef);
+            with
+              OS.CGEventPost(OS.kCGHIDEventTap, eventRef);
+     </Bug>
+
+Right click on src/com.google.dart.tools.ui.swtbot.DartEditorUiTest
+Select Run > Run Configurations...
+Select SWTBot Test > DartEditorUiTest
 Click on "Main" tab
 In "Run a product:" select "com.google.dart.tools.deploy.product"
 Click on "Arguments" tab
