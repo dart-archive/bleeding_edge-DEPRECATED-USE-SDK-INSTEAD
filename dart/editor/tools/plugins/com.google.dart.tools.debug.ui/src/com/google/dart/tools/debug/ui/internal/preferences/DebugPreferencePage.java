@@ -78,6 +78,9 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
       if (DartDebugCorePlugin.getPlugin().getDartVmExecutablePath() != null) {
         vmField.setText(DartDebugCorePlugin.getPlugin().getDartVmExecutablePath());
       }
+    } else {
+      Label label = new Label(composite, SWT.NONE);
+      label.setText("There are no launch settings available.");
     }
 
     return composite;

@@ -28,6 +28,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
@@ -49,6 +50,8 @@ import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.framework.BundleContext;
 
 import java.io.File;
@@ -114,6 +117,11 @@ public class DartCore extends Plugin {
    * The shared message console instance.
    */
   private static final MessageConsole CONSOLE = new MessageConsoleImpl();
+
+  /**
+   * Id for frog compile preference
+   */
+  public static final String FROG_COMPILE = "frogCompile";
 
   /**
    * Configures the given marker attribute map for the given Dart element. Used for markers, which
@@ -405,7 +413,7 @@ public class DartCore extends Plugin {
    * 
    * @return the unique instance of this class
    */
-  public static Plugin getPlugin() {
+  public static DartCore getPlugin() {
     return PLUG_IN;
   }
 
@@ -657,11 +665,28 @@ public class DartCore extends Plugin {
     return false;
   }
 
+  private IEclipsePreferences prefs;
+
   /**
    * Initialize a newly created instance of this class.
    */
   public DartCore() {
     PLUG_IN = this;
+  }
+
+  public IEclipsePreferences getPrefs() {
+    if (prefs == null) {
+      prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
+    }
+
+    return prefs;
+  }
+
+  /**
+   * Use frog if sdk is present and user has set preference
+   */
+  public boolean getCompileWithFrog() {
+    return (DartSdk.isInstalled() && getPrefs().getBoolean(FROG_COMPILE, false));
   }
 
   @Override

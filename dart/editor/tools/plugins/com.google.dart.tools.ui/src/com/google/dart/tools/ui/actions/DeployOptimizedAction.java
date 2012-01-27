@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.compiler.backend.js.AbstractJsBackend;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.frog.FrogManager;
 import com.google.dart.tools.core.frog.Response;
 import com.google.dart.tools.core.frog.ResponseDone;
@@ -130,7 +129,7 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
     protected IStatus run(IProgressMonitor monitor) {
       IPath path = new Path(file.getAbsolutePath());
 
-      if (DartCoreDebug.DEPLOY_FROG) {
+      if (DartCore.getPlugin().getCompileWithFrog()) {
         long startTime = System.currentTimeMillis();
 
         CountDownLatch latch = new CountDownLatch(1);

@@ -14,7 +14,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.compiler.backend.js.JavascriptBackend;
-import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.Extensions;
 
 import org.eclipse.core.resources.IProject;
@@ -79,7 +79,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
     // TODO(keertip) : remove call to dartc if frog is being used, once indexer is independent
     // If building using frog, then dartc does not produce any js files
     if (firstBuildThisSession || hasDartSourceChanged()) {
-      if (DartCoreDebug.BUILD_FROG) {
+      if (DartCore.getPlugin().getCompileWithFrog()) {
         SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 
         // call frog builder
@@ -88,7 +88,8 @@ public class DartBuilder extends IncrementalProjectBuilder {
         monitor = subMonitor.newChild(50);
       }
 
-      dartcBuildHandler.buildAllApplications(getProject(), !DartCoreDebug.BUILD_FROG, monitor);
+      dartcBuildHandler.buildAllApplications(getProject(), !DartCore.getPlugin().getCompileWithFrog(),
+          monitor);
 
       if (firstBuildThisSession) {
         firstBuildThisSession = false;
@@ -104,7 +105,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
 
   @Override
   protected void clean(IProgressMonitor monitor) throws CoreException {
-    if (DartCoreDebug.BUILD_FROG) {
+    if (DartCore.getPlugin().getCompileWithFrog()) {
       SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
       frogBuilderHandler.clean(getProject(), subMonitor.newChild(50));
       monitor = subMonitor.newChild(50);

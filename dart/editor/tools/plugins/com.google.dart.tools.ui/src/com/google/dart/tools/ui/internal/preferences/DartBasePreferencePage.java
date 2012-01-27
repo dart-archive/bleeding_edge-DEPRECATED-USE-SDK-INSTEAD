@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.preferences;
 
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.editor.DartDocumentSetupParticipant;
@@ -116,7 +117,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
-    setDescription(PreferencesMessages.DartBasePreferencePage_editor_preferences);
+//    setDescription(PreferencesMessages.DartBasePreferencePage_editor_preferences);
     noDefaultAndApplyButton();
   }
 
@@ -164,6 +165,24 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     GridDataFactory.fillDefaults().grab(true, false).indent(0, 10).align(SWT.FILL, SWT.BEGINNING).applyTo(
         composite);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
+
+    // dart sdk
+    Group sdkGroup = new Group(composite, SWT.NONE);
+    sdkGroup.setText("Dart SDK");
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        sdkGroup);
+    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(sdkGroup);
+    Label sdkLabel = new Label(sdkGroup, SWT.NONE);
+    if (DartSdk.isInstalled()) {
+      String version = DartSdk.getInstance().getSdkVersion();
+      if (version.equals("0")) {
+        sdkLabel.setText("Dart SDK is installed");
+      } else {
+        sdkLabel.setText("Dart SDK version " + version);
+      }
+    } else {
+      sdkLabel.setText("Dart SDK is not installed");
+    }
 
     Group generalGroup = new Group(composite, SWT.NONE);
     generalGroup.setText(PreferencesMessages.DartBasePreferencePage_general);
