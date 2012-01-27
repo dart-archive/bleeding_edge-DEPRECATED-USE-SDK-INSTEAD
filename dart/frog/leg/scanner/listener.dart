@@ -452,12 +452,12 @@ class ParserError {
  * A listener for parser events.
  */
 class ElementListener extends Listener {
-  final Canceler canceler;
+  final DiagnosticListener listener;
   final CompilationUnitElement compilationUnitElement;
 
   Link<Node> nodes = const EmptyLink<Node>();
 
-  ElementListener(Canceler this.canceler,
+  ElementListener(DiagnosticListener this.listener,
                   CompilationUnitElement this.compilationUnitElement);
 
   void endLibraryTag(bool hasPrefix, Token beginToken, Token endToken) {
@@ -486,7 +486,7 @@ class ElementListener extends Listener {
   }
 
   void endDefaultClause(Token defaultKeyword) {
-    canceler.cancel("Default clauses are not implemented",
+    listener.cancel("Default clauses are not implemented",
                     token: defaultKeyword);
   }
 
@@ -506,7 +506,7 @@ class ElementListener extends Listener {
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
-    canceler.cancel("typedef is not implemented", token: typedefKeyword);
+    listener.cancel("typedef is not implemented", token: typedefKeyword);
   }
 
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
@@ -601,38 +601,38 @@ class ElementListener extends Listener {
   }
 
   Token expected(String string, Token token) {
-    canceler.cancel("expected '$string', but got '$token'", token: token);
+    listener.cancel("expected '$string', but got '$token'", token: token);
     return skipToEof(token);
   }
 
   void expectedIdentifier(Token token) {
-    canceler.cancel("expected identifier, but got '$token'", token: token);
+    listener.cancel("expected identifier, but got '$token'", token: token);
     pushNode(null);
   }
 
   Token expectedType(Token token) {
-    canceler.cancel("expected a type, but got '$token'", token: token);
+    listener.cancel("expected a type, but got '$token'", token: token);
     pushNode(null);
     return skipToEof(token);
   }
 
   Token expectedExpression(Token token) {
-    canceler.cancel("Expected an expression, but got '$token'", token: token);
+    listener.cancel("Expected an expression, but got '$token'", token: token);
     pushNode(null);
     return skipToEof(token);
   }
 
   Token unexpected(Token token) {
-    canceler.cancel("Unexpected token '$token'", token: token);
+    listener.cancel("Unexpected token '$token'", token: token);
     return skipToEof(token);
   }
 
   void recoverableError(String message, [Token token, Node node]) {
-    canceler.cancel(message, token: token, node: node);
+    listener.cancel(message, token: token, node: node);
   }
 
   void pushElement(Element element) {
-    compilationUnitElement.addMember(element, canceler);
+    compilationUnitElement.addMember(element, listener);
   }
 
   void pushNode(Node node) {
@@ -678,9 +678,7 @@ class ElementListener extends Listener {
 }
 
 class NodeListener extends ElementListener {
-  final Logger logger;
-
-  NodeListener(Canceler canceler, Logger this.logger) : super(canceler, null);
+  NodeListener(DiagnosticListener listener) : super(listener, null);
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,
@@ -773,7 +771,7 @@ class NodeListener extends ElementListener {
   }
 
   void handleOnError(Token token, var error) {
-    canceler.cancel("internal error: '${token.value}': ${error}", token: token);
+    listener.cancel("internal error: '${token.value}': ${error}", token: token);
   }
 
   void handleLiteralInt(Token token) {
@@ -1124,7 +1122,7 @@ class NodeListener extends ElementListener {
       popNode(); // Discard label.
     }
     pushNode(statements);
-    canceler.cancel('switch cases are not implemented', token: caseKeyword);
+    listener.cancel('switch cases are not implemented', token: caseKeyword);
   }
 
   void handleDefaultCase(Token colon, Token defaultKeyword, int statementCount,
@@ -1134,7 +1132,7 @@ class NodeListener extends ElementListener {
       popNode(); // Discard label.
     }
     pushNode(statements);
-    canceler.cancel('default case is not implemented', token: defaultKeyword);
+    listener.cancel('default case is not implemented', token: defaultKeyword);
   }
 
   void handleBreakStatement(bool hasTarget,
@@ -1192,7 +1190,7 @@ class NodeListener extends ElementListener {
 
   void handleIsOperator(Token operathor, Token not, Token endToken) {
     if (not !== null) {
-      canceler.cancel('negated is-operator is not implemented', token: not);
+      listener.cancel('negated is-operator is not implemented', token: not);
     }
     TypeAnnotation type = popNode();
     Expression expression = popNode();
@@ -1207,11 +1205,11 @@ class NodeListener extends ElementListener {
   }
 
   void log(message) {
-    logger.log(message);
+    listener.log(message);
   }
 
   void internalError([Token token, Node node]) {
-    canceler.cancel('internal error', token: token, node: node);
+    listener.cancel('internal error', token: token, node: node);
     throw 'internal error';
   }
 }
@@ -1230,9 +1228,9 @@ class PartialFunctionElement extends FunctionElement {
                          Element enclosing)
     : super(name, kind, modifiers, enclosing);
 
-  FunctionExpression parseNode(Canceler canceler, Logger logger) {
+  FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    cachedNode = parse(canceler, logger,
+    cachedNode = parse(listener,
                        (p) => p.parseFunction(beginToken, getOrSet));
     return cachedNode;
   }
@@ -1250,18 +1248,18 @@ class PartialFieldListElement extends VariableListElement {
                           Element enclosing)
     : super(ElementKind.VARIABLE_LIST, modifiers, enclosing);
 
-  VariableDefinitions parseNode(Canceler canceler, Logger logger) {
+  VariableDefinitions parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    cachedNode = parse(canceler, logger,
-                       (p) => p.parseVariablesDeclaration(beginToken));
+    cachedNode =
+        parse(listener, (p) => p.parseVariablesDeclaration(beginToken));
     return cachedNode;
   }
 
   Token position() => beginToken;
 }
 
-Node parse(Canceler canceler, Logger logger, doParse(Parser parser)) {
-  NodeListener listener = new NodeListener(canceler, logger);
+Node parse(DiagnosticListener diagnosticListener, doParse(Parser parser)) {
+  NodeListener listener = new NodeListener(diagnosticListener);
   doParse(new Parser(listener));
   Node node = listener.popNode();
   assert(listener.nodes.isEmpty());

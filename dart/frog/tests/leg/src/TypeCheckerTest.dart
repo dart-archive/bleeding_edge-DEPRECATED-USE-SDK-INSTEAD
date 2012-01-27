@@ -362,7 +362,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   for (Link<Element> elements = topLevelElements;
        !elements.isEmpty();
        elements = elements.tail) {
-    Node node = elements.head.parseNode(compiler, compiler);
+    Node node = elements.head.parseNode(compiler);
     TreeElements mapping = compiler.resolver.resolve(elements.head);
     TypeCheckerVisitor checker =
         new TypeCheckerVisitor(compiler, mapping, types);
@@ -382,7 +382,7 @@ analyze(String text, [expectedWarnings]) {
   compiler.universe = new ExtendedUniverse(compiler.universe);
 
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler, compiler);
+  NodeListener listener = new NodeListener(compiler);
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
@@ -404,7 +404,7 @@ analyzeIn(ClassElement classElement, String text, [expectedWarnings]) {
   compiler.universe = new ExtendedUniverse(compiler.universe);
 
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler, compiler);
+  NodeListener listener = new NodeListener(compiler);
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();

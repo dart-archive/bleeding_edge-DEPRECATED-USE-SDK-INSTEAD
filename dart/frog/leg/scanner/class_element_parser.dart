@@ -19,9 +19,9 @@ class PartialClassElement extends ClassElement {
                       CompilationUnitElement enclosing)
     : super(name, enclosing);
 
-  ClassNode parseNode(Canceler canceler, Logger logger) {
+  ClassNode parseNode(DiagnosticListener diagnosticListener) {
     if (cachedNode != null) return cachedNode;
-    MemberListener listener = new MemberListener(canceler, logger, this);
+    MemberListener listener = new MemberListener(diagnosticListener, this);
     Parser parser = new ClassElementParser(listener);
     Token token = parser.parseClass(beginToken);
     assert(token === endToken.next);
@@ -36,9 +36,9 @@ class PartialClassElement extends ClassElement {
 class MemberListener extends NodeListener {
   final ClassElement enclosingElement;
 
-  MemberListener(Canceler canceler, Logger logger,
+  MemberListener(DiagnosticListener listener,
                  [Element this.enclosingElement = null])
-    : super(canceler, logger);
+    : super(listener);
 
   bool isConstructorName(Node nameNode) {
     if (enclosingElement === null ||
@@ -89,7 +89,7 @@ class MemberListener extends NodeListener {
     Element memberElement =
         new PartialFunctionElement(name, beginToken, getOrSet, endToken,
                                    kind, method.modifiers, enclosingElement);
-    enclosingElement.addMember(memberElement, canceler);
+    enclosingElement.addMember(memberElement, listener);
   }
 
   void endFactoryMethod(Token factoryKeyword, Token periodBeforeName,
@@ -99,14 +99,14 @@ class MemberListener extends NodeListener {
     pushNode(null);
     // TODO(ahe): Named constructors.
     if (method.name.asIdentifier() == null) {
-      canceler.cancel('Qualified factory names not implemented', node: method);
+      listener.cancel('Qualified factory names not implemented', node: method);
     }
     Identifier name = method.name;
     ElementKind kind = ElementKind.FUNCTION;
     Element memberElement =
         new PartialFunctionElement(name.source, factoryKeyword, null, endToken,
                                    kind, method.modifiers, enclosingElement);
-    enclosingElement.addMember(memberElement, canceler);
+    enclosingElement.addMember(memberElement, listener);
   }
 
   void endFields(int count, Token beginToken, Token endToken) {
@@ -117,7 +117,7 @@ class MemberListener extends NodeListener {
     void buildFieldElement(SourceString name, Element fields) {
       Element element = new VariableElement(
           name, fields, ElementKind.FIELD, enclosingElement);
-      enclosingElement.addMember(element, canceler);
+      enclosingElement.addMember(element, listener);
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,
                        buildFieldElement, beginToken, endToken);

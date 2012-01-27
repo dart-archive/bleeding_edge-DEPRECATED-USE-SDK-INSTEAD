@@ -15,6 +15,7 @@
 
 #source('compiler.dart');
 #source('compile_time_constants.dart');
+#source('diagnostic_listener.dart');
 #source('emitter.dart');
 #source('namer.dart');
 #source('resolver.dart');

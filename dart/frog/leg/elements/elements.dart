@@ -9,16 +9,6 @@
 #import('../leg.dart');  // TODO(karlklose): we only need type.
 #import('../util/util.dart');
 
-// TODO(ahe): Better name, better abstraction...
-interface Canceler {
-  void cancel([String reason, node, token, instruction]);
-}
-
-// TODO(ahe): Better name, better abstraction...
-interface Logger {
-  void log(message);
-}
-
 class ElementKind {
   final String id;
 
@@ -50,8 +40,8 @@ class Element implements Hashable {
   final Element enclosingElement;
   Modifiers get modifiers() => null;
 
-  Node parseNode(Canceler canceler, Logger logger) {
-    canceler.cancel("Internal Error: Element.parseNode");
+  Node parseNode(DiagnosticListener listener) {
+    listener.cancel("Internal Error: Element.parseNode");
   }
 
   Type computeType(Compiler compiler) {
@@ -98,7 +88,7 @@ class ContainerElement extends Element {
   ContainerElement(name, kind, enclosingElement) :
     super(name, kind, enclosingElement);
 
-  abstract void addMember(Element element, Canceler canceler);
+  abstract void addMember(Element element, DiagnosticListener listener);
 }
 
 class CompilationUnitElement extends ContainerElement {
@@ -112,7 +102,7 @@ class CompilationUnitElement extends ContainerElement {
             enclosing),
       this.script = script;
 
-  void addMember(Element element, Canceler canceler) {
+  void addMember(Element element, DiagnosticListener listener) {
     topLevelElements = topLevelElements.prepend(element);
   }
 
@@ -134,9 +124,9 @@ class VariableElement extends Element {
                   [Node node])
     : super(name, kind, enclosing), cachedNode = node;
 
-  Node parseNode(Canceler canceler, Logger logger) {
+  Node parseNode(DiagnosticListener listener) {
     if (cachedNode !== null) return cachedNode;
-    VariableDefinitions definitions = variables.parseNode(canceler, logger);
+    VariableDefinitions definitions = variables.parseNode(listener);
     for (Link<Node> link = definitions.definitions.nodes;
          !link.isEmpty(); link = link.tail) {
       Expression initializedIdentifier = link.head;
@@ -149,7 +139,7 @@ class VariableElement extends Element {
         return cachedNode;
       }
     }
-    canceler.cancel('internal error: could not find $name', node: variables);
+    listener.cancel('internal error: could not find $name', node: variables);
   }
 
   Type computeType(Compiler compiler) {
@@ -191,13 +181,13 @@ class VariableListElement extends Element {
       this.cachedNode = node,
       this.modifiers = node.modifiers;
 
-  VariableDefinitions parseNode(Canceler canceler, Logger logger) {
+  VariableDefinitions parseNode(DiagnosticListener listener) {
     return cachedNode;
   }
 
   Type computeType(Compiler compiler) {
     if (type != null) return type;
-    type = getType(parseNode(compiler, compiler).type, compiler,
+    type = getType(parseNode(compiler).type, compiler,
                    compiler.types);
     return type;
   }
@@ -212,7 +202,7 @@ class ForeignElement extends Element {
     return compiler.types.dynamicType;
   }
 
-  parseNode(Canceler canceler, Logger logger) {
+  parseNode(DiagnosticListener listener) {
     throw "internal error: ForeignElement has no node";
   }
 }
@@ -286,7 +276,7 @@ class FunctionElement extends Element {
     if (parameters == null) compiler.resolveSignature(this);
     Types types = compiler.types;
     FunctionExpression node =
-        compiler.parser.measure(() => parseNode(compiler, compiler));
+        compiler.parser.measure(() => parseNode(compiler));
     Type returnType = getType(node.returnType, compiler, types);
     if (returnType === null) returnType = types.dynamicType;
 
@@ -298,7 +288,7 @@ class FunctionElement extends Element {
     return type;
   }
 
-  Node parseNode(Canceler canceler, Logger logger) => cachedNode;
+  Node parseNode(DiagnosticListener listener) => cachedNode;
 
   Token position() => cachedNode.getBeginToken();
 }
@@ -319,9 +309,9 @@ class ConstructorBodyElement extends FunctionElement {
 
   FunctionType computeType(Compiler compiler) { unreachable(); }
 
-  Node parseNode(Canceler canceler, Logger logger) {
+  Node parseNode(DiagnosticListener listener) {
     if (cachedNode !== null) return cachedNode;
-    cachedNode = constructor.parseNode(canceler, logger);
+    cachedNode = constructor.parseNode(listener);
     assert(cachedNode !== null);
     return cachedNode;
   }
@@ -343,7 +333,7 @@ class SynthesizedConstructorElement extends FunctionElement {
     return type;
   }
 
-  Node parseNode(Canceler canceler, Logger logger) {
+  Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     cachedNode = new FunctionExpression(
         new Identifier.synthetic(''),
@@ -374,7 +364,7 @@ class ClassElement extends ContainerElement {
       constructors = new Map<SourceString, Element>(),
       super(name, ElementKind.CLASS, enclosing);
 
-  void addMember(Element element, Canceler canceler) {
+  void addMember(Element element, DiagnosticListener listener) {
     members = members.prepend(element);
     if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR ||
         element.modifiers.isFactory()) {

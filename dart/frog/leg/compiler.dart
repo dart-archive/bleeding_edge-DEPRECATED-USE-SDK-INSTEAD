@@ -35,7 +35,7 @@ class WorkItem {
   }
 }
 
-class Compiler implements Canceler, Logger {
+class Compiler implements DiagnosticListener {
   Queue<WorkItem> worklist;
   Universe universe;
   String assembledCode;

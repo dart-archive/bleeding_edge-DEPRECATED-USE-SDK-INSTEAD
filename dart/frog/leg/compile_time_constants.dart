@@ -44,7 +44,7 @@ class CompileTimeConstantHandler extends CompilerTask {
   compileFieldWithDefinitions(VariableElement element,
                               TreeElements definitions) {
     return measure(() {
-      Node node = element.parseNode(compiler, compiler);
+      Node node = element.parseNode(compiler);
       assert(node !== null);
       SendSet assignment = node.asSendSet();
       var value;
@@ -97,7 +97,7 @@ class CompileTimeConstantHandler extends CompilerTask {
     } else {
       // TODO(floitsch): support more values.
       compiler.unimplemented("CompileTimeConstantHandler.emitJsCodeForField",
-                             node: element.parseNode(compiler, compiler));
+                             node: element.parseNode(compiler));
     }
   }
 }
@@ -141,7 +141,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     // and present some kind of stack-trace.
     MessageKind kind = MessageKind.NOT_A_COMPILE_TIME_CONSTANT;
     List arguments = [element.name];
-    Node node = element.parseNode(compiler, compiler);
+    Node node = element.parseNode(compiler);
     compiler.reportError(node, new CompileTimeConstantError(kind, arguments));
   }
 }

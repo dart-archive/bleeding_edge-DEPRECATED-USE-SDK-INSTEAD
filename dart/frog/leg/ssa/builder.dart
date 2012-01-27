@@ -188,7 +188,7 @@ class SsaBuilder implements Visitor {
 
   HGraph buildMethod(FunctionElement functionElement) {
     openFunction(functionElement);
-    FunctionExpression function = functionElement.parseNode(compiler, compiler);
+    FunctionExpression function = functionElement.parseNode(compiler);
     function.body.accept(this);
     return closeFunction();
   }
@@ -198,7 +198,7 @@ class SsaBuilder implements Visitor {
                       FunctionElement functionElement) {
     openFunction(functionElement);
 
-    FunctionExpression function = functionElement.parseNode(compiler, compiler);
+    FunctionExpression function = functionElement.parseNode(compiler);
     NodeList initializers = function.initializers;
     NodeList parameters = function.parameters;
     // Run through the initializers.
@@ -268,7 +268,7 @@ class SsaBuilder implements Visitor {
       thisDefinition = new HThis();
       add(thisDefinition);
     }
-    FunctionExpression function = functionElement.parseNode(compiler, compiler);
+    FunctionExpression function = functionElement.parseNode(compiler);
     handleParameterValues(function.parameters);
     close(new HGoto()).addSuccessor(block);
 
@@ -533,7 +533,7 @@ class SsaBuilder implements Visitor {
                             ElementKind.FUNCTION,
                             modifiers,
                             globalizedClosureElement,
-                            node: element.parseNode(compiler, compiler));
+                            node: element.parseNode(compiler));
     callElement.parameters = element.parameters;
     globalizedClosureElement.backendMembers =
         const EmptyLink<Element>().prepend(callElement);

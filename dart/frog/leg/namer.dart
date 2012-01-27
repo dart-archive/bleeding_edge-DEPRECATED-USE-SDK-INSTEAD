@@ -148,7 +148,7 @@ class Namer {
 
         default:
           compiler.internalError('getName for unknown kind: ${element.kind}',
-                                 node: element.parseNode(compiler, compiler));
+                                 node: element.parseNode(compiler));
       }
     }
   }

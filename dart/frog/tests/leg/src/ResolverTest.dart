@@ -83,7 +83,7 @@ testSuperCalls() {
   FunctionElement fooA = classA.lookupLocalMember(buildSourceString("foo"));
 
   FullResolverVisitor visitor = new FullResolverVisitor(compiler, fooB);
-  FunctionExpression node = fooB.parseNode(compiler, compiler);
+  FunctionExpression node = fooB.parseNode(compiler);
   visitor.visit(node.body);
   Map mapping = map(visitor);
 
@@ -102,7 +102,7 @@ testThis() {
   FunctionElement funElement =
       fooElement.lookupLocalMember(buildSourceString("foo"));
   FullResolverVisitor visitor = new FullResolverVisitor(compiler, funElement);
-  FunctionExpression function = funElement.parseNode(compiler, compiler);
+  FunctionExpression function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Map mapping = map(visitor);
   List<Element> values = mapping.getValues();
@@ -124,7 +124,7 @@ testThis() {
   funElement =
       fooElement.lookupLocalMember(buildSourceString("foo"));
   visitor = new FullResolverVisitor(compiler, funElement);
-  function = funElement.parseNode(compiler, compiler);
+  function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Expect.equals(0, compiler.warnings.length);
   Expect.equals(1, compiler.errors.length);
@@ -401,7 +401,7 @@ testFunctionExpression() {
   });
   Expect.equals(ElementKind.FUNCTION, element.kind);
   Expect.equals(buildSourceString('f'), element.name);
-  Expect.equals(element.parseNode(compiler, compiler), node);
+  Expect.equals(element.parseNode(compiler), node);
 }
 
 testNewExpression() {
@@ -412,7 +412,7 @@ testNewExpression() {
   Expect.isTrue(aElement !== null);
   Expect.isTrue(fooElement !== null);
 
-  fooElement.parseNode(compiler, compiler);
+  fooElement.parseNode(compiler);
   compiler.resolver.resolve(fooElement);
 
   TreeElements elements = compiler.resolveStatement("new A();");
@@ -428,7 +428,7 @@ testTopLevelFields() {
   compiler.parseScript("int a;");
   VariableElement element = compiler.universe.find(buildSourceString("a"));
   Expect.equals(ElementKind.FIELD, element.kind);
-  VariableDefinitions node = element.variables.parseNode(compiler, compiler);
+  VariableDefinitions node = element.variables.parseNode(compiler);
   Identifier typeName = node.type.typeName;
   Expect.equals(typeName.source.stringValue, 'int');
 
@@ -439,8 +439,8 @@ testTopLevelFields() {
   Expect.equals(ElementKind.FIELD, cElement.kind);
   Expect.isTrue(bElement != cElement);
 
-  VariableDefinitions bNode = bElement.variables.parseNode(compiler, compiler);
-  VariableDefinitions cNode = cElement.variables.parseNode(compiler, compiler);
+  VariableDefinitions bNode = bElement.variables.parseNode(compiler);
+  VariableDefinitions cNode = cElement.variables.parseNode(compiler);
   Expect.equals(bNode, cNode);
   Expect.isNull(bNode.type);
   Expect.isTrue(bNode.modifiers.isVar());
@@ -458,7 +458,7 @@ resolveConstructor(String script, String statement, String className,
       compiler.universe.find(buildSourceString(className));
   Element element =
       classElement.lookupConstructor(buildSourceString(constructor));
-  FunctionExpression tree = element.parseNode(compiler, compiler);
+  FunctionExpression tree = element.parseNode(compiler);
   ResolverVisitor visitor = new FullResolverVisitor(compiler, element);
   new InitializerResolver(visitor, element).resolveInitializers(tree);
   visitor.visit(tree.body);

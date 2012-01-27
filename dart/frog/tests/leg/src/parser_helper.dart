@@ -10,7 +10,7 @@
 #import("../../../leg/leg.dart");
 #import("../../../leg/util/util.dart");
 
-class LoggerCanceler implements Logger, Canceler {
+class LoggerCanceler implements DiagnosticListener {
   void cancel([String reason, node, token, instruction]) {
     throw new CompilerCancelledException(reason);
   }
@@ -25,7 +25,7 @@ Token scan(String text) => new StringScanner(text).tokenize();
 Node parseBodyCode(String text, Function parseMethod) {
   Token tokens = scan(text);
   LoggerCanceler lc = new LoggerCanceler();
-  NodeListener listener = new NodeListener(lc, lc);
+  NodeListener listener = new NodeListener(lc);
   Parser parser = new Parser(listener);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
@@ -42,7 +42,7 @@ Node parseFunction(String text, Compiler compiler) {
   Element element = parseUnit(text, compiler).head;
   Expect.equals(ElementKind.FUNCTION, element.kind);
   compiler.universe.define(element, compiler);
-  return element.parseNode(compiler, compiler);
+  return element.parseNode(compiler);
 }
 
 class MockFile {

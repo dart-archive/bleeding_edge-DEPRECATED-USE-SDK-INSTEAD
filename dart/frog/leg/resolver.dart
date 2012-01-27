@@ -35,13 +35,13 @@ class ResolverTask extends CompilerTask {
 
         default:
           compiler.unimplemented(
-              "resolver", node: element.parseNode(compiler, compiler));
+              "resolver", node: element.parseNode(compiler));
       }
     });
   }
 
   TreeElements resolveMethodElement(FunctionElement element) {
-    FunctionExpression tree = element.parseNode(compiler, compiler);
+    FunctionExpression tree = element.parseNode(compiler);
     // TODO(ahe): Can this be cleaned up to use resolveSignature?
     ResolverVisitor visitor = new SignatureResolverVisitor(compiler, element);
     visitor.visit(tree);
@@ -60,7 +60,7 @@ class ResolverTask extends CompilerTask {
   }
 
   TreeElements resolveFieldElement(Element element) {
-    Node tree = element.parseNode(compiler, compiler);
+    Node tree = element.parseNode(compiler);
     ResolverVisitor visitor = new FullResolverVisitor(compiler, element);
     if (tree is SendSet) {
       SendSet send = tree;
@@ -71,7 +71,7 @@ class ResolverTask extends CompilerTask {
 
   void resolveType(ClassElement element) {
     measure(() {
-      ClassNode tree = element.parseNode(compiler, compiler);
+      ClassNode tree = element.parseNode(compiler);
       ClassResolverVisitor visitor = new ClassResolverVisitor(compiler);
       visitor.visit(tree);
     });
@@ -79,7 +79,7 @@ class ResolverTask extends CompilerTask {
 
   void resolveSignature(FunctionElement element) {
     measure(() {
-      FunctionExpression node = element.parseNode(compiler, compiler);
+      FunctionExpression node = element.parseNode(compiler);
       SignatureResolverVisitor visitor =
           new SignatureResolverVisitor(compiler, element);
       visitor.visitFunctionExpression(node);
