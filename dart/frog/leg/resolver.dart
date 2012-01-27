@@ -26,6 +26,8 @@ class ResolverTask extends CompilerTask {
       switch (element.kind) {
         case ElementKind.GENERATIVE_CONSTRUCTOR:
         case ElementKind.FUNCTION:
+        case ElementKind.GETTER:
+        case ElementKind.SETTER:
           return resolveMethodElement(element);
 
         case ElementKind.FIELD:

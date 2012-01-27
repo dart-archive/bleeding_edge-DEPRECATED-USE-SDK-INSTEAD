@@ -107,6 +107,10 @@ class Namer {
         FunctionElement functionElement = element;
         int parameterCount = functionElement.parameterCount(compiler);
         return instanceMethodName(element.name, parameterCount);
+      } else if (element.kind == ElementKind.GETTER) {
+        return getterName(element.name);
+      } else if (element.kind == ElementKind.SETTER) {
+        return setterName(element.name);
       } else {
         return instanceFieldName(element.name);
       }

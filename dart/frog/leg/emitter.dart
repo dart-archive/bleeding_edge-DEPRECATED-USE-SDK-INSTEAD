@@ -42,7 +42,9 @@ function(child, parent) {
                          StringBuffer buffer) {
     assert(member.isInstanceMember());
     if (member.kind === ElementKind.FUNCTION
-        || member.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+        || member.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY
+        || member.kind === ElementKind.GETTER
+        || member.kind === ElementKind.SETTER) {
       String codeBlock = compiler.universe.generatedCode[member];
       if (codeBlock !== null) {
         buffer.add('$prototype.${namer.getName(member)} = $codeBlock;\n');

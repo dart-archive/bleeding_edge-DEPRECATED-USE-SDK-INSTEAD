@@ -151,12 +151,21 @@ class Compiler implements Canceler, Logger {
         // overwritten by subclasses.
         for (Element member in currentClass.members) {
           SourceString name = member.name;
-          if (Elements.isInstanceMethod(member) &&
-              universe.generatedCode[member] === null) {
+          if (universe.generatedCode[member] !== null) continue;
+          if (!member.isInstanceMember()) continue;
+          if (member.kind == ElementKind.FUNCTION) {
             FunctionElement element = member;
             Set<int> invocations = universe.invokedNames[name];
             if (invocations != null
                 && invocations.contains(element.parameterCount(this))) {
+              addToWorklist(member);
+            }
+          } else if (member.kind == ElementKind.GETTER) {
+            if (universe.invokedGetters.contains(name)) {
+              addToWorklist(member);
+            }
+          } else if (member.kind === ElementKind.SETTER) {
+             if (universe.invokedSetters.contains(name)) {
               addToWorklist(member);
             }
           }

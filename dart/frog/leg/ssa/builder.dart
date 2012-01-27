@@ -100,6 +100,8 @@ class SsaBuilderTask extends CompilerTask {
           break;
         case ElementKind.GENERATIVE_CONSTRUCTOR_BODY:
         case ElementKind.FUNCTION:
+        case ElementKind.GETTER:
+        case ElementKind.SETTER:
           graph = builder.buildMethod(work.element);
           break;
       }
