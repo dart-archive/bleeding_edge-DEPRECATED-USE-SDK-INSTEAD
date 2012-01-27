@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.debug.ui.internal.browser;
 
-import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.builder.DartBuilder;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -30,13 +30,15 @@ import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.widgets.Display;
 
 import java.io.File;
 
@@ -46,10 +48,6 @@ import java.io.File;
  * new one if an appropriate launch configuration does not already exist.
  */
 public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILaunchShortcutExt {
-
-  public static File getJsAppArtifactFile(IPath sourceLocation) {
-    return sourceLocation.addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
-  }
 
   /**
    * Create a new BrowserLaunchShortcut.
@@ -113,15 +111,15 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
       try {
         if (htmlFile.getReferencedLibraries().length > 0) {
           DartLibrary library = htmlFile.getReferencedLibraries()[0];
-          File jsOutFile = getJsAppArtifactFile(library.getCorrespondingResource().getLocation());
+          File jsOutFile = DartBuilder.getJsAppArtifactFile(library.getCorrespondingResource().getLocation());
 
           if (!jsOutFile.exists()) {
-            DartDebugCorePlugin.logError(Messages.BrowserLaunchShortcut_NoJavascriptErrorMessage);
-//            MessageDialog.openError(
-//                window.getShell(),
-//                NLS.bind("Unable to Launch File {0}", resource.getName()),
-//                NLS.bind("The Javascript output was not generated for the {1} library",
-//                    library.getDisplayName()));
+            String errMsg = NLS.bind(
+                "The Javascript output was not generated for the {0} library.\nCannot find {1}.",
+                library.getDisplayName(), jsOutFile.getPath());
+            DartDebugCorePlugin.logError(errMsg);
+            MessageDialog.openError(Display.getDefault().getActiveShell(),
+                NLS.bind("Unable to Launch File {0}", resource.getName()), errMsg);
             return;
           }
         }
