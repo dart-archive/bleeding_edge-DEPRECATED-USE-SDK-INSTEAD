@@ -314,9 +314,9 @@ class ObjectArray<T> { }
           target: getSdk
          - - - - - - - - - - - - - - - - - -->
     <target name="getSdk" if="osfamily" depends="setOS">
-        <delete file="${build.dart.sdk.zip}"/>
         <get src="http://gsdview.appspot.com/dart-editor-archive-continuous/latest/dart-${osfamily}.zip"
-             dest="${build.dart.sdk.zip}" />
+             dest="${build.dart.sdk.zip}"
+             usetimestamp="true"/>
         <delete dir="${build.stage.include.dir}/dart-sdk"/>
     </target>
 
@@ -350,7 +350,7 @@ class ObjectArray<T> { }
           target: setupDevWorkspace
          - - - - - - - - - - - - - - - - - -->
     <target name="setupDevWorkspace" 
-            depends="buildLibraries, installSdkInDevWorkspace">
+            depends="initDevWorkspace, buildLibraries, installSdk">
         <property name="libraries.dev.dir" location="${eclipse.home}/${libraries.out.name}"/>
         <echo message="Copying ${libraries.out.dir}"/>
         <echo message="to ${libraries.dev.dir}"/>
@@ -363,9 +363,9 @@ class ObjectArray<T> { }
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
-          target: initSdkInDevWorkspace
+          target: initDevWorkspace
          - - - - - - - - - - - - - - - - - -->
-    <target name="initSdkInDevWorkspace" depends="setOS">
+    <target name="initDevWorkspace">
         <!-- This build script must be executed in Eclipse 
           so that the ${eclipse.home} Ant property is defined -->
         <fail unless="eclipse.home">*
@@ -379,14 +379,15 @@ class ObjectArray<T> { }
         </fail>
         <property name="build.stage.include.dir" location="${eclipse.home}"/>
         <property name="build.dart.sdk.zip" location="${eclipse.home}/dart-sdk.zip"/>
-        <property name="build.os" value="true"/>
-    </target>
-
-    
-    <!-- - - - - - - - - - - - - - - - - - 
-          target: installSdkInDevWorkspace
-         - - - - - - - - - - - - - - - - - -->
-    <target name="installSdkInDevWorkspace" depends="initSdkInDevWorkspace, installSdk">
+        <condition property="build.os" value="win32">
+            <os family="windows"/>
+        </condition>
+        <condition property="build.os" value="macos">
+            <os family="mac"/>
+        </condition>
+        <condition property="build.os" value="linux">
+            <os family="unix"/>
+        </condition>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
