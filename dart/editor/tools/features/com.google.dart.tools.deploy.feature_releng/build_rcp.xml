@@ -334,7 +334,9 @@ class ObjectArray<T> { }
           so use the command line unzip instead
          - - - - - - - - - - - - - - - - - -->
     <target name="installSdkInNonWindows" if="isNotWindows" depends="getSdk">
+        <echo message="unzipping ${build.dart.sdk.zip} to ${build.stage.include.dir}"/>
         <exec executable="unzip" dir="${build.stage.include.dir}">
+            <arg value="-q"/>
             <arg value="${build.dart.sdk.zip}"/>
         </exec>
     </target>
