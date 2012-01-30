@@ -183,7 +183,7 @@ class World {
     listType = corelib.addType('List', null, false);
     mapType = corelib.addType('Map', null, false);
     functionType = corelib.addType('Function', null, false);
-    typeErrorType = corelib.addType('TypeError', null, false);
+    typeErrorType = corelib.addType('TypeError', null, true);
 
     numImplType = coreimpl.addType('NumImplementation', null, true);
     stringImplType = coreimpl.addType('StringImplementation', null, true);
