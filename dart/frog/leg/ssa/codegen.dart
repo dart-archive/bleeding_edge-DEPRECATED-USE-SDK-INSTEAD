@@ -11,12 +11,10 @@ class SsaCodeGeneratorTask extends CompilerTask {
       FunctionElement function = work.element;
       Map<Element, String> parameterNames =
           new LinkedHashMap<Element, String>();
-      for (Link<Element> link = function.parameters;
-           !link.isEmpty();
-           link = link.tail) {
-        Element element = link.head;
+
+      function.computeParameters(compiler).forEachParameter((Element element) {
         parameterNames[element] = JsNames.getValid('${element.name}');
-      }
+      });
 
       String code = generateMethod(parameterNames, work, graph);
       return code;

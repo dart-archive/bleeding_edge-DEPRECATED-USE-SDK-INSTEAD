@@ -232,26 +232,57 @@ Type getType(TypeAnnotation typeAnnotation, compiler, types) {
   return types.lookup(name);
 }
 
-class FunctionElement extends Element {
+class FunctionParameters {
   Link<Element> parameters;
+  Link<Element> optionalParameters;
+  int parameterCount;
+  int optionalParameterCount;
+  FunctionParameters(this.parameters,
+                     this.optionalParameters,
+                     this.parameterCount,
+                     this.optionalParameterCount);
+
+  void forEachParameter(void function(Element parameter)) {
+    for (Link<Element> link = parameters;
+         !link.isEmpty();
+         link = link.tail) {
+      function(link.head);
+    }
+    for (Link<Element> link = optionalParameters;
+         !link.isEmpty();
+         link = link.tail) {
+      function(link.head);
+    }
+  }
+}
+
+class FunctionElement extends Element {
   FunctionExpression cachedNode;
   Type type;
   final Modifiers modifiers;
-  int cachedParameterCount;
+  FunctionParameters functionParameters;
 
   FunctionElement(SourceString name,
                   ElementKind kind,
                   Modifiers this.modifiers,
-                  Element enclosing,
-                  [Node node])
-    : super(name, kind, enclosing), cachedNode = node;
+                  Element enclosing)
+    : super(name, kind, enclosing);
+
   FunctionElement.node(SourceString name,
                        FunctionExpression node,
                        ElementKind kind,
                        Modifiers this.modifiers,
                        Element enclosing)
     : super(name, kind, enclosing),
-      this.cachedNode = node;
+      cachedNode = node;
+
+  FunctionElement.from(SourceString name,
+                       FunctionElement other,
+                       Element enclosing)
+    : super(name, other.kind, enclosing),
+      cachedNode = other.cachedNode,
+      modifiers = other.modifiers,
+      functionParameters = other.functionParameters;
 
   bool isInstanceMember() {
     return isMember()
@@ -260,20 +291,23 @@ class FunctionElement extends Element {
            && !modifiers.isStatic();
   }
 
+  FunctionParameters computeParameters(Compiler compiler) {
+    if (functionParameters !== null) return functionParameters;
+    functionParameters = compiler.resolveSignature(this);
+    return functionParameters;
+  }
+
   int parameterCount(Compiler compiler) {
-    if (cachedParameterCount === null) {
-      cachedParameterCount = 0;
-      if (parameters == null) compiler.resolveSignature(this);
-      for (Link l = parameters; !l.isEmpty(); l = l.tail) {
-        cachedParameterCount++;
-      }
-    }
-    return cachedParameterCount;
+    return computeParameters(compiler).parameterCount;
+  }
+
+  int optionalParameterCount(Compiler compiler) {
+    return computeParameters(compiler).optionalParameterCount;
   }
 
   FunctionType computeType(Compiler compiler) {
     if (type != null) return type;
-    if (parameters == null) compiler.resolveSignature(this);
+    FunctionParameters parameters = computeParameters(compiler);
     Types types = compiler.types;
     FunctionExpression node =
         compiler.parser.measure(() => parseNode(compiler));
@@ -281,7 +315,9 @@ class FunctionElement extends Element {
     if (returnType === null) returnType = types.dynamicType;
 
     LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
-    for (Link<Element> link = parameters; !link.isEmpty(); link = link.tail) {
+    for (Link<Element> link = parameters.parameters;
+         !link.isEmpty();
+         link = link.tail) {
       parameterTypes.addLast(link.head.computeType(compiler));
     }
     type = new FunctionType(returnType, parameterTypes.toLink(), this);
@@ -302,7 +338,7 @@ class ConstructorBodyElement extends FunctionElement {
               ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
               null,
               constructor.enclosingElement) {
-    this.parameters = constructor.parameters;
+    functionParameters = constructor.functionParameters;
   }
 
   bool isInstanceMember() => true;
@@ -322,9 +358,7 @@ class ConstructorBodyElement extends FunctionElement {
 class SynthesizedConstructorElement extends FunctionElement {
   SynthesizedConstructorElement(Element enclosing)
     : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
-            null, enclosing) {
-    parameters = const EmptyLink<Element>();
-  }
+            null, enclosing);
 
   FunctionType computeType(Compiler compiler) {
     if (type != null) return type;

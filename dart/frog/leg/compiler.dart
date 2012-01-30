@@ -260,16 +260,12 @@ class Compiler implements DiagnosticListener {
     universe.instantiatedClasses.add(element);
   }
 
-  Element resolveType(ClassElement element) {
-    parser.parse(element);
-    resolver.resolveType(element);
-    return element;
+  Type resolveType(ClassElement element) {
+    return resolver.resolveType(element);
   }
 
-  Element resolveSignature(FunctionElement element) {
-    parser.parse(element);
-    resolver.resolveSignature(element);
-    return element;
+  FunctionParameters resolveSignature(FunctionElement element) {
+    return resolver.resolveSignature(element);
   }
 
   reportWarning(Node node, var message) {}

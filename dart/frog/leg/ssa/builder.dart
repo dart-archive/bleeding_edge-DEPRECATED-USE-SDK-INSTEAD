@@ -268,8 +268,7 @@ class SsaBuilder implements Visitor {
       thisDefinition = new HThis();
       add(thisDefinition);
     }
-    FunctionExpression function = functionElement.parseNode(compiler);
-    handleParameterValues(function.parameters);
+    handleParameterValues(functionElement);
     close(new HGoto()).addSuccessor(block);
 
     open(block);
@@ -333,21 +332,12 @@ class SsaBuilder implements Visitor {
     if (node !== null) node.accept(this);
   }
 
-  handleParameterValues(NodeList parameters) {
-    int parameterIndex = 0;
-    for (Link<Node> link = parameters.nodes;
-         !link.isEmpty();
-         link = link.tail) {
-      VariableDefinitions container = link.head;
-      Link<Node> nodeLink = container.definitions.nodes;
-      // The identifier link must contain exactly one argument.
-      assert(!nodeLink.isEmpty() && nodeLink.tail.isEmpty());
-      Node current = nodeLink.head;
-      VariableElement element = elements[current];
+  handleParameterValues(FunctionElement function) {
+    function.computeParameters(compiler).forEachParameter((Element element) {
       HParameterValue parameter = new HParameterValue(element);
       add(parameter);
       definitions[element] = parameter;
-    }
+    });
   }
 
   visitBlock(Block node) {
@@ -527,14 +517,10 @@ class SsaBuilder implements Visitor {
         element.getEnclosingCompilationUnit();
     ClassElement globalizedClosureElement =
         new ClassElement(const SourceString("Closure"), compilationUnit);
-    Modifiers modifiers = new Modifiers.empty();
     FunctionElement callElement =
-        new FunctionElement(Namer.CLOSURE_INVOCATION_NAME,
-                            ElementKind.FUNCTION,
-                            modifiers,
-                            globalizedClosureElement,
-                            node: element.parseNode(compiler));
-    callElement.parameters = element.parameters;
+        new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME,
+                                 element,
+                                 globalizedClosureElement);
     globalizedClosureElement.backendMembers =
         const EmptyLink<Element>().prepend(callElement);
     globalizedClosureElement.isResolved = true;

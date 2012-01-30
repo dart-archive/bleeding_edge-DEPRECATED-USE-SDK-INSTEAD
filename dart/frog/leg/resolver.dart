@@ -42,11 +42,10 @@ class ResolverTask extends CompilerTask {
 
   TreeElements resolveMethodElement(FunctionElement element) {
     FunctionExpression tree = element.parseNode(compiler);
-    // TODO(ahe): Can this be cleaned up to use resolveSignature?
-    ResolverVisitor visitor = new SignatureResolverVisitor(compiler, element);
-    visitor.visit(tree);
+    ResolverVisitor visitor = new FullResolverVisitor(compiler, element);
+    visitor.useElement(tree, element);
+    visitor.setupFunction(tree, element);
 
-    visitor = new FullResolverVisitor.from(visitor);
     if (tree.initializers != null) {
       new InitializerResolver(visitor, element).resolveInitializers(tree);
     }
@@ -69,20 +68,24 @@ class ResolverTask extends CompilerTask {
     return visitor.mapping;
   }
 
-  void resolveType(ClassElement element) {
-    measure(() {
+  Type resolveType(ClassElement element) {
+    return measure(() {
       ClassNode tree = element.parseNode(compiler);
       ClassResolverVisitor visitor = new ClassResolverVisitor(compiler);
-      visitor.visit(tree);
+      return visitor.visit(tree);
     });
   }
 
-  void resolveSignature(FunctionElement element) {
-    measure(() {
+  FunctionParameters resolveSignature(FunctionElement element) {
+    return measure(() {
       FunctionExpression node = element.parseNode(compiler);
       SignatureResolverVisitor visitor =
           new SignatureResolverVisitor(compiler, element);
-      visitor.visitFunctionExpression(node);
+      visitor.visit(node);
+      return new FunctionParameters(visitor.parameters,
+                                    visitor.optionalParameters,
+                                    visitor.parameterCount,
+                                    visitor.optionalParameterCount);
     });
   }
 }
@@ -252,7 +255,6 @@ class InitializerResolver {
   }
 }
 
-
 // TODO(ahe): Frog cannot handle generic types.
 class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
   final Compiler compiler;
@@ -274,25 +276,17 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
         : new TopScope(compiler.universe),
       this.currentClass = element.isMember() ? element.enclosingElement : null;
 
-  ResolverVisitor.from(ResolverVisitor other)
-    : compiler = other.compiler,
-      mapping = other.mapping,
-      enclosingElement = other.enclosingElement,
-      inInstanceContext = other.inInstanceContext,
-      context = other.context,
-      currentClass = other.currentClass;
-
-  error(Node node, MessageKind kind, [arguments = const []]) {
+  void error(Node node, MessageKind kind, [arguments = const []]) {
     ResolutionError error  = new ResolutionError(kind, arguments);
     compiler.reportError(node, error);
   }
 
-  warning(Node node, MessageKind kind, [arguments = const []]) {
+  void warning(Node node, MessageKind kind, [arguments = const []]) {
     ResolutionWarning warning  = new ResolutionWarning(kind, arguments);
     compiler.reportWarning(node, warning);
   }
 
-  cancel(Node node, String message) {
+  void cancel(Node node, String message) {
     compiler.cancel(message, node: node);
   }
 
@@ -385,36 +379,24 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
     return element;
   }
 
+  void setupFunction(FunctionExpression node, FunctionElement function) {
+    context = new MethodScope(context, function);
+    // Put the parameters in scope.
+    FunctionParameters functionParameters = function.computeParameters(compiler);
+    Link<Node> parameterNodes = node.parameters.nodes;
+    functionParameters.forEachParameter((Element element) {
+      VariableDefinitions variableDefinitions = parameterNodes.head;
+      defineElement(variableDefinitions.definitions.nodes.head, element);
+      parameterNodes = parameterNodes.tail;
+      if (element == functionParameters.optionalParameters.head) {
+        NodeList nodes = parameterNodes.head;
+        parameterNodes = nodes.nodes;
+      }
+    });
+  }
+
   visitNode(Node node) {
     cancel(node, 'not implemented');
-  }
-}
-
-class SignatureResolverVisitor extends ResolverVisitor {
-  FunctionElement element;
-
-  SignatureResolverVisitor(Compiler compiler, FunctionElement element)
-      : super(compiler, element), this.element = element;
-
-  visitFunctionExpression(FunctionExpression node) {
-    useElement(node, element);
-    context = new MethodScope(context, element);
-    if (element.parameters === null) {
-      ParametersVisitor visitor = new ParametersVisitor(this);
-      visitor.visit(node.parameters);
-      element.parameters = visitor.elements.toLink();
-    } else {
-      // TODO(ahe): What is this for?
-      Link<Node> parameterNodes = node.parameters.nodes;
-      for (Link<Element> link = element.parameters;
-           !link.isEmpty() && !parameterNodes.isEmpty();
-           link = link.tail, parameterNodes = parameterNodes.tail) {
-        VariableDefinitions variableDefinitions = parameterNodes.head;
-        defineElement(variableDefinitions.definitions.nodes.head, link.head);
-      }
-    }
-
-    return element;
   }
 }
 
@@ -422,7 +404,6 @@ class FullResolverVisitor extends ResolverVisitor {
 
   FullResolverVisitor(Compiler compiler, Element element)
     : super(compiler, element);
-  FullResolverVisitor.from(ResolverVisitor other) : super.from(other);
 
   Element visitClassNode(ClassNode node) {
     cancel(node, "shouldn't be called");
@@ -458,20 +439,15 @@ class FullResolverVisitor extends ResolverVisitor {
 
   visitFunctionExpression(FunctionExpression node) {
     visit(node.returnType);
-    SourceString name;
     if (node.name === null) {
       cancel(node, "anonymous functions are not implemented");
     }
-    name = node.name.asIdentifier().source;
+    SourceString name = node.name.asIdentifier().source;
     FunctionElement enclosingElement = new FunctionElement.node(
-        name, node, ElementKind.FUNCTION, null, context.element);
+        name, node, ElementKind.FUNCTION, new Modifiers.empty(),
+        context.element);
     defineElement(node, enclosingElement);
-    context = new MethodScope(context, enclosingElement);
-
-    // TODO(ahe): Can this be cleaned up to use resolveSignature?
-    ParametersVisitor visitor = new ParametersVisitor(this);
-    visitor.visit(node.parameters);
-    enclosingElement.parameters = visitor.elements.toLink();
+    setupFunction(node, enclosingElement);
 
     visit(node.body);
     context = context.parent;
@@ -853,10 +829,6 @@ class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
 
   SourceString visitSendSet(SendSet node) {
     assert(node.arguments.tail.isEmpty()); // Sanity check
-    if (node.receiver !== null) {
-      resolver.cancel(node,
-          "receiver on a variable definition not implemented");
-    }
     resolver.visit(node.arguments.head);
     return visit(node.selector);
   }
@@ -866,41 +838,13 @@ class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
-      if (name !== null) {
-        VariableElement element = new VariableElement(
-            name, variables, kind, resolver.context.element, node: link.head);
-        resolver.defineElement(link.head, element);
-      }
+      VariableElement element = new VariableElement(
+          name, variables, kind, resolver.context.element, node: link.head);
+      resolver.defineElement(link.head, element);
     }
   }
 
   visit(Node node) => node.accept(this);
-
-  visitSend(Send node) {
-    // The lhs is a property access. The parser never accepts this
-    // code right now if it's not a field initializer.
-    if (kind !== ElementKind.PARAMETER || node.receiver === null) {
-      resolver.cancel(node, 'internal error');
-    }
-
-    if (node.receiver.asIdentifier() === null ||
-        !node.receiver.asIdentifier().isThis()) {
-      resolver.error(node, MessageKind.INVALID_PARAMETER, []);
-    } else if (resolver.enclosingElement.kind !==
-                  ElementKind.GENERATIVE_CONSTRUCTOR) {
-      resolver.error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED, []);
-    } else {
-      SourceString name = node.selector.asIdentifier().source;
-      Element field = resolver.currentClass.lookupLocalMember(name);
-      if (field.kind !== ElementKind.FIELD) {
-        resolver.error(node, MessageKind.NOT_A_FIELD, [name]);
-      } else if (!field.isInstanceMember()) {
-        resolver.error(node, MessageKind.NOT_INSTANCE_FIELD, [name]);
-      }
-      resolver.defineElement(node, field);
-    }
-    return null;
-  }
 
   visitNode(Node node) {
     resolver.cancel(node, 'not implemented');
@@ -908,43 +852,113 @@ class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
 }
 
 // TODO(ahe): Frog cannot handle generic types.
-class ParametersVisitor extends AbstractVisitor/*<Element>*/ {
-  ResolverVisitor resolver;
-  LinkBuilder<Element> elements;
-  ParametersVisitor(this.resolver) : elements = new LinkBuilder<Element>();
+class SignatureResolverVisitor extends ResolverVisitor/*<Element>*/ {
+  Link<Element> parameters = const EmptyLink<Element>();
+  Link<Element> optionalParameters = const EmptyLink<Element>();
+  int parameterCount = 0;
+  int optionalParameterCount = 0;
+  Node currentDefinitions;
 
-  visitNodeList(NodeList node) {
+  // If [visitorState] is 0, it means that we haven't visited
+  // anything yet. 1 means that we're visiting positional
+  // parameters, and 2 means we're visiting optional arguments.
+  int visitorState = 0;
+
+  SignatureResolverVisitor(Compiler compiler, FunctionElement element)
+    : super(compiler, element);
+
+  Element visitFunctionExpression(FunctionExpression node) {
+    FunctionElement element = enclosingElement;
+    visit(node.parameters);
+    return element;
+  }
+
+  Element visitNodeList(NodeList node) {
+    if (visitorState > 1) {
+      cancel('internal error', node: node);
+    }
+    bool visitingOptionalParameters = visitorState == 1;
+    visitorState++;
+    LinkBuilder<Element> elements = new LinkBuilder<Element>();
+    int count = 0;
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
-      elements.addLast(visit(link.head));
+      Element element = visit(link.head);
+      if (element != null) {
+        count++;
+        elements.addLast(element);
+      }
+    }
+    if (visitingOptionalParameters) {
+      optionalParameters = elements.toLink();
+      optionalParameterCount = count;
+    } else {
+      parameters = elements.toLink();
+      parameterCount = count;
     }
   }
 
-  visitVariableDefinitions(VariableDefinitions node) {
-    resolver.visit(node.type);
-    VariableDefinitionsVisitor visitor =
-        new VariableDefinitionsVisitor(node, resolver, ElementKind.PARAMETER);
+  Element visitVariableDefinitions(VariableDefinitions node) {
+    visit(node.type);
+
     Link<Node> definitions = node.definitions.nodes;
     if (definitions.isEmpty()) {
-      resolver.cancel(node, 'internal error: no parameter definition');
+      cancel(node, 'internal error: no parameter definition');
       return;
     }
     if (!definitions.tail.isEmpty()) {
-      resolver.cancel(definitions.tail.head,
-                      'internal error: extra definition');
+      cancel(definitions.tail.head, 'internal error: extra definition');
       return;
     }
     Node definition = definitions.head;
     if (definition is NodeList) {
-      resolver.cancel(node, 'optional parameters are not implemented');
+      cancel(node, 'optional parameters are not implemented');
     }
-    visitor.visit(node.definitions);
-    return resolver.mapping[definition];
+
+    if (currentDefinitions != null) {
+      cancel(node, 'function type parameters not supported');
+    }
+    currentDefinitions = node;
+    Element element = visit(definition);
+    currentDefinitions = null;
+    return element;
   }
 
-  visit(Node node) => node.accept(this);
+  Element visitIdentifier(Identifier node) {
+    Element variables = new VariableListElement.node(currentDefinitions,
+        ElementKind.VARIABLE_LIST, enclosingElement);
+    return new VariableElement(node.source, variables,
+        ElementKind.PARAMETER, enclosingElement, node: node);
+  }
 
-  visitNode(Node node) {
-    resolver.cancel(node, 'not implemented');
+  Element visitSend(Send node) {
+    if (node.receiver === null) {
+      cancel(node, 'internal error: no receiver on a parameter send');
+    }
+    Element element;
+    if (node.receiver.asIdentifier() === null ||
+        !node.receiver.asIdentifier().isThis()) {
+      error(node, MessageKind.INVALID_PARAMETER, []);
+    } else if (enclosingElement.kind !== ElementKind.GENERATIVE_CONSTRUCTOR) {
+      error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED, []);
+    } else {
+      SourceString name = node.selector.asIdentifier().source;
+      element = currentClass.lookupLocalMember(name);
+      if (element.kind !== ElementKind.FIELD) {
+        error(node, MessageKind.NOT_A_FIELD, [name]);
+      } else if (!element.isInstanceMember()) {
+        error(node, MessageKind.NOT_INSTANCE_FIELD, [name]);
+      }
+    }
+    return element;
+  }
+
+  Element visit(Node node) {
+    if (node == null) return null;
+    return node.accept(this);
+  }
+
+  Element visitNode(Node node) {
+    cancel(node, 'not implemented');
   }
 }
 
