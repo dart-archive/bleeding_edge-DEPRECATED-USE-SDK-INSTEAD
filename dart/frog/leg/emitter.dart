@@ -37,6 +37,43 @@ function(child, parent) {
     buffer.add(';\n');
   }
 
+  void addParameterStub(FunctionElement member,
+                        String prototype,
+                        StringBuffer buffer,
+                        Invocation invocation) {
+    // TODO(ngeoffray): also support invocation with names.
+    String invocationName =
+        namer.instanceMethodName(member.name, invocation.argumentCount);
+    int allParameters = member.parameterCount(compiler)
+        + member.optionalParameterCount(compiler);
+    int missingParameters = allParameters - invocation.argumentCount;
+    if (missingParameters == 0) return;
+    assert(missingParameters > 0);
+    buffer.add('$prototype.$invocationName = function(');
+    StringBuffer parameters = new StringBuffer();
+    for (int i = 0; i < invocation.argumentCount; i++) {
+      if (i != 0) parameters.add(', ');
+      parameters.add('param$i');
+    }
+    buffer.add('$parameters) {\n');
+    buffer.add('  this.${namer.getName(member)}($parameters');
+    for (int i = 0; i < missingParameters; i++) {
+      if (i != 0 || invocation.argumentCount != 0) buffer.add(', ');
+      buffer.add('(void 0)');
+    }
+    buffer.add(')\n}\n');
+  }
+
+  void addParameterStubs(FunctionElement member,
+                         String prototype,
+                         StringBuffer buffer) {
+    Set<Invocation> invocations = compiler.universe.invokedNames[member.name];
+    for (Invocation invocation in invocations) {
+      if (!invocation.applies(compiler, member)) continue;
+      addParameterStub(member, prototype, buffer, invocation);
+    }
+  }
+
   void addInstanceMember(Element member,
                          String prototype,
                          StringBuffer buffer) {
@@ -53,6 +90,10 @@ function(child, parent) {
       if (codeBlock !== null) {
         String name = namer.getBailoutName(member);
         buffer.add('$prototype.$name = $codeBlock;\n');
+      }
+      FunctionElement function = member;
+      if (!function.computeParameters(compiler).optionalParameters.isEmpty()) {
+        addParameterStubs(member, prototype, buffer);
       }
     } else if (member.kind === ElementKind.FIELD) {
       // TODO(ngeoffray): Have another class generate the code for the
@@ -214,10 +255,11 @@ function(child, parent) {
     }
 
     compiler.universe.invokedNames.forEach((SourceString methodName,
-                                            Set<int> arities) {
+                                            Set<Invocation> invocations) {
       if (objectClass.lookupLocalMember(methodName) === null
           && methodName != Namer.OPERATOR_EQUALS) {
-        for (int arity in arities) {
+        for (Invocation invocation in invocations) {
+          int arity = invocation.argumentCount;
           String jsName = namer.instanceMethodName(methodName, arity);
           generateMethod(methodName.stringValue, jsName, arity);
         }

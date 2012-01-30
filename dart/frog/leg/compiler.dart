@@ -139,7 +139,8 @@ class Compiler implements DiagnosticListener {
     universe.define(new ForeignElement(
         const SourceString('JS_HAS_EQUALS')), this);
     // TODO(ngeoffray): Lazily add this method.
-    universe.invokedNames[NO_SUCH_METHOD] = new Set<int>.from(<int>[2]);
+    universe.invokedNames[NO_SUCH_METHOD] =
+        new Set<Invocation>.from(<Invocation>[new Invocation(2)]);
   }
 
   void enqueueInvokedInstanceMethods() {
@@ -152,22 +153,24 @@ class Compiler implements DiagnosticListener {
         // TODO(floitsch): we don't need to add members that have been
         // overwritten by subclasses.
         for (Element member in currentClass.members) {
-          SourceString name = member.name;
           if (universe.generatedCode[member] !== null) continue;
           if (!member.isInstanceMember()) continue;
           if (member.kind == ElementKind.FUNCTION) {
-            FunctionElement element = member;
-            Set<int> invocations = universe.invokedNames[name];
-            if (invocations != null
-                && invocations.contains(element.parameterCount(this))) {
-              addToWorklist(member);
+            Set<Invocation> invocations = universe.invokedNames[member.name];
+            if (invocations != null) {
+              for (Invocation invocation in invocations) {
+                if (invocation.applies(this, member)) {
+                  addToWorklist(member);
+                  break;
+                }
+              }
             }
           } else if (member.kind == ElementKind.GETTER) {
-            if (universe.invokedGetters.contains(name)) {
+            if (universe.invokedGetters.contains(member.name)) {
               addToWorklist(member);
             }
           } else if (member.kind === ElementKind.SETTER) {
-             if (universe.invokedSetters.contains(name)) {
+             if (universe.invokedSetters.contains(member.name)) {
               addToWorklist(member);
             }
           }
@@ -239,12 +242,16 @@ class Compiler implements DiagnosticListener {
     addToWorklist(element);
   }
 
-  void registerDynamicInvocation(SourceString methodName, int arity) {
-    Set<int> existing = universe.invokedNames[methodName];
+  void registerDynamicInvocation(
+      SourceString methodName, int arity,
+      [List<SourceString> names = const <SourceString>[]]) {
+    Invocation invocation = new Invocation(arity, names);
+    Set<Invocation> existing = universe.invokedNames[methodName];
     if (existing == null) {
-      universe.invokedNames[methodName] = new Set.from(<int>[arity]);
+      universe.invokedNames[methodName] =
+          new Set.from(<Invocation>[invocation]);
     } else {
-      existing.add(arity);
+      existing.add(invocation);
     }
   }
 

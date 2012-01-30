@@ -385,13 +385,13 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
     FunctionParameters functionParameters = function.computeParameters(compiler);
     Link<Node> parameterNodes = node.parameters.nodes;
     functionParameters.forEachParameter((Element element) {
-      VariableDefinitions variableDefinitions = parameterNodes.head;
-      defineElement(variableDefinitions.definitions.nodes.head, element);
-      parameterNodes = parameterNodes.tail;
       if (element == functionParameters.optionalParameters.head) {
         NodeList nodes = parameterNodes.head;
         parameterNodes = nodes.nodes;
       }
+      VariableDefinitions variableDefinitions = parameterNodes.head;
+      defineElement(variableDefinitions.definitions.nodes.head, element);
+      parameterNodes = parameterNodes.tail;
     });
   }
 
@@ -875,7 +875,7 @@ class SignatureResolverVisitor extends ResolverVisitor/*<Element>*/ {
 
   Element visitNodeList(NodeList node) {
     if (visitorState > 1) {
-      cancel('internal error', node: node);
+      cancel(node, 'internal error');
     }
     bool visitingOptionalParameters = visitorState == 1;
     visitorState++;
