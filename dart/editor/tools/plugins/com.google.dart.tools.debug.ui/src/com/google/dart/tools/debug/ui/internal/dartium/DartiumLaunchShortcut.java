@@ -48,6 +48,10 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILa
       return false;
     }
 
+    if (!DartSdk.getInstance().isDartiumInstalled()) {
+      return false;
+    }
+
     if (resource instanceof IFile) {
       if ("html".equalsIgnoreCase(resource.getFileExtension())) {
         return true;

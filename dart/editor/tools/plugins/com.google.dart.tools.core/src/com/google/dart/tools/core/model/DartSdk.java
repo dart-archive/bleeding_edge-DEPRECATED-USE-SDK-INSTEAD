@@ -81,6 +81,7 @@ public class DartSdk {
   }
 
   private final IPath sdkPath;
+
   private File vm;
   private File dartium;
 
@@ -160,6 +161,16 @@ public class DartSdk {
       }
     }
     return vm;
+  }
+
+  /**
+   * Checks if dartium binary is available
+   */
+  public boolean isDartiumInstalled() {
+    if (getDartiumExecutable() != null) {
+      return true;
+    }
+    return false;
   }
 
   private String getBinaryName() {
