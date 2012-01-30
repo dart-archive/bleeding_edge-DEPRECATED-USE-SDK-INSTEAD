@@ -353,15 +353,15 @@ class ObjectArray<T> { }
          - - - - - - - - - - - - - - - - - -->
     <target name="setupDevWorkspace" 
             depends="initDevWorkspace, buildLibraries, installSdk">
-        <property name="libraries.dev.dir" location="${eclipse.home}/${libraries.out.name}"/>
-        <echo message="Copying ${libraries.out.dir}"/>
-        <echo message="to ${libraries.dev.dir}"/>
-        <delete dir="${libraries.dev.dir}"/>
-        <mkdir dir="${libraries.dev.dir}"/>
-        <copy todir="${libraries.dev.dir}">
-          <fileset dir="${libraries.out.dir}"/>
-        </copy>
-        <makeReadonly directoryName="${libraries.dev.dir}"/>
+        <fail>
+            <condition>
+                <not>
+                    <equals arg1="${libraries.out.dir}" 
+                            arg2="${eclipse.home}/${libraries.out.name}"/>
+                </not>
+            </condition>
+        </fail>
+        <makeReadonly directoryName="${libraries.out.dir}"/>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
