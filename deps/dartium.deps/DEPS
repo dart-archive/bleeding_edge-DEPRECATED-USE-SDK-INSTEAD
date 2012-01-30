@@ -1,14 +1,14 @@
 vars = {
   # Additions for Dart
   "chromium_url": "http://src.chromium.org/svn",
-  "chromium_revision": "117836",
+  "chromium_revision": "119649",
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_url": "http://dart.googlecode.com/svn",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_chromium_revision": "29",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
-  "dartium_webkit_revision": "109",
+  "dartium_webkit_revision": "110",
   "dartium_tools_revision": "66",
 
   # Use this googlecode_url variable only if there is an internal mirror for it.
@@ -17,10 +17,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "105014",
+  "webkit_revision": "106215",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "7561",
+  "nacl_revision": "7664",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "7139",  # native_client/DEPS: tools_rev
@@ -42,18 +42,18 @@ vars = {
       "b41a2e565716b3ddc0212d185afa79881e971c58",
   "nacl_toolchain_revision": "7537",
 
-  "libjingle_revision": "100",
+  "libjingle_revision": "114",
   "libphonenumber_revision": "407",
-  "libvpx_revision": "117274",
+  "libvpx_revision": "117975",
   "lss_revision": "9",
-  "ffmpeg_revision": "112050",
+  "ffmpeg_revision": "118948",
   "sfntly_revision": "118",
-  "skia_revision": "3035",
+  "skia_revision": "3089",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "10339",
-  "webrtc_revision": "1264",
+  "v8_revision": "10507",
+  "webrtc_revision": "1538",
   "jsoncpp_revision": "248",
 }
 
@@ -72,13 +72,13 @@ deps = {
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
 
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@902",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@907",
 
   "src/build/util/support":
     Var("chromium_url") + "/trunk/deps/support@20411",
 
   "src/googleurl":
-    (Var("googlecode_url") % "google-url") + "/trunk@165",
+    (Var("googlecode_url") % "google-url") + "/trunk@168",
 
   "src/seccompsandbox":
     (Var("googlecode_url") % "seccompsandbox") + "/trunk@178",
@@ -93,7 +93,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@374",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@941",
+    (Var("googlecode_url") % "angleproject") + "/trunk@950",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -103,7 +103,7 @@ deps = {
     Var("chromium_url") + "/trunk/deps/third_party/WebKit@76115",
 
   "src/third_party/icu":
-    Var("chromium_url") + "/trunk/deps/third_party/icu46@113543",
+    Var("chromium_url") + "/trunk/deps/third_party/icu46@118861",
 
   "src/third_party/hunspell":
    Var("chromium_url") + "/trunk/deps/third_party/hunspell@110423",
@@ -116,7 +116,7 @@ deps = {
 
   "src/third_party/cacheinvalidation/files/src/google":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src/google@151",
+    "/trunk/src/google@183",
 
   "src/third_party/leveldatabase/src":
     (Var("googlecode_url") % "leveldb") + "/trunk@55",
@@ -128,7 +128,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@9",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1160",
+    (Var("googlecode_url") % "gyp") + "/trunk@1185",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -175,7 +175,7 @@ deps = {
     Var("dartium_webkit_trunk") + "/Tools/TestWebKitAPI@" + Var("dartium_webkit_revision"),
 
   "src/third_party/ots":
-    (Var("googlecode_url") % "ots") + "/trunk@78",
+    (Var("googlecode_url") % "ots") + "/trunk@80",
 
   "src/tools/page_cycler/acid3":
     Var("chromium_url") + "/trunk/deps/page_cycler/acid3@102714",
@@ -278,6 +278,9 @@ deps = {
     (Var("googlecode_url") % "libjingle") + "/trunk@" +
     Var("libjingle_revision"),
 
+  "src/third_party/libsrtp":
+    Var("chromium_url") + "/trunk/deps/third_party/libsrtp@119424",
+
   "src/third_party/speex":
     Var("chromium_url") + "/trunk/deps/third_party/speex@111570",
 
@@ -285,13 +288,13 @@ deps = {
     Var("chromium_url") + "/trunk/deps/third_party/yasm/patched-yasm@73761",
 
   "src/third_party/libjpeg_turbo":
-    Var("chromium_url") + "/trunk/deps/third_party/libjpeg_turbo@111873",
+    Var("chromium_url") + "/trunk/deps/third_party/libjpeg_turbo@118072",
 
   "src/third_party/flac":
-    Var("chromium_url") + "/trunk/deps/third_party/flac@96404",
+    Var("chromium_url") + "/trunk/deps/third_party/flac@118218",
 
   "src/third_party/pyftpdlib/src":
-    (Var("googlecode_url") % "pyftpdlib") + "/trunk@888",
+    (Var("googlecode_url") % "pyftpdlib") + "/trunk@977",
 
   # Needed to support nacl browser test jig.
   "src/third_party/pylib":
@@ -367,7 +370,7 @@ deps_os = {
 
     # NSS, for SSLClientSocketNSS.
     "src/third_party/nss":
-      Var("chromium_url") + "/trunk/deps/third_party/nss@115445",
+      Var("chromium_url") + "/trunk/deps/third_party/nss@117974",
 
     "src/third_party/swig/win":
       Var("chromium_url") + "/trunk/deps/third_party/swig/win@" + Var("swig_revision"),
@@ -429,7 +432,7 @@ deps_os = {
        Var("lss_revision")),
 
     "src/third_party/openssl":
-      Var("chromium_url") + "/trunk/deps/third_party/openssl@105093",
+      Var("chromium_url") + "/trunk/deps/third_party/openssl@118977",
 
     "src/third_party/WebKit/Tools/gdb":
       Var("webkit_trunk") + "/Tools/gdb@" + Var("webkit_revision"),
