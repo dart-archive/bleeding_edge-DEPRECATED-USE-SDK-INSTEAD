@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
@@ -63,7 +63,7 @@ main() {
 """;
 
 twoClasses() {
-  String generated = compileClasses(TEST_ONE);
+  String generated = compileAll(TEST_ONE);
   Expect.isTrue(generated.contains(
       "Isolate.prototype.A = function A() {\n};"));
   Expect.isTrue(generated.contains(
@@ -81,12 +81,12 @@ subClass() {
         "Isolate.\$inherits(Isolate.prototype.B, Isolate.prototype.A);\n"));
   }
 
-  checkOutput(compileClasses(TEST_TWO));
-  checkOutput(compileClasses(TEST_THREE));
+  checkOutput(compileAll(TEST_TWO));
+  checkOutput(compileAll(TEST_THREE));
 }
 
 fieldTest() {
-  String generated = compileClasses(TEST_FOUR);
+  String generated = compileAll(TEST_FOUR);
   Expect.isTrue(generated.contains("""
 Isolate.prototype.B = function B(B_z, B_y, A_x) {
   this.z = B_z;
@@ -96,7 +96,7 @@ Isolate.prototype.B = function B(B_z, B_y, A_x) {
 }
 
 constructor1() {
-  String generated = compileClasses(TEST_FIVE);
+  String generated = compileAll(TEST_FIVE);
   Expect.isTrue(generated.contains("new \$.A(x);"));
 }
 

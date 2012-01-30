@@ -19,8 +19,8 @@ main() { return x; }
 """;
 
 main() {
-  String generated = compileClasses(TEST_NULL0);
+  String generated = compileAll(TEST_NULL0);
   Expect.isTrue(generated.contains("(void 0)"));
-  generated = compileClasses(TEST_NULL1);
+  generated = compileAll(TEST_NULL1);
   Expect.isTrue(generated.contains("(void 0)"));
 }

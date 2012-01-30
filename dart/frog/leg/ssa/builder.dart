@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -186,7 +186,13 @@ class SsaBuilder implements Visitor {
     methodInterceptionEnabled = true;
   }
 
+  void translateClosures(FunctionElement functionElement) {
+    Node node = functionElement.parseNode(compiler);
+    new ClosureTranslator(compiler, elements).translate(node);
+  }
+
   HGraph buildMethod(FunctionElement functionElement) {
+    translateClosures(functionElement);
     openFunction(functionElement);
     FunctionExpression function = functionElement.parseNode(compiler);
     function.body.accept(this);
@@ -196,6 +202,8 @@ class SsaBuilder implements Visitor {
   HGraph buildFactory(ClassElement classElement,
                       ConstructorBodyElement bodyElement,
                       FunctionElement functionElement) {
+    // The initializer list could contain closures.
+    translateClosures(functionElement);
     openFunction(functionElement);
 
     FunctionExpression function = functionElement.parseNode(compiler);
@@ -512,18 +520,12 @@ class SsaBuilder implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    FunctionElement element = elements[node];
-    CompilationUnitElement compilationUnit =
-        element.getEnclosingCompilationUnit();
+    ClosureData closureData = closureDataCache[node];
+    assert(closureData !== null);
+    assert(closureData.globalizedClosureElement !== null);
     ClassElement globalizedClosureElement =
-        new ClassElement(const SourceString("Closure"), compilationUnit);
-    FunctionElement callElement =
-        new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME,
-                                 element,
-                                 globalizedClosureElement);
-    globalizedClosureElement.backendMembers =
-        const EmptyLink<Element>().prepend(callElement);
-    globalizedClosureElement.isResolved = true;
+        closureData.globalizedClosureElement;
+    FunctionElement callElement = closureData.callElement;
     compiler.enqueue(new WorkItem.toCodegen(callElement, elements));
     compiler.registerInstantiatedClass(globalizedClosureElement);
     push(new HForeignNew(globalizedClosureElement, <HInstruction>[]));

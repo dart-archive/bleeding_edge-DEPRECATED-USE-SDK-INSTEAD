@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
@@ -27,6 +27,18 @@ main() {
 }
 """;
 
+final String TEST_BAILOUT = @"""
+class A {
+  var x;
+  foo() {
+    var f = function g() { return 499;  };
+    return 499 + x + f();
+  }
+}
+
+main() { new A().foo(); }
+""";
+
 closureInvocation() {
   String generated = compile(TEST_INVOCATION0);
   Expect.isTrue(generated.contains(".\$call\$0()"));
@@ -36,6 +48,16 @@ closureInvocation() {
   Expect.isTrue(generated.contains(".\$call\$2(1, 2)"));
 }
 
+// Make sure that the bailout version does not introduce a second version of
+// the closure.
+closureBailout() {
+  String generated = compileAll(TEST_BAILOUT);
+  RegExp regexp = new RegExp(@'\$call\$0 = function');
+  Iterator<Match> matches = regexp.allMatches(generated).iterator();
+  checkNumberOfMatches(matches, 1);
+}
+
 main() {
   closureInvocation();
+  closureBailout();
 }
