@@ -102,11 +102,19 @@ class NativeDialogHelper {
    */
   protected void typeChar(final char ch) {
     boolean shift = needsShift(ch);
+    char lowerCase = ch;
     if (shift) {
       postKeyCodeDown(SWT.SHIFT);
+      if (ch >= 'A' && ch <= 'Z') {
+        lowerCase = Character.toLowerCase(ch);
+      } else if (ch == '_') {
+        lowerCase = '-';
+      } else {
+        throw new RuntimeException("Unknown lower case char for " + ch + " (" + ((int) ch) + ")");
+      }
     }
-    postCharDown(ch);
-    postCharUp(ch);
+    postCharDown(lowerCase);
+    postCharUp(lowerCase);
     if (shift) {
       postKeyCodeUp(SWT.SHIFT);
     }
@@ -245,7 +253,8 @@ class NativeDialogHelper {
       }
     });
     if (!success[0]) {
-      throw new RuntimeException("Failed to post event: " + event);
+      throw new RuntimeException("Failed to post event: " + event + " keycode=" + event.keyCode
+          + " character=" + event.character);
     }
     try {
       Thread.sleep(10);

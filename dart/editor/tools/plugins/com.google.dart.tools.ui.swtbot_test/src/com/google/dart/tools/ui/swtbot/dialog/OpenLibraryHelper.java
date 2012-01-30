@@ -21,6 +21,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 
 import static org.eclipse.swtbot.eclipse.finder.waits.Conditions.waitForEditor;
+import static org.eclipse.swtbot.swt.finder.utils.SWTUtils.isMac;
 import static org.junit.Assert.fail;
 
 /**
@@ -47,11 +48,24 @@ public class OpenLibraryHelper extends NativeDialogHelper {
     waitForNativeShellShowing();
 
     try {
-      // Type the absolute path to the library
+      bot.sleep(500);
+
+      // On Mac, open the "Go to Folder" popup
+      if (isMac()) {
+        typeKeyCode(SWT.COMMAND | SWT.SHIFT | 'g');
+      }
       typeKeyCode(SWT.MOD1 | 'a'); // Select all
-      bot.sleep(100);
+
+      // Type the absolute path to the library
+      bot.sleep(500);
       typeText(lib.dartFile.getAbsolutePath());
       bot.sleep(1000);
+
+      // On Mac, extra CR to close the "Go to Folder" popup
+      if (isMac()) {
+        typeChar(SWT.CR);
+        bot.sleep(250);
+      }
 
       // Press Enter and wait for the operation to complete
       typeChar(SWT.CR);
