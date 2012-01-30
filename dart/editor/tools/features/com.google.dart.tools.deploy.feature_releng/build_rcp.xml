@@ -491,13 +491,13 @@ class ObjectArray<T> { }
         
         <!-- Hi -->
         <!-- copy todir="${samples.out.dir}/hi">
-            <fileset dir="${build.source.root}/client/samples/hi">
+            <fileset dir="${build.source.root}/samples/hi">
             </fileset>
         </copy -->
 
         <!-- Isolate -->
         <copy todir="${samples.out.dir}/isolate">
-            <fileset dir="${build.source.root}/client/samples/isolate">
+            <fileset dir="${build.source.root}/samples/isolate_html">
               <exclude name="main.py"/>
               <exclude name="deploy.sh"/>
               <exclude name="app.yaml"/>
@@ -506,7 +506,7 @@ class ObjectArray<T> { }
 
         <!-- Slider -->
         <copy todir="${samples.out.dir}/slider">
-            <fileset dir="${build.source.root}/client/samples/slider">
+            <fileset dir="${build.source.root}/samples/slider">
             </fileset>
         </copy>
 
@@ -518,7 +518,7 @@ class ObjectArray<T> { }
 
         <!-- Sunflower -->
         <copy todir="${samples.out.dir}/sunflower">
-            <fileset dir="${build.source.root}/client/samples/sunflower">
+            <fileset dir="${build.source.root}/samples/sunflower">
             </fileset>
         </copy>
 
