@@ -30,8 +30,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -489,10 +487,6 @@ public abstract class CachingArtifactProvider extends DartArtifactProvider {
    * @return the version (not <code>null</code>)
    */
   private String getExpectedVersion() {
-    String version = DartCore.getBuildId();
-    if (version.startsWith("@")) {
-      version = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-    }
-    return "v" + version;
+    return "v" + DartCore.getBuildIdOrDate();
   }
 }

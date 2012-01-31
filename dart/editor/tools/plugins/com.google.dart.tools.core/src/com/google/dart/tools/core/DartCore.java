@@ -57,7 +57,9 @@ import org.osgi.framework.BundleContext;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -292,6 +294,20 @@ public class DartCore extends Plugin {
    */
   public static String getBuildId() {
     return "@REVISION@";
+  }
+
+  /**
+   * Return a unique token that can be used to determine whether cached data that changes only when
+   * the version of the editor changes is still valid.
+   * 
+   * @return a token used to determine the validity of cached data
+   */
+  public static String getBuildIdOrDate() {
+    String buildIdOrDate = getBuildId();
+    if (buildIdOrDate.startsWith("@")) {
+      buildIdOrDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+    }
+    return buildIdOrDate;
   }
 
   /**
