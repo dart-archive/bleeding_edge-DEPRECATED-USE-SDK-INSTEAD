@@ -9,7 +9,7 @@
 // TODO(jimhug): This is BROKEN with the move to experimental - will fix.
 
 /** Path to starting library or application. */
-final String ROOT = '../client/samples/swarm/swarm.dart';
+final String ROOT = '../samples/swarm/swarm.dart';
 
 /** Path to core library. */
 final String CORE = 'lib/corelib.dart';

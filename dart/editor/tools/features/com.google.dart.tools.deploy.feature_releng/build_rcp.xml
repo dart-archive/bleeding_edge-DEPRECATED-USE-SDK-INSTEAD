@@ -513,7 +513,7 @@ class ObjectArray<T> { }
 
         <!-- Swarm -->
         <!-- copy todir="${samples.out.dir}/swarm">
-            <fileset dir="${build.source.root}/client/samples/swarm">
+            <fileset dir="${build.source.root}/samples/swarm">
             </fileset>
         </copy -->
 
