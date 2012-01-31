@@ -16,14 +16,24 @@ prefix samples
 [ $arch == arm ]
 *: Skip
 
+
+[ $component == chromium || $component == dartium || $component == frogium ]
+chat/ChatServerTest: Skip
+chat/HttpTest: Skip
+chat/HttpParserTest: Skip
+chat/UrlEncodingTest: Skip
+
 [ $component == chromium ]
-*: Skip
+dartcombat/DartCombatTest: Skip # Issue 1218
 
 [ $component == dartium ]
-*: Skip
+dartcombat/DartCombatTest: Skip # Bug 5279716
 
-[ $component == frogium ]
-*: Skip
+[ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
+dartcombat/DartCombatTest: Skip # passes locally but timeout on bot?
+
+[ $component == vm]
+dartcombat/DartCombatTest: Skip
 
 [ $component == frog ]
 *: Skip

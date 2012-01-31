@@ -6,8 +6,8 @@
 #library('dartcombat_tests');
 
 #import('dart:html');
-#import('../../../../testing/unittest/unittest.dart');
-#import('../../../../samples/dartcombat/dartcombatlib.dart');
+#import('../../../../../client/testing/unittest/unittest.dart');
+#import('../../../../dartcombat/dartcombatlib.dart');
 
 ReceivePort testPort;
 
