@@ -63,6 +63,7 @@ public class DartSdk {
         if (dir.exists()) {
           try {
             defaultSdk = new DartSdk(new Path(dir.getCanonicalPath()));
+            defaultSdk.initializeSdk();
           } catch (IOException e) {
             DartCore.logError("Failed to resolve SDK path", e);
             // fall through
@@ -83,6 +84,7 @@ public class DartSdk {
   private final IPath sdkPath;
 
   private File vm;
+
   private File dartium;
 
   private DartSdk(IPath path) {
@@ -173,6 +175,28 @@ public class DartSdk {
     return false;
   }
 
+  protected void initializeSdk() {
+    if (!isWindows()) {
+      ensureVmIsExecutable();
+    }
+  }
+
+  /**
+   * Ensure that the dart vm is executable. If it is not, make it executable and log that it was
+   * necessary for us to do so.
+   */
+  private void ensureVmIsExecutable() {
+    File dartVm = getVmExecutable();
+
+    if (dartVm != null) {
+      if (!dartVm.canExecute()) {
+        makeExecutable(dartVm);
+
+        DartCore.logError(dartVm.getPath() + " was not executable");
+      }
+    }
+  }
+
   private String getBinaryName() {
     if (isWindows()) {
       return "dart.exe";
@@ -199,6 +223,24 @@ public class DartSdk {
   private boolean isWindows() {
     // Look for the "Windows" OS name.
     return System.getProperty("os.name").toLowerCase().startsWith("win");
+  }
+
+  /**
+   * Make the given file executable; returns true on success.
+   * 
+   * @param file
+   * @return
+   */
+  private boolean makeExecutable(File file) {
+    // First try and set executable for all users.
+    if (file.setExecutable(true, false)) {
+      // success
+
+      return true;
+    }
+
+    // Then try only for the current user.
+    return file.setExecutable(true, true);
   }
 
   private String readFully(File revisionFile) throws IOException {
