@@ -63,9 +63,15 @@ class ResolverTask extends CompilerTask {
     visitor.visit(tree.body);
 
     // Resolve the type annotations encountered in the method.
+    Link<ClassElement> newResolvedClasses = const EmptyLink<ClassElement>();
     while (!toResolve.isEmpty()) {
-      toResolve.removeFirst().resolve(compiler);
+      ClassElement classElement = toResolve.removeFirst();
+      if (!classElement.isResolved) {
+        classElement.resolve(compiler);
+      }
+      newResolvedClasses = newResolvedClasses.prepend(classElement);
     }
+    checkClassHierarchy(newResolvedClasses);
     return visitor.mapping;
   }
 
@@ -99,8 +105,61 @@ class ResolverTask extends CompilerTask {
                                     visitor.optionalParameterCount);
     });
   }
-}
 
+  void checkClassHierarchy(Link<ClassElement> classes) {
+    for(; !classes.isEmpty(); classes = classes.tail) {
+      ClassElement classElement = classes.head;
+      calculateAllSupertypes(classElement, new Set<ClassElement>());
+    }
+  }
+
+  Link<Type> getOrCalculateAllSupertypes(ClassElement classElement,
+                                         [Set<ClassElement> seen]) {
+    Link<Type> allSupertypes = classElement.allSupertypes;
+    if (allSupertypes !== null) return allSupertypes;
+    if (seen === null) seen = new Set<ClassElement>();
+    calculateAllSupertypes(classElement, seen);
+    return classElement.allSupertypes;
+  }
+
+  void calculateAllSupertypes(ClassElement classElement,
+                              Set<ClassElement> seen) {
+    // TODO(karlklose): substitute type variables.
+    // TODO(karlklose): check if type arguments match, if a classelement occurs
+    //                  more than once in the supertypes.
+    if (classElement.allSupertypes !== null) return;
+    final Type supertype = classElement.supertype;
+    if (seen.contains(classElement)) {
+      error(classElement.parseNode(compiler),
+            MessageKind.CYCLIC_CLASS_HIERARCHY,
+            [classElement.name]);
+      classElement.allSupertypes = const EmptyLink<Type>();
+    } else if (supertype != null) {
+      Type supertype = classElement.supertype;
+      seen.add(classElement);
+      Link<Type> superSupertypes =
+        getOrCalculateAllSupertypes(supertype.element, seen);
+      Link<Type> supertypes = new Link<Type>(supertype, superSupertypes);
+      for (Link<Type> interfaces = classElement.interfaces;
+           !interfaces.isEmpty();
+           interfaces = interfaces.tail) {
+        Element element = interfaces.head.element;
+        Link<Type> interfaceSupertypes =
+            getOrCalculateAllSupertypes(element, seen);
+        supertypes = supertypes.reversePrependAll(interfaceSupertypes);
+      }
+      seen.remove(classElement);
+      classElement.allSupertypes = supertypes;
+    } else {
+      classElement.allSupertypes = const EmptyLink<Type>();
+    }
+  }
+
+  error(Node node, MessageKind kind, [arguments = const []]) {
+    ResolutionError error = new ResolutionError(kind, arguments);
+    compiler.reportError(node, error);
+  }
+}
 
 class InitializerResolver {
   final ResolverVisitor visitor;

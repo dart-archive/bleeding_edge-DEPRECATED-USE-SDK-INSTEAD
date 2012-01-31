@@ -13,6 +13,7 @@ interface Link<T> extends Iterable<T> default LinkFactory<T> {
   List<T> toList();
   bool isEmpty();
   Link<T> reverse();
+  Link<T> reversePrependAll(Link<T> from);
 
   void printOn(StringBuffer buffer, [separatedBy]);
 }

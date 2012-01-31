@@ -64,6 +64,7 @@ main() {
   testFunctionExpression();
   testNewExpression();
   testTopLevelFields();
+  testClassHierarchy();
   testInitializers();
   testThis();
   testSuperCalls();
@@ -468,6 +469,34 @@ resolveConstructor(String script, String statement, String className,
   compareWarningKinds(script, expectedErrors, compiler.errors);
 }
 
+testClassHierarchy() {
+  final MAIN = buildSourceString("main");
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript("""class A extends B {}
+                          class B extends A {}
+                          main() { return new A(); }""");
+  FunctionElement mainElement = compiler.universe.find(MAIN);
+  compiler.resolver.resolve(mainElement);
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(MessageKind.CYCLIC_CLASS_HIERARCHY,
+                compiler.errors[0].message.kind);
+
+  compiler = new MockCompiler();
+  compiler.parseScript("""class A extends B {}
+                          class B extends C {}
+                          class C {}
+                          main() { return new A(); }""");
+  mainElement = compiler.universe.find(MAIN);
+  compiler.resolver.resolve(mainElement);
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(0, compiler.errors.length);
+  ClassElement aElement = compiler.universe.find(buildSourceString("A"));
+  Link<Type> supertypes = aElement.allSupertypes;
+  Expect.equals(<String>['B', 'C', 'Object'].toString(),
+                asSortedStrings(supertypes).toString());
+}
+
 testInitializers() {
   String script;
   script = """class A {
@@ -562,3 +591,10 @@ map(FullResolverVisitor visitor) {
 length(Link link) => link.isEmpty() ? 0 : length(link.tail) + 1;
 
 at(Link link, int index) => (index == 0) ? link.head : at(link.tail, index - 1);
+
+List<String> asSortedStrings(Link link) {
+  List<String> result = <String>[];
+  for (; !link.isEmpty(); link = link.tail) result.add(link.head.toString());
+  result.sort((s1, s2) => s1.compareTo(s2));
+  return result;
+}

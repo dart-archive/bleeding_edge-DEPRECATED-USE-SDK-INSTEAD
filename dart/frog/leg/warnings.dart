@@ -50,6 +50,8 @@ class MessageKind {
       "'Object' does not have a superclass");
   static final CANNOT_FIND_CONSTRUCTOR = const MessageKind(
       'cannot find constructor #{1}');
+  static final CYCLIC_CLASS_HIERARCHY = const MessageKind(
+      '#{1} creates a cycle in the class hierarchy');
   static final INVALID_RECEIVER_IN_INITIALIZER = const MessageKind(
       'field initializer expected');
   static final NO_SUPER_IN_STATIC = const MessageKind(

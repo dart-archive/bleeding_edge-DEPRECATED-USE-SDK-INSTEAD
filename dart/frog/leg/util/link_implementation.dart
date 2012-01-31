@@ -104,6 +104,15 @@ class LinkEntry<T> implements Link<T> {
     return result;
   }
 
+  Link<T> reversePrependAll(Link<T> from) {
+    Link<T> result;
+    for (result = this; !from.isEmpty(); from = from.tail) {
+      result = result.prepend(from.head);
+    }
+    return result;
+  }
+
+
   bool isEmpty() => false;
 
   List<T> toList() {

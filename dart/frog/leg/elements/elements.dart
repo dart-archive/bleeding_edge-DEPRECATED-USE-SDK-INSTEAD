@@ -393,6 +393,8 @@ class ClassElement extends ContainerElement {
   Link<Element> backendMembers = const EmptyLink<Element>();
   SynthesizedConstructorElement synthesizedConstructor;
 
+  Link<Type> allSupertypes;
+
   ClassElement(SourceString name, CompilationUnitElement enclosing)
     : localMembers = new Map<SourceString, Element>(),
       constructors = new Map<SourceString, Element>(),
