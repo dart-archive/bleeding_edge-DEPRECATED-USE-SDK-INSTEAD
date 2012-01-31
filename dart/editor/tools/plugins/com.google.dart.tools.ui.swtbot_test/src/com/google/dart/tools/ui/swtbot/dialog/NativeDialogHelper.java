@@ -240,21 +240,34 @@ class NativeDialogHelper {
 
   /**
    * Post the specified event to the OS event queue then sleep for 1/100 second to give the UI
-   * thread a chance to get control and process the event
+   * thread a chance to get control and process the event. Sometimes the test framework drives the
+   * UI too fast, and the OS event buffer gets full. In this situation, the #post(...) method
+   * returns false, we back off, sleep for 1/4 second, then try again.
    * 
    * @param event the event (not <code>null</code>)
    */
   private void postEvent(final Event event) {
     final boolean[] success = new boolean[1];
-    display.syncExec(new Runnable() {
-      @Override
-      public void run() {
-        success[0] = display.post(event);
+    int count = 0;
+    while (true) {
+      display.syncExec(new Runnable() {
+        @Override
+        public void run() {
+//          event.time = System.currentTimeMillis();
+          success[0] = display.post(event);
+        }
+      });
+      if (success[0]) {
+        break;
       }
-    });
-    if (!success[0]) {
-      throw new RuntimeException("Failed to post event: " + event + " keycode=" + event.keyCode
-          + " character=" + event.character);
+      if (++count == 5) {
+        throw new RuntimeException("Failed to post event: " + event);
+      }
+      try {
+        Thread.sleep(250);
+      } catch (InterruptedException e) {
+        //$FALL-THROUGH$
+      }
     }
     try {
       Thread.sleep(10);
