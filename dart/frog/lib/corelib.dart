@@ -59,7 +59,7 @@ void print(Object obj) => _print(obj);
 void _print(Object obj) native @'''if (typeof console == 'object') {
   if (obj) obj = obj.toString();
   console.log(obj);
-} else {
+} else if (typeof write === 'function') {
   write(obj);
   write('\n');
 }''' {
