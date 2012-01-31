@@ -4,11 +4,14 @@
 
 prefix frog
 
-# TODO(jimhug): Leave this disabled until we're ready to reengage on repl.
-EvaluatorTest: Skip
-NativeCheckedArguments1FrogTest: Skip # TODO(jimhug): Fix after CL stabilizes
-InheritanceOrderingTest: Skip # TODO(jimhug): Fix flakiness uniformly
-PrototypePatchingTest: Skip # TODO(jimhug): Fix flakiness uniformly
+
+EvaluatorTest: Skip                    # TODO(jimhug): Skipped until ready to work on REPL.
+InheritanceOrderingTest: Skip          # TODO(jimhug): Fix flakiness uniformly
+PrototypePatchingTest: Skip            # TODO(jimhug): Fix flakiness uniformly
+
+
+[ $checked ]
+NativeCheckedArguments1FrogTest: Fail  # Bug(1364): Not enough checked mode checks.
 
 
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == frog || $component == leg]
