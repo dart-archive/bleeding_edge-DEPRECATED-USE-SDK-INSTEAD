@@ -148,7 +148,7 @@ class SsaConstantFolder extends HBaseVisitor {
       HLiteral op1 = node.left;
       HLiteral op2 = node.right;
       if (op1.isLiteralString()) {
-        if (op2.isLiteralString() && op1.value.definitlyEquals(op2.value)) {
+        if (op2.isLiteralString() && op1.value.definitelyEquals(op2.value)) {
           return new HLiteral(true, HType.BOOLEAN);
         }
       } else {
