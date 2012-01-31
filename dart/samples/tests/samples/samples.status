@@ -22,18 +22,26 @@ chat/ChatServerTest: Skip
 chat/HttpTest: Skip
 chat/HttpParserTest: Skip
 chat/UrlEncodingTest: Skip
+ChatServerTest: Skip
+HttpTest: Skip
+HttpParserTest: Skip
+UrlEncodingTest: Skip
 
 [ $component == chromium ]
 dartcombat/DartCombatTest: Skip # Issue 1218
+DartCombatTest: Skip
 
 [ $component == dartium ]
 dartcombat/DartCombatTest: Skip # Bug 5279716
+DartCombatTest: Skip
 
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
 dartcombat/DartCombatTest: Skip # passes locally but timeout on bot?
+DartCombatTest: Skip
 
 [ $component == vm]
 dartcombat/DartCombatTest: Skip
+DartCombatTest: Skip
 
 [ $component == frog ]
 *: Skip
