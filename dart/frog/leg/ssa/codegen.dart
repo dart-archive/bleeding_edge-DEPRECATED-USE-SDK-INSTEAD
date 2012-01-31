@@ -456,6 +456,7 @@ class SsaCodeGenerator implements HVisitor {
         superMethod.name, argumentCount);
     buffer.add('$className.prototype.$methodName.call');
     visitArguments(node.inputs);
+    compiler.registerStaticUse(superMethod);
   }
 
   visitForeign(HForeign node) {

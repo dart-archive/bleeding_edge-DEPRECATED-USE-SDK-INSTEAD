@@ -591,6 +591,23 @@ class FullResolverVisitor extends ResolverVisitor {
     }
   }
 
+  void handleArguments(Send node) {
+    int count = 0;
+    List<SourceString> namedArguments = <SourceString>[];
+    for (Link<Node> link = node.argumentsNode.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      count++;
+      Expression argument = link.head;
+      visit(argument);
+      if (argument.asNamedArgument() != null) {
+        NamedArgument named = argument;
+        namedArguments.add(named.name.source);
+      }
+    }
+    mapping.setSelector(node, new Invocation(count, namedArguments));
+  }
+
   visitSend(Send node) {
     Element target = resolveSend(node);
     if (node.isOperator) {
@@ -611,20 +628,7 @@ class FullResolverVisitor extends ResolverVisitor {
     } else if (node.isPropertyAccess) {
       mapping.setSelector(node, Selector.GETTER);
     } else {
-      int count = 0;
-      List<SourceString> namedArguments = <SourceString>[];
-      for (Link<Node> link = node.argumentsNode.nodes;
-           !link.isEmpty();
-           link = link.tail) {
-        count++;
-        Expression argument = link.head;
-        visit(argument);
-        if (argument.asNamedArgument() != null) {
-          NamedArgument named = argument;
-          namedArguments.add(named.name.source);
-        }
-      }
-      mapping.setSelector(node, new Invocation(count, namedArguments));
+      handleArguments(node);
     }
     // TODO(ngeoffray): If target is a field, check that there's a
     // getter.
@@ -719,8 +723,6 @@ class FullResolverVisitor extends ResolverVisitor {
           node, 'named constructors with type arguments are not implemented');
     }
 
-    visit(node.send.argumentsNode);
-
     SourceString constructorName;
     Node typeName = node.send.selector.asTypeAnnotation().typeName;
     if (typeName.asSend() !== null) {
@@ -756,6 +758,7 @@ class FullResolverVisitor extends ResolverVisitor {
       Node selector = node.send.selector;
       error(selector, MessageKind.CANNOT_RESOLVE_TYPE, [selector]);
     }
+    handleArguments(node.send);
     useElement(node.send, constructor);
     return null;
   }

@@ -44,8 +44,7 @@ function(child, parent) {
     // TODO(ngeoffray): also support invocation with names.
     String invocationName =
         namer.instanceMethodName(member.name, invocation.argumentCount);
-    int allParameters = member.parameterCount(compiler)
-        + member.optionalParameterCount(compiler);
+    int allParameters = member.parameterCount(compiler);
     int missingParameters = allParameters - invocation.argumentCount;
     if (missingParameters == 0) return;
     assert(missingParameters > 0);
@@ -68,6 +67,7 @@ function(child, parent) {
                          String prototype,
                          StringBuffer buffer) {
     Set<Invocation> invocations = compiler.universe.invokedNames[member.name];
+    if (invocations == null) return;
     for (Invocation invocation in invocations) {
       if (!invocation.applies(compiler, member)) continue;
       addParameterStub(member, prototype, buffer, invocation);

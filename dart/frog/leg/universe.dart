@@ -64,6 +64,8 @@ class Selector implements Hashable {
 
   int hashCode() => argumentCount + 1000 * namedArguments.length;
   List<SourceString> get namedArguments() => const <SourceString>[];
+  int get namedArgumentCount() => 0;
+  int get positionalArgumentCount() => argumentCount;
 
   static final Selector GETTER = const Selector(SelectorKind.GETTER, 0);
   static final Selector SETTER = const Selector(SelectorKind.SETTER, 1);
@@ -81,22 +83,36 @@ class Selector implements Hashable {
 
   bool applies(Compiler compiler, FunctionElement element) {
     FunctionParameters parameters = element.computeParameters(compiler);
-    int parameterCount = parameters.parameterCount;
-    if (argumentCount > parameterCount) return false;
+    if (argumentCount > parameters.parameterCount) return false;
+    int requiredParameterCount = parameters.requiredParameterCount;
+    int optionalParameterCount = parameters.optionalParameterCount;
 
     bool hasOptionalParameters = !parameters.optionalParameters.isEmpty();
     if (namedArguments.isEmpty()) {
       if (!hasOptionalParameters) {
-        return parameterCount == argumentCount;
+        return requiredParameterCount == argumentCount;
       } else {
-        int optionalParameterCount = parameters.optionalParameterCount;
-        return argumentCount >= parameterCount &&
-          argumentCount <= parameterCount + optionalParameterCount;
+        return argumentCount >= requiredParameterCount &&
+            argumentCount <= requiredParameterCount + optionalParameterCount;
       }
     } else {
       if (!hasOptionalParameters) return false;
+      Link<Element> remainingNamedParameters = parameters.optionalParameters;
+      for (int i = requiredParameterCount; i < positionalArgumentCount; i++) {
+        remainingNamedParameters = remainingNamedParameters.tail;
+      }
+      Set<SourceString> nameSet = new Set<SourceString>();
+      for (;
+           !remainingNamedParameters.isEmpty();
+           remainingNamedParameters = remainingNamedParameters.tail) {
+        nameSet.add(remainingNamedParameters.head.name);
+      }
+
       for (SourceString name in namedArguments) {
-        compiler.cancel('unimplemented named constructors');
+        if (!nameSet.contains(name)) {
+          return false;
+        }
+        nameSet.remove(name);
       }
       return true;
     }
@@ -120,6 +136,8 @@ class Selector implements Hashable {
 
 class Invocation extends Selector {
   final List<SourceString> namedArguments;
+  int get namedArgumentCount() => namedArguments.length;
+  int get positionalArgumentCount() => argumentCount - namedArgumentCount;
 
   const Invocation(
       int argumentCount,

@@ -208,7 +208,6 @@ class SsaBuilder implements Visitor {
 
     FunctionExpression function = functionElement.parseNode(compiler);
     NodeList initializers = function.initializers;
-    NodeList parameters = function.parameters;
     // Run through the initializers.
     if (initializers !== null) {
       for (Link<Node> link = initializers.nodes;
@@ -250,15 +249,11 @@ class SsaBuilder implements Visitor {
 
     List bodyCallInputs = <HInstruction>[];
     bodyCallInputs.add(newObject);
-    for (Link link = parameters.nodes; !link.isEmpty(); link = link.tail) {
-      Link<Node> nodeLink = link.head.definitions.nodes;
-      // We expect exactly one identifier.
-      assert(!nodeLink.isEmpty() && nodeLink.tail.isEmpty());
-      Node current = nodeLink.head;
-      Element parameterElement = elements[current];
+    FunctionParameters parameters = functionElement.computeParameters(compiler);
+    parameters.forEachParameter((Element parameterElement) {
       HInstruction currentValue = definitions[parameterElement];
       bodyCallInputs.add(currentValue);
-    }
+    });
     add(new HInvokeDynamicMethod(null, methodName, bodyCallInputs));
     close(new HReturn(newObject)).addSuccessor(graph.exit);
     return closeFunction();
@@ -887,7 +882,84 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  addVisitedSendArgumentsToList(Link<Node> link, List<HInstruction> list) {
+  void addDynamicSendArgumentsToList(Send node, List<HInstruction> list) {
+    Selector selector = elements.getSelector(node);
+    if (selector.namedArgumentCount == 0) {
+      addGenericSendArgumentsToList(node.arguments, list);
+    } else {
+      compiler.cancel(
+          'Unimplemented named argument for dynamic sends', node: node);
+    }
+  }
+
+  void addStaticSendArgumentsToList(Send node,
+                                    FunctionElement element,
+                                    List<HInstruction> list) {
+    Selector selector = elements.getSelector(node);
+    if (!selector.applies(compiler, element)) {
+      // TODO(ngeoffray): Match the VM behavior and throw an
+      // exception at runtime.
+      compiler.cancel('Unimplemented non-matching static call', node: node);
+    } else if (selector.namedArgumentCount == 0) {
+      addGenericSendArgumentsToList(node.arguments, list);
+    } else {
+      // If there are named arguments, provide them in the order
+      // expected by the called function, which is the source order.
+      FunctionParameters parameters = element.computeParameters(compiler);
+
+      // Visit positional arguments and add them to the list.
+      Link<Node> arguments = node.arguments;
+      int positionalArgumentCount = selector.positionalArgumentCount;
+      for (int i = 0;
+           i < positionalArgumentCount;
+           arguments = arguments.tail, i++) {
+        visit(arguments.head);
+        list.add(pop());
+      }
+
+      // Visit named arguments and add them into a temporary list.
+      List<HInstruction> namedArguments = <HInstruction>[];
+      for (; !arguments.isEmpty(); arguments = arguments.tail) {
+        visit(arguments.head);
+        namedArguments.add(pop());
+      }
+
+      Link<Element> remainingNamedParameters = parameters.optionalParameters;
+      // Skip the optional parameters that have been given in the
+      // positional arguments.
+      for (int i = parameters.requiredParameterCount;
+           i < positionalArgumentCount;
+           i++) {
+        remainingNamedParameters = remainingNamedParameters.tail;
+      }
+
+      // Loop over the remaining named parameters, and try to find
+      // their values: either in the temporary list or using the
+      // default value.
+      for (;
+           !remainingNamedParameters.isEmpty();
+           remainingNamedParameters = remainingNamedParameters.tail) {
+        Element parameter = remainingNamedParameters.head;
+        int foundIndex = -1;
+        for (int i = 0; i < selector.namedArguments.length; i++) {
+          SourceString name = selector.namedArguments[i];
+          if (name == parameter.name) {
+            foundIndex = i;
+            break;
+          }
+        }
+        if (foundIndex != -1) {
+          list.add(namedArguments[foundIndex]);
+        } else {
+          // TODO(ngeoffray): Add the default value.
+          push(new HLiteral(null, HType.UNKNOWN));
+          list.add(pop());
+        }
+      }
+    }
+  }
+
+  void addGenericSendArgumentsToList(Link<Node> link, List<HInstruction> list) {
     for (; !link.isEmpty(); link = link.tail) {
       visit(link.head);
       list.add(pop());
@@ -926,7 +998,7 @@ class SsaBuilder implements Visitor {
       inputs.add(target);
       visit(node.receiver);
       inputs.add(pop());
-      addVisitedSendArgumentsToList(node.arguments, inputs);
+      addGenericSendArgumentsToList(node.arguments, inputs);
       push(new HInvokeInterceptor(selector, dartMethodName, false, inputs));
       return;
     }
@@ -942,7 +1014,7 @@ class SsaBuilder implements Visitor {
       inputs.add(pop());
     }
 
-    addVisitedSendArgumentsToList(node.arguments, inputs);
+    addDynamicSendArgumentsToList(node, inputs);
 
     // The first entry in the inputs list is the receiver.
     push(new HInvokeDynamicMethod(selector, dartMethodName, inputs));
@@ -969,7 +1041,7 @@ class SsaBuilder implements Visitor {
     }
     var inputs = <HInstruction>[];
     inputs.add(closureTarget);
-    addVisitedSendArgumentsToList(node.arguments, inputs);
+    addDynamicSendArgumentsToList(node, inputs);
     push(new HInvokeClosure(selector, inputs));
   }
 
@@ -983,7 +1055,7 @@ class SsaBuilder implements Visitor {
         // which is the foreign code.
         link = link.tail.tail;
         List<HInstruction> inputs = <HInstruction>[];
-        addVisitedSendArgumentsToList(link, inputs);
+        addGenericSendArgumentsToList(link, inputs);
         LiteralString type = node.arguments.head;
         LiteralString literal = node.arguments.tail.head;
         compiler.ensure(literal is LiteralString);
@@ -1006,7 +1078,7 @@ class SsaBuilder implements Visitor {
         if (!node.arguments.tail.isEmpty()) {
           compiler.cancel('More than one expression in JS_HAS_EQUALS()');
         }
-        addVisitedSendArgumentsToList(node.arguments, inputs);
+        addGenericSendArgumentsToList(node.arguments, inputs);
         String name = compiler.namer.instanceMethodName(
             Namer.OPERATOR_EQUALS, 1);
         push(new HForeign(
@@ -1028,7 +1100,7 @@ class SsaBuilder implements Visitor {
     }
     add(target);
     var inputs = <HInstruction>[target, context];
-    addVisitedSendArgumentsToList(node.arguments, inputs);
+    addStaticSendArgumentsToList(node, element, inputs);
     push(new HInvokeSuper(selector, inputs));
   }
 
@@ -1039,7 +1111,7 @@ class SsaBuilder implements Visitor {
     add(target);
     var inputs = <HInstruction>[];
     inputs.add(target);
-    addVisitedSendArgumentsToList(node.arguments, inputs);
+    addStaticSendArgumentsToList(node, element, inputs);
     push(new HInvokeStatic(selector, inputs));
   }
 
@@ -1058,6 +1130,8 @@ class SsaBuilder implements Visitor {
         // Example: f() with 'f' unbound.
         // This can only happen inside an instance method.
         visitDynamicSend(node);
+      } else if (element.kind == ElementKind.CLASS) {
+        compiler.internalError("Cannot generate code for send", node: node);
       } else if (element.isInstanceMember()) {
         // Example: f() with 'f' bound to instance method.
         visitDynamicSend(node);
@@ -1412,7 +1486,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitNamedArgument(NamedArgument node) {
-    compiler.unimplemented('SsaBuilder.visitNamedArgument', node: node);
+    visit(node.expression);
   }
 
   visitSwitchStatement(SwitchStatement node) {

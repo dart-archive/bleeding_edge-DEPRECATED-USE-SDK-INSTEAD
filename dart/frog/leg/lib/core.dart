@@ -349,18 +349,11 @@ class NoSuchMethodException {
 
 class List<T> /* implements Iterable<T> */ {
 
-  static void _checkConstructorInput(n) {
-    // TODO(ngeoffray): Inline once we support optional parameters or
-    // bailout.
-    if (!isInt(n)) throw "Invalid argument";
-    if (n < 0) throw "Negative size";
-  }
-
-  factory List(n) {
-    // TODO(ngeoffray): Adjust to optional parameters.
-    if (JS("bool", @"$0 === (void 0)", n)) return JS("Object", @"new Array()");
-    _checkConstructorInput(n);
-    return JS("Object", @"new Array($0)", n);
+  factory List([int length]) {
+    if (length == null) return JS("Object", @"new Array()");
+    if (!isInt(length)) throw "Invalid argument";
+    if (length < 0) throw "Negative size";
+    return JS("Object", @"new Array($0)", length);
   }
 }
 

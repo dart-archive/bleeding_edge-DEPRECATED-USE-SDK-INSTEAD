@@ -233,17 +233,17 @@ Type getType(TypeAnnotation typeAnnotation, compiler, types) {
 }
 
 class FunctionParameters {
-  Link<Element> parameters;
+  Link<Element> requiredParameters;
   Link<Element> optionalParameters;
-  int parameterCount;
+  int requiredParameterCount;
   int optionalParameterCount;
-  FunctionParameters(this.parameters,
+  FunctionParameters(this.requiredParameters,
                      this.optionalParameters,
-                     this.parameterCount,
+                     this.requiredParameterCount,
                      this.optionalParameterCount);
 
   void forEachParameter(void function(Element parameter)) {
-    for (Link<Element> link = parameters;
+    for (Link<Element> link = requiredParameters;
          !link.isEmpty();
          link = link.tail) {
       function(link.head);
@@ -254,6 +254,8 @@ class FunctionParameters {
       function(link.head);
     }
   }
+
+  int get parameterCount() => requiredParameterCount + optionalParameterCount;
 }
 
 class FunctionElement extends Element {
@@ -297,12 +299,16 @@ class FunctionElement extends Element {
     return functionParameters;
   }
 
-  int parameterCount(Compiler compiler) {
-    return computeParameters(compiler).parameterCount;
+  int requiredParameterCount(Compiler compiler) {
+    return computeParameters(compiler).requiredParameterCount;
   }
 
   int optionalParameterCount(Compiler compiler) {
     return computeParameters(compiler).optionalParameterCount;
+  }
+
+  int parameterCount(Compiler compiler) {
+    return computeParameters(compiler).parameterCount;
   }
 
   FunctionType computeType(Compiler compiler) {
@@ -315,7 +321,7 @@ class FunctionElement extends Element {
     if (returnType === null) returnType = types.dynamicType;
 
     LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
-    for (Link<Element> link = parameters.parameters;
+    for (Link<Element> link = parameters.requiredParameters;
          !link.isEmpty();
          link = link.tail) {
       parameterTypes.addLast(link.head.computeType(compiler));
