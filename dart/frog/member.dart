@@ -894,25 +894,9 @@ class MethodMember extends Member {
     return false;
   }
 
-  /** Returns true if any of the parameters are optional. */
-  bool hasOptionalParameters() {
-    return parameters.some((Parameter p) => p.isOptional);
-  }
-
-  String _tooManyArgumentsMsg(int actual, int expected) {
-    return hasOptionalParameters()
-        ? 'too many arguments, expected at most $expected but found $actual'
-        : _wrongArgumentCountMsg(actual, expected);
-  }
-
-  String _tooFewArgumentsMsg(int actual, int expected) {
-    return hasOptionalParameters()
-        ? 'too few arguments, expected at least $expected but found $actual'
-        : _wrongArgumentCountMsg(actual, expected);
-  }
-
-  String _wrongArgumentCountMsg(int actual, int expected) {
-    return 'wrong number of arguments, expected $expected but found $actual';
+  static String _argCountMsg(int actual, int expected, [bool atLeast=false]) {
+    return 'wrong number of positional arguments, expected ' +
+        '${atLeast ? "at least " : ""}$expected but found $actual';
   }
 
   Value _argError(CallingContext context, Node node, Value target,
@@ -952,7 +936,7 @@ class MethodMember extends Member {
     for (int i = 0; i < bareCount; i++) {
       var arg = args.values[i];
       if (i >= parameters.length) {
-        var msg = _tooManyArgumentsMsg(args.length, parameters.length);
+        var msg = _argCountMsg(args.length, parameters.length);
         return _argError(context, node, target, args, msg, i);
       }
       argValues.add(arg.convertTo(context, parameters[i].type));
@@ -977,7 +961,7 @@ class MethodMember extends Member {
         }
 
         if (arg == null || !parameters[i].isOptional) {
-          var msg = _tooFewArgumentsMsg(Math.min(i, args.length), i + 1);
+          var msg = _argCountMsg(Math.min(i, args.length), i + 1, atLeast:true);
           return _argError(context, node, target, args, msg, i);
         } else {
           argValues.add(arg);
