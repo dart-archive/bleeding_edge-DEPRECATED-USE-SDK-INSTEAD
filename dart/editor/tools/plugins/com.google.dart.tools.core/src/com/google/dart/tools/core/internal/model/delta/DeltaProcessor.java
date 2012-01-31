@@ -605,9 +605,15 @@ public class DeltaProcessor {
                   + librarySource.getName() + ".", e);
               continue;
             }
-            DartLibrary dartLibrary = new DartLibraryImpl(importedLibrarySource);
-            libraryInfo.addImport(dartLibrary);
-            currentDelta().changed(library, DartElementDelta.CHANGED);
+            try {
+              if (importedLibrarySource.exists()) {
+                DartLibrary dartLibrary = new DartLibraryImpl(importedLibrarySource);
+                libraryInfo.addImport(dartLibrary);
+                currentDelta().changed(library, DartElementDelta.CHANGED);
+              }
+            } catch (Exception exception) {
+              // The library is not valid, so we don't add it.
+            }
           }
         } catch (DartModelException e) {
           DartCore.logError(e);

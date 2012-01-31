@@ -34,7 +34,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
 import java.util.Map;
@@ -170,7 +169,7 @@ public class ExternalCompilationUnitImpl extends CompilationUnitImpl {
       } finally {
         Closeables.closeQuietly(reader);
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       buffer.setContents(CharOperation.NO_CHAR);
       throw new DartModelException(e, 0);
     }

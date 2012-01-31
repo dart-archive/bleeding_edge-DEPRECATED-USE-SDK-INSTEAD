@@ -641,7 +641,17 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           return null;
         } else if (SystemLibraryManager.isDartUri(lib.getUri())) {
           // It is a bundled library.
-          importedLibraries.add(new DartLibraryImpl(lib));
+          try {
+            if (lib.exists()) {
+              DartLibraryImpl library = new DartLibraryImpl(lib);
+              importedLibraries.add(library);
+            }
+          } catch (Exception exception) {
+            // The library is not valid, so we don't add it.
+          }
+          return null;
+        } else if (!lib.exists()) {
+          // Don't add non-existent libraries.
           return null;
         }
 
