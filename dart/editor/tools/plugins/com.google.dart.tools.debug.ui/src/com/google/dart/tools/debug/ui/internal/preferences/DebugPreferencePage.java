@@ -47,7 +47,7 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
    * Create a new preference page.
    */
   public DebugPreferencePage() {
-//    setDescription("Dart Launch Preferences");
+    setDescription("Dart Launch Preferences");
   }
 
   @Override

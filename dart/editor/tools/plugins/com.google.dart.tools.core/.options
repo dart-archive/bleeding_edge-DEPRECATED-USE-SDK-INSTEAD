@@ -16,15 +16,6 @@ com.google.dart.tools.core/experimental/filesview = false
 
 com.google.dart.tools.core/trace/artifactProvider = false
 
-########################################################################
-# These options allow you to use the Frog compiler rather than DartC
-
-# Set true for automatically building with Frog ...
-com.google.dart.tools.core/build/frog = false
-
-# Set true for using Frog during "Generate Optimized Javascript..."
-com.google.dart.tools.core/deploy/frog = false
-
 # Set true for debugging communication with Frog server
 com.google.dart.tools.core/debug/frog = false
 

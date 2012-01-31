@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.util.PrintStringWriter;
 
 /**
@@ -69,12 +71,14 @@ public class FeedbackReport {
    */
   public String getOptionsText() {
     StringBuilder msg = new StringBuilder();
-    if (DartCoreDebug.BUILD_FROG) {
-      msg.append("build/frog = true\n");
-    }
-    if (DartCoreDebug.DEPLOY_FROG) {
-      msg.append("deploy/frog = true\n");
-    }
+
+    msg.append("experimental/filesview = " + DartCoreDebug.FILES_VIEW + "\n");
+
+    msg.append("SDK installed = " + DartSdk.isInstalled() + "\n");
+
+    boolean useFrog = DartCore.getPlugin().getPrefs().getBoolean(DartCore.FROG_COMPILE, false);
+    msg.append("compile with frog = " + useFrog + "\n");
+
     return msg.toString();
   }
 

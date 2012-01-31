@@ -39,6 +39,8 @@ public class CompilerPreferencePage extends PreferencePage implements IWorkbench
   private Button frogBuild;
 
   public CompilerPreferencePage() {
+    setDescription("Dart SDK and Compiler Preferences");
+
     noDefaultAndApplyButton();
   }
 
@@ -62,8 +64,26 @@ public class CompilerPreferencePage extends PreferencePage implements IWorkbench
         composite);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
 
+    // dart sdk
+    Group sdkGroup = new Group(composite, SWT.NONE);
+    sdkGroup.setText("Dart SDK");
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        sdkGroup);
+    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(sdkGroup);
+    Label sdkLabel = new Label(sdkGroup, SWT.NONE);
+    if (DartSdk.isInstalled()) {
+      String version = DartSdk.getInstance().getSdkVersion();
+      if (version.equals("0")) {
+        sdkLabel.setText("Dart SDK is installed");
+      } else {
+        sdkLabel.setText("Dart SDK version " + version);
+      }
+    } else {
+      sdkLabel.setText("Dart SDK is not installed");
+    }
+
     Group group = new Group(composite, SWT.NONE);
-    group.setText("Settings");
+    group.setText("Compiler Setting");
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(group);
     GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(group);
 
