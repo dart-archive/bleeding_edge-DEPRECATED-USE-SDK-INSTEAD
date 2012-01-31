@@ -17,7 +17,10 @@ import com.google.dart.tools.ui.swtbot.DartLib;
 import com.google.dart.tools.ui.swtbot.Performance;
 import com.google.dart.tools.ui.swtbot.Performance.Metric;
 
+import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.toolbarDropDownButton;
+
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarDropDownButton;
 import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
 
 import static org.eclipse.swtbot.swt.finder.waits.Conditions.shellCloses;
@@ -42,8 +45,9 @@ public class LaunchBrowserHelper {
    */
   public void launch(DartLib lib) {
     Performance.waitForResults(bot);
+    SWTBotToolbarDropDownButton launchButton = toolbarDropDownButton(bot, "Run.*");
     long start = System.currentTimeMillis();
-    bot.toolbarButtonWithTooltip("Run in Browser").click();
+    launchButton.click();
     Metric metric = Performance.LAUNCH_APP;
     // TODO (danrubel): hook into launch as lister rather than relying on progress dialog
     try {

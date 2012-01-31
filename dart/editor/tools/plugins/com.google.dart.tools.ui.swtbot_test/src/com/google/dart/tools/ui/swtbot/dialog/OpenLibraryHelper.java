@@ -15,12 +15,13 @@ package com.google.dart.tools.ui.swtbot.dialog;
 
 import com.google.dart.tools.ui.swtbot.DartLib;
 import com.google.dart.tools.ui.swtbot.Performance;
-import com.google.dart.tools.ui.swtbot.matchers.EditorWithTitle;
+
+import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.editorWithTitle;
+import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.waitForEditorWithTitle;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 
-import static org.eclipse.swtbot.eclipse.finder.waits.Conditions.waitForEditor;
 import static org.eclipse.swtbot.swt.finder.utils.SWTUtils.isMac;
 import static org.junit.Assert.fail;
 
@@ -70,9 +71,9 @@ public class OpenLibraryHelper extends NativeDialogHelper {
       // Press Enter and wait for the operation to complete
       typeChar(SWT.CR);
       lib.logFullCompileTime();
-      EditorWithTitle matcher = new EditorWithTitle(lib.dartFile.getName());
-      Performance.OPEN_LIB.log(bot, waitForEditor(matcher), lib.name);
-      lib.editor = bot.editor(matcher).toTextEditor();
+      String title = lib.dartFile.getName();
+      Performance.OPEN_LIB.log(bot, waitForEditorWithTitle(title), lib.name);
+      lib.editor = editorWithTitle(bot, title);
 
     } finally {
       ensureNativeShellClosed();

@@ -13,20 +13,20 @@
  */
 package com.google.dart.tools.ui.swtbot.matchers;
 
-import org.eclipse.ui.IEditorReference;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
 import java.util.regex.Pattern;
 
 /**
- * Matches an editor that has a title matching the specified regular expression.
+ * Match a table item that contains text matching the specified regular expression.
  */
-public class EditorWithTitle extends BaseMatcher<IEditorReference> {
+public final class TableItemWithText extends BaseMatcher<SWTBotTable> {
   private final String regex;
   private final Pattern pattern;
 
-  public EditorWithTitle(String regex) {
+  public TableItemWithText(String regex) {
     if (regex == null || regex.length() == 0) {
       throw new IllegalArgumentException();
     }
@@ -36,15 +36,17 @@ public class EditorWithTitle extends BaseMatcher<IEditorReference> {
 
   @Override
   public void describeTo(Description description) {
-    description.appendText("editor with title matching ").appendText(regex);
+    description.appendText("table with item matching ").appendText(regex);
   }
 
   @Override
   public boolean matches(Object item) {
-    if (item instanceof IEditorReference) {
-      String title = ((IEditorReference) item).getTitle();
-      if (title != null) {
-        return pattern.matcher(title).matches();
+    SWTBotTable table = (SWTBotTable) item;
+    int rowCount = table.rowCount();
+    for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+      String text = table.cell(rowIndex, 0);
+      if (text != null) {
+        return pattern.matcher(text).matches();
       }
     }
     return false;
