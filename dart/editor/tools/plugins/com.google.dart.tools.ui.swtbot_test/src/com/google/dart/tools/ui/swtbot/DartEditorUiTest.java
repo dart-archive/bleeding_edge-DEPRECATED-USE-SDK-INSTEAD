@@ -13,15 +13,14 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
+import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
 import com.google.dart.tools.ui.swtbot.conditions.CompilerWarmedUp;
 import com.google.dart.tools.ui.swtbot.conditions.ProblemsViewCount;
 import com.google.dart.tools.ui.swtbot.dialog.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
-import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
 
 import static com.google.dart.tools.ui.swtbot.DartLib.SLIDER_SAMPLE;
-import static com.google.dart.tools.ui.swtbot.DartLib.TIME_SERVER_SAMPLE;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
@@ -53,58 +52,65 @@ public class DartEditorUiTest {
   public static void setUp() {
     bot = new SWTWorkbenchBot();
     CompilerWarmedUp.waitUntilWarmedUp(bot);
+    BuildLibCondition.startListening();
   }
 
   @Test
   public void testDartEditorUI() throws Exception {
-
-    SLIDER_SAMPLE.deleteJsFile();
-    new OpenLibraryHelper(bot).open(SLIDER_SAMPLE);
-    new LaunchBrowserHelper(bot).launch(SLIDER_SAMPLE);
+    SLIDER_SAMPLE.openAndLaunch(bot);
 
     DartLib app = new NewApplicationHelper(bot).create("NewAppTest");
     new LaunchBrowserHelper(bot).launch(app);
+    Performance.waitForResults(bot);
     modifySourceInEditor(app);
     new LaunchBrowserHelper(bot).launch(app);
 
     new NewApplicationHelper(bot).create("NewAppTest2");
+    Performance.waitForResults(bot);
 
     for (DartLib lib : DartLib.getAllSamples()) {
-      if (lib == SLIDER_SAMPLE) {
-        continue;
+      if (lib != SLIDER_SAMPLE) {
+        lib.openAndLaunch(bot);
       }
-      lib.deleteJsFile();
-      new OpenLibraryHelper(bot).open(lib);
-      if (lib == TIME_SERVER_SAMPLE) {
-        continue;
-      }
-      new LaunchBrowserHelper(bot).launch(lib);
     }
-
     new ProblemsViewHelper(bot).assertNoProblems();
   }
 
   protected void modifySourceInEditor(DartLib lib) throws Exception {
     try {
-      lib.editor.setFocus();
-      navigateToLineContaining(lib.editor, "Hello");
-      lib.editor.pressShortcut(Keystrokes.DOWN, Keystrokes.LEFT, Keystrokes.LF);
+      SWTBotEclipseEditor editor = lib.editor;
+      editor.setFocus();
+      navigateToLineContaining(editor, "Hello");
+      editor.pressShortcut(Keystrokes.DOWN, Keystrokes.LEFT, Keystrokes.LF);
       long start = System.currentTimeMillis();
-      lib.editor.autoCompleteProposal("wri", "write(String message) : void - " + lib.name);
+      editor.autoCompleteProposal("wri", "write(String message) : void - " + lib.name);
       Performance.CODE_COMPLETION.log(start, "includes time to select and insert completion");
-      lib.editor.typeText("\"Goodbye.\"");
-      lib.editor.save();
+      editor.typeText("\"Goodbye.\"");
+      editor.save();
       lib.logIncrementalCompileTime("(with error in src)");
-      bot.waitUntil(new ProblemsViewCount(1), 20000);
+      Performance.waitForResults(bot);
+      bot.waitUntil(new ProblemsViewCount(1));
 
-      lib.editor.setFocus();
-      lib.editor.pressShortcut(Keystrokes.RIGHT);
-      lib.editor.typeText(";");
-      lib.editor.save();
+      editor.setFocus();
+      editor.pressShortcut(Keystrokes.RIGHT);
+      editor.typeText(";");
+      editor.save();
       lib.logIncrementalCompileTime();
-      bot.waitUntil(new ProblemsViewCount(0), 20000);
+      Performance.waitForResults(bot);
+      bot.waitUntil(new ProblemsViewCount(0));
 
-      lib.editor.setFocus();
+      editor.pressShortcut(Keystrokes.LF);
+      editor.autoCompleteProposal("wri", "write(String message) : void - " + lib.name);
+      Performance.CODE_COMPLETION.log(start, "includes time to select and insert completion");
+      editor.typeText("\"Again.\"");
+      editor.pressShortcut(Keystrokes.RIGHT);
+      editor.typeText(";");
+      editor.save();
+      lib.logIncrementalCompileTime();
+      Performance.waitForResults(bot);
+      bot.waitUntil(new ProblemsViewCount(0));
+
+      editor.setFocus();
 
     } catch (Exception e) {
       printActiveEditorText();

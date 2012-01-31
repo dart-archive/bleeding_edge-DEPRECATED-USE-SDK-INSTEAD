@@ -14,10 +14,13 @@
 package com.google.dart.tools.ui.swtbot;
 
 import com.google.dart.tools.core.test.util.FileUtilities;
-import com.google.dart.tools.ui.swtbot.conditions.FileExists;
+import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
+import com.google.dart.tools.ui.swtbot.dialog.LaunchBrowserHelper;
+import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
 
 import static com.google.dart.tools.ui.swtbot.Performance.prepend;
 
+import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 
 import static org.junit.Assert.fail;
@@ -79,8 +82,17 @@ public class DartLib {
    */
   private static File getSamplesDir() {
     if (DartLib.samplesDir == null) {
-      String path = System.getProperty("user.home") + "/Downloads/dart/samples";
-      DartLib.samplesDir = new File(path.replace('/', File.separatorChar));
+      File homeDir = new File(System.getProperty("user.home"));
+      File downloadsDir = new File(homeDir, "Downloads");
+      File editorDir = new File(downloadsDir, "dart");
+      if (!editorDir.exists()) {
+        fail("Download and unzip Dart Editor into " + downloadsDir);
+      }
+      File dir = new File(editorDir, "samples");
+      if (!dir.exists()) {
+        fail("Cannot find samples directory in " + editorDir);
+      }
+      samplesDir = dir;
     }
     return DartLib.samplesDir;
   }
@@ -97,7 +109,7 @@ public class DartLib {
     this.dir = dir;
     this.name = name;
     this.dartFile = new File(dir, name + ".dart");
-    this.jsFile = new File(dir, name + ".dart.app.js");
+    this.jsFile = new File(dir, name + ".dart.js");
   }
 
   private DartLib(String dirName, String fileName) {
@@ -110,7 +122,6 @@ public class DartLib {
    */
   public void deleteDir() {
     if (dartFile.exists()) {
-      System.out.println("Deleting directory " + dir);
       FileUtilities.delete(dir);
     }
   }
@@ -129,13 +140,27 @@ public class DartLib {
    * Wait then log the time for the JS file to be generated, without blocking the current thread.
    */
   public void logFullCompileTime(String... comments) {
-    Performance.COMPILE_FULL.logInBackground(new FileExists(jsFile), prepend(name, comments));
+    Performance.COMPILE_FULL.logInBackground(new BuildLibCondition(this), prepend(name, comments));
   }
 
   /**
    * Wait then log the time for the JS file to be generated, without blocking the current thread.
    */
   public void logIncrementalCompileTime(String... comments) {
-    Performance.COMPILE_INCREMENTAL.logInBackground(new FileExists(jsFile), prepend(name, comments));
+    Performance.COMPILE_INCREMENTAL.logInBackground(new BuildLibCondition(this),
+        prepend(name, comments));
+  }
+
+  /**
+   * Open the specified sample in the editor then click the launch toolbar button.
+   */
+  public void openAndLaunch(SWTWorkbenchBot bot) {
+    deleteJsFile();
+    new OpenLibraryHelper(bot).open(this);
+    if (this == TIME_SERVER_SAMPLE) {
+      Performance.waitForResults(bot);
+    } else {
+      new LaunchBrowserHelper(bot).launch(this);
+    }
   }
 }
