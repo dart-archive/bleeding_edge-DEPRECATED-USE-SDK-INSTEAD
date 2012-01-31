@@ -4,13 +4,24 @@
 
 interface TreeElements {
   Element operator[](Node node);
+  Selector getSelector(Send send);
 }
 
 class TreeElementMapping implements TreeElements {
   Map<Node, Element> map;
-  TreeElementMapping() : map = new LinkedHashMap<Node, Element>();
+  Map<Send, Selector> selectors;
+  TreeElementMapping()
+    : map = new LinkedHashMap<Node, Element>(),
+      selectors = new LinkedHashMap<Send, Selector>();
+
   operator []=(Node node, Element element) => map[node] = element;
   operator [](Node node) => map[node];
+
+  void setSelector(Send send, Selector selector) {
+    selectors[send] = selector;
+  }
+
+  Selector getSelector(Send send) => selectors[send];
 }
 
 class ResolverTask extends CompilerTask {
@@ -466,58 +477,45 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   Element resolveSend(Send node) {
-    Identifier selector = node.selector.asIdentifier();
-    Element receiver = visit(node.receiver);
-
-    if (selector === null) {
-      visit(node.argumentsNode);
-      // We are calling a closure returned from an expression.
-      assert(node.selector.asExpression() !== null);
-      assert(receiver === null);
-      visit(node.selector);
-      return null;
-    }
-
-    SourceString name = selector.source;
-    if (name.stringValue === 'is') {
-      assert(node.asSendSet() === null);
-      resolveTypeTest(node.arguments.head);
-      assert(node.arguments.tail.isEmpty());
-      return null;
-    }
-
-    visit(node.argumentsNode);
-
-    // No need to assign an element for a logical operation.
-    if (isLogicalOperator(selector)) return null;
+    Element resolvedReceiver = visit(node.receiver);
 
     Element target = null;
-    if (node.isSuperCall) {
-      if (currentClass !== null) {
-        ClassElement superElement = currentClass.superClass;
-        if (superElement !== null) {
-          target = superElement.lookupLocalMember(name);
+    if (node.selector.asIdentifier() === null) {
+      // We are calling a closure returned from an expression.
+      assert(node.selector.asExpression() !== null);
+      assert(resolvedReceiver === null);
+      visit(node.selector);
+    } else {
+      SourceString name = node.selector.asIdentifier().source;
+      if (node.receiver === null) {
+        target = lookup(node, name);
+        if (target === null && !enclosingElement.isInstanceMember()) {
+          error(node, MessageKind.CANNOT_RESOLVE, [name]);
         }
-        if (target == null) {
-          error(node, MessageKind.METHOD_NOT_FOUND, [superElement.name, name]);
+      } else if (node.isSuperCall) {
+        if (currentClass !== null) {
+          ClassElement superElement = currentClass.superclass;
+          if (superElement !== null) {
+            // TODO(ngeoffray): The lookup should continue on super
+            // classes.
+            target = superElement.lookupLocalMember(name);
+          }
+          if (target === null) {
+            error(node,
+                  MessageKind.METHOD_NOT_FOUND,
+                  [superElement.name, name]);
+          }
         }
-      }
-    } else if (node.isOperator) {
-      return null;
-    } else if (node.receiver === null) {
-      target = lookup(node, name);
-      if (target == null && !enclosingElement.isInstanceMember()) {
-        error(node, MessageKind.CANNOT_RESOLVE, [name]);
-      }
-    } else if (receiver === null) {
-      return null;
-    } else if (receiver.kind === ElementKind.CLASS) {
-      ClassElement receiverClass = receiver;
-      target = receiverClass.resolve(compiler).lookupLocalMember(name);
-      if (target == null) {
-        error(node, MessageKind.METHOD_NOT_FOUND, [receiver.name, name]);
-      } else if (target.isInstanceMember()) {
-        error(node, MessageKind.MEMBER_NOT_STATIC, [receiver.name, name]);
+      } else if (resolvedReceiver !== null
+                 && resolvedReceiver.kind === ElementKind.CLASS) {
+        ClassElement receiverClass = resolvedReceiver;
+        target = receiverClass.resolve(compiler).lookupLocalMember(name);
+        if (target === null) {
+          error(node, MessageKind.METHOD_NOT_FOUND, [receiverClass.name, name]);
+        } else if (target.isInstanceMember()) {
+          error(node, MessageKind.MEMBER_NOT_STATIC,
+                [receiverClass.name, name]);
+        }
       }
     }
     return target;
@@ -536,6 +534,39 @@ class FullResolverVisitor extends ResolverVisitor {
 
   visitSend(Send node) {
     Element target = resolveSend(node);
+    if (node.isOperator) {
+      if (node.selector.asIdentifier().source.stringValue === 'is') {
+        resolveTypeTest(node.arguments.head);
+        assert(node.arguments.tail.isEmpty());
+        mapping.setSelector(node, Selector.BINARY_OPERATOR);
+      } else if (node.arguments.isEmpty()) {
+        mapping.setSelector(node, Selector.UNARY_OPERATOR);
+      } else {
+        visit(node.argumentsNode);
+        mapping.setSelector(node, Selector.BINARY_OPERATOR);
+      }
+    } else if (node.isIndex) {
+      visit(node.argumentsNode);
+      assert(node.arguments.tail.isEmpty());
+      mapping.setSelector(node, Selector.INDEX);
+    } else if (node.isPropertyAccess) {
+      mapping.setSelector(node, Selector.GETTER);
+    } else {
+      int count = 0;
+      List<SourceString> namedArguments = <SourceString>[];
+      for (Link<Node> link = node.argumentsNode.nodes;
+           !link.isEmpty();
+           link = link.tail) {
+        count++;
+        Expression argument = link.head;
+        visit(argument);
+        if (argument.asNamedArgument() != null) {
+          NamedArgument named = argument;
+          namedArguments.add(named.name.source);
+        }
+      }
+      mapping.setSelector(node, new Invocation(count, namedArguments));
+    }
     // TODO(ngeoffray): If target is a field, check that there's a
     // getter.
     return useElement(node, target);
@@ -543,23 +574,33 @@ class FullResolverVisitor extends ResolverVisitor {
 
   visitSendSet(SendSet node) {
     Element target = resolveSend(node);
+    visit(node.argumentsNode);
     // TODO(ngeoffray): If target is a field, check that there's a
     // setter.
     // TODO(ngeoffray): Check if the target can be assigned.
     Identifier op = node.assignmentOperator;
-    if (op.source.stringValue !== '=') {
+    bool needsGetter = op.source.stringValue !== '=';
+    Selector selector;
+    if (needsGetter) {
       // Resolve the getter for the lhs (receiver+selector).
       // Currently this is the same as the setter.
       // TODO(ngeoffray): Adapt for fields.
       Element getter;
       if (node.isIndex) {
+        selector = Selector.INDEX_AND_INDEX_SET;
         getter = target;
       } else {
+        selector = Selector.GETTER_AND_SETTER;
         // TODO(ngeoffray): Find the getter from the setter.
         getter = target;
       }
       useElement(node.selector, getter);
+    } else if (node.isIndex) {
+      selector = Selector.INDEX_SET;
+    } else {
+      selector = Selector.SETTER;
     }
+    mapping.setSelector(node, selector);
     return useElement(node, target);
   }
 
@@ -728,7 +769,7 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitNamedArgument(NamedArgument node) {
-    cancel(node, 'unimplemented');
+    visit(node.expression);
   }
 
   visitSwitchStatement(SwitchStatement node) {
@@ -941,6 +982,10 @@ class SignatureResolverVisitor extends ResolverVisitor/*<Element>*/ {
     } else if (enclosingElement.kind !== ElementKind.GENERATIVE_CONSTRUCTOR) {
       error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED, []);
     } else {
+      if (node.selector.asIdentifier() == null) {
+        cancel(node,
+               'internal error: unimplemented receiver on parameter send');
+      }
       SourceString name = node.selector.asIdentifier().source;
       element = currentClass.lookupLocalMember(name);
       if (element.kind !== ElementKind.FIELD) {

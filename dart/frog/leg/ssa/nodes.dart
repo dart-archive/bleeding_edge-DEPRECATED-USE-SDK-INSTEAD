@@ -982,7 +982,8 @@ class HInvoke extends HInstruction {
     * the receiver of a method-call. The remaining inputs are the arguments
     * to the invocation.
     */
-  HInvoke(List<HInstruction> inputs) : super(inputs);
+  final Selector selector;
+  HInvoke(Selector this.selector, List<HInstruction> inputs) : super(inputs);
   static final int ARGUMENTS_OFFSET = 1;
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
@@ -991,7 +992,8 @@ class HInvoke extends HInstruction {
 
 class HInvokeDynamic extends HInvoke {
   SourceString name;
-  HInvokeDynamic(this.name, List<HInstruction> inputs) : super(inputs);
+  HInvokeDynamic(Selector selector, this.name, List<HInstruction> inputs)
+      : super(selector, inputs);
   toString() => 'invoke dynamic: $name';
   HInstruction get receiver() => inputs[0];
 
@@ -1001,21 +1003,27 @@ class HInvokeDynamic extends HInvoke {
 
 class HInvokeClosure extends HInvokeDynamic {
   Element element;
-  HInvokeClosure(List<HInstruction> inputs)
-    : super(const SourceString('call'), inputs);
+  HInvokeClosure(Selector selector, List<HInstruction> inputs)
+    : super(selector, const SourceString('call'), inputs);
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
-  HInvokeDynamicMethod(SourceString methodName, List<HInstruction> inputs)
-    : super(methodName, inputs);
+  HInvokeDynamicMethod(Selector selector,
+                       SourceString methodName,
+                       List<HInstruction> inputs)
+    : super(selector, methodName, inputs);
   toString() => 'invoke dynamic method: $name';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 }
 
 class HInvokeDynamicField extends HInvokeDynamic {
   Element element;
-  HInvokeDynamicField(this.element, name, inputs) : super(name, inputs);
+  HInvokeDynamicField(Selector selector,
+                      Element this.element,
+                      SourceString name,
+                      List<HInstruction>inputs)
+      : super(selector, name, inputs);
   toString() => 'invoke dynamic field: $name';
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
@@ -1023,15 +1031,15 @@ class HInvokeDynamicField extends HInvokeDynamic {
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(element, name, receiver)
-    : super(element, name, [receiver]);
+  HInvokeDynamicGetter(selector, element, name, receiver)
+    : super(selector, element, name, [receiver]);
   toString() => 'invoke dynamic getter: $name';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(element, name, receiver, value)
-    : super(element, name, [receiver, value]);
+  HInvokeDynamicSetter(selector, element, name, receiver, value)
+    : super(selector, element, name, [receiver, value]);
   toString() => 'invoke dynamic setter: $name';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
 }
@@ -1039,7 +1047,7 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 class HInvokeStatic extends HInvoke {
   bool builtin = false;
   /** The first input must be the target. */
-  HInvokeStatic(inputs) : super(inputs);
+  HInvokeStatic(selector, inputs) : super(selector, inputs);
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   Element get element() => target.element;
@@ -1058,7 +1066,7 @@ class HInvokeStatic extends HInvoke {
 }
 
 class HInvokeSuper extends HInvokeStatic {
-  HInvokeSuper(inputs) : super(inputs);
+  HInvokeSuper(selector, inputs) : super(selector, inputs);
   toString() => 'invoke super: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
 }
@@ -1068,8 +1076,11 @@ class HInvokeInterceptor extends HInvokeStatic {
   final bool getter;
   String builtinJsName;
 
-  HInvokeInterceptor(SourceString this.name, bool this.getter, inputs)
-    : super(inputs);
+  HInvokeInterceptor(Selector selector,
+                     SourceString this.name,
+                     bool this.getter,
+                     List<HInstruction> inputs)
+      : super(selector, inputs);
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
@@ -1149,7 +1160,7 @@ class HForeignNew extends HForeign {
 
 class HInvokeBinary extends HInvokeStatic {
   HInvokeBinary(HStatic target, HInstruction left, HInstruction right)
-      : super(<HInstruction>[target, left, right]);
+      : super(Selector.BINARY_OPERATOR, <HInstruction>[target, left, right]);
 
   HInstruction fold() {
     if (left.isLiteralNumber() && right.isLiteralNumber()) {
@@ -1488,7 +1499,7 @@ class HBitXor extends HBinaryBitOp {
 
 class HInvokeUnary extends HInvokeStatic {
   HInvokeUnary(HStatic target, HInstruction input)
-      : super(<HInstruction>[target, input]);
+      : super(Selector.UNARY_OPERATOR, <HInstruction>[target, input]);
 
   HInstruction get operand() => inputs[1];
 
@@ -1951,7 +1962,7 @@ class HLiteralList extends HInstruction {
 
 class HIndex extends HInvokeStatic {
   HIndex(HStatic target, HInstruction receiver, HInstruction index)
-      : super(<HInstruction>[target, receiver, index]);
+      : super(Selector.INDEX, <HInstruction>[target, receiver, index]);
   toString() => 'index operator';
   accept(HVisitor visitor) => visitor.visitIndex(this);
 
@@ -1986,7 +1997,8 @@ class HIndexAssign extends HInvokeStatic {
                HInstruction receiver,
                HInstruction index,
                HInstruction value)
-      : super(<HInstruction>[target, receiver, index, value]);
+      : super(Selector.INDEX_SET,
+              <HInstruction>[target, receiver, index, value]);
   toString() => 'index assign operator';
   accept(HVisitor visitor) => visitor.visitIndexAssign(this);
 

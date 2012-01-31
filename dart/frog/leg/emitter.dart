@@ -130,7 +130,7 @@ function(child, parent) {
           bodyBuffer.add('  this.$memberName = ${className}_$memberName;\n');
         }
       }
-      classElement = classElement.superClass;
+      classElement = classElement.superclass;
     } while(classElement !== null);
   }
 
@@ -139,9 +139,9 @@ function(child, parent) {
                      Set<ClassElement> seenClasses) {
     if (seenClasses.contains(classElement)) return;
     seenClasses.add(classElement);
-    ClassElement superClass = classElement.superClass;
-    if (superClass !== null) {
-      generateClass(classElement.superClass, buffer, seenClasses);
+    ClassElement superclass = classElement.superclass;
+    if (superclass !== null) {
+      generateClass(classElement.superclass, buffer, seenClasses);
     }
 
     String className = namer.isolatePropertyAccess(classElement);
@@ -151,9 +151,9 @@ function(child, parent) {
     buffer.add(') {\n');
     buffer.add(bodyBuffer);
     buffer.add('};\n');
-    if (superClass !== null) {
+    if (superclass !== null) {
       addInheritFunctionIfNecessary(buffer);
-      String superName = namer.isolatePropertyAccess(superClass);
+      String superName = namer.isolatePropertyAccess(superclass);
       buffer.add('${inheritsName}($className, $superName);\n');
     }
     String prototype = '$className.prototype';
@@ -255,11 +255,11 @@ function(child, parent) {
     }
 
     compiler.universe.invokedNames.forEach((SourceString methodName,
-                                            Set<Invocation> invocations) {
+                                            Set<Selector> selectors) {
       if (objectClass.lookupLocalMember(methodName) === null
           && methodName != Namer.OPERATOR_EQUALS) {
-        for (Invocation invocation in invocations) {
-          int arity = invocation.argumentCount;
+        for (Selector selector in selectors) {
+          int arity = selector.argumentCount;
           String jsName = namer.instanceMethodName(methodName, arity);
           generateMethod(methodName.stringValue, jsName, arity);
         }

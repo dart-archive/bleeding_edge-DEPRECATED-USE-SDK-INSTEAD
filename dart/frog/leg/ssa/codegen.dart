@@ -414,7 +414,7 @@ class SsaCodeGenerator implements HVisitor {
     // Avoid adding the generative constructor name to the list of
     // seen selectors.
     if (node.inputs[0] is !HForeignNew) {
-      compiler.registerDynamicInvocation(node.name, argumentCount);
+      compiler.registerDynamicInvocation(node.name, node.selector);
     }
   }
 

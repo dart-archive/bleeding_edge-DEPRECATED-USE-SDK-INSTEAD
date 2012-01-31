@@ -149,17 +149,17 @@ class Compiler implements DiagnosticListener {
     for (ClassElement classElement in universe.instantiatedClasses) {
       for (ClassElement currentClass = classElement;
            currentClass !== null;
-           currentClass = currentClass.superClass) {
+           currentClass = currentClass.superclass) {
         // TODO(floitsch): we don't need to add members that have been
         // overwritten by subclasses.
         for (Element member in currentClass.members) {
           if (universe.generatedCode[member] !== null) continue;
           if (!member.isInstanceMember()) continue;
           if (member.kind == ElementKind.FUNCTION) {
-            Set<Invocation> invocations = universe.invokedNames[member.name];
-            if (invocations != null) {
-              for (Invocation invocation in invocations) {
-                if (invocation.applies(this, member)) {
+            Set<Selector> selectors = universe.invokedNames[member.name];
+            if (selectors != null) {
+              for (Selector selector in selectors) {
+                if (selector.applies(this, member)) {
                   addToWorklist(member);
                   break;
                 }
@@ -242,16 +242,12 @@ class Compiler implements DiagnosticListener {
     addToWorklist(element);
   }
 
-  void registerDynamicInvocation(
-      SourceString methodName, int arity,
-      [List<SourceString> names = const <SourceString>[]]) {
-    Invocation invocation = new Invocation(arity, names);
+  void registerDynamicInvocation(SourceString methodName, Selector selector) {
     Set<Invocation> existing = universe.invokedNames[methodName];
     if (existing == null) {
-      universe.invokedNames[methodName] =
-          new Set.from(<Invocation>[invocation]);
+      universe.invokedNames[methodName] = new Set.from(<Selector>[selector]);
     } else {
-      existing.add(invocation);
+      existing.add(selector);
     }
   }
 

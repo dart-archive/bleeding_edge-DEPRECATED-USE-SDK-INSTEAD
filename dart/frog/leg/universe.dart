@@ -11,7 +11,7 @@ class Universe {
   final Set<ClassElement> instantiatedClasses;
   // TODO(floitsch): we want more information than just the method name. For
   // example the number of arguments, etc.
-  final Map<SourceString, Set<Invocation>> invokedNames;
+  final Map<SourceString, Set<Selector>> invokedNames;
   final Set<SourceString> invokedGetters;
   final Set<SourceString> invokedSetters;
 
@@ -44,14 +44,40 @@ class Universe {
   }
 }
 
-class Invocation implements Hashable {
-  // The numbers of arguments of the invocation. Includes named
+class SelectorKind {
+  final String name;
+  const SelectorKind(this.name);
+
+  static final SelectorKind GETTER = const SelectorKind('getter');
+  static final SelectorKind SETTER = const SelectorKind('setter');
+  static final SelectorKind INVOCATION = const SelectorKind('invocation');
+  static final SelectorKind OPERATOR = const SelectorKind('operator');
+  static final SelectorKind INDEX = const SelectorKind('index');
+}
+
+class Selector implements Hashable {
+  // The numbers of arguments of the selector. Includes named
   // arguments.
   final int argumentCount;
-  final List<SourceString> namedArguments;
+  final SelectorKind kind;
+  const Selector(this.kind, this.argumentCount);
 
-  Invocation(int this.argumentCount,
-            [List<SourceString> this.namedArguments = const <SourceString>[]]);
+  int hashCode() => argumentCount + 1000 * namedArguments.length;
+  List<SourceString> get namedArguments() => const <SourceString>[];
+
+  static final Selector GETTER = const Selector(SelectorKind.GETTER, 0);
+  static final Selector SETTER = const Selector(SelectorKind.SETTER, 1);
+  static final Selector UNARY_OPERATOR =
+      const Selector(SelectorKind.OPERATOR, 0);
+  static final Selector BINARY_OPERATOR =
+      const Selector(SelectorKind.OPERATOR, 1);
+  static final Selector INDEX = const Selector(SelectorKind.INDEX, 1);
+  static final Selector INDEX_SET = const Selector(SelectorKind.INDEX, 2);
+  static final Selector INDEX_AND_INDEX_SET =
+      const Selector(SelectorKind.INDEX, 2);
+  static final Selector GETTER_AND_SETTER =
+      const Selector(SelectorKind.SETTER, 1);
+  static final Selector INVOCATION_0 = const Invocation(0);
 
   bool applies(Compiler compiler, FunctionElement element) {
     FunctionParameters parameters = element.computeParameters(compiler);
@@ -76,7 +102,6 @@ class Invocation implements Hashable {
     }
   }
 
-  int hashCode() => argumentCount + 1000 * namedArguments.length;
 
   static bool sameNames(List<SourceString> first, List<SourceString> second) {
     for (int i = 0; i < first.length; i++) {
@@ -91,4 +116,13 @@ class Invocation implements Hashable {
            && namedArguments.length == other.namedArguments.length
            && sameNames(namedArguments, other.namedArguments);
   }
+}
+
+class Invocation extends Selector {
+  final List<SourceString> namedArguments;
+
+  const Invocation(
+      int argumentCount,
+      [List<SourceString> this.namedArguments = const <SourceString>[]])
+    : super(SelectorKind.INVOCATION, argumentCount);
 }

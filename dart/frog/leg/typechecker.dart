@@ -598,7 +598,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitNamedArgument(NamedArgument node) {
-    compiler.unimplemented('visitNamedArgument', node: node);
+    fail(node, 'named argument not implemented');
   }
 
   visitSwitchStatement(SwitchStatement node) {

@@ -460,7 +460,7 @@ class ClassElement extends ContainerElement {
    *
    * The returned element may not be resolved yet.
    */
-  ClassElement get superClass() {
+  ClassElement get superclass() {
     assert(isResolved);
     return supertype === null ? null : supertype.element;
   }
