@@ -1,0 +1,24 @@
+Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+
+A sample news reader application.
+
+Building and running:
+
+1. ensure the dartc compiler is built:
+  $ cd dart/
+  $ ./tools/build.py --arch=ia32
+
+2. run the update.py script:
+  $ cd samples/swarm/
+  $ python update.py
+
+3. To run on App Engine, install the App Engine SDK for your platform, then
+  $ easy_install --upgrade google-api-python-client per http://code.google.com/p/google-api-python-client/wiki/Installation
+  $ cd samples/swarm/appengine
+  $ enable-app-engine-project . per http://code.google.com/p/google-api-python-client/wiki/GoogleAppEngine
+  Start the App Engine dev server and browse to /swarm-js.html
+
+4. To run without App Engine (demo only, no feeds), open the generated file in a browser:
+  $ google-chrome ../../outcode/swarm-js.html
