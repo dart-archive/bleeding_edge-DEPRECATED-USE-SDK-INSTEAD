@@ -30,7 +30,7 @@ def main(args):
   if id == 'Windows' or id == 'Microsoft':
     vm = vm + '.exe'
     shutil.copy(os.path.join(HOME, 'frogsh.bat'), js_out + '.bat')
-  frog_args = ['frog.py', '--vm=' + vm, '--', '--out=' + js_out, 'frog.dart']
+  frog_args = ['frog.py', '--vm=' + vm, '--', '--out=' + js_out, 'minfrog.dart']
 
   # TODO(ngeoffray): Compile frogsh without checks integrated.
   # if js_out.find('Release') != -1:

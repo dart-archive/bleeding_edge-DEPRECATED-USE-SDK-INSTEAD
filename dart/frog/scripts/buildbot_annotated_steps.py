@@ -100,8 +100,6 @@ def TestFrog(arch, mode, system):
     TestStep("frog_extra", testpy_mode, system,
         arch, ['frog', 'peg', 'css'], flags)
 
-    TestStep("leg_extra", testpy_mode, system, arch, ['leg', 'leg_only'], flags)
-
     if arch == 'frogsh':
       # There is no need to run these tests both for frog and frogsh.
 
@@ -113,7 +111,7 @@ def TestFrog(arch, mode, system):
   else:
     # DumpRenderTree tests:
     tests = [
-      'client', 'language', 'corelib', 'isolate', 'frog', 'leg', 'peg', 'css']
+      'client', 'language', 'corelib', 'isolate', 'frog', 'peg', 'css']
     TestStep("browser", testpy_mode, system, 'frogium', tests, flags)
 
     # Webdriver tests.

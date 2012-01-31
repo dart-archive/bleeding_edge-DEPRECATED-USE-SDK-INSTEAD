@@ -87,7 +87,7 @@
           'inputs': [
             '<!@(["python", "scripts/list_frog_files.py"])',
             'scripts/bootstrap/frogsh_bootstrap_wrapper.py',
-            'frog.py',
+            'minfrog.dart',
             '<(PRODUCT_DIR)/dart',
           ],
           'outputs': [

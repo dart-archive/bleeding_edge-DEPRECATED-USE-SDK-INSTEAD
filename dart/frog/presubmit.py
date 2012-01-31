@@ -158,9 +158,6 @@ def main():
     cmd = test_cmd + ['--component=vm', 'leg']
     RunCommand(*cmd, verbose=True)
 
-    cmd = test_cmd + ['--component=frogsh', 'leg', 'leg_only']
-    RunCommand(*cmd, verbose=True)
-
 if __name__ == '__main__':
   try:
     sys.exit(main())

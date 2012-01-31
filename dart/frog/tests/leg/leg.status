@@ -6,16 +6,8 @@ prefix leg
 
 ConstantFoldingStringTest: FAIL
 
-[ $component == dartc ]
-*: Skip # Too many type errors in frog.
-
-[ $component == frog ]
-ScannerTest: Skip # Bug 1084 in Frog - no utf8 support when on VM
-
-[ $component == frogium || $component == webdriver ]
-# Tests have # directives (not supported by the browser test architecture)
-*: Skip
-
+[ $component == dartc || $component == frog || $component == frogsh || $component == frogium || $component == webdriver ]
+*: Skip # Leg uses #import('dart:io');
 
 [ $component == leg ]
 *: Skip # Leg is not self-hosted (yet).
