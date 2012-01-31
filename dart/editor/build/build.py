@@ -351,9 +351,10 @@ def main():
                     '  The Ant build must have failed')
         return 1
       else:
-        _DeployToStaging(buildos, staging_bucket, found_zips, gsu)
+        _DeployToStaging(buildos, staging_bucket, found_zips, revision, gsu)
         _WriteTagFile(buildos, staging_bucket, revision, gsu)
-#        _MoveStagingToContinuous(to_bucket_stage, to_bucket)
+        if _ShouldMoveStagingToContinuous(staging_bucket, revision, gsu):
+          _MoveStagingToContinuous(staging_bucket, to_bucket, revision, gsu)
       return 0
 
     #if the build passed run the deploy artifacts
@@ -527,23 +528,31 @@ def _DeployArtifacts(fromd, to, tmp, svnid, gsu):
   return status
 
 
-def _DeployToStaging(build_os, to_bucket, zip_files, gsu):
+def _DeployToStaging(build_os, to_bucket, zip_files, svnid, gsu):
   """Deploy the build RCP's to the test bucket.
 
   Args:
     build_os: the os for this build
     to_bucket: the location on GoogleStorage to copy the files
     zip_files: list of zip files to copy to GoogleStorage
+    svnid: the revision id for this build
     gsu: the GoogleStorage wrapper
+  Returns
+    the status of the copy to Google Storage
   """
   print '_DeployRcpsToTest({0}, {1}, {2}, gsu)'.format(to_bucket, zip_files,
                                                        build_os)
   for element in zip_files:
     base_name = os.path.basename(element)
-    to = '{0}/staging/{1}/{2}'.format(to_bucket, build_os, base_name)
-    status = gsu.Copy(element, to)
-    if not status:
-      _SetAcl(to, gsu)
+    svnid_object = '{0}/staging/{1}/{2}/{3}'.format(to_bucket, build_os,
+                                                    svnid, base_name)
+    status = gsu.Copy(element, svnid_object)
+    if status:
+      _PrintError('failed to copy {0} to {1}'.format(element, svnid_object))
+      return status
+    _SetAcl(svnid_object, gsu)
+
+    return status
 
 
 def _WriteTagFile(build_os, to_bucket, svnid, gsu):
@@ -552,10 +561,10 @@ def _WriteTagFile(build_os, to_bucket, svnid, gsu):
   Args:
     build_os: the os the build is running on
     to_bucket: the Google Storage bucket to copy to
-    svnid: the revision id forthis build
+    svnid: the revision id for this build
     gsu: the gsutil object
   """
-  print '_WriteTagFile({0}, {1})'.format(build_os, to_bucket)
+  print '_WriteTagFile({0}, {1}, {2})'.format(build_os, to_bucket, svnid)
   gs_object = '{0}/tags/done-{1}-{2}'.format(to_bucket, svnid, build_os)
   tag_file = tempfile.NamedTemporaryFile(prefix='done', delete=False)
   tag_file_name = tag_file.name
@@ -567,6 +576,46 @@ def _WriteTagFile(build_os, to_bucket, svnid, gsu):
     os.remove(tag_file_name)
     if not status:
       _SetAcl(gs_object, gsu)
+
+
+def _ShouldMoveStagingToContinuous(bucket, svnid, gsu):
+  """Determin if all os specific builds are done for a SVN Revision.
+
+  Args:
+    bucket: the Google Storage bucket to copy to
+    svnid: the revision id for this build
+    gsu: the gsutil object
+
+  Returns:
+    True if all OS Specific builds are done for this svnid False otherwise
+  """
+  print ('_ShouldMoveStagingToContinuous({0}, {1}').format(bucket, svnid)
+  gs_ls = '{0}/tags/done-{1}-*'.format(bucket, svnid)
+  gs_objects = gsu.ReadBucket(gs_ls)
+  os_build_done = {'linux': False, 'win32': False, 'macos': False}
+  for gs_object in gs_objects:
+    base_name = os.path.basename(gs_object)
+    parts = base_name.split('-')
+    os_build_done[parts[-1].strip()] = True
+  all_builds_done = True
+  for build_done in os_build_done:
+    if not os_build_done[build_done]:
+      all_builds_done = False
+  return all_builds_done
+
+
+def _MoveStagingToContinuous(bucket_stage, bucket_continuous, svnid, gsu):
+  """Move the staged builds to continuous.
+
+  Args:
+    bucket_stage: the Google Storage bucket the code is staged in
+    bucket_continuous: the Google Storage bucket the code is copied to
+    svnid: the revision id for this build
+    gsu: the gsutil object
+  """
+  print '_MoveStagingToContinuous({0}, {1}, {2})'.format(bucket_stage,
+                                                         bucket_continuous,
+                                                         svnid)
 
 
 def _SetAclOnArtifacts(to, bucket_tags, gsu):
