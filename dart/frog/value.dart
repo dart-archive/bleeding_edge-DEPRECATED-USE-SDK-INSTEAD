@@ -41,11 +41,7 @@ class PureStaticValue extends Value {
 
   Member getMem(CallingContext context, String name, Node node) {
     var member = type.getMember(name);
-
-    if (member == null) {
-      world.warning('cannot find "$name" on "${type.name}"', node.span);
-      return null;
-    }
+    if (member == null) return null;
 
     if (isType && !member.isStatic) {
       world.error('cannot refer to instance member as static', node.span);
@@ -137,10 +133,6 @@ class PureStaticValue extends Value {
 
   Value invokeNoSuchMethod(CallingContext context, String name, Node node,
       [Arguments args]) {
-    if (isType) {
-      world.error('member lookup failed for "$name"', node.span);
-    }
-
     var member = getMem(context, 'noSuchMethod', node);
     if (member == null) return new PureStaticValue(world.varType, node.span);
 
@@ -837,10 +829,6 @@ function \$assert_${toType.name}(x) {
 
   Value invokeNoSuchMethod(CallingContext context, String name, Node node,
       [Arguments args]) {
-    if (isType) {
-      world.error('member lookup failed for "$name"', node.span);
-    }
-
     var pos = '';
     if (args != null) {
       var argsCode = [];
