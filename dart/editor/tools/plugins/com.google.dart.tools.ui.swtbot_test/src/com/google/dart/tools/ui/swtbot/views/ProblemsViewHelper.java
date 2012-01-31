@@ -13,12 +13,15 @@
  */
 package com.google.dart.tools.ui.swtbot.views;
 
+import static com.google.dart.tools.ui.swtbot.util.FormattedStringBuilder.appendText;
+
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTableItem;
 
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 import static org.junit.Assert.fail;
@@ -44,7 +47,12 @@ public class ProblemsViewHelper {
     }
     System.out.println("Problems:");
     for (int i = 0; i < count; i++) {
-      if (i >= 20) {
+      SWTBotTableItem row = table.getTableItem(i);
+      StringBuilder line = new StringBuilder(100);
+      appendText(line, row.getText(0), 50);
+      line.append(row.getText(1));
+      System.out.println(line);
+      if (i == 40) {
         System.out.println(" ... and " + (count - i) + " more problems");
         break;
       }

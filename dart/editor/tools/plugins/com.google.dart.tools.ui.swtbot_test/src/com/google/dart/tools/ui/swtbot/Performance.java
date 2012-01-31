@@ -15,6 +15,9 @@ package com.google.dart.tools.ui.swtbot;
 
 import com.google.dart.tools.core.DartCore;
 
+import static com.google.dart.tools.ui.swtbot.util.FormattedStringBuilder.appendLong;
+import static com.google.dart.tools.ui.swtbot.util.FormattedStringBuilder.appendText;
+
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
@@ -85,7 +88,7 @@ public class Performance {
      * @param condition the condition (not <code>null</code>)
      */
     public void log(SWTWorkbenchBot bot, long start, ICondition condition, String... comments) {
-      bot.waitUntil(condition, 20000);
+      bot.waitUntil(condition, DEFAULT_TIMEOUT_MS);
       log(start, comments);
     }
 
@@ -114,7 +117,7 @@ public class Performance {
       new Thread("Timing " + name) {
         @Override
         public void run() {
-          long limit = System.currentTimeMillis() + 20000;
+          long limit = System.currentTimeMillis() + DEFAULT_TIMEOUT_MS;
           Throwable exception = null;
           while (true) {
             try {
@@ -150,16 +153,16 @@ public class Performance {
       appendLong(line, resultCount, 2);
       line.append(' ');
       appendText(line, name, 20);
-      appendLong(line, threshold);
+      appendLong(line, threshold, 7);
       line.append(" ms ");
       line.append(threshold < resultAverage ? '<' : ' ');
-      appendLong(line, resultAverage);
+      appendLong(line, resultAverage, 7);
       line.append(" ms");
-      appendLong(line, resultHigh);
+      appendLong(line, resultHigh, 7);
       line.append(" ms");
-      appendLong(line, resultLow);
+      appendLong(line, resultLow, 7);
       line.append(" ms");
-      System.out.println(line.toString());
+      System.out.println(line);
     }
   }
 
@@ -183,10 +186,10 @@ public class Performance {
     void print() {
       StringBuilder line = new StringBuilder();
       appendText(line, metric.name, 20);
-      appendLong(line, metric.threshold);
+      appendLong(line, metric.threshold, 7);
       line.append(" ms ");
       line.append(metric.threshold < elapsed ? '<' : ' ');
-      appendLong(line, elapsed);
+      appendLong(line, elapsed, 7);
       line.append(" ms");
       for (String comment : comments) {
         line.append(", ");
@@ -206,6 +209,8 @@ public class Performance {
 
   private static final Collection<Result> allResults = new ArrayList<Performance.Result>(20);
   private static int pending = 0;
+
+  private static final int DEFAULT_TIMEOUT_MS = 180000; // 3 minutes
 
   /**
    * Append the specified {@link String} to an array of {@link String}
@@ -259,7 +264,7 @@ public class Performance {
       if (pending < 1) {
         return;
       }
-      timeout = 20000 * pending;
+      timeout = DEFAULT_TIMEOUT_MS * pending;
     }
     bot.waitUntil(new ICondition() {
 
@@ -281,27 +286,6 @@ public class Performance {
         }
       }
     }, timeout);
-  }
-
-  private static void appendLong(StringBuilder line, long num) {
-    appendLong(line, num, 7);
-  }
-
-  private static void appendLong(StringBuilder line, long num, int width) {
-    String text = Long.toString(num);
-    appendSpaces(line, width - text.length());
-    line.append(text);
-  }
-
-  private static void appendSpaces(StringBuilder line, int count) {
-    for (int i = 0; i < count; i++) {
-      line.append(' ');
-    }
-  }
-
-  private static void appendText(StringBuilder line, String text, int count) {
-    line.append(text);
-    appendSpaces(line, count - text.length());
   }
 
   private static String getEditorVersion() {
