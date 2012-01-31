@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.feedback;
@@ -19,6 +17,7 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Shell;
 
@@ -52,6 +51,8 @@ public class LogViewer extends Shell {
     scrolledComposite.setMinSize(logText.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
     createContents();
+
+    centerShell(parent);
   }
 
   @Override
@@ -61,7 +62,17 @@ public class LogViewer extends Shell {
 
   protected void createContents() {
     setText(FeedbackMessages.LogViewer_LogViewer_title);
-    setSize(450, 300);
+    setSize(750, 350);
+  }
+
+  private void centerShell(Shell parent) {
+    Point parentSize = parent.getSize();
+    Point size = getSize();
+
+    Point location = parent.getLocation();
+
+    setLocation(location.x + (parentSize.x - size.x) / 2, location.y + 50 + (parentSize.y - size.y)
+        / 2);
   }
 
 }

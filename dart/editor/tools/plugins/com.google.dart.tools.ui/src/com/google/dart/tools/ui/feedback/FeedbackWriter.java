@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -65,10 +65,9 @@ public class FeedbackWriter {
    * @param writer the writer
    */
   void writeDetails(PrintWriter writer) {
-    writer.println("Editor Version: " + feedback.getEditorVersion()); //$NON-NLS-1$
     writer.println("OS: " + feedback.getOsDetails()); //$NON-NLS-1$
-    writer.println(GROUP_DELIMETER);
     writer.println(feedback.getOptionsText());
+    writeGroupDelim(writer);
     writer.println(feedback.getLogContents());
   }
 
@@ -83,6 +82,8 @@ public class FeedbackWriter {
 
   private void doWrite(PrintWriter writer) {
     writeFeedbackText(writer);
+    writeGroupDelim(writer);
+    writer.println("Editor Version: " + feedback.getEditorVersion()); //$NON-NLS-1$
     if (sendAdditionData) {
       writeGroupDelim(writer);
       writeDetails(writer);
@@ -90,7 +91,6 @@ public class FeedbackWriter {
   }
 
   private void writeGroupDelim(PrintWriter writer) {
-    writer.println();
     writer.println(GROUP_DELIMETER);
   }
 

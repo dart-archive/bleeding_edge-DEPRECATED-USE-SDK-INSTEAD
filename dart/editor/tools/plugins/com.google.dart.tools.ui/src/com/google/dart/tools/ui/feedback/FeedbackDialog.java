@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -175,8 +175,7 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
     sendAdditionalDataButton.setText(FeedbackMessages.FeedbackDialog_send_additional_data_optin_Text);
 
     previewDataLink = new Link(logOptinComposite, SWT.NONE);
-    GridData gd_1 = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
-    gd_1.horizontalIndent = 5;
+    GridData gd_1 = new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1);
     gd_1.verticalIndent = 2;
     previewDataLink.setLayoutData(gd_1);
     previewDataLink.setText(FeedbackMessages.FeedbackDialog_link_text);
@@ -249,8 +248,6 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
     if (okButton != null) {
       boolean hasContent = !feedbackText.getText().isEmpty();
       okButton.setEnabled(hasContent);
-      previewDataLink.setEnabled(hasContent);
-      sendAdditionalDataButton.setEnabled(hasContent);
     }
   }
 
@@ -265,9 +262,9 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
       @Override
       public void widgetSelected(SelectionEvent e) {
         try {
-          new LogViewer(getShell(), feedbackReport.getDetailString()).open();
-          //if we don't move focus, the link is selected and illegible
-          feedbackText.setFocus();
+          LogViewer logViewer = new LogViewer(getShell(), feedbackReport.getDetailString());
+
+          logViewer.open();
         } catch (Throwable th) {
           MessageDialog.openError(getParentShell(),
               FeedbackMessages.FeedbackDialog_error_opening_log_label,
