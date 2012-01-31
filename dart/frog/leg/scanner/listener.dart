@@ -724,7 +724,7 @@ class ElementListener extends Listener {
     bool isLast = true;
     for (int i = 0; i < count; i++) {
       LiteralString string = popNode();
-      QuotedString validation =
+      DartString validation =
           stringValidator.validateInterpolationPart(string.token, quoting,
                                                     isFirst: false,
                                                     isLast: isLast);
@@ -737,7 +737,7 @@ class ElementListener extends Listener {
     }
 
     LiteralString string = popNode();
-    QuotedString validation =
+    DartString validation =
         stringValidator.validateInterpolationPart(string.token, quoting,
                                                   isFirst: true,
                                                   isLast: isLast);

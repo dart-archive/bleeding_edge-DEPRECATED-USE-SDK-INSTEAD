@@ -52,6 +52,6 @@ main() {
   regexp = const RegExp('4 === c');
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp('"foo" === d');
+  regexp = const RegExp("'foo' === d");
   Expect.isTrue(regexp.hasMatch(generated));
 }

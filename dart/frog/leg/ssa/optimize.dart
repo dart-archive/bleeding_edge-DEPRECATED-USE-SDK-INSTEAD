@@ -103,7 +103,7 @@ class SsaConstantFolder extends HBaseVisitor {
       // First try to eliminate adding the empty string to a string.
       if (node.right.isLiteralString()) {
         HLiteral right = node.right;
-        QuotedString rightString = right.value;
+        DartString rightString = right.value;
         if (rightString.isEmpty()) {
           // String has no content, i.e., it's the empty string.
           return node.left;
@@ -112,7 +112,7 @@ class SsaConstantFolder extends HBaseVisitor {
       // Then, if both are literals, try to do the concatenation statically.
       if (node.left.isLiteralString()) {
         HLiteral left = node.left;
-        QuotedString leftString = left.value;
+        DartString leftString = left.value;
         if (leftString.isEmpty()) {
           // Left is empty String.
           if (node.right.isString()) {
@@ -134,7 +134,7 @@ class SsaConstantFolder extends HBaseVisitor {
             } else {
               str = right.value.toString();
             }
-            return new HLiteral(new QuotedString.literal(str), HType.STRING);
+            return new HLiteral(new DartString.literal(str), HType.STRING);
           }
         }
         // TODO(lrn): Perform concatenation in Dart.

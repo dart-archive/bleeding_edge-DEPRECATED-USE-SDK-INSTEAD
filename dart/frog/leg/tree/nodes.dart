@@ -658,53 +658,122 @@ class StringQuoting {
     mapping[(raw ? 1 : 0) + (multiline ? 2 : 0) + (quote === $SQ ? 4 : 0)];
 }
 
-/**
- * A wrapper around a SourceString that stores extra information about
- * the (potentially implicit) quoting style of the original string.
- * For most strings, the quotes are included in the [source], but
- * parts of strings from a string interpolation might be missing one or
- * both quotes.
- */
-class QuotedString {
-  // A source-backed string literal without the quotes.
+
+class DartString implements Iterable<int> {
+  factory DartString.literal(String string) => new LiteralDartString(string);
+  factory DartString.rawString(SourceString source, int length) =>
+      new RawSourceDartString(source, length);
+  factory DartString.escapedString(SourceString source, int length) =>
+      new EscapedSourceDartString(source, length);
+  DartString();
+  abstract int get length();
+  bool isEmpty() => length == 0;
+  // TODO(lrn): Is this test too expensive?
+  bool definitlyEquals(DartString other) => toString() == other.toString();
+  abstract String toString();
+}
+
+class LiteralDartString extends DartString {
+  final String string;
+  LiteralDartString(this.string);
+  int get length() => string.length;
+  Iterator<int> iterator() => new StringCodeIterator(string);
+  String toString() => string;
+}
+
+class SourceBasedDartString extends DartString {
+  String toStringCache = null;
   final SourceString source;
-  // The quoting style of the original string literal.
-  // Whether it's raw or multi-line impacts the interpretation of
-  // the string literal content. Whether it's single- or double-quoted
-  // is only used as a hint later.
-  final StringQuoting quoting;
-  /** Actual length of the corresponding, parsed, Dart string */
   final int length;
+  SourceBasedDartString(this.source, this.length);
+}
 
-  const QuotedString(this.source, this.quoting, this.length);
-  /**
-   * Construct a [QuotedString] containing exactly the given string.
-   * The choice of quoting ensures that all characters of the original
-   * string are valid and has their exact meaning.
-   */
-  QuotedString.literal(String string)
-      : source = new SourceString(string),
-        quoting = StringQuoting.RAW_MULTILINE_DQ,
-        length = string.length;
-
-  bool isEmpty() => source.isEmpty();
+class RawSourceDartString extends SourceBasedDartString {
+  RawSourceDartString(source, length) : super(source, length);
   Iterator<int> iterator() => source.iterator();
+  String toString() {
+    if (toStringCache !== null) return toStringCache;
+    toStringCache  = source.stringValue;
+    return toStringCache;
+  }
+}
 
-  bool definitlyEquals(QuotedString other) {
-    return source === other.source && quoting === other.quoting;
+class EscapedSourceDartString extends SourceBasedDartString {
+  EscapedSourceDartString(source, length) : super(source, length);
+  Iterator<int> iterator() {
+    if (toStringCache !== null) return new StringCodeIterator(toStringCache);
+    return new StringEscapeIterator(source);
+  }
+  String toString() {
+    if (toStringCache !== null) return toStringCache;
+    StringBuffer buffer = new StringBuffer();
+    StringEscapeIterator iterator = new StringEscapeIterator(source);
+    while (iterator.hasNext()) {
+      buffer.add(new String.fromCharCodes(<int>[iterator.next()]));
+    }
+    toStringCache = buffer.toString();
+    return toStringCache;
+  }
+}
+
+
+/**
+ *Iterator that returns the actual string contents of a string with escapes.
+ */
+class StringEscapeIterator implements Iterator<int>{
+  final Iterator<int> source;
+  StringEscapeIterator(SourceString source) : this.source = source.iterator();
+  bool hasNext() => source.hasNext();
+  int next() {
+    int code = source.next();
+    if (code !== $BACKSLASH) {
+      return code;
+    }
+    code = source.next();
+    if (code === $n) return $LF;
+    if (code === $r) return $CR;
+    if (code === $t) return $TAB;
+    if (code === $b) return $BS;
+    if (code === $f) return $FF;
+    if (code === $v) return $VTAB;
+    if (code === $x) {
+      int value = hexDigitValue(source.next());
+      value = value * 16 + hexDigitValue(source.next());
+      return value;
+    }
+    if (code === $u) {
+      int value = 0;
+      code = source.next();
+      if (code === $OPEN_CURLY_BRACKET) {
+        for (code = source.next();
+             code != $CLOSE_CURLY_BRACKET;
+             code = source.next()) {
+           value = value * 16 + hexDigitValue(code);
+        }
+        return value;
+      }
+      // Four digit hex value.
+      value = hexDigitValue(code);
+      for (int i = 0; i < 3; i++) {
+        code = source.next();
+        value = value * 16 + hexDigitValue(code);
+      }
+      return value;
+    }
+    return code;
   }
 }
 
 
 class LiteralString extends Literal<SourceString> {
   /** Set on validated string literals. */
-  final QuotedString quotedString = null;
+  final DartString dartString = null;
 
-  LiteralString(Token token, this.quotedString) : super(token, null);
+  LiteralString(Token token, this.dartString) : super(token, null);
 
   LiteralString asLiteralString() => this;
 
-  bool isValidated() => quotedString !== null;
+  bool isValidated() => dartString !== null;
 
   SourceString get value() => token.value;
 

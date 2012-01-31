@@ -1175,7 +1175,7 @@ class SsaBuilder implements Visitor {
   }
 
   void visitLiteralString(LiteralString node) {
-    push(new HLiteral(node.quotedString, HType.STRING));
+    push(new HLiteral(node.dartString, HType.STRING));
   }
 
   void visitLiteralNull(LiteralNull node) {

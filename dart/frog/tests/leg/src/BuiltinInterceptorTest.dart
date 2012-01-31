@@ -26,11 +26,9 @@ main() {
   String generated = compile(TEST_ONE, 'foo');
   Expect.isTrue(generated.contains("return a.length;"));
 
-  // TODO(lrn): Switch these two to isTrue when we support constant folding
-  // of string length.
   generated = compile(TEST_TWO, 'foo');
-  Expect.isFalse(generated.contains("return 3;"));
+  Expect.isTrue(generated.contains("return 3;"));
 
   generated = compile(TEST_THREE, 'foo');
-  Expect.isFalse(generated.contains("return 3;"));
+  Expect.isTrue(generated.contains("return 3;"));
 }

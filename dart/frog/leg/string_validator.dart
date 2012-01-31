@@ -17,7 +17,7 @@ class StringValidator  {
 
   StringValidator(this.listener);
 
-  QuotedString validateQuotedString(Token token) {
+  DartString validateQuotedString(Token token) {
     SourceString source = token.value;
     StringQuoting quoting = quotingFromString(source);
     int leftQuote = quoting.leftQuoteLength;
@@ -29,9 +29,9 @@ class StringValidator  {
                           quoting);
   }
 
-  QuotedString validateInterpolationPart(Token token, StringQuoting quoting,
-                                         [bool isFirst = false,
-                                          bool isLast = false]) {
+  DartString validateInterpolationPart(Token token, StringQuoting quoting,
+                                       [bool isFirst = false,
+                                        bool isLast = false]) {
     SourceString source = token.value;
     int leftQuote = 0;
     int rightQuote = 0;
@@ -70,22 +70,24 @@ class StringValidator  {
 
   /**
    * Validates the escape sequences and special characters of a string literal.
-   * Returns a QuotedString if valid, and null if not.
+   * Returns a DartString if valid, and null if not.
    */
-  QuotedString validateString(Token token,
-                              int startOffset,
-                              SourceString string,
-                              StringQuoting quoting) {
+  DartString validateString(Token token,
+                            int startOffset,
+                            SourceString string,
+                            StringQuoting quoting) {
     // We only need to check for invalid x and u escapes, for line
     // terminators in non-multiline strings, and for invalid Unicode
     // scalar values (either directly or as u-escape values).
     int length = 0;
     int index = startOffset;
+    bool containsEscape = false;
     for(Iterator<int> iter = string.iterator(); iter.hasNext(); length++) {
       index++;
       int code = iter.next();
       if (code === $BACKSLASH) {
         if (quoting.raw) continue;
+        containsEscape = true;
         if (!iter.hasNext()) {
           stringParseError("Incomplete escape sequence",token, index);
           return null;
@@ -162,6 +164,10 @@ class StringValidator  {
       }
     }
     // String literal successfully validated.
-    return new QuotedString(string, quoting, length);
+    if (quoting.raw || !containsEscape) {
+      // A string without escapes could just as well have been raw.
+      return new DartString.rawString(string, length);
+    }
+    return new DartString.escapedString(string, length);
   }
 }

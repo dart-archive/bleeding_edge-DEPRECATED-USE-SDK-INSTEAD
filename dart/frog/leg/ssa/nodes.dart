@@ -1101,7 +1101,9 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   HInstruction fold() {
     if (name == const SourceString('length') && inputs[1].isLiteralString()) {
-      // TODO(lrn): Account for escapes in string.
+      HLiteral input = inputs[1];
+      DartString string = input.value;
+      return new HLiteral(string.length, HType.INTEGER);
     }
     return this;
   }
@@ -1242,6 +1244,29 @@ class HAdd extends HBinaryArithmetic {
     if (isNumber() || left.isNumber() || right.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
+
+  HInstruction fold() {
+    if (left.isLiteralString() && right is HLiteral) {
+      HLiteral op1 = left;
+      HLiteral op2 = right;
+      DartString leftString = op1.value;
+      DartString otherString = null;
+      if (right.isLiteralString()) {
+        otherString = op2.value;
+      } else {
+        assert(op2.isLiteralNumber() ||
+               op2.isLiteralBoolean() ||
+               op2.isLiteralNull());
+        // TODO(lrn): Remove the special casing of null when it's no longer
+        // necessary to avoid the frog bug of not allowing null.toString().
+        String string = op2.isLiteralNull() ? "null" : op2.value.toString();
+        otherString = new DartString.literal(string);
+      }
+      DartString cons = new ConsDartString(leftString, otherString);
+      return new HLiteral(cons, HType.STRING);
+    }
+    return super.fold();
+  }
 }
 
 class HDivide extends HBinaryArithmetic {
@@ -1297,6 +1322,61 @@ class HTruncatingDivide extends HBinaryArithmetic {
   bool typeEquals(other) => other is HTruncatingDivide;
   bool dataEquals(HInstruction other) => true;
 }
+
+
+class ConsDartStringIterator implements Iterator<int> {
+  Iterator<int> current;
+  DartString right;
+  bool hasNextLookAhead;
+  ConsDartStringIterator(ConsDartString cons)
+      : current = cons.left.iterator(),
+        right = cons.right {
+    hasNextLookAhead = current.hasNext();
+    if (!hasNextLookAhead) {
+      nextPart();
+    }
+  }
+  bool hasNext() {
+    return hasNextLookAhead;
+  }
+  int next() {
+    assert(hasNextLookAhead);
+    int result = current.next();
+    hasNextLookAhead = current.hasNext();
+    if (!hasNextLookAhead) {
+      nextPart();
+    }
+    return result;
+  }
+  void nextPart() {
+    if (right !== null) {
+      current = right.iterator();
+      right = null;
+      hasNextLookAhead = current.hasNext();
+    }
+  }
+}
+
+class ConsDartString extends DartString {
+  final DartString left;
+  final DartString right;
+  final int length;
+  int hashCache = null;
+  String toStringCache;
+  ConsDartString(DartString left, DartString right)
+      : this.left = left,
+        this.right = right,
+        length = left.length + right.length;
+
+  Iterator<int> iterator() => new ConsDartStringIterator(this);
+
+  String toString() {
+    if (toStringCache !== null) return toStringCache;
+    toStringCache = left.toString().concat(right.toString());
+    return toStringCache;
+  }
+}
+
 
 // TODO(floitsch): Should HBinaryArithmetic really be the super class of
 // HBinaryBitOp?
@@ -1584,7 +1664,7 @@ class HLiteral extends HInstruction {
   bool isLiteralBoolean() => value is bool;
   bool isLiteralNull() => value === null;
   bool isLiteralNumber() => value is num;
-  bool isLiteralString() => value is QuotedString;
+  bool isLiteralString() => value is DartString;
   bool typeEquals(other) => other is HLiteral;
   bool dataEquals(HLiteral other) => value == other.value;
 }

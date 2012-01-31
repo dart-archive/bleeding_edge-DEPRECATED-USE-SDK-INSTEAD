@@ -490,28 +490,19 @@ class SsaCodeGenerator implements HVisitor {
   /**
    * Write the contents of the quoted string to a [StringBuffer] in
    * a form that is valid as JavaScript string literal content.
-   * The string is assumed quoted by [quote] characters.
+   * The string is assumed quoted by single quote characters.
    */
-  static void writeEscapedString(QuotedString string,
+  static void writeEscapedString(DartString string,
                                  StringBuffer buffer,
-                                 int quote,
                                  void cancel(String reason)) {
-    bool raw = string.quoting.raw;
     Iterator<int> iterator = string.iterator();
     while (iterator.hasNext()) {
       int code = iterator.next();
-      if (code === quote) {
-        // We need to add a backslash before quotes, both in normal
-        // and in raw strings.
-        buffer.add(@'\');
-        buffer.add(code === $SQ ? "'" : '"');
+      if (code === $SQ) {
+        buffer.add(@"\'");
       } else if (code === $LF) {
-        // Newlines in strings only occur in multiline strings.
-        // They need to be written using escapes in JS.
-        assert(string.quoting.multiline);
         buffer.add(@'\n');
       } else if (code === $CR) {
-        assert(string.quoting.multiline);
         buffer.add(@'\r');
       } else if (code === $LS) {
         // This Unicode line terminator and $PS are invalid in JS string
@@ -519,65 +510,32 @@ class SsaCodeGenerator implements HVisitor {
         buffer.add(@'\u2028');
       } else if (code === $PS) {
         buffer.add(@'\u2029');
-      } else if (code !== $BACKSLASH) {
-        buffer.add(new String.fromCharCodes([code]));
-      } else if (raw) {
+      } else if (code === $BACKSLASH) {
         buffer.add(@'\\');
       } else {
-        assert(code === $BACKSLASH);
-        code = iterator.next();
-        switch (code) {
-          case $u:
-            buffer.add(@'\u');
-            code = iterator.next();
-            if (code == $OPEN_CURLY_BRACKET) {
-              int value = 0;
-              code = iterator.next();
-              do {
-                value = value * 16 + hexDigitValue(code);
-                code = iterator.next();
-              } while (code !== $CLOSE_CURLY_BRACKET);
-              if (code > 0xffff) {
-                cancel("Unhandled non-BMP character: " +
-                       "U+${code.toRadixString(16)}");
-              }
-              for (int i = 12; i >= 0; i -= 4) {
-                buffer.add(((value >> i) & 0xf).toRadixString(16));
-              }
-            } else {
-              buffer.add(new String.fromCharCodes([code]));
-              // Remaining three hex digits will be copied verbatim.
-            }
-            break;
-          case $x:
+        if (code > 0xffff) {
+          cancel("Unhandled non-BMP character: U+" + code.toRadixString(16));
+        }
+        // TODO(lrn): Consider whether all codes above 0x7f really need to
+        // be escaped. We build a Dart string here, so it should be a literal
+        // stage that converts it to, e.g., UTF-8 for a JS interpreter.
+        if (code < 0x20) {
+          buffer.add(@'\x');
+          if (code < 0x10) buffer.add('0');
+          buffer.add(code.toRadixString(16));
+        } else if (code >= 0x80) {
+          if (code < 0x100) {
             buffer.add(@'\x');
-            // The two hex digits will be copied verbatim.
-            break;
-          // Character escapes that identical in meaning in JS.
-          case $b: buffer.add(@'\b'); break;
-          case $f: buffer.add(@'\f'); break;
-          case $n: buffer.add(@'\n'); break;
-          case $r: buffer.add(@'\r'); break;
-          case $t: buffer.add(@'\t'); break;
-          case $v: buffer.add(@'\v'); break;
-          // Identity escapes that must be escaped in JS strings.
-          case $BACKSLASH: buffer.add(@'\\'); break;
-          case $LF: buffer.add(@'\n'); break;
-          case $CR: buffer.add(@'\r'); break;
-          case $LS: buffer.add(@'\u2028'); break;
-          case $PS: buffer.add(@'\u2029'); break;
-          // Quotes may or may not need the escape.
-          case $SQ:
-          case $DQ:
-            // Only escape quotes if they match the generated string quotes.
-            if (code == quote) buffer.add(@'\');
-            buffer.add(code === $SQ ? "'" : '"');
-            break;
-          default:
-            // All other escaped characters are identity escapes,
-            // and don't need a backslash in JS.
-            buffer.add(new String.fromCharCodes([code]));
-            break;
+            buffer.add(code.toRadixString(16));
+          } else {
+            buffer.add(@'\u');
+            if (code < 0x1000) {
+              buffer.add('0');
+            }
+            buffer.add(code.toRadixString(16));
+          }
+        } else {
+          buffer.add(new String.fromCharCodes(<int>[code]));
         }
       }
     }
@@ -590,15 +548,13 @@ class SsaCodeGenerator implements HVisitor {
     } else if (node.value is num && node.value < 0) {
       buffer.add('(${node.value})');
     } else if (node.isLiteralString()) {
-      QuotedString string = node.value;
-      StringQuoting quoting = string.quoting;
-      String quote = quoting.quoteChar;
-      buffer.add(quote);
-      writeEscapedString(string, buffer, quoting.quote,
+      DartString string = node.value;
+      buffer.add("'");
+      writeEscapedString(string, buffer,
                          (String reason) {
                            compiler.cancel(reason, instruction:node);
                          });
-      buffer.add(quote);
+      buffer.add("'");
     } else {
       buffer.add(node.value);
     }
