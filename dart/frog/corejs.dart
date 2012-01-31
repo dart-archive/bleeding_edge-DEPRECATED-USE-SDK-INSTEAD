@@ -180,9 +180,6 @@ class CoreJs {
       w.writeln('\$defProp(Object.prototype, "get\$typeName", ' +
                 'Object.prototype.\$typeNameOf);');
     }
-    // This just turns console into a no-op if it is not defined so that IE
-    // doesn't throw an error if the debug console isn't open.
-    w.writeln(_IE_LOG_PATCH);
   }
 }
 
@@ -327,17 +324,6 @@ function $dynamicSetMetadata(inputTable) {
     table.push({tag: tag, tags: tags, map: map});
   }
   $dynamicMetadata = table;
-}
-""";
-
-/** 
- * IE throws an error if you try to log to the console but you don't have the
- * console window open. This just turns console into a no-op if it is not
- * defined so that the JS in IE doesn't crash.
- */
-final String _IE_LOG_PATCH = @"""
-if(typeof console === "undefined") {
-    console = { log: function() { } };
 }
 """;
 
