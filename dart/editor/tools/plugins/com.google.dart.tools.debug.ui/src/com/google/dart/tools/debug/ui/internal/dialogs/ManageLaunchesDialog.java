@@ -15,50 +15,219 @@
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
+import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
-import org.eclipse.debug.core.ILaunchConfigurationType;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationListener;
+import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.debug.internal.ui.launchConfigurations.LaunchConfigurationTreeContentProvider;
+import org.eclipse.debug.internal.core.IInternalDebugCoreConstants;
+import org.eclipse.debug.internal.ui.launchConfigurations.DeleteLaunchConfigurationAction;
+import org.eclipse.debug.internal.ui.launchConfigurations.LaunchConfigurationPresentationManager;
 import org.eclipse.debug.ui.DebugUITools;
+import org.eclipse.debug.ui.ILaunchConfigurationDialog;
+import org.eclipse.debug.ui.ILaunchConfigurationTab;
+import org.eclipse.debug.ui.ILaunchConfigurationTabGroup;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
-import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.model.WorkbenchViewerComparator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-// TODO: see LaunchConfigurationsDialog
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * A dialog to create, edit, and manage launch configurations.
  */
 @SuppressWarnings("restriction")
-public class ManageLaunchesDialog extends TitleAreaDialog {
-  private List<ILaunchConfigurationType> launchTypes;
+public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConfigurationDialog,
+    ILaunchConfigurationListener {
+  private TableViewer launchesViewer;
+  private Composite configUI;
+  private Text configNameText;
+
+  private ILaunchConfiguration selectedConfig;
+  private ILaunchConfigurationWorkingCopy workingCopy;
+  private ILaunchConfigurationTabGroup currentTabGroup;
+  private ILaunchConfigurationTab activeTab;
+
+  private IAction createAction;
+  private IAction deleteAction;
 
   public ManageLaunchesDialog(IWorkbenchWindow window) {
     super(window.getShell());
 
     setShellStyle(getShellStyle() | SWT.RESIZE);
+  }
 
-    initLaunchInfo();
+  @Override
+  public String generateName(String name) {
+    if (name == null) {
+      name = IInternalDebugCoreConstants.EMPTY_STRING;
+    }
+
+    return getLaunchManager().generateLaunchConfigurationName(name);
+  }
+
+  @Override
+  public ILaunchConfigurationTab getActiveTab() {
+    return activeTab;
+  }
+
+  @Override
+  public String getMode() {
+    return ILaunchManager.RUN_MODE;
+  }
+
+  @Override
+  public ILaunchConfigurationTab[] getTabs() {
+    return currentTabGroup.getTabs();
+  }
+
+  @Override
+  public void launchConfigurationAdded(ILaunchConfiguration configuration) {
+    refreshLaunchesViewer();
+
+    selectFirstLaunchConfig();
+  }
+
+  @Override
+  public void launchConfigurationChanged(ILaunchConfiguration configuration) {
+    updateButtons();
+    updateMessage();
+  }
+
+  @Override
+  public void launchConfigurationRemoved(ILaunchConfiguration configuration) {
+    try {
+      getShell().setRedraw(false);
+
+      if (configuration == selectedConfig) {
+        closeConfig(true);
+      }
+
+      refreshLaunchesViewer();
+
+      selectFirstLaunchConfig();
+    } finally {
+      getShell().setRedraw(true);
+    }
+  }
+
+  @Override
+  public void run(boolean fork, boolean cancelable, IRunnableWithProgress runnable)
+      throws InvocationTargetException, InterruptedException {
+    throw new UnsupportedOperationException("run()");
+  }
+
+  public void selectLaunchConfiguration(String name) {
+    saveConfig();
+
+    ILaunchConfiguration config = getConfigurationNamed(name);
+
+    if (config != null) {
+      launchesViewer.setSelection(new StructuredSelection(config));
+    }
+  }
+
+  @Override
+  public void setActiveTab(ILaunchConfigurationTab tab) {
+    if (activeTab != null) {
+      activeTab.deactivated(workingCopy);
+      activeTab.getControl().dispose();
+    }
+
+    activeTab = tab;
+
+    if (activeTab != null) {
+      configUI.setRedraw(false);
+
+      configNameText.setVisible(true);
+
+      activeTab.createControl(configUI);
+      GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+          activeTab.getControl());
+      configUI.layout(true);
+
+      activeTab.activated(workingCopy);
+
+      configUI.setRedraw(true);
+    } else {
+      configNameText.setVisible(false);
+    }
+
+    updateButtons();
+    updateMessage();
+  }
+
+  @Override
+  public void setActiveTab(int index) {
+    setActiveTab(getTabs()[index]);
+  }
+
+  @Override
+  public void setName(String name) {
+    configNameText.setText(name);
+  }
+
+  @Override
+  public void updateButtons() {
+    if (getButton(IDialogConstants.OK_ID) != null) {
+      // Run button
+      getButton(IDialogConstants.OK_ID).setEnabled(
+          activeTab != null && activeTab.getErrorMessage() == null);
+
+      // Delete action
+      getDeleteAction().setEnabled(selectedConfig != null);
+    }
+  }
+
+  @Override
+  public void updateMessage() {
+    if (activeTab != null) {
+      String errorMessage = activeTab.getErrorMessage();
+
+      if (errorMessage != null) {
+        setErrorMessage(errorMessage);
+      } else {
+        setMessage(activeTab.getMessage());
+        setErrorMessage(null);
+      }
+    } else {
+      setMessage(null);
+      setErrorMessage(null);
+    }
   }
 
   @Override
@@ -70,11 +239,22 @@ public class ManageLaunchesDialog extends TitleAreaDialog {
 
   @Override
   protected void createButtonsForButtonBar(Composite parent) {
-    createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
-    createButton(parent, IDialogConstants.CLIENT_ID, Messages.ManageLaunchesDialog_launchRun, true);
-    Button runButton = createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL,
-        false);
-    runButton.setEnabled(false);
+    // Close
+    createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CLOSE_LABEL, false);
+
+    // Apply
+    createButton(parent, IDialogConstants.CLIENT_ID, "Apply", false);
+    getButton(IDialogConstants.CLIENT_ID).addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        handleApplyButton();
+      }
+    });
+
+    // Run
+    createButton(parent, IDialogConstants.OK_ID, Messages.ManageLaunchesDialog_launchRun, true);
+
+    updateButtons();
   }
 
   @Override
@@ -82,57 +262,252 @@ public class ManageLaunchesDialog extends TitleAreaDialog {
     Composite contents = (Composite) super.createDialogArea(parent);
 
     setTitle(Messages.ManageLaunchesDialog_manageLaunches);
-    setMessage("TODO: describe what to do here");
     setTitleImage(DartDebugUIPlugin.getImage("wiz/run_wiz.png")); //$NON-NLS-1$
 
     Composite composite = new Composite(contents, SWT.NONE);
+    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).applyTo(composite);
     createDialogUI(composite);
+
+    DebugPlugin.getDefault().getLaunchManager().addLaunchConfigurationListener(this);
+
+    parent.addDisposeListener(new DisposeListener() {
+      @Override
+      public void widgetDisposed(DisposeEvent e) {
+        DebugPlugin.getDefault().getLaunchManager().removeLaunchConfigurationListener(
+            ManageLaunchesDialog.this);
+      }
+    });
 
     return contents;
   }
 
-  void initLaunchInfo() {
-    ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
+  /**
+   * Returns the current launch manager
+   * 
+   * @return the current launch manager
+   */
+  protected ILaunchManager getLaunchManager() {
+    return DebugPlugin.getDefault().getLaunchManager();
+  }
 
-    launchTypes = new ArrayList<ILaunchConfigurationType>(
-        Arrays.asList(manager.getLaunchConfigurationTypes()));
+  protected void handleApplyButton() {
+    saveConfig();
+  }
 
-    Collections.sort(launchTypes, new Comparator<ILaunchConfigurationType>() {
-      @Override
-      public int compare(ILaunchConfigurationType launch0, ILaunchConfigurationType launch1) {
-        return launch0.getName().compareToIgnoreCase(launch1.getName());
+  protected void handleSelectedConfigChanged() {
+    closeConfig(false);
+
+    ILaunchConfiguration sel = null;
+
+    if (launchesViewer.getSelection() instanceof IStructuredSelection) {
+      Object obj = ((IStructuredSelection) launchesViewer.getSelection()).getFirstElement();
+
+      if (obj instanceof ILaunchConfiguration) {
+        sel = (ILaunchConfiguration) obj;
       }
-    });
+    }
+
+    selectedConfig = sel;
+
+    updateButtons();
+    updateMessage();
+
+    if (selectedConfig != null) {
+      show(selectedConfig);
+    }
+  }
+
+  @Override
+  protected void okPressed() {
+    saveConfig();
+
+    boolean supportsDebug = false;
+
+    try {
+      supportsDebug = selectedConfig.supportsMode(ILaunchManager.DEBUG_MODE);
+    } catch (CoreException e) {
+
+    }
+
+    if (supportsDebug) {
+      DebugUITools.launch(selectedConfig, ILaunchManager.DEBUG_MODE);
+    } else {
+      DebugUITools.launch(selectedConfig, ILaunchManager.RUN_MODE);
+    }
+
+    super.okPressed();
+  }
+
+  private void closeConfig(boolean terminate) {
+    if (!terminate) {
+      saveConfig();
+    }
+
+    setActiveTab(null);
+
+    activeTab = null;
+    selectedConfig = null;
+    currentTabGroup = null;
+    workingCopy = null;
   }
 
   private void createDialogUI(Composite parent) {
-    GridLayoutFactory.fillDefaults().numColumns(2).margins(12, 6).applyTo(parent);
+    GridLayoutFactory.fillDefaults().margins(12, 6).applyTo(parent);
 
-    Label label = new Label(parent, SWT.NONE);
-    label.setText("foo");
+    SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
+    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(675, 325).applyTo(
+        sashForm);
 
-    // spacer
-    new Label(parent, SWT.NONE);
+    Composite leftComposite = new Composite(sashForm, SWT.NONE);
+    GridLayoutFactory.fillDefaults().applyTo(leftComposite);
+    GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).applyTo(leftComposite);
 
-    ListViewer treeViewer = new ListViewer(parent);
-    treeViewer.setLabelProvider(new DecoratingLabelProvider(
+    ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);
+    ToolBar toolBar = toolBarManager.createControl(leftComposite);
+    toolBar.setBackground(parent.getBackground());
+    GridDataFactory.swtDefaults().grab(true, false).align(SWT.BEGINNING, SWT.FILL).applyTo(toolBar);
+
+    launchesViewer = new TableViewer(leftComposite, SWT.SINGLE | SWT.V_SCROLL | SWT.BORDER);
+    launchesViewer.setLabelProvider(new DecoratingLabelProvider(
         DebugUITools.newDebugModelPresentation(),
         PlatformUI.getWorkbench().getDecoratorManager().getLabelDecorator()));
-    treeViewer.setComparator(new WorkbenchViewerComparator());
-    treeViewer.setContentProvider(new LaunchConfigurationTreeContentProvider(
-        ILaunchManager.RUN_MODE, getShell()));
-    //treeViewer.addFilter(new LaunchGroupFilter(ILaunchManager.RUN_MODE));
-    treeViewer.setInput(ResourcesPlugin.getWorkspace().getRoot());
-    GridDataFactory.swtDefaults().grab(false, true).hint(120, 200).align(SWT.FILL, SWT.FILL).applyTo(
-        treeViewer.getControl());
+    launchesViewer.setComparator(new ViewerComparator(String.CASE_INSENSITIVE_ORDER));
+    launchesViewer.setContentProvider(new LaunchConfigContentProvider());
+    launchesViewer.setInput(ResourcesPlugin.getWorkspace().getRoot());
+    launchesViewer.getTable().setFocus();
+    launchesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+      @Override
+      public void selectionChanged(SelectionChangedEvent event) {
+        handleSelectedConfigChanged();
+      }
+    });
+    launchesViewer.addDoubleClickListener(new IDoubleClickListener() {
+      @Override
+      public void doubleClick(DoubleClickEvent event) {
+        okPressed();
+      }
+    });
+    GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).hint(50, 50).applyTo(
+        launchesViewer.getControl());
 
-    label = new Label(parent, SWT.NONE);
-    label.setText("bar");
-    GridDataFactory.swtDefaults().grab(true, true).hint(200, 200).align(SWT.FILL, SWT.FILL).applyTo(
-        label);
+    toolBarManager.add(getCreateAction());
+    toolBarManager.add(getDeleteAction());
 
-    // TODO:
+    toolBarManager.update(true);
 
+    configUI = new Composite(sashForm, SWT.NONE);
+    GridLayoutFactory.fillDefaults().applyTo(configUI);
+    GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(configUI);
+
+    toolBar.pack();
+    Label toolbarSpacer = new Label(configUI, SWT.NONE);
+    GridDataFactory.swtDefaults().hint(SWT.NONE, toolBar.getSize().y).applyTo(toolbarSpacer);
+
+    Composite nameComposite = new Composite(configUI, SWT.NONE);
+    GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(nameComposite);
+    GridLayoutFactory.swtDefaults().margins(6, 0).applyTo(nameComposite);
+
+    configNameText = new Text(nameComposite, SWT.SINGLE | SWT.BORDER);
+    GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(
+        configNameText);
+    configNameText.addModifyListener(new ModifyListener() {
+      @Override
+      public void modifyText(ModifyEvent e) {
+        if (workingCopy != null) {
+          workingCopy.rename(configNameText.getText());
+        }
+      }
+    });
+
+    configNameText.setVisible(false);
+
+    sashForm.setWeights(new int[] {30, 70});
+
+    selectFirstLaunchConfig();
+  }
+
+  private ILaunchConfiguration getConfigurationNamed(String name) {
+    try {
+      for (ILaunchConfiguration config : DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations()) {
+        if (name.equals(config.getName())) {
+          return config;
+        }
+      }
+    } catch (CoreException exception) {
+      DartUtil.logError(exception);
+    }
+
+    return null;
+  }
+
+  private IAction getCreateAction() {
+    if (createAction == null) {
+      createAction = new CreateLaunchAction(this);
+    }
+
+    return createAction;
+  }
+
+  private IAction getDeleteAction() {
+    if (deleteAction == null) {
+      deleteAction = new DeleteLaunchConfigurationAction(launchesViewer, getMode());
+    }
+
+    return deleteAction;
+  }
+
+  private void refreshLaunchesViewer() {
+    launchesViewer.refresh();
+  }
+
+//  private boolean isDirty() {
+//    return workingCopy == null ? false : workingCopy.isDirty();
+//  }
+
+  private void saveConfig() {
+    if (currentTabGroup != null) {
+      currentTabGroup.performApply(workingCopy);
+
+      try {
+        workingCopy.doSave();
+      } catch (CoreException e) {
+        DebugErrorHandler.errorDialog(getShell(), "Error Saving Launch",
+            "Unable to save launch settings: " + e.toString(), e);
+      }
+    }
+
+    updateButtons();
+    updateMessage();
+  }
+
+  private void selectFirstLaunchConfig() {
+    final ILaunchConfiguration launchConfig = (ILaunchConfiguration) launchesViewer.getElementAt(0);
+
+    if (launchConfig != null && launchesViewer.getSelection().isEmpty()) {
+      launchesViewer.setSelection(new StructuredSelection(launchConfig));
+    }
+  }
+
+  private void show(ILaunchConfiguration config) {
+    try {
+      workingCopy = config.getWorkingCopy();
+      configNameText.setText(workingCopy.getName());
+
+      currentTabGroup = LaunchConfigurationPresentationManager.getDefault().getTabGroup(
+          workingCopy, getMode());
+      currentTabGroup.createTabs(this, getMode());
+
+      ILaunchConfigurationTab[] tabs = currentTabGroup.getTabs();
+
+      for (int i = 0; i < tabs.length; i++) {
+        tabs[i].setLaunchConfigurationDialog(this);
+      }
+
+      setActiveTab(0);
+    } catch (CoreException ce) {
+      DebugErrorHandler.errorDialog(getShell(), "Error Displaying Launch",
+          "Unable to display launch settings: " + ce.toString(), ce);
+    }
   }
 
 }

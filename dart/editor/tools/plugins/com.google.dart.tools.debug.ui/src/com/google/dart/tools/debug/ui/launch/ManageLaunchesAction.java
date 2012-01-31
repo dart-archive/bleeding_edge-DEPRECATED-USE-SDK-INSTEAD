@@ -15,34 +15,31 @@
 package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
+import com.google.dart.tools.debug.ui.internal.dialogs.ManageLaunchesDialog;
 import com.google.dart.tools.ui.actions.AbstractInstrumentedAction;
 
-import org.eclipse.debug.internal.ui.DebugUIPlugin;
-import org.eclipse.debug.ui.IDebugUIConstants;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IWorkbenchWindow;
 
 /**
  * An action to open the manage launch configurations dialog.
  */
-@SuppressWarnings("restriction")
 public class ManageLaunchesAction extends AbstractInstrumentedAction {
   private IWorkbenchWindow window;
 
   public ManageLaunchesAction(IWorkbenchWindow window) {
+    super("Manage Launches...");
+
     this.window = window;
 
-    setText("Manage Launches...");
+    setActionDefinitionId("com.google.dart.tools.debug.ui.launchDialog");
     setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/manage_launches.png"));
   }
 
   @Override
   public void run() {
-    DebugUIPlugin.openLaunchConfigurationsDialog(window.getShell(), new StructuredSelection(),
-        IDebugUIConstants.ID_RUN_LAUNCH_GROUP, true);
+    ManageLaunchesDialog dialog = new ManageLaunchesDialog(window);
 
-//    ManageLaunchesDialog dialog = new ManageLaunchesDialog(window);
-//    dialog.open();
+    dialog.open();
   }
 
 }

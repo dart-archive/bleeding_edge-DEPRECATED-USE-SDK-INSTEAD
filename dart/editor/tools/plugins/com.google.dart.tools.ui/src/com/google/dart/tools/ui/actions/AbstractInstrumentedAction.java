@@ -33,6 +33,10 @@ public class AbstractInstrumentedAction extends Action {
 
   }
 
+  public AbstractInstrumentedAction(String name) {
+    super(name);
+  }
+
   public AbstractInstrumentedAction(String name, int flags) {
     super(name, flags);
   }

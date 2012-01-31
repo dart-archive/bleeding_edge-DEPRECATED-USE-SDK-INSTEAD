@@ -53,6 +53,11 @@
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+R">
       </key>
+      <key
+            commandId="com.google.dart.tools.debug.ui.launchDialog"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+SHIFT+M">
+      </key>
    </extension>
    
    <extension

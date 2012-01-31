@@ -264,13 +264,7 @@ public class DartLaunchConfigWrapper {
   public void setApplicationName(String value) {
     getWorkingCopy().setAttribute(APPLICATION_NAME, value);
 
-    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(value);
-
-    if (resource != null && !(resource instanceof IWorkspaceRoot)) {
-      getWorkingCopy().setMappedResources(new IResource[] {resource});
-    } else {
-      getWorkingCopy().setMappedResources(null);
-    }
+    updateMappedResources(value);
   }
 
   /**
@@ -316,13 +310,7 @@ public class DartLaunchConfigWrapper {
     getWorkingCopy().setAttribute(PROJECT_NAME, value);
 
     if (getApplicationResource() == null) {
-      IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(value);
-
-      if (resource != null && !(resource instanceof IWorkspaceRoot)) {
-        getWorkingCopy().setMappedResources(new IResource[] {resource});
-      } else {
-        getWorkingCopy().setMappedResources(null);
-      }
+      updateMappedResources(value);
     }
   }
 
@@ -343,6 +331,16 @@ public class DartLaunchConfigWrapper {
 
   protected ILaunchConfigurationWorkingCopy getWorkingCopy() {
     return (ILaunchConfigurationWorkingCopy) launchConfig;
+  }
+
+  private void updateMappedResources(String resourcePath) {
+    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(resourcePath);
+
+    if (resource != null && !(resource instanceof IWorkspaceRoot)) {
+      getWorkingCopy().setMappedResources(new IResource[] {resource});
+    } else {
+      getWorkingCopy().setMappedResources(null);
+    }
   }
 
 }

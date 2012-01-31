@@ -317,6 +317,13 @@
             id="com.google.dart.tools.debug.ui.run"
             name="%runCommandName">
       </command>
+      <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.ManageLaunchesHandler"
+            description="%launchDialogCommandName"
+            id="com.google.dart.tools.debug.ui.launchDialog"
+            name="%launchDialogCommandName">
+      </command>
    </extension>
 
  <!--extension

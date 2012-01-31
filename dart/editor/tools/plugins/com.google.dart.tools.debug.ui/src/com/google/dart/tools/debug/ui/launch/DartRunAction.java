@@ -73,6 +73,10 @@ public class DartRunAction extends DartAbstractAction {
       return;
     }
 
+    // TODO(devoncarew): we should first check if any existing launch configs match the given resource
+
+    // TODO(devoncarew): then check if any config types can launch it
+
     List<ILaunchShortcut> shortcuts = LaunchUtils.getLaunchShortcuts();
 
     List<ILaunchShortcut> candidates = new ArrayList<ILaunchShortcut>();

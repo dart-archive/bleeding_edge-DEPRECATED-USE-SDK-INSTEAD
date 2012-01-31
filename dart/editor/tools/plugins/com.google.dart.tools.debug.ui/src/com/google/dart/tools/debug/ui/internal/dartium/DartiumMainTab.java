@@ -354,8 +354,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   }
 
   protected void notifyPanelChanged() {
-
     setDirty(true);
+
     updateLaunchConfigurationDialog();
   }
 
