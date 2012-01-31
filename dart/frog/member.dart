@@ -1377,4 +1377,9 @@ class FactoryMap {
       });
     });
   }
+
+  bool isEmpty() {
+    return factories.getValues()
+        .every((Map constructors) => constructors.isEmpty());
+  }
 }

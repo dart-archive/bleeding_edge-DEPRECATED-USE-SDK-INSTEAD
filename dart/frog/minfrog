@@ -3363,7 +3363,7 @@ WorldGenerator.prototype.writeType = function(type) {
     }
     else if (type.get$jsname() != nativeName) {
       if (type.get$isHiddenNativeType()) {
-        if (this._hasStaticMethods(type)) {
+        if (this._hasStaticOrFactoryMethods(type)) {
           this.writer.writeln(("var " + type.get$jsname() + " = {};"));
         }
       }
@@ -3455,11 +3455,11 @@ WorldGenerator.prototype.writeType = function(type) {
   }
   this._writeDynamicStubs(type);
 }
-WorldGenerator.prototype._hasStaticMethods = function(type) {
+WorldGenerator.prototype._hasStaticOrFactoryMethods = function(type) {
   return type.get$members().getValues().some((function (m) {
-    return m.get$isMethod() && m.get$isStatic() || m.get$isFactory();
+    return m.get$isMethod() && m.get$isStatic();
   })
-  );
+  ) || !type.get$factories().isEmpty();
 }
 WorldGenerator.prototype._writeDynamicStubs = function(type) {
   var $$list = orderValuesByKeys(type.varStubs);
@@ -6281,8 +6281,20 @@ MethodMember.prototype.needsArgumentConversion = function(args) {
   }
   return false;
 }
-MethodMember._argCountMsg = function(actual, expected, atLeast) {
-  return $add("wrong number of positional arguments, expected ", ("" + (atLeast ? "at least " : "") + expected + " but found " + actual));
+MethodMember.prototype.hasOptionalParameters = function() {
+  return this.parameters.some((function (p) {
+    return p.get$isOptional();
+  })
+  );
+}
+MethodMember.prototype._tooManyArgumentsMsg = function(actual, expected) {
+  return this.hasOptionalParameters() ? ("too many arguments, expected at most " + expected + " but found " + actual) : this._wrongArgumentCountMsg(actual, expected);
+}
+MethodMember.prototype._tooFewArgumentsMsg = function(actual, expected) {
+  return this.hasOptionalParameters() ? ("too few arguments, expected at least " + expected + " but found " + actual) : this._wrongArgumentCountMsg(actual, expected);
+}
+MethodMember.prototype._wrongArgumentCountMsg = function(actual, expected) {
+  return ("wrong number of arguments, expected " + expected + " but found " + actual);
 }
 MethodMember.prototype._argError = function(context, node, target, args, msg, argIndex) {
   if (context.get$showWarnings()) {
@@ -6318,7 +6330,7 @@ MethodMember.prototype.invoke = function(context, node, target, args) {
    i < bareCount; i++) {
     var arg = args.values.$index(i);
     if (i >= this.parameters.get$length()) {
-      var msg = MethodMember._argCountMsg(args.get$length(), this.parameters.get$length(), false);
+      var msg = this._tooManyArgumentsMsg(args.get$length(), this.parameters.get$length());
       return this._argError(context, node, target, args, msg, i);
     }
     argValues.add(arg.convertTo(context, this.parameters.$index(i).get$type()));
@@ -6341,7 +6353,7 @@ MethodMember.prototype.invoke = function(context, node, target, args) {
         namedArgsUsed++;
       }
       if ($eq(arg) || !this.parameters.$index(i).get$isOptional()) {
-        var msg = MethodMember._argCountMsg(Math.min(i, args.get$length()), i + (1), true);
+        var msg = this._tooFewArgumentsMsg(Math.min(i, args.get$length()), i + (1));
         return this._argError(context, node, target, args, msg, i);
       }
       else {
@@ -6640,6 +6652,12 @@ FactoryMap.prototype.forEach = function(f) {
       f(member);
     })
     );
+  })
+  );
+}
+FactoryMap.prototype.isEmpty = function() {
+  return this.factories.getValues().every((function (constructors) {
+    return constructors.isEmpty();
   })
   );
 }

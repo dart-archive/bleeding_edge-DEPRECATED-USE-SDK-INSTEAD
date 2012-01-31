@@ -353,7 +353,7 @@ class WorldGenerator {
         writer.writeln('function ${type.jsname}() {}');
       } else if (type.jsname != nativeName) {
         if (type.isHiddenNativeType) {
-          if (_hasStaticMethods(type)) {
+          if (_hasStaticOrFactoryMethods(type)) {
             writer.writeln('var ${type.jsname} = {};');
           }
         } else {
@@ -466,11 +466,11 @@ class WorldGenerator {
    *
    * This predicate determines when we need to define lib_Float32Array.
    */
-  bool _hasStaticMethods(Type type) {
+  bool _hasStaticOrFactoryMethods(Type type) {
     // TODO(jmesserly): better tracking if the methods are actually called.
     // For now we assume that if the type is used, the method is used.
-    return type.members.getValues().some(
-        (m) => m.isMethod && m.isStatic || m.isFactory);
+    return type.members.getValues().some((m) => m.isMethod && m.isStatic)
+        || !type.factories.isEmpty();
   }
 
   _writeDynamicStubs(Type type) {
