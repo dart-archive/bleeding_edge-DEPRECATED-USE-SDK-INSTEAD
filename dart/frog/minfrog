@@ -3013,7 +3013,7 @@ WorldGenerator.prototype.analyze = function() {
       );
       for (var $i1 = allMembers.iterator(); $i1.hasNext(); ) {
         var m = $i1.next();
-        if (m.get$isAbstract() || !m.get$isMethod()) continue;
+        if (m.get$isAbstract() || !(m.get$isMethod() || m.get$isConstructor())) continue;
         m.get$methodData().analyze();
       }
     }

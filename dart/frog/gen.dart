@@ -37,9 +37,6 @@ class WorldGenerator {
   WorldGenerator(this.main, this.writer)
     : globals = {}, corejs = new CoreJs();
 
-
-
-
   analyze() {
     // Walk all code and find all NewExpressions - to determine possible types
     int nlibs=0, ntypes=0, nmems=0, nnews=0;
@@ -62,8 +59,7 @@ class WorldGenerator {
         allMembers.addAll(type.members.getValues());
         type.factories.forEach((f) => allMembers.add(f));
         for (var m in allMembers) {
-          if (m.isAbstract || !m.isMethod) continue;
-
+          if (m.isAbstract || !(m.isMethod || m.isConstructor)) continue;
           m.methodData.analyze();
         }
       }
