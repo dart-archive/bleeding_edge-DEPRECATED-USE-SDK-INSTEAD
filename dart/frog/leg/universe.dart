@@ -79,7 +79,8 @@ class Selector implements Hashable {
       const Selector(SelectorKind.INDEX, 2);
   static final Selector GETTER_AND_SETTER =
       const Selector(SelectorKind.SETTER, 1);
-  static final Selector INVOCATION_0 = const Invocation(0);
+  static final Selector INVOCATION_0 =
+      const Selector(SelectorKind.INVOCATION, 0);
 
   bool applies(Compiler compiler, FunctionElement element) {
     FunctionParameters parameters = element.computeParameters(compiler);
@@ -132,15 +133,42 @@ class Selector implements Hashable {
            && namedArguments.length == other.namedArguments.length
            && sameNames(namedArguments, other.namedArguments);
   }
+
+  List<SourceString> getOrderedNamedArguments() => namedArguments;
+
+  String toString() => '$argumentCount';
 }
 
 class Invocation extends Selector {
   final List<SourceString> namedArguments;
+  List<SourceString> orderedNamedArguments;
   int get namedArgumentCount() => namedArguments.length;
   int get positionalArgumentCount() => argumentCount - namedArgumentCount;
 
-  const Invocation(
-      int argumentCount,
-      [List<SourceString> this.namedArguments = const <SourceString>[]])
-    : super(SelectorKind.INVOCATION, argumentCount);
+  Invocation(int argumentCount,
+             [List<SourceString> names = const <SourceString>[]])
+      : super(SelectorKind.INVOCATION, argumentCount),
+        namedArguments = names,
+        orderedNamedArguments = const <SourceString>[];
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    for (SourceString name in orderedNamedArguments) {
+      buffer.add('\$$name');
+    }
+    return '$argumentCount$buffer';
+  }
+
+  List<SourceString> getOrderedNamedArguments() {
+    if (namedArguments.isEmpty()) return namedArguments;
+    // We use the empty const List as a sentinel.
+    if (!orderedNamedArguments.isEmpty()) return namedArguments;
+
+    List<SourceString> list = new List<SourceString>.from(namedArguments);
+    list.sort((SourceString first, SourceString second) {
+      return first.stringValue.compareTo(second.stringValue);
+    });
+    orderedNamedArguments = list;
+    return orderedNamedArguments;
+  }
 }

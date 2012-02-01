@@ -40,37 +40,92 @@ function(child, parent) {
   void addParameterStub(FunctionElement member,
                         String prototype,
                         StringBuffer buffer,
-                        Invocation invocation) {
-    // TODO(ngeoffray): also support invocation with names.
+                        Selector selector) {
+    FunctionParameters parameters = member.computeParameters(compiler);
+    int positionalArgumentCount = selector.positionalArgumentCount;
+    if (positionalArgumentCount == parameters.parameterCount) {
+      assert(selector.namedArgumentCount == 0);
+      return;
+    }
+    List<SourceString> names = selector.getOrderedNamedArguments();
+
     String invocationName =
-        namer.instanceMethodName(member.name, invocation.argumentCount);
-    int allParameters = member.parameterCount(compiler);
-    int missingParameters = allParameters - invocation.argumentCount;
-    if (missingParameters == 0) return;
-    assert(missingParameters > 0);
+        namer.instanceMethodInvocationName(member.name, selector);
     buffer.add('$prototype.$invocationName = function(');
-    StringBuffer parameters = new StringBuffer();
-    for (int i = 0; i < invocation.argumentCount; i++) {
-      if (i != 0) parameters.add(', ');
-      parameters.add('param$i');
-    }
-    buffer.add('$parameters) {\n');
-    buffer.add('  this.${namer.getName(member)}($parameters');
-    for (int i = 0; i < missingParameters; i++) {
-      if (i != 0 || invocation.argumentCount != 0) buffer.add(', ');
-      buffer.add('(void 0)');
-    }
-    buffer.add(')\n}\n');
+
+    // The parameters that this stub takes.
+    List<String> parametersBuffer = new List<String>(selector.argumentCount);
+    // The arguments that will be passed to the real method.
+    List<String> argumentsBuffer = new List<String>(parameters.parameterCount);
+
+    // We fill the lists depending on the selector. For example,
+    // take method foo:
+    //    foo(a, b, [c, d]);
+    //
+    // We may have multiple ways of calling foo:
+    // (1) foo(1, 2, 3, 4)
+    // (2) foo(1, 2);
+    // (3) foo(1, 2, 3);
+    // (4) foo(1, 2, c: 3);
+    // (5) foo(1, 2, d: 4);
+    // (6) foo(1, 2, c: 3, d: 4);
+    // (7) foo(1, 2, d: 4, c: 3);
+    //
+    // What we generate at the call sites are:
+    // (1) foo$4(1, 2, 3, 4)
+    // (2) foo$2(1, 2);
+    // (3) foo$3(1, 2, 3);
+    // (4) foo$3$c(1, 2, 3);
+    // (5) foo$3$d(1, 2, 4);
+    // (6) foo$4$c$d(1, 2, 3, 4);
+    // (7) foo$4$c$d(1, 2, 3, 4);
+    //
+    // The stubs we generate are (expressed in Dart):
+    // (1) No stub generated, call is direct.
+    // (2) foo$2(a, b) => foo$4(a, b, null, null)
+    // (3) foo$3(a, b, c) => foo$4(a, b, c, null)
+    // (4) foo$3$c(a, b, c) => foo$4(a, b, c, null);
+    // (5) foo$3$d(a, b, d) => foo$4(a, b, null, d);
+    // (6) foo$4$c$d(a, b, c, d) => foo$4(a, b, c, d);
+    // (7) Same as (5).
+    //
+    // We need to generate a stub for (5) because the order of the
+    // stub arguments and the real method may be different.
+
+    int count = 0;
+    parameters.forEachParameter((Element element) {
+      String jsName = JsNames.getValid('${element.name}');
+      if (count < positionalArgumentCount) {
+        parametersBuffer[count] = jsName;
+        argumentsBuffer[count] = jsName;
+      } else {
+        int index = names.indexOf(element.name);
+        if (index != -1) {
+          // The order of the named arguments is not the same as the
+          // one in the real method (which is in Dart source order).
+          argumentsBuffer[count] = jsName;
+          parametersBuffer[selector.positionalArgumentCount + index] = jsName;
+        } else {
+          // TODO(ngeoffray): Get the default value.
+          argumentsBuffer[count] = '(void 0)';
+        }
+      }
+      count++;
+    });
+
+    buffer.add('${Strings.join(parametersBuffer, ",")}) {\n');
+    buffer.add('  return this.${namer.getName(member)}');
+    buffer.add('(${Strings.join(argumentsBuffer, ",")})\n}\n');
   }
 
   void addParameterStubs(FunctionElement member,
                          String prototype,
                          StringBuffer buffer) {
-    Set<Invocation> invocations = compiler.universe.invokedNames[member.name];
-    if (invocations == null) return;
-    for (Invocation invocation in invocations) {
-      if (!invocation.applies(compiler, member)) continue;
-      addParameterStub(member, prototype, buffer, invocation);
+    Set<Selector> selectors = compiler.universe.invokedNames[member.name];
+    if (selectors == null) return;
+    for (Selector selector in selectors) {
+      if (!selector.applies(compiler, member)) continue;
+      addParameterStub(member, prototype, buffer, selector);
     }
   }
 

@@ -407,13 +407,17 @@ class SsaCodeGenerator implements HVisitor {
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     use(node.receiver);
     buffer.add('.');
-    // Remove 'this' from the number of arguments.
-    int argumentCount = node.inputs.length - 1;
-    buffer.add(compiler.namer.instanceMethodName(node.name, argumentCount));
-    visitArguments(node.inputs);
     // Avoid adding the generative constructor name to the list of
     // seen selectors.
-    if (node.inputs[0] is !HForeignNew) {
+    if (node.inputs[0] is HForeignNew) {
+      // Remove 'this' from the number of arguments.
+      int argumentCount = node.inputs.length - 1;
+      buffer.add(compiler.namer.instanceMethodName(node.name, argumentCount));
+      visitArguments(node.inputs);
+    } else {
+      buffer.add(compiler.namer.instanceMethodInvocationName(
+          node.name, node.selector));
+      visitArguments(node.inputs);
       compiler.registerDynamicInvocation(node.name, node.selector);
     }
   }
@@ -437,7 +441,7 @@ class SsaCodeGenerator implements HVisitor {
   visitInvokeClosure(HInvokeClosure node) {
     use(node.receiver);
     buffer.add('.');
-    buffer.add(compiler.namer.closureInvocationName(node.inputs.length - 1));
+    buffer.add(compiler.namer.closureInvocationName(node.selector));
     visitArguments(node.inputs);
   }
 

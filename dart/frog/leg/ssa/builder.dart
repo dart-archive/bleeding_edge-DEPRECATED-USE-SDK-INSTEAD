@@ -887,8 +887,33 @@ class SsaBuilder implements Visitor {
     if (selector.namedArgumentCount == 0) {
       addGenericSendArgumentsToList(node.arguments, list);
     } else {
-      compiler.cancel(
-          'Unimplemented named argument for dynamic sends', node: node);
+      // Visit positional arguments and add them to the list.
+      Link<Node> arguments = node.arguments;
+      int positionalArgumentCount = selector.positionalArgumentCount;
+      for (int i = 0;
+           i < positionalArgumentCount;
+           arguments = arguments.tail, i++) {
+        visit(arguments.head);
+        list.add(pop());
+      }
+
+      // Visit named arguments and add them into a temporary map.
+      Map<SourceString, HInstruction> instructions =
+          new Map<SourceString, HInstruction>();
+      List<SourceString> namedArguments = selector.namedArguments;
+      int nameIndex = 0;
+      for (; !arguments.isEmpty(); arguments = arguments.tail) {
+        visit(arguments.head);
+        instructions[namedArguments[nameIndex++]] = pop();
+      }
+
+      // Iterate through the named arguments to add them to the list
+      // of instructions, in an order that can be shared with
+      // selectors with the same named arguments.
+      List<SourceString> orderedNames = selector.getOrderedNamedArguments();
+      for (SourceString name in orderedNames) {
+        list.add(instructions[name]);
+      }
     }
   }
 

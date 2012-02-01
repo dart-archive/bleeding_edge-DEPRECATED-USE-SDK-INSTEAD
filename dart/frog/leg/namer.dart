@@ -32,14 +32,19 @@ class Namer {
   final String ISOLATE = "Isolate";
 
 
-  String closureInvocationName(int arity) {
+  String closureInvocationName(Selector selector) {
     // TODO(floitsch): mangle, while not conflicting with instance names.
-    return instanceMethodName(CLOSURE_INVOCATION_NAME, arity);
+    return instanceMethodInvocationName(CLOSURE_INVOCATION_NAME, selector);
   }
 
   String instanceMethodName(SourceString name, int arity) {
     // TODO(floitsch): mangle, while preserving uniqueness.
     return '$name\$$arity';
+  }
+
+  String instanceMethodInvocationName(SourceString name, Selector selector) {
+    // TODO(floitsch): mangle, while preserving uniqueness.
+    return '$name\$$selector';
   }
 
   String instanceFieldName(SourceString name) {

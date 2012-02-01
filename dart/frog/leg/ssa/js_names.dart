@@ -165,6 +165,12 @@ class JsNames {
     return _reserved;
   }
 
+  // TODO(ngeoffray): only the namer should call this method.
+  // Eventually move it there.
+  /*
+   * Returns a name that does not clash with reserved JS keywords,
+   * and also ensures it won't clash with other identifiers.
+   */
   static String getValid(String name) {
     if (reserved.contains(name)) {
       name = '\$$name';
