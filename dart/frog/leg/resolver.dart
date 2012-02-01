@@ -42,7 +42,8 @@ class ResolverTask extends CompilerTask {
           return resolveMethodElement(element);
 
         case ElementKind.FIELD:
-          return resolveFieldElement(element);
+        case ElementKind.PARAMETER:
+          return resolveVariableElement(element);
 
         default:
           compiler.unimplemented(
@@ -75,7 +76,7 @@ class ResolverTask extends CompilerTask {
     return visitor.mapping;
   }
 
-  TreeElements resolveFieldElement(Element element) {
+  TreeElements resolveVariableElement(Element element) {
     Node tree = element.parseNode(compiler);
     ResolverVisitor visitor = new FullResolverVisitor(compiler, element);
     if (tree is SendSet) {
@@ -346,6 +347,14 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
         : new TopScope(compiler.universe),
       this.currentClass = element.isMember() ? element.enclosingElement : null;
 
+  ResolverVisitor.from(ResolverVisitor other)
+    : this.compiler = other.compiler,
+      this.mapping  = other.mapping,
+      this.enclosingElement = other.enclosingElement,
+      this.inInstanceContext = other.inInstanceContext,
+      this.context  = other.context,
+      this.currentClass = other.currentClass;
+
   void error(Node node, MessageKind kind, [arguments = const []]) {
     ResolutionError error  = new ResolutionError(kind, arguments);
     compiler.reportError(node, error);
@@ -474,6 +483,8 @@ class FullResolverVisitor extends ResolverVisitor {
 
   FullResolverVisitor(Compiler compiler, Element element)
     : super(compiler, element);
+
+  FullResolverVisitor.from(ResolverVisitor other) : super.from(other);
 
   Element visitClassNode(ClassNode node) {
     cancel(node, "shouldn't be called");
@@ -1034,9 +1045,6 @@ class SignatureResolverVisitor extends ResolverVisitor/*<Element>*/ {
   }
 
   Element visitSend(Send node) {
-    if (node.receiver === null) {
-      cancel(node, 'internal error: no receiver on a parameter send');
-    }
     Element element;
     if (node.receiver.asIdentifier() === null ||
         !node.receiver.asIdentifier().isThis()) {
@@ -1056,6 +1064,27 @@ class SignatureResolverVisitor extends ResolverVisitor/*<Element>*/ {
         error(node, MessageKind.NOT_INSTANCE_FIELD, [name]);
       }
     }
+    // TODO(ngeoffray): it's not right to put the field element in
+    // the parameters element. Create another element instead.
+    return element;
+  }
+
+  Element visitSendSet(SendSet node) {
+    Element element;
+    if (node.receiver != null) {
+      // TODO(ngeoffray): it's not right to put the field element in
+      // the parameters element. Create another element instead.
+      element = visitSend(node);
+    } else if (node.selector.asIdentifier() != null) {
+      Element variables = new VariableListElement.node(currentDefinitions,
+          ElementKind.VARIABLE_LIST, enclosingElement);
+      element = new VariableElement(node.selector.asIdentifier().source,
+          variables, ElementKind.PARAMETER, enclosingElement, node: node);
+    }
+    // Visit the value. The compile time constant handler will
+    // make sure it's a compile time constant.
+    new FullResolverVisitor.from(this).visit(node.arguments.head);
+    compiler.enqueue(new WorkItem.toCompile(element));
     return element;
   }
 

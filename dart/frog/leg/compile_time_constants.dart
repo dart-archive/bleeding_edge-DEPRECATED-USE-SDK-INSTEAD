@@ -3,16 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * The [CompileTimeConstantHandler] keeps track of compile-time constants, and
- * initializations of global and static fields.
+ * The [CompileTimeConstantHandler] keeps track of compile-time constants,
+ * initializations of global and static fields, and default values of
+ * optional parameters.
  */
 class CompileTimeConstantHandler extends CompilerTask {
   // Contains the initial value of fields. Must contain all static and global
   // initializations of used fields. May contain caches for instance fields.
-  final Map<VariableElement, Dynamic> initialFieldValues;
+  final Map<VariableElement, Dynamic> initialVariableValues;
 
   CompileTimeConstantHandler(Compiler compiler)
-      : initialFieldValues = new Map<VariableElement, Dynamic>(),
+      : initialVariableValues = new Map<VariableElement, Dynamic>(),
         super(compiler);
   String get name() => 'CompileTimeConstantHandler';
 
@@ -24,25 +25,26 @@ class CompileTimeConstantHandler extends CompilerTask {
    * static field.
    */
   void compileWorkItem(WorkItem work) {
-    assert(work.element.kind == ElementKind.FIELD);
+    assert(work.element.kind == ElementKind.FIELD
+           || work.element.kind == ElementKind.PARAMETER);
     VariableElement element = work.element;
     // Shortcut if it has already been compiled.
-    if (initialFieldValues.containsKey(element)) return;
-    compileFieldWithDefinitions(element, work.resolutionTree);
+    if (initialVariableValues.containsKey(element)) return;
+    compileVariableWithDefinitions(element, work.resolutionTree);
   }
 
-  compileField(VariableElement element) {
-    if (initialFieldValues.containsKey(element)) {
-      return initialFieldValues[element];
+  compileVariable(VariableElement element) {
+    if (initialVariableValues.containsKey(element)) {
+      return initialVariableValues[element];
     }
     // TODO(floitsch): keep track of currently compiling elements so that we
     // don't end up in an infinite loop: final x = y; final y = x;
     TreeElements definitions = compiler.analyzeElement(element);
-    return compileFieldWithDefinitions(element, definitions);
+    return compileVariableWithDefinitions(element, definitions);
   }
 
-  compileFieldWithDefinitions(VariableElement element,
-                              TreeElements definitions) {
+  compileVariableWithDefinitions(VariableElement element,
+                                 TreeElements definitions) {
     return measure(() {
       Node node = element.parseNode(compiler);
       assert(node !== null);
@@ -57,7 +59,7 @@ class CompileTimeConstantHandler extends CompilerTask {
             new CompileTimeConstantEvaluator(this, definitions, compiler);
         value = evaluator.evaluate(right);
       }
-      initialFieldValues[element] = value;
+      initialVariableValues[element] = value;
       return value;
     });
   }
@@ -68,8 +70,10 @@ class CompileTimeConstantHandler extends CompilerTask {
    * other.
    */
   List<VariableElement> getStaticNonFinalFieldsForEmission() {
-    return initialFieldValues.getKeys().filter((element) {
-      return !element.isInstanceMember() && !element.modifiers.isFinal();
+    return initialVariableValues.getKeys().filter((element) {
+      return element.kind == ElementKind.FIELD
+          && !element.isInstanceMember()
+          && !element.modifiers.isFinal();
     });
   }
 
@@ -79,26 +83,23 @@ class CompileTimeConstantHandler extends CompilerTask {
    * other.
    */
   List<VariableElement> getStaticFinalFieldsForEmission() {
-    return initialFieldValues.getKeys().filter((element) {
-      return !element.isInstanceMember() && element.modifiers.isFinal();
+    return initialVariableValues.getKeys().filter((element) {
+      return element.kind == ElementKind.FIELD
+          && !element.isInstanceMember()
+          && element.modifiers.isFinal();
     });
   }
 
-  void emitJsCodeForField(VariableElement element, StringBuffer buffer) {
-    var value = initialFieldValues[element];
-    if (value === null) {
-      buffer.add("(void 0)");
-    } else if (value is num) {
-      buffer.add("$value");
-    } else if (value === true) {
-      buffer.add("true");
-    } else if (value === false) {
-      buffer.add("false");
-    } else {
-      // TODO(floitsch): support more values.
-      compiler.unimplemented("CompileTimeConstantHandler.emitJsCodeForField",
-                             node: element.parseNode(compiler));
-    }
+  String getJsCodeForVariable(VariableElement element) {
+    var value = initialVariableValues[element];
+    if (value === null) return "(void 0)";
+    if (value is num) return "$value";
+    if (value === true) return "true";
+    if (value === false) return "false";
+
+    // TODO(floitsch): support more values.
+    compiler.unimplemented("CompileTimeConstantHandler.getJsCodeForVariable",
+                           node: element.parseNode(compiler));
   }
 }
 
@@ -131,7 +132,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           !element.modifiers.isFinal()) {
         error(element);
       }
-      return constantHandler.compileField(element);
+      return constantHandler.compileVariable(element);
     }
     return super.visitSend(send);
   }

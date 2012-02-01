@@ -212,7 +212,8 @@ class Compiler implements DiagnosticListener {
 
   String codegen(WorkItem work) {
     String code;
-    if (work.element.kind == ElementKind.FIELD) {
+    if (work.element.kind == ElementKind.FIELD
+        || work.element.kind == ElementKind.PARAMETER) {
       compileTimeConstantHandler.compileWorkItem(work);
       return null;
     } else {
@@ -269,6 +270,14 @@ class Compiler implements DiagnosticListener {
 
   FunctionParameters resolveSignature(FunctionElement element) {
     return resolver.resolveSignature(element);
+  }
+
+  Object compileVariable(VariableElement element) {
+    Element savedElement = currentElement;
+    currentElement = element;
+    compile(new WorkItem.toCompile(element));
+    currentElement = savedElement;
+    return compileTimeConstantHandler.compileVariable(element);
   }
 
   reportWarning(Node node, var message) {}

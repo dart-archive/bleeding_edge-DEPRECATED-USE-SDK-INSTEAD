@@ -921,16 +921,16 @@ class SsaBuilder implements Visitor {
                                     FunctionElement element,
                                     List<HInstruction> list) {
     Selector selector = elements.getSelector(node);
+    FunctionParameters parameters = element.computeParameters(compiler);
     if (!selector.applies(compiler, element)) {
       // TODO(ngeoffray): Match the VM behavior and throw an
       // exception at runtime.
       compiler.cancel('Unimplemented non-matching static call', node: node);
-    } else if (selector.namedArgumentCount == 0) {
+    } else if (selector.positionalArgumentCount == parameters.parameterCount) {
       addGenericSendArgumentsToList(node.arguments, list);
     } else {
       // If there are named arguments, provide them in the order
       // expected by the called function, which is the source order.
-      FunctionParameters parameters = element.computeParameters(compiler);
 
       // Visit positional arguments and add them to the list.
       Link<Node> arguments = node.arguments;
@@ -976,8 +976,8 @@ class SsaBuilder implements Visitor {
         if (foundIndex != -1) {
           list.add(namedArguments[foundIndex]);
         } else {
-          // TODO(ngeoffray): Add the default value.
-          push(new HLiteral(null, HType.UNKNOWN));
+          push(new HLiteral(
+              compiler.compileVariable(parameter), HType.UNKNOWN));
           list.add(pop());
         }
       }

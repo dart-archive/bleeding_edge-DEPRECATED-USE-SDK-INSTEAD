@@ -47,6 +47,7 @@ function(child, parent) {
       assert(selector.namedArgumentCount == 0);
       return;
     }
+    CompileTimeConstantHandler constants = compiler.compileTimeConstantHandler;
     List<SourceString> names = selector.getOrderedNamedArguments();
 
     String invocationName =
@@ -106,8 +107,7 @@ function(child, parent) {
           argumentsBuffer[count] = jsName;
           parametersBuffer[selector.positionalArgumentCount + index] = jsName;
         } else {
-          // TODO(ngeoffray): Get the default value.
-          argumentsBuffer[count] = '(void 0)';
+          argumentsBuffer[count] = constants.getJsCodeForVariable(element);
         }
       }
       count++;
@@ -267,7 +267,7 @@ function(child, parent) {
     if (!staticNonFinalFields.isEmpty()) buffer.add('\n');
     for (Element element in staticNonFinalFields) {
       buffer.add('  this.${namer.getName(element)} = ');
-      constants.emitJsCodeForField(element, buffer);
+      buffer.add(constants.getJsCodeForVariable(element));
       buffer.add(';\n');
     }
   }
@@ -278,7 +278,7 @@ function(child, parent) {
         constants.getStaticFinalFieldsForEmission();
     for (VariableElement element in staticFinalFields) {
       buffer.add('${namer.isolatePropertyAccess(element)} = ');
-      constants.emitJsCodeForField(element, buffer);
+      buffer.add(constants.getJsCodeForVariable(element));
       buffer.add(';\n');
     }
   }
