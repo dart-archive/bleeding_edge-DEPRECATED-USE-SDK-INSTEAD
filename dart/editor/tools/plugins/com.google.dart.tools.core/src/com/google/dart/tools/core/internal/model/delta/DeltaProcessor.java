@@ -93,8 +93,6 @@ import java.util.Set;
  * DeltaProcessingState#resourceChanged(...))</li>
  * </ul>
  * <p>
- * TODO(jwren) DartElement.DART_LIBRARY_FOLDER cases are not yet covered
- * <p>
  * TODO(jwren) Remove the DEBUG flag and replace with Eclipse-tracing
  */
 public class DeltaProcessor {
@@ -262,7 +260,6 @@ public class DeltaProcessor {
   public void resourceChanged(IResourceChangeEvent event) {
 
     int eventType = overridenEventType == -1 ? event.getType() : overridenEventType;
-    // TODO the method is not all implemented yet
     IResource resource = event.getResource();
     IResourceDelta delta = event.getDelta();
 
@@ -707,7 +704,7 @@ public class DeltaProcessor {
    * <ul>
    * <li>If the element is a project, do nothing, and do not process children, as when a project is
    * created it does not yet have any natures - specifically a Dart nature.
-   * <li>If the elemet is not a project, process it as added (see <code>basicElementAdded</code>.
+   * <li>If the element is not a project, process it as added (see <code>basicElementAdded</code>.
    * </ul>
    */
   private void elementAdded(OpenableElementImpl element, IResourceDelta delta) {
@@ -783,7 +780,7 @@ public class DeltaProcessor {
         }
       } else {
         // element is moved
-        // TODO This case is not a use case used by the listeners yet, and is not yet supported.
+        // TODO This case is not yet supported.
 //        addToParentInfo(element);
 //        close(element);
 //
@@ -852,7 +849,7 @@ public class DeltaProcessor {
       }
     } else {
       // element is moved
-      // TODO This case is not a use case used by the listeners yet, and is not yet supported.
+      // TODO This case is not yet supported.
       // See the JDT code to get started on the various cases
     }
     if (elementType == DartElement.DART_PROJECT) {
@@ -875,7 +872,6 @@ public class DeltaProcessor {
       case DartElement.DART_PROJECT:
       default:
         if (res instanceof IFolder) {
-          // TODO handle DART_LIBRARY_FOLDER case
           return NON_DART_RESOURCE;
         } else {
           if (DartCore.isDartLikeFileName(res.getName())) {
@@ -1004,7 +1000,7 @@ public class DeltaProcessor {
     Set<String> resourcesSet = new HashSet<String>();
     try {
       // TODO(jwren) revisit this, much of the code in parseDirectives is already in DartLibraryImpl,
-      // we should have one method instead of two.
+      // should we have one method instead of two?
       CachedDirectives literalCachedDirectives = parseDirectives(dartSrc);
       LibrarySource librarySrc = dartSrc.getLibrary();
       // LIBRARY NAME
@@ -1264,14 +1260,13 @@ public class DeltaProcessor {
       currentElement = null;
 
       // get the workspace delta, and start processing there.
+      // TODO(jwren) Can we remove the INCLUDE_HIDDEN flag? it should be tested and then removed
       IResourceDelta[] deltas = changes.getAffectedChildren(IResourceDelta.ADDED
           | IResourceDelta.REMOVED | IResourceDelta.CHANGED, IContainer.INCLUDE_HIDDEN);
-      for (int i = 0; i < deltas.length; i++) {
-        IResourceDelta delta = deltas[i];
-        IResource res = delta.getResource();
 
-        // traverse delta
-        traverseDelta(delta, DartElement.DART_PROJECT);
+      // traverse delta
+      for (int i = 0; i < deltas.length; i++) {
+        traverseDelta(deltas[i], DartElement.DART_PROJECT);
       }
       resetProjectCaches();
 
