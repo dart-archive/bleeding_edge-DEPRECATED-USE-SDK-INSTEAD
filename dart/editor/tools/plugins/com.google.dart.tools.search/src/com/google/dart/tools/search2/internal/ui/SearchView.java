@@ -14,7 +14,6 @@
 package com.google.dart.tools.search2.internal.ui;
 
 import com.google.dart.tools.search.internal.ui.ISearchHelpContextIds;
-import com.google.dart.tools.search.internal.ui.OpenSearchDialogAction;
 import com.google.dart.tools.search.internal.ui.SearchPlugin;
 import com.google.dart.tools.search.ui.IContextMenuConstants;
 import com.google.dart.tools.search.ui.IQueryListener;
@@ -37,8 +36,6 @@ import org.eclipse.jface.action.LegacyActionTools;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -147,12 +144,6 @@ public class SearchView extends PageBookView implements ISearchResultViewPart, I
       link.setText(SearchMessages.SearchView_empty_search_label);
       link.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, true, false));
       link.setBackground(background);
-      link.addSelectionListener(new SelectionAdapter() {
-        @Override
-        public void widgetSelected(SelectionEvent e) {
-          new OpenSearchDialogAction().run();
-        }
-      });
 
       fControl = composite;
     }
