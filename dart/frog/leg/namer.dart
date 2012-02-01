@@ -44,7 +44,12 @@ class Namer {
 
   String instanceMethodInvocationName(SourceString name, Selector selector) {
     // TODO(floitsch): mangle, while preserving uniqueness.
-    return '$name\$$selector';
+    StringBuffer buffer = new StringBuffer();
+    List<SourceString> names = selector.getOrderedNamedArguments();
+    for (SourceString name in names) {
+      buffer.add('\$$name');
+    }
+    return '$name\$${selector.argumentCount}$buffer';
   }
 
   String instanceFieldName(SourceString name) {

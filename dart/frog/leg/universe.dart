@@ -135,8 +135,6 @@ class Selector implements Hashable {
   }
 
   List<SourceString> getOrderedNamedArguments() => namedArguments;
-
-  String toString() => '$argumentCount';
 }
 
 class Invocation extends Selector {
@@ -150,14 +148,6 @@ class Invocation extends Selector {
       : super(SelectorKind.INVOCATION, argumentCount),
         namedArguments = names,
         orderedNamedArguments = const <SourceString>[];
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer();
-    for (SourceString name in orderedNamedArguments) {
-      buffer.add('\$$name');
-    }
-    return '$argumentCount$buffer';
-  }
 
   List<SourceString> getOrderedNamedArguments() {
     if (namedArguments.isEmpty()) return namedArguments;
