@@ -194,6 +194,14 @@ public class CompletionEngineTest extends TestCase {
     }
   }
 
+  public void testCommentSnippets036() throws Exception {
+    test("t3() {var x=new List!1}", "1+List");
+  }
+
+  public void testCommentSnippets037() throws Exception {
+    test("t3() {var x=new List.!1}", "1+from");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test

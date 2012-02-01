@@ -778,6 +778,20 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitTypeNode(DartTypeNode completionNode) {
+      if (completionNode instanceof TypeCompleter) {
+        if (completionNode.getParent() instanceof DartPropertyAccess) {
+          if (completionNode.getParent().getParent() instanceof DartNewExpression) {
+            // { new X.! }
+            DartPropertyAccess prop = (DartPropertyAccess) completionNode.getParent();
+            prop.accept(new IdentifierCompletionProposer(prop.getName()));
+          }
+        }
+      }
+      return null;
+    }
+
+    @Override
     public Void visitTypeParameter(DartTypeParameter node) {
       // class test <K extends ! {}
       // typedef T Foo<T!>(Object input);
@@ -1440,6 +1454,10 @@ public class CompletionEngine {
     try {
       for (com.google.dart.tools.core.model.Method method : type.getMethods()) {
         if (method.isConstructor()) {
+          if (!method.getElementName().equals(name)) {
+            // not sure why method.isFactory() doesn't work
+            continue;
+          }
           InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
               CompletionProposal.METHOD_REF, actualCompletionPosition - offset);
           char[] declaringTypeName = method.getDeclaringType().getElementName().toCharArray();
