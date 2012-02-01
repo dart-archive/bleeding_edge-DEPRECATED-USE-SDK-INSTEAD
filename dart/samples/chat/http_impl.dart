@@ -748,7 +748,7 @@ class HTTPResponseImplementation
   bool writeList(List<int> data,
                   int offset,
                   int count,
-                  [var callback = null]) {
+                  [void callback() = null]) {
     // Ensure that headers are written.
     if (_state == START) {
       _addSendHeader();
@@ -766,7 +766,7 @@ class HTTPResponseImplementation
   // Write string data to the response. The string characters will be
   // encoded using UFT-8. When this is called for the first time the
   // response header is send as well.
-  bool writeString(String string, [var callback = null]) {
+  bool writeString(String string, [void callback() = null]) {
     // Ensure that headers are written.
     if (_state == START) {
       _addSendHeader();
@@ -1174,7 +1174,7 @@ class HTTPClientRequestImplementation
   bool writeList(List<int> data,
                  int offset,
                  int count,
-                 [var callback = null]) {
+                 [void callback() = null]) {
     // Ensure that headers are written.
     if (_state == START) {
       _addSendHeader();
@@ -1192,7 +1192,7 @@ class HTTPClientRequestImplementation
   // Write string data to the request. The string characters will be
   // encoded using UFT-8. When this is called for the first time the
   // request header is send as well.
-  bool writeString(String string, [var callback = null]) {
+  bool writeString(String string, [void callback() = null]) {
     // Ensure that headers are written.
     if (_state == START) {
       _addSendHeader();

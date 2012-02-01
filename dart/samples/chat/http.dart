@@ -186,7 +186,7 @@ interface HTTPResponse default HTTPResponseImplementation {
    * the data has been sent. The [callback] will not be called if the
    * return value is true.
    */
-  bool writeList(List<int> data, int offset, int count, void callback());
+  bool writeList(List<int> data, int offset, int count, [void callback()]);
 
   /**
    * Write string data to the response. The string characters will be
@@ -195,7 +195,7 @@ interface HTTPResponse default HTTPResponseImplementation {
    * on the return value and the [callback] argument. NOTE: The content
    * length set must be -1 (unknown) to use this method.
    */
-  bool writeString(String string, void callback());
+  bool writeString(String string, [void callback()]);
 
   /**
    * Indicate that all the response data has been written.
@@ -277,7 +277,7 @@ interface HTTPClientRequest default HTTPClientRequestImplementation {
    * the data has been sent. The [callback] will not be called if the
    * return value is true.
    */
-  bool writeList(List<int> data, int offset, int count, void callback());
+  bool writeList(List<int> data, int offset, int count, [void callback()]);
 
   /**
    * Write string data to the request. The string characters will be
@@ -286,7 +286,7 @@ interface HTTPClientRequest default HTTPClientRequestImplementation {
    * in the return value and the [callback] argumnt. NOTE: The content
    * length set must be -1 (unknown) to use this method.
    */
-  bool writeString(String string, void callback());
+  bool writeString(String string, [void callback()]);
 
   /**
    * Indicate that all the request data has been written. After this
