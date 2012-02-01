@@ -42,6 +42,8 @@ DartCombatTest: Skip
 [ $component == vm]
 dartcombat/DartCombatTest: Skip
 DartCombatTest: Skip
+SwarmTest: Skip
+swarm/SwarmTest: Skip
 
 [ $component == frog ]
 *: Skip
