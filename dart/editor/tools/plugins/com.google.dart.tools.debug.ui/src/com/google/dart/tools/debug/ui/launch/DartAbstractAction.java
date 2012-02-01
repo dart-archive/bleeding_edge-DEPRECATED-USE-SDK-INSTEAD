@@ -46,7 +46,7 @@ public abstract class DartAbstractAction extends AbstractInstrumentedAction impl
     IWorkbenchWindowPulldownDelegate2, IMenuCreator {
 
   private Menu menu;
-  private IWorkbenchWindow window;
+  protected IWorkbenchWindow window;
 
   public DartAbstractAction(IWorkbenchWindow window, String name, int flags) {
     super(name, flags);

@@ -34,6 +34,8 @@ import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IViewActionDelegate;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
@@ -50,7 +52,11 @@ import java.util.Set;
 /**
  * A toolbar action to enumerate a launch debug launch configurations.
  */
-public class DartRunAction extends DartAbstractAction {
+public class DartRunAction extends DartAbstractAction implements IViewActionDelegate {
+
+  public DartRunAction() {
+    this(null, false);
+  }
 
   public DartRunAction(IWorkbenchWindow window) {
     this(window, false);
@@ -61,6 +67,11 @@ public class DartRunAction extends DartAbstractAction {
 
     setActionDefinitionId("com.google.dart.tools.debug.ui.run");
     setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.gif"));
+  }
+
+  @Override
+  public void init(IViewPart view) {
+    window = view.getSite().getWorkbenchWindow();
   }
 
   @Override

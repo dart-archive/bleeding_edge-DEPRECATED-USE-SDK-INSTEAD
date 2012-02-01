@@ -282,9 +282,9 @@
             id="com.google.dart.tools.debug.ui.viewerContribution"
             targetID="com.google.dart.tools.ui.LibraryExplorer">
          <action
-               class="com.google.dart.tools.debug.ui.launch.RunInBrowserAction"
+               class="com.google.dart.tools.debug.ui.launch.DartRunAction"
                enablesFor="1"
-               id="com.google.dart.tools.debug.ui.runInBrowserAction"
+               id="com.google.dart.tools.debug.ui.run"
                label="Run in Browser"
                menubarPath="additions">
          </action>
