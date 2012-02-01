@@ -161,10 +161,6 @@ class StringWrapper implements SourceString {
     assert(0 <= initial);
     assert(0 <= terminal);
     assert(initial + terminal <= stringValue.length);
-    assert(stringValue.startsWith(["", "'", "@'", "'''", "@'''"][initial]) ||
-           stringValue.startsWith(['', '"', '@"', '"""', '@"""'][initial]));
-    assert(stringValue.endsWith(["", "'", null, "'''"][terminal]) ||
-           stringValue.endsWith(['', '"', null, '"""'][terminal]));
     return new StringWrapper(
         stringValue.substring(initial, stringValue.length - terminal));
   }

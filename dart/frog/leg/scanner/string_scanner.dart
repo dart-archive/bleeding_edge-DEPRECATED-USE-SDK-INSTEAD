@@ -62,15 +62,6 @@ class SubstringWrapper implements SourceString {
     assert(0 <= initial);
     assert(0 <= terminal);
     assert(initial + terminal <= internalString.length);
-    assert((internalString.substring(begin, begin + initial) ==
-                ["", "'", "@'", "'''", "@'''"][initial]) ||
-           (internalString.substring(begin, begin + initial) ==
-                ['', '"', '@"', '"""', '@"""'][initial]));
-    assert((internalString.substring(end - terminal, end) ==
-                ["", "'", null, "'''"][terminal]) ||
-           (internalString.substring(end - terminal, end) ==
-                ['', '"', null, '"""'][terminal]));
-
     return new SubstringWrapper(internalString,
                                 begin + initial, end - terminal);
   }

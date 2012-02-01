@@ -47,6 +47,7 @@ class StringValidator  {
   static StringQuoting quotingFromString(SourceString sourceString) {
     Iterator<int> source = sourceString.iterator();
     bool raw = false;
+    int quoteLength = 1;
     int quoteChar = source.next();
     if (quoteChar == $AT) {
       raw = true;
@@ -57,11 +58,24 @@ class StringValidator  {
     // If it only have two, the string must be an empty string literal,
     // and end after the second quote.
     bool multiline = false;
-    if (source.hasNext() && source.next() == quoteChar && source.hasNext()) {
-      assert(source.next() == quoteChar);
-      multiline = true;
+    if (source.hasNext() && source.next() === quoteChar && source.hasNext()) {
+      int code = source.next();
+      assert(code === quoteChar);  // If not, there is a bug in the parser.
+      quoteLength = 3;
+      // Check if a multiline string starts with a newline (CR, LF or CR+LF).
+      if (source.hasNext()) {
+        code = source.next();
+        if (code === $CR) {
+          quoteLength += 1;
+          if (source.hasNext() && source.next() === $LF) {
+            quoteLength += 1;
+          }
+        } else if (code === $LF) {
+          quoteLength += 1;
+        }
+      }
     }
-    return StringQuoting.get(quoteChar, raw, multiline);
+    return StringQuoting.get(quoteChar, raw, quoteLength);
   }
 
   void stringParseError(String message, Token token, int offset) {

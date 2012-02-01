@@ -12,10 +12,10 @@ String compileExpression(String expression) {
 }
 
 main() {
-  String generated = compileExpression("'''\n\r\u2028\u2029'''");
+  String generated = compileExpression("''' \n\r\u2028\u2029'''");
   Expect.isTrue(generated.contains(@"\n\r\u2028\u2029"));
 
-  generated = compileExpression("@'''\n\r\u2028\u2029'''");
+  generated = compileExpression("@''' \n\r\u2028\u2029'''");
   Expect.isTrue(generated.contains(@"\n\r\u2028\u2029"));
 
   generated = compileExpression("'\u2028\u2029'");
