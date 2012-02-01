@@ -54,6 +54,9 @@ public class DartPerspective implements IPerspectiveFactory {
     if (DartCoreDebug.FILES_VIEW) {
       topLeft.addView(DartUI.ID_FILE_EXPLORER);
     }
+    if (DartCoreDebug.FILES_VIEW2) {
+      topLeft.addView(DartUI.ID_FILE_VIEW);
+    }
     topLeft.addView(DartUI.ID_LIBRARIES);
     // Prevent users from closing the Library Explorer View
     // layout.getViewLayout(DartUI.ID_LIBRARIES).setCloseable(false);

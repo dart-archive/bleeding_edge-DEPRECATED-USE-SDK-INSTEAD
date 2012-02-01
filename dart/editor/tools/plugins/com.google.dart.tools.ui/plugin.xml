@@ -422,6 +422,16 @@
             name="Files"
             restorable="true">
       </view>
+      
+      <view
+            allowMultiple="false"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.internal.view.files.FilesView"
+            icon="icons/full/obj16/file_folder.gif"
+            id="com.google.dart.tools.ui.FileView"
+            name="Files"
+            restorable="true">
+      </view>
    </extension>
 
    <extension

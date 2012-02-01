@@ -36,6 +36,8 @@ public class DartCoreDebug {
 
   public static final boolean FILES_VIEW = isOptionTrue("experimental/filesview");
 
+  public static final boolean FILES_VIEW2 = isOptionTrue("experimental/filesview2");
+
   public static final boolean FROG = isOptionTrue("debug/frog");
 
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
