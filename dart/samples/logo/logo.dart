@@ -135,8 +135,7 @@ onSliderChange(_) {
 void main() {
   defaultColors = {};
 
-  window.on.contentLoaded.add((_) {
-    logo = new SVGElement.svg("""
+  logo = new SVGElement.svg("""
 <svg xmlns="http://www.w3.org/2000/svg"
      version="1.1"
      width="371.6655"
@@ -175,25 +174,24 @@ void main() {
 </svg>
 """);
 
-    document.query("#icon").elements.add(logo);
-    logo.queryAll("path").forEach((p) {
-      defaultColors[p.id] = new Color.hex(p.style.getPropertyValue('fill'));
-    });
+  document.query("#icon").elements.add(logo);
+  logo.queryAll("path").forEach((p) {
+    defaultColors[p.id] = new Color.hex(p.style.getPropertyValue('fill'));
+  });
 
-    hue = document.query("input[name=hue]");
-    hue.on.change.add(onSliderChange);
-    saturation = document.query("input[name=saturation]");
-    saturation.on.change.add(onSliderChange);
-    lightness = document.query("input[name=lightness]");
-    lightness.on.change.add(onSliderChange);
+  hue = document.query("input[name=hue]");
+  hue.on.change.add(onSliderChange);
+  saturation = document.query("input[name=saturation]");
+  saturation.on.change.add(onSliderChange);
+  lightness = document.query("input[name=lightness]");
+  lightness.on.change.add(onSliderChange);
 
-    document.query("input[name=invert]").on.change.add((Event e) {
-      InputElement invert = e.target;
-      if (invert.checked) {
-        logo.classes = ['inverse'];
-      } else {
-        logo.classes = [];
-      }
-    });
+  document.query("input[name=invert]").on.change.add((Event e) {
+    InputElement invert = e.target;
+    if (invert.checked) {
+      logo.classes = ['inverse'];
+    } else {
+      logo.classes = [];
+    }
   });
 }
