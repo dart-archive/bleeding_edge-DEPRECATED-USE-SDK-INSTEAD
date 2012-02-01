@@ -145,6 +145,9 @@ build system.  The PDE build system has to run under Eclipse.
         <tstamp>
             <format property="build.date" pattern="yyyyMMddHHmm" />
         </tstamp>
+        <tstamp>
+            <format property="build.year" pattern="yyyy" />
+        </tstamp>
         <echoProperty propertyName="ant.file" />
         <echoProperty propertyName="ant.home" />
         <echoProperty propertyName="ant.version" />
@@ -443,6 +446,7 @@ class ObjectArray<T> { }
             <include name="*.mappings" />
             <replacefilter token="@BUILDDATE@" value="${build.date}" />
             <replacefilter token="@REVISION@" value="${build.revision}" />
+            <replacefilter token="@BUILDYEAR@" value="${build.year}" />
         </replace>
         <echo message="replacing @BUILDCONFIGS@ in ${build.stage.features}/com.google.dart.tools.deploy.feature_releng/build.properties" />
         <replace dir="${build.stage.features}/com.google.dart.tools.deploy.feature_releng">
@@ -453,6 +457,12 @@ class ObjectArray<T> { }
         <replace dir="${build.stage.plugins}/com.google.dart.tools.core" >
             <include name="**/DartCore.java" />
             <replacefilter token="@REVISION@" value="${build.revision}" />
+        </replace>
+
+        <echo message="replacing @BUILDYEAR@ in ${build.stage.plugins}/com.google.dart.tools.ui/src/com/google/dart/tools/ui/dialogs/DialogsMessages.properties" />
+        <replace dir="${build.stage.plugins}/com.google.dart.tools.ui" summary="true">
+            <include name="**/ui/dialogs/*.properties" />
+            <replacefilter token="@BUILDYEAR@" value="${build.year}" />
         </replace>
 
         <!-- create the samples directory -->
