@@ -783,6 +783,9 @@ class SsaBuilder implements Visitor {
     Selector selector = elements.getSelector(send);
     if (Elements.isStaticOrTopLevelField(element)) {
       push(new HStatic(element));
+      if (element.kind == ElementKind.GETTER) {
+        push(new HInvokeStatic(selector, <HInstruction>[pop()]));
+      }
     } else if (element === null || Elements.isInstanceField(element)) {
       HInstruction receiver;
       if (send.receiver == null) {
@@ -820,18 +823,15 @@ class SsaBuilder implements Visitor {
   void generateSetter(SendSet send, Element element, HInstruction value) {
     Selector selector = elements.getSelector(send);
     if (Elements.isStaticOrTopLevelField(element)) {
-      add(new HStaticStore(element, value));
-      stack.add(value);
-    } else if (Elements.isInstanceField(element)) {
-      SourceString methodName = element.name;
-      HInstruction receiver = thisDefinition;
-      if (receiver === null) {
-        compiler.unimplemented("Ssa.generateSetter.", node: send);
+      if (element.kind == ElementKind.SETTER) {
+        HStatic target = new HStatic(element);
+        add(target);
+        add(new HInvokeStatic(selector, <HInstruction>[target, value]));
+      } else {
+        add(new HStaticStore(element, value));
       }
-      add(new HInvokeDynamicSetter(
-          selector, element, methodName, receiver, value));
       stack.add(value);
-    } else if (element === null) {
+    } else if (element === null || Elements.isInstanceField(element)) {
       SourceString dartSetterName = send.selector.asIdentifier().source;
       HInstruction receiver;
       if (send.receiver == null) {

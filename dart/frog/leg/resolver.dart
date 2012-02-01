@@ -638,35 +638,39 @@ class FullResolverVisitor extends ResolverVisitor {
       mapping.setSelector(node, Selector.INDEX);
     } else if (node.isPropertyAccess) {
       mapping.setSelector(node, Selector.GETTER);
+      if (target != null && target.kind == ElementKind.ABSTRACT_FIELD) {
+        AbstractFieldElement field = target;
+        target = field.getter;
+      }
     } else {
       handleArguments(node);
     }
-    // TODO(ngeoffray): If target is a field, check that there's a
-    // getter.
+    // TODO(ngeoffray): Warn if target is null and the send is
+    // unqualified.
     return useElement(node, target);
   }
 
   visitSendSet(SendSet node) {
     Element target = resolveSend(node);
-    visit(node.argumentsNode);
-    // TODO(ngeoffray): If target is a field, check that there's a
-    // setter.
+    Element setter = null;
+    Element getter = null;
+    if (target != null && target.kind == ElementKind.ABSTRACT_FIELD) {
+      AbstractFieldElement field = target;
+      setter = field.setter;
+      getter = field.getter;
+    } else {
+      setter = target;
+      getter = target;
+    }
     // TODO(ngeoffray): Check if the target can be assigned.
     Identifier op = node.assignmentOperator;
     bool needsGetter = op.source.stringValue !== '=';
     Selector selector;
     if (needsGetter) {
-      // Resolve the getter for the lhs (receiver+selector).
-      // Currently this is the same as the setter.
-      // TODO(ngeoffray): Adapt for fields.
-      Element getter;
       if (node.isIndex) {
         selector = Selector.INDEX_AND_INDEX_SET;
-        getter = target;
       } else {
         selector = Selector.GETTER_AND_SETTER;
-        // TODO(ngeoffray): Find the getter from the setter.
-        getter = target;
       }
       useElement(node.selector, getter);
     } else if (node.isIndex) {
@@ -674,8 +678,11 @@ class FullResolverVisitor extends ResolverVisitor {
     } else {
       selector = Selector.SETTER;
     }
+    visit(node.argumentsNode);
     mapping.setSelector(node, selector);
-    return useElement(node, target);
+    // TODO(ngeoffray): Warn if target is null and the send is
+    // unqualified.
+    return useElement(node, setter);
   }
 
   visitLiteralInt(LiteralInt node) {

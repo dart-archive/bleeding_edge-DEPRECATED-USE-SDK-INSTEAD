@@ -4,7 +4,7 @@
 
 interface DiagnosticListener {
   // TODO(karlklose): replace cancel with better error reporting mechanism.
-  void cancel([String reason, node, token, instruction]);
+  void cancel([String reason, node, token, instruction, element]);
   // TODO(karlklose): rename log to something like reportInfo.
   void log(message);
   // TODO(karlklose): add reportWarning and reportError to this interface.

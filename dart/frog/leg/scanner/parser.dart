@@ -558,7 +558,7 @@ class Parser {
       final Token peek = peekAfterType(token);
       if (isGetOrSet(peek) && isIdentifier(peek.next)) {
         // type? get identifier
-        return token;
+        return peek;
       }
     }
     return null;

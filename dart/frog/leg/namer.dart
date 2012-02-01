@@ -71,10 +71,16 @@ class Namer {
           element.name, functionElement.parameterCount(compiler));
     } else {
       // TODO(floitsch): deal with named constructors.
-      String name = '${element.name}';
-      if (element.kind == ElementKind.FUNCTION) {
+      String name;
+      if (element.kind == ElementKind.GETTER) {
+        name = getterName(element.name);
+      } else if (element.kind == ElementKind.SETTER) {
+        name = setterName(element.name);
+      } else if (element.kind == ElementKind.FUNCTION) {
         FunctionElement functionElement = element;
-        name = '$name\$${functionElement.parameterCount(compiler)}';
+        name = '${element.name}\$${functionElement.parameterCount(compiler)}';
+      } else {
+        name = '${element.name}';
       }
       // Prefix the name with '$' if it is reserved.
       if (jsReserved.contains(name)) {
@@ -131,6 +137,8 @@ class Namer {
         case ElementKind.FUNCTION:
         case ElementKind.CLASS:
         case ElementKind.FIELD:
+        case ElementKind.GETTER:
+        case ElementKind.SETTER:
           // We need to make sure the name is unique.
           int usedCount = usedGlobals[guess];
           if (usedCount === null) {
