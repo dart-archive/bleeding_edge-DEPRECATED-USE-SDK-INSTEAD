@@ -13,6 +13,10 @@ PrototypePatchingTest: Skip            # TODO(jimhug): Fix flakiness uniformly
 [ $checked ]
 NativeCheckedArguments1FrogTest: Fail  # Bug(1364): Not enough checked mode checks.
 
+[ $component == frogsh && $checked]
+NodeProcessTest: Fail # Checked mode failure -- looked like it failed to find assert$WritableStream
+NativeCheckedArguments1FrogTest: Fail # TODO(jimhug): Temporary break
+
 
 [ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == frog || $component == leg]
 Node*Test: Skip

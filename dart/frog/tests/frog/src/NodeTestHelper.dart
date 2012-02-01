@@ -6,8 +6,6 @@
 
 #import('unittest_node.dart');
 #import('../../../lib/node/node.dart');
-#import('../../../lib/node/child_process.dart');
-#import('../../../lib/node/path.dart');
 
 /**
  * Helper method to be able to run the test from:
@@ -40,9 +38,14 @@ ChildProcess runDartProgram(String program, List<String> argv, String stdinText,
   for (var arg in argv) {
     sb.add(' $arg');
   }
+  // print('exec ${sb.toString()}');
   final child = child_process.exec(sb.toString(), callback);
   if (stdinText != null) {
-    child.stdin.end(stdinText, 'utf8');
+    // Something I don't understand:
+    // can't call 'child.stdin.end() directly, have
+    // to store child.stdin in a WritableStream variable. 'var' won't do.
+    WritableStream stdin = child.stdin;
+    stdin.end(stdinText);
   }
   return child;
 }
