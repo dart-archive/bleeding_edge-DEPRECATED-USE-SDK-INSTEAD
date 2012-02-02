@@ -153,7 +153,7 @@ public class BrowserManager {
     arguments.add(browserLocation.toOSString());
 
     if (debug) {
-      arguments.add("--remote-shell-port=" + PORT_NUMBER);
+      arguments.add("--remote-debugging-port=" + PORT_NUMBER);
     }
 
     // In order to start up multiple Chrome processes, we need to specify a different user dir.
