@@ -59,7 +59,19 @@ compileCommand(Map request, OutputStream output) {
       'span': jsonSpan
     });
   };
-  bool success = world.compileAndSave();
+
+  bool success = false;
+
+  try {
+    success = world.compileAndSave();
+  } catch (var exc) {
+    writeJson(output, {
+      'kind': 'message',
+      'id': id,
+      'message': "compiler exception: ${exc}"
+    });
+  }
+
   writeJson(output, {
     'kind': 'done',
     'command': 'compile',

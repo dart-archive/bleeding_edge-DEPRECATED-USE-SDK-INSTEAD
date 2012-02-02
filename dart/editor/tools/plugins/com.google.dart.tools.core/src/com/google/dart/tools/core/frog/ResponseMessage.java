@@ -40,7 +40,11 @@ public class ResponseMessage {
 
   ResponseMessage(JSONObject object) throws JSONException {
     // severity
-    String prefix = object.getString("prefix");
+    String prefix = null;
+
+    if (object.has("prefix")) {
+      prefix = object.getString("prefix");
+    }
 
     if (prefix != null) {
       severityText = prefix.trim();
@@ -56,7 +60,7 @@ public class ResponseMessage {
     message = object.getString("message");
 
     // location
-    if (object.get("span") instanceof JSONObject) {
+    if (object.has("span") && object.get("span") instanceof JSONObject) {
       JSONObject span = (JSONObject) object.get("span");
 
       location = new Location();
