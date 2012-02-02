@@ -995,7 +995,6 @@ public class CompletionEngine {
   private int offset;
   private String source;
   private ErrorRecordingContext context = new ErrorRecordingContext();
-  private DartUnit resolvedUnit;
   private DartClassMember<? extends DartExpression> resolvedMember;
   private CoreTypeProvider typeProvider;
   private ClassElement classElement;
@@ -1111,9 +1110,6 @@ public class CompletionEngine {
       return;
     }
     Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
-    Collection<DartUnit> parsedUnits = new ArrayList<DartUnit>();
-    parsedUnits.add(parsedUnit);
-    resolvedUnit = parsedUnit;
 
     NodeFinder finder = NodeFinder.find(parsedUnit, completionPosition, 0);
     DartNode resolvedNode = finder.selectNode();
@@ -1139,7 +1135,7 @@ public class CompletionEngine {
       }
       return;
     }
-    Scope unitScope = resolvedUnit.getLibrary().getElement().getScope();
+    Scope unitScope = parsedUnit.getLibrary().getElement().getScope();
     typeProvider = new CoreTypeProviderImplementation(unitScope, DartCompilerListener.EMPTY);
 
     classElement = null;
