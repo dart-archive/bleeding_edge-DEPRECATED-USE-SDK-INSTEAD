@@ -118,10 +118,11 @@ def TestFrog(arch, mode, system):
       TestStep("leg_extra", testpy_mode, system, 'vm', ['leg'], flags)
 
   else:
-    # DumpRenderTree tests:
-    tests = [
-      'client', 'language', 'corelib', 'isolate', 'frog', 'peg', 'css']
-    TestStep("browser", testpy_mode, system, 'frogium', tests, flags)
+    if system == 'windows':
+      # DumpRenderTree tests (DRT is currently not available on Windows):
+      tests = [
+        'client', 'language', 'corelib', 'isolate', 'frog', 'peg', 'css']
+      TestStep("browser", testpy_mode, system, 'frogium', tests, flags)
 
     # Webdriver tests.
     if system == 'linux':
