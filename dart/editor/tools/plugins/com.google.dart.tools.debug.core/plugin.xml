@@ -56,14 +56,14 @@
    <extension point="org.eclipse.debug.core.sourceLocators">
       <sourceLocator
          name="Dart Source Lookup Director"
-         class="com.google.dart.tools.debug.core.internal.sourceLookup.DartSourceLookupDirector"
+         class="com.google.dart.tools.debug.core.chromejs.DartSourceLookupDirector"
          id="com.google.dart.tools.debug.core.sourceLookupDirector">
       </sourceLocator>
    </extension>
 
    <extension point="org.eclipse.debug.core.sourcePathComputers">
       <sourcePathComputer
-         class="com.google.dart.tools.debug.core.internal.sourceLookup.DartSourcePathComputerDelegate"
+         class="com.google.dart.tools.debug.core.chromejs.DartSourcePathComputerDelegate"
          id="com.google.dart.tools.debug.core.sourcePathComputer">
        </sourcePathComputer>
    </extension>
