@@ -4,6 +4,8 @@
 
 #library('mock_compiler');
 
+#import("../../../../utils/uri/uri.dart");
+
 #import("../../../leg/leg.dart");
 #import("../../../leg/elements/elements.dart");
 #import("../../../leg/tree/tree.dart");
@@ -46,7 +48,8 @@ class MockCompiler extends Compiler {
 
   MockCompiler([String coreSource = DEFAULT_CORELIB])
       : warnings = [], errors = [], super() {
-    var script = new Script(new MockFile(coreSource));
+    Uri uri = new Uri(scheme: "source");
+    var script = new Script(uri, new MockFile(coreSource));
     coreLibrary = new LibraryElement(script);
     parseScript(coreSource, coreLibrary);
     mainApp = mockLibrary(this, "");
@@ -148,7 +151,8 @@ void importLibrary(LibraryElement target, LibraryElement imported,
 }
 
 LibraryElement mockLibrary(Compiler compiler, String source) {
-  var library = new LibraryElement(new Script(new MockFile(source)));
+  Uri uri = new Uri(scheme: "source");
+  var library = new LibraryElement(new Script(uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
   return library;
 }

@@ -4,4 +4,12 @@
 
 #library("io");
 
+#import("dart:io");
+
 String join(List<String> strings) => Strings.join(strings, '/');
+
+String getCurrentDirectory() {
+  String dir = new File(".").fullPathSync();
+  if (dir.endsWith("/")) return dir;
+  return "$dir/";
+}

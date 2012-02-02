@@ -4,6 +4,8 @@
 
 #library('parser_helper');
 
+#import("../../../../utils/uri/uri.dart");
+
 #import("../../../leg/elements/elements.dart");
 #import("../../../leg/tree/tree.dart");
 #import('../../../leg/scanner/scannerlib.dart');
@@ -54,11 +56,12 @@ class MockFile {
 Link<Element> parseUnit(String text, Compiler compiler,
                         LibraryElement library) {
   Token tokens = scan(text);
-  var script = new Script(new MockFile(text));
+  Uri uri = new Uri(scheme: "source");
+  var script = new Script(uri, new MockFile(text));
   var unit = new CompilationUnitElement(script, library);
   ElementListener listener = new ElementListener(compiler, unit);
   PartialParser parser = new PartialParser(listener);
-  parser.parseUnit(tokens);
+  compiler.withCurrentElement(unit, () => parser.parseUnit(tokens));
   return unit.topLevelElements;
 }
 

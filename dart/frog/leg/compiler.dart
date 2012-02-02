@@ -41,6 +41,7 @@ class Compiler implements DiagnosticListener {
   String assembledCode;
   Namer namer;
   Types types;
+  final String currentDirectory;
 
   CompilerTask measuredTask;
   Element _currentElement;
@@ -73,7 +74,9 @@ class Compiler implements DiagnosticListener {
   static final SourceString MAIN = const SourceString('main');
   static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
 
-  Compiler()
+  Compiler() : this.withCurrentDirectory(io.getCurrentDirectory());
+
+  Compiler.withCurrentDirectory(String this.currentDirectory)
       : types = new Types(),
         universe = new Universe(),
         worklist = new Queue<WorkItem>() {
@@ -141,7 +144,9 @@ class Compiler implements DiagnosticListener {
 
   void scanCoreLibrary() {
     String fileName = io.join([legDirectory, 'lib', 'core.dart']);
-    Script script = readScript(fileName);
+    Uri cwd = new Uri(scheme: 'file', path: currentDirectory);
+    Uri uri = cwd.resolve(fileName);
+    Script script = readScript(uri);
     coreLibrary = new LibraryElement(script);
     withCurrentElement(coreLibrary, () => scanner.scan(currentElement));
     // Make our special function a foreign kind.
@@ -297,7 +302,7 @@ class Compiler implements DiagnosticListener {
   reportWarning(Node node, var message) {}
   reportError(Node node, var message) {}
 
-  Script readScript(String filename) {
+  Script readScript(Uri uri) {
     unimplemented('Compiler.readScript');
   }
 

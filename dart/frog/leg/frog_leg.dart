@@ -4,6 +4,7 @@
 
 #library('frog_leg');
 
+#import('../../utils/uri/uri.dart');
 #import('../lang.dart', prefix: 'frog');
 #import('elements/elements.dart');
 #import('io/io.dart', prefix: 'io');
@@ -13,7 +14,9 @@
 bool compile(frog.World world) {
   final throwOnError = frog.options.throwOnErrors;
   final compiler = new WorldCompiler(world, throwOnError);
-  final script = compiler.readScript(frog.options.dartScript);
+  Uri cwd = new Uri(scheme: 'file', path: compiler.currentDirectory);
+  Uri uri = cwd.resolve(frog.options.dartScript);
+  final script = compiler.readScript(uri);
   return compiler.run(script);
 }
 
@@ -79,15 +82,16 @@ class WorldCompiler extends Compiler {
     cancel(message.toString(), node);
   }
 
-  Script readScript(String filename, [ScriptTag node]) {
+  Script readScript(Uri uri, [ScriptTag node]) {
+    if (uri.scheme != 'file') cancel('cannot read $uri', node: node);
     String text = "";
     try {
-      text = frog.world.files.readAll(filename);
+      text = frog.world.files.readAll(uri.path);
     } catch (var exception) {
-      cancel("${filename}: $exception", node: node);
+      cancel("${uri.path}: $exception", node: node);
     }
-    frog.SourceFile sourceFile = new frog.SourceFile(filename, text);
-    return new Script(sourceFile);
+    frog.SourceFile sourceFile = new frog.SourceFile(uri.toString(), text);
+    return new Script(uri, sourceFile);
   }
 
   String get legDirectory() => io.join([frog.options.libDir, '..', 'leg']);

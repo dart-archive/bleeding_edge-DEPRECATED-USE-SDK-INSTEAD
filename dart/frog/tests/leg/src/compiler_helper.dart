@@ -13,7 +13,7 @@
 
 class StringScript extends leg.Script {
   final String code;
-  StringScript(this.code) : super(null);
+  StringScript(this.code) : super(null, null);
   String get text() => code;
   String get name() => "mock script";
 }

@@ -4,7 +4,8 @@
 
 class Script {
   final /* frog.SourceFile */ file;
-  Script(this.file);
+  final Uri uri;
+  Script(this.uri, this.file);
 
   String get text() => file.text;
   String get name() => file.filename;
