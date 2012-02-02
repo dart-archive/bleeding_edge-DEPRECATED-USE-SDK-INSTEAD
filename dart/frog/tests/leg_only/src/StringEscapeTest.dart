@@ -18,6 +18,14 @@ testSingleCharacterEscapes() {
       Expect.equals(values[i], s.charCodeAt(i));
     }
   }
+
+  // An escaped quote isn't part of a multiline end quote.
+  Expect.equals(@'"', """\"""");
+  Expect.equals(@"'", '''\'''');
+  Expect.equals(@'" "', """" \"""");
+  Expect.equals(@"' '", '''' \'''');
+  Expect.equals(@'"" ', """"" """);
+  Expect.equals(@"'' ", ''''' ''');
 }
 
 testXEscapes() {

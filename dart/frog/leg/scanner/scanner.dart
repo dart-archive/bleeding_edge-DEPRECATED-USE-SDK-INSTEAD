@@ -609,13 +609,13 @@ class AbstractScanner<T> implements Scanner {
   }
 
   int tokenizeString(int next, int start, bool raw) {
-    int q = next;
+    int quoteChar = next;
     next = advance();
-    if (q === next) {
+    if (quoteChar === next) {
       next = advance();
-      if (q === next) {
+      if (quoteChar === next) {
         // Multiline string.
-        return tokenizeMultiLineString(q, start, raw);
+        return tokenizeMultiLineString(quoteChar, start, raw);
       } else {
         // Empty string.
         appendByteStringToken(STRING_INFO, utf8String(start, -1));
@@ -623,9 +623,9 @@ class AbstractScanner<T> implements Scanner {
       }
     }
     if (raw) {
-      return tokenizeSingleLineRawString(next, q, start);
+      return tokenizeSingleLineRawString(next, quoteChar, start);
     } else {
-      return tokenizeSingleLineString(next, q, start);
+      return tokenizeSingleLineString(next, quoteChar, start);
     }
   }
 
@@ -635,8 +635,8 @@ class AbstractScanner<T> implements Scanner {
     return ($a <= character && character <= $f);
   }
 
-  int tokenizeSingleLineString(int next, int q1, int start) {
-    while (next !== q1) {
+  int tokenizeSingleLineString(int next, int quoteChar, int start) {
+    while (next !== quoteChar) {
       if (next === $BACKSLASH) {
         next = advance();
       } else if (next === $$) {
@@ -683,10 +683,10 @@ class AbstractScanner<T> implements Scanner {
     return next;
   }
 
-  int tokenizeSingleLineRawString(int next, int q1, int start) {
+  int tokenizeSingleLineRawString(int next, int quoteChar, int start) {
     next = advance();
     while (next != $EOF) {
-      if (next === q1) {
+      if (next === quoteChar) {
         appendByteStringToken(STRING_INFO, utf8String(start, 0));
         return advance();
       } else if (next === $LF || next === $CR) {
@@ -699,24 +699,54 @@ class AbstractScanner<T> implements Scanner {
                                       charOffset);
   }
 
-  int tokenizeMultiLineString(int q, int start, bool raw) {
-    // TODO(ahe): Handle escapes.
-    // TODO(ahe): Handle string interpolation.
+  int tokenizeMultiLineRawString(int quoteChar, int start) {
     int next = advance();
-    while (next != $EOF) {
-      if (next === q) {
+    outer: while (next !== $EOF) {
+      while (next !== quoteChar) {
         next = advance();
-        if (next === q) {
+        if (next === $EOF) break outer;
+      }
+      next = advance();
+      if (next === quoteChar) {
+        next = advance();
+        if (next === quoteChar) {
+          appendByteStringToken(STRING_INFO, utf8String(start, 0));
+          return advance();
+        }
+      }
+    }
+    throw new MalformedInputException("unterminated string literal",
+                                      charOffset);
+  }
+
+  int tokenizeMultiLineString(int quoteChar, int start, bool raw) {
+    if (raw) return tokenizeMultiLineRawString(quoteChar, start);
+    int next = advance();
+    while (next !== $EOF) {
+      if (next === $$) {
+        next = tokenizeStringInterpolation(start);
+        start = byteOffset;
+        continue;
+      }
+      if (next === quoteChar) {
+        next = advance();
+        if (next === quoteChar) {
           next = advance();
-          if (next === q) {
+          if (next === quoteChar) {
             appendByteStringToken(STRING_INFO, utf8String(start, 0));
             return advance();
           }
         }
+        continue;
+      }
+      if (next === $BACKSLASH) {
+        next = advance();
+        if (next === $EOF) break;
       }
       next = advance();
     }
-    return next;
+    throw new MalformedInputException("unterminated string literal",
+                                      charOffset);
   }
 }
 

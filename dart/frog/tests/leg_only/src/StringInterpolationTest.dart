@@ -6,10 +6,6 @@
 // compiler.
 
 
-// TODO(lrn): Add tests using multi-line strings when supported.
-// TODO(lrn): Add more tests when escapes in strings are supported.
-
-
 int ifun() => 37;
 double dfun() => 2.71828;
 bool bfun() => true;
@@ -18,14 +14,20 @@ void nfun() => null;
 
 
 void testEscapes() {
-  // TODO(lrn): Implement and call this function when we handle string
-  // escapes correctly.
+  // Test that escaping the '$' prevents string interpolation.
+  String x = "NOT HERE";
+  Expect.equals(@'a${x}', 'a\${x}');
+  Expect.equals(@'a$x', 'a\$x');
+  Expect.equals(@'a${x}', '''a\${x}''');
+  Expect.equals(@'a$x', '''a\$x''');
+  Expect.equals(@'a${x}', "a\${x}");
+  Expect.equals(@'a$x', "a\$x");
+  Expect.equals(@'a${x}', """a\${x}""");
+  Expect.equals(@'a$x', """a\$x""");
 }
 
 
 void testMultiLine() {
-  // TODO(lrn): Call this function when interpolation in multiline strings
-  // is parsed.
   var a = "string";
   var b = 42;
   var c = 3.1415;
@@ -43,6 +45,20 @@ void testMultiLine() {
 
   Expect.equals('"42""42" ', """"$b""$b" """);
   Expect.equals("'42''42' ", ''''$b''$b' ''');
+
+  Expect.equals('""42""42" ', """""$b""$b" """);
+  Expect.equals("''42''42' ", '''''$b''$b' ''');
+
+  // Newlines at beginning of multiline strings are not included, but only
+  // if they are in the source.
+  Expect.equals("\n", """${''}
+""");
+  Expect.equals("\r", """${''}""");
+  Expect.equals("\r\n", """${''}
+""");
+  Expect.equals("\n", """${'\n'}""");
+  Expect.equals("\r", """${'\r'}""");
+  Expect.equals("\r\n", """${'\r\n'}""");
 }
 
 
@@ -104,6 +120,6 @@ void testSimple() {
 
 void main() {
   testSimple();
-  // testMultiLine();
-  // testEscapes();
+  testMultiLine();
+  testEscapes();
 }
