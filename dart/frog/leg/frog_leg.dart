@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,10 +11,9 @@
 #import('tree/tree.dart');
 
 bool compile(frog.World world) {
-  final file = world.readFile(frog.options.dartScript);
   final throwOnError = frog.options.throwOnErrors;
   final compiler = new WorldCompiler(world, throwOnError);
-  final script = new Script(file);
+  final script = compiler.readScript(frog.options.dartScript);
   return compiler.run(script);
 }
 
@@ -58,7 +57,7 @@ class WorldCompiler extends Compiler {
 
   currentScript() {
     CompilationUnitElement compilationUnit =
-        currentElement.getEnclosingCompilationUnit();
+      currentElement.getCompilationUnit();
     if (compilationUnit === null) return null;
     return compilationUnit.script;
   }
@@ -80,8 +79,13 @@ class WorldCompiler extends Compiler {
     cancel(message.toString(), node);
   }
 
-  Script readScript(String filename) {
-    String text = frog.world.files.readAll(filename);
+  Script readScript(String filename, [ScriptTag node]) {
+    String text = "";
+    try {
+      text = frog.world.files.readAll(filename);
+    } catch (var exception) {
+      cancel("${filename}: $exception", node: node);
+    }
     frog.SourceFile sourceFile = new frog.SourceFile(filename, text);
     return new Script(sourceFile);
   }

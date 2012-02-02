@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -89,7 +89,8 @@ class ResolverTask extends CompilerTask {
   Type resolveType(ClassElement element) {
     return measure(() {
       ClassNode tree = element.parseNode(compiler);
-      ClassResolverVisitor visitor = new ClassResolverVisitor(compiler);
+      ClassResolverVisitor visitor =
+        new ClassResolverVisitor(compiler, element.getLibrary());
       return visitor.visit(tree);
     });
   }
@@ -343,8 +344,8 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
       inInstanceContext = element.isInstanceMember()
           || element.isGenerativeConstructor(),
       this.context  = element.isMember()
-        ? new ClassScope(element.enclosingElement, compiler.universe)
-        : new TopScope(compiler.universe),
+        ? new ClassScope(element.enclosingElement, element.getLibrary())
+        : new TopScope(element.getLibrary()),
       this.currentClass = element.isMember() ? element.enclosingElement : null;
 
   ResolverVisitor.from(ResolverVisitor other)
@@ -878,8 +879,8 @@ class ClassResolverVisitor extends AbstractVisitor/* <Type> */ {
   Compiler compiler;
   Scope context;
 
-  ClassResolverVisitor(Compiler compiler)
-    : this.compiler = compiler, context = new TopScope(compiler.universe);
+  ClassResolverVisitor(Compiler compiler, LibraryElement library)
+    : this.compiler = compiler, context = new TopScope(library);
 
   Type visitClassNode(ClassNode node) {
     ClassElement element = context.lookup(node.name.source);
@@ -1138,8 +1139,8 @@ class BlockScope extends MethodScope {
 }
 
 class ClassScope extends Scope {
-  ClassScope(ClassElement element, Universe universe)
-    : super(new TopScope(universe), element);
+  ClassScope(ClassElement element, LibraryElement library)
+    : super(new TopScope(library), element);
 
   Element lookup(SourceString name) {
     ClassElement cls = element;
@@ -1156,13 +1157,11 @@ class ClassScope extends Scope {
   }
 }
 
-// TODO(ngeoffray): this top scope should have libraryElement as
-// element.
 class TopScope extends Scope {
-  Universe universe;
+  LibraryElement library;
 
-  TopScope(Universe this.universe) : super(null, null);
-  Element lookup(SourceString name) => universe.find(name);
+  TopScope(LibraryElement this.library) : super(null, null);
+  Element lookup(SourceString name) => library.find(name);
 
   Element add(Element element) {
     throw "Cannot add an element in the top scope";

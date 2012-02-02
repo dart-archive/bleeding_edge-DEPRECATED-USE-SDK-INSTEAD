@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -44,9 +44,12 @@ class MockCompiler extends Compiler {
   Node parsedTree;
   WorkItem lastBailoutWork;
 
-  MockCompiler([String corelib = DEFAULT_CORELIB])
-      : super(), warnings = [], errors = [] {
-    parseScript(corelib);
+  MockCompiler([String coreSource = DEFAULT_CORELIB])
+      : warnings = [], errors = [], super() {
+    var script = new Script(new MockFile(coreSource));
+    coreLibrary = new LibraryElement(script);
+    parseScript(coreSource, coreLibrary);
+    mainApp = mockLibrary(this, "");
   }
 
   void reportWarning(Node node, var message) {
@@ -88,18 +91,15 @@ class MockCompiler extends Compiler {
 
   resolverVisitor() {
     Element mockElement =
-        new Element(buildSourceString(''), ElementKind.FUNCTION, null);
+        new Element(buildSourceString(''), ElementKind.FUNCTION, mainApp);
     ResolverVisitor visitor = new FullResolverVisitor(this, mockElement);
     visitor.context = new BlockScope(visitor.context);
     return visitor;
   }
 
-  parseScript(String text) {
-    for (Link<Element> link = parseUnit(text, this);
-         !link.isEmpty();
-         link = link.tail) {
-      universe.define(link.head, this);
-    }
+  parseScript(String text, [LibraryElement library]) {
+    if (library === null) library = mainApp;
+    parseUnit(text, this, library);
   }
 
   void enqueue(WorkItem work) {
@@ -135,4 +135,20 @@ void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
     } while (found.hasNext());
     fail('Too many warnings');
   }
+}
+
+void importLibrary(LibraryElement target, LibraryElement imported,
+                   Compiler compiler) {
+  for (Link<Element> link = imported.topLevelElements; !link.isEmpty();
+       link = link.tail) {
+    compiler.withCurrentElement(link.head, () {
+        target.define(link.head, compiler);
+      });
+  }
+}
+
+LibraryElement mockLibrary(Compiler compiler, String source) {
+  var library = new LibraryElement(new Script(new MockFile(source)));
+  importLibrary(library, compiler.coreLibrary, compiler);
+  return library;
 }

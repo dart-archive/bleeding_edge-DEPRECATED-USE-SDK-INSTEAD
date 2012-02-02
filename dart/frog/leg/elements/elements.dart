@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -31,6 +31,7 @@ class ElementKind {
   static final ElementKind GETTER = const ElementKind('getter');
   static final ElementKind SETTER = const ElementKind('setter');
   static final ElementKind ABSTRACT_FIELD = const ElementKind('abstract_field');
+  static final ElementKind LIBRARY = const ElementKind('library');
 
   toString() => id;
 }
@@ -55,7 +56,9 @@ class Element implements Hashable {
   bool isInstanceMember() => false;
   bool isFactoryConstructor() => modifiers != null && modifiers.isFactory();
   bool isGenerativeConstructor() => kind == ElementKind.GENERATIVE_CONSTRUCTOR;
-  bool isCompilationUnit() => kind == ElementKind.COMPILATION_UNIT;
+  bool isCompilationUnit() {
+    return kind == ElementKind.COMPILATION_UNIT || kind == ElementKind.LIBRARY;
+  }
   bool isVariable() => kind == ElementKind.VARIABLE;
   bool isParameter() => kind == ElementKind.PARAMETER;
 
@@ -74,9 +77,17 @@ class Element implements Hashable {
   // the same hash code. Replace this with a simple id in the element?
   int hashCode() => name.hashCode();
 
-  CompilationUnitElement getEnclosingCompilationUnit() {
+  CompilationUnitElement getCompilationUnit() {
     Element element = this;
     while (element !== null && !element.isCompilationUnit()) {
+      element = element.enclosingElement;
+    }
+    return element;
+  }
+
+  LibraryElement getLibrary() {
+    Element element = this;
+    while (element.kind !== ElementKind.LIBRARY) {
       element = element.enclosingElement;
     }
     return element;
@@ -95,20 +106,74 @@ class ContainerElement extends Element {
 class CompilationUnitElement extends ContainerElement {
   final Script script;
   Link<Element> topLevelElements = const EmptyLink<Element>();
-  Link<ScriptTag> tags = const EmptyLink<ScriptTag>();
 
   CompilationUnitElement(Script script, Element enclosing)
-    : super(new SourceString(script.name),
+    : this.script = script,
+      super(new SourceString(script.name),
             ElementKind.COMPILATION_UNIT,
-            enclosing),
-      this.script = script;
+            enclosing);
+
+  CompilationUnitElement.library(Script script)
+    : this.script = script,
+      super(new SourceString(script.name), ElementKind.LIBRARY, null);
 
   void addMember(Element element, DiagnosticListener listener) {
+    LibraryElement library = enclosingElement;
+    library.addMember(element, listener);
     topLevelElements = topLevelElements.prepend(element);
   }
 
-  void addTag(ScriptTag tag) {
+  void define(Element element, DiagnosticListener listener) {
+    LibraryElement library = enclosingElement;
+    library.define(element, listener);
+  }
+
+  void addTag(ScriptTag tag, DiagnosticListener listener) {
+    listener.cancel("script tags not allowed here", node: tag);
+  }
+}
+
+class LibraryElement extends CompilationUnitElement {
+  // TODO(ahe): Library element should not be a subclass of
+  // CompilationUnitElement.
+
+  Link<CompilationUnitElement> compilationUnits =
+    const EmptyLink<CompilationUnitElement>();
+  Link<ScriptTag> tags = const EmptyLink<ScriptTag>();
+  ScriptTag libraryTag;
+  Map<SourceString, Element> elements;
+
+  LibraryElement(Script script) : elements = {}, super.library(script);
+
+  void addCompilationUnit(CompilationUnitElement element) {
+    compilationUnits = compilationUnits.prepend(element);
+  }
+
+  void addTag(ScriptTag tag, DiagnosticListener listener) {
     tags = tags.prepend(tag);
+  }
+
+  void addMember(Element element, DiagnosticListener listener) {
+    topLevelElements = topLevelElements.prepend(element);
+    define(element, listener);
+  }
+
+  void define(Element element, DiagnosticListener listener) {
+    Element existing = elements.putIfAbsent(element.name, () => element);
+    if (existing !== element) {
+      listener.cancel('duplicate definition', token: element.position());
+      listener.cancel('existing definition', token: existing.position());
+    }
+  }
+
+  Element find(SourceString name) {
+    return elements[name];
+  }
+
+  Element lookupLocalMember(SourceString name) {
+    Element element = find(name);
+    if (element === null) return null;
+    return (this === element.getLibrary()) ? element : null;
   }
 }
 
@@ -240,7 +305,7 @@ Type getType(TypeAnnotation typeAnnotation, compiler, types) {
                     node: typeAnnotation.typeName);
   }
   final SourceString name = identifier.source;
-  Element element = compiler.universe.find(name);
+  Element element = compiler.coreLibrary.find(name);
   if (element !== null && element.kind === ElementKind.CLASS) {
     // TODO(karlklose): substitute type parameters.
     return element.computeType(compiler);

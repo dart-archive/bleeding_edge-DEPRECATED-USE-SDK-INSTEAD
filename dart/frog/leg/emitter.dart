@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -267,7 +267,9 @@ function(child, parent) {
     if (!staticNonFinalFields.isEmpty()) buffer.add('\n');
     for (Element element in staticNonFinalFields) {
       buffer.add('  this.${namer.getName(element)} = ');
-      buffer.add(constants.getJsCodeForVariable(element));
+      compiler.withCurrentElement(element, () {
+          buffer.add(constants.getJsCodeForVariable(element));
+        });
       buffer.add(';\n');
     }
   }
@@ -278,7 +280,9 @@ function(child, parent) {
         constants.getStaticFinalFieldsForEmission();
     for (VariableElement element in staticFinalFields) {
       buffer.add('${namer.isolatePropertyAccess(element)} = ');
-      buffer.add(constants.getJsCodeForVariable(element));
+      compiler.withCurrentElement(element, () {
+          buffer.add(constants.getJsCodeForVariable(element));
+        });
       buffer.add(';\n');
     }
   }
@@ -291,7 +295,7 @@ function(child, parent) {
     // nobody overwrites noSuchMethod.
 
     ClassElement objectClass =
-        compiler.universe.find(const SourceString('Object'));
+        compiler.coreLibrary.find(const SourceString('Object'));
     String className = namer.isolatePropertyAccess(objectClass);
     String prototype = '$className.prototype';
     String noSuchMethodName =
@@ -343,7 +347,7 @@ function(child, parent) {
       emitStaticFunctions(buffer);
       emitStaticFinalFieldInitializations(buffer);
       buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
-      Element main = compiler.universe.find(Compiler.MAIN);
+      Element main = compiler.mainApp.find(Compiler.MAIN);
       buffer.add('${namer.isolateAccess(main)}();\n');
       compiler.assembledCode = buffer.toString();
     });

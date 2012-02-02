@@ -189,8 +189,7 @@ class ClosureTranslator extends AbstractVisitor {
   ClosureData globalizeClosure(FunctionExpression node) {
     FunctionElement element = elements[node];
     SourceString name = const SourceString("Closure");
-    CompilationUnitElement compilationUnit =
-        element.getEnclosingCompilationUnit();
+    CompilationUnitElement compilationUnit = element.getCompilationUnit();
     ClassElement globalizedElement = new ClassElement(name, compilationUnit);
     FunctionElement callElement =
         new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME,

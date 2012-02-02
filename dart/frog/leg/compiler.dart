@@ -43,8 +43,20 @@ class Compiler implements DiagnosticListener {
   Types types;
 
   CompilerTask measuredTask;
-  Element currentElement;
-  Element currentLibrary = null; // TODO(ngeoffray): initialize this.
+  Element _currentElement;
+  LibraryElement coreLibrary;
+  LibraryElement mainApp;
+
+  Element get currentElement() => _currentElement;
+  withCurrentElement(Element element, f()) {
+    Element old = currentElement;
+    _currentElement = element;
+    try {
+      return f();
+    } finally {
+      _currentElement = old;
+    }
+  }
 
   List<CompilerTask> tasks;
   ScannerTask scanner;
@@ -129,14 +141,14 @@ class Compiler implements DiagnosticListener {
 
   void scanCoreLibrary() {
     String fileName = io.join([legDirectory, 'lib', 'core.dart']);
-    currentElement = new CompilationUnitElement(
-        readScript(fileName), currentLibrary);
-    scanner.scan(currentElement);
+    Script script = readScript(fileName);
+    coreLibrary = new LibraryElement(script);
+    withCurrentElement(coreLibrary, () => scanner.scan(currentElement));
     // Make our special function a foreign kind.
-    universe.define(new ForeignElement(const SourceString('JS')), this);
-    universe.define(new ForeignElement(
+    coreLibrary.define(new ForeignElement(const SourceString('JS')), this);
+    coreLibrary.define(new ForeignElement(
         const SourceString('UNINTERCEPTED')), this);
-    universe.define(new ForeignElement(
+    coreLibrary.define(new ForeignElement(
         const SourceString('JS_HAS_EQUALS')), this);
     // TODO(ngeoffray): Lazily add this method.
     universe.invokedNames[NO_SUCH_METHOD] =
@@ -181,16 +193,18 @@ class Compiler implements DiagnosticListener {
 
   void runCompiler(Script script) {
     scanCoreLibrary();
-    currentElement = new CompilationUnitElement(script, currentLibrary);
-    scanner.scan(currentElement);
-    Element element = universe.find(MAIN);
-    if (element === null) cancel('Could not find $MAIN');
+    mainApp = new LibraryElement(script);
+    Element element;
+    withCurrentElement(mainApp, () {
+        scanner.scan(currentElement);
+        element = mainApp.find(MAIN);
+        if (element === null) cancel('Could not find $MAIN');
+      });
     worklist.add(new WorkItem.toCompile(element));
     do {
       while (!worklist.isEmpty()) {
         WorkItem work = worklist.removeLast();
-        currentElement = work.element;
-        (work.run)(this);
+        withCurrentElement(work.element, () => (work.run)(this));
       }
       enqueueInvokedInstanceMethods();
     } while (!worklist.isEmpty());
@@ -265,19 +279,19 @@ class Compiler implements DiagnosticListener {
   }
 
   Type resolveType(ClassElement element) {
-    return resolver.resolveType(element);
+    return withCurrentElement(element, () => resolver.resolveType(element));
   }
 
   FunctionParameters resolveSignature(FunctionElement element) {
-    return resolver.resolveSignature(element);
+    return withCurrentElement(element,
+                              () => resolver.resolveSignature(element));
   }
 
   Object compileVariable(VariableElement element) {
-    Element savedElement = currentElement;
-    currentElement = element;
-    compile(new WorkItem.toCompile(element));
-    currentElement = savedElement;
-    return compileTimeConstantHandler.compileVariable(element);
+    return withCurrentElement(element, () {
+        compile(new WorkItem.toCompile(element));
+        return compileTimeConstantHandler.compileVariable(element);
+      });
   }
 
   reportWarning(Node node, var message) {}

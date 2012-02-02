@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -148,15 +148,17 @@ def main():
                         'isolate', 'peg', 'frog', 'css', 'dartdoc']
       RunCommand(*cmd, verbose=True)
 
-    # Run leg on "built-in" tests.
-    cmd = test_cmd + ['--component=leg']
+    # Run leg unit tests.
+    cmd = test_cmd + ['--component=vm', 'leg']
     RunCommand(*cmd, verbose=True)
 
     cmd = test_cmd + ['--component=leg', 'leg_only']
     RunCommand(*cmd, verbose=True)
 
-    cmd = test_cmd + ['--component=vm', 'leg']
+    # Run leg on "built-in" tests.
+    cmd = test_cmd + ['--component=leg']
     RunCommand(*cmd, verbose=True)
+
 
 if __name__ == '__main__':
   try:

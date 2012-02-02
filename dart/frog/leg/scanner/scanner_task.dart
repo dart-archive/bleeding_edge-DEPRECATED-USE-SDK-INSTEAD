@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,16 +9,23 @@ class ScannerTask extends CompilerTask {
   void scan(CompilationUnitElement compilationUnit) {
     measure(() {
       scanElements(compilationUnit);
-      for (Element element in compilationUnit.topLevelElements) {
-        compiler.universe.define(element, compiler);
-      }
-      for (ScriptTag tag in compilationUnit.tags) {
-        compiler.reportWarning(tag, "library tags are not implemented");
+      if (compilationUnit.kind === ElementKind.LIBRARY) {
+        processScriptTags(compilationUnit);
       }
     });
   }
 
+  void processScriptTags(LibraryElement library) {
+    for (ScriptTag tag in library.tags) {
+      compiler.reportWarning(tag, "library tags are not implemented");
+    }
+    if (library !== compiler.coreLibrary) {
+      importLibrary(library, compiler.coreLibrary, null);
+    }
+  }
+
   void scanElements(CompilationUnitElement compilationUnit) {
+    compiler.log("scanning $compilationUnit");
     Script script = compilationUnit.script;
     Token tokens;
     try {
@@ -37,5 +44,21 @@ class ScannerTask extends CompilerTask {
     ElementListener listener = new ElementListener(compiler, compilationUnit);
     PartialParser parser = new PartialParser(listener);
     parser.parseUnit(tokens);
+  }
+
+  void importLibrary(LibraryElement library, LibraryElement imported,
+                     LiteralString prefix) {
+    if (prefix !== null) {
+      withCurrentElement(library, () {
+          compiler.cancel("prefixes are not implemented", node: prefix);
+        });
+    } else {
+      for (Link<Element> link = imported.topLevelElements; !link.isEmpty();
+           link = link.tail) {
+        compiler.withCurrentElement(link.head, () {
+            library.define(link.head, compiler);
+          });
+      }
+    }
   }
 }

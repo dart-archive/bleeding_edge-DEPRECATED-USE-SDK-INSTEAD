@@ -21,7 +21,7 @@ class StringScript extends leg.Script {
 String compile(String code, [String entry = 'main']) {
   MockCompiler compiler = new MockCompiler();
   compiler.parseScript(code);
-  lego.Element element = compiler.universe.find(buildSourceString(entry));
+  lego.Element element = compiler.mainApp.find(buildSourceString(entry));
   if (element === null) return null;
   String generated = compiler.compile(new leg.WorkItem.toCompile(element));
   return generated;
@@ -52,7 +52,7 @@ ssa.HGraph getGraph(MockCompiler compiler, leg.WorkItem work) {
 HGraphPair getGraphs(String code, String entry) {
   MockCompiler compiler = new MockCompiler();
   compiler.parseScript(code);
-  lego.Element element = compiler.universe.find(buildSourceString(entry));
+  lego.Element element = compiler.mainApp.find(buildSourceString(entry));
   if (element === null) return null;
   leg.WorkItem work = new leg.WorkItem.toCompile(element);
   ssa.HGraph optimized = getGraph(compiler, work);
