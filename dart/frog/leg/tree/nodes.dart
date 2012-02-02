@@ -680,7 +680,7 @@ class StringQuoting {
 
   int get leftQuoteLength() => (raw ? 1 : 0) + leftQuoteCharCount;
   int get rightQuoteLength() => (leftQuoteCharCount > 2) ? 3 : 1;
-  static StringQuoting get(int quote, bool raw, int quoteLength) {
+  static StringQuoting getQuoting(int quote, bool raw, int quoteLength) {
     int index = quoteLength - 1;
     if (quoteLength > 2) index -= 1;
     return mapping[(raw ? 1 : 0) + index * 2 + (quote === $SQ ? 8 : 0)];

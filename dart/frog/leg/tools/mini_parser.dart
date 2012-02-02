@@ -14,6 +14,7 @@
 #import('../tree/tree.dart');
 #import('../util/characters.dart');
 
+#source('../diagnostic_listener.dart');
 #source('../../source.dart');
 #source('../scanner/byte_array_scanner.dart');
 #source('../scanner/byte_strings.dart');
@@ -259,13 +260,15 @@ class MyNodeListener extends NodeListener {
   }
 }
 
-class MyCanceller implements Canceler {
+class MyCanceller implements DiagnosticListener {
   final SourceFile file;
   final MyOptions options;
 
   MyCanceller(this.file, this.options);
 
-  void cancel([String reason, node, token, instruction]) {
+  void log(String message) {}
+
+  void cancel([String reason, node, token, instruction, element]) {
     Token beginToken;
     Token endToken;
     if (token !== null) {

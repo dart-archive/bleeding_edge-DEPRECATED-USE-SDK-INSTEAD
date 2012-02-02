@@ -75,7 +75,7 @@ class StringValidator  {
         }
       }
     }
-    return StringQuoting.get(quoteChar, raw, quoteLength);
+    return StringQuoting.getQuoting(quoteChar, raw, quoteLength);
   }
 
   void stringParseError(String message, Token token, int offset) {

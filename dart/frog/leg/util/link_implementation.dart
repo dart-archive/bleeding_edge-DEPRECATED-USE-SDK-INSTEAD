@@ -60,6 +60,11 @@ class LinkTail<T> implements EmptyLink<T> {
 
   Link<T> reverse() => this;
 
+  Link<T> reversePrependAll(Link<T> from) {
+    if (from.isEmpty()) return this;
+    return from.head.reversePrependAll(from.tail);
+  }
+
   List toList() => const [];
 
   bool isEmpty() => true;
