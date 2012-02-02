@@ -16,19 +16,15 @@ package com.google.dart.tools.deploy;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.ui.launch.DartRunAction;
 import com.google.dart.tools.debug.ui.launch.ManageLaunchesAction;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.DeployOptimizedAction;
 import com.google.dart.tools.ui.actions.OpenNewApplicationWizardAction;
-import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
-import com.google.dart.tools.ui.internal.handlers.OpenFileHandler;
 import com.google.dart.tools.ui.internal.projects.OpenNewProjectWizardAction;
 
-import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
@@ -820,27 +816,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     } else {
 
-      menu.add(new OpenNewApplicationWizardAction());
-      menu.add(new OpenNewFileWizardAction(getWindow()));
+      /* New File and New Application are defined in plugin.xml */
       menu.add(new GroupMarker(IWorkbenchActionConstants.NEW_EXT));
       menu.add(new Separator());
-
-      Action openFileAction = new Action() {
-        OpenFileHandler handler = new OpenFileHandler();
-
-        @Override
-        public void run() {
-          try {
-            handler.execute(getWindow().getShell());
-          } catch (ExecutionException e) {
-            DartToolsPlugin.log(e);
-          }
-        }
-      };
-      openFileAction.setText("Open...");
-      openFileAction.setDescription("Open a file and the application or library that contains it");
-
-      menu.add(openFileAction);
+      /* Open is defined in plugin.xml */
       menu.add(new GroupMarker(IWorkbenchActionConstants.OPEN_EXT));
     }
 

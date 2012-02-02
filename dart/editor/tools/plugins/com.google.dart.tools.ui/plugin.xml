@@ -1643,7 +1643,6 @@
             id="com.google.dart.tools.ui.edit.text.dart.search.references.in.workspace">
       </command>
 <!-- file -->
-      <!-- TODO(pquitslund): remove entirely when new files view lands -->
       <command
             categoryId="org.eclipse.ui.category.file"
             defaultHandler="com.google.dart.tools.ui.internal.handlers.OpenFileHandler"
@@ -1651,7 +1650,7 @@
             id="com.google.dart.tools.ui.file.open"
             name="%Command.openFile.name">
       </command>
-      <!-- command
+      <command
             categoryId="org.eclipse.ui.category.file"
             description="%Command.newFile.description"
             id="com.google.dart.tools.ui.file.new"
@@ -1663,7 +1662,7 @@
             description="%Command.newApplication.description"
             id="com.google.dart.tools.ui.application.new"
             name="%Command.newApplication.name">
-      </command-->
+      </command>
       
 <!-- edit -->
       <command
