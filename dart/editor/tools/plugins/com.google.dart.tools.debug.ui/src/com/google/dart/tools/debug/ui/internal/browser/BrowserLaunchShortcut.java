@@ -13,13 +13,8 @@
  */
 package com.google.dart.tools.debug.ui.internal.browser;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.builder.DartBuilder;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -36,11 +31,6 @@ import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.osgi.util.NLS;
-import org.eclipse.swt.widgets.Display;
-
-import java.io.File;
 
 /**
  * This class interprets the current selection or the currently active editor and opens html page in
@@ -95,37 +85,6 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
 
     if (resource == null) {
       return;
-    }
-
-    // before proceeding with launch, check if js has been generated
-    DartElement element = DartCore.create(resource);
-
-    if (element == null) {
-      DartDebugCorePlugin.logError(Messages.BrowserLaunchShortcut_NotInLibraryErrorMessage);
-    } else if (!(element instanceof HTMLFile)) {
-      DartDebugCorePlugin.logError(Messages.BrowserLaunchShortcut_NotHtmlFileErrorMessage);
-    } else {
-
-      HTMLFile htmlFile = (HTMLFile) element;
-
-      try {
-        if (htmlFile.getReferencedLibraries().length > 0) {
-          DartLibrary library = htmlFile.getReferencedLibraries()[0];
-          File jsOutFile = DartBuilder.getJsAppArtifactFile(library.getCorrespondingResource().getLocation());
-
-          if (!jsOutFile.exists()) {
-            String errMsg = NLS.bind(
-                "The Javascript output was not generated for the {0} library.\nCannot find {1}.",
-                library.getDisplayName(), jsOutFile.getPath());
-            DartDebugCorePlugin.logError(errMsg);
-            MessageDialog.openError(Display.getDefault().getActiveShell(),
-                NLS.bind("Unable to Launch File {0}", resource.getName()), errMsg);
-            return;
-          }
-        }
-      } catch (DartModelException e) {
-        DartDebugCorePlugin.logError(e);
-      }
     }
 
     // Launch an existing configuration if one exists
