@@ -552,7 +552,7 @@ def _DeployToStaging(build_os, to_bucket, zip_files, svnid, gsu):
       return status
     _SetAcl(svnid_object, gsu)
 
-    return status
+  return status
 
 
 def _WriteTagFile(build_os, to_bucket, svnid, gsu):
