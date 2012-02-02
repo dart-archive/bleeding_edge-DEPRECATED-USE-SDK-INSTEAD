@@ -15,7 +15,9 @@ class Universe {
   final Set<SourceString> invokedGetters;
   final Set<SourceString> invokedSetters;
 
-  Universe() : elements = {}, generatedCode = {}, generatedBailoutCode = {},
+  Universe() : elements = new Map<SourceString, Element>(),
+               generatedCode = new Map<Element, String>(),
+               generatedBailoutCode = new Map<Element, String>(),
                instantiatedClasses = new Set<ClassElement>(),
                invokedNames = new Map<SourceString, Set<Invocation>>(),
                invokedGetters = new Set<SourceString>(),

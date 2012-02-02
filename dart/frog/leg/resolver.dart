@@ -1024,11 +1024,11 @@ class SignatureResolverVisitor extends ResolverVisitor/*<Element>*/ {
     Link<Node> definitions = node.definitions.nodes;
     if (definitions.isEmpty()) {
       cancel(node, 'internal error: no parameter definition');
-      return;
+      return null;
     }
     if (!definitions.tail.isEmpty()) {
       cancel(definitions.tail.head, 'internal error: extra definition');
-      return;
+      return null;
     }
     Node definition = definitions.head;
     if (definition is NodeList) {
@@ -1118,7 +1118,7 @@ class MethodScope extends Scope {
   final Map<SourceString, Element> elements;
 
   MethodScope(Scope parent, Element element)
-    : super(parent, element), this.elements = {};
+    : super(parent, element), this.elements = new Map<SourceString, Element>();
 
   Element lookup(SourceString name) {
     Element element = elements[name];
