@@ -686,6 +686,7 @@ class SsaBuilder implements Visitor {
   void visitUnary(Send node, Operator op) {
     assert(node.argumentsNode is Prefix);
     visit(node.receiver);
+    if (op.source.stringValue == '+') return;
     HInstruction operand = pop();
     HInstruction target =
         new HStatic(interceptors.getPrefixOperatorInterceptor(op));

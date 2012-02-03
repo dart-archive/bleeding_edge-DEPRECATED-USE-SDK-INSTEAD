@@ -79,11 +79,13 @@ class MessageKind {
   static final NO_CONSTRUCTOR = const MessageKind(
       '#{1} is a #{2}, not a constructor');
   static final FIELD_PARAMETER_NOT_ALLOWED = const MessageKind(
-      'A field parameter is only allowed in generative constructors');
+      'a field parameter is only allowed in generative constructors');
   static final INVALID_PARAMETER = const MessageKind(
-      "Cannot resolve parameter");
+      "cannot resolve parameter");
   static final NOT_INSTANCE_FIELD = const MessageKind(
       '#{1} is not an instance field');
+  static final EXPECTED_LITERAL_NUMBER = const MessageKind(
+      'expected a literal number after +');
 
   static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       '#{1} cannot be used as compile-time constant');

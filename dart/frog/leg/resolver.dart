@@ -623,11 +623,17 @@ class FullResolverVisitor extends ResolverVisitor {
   visitSend(Send node) {
     Element target = resolveSend(node);
     if (node.isOperator) {
-      if (node.selector.asIdentifier().source.stringValue === 'is') {
+      Operator op = node.selector.asOperator();
+      if (op.source.stringValue === 'is') {
         resolveTypeTest(node.arguments.head);
         assert(node.arguments.tail.isEmpty());
         mapping.setSelector(node, Selector.BINARY_OPERATOR);
       } else if (node.arguments.isEmpty()) {
+        if (node.isPrefix && op.source.stringValue === '+'
+            && node.receiver.asLiteralInt() === null
+            && node.receiver.asLiteralDouble() === null) {
+          error(node, MessageKind.EXPECTED_LITERAL_NUMBER);
+        }
         mapping.setSelector(node, Selector.UNARY_OPERATOR);
       } else {
         visit(node.argumentsNode);

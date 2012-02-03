@@ -241,16 +241,14 @@ class Send extends Expression {
       isOperator && selector.asOperator().source.stringValue === '[]';
 
   Token getBeginToken() {
+    if (isPrefix && !isIndex) return selector.getBeginToken();
     return firstBeginToken(receiver, selector);
   }
 
   Token getEndToken() {
-    Token token;
-    if (argumentsNode !== null) token = argumentsNode.getEndToken();
-    if (token !== null) return token;
-    if (selector !== null) {
-      return selector.getEndToken();
-    }
+    if (isPrefix) return firstBeginToken(receiver, selector);
+    if (argumentsNode !== null) return argumentsNode.getEndToken();
+    if (selector !== null) return selector.getEndToken();
     return receiver.getBeginToken();
   }
 
