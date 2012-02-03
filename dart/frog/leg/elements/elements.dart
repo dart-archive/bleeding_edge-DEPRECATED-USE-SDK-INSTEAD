@@ -609,6 +609,12 @@ class Elements {
                || element.kind === ElementKind.SETTER);
   }
 
+  static bool isStaticOrTopLevelFunction(Element element) {
+    return (element != null)
+            && !element.isInstanceMember()
+            && (element.kind === ElementKind.FUNCTION);    
+  }
+
   static bool isInstanceMethod(Element element) {
     return (element != null)
            && element.isInstanceMember()

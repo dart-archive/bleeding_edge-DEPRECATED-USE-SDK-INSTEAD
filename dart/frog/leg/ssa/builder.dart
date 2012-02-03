@@ -158,18 +158,150 @@ class SsaBuilderTask extends CompilerTask {
   }
 }
 
+/**
+ * Keeps track of locals (including parameters and phis) when building. The
+ * 'this' reference is treated as parameter and hence handled by this class,
+ * too.
+ */
+class LocalsHandler {
+  // The values of locals that can be directly accessed (without redirections
+  // to boxes or closure-fields). 
+  Map<Element, HInstruction> directLocals;
+  HInstruction thisDefinition;
+  Map<Element, Element> redirectionMapping;
+  Compiler compiler;
+
+  // TODO(floitsch): remove the compiler.
+  LocalsHandler(this.compiler)
+      : directLocals = new Map<Element, HInstruction>(),
+        redirectionMapping = new Map<Element, Element>();
+
+  /**
+   * The local must be directly accessible. That is, it must not be boxed or
+   * stored in a closure-field.
+   */
+  void updateDirectLocal(Element element, HInstruction value) {
+    assert(element !== null);
+    assert(isAccessedDirectly(element));
+    assert(value !== null);
+    directLocals[element] = value;
+  }
+
+  /**
+   * The local must be directly accessible. That is, it must not be boxed or
+   * stored in a closure-field.
+   *
+   * The [element] must have been updated previously.
+   */
+  HInstruction readDirectLocal(Element element) {
+    assert(element !== null);
+    assert(isAccessedDirectly(element));
+    HInstruction result = directLocals[element];
+    // TODO(floitsch): remove this if and the compiler instance field.
+    if (result == null) {
+      compiler.internalError("Could not find value",
+                             node: element.parseNode(compiler));
+    }
+    assert(result !== null);
+    return result;
+  }
+
+  bool hasValueForDirectLocal(Element element) {
+    assert(element !== null);
+    assert(isAccessedDirectly(element));
+    return directLocals[element] !== null;
+  }
+
+  /**
+   * Returns true if the local can be accessed directly. Boxed variables or
+   * captured variables that are stored in the closure-field return [false].
+   */
+  bool isAccessedDirectly(Element element) {
+    assert(element !== null);
+    return redirectionMapping[element] === null;
+  }
+
+  bool isStoredInClosureField(Element element) {
+    assert(element !== null);
+    if (isAccessedDirectly(element)) return false;
+    Element redirectElement = getRedirectElement(element);
+    if (redirectElement.enclosingElement.kind == ElementKind.CLASS) {
+      assert(redirectElement is ClosureFieldElement);
+      return true;
+    }
+    return false;
+  }
+
+  bool isBoxed(Element element) {
+    if (isAccessedDirectly(element)) return false;
+    if (isStoredInClosureField(element)) return false;
+    // TODO(floitsch): add some asserts that we really have a boxed element.
+    return true;
+  }
+
+  /**
+   * Returns the element where non-direct locals can lookup and store their
+   * values. The return element can either be a closure-field element or a
+   * box-field.
+   */
+  Element getRedirectElement(Element element) {
+    assert(!isAccessedDirectly(element));
+    Element result = redirectionMapping[element];
+    return result;
+  }
+
+  /**
+   * Redirects accesses from element [from] to element [to]. The [to] element
+   * must be a boxed variable or a variable that is stored in a closure-field.
+   */
+  void redirect(Element from, Element to) {
+    assert(redirectionMapping[from] === null);
+    redirectionMapping[from] = to;
+    assert(isStoredInClosureField(from) || isBoxed(from));
+  }
+
+  /**
+   * The returned map will only contain locals that can be accessed directly.
+   */
+  Map<Element, HInstruction> getDefinitionsCopy() {
+    return new Map<Element, HInstruction>.from(directLocals);
+  }
+
+  /**
+   * Returns the definitions map backed by the internal values.
+   */
+  Map<Element, HInstruction> getDefinitionsNoCopy() {
+    return directLocals;
+  }
+
+  /**
+   * Sets the definitions mapping which must only contain definitions for
+   * directly accessible locals.
+   *
+   * Returns the old definitions map.
+   */
+  Map<Element, HInstruction> setDefinitions(
+      Map<Element, HInstruction> newDefinitions) {
+    assert(newDefinitions.getKeys().every((Element element) {
+      return isAccessedDirectly(element);
+    }));
+    Map oldDefinitions = directLocals;
+    directLocals = newDefinitions;
+    return oldDefinitions;
+  }
+}
+
 class SsaBuilder implements Visitor {
   final Compiler compiler;
   final TreeElements elements;
   final Interceptors interceptors;
   bool methodInterceptionEnabled;
   HGraph graph;
+  ClosureData closureData;
+  LocalsHandler localsHandler;
 
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
-
-  Map<Element, HInstruction> definitions;
-  HInstruction thisDefinition;
 
   // The current block to add instructions to. Might be null, if we are
   // visiting dead code.
@@ -178,7 +310,10 @@ class SsaBuilder implements Visitor {
   SsaBuilder(Compiler compiler, this.elements)
     : this.compiler = compiler,
       interceptors = compiler.builder.interceptors,
-      methodInterceptionEnabled = true;
+      methodInterceptionEnabled = true,
+      graph = new HGraph(),
+      stack = new List<HInstruction>(),
+      localsHandler = new LocalsHandler(compiler);
 
   void disableMethodInterception() {
     assert(methodInterceptionEnabled);
@@ -190,28 +325,113 @@ class SsaBuilder implements Visitor {
     methodInterceptionEnabled = true;
   }
 
-  void translateClosures(FunctionElement functionElement) {
-    Node node = functionElement.parseNode(compiler);
-    new ClosureTranslator(compiler, elements).translate(node);
+  void translateClosures(FunctionElement functionElement,
+                         FunctionExpression node) {
+    closureData = new ClosureTranslator(compiler, elements).translate(node);
   }
 
   HGraph buildMethod(FunctionElement functionElement) {
-    translateClosures(functionElement);
-    openFunction(functionElement);
     FunctionExpression function = functionElement.parseNode(compiler);
+    translateClosures(functionElement, function);
+    openFunction(functionElement, function);
     function.body.accept(this);
     return closeFunction();
+  }
+
+  /**
+   * Returns an [HInstruction] for the given element. If the element is
+   * boxed or stored in a closure then the method generates code to retrieve
+   * the value.
+   */
+  HInstruction readLocal(Element element) {
+    if (localsHandler.isAccessedDirectly(element)) {
+      return localsHandler.readDirectLocal(element);
+    } else if (localsHandler.isStoredInClosureField(element)) {
+      Element redirect = localsHandler.getRedirectElement(element);
+      // We must not use the [LocalsHandler.thisDefinition] since that could
+      // point to a captured this which would be stored in a closure-field
+      // itself.
+      HInstruction receiver = new HThis();
+      add(receiver);
+      Selector selector = Selector.GETTER;
+      HInstruction fieldGet =
+          new HInvokeDynamicGetter(selector, redirect, redirect.name, receiver);
+      add(fieldGet);
+      return fieldGet;
+    } else {
+      assert(localsHandler.isBoxed(element));
+      Element redirect = localsHandler.getRedirectElement(element);
+      // In the function that declares the captured variable the box is
+      // accessed as direct local. Inside the nested closure the box is
+      // accessed through a closure-field.
+      // Calling [readLocal] makes sure we generate the correct code to get
+      // the box.
+      assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
+      HInstruction box = readLocal(redirect.enclosingElement);
+      // TODO(floitsch): clean this hack. We access the fields inside the box
+      // through HForeign instead of using HInvokeDynamicGetters. This means
+      // that at the moment all our optimizations are thrown off.
+      String name = redirect.name.toString();
+      HInstruction lookup = new HForeign(new SourceString("\$0.\$$name"),
+                                         const SourceString("Object"),
+                                         <HInstruction>[box]);
+      add(lookup);
+      return lookup;
+    }
+  }
+
+  /**
+   * Sets the [element] to [value]. If the element is boxed or stored in a
+   * closure then the method generates code to set the value.
+   */
+  void updateLocal(Element element, HInstruction value) {
+    // TODO(floitsch): replace the following if with an assert.
+    if (element is !VariableElement) {
+      compiler.internalError("expected a variable",
+                             node: element.parseNode(compiler));
+    }
+
+    if (localsHandler.isAccessedDirectly(element)) {
+      localsHandler.updateDirectLocal(element, value);
+    } else if (localsHandler.isStoredInClosureField(element)) {
+      Element redirect = localsHandler.getRedirectElement(element);
+      // We must not use the [LocalsHandler.thisDefinition] since that could
+      // point to a captured this which would be stored in a closure-field
+      // itself.
+      HInstruction receiver = new HThis();
+      add(receiver);
+      Selector selector = Selector.SETTER;
+      SourceString name = redirect.name;
+      add(new HInvokeDynamicSetter(selector, redirect, name, receiver, value));
+    } else {
+      assert(localsHandler.isBoxed(element));
+      Element redirect = localsHandler.getRedirectElement(element);
+      // The box itself could be captured, or be local. A local variable that
+      // is captured will be boxed, but the box itself will be a local.
+      // Inside the closure the box is stored in a closure-field and cannot
+      // be accessed directly.
+      assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
+      HInstruction box = readLocal(redirect.enclosingElement);
+      // TODO(floitsch): clean this hack. We access the fields inside the box
+      // through HForeign instead of using HInvokeDynamicGetters. This means
+      // that at the moment all our optimizations are thrown off.
+      String name = redirect.name.toString();
+      add(new HForeign(new SourceString("\$0.\$$name=\$1"),
+                       const SourceString("Object"),
+                        <HInstruction>[box, value]));
+    }
   }
 
   HGraph buildFactory(ClassElement classElement,
                       ConstructorBodyElement bodyElement,
                       FunctionElement functionElement) {
-    // The initializer list could contain closures.
-    translateClosures(functionElement);
-    openFunction(functionElement);
-
     FunctionExpression function = functionElement.parseNode(compiler);
+    // The initializer list could contain closures.
+    translateClosures(functionElement, function);
+    openFunction(functionElement, function);
+
     NodeList initializers = function.initializers;
+
     // Run through the initializers.
     if (initializers !== null) {
       for (Link<Node> link = initializers.nodes;
@@ -225,8 +445,10 @@ class SsaBuilder implements Visitor {
           Link<Node> arguments = init.arguments;
           assert(!arguments.isEmpty() && arguments.tail.isEmpty());
           visit(arguments.head);
-          HInstruction value = pop();
-          updateDefinition(init, value);
+          // We treat the init field-elements like locals. In the context of
+          // the factory this is correct, and simplifies dealing with
+          // parameter-initializers (like A(this.x)).
+          localsHandler.updateDirectLocal(elements[init], pop());
         }
       }
     }
@@ -234,18 +456,20 @@ class SsaBuilder implements Visitor {
     // Call the JavaScript constructor with the fields as argument.
     // TODO(floitsch): allow super calls.
     // TODO(floitsch): allow inits at field declarations.
-    List<HInstruction> fieldValues = <HInstruction>[];
+    List<HInstruction> constructorArguments = <HInstruction>[];
     for (Element member in classElement.members) {
       if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
-        HInstruction value = definitions[member];
-        if (value === null) {
+        HInstruction value;
+        if (localsHandler.hasValueForDirectLocal(member)) {
+          value = readLocal(member);
+        } else {
           value = new HLiteral(null, HType.UNKNOWN);
           add(value);
         }
-        fieldValues.add(value);
+        constructorArguments.add(value);
       }
     }
-    HForeignNew newObject = new HForeignNew(classElement, fieldValues);
+    HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
     add(newObject);
 
     // Call the method body.
@@ -255,7 +479,7 @@ class SsaBuilder implements Visitor {
     bodyCallInputs.add(newObject);
     FunctionParameters parameters = functionElement.computeParameters(compiler);
     parameters.forEachParameter((Element parameterElement) {
-      HInstruction currentValue = definitions[parameterElement];
+      HInstruction currentValue = readLocal(parameterElement);
       bodyCallInputs.add(currentValue);
     });
     add(new HInvokeDynamicMethod(null, methodName, bodyCallInputs));
@@ -263,19 +487,54 @@ class SsaBuilder implements Visitor {
     return closeFunction();
   }
 
-  void openFunction(FunctionElement functionElement) {
-    stack = new List<HInstruction>();
-    definitions = new Map<Element, HInstruction>();
-
-    graph = new HGraph();
+  void openFunction(FunctionElement functionElement,
+                    FunctionExpression node) {
     HBasicBlock block = graph.addNewBlock();
 
     open(graph.entry);
     if (functionElement.isInstanceMember()) {
-      thisDefinition = new HThis();
-      add(thisDefinition);
+      localsHandler.thisDefinition = new HThis();
+      add(localsHandler.thisDefinition);
     }
     handleParameterValues(functionElement);
+
+    // See if any variable in the top-scope of the function is captured. If yes
+    // we need to create a box-object.
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData !== null) {
+      // The top-scope has captured variables. Create a box.
+      // TODO(floitsch): Clean up this hack. Should we create a box-object by
+      // just creating an empty object literal?
+      HInstruction box = new HForeign(const SourceString("{}"),
+                                      const SourceString('Object'),
+                                      <HInstruction>[]);
+      add(box);
+      // Add the box to the known locals.
+      localsHandler.updateDirectLocal(scopeData.boxElement, box);
+      // Make sure that accesses to the boxed locals go into the box. We also
+      // need to make sure that parameters are copied into the box if necessary.
+      scopeData.capturedVariableMapping.forEach((Element from, Element to) {
+        if (from.kind == ElementKind.PARAMETER) {
+          // Store the captured parameter in the box. Get the current value
+          // before we put the redirection in place.
+          HInstruction instruction = localsHandler.readDirectLocal(from);
+          localsHandler.redirect(from, to);
+          // Now that the redirection is set up, the update to the local will
+          // write the parameter value into the box.
+          updateLocal(from, instruction);
+        } else {
+          localsHandler.redirect(from, to);
+        }
+      });
+    }
+
+    // If the freeVariableMapping is not empty, then this function was a
+    // nested closure that captures variables. Redirect the captured
+    // variables to fields in the closure.
+    closureData.freeVariableMapping.forEach((Element from, Element to) {
+      localsHandler.redirect(from, to);
+    });
+
     close(new HGoto()).addSuccessor(block);
 
     open(block);
@@ -339,11 +598,15 @@ class SsaBuilder implements Visitor {
     if (node !== null) node.accept(this);
   }
 
-  handleParameterValues(FunctionElement function) {
+  void handleParameterValues(FunctionElement function) {
     function.computeParameters(compiler).forEachParameter((Element element) {
       HParameterValue parameter = new HParameterValue(element);
       add(parameter);
-      definitions[element] = parameter;
+      // Note that for constructors [element] could be a field-element which we
+      // treat as if it was a local.
+      // We can directly access the localsHandler since parameters cannot be
+      // redirected at this time.
+      localsHandler.updateDirectLocal(element, parameter);
     });
   }
 
@@ -377,11 +640,17 @@ class SsaBuilder implements Visitor {
    * replace with the newly created block.
    * Returns a copy of the definitions at the moment of entering the loop.
    */
-  Map<Element, HInstruction> startLoop() {
+  Map<Element, HInstruction> startLoop(Node node) {
     assert(!isAborted());
     HBasicBlock previousBlock = close(new HGoto());
 
-    Map definitionsCopy = new Map<Element, HInstruction>.from(definitions);
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData !== null) {
+      compiler.unimplemented("SsaBuilder.startLoop with captured variables",
+                             node: node);
+    }
+
+    Map definitionsCopy = localsHandler.getDefinitionsCopy();
     HBasicBlock loopBlock = graph.addNewLoopHeaderBlock();
     previousBlock.addSuccessor(loopBlock);
     open(loopBlock);
@@ -390,7 +659,7 @@ class SsaBuilder implements Visitor {
     definitionsCopy.forEach((Element element, HInstruction instruction) {
       HPhi phi = new HPhi.singleInput(element, instruction);
       loopBlock.addPhi(phi);
-      definitions[element] = phi;
+      updateLocal(element, phi);
     });
 
     return definitionsCopy;
@@ -410,7 +679,7 @@ class SsaBuilder implements Visitor {
                Map<Element, HInstruction> exitDefinitions) {
     loopEntry.forEachPhi((HPhi phi) {
       Element element = phi.element;
-      HInstruction postLoopDefinition = definitions[element];
+      HInstruction postLoopDefinition = localsHandler.readDirectLocal(element);
       phi.addInput(postLoopDefinition);
       if (doUpdateDefinitions &&
           phi.inputs[0] !== postLoopDefinition &&
@@ -423,11 +692,11 @@ class SsaBuilder implements Visitor {
     assert(branchBlock.successors.length == 1);
     branchBlock.addSuccessor(loopExitBlock);
     open(loopExitBlock);
-    definitions = exitDefinitions;
+    localsHandler.setDefinitions(exitDefinitions);
   }
 
   // For while loops, initializer and update are null.
-  visitLoop(Node initializer, Expression condition, NodeList updates,
+  visitLoop(Node loop, Node initializer, Expression condition, NodeList updates,
             Node body) {
     assert(condition !== null && body !== null);
     // The initializer.
@@ -438,14 +707,14 @@ class SsaBuilder implements Visitor {
     }
     assert(!isAborted());
 
-    Map initializerDefinitions = startLoop();
+    Map initializerDefinitions = startLoop(loop);
     HBasicBlock conditionBlock = current;
 
     // The condition.
     visit(condition);
     HBasicBlock conditionExitBlock = close(new HLoopBranch(popBoolified()));
 
-    Map conditionDefinitions = new Map<Element, HInstruction>.from(definitions);
+    Map conditionDefinitions = localsHandler.getDefinitionsCopy();
 
     // The body.
     HBasicBlock bodyBlock = addNewBlock();
@@ -486,15 +755,15 @@ class SsaBuilder implements Visitor {
       compiler.unimplemented("SsaBuilder for loop without condition");
     }
     assert(node.body !== null);
-    visitLoop(node.initializer, node.condition, node.update, node.body);
+    visitLoop(node, node.initializer, node.condition, node.update, node.body);
   }
 
   visitWhile(While node) {
-    visitLoop(null, node.condition, null, node.body);
+    visitLoop(node, null, node.condition, null, node.body);
   }
 
   visitDoWhile(DoWhile node) {
-    Map entryDefinitions = startLoop();
+    Map entryDefinitions = startLoop(node);
     HBasicBlock loopEntryBlock = current;
 
     visit(node.body);
@@ -519,34 +788,43 @@ class SsaBuilder implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    ClosureData closureData = closureDataCache[node];
-    assert(closureData !== null);
-    assert(closureData.globalizedClosureElement !== null);
+    ClosureData nestedClosureData = closureDataCache[node];
+    assert(nestedClosureData !== null);
+    assert(nestedClosureData.globalizedClosureElement !== null);
     ClassElement globalizedClosureElement =
-        closureData.globalizedClosureElement;
-    FunctionElement callElement = closureData.callElement;
+        nestedClosureData.globalizedClosureElement;
+    FunctionElement callElement = nestedClosureData.callElement;
     compiler.enqueue(new WorkItem.toCodegen(callElement, elements));
     compiler.registerInstantiatedClass(globalizedClosureElement);
-    push(new HForeignNew(globalizedClosureElement, <HInstruction>[]));
+    assert(globalizedClosureElement.members.isEmpty());
+
+    List<HInstruction> capturedVariables = <HInstruction>[];
+    for (Element member in globalizedClosureElement.backendMembers) {
+      // The backendMembers also contains the call method(s). We are only
+      // interested in the fields.
+      if (member.kind == ElementKind.FIELD) {
+        Element capturedLocal = nestedClosureData.capturedFieldMapping[member];
+        assert(capturedLocal != null);
+        capturedVariables.add(readLocal(capturedLocal));
+      }
+    }
+
+    push(new HForeignNew(globalizedClosureElement, capturedVariables));
   }
 
   visitIdentifier(Identifier node) {
     if (node.isThis()) {
-      if (thisDefinition === null) {
+      if (localsHandler.thisDefinition === null) {
         compiler.unimplemented("Ssa.visitIdentifier.", node: node);
       }
-      stack.add(thisDefinition);
+      stack.add(localsHandler.thisDefinition);
     } else if (node.isSuper()) {
       // super should not be visited as an identifier.
       compiler.internalError("unexpected identifier: super", node: node);
     } else {
       Element element = elements[node];
       compiler.ensure(element !== null);
-      HInstruction def = definitions[element];
-      if (def === null) {
-        compiler.unimplemented("Ssa.visitIdentifier.", node: node);
-      }
-      stack.add(def);
+      stack.add(readLocal(element));
     }
   }
 
@@ -581,8 +859,7 @@ class SsaBuilder implements Visitor {
     visit(node.condition);
     HBasicBlock conditionBlock = close(new HIf(popBoolified(), hasElse));
 
-    Map conditionDefinitions =
-        new Map<Element, HInstruction>.from(definitions);
+    Map conditionDefinitions = localsHandler.getDefinitionsCopy();
 
     // The then part.
     HBasicBlock thenBlock = addNewBlock();
@@ -590,10 +867,10 @@ class SsaBuilder implements Visitor {
     open(thenBlock);
     visit(node.thenPart);
     thenBlock = current;
-    Map thenDefinitions = definitions;
 
-    // Reset the definitions to the state after the condition.
-    definitions = conditionDefinitions;
+    // Reset the definitions to the state after the condition and keep the
+    // current definitions in [thenDefinitions].
+    Map thenDefinitions = localsHandler.setDefinitions(conditionDefinitions);
 
     // Now the else part.
     HBasicBlock elseBlock = null;
@@ -619,9 +896,8 @@ class SsaBuilder implements Visitor {
       // part of the if.
       open(joinBlock);
       if (joinBlock.predecessors.length == 2) {
-        definitions = joinDefinitions(joinBlock,
-                                      thenDefinitions,
-                                      definitions);
+        localsHandler.setDefinitions(joinDefinitions(
+            joinBlock, thenDefinitions, localsHandler.getDefinitionsNoCopy()));
       }
     }
   }
@@ -656,7 +932,7 @@ class SsaBuilder implements Visitor {
       add(condition);
     }
     HBasicBlock leftBlock = close(new HIf(condition, false));
-    Map leftDefinitions = new Map<Element, HInstruction>.from(definitions);
+    Map leftDefinitions = localsHandler.getDefinitionsCopy();
 
     HBasicBlock rightBlock = addNewBlock();
     leftBlock.addSuccessor(rightBlock);
@@ -670,7 +946,8 @@ class SsaBuilder implements Visitor {
     rightBlock.addSuccessor(joinBlock);
     open(joinBlock);
 
-    definitions = joinDefinitions(joinBlock, leftDefinitions, definitions);
+    localsHandler.setDefinitions(joinDefinitions(
+        joinBlock, leftDefinitions, localsHandler.getDefinitionsNoCopy()));
     HPhi result = new HPhi.manyInputs(null, [boolifiedLeft, boolifiedRight]);
     joinBlock.addPhi(result);
     stack.add(result);
@@ -794,7 +1071,7 @@ class SsaBuilder implements Visitor {
     } else if (element === null || Elements.isInstanceField(element)) {
       HInstruction receiver;
       if (send.receiver == null) {
-        receiver = thisDefinition;
+        receiver = localsHandler.thisDefinition;
         if (receiver === null) {
           compiler.unimplemented("SsaBuilder.generateGetter.", node: send);
         }
@@ -815,13 +1092,10 @@ class SsaBuilder implements Visitor {
       } else {
         push(new HInvokeDynamicGetter(selector, null, getterName, receiver));
       }
+    } else if (Elements.isStaticOrTopLevelFunction(element)) {
+      compiler.unimplemented("SsaBuilder.visitSend with static", node: send);
     } else {
-      HInstruction instruction = definitions[element];
-      if (instruction === null) {
-        compiler.unimplemented("SsaBuilder.visitSend with static", node: send);
-      }
-      assert(instruction !== null);
-      stack.add(instruction);
+      stack.add(readLocal(element));
     }
   }
 
@@ -840,7 +1114,7 @@ class SsaBuilder implements Visitor {
       SourceString dartSetterName = send.selector.asIdentifier().source;
       HInstruction receiver;
       if (send.receiver == null) {
-        receiver = thisDefinition;
+        receiver = localsHandler.thisDefinition;
         if (receiver === null) {
           compiler.unimplemented("Ssa.generateSetter.", node: send);
         }
@@ -852,7 +1126,8 @@ class SsaBuilder implements Visitor {
           selector, null, dartSetterName, receiver, value));
       stack.add(value);
     } else {
-      stack.add(updateDefinition(send, value));
+      updateLocal(element, value);
+      stack.add(value);
     }
   }
 
@@ -1034,7 +1309,7 @@ class SsaBuilder implements Visitor {
     }
 
     if (node.receiver === null) {
-      HThis receiver = thisDefinition;
+      HThis receiver = localsHandler.thisDefinition;
       if (receiver === null) {
         compiler.unimplemented("Ssa.visitDynamicSend.", node: node);
       }
@@ -1066,8 +1341,7 @@ class SsaBuilder implements Visitor {
     } else {
       assert(element.kind === ElementKind.VARIABLE ||
              element.kind === ElementKind.PARAMETER);
-      closureTarget = definitions[element];
-      assert(closureTarget !== null);
+      closureTarget = readLocal(element);
     }
     var inputs = <HInstruction>[];
     inputs.add(closureTarget);
@@ -1123,7 +1397,7 @@ class SsaBuilder implements Visitor {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
     HStatic target = new HStatic(element);
-    HThis context = thisDefinition;
+    HThis context = localsHandler.thisDefinition;
     if (context === null) {
       compiler.unimplemented("Ssa.visitSuperSend without thisDefinition.",
                              node: node);
@@ -1179,15 +1453,6 @@ class SsaBuilder implements Visitor {
   }
 
   visitNewExpression(NewExpression node) => visitSend(node.send);
-
-  HInstruction updateDefinition(Node node, HInstruction value) {
-    Element element = elements[node];
-    if (element is !VariableElement) {
-      compiler.internalError("expected a variable", node: node);
-    }
-    definitions[element] = value;
-    return value;
-  }
 
   visitSendSet(SendSet node) {
     Operator op = node.assignmentOperator;
@@ -1342,7 +1607,7 @@ class SsaBuilder implements Visitor {
       if (definition is Identifier) {
         HInstruction initialValue = new HLiteral(null, HType.UNKNOWN);
         add(initialValue);
-        updateDefinition(definition, initialValue);
+        updateLocal(elements[definition], initialValue);
       } else {
         assert(definition is SendSet);
         visitSendSet(definition);
@@ -1365,7 +1630,7 @@ class SsaBuilder implements Visitor {
   visitConditional(Conditional node) {
     visit(node.condition);
     HBasicBlock conditionBlock = close(new HIf(popBoolified(), true));
-    Map conditionDefinitions = new Map<Element, HInstruction>.from(definitions);
+    Map conditionDefinitions = localsHandler.getDefinitionsCopy();
 
     HBasicBlock thenBlock = addNewBlock();
     conditionBlock.addSuccessor(thenBlock);
@@ -1373,8 +1638,8 @@ class SsaBuilder implements Visitor {
     visit(node.thenExpression);
     HInstruction thenInstruction = pop();
     thenBlock = close(new HGoto());
-    Map thenDefinitions = definitions;
-    definitions = conditionDefinitions;
+    Map<Element, HInstruction> thenDefinitions =
+        localsHandler.setDefinitions(conditionDefinitions);
 
     HBasicBlock elseBlock = addNewBlock();
     conditionBlock.addSuccessor(elseBlock);
@@ -1388,7 +1653,8 @@ class SsaBuilder implements Visitor {
     elseBlock.addSuccessor(joinBlock);
     open(joinBlock);
 
-    definitions = joinDefinitions(joinBlock, thenDefinitions, definitions);
+    localsHandler.setDefinitions(joinDefinitions(
+        joinBlock, thenDefinitions, localsHandler.getDefinitionsNoCopy()));
     HPhi phi = new HPhi.manyInputs(null, [thenInstruction, elseInstruction]);
     joinBlock.addPhi(phi);
     stack.add(phi);
@@ -1433,6 +1699,12 @@ class SsaBuilder implements Visitor {
   }
 
   visitForInStatement(ForInStatement node) {
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData !== null) {
+      compiler.unimplemented("SsaBuilder.visitForInStatement captured variable",
+                             node: node);
+    }
+
     // Generate a structure equivalent to:
     //   Iterator<E> $iter = <iterable>.iterator()
     //   while ($iter.hasNext()) {
@@ -1452,7 +1724,7 @@ class SsaBuilder implements Visitor {
         selector, iteratorName, false, inputs);
     add(iterator);
 
-    Map initializerDefinitions = startLoop();
+    Map initializerDefinitions = startLoop(node);
     HBasicBlock conditionBlock = current;
 
     // The condition.
@@ -1460,8 +1732,7 @@ class SsaBuilder implements Visitor {
         selector, const SourceString('hasNext'), [iterator]));
     HBasicBlock conditionExitBlock = close(new HLoopBranch(popBoolified()));
 
-    Map conditionDefinitions =
-        new Map<Element, HInstruction>.from(definitions);
+    Map conditionDefinitions = localsHandler.getDefinitionsCopy();
 
     // The body.
     HBasicBlock bodyBlock = addNewBlock();
@@ -1476,10 +1747,10 @@ class SsaBuilder implements Visitor {
       variable = elements[node.declaredIdentifier];
     } else {
       assert(node.declaredIdentifier.asVariableDefinitions() !== null);
-      VariableDefinitions definitions = node.declaredIdentifier;
-      variable = elements[definitions.definitions.nodes.head];
+      VariableDefinitions variableDefinitions = node.declaredIdentifier;
+      variable = elements[variableDefinitions.definitions.nodes.head];
     }
-    definitions[variable] = pop();
+    updateLocal(variable, pop());
 
     visit(node.body);
     if (isAborted()) {

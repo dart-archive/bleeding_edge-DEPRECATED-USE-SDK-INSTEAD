@@ -10,5 +10,5 @@ ClassTest: Fail
 [ $component == leg || $component == frog || $component == frogsh ]
 StatementsTest: Fail
 TypedLocalsTest: Fail
-ClosureCaptureTest: Fail
 ForeignTest: Fail # JS methods are only visible within core library.
+ClosureCapture2Test: Crash

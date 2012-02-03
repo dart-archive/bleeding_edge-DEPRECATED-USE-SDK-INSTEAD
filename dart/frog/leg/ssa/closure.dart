@@ -2,6 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class ClosureFieldElement extends Element {
+  ClosureFieldElement(SourceString name, ClassElement enclosing)
+      : super(name, ElementKind.FIELD, enclosing);
+
+  bool isInstanceMember() => true;
+  bool isAssignable() => false;
+
+  String toString() => "ClosureFieldElement($name)";
+}
+
 // The box-element for a scope, and the captured variables that need to be
 // stored in the box.
 class ClosureScope {
@@ -21,6 +31,11 @@ class ClosureData {
   // Maps free locals, arguments and function elements to their captured
   // copies.
   final Map<Element, Element> freeVariableMapping;
+  // Maps closure-fields to their captured elements. This is somehow the inverse
+  // mapping of [freeVariableMapping], but whereas [freeVariableMapping] does
+  // not deal with boxes, here we map instance-fields (which might represent
+  // boxes) to their boxElement.
+  final Map<Element, Element> capturedFieldMapping;
 
   // Maps scopes ([Loop] and [FunctionExpression] nodes) to their
   // [ClosureScope] which contains their box and the
@@ -31,6 +46,7 @@ class ClosureData {
 
   ClosureData(this.globalizedClosureElement, this.callElement)
       : this.freeVariableMapping = new Map<Element, Element>(),
+        this.capturedFieldMapping = new Map<Element, Element>(),
         this.capturingScopes = new Map<Node, ClosureScope>();
 }
 
@@ -75,17 +91,22 @@ class ClosureTranslator extends AbstractVisitor {
     visit(node);
     // When variables need to be boxed their [capturedVariableMapping] is
     // updated, but we delay updating the similar freeVariableMapping in the
-    // closure datas that capture these variables. Now, at the very end, we
-    // run through all closures and update their mapping.
-    updateFreeVariableMappingInClosures();
+    // closure datas that capture these variables.
+    // The closures don't have their fields (in the closure class) set, either.
+    updateClosures();
 
     return closureDataCache[node];
   }
 
   // This function runs through all of the existing closures and updates their
-  // free variables to the boxed value.
-  void updateFreeVariableMappingInClosures() {
+  // free variables to the boxed value. It also adds the field-elements to the
+  // class representing the closure. At the same time it fills the
+  // [capturedFieldMapping].
+  void updateClosures() {
     for (FunctionExpression closure in closures) {
+      // The captured variables that need to be stored in a field of the closure
+      // class.
+      Set<Element> fieldCaptures = new Set<Element>();
       ClosureData data = closureDataCache[closure];
       Map<Element, Element> freeVariableMapping = data.freeVariableMapping;
       // We get a copy of the keys and iterate over it, to avoid modifications
@@ -94,8 +115,29 @@ class ClosureTranslator extends AbstractVisitor {
         assert(fromElement == freeVariableMapping[fromElement]);
         Element updatedElement = capturedVariableMapping[fromElement];
         assert(updatedElement !== null);
-        freeVariableMapping[fromElement] = updatedElement;
+        if (fromElement == updatedElement) {
+          assert(freeVariableMapping[fromElement] == updatedElement);
+          assert(updatedElement.isVariable() || updatedElement.isParameter());
+          // The variable has not been boxed.
+          fieldCaptures.add(updatedElement);
+        } else {
+          // A boxed element.
+          freeVariableMapping[fromElement] = updatedElement;
+          Element boxElement = updatedElement.enclosingElement;
+          assert(boxElement.kind == ElementKind.VARIABLE);
+          fieldCaptures.add(boxElement);
+        }
       });
+      ClassElement closureElement = data.globalizedClosureElement;
+      assert(closureElement != null || fieldCaptures.isEmpty());
+      for (Element boxElement in fieldCaptures) {
+        Element fieldElement =
+            new ClosureFieldElement(boxElement.name, closureElement);
+        closureElement.backendMembers =
+            closureElement.backendMembers.prepend(fieldElement);
+        data.capturedFieldMapping[fieldElement] = boxElement;
+        freeVariableMapping[boxElement] = fieldElement;
+      }
     }
   }
 
@@ -150,7 +192,7 @@ class ClosureTranslator extends AbstractVisitor {
         compiler.unimplemented("ClosureTranslator.visitSend this-capture");
       }
     }
-    node.visitChildren(this);    
+    node.visitChildren(this);
   }
 
   // If variables that are declared in the [node] scope are captured and need
@@ -162,12 +204,12 @@ class ClosureTranslator extends AbstractVisitor {
     Map<Element, Element> scopeMapping = new Map<Element, Element>();
     for (Element element in scopeVariables) {
       if (capturedVariableMapping.containsKey(element)) {
-        if (box = null) {
+        if (box == null) {
           box = new Element(const SourceString("box"),
                             ElementKind.VARIABLE,
                             currentFunctionElement);
         }
-        Element boxed = new Element(element.name, ElementKind.FIELD, box); 
+        Element boxed = new Element(element.name, ElementKind.FIELD, box);
         scopeMapping[element] = boxed;
         capturedVariableMapping[element] = boxed;
       }
@@ -246,12 +288,6 @@ class ClosureTranslator extends AbstractVisitor {
              capturedVariableMapping[element] == element);
       capturedVariableMapping[element] = element;
       useLocal(element);
-    }
-
-    if (!freeVariables.isEmpty()) {
-      compiler.unimplemented(
-          "ClosureAnalyzer.visitFunctionExpression: captured variables",
-          node: node);
     }
 
     // If we just visited a closure we declare it. This is not always correct

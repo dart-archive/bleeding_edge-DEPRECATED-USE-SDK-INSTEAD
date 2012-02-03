@@ -1137,7 +1137,14 @@ class HForeign extends HInstruction {
   final SourceString code;
   final SourceString declaredType;
   HForeign(this.code, this.declaredType, List<HInstruction> inputs)
-    : super(inputs);
+      : super(inputs) {
+    // Inputs for foreigns must not be generated at use site. In particular
+    // literals would make troubles as we do a search/replace which would be
+    // complicated if we had to stringify literals first.
+    for (HInstruction input in inputs) {
+      input.clearGenerateAtUseSite();
+    }
+  }
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
   HType computeType() {

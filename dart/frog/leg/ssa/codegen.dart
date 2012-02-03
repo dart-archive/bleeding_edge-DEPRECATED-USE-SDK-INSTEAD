@@ -142,8 +142,6 @@ class SsaCodeGenerator implements HVisitor {
     endGraph(graph);
   }
 
-  String parameter(HParameterValue parameter) => parameterNames[parameter.element];
-
   String temporary(HInstruction instruction) {
     int id = instruction.id;
     String name = names[id];
@@ -469,8 +467,11 @@ class SsaCodeGenerator implements HVisitor {
     for (int i = 0; i < inputs.length; i++) {
       HInstruction input = inputs[i];
       String name;
-      if (input is HParameterValue) {
-        name = parameter(input);
+      if (input is HThis) {
+        name = "this";
+      } else if (input is HParameterValue) {
+        HParameterValue parameter = input;
+        name = parameterNames[parameter.element];
       } else {
         assert(!input.generateAtUseSite());
         name = temporary(input);
@@ -593,7 +594,7 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitParameterValue(HParameterValue node) {
-    buffer.add(parameter(node));
+    buffer.add(parameterNames[node.element]);
   }
 
   visitPhi(HPhi node) {

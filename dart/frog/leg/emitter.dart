@@ -176,15 +176,24 @@ function(child, parent) {
     do {
       // TODO(floitsch): make sure there are no name clashes.
       String className = namer.getName(classElement);
-      for (Element member in classElement.members) {
+
+      void generateFieldInit(Element member) {
         if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
           if (!isFirst) argumentsBuffer.add(', ');
           isFirst = false;
           String memberName = namer.instanceFieldName(member.name);
           argumentsBuffer.add('${className}_$memberName');
           bodyBuffer.add('  this.$memberName = ${className}_$memberName;\n');
-        }
+        }        
       }
+
+      for (Element element in classElement.members) {
+        generateFieldInit(element);
+      }
+      for (Element element in classElement.backendMembers) {
+        generateFieldInit(element);
+      }
+
       classElement = classElement.superclass;
     } while(classElement !== null);
   }
