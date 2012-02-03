@@ -310,10 +310,10 @@ function(child, parent) {
     String noSuchMethodName =
         namer.instanceMethodName(Compiler.NO_SUCH_METHOD, 2);
 
-    void generateMethod(String methodName, String jsName, int arity) {
+    void generateMethod(String methodName, String jsName, Selector selector) {
       buffer.add('$prototype.$jsName = function');
       StringBuffer args = new StringBuffer();
-      for (int i = 0; i < arity; i++) {
+      for (int i = 0; i < selector.argumentCount; i++) {
         if (i != 0) args.add(', ');
         args.add('arg$i');
       }
@@ -327,21 +327,21 @@ function(child, parent) {
       if (objectClass.lookupLocalMember(methodName) === null
           && methodName != Namer.OPERATOR_EQUALS) {
         for (Selector selector in selectors) {
-          int arity = selector.argumentCount;
-          String jsName = namer.instanceMethodName(methodName, arity);
-          generateMethod(methodName.stringValue, jsName, arity);
+          String jsName =
+              namer.instanceMethodInvocationName(methodName, selector);
+          generateMethod(methodName.stringValue, jsName, selector);
         }
       }
     });
 
     compiler.universe.invokedGetters.forEach((SourceString getterName) {
       String jsName = namer.getterName(getterName);
-      generateMethod('get $getterName', jsName, 0);
+      generateMethod('get $getterName', jsName, Selector.GETTER);
     });
 
     compiler.universe.invokedSetters.forEach((SourceString setterName) {
       String jsName = namer.setterName(setterName);
-      generateMethod('set $setterName', jsName, 1);
+      generateMethod('set $setterName', jsName, Selector.SETTER);
     });
   }
 
