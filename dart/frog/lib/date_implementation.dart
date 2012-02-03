@@ -32,17 +32,20 @@ class DateImplementation implements Date {
       : this.timeZone = timeZone,
         value = _valueFromDecomposed(years, month, day,
                                      hours, minutes, seconds, milliseconds,
-                                     timeZone.isUtc) { _asJs();
+                                     timeZone.isUtc) {
+    _asJs();
   }
 
   DateImplementation.now()
       : timeZone = new TimeZone.local(),
-        value = _now() { _asJs();
+        value = _now() {
+    _asJs();
   }
 
   DateImplementation.fromString(String formattedString)
       : timeZone = new TimeZone.local(),
-        value = _valueFromString(formattedString) { _asJs();
+        value = _valueFromString(formattedString) {
+    _asJs();
   }
 
   const DateImplementation.fromEpoch(this.value, this.timeZone);
@@ -87,19 +90,10 @@ class DateImplementation implements Date {
   '''return this.isUtc ? this._asJs().getUTCMilliseconds() :
     this._asJs().getMilliseconds();''';
 
-  int get weekday() {
-    final Date unixTimeStart =
-        new Date.withTimeZone(1970, 1, 1, 0, 0, 0, 0, timeZone);
-    int msSince1970 = this.difference(unixTimeStart).inMilliseconds;
-    // Adjust the milliseconds to avoid problems with summer-time.
-    if (hours < 2) {
-      msSince1970 += 2 * Duration.MILLISECONDS_PER_HOUR;
-    }
-    int daysSince1970 =
-        (msSince1970 / Duration.MILLISECONDS_PER_DAY).floor().toInt();
-    // 1970-1-1 was a Thursday.
-    return ((daysSince1970 + Date.THU) % Date.DAYS_IN_WEEK);
-  }
+  // Adjust by one because JS weeks start on Sunday.
+  int get weekday() native '''
+    var day = this.isUtc ? this._asJs().getUTCDay() : this._asJs().getDay();
+    return (day + 6) % 7;''';
 
   // TODO(jimhug): Could this please be getters?
   bool isLocalTime() {
