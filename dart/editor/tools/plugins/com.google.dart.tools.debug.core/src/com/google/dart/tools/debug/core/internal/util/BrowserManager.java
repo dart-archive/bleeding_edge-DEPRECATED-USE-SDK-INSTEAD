@@ -99,6 +99,10 @@ public class BrowserManager {
     // due to differences in 32bit and 64 bit environments, dartium 32bit launch does not work on linux with 
     // this property
     env.remove("LD_LIBRARY_PATH");
+    // add env var DART_FLAGS="--enable_asserts --enable_type_checks" if set
+    if (launchConfig.getCheckedMode()) {
+      env.put("DART_FLAGS", "--enable_asserts --enable_type_checks");
+    }
 
     List<String> arguments = buildArgumentsList(browserLocation, url, debug);
     builder.command(arguments);

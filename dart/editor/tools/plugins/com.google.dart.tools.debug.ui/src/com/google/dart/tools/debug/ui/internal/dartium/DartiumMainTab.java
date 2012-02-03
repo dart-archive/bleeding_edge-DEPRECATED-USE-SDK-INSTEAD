@@ -100,6 +100,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Button projectBrowseButton;
 
+  private Button checkedModeButton;
+
   /**
    * Create a new instance of DartServerMainTab.
    */
@@ -124,6 +126,22 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     GridDataFactory.swtDefaults().span(3, 1).applyTo(filler);
 
     createUrlField(group);
+
+    // Dartium settings group
+    group = new Group(composite, SWT.NONE);
+    group.setText("Dartium settings:");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(2).applyTo(group);
+
+    checkedModeButton = new Button(group, SWT.CHECK);
+    checkedModeButton.setText("Run in checked mode");
+    GridDataFactory.swtDefaults().span(2, 1).applyTo(checkedModeButton);
+    checkedModeButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
 
     setControl(composite);
   }
@@ -182,7 +200,9 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       htmlButton.setSelection(false);
       updateEnablements(false);
     }
-
+    if (checkedModeButton != null) {
+      checkedModeButton.setSelection(dartLauncher.getCheckedMode());
+    }
   }
 
   @Override
@@ -224,6 +244,9 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setApplicationName(htmlText.getText());
     dartLauncher.setUrl(urlText.getText().trim());
     dartLauncher.setProjectName(projectText.getText().trim());
+    if (checkedModeButton != null) {
+      dartLauncher.setCheckedMode(checkedModeButton.getSelection());
+    }
   }
 
   @Override
