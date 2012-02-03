@@ -818,13 +818,9 @@ class SsaBuilder implements Visitor {
         compiler.unimplemented("Ssa.visitIdentifier.", node: node);
       }
       stack.add(localsHandler.thisDefinition);
-    } else if (node.isSuper()) {
-      // super should not be visited as an identifier.
-      compiler.internalError("unexpected identifier: super", node: node);
     } else {
-      Element element = elements[node];
-      compiler.ensure(element !== null);
-      stack.add(readLocal(element));
+      compiler.internalError("SsaBuilder.visitIdentifier on non-this",
+                             node: node);
     }
   }
 
