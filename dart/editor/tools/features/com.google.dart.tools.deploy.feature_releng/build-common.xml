@@ -563,7 +563,7 @@
                     <striplinebreaks/>
                 </filterchain>
             </loadfile>
-            <echo message="Copying dart:@{name} files @{libfile},${dart.@{name}.files}"/>
+            <echo message="Copying dart:@{name} files"/>
             <echo message="to @{todir}" />
             <mkdir dir="@{todir}"/>
             <copy todir="@{todir}">

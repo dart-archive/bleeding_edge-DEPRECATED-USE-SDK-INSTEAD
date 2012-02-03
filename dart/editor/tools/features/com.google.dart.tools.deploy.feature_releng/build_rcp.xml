@@ -475,13 +475,6 @@ class ObjectArray<T> { }
             </fileset>
         </copy>
 
-        <!-- Chat -->
-        <!-- Commented out - this references the json library in a relative path from server code -->
-        <!-- copy todir="${samples.out.dir}/chat">
-            <fileset dir="${build.source.root}/samples/chat">
-            </fileset>
-        </copy -->
-        
         <!-- Time -->
         <copy todir="${samples.out.dir}/time">
             <fileset dir="${build.source.root}/samples/time"/>
@@ -494,18 +487,7 @@ class ObjectArray<T> { }
             value='#import("http.dart");'>
             <include name="*.dart"/>
         </replace>
-        <replace file="${samples.out.dir}/time/http.dart"
-            token='#library("http");'>
-            <replacevalue>#library("http");
-#import("dart:builtin");</replacevalue>
-        </replace>
         
-        <!-- Hi -->
-        <!-- copy todir="${samples.out.dir}/hi">
-            <fileset dir="${build.source.root}/samples/hi">
-            </fileset>
-        </copy -->
-
         <!-- Isolate -->
         <copy todir="${samples.out.dir}/isolate">
             <fileset dir="${build.source.root}/samples/isolate_html">
@@ -520,12 +502,6 @@ class ObjectArray<T> { }
             <fileset dir="${build.source.root}/samples/slider">
             </fileset>
         </copy>
-
-        <!-- Swarm -->
-        <!-- copy todir="${samples.out.dir}/swarm">
-            <fileset dir="${build.source.root}/samples/swarm">
-            </fileset>
-        </copy -->
 
         <!-- Sunflower -->
         <copy todir="${samples.out.dir}/sunflower">
@@ -576,24 +552,6 @@ class ObjectArray<T> { }
         <copy todir="${samples.libraries.out.dir}/view">
             <fileset dir="${build.source.root}/client/view"/>
         </copy>
-        
-        <!-- patch up the html library references -->
-                  
-        <replace dir="${build.stage.include.dir}"
-          token='../../../html/html.dart'
-          value='dart:html'>
-            <include name="**/*.dart"/>
-        </replace>
-        <replace dir="${build.stage.include.dir}"
-          token='../../html/html.dart'
-          value='dart:html'>
-            <include name="**/*.dart"/>
-        </replace>
-        <replace dir="${build.stage.include.dir}"
-          token='../html/html.dart'
-          value='dart:html'>
-            <include name="**/*.dart"/>
-        </replace>
         
         <!-- replace the path based imports with the symbolic ones -->
 
