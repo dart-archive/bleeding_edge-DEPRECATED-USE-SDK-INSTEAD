@@ -54,19 +54,19 @@ main() {
   testLocalsThree();
   testLocalsFour();
   testLocalsFive();
-  // testParametersOne(); // TODO(ahe): Fix this.
+  testParametersOne();
   testFor();
   testTypeAnnotation();
   testSuperclass();
   // testVarSuperclass(); // The parser crashes with 'class Foo extends var'.
   // testOneInterface(); // The parser does not handle interfaces.
   // testTwoInterfaces(); // The parser does not handle interfaces.
-  // testFunctionExpression(); // TODO(ahe): Fix this.
+  testFunctionExpression();
   testNewExpression();
   testTopLevelFields();
   testClassHierarchy();
   testInitializers();
-  // testThis(); // TODO(ahe): Fix this.
+  testThis();
   testSuperCalls();
 }
 

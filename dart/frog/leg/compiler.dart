@@ -150,11 +150,12 @@ class Compiler implements DiagnosticListener {
     coreLibrary = new LibraryElement(script);
     withCurrentElement(coreLibrary, () => scanner.scan(currentElement));
     // Make our special function a foreign kind.
-    coreLibrary.define(new ForeignElement(const SourceString('JS')), this);
     coreLibrary.define(new ForeignElement(
-        const SourceString('UNINTERCEPTED')), this);
+        const SourceString('JS'), coreLibrary), this);
     coreLibrary.define(new ForeignElement(
-        const SourceString('JS_HAS_EQUALS')), this);
+        const SourceString('UNINTERCEPTED'), coreLibrary), this);
+    coreLibrary.define(new ForeignElement(
+        const SourceString('JS_HAS_EQUALS'), coreLibrary), this);
     // TODO(ngeoffray): Lazily add this method.
     universe.invokedNames[NO_SUCH_METHOD] =
         new Set<Invocation>.from(<Invocation>[new Invocation(2)]);

@@ -120,6 +120,7 @@ class MemberListener extends NodeListener {
       enclosingElement.addMember(element, listener);
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,
+                       enclosingElement,
                        buildFieldElement, beginToken, endToken);
   }
 

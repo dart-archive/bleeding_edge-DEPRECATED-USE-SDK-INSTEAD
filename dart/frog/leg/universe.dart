@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Universe {
-  final Element scope;
-
   Map<Element, String> generatedCode;
   Map<Element, String> generatedBailoutCode;
   final Set<ClassElement> instantiatedClasses;
@@ -21,9 +19,7 @@ class Universe {
                instantiatedClasses = new Set<ClassElement>(),
                invokedNames = new Map<SourceString, Set<Invocation>>(),
                invokedGetters = new Set<SourceString>(),
-               invokedSetters = new Set<SourceString>(),
-               scope = new Element(const SourceString('global scope'),
-                                   null, null);
+               invokedSetters = new Set<SourceString>();
 
   void addGeneratedCode(WorkItem work, String code) {
     if (work.isBailoutVersion()) {

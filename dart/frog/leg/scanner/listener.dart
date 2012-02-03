@@ -552,19 +552,21 @@ class ElementListener extends Listener {
     }
     NodeList variables = makeNodeList(count, null, null, ",");
     Modifiers modifiers = popNode();
-    buildFieldElements(modifiers, variables, buildFieldElement,
+    buildFieldElements(modifiers, variables, compilationUnitElement,
+                       buildFieldElement,
                        beginToken, endToken);
   }
 
   void buildFieldElements(Modifiers modifiers,
                           NodeList variables,
+                          ContainerElement enclosingElement,
                           void buildFieldElement(SourceString name,
                                                  Element fields),
                           Token beginToken, Token endToken) {
     Element fields = new PartialFieldListElement(beginToken,
                                                  endToken,
                                                  modifiers,
-                                                 compilationUnitElement);
+                                                 enclosingElement);
     for (Link<Node> nodes = variables.nodes; !nodes.isEmpty();
          nodes = nodes.tail) {
       Expression initializedIdentifier = nodes.head;

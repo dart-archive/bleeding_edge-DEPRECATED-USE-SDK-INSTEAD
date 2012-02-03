@@ -53,8 +53,6 @@ class SimpleType implements Type {
   final Element element;
 
   const SimpleType(SourceString this.name, Element this.element);
-  SimpleType.named(SourceString name)
-    : this.name = name, element = new Element(name, null, null);
 
   String toString() => name.toString();
 }
@@ -91,8 +89,10 @@ class Types {
   final SimpleType voidType;
   final SimpleType dynamicType;
 
-  Types() : voidType = new SimpleType.named(VOID),
-            dynamicType = new SimpleType.named(DYNAMIC);
+  Types() : this.with(new LibraryElement(new Script(null, null)));
+  Types.with(LibraryElement library)
+    : voidType = new SimpleType(VOID, new ClassElement(VOID, library)),
+      dynamicType = new SimpleType(DYNAMIC, new ClassElement(DYNAMIC, library));
 
   Type lookup(SourceString s) {
     if (VOID == s) {

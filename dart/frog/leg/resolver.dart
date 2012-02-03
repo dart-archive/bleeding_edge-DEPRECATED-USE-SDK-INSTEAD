@@ -1172,9 +1172,9 @@ class ClassScope extends Scope {
 }
 
 class TopScope extends Scope {
-  LibraryElement library;
+  LibraryElement get library() => element;
 
-  TopScope(LibraryElement this.library) : super(null, null);
+  TopScope(LibraryElement library) : super(null, library);
   Element lookup(SourceString name) => library.find(name);
 
   Element add(Element element) {

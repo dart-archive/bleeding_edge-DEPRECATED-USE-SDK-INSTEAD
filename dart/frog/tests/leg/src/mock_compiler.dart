@@ -73,18 +73,16 @@ class MockCompiler extends Compiler {
 
   TreeElementMapping resolveStatement(String text) {
     parsedTree = parseStatement(text);
-    return resolveNodeStatement(parsedTree);
+    return resolveNodeStatement(parsedTree, mainApp);
   }
 
-  TreeElementMapping resolveNodeStatement(Node tree, [ClassElement element]) {
-    ResolverVisitor visitor = resolverVisitor();
-    if (element != null) {
-      visitor.context = new ClassScope(element, universe);
+  TreeElementMapping resolveNodeStatement(Node tree, Element element) {
+    ResolverVisitor visitor = new FullResolverVisitor(this, element);
+    if (visitor.context is TopScope) {
+      visitor.context = new BlockScope(visitor.context);
     }
     visitor.visit(tree);
-    if (element != null) {
-      visitor.context = visitor.context.parent;
-    }
+    visitor.context = new TopScope(element.getLibrary());
     // Resolve the type annotations encountered in the code.
     while (!resolver.toResolve.isEmpty()) {
       resolver.toResolve.removeFirst().resolve(this);

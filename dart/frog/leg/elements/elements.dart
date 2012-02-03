@@ -265,8 +265,7 @@ class VariableListElement extends Element {
 
   Type computeType(Compiler compiler) {
     if (type != null) return type;
-    type = getType(parseNode(compiler).type, compiler,
-                   compiler.types);
+    type = getType(parseNode(compiler).type, compiler, getLibrary());
     return type;
   }
 
@@ -274,7 +273,8 @@ class VariableListElement extends Element {
 }
 
 class ForeignElement extends Element {
-  ForeignElement(SourceString name) : super(name, ElementKind.FOREIGN, null);
+  ForeignElement(SourceString name, ContainerElement enclosingElement)
+    : super(name, ElementKind.FOREIGN, enclosingElement);
 
   Type computeType(Compiler compiler) {
     return compiler.types.dynamicType;
@@ -300,16 +300,15 @@ class AbstractFieldElement extends Element {
   }
 }
 
-/**
- * TODO(ngeoffray): Remove this method in favor of using the universe.
- *
- * Return the type referred to by the type annotation. This method
- * accepts annotations with 'typeName == null' to indicate a missing
- * annotation.
- */
-Type getType(TypeAnnotation typeAnnotation, compiler, types) {
+/** DEPRECATED. */
+Type getType(TypeAnnotation typeAnnotation,
+             Compiler compiler,
+             LibraryElement library) {
+  // TODO(karlklose,ngeoffray): This method should be removed and the
+  // information should be computed by the resolver.
+
   if (typeAnnotation == null || typeAnnotation.typeName == null) {
-    return types.dynamicType;
+    return compiler.types.dynamicType;
   }
   Identifier identifier = typeAnnotation.typeName.asIdentifier();
   if (identifier === null) {
@@ -317,12 +316,12 @@ Type getType(TypeAnnotation typeAnnotation, compiler, types) {
                     node: typeAnnotation.typeName);
   }
   final SourceString name = identifier.source;
-  Element element = compiler.coreLibrary.find(name);
+  Element element = library.find(name);
   if (element !== null && element.kind === ElementKind.CLASS) {
     // TODO(karlklose): substitute type parameters.
     return element.computeType(compiler);
   }
-  return types.lookup(name);
+  return compiler.types.lookup(name);
 }
 
 class FunctionParameters {
@@ -410,7 +409,7 @@ class FunctionElement extends Element {
     Types types = compiler.types;
     FunctionExpression node =
         compiler.parser.measure(() => parseNode(compiler));
-    Type returnType = getType(node.returnType, compiler, types);
+    Type returnType = getType(node.returnType, compiler, getLibrary());
     if (returnType === null) returnType = types.dynamicType;
 
     LinkBuilder<Type> parameterTypes = new LinkBuilder<Type>();
