@@ -123,13 +123,15 @@ def TestFrog(arch, mode, system):
       # DumpRenderTree tests (DRT is currently not available on Windows):
       TestStep("browser", testpy_mode, system, 'frogium', tests, flags)
 
-    # Webdriver tests.
+    # Webdriver tests. Even though the browsers can run on more than one OS, we
+    # found identical browser behavior across OS, so we're not running
+    # everywhere for faster turnaround time.
     if system == 'linux':
-      browsers = ['ff', 'chrome']
+      browsers = ['ff']
     elif system == 'mac':
-      browsers = ['ff', 'chrome', 'safari']
+      browsers = ['safari']
     else:
-      browsers = ['ff', 'chrome', 'ie']
+      browsers = ['ff', 'ie']
 
     for browser in browsers:
       TestStep(browser, testpy_mode, system, 'webdriver', tests,
