@@ -217,6 +217,7 @@ class Compiler implements DiagnosticListener {
   }
 
   TreeElements analyzeElement(Element element) {
+    assert(parser !== null);
     Node tree = parser.parse(element);
     validator.validate(tree);
     TreeElements elements = resolver.resolve(element);

@@ -1354,6 +1354,10 @@ class ScriptTag extends Node {
   ScriptTag(this.tag, this.argument, this.prefixIdentifier, this.prefix,
             this.beginToken, this.endToken);
 
+  bool isImport() => tag.source == const SourceString("import");
+  bool isSource() => tag.source == const SourceString("source");
+  bool isLibrary() => tag.source == const SourceString("library");
+
   ScriptTag asScriptTag() => this;
 
   accept(Visitor visitor) => visitor.visitScriptTag(this);

@@ -5,12 +5,13 @@
 #library('scanner');
 
 #import('scanner_implementation.dart');
-#import('../leg.dart');
-#import('../util/util.dart');
-#import('../tree/tree.dart');
+#import('../../../utils/uri/uri.dart');
 #import('../elements/elements.dart');
-#import('../util/characters.dart');
+#import('../leg.dart');
 #import('../string_validator.dart');
+#import('../tree/tree.dart');
+#import('../util/characters.dart');
+#import('../util/util.dart');
 
 #source('class_element_parser.dart');
 #source('keyword.dart');

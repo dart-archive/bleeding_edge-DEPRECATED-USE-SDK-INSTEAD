@@ -577,8 +577,9 @@ class FullResolverVisitor extends ResolverVisitor {
                   [superElement.name, name]);
           }
         }
-      } else if (resolvedReceiver !== null
-                 && resolvedReceiver.kind === ElementKind.CLASS) {
+      } else if (resolvedReceiver === null) {
+        return null;
+      } else if (resolvedReceiver.kind === ElementKind.CLASS) {
         ClassElement receiverClass = resolvedReceiver;
         target = receiverClass.resolve(compiler).lookupLocalMember(name);
         if (target === null) {
@@ -586,6 +587,13 @@ class FullResolverVisitor extends ResolverVisitor {
         } else if (target.isInstanceMember()) {
           error(node, MessageKind.MEMBER_NOT_STATIC,
                 [receiverClass.name, name]);
+        }
+      } else if (resolvedReceiver.kind === ElementKind.PREFIX) {
+        PrefixElement prefix = resolvedReceiver;
+        target = prefix.library.lookupLocalMember(name);
+        if (target == null) {
+          error(node, MessageKind.NO_SUCH_LIBRARY_MEMBER,
+                [resolvedReceiver.name, name]);
         }
       }
     }

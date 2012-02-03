@@ -16,8 +16,27 @@ class ScannerTask extends CompilerTask {
   }
 
   void processScriptTags(LibraryElement library) {
-    for (ScriptTag tag in library.tags) {
-      compiler.reportWarning(tag, "library tags are not implemented");
+    for (ScriptTag tag in library.tags.reverse()) {
+      SourceString argument = tag.argument.value.copyWithoutQuotes(1, 1);
+      Uri cwd = new Uri(scheme: 'file', path: compiler.currentDirectory);
+      Uri base = cwd.resolve(library.script.name.toString());
+      Uri resolved = base.resolve(argument.toString());
+      if (tag.isImport()) {
+        importLibrary(library, loadLibrary(resolved, tag), tag.prefix);
+      } else if (tag.isLibrary()) {
+        if (library.libraryTag !== null) {
+          compiler.cancel("duplicated library declaration", node: tag);
+        } else {
+          library.libraryTag = tag;
+        }
+      } else if (tag.isSource()) {
+        Script script = compiler.readScript(resolved, tag);
+        CompilationUnitElement unit =
+          new CompilationUnitElement(script, library);
+        compiler.withCurrentElement(unit, () => scan(unit));
+      } else {
+        compiler.cancel("illegal script tag: ${tag.tag}", node: tag);
+      }
     }
     if (library !== compiler.coreLibrary) {
       importLibrary(library, compiler.coreLibrary, null);
@@ -46,12 +65,24 @@ class ScannerTask extends CompilerTask {
     parser.parseUnit(tokens);
   }
 
+  LibraryElement loadLibrary(Uri uri, ScriptTag node) {
+    bool newLibrary = false;
+    LibraryElement library =
+      compiler.universe.libraries.putIfAbsent(uri.toString(), () {
+          newLibrary = true;
+          Script script = compiler.readScript(uri, node);
+          return new LibraryElement(script);
+        });
+    if (newLibrary) {
+      compiler.withCurrentElement(library, () => scan(library));
+    }
+    return library;
+  }
+
   void importLibrary(LibraryElement library, LibraryElement imported,
                      LiteralString prefix) {
     if (prefix !== null) {
-      withCurrentElement(library, () {
-          compiler.cancel("prefixes are not implemented", node: prefix);
-        });
+      library.define(new PrefixElement(prefix, imported, library), compiler);
     } else {
       for (Link<Element> link = imported.topLevelElements; !link.isEmpty();
            link = link.tail) {

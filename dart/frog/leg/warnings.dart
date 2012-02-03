@@ -90,6 +90,9 @@ class MessageKind {
   static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       '#{1} cannot be used as compile-time constant');
 
+  static final NO_SUCH_LIBRARY_MEMBER = const MessageKind(
+      '#{1} has no member named #{2}');
+
   toString() => template;
 }
 

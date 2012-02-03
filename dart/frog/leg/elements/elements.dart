@@ -32,6 +32,7 @@ class ElementKind {
   static final ElementKind SETTER = const ElementKind('setter');
   static final ElementKind ABSTRACT_FIELD = const ElementKind('abstract_field');
   static final ElementKind LIBRARY = const ElementKind('library');
+  static final ElementKind PREFIX = const ElementKind('prefix');
 
   toString() => id;
 }
@@ -175,6 +176,17 @@ class LibraryElement extends CompilationUnitElement {
     if (element === null) return null;
     return (this === element.getLibrary()) ? element : null;
   }
+}
+
+class PrefixElement extends Element {
+  final LiteralString prefix;
+  final LibraryElement library;
+
+  PrefixElement(LiteralString prefix,
+                LibraryElement this.library,
+                Element enclosing)
+    : this.prefix = prefix,
+      super(prefix.dartString.source, ElementKind.PREFIX, enclosing);
 }
 
 class VariableElement extends Element {
