@@ -942,10 +942,21 @@ class Parser {
   Token parseUnaryExpression(Token token) {
     String value = token.stringValue;
     // Prefix:
-    if ((value === '!') ||
-        (value === '+') || // TODO(ahe): Being removed from specification.
-        (value === '-') ||
-        (value === '~')) {
+    if (value === '+') {
+      // Dart only allows "prefix plus" as an initial part of a
+      // decimal literal. We scan it as a separate token and treat it
+      // as a unary operator anyway.
+      Token operator = token;
+      Token next = token.next;
+      if (next.charOffset !== token.charOffset + 1 ||
+          (next.kind !== INT_TOKEN && next.kind !== DOUBLE_TOKEN)) {
+        listener.recoverableError("Unexpected token '+'", token: token);
+      }
+      token = parsePrecedenceExpression(next, POSTFIX_PRECEDENCE);
+      listener.handleUnaryPrefixExpression(operator);
+    } else if ((value === '!') ||
+               (value === '-') ||
+               (value === '~')) {
       Token operator = token;
       // Right associative, so we recurse at the same precedence
       // level.
