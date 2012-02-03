@@ -214,7 +214,7 @@ class ClosureTranslator extends AbstractVisitor {
         capturedVariableMapping[element] = boxed;
       }
     }
-    if (!capturedVariableMapping.isEmpty()) {
+    if (!scopeMapping.isEmpty()) {
       ClosureScope scope = new ClosureScope(box, scopeMapping);
       closureData.capturingScopes[node] = scope;
     }
