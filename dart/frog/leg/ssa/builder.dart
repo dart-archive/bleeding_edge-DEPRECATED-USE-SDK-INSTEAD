@@ -722,7 +722,8 @@ class SsaBuilder implements Visitor {
     open(bodyBlock);
     visit(body);
     if (isAborted()) {
-      compiler.unimplemented("SsaBuilder for loop with aborting body");
+      compiler.unimplemented("SsaBuilder for loop with aborting body",
+                             node: body);
     }
     bodyBlock = close(new HGoto());
 

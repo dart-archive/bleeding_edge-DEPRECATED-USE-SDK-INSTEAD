@@ -722,7 +722,7 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitOperator(Operator node) {
-    cancel(node, "Unimplemented");
+    compiler.unimplemented('operator', node: node);
   }
 
   visitReturn(Return node) {
@@ -806,7 +806,7 @@ class FullResolverVisitor extends ResolverVisitor {
 
   visitModifiers(Modifiers node) {
     // TODO(ngeoffray): Implement this.
-    cancel(node, 'unimplemented');
+    compiler.unimplemented('modifiers', node: node);
   }
 
   visitLiteralList(LiteralList node) {
@@ -827,11 +827,11 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitBreakStatement(BreakStatement node) {
-    cancel(node, 'unimplemented');
+    compiler.unimplemented('break', node: node);
   }
 
   visitContinueStatement(ContinueStatement node) {
-    cancel(node, 'unimplemented');
+    compiler.unimplemented('continue', node: node);
   }
 
   visitForInStatement(ForInStatement node) {
@@ -852,15 +852,15 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitLabelledStatement(LabelledStatement node) {
-    cancel(node, 'unimplemented');
+    compiler.unimplemented('label', node: node);
   }
 
   visitLiteralMap(LiteralMap node) {
-    cancel(node, 'unimplemented');
+    compiler.unimplemented('map', node: node);
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
-    cancel(node, 'unimplemented');
+    compiler.unimplemented('map entry', node: node);
   }
 
   visitNamedArgument(NamedArgument node) {
@@ -868,23 +868,19 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    cancel(node, 'unimplemented');
+    compiler.unimplemented('switch', node: node);
   }
 
   visitTryStatement(TryStatement node) {
-    cancel(node, 'unimplemented');
-  }
-
-  visitScriptTag(ScriptTag node) {
-    cancel(node, 'unimplemented');
+    compiler.unimplemented('try', node: node);
   }
 
   visitCatchBlock(CatchBlock node) {
-    cancel(node, 'unimplemented');
+    compiler.unimplemented('catch', node: node);
   }
 
   visitTypedef(Typedef node) {
-    cancel(node, 'unimplemented');
+    compiler.unimplemented('typedef', node: node);
   }
 }
 
