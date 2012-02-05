@@ -79,13 +79,13 @@ def SelfHost():
   start = time.time()
   RunCommand('./frog.py',
              '--vm_flags=--compile_all --enable_type_checks --enable_asserts',
-             '--', '--compile_all', '--enable_type_checks', '--out=frogsh',
-             'frog.dart')
+             '--', '--compile_all', '--enable_type_checks', '--out=minfrog',
+             'minfrog.dart')
   elapsed = time.time() - start
   mode = 'in checked mode + compile all'
-  print 'Compiling frog on Dart VM took %s seconds %s' % (
+  print 'Compiling minfrog on Dart VM took %s seconds %s' % (
       b('%.1f' % elapsed), b(mode))
-  os.chmod('./frogsh', EXECUTABLE)
+  os.chmod('./minfrog', EXECUTABLE)
 
   # VM Production
   start = time.time()
