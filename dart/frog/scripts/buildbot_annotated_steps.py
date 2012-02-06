@@ -121,7 +121,9 @@ def TestFrog(arch, mode, system, flags):
 
   else:
     tests = ['client', 'language', 'corelib', 'isolate', 'frog', 'peg', 'css']
-    if system != 'windows':
+    # TODO(efortuna): Eventually we want DumpRenderTree to run on all systems,
+    # but for test turnaround time, currently it is only running on linux.
+    if system == 'linux':
       # DumpRenderTree tests (DRT is currently not available on Windows):
       TestStep("browser", mode, system, 'frogium', tests, flags)
 
@@ -133,7 +135,10 @@ def TestFrog(arch, mode, system, flags):
     elif system == 'mac':
       browsers = ['safari']
     else:
-      browsers = ['ff', 'ie']
+      # TODO(efortuna): Use both ff and ie once we have additional buildbots.
+      # We're using just IE for speed on our testing right now.
+      browsers = ['ie'] #['ff', 'ie']
+      
 
     for browser in browsers:
       TestStep(browser, mode, system, 'webdriver', tests,
@@ -158,10 +163,11 @@ def main():
     print '@@@STEP_FAILURE@@@'
     return status
 
-  status = TestFrog(arch, mode, system, [])
-  if status != 0:
-    print '@@@STEP_FAILURE@@@'
-    return status
+  if arch != 'frogium':
+    status = TestFrog(arch, mode, system, [])
+    if status != 0:
+      print '@@@STEP_FAILURE@@@'
+      return status
 
   status = TestFrog(arch, mode, system, ['--checked'])
   if status != 0:
