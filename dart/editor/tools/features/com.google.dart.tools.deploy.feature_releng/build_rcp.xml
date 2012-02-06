@@ -434,7 +434,8 @@ class ObjectArray<T> { }
     <target name="getSdk" if="osfamily" depends="setOS">
         <get src="http://gsdview.appspot.com/dart-editor-archive-continuous/latest/dart-${osfamily}.zip"
              dest="${build.dart.sdk.zip}"
-             usetimestamp="true"/>
+             usetimestamp="true"
+             verbose="true" />
         <delete dir="${build.stage.include.dir}/dart-sdk"/>
     </target>
 
@@ -442,7 +443,7 @@ class ObjectArray<T> { }
           target: installSdkInWindows
           Use the standard Ant unzip task to install the sdk
          - - - - - - - - - - - - - - - - - -->
-    <target name="installSdkInWindows" if="isWindows" depends="getSdk">
+    <target name="installSdkInWindows" if="installSdkWindows" depends="getSdk">
         <unzip src="${build.dart.sdk.zip}" dest="${build.stage.include.dir}" />
     </target>
 
@@ -451,7 +452,7 @@ class ObjectArray<T> { }
           The standard Ant unzip task destroys execute permissions in the sdk
           so use the command line unzip instead
          - - - - - - - - - - - - - - - - - -->
-    <target name="installSdkInNonWindows" if="isNotWindows" depends="getSdk">
+    <target name="installSdkInNonWindows" if="installSdkNotWindows" depends="getSdk">
         <echo message="unzipping ${build.dart.sdk.zip} to ${build.stage.include.dir}"/>
         <exec executable="unzip" dir="${build.stage.include.dir}">
             <arg value="-q"/>

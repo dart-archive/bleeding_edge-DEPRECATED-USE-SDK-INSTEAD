@@ -17,6 +17,7 @@ import sys
 import tempfile
 import gsutil
 import postprocess
+import ziputils
 
 
 class AntWrapper(object):
@@ -44,7 +45,7 @@ class AntWrapper(object):
 
   def RunAnt(self, build_dir, antfile, revision, name,
              buildroot, buildout, sourcepath, buildos,
-             extra_args=None):
+             extra_args=None, sdk_zip=None):
     """Run the given Ant script from the given directory.
 
     Args:
@@ -57,6 +58,7 @@ class AntWrapper(object):
       sourcepath: the path to the root of the source
       buildos: the operating system this build is running under (may be null)
       extra_args: any extra args to ant
+      sdk_zip: the place to write the sdk zip file
 
     Returns:
       returns the status of the ant call
@@ -106,12 +108,15 @@ class AntWrapper(object):
       args.append('-Dbuild.out.property.file=' + self._propertyfile)
     if buildos:
       args.append('-Dbuild.os={0}'.format(buildos))
+    if sdk_zip:
+      args.append('-Dbuild.dart.sdk.zip={0}'.format(sdk_zip))
     if is_windows:
       args.append('-autoproxy')
       #add the JAVA_HOME to the environment for the windows builds
       local_env['JAVA_HOME'] = 'C:\Program Files\Java\jdk1.6.0_29'
     if extra_args:
       args.extend(extra_args)
+    args.append('-Dbuild.local.build=false')
 
     extra_args = os.environ.get('ANT_EXTRA_ARGS')
     if extra_args is not None:
@@ -203,6 +208,7 @@ def main():
 
   os.chdir(buildpath)
   ant_property_file = None
+  sdk_zip = None
   try:
     ant_property_file = tempfile.NamedTemporaryFile(suffix='.property',
                                                     prefix='AntProperties',
@@ -322,11 +328,15 @@ def main():
   #    return 0
 
     _PrintSeparator('running the build to produce the Zipped RCP''s')
+    #tell the ant script where to write the sdk zip file so it can
+    #be expanded later
+    sdk_zip = os.path.join(buildroot, 'downloads',
+                           'dart-{0}.zip'.format(buildos))
     status = ant.RunAnt('.', 'build_rcp.xml', revision, options.name,
-                        buildroot, buildout, editorpath, buildos)
+                        buildroot, buildout, editorpath, buildos,
+                        sdk_zip=sdk_zip)
     #the ant script writes a property file in a known location so
-    #we can read it. This build script is currently not using any post
-    #processing
+    #we can read it. 
     properties = _ReadPropertyFile(buildos, ant_property_file.name)
 
     if not properties:
@@ -340,6 +350,10 @@ def main():
       #  if not status and properties['build.tmp']:
       #    postProcessZips(properties['build.tmp'], buildout)
     sys.stdout.flush()
+    if (run_sdk_build and
+        builder_name != 'dart-editor'):
+      _InstallSdk(buildroot, buildout, sdk_zip)
+
     if status:
       return status
 
@@ -698,6 +712,26 @@ def _FindRcpZipFiles(out_dir):
     if element.startswith('DartBuild') and element.endswith('.zip'):
       found_zips.append(os.path.join(out_dir, element))
   return found_zips
+
+
+def _InstallSdk(buildroot, buildout, sdk):
+  """Install the SDk into the RCP zip files(s)
+  Args:
+    buildroot: the boot of the build output
+    sdk: the name of the zipped up sdk
+  """
+  print '_InstallSdk({0}, {1})'.format(buildroot, sdk)
+  tmp_dir = os.path.join(buildroot, 'tmp')
+  unzip_dir = os.path.join(tmp_dir, 'unzip_sdk')
+  if not os.path.exists(unzip_dir):
+    os.makedirs(unzip_dir)
+  sdk_zip = ziputils.ZipUtil(sdk)
+  sdk_zip.UnZip(unzip_dir)
+  files = os.listdir(buildout)
+  for f in files:
+    if f.startswith('Dart') and f.endswith('.zip'):
+      dart_zip = ziputils.ZipUtil(os.path.join(buildout, f))
+      dart_zip.AddDirectoryTree(unzip_dir, 'dart')
 
 
 def _PrintSeparator(text):

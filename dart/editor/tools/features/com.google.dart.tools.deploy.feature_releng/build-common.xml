@@ -26,6 +26,7 @@
           set the osfamily, isWindows, and notWindows properties
          - - - - - - - - - - - - - - - - - -->
     <target name="setOS">
+        <property name="build.local.build" value="true" />
         <condition property="osfamily" value="win32">
             <os family="windows"/>
         </condition>
@@ -60,7 +61,23 @@
                 <isset property="build.os" />
             </and>
         </condition>
-        
+        <condition property="installSdkWindows">
+            <and>
+                <isset property="isWindows" />
+                <istrue value="${build.local.build}" />
+            </and>
+        </condition>
+        <condition property="installSdkNotWindows">
+            <and>
+                <isset property="isNotWindows" />
+                <istrue value="${build.local.build}" />
+            </and>
+        </condition>
+        <echo message="build.local.build    = ${build.local.build}" />
+        <echo message="isWindows            = ${isWindows}" />
+        <echo message="isNotWindows         = ${isNotWindows}" />
+        <echo message="installSdkNotWindows = ${installSdkNotWindows}" />
+        <echo message="installSdkWindows    = ${installSdkWindows}" />
     </target>
     
 
