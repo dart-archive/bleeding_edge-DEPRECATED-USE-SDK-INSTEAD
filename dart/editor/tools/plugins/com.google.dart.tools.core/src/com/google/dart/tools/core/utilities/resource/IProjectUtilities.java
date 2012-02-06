@@ -95,7 +95,11 @@ public final class IProjectUtilities {
    */
   private static boolean hasSimilarChild(IProject project, String fileName) {
     try {
-      for (IResource member : project.members()) {
+      IResource[] members = project.members();
+      if (members == null) {
+        return false;
+      }
+      for (IResource member : members) {
         if (member.getName().equalsIgnoreCase(fileName)) {
           return true;
         }
