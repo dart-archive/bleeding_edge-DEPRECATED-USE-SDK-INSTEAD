@@ -330,13 +330,13 @@ class HTTPParser {
         case State.BODY:
           // The body is not handled one byte at the time but in blocks.
           int dataAvailable = lastIndex - index;
-          List<int> data;
+          ByteArray data;
           if (dataAvailable <= _remainingContent) {
-            data = new List<int>(dataAvailable);
-            data.copyFrom(buffer, index, 0, dataAvailable);
+            data = new ByteArray(dataAvailable);
+            data.setRange(0, dataAvailable, buffer, index);
           } else {
-            data = new List<int>(_remainingContent);
-            data.copyFrom(buffer, index, 0, _remainingContent);
+            data = new ByteArray(_remainingContent);
+            data.setRange(0, _remainingContent, buffer, index);
           }
 
           if (dataReceived != null) dataReceived(data);
@@ -506,7 +506,7 @@ class UTF8Decoder {
 class UTF8Encoder {
   static List<int> encodeString(String string) {
     int size = _encodingSize(string);
-    List result = new List<int>(size);
+    ByteArray result = new ByteArray(size);
     _encodeString(string, result);
     return result;
   }
@@ -614,7 +614,7 @@ class HTTPRequestOrResponse {
     final List<int> hexDigits = [0x30, 0x31, 0x32, 0x33, 0x34,
                                   0x35, 0x36, 0x37, 0x38, 0x39,
                                   0x41, 0x42, 0x43, 0x44, 0x45, 0x46];
-    List<int> hex = new List<int>(10);
+    ByteArray hex = new ByteArray(10);
     int index = hex.length;
     while (x > 0) {
       index--;
@@ -889,7 +889,7 @@ class HTTPResponseImplementation
 class SendBuffer {
   SendBuffer(this._buffer, this._offset, this._count);
   SendBuffer.empty([int size = DEFAULT_SEND_BUFFER_SIZE]) {
-    _buffer = new List<int>(size);
+    _buffer = new ByteArray(size);
     _offset = 0;
     _count = 0;
   }
@@ -899,7 +899,7 @@ class SendBuffer {
   int _addData(List<int> data, int offset, int count) {
     int remaining = _buffer.length - _offset - _count;
     int copyCount = Math.min(remaining, count);
-    _buffer.copyFrom(data, offset, _count, copyCount);
+    _buffer.setRange(_count, copyCount, data, offset);
     _count += copyCount;
     return copyCount;
   }
@@ -1017,7 +1017,7 @@ class HTTPConnectionBase {
       return;
     }
 
-    List<int> buffer = new List<int>(BUFFER_SIZE);
+    ByteArray buffer = new ByteArray(BUFFER_SIZE);
     int bytesRead = _socket.readList(buffer, 0, BUFFER_SIZE);
     if (bytesRead > 0) {
       int parsed = _httpParser.writeList(buffer, 0, bytesRead);
