@@ -56,6 +56,7 @@ import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
+import java.io.File;
 import java.net.URI;
 
 /**
@@ -438,14 +439,17 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
             }
           } else {
             try {
+              String unitName = new File(new URI(libraryName).getPath()).getName();
               for (DartLibrary importedLibrary : library.getImportedLibraries()) {
-                CompilationUnit importedUnit = importedLibrary.getCompilationUnit(libraryName);
+                CompilationUnit importedUnit = importedLibrary.getCompilationUnit(unitName);
                 if (importedUnit != null && importedUnit.exists()) {
                   foundElement = importedUnit;
                   throw new DartElementFoundException();
                 }
               }
-            } catch (DartModelException exception) {
+            } catch (DartElementFoundException exception) {
+              throw exception;
+            } catch (Exception exception) {
               DartCore.logError("Cannot access libraries imported by " + library.getElementName(),
                   exception);
             }
