@@ -23,7 +23,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A WIP debugger domain object.
@@ -31,15 +34,67 @@ import java.util.List;
 public class WebkitDebugger extends WebkitDomain {
 
   public static interface DebuggerListener {
-    public void debuggerBreakpointResolved(String breakpointId, WebkitLocation location);
+    /**
+     * Fired when breakpoint is resolved to an actual script and location.
+     * 
+     * @param breakpoint
+     */
+    public void debuggerBreakpointResolved(WebkitBreakpoint breakpoint);
 
+    /**
+     * Called when global has been cleared and debugger client should reset its state. Happens upon
+     * navigation or reload.
+     */
     public void debuggerGlobalObjectCleared();
 
+    /**
+     * Fired when the virtual machine stopped on breakpoint or exception or any other stop criteria.
+     * 
+     * @param reason
+     * @param frames
+     * @param data
+     */
     public void debuggerPaused(PausedReasonType reason, List<WebkitFrame> frames, Object data);
 
+    /**
+     * Fired when the virtual machine resumed execution.
+     */
     public void debuggerResumed();
 
+    /**
+     * Fired when virtual machine parses script. This event is also fired for all known and
+     * uncollected scripts upon enabling debugger.
+     * 
+     * @param script
+     */
     public void debuggerScriptParsed(WebkitScript script);
+  }
+
+  public abstract static class DebuggerListenerAdapter implements DebuggerListener {
+    @Override
+    public void debuggerBreakpointResolved(WebkitBreakpoint breakpoint) {
+
+    }
+
+    @Override
+    public void debuggerGlobalObjectCleared() {
+
+    }
+
+    @Override
+    public void debuggerPaused(PausedReasonType reason, List<WebkitFrame> frames, Object data) {
+
+    }
+
+    @Override
+    public void debuggerResumed() {
+
+    }
+
+    @Override
+    public void debuggerScriptParsed(WebkitScript script) {
+
+    }
   }
 
   public static enum PausedReasonType {
@@ -57,6 +112,9 @@ public class WebkitDebugger extends WebkitDomain {
   private static final String DEBUGGER_SCRIPT_PARSED = "Debugger.scriptParsed";
 
   private List<DebuggerListener> listeners = new ArrayList<DebuggerListener>();
+
+  private Map<String, WebkitScript> scriptMap = new HashMap<String, WebkitScript>();
+  private Map<String, WebkitBreakpoint> breakpointMap = new HashMap<String, WebkitBreakpoint>();
 
   public WebkitDebugger(WebkitConnection connection) {
     super(connection);
@@ -81,6 +139,14 @@ public class WebkitDebugger extends WebkitDomain {
     sendSimpleCommand("Debugger.enable");
   }
 
+  public Collection<WebkitBreakpoint> getAllBreakpoints() {
+    return breakpointMap.values();
+  }
+
+  public Collection<WebkitScript> getAllScripts() {
+    return scriptMap.values();
+  }
+
   public void pause() throws IOException {
     sendSimpleCommand("Debugger.pause");
   }
@@ -93,6 +159,8 @@ public class WebkitDebugger extends WebkitDomain {
       request.put("params", new JSONObject().put("breakpointId", breakpointId));
 
       connection.sendRequest(request);
+
+      breakpointMap.remove(breakpointId);
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
@@ -189,21 +257,24 @@ public class WebkitDebugger extends WebkitDomain {
         listener.debuggerResumed();
       }
     } else if (method.equals(DEBUGGER_GLOBAL_OBJECT_CLEARED)) {
+      clearGlobalObjects();
+
       for (DebuggerListener listener : listeners) {
         listener.debuggerGlobalObjectCleared();
       }
     } else if (method.equals(DEBUGGER_SCRIPT_PARSED)) {
       WebkitScript script = WebkitScript.createFrom(params);
 
+      scriptMap.put(script.getScriptId(), script);
+
       for (DebuggerListener listener : listeners) {
         listener.debuggerScriptParsed(script);
       }
     } else if (method.equals(DEBUGGER_BREAKPOINT_RESOLVED)) {
-      String breakpointId = params.getString("breakpointId");
-      WebkitLocation location = WebkitLocation.createFrom(params.getJSONObject("location"));
+      WebkitBreakpoint breakpoint = WebkitBreakpoint.createFrom(params);
 
       for (DebuggerListener listener : listeners) {
-        listener.debuggerBreakpointResolved(breakpointId, location);
+        listener.debuggerBreakpointResolved(breakpoint);
       }
     } else if (method.equals(DEBUGGER_PAUSED)) {
       PausedReasonType reason = PausedReasonType.valueOf(params.getString("reason"));
@@ -224,6 +295,11 @@ public class WebkitDebugger extends WebkitDomain {
     }
   }
 
+  private void clearGlobalObjects() {
+    breakpointMap.clear();
+    scriptMap.clear();
+  }
+
   private WebkitResult convertSetBreakpointResult(JSONObject object) throws JSONException {
     WebkitResult result = new WebkitResult();
 
@@ -234,6 +310,8 @@ public class WebkitDebugger extends WebkitDomain {
     if (object.has("result")) {
       // breakpointId
       // actualLocation
+
+      // TODO(devoncarew): test if we get another notification through the debuggerBreakpointResolved event
 
       JSONObject obj = object.getJSONObject("result");
 

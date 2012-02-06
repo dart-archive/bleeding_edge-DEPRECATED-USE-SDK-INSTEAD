@@ -242,8 +242,8 @@ public class DartLaunchConfigWrapper {
     List<String> args = new ArrayList<String>();
 
     if (getCheckedMode()) {
-      args.add("--enable-type-checks");
       args.add("--enable_asserts");
+      args.add("--enable-type-checks");
     }
 
     try {

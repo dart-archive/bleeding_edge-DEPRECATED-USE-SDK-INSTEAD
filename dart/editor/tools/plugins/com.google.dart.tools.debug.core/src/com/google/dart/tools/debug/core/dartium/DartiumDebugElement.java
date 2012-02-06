@@ -26,13 +26,12 @@ import org.eclipse.debug.core.model.IDebugTarget;
 public abstract class DartiumDebugElement extends DebugElement {
 
   /**
-   * Create a new dartium debug element
+   * Create a new Dartium debug element.
    * 
    * @param target
    */
   public DartiumDebugElement(IDebugTarget target) {
     super(target);
-
   }
 
   @Override
@@ -46,4 +45,5 @@ public abstract class DartiumDebugElement extends DebugElement {
   protected DartiumDebugTarget getTarget() {
     return (DartiumDebugTarget) getDebugTarget();
   }
+
 }

@@ -74,7 +74,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     Group group = new Group(composite, SWT.NONE);
     group.setText("Application:");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().numColumns(3).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(3).extendedMargins(0, 0, 0, 4).applyTo(group);
 
     Label label = new Label(group, SWT.NONE);
     label.setText("Dart script:");
@@ -113,7 +113,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     group = new Group(composite, SWT.NONE);
     group.setText("VM settings:");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
-    GridLayoutFactory.swtDefaults().numColumns(2).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(2).extendedMargins(0, 0, 0, 4).applyTo(group);
 
     checkedModeButton = new Button(group, SWT.CHECK);
     checkedModeButton.setText("Run in checked mode");

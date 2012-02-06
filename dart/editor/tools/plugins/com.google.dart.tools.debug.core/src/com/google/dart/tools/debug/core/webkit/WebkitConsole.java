@@ -30,10 +30,24 @@ import java.util.List;
 public class WebkitConsole extends WebkitDomain {
 
   public static interface ConsoleListener {
+    /**
+     * Issued when new console message is added.
+     * 
+     * @param message
+     */
     public void messageAdded(String message);
 
+    /**
+     * Issued when subsequent message(s) are equal to the previous one(s).
+     * 
+     * @param count new repeat count value
+     */
     public void messageRepeatCountUpdated(int count);
 
+    /**
+     * Issued when console is cleared. This happens either upon clearMessages command or after page
+     * navigation.
+     */
     public void messagesCleared();
   }
 
@@ -49,7 +63,7 @@ public class WebkitConsole extends WebkitDomain {
     connection.registerNotificationHandler("Console.", new NotificationHandler() {
       @Override
       public void handleNotification(String method, JSONObject params) throws JSONException {
-        handlePageNotification(method, params);
+        handleConsoleNotification(method, params);
       }
     });
   }
@@ -66,15 +80,11 @@ public class WebkitConsole extends WebkitDomain {
     sendSimpleCommand("Console.enable");
   }
 
-  public void reload() throws IOException {
-    sendSimpleCommand("Console.reload");
-  }
-
   public void removeConsoleListener(ConsoleListener listener) {
     listeners.remove(listener);
   }
 
-  protected void handlePageNotification(String method, JSONObject params) throws JSONException {
+  protected void handleConsoleNotification(String method, JSONObject params) throws JSONException {
     if (method.equals(MESSAGE_ADDED)) {
       JSONObject message = params.getJSONObject("message");
 

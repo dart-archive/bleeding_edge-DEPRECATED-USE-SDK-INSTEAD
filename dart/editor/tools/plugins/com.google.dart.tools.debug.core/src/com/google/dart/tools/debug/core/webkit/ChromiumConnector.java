@@ -32,6 +32,7 @@ import java.util.List;
  * Retrieve webkit inspection protocol debugging information from a Chronium instance.
  */
 public class ChromiumConnector {
+  public static final String LOCALHOST_ADDRESS = "127.0.0.1";
 
   /**
    * Return the list of open tabs for this browser.
@@ -83,7 +84,7 @@ public class ChromiumConnector {
 //  } ]
 
     if (host == null) {
-      host = "localhost";
+      host = LOCALHOST_ADDRESS;
     }
 
     URL chromiumUrl = new URL("http", host, port, "/json");
@@ -139,7 +140,7 @@ public class ChromiumConnector {
    */
   public static String getWebSocketURLFor(String host, int port, int tab) {
     if (host == null) {
-      host = "localhost";
+      host = LOCALHOST_ADDRESS;
     }
 
     return "ws://" + host + ":" + port + "/devtools/page/" + tab;

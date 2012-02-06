@@ -26,13 +26,13 @@ import org.eclipse.debug.core.model.IVariable;
  * represents a Dart frame.
  */
 public class DartiumDebugStackFrame extends DartiumDebugElement implements IStackFrame {
-
   private IThread thread;
   private DartiumDebugStackFrame parentFrame;
 
   public DartiumDebugStackFrame(IDebugTarget target, IThread thread,
       DartiumDebugStackFrame parentFrame) {
     super(target);
+
     this.parentFrame = parentFrame;
     this.thread = thread;
   }
@@ -65,11 +65,6 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   @Override
   public boolean canTerminate() {
     return getThread().canTerminate();
-  }
-
-  @Override
-  public Object getAdapter(Class adapter) {
-    return null;
   }
 
   @Override
@@ -155,7 +150,6 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   @Override
   public void stepOver() throws DebugException {
     getThread().stepOver();
-
   }
 
   @Override
@@ -166,13 +160,11 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   @Override
   public void suspend() throws DebugException {
     getThread().suspend();
-
   }
 
   @Override
   public void terminate() throws DebugException {
     getThread().terminate();
-
   }
 
 }

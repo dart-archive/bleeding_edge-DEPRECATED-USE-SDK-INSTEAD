@@ -55,12 +55,6 @@ public class DartDebugCorePlugin extends Plugin {
    */
   public static final boolean LOGGING = Boolean.getBoolean("dart.debug.logging");
 
-  /**
-   * If true, causes the Debug plugin to log connection events to the Eclipse .log. This is very
-   * verbose. Start the vm with -Ddart.debug.logging.connection=true.
-   */
-  public static final boolean CONNECTION_LOGGING = Boolean.getBoolean("dart.debug.logging.connection");
-
   public static final String BROWSER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.browserLaunchConfig";
 
   public static final String REMOTE_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.remoteLaunchConfig";
@@ -102,7 +96,7 @@ public class DartDebugCorePlugin extends Plugin {
    * For use during development - this method listens to and logs all Eclipse debugger events.
    */
   public static void logDebuggerEvents() {
-    if (debugEventListener != null) {
+    if (debugEventListener == null) {
       debugEventListener = new IDebugEventSetListener() {
         @Override
         public void handleDebugEvents(DebugEvent[] events) {

@@ -17,6 +17,10 @@ import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.configs.DartiumLaunchConfigurationDelegate;
+import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
+import com.google.dart.tools.debug.core.webkit.ChromiumConnector;
+import com.google.dart.tools.debug.core.webkit.ChromiumTabInfo;
+import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -40,7 +44,6 @@ import java.util.Map;
  * A manager that launches and manages configured browsers.
  */
 public class BrowserManager {
-
   private static final int PORT_NUMBER = 9222;
 
   private static BrowserManager manager = new BrowserManager();
@@ -64,7 +67,11 @@ public class BrowserManager {
    */
   public void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, String url,
       IProgressMonitor monitor, boolean debug) throws CoreException {
-    monitor.beginTask("Launching Chromium...", debug ? 9 : 3);
+
+    // TODO(devoncarew): remove this - disables the debug launch + WIP connection code
+    debug = false;
+
+    monitor.beginTask("Launching Chromium...", debug ? 7 : 3);
 
     File dartium = DartSdk.getInstance().getDartiumExecutable();
 
@@ -91,15 +98,15 @@ public class BrowserManager {
       }
     }
 
-    Process process = null;
+    Process javaProcess = null;
     monitor.worked(1);
 
     ProcessBuilder builder = new ProcessBuilder();
     Map<String, String> env = builder.environment();
-    // due to differences in 32bit and 64 bit environments, dartium 32bit launch does not work on linux with 
-    // this property
+    // Due to differences in 32bit and 64 bit environments, dartium 32bit launch does not work on
+    // linux with this property.
     env.remove("LD_LIBRARY_PATH");
-    // add env var DART_FLAGS="--enable_asserts --enable_type_checks" if set
+    // Add environment variable DART_FLAGS="--enable_asserts --enable_type_checks".
     if (launchConfig.getCheckedMode()) {
       env.put("DART_FLAGS", "--enable_asserts --enable_type_checks");
     }
@@ -109,23 +116,25 @@ public class BrowserManager {
     builder.directory(new File(DartSdk.getInstance().getDartiumWorkingDirectory()));
 
     try {
-      process = builder.start();
+      javaProcess = builder.start();
     } catch (IOException e) {
 
       DebugPlugin.logMessage("Exception while starting browser", e);
     }
 
-    if (process == null) {
+    if (javaProcess == null) {
       throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
           "Could not launch browser"));
     }
 
-    browserProcesses.put(browserName, process);
+    browserProcesses.put(browserName, javaProcess);
 
-    readFromProcessPipes(browserName, process.getInputStream());
-    readFromProcessPipes(browserName, process.getErrorStream());
+    readFromProcessPipes(browserName, javaProcess.getInputStream());
+    readFromProcessPipes(browserName, javaProcess.getErrorStream());
 
     timer.endTimer();
+
+    timer = new LogTimer("chromium startup delay");
 
     monitor.worked(1);
 
@@ -135,20 +144,61 @@ public class BrowserManager {
 
     monitor.worked(1);
 
-    if (processTerminated(process)) {
+    if (processTerminated(javaProcess)) {
       throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
           "Could not launch browser"));
     }
 
-//    if (debug) {
-//      connectToChromiumDebug(browserName, launch, launchConfig, monitor);
-//    } else {
-    // If we don't do this, the launch configurations will keep accumulating in the UI. This was
-    // not a problem when we wrapped the runtime process with an IProcess.
-    DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
-//    }
+    timer.endTimer();
+
+    if (debug) {
+      connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, javaProcess);
+    } else {
+      // If we don't do this, the launch configurations will keep accumulating in the UI. This was
+      // not a problem when we wrapped the runtime process with an IProcess.
+      DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
+    }
 
     monitor.done();
+  }
+
+  protected void connectToChromiumDebug(String browserName, ILaunch launch,
+      DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
+      Process javaProcess) throws CoreException {
+    monitor.worked(1);
+
+    try {
+      LogTimer timer = new LogTimer("get chromium tabs");
+
+      List<ChromiumTabInfo> tabs = getChromiumTabs();
+
+      monitor.worked(2);
+
+      timer.endTimer();
+
+      timer = new LogTimer("open WIP connection");
+
+      WebkitConnection connection = new WebkitConnection(tabs.get(0).getWebSocketDebuggerUrl());
+
+      DartiumDebugTarget debugTarget = new DartiumDebugTarget(browserName, connection, launch,
+          javaProcess);
+
+      monitor.worked(1);
+
+      launch.addDebugTarget(debugTarget);
+      launch.addProcess(debugTarget.getProcess());
+
+      debugTarget.openConnection(url);
+
+      timer.endTimer();
+    } catch (IOException e) {
+      DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
+
+      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+          e.toString(), e));
+    }
+
+    monitor.worked(1);
   }
 
   private List<String> buildArgumentsList(IPath browserLocation, String url, boolean debug) {
@@ -157,6 +207,7 @@ public class BrowserManager {
     arguments.add(browserLocation.toOSString());
 
     if (debug) {
+      // Enable remote debug over HTTP on the specified port.
       arguments.add("--remote-debugging-port=" + PORT_NUMBER);
     }
 
@@ -169,6 +220,14 @@ public class BrowserManager {
     // completely disable extensions, sync and bookmarks.
     arguments.add("--bwsi");
 
+    // On ChromeOS, file:// access is disabled except for certain whitelisted directories. This
+    // switch re-enables file:// for testing.
+    //arguments.add("--allow-file-access");
+
+    // By default, file:// URIs cannot read other file:// URIs. This is an override for developers
+    // who need the old behavior for testing
+    //arguments.add("--allow-file-access-from-files");
+
     // Whether or not it's actually the first run.
     arguments.add("--no-first-run");
 
@@ -178,105 +237,15 @@ public class BrowserManager {
     // Bypass the error dialog when the profile lock couldn't be attained.
     arguments.add("--no-process-singleton-dialog");
 
-    arguments.add(url);
+    if (debug) {
+      // Start up with a blank page.
+      arguments.add("--homepage=about:blank");
+    } else {
+      arguments.add(url);
+    }
 
     return arguments;
   }
-
-//  private void connectToChromiumDebug(String browserName, ILaunch launch,
-//      DartLaunchConfigWrapper launchConfig, IProgressMonitor monitor) throws CoreException {
-//    LogTimer timer = new LogTimer("debug connection");
-//
-//    SocketAddress address = new InetSocketAddress(launchConfig.getConnectionHost(), PORT_NUMBER);
-//
-//    //ConsolePseudoProcess.Retransmitter consoleRetransmitter = new ConsolePseudoProcess.Retransmitter();
-//
-//    final Browser browser = BrowserFactory.getInstance().create(address,
-//        new ConnectionLogger.Factory() {
-//          @Override
-//          public ConnectionLogger newConnectionLogger() {
-//            return null;
-//          }
-//        });
-//
-//    monitor.worked(1);
-//
-//    // wait to see if browser is up
-//    TabFetcher tabFetcher = null;
-//    try {
-//      int retry = 40;
-//
-//      while (retry > 0) {
-//        try {
-//          sleep(100);
-//          tabFetcher = browser.createTabFetcher();
-//          break;
-//        } catch (Exception e) {
-//          retry--;
-//        }
-//      }
-//
-//      if (tabFetcher == null) {
-//        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-//            "Could not connect to Browser"));
-//      }
-//
-//      timer.endTimer();
-//
-//      monitor.worked(1);
-//
-//      // TODO(devoncarew): we need to determine how to make this go away 
-//      sleep(3000);
-//
-//      monitor.worked(1);
-//
-//      List<? extends TabConnector> tabs = tabFetcher.getTabs();
-//
-//      Browser.TabConnector tabConnector;
-//
-//      if (tabs.size() == 0) {
-//        tabConnector = null;
-//      } else if (tabs.size() == 1) {
-//        tabConnector = tabs.get(0);
-//      } else {
-//        tabConnector = selectTab(tabs);
-//      }
-//
-//      monitor.worked(1);
-//
-//      if (tabConnector != null) {
-//        timer = new LogTimer("tab attach");
-//
-//        ChromeDebugTarget debugTarget = new ChromeDebugTarget(browserName, launch);
-//
-//        BrowserTab browserTab = tabConnector.attach(debugTarget);
-//
-//        monitor.worked(1);
-//
-//        debugTarget.setBrowserTab(browserTab);
-//
-//        launch.addDebugTarget(debugTarget);
-//        debugTarget.connected();
-//
-////        ConsolePseudoProcess consolePseudoProcess = new ConsolePseudoProcess(launch, title,
-////            consoleRetransmitter, debugTarget);
-////
-////        debugTarget.setProcess(consolePseudoProcess);
-////
-////        consoleRetransmitter.startFlushing();
-//
-//        timer.endTimer();
-//
-//        monitor.worked(1);
-//      }
-//    } catch (IOException e) {
-//      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-//          e.getMessage(), e));
-//    } catch (IllegalStateException e) {
-//      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-//          e.getMessage(), e));
-//    }
-//  }
 
   /**
    * This method creates a Chrome settings directory. Specifically, it creates a 'First Run' file
@@ -316,6 +285,27 @@ public class BrowserManager {
 
     } catch (IOException ioe) {
       DartDebugCorePlugin.logError(ioe);
+    }
+  }
+
+  private List<ChromiumTabInfo> getChromiumTabs() throws IOException {
+    // Give Chromium 5 seconds to start up.
+    final int maxFailureCount = 50;
+
+    int failureCount = 0;
+
+    while (true) {
+      try {
+        return ChromiumConnector.getAvailableTabs(PORT_NUMBER);
+      } catch (IOException exception) {
+        failureCount++;
+
+        if (failureCount >= maxFailureCount) {
+          throw exception;
+        } else {
+          sleep(100);
+        }
+      }
     }
   }
 
@@ -376,24 +366,6 @@ public class BrowserManager {
 
     thread.start();
   }
-
-//  private TabConnector selectTab(List<? extends TabConnector> tabs) throws IOException {
-//    List<String> tabUrls = new ArrayList<String>();
-//
-//    for (TabConnector tab : tabs) {
-//      tabUrls.add(tab.getUrl());
-//    }
-//
-//    DebugUIHelper tabChooser = DebugUIHelperFactory.getDebugUIHelper();
-//
-//    int index = tabChooser.select(tabUrls);
-//
-//    if (index == -1) {
-//      return null;
-//    } else {
-//      return tabs.get(index);
-//    }
-//  }
 
   private void sleep(int millis) {
     try {

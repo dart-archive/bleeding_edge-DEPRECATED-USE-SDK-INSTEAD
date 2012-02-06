@@ -76,6 +76,10 @@ public class FeedbackReport {
 
     msg.append("SDK installed = " + DartSdk.isInstalled() + "\n");
 
+    if (DartSdk.isInstalled()) {
+      msg.append("Dartium installed = " + DartSdk.getInstance().isDartiumInstalled() + "\n");
+    }
+
     boolean useFrog = DartCore.getPlugin().getPrefs().getBoolean(DartCore.FROG_COMPILE, false);
     msg.append("compile with frog = " + useFrog + "\n");
 

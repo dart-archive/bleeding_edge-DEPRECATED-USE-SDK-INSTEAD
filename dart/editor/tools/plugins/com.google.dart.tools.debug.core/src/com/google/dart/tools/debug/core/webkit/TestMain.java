@@ -26,6 +26,9 @@ import java.util.List;
 
 // TODO(devoncarew): refactor this class into unit tests
 
+/**
+ * ./Chromium.app/Contents/MacOS/Chromium --remote-debugging-port=3030 --homepage=about:blank
+ */
 class TestMain {
 
   /**
@@ -44,12 +47,8 @@ class TestMain {
 
     List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(port);
 
-    for (ChromiumTabInfo tab : tabs) {
-      System.out.println(tab);
-    }
-
-    WebkitConnection connection = new WebkitConnection(
-        ChromiumConnector.getWebSocketURLFor(port, 1));
+    //ChromiumConnector.getWebSocketURLFor(port, 1);
+    WebkitConnection connection = new WebkitConnection(tabs.get(0).getWebSocketDebuggerUrl());
 
     connection.addConnectionListener(new WebkitConnectionListener() {
       @Override
@@ -86,8 +85,8 @@ class TestMain {
     // add a debugger listener
     connection.getDebugger().addDebuggerListener(new DebuggerListener() {
       @Override
-      public void debuggerBreakpointResolved(String breakpointId, WebkitLocation location) {
-        System.out.println("debuggerBreakpointResolved: " + breakpointId + "," + location);
+      public void debuggerBreakpointResolved(WebkitBreakpoint breakpoint) {
+        System.out.println("debuggerBreakpointResolved: " + breakpoint);
       }
 
       @Override

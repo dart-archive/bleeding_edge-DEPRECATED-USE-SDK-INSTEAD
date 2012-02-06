@@ -22,7 +22,6 @@ import org.eclipse.debug.core.model.IVariable;
  * The IValue implementation of Dartium Debug element
  */
 public class DartiumDebugValue extends DartiumDebugElement implements IValue {
-
   private IVariable[] variables;
 
   /**

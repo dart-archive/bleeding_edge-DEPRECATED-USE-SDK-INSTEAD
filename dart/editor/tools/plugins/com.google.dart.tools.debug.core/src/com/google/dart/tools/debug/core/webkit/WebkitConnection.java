@@ -35,6 +35,38 @@ import java.util.Map;
 /**
  * A class to connect to and communicate with a Webkit Inspection Protocol server.
  * 
+ * <pre>
+    WebkitConnection connection = new WebkitConnection(ChromiumConnector.getWebSocketURLFor(port, 1));
+
+    connection.addConnectionListener(new WebkitConnectionListener() {
+      @Override
+      public void connectionClosed(WebkitConnection connection) {
+        System.out.println("connection closed");
+      }
+    });
+
+    connection.connect();
+
+    // add a console listener
+    connection.getConsole().addConsoleListener(new ConsoleListener() {
+      public void messageAdded(String message) {
+        System.out.println("message added: " + message);
+      }
+      public void messageRepeatCountUpdated(int count) {
+
+      }
+      public void messagesCleared() {
+        System.out.println("messages cleared");
+      }
+    });
+
+    // enable console events
+    connection.getConsole().enable();
+
+    // navigate to cheese.com
+    connection.getPage().navigate("http://www.cheese.com");
+</pre>
+ * 
  * @see http://code.google.com/chrome/devtools/docs/protocol/tot/index.html
  */
 public class WebkitConnection {
@@ -207,6 +239,10 @@ public class WebkitConnection {
   }
 
   private void processNotification(JSONObject object) throws JSONException {
+    // TODO: "Profiler.resetProfiles"
+    // TODO: "CSS.mediaQueryResultChanged"
+    final String[] ignoreDomains = {"Profiler.", "CSS."};
+
     if (object.has("method")) {
       String method = object.getString("method");
 
@@ -220,6 +256,12 @@ public class WebkitConnection {
             handler.handleNotification(method, null);
           }
 
+          return;
+        }
+      }
+
+      for (String prefix : ignoreDomains) {
+        if (method.startsWith(prefix)) {
           return;
         }
       }

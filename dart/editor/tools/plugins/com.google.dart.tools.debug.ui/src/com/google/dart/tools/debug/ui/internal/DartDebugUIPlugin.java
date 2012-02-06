@@ -1,27 +1,21 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.debug.ui.internal;
 
 import com.google.dart.tools.debug.ui.internal.view.DebuggerViewManager;
 
-import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugPlugin;
-import org.eclipse.debug.core.IDebugEventSetListener;
-import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -34,13 +28,6 @@ import java.util.Map;
  * The activator class controls the plug-in life cycle
  */
 public class DartDebugUIPlugin extends AbstractUIPlugin {
-
-  private static IDebugEventSetListener debugEventListener = new IDebugEventSetListener() {
-    @Override
-    public void handleDebugEvents(DebugEvent[] events) {
-      removeTerminatedLaunches(events);
-    }
-  };
 
   /**
    * The Dart Debug UI plug-in ID
@@ -63,15 +50,6 @@ public class DartDebugUIPlugin extends AbstractUIPlugin {
 
   public static ImageDescriptor getImageDescriptor(String path) {
     return imageDescriptorFromPlugin(PLUGIN_ID, "icons/" + path);
-  }
-
-  private static void removeTerminatedLaunches(DebugEvent[] events) {
-    for (DebugEvent event : events) {
-      if (event.getKind() == DebugEvent.TERMINATE && event.getSource() instanceof IDebugTarget) {
-        ILaunch launch = ((IDebugTarget) event.getSource()).getLaunch();
-        DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
-      }
-    }
   }
 
   private Map<String, Image> imageMap;
@@ -112,7 +90,6 @@ public class DartDebugUIPlugin extends AbstractUIPlugin {
     super.start(context);
 
     DebugPlugin.getDefault().getLaunchManager().addLaunchListener(DebuggerViewManager.getDefault());
-    DebugPlugin.getDefault().addDebugEventListener(debugEventListener);
   }
 
   /**
@@ -120,7 +97,6 @@ public class DartDebugUIPlugin extends AbstractUIPlugin {
    */
   @Override
   public void stop(BundleContext context) throws Exception {
-    DebugPlugin.getDefault().removeDebugEventListener(debugEventListener);
     DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(
         DebuggerViewManager.getDefault());
 

@@ -27,156 +27,11 @@ import org.eclipse.debug.core.model.IThread;
  */
 public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
-  /**
-   * The thread state implementation for when the VM is running.
-   */
-  private class RunningThreadState implements ThreadState {
-
-    RunningThreadState() {
-    }
-
-    @Override
-    public boolean canStep() {
-      return false;
-    }
-
-    @Override
-    public boolean canSuspend() {
-      return true;
-    }
-
-    @Override
-    public void dismiss() {
-    }
-
-    @Override
-    public IBreakpoint[] getBreakpoints() {
-      return EMPTY_BREAKPOINTS;
-    }
-
-    @Override
-    public IStackFrame[] getStackFrames() {
-      return EMPTY_FRAMES;
-    }
-
-    @Override
-    public boolean isStepping() {
-      return false;
-    }
-
-    @Override
-    public boolean isSuspended() {
-      return false;
-    }
-
-    @Override
-    public void resume() {
-      // Ignore.
-    }
-
-//    @Override
-//    public void step(StepAction stepAction, int resumeReason) {
-//      // Ignore.
-//    }
-
-    @Override
-    public void suspend() {
-
-    }
-  }
-
-  /**
-   * The thread state implementation for when the VM is suspended.
-   */
-  private class SuspendedThreadState implements ThreadState {
-
-    private DartiumDebugStackFrame[] stackFrames;
-
-    public SuspendedThreadState() {
-    }
-
-    @Override
-    public boolean canStep() {
-      return true;
-    }
-
-    @Override
-    public boolean canSuspend() {
-      return false;
-    }
-
-    @Override
-    public void dismiss() {
-
-    }
-
-    @Override
-    public IBreakpoint[] getBreakpoints() {
-      return null;
-    }
-
-    @Override
-    public IStackFrame[] getStackFrames() {
-      return null;
-    }
-
-    @Override
-    public boolean isStepping() {
-      return false;
-    }
-
-    @Override
-    public boolean isSuspended() {
-      return true;
-    }
-
-    @Override
-    public void resume() {
-
-    }
-
-//    @Override
-//    public void step(StepAction stepAction, int resumeReason) {
-//
-//    }
-
-    @Override
-    public void suspend() {
-      // do nothing
-
-    }
-
-  }
-
-  private static interface ThreadState {
-    boolean canStep();
-
-    boolean canSuspend();
-
-    void dismiss();
-
-    IBreakpoint[] getBreakpoints();
-
-    IStackFrame[] getStackFrames();
-
-    boolean isStepping();
-
-    boolean isSuspended();
-
-    void resume();
-
-//    void step(StepAction stepAction, int resumeReason);
-
-    void suspend();
-  }
-
   private static final IBreakpoint[] EMPTY_BREAKPOINTS = new IBreakpoint[0];
 
   private static final IStackFrame[] EMPTY_FRAMES = new IStackFrame[0];
 
   private int expectedSuspendReason = DebugEvent.UNSPECIFIED;
-
-  private ThreadState threadState = new RunningThreadState();
 
   private IBreakpoint[] suspendBreakpoints = EMPTY_BREAKPOINTS;
 
@@ -185,7 +40,6 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
    */
   public DartiumDebugThread(IDebugTarget target) {
     super(target);
-
   }
 
   @Override
@@ -195,22 +49,23 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public boolean canStepInto() {
-    return threadState.canStep();
+    return isSuspended();
   }
 
   @Override
   public boolean canStepOver() {
-    return threadState.canStep();
+    return isSuspended();
   }
 
   @Override
   public boolean canStepReturn() {
-    return threadState.canStep();
+    // stepOut
+    return isSuspended();
   }
 
   @Override
   public boolean canSuspend() {
-    return !isDisconnected() && threadState.canSuspend();
+    return !isTerminated() && !isSuspended();
   }
 
   @Override
@@ -220,7 +75,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public IBreakpoint[] getBreakpoints() {
-    return threadState.getBreakpoints();
+    throw new NotYetImplementedException();
   }
 
   @Override
@@ -235,7 +90,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public IStackFrame[] getStackFrames() throws DebugException {
-    return threadState.getStackFrames();
+    throw new NotYetImplementedException();
   }
 
   @Override
@@ -250,12 +105,14 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public boolean isStepping() {
-    return threadState.isStepping();
+    throw new NotYetImplementedException();
   }
 
   @Override
   public boolean isSuspended() {
-    return !isDisconnected() && threadState.isSuspended();
+    // TODO(devoncarew): implement
+
+    return false;
   }
 
   @Override
@@ -265,7 +122,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public void resume() throws DebugException {
-    threadState.resume();
+    throw new NotYetImplementedException();
   }
 
   @Override
@@ -285,7 +142,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public void suspend() throws DebugException {
-    threadState.suspend();
+    throw new NotYetImplementedException();
   }
 
   @Override
@@ -294,12 +151,14 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
   }
 
   protected void suspended() {
-    if (threadState.isSuspended()) {
-      throw new IllegalStateException("Already in suspended state");
-    }
-    threadState = new SuspendedThreadState();
-    int suspendedDetail = DebugEvent.UNSPECIFIED;
-    fireSuspendEvent(suspendedDetail);
+    throw new NotYetImplementedException();
+
+//    if (threadState.isSuspended()) {
+//      throw new IllegalStateException("Already in suspended state");
+//    }
+//    threadState = new SuspendedThreadState();
+//    int suspendedDetail = DebugEvent.UNSPECIFIED;
+//    fireSuspendEvent(suspendedDetail);
   }
 
   private boolean isDisconnected() {

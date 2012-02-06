@@ -102,6 +102,8 @@ public class BrowserMainTab extends DartiumMainTab {
 
     Label browserLabel = new Label(browserGroup, SWT.NONE);
     browserLabel.setText(Messages.BrowserMainTab_Browser);
+    GridDataFactory.swtDefaults().hint(getLabelColumnWidth(), -1).applyTo(browserLabel);
+
     browserText = new Label(browserGroup, SWT.NONE);
     browserText.setBackground(composite.getDisplay().getSystemColor(SWT.COLOR_WHITE));
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(browserText);

@@ -15,6 +15,11 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.webkit.WebkitConnection;
+import com.google.dart.tools.debug.core.webkit.WebkitConnection.WebkitConnectionListener;
+import com.google.dart.tools.debug.core.webkit.WebkitDebugger.DebuggerListenerAdapter;
+import com.google.dart.tools.debug.core.webkit.WebkitPage.PageListenerAdapter;
+import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.debug.core.DebugException;
@@ -23,26 +28,36 @@ import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.debug.core.model.IStreamMonitor;
 import org.eclipse.debug.core.model.IThread;
+
+import java.io.IOException;
 
 /**
  * The IDebugTarget implementation for the Dartium debug elements.
  */
 public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTarget {
-
   private String debugTargetName;
+  private WebkitConnection connection;
   private ILaunch launch;
-  private IProcess process;
+  private DartiumProcess process;
   private DartiumDebugThread debugThread;
+  private DartiumStreamMonitor outputStreamMonitor;
 
   /**
    * @param target
    */
-  public DartiumDebugTarget(String debugTargetName, ILaunch launch) {
+  public DartiumDebugTarget(String debugTargetName, WebkitConnection connection, ILaunch launch,
+      Process javaProcess) {
     super(null);
+
     this.debugTargetName = debugTargetName;
+    this.connection = connection;
     this.launch = launch;
+
     debugThread = new DartiumDebugThread(this);
+    process = new DartiumProcess(this, javaProcess);
+    outputStreamMonitor = new DartiumStreamMonitor();
   }
 
   @Override
@@ -67,24 +82,29 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   @Override
   public boolean canResume() {
-    return debugThread.canResume();
+    return debugThread == null ? false : debugThread.canResume();
   }
 
   @Override
   public boolean canSuspend() {
-    return debugThread.canSuspend();
+    return debugThread == null ? false : debugThread.canSuspend();
   }
 
   @Override
   public boolean canTerminate() {
-    throw new NotYetImplementedException();
-//    return false;
+    return connection.isConnected();
   }
 
   @Override
   public void disconnect() throws DebugException {
-    throw new NotYetImplementedException();
+    throw new UnsupportedOperationException("disconnect is not supported");
+  }
 
+  @Override
+  public void fireTerminateEvent() {
+    debugThread = null;
+
+    super.fireTerminateEvent();
   }
 
   @Override
@@ -103,7 +123,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   }
 
   @Override
-  public String getName() throws DebugException {
+  public String getName() {
     return debugTargetName;
   }
 
@@ -114,7 +134,11 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   @Override
   public IThread[] getThreads() throws DebugException {
-    return new IThread[] {debugThread};
+    if (debugThread != null) {
+      return new IThread[] {debugThread};
+    } else {
+      return new IThread[0];
+    }
   }
 
   @Override
@@ -129,21 +153,57 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   @Override
   public boolean isSuspended() {
-    return debugThread.isSuspended();
+    return debugThread == null ? false : debugThread.isSuspended();
   }
 
   @Override
   public boolean isTerminated() {
-    return false;
+    return process.isTerminated();
+  }
+
+  public void openConnection(String url) throws IOException {
+    connection.addConnectionListener(new WebkitConnectionListener() {
+      @Override
+      public void connectionClosed(WebkitConnection connection) {
+        fireTerminateEvent();
+      }
+    });
+
+    connection.connect();
+
+    connection.getConsole().addConsoleListener(outputStreamMonitor);
+    connection.getConsole().enable();
+
+    connection.getDebugger().addDebuggerListener(new DebuggerListenerAdapter() {
+      @Override
+      public void debuggerScriptParsed(WebkitScript script) {
+        if (script.getUrl().endsWith(".dart")) {
+          // TODO(devoncarew): remove this
+
+          //System.out.println(script);
+        }
+      }
+    });
+    connection.getDebugger().enable();
+
+    fireCreationEvent();
+    process.fireCreationEvent();
+
+    connection.getPage().addPageListener(new PageListenerAdapter() {
+      @Override
+      public void frameNavigated(String frameId, String url) {
+        // handle page navigated
+
+      }
+    });
+
+    connection.getPage().enable();
+    connection.getPage().navigate(url);
   }
 
   @Override
   public void resume() throws DebugException {
     debugThread.resume();
-  }
-
-  public void setProcess(IProcess process) {
-    this.process = process;
   }
 
   @Override
@@ -167,7 +227,11 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   @Override
   public void terminate() throws DebugException {
-    throw new NotYetImplementedException();
+    process.terminate();
+  }
+
+  IStreamMonitor getOutputStreamMonitor() {
+    return outputStreamMonitor;
   }
 
 }

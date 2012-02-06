@@ -326,6 +326,11 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     });
   }
 
+  protected int getLabelColumnWidth() {
+    htmlButton.pack();
+    return htmlButton.getSize().x;
+  }
+
   protected void handleApplicationBrowseButton() {
     IWorkspace workspace = ResourcesPlugin.getWorkspace();
     AppSelectionDialog dialog = new AppSelectionDialog(getShell(), workspace.getRoot(), false, true);
