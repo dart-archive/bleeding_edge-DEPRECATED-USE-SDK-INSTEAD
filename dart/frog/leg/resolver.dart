@@ -96,16 +96,7 @@ class ResolverTask extends CompilerTask {
   }
 
   FunctionParameters resolveSignature(FunctionElement element) {
-    return measure(() {
-      FunctionExpression node = element.parseNode(compiler);
-      SignatureResolverVisitor visitor =
-          new SignatureResolverVisitor(compiler, element);
-      visitor.visit(node);
-      return new FunctionParameters(visitor.parameters,
-                                    visitor.optionalParameters,
-                                    visitor.parameterCount,
-                                    visitor.optionalParameterCount);
-    });
+    return measure(() => SignatureResolver.analyze(this, element));
   }
 
   void checkClassHierarchy(Link<ClassElement> classes) {
@@ -978,7 +969,7 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   }
 }
 
-class SignatureResolverVisitor extends ResolverVisitor {
+class SignatureResolver extends ResolverVisitor {
   Link<Element> parameters = const EmptyLink<Element>();
   Link<Element> optionalParameters = const EmptyLink<Element>();
   int parameterCount = 0;
@@ -990,14 +981,8 @@ class SignatureResolverVisitor extends ResolverVisitor {
   // parameters, and 2 means we're visiting optional arguments.
   int visitorState = 0;
 
-  SignatureResolverVisitor(Compiler compiler, FunctionElement element)
+  SignatureResolver(Compiler compiler, FunctionElement element)
     : super(compiler, element);
-
-  Element visitFunctionExpression(FunctionExpression node) {
-    FunctionElement element = enclosingElement;
-    visit(node.parameters);
-    return element;
-  }
 
   Element visitNodeList(NodeList node) {
     if (visitorState > 1) {
@@ -1107,6 +1092,17 @@ class SignatureResolverVisitor extends ResolverVisitor {
 
   Element visitNode(Node node) {
     cancel(node, 'not implemented');
+  }
+
+  static FunctionParameters analyze(ResolverTask task,
+                                    FunctionElement element) {
+    FunctionExpression node = element.parseNode(task.compiler);
+    SignatureResolver visitor = new SignatureResolver(task.compiler, element);
+    node.parameters.accept(visitor);
+    return new FunctionParameters(visitor.parameters,
+                                  visitor.optionalParameters,
+                                  visitor.parameterCount,
+                                  visitor.optionalParameterCount);
   }
 }
 
