@@ -970,42 +970,22 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
 }
 
 class SignatureResolver extends ResolverVisitor {
-  Link<Element> parameters = const EmptyLink<Element>();
   Link<Element> optionalParameters = const EmptyLink<Element>();
-  int parameterCount = 0;
   int optionalParameterCount = 0;
   Node currentDefinitions;
-
-  // If [visitorState] is 0, it means that we haven't visited
-  // anything yet. 1 means that we're visiting positional
-  // parameters, and 2 means we're visiting optional arguments.
-  int visitorState = 0;
 
   SignatureResolver(Compiler compiler, FunctionElement element)
     : super(compiler, element);
 
   Element visitNodeList(NodeList node) {
-    if (visitorState > 1) {
-      cancel(node, 'internal error');
+    // This must be a list of optional arguments.
+    if (node.beginToken.stringValue !== '[') {
+      compiler.internalError("expected optional parameters", node: node);
     }
-    bool visitingOptionalParameters = visitorState == 1;
-    visitorState++;
-    LinkBuilder<Element> elements = new LinkBuilder<Element>();
-    int count = 0;
-    for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
-      Element element = visit(link.head);
-      if (element != null) {
-        count++;
-        elements.addLast(element);
-      }
-    }
-    if (visitingOptionalParameters) {
-      optionalParameters = elements.toLink();
-      optionalParameterCount = count;
-    } else {
-      parameters = elements.toLink();
-      parameterCount = count;
-    }
+    LinkBuilder<Element> elements = analyzeNodes(node.nodes);
+    optionalParameterCount = elements.length;
+    optionalParameters = elements.toLink();
+    return null;
   }
 
   Element visitVariableDefinitions(VariableDefinitions node) {
@@ -1094,14 +1074,33 @@ class SignatureResolver extends ResolverVisitor {
     cancel(node, 'not implemented');
   }
 
+  LinkBuilder<Element> analyzeNodes(Link<Node> link) {
+    LinkBuilder<Element> elements = new LinkBuilder<Element>();
+    for (; !link.isEmpty(); link = link.tail) {
+      Element element = visit(link.head);
+      if (element != null) {
+        elements.addLast(element);
+      } else {
+        // If parameter is null, the current node should be the last,
+        // and a list of optional named parameters.
+        if (!link.tail.isEmpty() || (link.head is !NodeList)) {
+          compiler.internalError("expected expected optional parameters",
+                                 node: link.head);
+        }
+      }
+    }
+    return elements;
+  }
+
   static FunctionParameters analyze(ResolverTask task,
                                     FunctionElement element) {
     FunctionExpression node = element.parseNode(task.compiler);
     SignatureResolver visitor = new SignatureResolver(task.compiler, element);
-    node.parameters.accept(visitor);
-    return new FunctionParameters(visitor.parameters,
+    Link<Node> nodes = node.parameters.nodes;
+    LinkBuilder<Element> parameters = visitor.analyzeNodes(nodes);
+    return new FunctionParameters(parameters.toLink(),
                                   visitor.optionalParameters,
-                                  visitor.parameterCount,
+                                  parameters.length,
                                   visitor.optionalParameterCount);
   }
 }

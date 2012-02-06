@@ -27,4 +27,6 @@ interface LinkBuilder<T> default LinkBuilderImplementation<T> {
 
   Link<T> toLink();
   void addLast(T t);
+
+  final int length;
 }

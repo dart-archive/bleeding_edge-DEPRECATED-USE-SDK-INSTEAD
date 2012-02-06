@@ -131,6 +131,7 @@ class LinkEntry<T> implements Link<T> {
 class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   LinkEntry<T> head = null;
   LinkEntry<T> lastLink = null;
+  int length = 0;
 
   LinkBuilderImplementation();
 
@@ -144,6 +145,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   }
 
   void addLast(T t) {
+    length++;
     LinkEntry<T> entry = new LinkEntry<T>(t, null);
     if (head === null) {
       head = entry;
