@@ -41,19 +41,9 @@ def GetBuildInfo():
       mode = pattern.group(3)
   return (name, mode, system)
 
-# TODO(sigmund): delete this convertion when test.py uses the same
-# configuration we do here.
-def ConvertConfiguration(arch, mode):
-  ''' Convert arch/mode into modes/flags for test.py '''
-  # TODO(ngeoffray): do something meaningful for debug.
-  testpy_mode = 'release'
-  flags = None
-  if mode == 'debug':
-    flags = ['--checked']
-  return (testpy_mode, flags)
 
 def TestStep(name, mode, system, component, targets, flags):
-  print '@@@BUILD_STEP %s tests: %s@@@' % (name, component)
+  print '@@@BUILD_STEP %s tests: %s %s@@@' % (name, component, flags)
   sys.stdout.flush()
   if (component == 'frogium' or component == 'webdriver') and system == 'linux':
     cmd = ['xvfb-run', '-a']
@@ -86,42 +76,54 @@ def TestStep(name, mode, system, component, targets, flags):
     print '@@@STEP_FAILURE@@@'
   return exit_code
 
-def TestFrog(arch, mode, system):
-  """ build and test frog.
+
+def BuildFrog(arch, mode, system):
+  """ build frog.
    Args:
-     - arch: either 'frog', 'frogsh' (frog self-hosted), or 'frogium'
-     - mode: either 'debug' (with type checks) or 'release' (without)
+     - arch: either 'leg', 'frog', 'frogsh' (frog self-hosted), or 'frogium'
+     - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'windows'
   """
 
   # Make sure we are in the frog directory
   os.chdir(FROG_PATH)
-  testpy_mode, flags = ConvertConfiguration(arch, mode)
 
   print '@@@BUILD_STEP build frog@@@'
-  if subprocess.call(
-      [sys.executable, '../tools/build.py', '--mode=' + testpy_mode],
-      env=NO_COLOR_ENV) != 0:
-    return 1
+  return subprocess.call(
+      [sys.executable, '../tools/build.py', '--mode=' + mode],
+      env=NO_COLOR_ENV)
+
+
+def TestFrog(arch, mode, system, flags):
+  """ test frog.
+   Args:
+     - arch: either 'leg', 'frog', 'frogsh' (frog self-hosted), or 'frogium'
+     - mode: either 'debug' or 'release'
+     - system: either 'linux', 'mac', or 'windows'
+     - flags: extra flags to pass to test.dart
+  """
+
+  # Make sure we are in the frog directory
+  os.chdir(FROG_PATH)
 
   if arch != 'frogium': # frog and frogsh
-    TestStep("frog", testpy_mode, system, arch, [], flags)
-    TestStep("frog_extra", testpy_mode, system,
+    TestStep("frog", mode, system, arch, [], flags)
+    TestStep("frog_extra", mode, system,
         arch, ['frog', 'peg', 'css'], flags)
 
     if arch == 'frogsh':
       # There is no need to run these tests both for frog and frogsh.
 
-      TestStep("leg", testpy_mode, system, 'leg', [], flags)
-      TestStep("leg_extra", testpy_mode, system, 'leg', ['leg_only'], flags)
+      TestStep("leg", mode, system, 'leg', [], flags)
+      TestStep("leg_extra", mode, system, 'leg', ['leg_only'], flags)
       # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
-      TestStep("leg_extra", testpy_mode, system, 'vm', ['leg'], flags)
+      TestStep("leg_extra", mode, system, 'vm', ['leg'], flags)
 
   else:
     tests = ['client', 'language', 'corelib', 'isolate', 'frog', 'peg', 'css']
     if system != 'windows':
       # DumpRenderTree tests (DRT is currently not available on Windows):
-      TestStep("browser", testpy_mode, system, 'frogium', tests, flags)
+      TestStep("browser", mode, system, 'frogium', tests, flags)
 
     # Webdriver tests. Even though the browsers can run on more than one OS, we
     # found identical browser behavior across OS, so we're not running
@@ -134,10 +136,11 @@ def TestFrog(arch, mode, system):
       browsers = ['ff', 'ie']
 
     for browser in browsers:
-      TestStep(browser, testpy_mode, system, 'webdriver', tests,
+      TestStep(browser, mode, system, 'webdriver', tests,
           flags + ['--browser=' + browser])
 
   return 0
+
 
 def main():
   print 'main'
@@ -150,9 +153,20 @@ def main():
   if arch is None:
     return 1
 
-  status = TestFrog(arch, mode, system)
+  status = BuildFrog(arch, mode, system)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
+    return status
+
+  status = TestFrog(arch, mode, system, [])
+  if status != 0:
+    print '@@@STEP_FAILURE@@@'
+    return status
+
+  status = TestFrog(arch, mode, system, ['--checked'])
+  if status != 0:
+    print '@@@STEP_FAILURE@@@'
+
   return status
 
 

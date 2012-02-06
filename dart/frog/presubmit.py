@@ -152,6 +152,9 @@ def main():
     cmd = test_cmd + ['--component=vm', 'leg']
     RunCommand(*cmd, verbose=True)
 
+    # Leg does not implement checked mode yet.
+    test_cmd.remove('--checked')
+
     cmd = test_cmd + ['--component=leg', 'leg_only']
     RunCommand(*cmd, verbose=True)
 
