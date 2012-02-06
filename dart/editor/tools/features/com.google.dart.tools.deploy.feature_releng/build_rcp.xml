@@ -314,6 +314,121 @@ class ObjectArray<T> { }
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
+          target: buildSamples
+          Copy sample Dart libraries from the SVN tree into a new "samples" directory
+
+          ant properties required
+           build.source.root = the SVN root directory
+           build.stage.include.dir = required iff samples.out.dir is not already defined
+    
+          ant properties set
+           samples.out.dir = the destination "samples" directory, created by this target
+              
+         - - - - - - - - - - - - - - - - - -->
+    <target name="buildSamples">
+
+        <!-- create the samples directory -->
+        <property name="samples.out.dir" 
+                  value="${build.stage.include.dir}/samples" />
+    
+        <!-- Clock -->
+        <copy todir="${samples.out.dir}/clock">
+            <fileset dir="${build.source.root}/samples/clock">
+            </fileset>
+        </copy>
+
+        <!-- Time -->
+        <copy todir="${samples.out.dir}/time">
+            <fileset dir="${build.source.root}/samples/time"/>
+            <fileset dir="${build.source.root}/samples/chat">
+                <include name="http*"/>
+            </fileset>
+        </copy>
+        <replace dir="${samples.out.dir}/time"
+            token='#import("../chat/http.dart");'
+            value='#import("http.dart");'>
+            <include name="*.dart"/>
+        </replace>
+        
+        <!-- Isolate -->
+        <copy todir="${samples.out.dir}/isolate">
+            <fileset dir="${build.source.root}/samples/isolate_html">
+              <exclude name="main.py"/>
+              <exclude name="deploy.sh"/>
+              <exclude name="app.yaml"/>
+            </fileset>
+        </copy>
+
+        <!-- Slider -->
+        <copy todir="${samples.out.dir}/slider">
+            <fileset dir="${build.source.root}/samples/slider">
+            </fileset>
+        </copy>
+
+        <!-- Sunflower -->
+        <copy todir="${samples.out.dir}/sunflower">
+            <fileset dir="${build.source.root}/samples/sunflower">
+            </fileset>
+        </copy>
+
+        <!-- Total -->
+        <copy todir="${samples.out.dir}/total">
+            <fileset dir="${build.source.root}/samples/total">
+                <exclude name="bin/**"/>
+            </fileset>
+        </copy>
+        
+        <!-- adjust sample imports -->
+
+        <replace dir="${samples.out.dir}"
+          token="#import('../../client/"
+          value="#import('../libraries/">
+            <include name="**/*.dart"/>
+        </replace>
+
+        <replace dir="${samples.out.dir}"
+          token='href="../../client/'
+          value='href="../libraries/'>
+            <include name="**/*.html"/>
+        </replace>
+        
+        <!-- copy over the dart libraries used by the samples -->
+
+        <property name="samples.libraries.out.dir" 
+                  value="${samples.out.dir}/libraries" />
+
+        <copy todir="${samples.libraries.out.dir}/base">
+            <fileset dir="${build.source.root}/client/base"/>
+        </copy>
+        <copy todir="${samples.libraries.out.dir}/layout">
+            <fileset dir="${build.source.root}/client/layout"/>
+        </copy>
+        <copy todir="${samples.libraries.out.dir}/observable">
+            <fileset dir="${build.source.root}/client/observable"/>
+        </copy>
+        <copy todir="${samples.libraries.out.dir}/touch">
+            <fileset dir="${build.source.root}/client/touch"/>
+        </copy>
+        <copy todir="${samples.libraries.out.dir}/util">
+            <fileset dir="${build.source.root}/client/util"/>
+        </copy>
+        <copy todir="${samples.libraries.out.dir}/utils">
+            <fileset dir="${build.source.root}/utils"/>
+        </copy>
+        <copy todir="${samples.libraries.out.dir}/view">
+            <fileset dir="${build.source.root}/client/view"/>
+        </copy>
+        
+        <!-- adjust library imports -->
+
+        <replace dir="${samples.out.dir}"
+          token="#import('../../utils/"
+          value="#import('../utils/">
+            <include name="**/*.dart"/>
+        </replace>
+    </target>
+    
+    <!-- - - - - - - - - - - - - - - - - - 
           target: getSdk
          - - - - - - - - - - - - - - - - - -->
     <target name="getSdk" if="osfamily" depends="setOS">
@@ -410,7 +525,7 @@ class ObjectArray<T> { }
     <!--
     copy the code from the svn structure to the PDE structure and get rid of the linked resources
     -->
-    <target name="setupBuild" depends="init, buildLibraries, installSdk, setupRuntimeEclipse" >
+    <target name="setupBuild" depends="init, buildLibraries, installSdk, setupRuntimeEclipse, buildSamples" >
         <setupTargetEclipse location="${build.target}" eclipse="${build.target.eclipse.version}"
                             arch="${build.eclipse.arch}" />
         <!-- installDirIntoTargetEclipse updatesite="${build.source.root}/third_party/chromesdk/0.3.0"
@@ -465,57 +580,6 @@ class ObjectArray<T> { }
             <replacefilter token="@BUILDYEAR@" value="${build.year}" />
         </replace>
 
-        <!-- create the samples directory -->
-        <property name="samples.out.dir" 
-                  value="${build.stage.include.dir}/samples" />
-    
-        <!-- Clock -->
-        <copy todir="${samples.out.dir}/clock">
-            <fileset dir="${build.source.root}/samples/clock">
-            </fileset>
-        </copy>
-
-        <!-- Time -->
-        <copy todir="${samples.out.dir}/time">
-            <fileset dir="${build.source.root}/samples/time"/>
-            <fileset dir="${build.source.root}/samples/chat">
-                <include name="http*"/>
-            </fileset>
-        </copy>
-        <replace dir="${samples.out.dir}/time"
-            token='#import("../chat/http.dart");'
-            value='#import("http.dart");'>
-            <include name="*.dart"/>
-        </replace>
-        
-        <!-- Isolate -->
-        <copy todir="${samples.out.dir}/isolate">
-            <fileset dir="${build.source.root}/samples/isolate_html">
-              <exclude name="main.py"/>
-              <exclude name="deploy.sh"/>
-              <exclude name="app.yaml"/>
-            </fileset>
-        </copy>
-
-        <!-- Slider -->
-        <copy todir="${samples.out.dir}/slider">
-            <fileset dir="${build.source.root}/samples/slider">
-            </fileset>
-        </copy>
-
-        <!-- Sunflower -->
-        <copy todir="${samples.out.dir}/sunflower">
-            <fileset dir="${build.source.root}/samples/sunflower">
-            </fileset>
-        </copy>
-
-        <!-- Total -->
-        <copy todir="${samples.out.dir}/total">
-            <fileset dir="${build.source.root}/samples/total">
-                <exclude name="bin/**"/>
-            </fileset>
-        </copy>
-
         <!-- copy bundled Dart libraries -->
         <property name="dart.compiler.js.dir" 
                   value="${build.stage.plugins}/com.google.dart.compiler.js" />
@@ -528,44 +592,6 @@ class ObjectArray<T> { }
         <copy todir="${dart.compiler.js.dir}/third_party">
             <fileset dir="${build.source.root}/third_party" />
         </copy>
-        
-        <!-- copy over the dart libraries used by the samples -->
-
-        <property name="samples.libraries.out.dir" 
-                  value="${build.stage.include.dir}/samples/libraries" />
-
-        <copy todir="${samples.libraries.out.dir}/base">
-            <fileset dir="${build.source.root}/client/base"/>
-        </copy>
-        <copy todir="${samples.libraries.out.dir}/layout">
-            <fileset dir="${build.source.root}/client/layout"/>
-        </copy>
-        <copy todir="${samples.libraries.out.dir}/observable">
-            <fileset dir="${build.source.root}/client/observable"/>
-        </copy>
-        <copy todir="${samples.libraries.out.dir}/touch">
-            <fileset dir="${build.source.root}/client/touch"/>
-        </copy>
-        <copy todir="${samples.libraries.out.dir}/util">
-            <fileset dir="${build.source.root}/client/util"/>
-        </copy>
-        <copy todir="${samples.libraries.out.dir}/view">
-            <fileset dir="${build.source.root}/client/view"/>
-        </copy>
-        
-        <!-- replace the path based imports with the symbolic ones -->
-
-        <replace dir="${samples.out.dir}"
-          token="#import('../../"
-          value="#import('../libraries/">
-            <include name="**/*.dart"/>
-        </replace>
-
-        <replace dir="${samples.out.dir}"
-          token='href="../../'
-          value='href="../libraries/'>
-            <include name="**/*.html"/>
-        </replace>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
