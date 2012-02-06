@@ -240,6 +240,9 @@ class ClosureTranslator extends AbstractVisitor {
     globalizedElement.backendMembers =
         const EmptyLink<Element>().prepend(callElement);
     globalizedElement.isResolved = true;
+    ClassElement objectClass =
+        compiler.coreLibrary.find(const SourceString('Object'));
+    globalizedElement.supertype = new SimpleType(Types.OBJECT, objectClass);
     return new ClosureData(globalizedElement, callElement);
   }
 

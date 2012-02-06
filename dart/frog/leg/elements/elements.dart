@@ -144,7 +144,9 @@ class LibraryElement extends CompilationUnitElement {
   ScriptTag libraryTag;
   Map<SourceString, Element> elements;
 
-  LibraryElement(Script script) : elements = {}, super.library(script);
+  LibraryElement(Script script)
+      : elements = new Map<SourceString, Element>(),
+        super.library(script);
 
   void addCompilationUnit(CompilationUnitElement element) {
     compilationUnits = compilationUnits.prepend(element);
