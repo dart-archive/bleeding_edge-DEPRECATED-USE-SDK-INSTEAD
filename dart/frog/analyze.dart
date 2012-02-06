@@ -46,7 +46,18 @@ class MethodAnalyzer implements TreeVisitor {
 
     _frame = new CallFrame(this, method, thisValue, args, context);
     _bindArguments(_frame.args);
-    body.visit(this);
+
+    // Visit the super or this call in a constructor, if any.
+    final declaredInitializers = method.definition.dynamic.initializers;
+    if (declaredInitializers != null) {
+      for (var init in declaredInitializers) {
+        if (init is CallExpression) {
+          visitCallExpression(init, true);
+        }
+      }
+    }
+
+    if (body != null) body.visit(this);
   }
 
   /* Checks whether or not a particular TypeReference Node includes references
@@ -394,7 +405,31 @@ class MethodAnalyzer implements TreeVisitor {
     return _frame._makeValue(world.functionType, node);
   }
 
-  Value visitCallExpression(CallExpression node) {
+  analyzeInitializerConstructorCall(CallExpression node,
+                                    Expression receiver,
+                                    String name) {
+    var type = _frame.method.declaringType;
+    if (receiver is SuperExpression) {
+      type = type.parent;
+    }
+    var member = type.getConstructor(name == null ? '' : name);
+    if (member !== null) {
+      return member.invoke(_frame, node, _frame.makeThisValue(node),
+                           _visitArgs(node.arguments));
+    } else {
+      String constructorName = name == null ? '' : '.$name';
+      world.warning('cannot find constructor "${type.name}$constructorName"',
+                    node.span);
+      return _frame._makeValue(world.varType, node);
+    }
+  }
+
+  bool isThisOrSuper(Expression node) {
+    return node is ThisExpression || node is SuperExpression;
+  }
+
+  Value visitCallExpression(CallExpression node,
+                            [bool visitingInitializers = false]) {
     var target;
     var position = node.target;
     var name = ':call';
@@ -402,7 +437,13 @@ class MethodAnalyzer implements TreeVisitor {
       DotExpression dot = node.target;
       target = dot.self.visit(this);
       name = dot.name.name;
-      position = dot.name;
+      if (isThisOrSuper(dot.self) && visitingInitializers) {
+        return analyzeInitializerConstructorCall(node, dot.self, name);
+      } else {
+        position = dot.name;
+      }
+    } else if (isThisOrSuper(node.target) && visitingInitializers) {
+      return analyzeInitializerConstructorCall(node, node.target, null);
     } else if (node.target is VarExpression) {
       VarExpression varExpr = node.target;
       name = varExpr.name.name;

@@ -999,6 +999,10 @@ class MethodGenerator implements TreeVisitor, CallingContext {
           // Ensure default value for param has been generated
           p.genValue(method, this);
           currentArg = p.value;
+          if (currentArg == null) {
+            // Not enough arguments, we'll get an error later.
+            return;
+          }
         }
       }
 

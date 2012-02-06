@@ -47,8 +47,6 @@ class MethodData {
   }
 
   void analyze() {
-    // TODO(jimhug): Is there really no analysis to do for a missing body?
-    if (body === null) return;
     var ma = new MethodAnalyzer(baseMethod, body);
     ma.analyze(context);
     // TODO(jimhug): Add support for specializing on type parameters.

@@ -135,7 +135,7 @@ $defProp(Object.prototype, "get$dynamic", function() {
   "use strict"; return this;
 });
 $defProp(Object.prototype, "noSuchMethod", function(name, args) {
-  $throw(new NoSuchMethodException(this, name, args));
+  $throw(new NoSuchMethodException(this, name, args, ""));
 });
 $defProp(Object.prototype, "_pushBlock$1", function($0) {
   return this.noSuchMethod("_pushBlock", [$0]);
@@ -197,6 +197,9 @@ $defProp(Object.prototype, "toString$0", function() {
 $defProp(Object.prototype, "visitBinaryExpression$1", function($0) {
   return this.noSuchMethod("visitBinaryExpression", [$0]);
 });
+$defProp(Object.prototype, "visitCallExpression$1", function($0) {
+  return this.noSuchMethod("visitCallExpression", [$0]);
+});
 $defProp(Object.prototype, "visitPostfixExpression$1", function($0) {
   return this.noSuchMethod("visitPostfixExpression", [$0]);
 });
@@ -229,9 +232,10 @@ IllegalAccessException.prototype.toString = function() {
 }
 IllegalAccessException.prototype.toString$0 = IllegalAccessException.prototype.toString;
 // ********** Code for NoSuchMethodException **************
-function NoSuchMethodException(_receiver, _functionName, _arguments) {
+function NoSuchMethodException(_receiver, _functionName, _arguments, _extraMessage) {
   this._receiver = _receiver;
   this._functionName = _functionName;
+  this._extraMessage = _extraMessage;
   this._arguments = _arguments;
 }
 NoSuchMethodException.prototype.toString = function() {
@@ -244,7 +248,8 @@ NoSuchMethodException.prototype.toString = function() {
     sb.add(this._arguments.$index(i));
   }
   sb.add("]");
-  return $add(("NoSuchMethodException - receiver: '" + this._receiver + "' "), ("function name: '" + this._functionName + "' arguments: [" + sb + "]"));
+  var x = this._extraMessage;
+  return $add(("NoSuchMethodException - receiver: '" + this._receiver + "' "), ("function name: '" + this._functionName + "' arguments: [" + sb + "]" + x));
 }
 NoSuchMethodException.prototype.toString$0 = NoSuchMethodException.prototype.toString;
 // ********** Code for ClosureArgumentMismatchException **************
@@ -264,12 +269,12 @@ ObjectNotClosureException.prototype.toString = function() {
 }
 ObjectNotClosureException.prototype.toString$0 = ObjectNotClosureException.prototype.toString;
 // ********** Code for IllegalArgumentException **************
-function IllegalArgumentException(args) {
-  this._args = args;
+function IllegalArgumentException(arg) {
+  this._arg = arg;
 }
 IllegalArgumentException.prototype.is$IllegalArgumentException = function(){return true};
 IllegalArgumentException.prototype.toString = function() {
-  return ("Illegal argument(s): " + this._args);
+  return ("Illegal argument(s): " + this._arg);
 }
 IllegalArgumentException.prototype.toString$0 = IllegalArgumentException.prototype.toString;
 // ********** Code for StackOverflowException **************
@@ -1795,7 +1800,16 @@ MethodAnalyzer.prototype.analyze = function(context) {
   var args = new Arguments(null, values);
   this._frame = new CallFrame(this, this.method, thisValue, args, context);
   this._bindArguments(this._frame.args);
-  this.body.visit(this);
+  var declaredInitializers = this.method.definition.get$dynamic().get$initializers();
+  if ($ne(declaredInitializers)) {
+    for (var $$i = declaredInitializers.iterator(); $$i.hasNext(); ) {
+      var init = $$i.next();
+      if ((init instanceof CallExpression)) {
+        this.visitCallExpression(init, true);
+      }
+    }
+  }
+  if (this.body != null) this.body.visit(this);
 }
 MethodAnalyzer.prototype._hasTypeParams = function(node) {
   if ((node instanceof NameTypeReference)) {
@@ -2072,7 +2086,25 @@ MethodAnalyzer.prototype.visitLambdaExpression = function(node) {
   meth.get$methodData().analyze();
   return this._frame._makeValue($globals.world.functionType, node);
 }
-MethodAnalyzer.prototype.visitCallExpression = function(node) {
+MethodAnalyzer.prototype.analyzeInitializerConstructorCall = function(node, receiver, name) {
+  var type = this._frame.method.declaringType;
+  if ((receiver instanceof SuperExpression)) {
+    type = type.get$parent();
+  }
+  var member = type.getConstructor(name == null ? "" : name);
+  if (null != member) {
+    return member.invoke(this._frame, node, this._frame.makeThisValue(node), this._visitArgs(node.arguments));
+  }
+  else {
+    var constructorName = name == null ? "" : ("." + name);
+    $globals.world.warning(("cannot find constructor \"" + type.get$name() + constructorName + "\""), node.span);
+    return this._frame._makeValue($globals.world.varType, node);
+  }
+}
+MethodAnalyzer.prototype.isThisOrSuper = function(node) {
+  return (node instanceof ThisExpression) || (node instanceof SuperExpression);
+}
+MethodAnalyzer.prototype.visitCallExpression = function(node, visitingInitializers) {
   var target;
   var position = node.target;
   var name = ":call";
@@ -2080,7 +2112,15 @@ MethodAnalyzer.prototype.visitCallExpression = function(node) {
     var dot = node.target;
     target = dot.self.visit(this);
     name = dot.name.name;
-    position = dot.name;
+    if (this.isThisOrSuper(dot.self) && visitingInitializers) {
+      return this.analyzeInitializerConstructorCall(node, dot.self, name);
+    }
+    else {
+      position = dot.name;
+    }
+  }
+  else if (this.isThisOrSuper(node.target) && visitingInitializers) {
+    return this.analyzeInitializerConstructorCall(node, node.target, null);
   }
   else if ((node.target instanceof VarExpression)) {
     var varExpr = node.target;
@@ -2341,6 +2381,9 @@ MethodAnalyzer.prototype._pushBlock$1 = MethodAnalyzer.prototype._pushBlock;
 MethodAnalyzer.prototype.analyze$1 = MethodAnalyzer.prototype.analyze;
 MethodAnalyzer.prototype.visitBinaryExpression$1 = function($0) {
   return this.visitBinaryExpression($0, false);
+};
+MethodAnalyzer.prototype.visitCallExpression$1 = function($0) {
+  return this.visitCallExpression($0, false);
 };
 MethodAnalyzer.prototype.visitPostfixExpression$1 = function($0) {
   return this.visitPostfixExpression($0, false);
@@ -3797,6 +3840,9 @@ MethodGenerator.prototype.evalBody = function(newObject, args) {
       if (null == currentArg) {
         p.genValue(this.method, this);
         currentArg = p.get$value();
+        if (currentArg == null) {
+          return;
+        }
       }
     }
     if (p.get$isInitializer()) {
@@ -4837,6 +4883,7 @@ MethodGenerator.prototype.run$0 = MethodGenerator.prototype.run;
 MethodGenerator.prototype.visitBinaryExpression$1 = function($0) {
   return this.visitBinaryExpression($0, false);
 };
+MethodGenerator.prototype.visitCallExpression$1 = MethodGenerator.prototype.visitCallExpression;
 MethodGenerator.prototype.visitPostfixExpression$1 = function($0) {
   return this.visitPostfixExpression($0, false);
 };
@@ -6802,7 +6849,6 @@ function MethodData(baseMethod, context) {
 MethodData.prototype.get$body = function() { return this.body; };
 MethodData.prototype.set$body = function(value) { return this.body = value; };
 MethodData.prototype.analyze = function() {
-  if (null == this.body) return;
   var ma = new MethodAnalyzer(this.baseMethod, this.body);
   ma.analyze$1(this.context);
 }
@@ -10747,7 +10793,7 @@ function CallExpression(target, arguments, span) {
   Expression.call(this, span);
 }
 CallExpression.prototype.visit = function(visitor) {
-  return visitor.visitCallExpression(this);
+  return visitor.visitCallExpression$1(this);
 }
 // ********** Code for IndexExpression **************
 $inherits(IndexExpression, Expression);
