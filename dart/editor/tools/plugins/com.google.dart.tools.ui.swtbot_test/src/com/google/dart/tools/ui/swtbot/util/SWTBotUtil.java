@@ -17,14 +17,18 @@ import com.google.dart.tools.ui.swtbot.matchers.EditorWithTitle;
 import com.google.dart.tools.ui.swtbot.matchers.WithToolTip;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.waits.WaitForEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.swt.finder.SWTBot;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarDropDownButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
+import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
 import org.hamcrest.Matcher;
 
 import static org.eclipse.swtbot.eclipse.finder.waits.Conditions.waitForEditor;
@@ -33,8 +37,42 @@ import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widget
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.withStyle;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class SWTBotUtil {
+
+  /**
+   * Answer the currently active shell. This can be called from a non-UI thread and handles the case
+   * where the SWT main event loop gets blocked by SWT dialog event loop
+   */
+  public static SWTBotShell activeShell(SWTBot bot) {
+    final Display display = bot.getDisplay();
+    final CountDownLatch latch = new CountDownLatch(1);
+    // Try for up to 5 seconds
+    for (int i = 0; i < 10; i++) {
+      final Shell[] result = new Shell[1];
+      // Queue a new runnable each time
+      // because a new event processing loop is created when a dialog opens
+      // thus the old runnable may never get served until after the dialog closes
+      display.asyncExec(new Runnable() {
+
+        @Override
+        public void run() {
+          result[0] = display.getActiveShell();
+          latch.countDown();
+        }
+      });
+      try {
+        if (latch.await(500, TimeUnit.MILLISECONDS)) {
+          return result[0] != null ? new SWTBotShell(result[0]) : null;
+        }
+      } catch (InterruptedException e) {
+        //$FALL-THROUGH$
+      }
+    }
+    throw new TimeoutException("Failed to determine active shell");
+  }
 
   /**
    * Debugging: Echo all tool items to System.out
@@ -56,6 +94,15 @@ public class SWTBotUtil {
   public static SWTBotEclipseEditor editorWithTitle(SWTWorkbenchBot bot, String title) {
     // TODO (danrubel) find and editor that has title starting with the specified text
     return bot.editor(new EditorWithTitle(title)).toTextEditor();
+  }
+
+  /**
+   * Print the content of the active editor
+   */
+  public static void printActiveEditorText(SWTWorkbenchBot bot) {
+    System.out.println("====================================================");
+    System.out.println(bot.activeEditor().toTextEditor().getText());
+    System.out.println("====================================================");
   }
 
   /**

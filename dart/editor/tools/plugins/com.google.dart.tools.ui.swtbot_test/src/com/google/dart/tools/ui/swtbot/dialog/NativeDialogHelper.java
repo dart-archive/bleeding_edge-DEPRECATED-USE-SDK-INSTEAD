@@ -13,19 +13,15 @@
  */
 package com.google.dart.tools.ui.swtbot.dialog;
 
+import com.google.dart.tools.ui.swtbot.Performance;
+import com.google.dart.tools.ui.swtbot.conditions.NativeShellClosed;
+import com.google.dart.tools.ui.swtbot.conditions.NativeShellShowing;
+import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
-import org.eclipse.swtbot.swt.finder.SWTBot;
-import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
-import org.eclipse.swtbot.swt.finder.waits.ICondition;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
-import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Helper for driving native dialogs
@@ -34,7 +30,6 @@ class NativeDialogHelper {
 
   protected final SWTWorkbenchBot bot;
   protected final Display display;
-  protected final Shell originalShell;
 
   private static final int MODIFIER_MASK = SWT.ALT | SWT.SHIFT | SWT.CTRL | SWT.COMMAND;
   private static final int[] MODIFIERS = new int[] {SWT.ALT, SWT.SHIFT, SWT.CTRL, SWT.COMMAND};
@@ -42,54 +37,19 @@ class NativeDialogHelper {
   public NativeDialogHelper(SWTWorkbenchBot bot) {
     this.bot = bot;
     this.display = bot.getDisplay();
-    this.originalShell = getActiveShell();
   }
 
   /**
    * Ensure that the native shell opened by this helper has been closed
    */
   protected void ensureNativeShellClosed() {
-    SWTBotShell activeShell = null;
-    try {
-      activeShell = bot.activeShell();
-    } catch (WidgetNotFoundException e) {
-      //$FALL-THROUGH$
-    }
-    if (activeShell == null) {
+    int count = 0;
+    while (SWTBotUtil.activeShell(bot) == null && count < 5) {
       System.out.println("Active shell is null or not found... attempting to close native dialog");
       typeKeyCode(SWT.ESC);
+      bot.sleep(500);
+      count++;
     }
-  }
-
-  /**
-   * Answer the currently active shell. This can be called from a non-UI thread and handles the case
-   * where the SWT main event loop gets blocked by SWT dialog event loop
-   */
-  protected Shell getActiveShell() {
-    final CountDownLatch latch = new CountDownLatch(1);
-    // Try for up to 5 seconds
-    for (int i = 0; i < 10; i++) {
-      final Shell[] result = new Shell[1];
-      // Queue a new runnable each time
-      // because a new event processing loop is created when a dialog opens
-      // thus the old runnable may never get served until after the dialog closes
-      display.asyncExec(new Runnable() {
-
-        @Override
-        public void run() {
-          result[0] = display.getActiveShell();
-          latch.countDown();
-        }
-      });
-      try {
-        if (latch.await(500, TimeUnit.MILLISECONDS)) {
-          return result[0];
-        }
-      } catch (InterruptedException e) {
-        //$FALL-THROUGH$
-      }
-    }
-    throw new TimeoutException("Failed to determine active shell");
   }
 
   /**
@@ -162,26 +122,19 @@ class NativeDialogHelper {
   }
 
   /**
+   * Wait for the active shell to be non-null, and assume that the native dialog has closed
+   */
+  protected void waitForNativeShellClosed() {
+    bot.waitUntil(new NativeShellClosed(), Performance.DEFAULT_TIMEOUT_MS);
+    bot.sleep(10);
+  }
+
+  /**
    * Wait for the original shell to loose focus, and assume that when that happens the native shell
    * then has focus.
    */
   protected void waitForNativeShellShowing() {
-    bot.waitUntil(new ICondition() {
-
-      @Override
-      public String getFailureMessage() {
-        return "Timed out waiting for native dialog";
-      }
-
-      @Override
-      public void init(SWTBot bot) {
-      }
-
-      @Override
-      public boolean test() throws Exception {
-        return originalShell != getActiveShell();
-      }
-    });
+    bot.waitUntil(new NativeShellShowing());
     bot.sleep(1000);
   }
 

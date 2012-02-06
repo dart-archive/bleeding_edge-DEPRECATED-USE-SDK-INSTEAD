@@ -210,7 +210,7 @@ public class Performance {
   private static final Collection<Result> allResults = new ArrayList<Performance.Result>(20);
   private static int pending = 0;
 
-  private static final int DEFAULT_TIMEOUT_MS = 180000; // 3 minutes
+  public static final int DEFAULT_TIMEOUT_MS = 180000; // 3 minutes
 
   /**
    * Append the specified {@link String} to an array of {@link String}

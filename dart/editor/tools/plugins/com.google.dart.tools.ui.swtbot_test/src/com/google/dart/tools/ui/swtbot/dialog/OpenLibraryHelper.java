@@ -46,9 +46,9 @@ public class OpenLibraryHelper extends NativeDialogHelper {
 
     // Open the native dialog
     bot.menu("File").menu("Open...").click();
-    waitForNativeShellShowing();
 
     try {
+      waitForNativeShellShowing();
       bot.sleep(500);
 
       // On Mac, open the "Go to Folder" popup
@@ -70,6 +70,7 @@ public class OpenLibraryHelper extends NativeDialogHelper {
 
       // Press Enter and wait for the operation to complete
       typeChar(SWT.CR);
+      waitForNativeShellClosed();
       lib.logFullCompileTime();
       String title = lib.dartFile.getName();
       Performance.OPEN_LIB.log(bot, waitForEditorWithTitle(title), lib.name);

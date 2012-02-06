@@ -4,8 +4,10 @@ Bundle-Name: Dart Editor SWTBot Tests
 Bundle-SymbolicName: com.google.dart.tools.ui.swtbot_test
 Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: Google
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.ui,
+ org.eclipse.ui.workbench.texteditor,
  org.junit,
  org.hamcrest,
  org.eclipse.swtbot.junit4_x,
@@ -15,6 +17,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.swtbot.forms.finder,
  com.google.dart.tools.core,
  com.google.dart.tools.core_test,
- com.google.dart.tools.ui
+ com.google.dart.tools.ui,
+ org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

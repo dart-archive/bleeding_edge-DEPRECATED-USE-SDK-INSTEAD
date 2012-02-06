@@ -14,18 +14,22 @@
 package com.google.dart.tools.ui.swtbot;
 
 import com.google.dart.tools.core.test.util.FileUtilities;
+import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
-import com.google.dart.tools.ui.swtbot.dialog.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
+import com.google.dart.tools.ui.swtbot.util.AntRunner;
 
 import static com.google.dart.tools.ui.swtbot.Performance.prepend;
 
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Represents a Dart library
@@ -36,11 +40,27 @@ public class DartLib {
   public static final DartLib SLIDER_SAMPLE = new DartLib("slider", "slider_sample");
   public static final DartLib SUNFLOWER_SAMPLE = new DartLib("sunflower", "Sunflower");
   public static final DartLib TIME_SERVER_SAMPLE = new DartLib("time", "time_server");
-  public static final DartLib TOTAL_SAMPLE = new DartLib("total", "src/Total".replace('/',
+  public static final DartLib TOTAL_SAMPLE = new DartLib("total", "client/Total".replace('/',
       File.separatorChar));
   public static DartLib[] allSamples;
 
+  private static IPath dartTrunk;
   private static File samplesDir;
+
+  /**
+   * Call the Ant script to build the editor "samples" from content in the SVN tree
+   */
+  public static void buildSamples() throws IOException {
+    if (getSamplesDir().exists()) {
+      System.out.println("Deleting " + getSamplesDir());
+      FileUtilities.delete(getSamplesDir());
+    }
+    System.out.println("Building " + getSamplesDir());
+    AntRunner runner = AntRunner.buildTarget("buildSamples");
+    runner.setProperty("build.source.root", getDartTrunk().toOSString());
+    runner.setProperty("samples.out.dir", getSamplesDir().getAbsolutePath());
+    runner.run();
+  }
 
   /**
    * Answer the samples that ship with Dart Editor
@@ -78,27 +98,48 @@ public class DartLib {
   }
 
   /**
+   * Answer the SVN root directory
+   */
+  public static IPath getDartTrunk() {
+    if (dartTrunk != null) {
+      return dartTrunk;
+    }
+    String key = "DART_TRUNK";
+    String value = System.getenv(key);
+    if (value == null) {
+      throw new RuntimeException("Please define the environment variable \"" + key
+          + "\" that points to the SVN root directory (e.g. /users/me/trunk/dart)");
+    }
+    System.out.println(key + " = " + value);
+    IPath path = new Path(value);
+    if (!path.append("editor/docs/README.txt").toFile().exists()) {
+      throw new RuntimeException("The " + key
+          + " environment variable must point to [svnroot]/dart "
+          + "(the parent directory of the Dart Editor source tree)"
+          + " as obtained from http://code.google.com/p/dart/wiki/GettingTheSource?tm=4");
+    }
+    dartTrunk = path;
+    return dartTrunk;
+
+  }
+
+  /**
    * Answer the Dart Editor samples directory
    */
   private static File getSamplesDir() {
-    if (DartLib.samplesDir == null) {
+    if (samplesDir == null) {
       File homeDir = new File(System.getProperty("user.home"));
       File downloadsDir = new File(homeDir, "Downloads");
       File editorDir = new File(downloadsDir, "dart");
-      if (!editorDir.exists()) {
-        fail("Download and unzip Dart Editor into " + downloadsDir);
-      }
-      File dir = new File(editorDir, "samples");
-      if (!dir.exists()) {
-        fail("Cannot find samples directory in " + editorDir);
-      }
-      samplesDir = dir;
+      samplesDir = new File(editorDir, "samples");
     }
-    return DartLib.samplesDir;
+    return samplesDir;
   }
 
   public final String name;
+
   public final File dir;
+
   public final File dartFile;
 
   public final File jsFile;

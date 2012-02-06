@@ -23,15 +23,34 @@ import java.util.regex.Pattern;
  * Match a table item that contains text matching the specified regular expression.
  */
 public final class TableItemWithText extends BaseMatcher<SWTBotTable> {
+
+  /**
+   * Answer the index of the row containing text that matches the specified regular expression or -1
+   * if no match is found
+   */
+  public static int indexOf(SWTBotTable table, String regex2) {
+    Pattern pattern2 = Pattern.compile(regex2);
+    int rowCount = table.rowCount();
+    int foundIndex = -1;
+    for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+      String text = table.cell(rowIndex, 0);
+      if (text != null) {
+        if (pattern2.matcher(text).matches()) {
+          foundIndex = rowIndex;
+          break;
+        }
+      }
+    }
+    return foundIndex;
+  }
+
   private final String regex;
-  private final Pattern pattern;
 
   public TableItemWithText(String regex) {
     if (regex == null || regex.length() == 0) {
       throw new IllegalArgumentException();
     }
     this.regex = regex;
-    this.pattern = Pattern.compile(regex);
   }
 
   @Override
@@ -41,14 +60,6 @@ public final class TableItemWithText extends BaseMatcher<SWTBotTable> {
 
   @Override
   public boolean matches(Object item) {
-    SWTBotTable table = (SWTBotTable) item;
-    int rowCount = table.rowCount();
-    for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-      String text = table.cell(rowIndex, 0);
-      if (text != null) {
-        return pattern.matcher(text).matches();
-      }
-    }
-    return false;
+    return indexOf((SWTBotTable) item, regex) != -1;
   }
 }
