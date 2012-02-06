@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -61,7 +62,7 @@ public final class IProjectUtilities {
    */
   private static IFile computeLinkPoint(IProject project, String fileName) {
     IFile newFile = project.getFile(fileName);
-    if (!newFile.exists()) {
+    if (!newFile.exists() && !hasSimilarChild(project, fileName)) {
       return newFile;
     }
     int dotIndex = fileName.lastIndexOf('.');
@@ -75,10 +76,35 @@ public final class IProjectUtilities {
       baseName = fileName.substring(0, dotIndex);
     }
     int index = 2;
-    while (newFile.exists()) {
+    while (newFile.exists() || hasSimilarChild(project, newFile.getName())) {
       newFile = project.getFile(baseName + index++ + extension);
     }
     return newFile;
+  }
+
+  /**
+   * Projects do not allow a link to be created if there is another resource (linked or not) whose
+   * name is the same as the new name with only case differences. Return <code>true</code> if the
+   * project has a member whose name is the same when case is ignored.
+   * 
+   * @param project the project containing the members
+   * @param fileName the name being checked for
+   * @return <code>true</code> if the project has a member whose name is the same when case is
+   *         ignored
+   * @throws
+   */
+  private static boolean hasSimilarChild(IProject project, String fileName) {
+    try {
+      for (IResource member : project.members()) {
+        if (member.getName().equalsIgnoreCase(fileName)) {
+          return true;
+        }
+      }
+    } catch (CoreException exception) {
+      DartCore.logInformation("Could not get members of project " + project.getLocation(),
+          exception);
+    }
+    return false;
   }
 
   /**
