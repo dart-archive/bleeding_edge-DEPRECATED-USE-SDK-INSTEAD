@@ -13,8 +13,8 @@ class TypeCheckerTask extends CompilerTask {
       try {
         tree.accept(visitor);
       } catch (CancelTypeCheckException e) {
-        compiler.reportWarning(e.node, new TypeWarning(MessageKind.GENERIC,
-                                                       [e.reason]));
+        // Do not warn about unimplemented features; log message instead.
+        compiler.log("'${e.node}': ${e.reason}");
       }
     });
   }
