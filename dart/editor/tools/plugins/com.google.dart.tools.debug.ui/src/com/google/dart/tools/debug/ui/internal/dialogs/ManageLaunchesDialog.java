@@ -117,9 +117,15 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
   @Override
   public void launchConfigurationAdded(ILaunchConfiguration configuration) {
+    ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
+    if (selectedConfig != null && selectedConfig.equals(manager.getMovedFrom(configuration))) {
+      // this config was re-named, update the dialog with the new config
+      selectedConfig = configuration;
+      selectLaunchConfiguration(selectedConfig.getName());
+    }
+
     refreshLaunchesViewer();
 
-    selectFirstLaunchConfig();
   }
 
   @Override
@@ -135,11 +141,12 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
       if (configuration == selectedConfig) {
         closeConfig(true);
+        refreshLaunchesViewer();
+        selectFirstLaunchConfig();
+      } else {
+
+        refreshLaunchesViewer();
       }
-
-      refreshLaunchesViewer();
-
-      selectFirstLaunchConfig();
     } finally {
       getShell().setRedraw(true);
     }
@@ -315,6 +322,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     if (selectedConfig != null) {
       show(selectedConfig);
     }
+
   }
 
   @Override
