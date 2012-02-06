@@ -127,13 +127,7 @@ class SsaConstantFolder extends HBaseVisitor {
             assert(right.isLiteralBoolean() ||
                    right.isLiteralNumber() ||
                    right.isLiteralNull());
-            String str;
-            // Workaround Frog bug. Issue #595.
-            if (right.isLiteralNull()) {
-              str = 'null';
-            } else {
-              str = right.value.toString();
-            }
+            String str = right.value.toString();
             return new HLiteral(new DartString.literal(str), HType.STRING);
           }
         }

@@ -258,16 +258,12 @@ class Send extends Expression {
 }
 
 class Postfix extends NodeList {
-  // TODO(floitsch): pass const EmptyLink<Node>() to super.
-  // This currently doesn't work because of a bug of Frog.
-  Postfix() : super(null);
+  Postfix() : super(nodes: const EmptyLink<Node>());
   Postfix.singleton(Node argument) : super.singleton(argument);
 }
 
 class Prefix extends NodeList {
-  // TODO(floitsch): pass const EmptyLink<Node>() to super.
-  // This currently doesn't work because of a bug of Frog.
-  Prefix() : super(null);
+  Prefix() : super(nodes: const EmptyLink<Node>());
   Prefix.singleton(Node argument) : super.singleton(argument);
 }
 
@@ -323,19 +319,13 @@ class NewExpression extends Expression {
 }
 
 class NodeList extends Node implements Iterable<Node> {
-  // TODO(floitsch): don't make nodes private. This is needed, because we
-  // work around a bug in Frog that doesn't allow to initialize the field
-  // with a const object.
-  final Link<Node> _nodes;
-  Link<Node> get nodes() => _nodes !== null ? _nodes : const EmptyLink<Node>();
+  final Link<Node> nodes;
   final Token beginToken;
   final Token endToken;
   final SourceString delimiter;
   bool isEmpty() => nodes.isEmpty();
 
-  // TODO(floitsch): second argument should be this.nodes.
-  NodeList([this.beginToken, nodes, this.endToken, this.delimiter])
-      : _nodes = nodes;
+  NodeList([this.beginToken, this.nodes, this.endToken, this.delimiter]);
 
   Iterator<Node> iterator() => nodes.iterator();
 
@@ -346,7 +336,7 @@ class NodeList extends Node implements Iterable<Node> {
 
   int length() {
     int length = 0;
-    for (Link<Node> cursor = _nodes; !cursor.isEmpty(); cursor = cursor.tail) {
+    for (Link<Node> cursor = nodes; !cursor.isEmpty(); cursor = cursor.tail) {
       length++;
     }
     return length;

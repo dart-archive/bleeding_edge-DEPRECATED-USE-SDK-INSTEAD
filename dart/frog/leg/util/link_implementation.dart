@@ -84,12 +84,11 @@ class LinkEntry<T> implements Link<T> {
   Iterator<T> iterator() => new LinkIterator<T>(this);
 
   void printOn(StringBuffer buffer, [separatedBy]) {
-    // TODO(ngeofray): Work around Frog bug
-    buffer.add(head === null ? 'null' : head);
+    buffer.add(head);
     if (separatedBy === null) separatedBy = '';
     for (Link link = tail; !link.isEmpty(); link = link.tail) {
       buffer.add(separatedBy);
-      buffer.add(link.head === null ? 'null' : link.head);
+      buffer.add(link.head);
     }
   }
 

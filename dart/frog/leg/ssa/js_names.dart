@@ -176,8 +176,7 @@ class JsNames {
       name = '\$$name';
       assert(!reserved.contains(name));
     } else if (name.contains(@'$')) {
-      // TODO(ngeoffray): replace with '$$' when frog supports it.
-      name = name.replaceAll(@'$', @'_$');
+      name = name.replaceAll(@'$', @'$$');
     }
     return name;
   }

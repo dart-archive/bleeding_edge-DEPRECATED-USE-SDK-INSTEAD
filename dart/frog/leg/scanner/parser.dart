@@ -791,7 +791,6 @@ class Parser {
     } else if (value === ';') {
       return parseEmptyStatement(token);
     } else {
-      // TODO(ahe): Handle other statements.
       return parseExpressionStatement(token);
     }
   }
@@ -996,7 +995,6 @@ class Parser {
   }
 
   Token parsePrimary(Token token) {
-    // TODO(ahe): Handle other expressions.
     final kind = token.kind;
     if (kind === IDENTIFIER_TOKEN) {
       return parseSendOrFunctionLiteral(token);

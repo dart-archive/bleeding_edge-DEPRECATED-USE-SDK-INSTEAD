@@ -1275,10 +1275,7 @@ class HAdd extends HBinaryArithmetic {
         assert(op2.isLiteralNumber() ||
                op2.isLiteralBoolean() ||
                op2.isLiteralNull());
-        // TODO(lrn): Remove the special casing of null when it's no longer
-        // necessary to avoid the frog bug of not allowing null.toString().
-        String string = op2.isLiteralNull() ? "null" : op2.value.toString();
-        otherString = new DartString.literal(string);
+        otherString = new DartString.literal(op2.value.toString());
       }
       DartString cons = new ConsDartString(leftString, otherString);
       return new HLiteral(cons, HType.STRING);

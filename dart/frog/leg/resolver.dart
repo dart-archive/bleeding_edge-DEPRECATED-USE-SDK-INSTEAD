@@ -327,8 +327,7 @@ class InitializerResolver {
   }
 }
 
-// TODO(ahe): Frog cannot handle generic types.
-class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
+class ResolverVisitor extends AbstractVisitor<Element> {
   final Compiler compiler;
   final TreeElementMapping mapping;
   final Element enclosingElement;
@@ -454,9 +453,7 @@ class ResolverVisitor extends AbstractVisitor/*<Element>*/ {
 
   Element useElement(Node node, Element element) {
     if (element === null) return null;
-    mapping[node] = element;
-    // TODO(ngeoffray): frog does not like a return on an assignment.
-    return element;
+    return mapping[node] = element;
   }
 
   void setupFunction(FunctionExpression node, FunctionElement function) {
@@ -884,8 +881,7 @@ class FullResolverVisitor extends ResolverVisitor {
   }
 }
 
-// TODO(ahe): Frog cannot handle generic types.
-class ClassResolverVisitor extends AbstractVisitor/* <Type> */ {
+class ClassResolverVisitor extends AbstractVisitor<Type> {
   Compiler compiler;
   Scope context;
 
@@ -947,8 +943,7 @@ class ClassResolverVisitor extends AbstractVisitor/* <Type> */ {
   }
 }
 
-// TODO(ahe): Frog cannot handle generic types.
-class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
+class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
   ElementKind kind;
@@ -983,8 +978,7 @@ class VariableDefinitionsVisitor extends AbstractVisitor/*<SourceString>*/ {
   }
 }
 
-// TODO(ahe): Frog cannot handle generic types.
-class SignatureResolverVisitor extends ResolverVisitor/*<Element>*/ {
+class SignatureResolverVisitor extends ResolverVisitor {
   Link<Element> parameters = const EmptyLink<Element>();
   Link<Element> optionalParameters = const EmptyLink<Element>();
   int parameterCount = 0;

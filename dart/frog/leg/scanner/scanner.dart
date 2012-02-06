@@ -10,7 +10,6 @@ interface Scanner {
  * Common base class for a Dart scanner.
  */
 class AbstractScanner<T> implements Scanner {
-  // TODO(ahe): following makes frog happy.
   abstract int advance();
   abstract int nextByte();
   abstract int peek();
