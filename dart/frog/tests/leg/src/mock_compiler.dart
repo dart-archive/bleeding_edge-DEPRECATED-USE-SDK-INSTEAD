@@ -77,7 +77,7 @@ class MockCompiler extends Compiler {
   }
 
   TreeElementMapping resolveNodeStatement(Node tree, Element element) {
-    ResolverVisitor visitor = new FullResolverVisitor(this, element);
+    ResolverVisitor visitor = new ResolverVisitor(this, element);
     if (visitor.context is TopScope) {
       visitor.context = new BlockScope(visitor.context);
     }
@@ -93,7 +93,7 @@ class MockCompiler extends Compiler {
   resolverVisitor() {
     Element mockElement =
         new Element(buildSourceString(''), ElementKind.FUNCTION, mainApp);
-    ResolverVisitor visitor = new FullResolverVisitor(this, mockElement);
+    ResolverVisitor visitor = new ResolverVisitor(this, mockElement);
     visitor.context = new BlockScope(visitor.context);
     return visitor;
   }

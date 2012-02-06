@@ -82,7 +82,7 @@ testSuperCalls() {
   ClassElement classA = compiler.mainApp.find(buildSourceString("A"));
   FunctionElement fooA = classA.lookupLocalMember(buildSourceString("foo"));
 
-  FullResolverVisitor visitor = new FullResolverVisitor(compiler, fooB);
+  ResolverVisitor visitor = new ResolverVisitor(compiler, fooB);
   FunctionExpression node = fooB.parseNode(compiler);
   visitor.visit(node.body);
   Map mapping = map(visitor);
@@ -100,7 +100,7 @@ testThis() {
   ClassElement fooElement = compiler.mainApp.find(buildSourceString("Foo"));
   FunctionElement funElement =
       fooElement.lookupLocalMember(buildSourceString("foo"));
-  FullResolverVisitor visitor = new FullResolverVisitor(compiler, funElement);
+  ResolverVisitor visitor = new ResolverVisitor(compiler, funElement);
   FunctionExpression function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Map mapping = map(visitor);
@@ -121,7 +121,7 @@ testThis() {
   fooElement = compiler.mainApp.find(buildSourceString("Foo"));
   funElement =
       fooElement.lookupLocalMember(buildSourceString("foo"));
-  visitor = new FullResolverVisitor(compiler, funElement);
+  visitor = new ResolverVisitor(compiler, funElement);
   function = funElement.parseNode(compiler);
   visitor.visit(function.body);
   Expect.equals(0, compiler.warnings.length);
@@ -357,7 +357,7 @@ testOneInterface() {
   // Add the interface to the world and make sure everything is setup correctly.
   compiler.parseScript("interface Bar {}");
 
-  FullResolverVisitor visitor = new FullResolverVisitor(compiler, null);
+  ResolverVisitor visitor = new ResolverVisitor(compiler, null);
   compiler.resolveStatement("Foo bar;");
 
   ClassElement fooElement = compiler.mainApp.find(buildSourceString('Foo'));
@@ -457,7 +457,7 @@ resolveConstructor(String script, String statement, String className,
   Element element =
       classElement.lookupConstructor(buildSourceString(constructor));
   FunctionExpression tree = element.parseNode(compiler);
-  ResolverVisitor visitor = new FullResolverVisitor(compiler, element);
+  ResolverVisitor visitor = new ResolverVisitor(compiler, element);
   new InitializerResolver(visitor, element).resolveInitializers(tree);
   visitor.visit(tree.body);
   Expect.equals(expectedElementCount, map(visitor).length);
@@ -580,7 +580,7 @@ testInitializers() {
                      corelib: "");
 }
 
-map(FullResolverVisitor visitor) {
+map(ResolverVisitor visitor) {
   TreeElementMapping elements = visitor.mapping;
   return elements.map;
 }
