@@ -680,6 +680,13 @@ public class DeltaProcessor {
       case DartElement.COMPILATION_UNIT:
         // Note: this element could be a compilation unit or library (if it is a defining compilation unit)
         element = DartCore.create(resource);
+        if (element instanceof DartLibrary) {
+          try {
+            element = ((DartLibrary) element).getDefiningCompilationUnit();
+          } catch (DartModelException exception) {
+            element = null;
+          }
+        }
         break;
       case DartElement.HTML_FILE:
         element = DartCore.create(resource);
