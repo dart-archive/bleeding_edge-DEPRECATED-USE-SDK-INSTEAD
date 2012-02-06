@@ -372,7 +372,7 @@ class SsaBuilder implements Visitor {
       // through HForeign instead of using HInvokeDynamicGetters. This means
       // that at the moment all our optimizations are thrown off.
       String name = redirect.name.toString();
-      HInstruction lookup = new HForeign(new SourceString("\$0.\$$name"),
+      HInstruction lookup = new HForeign(new SourceString("\$0.$name"),
                                          const SourceString("Object"),
                                          <HInstruction>[box]);
       add(lookup);
@@ -416,9 +416,9 @@ class SsaBuilder implements Visitor {
       // through HForeign instead of using HInvokeDynamicGetters. This means
       // that at the moment all our optimizations are thrown off.
       String name = redirect.name.toString();
-      add(new HForeign(new SourceString("\$0.\$$name=\$1"),
+      add(new HForeign(new SourceString("\$0.$name=\$1"),
                        const SourceString("Object"),
-                        <HInstruction>[box, value]));
+                       <HInstruction>[box, value]));
     }
   }
 

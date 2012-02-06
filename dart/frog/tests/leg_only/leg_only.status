@@ -11,7 +11,6 @@ ClassTest: Fail
 StatementsTest: Fail
 TypedLocalsTest: Fail
 ForeignTest: Fail # JS methods are only visible within core library.
-ClosureCapture2Test: Fail
 
 [ $mode == debug ]
 StringInterpolationTest: Skip

@@ -61,6 +61,7 @@ Map<Node, ClosureData> get closureDataCache() {
 class ClosureTranslator extends AbstractVisitor {
   final Compiler compiler;
   final TreeElements elements;
+  int boxCounter = 0;
 
   // Map of captured variables. Initially they will map to themselves. If
   // a variable needs to be boxed then the scope declaring the variable
@@ -203,11 +204,19 @@ class ClosureTranslator extends AbstractVisitor {
     for (Element element in scopeVariables) {
       if (capturedVariableMapping.containsKey(element)) {
         if (box == null) {
-          box = new Element(const SourceString("box"),
+          // TODO(floitsch): construct better box names.
+          SourceString boxName = new SourceString("box${boxCounter++}");
+          box = new Element(boxName,
                             ElementKind.VARIABLE,
                             currentFunctionElement);
         }
-        Element boxed = new Element(element.name, ElementKind.FIELD, box);
+        // TODO(floitsch): construct better boxed names.
+        String elementName = element.name.toString();
+        // We are currently using the name in an HForeign which could replace
+        // "$X" with something else.
+        String escaped = elementName.replaceAll("\$", "_");
+        SourceString boxedName = new SourceString("${escaped}_${boxCounter++}");
+        Element boxed = new Element(boxedName, ElementKind.FIELD, box);
         scopeMapping[element] = boxed;
         capturedVariableMapping[element] = boxed;
       }

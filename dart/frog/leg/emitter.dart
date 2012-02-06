@@ -156,12 +156,12 @@ function(child, parent) {
       if (compiler.universe.invokedSetters.contains(member.name)) {
         String setterName = namer.setterName(member.name);
         buffer.add('$prototype.$setterName = function(v){\n' +
-          '  this.${namer.getName(member)} = v;\n}\n');
+          '  this.${namer.getName(member)} = v;\n};\n');
       }
       if (compiler.universe.invokedGetters.contains(member.name)) {
         String getterName = namer.getterName(member.name);
         buffer.add('$prototype.$getterName = function(){\n' +
-          '  return this.${namer.getName(member)};\n}\n');
+          '  return this.${namer.getName(member)};\n};\n');
       }
     } else {
       compiler.internalError('unexpected kind: "${member.kind}"',

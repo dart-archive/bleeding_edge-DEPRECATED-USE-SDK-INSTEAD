@@ -23,6 +23,17 @@ closure0() {
   Expect.equals(43, g());
 }
 
+closure1() {
+  // f captures variable $0 which could yield to troubles with HForeign if we
+  // don't mangle correctly.
+  var $1 = 499;
+  // TODO(floitsch): remove name from functions.
+  var f = fun() { return $1; };
+  $1++;
+  Expect.equals(500, f());
+}
+
 main() {
   closure0();
+  closure1();
 }
