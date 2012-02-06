@@ -22,6 +22,7 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
@@ -694,7 +695,14 @@ public class BindingUtils {
     if (library == null) {
       return null;
     }
-    LibrarySource librarySource = library.getLibraryUnit().getSource();
+    if (library.isDynamic()) {
+      return null;
+    }
+    LibraryUnit libraryUnit = library.getLibraryUnit();
+    if (libraryUnit == null) {
+      return null;
+    }
+    LibrarySource librarySource = libraryUnit.getSource();
     URI uri = librarySource.getUri();
     if (SystemLibraryManager.isDartUri(uri)) {
       return new DartLibraryImpl(librarySource);
