@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Dart project authors.
+ * Copyright 2012 Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,9 +14,6 @@
 package com.google.dart.tools.core.frog;
 
 import com.google.dart.tools.core.model.DartSdk;
-
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,25 +79,11 @@ public class FrogManager {
    * @return the path to the dart executable, or null if the path has not been set
    */
   protected static String getDartVmExecutablePath() {
-    final String DEBUG_PLUGIN_ID = "com.google.dart.tools.debug.core";
-    final String PREFS_DART_VM_PATH = "vmPath";
-
-    IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(DEBUG_PLUGIN_ID);
-
-    if (prefs != null) {
-      String value = prefs.get(PREFS_DART_VM_PATH, null);
-      if (value != null) {
-        value = value.trim();
-        if (value.length() > 0) {
-          return value;
-        }
-      }
-    }
-
-    // Use the VM in the bundled SDK if none specified
     DartSdk sdk = DartSdk.getInstance();
+
     if (sdk != null) {
       File vm = sdk.getVmExecutable();
+
       if (vm != null) {
         return vm.getPath();
       }
