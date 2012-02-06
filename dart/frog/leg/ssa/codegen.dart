@@ -441,6 +441,9 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add('.');
     buffer.add(compiler.namer.closureInvocationName(node.selector));
     visitArguments(node.inputs);
+    // TODO(floitsch): we should have a separate list for closure invocations.
+    compiler.registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME,
+                                       node.selector);
   }
 
   visitInvokeStatic(HInvokeStatic node) {

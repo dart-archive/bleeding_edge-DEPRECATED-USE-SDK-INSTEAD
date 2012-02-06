@@ -183,11 +183,9 @@ class ClosureTranslator extends AbstractVisitor {
 
   visitSend(Send node) {
     Element element = elements[node];
-    if (element !== null &&
-        (element.kind == ElementKind.VARIABLE ||
-         element.kind == ElementKind.PARAMETER)) {
+    if (Elements.isLocal(element)) {
       useLocal(element);
-    } else if (node.receiver === null) {
+    } else if (element === null && node.receiver === null) {
       if (insideClosure) {
         compiler.unimplemented("ClosureTranslator.visitSend this-capture");
       }

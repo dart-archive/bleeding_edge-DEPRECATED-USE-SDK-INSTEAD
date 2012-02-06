@@ -606,6 +606,16 @@ class ClassElement extends ContainerElement {
 }
 
 class Elements {
+  static bool isLocal(Element element) {
+    return ((element !== null)
+            && !element.isInstanceMember()
+            && !isStaticOrTopLevelField(element)
+            && !isStaticOrTopLevelFunction(element)
+            && (element.kind === ElementKind.VARIABLE ||
+                element.kind === ElementKind.PARAMETER ||
+                element.kind === ElementKind.FUNCTION));
+  }
+
   static bool isInstanceField(Element element) {
     return (element !== null)
            && element.isInstanceMember()
