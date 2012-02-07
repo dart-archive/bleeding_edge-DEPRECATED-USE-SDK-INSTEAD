@@ -317,7 +317,14 @@ class Parser {
   Token parseTypeVariablesOpt(Token token) {
     if (optional('<', token)) {
       BeginGroupToken beginGroupToken = token;
-      token = beginGroupToken.endGroup.next;
+      // TODO(ahe): Parse type variables.
+
+      // For now, skip to the matching '>' if it exists. Otherwise,
+      // don't advance and assume the caller will report some kind of
+      // error.
+      if (beginGroupToken.endGroup !== null) {
+        token = beginGroupToken.endGroup.next;
+      }
     }
     listener.handleNoTypeVariables(token);
     return token;
