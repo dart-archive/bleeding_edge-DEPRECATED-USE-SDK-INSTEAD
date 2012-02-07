@@ -307,9 +307,7 @@ class LocalsHandler {
       // itself.
       HInstruction receiver = new HThis();
       builder.add(receiver);
-      Selector selector = Selector.GETTER;
-      HInstruction fieldGet =
-          new HInvokeDynamicGetter(selector, redirect, redirect.name, receiver);
+      HInstruction fieldGet = new HFieldGet(redirect, receiver);
       builder.add(fieldGet);
       return fieldGet;
     } else {
@@ -322,13 +320,7 @@ class LocalsHandler {
       // the box.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      // TODO(floitsch): clean this hack. We access the fields inside the box
-      // through HForeign instead of using HInvokeDynamicGetters. This means
-      // that at the moment all our optimizations are thrown off.
-      String name = redirect.name.toString();
-      HInstruction lookup = new HForeign(new SourceString("\$0.$name"),
-                                         const SourceString("Object"),
-                                         <HInstruction>[box]);
+      HInstruction lookup = new HFieldGet(redirect, box);
       builder.add(lookup);
       return lookup;
     }
@@ -354,10 +346,7 @@ class LocalsHandler {
       // itself.
       HInstruction receiver = new HThis();
       builder.add(receiver);
-      Selector selector = Selector.SETTER;
-      SourceString name = redirect.name;
-      builder.add(new HInvokeDynamicSetter(
-          selector, redirect, name, receiver, value));
+      builder.add(new HFieldSet(redirect, receiver, value));
     } else {
       assert(isBoxed(element));
       Element redirect = redirectionMapping[element];
@@ -367,13 +356,7 @@ class LocalsHandler {
       // be accessed directly.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      // TODO(floitsch): clean this hack. We access the fields inside the box
-      // through HForeign instead of using HInvokeDynamicGetters. This means
-      // that at the moment all our optimizations are thrown off.
-      String name = redirect.name.toString();
-      builder.add(new HForeign(new SourceString("\$0.$name=\$1"),
-                               const SourceString("Object"),
-                               <HInstruction>[box, value]));
+      builder.add(new HFieldSet(redirect, box, value));
     }
   }
 

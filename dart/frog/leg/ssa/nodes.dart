@@ -14,6 +14,8 @@ interface HVisitor<R> {
   R visitDivide(HDivide node);
   R visitEquals(HEquals node);
   R visitExit(HExit node);
+  R visitFieldGet(HFieldGet node);
+  R visitFieldSet(HFieldSet node);
   R visitForeign(HForeign node);
   R visitForeignNew(HForeignNew);
   R visitGoto(HGoto node);
@@ -208,6 +210,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitEquals(HEquals node) => visitRelational(node);
   visitExit(HExit node) => visitControlFlow(node);
+  visitFieldGet(HFieldGet node) => visitInstruction(node);
+  visitFieldSet(HFieldSet node) => visitInstruction(node);
   visitForeign(HForeign node) => visitInstruction(node);
   visitForeignNew(HForeignNew node) => visitForeign(node);
   visitGoto(HGoto node) => visitControlFlow(node);
@@ -1130,6 +1134,32 @@ class HInvokeInterceptor extends HInvokeStatic {
   bool typeEquals(other) => other is HInvokeInterceptor;
   bool dataEquals(HInvokeInterceptor other) {
     return builtinJsName == other.builtinJsName && name == other.name;
+  }
+}
+
+class HFieldGet extends HInstruction {
+  Element element;
+  HFieldGet(Element this.element, HInstruction receiver)
+      : super(<HInstruction>[receiver]);
+  HFieldGet.fromActivation() : super(<HInstruction>[]);
+
+  HInstruction get receiver() => inputs.length == 1 ? inputs[0] : null;
+  accept(HVisitor visitor) => visitor.visitFieldGet(this);
+}
+
+class HFieldSet extends HInstruction {
+  Element element;
+  HFieldSet(Element this.element, HInstruction receiver, HInstruction value)
+      : super(<HInstruction>[receiver, value]);
+  HFieldSet.fromActivation(HInstruction value) : super(<HInstruction>[value]);
+
+  HInstruction get receiver() => inputs.length == 2 ? inputs[0] : null;
+  HInstruction get value() => inputs.length == 2 ? inputs[1] : inputs[0];
+  accept(HVisitor visitor) => visitor.visitFieldSet(this);
+
+  void prepareGvn() {
+    // TODO(ngeoffray): implement more fine grain side effects.
+    setAllSideEffects();
   }
 }
 

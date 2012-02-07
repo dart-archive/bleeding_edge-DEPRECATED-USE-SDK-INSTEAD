@@ -208,6 +208,13 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitExit(HExit node) => "exit";
 
+  String visitFieldGet(HFieldGet node) => 'get ${node.element.name}';
+
+  String visitFieldSet(HFieldSet node) {
+    String valueId = temporaryId(node.value);
+    'set ${node.element.name} to $valueId';
+  }
+
   String visitGoto(HGoto node) {
     HBasicBlock target = currentBlock.successors[0];
     return "Goto: (B${target.id})";

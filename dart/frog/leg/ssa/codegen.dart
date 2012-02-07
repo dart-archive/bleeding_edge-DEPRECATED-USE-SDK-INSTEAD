@@ -464,6 +464,26 @@ class SsaCodeGenerator implements HVisitor {
     compiler.registerStaticUse(superMethod);
   }
 
+  visitFieldGet(HFieldGet node) {
+    if (node.receiver != null) {
+      use(node.receiver);
+      buffer.add('.');
+    }
+    String name = JsNames.getValid('${node.element.name}');
+    buffer.add(name);
+  }
+
+  visitFieldSet(HFieldSet node) {
+    if (node.receiver != null) {
+      use(node.receiver);
+      buffer.add('.');
+    }
+    String name = JsNames.getValid('${node.element.name}');
+    buffer.add(name);
+    buffer.add(' = ');
+    use(node.value);
+  }
+
   visitForeign(HForeign node) {
     String code = '${node.code}';
     List<HInstruction> inputs = node.inputs;
