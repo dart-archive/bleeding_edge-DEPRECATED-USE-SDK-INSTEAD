@@ -33,6 +33,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 
+import java.io.File;
 import java.util.Comparator;
 
 /**
@@ -49,25 +50,20 @@ import java.util.Comparator;
  */
 public class DartElementComparator extends ViewerComparator {
 
-  private static final int HTML_FILE = 1;
-
-  private static final int PROJECTS = 2;
-
+  private static final int DIRECTORY = 1;
+  private static final int FILE = 2;
+  private static final int PROJECTS = 3;
   private static final int RESOURCEFOLDERS = 7;
-
   private static final int DART_LIB = 9;
-
-  private static final int DART_FILE = 11;
+  private static final int DART_FILE = 10;
+  private static final int HTML_FILE = 11;
   private static final int RESOURCES = 12;
   private static final int IMPORTED_LIBS_CONTAINER = 13;
   private static final int IMPORTED_LIB_CONTAINER = 14;
-
   private static final int IMPORT_CONTAINER = 15;
-
   // Includes all categories ordered using the OutlineSortOrderPage:
   // types, methods & fields
   private static final int MEMBERSOFFSET = 15;
-
   private static final int DARTELEMENTS = 50;
   private static final int OTHERS = 51;
 
@@ -104,7 +100,14 @@ public class DartElementComparator extends ViewerComparator {
 
   @Override
   public int category(Object objectElement) {
-    if (objectElement instanceof DartElement) {
+    if (objectElement instanceof File) {
+      File file = (File) objectElement;
+      if (file.isDirectory()) {
+        return DIRECTORY;
+      } else {
+        return FILE;
+      }
+    } else if (objectElement instanceof DartElement) {
       DartElement element = (DartElement) objectElement;
 
       switch (element.getElementType()) {
