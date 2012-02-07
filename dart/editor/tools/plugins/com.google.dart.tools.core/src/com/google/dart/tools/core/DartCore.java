@@ -364,6 +364,13 @@ public class DartCore extends Plugin {
   }
 
   /**
+   * Return the static {@link DirectorySetManager} instance.
+   */
+  public static DirectorySetManager getDirectorySetManager() {
+    return DirectorySetManager.instance;
+  }
+
+  /**
    * Return the workspace root default charset encoding.
    * 
    * @return the name of the default charset encoding for the workspace root
@@ -690,19 +697,19 @@ public class DartCore extends Plugin {
     PLUG_IN = this;
   }
 
+  /**
+   * Use frog if sdk is present and user has set preference
+   */
+  public boolean getCompileWithFrog() {
+    return (DartSdk.isInstalled() && getPrefs().getBoolean(FROG_COMPILE, false));
+  }
+
   public IEclipsePreferences getPrefs() {
     if (prefs == null) {
       prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
     }
 
     return prefs;
-  }
-
-  /**
-   * Use frog if sdk is present and user has set preference
-   */
-  public boolean getCompileWithFrog() {
-    return (DartSdk.isInstalled() && getPrefs().getBoolean(FROG_COMPILE, false));
   }
 
   @Override

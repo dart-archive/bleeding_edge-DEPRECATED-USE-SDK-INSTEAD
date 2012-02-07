@@ -11,14 +11,16 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package com.google.dart.tools.ui.internal.view.files;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DirectorySetManager;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
@@ -51,14 +53,15 @@ import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.ViewPart;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * File-oriented view for navigating Dart projects.
  * <p>
- * TODO hide hidden files and directories --> create a local private static boolean
- * <p>
- * TODO we'll want to persist both a list of directories, list of expanded to directories, and a
- * list of files
+ * TODO(jwren) we still need to persist both a list of directories, list of expanded to directories,
+ * and a list of files which were recently opened
  */
 public class FilesView extends ViewPart implements ISetSelectionTarget {
 
@@ -87,12 +90,19 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private IMemento memento;
 
+  private DirectorySetManager model;
+
   /**
-   * A final static String for the Link with Editor momento.
+   * A final static String for the Link with Editor memento.
    */
-//  private static final String LINK_WITH_EDITOR_ID = "linkWithEditor";
-//
-//  private LinkWithEditorAction linkWithEditorAction;
+  private static final String LINK_WITH_EDITOR_ID = "linkWithEditor";
+
+  /**
+   * A String for the expanded directory set memento.
+   */
+  private static final String EXPANDED_DIRS = "expandedDirs";
+
+  private LinkWithEditorAction linkWithEditorAction;
 //  private MoveResourceAction moveAction;
 //  private RenameResourceAction renameAction;
 //  private DeleteAction deleteAction;
@@ -107,19 +117,23 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   public void createPartControl(Composite parent) {
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new FilesContentProvider());
-    treeViewer.setInput(new TopLevelDirectoriesWrapper());
-    //TODO (pquitslund): replace with WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider() 
-    // when we have the linked resource story straightened out
-//    treeViewer.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
     treeViewer.setLabelProvider(fileLabelProvider);
-//    treeViewer.setComparator(new FilesViewerComparator());
+    treeViewer.setComparator(new DartElementComparator());
     treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
         handleDoubleClick(event);
       }
     });
-//    treeViewer.setInput(ResourcesPlugin.getWorkspace().getRoot());
+
+    treeViewer.setInput(model = DartCore.getDirectorySetManager());
+
+    if (memento != null && memento.getString(EXPANDED_DIRS) != null) {
+      File[] expandedDirs = retrieveExpandedElementsFromMemento(memento.getString(EXPANDED_DIRS));
+      for (File file : expandedDirs) {
+        treeViewer.expandToLevel(file, 1);
+      }
+    }
 
     getSite().setSelectionProvider(treeViewer);
 
@@ -145,7 +159,11 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   @Override
   public void saveState(IMemento memento) {
-    //memento.putBoolean(LINK_WITH_EDITOR_ID, linkWithEditorAction.getLinkWithEditor());
+    // store link with editor setting
+    memento.putBoolean(LINK_WITH_EDITOR_ID, linkWithEditorAction.getLinkWithEditor());
+
+    // store expanded elements list
+    storeExpandedElements(memento);
   }
 
   @Override
@@ -172,7 +190,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     getSite().registerContextMenu(menuMgr, treeViewer);
   }
 
-  @SuppressWarnings("rawtypes")
   protected void fillContextMenu(IMenuManager manager) {
 
   }
@@ -181,23 +198,21 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     // Link with Editor
 
-//    linkWithEditorAction = new LinkWithEditorAction(getViewSite().getPage(), treeViewer);
-//
-//    if (memento != null && memento.getBoolean(LINK_WITH_EDITOR_ID) != null) {
-//      linkWithEditorAction.setLinkWithEditor(memento.getBoolean(LINK_WITH_EDITOR_ID).booleanValue());
-//    } else {
-//      linkWithEditorAction.setLinkWithEditor(true);
-//    }
-//
-//    // Collapse All
-//
-//    toolbar.add(new CollapseAllAction(treeViewer));
-//    toolbar.add(linkWithEditorAction);
+    linkWithEditorAction = new LinkWithEditorAction(getViewSite().getPage(), treeViewer);
+
+    if (memento != null && memento.getBoolean(LINK_WITH_EDITOR_ID) != null) {
+      linkWithEditorAction.setLinkWithEditor(memento.getBoolean(LINK_WITH_EDITOR_ID).booleanValue());
+    } else {
+      linkWithEditorAction.setLinkWithEditor(true);
+    }
+
+    // Collapse All
+
+    toolbar.add(new CollapseAllAction(treeViewer));
+    toolbar.add(linkWithEditorAction);
   }
 
   protected void handleDoubleClick(DoubleClickEvent event) {
-    System.out.println("FilesView.handleDoubleClick()");
-
     IStructuredSelection selection = (IStructuredSelection) event.getSelection();
     Object element = selection.getFirstElement();
 
@@ -244,6 +259,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
       if (iFile != null) {
         try {
+
           EditorUtility.openInEditor(iFile, true);
         } catch (PartInitException e) {
           e.printStackTrace();
@@ -253,26 +269,15 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       } else {
         IWorkbenchPage p = DartToolsPlugin.getActivePage();
         try {
-          IDE.openEditor(p, file.toURI(), IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID, true);
+          // open the external editor if the File is not a directory (don't want OS to open Finder/Explorer window)
+          if (!file.isDirectory()) {
+            IDE.openEditor(p, file.toURI(), IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID, true);
+          }
         } catch (PartInitException e) {
           // system was unable to open the file selected, fall through
         }
       }
     }
-
-//    if (element instanceof IFile) {
-//      try {
-//        IDE.openEditor(getViewSite().getPage(), (IFile) element);
-//      } catch (PartInitException e) {
-//        DartToolsPlugin.log(e);
-//      }
-//    } else if (element instanceof IFileStore) {
-//      try {
-//        IDE.openEditorOnFileStore(getViewSite().getPage(), (IFileStore) element);
-//      } catch (PartInitException e) {
-//        DartToolsPlugin.log(e);
-//      }
-//    }
   }
 
   protected void updateTreeFont() {
@@ -286,4 +291,43 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     return getSite().getShell();
   }
 
+  private File[] retrieveExpandedElementsFromMemento(String str) {
+    if (str == null || str.length() == 0) {
+      return new File[0];
+    }
+    Set<File> fileSet = new HashSet<File>();
+    String[] pathArray = str.split(";");
+    for (String strPath : pathArray) {
+      File file = new File(strPath);
+      if (file.exists() && file.isDirectory()) {
+        fileSet.add(file);
+      }
+    }
+    return fileSet.toArray(new File[fileSet.size()]);
+  }
+
+  private void storeExpandedElements(IMemento memento) {
+    // Get the set of expanded elements
+    Object[] expandedElements = treeViewer.getExpandedElements();
+
+    // Convert the Object[] into an array of Files, with some checks on the content
+    ArrayList<File> fileList = new ArrayList<File>(expandedElements.length);
+    for (Object object : expandedElements) {
+      if (object instanceof File) {
+        fileList.add((File) object);
+      }
+    }
+
+    // Put the content into a string representation
+    String stringCache = "";
+    for (int i = 0; i < fileList.size(); i++) {
+      stringCache += fileList.get(i).getAbsolutePath();
+      if (i + 1 != fileList.size()) {
+        stringCache += ';';
+      }
+    }
+
+    // Finally, put the content into the EXPANDED_DIRS memento
+    memento.putString(EXPANDED_DIRS, stringCache);
+  }
 }

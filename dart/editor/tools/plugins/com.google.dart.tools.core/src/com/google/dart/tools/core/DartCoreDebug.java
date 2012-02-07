@@ -34,9 +34,9 @@ public class DartCoreDebug {
 
   public static final boolean TRACE_ARTIFACT_PROVIDER = isOptionTrue("trace/artifactProvider");
 
-  public static final boolean FILES_VIEW = isOptionTrue("experimental/filesview");
+  public static final boolean PROBLEMS_VIEW = isOptionTrue("experimental/projectsview");
 
-  public static final boolean FILES_VIEW2 = isOptionTrue("experimental/filesview2");
+  public static final boolean FILES_VIEW = isOptionTrue("experimental/filesview");
 
   public static final boolean FROG = isOptionTrue("debug/frog");
 

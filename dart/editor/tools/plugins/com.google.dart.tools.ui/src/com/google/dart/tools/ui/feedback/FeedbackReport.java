@@ -72,6 +72,8 @@ public class FeedbackReport {
   public String getOptionsText() {
     StringBuilder msg = new StringBuilder();
 
+    msg.append("experimental/problemsview = " + DartCoreDebug.PROBLEMS_VIEW + "\n");
+
     msg.append("experimental/filesview = " + DartCoreDebug.FILES_VIEW + "\n");
 
     msg.append("SDK installed = " + DartSdk.isInstalled() + "\n");

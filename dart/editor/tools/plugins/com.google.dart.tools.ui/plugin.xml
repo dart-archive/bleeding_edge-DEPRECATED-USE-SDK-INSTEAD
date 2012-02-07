@@ -428,7 +428,7 @@
             category="com.google.dart.tools.ui.dart"
             class="com.google.dart.tools.ui.internal.view.files.FilesView"
             icon="icons/full/obj16/file_folder.gif"
-            id="com.google.dart.tools.ui.FileView"
+            id="com.google.dart.tools.ui.FilesView"
             name="Files"
             restorable="true">
       </view>

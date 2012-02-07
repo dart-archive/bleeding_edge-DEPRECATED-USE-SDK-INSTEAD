@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.view.files;
 
+import com.google.dart.tools.core.DirectorySetManager;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -28,7 +30,7 @@ public class FilesContentProvider implements ITreeContentProvider {
   private FilenameFilter filenameFilter = new FilenameFilter() {
     @Override
     public boolean accept(File dir, String name) {
-      return name != null && name.length() > 0 && name.charAt(0) != '.';
+      return !new File(dir, name).isHidden();
     }
   };
 
@@ -48,8 +50,8 @@ public class FilesContentProvider implements ITreeContentProvider {
     try {
       if (element instanceof File) {
         return getFileChildren((File) element);
-      } else if (element instanceof TopLevelDirectoriesWrapper) {
-        return ((TopLevelDirectoriesWrapper) element).getChildren();
+      } else if (element instanceof DirectorySetManager) {
+        return ((DirectorySetManager) element).getChildren();
       }
     } catch (Exception e) {
       //fall through
