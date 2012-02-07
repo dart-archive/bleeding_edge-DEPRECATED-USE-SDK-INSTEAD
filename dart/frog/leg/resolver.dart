@@ -96,7 +96,7 @@ class ResolverTask extends CompilerTask {
   }
 
   FunctionParameters resolveSignature(FunctionElement element) {
-    return measure(() => SignatureResolver.analyze(this, element));
+    return measure(() => SignatureResolver.analyze(compiler, element));
   }
 
   void checkClassHierarchy(Link<ClassElement> classes) {
@@ -318,25 +318,17 @@ class InitializerResolver {
   }
 }
 
-class ResolverVisitor extends AbstractVisitor<Element> {
+class CommonResolverVisitor<R> extends AbstractVisitor<Element> {
   final Compiler compiler;
-  final TreeElementMapping mapping;
-  final Element enclosingElement;
-  bool inInstanceContext;
-  Scope context;
-  ClassElement currentClass;
-  bool typeRequired = false;
 
-  ResolverVisitor(Compiler compiler, Element element)
-    : this.compiler = compiler,
-      this.mapping  = new TreeElementMapping(),
-      this.enclosingElement = element,
-      inInstanceContext = element.isInstanceMember()
-          || element.isGenerativeConstructor(),
-      this.context  = element.isMember()
-        ? new ClassScope(element.enclosingElement, element.getLibrary())
-        : new TopScope(element.getLibrary()),
-      this.currentClass = element.isMember() ? element.enclosingElement : null;
+  CommonResolverVisitor(Compiler this.compiler);
+
+  R visitNode(Node node) {
+    cancel(node, 'internal error');
+  }
+
+  /** Convenience method for visiting nodes that may be null. */
+  R visit(Node node) => (node == null) ? null : node.accept(this);
 
   void error(Node node, MessageKind kind, [arguments = const []]) {
     ResolutionError error  = new ResolutionError(kind, arguments);
@@ -352,6 +344,34 @@ class ResolverVisitor extends AbstractVisitor<Element> {
     compiler.cancel(message, node: node);
   }
 
+  void internalError(Node node, String message) {
+    compiler.internalError(message, node: node);
+  }
+
+  void unimplemented(Node node, String message) {
+    compiler.unimplemented(message, node: node);
+  }
+}
+
+class ResolverVisitor extends CommonResolverVisitor<Element> {
+  final TreeElementMapping mapping;
+  final Element enclosingElement;
+  bool inInstanceContext;
+  Scope context;
+  ClassElement currentClass;
+  bool typeRequired = false;
+
+  ResolverVisitor(Compiler compiler, Element element)
+    : this.mapping  = new TreeElementMapping(),
+      this.enclosingElement = element,
+      inInstanceContext = element.isInstanceMember()
+          || element.isGenerativeConstructor(),
+      this.context  = element.isMember()
+        ? new ClassScope(element.enclosingElement, element.getLibrary())
+        : new TopScope(element.getLibrary()),
+      this.currentClass = element.isMember() ? element.enclosingElement : null,
+      super(compiler);
+
   Element lookup(Node node, SourceString name) {
     Element result = context.lookup(name);
     if (!inInstanceContext && result != null && result.isInstanceMember()) {
@@ -365,11 +385,6 @@ class ResolverVisitor extends AbstractVisitor<Element> {
     inInstanceContext = false;
     visit(node);
     inInstanceContext = wasInstanceContext;
-  }
-
-  visit(Node node) {
-    if (node == null) return null;
-    return node.accept(this);
   }
 
   visitIdentifier(Identifier node) {
@@ -453,10 +468,6 @@ class ResolverVisitor extends AbstractVisitor<Element> {
       defineElement(variableDefinitions.definitions.nodes.head, element);
       parameterNodes = parameterNodes.tail;
     });
-  }
-
-  visitNode(Node node) {
-    cancel(node, 'not implemented');
   }
 
   Element visitClassNode(ClassNode node) {
@@ -694,7 +705,7 @@ class ResolverVisitor extends AbstractVisitor<Element> {
   }
 
   visitOperator(Operator node) {
-    compiler.unimplemented('operator', node: node);
+    unimplemented(node, 'operator');
   }
 
   visitReturn(Return node) {
@@ -708,7 +719,8 @@ class ResolverVisitor extends AbstractVisitor<Element> {
   visitVariableDefinitions(VariableDefinitions node) {
     visit(node.type);
     VariableDefinitionsVisitor visitor =
-        new VariableDefinitionsVisitor(node, this, ElementKind.VARIABLE);
+        new VariableDefinitionsVisitor(compiler, node, this,
+                                       ElementKind.VARIABLE);
     visitor.visit(node.definitions);
   }
 
@@ -778,7 +790,7 @@ class ResolverVisitor extends AbstractVisitor<Element> {
 
   visitModifiers(Modifiers node) {
     // TODO(ngeoffray): Implement this.
-    compiler.unimplemented('modifiers', node: node);
+    unimplemented(node, 'modifiers');
   }
 
   visitLiteralList(LiteralList node) {
@@ -799,11 +811,11 @@ class ResolverVisitor extends AbstractVisitor<Element> {
   }
 
   visitBreakStatement(BreakStatement node) {
-    compiler.unimplemented('break', node: node);
+    unimplemented(node, 'break');
   }
 
   visitContinueStatement(ContinueStatement node) {
-    compiler.unimplemented('continue', node: node);
+    unimplemented(node, 'continue');
   }
 
   visitForInStatement(ForInStatement node) {
@@ -824,15 +836,15 @@ class ResolverVisitor extends AbstractVisitor<Element> {
   }
 
   visitLabelledStatement(LabelledStatement node) {
-    compiler.unimplemented('label', node: node);
+    unimplemented(node, 'label');
   }
 
   visitLiteralMap(LiteralMap node) {
-    compiler.unimplemented('map', node: node);
+    unimplemented(node, 'map');
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
-    compiler.unimplemented('map entry', node: node);
+    unimplemented(node, 'map entry');
   }
 
   visitNamedArgument(NamedArgument node) {
@@ -840,28 +852,28 @@ class ResolverVisitor extends AbstractVisitor<Element> {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    compiler.unimplemented('switch', node: node);
+    unimplemented(node, 'switch');
   }
 
   visitTryStatement(TryStatement node) {
-    compiler.unimplemented('try', node: node);
+    unimplemented(node, 'try');
   }
 
   visitCatchBlock(CatchBlock node) {
-    compiler.unimplemented('catch', node: node);
+    unimplemented(node, 'catch');
   }
 
   visitTypedef(Typedef node) {
-    compiler.unimplemented('typedef', node: node);
+    unimplemented(node, 'typedef');
   }
 }
 
-class ClassResolverVisitor extends AbstractVisitor<Type> {
-  Compiler compiler;
+class ClassResolverVisitor extends CommonResolverVisitor<Type> {
   Scope context;
 
   ClassResolverVisitor(Compiler compiler, LibraryElement library)
-    : this.compiler = compiler, context = new TopScope(library);
+    : context = new TopScope(library),
+      super(compiler);
 
   Type visitClassNode(ClassNode node) {
     ClassElement element = context.lookup(node.name.source);
@@ -873,9 +885,7 @@ class ClassResolverVisitor extends AbstractVisitor<Type> {
       if (objectElement !== null && !objectElement.isResolved) {
         compiler.resolver.toResolve.add(objectElement);
       } else if (objectElement === null){
-        compiler.reportError(node,
-            new ResolutionError(MessageKind.CANNOT_RESOLVE_TYPE,
-                                [Types.OBJECT]));
+        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [Types.OBJECT]);
       }
       element.supertype = new SimpleType(Types.OBJECT,
                                          objectElement);
@@ -891,15 +901,13 @@ class ClassResolverVisitor extends AbstractVisitor<Type> {
   Type visitTypeAnnotation(TypeAnnotation node) {
     Identifier name = node.typeName.asIdentifier();
     if (name === null) {
-      compiler.unimplemented("prefixes", node: node.typeName);
+      unimplemented(node.typeName, "prefixes");
     }
     Element element = context.lookup(name.source);
     if (element === null) {
-      compiler.reportError(node,
-          new ResolutionError(MessageKind.CANNOT_RESOLVE_TYPE, [name]));
+      error(node, MessageKind.CANNOT_RESOLVE_TYPE, [name]);
     } else if (element.kind !== ElementKind.CLASS) {
-      compiler.reportError(node,
-          new ResolutionError(MessageKind.NOT_A_TYPE, [name]));
+      error(node, MessageKind.NOT_A_TYPE, [name]);
     } else {
       compiler.resolver.toResolve.add(element);
       // TODO(ngeoffray): Use type variables.
@@ -907,24 +915,18 @@ class ClassResolverVisitor extends AbstractVisitor<Type> {
     }
     return null;
   }
-
-  Type visit(Node node) {
-    if (node === null) return null;
-    return node.accept(this);
-  }
-
-  visitNode(Node node) {
-    compiler.cancel('internal error');
-  }
 }
 
-class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
+class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
   ElementKind kind;
   VariableListElement variables;
 
-  VariableDefinitionsVisitor(this.definitions, this.resolver, this.kind) {
+  VariableDefinitionsVisitor(Compiler compiler,
+                             this.definitions, this.resolver, this.kind)
+    : super(compiler)
+  {
     variables = new VariableListElement.node(
         definitions, ElementKind.VARIABLE_LIST, resolver.context.element);
   }
@@ -945,27 +947,20 @@ class VariableDefinitionsVisitor extends AbstractVisitor<SourceString> {
       resolver.defineElement(link.head, element);
     }
   }
-
-  visit(Node node) => node.accept(this);
-
-  visitNode(Node node) {
-    resolver.cancel(node, 'not implemented');
-  }
 }
 
-class SignatureResolver extends AbstractVisitor<Element> {
-  final ResolverTask task;
+class SignatureResolver extends CommonResolverVisitor<Element> {
   final Element enclosingElement;
   Link<Element> optionalParameters = const EmptyLink<Element>();
   int optionalParameterCount = 0;
   Node currentDefinitions;
 
-  SignatureResolver(this.task, this.enclosingElement);
+  SignatureResolver(Compiler compiler, this.enclosingElement) : super(compiler);
 
   Element visitNodeList(NodeList node) {
     // This must be a list of optional arguments.
     if (node.beginToken.stringValue !== '[') {
-      compiler.internalError("expected optional parameters", node: node);
+      internalError(node, "expected optional parameters");
     }
     LinkBuilder<Element> elements = analyzeNodes(node.nodes);
     optionalParameterCount = elements.length;
@@ -1010,9 +1005,9 @@ class SignatureResolver extends AbstractVisitor<Element> {
     Element element;
     if (node.receiver.asIdentifier() === null ||
         !node.receiver.asIdentifier().isThis()) {
-      task.error(node, MessageKind.INVALID_PARAMETER, []);
+      error(node, MessageKind.INVALID_PARAMETER, []);
     } else if (enclosingElement.kind !== ElementKind.GENERATIVE_CONSTRUCTOR) {
-      task.error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED, []);
+      error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED, []);
     } else {
       if (node.selector.asIdentifier() == null) {
         cancel(node,
@@ -1021,9 +1016,9 @@ class SignatureResolver extends AbstractVisitor<Element> {
       SourceString name = node.selector.asIdentifier().source;
       element = currentClass.lookupLocalMember(name);
       if (element.kind !== ElementKind.FIELD) {
-        task.error(node, MessageKind.NOT_A_FIELD, [name]);
+        error(node, MessageKind.NOT_A_FIELD, [name]);
       } else if (!element.isInstanceMember()) {
-        task.error(node, MessageKind.NOT_INSTANCE_FIELD, [name]);
+        error(node, MessageKind.NOT_INSTANCE_FIELD, [name]);
       }
     }
     // TODO(ngeoffray): it's not right to put the field element in
@@ -1050,10 +1045,6 @@ class SignatureResolver extends AbstractVisitor<Element> {
     return element;
   }
 
-  Element visitNode(Node node) {
-    compiler.internalError('unexpected node', node: node);
-  }
-
   LinkBuilder<Element> analyzeNodes(Link<Node> link) {
     LinkBuilder<Element> elements = new LinkBuilder<Element>();
     for (; !link.isEmpty(); link = link.tail) {
@@ -1064,32 +1055,23 @@ class SignatureResolver extends AbstractVisitor<Element> {
         // If parameter is null, the current node should be the last,
         // and a list of optional named parameters.
         if (!link.tail.isEmpty() || (link.head is !NodeList)) {
-          compiler.internalError("expected expected optional parameters",
-                                 node: link.head);
+          internalError(link.head, "expected expected optional parameters");
         }
       }
     }
     return elements;
   }
 
-  static FunctionParameters analyze(ResolverTask task,
+  static FunctionParameters analyze(Compiler compiler,
                                     FunctionElement element) {
-    FunctionExpression node = element.parseNode(task.compiler);
-    SignatureResolver visitor = new SignatureResolver(task, element);
+    FunctionExpression node = element.parseNode(compiler);
+    SignatureResolver visitor = new SignatureResolver(compiler, element);
     Link<Node> nodes = node.parameters.nodes;
     LinkBuilder<Element> parameters = visitor.analyzeNodes(nodes);
     return new FunctionParameters(parameters.toLink(),
                                   visitor.optionalParameters,
                                   parameters.length,
                                   visitor.optionalParameterCount);
-  }
-
-  // TODO(ahe): This is temporary.
-  Compiler get compiler() => task.compiler;
-
-  // TODO(ahe): This is temporary.
-  void cancel(Node node, String message) {
-    compiler.cancel(message, node: node);
   }
 
   // TODO(ahe): This is temporary.
