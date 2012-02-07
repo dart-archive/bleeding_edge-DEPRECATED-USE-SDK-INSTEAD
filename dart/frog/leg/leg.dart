@@ -4,7 +4,7 @@
 
 #library('leg');
 
-#import('../../utils/uri/uri.dart');
+#import('../../lib/uri/uri.dart');
 
 #import('io/io.dart', prefix: 'io');
 

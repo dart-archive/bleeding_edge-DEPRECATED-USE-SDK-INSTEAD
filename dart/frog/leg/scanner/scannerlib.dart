@@ -5,7 +5,7 @@
 #library('scanner');
 
 #import('scanner_implementation.dart');
-#import('../../../utils/uri/uri.dart');
+#import('../../../lib/uri/uri.dart');
 #import('../elements/elements.dart');
 #import('../leg.dart');
 #import('../string_validator.dart');

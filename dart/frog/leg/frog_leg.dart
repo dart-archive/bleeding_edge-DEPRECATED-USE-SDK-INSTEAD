@@ -4,7 +4,7 @@
 
 #library('frog_leg');
 
-#import('../../utils/uri/uri.dart');
+#import('../../lib/uri/uri.dart');
 #import('../lang.dart', prefix: 'frog');
 #import('elements/elements.dart');
 #import('io/io.dart', prefix: 'io');

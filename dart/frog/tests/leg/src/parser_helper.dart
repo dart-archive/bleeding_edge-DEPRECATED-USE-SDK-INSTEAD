@@ -4,7 +4,7 @@
 
 #library('parser_helper');
 
-#import("../../../../utils/uri/uri.dart");
+#import("../../../../lib/uri/uri.dart");
 
 #import("../../../leg/elements/elements.dart");
 #import("../../../leg/tree/tree.dart");

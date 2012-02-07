@@ -7,7 +7,7 @@
 #import('scannerlib.dart');
 #import('scanner_implementation.dart');
 #import('scanner_bench.dart');
-#import('../../../utils/utf8/utf8.dart');
+#import('../../../lib/utf8/utf8.dart');
 #source('byte_strings.dart');
 #source('byte_array_scanner.dart');
 
