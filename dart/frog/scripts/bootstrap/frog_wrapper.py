@@ -17,12 +17,11 @@ def main(args):
     print "Could not find frog"
     return 1
 
-  frog_args = [
-    'frog.py',
-    '--vm=' + VM,
-    '--vm_flags=--enable_asserts --enable_type_checks',
-    '--']
-  frog_args += args[1:]
+  frog_args = [ 'frog.py', '--vm=' + VM ]
+  if VM_FLAGS:
+    frog_args.append(VM_FLAGS)
+  frog_args.append('--')
+  frog_args.extend(args[1:])
 
   filename = None
   exit_code = 1
