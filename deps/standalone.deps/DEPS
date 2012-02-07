@@ -20,6 +20,9 @@ deps = {
   "language":
     Var("dart_branch") + "/dart/language",
 
+  "lib":
+    Var("dart_branch") + "/dart/lib",
+
   "tests":
     Var("dart_branch") + "/dart/tests",
 
