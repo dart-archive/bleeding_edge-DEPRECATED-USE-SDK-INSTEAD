@@ -188,6 +188,8 @@ def compileAndRun(options, args, dart):
     if cleanup: shutil.rmtree(workdir)
     if exit_code < 0:
       print("VM exited with signal %d" % (-exit_code))
+      # TODO(ahe): Using 253 to signal a crash to test.dart.
+      return 253
     return exit_code
 
   result = 0

@@ -13,5 +13,8 @@ TypedLocalsTest: Fail
 ForeignTest: Fail # JS methods are only visible within core library.
 
 [ $mode == debug ]
-StringInterpolationTest: Skip
+BailoutTest: Crash # VM issue 1570
+CompoundOperatorIndexTest: Crash # VM issue 1570
+ForInTest: Crash # VM issue 1570
 OperatorTest: Skip
+StringInterpolationTest: Skip
