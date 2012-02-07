@@ -79,9 +79,17 @@ return this.replace(from, to);""";
   }
 
   // TODO(jimhug): Get correct reified generic list here.
-  List<String> split(Pattern pattern) native {
-    return []; // tell the compiler an array is created
+  List<String> split(Pattern pattern) {
+    if (pattern is String) return _split(pattern);
+    if (pattern is RegExp) return _splitRegExp(pattern);
+    throw "String.split(Pattern) unimplemented.";
   }
+
+  List<String> _split(String pattern) native
+    "'use strict'; return this.split(pattern);";
+
+  List<String> _splitRegExp(RegExp pattern) native
+    "'use strict'; return this.split(pattern.re);";
 
   /*
   Iterable<Match> allMatches(String str) {
