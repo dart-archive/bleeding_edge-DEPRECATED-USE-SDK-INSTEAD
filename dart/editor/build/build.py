@@ -220,9 +220,6 @@ def main():
     ant.RunAnt(os.getcwd(), '', '', '', '',
                '', '', buildos, ['-diagnostics'])
 
-    homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
-    gsu = gsutil.GsUtil(False, homegsutil)
-
     parser = _BuildOptions()
     (options, args) = parser.parse_args()
     # Determine which targets to build. By default we build the "all" target.
@@ -289,6 +286,10 @@ def main():
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
 
+    homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
+    gsu = gsutil.GsUtil(False, homegsutil,
+                        running_on_buildbot=running_on_buildbot)
+
     #this is a hack to allow the SDK build to be run on a local machine
     if sdk_environment.has_key('FORCE_RUN_SDK_BUILD'):
       run_sdk_build = True
@@ -336,7 +337,7 @@ def main():
                         buildroot, buildout, editorpath, buildos,
                         sdk_zip=sdk_zip)
     #the ant script writes a property file in a known location so
-    #we can read it. 
+    #we can read it.
     properties = _ReadPropertyFile(buildos, ant_property_file.name)
 
     if not properties:
@@ -350,8 +351,10 @@ def main():
       #  if not status and properties['build.tmp']:
       #    postProcessZips(properties['build.tmp'], buildout)
     sys.stdout.flush()
-    if (run_sdk_build and
-        builder_name != 'dart-editor'):
+    #This is an override to for local testing
+    force_run_install = os.environ.get('FORCE_RUN_INSTALL')
+    if (force_run_install or (run_sdk_build and
+                              builder_name != 'dart-editor')):
       _InstallSdk(buildroot, buildout, sdk_zip)
 
     if status:
@@ -551,7 +554,7 @@ def _DeployToStaging(build_os, to_bucket, zip_files, svnid, gsu):
     zip_files: list of zip files to copy to GoogleStorage
     svnid: the revision id for this build
     gsu: the GoogleStorage wrapper
-  Returns
+  Returns:
     the status of the copy to Google Storage
   """
   print '_DeployRcpsToTest({0}, {1}, {2}, gsu)'.format(to_bucket, zip_files,
@@ -715,9 +718,11 @@ def _FindRcpZipFiles(out_dir):
 
 
 def _InstallSdk(buildroot, buildout, sdk):
-  """Install the SDk into the RCP zip files(s)
+  """Install the SDk into the RCP zip files(s).
+
   Args:
     buildroot: the boot of the build output
+    buildout: the location of the ant build output
     sdk: the name of the zipped up sdk
   """
   print '_InstallSdk({0}, {1})'.format(buildroot, sdk)

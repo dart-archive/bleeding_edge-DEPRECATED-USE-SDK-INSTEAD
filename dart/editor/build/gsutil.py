@@ -21,8 +21,9 @@ class GsUtil(object):
   _gsutil = None
   _dryrun = False
   _useshell = False  # this also implies windows
+  _running_on_buildbot = False
 
-  def __init__(self, dryrun=False, gsutil_loc=None):
+  def __init__(self, dryrun=False, gsutil_loc=None, running_on_buildbot=True):
     """Initialize the class by finding the gsutil programs location.
 
     Args:
@@ -30,9 +31,12 @@ class GsUtil(object):
             Google Storage don't actually do it
       gsutil_loc:  the location of the gsutil program if this is None then
                     the program will use ~/gsutil/gsutil
+      running_on_buildbot: this will be True if the build is runing on
+                            buildBot and False if this is a local build
     """
     self._gsutil = self._FindGsUtil(gsutil_loc)
     self._dryrun = dryrun
+    self._running_on_buildbot = running_on_buildbot
 
   def _FindGsUtil(self, gsutil_loc):
     """Find the location of the gsutil program.
@@ -365,7 +369,7 @@ class GsUtil(object):
       the command to execute gsutil
     """
     args = []
-#    if self._useshell:
-#      args.append('python')
+    if not self._running_on_buildbot and self._useshell:
+      args.append('python')
     args.append(self._gsutil)
     return args
