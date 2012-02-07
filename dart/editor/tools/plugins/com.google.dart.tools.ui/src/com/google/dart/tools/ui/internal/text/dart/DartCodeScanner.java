@@ -52,7 +52,7 @@ public final class DartCodeScanner extends AbstractDartScanner {
   /**
    * Rule to detect Dart brackets.
    */
-  private static final class BracketRule implements IRule {
+  private static class BracketRule implements IRule {
 
     /** Dart brackets */
     private static final char[] DART_BRACKETS = {'(', ')', '{', '}', '[', ']'};
@@ -102,9 +102,47 @@ public final class DartCodeScanner extends AbstractDartScanner {
   }
 
   /**
+   * Rule to detect Dart directives.
+   */
+  private static class DirectiveRule implements IRule {
+    char[] sequence;
+    Token token;
+
+    DirectiveRule(String name, Token token) {
+      this.sequence = name.toCharArray();
+      this.token = token;
+    }
+
+    @Override
+    public IToken evaluate(ICharacterScanner scanner) {
+      int c = scanner.read();
+      if (c == '#') {
+        c = scanner.read();
+        int readCount = 2;
+        if (c == sequence[0]) {
+          for (int i = 1; i < sequence.length; i++) {
+            if (sequence[i] != scanner.read()) {
+              while (readCount-- > 0) {
+                scanner.unread();
+              }
+              return Token.UNDEFINED;
+            }
+            readCount += 1;
+          }
+          return token;
+        } else {
+          scanner.unread();
+        }
+      }
+      scanner.unread();
+      return Token.UNDEFINED;
+    }
+  }
+
+  /**
    * Rule to detect Dart operators.
    */
-  private static final class OperatorRule implements IRule {
+  private static class OperatorRule implements IRule {
 
     /** Dart operators */
     private static final char[] DART_OPERATORS = {
@@ -212,7 +250,7 @@ public final class DartCodeScanner extends AbstractDartScanner {
     for (String kw : DartParser.PSEUDO_KEYWORDS) {
       keywords.add(kw);
     }
-    DIRECTIVES = directives.toArray(new String[keywords.size()]);
+    DIRECTIVES = directives.toArray(new String[directives.size()]);
     KEYWORDS = keywords.toArray(new String[keywords.size()]);
     OPERATORS = operators.toArray(new String[operators.size()]);
   }
@@ -295,8 +333,9 @@ public final class DartCodeScanner extends AbstractDartScanner {
       wordRule.addWord(fgConstants[i], token);
     }
     for (int i = 0; i < DIRECTIVES.length; i++) {
-      rules.add(new SingleLineRule("#", DIRECTIVES[i], token));
+      rules.add(new DirectiveRule(DIRECTIVES[i], token));
     }
+    rules.add(new DirectiveRule("!", token));
 
     combinedWordRule.addWordMatcher(wordRule);
 
