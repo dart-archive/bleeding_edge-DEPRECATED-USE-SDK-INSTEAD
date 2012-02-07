@@ -1,6 +1,7 @@
 """A class to wrapper zip files."""
 
 import os
+import platform
 import shutil
 import stat
 import subprocess
@@ -11,12 +12,14 @@ import zipfile
 class ZipUtil(object):
   """A class to use for altering zip files."""
   _zipfile_name = None
+  _is_windows = False
 
-  def __init__(self, zipfile_in):
+  def __init__(self, zipfile_in, buildos):
     """initialize the zip utilities class.
 
     Args:
       zipfile_in: the zip file to alter
+      buildos: the os the build is running under
     Raises:
       Exception: if the files does not exist or it is not a zip file
     """
@@ -25,6 +28,7 @@ class ZipUtil(object):
     if not zipfile.is_zipfile(zipfile_in):
       raise Exception('{0} is not a zip file'.format(zipfile_in))
     self._zipfile_name = os.path.abspath(zipfile_in)
+    self._is_windows = buildos.find('win') >= 0
 
   def AddFile(self, new_file, zip_name, zip_in=None, mode_in='a'):
     """Add a file to a zip.
@@ -98,19 +102,25 @@ class ZipUtil(object):
       cwd = os.getcwd()
       try:
         os.chdir(destination)
-        cmd = ['unzip', self._zipfile_name]
-        print ' '.join(cmd)
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-        (stdout, stderr) = p.communicate()
-        if p.returncode:
-          print 'unzip {0} failed with {1}'.format(self._zipfile_name,
-                                                   p.returncode)
-          print str(stderr)
-          show_output = True
-          status = False
-        if show_output:
-          print str(stdout)
+        #on windows there are no file permissions so the python unzip code
+        #will work
+        if self._is_windows:
+          self._PythonUnzip()
+        else:
+          #on Linux and Mac use the system unzip to save the permissions
+          cmd = ['unzip', self._zipfile_name]
+          print ' '.join(cmd)
+          p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+          (stdout, stderr) = p.communicate()
+          if p.returncode:
+            print 'unzip {0} failed with {1}'.format(self._zipfile_name,
+                                                     p.returncode)
+            print str(stderr)
+            show_output = True
+            status = False
+          if show_output:
+            print str(stdout)
 
       finally:
         os.chdir(cwd)
@@ -124,6 +134,16 @@ class ZipUtil(object):
       raise Exception(msg)
     return status
 
+  def _PythonUnzip(self):
+    """Unzip a file using the python zipfile module."""
+    ziplocal = None
+    try:
+      ziplocal = zipfile.ZipFile(self._zipfile_name)
+      ziplocal.extractall()
+    finally:
+      if ziplocal is not None:
+        ziplocal.close()
+
 
 def main():
   """Main method for testing.  This code will be moved to a test class soon."""
@@ -133,6 +153,13 @@ def main():
   test_file = 'test.txt'
   test_file_2 = 'test2.txt'
   zip_file_name = 'test.zip'
+  pos = platform.system()
+  if pos == 'Linux':
+    testos = 'linux'
+  elif pos == 'Darwin':
+    testos = 'macos'
+  elif pos == 'Windows' or id == 'Microsoft':
+    testos = 'win'
 
   fout = open(test_file, 'w')
   fout.write('this is a test')
@@ -177,7 +204,7 @@ def main():
   ztest.close()
   print '*' * 40
 
-  myzip = ZipUtil(zip_file_name)
+  myzip = ZipUtil(zip_file_name, testos)
   myzip.AddFile(test_file_2, os.path.join('me', 'you', test_file_2))
 
   print '*' * 40
@@ -192,8 +219,19 @@ def main():
   tmp_unzip_dir = '/tmp/testZip'
   if os.path.exists(tmp_unzip_dir):
     shutil.rmtree(tmp_unzip_dir)
-  os.makedirs('/tmp/testZip')
-  myzip.UnZip('/tmp/testZip', True)
+  os.makedirs(tmp_unzip_dir)
+  myzip.UnZip(tmp_unzip_dir, True)
+
+  if testos.find('win') < 0:
+    unzipped_test2 = os.path.join(tmp_unzip_dir, 'me', 'you', test_file_2)
+    st = os.stat(unzipped_test2)
+    if (st.st_mode & user_rwx == user_rwx and
+        st.st_mode & group_rx == group_rx and
+        st.st_mode & other_rx == other_rx):
+      print 'good'
+    else:
+      print 'permissions not set correctly'
+
 
 #  os.remove(zip_file_name)
   os.remove(test_file)
