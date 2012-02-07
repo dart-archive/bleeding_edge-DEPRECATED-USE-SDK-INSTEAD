@@ -50,12 +50,19 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
   }
 
   @Override
+  public boolean buildForLaunch(ILaunchConfiguration configuration, String mode,
+      IProgressMonitor monitor) throws CoreException {
+    return false;
+  }
+
+  @Override
   public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
 
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
 
     launchVM(launch, launchConfig, monitor);
+
   }
 
   protected void launchVM(ILaunch launch, DartLaunchConfigWrapper launchConfig,
