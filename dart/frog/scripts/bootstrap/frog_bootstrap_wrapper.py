@@ -1,4 +1,4 @@
-# Copyright 2011 Google Inc. All Rights Reserved.
+# Copyright 2012 Google Inc. All Rights Reserved.
 
 import os
 import platform
@@ -26,6 +26,8 @@ def main(args):
 
   shutil.copy(os.path.join(HOME, 'scripts', 'bootstrap', 'frog_wrapper.py'),
               frog)
+  shutil.copy(os.path.join(HOME, 'scripts', 'bootstrap', 'frog.bat'),
+              frog + '.bat')
 
   if 'Release' in product_dir:
     # We want to run our tests on the VM in production mode and in
