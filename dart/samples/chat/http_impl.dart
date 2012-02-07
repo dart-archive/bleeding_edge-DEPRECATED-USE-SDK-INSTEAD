@@ -973,6 +973,8 @@ class HTTPConnectionBase {
   // immediately and no callbacks will occour.
   bool _startSending(var callback) {
     void send() {
+      // The socket is either closed or an error occoured.
+      if (_socket == null) return true;
 
       void continueSending() {
         // Send more data.
@@ -989,6 +991,8 @@ class HTTPConnectionBase {
       while (!_sendBuffers.isEmpty()) {
         SendBuffer buffer = _sendBuffers.first();
         buffer._write(_socket);
+        // Check if _socket failed to send the data.
+        if (_socket == null) return true;
         if (!buffer._isSent) {
           _socket.writeHandler = continueSending;
           break;
@@ -1029,13 +1033,26 @@ class HTTPConnectionBase {
   }
 
   void _closeHandler() {
-    // TODO(sgjesse): Remove this from active connections.
     _socket.close();
+    // Set to null to avoid further write attempts.
+    _socket = null;
+    if (_disconnectHandlerCallback != null) _disconnectHandlerCallback();
   }
 
   void _errorHandler() {
-    print("ERROR!");
-    // TODO(sgjesse): Remove this from active connections.
+    // If an error occours, treat the socket as closed.
+    _closeHandler();
+    if (_errorHandlerCallback != null) {
+      _errorHandlerCallback("Connection closed while sending data to client.");
+    }
+  }
+
+  void set disconnectHandler(void callback()) {
+    _disconnectHandlerCallback = callback;
+  }
+
+  void set errorHandler(void callback(String errorMessage)) {
+    _errorHandlerCallback = callback;
   }
 
   Socket _socket;
@@ -1043,6 +1060,9 @@ class HTTPConnectionBase {
 
   SendBuffer _currentSendBuffer;
   Queue _sendBuffers;
+
+  Function _disconnectHandlerCallback;
+  Function _errorHandlerCallback;
 }
 
 
@@ -1115,15 +1135,30 @@ class HTTPServerImplementation implements HTTPServer {
       // Accept the client connection.
       HTTPConnection connection = new HTTPConnection(socket);
       connection.requestReceived = callback;
-      _connections.addLast(connection);
-      _connectionsCount++;
+      _connections.add(connection);
       if (_debugTrace) {
-        print("New connection (total $_connectionsCount connections)");
+        print("New connection (total ${_connections.length} connections)");
       }
+      void disconnectHandler() {
+        for (int i = 0; i < _connections.length; i++) {
+          if (_connections[i] == connection) {
+            _connections.removeRange(i, 1);
+            break;
+          }
+        }
+        if (_debugTrace) {
+          print("Closed connection (total ${_connections.length} connections)");
+        }
+      }
+      connection.disconnectHandler = disconnectHandler;
+      void errorHandler(String errorMessage) {
+        if (_errorHandler != null) _errorHandler(errorMessage);
+      }
+      connection.errorHandler = errorHandler;
     }
 
-    _connections = new Queue<HTTPConnection>();
-    _connectionsCount = 0;
+    // TODO(ajohnsen): Use Set once Socket is Hashable.
+    _connections = new List<HTTPConnection>();
     _server = new ServerSocket(host, port, backlog);
     _server.connectionHandler = connectionHandler;
   }
@@ -1131,9 +1166,13 @@ class HTTPServerImplementation implements HTTPServer {
   void close() => _server.close();
   int get port() => _server.port;
 
+  void set errorHandler(void handler(String errorMessage)) {
+    _errorHandler = handler;
+  }
+
   ServerSocket _server;  // The server listen socket.
-  Queue<HTTPConnection> _connections;  // Queue of currently connected clients.
-  int _connectionsCount;
+  List<HTTPConnection> _connections;  // List of currently connected clients.
+  Function _errorHandler;
   bool _debugTrace;
 }
 
