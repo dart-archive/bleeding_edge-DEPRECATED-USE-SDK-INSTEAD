@@ -133,4 +133,20 @@ public class DartCoreTest extends TestCase {
     assertTrue(DartCore.isHTMLLikeFileName("name.hTM"));
     assertFalse(DartCore.isHTMLLikeFileName("namehtm"));
   }
+
+  public void test_DartCore_isJSLikeFileName() {
+    assertTrue(DartCore.isJSLikeFileName("name.js"));
+    assertTrue(DartCore.isJSLikeFileName("name.JS"));
+    assertTrue(DartCore.isJSLikeFileName("name.jS"));
+    assertFalse(DartCore.isJSLikeFileName("name.j"));
+    assertFalse(DartCore.isJSLikeFileName("namejs"));
+  }
+
+  public void test_DartCore_isTXTLikeFileName() {
+    assertTrue(DartCore.isTXTLikeFileName("name.txt"));
+    assertTrue(DartCore.isTXTLikeFileName("name.TXT"));
+    assertTrue(DartCore.isTXTLikeFileName("name.tXt"));
+    assertFalse(DartCore.isTXTLikeFileName("name.tx"));
+    assertFalse(DartCore.isTXTLikeFileName("nametxt"));
+  }
 }
