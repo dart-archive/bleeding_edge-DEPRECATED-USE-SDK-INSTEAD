@@ -171,9 +171,18 @@ class GsUtil(object):
       scheme = from_uri[:index_col]
       if len(scheme) <= 1:
         from_url = r'file://' + from_uri
+    to_url = to_uri
+
+    index_col = to_uri.find(':')
+    if index_col < 0:
+      to_url = r'file://' + to_uri
+    else:
+      scheme = to_uri[:index_col]
+      if len(scheme) <= 1:
+        to_url = r'file://' + to_uri
 
     cmd.append(from_url)
-    cmd.append(to_uri)
+    cmd.append(to_url)
 
     print ' '.join(cmd)
     if not self._dryrun:

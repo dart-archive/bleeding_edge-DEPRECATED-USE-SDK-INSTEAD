@@ -13,6 +13,7 @@ import optparse
 import os
 import re
 import shutil
+import string
 import subprocess
 import sys
 import tempfile
@@ -46,7 +47,7 @@ class AntWrapper(object):
 
   def RunAnt(self, build_dir, antfile, revision, name,
              buildroot, buildout, sourcepath, buildos,
-             extra_args=None, sdk_zip=None):
+             extra_args=None, sdk_zip=None, running_on_bot=False):
     """Run the given Ant script from the given directory.
 
     Args:
@@ -60,6 +61,7 @@ class AntWrapper(object):
       buildos: the operating system this build is running under (may be null)
       extra_args: any extra args to ant
       sdk_zip: the place to write the sdk zip file
+      running_on_bot: True if running on buildbot False otherwise
 
     Returns:
       returns the status of the ant call
@@ -109,6 +111,8 @@ class AntWrapper(object):
       args.append('-Dbuild.out.property.file=' + self._propertyfile)
     if buildos:
       args.append('-Dbuild.os={0}'.format(buildos))
+    if running_on_bot:
+      args.append('-Dbuild.running.headless=true')
     if sdk_zip:
       args.append('-Dbuild.dart.sdk.zip={0}'.format(sdk_zip))
     if is_windows:
@@ -336,7 +340,7 @@ def main():
                            'dart-{0}.zip'.format(buildos))
     status = ant.RunAnt('.', 'build_rcp.xml', revision, options.name,
                         buildroot, buildout, editorpath, buildos,
-                        sdk_zip=sdk_zip)
+                        sdk_zip=sdk_zip, running_on_bot=running_on_buildbot)
     #the ant script writes a property file in a known location so
     #we can read it.
     properties = _ReadPropertyFile(buildos, ant_property_file.name)
@@ -357,6 +361,7 @@ def main():
     if (force_run_install or (run_sdk_build and
                               builder_name != 'dart-editor')):
       _InstallSdk(buildroot, buildout, buildos, sdk_zip)
+      _InstallDartium(buildroot, buildout, buildos, gsu)
 
     if status:
       return status
@@ -373,7 +378,7 @@ def main():
         _WriteTagFile(buildos, staging_bucket, revision, gsu)
         if _ShouldMoveStagingToContinuous(staging_bucket, revision, gsu):
           _MoveStagingToContinuous(staging_bucket, to_bucket, revision, gsu)
-#          _CleanupStaging(staging_bucket, revision, gsu)
+          _CleanupStaging(staging_bucket, revision, gsu)
       return 0
 
     #if the build passed run the deploy artifacts
@@ -632,9 +637,26 @@ def _MoveStagingToContinuous(bucket_stage, bucket_continuous, svnid, gsu):
     svnid: the revision id for this build
     gsu: the gsutil object
   """
-  print '_MoveStagingToContinuous({0}, {1}, {2})'.format(bucket_stage,
-                                                         bucket_continuous,
-                                                         svnid)
+  print ('_MoveStagingToContinuous({0},'
+         ' {1}, {2}, gsu)'.format(bucket_stage, bucket_continuous, svnid))
+  elements_to_copy = []
+  bucket_to_template = string.Template('$bucket/$revision/$file')
+  bucket_from_template = string.Template('$bucket/staging/'
+                                         '$buildos/$revision/$file')
+  data_from = {'bucket': bucket_stage, 'revision': svnid,
+               'buildos': '', 'file': '*'}
+  for buildos in ['win32', 'macos', 'linux']:
+    data_from ['buildos'] = buildos
+    elements = gsu.ReadBucket(bucket_from_template.substitute(data_from))
+    for element in elements:
+      elements_to_copy.append(element)
+  data_to = {'bucket': bucket_continuous, 'revision': svnid, 'file': ''}
+  for element in elements_to_copy:
+    file_name = os.path.basename(element)
+    data_to['file'] = file_name
+    element_to = bucket_to_template.substitute(data_to)
+    print 'gsutil cp {0} {1}'.format(element, element_to)
+#    gsu.Copy(element, element_to)
 
 
 def _CleanupStaging(bucket_stage, svnid, gsu):
@@ -779,6 +801,83 @@ def _InstallSdk(buildroot, buildout, buildos, sdk):
       dart_zip.AddDirectoryTree(unzip_dir, 'dart')
 
 
+def _InstallDartium(buildroot, buildout, buildos, gsu):
+  """Install the SDk into the RCP zip files(s).
+
+  Args:
+    buildroot: the boot of the build output
+    buildout: the location of the ant build output
+    buildos: the OS the build is running under
+    gsu: the gsutil wrapper
+  Raises:
+    Exception: if no dartium files can be found
+  """
+  print '_InstallDartium({0}, {1}, {2}, gsu)'.format(buildroot, buildout,
+                                                     buildos)
+  # will need to add windows here once the windows builds are ready
+  file_types = ['linlucful', 'macmacful']
+  tmp_zip_name = None
+  try:
+    file_name_re = re.compile('dartium-([lm].+)-(.+)-(\d+)\\..+')
+    tmp_dir = os.path.join(buildroot, 'tmp')
+    unzip_dir = os.path.join(tmp_dir, 'unzip_dartium')
+    elements = gsu.ReadBucket('gs://dartium-archive/latest/*')
+    add_path = None
+
+    if not elements:
+      raise Exception("can''t find any dartium files")
+
+    dartum_version = None
+    for element in elements:
+      base_name = os.path.basename(element)
+      file_match = file_name_re.search(base_name)
+      dartum_os = file_match.group(1)
+      dartum_type = file_match.group(2)
+      dartum_version = file_match.group(3)
+      key = buildos[:3] + dartum_os[:3] + dartum_type[:3]
+      if key in file_types:
+        tmp_zip_file = tempfile.NamedTemporaryFile(suffix='.zip',
+                                                   prefix='dartium',
+                                                   dir=tmp_dir,
+                                                   delete=False)
+        tmp_zip_name = tmp_zip_file.name
+        tmp_zip_file.close()
+        gsu.Copy(element, tmp_zip_name, False)
+        if not os.path.exists(unzip_dir):
+          os.makedirs(unzip_dir)
+        dartium_zip = ziputils.ZipUtil(tmp_zip_name, buildos)
+        dartium_zip.UnZip(unzip_dir)
+        if 'lin' in buildos:
+          paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
+          add_path = paths[0]
+          zip_rel_path = 'dart/dart-sdk/chromium'
+        if 'mac' in buildos:
+          paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
+          add_path = os.path.join(paths[0], 'Chromium.app')
+          zip_rel_path = 'dart/dart-sdk/Chromium.app'
+
+    if tmp_zip_name is not None and add_path is not None:
+      files = os.listdir(buildout)
+      for f in files:
+        if f.startswith('DartBuild') and f.endswith('.zip'):
+          dart_zip = ziputils.ZipUtil(os.path.join(buildout, f), buildos)
+          dart_zip.AddDirectoryTree(add_path, zip_rel_path)
+          revision_properties = None
+          try:
+            revision_properties_path = os.path.join(tmp_dir,
+                                                    'chromium.properties')
+            revision_properties = open(revision_properties_path, 'w')
+            revision_properties.write('chromium.version = {0}{1}'.
+                                      format(dartum_version, os.linesep))
+          finally:
+            revision_properties.close()
+          dart_zip.AddFile(revision_properties_path,
+                           'dart/dart-sdk/chromium.properties')
+  finally:
+    if tmp_zip_name is not None:
+      os.remove(tmp_zip_name)
+
+
 def _PrintSeparator(text):
   """Print a separator for the build steps."""
 
@@ -807,3 +906,8 @@ def _PrintError(text):
 
 if __name__ == '__main__':
   sys.exit(main())
+#  homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
+#  gsu = gsutil.GsUtil(False, homegsutil,
+#                      running_on_buildbot=False)
+#  _MoveStagingToContinuous('gs://dart-editor-archive-testing',
+#                           'gs://dart-editor-archive-testing', 123, gsu)

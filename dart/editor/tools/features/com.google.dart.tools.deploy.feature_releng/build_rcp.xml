@@ -21,9 +21,6 @@ build system.  The PDE build system has to run under Eclipse.
         <echoProperty propertyname="build.out" />
         <echoProperty propertyname="build.source" />
         
-        <condition property="build.running.headless" value="true">
-            <equals arg1="chrome-bot" arg2="${user.name}" trim="true" />
-        </condition>
         <property name="build.running.headless" value="false" />
         
         <fail>
