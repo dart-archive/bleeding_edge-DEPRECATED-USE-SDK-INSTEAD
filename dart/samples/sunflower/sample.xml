@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sample name="Sunflower" file="Sunflower.dart" order="10">
+    <description>Canvas 2D app with HTML5 range input and event handler.</description>
+</sample>

@@ -386,7 +386,7 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
   /**
    * Evaluates all children of a given {@link IFolder}. Clients can override this method.
    * 
-   * @param folder The folder to evaluate the children for.
+   * @param directory The folder to evaluate the children for.
    * @return The children of the given package fragment.
    * @exception CoreException if the folder does not exist.
    */

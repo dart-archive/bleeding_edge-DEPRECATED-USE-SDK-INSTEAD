@@ -58,23 +58,13 @@ public class OpenFileHandler extends AbstractHandler {
 
   private static final String FILTER_PATH_KEY = "openFileFilterPath"; //$NON-NLS-1$
 
-  @Override
-  public Object execute(ExecutionEvent event) throws ExecutionException {
-    Shell shell = HandlerUtil.getActiveShell(event);
-    return execute(shell);
-  }
-
-  public Object execute(Shell shell) throws ExecutionException {
-    String selectedFilePath = promptForFile(shell);
-    if (selectedFilePath == null) {
-      return null;
-    }
-    final File selectedFile = new File(selectedFilePath);
-    if (!selectedFile.exists()) {
-      return null;
-    }
-    final DartLibrary[] libFile = new DartLibrary[1];
-    final IFile[] files = new IFile[1];
+  /**
+   * Opens {@link DartLibrary} using {@link DartCore#openLibrary(File, IProgressMonitor)} and then
+   * opens the given file from this library in an editor.
+   */
+  public static void openFile(Shell shell, final File file) throws ExecutionException {
+    final DartLibrary[] library = new DartLibrary[1];
+    final IFile[] resource = new IFile[1];
     try {
       PlatformUI.getWorkbench().getProgressService().run(true, true,
           new WorkbenchRunnableAdapter(new IWorkspaceRunnable() {
@@ -82,20 +72,20 @@ public class OpenFileHandler extends AbstractHandler {
             public void run(IProgressMonitor monitor) throws CoreException {
 
               monitor.beginTask(HandlerMessages.OpenFile_taskName, 30);
-              libFile[0] = DartCore.openLibrary(selectedFile, new NullProgressMonitor());
-              if (libFile[0] != null) {
-                libFile[0].setTopLevel(true);
+              library[0] = DartCore.openLibrary(file, new NullProgressMonitor());
+              if (library[0] != null) {
+                library[0].setTopLevel(true);
               }
               monitor.worked(1);
-              IFile[] resources = ResourceUtil.getResources(selectedFile);
+              IFile[] resources = ResourceUtil.getResources(file);
               if (resources.length == 0) {
-                files[0] = null;
+                resource[0] = null;
               } else if (resources.length == 1) {
-                files[0] = resources[0];
-              } else if (libFile[0] != null) {
+                resource[0] = resources[0];
+              } else if (library[0] != null) {
                 for (IFile file : resources) {
-                  if (file.getProject().equals(libFile[0].getDartProject().getProject())) {
-                    files[0] = file;
+                  if (file.getProject().equals(library[0].getDartProject().getProject())) {
+                    resource[0] = file;
                   }
                 }
               }
@@ -111,17 +101,39 @@ public class OpenFileHandler extends AbstractHandler {
     }
 
     try {
-      if (files[0] != null) {
-        EditorUtility.openInEditor(files[0], true);
-      } else if (libFile[0] == null) {
+      if (resource[0] != null) {
+        EditorUtility.openInEditor(resource[0], true);
+      } else if (library[0] == null) {
         MessageDialog.openError(shell, HandlerMessages.OpenFile_label,
-            Messages.format(HandlerMessages.OpenFile_errorFileNotInLibrary, selectedFile.getName()));
+            Messages.format(HandlerMessages.OpenFile_errorFileNotInLibrary, file.getName()));
       }
     } catch (PartInitException e) {
-      throwFailedToOpen(selectedFile, e);
+      throwFailedToOpen(file, e);
     } catch (DartModelException e) {
-      throwFailedToOpen(selectedFile, e);
+      throwFailedToOpen(file, e);
     }
+  }
+
+  private static void throwFailedToOpen(File file, Exception e) throws ExecutionException {
+    throw new ExecutionException("Failed to open " + file, e);
+  }
+
+  @Override
+  public Object execute(ExecutionEvent event) throws ExecutionException {
+    Shell shell = HandlerUtil.getActiveShell(event);
+    return execute(shell);
+  }
+
+  public Object execute(Shell shell) throws ExecutionException {
+    String selectedFilePath = promptForFile(shell);
+    if (selectedFilePath == null) {
+      return null;
+    }
+    final File selectedFile = new File(selectedFilePath);
+    if (!selectedFile.exists()) {
+      return null;
+    }
+    openFile(shell, selectedFile);
     return null;
   }
 
@@ -175,9 +187,5 @@ public class OpenFileHandler extends AbstractHandler {
       settings.put(FILTER_PATH_KEY, dialog.getFilterPath());
     }
     return result;
-  }
-
-  private void throwFailedToOpen(File file, Exception e) throws ExecutionException {
-    throw new ExecutionException("Failed to open " + file, e);
   }
 }
