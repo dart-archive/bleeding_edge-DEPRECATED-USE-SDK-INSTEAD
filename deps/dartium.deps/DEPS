@@ -65,9 +65,6 @@ deps = {
   "src/dart":
     Var("dart_url") + "/branches/bleeding_edge/dart",
 
-  "src/dart/third_party/closure_compiler_src":
-    "http://closure-compiler.googlecode.com/svn/trunk@1519",
-
   "src/dartium_tools":
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
 
