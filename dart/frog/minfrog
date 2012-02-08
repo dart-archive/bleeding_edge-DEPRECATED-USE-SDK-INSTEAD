@@ -135,7 +135,7 @@ $defProp(Object.prototype, "get$dynamic", function() {
   "use strict"; return this;
 });
 $defProp(Object.prototype, "noSuchMethod", function(name, args) {
-  $throw(new NoSuchMethodException(this, name, args, ""));
+  $throw(new NoSuchMethodException(this, name, args));
 });
 $defProp(Object.prototype, "_pushBlock$1", function($0) {
   return this.noSuchMethod("_pushBlock", [$0]);
@@ -232,10 +232,10 @@ IllegalAccessException.prototype.toString = function() {
 }
 IllegalAccessException.prototype.toString$0 = IllegalAccessException.prototype.toString;
 // ********** Code for NoSuchMethodException **************
-function NoSuchMethodException(_receiver, _functionName, _arguments, _extraMessage) {
+function NoSuchMethodException(_receiver, _functionName, _arguments, _existingArgumentNames) {
+  this._existingArgumentNames = _existingArgumentNames;
   this._receiver = _receiver;
   this._functionName = _functionName;
-  this._extraMessage = _extraMessage;
   this._arguments = _arguments;
 }
 NoSuchMethodException.prototype.toString = function() {
@@ -247,9 +247,22 @@ NoSuchMethodException.prototype.toString = function() {
     }
     sb.add(this._arguments.$index(i));
   }
-  sb.add("]");
-  var x = this._extraMessage;
-  return $add(("NoSuchMethodException - receiver: '" + this._receiver + "' "), ("function name: '" + this._functionName + "' arguments: [" + sb + "]" + x));
+  if (null == this._existingArgumentNames) {
+    return $add($add(("NoSuchMethodException : method not found: '" + this._functionName + "'\n"), ("Receiver: " + this._receiver + "\n")), ("Arguments: [" + sb + "]"));
+  }
+  else {
+    var actualParameters = sb.toString();
+    sb = new StringBufferImpl("");
+    for (var i = (0);
+     i < this._existingArgumentNames.get$length(); i++) {
+      if (i > (0)) {
+        sb.add(", ");
+      }
+      sb.add(this._existingArgumentNames.$index(i));
+    }
+    var formalParameters = sb.toString();
+    return $add($add($add("NoSuchMethodException: incorrect number of arguments passed to ", ("method named '" + this._functionName + "'\nReceiver: " + this._receiver + "\n")), ("Tried calling: " + this._functionName + "(" + actualParameters + ")\n")), ("Found: " + this._functionName + "(" + formalParameters + ")"));
+  }
 }
 NoSuchMethodException.prototype.toString$0 = NoSuchMethodException.prototype.toString;
 // ********** Code for ClosureArgumentMismatchException **************
@@ -1457,6 +1470,17 @@ StringImplementation.prototype.replaceAll = function(from, to) {
   }
   buffer.add(this.substring(lastMatchEnd));
 }
+StringImplementation.prototype.split_ = function(pattern) {
+  if ((typeof(pattern) == 'string')) return this._split(pattern);
+  if (!!(pattern && pattern.is$RegExp())) return this._splitRegExp(pattern);
+  $throw("String.split(Pattern) unimplemented.");
+}
+StringImplementation.prototype._split = function(pattern) {
+  'use strict'; return this.split(pattern);
+}
+StringImplementation.prototype._splitRegExp = function(pattern) {
+  'use strict'; return this.split(pattern.re);
+}
 StringImplementation.prototype.hashCode = function() {
       'use strict';
       var hash = 0;
@@ -1719,8 +1743,8 @@ function canonicalizePath(path) {
 function joinPaths(path1, path2) {
   path1 = canonicalizePath(path1);
   path2 = canonicalizePath(path2);
-  var pieces = path1.split("/");
-  var $$list = path2.split("/");
+  var pieces = path1.split_("/");
+  var $$list = path2.split_("/");
   for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
     var piece = $$i.next();
     if ($eq(piece, "..") && pieces.get$length() > (0) && $ne(pieces.last(), ".") && $ne(pieces.last(), "..")) {
@@ -2712,7 +2736,7 @@ CodeWriter.prototype.write = function(text) {
   if (text.length == (0)) return;
   if (this._pendingIndent) this._indent();
   if (text.indexOf("\n") != (-1)) {
-    var lines = text.split("\n");
+    var lines = text.split_("\n");
     for (var i = (0);
      i < lines.get$length() - (1); i++) {
       this.writeln(lines.$index(i));
@@ -13878,7 +13902,7 @@ World.prototype._addType = function(type) {
 World.prototype.toJsIdentifier = function(name) {
   if (name == null) return null;
   if (this._jsKeywords == null) {
-    this._jsKeywords = HashSetImplementation.HashSetImplementation$from$factory(["break", "case", "catch", "continue", "debugger", "default", "delete", "do", "else", "finally", "for", "function", "if", "in", "instanceof", "new", "return", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with", "class", "enum", "export", "extends", "import", "super", "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield", "native"]);
+    this._jsKeywords = HashSetImplementation.HashSetImplementation$from$factory(["break", "case", "catch", "continue", "debugger", "default", "delete", "do", "else", "finally", "for", "function", "if", "in", "instanceof", "new", "return", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with", "class", "enum", "export", "extends", "import", "super", "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield", "split", "native"]);
   }
   if (this._jsKeywords.contains(name)) {
     return $add(name, "_");
