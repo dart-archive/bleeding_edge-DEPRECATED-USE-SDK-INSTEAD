@@ -200,10 +200,48 @@ public class WebkitDebugger extends WebkitDomain {
     }
   }
 
-  public void setBreakpointByUrl(String url, int line, final WebkitCallback callback) {
-    // TODO(devoncarew): implement
+  /**
+   * Sets JavaScript breakpoint at given location specified either by URL or URL regex. Once this
+   * command is issued, all existing parsed scripts will have breakpoints resolved and returned in
+   * locations property. Further matching script parsing will result in subsequent
+   * breakpointResolved events issued. This logical breakpoint will survive page reloads.
+   * 
+   * @param url
+   * @param urlRegex
+   * @param line
+   * @param callback
+   */
+  public void setBreakpointByUrl(String url, String urlRegex, int line,
+      final WebkitCallback callback) throws IOException {
+    try {
+      JSONObject location = new JSONObject().put("lineNumber", line);
 
-    throw new UnsupportedOperationException("setBreakpointByUrl()");
+      if (url != null) {
+        location.put("url", url);
+      }
+
+      if (urlRegex != null) {
+        location.put("urlRegex", urlRegex);
+      }
+
+      JSONObject request = new JSONObject();
+
+      request.put("method", "Debugger.setBreakpointByUrl");
+      request.put("params", new JSONObject().put("location", location));
+
+      if (callback == null) {
+        connection.sendRequest(request);
+      } else {
+        connection.sendRequest(request, new Callback() {
+          @Override
+          public void handleResult(JSONObject result) throws JSONException {
+            callback.handleResult(convertSetBreakpointResult(result));
+          }
+        });
+      }
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
   }
 
   public void setBreakpointsActive(boolean active) throws IOException {

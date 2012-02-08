@@ -38,6 +38,17 @@ public class WebkitResult {
     return error != null;
   }
 
+  @Override
+  public String toString() {
+    if (error != null) {
+      return error.toString();
+    } else if (result != null) {
+      return result.toString();
+    } else {
+      return super.toString();
+    }
+  }
+
   void setError(Object error) {
     this.error = error;
   }
@@ -45,5 +56,4 @@ public class WebkitResult {
   void setResult(Object result) {
     this.result = result;
   }
-
 }

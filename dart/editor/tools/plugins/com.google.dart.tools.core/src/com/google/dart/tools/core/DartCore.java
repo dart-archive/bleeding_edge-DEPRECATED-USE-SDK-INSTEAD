@@ -53,6 +53,7 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Version;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -448,6 +449,15 @@ public class DartCore extends Plugin {
    */
   public static DartCore getPlugin() {
     return PLUG_IN;
+  }
+
+  /**
+   * @return the version text for this plugin (i.e. 1.1.0)
+   */
+  public static String getVersion() {
+    Version version = getPlugin().getBundle().getVersion();
+
+    return version.getMajor() + "." + version.getMinor() + "." + version.getMicro();
   }
 
   /**

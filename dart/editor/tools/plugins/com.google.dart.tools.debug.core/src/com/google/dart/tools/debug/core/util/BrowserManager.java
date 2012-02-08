@@ -11,17 +11,17 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.debug.core.internal.util;
+package com.google.dart.tools.debug.core.util;
 
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.core.configs.DartiumLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
 import com.google.dart.tools.debug.core.webkit.ChromiumConnector;
 import com.google.dart.tools.debug.core.webkit.ChromiumTabInfo;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -32,9 +32,9 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +54,10 @@ public class BrowserManager {
     return manager;
   }
 
+  private BrowserManager() {
+
+  }
+
   public void dispose() {
     for (Process process : browserProcesses.values()) {
       if (!processTerminated(process)) {
@@ -63,105 +67,24 @@ public class BrowserManager {
   }
 
   /**
-   * Launch browser and open file url. If debug mode also connect to browser.
+   * Launch the browser and open the given file. If debug mode also connect to browser.
+   */
+  public void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
+      IProgressMonitor monitor, boolean debug) throws CoreException {
+    launchBrowser(launch, launchConfig, file, null, monitor, debug);
+  }
+
+  /**
+   * Launch the browser and open the given url. If debug mode also connect to browser.
    */
   public void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, String url,
       IProgressMonitor monitor, boolean debug) throws CoreException {
-
-    // TODO(devoncarew): remove this - disables the debug launch + WIP connection code
-    debug = false;
-
-    monitor.beginTask("Launching Chromium...", debug ? 7 : 3);
-
-    File dartium = DartSdk.getInstance().getDartiumExecutable();
-
-    if (dartium == null) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          "Could not find Chromium"));
-    }
-
-    IPath browserLocation = new Path(dartium.getAbsolutePath());
-
-    String browserName = dartium.getName();
-    LogTimer timer = new LogTimer(browserName + " startup");
-
-    // for now, check if browser is open, if so, exit and restart again
-    if (browserProcesses.containsKey(browserName)) {
-      Process process = browserProcesses.get(browserName);
-
-      if (!processTerminated(process)) {
-        process.destroy();
-        browserProcesses.remove(browserName);
-
-        // The process needs time to exit.
-        sleep(100);
-      }
-    }
-
-    Process javaProcess = null;
-    monitor.worked(1);
-
-    ProcessBuilder builder = new ProcessBuilder();
-    Map<String, String> env = builder.environment();
-    // Due to differences in 32bit and 64 bit environments, dartium 32bit launch does not work on
-    // linux with this property.
-    env.remove("LD_LIBRARY_PATH");
-    // Add environment variable DART_FLAGS="--enable_asserts --enable_type_checks".
-    if (launchConfig.getCheckedMode()) {
-      env.put("DART_FLAGS", "--enable_asserts --enable_type_checks");
-    }
-
-    List<String> arguments = buildArgumentsList(browserLocation, url, debug);
-    builder.command(arguments);
-    builder.directory(new File(DartSdk.getInstance().getDartiumWorkingDirectory()));
-
-    try {
-      javaProcess = builder.start();
-    } catch (IOException e) {
-
-      DebugPlugin.logMessage("Exception while starting browser", e);
-    }
-
-    if (javaProcess == null) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          "Could not launch browser"));
-    }
-
-    browserProcesses.put(browserName, javaProcess);
-
-    readFromProcessPipes(browserName, javaProcess.getInputStream());
-    readFromProcessPipes(browserName, javaProcess.getErrorStream());
-
-    timer.endTimer();
-
-    timer = new LogTimer("chromium startup delay");
-
-    monitor.worked(1);
-
-    // Check to see if the process exits soon after starting up, and if so stop the debug launch
-    // process.
-    sleep(100);
-
-    monitor.worked(1);
-
-    if (processTerminated(javaProcess)) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          "Could not launch browser"));
-    }
-
-    timer.endTimer();
-
-    if (debug) {
-      connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, javaProcess);
-    } else {
-      // If we don't do this, the launch configurations will keep accumulating in the UI. This was
-      // not a problem when we wrapped the runtime process with an IProcess.
-      DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
-    }
-
-    monitor.done();
+    launchBrowser(launch, launchConfig, null, url, monitor, debug);
   }
 
+  /**
+   * Launch browser and open file url. If debug mode also connect to browser.
+   */
   protected void connectToChromiumDebug(String browserName, ILaunch launch,
       DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
       Process javaProcess) throws CoreException {
@@ -199,6 +122,121 @@ public class BrowserManager {
     }
 
     monitor.worked(1);
+  }
+
+  protected void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
+      String url, IProgressMonitor monitor, boolean debug) throws CoreException {
+    monitor.beginTask("Launching Chromium...", debug ? 7 : 3);
+
+    // TODO(devoncarew): remove this - this disables the debug launch + WIP connection code
+    debug = false;
+    // TODO(devoncarew): remove this - this disables the debug launch + WIP connection code
+
+    File dartium = DartSdk.getInstance().getDartiumExecutable();
+
+    if (dartium == null) {
+      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+          "Could not find Chromium"));
+    }
+
+    IPath browserLocation = new Path(dartium.getAbsolutePath());
+
+    String browserName = dartium.getName();
+    LogTimer timer = new LogTimer(browserName + " startup");
+
+    // for now, check if browser is open, if so, exit and restart again
+    if (browserProcesses.containsKey(browserName)) {
+      Process process = browserProcesses.get(browserName);
+
+      if (!processTerminated(process)) {
+        process.destroy();
+        browserProcesses.remove(browserName);
+
+        // The process needs time to exit.
+        sleep(100);
+      }
+    }
+
+    Process javaProcess = null;
+    monitor.worked(1);
+
+    ProcessBuilder builder = new ProcessBuilder();
+    Map<String, String> env = builder.environment();
+    // Due to differences in 32bit and 64 bit environments, dartium 32bit launch does not work on
+    // linux with this property.
+    env.remove("LD_LIBRARY_PATH");
+
+    // Add the environment variable DART_FLAGS="--enable_asserts --enable_type_checks".
+    if (launchConfig.getCheckedMode()) {
+      env.put("DART_FLAGS", "--enable_asserts --enable_type_checks");
+    }
+
+    if (debug) {
+      // Start the embedded web server. It is used to serve files from our workspace.
+      if (file != null) {
+        try {
+          ResourceServer server = ResourceServerManager.getServer();
+
+          url = server.getUrlForResource(file);
+        } catch (IOException exception) {
+          throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+              "Could not launch browser - unable to start embedded server", exception));
+        } catch (URISyntaxException exception) {
+          throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+              "Could not launch browser", exception));
+        }
+      }
+    } else {
+      if (file != null) {
+        url = file.getLocationURI().toString();
+      }
+    }
+    List<String> arguments = buildArgumentsList(browserLocation, url, debug);
+    builder.command(arguments);
+    builder.directory(new File(DartSdk.getInstance().getDartiumWorkingDirectory()));
+
+    try {
+      javaProcess = builder.start();
+    } catch (IOException e) {
+      DebugPlugin.logMessage("Exception while starting browser", e);
+
+      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+          "Could not launch browser"));
+    }
+
+    browserProcesses.put(browserName, javaProcess);
+
+    readFromProcessPipes(browserName, javaProcess.getInputStream());
+    readFromProcessPipes(browserName, javaProcess.getErrorStream());
+
+    timer.endTimer();
+
+    timer = new LogTimer("chromium startup delay");
+
+    monitor.worked(1);
+
+    // Check to see if the process exits soon after starting up, and if so stop the debug launch
+    // process.
+    sleep(100);
+
+    monitor.worked(1);
+
+    if (processTerminated(javaProcess)) {
+      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+          "Could not launch browser"));
+    }
+
+    timer.endTimer();
+
+    if (debug) {
+      connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, javaProcess);
+    } else {
+      // If we don't do this, the launch configurations will keep accumulating in the UI. This was
+      // not a problem when we wrapped the runtime process with an IProcess.
+      DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
+    }
+
+    monitor.done();
   }
 
   private List<String> buildArgumentsList(IPath browserLocation, String url, boolean debug) {
@@ -247,47 +285,6 @@ public class BrowserManager {
     return arguments;
   }
 
-  /**
-   * This method creates a Chrome settings directory. Specifically, it creates a 'First Run' file
-   * and a 'Default/Preferences' file so that we can avoid actions that occur the first time Chrome
-   * is run. These include asking the user for a default search engine and asking them if they want
-   * Chrome to be their default browser.
-   * 
-   * @param dataDir the location of the Chrome data directory
-   */
-  @SuppressWarnings("unused")
-  private void createChromeDataDir(File dataDir) {
-    try {
-      // Create the data directory.
-      dataDir.mkdir();
-
-      // Create the (empty) first run file.
-      File firstRunFile = new File(dataDir, "First Run");
-      firstRunFile.createNewFile();
-
-      // Create the Default directory.
-      File defaultDir = new File(dataDir, "Default");
-      defaultDir.mkdir();
-
-      // Create the Preferences file.
-      InputStream in = DartiumLaunchConfigurationDelegate.class.getResourceAsStream("Preferences");
-
-      File prefFile = new File(defaultDir, "Preferences");
-      FileOutputStream out = new FileOutputStream(prefFile);
-      byte[] buffer = new byte[4096];
-      int count = in.read(buffer);
-      while (count != -1) {
-        out.write(buffer, 0, count);
-        count = in.read();
-      }
-      out.close();
-      in.close();
-
-    } catch (IOException ioe) {
-      DartDebugCorePlugin.logError(ioe);
-    }
-  }
-
   private List<ChromiumTabInfo> getChromiumTabs() throws IOException {
     // Give Chromium 5 seconds to start up.
     final int maxFailureCount = 50;
@@ -321,7 +318,6 @@ public class BrowserManager {
 
     if (!dataDir.exists()) {
       dataDir.mkdir();
-      //createChromeDataDir(dataDir);
     }
 
     return dataDirPath;

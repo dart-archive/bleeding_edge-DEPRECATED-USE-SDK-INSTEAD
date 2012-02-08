@@ -15,9 +15,12 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.webkit.WebkitBreakpoint;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.WebkitConnectionListener;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.DebuggerListenerAdapter;
+import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
+import com.google.dart.tools.debug.core.webkit.WebkitFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitPage.PageListenerAdapter;
 import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
@@ -32,6 +35,7 @@ import org.eclipse.debug.core.model.IStreamMonitor;
 import org.eclipse.debug.core.model.IThread;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * The IDebugTarget implementation for the Dartium debug elements.
@@ -43,6 +47,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   private DartiumProcess process;
   private DartiumDebugThread debugThread;
   private DartiumStreamMonitor outputStreamMonitor;
+  private BreakpointManager breakpointManager;
 
   /**
    * @param target
@@ -58,6 +63,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     debugThread = new DartiumDebugThread(this);
     process = new DartiumProcess(this, javaProcess);
     outputStreamMonitor = new DartiumStreamMonitor();
+    breakpointManager = new BreakpointManager(this);
   }
 
   @Override
@@ -102,6 +108,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   @Override
   public void fireTerminateEvent() {
+    breakpointManager.dispose();
+
     debugThread = null;
 
     super.fireTerminateEvent();
@@ -176,11 +184,41 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
     connection.getDebugger().addDebuggerListener(new DebuggerListenerAdapter() {
       @Override
+      public void debuggerBreakpointResolved(WebkitBreakpoint breakpoint) {
+        // TODO:
+
+        System.out.println("debuggerBreakpointResolved()");
+      }
+
+      @Override
+      public void debuggerGlobalObjectCleared() {
+        // TODO:
+
+        System.out.println("debuggerGlobalObjectCleared()");
+      }
+
+      @Override
+      public void debuggerPaused(PausedReasonType reason, List<WebkitFrame> frames, Object data) {
+        debugThread.handleDebuggerSuspended(reason, frames);
+      }
+
+      @Override
+      public void debuggerResumed() {
+        debugThread.handleDebuggerResumed();
+      }
+
+      @Override
       public void debuggerScriptParsed(WebkitScript script) {
         if (script.getUrl().endsWith(".dart")) {
           // TODO(devoncarew): remove this
 
-          //System.out.println(script);
+//          try {
+//            connection.getDebugger().setBreakpoint(script, 17,
+//                new LoggingWebkitCallback("setBreakpoint"));
+//          } catch (IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//          }
         }
       }
     });
@@ -196,6 +234,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
       }
     });
+
+    breakpointManager.connect();
 
     connection.getPage().enable();
     connection.getPage().navigate(url);
@@ -221,13 +261,13 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     debugThread.suspend();
   }
 
-  public void suspended() {
-    debugThread.suspended();
-  }
-
   @Override
   public void terminate() throws DebugException {
     process.terminate();
+  }
+
+  protected WebkitConnection getWebkitConnection() {
+    return connection;
   }
 
   IStreamMonitor getOutputStreamMonitor() {

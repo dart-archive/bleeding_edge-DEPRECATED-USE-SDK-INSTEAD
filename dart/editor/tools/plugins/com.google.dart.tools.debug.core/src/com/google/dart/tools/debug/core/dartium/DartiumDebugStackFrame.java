@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.debug.core.webkit.WebkitFrame;
+
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -27,14 +29,13 @@ import org.eclipse.debug.core.model.IVariable;
  */
 public class DartiumDebugStackFrame extends DartiumDebugElement implements IStackFrame {
   private IThread thread;
-  private DartiumDebugStackFrame parentFrame;
+  private WebkitFrame webkitFrame;
 
-  public DartiumDebugStackFrame(IDebugTarget target, IThread thread,
-      DartiumDebugStackFrame parentFrame) {
+  public DartiumDebugStackFrame(IDebugTarget target, IThread thread, WebkitFrame webkitFrame) {
     super(target);
 
-    this.parentFrame = parentFrame;
     this.thread = thread;
+    this.webkitFrame = webkitFrame;
   }
 
   @Override
@@ -88,13 +89,8 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   @Override
-  public String getModelIdentifier() {
-    return null;
-  }
-
-  @Override
   public String getName() throws DebugException {
-    return null;
+    return webkitFrame.getFunctionName();
   }
 
   @Override

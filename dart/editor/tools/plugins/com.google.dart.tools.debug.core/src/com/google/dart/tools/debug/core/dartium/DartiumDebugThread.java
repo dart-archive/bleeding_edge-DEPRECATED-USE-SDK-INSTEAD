@@ -14,7 +14,12 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.NotYetImplementedException;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
+import com.google.dart.tools.debug.core.webkit.WebkitFrame;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IBreakpoint;
@@ -22,18 +27,23 @@ import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The IThread implementation for the Dartium debug elements.
  */
 public class DartiumDebugThread extends DartiumDebugElement implements IThread {
-
   private static final IBreakpoint[] EMPTY_BREAKPOINTS = new IBreakpoint[0];
 
   private static final IStackFrame[] EMPTY_FRAMES = new IStackFrame[0];
 
   private int expectedSuspendReason = DebugEvent.UNSPECIFIED;
 
-  private IBreakpoint[] suspendBreakpoints = EMPTY_BREAKPOINTS;
+  private boolean suspended;
+  private IStackFrame[] suspendedFrames = EMPTY_FRAMES;
+  private IBreakpoint[] suspendedBreakpoints = EMPTY_BREAKPOINTS;
 
   /**
    * @param target
@@ -59,7 +69,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public boolean canStepReturn() {
-    // stepOut
+    // aka stepOut
     return isSuspended();
   }
 
@@ -75,7 +85,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public IBreakpoint[] getBreakpoints() {
-    throw new NotYetImplementedException();
+    return suspendedBreakpoints;
   }
 
   @Override
@@ -90,12 +100,14 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public IStackFrame[] getStackFrames() throws DebugException {
-    throw new NotYetImplementedException();
+    return suspendedFrames;
   }
 
   @Override
   public IStackFrame getTopStackFrame() throws DebugException {
-    throw new NotYetImplementedException();
+    IStackFrame[] frames = getStackFrames();
+
+    return frames.length > 0 ? frames[0] : null;
   }
 
   @Override
@@ -110,9 +122,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public boolean isSuspended() {
-    // TODO(devoncarew): implement
-
-    return false;
+    return suspended;
   }
 
   @Override
@@ -127,22 +137,63 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public void stepInto() throws DebugException {
-    throw new UnsupportedOperationException();
+    expectedSuspendReason = DebugEvent.STEP_END;
+
+    try {
+      getTarget().getWebkitConnection().getDebugger().stepInto();
+    } catch (IOException exception) {
+      expectedSuspendReason = DebugEvent.UNSPECIFIED;
+
+      throw createDebugException(exception);
+    }
   }
 
   @Override
   public void stepOver() throws DebugException {
-    throw new UnsupportedOperationException();
+    expectedSuspendReason = DebugEvent.STEP_END;
+
+    try {
+      getTarget().getWebkitConnection().getDebugger().stepOver();
+    } catch (IOException exception) {
+      expectedSuspendReason = DebugEvent.UNSPECIFIED;
+
+      throw createDebugException(exception);
+    }
   }
 
   @Override
   public void stepReturn() throws DebugException {
-    throw new UnsupportedOperationException();
+    // aka stepOut
+    expectedSuspendReason = DebugEvent.STEP_END;
+
+    try {
+      getTarget().getWebkitConnection().getDebugger().stepOut();
+    } catch (IOException exception) {
+      expectedSuspendReason = DebugEvent.UNSPECIFIED;
+
+      throw createDebugException(exception);
+    }
   }
 
+  /**
+   * Causes this element to suspend its execution, generating a <code>SUSPEND</code> event. Has no
+   * effect on an already suspended element. Implementations may be blocking or non-blocking.
+   * 
+   * @exception DebugException on failure. Reasons include: <br>
+   *              TARGET_REQUEST_FAILED - The request failed in the target <br>
+   *              NOT_SUPPORTED - The capability is not supported by the target
+   */
   @Override
   public void suspend() throws DebugException {
-    throw new NotYetImplementedException();
+    expectedSuspendReason = DebugEvent.CLIENT_REQUEST;
+
+    try {
+      getTarget().getWebkitConnection().getDebugger().pause();
+    } catch (IOException exception) {
+      expectedSuspendReason = DebugEvent.UNSPECIFIED;
+
+      throw createDebugException(exception);
+    }
   }
 
   @Override
@@ -150,15 +201,46 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     getDebugTarget().terminate();
   }
 
-  protected void suspended() {
-    throw new NotYetImplementedException();
+  protected void handleDebuggerSuspended(PausedReasonType reason, List<WebkitFrame> webkitFrames) {
+    int suspendReason = DebugEvent.BREAKPOINT;
 
-//    if (threadState.isSuspended()) {
-//      throw new IllegalStateException("Already in suspended state");
-//    }
-//    threadState = new SuspendedThreadState();
-//    int suspendedDetail = DebugEvent.UNSPECIFIED;
-//    fireSuspendEvent(suspendedDetail);
+    if (expectedSuspendReason != DebugEvent.UNSPECIFIED) {
+      suspendReason = expectedSuspendReason;
+    }
+
+    // TODO: suspendedBreakpoints
+
+    suspendedFrames = createFrames(webkitFrames);
+
+    fireSuspendEvent(suspendReason);
+  }
+
+  void handleDebuggerResumed() {
+    // clear data
+    suspended = false;
+    suspendedFrames = EMPTY_FRAMES;
+    suspendedBreakpoints = EMPTY_BREAKPOINTS;
+
+    // send event
+    // TODO: step events
+    fireResumeEvent(DebugEvent.UNSPECIFIED);
+  }
+
+  private DebugException createDebugException(IOException exception) {
+    return new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+        exception.getMessage(), exception));
+  }
+
+  private IStackFrame[] createFrames(List<WebkitFrame> webkitFrames) {
+    List<IStackFrame> frames = new ArrayList<IStackFrame>();
+
+    for (WebkitFrame webkitFrame : webkitFrames) {
+      DartiumDebugStackFrame frame = new DartiumDebugStackFrame(getTarget(), this, webkitFrame);
+
+      frames.add(frame);
+    }
+
+    return frames.toArray(new IStackFrame[frames.size()]);
   }
 
   private boolean isDisconnected() {

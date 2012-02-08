@@ -15,8 +15,9 @@ package com.google.dart.tools.debug.core.configs;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
-import com.google.dart.tools.debug.core.internal.util.BrowserManager;
+import com.google.dart.tools.debug.core.util.BrowserManager;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -58,11 +59,12 @@ public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDeleg
 
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
 
-    // launch the browser - show errors if we couldn't
+    // Launch the browser - show errors if we couldn't.
+    IResource resource = null;
     String url;
 
     if (launchConfig.getShouldLaunchFile()) {
-      IResource resource = launchConfig.getApplicationResource();
+      resource = launchConfig.getApplicationResource();
       if (resource == null) {
         throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
             "HTML file could not be found"));
@@ -74,7 +76,11 @@ public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDeleg
 
     BrowserManager manager = BrowserManager.getManager();
 
-    manager.launchBrowser(launch, launchConfig, url, monitor, debugLaunch);
+    if (resource instanceof IFile) {
+      manager.launchBrowser(launch, launchConfig, (IFile) resource, monitor, debugLaunch);
+    } else {
+      manager.launchBrowser(launch, launchConfig, url, monitor, debugLaunch);
+    }
   }
 
 }

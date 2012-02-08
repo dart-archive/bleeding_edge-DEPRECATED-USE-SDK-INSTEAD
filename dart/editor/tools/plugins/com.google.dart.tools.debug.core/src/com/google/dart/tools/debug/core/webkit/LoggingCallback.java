@@ -14,37 +14,25 @@
 
 package com.google.dart.tools.debug.core.webkit;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.Callback;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-
 /**
- * The parent class of the WIP domain (debugger, page, ...) classes.
+ * Log the call's result to the editor's log file.
  */
-public abstract class WebkitDomain {
-  protected WebkitConnection connection;
+class LoggingCallback implements Callback {
+  private String label;
 
-  public WebkitDomain(WebkitConnection connection) {
-    this.connection = connection;
+  public LoggingCallback(String label) {
+    this.label = label;
   }
 
-  public WebkitConnection getConnection() {
-    return connection;
-  }
-
-  protected void sendSimpleCommand(String command) throws IOException {
-    sendSimpleCommand(command, null);
-  }
-
-  protected void sendSimpleCommand(String command, Callback callback) throws IOException {
-    try {
-      connection.sendRequest(new JSONObject().put("method", command), callback);
-    } catch (JSONException exception) {
-      throw new IOException(exception);
-    }
+  @Override
+  public void handleResult(JSONObject result) throws JSONException {
+    DartDebugCorePlugin.logInfo(label + ": " + result);
   }
 
 }

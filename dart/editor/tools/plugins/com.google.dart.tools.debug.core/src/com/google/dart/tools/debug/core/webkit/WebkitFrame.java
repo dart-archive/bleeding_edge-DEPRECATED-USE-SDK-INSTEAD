@@ -53,7 +53,7 @@ public class WebkitFrame {
     frame.callFrameId = JsonUtils.getString(object, "callFrameId");
     frame.functionName = JsonUtils.getString(object, "functionName");
 
-    // TODO(devoncarew): fill in the rest of this objects
+    // TODO(devoncarew): fill in the rest of this object
 
     return frame;
   }
@@ -61,6 +61,14 @@ public class WebkitFrame {
   private String callFrameId;
 
   private String functionName;
+
+  public String getCallFrameId() {
+    return callFrameId;
+  }
+
+  public String getFunctionName() {
+    return functionName;
+  }
 
   @Override
   public String toString() {

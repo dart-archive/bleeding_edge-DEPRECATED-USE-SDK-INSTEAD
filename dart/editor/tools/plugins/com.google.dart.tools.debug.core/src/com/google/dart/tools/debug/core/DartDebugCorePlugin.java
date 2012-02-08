@@ -13,8 +13,9 @@
  */
 package com.google.dart.tools.debug.core;
 
-import com.google.dart.tools.debug.core.internal.util.BrowserConfigManager;
-import com.google.dart.tools.debug.core.internal.util.BrowserManager;
+import com.google.dart.tools.debug.core.util.BrowserConfigManager;
+import com.google.dart.tools.debug.core.util.BrowserManager;
+import com.google.dart.tools.debug.core.util.ResourceServerManager;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
@@ -288,6 +289,8 @@ public class DartDebugCorePlugin extends Plugin {
 
   @Override
   public void stop(BundleContext context) throws Exception {
+    ResourceServerManager.shutdown();
+
     BrowserManager.getManager().dispose();
 
     if (debugEventListener != null) {
