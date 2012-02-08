@@ -158,6 +158,8 @@ def main():
   if arch is None:
     return 1
 
+  if arch == 'frogium':
+    mode = 'release'
   status = BuildFrog(arch, mode, system)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
