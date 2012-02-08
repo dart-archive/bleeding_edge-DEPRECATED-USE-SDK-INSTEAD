@@ -50,13 +50,6 @@ def TestStep(name, mode, system, component, targets, flags):
   else:
     cmd = []
 
-  num_tasks = 8
-  if system == 'windows':
-    # TODO(efortuna): This is a temporary measure because webdriver isn't
-    # threadsafe(!), and the results seem to be most obvious/problematic on 
-    # Windows.
-    num_tasks = 1
-  
   cmd = (cmd
       + [sys.executable,
           os.path.join('..', 'tools', 'test_wrapper.py'),
@@ -64,7 +57,6 @@ def TestStep(name, mode, system, component, targets, flags):
           '--component=' + component,
           '--time',
           '--report',
-          '-j%d' % num_tasks,
           '--progress=buildbot',
           '-v']
       + targets)
