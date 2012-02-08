@@ -474,8 +474,9 @@ hooks = [
   },
   {
     "pattern": ".",
-    "action": ["cp", "src/dartium_tools/buildbot_annotated_steps.py",
-               "src/build/buildbot_annotated_steps.py"],
+    "action": ["svn", "export",
+               Var("multivm_url") +  "/tools/buildbot_annotated_steps.py",
+               "src/build/buildbot_annotated_steps.py" ],
   },
   {
     # This downloads binaries for Native Client's newlib toolchain.
