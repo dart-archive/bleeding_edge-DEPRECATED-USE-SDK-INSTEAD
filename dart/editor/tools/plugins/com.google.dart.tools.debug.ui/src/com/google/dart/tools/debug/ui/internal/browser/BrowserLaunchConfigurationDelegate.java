@@ -34,6 +34,7 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.program.Program;
+import org.eclipse.swt.widgets.Display;
 
 import java.io.File;
 import java.net.URI;
@@ -77,8 +78,14 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       }
     }
 
+    final String uri = url;
     if (launchConfig.getUseDefaultBrowser()) {
-      Program.launch(url);
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          Program.launch(uri);
+        }
+      });
     } else {
       launchInExternalBrowser(launchConfig, url);
     }
@@ -137,14 +144,24 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     return null;
   }
 
-  private void launchInExternalBrowser(DartLaunchConfigWrapper launchConfig, String url)
+  private void launchInExternalBrowser(DartLaunchConfigWrapper launchConfig, final String url)
       throws CoreException {
-    String browserName = launchConfig.getBrowserName();
+    final String browserName = launchConfig.getBrowserName();
+    final int result[] = new int[1];
     if (!browserName.isEmpty()) {
-      Program program = findProgram(browserName);
-      if (program != null) {
-        program.execute(url);
-      } else {
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          Program program = findProgram(browserName);
+          if (program != null) {
+            program.execute(url);
+            result[0] = 0;
+          } else {
+            result[0] = -1;
+          }
+        }
+      });
+      if (result[0] == -1) {
         throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_BrowserNotFound));
       }
