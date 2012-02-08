@@ -27,8 +27,13 @@ class TreeElementMapping implements TreeElements {
 class ResolverTask extends CompilerTask {
   Queue<ClassElement> toResolve;
 
+  // Caches the elements of analyzed constructors to make them available
+  // for inlining in later tasks.
+  Map<FunctionElement, TreeElements> constructorElements;
+
   ResolverTask(Compiler compiler)
-    : super(compiler), toResolve = new Queue<ClassElement>();
+    : super(compiler), toResolve = new Queue<ClassElement>(),
+      constructorElements = new Map<FunctionElement, TreeElements>();
 
   String get name() => 'Resolver';
 
@@ -53,6 +58,10 @@ class ResolverTask extends CompilerTask {
   }
 
   TreeElements resolveMethodElement(FunctionElement element) {
+    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR &&
+        constructorElements[element] !== null) {
+      return constructorElements[element];
+    }
     FunctionExpression tree = element.parseNode(compiler);
     ResolverVisitor visitor = new ResolverVisitor(compiler, element);
     visitor.useElement(tree, element);
@@ -73,6 +82,9 @@ class ResolverTask extends CompilerTask {
       newResolvedClasses = newResolvedClasses.prepend(classElement);
     }
     checkClassHierarchy(newResolvedClasses);
+    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+      constructorElements[element] = visitor.mapping;
+    }
     return visitor.mapping;
   }
 
@@ -161,26 +173,6 @@ class InitializerResolver {
   Link<Node> initializers;
   bool hasSuper;
 
-  bool isSuperConstructorCall(Send node) {
-    return (node.receiver === null &&
-            node.selector.asIdentifier() !== null &&
-            node.selector.asIdentifier().isSuper()) ||
-           (node.receiver !== null &&
-            node.receiver.asIdentifier() !== null &&
-            node.receiver.asIdentifier().isSuper() &&
-            node.selector.asIdentifier() !== null);
-  }
-
-  bool isConstructorRedirect(Send node) {
-    return (node.receiver === null &&
-            node.selector.asIdentifier() !== null &&
-            node.selector.asIdentifier().isThis()) ||
-           (node.receiver !== null &&
-            node.receiver.asIdentifier() !== null &&
-            node.receiver.asIdentifier().isThis() &&
-            node.selector.asIdentifier() !== null);
-  }
-
   InitializerResolver(this.visitor, this.constructor)
     : initialized = new Map<SourceString, Node>(), hasSuper = false;
 
@@ -244,7 +236,7 @@ class InitializerResolver {
 
     ClassElement lookupTarget = constructor.enclosingElement;
     bool validTarget = true;
-    if (isSuperConstructorCall(call)) {
+    if (Initializers.isSuperConstructorCall(call)) {
       // Check for invalid initializers.
       if (hasSuper) {
         error(call, MessageKind.DUPLICATE_SUPER_INITIALIZER);
@@ -256,7 +248,7 @@ class InitializerResolver {
       } else {
         lookupTarget = lookupTarget.supertype.element;
       }
-    } else if (isConstructorRedirect(call)) {
+    } else if (Initializers.isConstructorRedirect(call)) {
       // Check that there are no other initializers.
       if (!initializers.tail.isEmpty()) {
         error(call, MessageKind.REDIRECTING_CTOR_HAS_INITIALIZER);

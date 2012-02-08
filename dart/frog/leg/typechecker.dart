@@ -238,9 +238,19 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitFunctionExpression(FunctionExpression node) {
+    Type type;
+    Type returnType;
+    Type previousType;
     final FunctionElement element = elements[node];
-    FunctionType functionType = computeType(element);
-    Type returnType = functionType.returnType;
+    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR ||
+        element.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+      type = types.dynamicType;
+      returnType = types.voidType;
+    } else {
+      FunctionType functionType = computeType(element);
+      returnType = functionType.returnType;
+      type = functionType;
+    }
     Type previous = expectedReturnType;
     expectedReturnType = returnType;
     if (element.isMember()) currentClass = element.enclosingElement;
@@ -256,7 +266,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
       reportTypeWarning(node.name, kind);
     }
     expectedReturnType = previous;
-    return functionType;
+    return type;
   }
 
   Type visitIdentifier(Identifier node) {
@@ -341,7 +351,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
       if (node.receiver !== null) fail(node, 'cannot handle fields');
       Element element = elements[node];
       if (element === null) fail(node.selector, 'unresolved property');
-      return element.computeType(compiler);
+      return computeType(element);
 
     } else if (node.isFunctionObjectInvocation) {
       fail(node.receiver, 'function object invocation unimplemented');
@@ -366,7 +376,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
       } else {
         Element element = elements[node];
         if (element.kind === ElementKind.FUNCTION) {
-          funType = element.computeType(compiler);
+          funType = computeType(element);
         } else if (element.kind === ElementKind.FOREIGN) {
           return types.dynamicType;
         } else {
@@ -497,7 +507,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   Type computeType(Element element) {
     if (element === null) return types.dynamicType;
-    return element.computeType(compiler);
+    Type result = element.computeType(compiler);
+    return (result !== null) ? result : types.dynamicType;
   }
 
   Type visitTypeAnnotation(TypeAnnotation node) {

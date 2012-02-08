@@ -128,32 +128,8 @@ class SsaBuilderTask extends CompilerTask {
 
   HGraph compileConstructor(SsaBuilder builder, WorkItem work) {
     // The body of the constructor will be generated in a separate function.
-    ClassElement classElement = work.element.enclosingElement;
-    ConstructorBodyElement bodyElement;
-    // In case of a bailout version, the constructor body has already
-    // been created.
-    if (work.isBailoutVersion()) {
-      for (Link<Element> backendMembers = classElement.backendMembers;
-           !backendMembers.isEmpty();
-           backendMembers = backendMembers.tail) {
-        Element current = backendMembers.head;
-        if (current.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
-          ConstructorBodyElement temp = current;
-          if (temp.constructor == work.element) {
-            bodyElement = temp;
-            break;
-          }
-        }
-      }
-    } else {
-      bodyElement = new ConstructorBodyElement(work.element);
-      compiler.enqueue(
-          new WorkItem.toCodegen(bodyElement, work.resolutionTree));
-      classElement.backendMembers =
-          classElement.backendMembers.prepend(bodyElement);
-    }
-    // TODO(floitsch): pass initializer-list to builder.
-    return builder.buildFactory(classElement, bodyElement, work.element);
+    final ClassElement classElement = work.element.enclosingElement;
+    return builder.buildFactory(classElement, work.element);
   }
 }
 
@@ -421,7 +397,7 @@ class LocalsHandler {
 
 class SsaBuilder implements Visitor {
   final Compiler compiler;
-  final TreeElements elements;
+  TreeElements elements;
   final Interceptors interceptors;
   final WorkItem work;
   bool methodInterceptionEnabled;
@@ -463,66 +439,183 @@ class SsaBuilder implements Visitor {
     return closeFunction();
   }
 
+  /**
+   * Returns the constructor body associated with the given constructor or
+   * creates a new constructor body, if none can be found.
+   */
+  ConstructorBodyElement getConstructorBody(ClassElement classElement,
+                                            FunctionElement constructor) {
+    assert(constructor.kind === ElementKind.GENERATIVE_CONSTRUCTOR);
+    ConstructorBodyElement bodyElement;
+    for (Link<Element> backendMembers = classElement.backendMembers;
+         !backendMembers.isEmpty();
+         backendMembers = backendMembers.tail) {
+      Element backendMember = backendMembers.head;
+      if (backendMember.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+        ConstructorBodyElement body = backendMember;
+        if (body.constructor == constructor) {
+          bodyElement = backendMember;
+          break;
+        }
+      }
+    }
+    if (bodyElement === null) {
+      bodyElement = new ConstructorBodyElement(constructor);
+      TreeElements treeElements =
+          compiler.resolver.resolveMethodElement(bodyElement);
+      compiler.enqueue(new WorkItem.toCodegen(bodyElement, treeElements));
+      classElement.backendMembers =
+          classElement.backendMembers.prepend(bodyElement);
+    }
+    assert(bodyElement.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY);
+    return bodyElement;
+  }
+
+  /**
+   * Call [f] for every argument and parameter element of [target]
+   * that is used in the invocation [send].
+   */
+  forEachArgument(Send send, FunctionElement target,
+                  f(VariableElement parameter, Node argument)) {
+    final FunctionParameters parameters = target.computeParameters(compiler);
+    Link<Element> parameterElements = parameters.requiredParameters;
+    for (Link<Node> arguments = send.arguments;
+         !arguments.isEmpty();
+         arguments = arguments.tail) {
+      if (parameterElements.isEmpty()) {
+        parameterElements = parameters.optionalParameters;
+      }
+      f(parameterElements.head, arguments.head);
+      parameterElements = parameterElements.tail;
+    };
+  }
+
+  /**
+   * Run through the initializers and inline all field initializers. Returns the
+   * next constructor to analyze.
+   */
+  FunctionElement analyzeInitializers(Link<Node> initializers) {
+    FunctionElement nextConstructor;
+    for (Link<Node> link = initializers; !link.isEmpty(); link = link.tail) {
+      assert(link.head is Send);
+      if (link.head is !SendSet) {
+        // A super initializer or constructor redirection.
+        Send call = link.head;
+        if (Initializers.isSuperConstructorCall(call)) {
+          assert(nextConstructor === null);
+          nextConstructor = elements[call];
+          // Visit arguments and map the corresponding parameter value to
+          // the resulting HInstruction value.
+          forEachArgument(call, nextConstructor, (parameter, node) {
+            visit(node);
+            HInstruction value = pop();
+            localsHandler.updateLocal(parameter, value);
+          });
+        } else {
+          compiler.unimplemented('SsaBuilder.buildFactory redirect');
+        }
+      } else {
+        // A field initializer.
+        SendSet init = link.head;
+        Link<Node> arguments = init.arguments;
+        assert(!arguments.isEmpty() && arguments.tail.isEmpty());
+        visit(arguments.head);
+        // We treat the init field-elements like locals. In the context of
+        // the factory this is correct, and simplifies dealing with
+        // parameter-initializers (like A(this.x)).
+        localsHandler.updateLocal(elements[init], pop());
+      }
+    }
+    return nextConstructor;
+  }
+
+  /**
+   * Build the factory function corresponding to the constructor
+   * [functionElement]:
+   *  - Initialize fields with the values of the field initializers of the
+   *    current constructor and super constructors or constructors redirected
+   *    to, starting from the current constructor.
+   *  - Call the the constructor bodies, starting from the constructor(s) in the
+   *    super class(es).
+   */
   HGraph buildFactory(ClassElement classElement,
-                      ConstructorBodyElement bodyElement,
                       FunctionElement functionElement) {
     FunctionExpression function = functionElement.parseNode(compiler);
     // The initializer list could contain closures.
     openFunction(functionElement, function);
 
-    NodeList initializers = function.initializers;
+    final Map<FunctionElement, TreeElements> constructorElements =
+        compiler.resolver.constructorElements;
+    List<FunctionElement> constructors = new List<FunctionElement>();
 
-    // Run through the initializers.
-    if (initializers !== null) {
-      for (Link<Node> link = initializers.nodes;
-           !link.isEmpty();
-           link = link.tail) {
-        assert(link.head is Send);
-        if (link.head is !SendSet) {
-          compiler.unimplemented('SsaBuilder.buildFactory super-init');
-        } else {
-          SendSet init = link.head;
-          Link<Node> arguments = init.arguments;
-          assert(!arguments.isEmpty() && arguments.tail.isEmpty());
-          visit(arguments.head);
-          // We treat the init field-elements like locals. In the context of
-          // the factory this is correct, and simplifies dealing with
-          // parameter-initializers (like A(this.x)).
-          localsHandler.updateLocal(elements[init], pop());
+    // Analyze the constructor and all referenced constructors and collect
+    // initializers and constructor bodies.
+    FunctionElement nextConstructor = functionElement;
+    while (nextConstructor != null) {
+      FunctionElement constructor = nextConstructor;
+      constructors.addLast(constructor);
+      nextConstructor = null;
+      elements = compiler.resolver.resolveMethodElement(constructor);
+      FunctionExpression functionNode = constructor.parseNode(compiler);
+      Link<Node> initializers = const EmptyLink<Node>();
+      if (functionNode.initializers !== null) {
+        nextConstructor = analyzeInitializers(functionNode.initializers.nodes);
+      }
+      if (nextConstructor === null) {
+        // No super initializer found. Try to find the default constructor if
+        // the class is not Object.
+        ClassElement enclosingClass = constructor.enclosingElement;
+        ClassElement superClass = enclosingClass.superclass;
+        ClassElement objectElement = compiler.coreLibrary.find(Types.OBJECT);
+        if (enclosingClass != objectElement) {
+          assert(superClass !== null);
+          assert(superClass.isResolved);
+          nextConstructor = superClass.lookupConstructor(superClass.name);
+          if (nextConstructor === null &&
+              superClass.canHaveDefaultConstructor()) {
+            nextConstructor = superClass.getSynthesizedConstructor();
+          } else if (nextConstructor === null) {
+            compiler.internalError("no default constructor available");
+          }
         }
       }
     }
-
     // Call the JavaScript constructor with the fields as argument.
-    // TODO(floitsch): allow super calls.
-    // TODO(floitsch): allow inits at field declarations.
+    // TODO(floitsch,karlklose): move this code to ClassElement and share with
+    //                           the emitter.
     List<HInstruction> constructorArguments = <HInstruction>[];
-    for (Element member in classElement.members) {
-      if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
-        HInstruction value;
-        if (localsHandler.hasValueForDirectLocal(member)) {
-          value = localsHandler.readLocal(member);
-        } else {
-          value = new HLiteral(null, HType.UNKNOWN);
-          add(value);
+    ClassElement element = classElement;
+    while (element != null) {
+      for (Element member in element.members) {
+        if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
+          HInstruction value;
+          if (localsHandler.hasValueForDirectLocal(member)) {
+            value = localsHandler.readLocal(member);
+          } else {
+            // TODO(karlklose): get default value.
+            value = new HLiteral(null, HType.UNKNOWN);
+            add(value);
+          }
+          constructorArguments.add(value);
         }
-        constructorArguments.add(value);
       }
+      element = element.superclass;
     }
     HForeignNew newObject = new HForeignNew(classElement, constructorArguments);
     add(newObject);
-
-    // Call the method body.
-    SourceString methodName = bodyElement.name;
-
-    List bodyCallInputs = <HInstruction>[];
-    bodyCallInputs.add(newObject);
-    FunctionParameters parameters = functionElement.computeParameters(compiler);
-    parameters.forEachParameter((Element parameterElement) {
-      HInstruction currentValue = localsHandler.readLocal(parameterElement);
-      bodyCallInputs.add(currentValue);
-    });
-    add(new HInvokeDynamicMethod(null, methodName, bodyCallInputs));
+    // Generate calls to the constructor bodies.
+    for (int index = constructors.length - 1; index >= 0; index--) {
+      FunctionElement constructor = constructors[index];
+      ConstructorBodyElement body = this.getConstructorBody(classElement,
+                                                            constructor);
+      List bodyCallInputs = <HInstruction>[];
+      bodyCallInputs.add(newObject);
+      body.functionParameters.forEachParameter((parameter) {
+        bodyCallInputs.add(localsHandler.readLocal(parameter));
+      });
+      SourceString methodName = body.name;
+      add(new HInvokeDynamicMethod(null, methodName, bodyCallInputs));
+    }
     close(new HReturn(newObject)).addSuccessor(graph.exit);
     return closeFunction();
   }

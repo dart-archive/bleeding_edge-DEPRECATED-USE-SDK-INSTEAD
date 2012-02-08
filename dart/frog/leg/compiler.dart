@@ -266,6 +266,7 @@ class Compiler implements DiagnosticListener {
   }
 
   void registerDynamicInvocation(SourceString methodName, Selector selector) {
+    assert(selector !== null);
     Set<Invocation> existing = universe.invokedNames[methodName];
     if (existing == null) {
       universe.invokedNames[methodName] = new Set.from(<Selector>[selector]);

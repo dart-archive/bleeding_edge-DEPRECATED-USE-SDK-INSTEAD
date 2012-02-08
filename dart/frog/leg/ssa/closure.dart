@@ -147,7 +147,13 @@ class ClosureTranslator extends AbstractVisitor {
   }
 
   void useLocal(Element element) {
-    if (element.enclosingElement != currentFunctionElement) {
+    // TODO(floitsch): replace this with a general solution.
+    Element functionElement = currentFunctionElement;
+    if (functionElement.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+      ConstructorBodyElement body = functionElement;
+      functionElement = body.constructor;
+    }
+    if (element.enclosingElement != functionElement) {
       assert(closureData.freeVariableMapping[element] == null ||
              closureData.freeVariableMapping[element] == element);
       closureData.freeVariableMapping[element] = element;

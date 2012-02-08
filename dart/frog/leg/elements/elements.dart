@@ -369,8 +369,7 @@ class FunctionElement extends Element {
                        ElementKind kind,
                        Modifiers this.modifiers,
                        Element enclosing)
-    : super(name, kind, enclosing),
-      cachedNode = node;
+    : super(name, kind, enclosing), cachedNode = node;
 
   FunctionElement.from(SourceString name,
                        FunctionElement other,
@@ -562,8 +561,8 @@ class ClassElement extends ContainerElement {
     return this;
   }
 
-  Element lookupLocalMember(SourceString name) {
-    return localMembers[name];
+  Element lookupLocalMember(SourceString memberName) {
+    return localMembers[memberName];
   }
 
   Element lookupConstructor(SourceString className,
@@ -572,13 +571,14 @@ class ClassElement extends ContainerElement {
                             Element noMatch(Element)]) {
     // TODO(karlklose): have a map from class names to a map of constructors
     //                  instead of creating the name here?
-    SourceString name;
+    SourceString normalizedName;
     if (constructorName !== const SourceString('')) {
-      name = Elements.constructConstructorName(className, constructorName);
+      normalizedName = Elements.constructConstructorName(className,
+                                                         constructorName);
     } else {
-      name = className;
+      normalizedName = className;
     }
-    Element result = constructors[name];
+    Element result = constructors[normalizedName];
     if (result === null && noMatch !== null) {
       result = noMatch(lookupLocalMember(constructorName));
     }

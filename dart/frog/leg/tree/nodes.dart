@@ -1442,3 +1442,25 @@ class CatchBlock extends Node {
 
   Token getEndToken() => block.getEndToken();
 }
+
+class Initializers {
+  static bool isSuperConstructorCall(Send node) {
+    return (node.receiver === null &&
+            node.selector.asIdentifier() !== null &&
+            node.selector.asIdentifier().isSuper()) ||
+           (node.receiver !== null &&
+            node.receiver.asIdentifier() !== null &&
+            node.receiver.asIdentifier().isSuper() &&
+            node.selector.asIdentifier() !== null);
+  }
+
+  static bool isConstructorRedirect(Send node) {
+    return (node.receiver === null &&
+            node.selector.asIdentifier() !== null &&
+            node.selector.asIdentifier().isThis()) ||
+           (node.receiver !== null &&
+            node.receiver.asIdentifier() !== null &&
+            node.receiver.asIdentifier().isThis() &&
+            node.selector.asIdentifier() !== null);
+  }
+}
