@@ -45,7 +45,7 @@ public class FileElement extends OmniElement {
   }
 
   @Override
-  public void execute() {
+  public void execute(String text) {
     try {
       final IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
       if (window == null) {

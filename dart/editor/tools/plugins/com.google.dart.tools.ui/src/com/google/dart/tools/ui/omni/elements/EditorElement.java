@@ -60,7 +60,7 @@ public class EditorElement extends OmniElement {
   }
 
   @Override
-  public void execute() {
+  public void execute(String text) {
     IWorkbenchPart part = editorReference.getPart(true);
     if (part != null) {
       IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();

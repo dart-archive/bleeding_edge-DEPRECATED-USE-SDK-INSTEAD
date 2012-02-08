@@ -63,7 +63,7 @@ public class PreferenceElement extends OmniElement {
   }
 
   @Override
-  public void execute() {
+  public void execute(String text) {
     IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     if (window != null) {
       WorkbenchPreferenceDialog dialog = WorkbenchPreferenceDialog.createDialogOn(

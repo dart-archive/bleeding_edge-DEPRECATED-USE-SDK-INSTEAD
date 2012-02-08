@@ -87,7 +87,7 @@ public class ViewElement extends OmniElement {
   }
 
   @Override
-  public void execute() {
+  public void execute(String text) {
     IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
     if (activePage != null) {
       try {

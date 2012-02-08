@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni;
 
+import com.google.dart.tools.search.ui.actions.TextSearchAction;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.omni.elements.FileProvider;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
@@ -543,7 +544,7 @@ public class OmniBoxPopup extends BasePopupDialog {
     addPreviousPick(text, selectedElement.getMemento());
     storeDialog(getDialogSettings());
     OmniElement element = selectedElement;
-    element.execute();
+    element.execute(text);
   }
 
   protected void toggleShowAllMatches() {

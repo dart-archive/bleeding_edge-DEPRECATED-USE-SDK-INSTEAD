@@ -44,7 +44,7 @@ public class TypeElement extends OmniElement {
   }
 
   @Override
-  public void execute() {
+  public void execute(String text) {
     try {
       DartUI.openInEditor(type, true, true);
     } catch (PartInitException e) {

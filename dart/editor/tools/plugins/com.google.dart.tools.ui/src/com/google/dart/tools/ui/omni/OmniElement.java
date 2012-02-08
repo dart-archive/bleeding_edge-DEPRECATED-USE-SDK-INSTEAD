@@ -36,8 +36,9 @@ public abstract class OmniElement {
 
   /**
    * Executes the associated action for this element.
+   * @param text the current string in the search box
    */
-  public abstract void execute();
+  public abstract void execute(String text);
 
   /**
    * Returns the id for this element. The id has to be unique within the OmniProposalProvider that

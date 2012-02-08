@@ -78,7 +78,7 @@ public class TextSearchElement extends OmniElement {
   }
 
   @Override
-  public void execute() {
+  public void execute(String text) {
     new TextSearchAction(((TextSearchProvider) getProvider()).getShell(), searchText).run();
   }
 
