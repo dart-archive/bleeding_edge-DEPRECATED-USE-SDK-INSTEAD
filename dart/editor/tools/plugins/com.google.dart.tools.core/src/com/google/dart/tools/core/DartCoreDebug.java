@@ -43,6 +43,10 @@ public class DartCoreDebug {
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
   public static final boolean ENABLE_TYPE_REFINEMENT = isOptionTrue("debug/RefineTypes");
 
+  // Performance measurement and reporting options.
+
+  public static final boolean PERF_INDEX = isOptionTrue("perf/index");
+
   public static Collection<String> getLibrariesEmbedded() {
     List<String> result = new ArrayList<String>();
     for (String spec : getOptionValue("libraries/embedded", "").split(",")) {

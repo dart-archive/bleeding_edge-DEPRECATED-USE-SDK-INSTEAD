@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -49,6 +49,16 @@ import javax.xml.parsers.ParserConfigurationException;
  * The class <code>TestUtilities</code> defines utility methods that can be used when writing tests.
  */
 public class TestUtilities {
+  /**
+   * The interface <code>ThreadController</code> defines the behavior of objects used by the
+   * {@link #wait(long, ThreadController) wait} method.
+   */
+  public interface ThreadController {
+    public void startThread();
+
+    public boolean threadCompleted();
+  }
+
   /**
    * The name of the directory containing projects that can be loaded for testing purposes.
    */
@@ -403,6 +413,39 @@ public class TestUtilities {
       operation.run(tempDir);
     } finally {
       FileUtilities.delete(tempDir);
+    }
+  }
+
+  /**
+   * Use the given controller to perform some operation on a separate thread, then wait until either
+   * the controller indicates that the thread has completed or until the given number of
+   * milliseconds have passed.
+   * 
+   * @param timeout the maximum number of milliseconds that this method will wait for the thread to
+   *          complete before returning (or a negative value if there is no timeout)
+   * @param controller the controller used to start the thread and to determine whether the thread
+   *          has finished running
+   */
+  public static void wait(long timeout, ThreadController controller) {
+    if (timeout < 0) {
+      controller.startThread();
+      while (!controller.threadCompleted()) {
+        try {
+          Thread.sleep(10);
+        } catch (InterruptedException exception) {
+          // Ignored
+        }
+      }
+    } else {
+      long endTime = System.currentTimeMillis() + timeout;
+      controller.startThread();
+      while (!controller.threadCompleted() && System.currentTimeMillis() < endTime) {
+        try {
+          Thread.sleep(10);
+        } catch (InterruptedException exception) {
+          // Ignored
+        }
+      }
     }
   }
 

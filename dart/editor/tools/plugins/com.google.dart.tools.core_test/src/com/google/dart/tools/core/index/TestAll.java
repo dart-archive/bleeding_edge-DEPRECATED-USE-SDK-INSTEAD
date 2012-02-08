@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core;
+package com.google.dart.tools.core.index;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -19,19 +19,10 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(DartCoreTest.class);
-    suite.addTestSuite(PluginXMLTest.class);
-
-//    suite.addTest(com.google.dart.tools.core.formatter.TestAll.suite());
-//    suite.addTest(com.google.dart.tools.core.frog.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.generator.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.index.TestAll.suite());
+    suite.addTestSuite(AttributeTest.class);
+    suite.addTestSuite(RelationshipTest.class);
+    suite.addTest(com.google.dart.tools.core.internal.index.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.indexer.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.internal.TestAll.suite());
-    // suite.addTest(com.google.dart.tools.core.model.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.search.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.utilities.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.workingcopy.TestAll.suite());
     return suite;
   }
 }

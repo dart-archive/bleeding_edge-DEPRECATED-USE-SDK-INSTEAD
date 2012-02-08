@@ -17,6 +17,8 @@ com.google.dart.tools.core/experimental/filesview = false
 
 com.google.dart.tools.core/trace/artifactProvider = false
 
+com.google.dart.tools.core/perf/index = false
+
 # Set true for debugging communication with Frog server
 com.google.dart.tools.core/debug/frog = false
 
