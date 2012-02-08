@@ -1814,16 +1814,16 @@ class SsaBuilder implements Visitor {
     HBasicBlock enterBlock = graph.addNewBlock();
     close(new HGoto()).addSuccessor(enterBlock);
     open(enterBlock);
-    close(new HTry());
+    HTry tryInstruction = new HTry();
+    close(tryInstruction);
 
     HBasicBlock tryBody = graph.addNewBlock();
     enterBlock.addSuccessor(tryBody);
     open(tryBody);
     visit(node.tryBlock);
-    HBasicBlock endTryBody;
-    if (!isAborted()) endTryBody = close(new HGoto());
+    List<HBasicBlock> blocks = <HBasicBlock>[];
+    if (!isAborted()) blocks.add(close(new HGoto()));
 
-    List<HBasicBlock> catchBlocks = <HBasicBlock>[];
     int catchBlocksCount = 0;
     for (CatchBlock catchBlock in node.catchBlocks.nodes) {
       if (++catchBlocksCount != 1) {
@@ -1833,27 +1833,29 @@ class SsaBuilder implements Visitor {
       enterBlock.addSuccessor(block);
       open(block);
       visit(catchBlock);
-      if (!isAborted()) {
-        close(new HGoto());
-        catchBlocks.add(block);
-      }
-    }
-
-    HBasicBlock exitBlock = graph.addNewBlock();
-
-    if (endTryBody != null) {
-      endTryBody.addSuccessor(exitBlock);
-    }
-
-    for (HBasicBlock block in catchBlocks) {
-      block.addSuccessor(exitBlock);
+      if (!isAborted()) blocks.add(close(new HGoto()));
     }
 
     if (node.finallyBlock != null) {
-      compiler.unimplemented('SsaBuilder finally block', node: node);
+      HBasicBlock finallyBlock = graph.addNewBlock();
+      enterBlock.addSuccessor(finallyBlock);
+      open(finallyBlock);
+      visit(node.finallyBlock);
+      if (!isAborted()) blocks.add(close(new HGoto()));
+      tryInstruction.finallyBlock = finallyBlock;
     }
 
-    open(exitBlock);
+    // If no block is going to an exit block, the Dart code after the
+    // try is dead code.
+    if (!blocks.isEmpty()) {
+      HBasicBlock exitBlock = graph.addNewBlock();
+
+      for (HBasicBlock block in blocks) {
+        block.addSuccessor(exitBlock);
+      }
+
+      open(exitBlock);
+    }
   }
 
   visitScriptTag(ScriptTag node) {
