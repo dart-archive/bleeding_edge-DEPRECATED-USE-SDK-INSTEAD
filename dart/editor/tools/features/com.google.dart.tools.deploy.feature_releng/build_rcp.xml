@@ -537,8 +537,9 @@ class ObjectArray<T> { }
                                      uniqueId="profiler"/-->
         <delete file="${build.source.root}/third_party/closure_compiler_src/build/compiler.jar"
                 failonerror="false" />
-        <ant antfile="build.xml" dir="${build.source.root}/third_party/closure_compiler_src"
-             inheritall="false" inheritrefs="false" />
+        <!-- closure compiler no longer part of the build
+          ant antfile="build.xml" dir="${build.source.root}/third_party/closure_compiler_src"
+             inheritall="false" inheritrefs="false" / -->
         <property name="eclipse.runtime.dir"
                   value="${build.runtime}/eclipse" />
         <mkdir dir="${build.stage.plugins}" />

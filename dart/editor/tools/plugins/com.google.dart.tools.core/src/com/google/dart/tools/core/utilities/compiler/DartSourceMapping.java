@@ -22,18 +22,11 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.debugging.sourcemap.SourceMapConsumerFactory;
-import com.google.debugging.sourcemap.SourceMapParseException;
-import com.google.debugging.sourcemap.SourceMapSupplier;
-import com.google.debugging.sourcemap.SourceMapping;
-import com.google.debugging.sourcemap.SourceMappingReversable;
-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,7 +34,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +46,7 @@ import java.util.Map;
 public class DartSourceMapping {
   private DartProject mainProject;
 
-  private Map<IPath, SourceMapping> sourceMappingCache = new HashMap<IPath, SourceMapping>();
+  private Map<IPath, Object /* SourceMapping */> sourceMappingCache = new HashMap<IPath, Object /* SourceMapping */>();
 
   /**
    * Create a new DartSourceMapper.
@@ -86,15 +78,15 @@ public class DartSourceMapping {
     line += 1;
     column += 1;
 
-    SourceMapping mapping = getCachedSourceMapping(filePath);
-
-    if (mapping != null) {
-      OriginalMapping originalMapping = mapping.getMappingForLine(line, column);
-
-      if (originalMapping != null) {
-        return originalMapping.getIdentifier();
-      }
-    }
+//    SourceMapping mapping = getCachedSourceMapping(filePath);
+//
+//    if (mapping != null) {
+//      OriginalMapping originalMapping = mapping.getMappingForLine(line, column);
+//
+//      if (originalMapping != null) {
+//        return originalMapping.getIdentifier();
+//      }
+//    }
 
     return null;
   }
@@ -124,35 +116,35 @@ public class DartSourceMapping {
 
       List<LibraryConfigurationFileImpl> libraryConfigurationFiles = dartLibrary.getChildrenOfType(LibraryConfigurationFileImpl.class);
 
-      if (libraryConfigurationFiles.size() > 0) {
-        String libraryName = libraryConfigurationFiles.get(0).getFile().getName();
-
-        IPath sourceMapPath = outputLocation.append(libraryName + ".js.map");
-
-        SourceMapping mapping = getCachedSourceMappingPath(sourceMapPath);
-
-        if (mapping != null && mapping instanceof SourceMappingReversable) {
-          SourceMappingReversable revMapping = (SourceMappingReversable) mapping;
-
-          String sourcePath = findMatchingSourcePath(file, revMapping);
-
-          if (sourcePath != null) {
-            Collection<OriginalMapping> mappings = revMapping.getReverseMapping(sourcePath, line, 1);
-
-            // TODO(devoncarew): We need to handle the case where there are more then one mappings
-            // returned; this will probably involve setting one breakpoint per mapping. More then
-            // one mapping ==> something like a function that's been inlined into multiple places.
-            if (mappings.size() > 0) {
-              OriginalMapping map = mappings.iterator().next();
-
-              String fileName = map.getOriginalFile();
-              int lineNumber = map.getLineNumber();
-
-              return new SourceLocation(new Path(fileName), lineNumber);
-            }
-          }
-        }
-      }
+//      if (libraryConfigurationFiles.size() > 0) {
+//        String libraryName = libraryConfigurationFiles.get(0).getFile().getName();
+//
+//        IPath sourceMapPath = outputLocation.append(libraryName + ".js.map");
+//
+//        SourceMapping mapping = getCachedSourceMappingPath(sourceMapPath);
+//
+//        if (mapping != null && mapping instanceof SourceMappingReversable) {
+//          SourceMappingReversable revMapping = (SourceMappingReversable) mapping;
+//
+//          String sourcePath = findMatchingSourcePath(file, revMapping);
+//
+//          if (sourcePath != null) {
+//            Collection<OriginalMapping> mappings = revMapping.getReverseMapping(sourcePath, line, 1);
+//
+//            // TODO(devoncarew): We need to handle the case where there are more then one mappings
+//            // returned; this will probably involve setting one breakpoint per mapping. More then
+//            // one mapping ==> something like a function that's been inlined into multiple places.
+//            if (mappings.size() > 0) {
+//              OriginalMapping map = mappings.iterator().next();
+//
+//              String fileName = map.getOriginalFile();
+//              int lineNumber = map.getLineNumber();
+//
+//              return new SourceLocation(new Path(fileName), lineNumber);
+//            }
+//          }
+//        }
+//      }
     } catch (DartModelException exception) {
       DartCore.logError(exception);
     }
@@ -168,31 +160,31 @@ public class DartSourceMapping {
     line += 1;
     column += 1;
 
-    SourceMapping mapping = getCachedSourceMapping(javaScriptFileName);
-
-    if (mapping != null) {
-      OriginalMapping originalMapping = mapping.getMappingForLine(line, column);
-
-      if (originalMapping != null) {
-        String fileName = originalMapping.getOriginalFile();
-        int lineNumber = originalMapping.getLineNumber();
-
-        return new SourceLocation(new Path(fileName), lineNumber);
-      }
-    }
+//    SourceMapping mapping = getCachedSourceMapping(javaScriptFileName);
+//
+//    if (mapping != null) {
+//      OriginalMapping originalMapping = mapping.getMappingForLine(line, column);
+//
+//      if (originalMapping != null) {
+//        String fileName = originalMapping.getOriginalFile();
+//        int lineNumber = originalMapping.getLineNumber();
+//
+//        return new SourceLocation(new Path(fileName), lineNumber);
+//      }
+//    }
 
     return SourceLocation.UNKNOWN_LOCATION;
   }
 
-  private String findMatchingSourcePath(IFile file, SourceMappingReversable revMapping) {
+  private String findMatchingSourcePath(IFile file, Object /* SourceMappingReversable */revMapping) {
     // TODO(devoncarew): make this more bullet proof
     String fileName = file.getName();
 
-    for (String origSource : revMapping.getOriginalSources()) {
-      if (origSource.endsWith(fileName)) {
-        return origSource;
-      }
-    }
+//    for (String origSource : revMapping.getOriginalSources()) {
+//      if (origSource.endsWith(fileName)) {
+//        return origSource;
+//      }
+//    }
 
     return null;
   }
@@ -206,7 +198,7 @@ public class DartSourceMapping {
    * @param jsFileName
    * @return
    */
-  private SourceMapping getCachedSourceMapping(String jsFileName) {
+  private Object /* SourceMapping */getCachedSourceMapping(String jsFileName) {
     try {
       IPath outputLocation = getMainDartProject().getOutputLocation();
 
@@ -227,7 +219,7 @@ public class DartSourceMapping {
    * @param sourceMapPath
    * @return
    */
-  private SourceMapping getCachedSourceMappingPath(IPath sourceMapPath) {
+  private Object /* SourceMapping */getCachedSourceMappingPath(IPath sourceMapPath) {
     if (sourceMappingCache.containsKey(sourceMapPath)) {
       return sourceMappingCache.get(sourceMapPath);
     } else {
@@ -236,22 +228,22 @@ public class DartSourceMapping {
 
         //long start = System.currentTimeMillis();
 
-        SourceMapping mapping = SourceMapConsumerFactory.parse(fileContents,
-            new SourceMapSupplier() {
-              @Override
-              public String getSourceMap(String url) throws IOException {
-                return getSourceMapContentsAt(url);
-              }
-            });
-
-        //System.out.println(sourceMapPath.lastSegment() + " parse time: "
-        //    + (System.currentTimeMillis() - start) + "ms");
-
-        sourceMappingCache.put(sourceMapPath, mapping);
-
-        return mapping;
-      } catch (SourceMapParseException exception) {
-        DartCore.logError(exception);
+//        SourceMapping mapping = SourceMapConsumerFactory.parse(fileContents,
+//            new SourceMapSupplier() {
+//              @Override
+//              public String getSourceMap(String url) throws IOException {
+//                return getSourceMapContentsAt(url);
+//              }
+//            });
+//
+//        //System.out.println(sourceMapPath.lastSegment() + " parse time: "
+//        //    + (System.currentTimeMillis() - start) + "ms");
+//
+//        sourceMappingCache.put(sourceMapPath, mapping);
+//
+//        return mapping;
+//      } catch (SourceMapParseException exception) {
+//        DartCore.logError(exception);
 
         return null;
       } catch (FileNotFoundException exception) {

@@ -176,22 +176,6 @@ File -> Import -> General -> Existing Projects into Workspace
 Import the existing projects in <DART_TRUNK>/editor
   including the "docs" project containing this README.txt file
 
-Import the project in <DART_TRUNK>/third_party/closure_compiler_src
-
-====================================
-  Building Closure
-====================================
-
-We require the closure compiler to build dartc. To build it, right click on closure-compiler/build.xml
-and choose Run As > Ant Build (the default option, not the Ant Build... option). This will create
-the closure-compiler/build/compiler.jar library, which will be picked up by the 
-com.google.dart.compiler.js project.
-
-Alternatively, run ant from the third_party/closure_compiler directory.
-
-Refresh the closure-compiler and com.google.dart.compiler.js projects for Eclipse to see the new
-files.
-
 ====================================
   Building Dart Libraries
 ====================================
