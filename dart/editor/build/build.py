@@ -11,6 +11,7 @@ Eclipse Dart Editor buildbot steps.
 import glob
 import optparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -355,7 +356,7 @@ def main():
     force_run_install = os.environ.get('FORCE_RUN_INSTALL')
     if (force_run_install or (run_sdk_build and
                               builder_name != 'dart-editor')):
-      _InstallSdk(buildroot, buildout, sdk_zip)
+      _InstallSdk(buildroot, buildout, buildos, sdk_zip)
 
     if status:
       return status
@@ -372,6 +373,7 @@ def main():
         _WriteTagFile(buildos, staging_bucket, revision, gsu)
         if _ShouldMoveStagingToContinuous(staging_bucket, revision, gsu):
           _MoveStagingToContinuous(staging_bucket, to_bucket, revision, gsu)
+#          _CleanupStaging(staging_bucket, revision, gsu)
       return 0
 
     #if the build passed run the deploy artifacts
@@ -635,6 +637,42 @@ def _MoveStagingToContinuous(bucket_stage, bucket_continuous, svnid, gsu):
                                                          svnid)
 
 
+def _CleanupStaging(bucket_stage, svnid, gsu):
+  """Cleanup the stagging area.
+
+    remove all old builds from staging and cleanup the old tag files
+  Args:
+    bucket_stage: the bucket to cleanup the staging data from
+    svnid: the svn revison
+    gsu: the gsutil object
+  """
+  print '_CLeanupStaging({0}, {1}, gsu'.format(bucket_stage, svnid)
+  tag_file_re = re.compile('^.+done-(\d+)-([lwm].+)')
+  tag_template = '{0}/tags/{1}'
+  stage_template = '{0}/stage/{1}/{2}'
+  target_revistion = int(svnid)
+  version_map = {}
+  elements_to_remove = []
+  tags = gsu.ReadBucket(tag_template.format(bucket_stage, '*'))
+  for tag in tags:
+    try:
+      re_result = tag_file_re.match(tag)
+      version_str = re_result.group(1)
+      version_map[int(version_str)] = tag
+    except IndexError as e:
+      print 'error {0} processing {1} '.format(e, tag)
+  for current_revision in version_map.iterkeys():
+    if target_revistion > int(current_revision):
+      elements_to_remove.append(tag_template.format(bucket_stage,
+                                                    current_revision))
+      for os_name in ['win32', 'macos', 'linux']:
+        elements_to_remove.append(stage_template.format(bucket_stage,
+                                                        os_name,
+                                                        current_revision))
+  for element in elements_to_remove:
+    print 'removing {0}'.format(element)
+
+
 def _SetAclOnArtifacts(to, bucket_tags, gsu):
   """Set the ACL's on the GoogleStorage Objects.
 
@@ -717,25 +755,27 @@ def _FindRcpZipFiles(out_dir):
   return found_zips
 
 
-def _InstallSdk(buildroot, buildout, sdk):
+def _InstallSdk(buildroot, buildout, buildos, sdk):
   """Install the SDk into the RCP zip files(s).
 
   Args:
     buildroot: the boot of the build output
     buildout: the location of the ant build output
+    buildos: the OS the build is running under
     sdk: the name of the zipped up sdk
   """
-  print '_InstallSdk({0}, {1})'.format(buildroot, sdk)
+  print '_InstallSdk({0}, {1}, {2}, {3})'.format(buildroot, buildout,
+                                                 buildos, sdk)
   tmp_dir = os.path.join(buildroot, 'tmp')
   unzip_dir = os.path.join(tmp_dir, 'unzip_sdk')
   if not os.path.exists(unzip_dir):
     os.makedirs(unzip_dir)
-  sdk_zip = ziputils.ZipUtil(sdk)
+  sdk_zip = ziputils.ZipUtil(sdk, buildos)
   sdk_zip.UnZip(unzip_dir)
   files = os.listdir(buildout)
   for f in files:
-    if f.startswith('Dart') and f.endswith('.zip'):
-      dart_zip = ziputils.ZipUtil(os.path.join(buildout, f))
+    if f.startswith('DartBuild') and f.endswith('.zip'):
+      dart_zip = ziputils.ZipUtil(os.path.join(buildout, f), buildos)
       dart_zip.AddDirectoryTree(unzip_dir, 'dart')
 
 
