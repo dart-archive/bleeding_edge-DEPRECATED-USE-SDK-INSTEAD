@@ -107,8 +107,8 @@ class WorldCompiler extends Compiler {
       print(script.file.getLocationMessage("cancel leg: $reason",
                                            begin, end, true));
     } else if (element !== null) {
-      currentElement = element;
-      cancel(reason: reason, token: element.position());
+      withCurrentElement(element,
+          () => cancel(reason: reason, token: element.position()));
     }
     if (throwOnError) {
       throw new AbortLeg(reason);

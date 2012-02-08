@@ -606,7 +606,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitTryStatement(TryStatement node) {
-    compiler.unimplemented('visitTryStatement', node: node);
+    fail(node, 'unimplemented');
   }
 
   visitScriptTag(ScriptTag node) {

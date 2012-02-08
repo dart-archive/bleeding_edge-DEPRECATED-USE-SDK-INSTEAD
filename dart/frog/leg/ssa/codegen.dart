@@ -220,7 +220,7 @@ class SsaCodeGenerator implements HVisitor {
 
     HInstruction instruction = node.first;
     while (instruction != null) {
-      if (instruction is HGoto || instruction is HExit) {
+      if (instruction is HGoto || instruction is HExit || instruction is HTry) {
         visit(instruction);
         return;
       } else if (!instruction.generateAtUseSite()) {
@@ -350,6 +350,39 @@ class SsaCodeGenerator implements HVisitor {
     visitBasicBlock(dominated[0]);
   }
 
+  visitTry(HTry node) {
+    addIndentation();
+    buffer.add('try {\n');
+    indent++;
+    List<HBasicBlock> successors = node.block.successors;
+    visitBasicBlock(successors[0]);
+    indent--;
+
+    if (node.finallyBlock != successors[1]) {
+      addIndentation();
+      buffer.add('} catch (e) {\n');
+      indent++;
+    }
+
+    for (int i = 1; i < successors.length - 1; i++) {
+      // TODO(ngeoffray): add the type check.
+      visitBasicBlock(successors[i]);
+    }
+
+    if (node.finallyBlock == null) {
+      // TODO(ngeoffray): add the type check.
+      visitBasicBlock(successors[successors.length - 1]);
+    } else {
+      addIndentation();
+      buffer.add('} finally {\n');
+      indent++;
+      visitBasicBlock(node.finallyBlock);
+    }
+    indent--;
+    addIndentation();
+    buffer.add('}\n');
+  }
+
   visitIf(HIf node) {
     startIf(node);
     assert(!node.generateAtUseSite());
@@ -477,6 +510,10 @@ class SsaCodeGenerator implements HVisitor {
     if (node.receiver != null) {
       use(node.receiver);
       buffer.add('.');
+    } else {
+      // TODO(ngeoffray): Remove the 'var' once we don't globally box
+      // variables used in a try/catch.
+      buffer.add('var ');
     }
     String name = JsNames.getValid('${node.element.name}');
     buffer.add(name);

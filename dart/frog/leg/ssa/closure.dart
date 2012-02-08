@@ -44,10 +44,13 @@ class ClosureData {
   // contain any nested closure.
   final Map<Node, ClosureScope> capturingScopes;
 
+  final Set<Element> usedVariablesInTry;
+
   ClosureData(this.globalizedClosureElement, this.callElement)
       : this.freeVariableMapping = new Map<Element, Element>(),
         this.capturedFieldMapping = new Map<Element, Element>(),
-        this.capturingScopes = new Map<Node, ClosureScope>();
+        this.capturingScopes = new Map<Node, ClosureScope>(),
+        this.usedVariablesInTry = new Set<Element>();
 }
 
 Map<Node, ClosureData> _closureDataCache;
@@ -62,6 +65,7 @@ class ClosureTranslator extends AbstractVisitor {
   final Compiler compiler;
   final TreeElements elements;
   int boxCounter = 0;
+  bool inTryCatchOrFinally = false;
 
   // Map of captured variables. Initially they will map to themselves. If
   // a variable needs to be boxed then the scope declaring the variable
@@ -147,6 +151,9 @@ class ClosureTranslator extends AbstractVisitor {
       assert(closureData.freeVariableMapping[element] == null ||
              closureData.freeVariableMapping[element] == element);
       closureData.freeVariableMapping[element] = element;
+    } else if (inTryCatchOrFinally) {
+      // TODO(ngeoffray): only do this if the variable is mutated.
+      closureData.usedVariablesInTry.add(element);
     }
   }
 
@@ -306,5 +313,12 @@ class ClosureTranslator extends AbstractVisitor {
     if (savedInsideClosure) {
       declareLocal(elements[node]);
     }
+  }
+
+  visitTryStatement(TryStatement node) {
+    // TODO(ngeoffray): implement finer grain state.
+    inTryCatchOrFinally = true;
+    node.visitChildren(this);
+    inTryCatchOrFinally = false;
   }
 }

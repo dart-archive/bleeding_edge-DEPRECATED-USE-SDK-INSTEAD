@@ -94,9 +94,8 @@ class SsaBuilderTask extends CompilerTask {
   HGraph build(WorkItem work) {
     return measure(() {
       FunctionElement element = work.element;
-      TreeElements elements = work.resolutionTree;
       HInstruction.idCounter = 0;
-      SsaBuilder builder = new SsaBuilder(compiler, elements);
+      SsaBuilder builder = new SsaBuilder(compiler, work);
       HGraph graph;
       switch (element.kind) {
         case ElementKind.GENERATIVE_CONSTRUCTOR:
@@ -267,13 +266,15 @@ class LocalsHandler {
    */
   bool isAccessedDirectly(Element element) {
     assert(element !== null);
-    return redirectionMapping[element] === null;
+    return redirectionMapping[element] === null
+        && !closureData.usedVariablesInTry.contains(element);
   }
 
   bool isStoredInClosureField(Element element) {
     assert(element !== null);
     if (isAccessedDirectly(element)) return false;
     Element redirectElement = redirectionMapping[element];
+    if (redirectElement == null) return false;
     if (redirectElement.enclosingElement.kind == ElementKind.CLASS) {
       assert(redirectElement is ClosureFieldElement);
       return true;
@@ -284,8 +285,11 @@ class LocalsHandler {
   bool isBoxed(Element element) {
     if (isAccessedDirectly(element)) return false;
     if (isStoredInClosureField(element)) return false;
-    // TODO(floitsch): add some asserts that we really have a boxed element.
-    return true;
+    return redirectionMapping[element] !== null;
+  }
+
+  bool isUsedInTry(Element element) {
+    return closureData.usedVariablesInTry.contains(element);
   }
 
   /**
@@ -310,8 +314,7 @@ class LocalsHandler {
       HInstruction fieldGet = new HFieldGet(redirect, receiver);
       builder.add(fieldGet);
       return fieldGet;
-    } else {
-      assert(isBoxed(element));
+    } else if (isBoxed(element)) {
       Element redirect = redirectionMapping[element];
       // In the function that declares the captured variable the box is
       // accessed as direct local. Inside the nested closure the box is
@@ -323,6 +326,11 @@ class LocalsHandler {
       HInstruction lookup = new HFieldGet(redirect, box);
       builder.add(lookup);
       return lookup;
+    } else {
+      assert(isUsedInTry(element));
+      HInstruction variable = new HFieldGet.fromActivation(element);
+      builder.add(variable);
+      return variable;
     }
   }
 
@@ -347,8 +355,7 @@ class LocalsHandler {
       HInstruction receiver = new HThis();
       builder.add(receiver);
       builder.add(new HFieldSet(redirect, receiver, value));
-    } else {
-      assert(isBoxed(element));
+    } else if (isBoxed(element)) {
       Element redirect = redirectionMapping[element];
       // The box itself could be captured, or be local. A local variable that
       // is captured will be boxed, but the box itself will be a local.
@@ -357,6 +364,9 @@ class LocalsHandler {
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
       builder.add(new HFieldSet(redirect, box, value));
+    } else {
+      assert(isUsedInTry(element));
+      builder.add(new HFieldSet.fromActivation(element,value));
     }
   }
 
@@ -413,6 +423,7 @@ class SsaBuilder implements Visitor {
   final Compiler compiler;
   final TreeElements elements;
   final Interceptors interceptors;
+  final WorkItem work;
   bool methodInterceptionEnabled;
   HGraph graph;
   LocalsHandler localsHandler;
@@ -424,10 +435,12 @@ class SsaBuilder implements Visitor {
   // visiting dead code.
   HBasicBlock current;
 
-  SsaBuilder(Compiler compiler, this.elements)
+  SsaBuilder(Compiler compiler, WorkItem work)
     : this.compiler = compiler,
+      this.work = work,
       interceptors = compiler.builder.interceptors,
       methodInterceptionEnabled = true,
+      elements = work.resolutionTree,
       graph = new HGraph(),
       stack = new List<HInstruction>() {
     localsHandler = new LocalsHandler(this);
@@ -1703,7 +1716,51 @@ class SsaBuilder implements Visitor {
   }
 
   visitTryStatement(TryStatement node) {
-    compiler.unimplemented('SsaBuilder.visitTryStatement', node: node);
+    work.allowSpeculativeOptimization = false;
+    assert(!work.isBailoutVersion());
+    HBasicBlock enterBlock = graph.addNewBlock();
+    close(new HGoto()).addSuccessor(enterBlock);
+    open(enterBlock);
+    close(new HTry());
+
+    HBasicBlock tryBody = graph.addNewBlock();
+    enterBlock.addSuccessor(tryBody);
+    open(tryBody);
+    visit(node.tryBlock);
+    HBasicBlock endTryBody;
+    if (!isAborted()) endTryBody = close(new HGoto());
+
+    List<HBasicBlock> catchBlocks = <HBasicBlock>[];
+    int catchBlocksCount = 0;
+    for (CatchBlock catchBlock in node.catchBlocks.nodes) {
+      if (++catchBlocksCount != 1) {
+        compiler.unimplemented('SsaBuilder multiple catch blocks', node: node);
+      }
+      HBasicBlock block = graph.addNewBlock();
+      enterBlock.addSuccessor(block);
+      open(block);
+      visit(catchBlock);
+      if (!isAborted()) {
+        close(new HGoto());
+        catchBlocks.add(block);
+      }
+    }
+
+    HBasicBlock exitBlock = graph.addNewBlock();
+
+    if (endTryBody != null) {
+      endTryBody.addSuccessor(exitBlock);
+    }
+
+    for (HBasicBlock block in catchBlocks) {
+      block.addSuccessor(exitBlock);
+    }
+
+    if (node.finallyBlock != null) {
+      compiler.unimplemented('SsaBuilder finally block', node: node);
+    }
+
+    open(exitBlock);
   }
 
   visitScriptTag(ScriptTag node) {
@@ -1711,7 +1768,12 @@ class SsaBuilder implements Visitor {
   }
 
   visitCatchBlock(CatchBlock node) {
-    compiler.unimplemented('SsaBuilder.visitCatchBlock', node: node);
+    NodeList formals = node.formals;
+    VariableDefinitions exception = formals.nodes.head;
+    if (exception.type != null) {
+      compiler.unimplemented('SsaBuilder catch with type', node: node);
+    }
+    visit(node.block);
   }
 
   visitTypedef(Typedef node) {

@@ -856,11 +856,28 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitTryStatement(TryStatement node) {
-    unimplemented(node, 'try');
+    visit(node.tryBlock);
+    if (node.catchBlocks.isEmpty() && node.finallyBlock == null) {
+      // TODO(ngeoffray): The precise location is
+      // node.getEndtoken.next. Adjust when issue #1581 is fixed.
+      error(node, MessageKind.NO_CATCH_NOR_FINALLY);
+    }
+    visit(node.catchBlocks);
+    visit(node.finallyBlock);
   }
 
   visitCatchBlock(CatchBlock node) {
-    unimplemented(node, 'catch');
+    Scope scope = new BlockScope(context);
+    if (node.formals.isEmpty()) {
+      error(node, MessageKind.EMPTY_CATCH_DECLARATION);
+    } else if (!node.formals.nodes.tail.isEmpty()
+               && !node.formals.nodes.tail.tail.isEmpty()) {
+      for (Node extra in node.formals.nodes.tail.tail) {
+        error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
+      }
+    }
+    visitIn(node.formals, scope);
+    visitIn(node.block, scope);
   }
 
   visitTypedef(Typedef node) {

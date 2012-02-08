@@ -382,6 +382,24 @@ class HInstructionStringifier implements HVisitor<String> {
     return visitInvokeStatic(node);
   }
 
+  String visitTry(HTry node) {
+    List<HBasicBlock> successors = currentBlock.successors;
+    String tryBlock = 'B${successors[0].id}';
+    StringBuffer catchBlocks = new StringBuffer();
+    for (int i = 1; i < successors.length - 1; i++) {
+      catchBlocks.add('B${successors[i].id}, ');
+    }
+
+    String finallyBlock;
+    if (node.finallyBlock != null) {
+      finallyBlock = 'B${node.finallyBlock.id}';
+    } else {
+      catchBlocks.add('B${successors[successors.length - 1].id}');
+      finallyBlock = 'none';
+    }
+    return "Try: $tryBlock, Catch: $catchBlocks, Finally: $finallyBlock";
+  }
+
   String visitTypeGuard(HTypeGuard node) {
     String type;
     switch (node.type) {

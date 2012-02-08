@@ -86,6 +86,12 @@ class MessageKind {
       '#{1} is not an instance field');
   static final EXPECTED_LITERAL_NUMBER = const MessageKind(
       'expected a literal number after +');
+  static final NO_CATCH_NOR_FINALLY = const MessageKind(
+      "expected 'catch' or 'finally'");
+  static final EMPTY_CATCH_DECLARATION = const MessageKind(
+      'expected a variable in catch declaration');
+  static final EXTRA_CATCH_DECLARATION = const MessageKind(
+      'extra variable in catch declaration');
 
   static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       '#{1} cannot be used as compile-time constant');

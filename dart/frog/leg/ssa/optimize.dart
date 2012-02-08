@@ -11,9 +11,11 @@ class SsaOptimizerTask extends CompilerTask {
       if (!work.isBailoutVersion()) {
         // TODO(ngeoffray): We should be more fine-grained and still
         // allow type propagation of instructions we know the type.
-        new SsaTypePropagator(compiler).visitGraph(graph);
-        new SsaTypeGuardBuilder(compiler).visitGraph(graph);
-        new SsaCheckInserter(compiler).visitGraph(graph);
+        if (work.allowSpeculativeOptimization) {
+          new SsaTypePropagator(compiler).visitGraph(graph);
+          new SsaTypeGuardBuilder(compiler).visitGraph(graph);
+          new SsaCheckInserter(compiler).visitGraph(graph);
+        }
         new SsaConstantFolder(compiler).visitGraph(graph);
         new SsaRedundantPhiEliminator().visitGraph(graph);
         new SsaDeadPhiEliminator().visitGraph(graph);

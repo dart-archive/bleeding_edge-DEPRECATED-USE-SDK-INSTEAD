@@ -58,6 +58,7 @@ interface HVisitor<R> {
   R visitThis(HThis node);
   R visitThrow(HThrow node);
   R visitTruncatingDivide(HTruncatingDivide node);
+  R visitTry(HTry node);
   R visitTypeGuard(HTypeGuard node);
 }
 
@@ -257,6 +258,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitStore(HStore node) => visitInstruction(node);
   visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
+  visitTry(HTry node) => visitControlFlow(node);
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
   visitTypeGuard(HTypeGuard node) => visitInstruction(node);
   visitIs(HIs node) => visitInstruction(node);
@@ -1138,20 +1140,21 @@ class HInvokeInterceptor extends HInvokeStatic {
 }
 
 class HFieldGet extends HInstruction {
-  Element element;
+  final Element element;
   HFieldGet(Element this.element, HInstruction receiver)
       : super(<HInstruction>[receiver]);
-  HFieldGet.fromActivation() : super(<HInstruction>[]);
+  HFieldGet.fromActivation(Element this.element) : super(<HInstruction>[]);
 
   HInstruction get receiver() => inputs.length == 1 ? inputs[0] : null;
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 }
 
 class HFieldSet extends HInstruction {
-  Element element;
+  final Element element;
   HFieldSet(Element this.element, HInstruction receiver, HInstruction value)
       : super(<HInstruction>[receiver, value]);
-  HFieldSet.fromActivation(HInstruction value) : super(<HInstruction>[value]);
+  HFieldSet.fromActivation(Element this.element, HInstruction value)
+      : super(<HInstruction>[value]);
 
   HInstruction get receiver() => inputs.length == 2 ? inputs[0] : null;
   HInstruction get value() => inputs.length == 2 ? inputs[1] : inputs[0];
@@ -1631,6 +1634,13 @@ class HGoto extends HControlFlow {
   accept(HVisitor visitor) => visitor.visitGoto(this);
 }
 
+class HTry extends HControlFlow {
+  HBasicBlock finallyBlock;
+  HTry() : super(const <HInstruction>[]);
+  toString() => 'try';
+  accept(HVisitor visitor) => visitor.visitTry(this);
+}
+
 class HIf extends HConditionalBranch {
   bool hasElse;
   HIf(HInstruction condition, this.hasElse) : super(<HInstruction>[condition]);
@@ -1711,7 +1721,12 @@ class HLiteral extends HInstruction {
   bool isLiteralNumber() => value is num;
   bool isLiteralString() => value is DartString;
   bool typeEquals(other) => other is HLiteral;
-  bool dataEquals(HLiteral other) => value == other.value;
+  bool dataEquals(HLiteral other) {
+    if (isLiteralNumber() && other.isLiteralNumber()) {
+      if (value.isNaN()) return other.value.isNaN();
+    }
+    return value == other.value;
+  }
 }
 
 class HNot extends HInstruction {

@@ -7,6 +7,7 @@ class WorkItem {
   TreeElements resolutionTree;
   Function run;
   Map<int, BailoutInfo> bailouts = null;
+  bool allowSpeculativeOptimization = true;
 
   WorkItem.toCompile(this.element) : resolutionTree = null {
     run = this.compile;
