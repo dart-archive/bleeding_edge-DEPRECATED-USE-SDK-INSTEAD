@@ -39,7 +39,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
-import com.google.dart.tools.core.utilities.compiler.NullWriter;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -152,13 +151,13 @@ public class DartcBuildHandler {
           return new BufferedWriter(new FileWriter(appJsFile));
         }
         // Don't bother caching or writing source maps until we need them
-        if (extension.equals(AbstractJsBackend.EXTENSION_APP_JS_SRC_MAP)) {
-          if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
-            DartCore.logInformation("DartcBuildHandler.ArtifactProvider.getArtifactWriter("
-                + source.getName() + ", " + part + ", " + extension + ") => NullWriter");
-          }
-          return new NullWriter();
-        }
+//        if (extension.equals(AbstractJsBackend.EXTENSION_APP_JS_SRC_MAP)) {
+//          if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
+//            DartCore.logInformation("DartcBuildHandler.ArtifactProvider.getArtifactWriter("
+//                + source.getName() + ", " + part + ", " + extension + ") => NullWriter");
+//          }
+//          return new NullWriter();
+//        }
         // Otherwise, any artifact with an "app.js*" extension
         // should be cached only for the duration of this compilation
         return super.getArtifactWriter(source, part, extension);

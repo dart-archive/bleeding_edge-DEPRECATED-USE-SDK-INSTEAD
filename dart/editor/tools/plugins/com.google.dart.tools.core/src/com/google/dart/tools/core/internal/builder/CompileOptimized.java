@@ -155,7 +155,7 @@ public class CompileOptimized {
       final CompilerMetrics metrics = new CompilerMetrics();
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
       CompilerOptions options = new CompilerOptions();
-      options.setOptimize(true);
+      //options.setOptimize(true);
       final CompilerConfiguration config = new DefaultCompilerConfiguration(options, libraryManager) {
         @Override
         public CompilerMetrics getCompilerMetrics() {

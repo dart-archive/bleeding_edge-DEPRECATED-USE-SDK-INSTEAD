@@ -87,8 +87,7 @@ public class DartCompilerWarmup {
 
         // Don't write the final application JS and map files
 
-        if (extension.equals(AbstractJsBackend.EXTENSION_APP_JS)
-            || extension.equals(AbstractJsBackend.EXTENSION_APP_JS_SRC_MAP)) {
+        if (extension.equals(AbstractJsBackend.EXTENSION_APP_JS)) {
           return new NullWriter();
         }
 
