@@ -980,10 +980,11 @@ class HTTPConnectionBase {
         // Send more data.
         send();
 
-        // If all data has been sent notify the callback.
-        if (_sendBuffers.isEmpty() && callback != null) {
+        // If all data has been sent notify the callback (if any) and free
+        // the writeHandler.
+        if (_sendBuffers.isEmpty()) {
           _socket.writeHandler = null;
-          callback();
+          if (callback != null) callback();
         }
       }
 
