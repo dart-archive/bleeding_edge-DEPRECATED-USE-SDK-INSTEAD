@@ -1146,7 +1146,7 @@ class DefinedType extends Type {
 
       var paramName = typeParameters[i].name;
       typeMap[paramName] = typeArg;
-      names.add(typeArg.name);
+      names.add(typeArg.fullname);
       jsnames.add(typeArg.jsname);
     }
 
@@ -1156,13 +1156,13 @@ class DefinedType extends Type {
     var jsname = '${jsname}_${Strings.join(jsnames, '\$')}';
     var simpleName = '${name}<${Strings.join(names, ', ')}>';
 
-    var ret = _concreteTypes[jsname];
+    var ret = _concreteTypes[simpleName];
     if (ret == null) {
       ret = new DefinedType(simpleName, library, definition, isClass);
       ret.baseGenericType = this;
       ret.typeArgsInOrder = typeArgs;
       ret._jsname = jsname;
-      _concreteTypes[jsname] = ret;
+      _concreteTypes[simpleName] = ret;
       ret.resolve();
     }
     return ret;
