@@ -32,6 +32,7 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
@@ -83,7 +84,14 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       Display.getDefault().asyncExec(new Runnable() {
         @Override
         public void run() {
-          Program.launch(uri);
+          try {
+            Program program = Program.findProgram("html");
+            program.execute(uri);
+          } catch (Throwable t) {
+            DartDebugCorePlugin.logError(t);
+            MessageDialog.openError(Display.getDefault().getActiveShell(), "Launch Browser Error",
+                t.getMessage());
+          }
         }
       });
     } else {
@@ -152,12 +160,18 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       Display.getDefault().asyncExec(new Runnable() {
         @Override
         public void run() {
-          Program program = findProgram(browserName);
-          if (program != null) {
-            program.execute(url);
-            result[0] = 0;
-          } else {
-            result[0] = -1;
+          try {
+            Program program = findProgram(browserName);
+            if (program != null) {
+              program.execute(url);
+              result[0] = 0;
+            } else {
+              result[0] = -1;
+            }
+          } catch (Throwable t) {
+            DartDebugCorePlugin.logError(t);
+            MessageDialog.openError(Display.getDefault().getActiveShell(), "Launch Browser Error",
+                t.getMessage());
           }
         }
       });
