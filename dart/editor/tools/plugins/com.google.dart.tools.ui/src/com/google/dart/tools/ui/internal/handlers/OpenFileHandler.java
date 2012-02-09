@@ -71,7 +71,7 @@ public class OpenFileHandler extends AbstractHandler {
             @Override
             public void run(IProgressMonitor monitor) throws CoreException {
 
-              monitor.beginTask(HandlerMessages.OpenFile_taskName, 30);
+              monitor.beginTask(HandlerMessages.OpenFile_taskName, 2);
               library[0] = DartCore.openLibrary(file, new NullProgressMonitor());
               if (library[0] != null) {
                 library[0].setTopLevel(true);
@@ -89,6 +89,7 @@ public class OpenFileHandler extends AbstractHandler {
                   }
                 }
               }
+              monitor.worked(1);
               monitor.done();
             }
           })); // workspace lock

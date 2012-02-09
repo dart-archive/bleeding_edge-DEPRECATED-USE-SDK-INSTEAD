@@ -80,7 +80,7 @@ public class CloseLibraryAction extends AbstractInstrumentedAction implements IW
             @Override
             public void run(IProgressMonitor monitor) throws CoreException {
 
-              monitor.beginTask(ActionMessages.CloseLibraryAction_jobTitle, 30);
+              monitor.beginTask(ActionMessages.CloseLibraryAction_jobTitle, libraries.size());
               for (DartLibrary library : libraries) {
                 library.setTopLevel(false);
               }

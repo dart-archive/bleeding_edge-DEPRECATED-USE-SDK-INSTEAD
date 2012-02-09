@@ -870,7 +870,7 @@ public class DartModelManager {
       }
       Iterator<PerWorkingCopyInfo> iterator = workingCopyToInfos.values().iterator();
       while (iterator.hasNext()) {
-        result[index++] = (iterator.next()).getWorkingCopy();
+        result[index++] = iterator.next().getWorkingCopy();
       }
       return result;
     }

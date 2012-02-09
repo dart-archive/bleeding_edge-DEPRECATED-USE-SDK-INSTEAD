@@ -311,7 +311,7 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
       }
     }
     Object[] children = getChildren(element);
-    return (children != null) && children.length > 0;
+    return children != null && children.length > 0;
   }
 
   @Override
@@ -453,10 +453,11 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
       }
 
     } else if (element instanceof DartLibrary) {
-      if (((DartLibrary) element).isTopLevel()) {
-        return ((DartLibrary) element).getParent();
+      DartLibrary dartLibrary = (DartLibrary) element;
+      if (dartLibrary.isTopLevel()) {
+        return dartLibrary.getParent();
       } else {
-        return getParentLibrary((DartLibrary) element);
+        return getParentLibrary(dartLibrary);
       }
 
     } else if (element instanceof DartElement) {
@@ -480,7 +481,7 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
     // return false;
 
     int flags = delta.getFlags();
-    return (delta.getKind() == DartElementDelta.CHANGED && ((flags & DartElementDelta.F_REORDER) != 0));
+    return delta.getKind() == DartElementDelta.CHANGED && (flags & DartElementDelta.F_REORDER) != 0;
   }
 
   /*
@@ -546,17 +547,21 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
     DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
     try {
       DartProject[] projects = model.getDartProjects();
+      // Try to find import of "targetLibrary" in one of the top-level libraries.
       for (DartProject project : projects) {
         for (DartLibrary library : project.getDartLibraries()) {
-          for (DartLibrary importedLibrary : library.getImportedLibraries()) {
-            URI importedUri = ImportedDartLibraryContainer.getUri(importedLibrary);
-            if (targetUri.equals(importedUri)) {
-              return new ImportedDartLibrary(importedLibrary, new ImportedDartLibraryContainer(
-                  library, library));
+          if (library.isTopLevel()) {
+            for (DartLibrary importedLibrary : library.getImportedLibraries()) {
+              URI importedUri = ImportedDartLibraryContainer.getUri(importedLibrary);
+              if (targetUri.equals(importedUri)) {
+                return new ImportedDartLibrary(importedLibrary, new ImportedDartLibraryContainer(
+                    library, library));
+              }
             }
           }
         }
       }
+      // Try to find "targetLibrary" as one of the libraries bundled with Editor: core, dom, etc.
       if (projects.length > 0) {
         DartLibrary[] libraries = projects[0].getDartLibraries();
         if (libraries.length > 0) {
