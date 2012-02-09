@@ -26,7 +26,10 @@ import com.google.dart.indexer.standard.StandardDriver;
 import com.google.dart.indexer.workspace.index.IndexingTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+//import com.google.dart.tools.core.index.Resource;
+//import com.google.dart.tools.core.internal.index.impl.IndexImpl;
 import com.google.dart.tools.core.internal.indexer.task.CompilationUnitIndexingTarget;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -132,9 +135,24 @@ class CompilerListener implements DartCompilerListener {
         return;
       }
       DartElement element = DartCore.create(resources[0]);
+      if (element instanceof DartLibrary) {
+        try {
+          element = ((DartLibrary) element).getDefiningCompilationUnit();
+        } catch (DartModelException exception) {
+          DartCore.logError("Could not get defining compilation unit for library "
+              + ((DartLibraryImpl) element).getLibrarySourceFile().getUri(), exception);
+        }
+      }
       if (element instanceof CompilationUnit) {
         StandardDriver.getInstance().enqueueTargets(
             new IndexingTarget[] {new CompilationUnitIndexingTarget((CompilationUnit) element, unit)});
+//        try {
+//          IndexImpl.getInstance().indexResource(
+//              new Resource(resources[0].getLocationURI().toString()), (CompilationUnit) element,
+//              unit);
+//        } catch (Exception exception) {
+//          DartCore.logError("Could not index " + source.getUri(), exception);
+//        }
       } else {
         StringBuilder builder = new StringBuilder();
         builder.append("Could not find compilation unit corresponding to ");
