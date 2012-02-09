@@ -499,14 +499,15 @@ class WorldGenerator {
     }
 
     // generate code for instance fields
-    if (field._providePropertySyntax &&
+    if (field._provideGetter &&
         !field.declaringType.isConcreteGeneric) {
       _writePrototypePatch(field.declaringType, 'get\$${field.jsname}',
           'function() { return this.${field.jsname}; }', writer);
-      if (!field.isFinal) {
-        _writePrototypePatch(field.declaringType, 'set\$${field.jsname}',
+    }
+    if (field._provideSetter &&
+        !field.declaringType.isConcreteGeneric) {
+      _writePrototypePatch(field.declaringType, 'set\$${field.jsname}',
           'function(value) { return this.${field.jsname} = value; }', writer);
-      }
     }
 
     // TODO(jimhug): Currently choose not to initialize fields on objects, but
@@ -540,7 +541,7 @@ class WorldGenerator {
   _writeMethod(MethodMember m) {
     m.methodData.writeDefinition(m, writer);
 
-    if (m.isNative && m._providePropertySyntax) {
+    if (m.isNative && m._provideGetter) {
       MethodGenerator._maybeGenerateBoundGetter(m, writer);
     }
   }
@@ -925,7 +926,7 @@ class MethodGenerator implements TreeVisitor, CallingContext {
   }
 
   static _maybeGenerateBoundGetter(MethodMember m, CodeWriter defWriter) {
-    if (m._providePropertySyntax) {
+    if (m._provideGetter) {
       String suffix = world.gen._writePrototypePatch(m.declaringType,
           'get\$' + m.jsname, 'function() {', defWriter, false);
       // TODO(jimhug): Bind not available in older Safari, need fallback?

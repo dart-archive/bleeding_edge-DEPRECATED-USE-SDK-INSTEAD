@@ -65,7 +65,7 @@ class MemberSet {
     if (_returnTypeForGet == null) {
       for (var member in members) {
         if (!member.canGet) continue;
-        if (!treatAsField) member.providePropertySyntax();
+        if (!treatAsField) member.provideGetter();
         // TODO(jimhug): Need to make target less specific...
         var r = member._get(context, node, target);
         _returnTypeForGet = unionTypes(_returnTypeForGet, r.type);
@@ -97,7 +97,7 @@ class MemberSet {
 
       for (var member in members) {
         if (!member.canSet) continue;
-        if (!treatAsField) member.providePropertySyntax();
+        if (!treatAsField) member.provideSetter();
         // !!! Need more generic args to this call below.
         var r = member._set(context, node, target, value);
       }

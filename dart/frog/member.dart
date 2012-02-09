@@ -118,14 +118,16 @@ class Member extends Element {
   bool get isCallMethod() => name == ':call';
 
   bool get requiresPropertySyntax() => false;
-  bool _providePropertySyntax = false;
+  bool _provideGetter = false;
+  bool _provideSetter = false;
 
   bool get isNative() => false;
   String get constructorName() {
     world.internalError('cannot be a constructor', span);
   }
 
-  void providePropertySyntax() {}
+  void provideGetter() {}
+  void provideSetter() {}
 
   Member get initDelegate() {
     world.internalError('cannot have initializers', span);
@@ -392,10 +394,17 @@ class FieldMember extends Member {
     }
   }
 
-  void providePropertySyntax() {
-    _providePropertySyntax = true;
+  void provideGetter() {
+    _provideGetter = true;
     if (genericMember !== null) {
-      genericMember.providePropertySyntax();
+      genericMember.provideGetter();
+    }
+  }
+
+  void provideSetter() {
+    _provideSetter = true;
+    if (genericMember !== null) {
+      genericMember.provideSetter();
     }
   }
 
@@ -808,7 +817,8 @@ class MethodMember extends Member {
     return -1;
   }
 
-  void providePropertySyntax() { _providePropertySyntax = true; }
+  void provideGetter() { _provideGetter = true; }
+  void provideSetter() { _provideSetter = true; }
 
   Value _set(CallingContext context, Node node, Value target, Value value) {
     world.error('cannot set method', node.span);
@@ -830,7 +840,7 @@ class MethodMember extends Member {
       var type = declaringType.isTop ? '' : '${declaringType.jsname}.';
       return new Value(functionType, '$type$jsname', node.span);
     }
-    _providePropertySyntax = true;
+    _provideGetter = true;
     return new Value(functionType, '${target.code}.get\$$jsname()', node.span);
   }
 
