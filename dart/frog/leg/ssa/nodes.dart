@@ -1635,6 +1635,7 @@ class HGoto extends HControlFlow {
 }
 
 class HTry extends HControlFlow {
+  HParameterValue exception;
   HBasicBlock finallyBlock;
   HTry() : super(const <HInstruction>[]);
   toString() => 'try';

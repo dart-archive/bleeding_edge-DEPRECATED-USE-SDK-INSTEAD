@@ -359,20 +359,18 @@ class SsaCodeGenerator implements HVisitor {
     indent--;
 
     if (node.finallyBlock != successors[1]) {
+      // Printing the catch part.
       addIndentation();
-      buffer.add('} catch (e) {\n');
+      String name = temporary(node.exception);
+      parameterNames[node.exception.element] = name;
+      buffer.add('} catch ($name) {\n');
       indent++;
+      visitBasicBlock(successors[1]);
+      parameterNames.remove(node.exception.element);
+      indent--;
     }
 
-    for (int i = 1; i < successors.length - 1; i++) {
-      // TODO(ngeoffray): add the type check.
-      visitBasicBlock(successors[i]);
-    }
-
-    if (node.finallyBlock == null) {
-      // TODO(ngeoffray): add the type check.
-      visitBasicBlock(successors[successors.length - 1]);
-    } else {
+    if (node.finallyBlock != null) {
       addIndentation();
       buffer.add('} finally {\n');
       indent++;
@@ -799,11 +797,11 @@ class SsaCodeGenerator implements HVisitor {
         buffer.add('true');
       }
     } else {
-      buffer.add('((');
+      buffer.add('(!!(');
       use(node.expression);
       buffer.add(').');
       buffer.add(compiler.namer.operatorIs(node.typeExpression));
-      buffer.add(' === true)');
+      buffer.add(')');
     }
   }
 }

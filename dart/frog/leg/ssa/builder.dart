@@ -870,9 +870,18 @@ class SsaBuilder implements Visitor {
   }
 
   visitIf(If node) {
-    // Add the condition to the current block.
-    bool hasElse = node.hasElsePart;
     visit(node.condition);
+    Function visitElse;
+    if (node.elsePart != null) {
+      visitElse = () {
+        visit(node.elsePart);
+      };
+    }
+    handleIf(() => visit(node.thenPart), visitElse);
+  }
+
+  void handleIf(void visitThen(), void visitElse()) {
+    bool hasElse = visitElse != null;
     HBasicBlock conditionBlock = close(new HIf(popBoolified(), hasElse));
 
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
@@ -881,7 +890,7 @@ class SsaBuilder implements Visitor {
     HBasicBlock thenBlock = addNewBlock();
     conditionBlock.addSuccessor(thenBlock);
     open(thenBlock);
-    visit(node.thenPart);
+    visitThen();
     thenBlock = current;
 
     // Reset the locals state to the state after the condition and keep the
@@ -895,7 +904,7 @@ class SsaBuilder implements Visitor {
       elseBlock = addNewBlock();
       conditionBlock.addSuccessor(elseBlock);
       open(elseBlock);
-      visit(node.elsePart);
+      visitElse();
       elseBlock = current;
     }
 
@@ -1805,15 +1814,55 @@ class SsaBuilder implements Visitor {
     List<HBasicBlock> blocks = <HBasicBlock>[];
     if (!isAborted()) blocks.add(close(new HGoto()));
 
-    int catchBlocksCount = 0;
-    for (CatchBlock catchBlock in node.catchBlocks.nodes) {
-      if (++catchBlocksCount != 1) {
-        compiler.unimplemented('SsaBuilder multiple catch blocks', node: node);
-      }
+    if (!node.catchBlocks.isEmpty()) {
       HBasicBlock block = graph.addNewBlock();
       enterBlock.addSuccessor(block);
       open(block);
-      visit(catchBlock);
+      // Note that the name of this element is irrelevant.
+      Element element = new Element(
+          const SourceString('exception'), ElementKind.PARAMETER, work.element);
+      HParameterValue exception = new HParameterValue(element);
+      add(exception);
+      tryInstruction.exception = exception;
+      Link<Node> link = node.catchBlocks.nodes;
+
+      void pushCondition(CatchBlock catchBlock) {
+        VariableDefinitions declaration = catchBlock.formals.nodes.head;
+        HInstruction condition = null;
+        if (declaration.type == null) {
+          condition = new HLiteral(true, HType.BOOLEAN);
+        } else {
+          Element element = elements[declaration.type];
+          if (element == null) {
+            compiler.cancel('Catch with unresolved type', node: catchBlock);
+          }
+          condition = new HIs(element, exception);
+        }
+        push(condition);
+      }
+
+      void visitThen() {
+        CatchBlock catchBlock = link.head;
+        link = link.tail;
+        VariableDefinitions declaration = catchBlock.formals.nodes.head;
+        localsHandler.updateLocal(elements[declaration.definitions.nodes.head],
+                                  exception);
+        visit(catchBlock);
+      }
+
+      void visitElse() {
+        if (link.isEmpty()) {
+          close(new HThrow(exception));
+        } else {
+          CatchBlock newBlock = link.head;
+          pushCondition(newBlock);
+          handleIf(visitThen, visitElse);
+        }
+      }
+
+      CatchBlock firstBlock = link.head;
+      pushCondition(firstBlock);
+      handleIf(visitThen, visitElse);
       if (!isAborted()) blocks.add(close(new HGoto()));
     }
 
@@ -1844,11 +1893,6 @@ class SsaBuilder implements Visitor {
   }
 
   visitCatchBlock(CatchBlock node) {
-    NodeList formals = node.formals;
-    VariableDefinitions exception = formals.nodes.head;
-    if (exception.type != null) {
-      compiler.unimplemented('SsaBuilder catch with type', node: node);
-    }
     visit(node.block);
   }
 
