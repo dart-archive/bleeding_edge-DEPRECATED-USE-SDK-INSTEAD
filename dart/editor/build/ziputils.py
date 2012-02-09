@@ -52,9 +52,6 @@ class ZipUtil(object):
       zip_name = zip_name.replace('\\\\', '/')
       zip_name = zip_name.replace('\\', '/')
       localzip.write(new_file, zip_name)
-      zip_info = localzip.getinfo(zip_name)
-      print 'file {0} added to zip {1} '.format(zip_info.filename,
-                                                self._zipfile_name)
     finally:
       #only close the file if it was opened in this method
       if localzip is not None and zip_in is None:
@@ -72,6 +69,8 @@ class ZipUtil(object):
     abs_dir = os.path.abspath(base_directory)
 
     try:
+      count = 0
+      print 'adding {0} to {1}'.format(base_directory, self._zipfile_name)
       localzip = zipfile.ZipFile(self._zipfile_name, mode=mode_in)
       for root, dirs, files in os.walk(abs_dir):
         for f in files:
@@ -79,10 +78,14 @@ class ZipUtil(object):
           rel_file = full_file[len(abs_dir) + 1:]
           if write_path is not None:
             rel_file = os.path.join(write_path, rel_file)
+          count += 1
+          if not count % 100:
+            print '{0} - '.format(count),
           self.AddFile(full_file, rel_file, localzip, mode_in)
     finally:
       if localzip is not None:
         localzip.close()
+    print 'done'
 
   def UnZip(self, destination, show_output=False):
     """Unzip into the destination.

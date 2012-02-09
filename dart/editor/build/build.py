@@ -821,7 +821,7 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
     file_name_re = re.compile('dartium-([lm].+)-(.+)-(\d+)\\..+')
     tmp_dir = os.path.join(buildroot, 'tmp')
     unzip_dir = os.path.join(tmp_dir, 'unzip_dartium')
-    elements = gsu.ReadBucket('gs://dartium-archive/latest/*')
+    elements = gsu.ReadBucket('gs://dartium-archive/latest/*.zip')
     add_path = None
 
     if not elements:
@@ -830,6 +830,7 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
     dartum_version = None
     for element in elements:
       base_name = os.path.basename(element)
+      print 'processing {0} ({1})'.format(element, base_name)
       file_match = file_name_re.search(base_name)
       dartum_os = file_match.group(1)
       dartum_type = file_match.group(2)
