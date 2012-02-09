@@ -23,15 +23,21 @@ BUILDER_PATTERN = r'(frog|frogsh|frogium)-(linux|mac|windows)-(debug|release)'
 NO_COLOR_ENV = dict(os.environ)
 NO_COLOR_ENV['TERM'] = 'nocolor'
 
+# Patterns are of the form "dart_client-linux-chromium-debug"
+OLD_BUILDER = r'dart_client-(\w+)-chromium-(\w+)'
+
 def GetBuildInfo():
   """Returns a tuple (name, mode, system) where:
-    - name: 'frog', 'frogsh', or None when the builder has an incorrect name
+    - name: 'frog', 'frogsh', 'frogium' or None when the builder has an
+      incorrect name
     - mode: 'debug' or 'release'
     - system: 'linux', 'mac', or 'windows'
+    - browser: 'ie', 'ff', 'safari', 'chrome', 'chrome_drt'
   """
   name = None
   mode = None
   system = None
+  browser = None
   builder_name = os.environ.get(BUILDER_NAME)
   if builder_name:
     pattern = re.match(BUILDER_PATTERN, builder_name)
@@ -39,7 +45,29 @@ def GetBuildInfo():
       name = pattern.group(1)
       system = pattern.group(2)
       mode = pattern.group(3)
-  return (name, mode, system)
+
+      # TODO(jmesserly): move this logic into the builder names
+      if name == 'frogium':
+        # Note: even though the browsers can run on more than one OS, we
+        # found identical browser behavior across OS, so we're not running
+        # everywhere for faster turnaround time. We're going to split different
+        # browser+OS combinations into different bots.
+        browsers = { 'win': 'ie', 'mac': 'safari', 'linux': 'ff' }
+        browser = browsers[system]
+    else:
+      # TODO(jmesserly): remove this once builder is renamed
+      pattern = re.match(OLD_BUILDER, builder_name)
+      if pattern:
+        name = 'frogium'
+        system = pattern.group(1)
+        mode = pattern.group(2)
+        browser = 'chrome_drt'
+
+  # TODO(jmesserly): rename the frogium bots so we don't need this
+  if name == 'frogium':
+    mode = 'release'
+
+  return (name, mode, system, browser)
 
 
 def TestStep(name, mode, system, component, targets, flags):
@@ -86,12 +114,13 @@ def BuildFrog(arch, mode, system):
       env=NO_COLOR_ENV)
 
 
-def TestFrog(arch, mode, system, flags):
+def TestFrog(arch, mode, system, browser, flags):
   """ test frog.
    Args:
      - arch: either 'leg', 'frog', 'frogsh' (frog self-hosted), or 'frogium'
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'windows'
+     - browser: one of the browsers, see GetBuildInfo
      - flags: extra flags to pass to test.dart
   """
 
@@ -113,26 +142,12 @@ def TestFrog(arch, mode, system, flags):
 
   else:
     tests = ['client', 'language', 'corelib', 'isolate', 'frog', 'peg', 'css']
-    # TODO(efortuna): Eventually we want DumpRenderTree to run on all systems,
-    # but for test turnaround time, currently it is only running on linux.
-    if system == 'linux':
-      # DumpRenderTree tests (DRT is currently not available on Windows):
-      TestStep("browser", mode, system, 'frogium', tests, flags)
 
-    # Webdriver tests. Even though the browsers can run on more than one OS, we
-    # found identical browser behavior across OS, so we're not running
-    # everywhere for faster turnaround time.
-    if system == 'linux':
-      browsers = ['ff']
-    elif system == 'mac':
-      browsers = ['safari']
+    if browser == 'chrome_drt':
+      # TODO(jmesserly): make DumpRenderTree more like other browser tests, so
+      # we don't have this translation step. See dartbug.com/1158
+      TestStep('browser', mode, system, 'frogium', tests, flags)
     else:
-      # TODO(efortuna): Use both ff and ie once we have additional buildbots.
-      # We're using just IE for speed on our testing right now.
-      browsers = ['ie'] #['ff', 'ie']
-      
-
-    for browser in browsers:
       TestStep(browser, mode, system, 'webdriver', tests,
           flags + ['--browser=' + browser])
 
@@ -145,25 +160,24 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
-  arch, mode, system = GetBuildInfo()
-  print "arch: %s, mode: %s, system: %s" % (arch, mode, system)
+  arch, mode, system, browser = GetBuildInfo()
+  print "arch: %s, mode: %s, system: %s, browser %s" % (arch, mode, system,
+      browser)
   if arch is None:
     return 1
 
-  if arch == 'frogium':
-    mode = 'release'
   status = BuildFrog(arch, mode, system)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
     return status
 
   if arch != 'frogium':
-    status = TestFrog(arch, mode, system, [])
+    status = TestFrog(arch, mode, system, browser, [])
     if status != 0:
       print '@@@STEP_FAILURE@@@'
       return status
 
-  status = TestFrog(arch, mode, system, ['--checked'])
+  status = TestFrog(arch, mode, system, browser, ['--checked'])
   if status != 0:
     print '@@@STEP_FAILURE@@@'
 
