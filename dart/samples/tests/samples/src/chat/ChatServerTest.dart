@@ -10,7 +10,7 @@
 
 #library("chat_server_test.dart");
 #import("../../../../chat/http.dart");
-#import("../../../../../client/json/dart_json.dart");
+#import("../../../../../lib/json/json.dart");
 #import("../../../../chat/chat_server_lib.dart");
 
 

@@ -6,7 +6,7 @@
 
 #import('../../../client/html/html.dart');
 #import('../../../client/testing/unittest/unittest.dart');
-#import('../../../client/json/json.dart');
+#import('../../../lib/json/json.dart');
 #import('../bcap/bcap.dart');
 
 void main() {

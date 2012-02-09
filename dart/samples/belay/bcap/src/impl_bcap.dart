@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('impl_bcap');
-#import('../../../../client/json/json.dart');
+#import('../../../../lib/json/json.dart');
 #import('../bcap.dart');
 
 // This is the implementation of the base Bcap protocol.

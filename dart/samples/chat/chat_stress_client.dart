@@ -4,7 +4,7 @@
 
 #library("chat_stress_client.dart");
 #import("http.dart");
-#import("../../client/json/dart_json.dart");
+#import("../../lib/json/json.dart");
 
 
 class ChatStressClient {

@@ -5,7 +5,7 @@
 #library("chat_server");
 #import("dart:io");
 #import("http.dart");
-#import("../../client/json/dart_json.dart");
+#import("../../lib/json/json.dart");
 
 typedef void RequestHandler(HTTPRequest request, HTTPResponse response);
 

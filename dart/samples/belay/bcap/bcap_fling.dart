@@ -6,7 +6,7 @@
 
 // Bcap implementation for use on Fling web server based applications.
 
-#import('../../../client/json/json.dart');
+#import('../../../lib/json/json.dart');
 #import('../../../client/fling/fling.dart');
 #import('bcap.dart');
 

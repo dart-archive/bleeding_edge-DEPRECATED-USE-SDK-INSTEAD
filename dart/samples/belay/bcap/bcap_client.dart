@@ -12,7 +12,7 @@
 #import('../../../client/base/base.dart');
 #import('../../../client/html/html.dart');
 #import('../../../client/util/utilslib.dart');
-#import('../../../client/json/json.dart');
+#import('../../../lib/json/json.dart');
 #import('bcap.dart');
 #import('src/impl_bcap.dart');
 

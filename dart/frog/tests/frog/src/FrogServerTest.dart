@@ -9,7 +9,7 @@
 #import('../../../server/frog_server.dart', prefix: 'frogserver');
 
 // TODO(jmesserly): more sane way to import JSON on the VM
-#import('../../../../client/json/dart_json.dart');
+#import('../../../../lib/json/json.dart');
 
 main() {
   // TODO(jmesserly): This test must be run from 'frog' working directory.

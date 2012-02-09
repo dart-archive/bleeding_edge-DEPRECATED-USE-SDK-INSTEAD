@@ -5,8 +5,7 @@
 #library('frog_server');
 
 #import('dart:io');
-// TODO(devoncarew): importing this file is temporary until dart:json is resolved
-#import('dart_json.dart');
+#import('../../lib/json/json.dart');
 #import('../lang.dart');
 #import('../file_system_vm.dart');
 #source('utf8.dart');
