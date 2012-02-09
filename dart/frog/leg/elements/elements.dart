@@ -644,6 +644,12 @@ class Elements {
            && (element.kind === ElementKind.FUNCTION);
   }
 
+  static bool isInstanceSend(Send send, TreeElements elements) {
+    Element element = elements[send];
+    if (element === null) return !isClosureSend(send, elements);
+    return isInstanceMethod(element) || isInstanceField(element);
+  }
+
   static bool isClosureSend(Send send, TreeElements elements) {
     if (send.isPropertyAccess) return false;
     if (send.receiver !== null) return false;

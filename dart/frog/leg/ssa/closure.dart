@@ -27,6 +27,9 @@ class ClosureData {
   final ClassElement globalizedClosureElement;
   // The callElement will be null for methods that are not local closures.
   final FunctionElement callElement;
+  // The [thisElement] makes handling 'this' easier by treating it like any
+  // other argument. It is only set for instance-members.
+  final Element thisElement;
 
   // Maps free locals, arguments and function elements to their captured
   // copies.
@@ -46,7 +49,7 @@ class ClosureData {
 
   final Set<Element> usedVariablesInTry;
 
-  ClosureData(this.globalizedClosureElement, this.callElement)
+  ClosureData(this.globalizedClosureElement, this.callElement, this.thisElement)
       : this.freeVariableMapping = new Map<Element, Element>(),
         this.capturedFieldMapping = new Map<Element, Element>(),
         this.capturingScopes = new Map<Node, ClosureScope>(),
@@ -187,10 +190,8 @@ class ClosureTranslator extends AbstractVisitor {
   }
 
   visitIdentifier(Identifier node) {
-    // TODO(floitsch): handle 'this'.
-    if (node.isThis() && insideClosure) {
-      compiler.unimplemented("ClosureAnalyzer.visitIdentifier this-capture",
-                             node: node);
+    if (node.isThis()) {
+      useLocal(closureData.thisElement);
     }
     node.visitChildren(this);
   }
@@ -199,10 +200,9 @@ class ClosureTranslator extends AbstractVisitor {
     Element element = elements[node];
     if (Elements.isLocal(element)) {
       useLocal(element);
-    } else if (element === null && node.receiver === null) {
-      if (insideClosure) {
-        compiler.unimplemented("ClosureTranslator.visitSend this-capture");
-      }
+    } else if (node.receiver === null &&
+               Elements.isInstanceSend(node, elements)) {
+      useLocal(closureData.thisElement);
     }
     node.visitChildren(this);
   }
@@ -263,10 +263,14 @@ class ClosureTranslator extends AbstractVisitor {
     ClassElement objectClass =
         compiler.coreLibrary.find(const SourceString('Object'));
     globalizedElement.supertype = new SimpleType(Types.OBJECT, objectClass);
-    return new ClosureData(globalizedElement, callElement);
+    // The nested function's 'this' is the same as the one for the outer
+    // function. It could be [null] if we are inside a static method.
+    Element thisElement = closureData.thisElement;
+    return new ClosureData(globalizedElement, callElement, thisElement);
   }
 
   visitFunctionExpression(FunctionExpression node) {
+    FunctionElement element = elements[node];
     bool isClosure = (closureData !== null);
 
     if (isClosure) closures.add(node);
@@ -279,13 +283,37 @@ class ClosureTranslator extends AbstractVisitor {
 
     insideClosure = isClosure;
     currentFunctionElement = elements[node];
-    closureData = insideClosure ?
-                  globalizeClosure(node) :
-                  new ClosureData(null, null);
+    if (insideClosure) {
+      closureData = globalizeClosure(node);
+    } else {
+      Element thisElement = null;
+      // TODO(floitsch): we should not need to look for generative constructors.
+      // At the moment we store only one ClosureData for both the factory and
+      // the body.
+      if (element.isInstanceMember() ||
+          element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+        // TODO(floitsch): currently all variables are considered to be
+        // declared in the GENERATIVE_CONSTRUCTOR. Including the 'this'.
+        Element thisEnclosingElement = element;
+        if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
+          ConstructorBodyElement body = element;
+          thisEnclosingElement = body.constructor;
+        }
+        thisElement = new Element(const SourceString("this"),
+                                  ElementKind.PARAMETER,
+                                  thisEnclosingElement);
+      }
+      closureData = new ClosureData(null, null, thisElement);
+    }
     scopeVariables = new List<Element>();
 
     // TODO(floitsch): a named function is visible from inside itself. Add
     // the element to the block.
+
+    // We have to declare the implicit 'this' parameter.
+    if (!insideClosure && closureData.thisElement !== null) {
+      declareLocal(closureData.thisElement);
+    }
 
     node.visitChildren(this);
 

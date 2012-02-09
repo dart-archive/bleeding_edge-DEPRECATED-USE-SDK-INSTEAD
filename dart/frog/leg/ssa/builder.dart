@@ -142,7 +142,6 @@ class LocalsHandler {
   // The values of locals that can be directly accessed (without redirections
   // to boxes or closure-fields).
   Map<Element, HInstruction> directLocals;
-  HInstruction thisDefinition;
   Map<Element, Element> redirectionMapping;
   SsaBuilder builder;
   ClosureData closureData;
@@ -160,7 +159,6 @@ class LocalsHandler {
       : directLocals = new Map<Element, HInstruction>.from(other.directLocals),
         redirectionMapping = other.redirectionMapping,
         builder = other.builder,
-        thisDefinition = other.thisDefinition,
         closureData = other.closureData;
 
   void startFunction(FunctionElement function,
@@ -170,9 +168,11 @@ class LocalsHandler {
         new ClosureTranslator(builder.compiler, builder.elements);
     closureData = translator.translate(node);
 
-    if (function.isInstanceMember()) {
-      thisDefinition = new HThis();
-      builder.add(thisDefinition);
+    if (closureData.thisElement !== null &&
+        isAccessedDirectly(closureData.thisElement)) {
+      HInstruction thisInstruction = new HThis();
+      updateLocal(closureData.thisElement, thisInstruction);
+      builder.add(thisInstruction);
     }
 
     FunctionParameters params = function.computeParameters(builder.compiler);
@@ -282,7 +282,7 @@ class LocalsHandler {
       return directLocals[element];
     } else if (isStoredInClosureField(element)) {
       Element redirect = redirectionMapping[element];
-      // We must not use the [LocalsHandler.thisDefinition] since that could
+      // We must not use the [LocalsHandler.readThis()] since that could
       // point to a captured this which would be stored in a closure-field
       // itself.
       HInstruction receiver = new HThis();
@@ -310,22 +310,20 @@ class LocalsHandler {
     }
   }
 
+  HInstruction readThis() {
+    return readLocal(closureData.thisElement);
+  }
+
   /**
    * Sets the [element] to [value]. If the element is boxed or stored in a
    * closure then the method generates code to set the value.
    */
   void updateLocal(Element element, HInstruction value) {
-    // TODO(floitsch): replace the following if with an assert.
-    if (element is !VariableElement) {
-      builder.compiler.internalError("expected a variable",
-                                     node: element.parseNode(builder.compiler));
-    }
-
     if (isAccessedDirectly(element)) {
       directLocals[element] = value;
     } else if (isStoredInClosureField(element)) {
       Element redirect = redirectionMapping[element];
-      // We must not use the [LocalsHandler.thisDefinition] since that could
+      // We must not use the [LocalsHandler.readThis()] since that could
       // point to a captured this which would be stored in a closure-field
       // itself.
       HInstruction receiver = new HThis();
@@ -864,10 +862,7 @@ class SsaBuilder implements Visitor {
 
   visitIdentifier(Identifier node) {
     if (node.isThis()) {
-      if (localsHandler.thisDefinition === null) {
-        compiler.unimplemented("Ssa.visitIdentifier.", node: node);
-      }
-      stack.add(localsHandler.thisDefinition);
+      stack.add(localsHandler.readThis());
     } else {
       compiler.internalError("SsaBuilder.visitIdentifier on non-this",
                              node: node);
@@ -1091,10 +1086,7 @@ class SsaBuilder implements Visitor {
     } else if (element === null || Elements.isInstanceField(element)) {
       HInstruction receiver;
       if (send.receiver == null) {
-        receiver = localsHandler.thisDefinition;
-        if (receiver === null) {
-          compiler.unimplemented("SsaBuilder.generateGetter.", node: send);
-        }
+        receiver = localsHandler.readThis();
       } else {
         visit(send.receiver);
         receiver = pop();
@@ -1134,10 +1126,7 @@ class SsaBuilder implements Visitor {
       SourceString dartSetterName = send.selector.asIdentifier().source;
       HInstruction receiver;
       if (send.receiver == null) {
-        receiver = localsHandler.thisDefinition;
-        if (receiver === null) {
-          compiler.unimplemented("Ssa.generateSetter.", node: send);
-        }
+        receiver = localsHandler.readThis();
       } else {
         visit(send.receiver);
         receiver = pop();
@@ -1329,11 +1318,7 @@ class SsaBuilder implements Visitor {
     }
 
     if (node.receiver === null) {
-      HThis receiver = localsHandler.thisDefinition;
-      if (receiver === null) {
-        compiler.unimplemented("Ssa.visitDynamicSend.", node: node);
-      }
-      inputs.add(receiver);
+      inputs.add(localsHandler.readThis());
     } else {
       visit(node.receiver);
       inputs.add(pop());
@@ -1417,11 +1402,7 @@ class SsaBuilder implements Visitor {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
     HStatic target = new HStatic(element);
-    HThis context = localsHandler.thisDefinition;
-    if (context === null) {
-      compiler.unimplemented("Ssa.visitSuperSend without thisDefinition.",
-                             node: node);
-    }
+    HInstruction context = localsHandler.readThis();
     add(target);
     var inputs = <HInstruction>[target, context];
     addStaticSendArgumentsToList(node, element, inputs);
