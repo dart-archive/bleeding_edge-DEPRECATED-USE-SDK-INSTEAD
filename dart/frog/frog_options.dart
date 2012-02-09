@@ -27,7 +27,6 @@ class FrogOptions {
 
 
   // Options that modify behavior significantly
-  bool enableLeg = false;
   bool legOnly = false;
   bool enableAsserts = false;
   bool enableTypeChecks = false;
@@ -83,12 +82,9 @@ class FrogOptions {
       var arg = args[i];
 
       switch (arg) {
+        case '--leg':
         case '--enable_leg':
-          enableLeg = true;
-          break;
-
         case '--leg_only':
-          enableLeg = true;
           legOnly = true;
           break;
 

@@ -4,13 +4,13 @@
 
 prefix leg_only
 
+
+[ $component == leg ]
 ClassTest: Fail
-
-
-[ $component == leg || $component == frog || $component == frogsh ]
 StatementsTest: Fail
 TypedLocalsTest: Fail
 ForeignTest: Fail # JS methods are only visible within core library.
+
 
 [ $mode == debug ]
 BailoutTest: Crash # VM issue 1570
@@ -18,3 +18,7 @@ CompoundOperatorIndexTest: Crash # VM issue 1570
 ForInTest: Crash # VM issue 1570
 OperatorTest: Skip
 StringInterpolationTest: Skip
+
+
+[ $component == frog || $component == frogsh ]
+*: Skip

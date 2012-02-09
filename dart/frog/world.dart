@@ -28,7 +28,7 @@ typedef void MessageHandler(String prefix, String message, SourceSpan span);
 void initializeWorld(FileSystem files) {
   assert(world == null);
   world = new World(files);
-  world.init();
+  if (!options.legOnly) world.init();
 }
 
 /**
@@ -66,6 +66,7 @@ class CounterLog {
   int msetN = 0;
 
   info() {
+    if (options.legOnly) return;
     world.info('Dynamically typed method calls: $dynamicMethodCalls');
     world.info('Generated type assertions: $typeAsserts');
     world.info('Members on Object.prototype: $objectProtoMembers');
@@ -379,7 +380,11 @@ class World {
     }
 
     try {
-      info('compiling ${options.dartScript} with corelib $corelib');
+      if (options.legOnly) {
+        info('[leg] compiling ${options.dartScript}');
+      } else {
+        info('compiling ${options.dartScript} with corelib $corelib');
+      }
       if (!runLeg()) runCompilationPhases();
     } catch (var exc) {
       if (hasErrors && !options.throwOnErrors) {
@@ -395,11 +400,11 @@ class World {
 
   /** Returns true if Leg handled the compilation job. */
   bool runLeg() {
-    if (!options.enableLeg) return false;
+    if (!options.legOnly) return false;
     if (legCompile == null) {
       fatal('requested leg enabled, but no leg compiler available');
     }
-    bool res = withTiming('try leg compile', () => legCompile(this));
+    bool res = withTiming('[leg] compile', () => legCompile(this));
     if (!res && options.legOnly) {
       fatal("Leg could not compile ${options.dartScript}");
       return true; // In --leg_only, always "handle" the compilation.
@@ -422,7 +427,7 @@ class World {
   String getGeneratedCode() {
     // TODO(jimhug): Assert compilation is all done here.
     if (legCode != null) {
-      assert(options.enableLeg);
+      assert(options.legOnly);
       return legCode;
     } else {
       return frogCode;
