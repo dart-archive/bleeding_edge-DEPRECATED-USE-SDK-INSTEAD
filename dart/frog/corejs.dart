@@ -25,6 +25,7 @@ class CoreJs {
   // after everything else.
   bool _generatedTypeNameOf = false;
   bool _generatedDynamicProto = false;
+  bool _generatedDynamicSetMetadata = false;
   bool _generatedInherits = false;
   bool _generatedDefProp = false;
 
@@ -98,6 +99,12 @@ class CoreJs {
     ensureTypeNameOf();
     ensureDefProp();
     writer.writeln(_DYNAMIC_FUNCTION);
+  }
+
+  void ensureDynamicSetMetadata() {
+    if (_generatedDynamicSetMetadata) return;
+    _generatedDynamicSetMetadata = true;
+    writer.writeln(_DYNAMIC_SET_METADATA_FUNCTION);
   }
 
   void ensureTypeNameOf() {
@@ -309,7 +316,12 @@ function $dynamic(name) {
   return methods;
 }
 if (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];
+""";
 
+/**
+ * Snippet for `$dynamicSetMetadata`.
+ */
+final String _DYNAMIC_SET_METADATA_FUNCTION = @"""
 function $dynamicSetMetadata(inputTable) {
   // TODO: Deal with light isolates.
   var table = [];

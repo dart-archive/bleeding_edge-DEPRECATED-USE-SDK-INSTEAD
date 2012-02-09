@@ -672,6 +672,7 @@ class WorldGenerator {
     // Write out a thunk that builds the metadata.
 
     if (!tagDefns.isEmpty()) {
+      corejs.ensureDynamicSetMetadata();
       writer.enterBlock('(function(){');
 
       for (final varName in varNames) {
