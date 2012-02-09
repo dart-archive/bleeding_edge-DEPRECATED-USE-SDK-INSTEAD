@@ -908,24 +908,6 @@ function HashMapImplementation_Dynamic$DoubleLinkedQueueEntry_KeyValuePair() {
   this._values = new Array((8));
 }
 HashMapImplementation_Dynamic$DoubleLinkedQueueEntry_KeyValuePair.prototype.remove$1 = HashMapImplementation_Dynamic$DoubleLinkedQueueEntry_KeyValuePair.prototype.remove;
-// ********** Code for HashMapImplementation_Library$Library **************
-$inherits(HashMapImplementation_Library$Library, HashMapImplementation);
-function HashMapImplementation_Library$Library() {
-  this._numberOfEntries = (0);
-  this._numberOfDeleted = (0);
-  this._loadLimit = HashMapImplementation._computeLoadLimit((8));
-  this._keys = new Array((8));
-  this._values = new Array((8));
-}
-// ********** Code for HashMapImplementation_Member$Member **************
-$inherits(HashMapImplementation_Member$Member, HashMapImplementation);
-function HashMapImplementation_Member$Member() {
-  this._numberOfEntries = (0);
-  this._numberOfDeleted = (0);
-  this._loadLimit = HashMapImplementation._computeLoadLimit((8));
-  this._keys = new Array((8));
-  this._values = new Array((8));
-}
 // ********** Code for HashMapImplementation_dart_core_String$dart_core_String **************
 $inherits(HashMapImplementation_dart_core_String$dart_core_String, HashMapImplementation);
 function HashMapImplementation_dart_core_String$dart_core_String() {
@@ -946,6 +928,24 @@ function HashMapImplementation_dart_core_String$VariableValue() {
   this._values = new Array((8));
 }
 HashMapImplementation_dart_core_String$VariableValue.prototype.remove$1 = HashMapImplementation_dart_core_String$VariableValue.prototype.remove;
+// ********** Code for HashMapImplementation_Library$Library **************
+$inherits(HashMapImplementation_Library$Library, HashMapImplementation);
+function HashMapImplementation_Library$Library() {
+  this._numberOfEntries = (0);
+  this._numberOfDeleted = (0);
+  this._loadLimit = HashMapImplementation._computeLoadLimit((8));
+  this._keys = new Array((8));
+  this._values = new Array((8));
+}
+// ********** Code for HashMapImplementation_Member$Member **************
+$inherits(HashMapImplementation_Member$Member, HashMapImplementation);
+function HashMapImplementation_Member$Member() {
+  this._numberOfEntries = (0);
+  this._numberOfDeleted = (0);
+  this._loadLimit = HashMapImplementation._computeLoadLimit((8));
+  this._keys = new Array((8));
+  this._values = new Array((8));
+}
 // ********** Code for HashMapImplementation_Type$Type **************
 $inherits(HashMapImplementation_Type$Type, HashMapImplementation);
 function HashMapImplementation_Type$Type() {
@@ -1026,6 +1026,12 @@ HashSetImplementation.prototype.iterator = function() {
 }
 HashSetImplementation.prototype.contains$1 = HashSetImplementation.prototype.contains;
 HashSetImplementation.prototype.remove$1 = HashSetImplementation.prototype.remove;
+// ********** Code for HashSetImplementation_dart_core_String **************
+$inherits(HashSetImplementation_dart_core_String, HashSetImplementation);
+function HashSetImplementation_dart_core_String() {
+  this._backingMap = new HashMapImplementation_dart_core_String$dart_core_String();
+}
+HashSetImplementation_dart_core_String.prototype.contains$1 = HashSetImplementation_dart_core_String.prototype.contains;
 // ********** Code for HashSetImplementation_Library **************
 $inherits(HashSetImplementation_Library, HashSetImplementation);
 function HashSetImplementation_Library() {
@@ -1037,12 +1043,6 @@ $inherits(HashSetImplementation_Member, HashSetImplementation);
 function HashSetImplementation_Member() {
   this._backingMap = new HashMapImplementation_Member$Member();
 }
-// ********** Code for HashSetImplementation_dart_core_String **************
-$inherits(HashSetImplementation_dart_core_String, HashSetImplementation);
-function HashSetImplementation_dart_core_String() {
-  this._backingMap = new HashMapImplementation_dart_core_String$dart_core_String();
-}
-HashSetImplementation_dart_core_String.prototype.contains$1 = HashSetImplementation_dart_core_String.prototype.contains;
 // ********** Code for HashSetImplementation_Type **************
 $inherits(HashSetImplementation_Type, HashSetImplementation);
 function HashSetImplementation_Type() {
@@ -1695,22 +1695,6 @@ function $dynamic(name) {
   return methods;
 }
 if (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];
-
-function $dynamicSetMetadata(inputTable) {
-  // TODO: Deal with light isolates.
-  var table = [];
-  for (var i = 0; i < inputTable.length; i++) {
-    var tag = inputTable[i][0];
-    var tags = inputTable[i][1];
-    var map = {};
-    var tagNames = tags.split('|');
-    for (var j = 0; j < tagNames.length; j++) {
-      map[tagNames[j]] = true;
-    }
-    table.push({tag: tag, tags: tags, map: map});
-  }
-  $dynamicMetadata = table;
-}
 $dynamic("end$0").WriteStream = function() {
   return this.end(null, "utf8");
 };
@@ -2782,6 +2766,7 @@ function CoreJs() {
   this._usedOperators = new HashMapImplementation();
   this._generatedInherits = false;
   this.useNotNullBool = false;
+  this._generatedDynamicSetMetadata = false;
   this.writer = new CodeWriter();
   this.useWrap0 = false;
   this.useThrow = false;
@@ -2850,7 +2835,12 @@ CoreJs.prototype.ensureDynamicProto = function() {
   this._generatedDynamicProto = true;
   this.ensureTypeNameOf();
   this.ensureDefProp();
-  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var obj = this;\n    var tag = obj.$typeNameOf();\n    var method = methods[tag];\n    if (!method) {\n      var table = $dynamicMetadata;\n      for (var i = 0; i < table.length; i++) {\n        var entry = table[i];\n        if (entry.map.hasOwnProperty(tag)) {\n          method = methods[entry.tag];\n          if (method) break;\n        }\n      }\n    }\n    method = method || methods.Object;\n    var proto = Object.getPrototypeOf(obj);\n    if (!proto.hasOwnProperty(name)) {\n      $defProp(proto, name, method);\n    }\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  $defProp(Object.prototype, name, $dynamicBind);\n  return methods;\n}\nif (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];\n\nfunction $dynamicSetMetadata(inputTable) {\n  // TODO: Deal with light isolates.\n  var table = [];\n  for (var i = 0; i < inputTable.length; i++) {\n    var tag = inputTable[i][0];\n    var tags = inputTable[i][1];\n    var map = {};\n    var tagNames = tags.split('|');\n    for (var j = 0; j < tagNames.length; j++) {\n      map[tagNames[j]] = true;\n    }\n    table.push({tag: tag, tags: tags, map: map});\n  }\n  $dynamicMetadata = table;\n}\n");
+  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var obj = this;\n    var tag = obj.$typeNameOf();\n    var method = methods[tag];\n    if (!method) {\n      var table = $dynamicMetadata;\n      for (var i = 0; i < table.length; i++) {\n        var entry = table[i];\n        if (entry.map.hasOwnProperty(tag)) {\n          method = methods[entry.tag];\n          if (method) break;\n        }\n      }\n    }\n    method = method || methods.Object;\n    var proto = Object.getPrototypeOf(obj);\n    if (!proto.hasOwnProperty(name)) {\n      $defProp(proto, name, method);\n    }\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  $defProp(Object.prototype, name, $dynamicBind);\n  return methods;\n}\nif (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];\n");
+}
+CoreJs.prototype.ensureDynamicSetMetadata = function() {
+  if (this._generatedDynamicSetMetadata) return;
+  this._generatedDynamicSetMetadata = true;
+  this.writer.writeln("function $dynamicSetMetadata(inputTable) {\n  // TODO: Deal with light isolates.\n  var table = [];\n  for (var i = 0; i < inputTable.length; i++) {\n    var tag = inputTable[i][0];\n    var tags = inputTable[i][1];\n    var map = {};\n    var tagNames = tags.split('|');\n    for (var j = 0; j < tagNames.length; j++) {\n      map[tagNames[j]] = true;\n    }\n    table.push({tag: tag, tags: tags, map: map});\n  }\n  $dynamicMetadata = table;\n}\n");
 }
 CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
@@ -3581,6 +3571,7 @@ WorldGenerator.prototype.writeDynamicDispatchMetadata = function() {
     tagDefns.$setindex(type.get$nativeName(), makeExpression(type));
   }
   if (!tagDefns.isEmpty()) {
+    this.corejs.ensureDynamicSetMetadata();
     this.writer.enterBlock("(function(){");
     for (var $$i = varNames.iterator(); $$i.hasNext(); ) {
       var varName = $$i.next();
@@ -3617,8 +3608,13 @@ WorldGenerator.prototype._compareMembers = function(x, y) {
     var spans = x.get$span().compareTo(y.get$span());
     if (spans != (0)) return spans;
   }
-  if (x.get$span() == null) return (1);
-  if (y.get$span() == null) return (-1);
+  else {
+    if (x.get$span() != null) return (-1);
+    if (y.get$span() != null) return (1);
+  }
+  if ($eq(x.get$name(), y.get$name())) return (0);
+  if ($eq(x.get$name())) return (-1);
+  if ($eq(y.get$name())) return (1);
   return x.get$name().compareTo(y.get$name());
 }
 WorldGenerator.prototype.get$_compareMembers = function() {
@@ -12150,19 +12146,19 @@ DefinedType.prototype.getOrMakeConcreteType = function(typeArgs) {
     if (!typeArg.get$isVar()) allVar = false;
     var paramName = this.typeParameters.$index(i).name;
     typeMap.$setindex(paramName, typeArg);
-    names.add(typeArg.get$name());
+    names.add(typeArg.get$fullname());
     jsnames.add(typeArg.get$jsname());
   }
   if (allVar) return this;
   var jsname = ("" + this.get$jsname() + "_" + Strings.join(jsnames, "$"));
   var simpleName = ("" + this.name + "<" + Strings.join(names, ", ") + ">");
-  var ret = this._concreteTypes.$index(jsname);
+  var ret = this._concreteTypes.$index(simpleName);
   if ($eq(ret)) {
     ret = new DefinedType(simpleName, this.library, this.definition, this.isClass);
     ret.set$baseGenericType(this);
     ret.set$typeArgsInOrder(typeArgs);
     ret.set$_jsname(jsname);
-    this._concreteTypes.$setindex(jsname, ret);
+    this._concreteTypes.$setindex(simpleName, ret);
     ret.resolve();
   }
   return ret;
@@ -13778,6 +13774,7 @@ function CounterLog() {
   this.invokeCalls = (0);
 }
 CounterLog.prototype.info = function() {
+  if ($globals.options.legOnly) return;
   $globals.world.info(("Dynamically typed method calls: " + this.dynamicMethodCalls));
   $globals.world.info(("Generated type assertions: " + this.typeAsserts));
   $globals.world.info(("Members on Object.prototype: " + this.objectProtoMembers));
@@ -13879,12 +13876,12 @@ World.prototype._addJavascriptTopName = function(named, name) {
     this._renameJavascriptTopName(existing);
   }
   else {
-    var msg = $add($add(("conflicting JS name \"" + name + "\" of same "), ("priority " + existingPri + ": (already defined in) ")), ("" + existing.get$span().get$locationText() + " with priority " + namedPri + ")"));
     if (named.get$isNative()) {
+      var msg = $add($add(("conflicting JS name \"" + name + "\" of same "), ("priority " + existingPri + ": (already defined in) ")), ("" + existing.get$span().get$locationText() + " with priority " + namedPri + ")"));
       $globals.world.info(msg, named.get$span(), existing.get$span());
     }
     else {
-      $globals.world.internalError(msg, named.get$span(), existing.get$span());
+      this._renameJavascriptTopName(existing);
     }
   }
 }
@@ -13933,7 +13930,12 @@ World.prototype.compile = function() {
     return false;
   }
   try {
-    this.info(("compiling " + $globals.options.dartScript + " with corelib " + this.corelib));
+    if ($globals.options.legOnly) {
+      this.info(("[leg] compiling " + $globals.options.dartScript));
+    }
+    else {
+      this.info(("compiling " + $globals.options.dartScript + " with corelib " + this.corelib));
+    }
     if (!this.runLeg()) this.runCompilationPhases();
   } catch (exc) {
     exc = _toDartException(exc);
@@ -13948,11 +13950,11 @@ World.prototype.compile = function() {
 }
 World.prototype.runLeg = function() {
   var $this = this; // closure support
-  if (!$globals.options.enableLeg) return false;
+  if (!$globals.options.legOnly) return false;
   if ($globals.legCompile == null) {
     this.fatal("requested leg enabled, but no leg compiler available");
   }
-  var res = this.withTiming("try leg compile", (function () {
+  var res = this.withTiming("[leg] compile", (function () {
     return $globals.legCompile($this);
   })
   );
@@ -14175,7 +14177,6 @@ function FrogOptions(homedir, args, files) {
   this.throwOnFatal = false;
   this.config = "dev";
   this.verifyImplements = false;
-  this.enableLeg = false;
   this.enableTypeChecks = false;
   this.showInfo = false;
   this.useColors = true;
@@ -14199,14 +14200,10 @@ function FrogOptions(homedir, args, files) {
    i < args.get$length(); i++) {
     var arg = args.$index(i);
     switch (arg) {
+      case "--leg":
       case "--enable_leg":
-
-        this.enableLeg = true;
-        break;
-
       case "--leg_only":
 
-        this.enableLeg = true;
         this.legOnly = true;
         break;
 
@@ -14578,7 +14575,7 @@ var experimentalAwaitPhase;
 var legCompile;
 function initializeWorld(files) {
   $globals.world = new World(files);
-  $globals.world.init();
+  if (!$globals.options.legOnly) $globals.world.init();
 }
 function compile(homedir, args, files) {
   parseOptions(homedir, args, files);

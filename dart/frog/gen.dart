@@ -111,7 +111,7 @@ class WorldGenerator {
     writeTypes(world.corelib);
 
     // Write the main library. This will cause all libraries to be written in
-    // the topographic sort order.
+    // the topological sort order.
     writeTypes(main.declaringType.library);
 
     // Write out any inherited concrete members.
@@ -719,11 +719,15 @@ class WorldGenerator {
       // First compare by source span.
       int spans = x.span.compareTo(y.span);
       if (spans != 0) return spans;
+    } else {
+      // With-spans before sans-spans.
+      if (x.span != null) return -1;
+      if (y.span != null) return 1;
     }
-    if (x.span == null) return 1;
-    if (y.span == null) return -1;
-
-    // If that fails, compare by name.
+    // If that fails, compare by name, null comes first.
+    if (x.name == y.name) return 0;
+    if (x.name == null) return -1;
+    if (y.name == null) return 1;
     return x.name.compareTo(y.name);
   }
 }
