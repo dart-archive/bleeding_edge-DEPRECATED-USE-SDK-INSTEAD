@@ -52,7 +52,7 @@ def GetBuildInfo():
         # found identical browser behavior across OS, so we're not running
         # everywhere for faster turnaround time. We're going to split different
         # browser+OS combinations into different bots.
-        browsers = { 'win': 'ie', 'mac': 'safari', 'linux': 'ff' }
+        browsers = { 'windows': 'ie', 'mac': 'safari', 'linux': 'ff' }
         browser = browsers[system]
     else:
       # TODO(jmesserly): remove this once builder is renamed
