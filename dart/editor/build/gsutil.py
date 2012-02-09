@@ -9,7 +9,7 @@ Cleanup the Google Storage dart-editor-archive-continuous bucket.
 """
 import os
 import platform
-import string
+import StringIO
 import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
@@ -99,10 +99,7 @@ class GsUtil(object):
       self._PrintFailure('{0}\nsee details below'.format(header))
     else:
       print header
-    message = ''
-    for ch in stream:
-      message += ch
-    print message
+    print str(stream)
 
   def ReadBucket(self, bucket):
     """Read the contents of a bucket.
@@ -130,16 +127,17 @@ class GsUtil(object):
                          ' of the bucket {0}\n').format(bucket)
       self._LogStream(err, failure_message, True)
     else:
-      line = ''
-      search_string = string.digits + string.letters + string.punctuation
-      for ch in out:
-        if search_string.find(ch) >= 0:
-          line += ch
-        elif not line:
-          continue
-        else:
-          items.append(line)
-          line = ''
+      out_stream = None
+      try:
+        out_stream = StringIO.StringIO(str(out))
+        line = out_stream.readline().strip()
+        while line:
+          if line.startswith('gs:'):
+            items.append(line)
+          line = out_stream.readline().strip()
+      finally:
+        if out_stream is not None:
+          out_stream.close()
     return items
 
   def Copy(self, from_uri, to_uri, public_flag=True, recursive_flag=False):

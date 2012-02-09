@@ -831,10 +831,17 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
     for element in elements:
       base_name = os.path.basename(element)
       print 'processing {0} ({1})'.format(element, base_name)
-      file_match = file_name_re.search(base_name)
-      dartum_os = file_match.group(1)
-      dartum_type = file_match.group(2)
-      dartum_version = file_match.group(3)
+      try:
+        file_match = file_name_re.search(base_name)
+        dartum_os = file_match.group(1)
+        dartum_type = file_match.group(2)
+        dartum_version = file_match.group(3)
+      except IndexError:
+        dartum_os = '    '
+        dartum_type = '    '
+        dartum_version = '    '
+        _PrintError('Regular Expression error processing {0}'.format(element))
+
       key = buildos[:3] + dartum_os[:3] + dartum_type[:3]
       if key in file_types:
         tmp_zip_file = tempfile.NamedTemporaryFile(suffix='.zip',
@@ -874,6 +881,11 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
             revision_properties.close()
           dart_zip.AddFile(revision_properties_path,
                            'dart/dart-sdk/chromium.properties')
+    else:
+      msg = 'no Dartium files found'
+      _PrintError(msg)
+      raise Exception(msg)
+
   finally:
     if tmp_zip_name is not None:
       os.remove(tmp_zip_name)
