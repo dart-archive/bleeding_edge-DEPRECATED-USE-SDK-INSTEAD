@@ -480,6 +480,18 @@ testClassHierarchy() {
                 compiler.errors[0].message.kind);
 
   compiler = new MockCompiler();
+  compiler.parseScript("""interface A extends B {}
+                          interface B extends A {}
+                          class C implements A {}
+                          main() { return new C(); }""");
+  mainElement = compiler.mainApp.find(MAIN);
+  compiler.resolver.resolve(mainElement);
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(MessageKind.CYCLIC_CLASS_HIERARCHY,
+                compiler.errors[0].message.kind);
+
+  compiler = new MockCompiler();
   compiler.parseScript("""class A extends B {}
                           class B extends C {}
                           class C {}

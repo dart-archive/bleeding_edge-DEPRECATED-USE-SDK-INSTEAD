@@ -233,6 +233,9 @@ function(child, parent) {
       }
     }
     buffer.add('$prototype.${namer.operatorIs(classElement)} = true;\n');
+    for (Type ifc in classElement.interfaces) {
+      buffer.add('$prototype.${namer.operatorIs(ifc.element)} = true;\n');
+    }
   }
 
   void emitClasses(StringBuffer buffer) {
