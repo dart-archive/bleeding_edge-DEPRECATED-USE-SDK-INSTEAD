@@ -117,7 +117,7 @@ def main():
   if not options.leg_only:
     SelfHost()
 
-  test_cmd = ['../tools/test_wrapper.py', '--report', '--timeout=30',
+  test_cmd = ['../tools/test.py', '--report', '--timeout=30',
               '--progress=color', '--mode=release', '--checked']
 
   if options.notest: return

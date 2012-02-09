@@ -80,7 +80,7 @@ def TestStep(name, mode, system, component, targets, flags):
 
   cmd = (cmd
       + [sys.executable,
-          os.path.join('..', 'tools', 'test_wrapper.py'),
+          os.path.join('..', 'tools', 'test.py'),
           '--mode=' + mode,
           '--component=' + component,
           '--time',
