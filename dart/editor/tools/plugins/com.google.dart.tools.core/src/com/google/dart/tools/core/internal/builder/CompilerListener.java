@@ -66,13 +66,16 @@ class CompilerListener implements DartCompilerListener {
   private final IProject project;
 
   private boolean createMarkers;
+  private boolean allowFrogMarkers;
 
   private static final int MISSING_SOURCE_REPORT_LIMIT = 5;
 
-  CompilerListener(DartLibrary library, IProject project, boolean createMarkers) {
+  CompilerListener(DartLibrary library, IProject project, boolean createMarkers,
+      boolean allowFrogMarkers) {
     this.project = project;
     this.library = library;
     this.createMarkers = createMarkers;
+    this.allowFrogMarkers = allowFrogMarkers;
   }
 
   @Override
@@ -103,7 +106,9 @@ class CompilerListener implements DartCompilerListener {
       return;
     }
     try {
-      file.deleteMarkers(null, true, IResource.DEPTH_ZERO);
+      if (!allowFrogMarkers) {
+        file.deleteMarkers(null, true, IResource.DEPTH_ZERO);
+      }
     } catch (CoreException exception) {
       DartCore.logInformation("Unable to remove markers for source \"" + source.getUri().toString()
           + "\"", exception);

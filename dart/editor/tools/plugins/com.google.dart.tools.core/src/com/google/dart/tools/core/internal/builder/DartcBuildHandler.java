@@ -284,7 +284,7 @@ public class DartcBuildHandler {
    * @param monitor the progress monitor (not <code>null</code>)
    */
   protected void buildAllApplications(IProject project, boolean shouldGenerateJs,
-      IProgressMonitor monitor) throws CoreException {
+      IProgressMonitor monitor, boolean allowFrogMarkers) throws CoreException {
     DartProject proj = DartCore.create(project);
     DartLibrary[] allLibraries = proj.getDartLibraries();
 
@@ -297,7 +297,7 @@ public class DartcBuildHandler {
           throw new OperationCanceledException();
         }
 
-        buildLibrary(project, lib, shouldGenerateJs, subMonitor.newChild(100));
+        buildLibrary(project, lib, shouldGenerateJs, subMonitor.newChild(100), allowFrogMarkers);
       }
     } finally {
       monitor.done();
@@ -311,7 +311,7 @@ public class DartcBuildHandler {
    * @param monitor the progress monitor (not <code>null</code>)
    */
   protected void buildLibrary(IProject project, DartLibrary lib, final boolean shouldGenerateJs,
-      final IProgressMonitor monitor) {
+      final IProgressMonitor monitor, boolean allowFrogMarkers) {
 
     final DartLibraryImpl libImpl = (DartLibraryImpl) lib;
 
@@ -346,6 +346,11 @@ public class DartcBuildHandler {
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
       final CompilerConfiguration config = new DefaultCompilerConfiguration(new CompilerOptions(),
           libraryManager) {
+
+        @Override
+        public boolean checkOnly() {
+          return !shouldGenerateJs;
+        }
 
         @Override
         public List<Backend> getBackends() {
@@ -397,7 +402,7 @@ public class DartcBuildHandler {
           return true;
         }
       };
-      final CompilerListener listener = new CompilerListener(lib, project, shouldGenerateJs);
+      final CompilerListener listener = new CompilerListener(lib, project, true, allowFrogMarkers);
 
       //Try:
       //1. Have the compiler build the Library

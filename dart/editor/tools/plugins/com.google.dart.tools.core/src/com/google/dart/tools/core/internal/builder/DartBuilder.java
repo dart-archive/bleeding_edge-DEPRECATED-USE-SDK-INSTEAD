@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.builder.FrogBuildHandler.Markers;
 import com.google.dart.tools.core.internal.util.Extensions;
 
 import org.eclipse.core.resources.IProject;
@@ -67,6 +68,8 @@ public class DartBuilder extends IncrementalProjectBuilder {
     return Path.fromOSString(getJsAppArtifactFile(libraryPath).getAbsolutePath());
   }
 
+  private Markers frogMarkerSettings = Markers.FATAL;
+
   private final DartcBuildHandler dartcBuildHandler = new DartcBuildHandler();
 
   private final FrogBuildHandler frogBuilderHandler = new FrogBuildHandler();
@@ -76,20 +79,23 @@ public class DartBuilder extends IncrementalProjectBuilder {
   @SuppressWarnings("rawtypes")
   @Override
   protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
+
+    boolean compileWithFrog = DartCore.getPlugin().getCompileWithFrog();
+
     // TODO(keertip) : remove call to dartc if frog is being used, once indexer is independent
     // If building using frog, then dartc does not produce any js files
     if (firstBuildThisSession || hasDartSourceChanged()) {
-      if (DartCore.getPlugin().getCompileWithFrog()) {
+      if (compileWithFrog) {
         SubMonitor subMonitor = SubMonitor.convert(monitor, 100);
 
         // call frog builder
-        frogBuilderHandler.build(subMonitor.newChild(50), getProject());
+        frogBuilderHandler.build(subMonitor.newChild(50), getProject(), frogMarkerSettings);
 
         monitor = subMonitor.newChild(50);
       }
 
-      dartcBuildHandler.buildAllApplications(getProject(), !DartCore.getPlugin().getCompileWithFrog(),
-          monitor);
+      dartcBuildHandler.buildAllApplications(getProject(), !compileWithFrog, monitor,
+          compileWithFrog && frogMarkerSettings != Markers.NONE);
 
       if (firstBuildThisSession) {
         firstBuildThisSession = false;

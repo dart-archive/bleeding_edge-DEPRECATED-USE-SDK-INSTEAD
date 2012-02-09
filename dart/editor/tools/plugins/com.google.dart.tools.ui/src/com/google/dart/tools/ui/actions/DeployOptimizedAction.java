@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -21,7 +21,6 @@ import com.google.dart.tools.core.frog.Response;
 import com.google.dart.tools.core.frog.ResponseDone;
 import com.google.dart.tools.core.frog.ResponseHandler;
 import com.google.dart.tools.core.frog.ResponseMessage;
-import com.google.dart.tools.core.internal.builder.CompileOptimized;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -107,14 +106,12 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
   }
 
   class DeployOptimizedJob extends Job {
-    private IWorkbenchPage page;
     private File file;
     private DartLibrary library;
 
     public DeployOptimizedJob(IWorkbenchPage page, File file, DartLibrary library) {
       super(ActionMessages.DeployOptimizedAction_jobTitle);
 
-      this.page = page;
       this.file = file;
       this.library = library;
 
@@ -183,9 +180,8 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
 
           monitor.done();
         }
-      } else {
-        return deployOptimizedLibrary(monitor, page, file, library);
       }
+      return new Status(Status.WARNING, "Deploy optimized", "Dart SDK not installed");
     }
   }
 
@@ -290,14 +286,6 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
             NLS.bind(ActionMessages.DeployOptimizedAction_errorLaunching, exception.getMessage()));
       }
     }
-  }
-
-  private IStatus deployOptimizedLibrary(IProgressMonitor monitor, IWorkbenchPage page,
-      File outputFile, DartLibrary library) {
-
-    CompileOptimized dartCompile = new CompileOptimized(library, outputFile);
-
-    return dartCompile.compileToJs(monitor);
   }
 
   private DartLibrary getCurrentLibrary() {

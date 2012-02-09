@@ -50,6 +50,7 @@ import java.util.concurrent.CountDownLatch;
  * Called from DartBuilder - this is a Frog specific builder handler to perform a build.
  */
 public class FrogBuildHandler {
+
   public class CompileResponseHandler extends ResponseHandler {
     private IProject project;
     private CountDownLatch latch;
@@ -92,7 +93,13 @@ public class FrogBuildHandler {
     }
   }
 
-  public IProject[] build(IProgressMonitor monitor, IProject project) throws CoreException {
+  enum Markers {
+    ALL, NONE, FATAL
+  }
+
+  public IProject[] build(IProgressMonitor monitor, IProject project, Markers generateMarkers)
+      throws CoreException {
+
     DartProject proj = DartCore.create(project);
 
     BuilderUtil.clearErrorMarkers(project);
@@ -110,15 +117,16 @@ public class FrogBuildHandler {
         }
 
         try {
-          buildLibrary(project, library);
+          buildLibrary(project, library, generateMarkers);
 
           calculateReferencedProjects(referencedProjects, library);
 
           monitor.worked(1);
         } catch (Throwable exception) {
-          BuilderUtil.createErrorMarker(library.getCorrespondingResource(), 0, 0, 1,
-              "Internal compiler error: " + exception.toString());
-
+          if (generateMarkers != Markers.NONE) {
+            BuilderUtil.createErrorMarker(library.getCorrespondingResource(), 0, 0, 1,
+                "Internal compiler error: " + exception.toString());
+          }
           DartCore.logError("Exception caught while building " + library.getElementName(),
               exception);
         }
@@ -154,7 +162,8 @@ public class FrogBuildHandler {
     }
   }
 
-  private void buildLibrary(IProject project, DartLibrary library) throws CoreException {
+  private void buildLibrary(IProject project, DartLibrary library, Markers generateMarkers)
+      throws CoreException {
     CountDownLatch latch = new CountDownLatch(1);
     CompileResponseHandler responseHandler = new CompileResponseHandler(project, latch);
 
@@ -181,11 +190,18 @@ public class FrogBuildHandler {
 
     }
 
-    for (ResponseMessage message : responseHandler.getMessages()) {
-      ResponseMessage.Location location = message.getLocation();
+    if (generateMarkers != Markers.NONE) {
+      for (ResponseMessage message : responseHandler.getMessages()) {
+        ResponseMessage.Location location = message.getLocation();
+        if (generateMarkers == Markers.ALL) {
+          createMarker((IFile) library.getCorrespondingResource(), location == null ? null
+              : location.path, message.getSeverity(), message.getMessage(), location);
+        } else if (message.getMessage().contains("compiler")) {
+          createMarker((IFile) library.getCorrespondingResource(), location == null ? null
+              : location.path, message.getSeverity(), message.getMessage(), location);
+        }
 
-      createMarker((IFile) library.getCorrespondingResource(), location == null ? null
-          : location.path, message.getSeverity(), message.getMessage(), location);
+      }
     }
 
     if (DartCoreDebug.FROG && outputPath != null) {

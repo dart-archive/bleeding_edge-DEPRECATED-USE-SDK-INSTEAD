@@ -132,11 +132,6 @@ public class DartCore extends Plugin {
   private static final MessageConsole CONSOLE = new MessageConsoleImpl();
 
   /**
-   * Id for frog compile preference
-   */
-  public static final String FROG_COMPILE = "frogCompile";
-
-  /**
    * Configures the given marker attribute map for the given Dart element. Used for markers, which
    * denote a Dart element rather than a resource.
    * 
@@ -738,10 +733,10 @@ public class DartCore extends Plugin {
   }
 
   /**
-   * Use frog if sdk is present and user has set preference
+   * Use frog if sdk is present
    */
   public boolean getCompileWithFrog() {
-    return (DartSdk.isInstalled() && getPrefs().getBoolean(FROG_COMPILE, false));
+    return DartSdk.isInstalled();
   }
 
   public IEclipsePreferences getPrefs() {

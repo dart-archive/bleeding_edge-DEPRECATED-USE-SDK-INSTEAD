@@ -13,15 +13,12 @@
  */
 package com.google.dart.tools.ui.internal.preferences;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdk;
 
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
@@ -36,11 +33,7 @@ public class CompilerPreferencePage extends PreferencePage implements IWorkbench
 
   public static final String PAGE_ID = "com.google.dart.tools.ui.compilerPreferencePage"; //$NON-NLS-1$
 
-  private Button frogBuild;
-
   public CompilerPreferencePage() {
-    setDescription("Dart SDK and Compiler Preferences");
-
     noDefaultAndApplyButton();
   }
 
@@ -51,8 +44,7 @@ public class CompilerPreferencePage extends PreferencePage implements IWorkbench
 
   @Override
   public boolean performOk() {
-    IEclipsePreferences preferences = DartCore.getPlugin().getPrefs();
-    preferences.putBoolean(DartCore.FROG_COMPILE, frogBuild.getSelection());
+
     return true;
   }
 
@@ -80,27 +72,6 @@ public class CompilerPreferencePage extends PreferencePage implements IWorkbench
       }
     } else {
       sdkLabel.setText("Dart SDK is not installed");
-    }
-
-    Group group = new Group(composite, SWT.NONE);
-    group.setText("Compiler Setting");
-    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(group);
-    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(group);
-
-    Button dartcBuild = new Button(group, SWT.RADIO);
-    dartcBuild.setText("Use dartc to generate Javascript");
-
-    frogBuild = new Button(group, SWT.RADIO);
-    frogBuild.setText("Use frog to generate Javascript");
-
-    IEclipsePreferences preferences = DartCore.getPlugin().getPrefs();
-    boolean selection = preferences.getBoolean(DartCore.FROG_COMPILE, false);
-    frogBuild.setSelection(selection);
-    dartcBuild.setSelection(!selection);
-
-    Label message = new Label(composite, SWT.NONE);
-    if (!DartSdk.isInstalled()) {
-      message.setText("Warning : Cannot compile using frog, Dart SDK not installed");
     }
 
     return composite;

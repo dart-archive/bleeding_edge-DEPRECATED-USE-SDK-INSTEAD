@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -56,7 +56,10 @@ import java.util.List;
 
 /**
  * Compiles to optimized javascript
+ * 
+ * @deprecated
  */
+@Deprecated
 public class CompileOptimized {
 
   /**
@@ -196,7 +199,7 @@ public class CompileOptimized {
           return true;
         }
       };
-      final CompilerListener listener = new CompilerListener(library, null, false);
+      final CompilerListener listener = new CompilerListener(library, null, false, false);
 
       //Try:
       //1. Have the compiler build the Library
