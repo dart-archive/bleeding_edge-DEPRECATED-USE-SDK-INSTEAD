@@ -51,7 +51,7 @@ public class DartPerspective implements IPerspectiveFactory {
     // Top left: Project Explorer view
     IFolderLayout topLeft = layout.createFolder(TL, IPageLayout.LEFT, 0.25f, editorArea);
 
-    if (DartCoreDebug.PROBLEMS_VIEW) {
+    if (DartCoreDebug.PROJECTS_VIEW) {
       topLeft.addView(DartUI.ID_FILE_EXPLORER);
     }
     if (DartCoreDebug.FILES_VIEW) {

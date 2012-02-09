@@ -725,7 +725,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         IConsoleConstants.ID_CONSOLE_VIEW);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
-    if (DartCoreDebug.PROBLEMS_VIEW) {
+    if (DartCoreDebug.PROJECTS_VIEW) {
       viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_FILE_EXPLORER);
       menu.add(new AccessibleShowViewAction(window, viewDesc, false));
     }
@@ -799,7 +799,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new GroupMarker(IWorkbenchActionConstants.FILE_START));
 
     //TODO (pquitslund): remove conditional logic when files view lands for real
-    if (DartCoreDebug.PROBLEMS_VIEW) {
+    if (DartCoreDebug.PROJECTS_VIEW) {
 
       Action newProjectAction = new OpenNewProjectWizardAction();
       newProjectAction.setText("New Project...");

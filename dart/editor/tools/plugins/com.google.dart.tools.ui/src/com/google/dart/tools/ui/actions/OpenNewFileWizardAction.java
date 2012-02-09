@@ -80,7 +80,7 @@ public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements
   @Override
   protected final INewWizard createWizard() throws CoreException {
     //TODO (pquitslund): remove conditional when files view lands for real
-    if (DartCoreDebug.PROBLEMS_VIEW) {
+    if (DartCoreDebug.PROJECTS_VIEW) {
       return new CreateFileWizard();
     }
     return new NewFileWizard();
