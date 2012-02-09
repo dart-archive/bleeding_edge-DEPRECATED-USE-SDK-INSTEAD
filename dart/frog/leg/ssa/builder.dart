@@ -357,9 +357,14 @@ class LocalsHandler {
 
     // Create phis for all elements in the definitions environment.
     saved.forEach((Element element, HInstruction instruction) {
-      HPhi phi = new HPhi.singleInput(element, instruction);
-      loopEntry.addPhi(phi);
-      directLocals[element] = phi;
+      // We know 'this' cannot be modified.
+      if (element !== closureData.thisElement) {
+        HPhi phi = new HPhi.singleInput(element, instruction);
+        loopEntry.addPhi(phi);
+        directLocals[element] = phi;
+      } else {
+        directLocals[element] = instruction;
+      }
     });
   }
 
@@ -379,14 +384,20 @@ class LocalsHandler {
     // true for nodes where we do joins.
     Map<Element, HInstruction> joinedLocals = new Map<Element, HInstruction>();
     otherLocals.directLocals.forEach((element, instruction) {
-      HInstruction mine = directLocals[element];
-      if (mine === null) return;
-      if (instruction === mine) {
+      // We know 'this' cannot be modified.
+      if (element === closureData.thisElement) {
+        assert(directLocals[element] == instruction);
         joinedLocals[element] = instruction;
       } else {
-        HInstruction phi = new HPhi.manyInputs(element, [instruction, mine]);
-        joinBlock.addPhi(phi);
-        joinedLocals[element] = phi;
+        HInstruction mine = directLocals[element];
+        if (mine === null) return;
+        if (instruction === mine) {
+          joinedLocals[element] = instruction;
+        } else {
+          HInstruction phi = new HPhi.manyInputs(element, [instruction, mine]);
+          joinBlock.addPhi(phi);
+          joinedLocals[element] = phi;
+        }
       }
     });
     directLocals = joinedLocals;
