@@ -1,6 +1,6 @@
 #library("dom-traverse.dart");
 #import("dart:dom");
-#import('../../common/common.dart');
+#import('../common/common.dart');
 #import('runner.dart');
 
 
@@ -68,7 +68,7 @@ void main() {
     })
     .test('previousSibling', () {
       for (int i = 0; i < num * 2; i++) {
-        Node cur = document.body.firstChild;
+        Node cur = document.body.lastChild;
         while (cur !== null) {
           cur = cur.previousSibling;
         }

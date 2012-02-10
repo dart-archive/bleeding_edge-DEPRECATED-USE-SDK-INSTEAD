@@ -1,0 +1,5 @@
+This is a port of the Dromaeo benchmark (http://dromaeo.com/) to Dart.
+See the attached LICENSE file in this directory.
+
+To run, use a Dartium chrome binary to open index.html in this
+directory.
