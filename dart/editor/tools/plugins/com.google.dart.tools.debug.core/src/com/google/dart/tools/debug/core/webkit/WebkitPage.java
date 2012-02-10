@@ -26,6 +26,8 @@ import java.util.List;
 
 /**
  * A WIP page domain object.
+ * 
+ * @see http://code.google.com/chrome/devtools/docs/protocol/tot/page.html
  */
 public class WebkitPage extends WebkitDomain {
 
@@ -150,7 +152,7 @@ public class WebkitPage extends WebkitDomain {
         listener.frameDetached(frameId);
       }
     } else {
-      DartDebugCorePlugin.logWarning("unhandled notification: " + method);
+      DartDebugCorePlugin.logInfo("unhandled notification: " + method);
     }
   }
 

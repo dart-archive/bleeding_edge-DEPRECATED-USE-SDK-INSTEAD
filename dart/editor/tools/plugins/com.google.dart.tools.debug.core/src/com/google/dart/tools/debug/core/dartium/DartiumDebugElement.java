@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 
 import org.eclipse.debug.core.model.DebugElement;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -37,6 +38,10 @@ public abstract class DartiumDebugElement extends DebugElement {
   @Override
   public String getModelIdentifier() {
     return DartDebugCorePlugin.DEBUG_MODEL_ID;
+  }
+
+  protected WebkitConnection getConnection() {
+    return getTarget().getWebkitConnection();
   }
 
   /**

@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Retrieve webkit inspection protocol debugging information from a Chronium instance.
+ * Retrieve Webkit inspection protocol debugging information from a Chronium instance.
  */
 public class ChromiumConnector {
   public static final String LOCALHOST_ADDRESS = "127.0.0.1";
@@ -147,7 +147,7 @@ public class ChromiumConnector {
   }
 
   private static String readText(URLConnection connection, InputStream in) throws IOException {
-    // TODO: get the encoding from the stream?
+    // TODO(devoncarew): get the encoding from the stream?
 
     Reader reader = new InputStreamReader(in, "UTF-8");
     StringBuilder builder = new StringBuilder();

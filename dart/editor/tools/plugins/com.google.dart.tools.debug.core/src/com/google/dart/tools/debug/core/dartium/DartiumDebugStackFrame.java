@@ -13,29 +13,36 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
-import com.google.dart.tools.debug.core.webkit.WebkitFrame;
+import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
+import com.google.dart.tools.debug.core.webkit.WebkitLocation;
+import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
 import org.eclipse.debug.core.DebugException;
-import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IRegisterGroup;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
 
+import java.net.URI;
+
 /**
  * The IStackFrame implementation for the dartium debug elements. This stack frame element
  * represents a Dart frame.
  */
 public class DartiumDebugStackFrame extends DartiumDebugElement implements IStackFrame {
-  private IThread thread;
-  private WebkitFrame webkitFrame;
+  private static final IVariable[] EMPTY_VARIABLES = new IVariable[0];
 
-  public DartiumDebugStackFrame(IDebugTarget target, IThread thread, WebkitFrame webkitFrame) {
+  private IThread thread;
+  private WebkitCallFrame webkitFrame;
+
+  public DartiumDebugStackFrame(IDebugTarget target, IThread thread, WebkitCallFrame webkitFrame) {
     super(target);
 
     this.thread = thread;
     this.webkitFrame = webkitFrame;
+
+    fillInDartiumVariables();
   }
 
   @Override
@@ -79,22 +86,31 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   @Override
-  public ILaunch getLaunch() {
-    return getDebugTarget().getLaunch();
-  }
-
-  @Override
   public int getLineNumber() throws DebugException {
-    return 0;
+    return WebkitLocation.webkitToElipseLine(webkitFrame.getLocation().getLineNumber());
   }
 
   @Override
   public String getName() throws DebugException {
-    return webkitFrame.getFunctionName();
+    return webkitFrame.getFunctionName() + "()";
   }
 
   @Override
   public IRegisterGroup[] getRegisterGroups() throws DebugException {
+    return new IRegisterGroup[0];
+  }
+
+  public String getSourceLocationPath() {
+    String scriptId = webkitFrame.getLocation().getScriptId();
+
+    WebkitScript script = getConnection().getDebugger().getScript(scriptId);
+
+    if (script != null) {
+      URI uri = URI.create(script.getUrl());
+
+      return uri.getPath();
+    }
+
     return null;
   }
 
@@ -105,7 +121,9 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   @Override
   public IVariable[] getVariables() throws DebugException {
-    return null;
+    // TODO(devoncarew): get this information from fillInDartiumVariables()
+
+    return EMPTY_VARIABLES;
   }
 
   @Override
@@ -115,7 +133,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   @Override
   public boolean hasVariables() throws DebugException {
-    return false;
+    return getVariables().length > 0;
   }
 
   @Override
@@ -161,6 +179,11 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   @Override
   public void terminate() throws DebugException {
     getThread().terminate();
+  }
+
+  private void fillInDartiumVariables() {
+    // TODO(devoncarew): fill in our dartium variables
+
   }
 
 }

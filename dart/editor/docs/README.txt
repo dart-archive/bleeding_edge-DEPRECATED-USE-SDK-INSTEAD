@@ -38,12 +38,6 @@ Notes about Dart Editor workspace setup, development, build, and deploy.
 Macintosh users: Note that on the Macintosh version of Eclipse, "Preferences"
 is under the "Eclipse" menu, not under "Window".
 
-------------- Dependent Plugins -----------
-
-Install the Chrome developer tools...
-   Update Site: dart/third_party/chromesdk/0.3.0
-   You just need the ChromeDevTools SDK feature.
-
 ------------- Linked Resources ------------
 
 Create a "Path Variable" in the "General > Workspace > Linked Resources" preference page

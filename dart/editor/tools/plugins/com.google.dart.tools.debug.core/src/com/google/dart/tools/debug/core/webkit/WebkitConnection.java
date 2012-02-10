@@ -91,6 +91,7 @@ public class WebkitConnection {
   private WebkitConsole console;
   private WebkitDebugger debugger;
   private WebkitPage page;
+  private WebkitRuntime runtime;
 
   private int requestId = 0;
 
@@ -138,7 +139,7 @@ public class WebkitConnection {
 
         @Override
         public void onMessage(WebSocketMessage message) {
-          process(message);
+          processWebSocketMessage(message);
         }
 
         @Override
@@ -177,6 +178,14 @@ public class WebkitConnection {
     return page;
   }
 
+  public WebkitRuntime getRuntime() {
+    if (runtime == null) {
+      runtime = new WebkitRuntime(this);
+    }
+
+    return runtime;
+  }
+
   public boolean isConnected() {
     return websocket != null && connected;
   }
@@ -191,7 +200,7 @@ public class WebkitConnection {
     }
   }
 
-  protected void process(WebSocketMessage message) {
+  protected void processWebSocketMessage(WebSocketMessage message) {
     try {
       JSONObject object = new JSONObject(message.getText());
 
@@ -239,12 +248,14 @@ public class WebkitConnection {
   }
 
   private void processNotification(JSONObject object) throws JSONException {
-    // TODO: "Profiler.resetProfiles"
-    // TODO: "CSS.mediaQueryResultChanged"
+    // TODO(devoncarew): "Profiler.resetProfiles" - is this event interesting?
+    // TODO(devoncarew): "CSS.mediaQueryResultChanged" - is this event interesting?
     final String[] ignoreDomains = {"Profiler.", "CSS."};
 
     if (object.has("method")) {
       String method = object.getString("method");
+
+      DartDebugCorePlugin.logInfo("webkit: " + method);
 
       for (String prefix : notificationHandlers.keySet()) {
         if (method.startsWith(prefix)) {
@@ -267,7 +278,7 @@ public class WebkitConnection {
       }
     }
 
-    DartDebugCorePlugin.logWarning("no handler for notification: " + object);
+    DartDebugCorePlugin.logInfo("no handler for notification: " + object);
   }
 
   private void processResponse(JSONObject result) throws JSONException {
@@ -278,6 +289,11 @@ public class WebkitConnection {
 
       if (callback != null) {
         callback.handleResult(result);
+      } else if (result.has("error")) {
+        // If we get an error back, and nobody was listening for the result, then log it.
+        WebkitResult webkitResult = WebkitResult.createFrom(result);
+
+        DartDebugCorePlugin.logInfo("Error from command id " + id + ": " + webkitResult.getError());
       }
     } catch (Throwable exception) {
       DartDebugCorePlugin.logError(exception);

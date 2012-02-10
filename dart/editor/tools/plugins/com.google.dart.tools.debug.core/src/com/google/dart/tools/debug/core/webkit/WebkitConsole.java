@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO(devoncarew): implement the stack trace object
+// http://code.google.com/chrome/devtools/docs/protocol/tot/console.html#type-StackTrace
+
 /**
  * A WIP console domain object.
  */
@@ -100,7 +103,7 @@ public class WebkitConsole extends WebkitDomain {
         listener.messageRepeatCountUpdated(params.getInt("count"));
       }
     } else {
-      DartDebugCorePlugin.logWarning("unhandled notification: " + method);
+      DartDebugCorePlugin.logInfo("unhandled notification: " + method);
     }
   }
 

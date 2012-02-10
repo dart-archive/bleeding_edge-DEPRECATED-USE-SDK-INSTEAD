@@ -28,13 +28,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -87,7 +87,7 @@ public class BrowserManager {
    */
   protected void connectToChromiumDebug(String browserName, ILaunch launch,
       DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
-      Process javaProcess) throws CoreException {
+      Process javaProcess, IResourceResolver resourceResolver) throws CoreException {
     monitor.worked(1);
 
     try {
@@ -101,14 +101,21 @@ public class BrowserManager {
 
       timer = new LogTimer("open WIP connection");
 
+      if (tabs.size() == 0 || tabs.get(0).getWebSocketDebuggerUrl() == null) {
+        throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+            "Unable to connect to Dartium"));
+      }
+
       WebkitConnection connection = new WebkitConnection(tabs.get(0).getWebSocketDebuggerUrl());
 
       DartiumDebugTarget debugTarget = new DartiumDebugTarget(browserName, connection, launch,
-          javaProcess);
+          javaProcess, resourceResolver);
 
       monitor.worked(1);
 
-      launch.addDebugTarget(debugTarget);
+      if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
+        launch.addDebugTarget(debugTarget);
+      }
       launch.addProcess(debugTarget.getProcess());
 
       debugTarget.openConnection(url);
@@ -126,11 +133,11 @@ public class BrowserManager {
 
   protected void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
       String url, IProgressMonitor monitor, boolean debug) throws CoreException {
-    monitor.beginTask("Launching Chromium...", debug ? 7 : 3);
+    if (!DartDebugCorePlugin.ENABLE_DEBUGGING) {
+      debug = false;
+    }
 
-    // TODO(devoncarew): remove this - this disables the debug launch + WIP connection code
-    debug = false;
-    // TODO(devoncarew): remove this - this disables the debug launch + WIP connection code
+    monitor.beginTask("Launching Chromium...", debug ? 7 : 3);
 
     File dartium = DartSdk.getInstance().getDartiumExecutable();
 
@@ -171,6 +178,8 @@ public class BrowserManager {
       env.put("DART_FLAGS", "--enable_asserts --enable_type_checks");
     }
 
+    IResourceResolver resourceResolver = null;
+
     if (debug) {
       // Start the embedded web server. It is used to serve files from our workspace.
       if (file != null) {
@@ -178,12 +187,11 @@ public class BrowserManager {
           ResourceServer server = ResourceServerManager.getServer();
 
           url = server.getUrlForResource(file);
+
+          resourceResolver = server;
         } catch (IOException exception) {
           throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
               "Could not launch browser - unable to start embedded server", exception));
-        } catch (URISyntaxException exception) {
-          throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-              "Could not launch browser", exception));
         }
       }
     } else {
@@ -191,6 +199,7 @@ public class BrowserManager {
         url = file.getLocationURI().toString();
       }
     }
+
     List<String> arguments = buildArgumentsList(browserLocation, url, debug);
     builder.command(arguments);
     builder.directory(new File(DartSdk.getInstance().getDartiumWorkingDirectory()));
@@ -229,7 +238,8 @@ public class BrowserManager {
     timer.endTimer();
 
     if (debug) {
-      connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, javaProcess);
+      connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, javaProcess,
+          resourceResolver);
     } else {
       // If we don't do this, the launch configurations will keep accumulating in the UI. This was
       // not a problem when we wrapped the runtime process with an IProcess.
@@ -268,6 +278,10 @@ public class BrowserManager {
 
     // Whether or not it's actually the first run.
     arguments.add("--no-first-run");
+
+    // Causes the browser to launch directly into incognito mode.
+    // We use this to prevent the previous session's tabs from re-opening.
+    arguments.add("--incognito");
 
     // Disables the default browser check.
     arguments.add("--no-default-browser-check");

@@ -16,6 +16,12 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.util.IResourceResolver;
+import com.google.dart.tools.debug.core.webkit.WebkitBreakpoint;
+import com.google.dart.tools.debug.core.webkit.WebkitCallback;
+import com.google.dart.tools.debug.core.webkit.WebkitLocation;
+import com.google.dart.tools.debug.core.webkit.WebkitResult;
+import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.debug.core.DebugPlugin;
@@ -23,15 +29,21 @@ import org.eclipse.debug.core.IBreakpointListener;
 import org.eclipse.debug.core.model.IBreakpoint;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Handle adding a removing breakpoints to the Webkit connection for the DartiumDebugTarget class.
+ * Handle adding a removing breakpoints to the WebKit connection for the DartiumDebugTarget class.
  */
 class BreakpointManager implements IBreakpointListener {
   private DartiumDebugTarget debugTarget;
+  private IResourceResolver resourceResolver;
 
-  public BreakpointManager(DartiumDebugTarget debugTarget) {
+  private List<WebkitBreakpoint> webkitBreakpoints = new ArrayList<WebkitBreakpoint>();
+
+  public BreakpointManager(DartiumDebugTarget debugTarget, IResourceResolver resourceResolver) {
     this.debugTarget = debugTarget;
+    this.resourceResolver = resourceResolver;
   }
 
   @Override
@@ -40,7 +52,7 @@ class BreakpointManager implements IBreakpointListener {
       try {
         addBreakpoint((DartBreakpoint) breakpoint);
       } catch (IOException exception) {
-        // TODO: display to the user
+        // TODO(devoncarew): display to the user
 
         DartDebugCorePlugin.logError(exception);
       }
@@ -49,14 +61,28 @@ class BreakpointManager implements IBreakpointListener {
 
   @Override
   public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
-    // TODO:
-
+    breakpointRemoved(breakpoint, delta);
+    breakpointAdded(breakpoint);
   }
 
   @Override
   public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
-    // TODO:
+    if (debugTarget.supportsBreakpoint(breakpoint)) {
+      WebkitBreakpoint webkitBreakpoint = findBreakpoint((DartBreakpoint) breakpoint);
 
+      if (webkitBreakpoint != null) {
+        try {
+          debugTarget.getWebkitConnection().getDebugger().removeBreakpoint(
+              webkitBreakpoint.getBreakpointId());
+        } catch (IOException exception) {
+          // TODO(devoncarew): display to the user
+
+          DartDebugCorePlugin.logError(exception);
+        }
+
+        webkitBreakpoints.remove(webkitBreakpoint);
+      }
+    }
   }
 
   public void connect() throws IOException {
@@ -76,9 +102,54 @@ class BreakpointManager implements IBreakpointListener {
     DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
   }
 
+  void handleBreakpointResolved(WebkitBreakpoint webkitBreakpoint) {
+    webkitBreakpoints.add(webkitBreakpoint);
+  }
+
+  void handleGlobalObjectCleared() {
+    webkitBreakpoints.clear();
+  }
+
   private void addBreakpoint(DartBreakpoint breakpoint) throws IOException {
-    debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(null,
-        breakpoint.getUrlRegex(), breakpoint.getLine(), null);
+    String url = resourceResolver.getUrlForResource(breakpoint.getFile());
+    int line = WebkitLocation.eclipseToWebkitLine(breakpoint.getLine());
+
+    debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(url, null, line,
+        new WebkitCallback() {
+          @Override
+          public void handleResult(WebkitResult result) {
+            // This will resolve immediately if the script is loaded in the browser. Otherwise the 
+            // breakpoint info will be sent to us using the breakpoint resolved notification.
+            if (result.getResult() instanceof WebkitBreakpoint) {
+              webkitBreakpoints.add((WebkitBreakpoint) result.getResult());
+            }
+          }
+        });
+  }
+
+  /**
+   * Search through the webkitBreakpoints looking for one that matches the given DartBreakpoint.
+   * 
+   * @param breakpoint
+   * @return
+   */
+  private WebkitBreakpoint findBreakpoint(DartBreakpoint breakpoint) {
+    String url = resourceResolver.getUrlForResource(breakpoint.getFile());
+    int line = WebkitLocation.eclipseToWebkitLine(breakpoint.getLine());
+
+    for (WebkitBreakpoint webkitBreakpoint : webkitBreakpoints) {
+      String scriptId = webkitBreakpoint.getLocation().getScriptId();
+
+      WebkitScript script = debugTarget.getWebkitConnection().getDebugger().getScript(scriptId);
+
+      if (script != null && url.equals(script.getUrl())) {
+        if (webkitBreakpoint.getLocation().getLineNumber() == line) {
+          return webkitBreakpoint;
+        }
+      }
+    }
+
+    return null;
   }
 
 }

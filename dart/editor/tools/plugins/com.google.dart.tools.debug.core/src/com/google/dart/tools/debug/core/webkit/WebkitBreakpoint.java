@@ -31,6 +31,24 @@ public class WebkitBreakpoint {
     return breakpoint;
   }
 
+  public static WebkitBreakpoint createFrom(String breakpointId, WebkitLocation location) {
+    WebkitBreakpoint breakpoint = new WebkitBreakpoint();
+
+    breakpoint.breakpointId = breakpointId;
+    breakpoint.location = location;
+
+    return breakpoint;
+  }
+
+  public static WebkitBreakpoint createFromActual(JSONObject params) throws JSONException {
+    WebkitBreakpoint breakpoint = new WebkitBreakpoint();
+
+    breakpoint.breakpointId = JsonUtils.getString(params, "breakpointId");
+    breakpoint.location = WebkitLocation.createFrom(params.getJSONObject("actualLocation"));
+
+    return breakpoint;
+  }
+
   private WebkitLocation location;
 
   private String breakpointId;
@@ -39,12 +57,28 @@ public class WebkitBreakpoint {
 
   }
 
+  @Override
+  public boolean equals(Object other) {
+    if (!(other instanceof WebkitBreakpoint)) {
+      return false;
+    }
+
+    WebkitBreakpoint obj = (WebkitBreakpoint) other;
+
+    return breakpointId.equals(obj.getBreakpointId());
+  }
+
   public String getBreakpointId() {
     return breakpointId;
   }
 
   public WebkitLocation getLocation() {
     return location;
+  }
+
+  @Override
+  public int hashCode() {
+    return breakpointId.hashCode();
   }
 
   @Override

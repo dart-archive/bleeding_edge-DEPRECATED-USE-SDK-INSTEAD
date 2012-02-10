@@ -29,7 +29,7 @@ import java.util.concurrent.Executors;
 /**
  * A web server that serves up workspace resources.
  */
-public class ResourceServer {
+public class ResourceServer implements IResourceResolver {
   private ServerSocket serverSocket;
   private ExecutorService threadPool;
 
@@ -63,10 +63,17 @@ public class ResourceServer {
     return serverSocket.getLocalPort();
   }
 
-  public String getUrlForResource(IFile file) throws URISyntaxException {
-    URI uri = new URI("http", null, serverSocket.getInetAddress().getHostAddress(),
-        serverSocket.getLocalPort(), file.getFullPath().toPortableString(), null, null);
-    return uri.toString();
+  @Override
+  public String getUrlForResource(IFile file) {
+    try {
+      URI uri = new URI("http", null, serverSocket.getInetAddress().getHostAddress(),
+          serverSocket.getLocalPort(), file.getFullPath().toPortableString(), null, null);
+      return uri.toString();
+    } catch (URISyntaxException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return null;
+    }
   }
 
   /**

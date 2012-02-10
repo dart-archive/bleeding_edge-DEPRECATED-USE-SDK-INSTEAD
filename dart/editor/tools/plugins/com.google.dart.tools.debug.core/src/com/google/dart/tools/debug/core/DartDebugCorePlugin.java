@@ -56,6 +56,9 @@ public class DartDebugCorePlugin extends Plugin {
    */
   public static final boolean LOGGING = Boolean.getBoolean("dart.debug.logging");
 
+  // TODO(devoncarew): this is a temporary compile time flag -
+  public static final boolean ENABLE_DEBUGGING = false;
+
   public static final String BROWSER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.browserLaunchConfig";
 
   public static final String REMOTE_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.remoteLaunchConfig";

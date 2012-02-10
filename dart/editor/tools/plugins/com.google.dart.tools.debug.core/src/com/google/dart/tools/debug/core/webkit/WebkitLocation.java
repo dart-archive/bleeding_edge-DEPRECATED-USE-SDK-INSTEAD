@@ -19,8 +19,18 @@ import org.json.JSONObject;
 
 /**
  * A WIP location object.
+ * 
+ * @see http://code.google.com/chrome/devtools/docs/protocol/tot/debugger.html#type-Location
  */
 public class WebkitLocation {
+
+  public static int eclipseToWebkitLine(int line) {
+    return line - 1;
+  }
+
+  public static int webkitToElipseLine(int line) {
+    return line + 1;
+  }
 
   static WebkitLocation createFrom(JSONObject object) throws JSONException {
     WebkitLocation location = new WebkitLocation();

@@ -14,15 +14,15 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.NotYetImplementedException;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitBreakpoint;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.WebkitConnectionListener;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.DebuggerListenerAdapter;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
-import com.google.dart.tools.debug.core.webkit.WebkitFrame;
-import com.google.dart.tools.debug.core.webkit.WebkitPage.PageListenerAdapter;
-import com.google.dart.tools.debug.core.webkit.WebkitScript;
+import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.debug.core.DebugException;
@@ -53,7 +53,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
    * @param target
    */
   public DartiumDebugTarget(String debugTargetName, WebkitConnection connection, ILaunch launch,
-      Process javaProcess) {
+      Process javaProcess, IResourceResolver resourceResolver) {
     super(null);
 
     this.debugTargetName = debugTargetName;
@@ -63,7 +63,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     debugThread = new DartiumDebugThread(this);
     process = new DartiumProcess(this, javaProcess);
     outputStreamMonitor = new DartiumStreamMonitor();
-    breakpointManager = new BreakpointManager(this);
+    breakpointManager = new BreakpointManager(this, resourceResolver);
   }
 
   @Override
@@ -185,20 +185,16 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     connection.getDebugger().addDebuggerListener(new DebuggerListenerAdapter() {
       @Override
       public void debuggerBreakpointResolved(WebkitBreakpoint breakpoint) {
-        // TODO:
-
-        System.out.println("debuggerBreakpointResolved()");
+        breakpointManager.handleBreakpointResolved(breakpoint);
       }
 
       @Override
       public void debuggerGlobalObjectCleared() {
-        // TODO:
-
-        System.out.println("debuggerGlobalObjectCleared()");
+        breakpointManager.handleGlobalObjectCleared();
       }
 
       @Override
-      public void debuggerPaused(PausedReasonType reason, List<WebkitFrame> frames, Object data) {
+      public void debuggerPaused(PausedReasonType reason, List<WebkitCallFrame> frames, Object data) {
         debugThread.handleDebuggerSuspended(reason, frames);
       }
 
@@ -206,38 +202,21 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       public void debuggerResumed() {
         debugThread.handleDebuggerResumed();
       }
-
-      @Override
-      public void debuggerScriptParsed(WebkitScript script) {
-        if (script.getUrl().endsWith(".dart")) {
-          // TODO(devoncarew): remove this
-
-//          try {
-//            connection.getDebugger().setBreakpoint(script, 17,
-//                new LoggingWebkitCallback("setBreakpoint"));
-//          } catch (IOException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//          }
-        }
-      }
     });
     connection.getDebugger().enable();
 
     fireCreationEvent();
     process.fireCreationEvent();
 
-    connection.getPage().addPageListener(new PageListenerAdapter() {
-      @Override
-      public void frameNavigated(String frameId, String url) {
-        // handle page navigated
+    if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
+      // Set our existing breakpoints, and start listening for new breakpoints.
+      breakpointManager.connect();
 
-      }
-    });
+      // TODO(devoncarew): the VM does not yet support this, and we'd want a way to expose this in
+      // the UI as an toggle.
+      //connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
+    }
 
-    breakpointManager.connect();
-
-    connection.getPage().enable();
     connection.getPage().navigate(url);
   }
 

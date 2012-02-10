@@ -13,10 +13,9 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
-import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
-import com.google.dart.tools.debug.core.webkit.WebkitFrame;
+import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -117,7 +116,9 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public boolean isStepping() {
-    throw new NotYetImplementedException();
+    return expectedSuspendReason == DebugEvent.STEP_INTO
+        || expectedSuspendReason == DebugEvent.STEP_OVER
+        || expectedSuspendReason == DebugEvent.STEP_RETURN;
   }
 
   @Override
@@ -132,7 +133,14 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public void resume() throws DebugException {
-    throw new NotYetImplementedException();
+    try {
+      getConnection().getDebugger().resume();
+    } catch (IOException exception) {
+      // TODO(devoncarew): expected resume reason?
+      //expectedSuspendReason = DebugEvent.UNSPECIFIED;
+
+      throw createDebugException(exception);
+    }
   }
 
   @Override
@@ -140,7 +148,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     expectedSuspendReason = DebugEvent.STEP_END;
 
     try {
-      getTarget().getWebkitConnection().getDebugger().stepInto();
+      getConnection().getDebugger().stepInto();
     } catch (IOException exception) {
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
 
@@ -153,7 +161,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     expectedSuspendReason = DebugEvent.STEP_END;
 
     try {
-      getTarget().getWebkitConnection().getDebugger().stepOver();
+      getConnection().getDebugger().stepOver();
     } catch (IOException exception) {
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
 
@@ -167,7 +175,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     expectedSuspendReason = DebugEvent.STEP_END;
 
     try {
-      getTarget().getWebkitConnection().getDebugger().stepOut();
+      getConnection().getDebugger().stepOut();
     } catch (IOException exception) {
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
 
@@ -188,7 +196,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     expectedSuspendReason = DebugEvent.CLIENT_REQUEST;
 
     try {
-      getTarget().getWebkitConnection().getDebugger().pause();
+      getConnection().getDebugger().pause();
     } catch (IOException exception) {
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
 
@@ -201,14 +209,16 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     getDebugTarget().terminate();
   }
 
-  protected void handleDebuggerSuspended(PausedReasonType reason, List<WebkitFrame> webkitFrames) {
+  protected void handleDebuggerSuspended(PausedReasonType reason, List<WebkitCallFrame> webkitFrames) {
     int suspendReason = DebugEvent.BREAKPOINT;
 
     if (expectedSuspendReason != DebugEvent.UNSPECIFIED) {
       suspendReason = expectedSuspendReason;
     }
 
-    // TODO: suspendedBreakpoints
+    suspended = true;
+
+    // TODO(devoncarew): can we fill in the suspendedBreakpoints list?
 
     suspendedFrames = createFrames(webkitFrames);
 
@@ -222,7 +232,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     suspendedBreakpoints = EMPTY_BREAKPOINTS;
 
     // send event
-    // TODO: step events
+    // TODO(devoncarew): step events
     fireResumeEvent(DebugEvent.UNSPECIFIED);
   }
 
@@ -231,10 +241,10 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
         exception.getMessage(), exception));
   }
 
-  private IStackFrame[] createFrames(List<WebkitFrame> webkitFrames) {
+  private IStackFrame[] createFrames(List<WebkitCallFrame> webkitFrames) {
     List<IStackFrame> frames = new ArrayList<IStackFrame>();
 
-    for (WebkitFrame webkitFrame : webkitFrames) {
+    for (WebkitCallFrame webkitFrame : webkitFrames) {
       DartiumDebugStackFrame frame = new DartiumDebugStackFrame(getTarget(), this, webkitFrame);
 
       frames.add(frame);
