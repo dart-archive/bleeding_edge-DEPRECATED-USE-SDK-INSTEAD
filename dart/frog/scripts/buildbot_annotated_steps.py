@@ -18,21 +18,23 @@ BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 
 FROG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-BUILDER_PATTERN = r'(frog|frogsh|frogium)-(linux|mac|windows)-(debug|release)'
+# TODO(jmesserly): remove 'frogium' once builder is renamed
+FROG_BUILDER = r'(frog|frogsh|frogium)-(linux|mac|windows)-(debug|release)'
+WEB_BUILDER = r'web-(ie|ff|safari|chrome)-(win7|win8|mac|linux)(-(\d+))?'
 
 NO_COLOR_ENV = dict(os.environ)
 NO_COLOR_ENV['TERM'] = 'nocolor'
 
 # Patterns are of the form "dart_client-linux-chromium-debug"
-OLD_BUILDER = r'dart_client-(\w+)-chromium-(\w+)'
+OLD_CLIENT_BUILDER = r'dart_client-(\w+)-chromium-(\w+)'
 
 def GetBuildInfo():
   """Returns a tuple (name, mode, system) where:
     - name: 'frog', 'frogsh', 'frogium' or None when the builder has an
       incorrect name
     - mode: 'debug' or 'release'
-    - system: 'linux', 'mac', or 'windows'
-    - browser: 'ie', 'ff', 'safari', 'chrome', 'chrome_drt'
+    - system: 'linux', 'mac', or 'win7'
+    - browser: 'ie', 'ff', 'safari', 'chrome'
   """
   name = None
   mode = None
@@ -40,13 +42,19 @@ def GetBuildInfo():
   browser = None
   builder_name = os.environ.get(BUILDER_NAME)
   if builder_name:
-    pattern = re.match(BUILDER_PATTERN, builder_name)
-    if pattern:
-      name = pattern.group(1)
-      system = pattern.group(2)
-      mode = pattern.group(3)
 
-      # TODO(jmesserly): move this logic into the builder names
+    frog_pattern = re.match(FROG_BUILDER, builder_name)
+    web_pattern = re.match(WEB_BUILDER, builder_name)
+
+    # TODO(jmesserly): remove this once builder is renamed
+    old_client_pattern = re.match(OLD_CLIENT_BUILDER, builder_name)
+
+    if frog_pattern:
+      name = frog_pattern.group(1)
+      system = frog_pattern.group(2)
+      mode = frog_pattern.group(3)
+
+      # TODO(jmesserly): remove this once builder is renamed
       if name == 'frogium':
         # Note: even though the browsers can run on more than one OS, we
         # found identical browser behavior across OS, so we're not running
@@ -54,18 +62,27 @@ def GetBuildInfo():
         # browser+OS combinations into different bots.
         browsers = { 'windows': 'ie', 'mac': 'safari', 'linux': 'ff' }
         browser = browsers[system]
-    else:
-      # TODO(jmesserly): remove this once builder is renamed
-      pattern = re.match(OLD_BUILDER, builder_name)
-      if pattern:
-        name = 'frogium'
-        system = pattern.group(1)
-        mode = pattern.group(2)
-        browser = 'chrome_drt'
+    elif web_pattern:
+      name = 'frogium'
+      mode = 'release'
+      browser = web_pattern.group(1)
+      system = web_pattern.group(2)
 
-  # TODO(jmesserly): rename the frogium bots so we don't need this
+      # TODO(jmesserly): do we want to do anything different for the second IE
+      # bot? For now we're using it to track down flakiness.
+      number = web_pattern.group(4)
+
+    elif old_client_pattern:
+      name = 'frogium'
+      system = old_client_pattern.group(1)
+      mode = old_client_pattern.group(2)
+      browser = 'chrome'
+
+  # TODO(jmesserly): remove this once builder is renamed
   if name == 'frogium':
     mode = 'release'
+  if system == 'windows':
+    system = 'win7'
 
   return (name, mode, system, browser)
 
@@ -102,7 +119,7 @@ def BuildFrog(arch, mode, system):
    Args:
      - arch: either 'leg', 'frog', 'frogsh' (frog self-hosted), or 'frogium'
      - mode: either 'debug' or 'release'
-     - system: either 'linux', 'mac', or 'windows'
+     - system: either 'linux', 'mac', or 'win7'
   """
 
   # Make sure we are in the frog directory
@@ -119,7 +136,7 @@ def TestFrog(arch, mode, system, browser, flags):
    Args:
      - arch: either 'leg', 'frog', 'frogsh' (frog self-hosted), or 'frogium'
      - mode: either 'debug' or 'release'
-     - system: either 'linux', 'mac', or 'windows'
+     - system: either 'linux', 'mac', or 'win7'
      - browser: one of the browsers, see GetBuildInfo
      - flags: extra flags to pass to test.dart
   """
@@ -143,9 +160,11 @@ def TestFrog(arch, mode, system, browser, flags):
   else:
     tests = ['client', 'language', 'corelib', 'isolate', 'frog', 'peg', 'css']
 
-    if browser == 'chrome_drt':
-      # TODO(jmesserly): make DumpRenderTree more like other browser tests, so
-      # we don't have this translation step. See dartbug.com/1158
+    # TODO(jmesserly): make DumpRenderTree more like other browser tests, so
+    # we don't have this translation step. See dartbug.com/1158.
+    # Ideally we can run most Chrome tests in DumpRenderTree because it's more
+    # debuggable, but still have some tests run the full browser.
+    if browser == 'chrome':
       TestStep('browser', mode, system, 'frogium', tests, flags)
     else:
       TestStep(browser, mode, system, 'webdriver', tests,
