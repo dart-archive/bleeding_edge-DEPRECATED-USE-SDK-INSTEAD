@@ -829,6 +829,10 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
   # will need to add windows here once the windows builds are ready
   file_types = ['linlucful', 'macmacful']
   tmp_zip_name = None
+  #there is no dartum for windows so skip it
+  if 'win' in buildos:
+    return
+  
   try:
     file_name_re = re.compile('dartium-([lm].+)-(.+)-(\d+)\\..+')
     tmp_dir = os.path.join(buildroot, 'tmp')
