@@ -35,6 +35,10 @@ DartCombatTest: Skip
 dartcombat/DartCombatTest: Skip # Bug 5279716
 DartCombatTest: Skip
 
+[ $component == dartium && $mode == debug ]
+swarm/SwarmTest: Skip # Issue 1617
+SwarmTest: Skip
+
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
 dartcombat/DartCombatTest: Skip # passes locally but timeout on bot?
 DartCombatTest: Skip
