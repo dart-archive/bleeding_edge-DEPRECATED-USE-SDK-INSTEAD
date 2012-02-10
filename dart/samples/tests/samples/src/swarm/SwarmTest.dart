@@ -6,10 +6,10 @@
 
 #import('dart:html');
 #import('../../../../swarm/swarmlib.dart');
-#import('../../../../../client/base/base.dart');
+#import('../../../../ui_lib/base/base.dart');
+#import('../../../../ui_lib/view/view.dart');
+#import('../../../../ui_lib/util/utilslib.dart');
 #import('../../../../../client/testing/unittest/unittest.dart');
-#import('../../../../../client/view/view.dart');
-#import('../../../../../client/util/utilslib.dart');
 
 // TODO(jmesserly): these would probably be easier to debug if they were written
 // in the WebKit layout test style, so we could easy compare that the DOM is

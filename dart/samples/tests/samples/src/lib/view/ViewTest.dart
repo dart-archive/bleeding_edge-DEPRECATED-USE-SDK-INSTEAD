@@ -5,9 +5,9 @@
 #library('view_tests');
 
 #import('dart:html');
-#import('../../../base/base.dart');
-#import('../../../testing/unittest/unittest.dart');
-#import('../../../view/view.dart');
+#import('../../../../../ui_lib/base/base.dart');
+#import('../../../../../ui_lib/view/view.dart');
+#import('../../../../../../client/testing/unittest/unittest.dart');
 
 void main() {
   test('does not render immediately', () {

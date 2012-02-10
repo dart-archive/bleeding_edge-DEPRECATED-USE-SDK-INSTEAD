@@ -5,8 +5,8 @@
 #library('util_tests');
 
 #import('dart:html');
-#import('../../../testing/unittest/unittest.dart');
-#import('../../../util/utilslib.dart');
+#import('../../../../../../client/testing/unittest/unittest.dart');
+#import('../../../../../ui_lib/util/utilslib.dart');
 
 main() {
   test('insertAt', () {

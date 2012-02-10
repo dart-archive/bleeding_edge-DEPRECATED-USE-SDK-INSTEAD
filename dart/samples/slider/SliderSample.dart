@@ -31,6 +31,6 @@ class SliderSample  {
   }
 
   static void main() {
-    Dom.ready( () { new SliderSample().ready();} );
+    new SliderSample().ready();
   }
 }

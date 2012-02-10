@@ -5,8 +5,8 @@
 #library('observable_tests');
 
 #import('dart:html');
-#import('../../../observable/observable.dart');
-#import('../../../testing/unittest/unittest.dart');
+#import('../../../../../ui_lib/observable/observable.dart');
+#import('../../../../../../client/testing/unittest/unittest.dart');
 
 #source('AbstractObservableTests.dart');
 #source('ChangeEventTests.dart');

@@ -84,7 +84,7 @@ class IsolateSample  {
   }
 
   static void main() {
-    Dom.ready(void _() { new IsolateSample().ready(); });
+    new IsolateSample().ready();
   }
 
   // TODO(mattsh) get this off the System object once it's available

@@ -22,6 +22,8 @@ chat/ChatServerTest: Skip
 chat/HttpTest: Skip
 chat/HttpParserTest: Skip
 chat/UrlEncodingTest: Skip
+lib/layout/LayoutTest: Skip # Issue 152
+lib/touch/TouchTest: Skip # Issue 157
 ChatServerTest: Skip
 HttpTest: Skip
 HttpParserTest: Skip
@@ -48,6 +50,11 @@ dartcombat/DartCombatTest: Skip
 DartCombatTest: Skip
 SwarmTest: Skip
 swarm/SwarmTest: Skip
+lib/layout/LayoutTest: Skip
+lib/touch/TouchTest: Skip
+lib/observable/ObservableTest: Skip
+lib/util/UtilTest: Skip
+lib/view/ViewTest: Skip
 
 [ $component == frog ]
 *: Skip

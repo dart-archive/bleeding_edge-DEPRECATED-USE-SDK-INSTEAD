@@ -5,11 +5,11 @@
 #library('layout_tests');
 
 #import('dart:html');
-#import('../../../base/base.dart');
-#import('../../../layout/layout.dart');
-#import('../../../view/view.dart');
-#import('../../../testing/unittest/unittest.dart');
-#import('../../../util/utilslib.dart');
+#import('../../../../../ui_lib/base/base.dart');
+#import('../../../../../ui_lib/layout/layout.dart');
+#import('../../../../../ui_lib/view/view.dart');
+#import('../../../../../ui_lib/util/utilslib.dart');
+#import('../../../../../../client/testing/unittest/unittest.dart');
 
 #source('GridLayoutDemo.dart');
 #source('GridExamples.dart');

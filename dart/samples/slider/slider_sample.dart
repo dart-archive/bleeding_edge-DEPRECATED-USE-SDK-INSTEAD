@@ -5,8 +5,7 @@
 #library('slider_sample');
 
 #import('dart:html');
-#import('../../client/base/base.dart');
-#import('../../client/view/view.dart');
+#import('../ui_lib/view/view.dart');
 
 #source('SliderSample.dart');
 

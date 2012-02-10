@@ -7,11 +7,11 @@
 #import('dart:coreimpl');
 #import('dart:json');
 #import('dart:html');
-#import('../../client/base/base.dart');
-#import('../../client/view/view.dart');
-#import('../../client/observable/observable.dart');
-#import('../../client/touch/touch.dart');
-#import('../../client/util/utilslib.dart');
+#import('../ui_lib/base/base.dart');
+#import('../ui_lib/view/view.dart');
+#import('../ui_lib/observable/observable.dart');
+#import('../ui_lib/touch/touch.dart');
+#import('../ui_lib/util/utilslib.dart');
 
 #source('App.dart');
 #source('BiIterator.dart');

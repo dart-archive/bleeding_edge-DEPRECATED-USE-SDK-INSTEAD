@@ -5,16 +5,16 @@
 #library('grid_layout_demo');
 
 #import('dart:html');
-#import('../../../observable/observable.dart');
-#import('../../../base/base.dart');
-#import('../../../touch/touch.dart');
-#import('../../../util/utilslib.dart');
-#import('../../../view/view.dart');
+#import('../../../../../ui_lib/observable/observable.dart');
+#import('../../../../../ui_lib/base/base.dart');
+#import('../../../../../ui_lib/touch/touch.dart');
+#import('../../../../../ui_lib/util/utilslib.dart');
+#import('../../../../../ui_lib/view/view.dart');
 
 #source('GridLayoutDemo.dart');
 #source('GridExamples.dart');
 #source('CSS.dart');
 
 void main() {
-  Dom.ready(_onLoad);
+  _onLoad();
 }
