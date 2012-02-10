@@ -20,7 +20,7 @@ FROG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # TODO(jmesserly): remove 'frogium' once builder is renamed
 FROG_BUILDER = r'(frog|frogsh|frogium)-(linux|mac|windows)-(debug|release)'
-WEB_BUILDER = r'web-(ie|ff|safari|chrome)-(win7|win8|mac|linux)(-(\d+))?'
+WEB_BUILDER = r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(\d+))?'
 
 NO_COLOR_ENV = dict(os.environ)
 NO_COLOR_ENV['TERM'] = 'nocolor'
