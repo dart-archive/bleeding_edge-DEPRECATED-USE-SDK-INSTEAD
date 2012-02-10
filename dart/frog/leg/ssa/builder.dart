@@ -161,6 +161,54 @@ class LocalsHandler {
         builder = other.builder,
         closureData = other.closureData;
 
+  /**
+   * Redirects accesses from element [from] to element [to]. The [to] element
+   * must be a boxed variable or a variable that is stored in a closure-field.
+   */
+  void redirectElement(Element from, Element to) {
+    assert(redirectionMapping[from] === null);
+    redirectionMapping[from] = to;
+    assert(isStoredInClosureField(from) || isBoxed(from));
+  }
+
+  /**
+   * If the scope (function or loop) [node] has captured variables then this
+   * method creates a box and sets up the redirections.
+   */
+  void enterScope(Node node) {
+    // See if any variable in the top-scope of the function is captured. If yes
+    // we need to create a box-object.
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData !== null) {
+      // The scope has captured variables. Create a box.
+      // TODO(floitsch): Clean up this hack. Should we create a box-object by
+      // just creating an empty object literal?
+      HInstruction box = new HForeign(const SourceString("{}"),
+                                      const SourceString('Object'),
+                                      <HInstruction>[]);
+      builder.add(box);
+      // Add the box to the known locals.
+      directLocals[scopeData.boxElement] = box;
+      // Make sure that accesses to the boxed locals go into the box. We also
+      // need to make sure that parameters are copied into the box if necessary.
+      scopeData.capturedVariableMapping.forEach((Element from, Element to) {
+        // The [from] can only be a parameter for function-scopes and not
+        // loop scopes.
+        if (from.kind == ElementKind.PARAMETER) {
+          // Store the captured parameter in the box. Get the current value
+          // before we put the redirection in place.
+          HInstruction instruction = readLocal(from);
+          redirectElement(from, to);
+          // Now that the redirection is set up, the update to the local will
+          // write the parameter value into the box.
+          updateLocal(from, instruction);
+        } else {
+          redirectElement(from, to);
+        }
+      });
+    }    
+  }
+
   void startFunction(FunctionElement function,
                      FunctionExpression node) {
 
@@ -184,43 +232,7 @@ class LocalsHandler {
       directLocals[element] = parameter;
     });
 
-    // Redirects accesses from element [from] to element [to]. The [to] element
-    // must be a boxed variable or a variable that is stored in a closure-field.
-    void redirectElement(Element from, Element to) {
-      assert(redirectionMapping[from] === null);
-      redirectionMapping[from] = to;
-      assert(isStoredInClosureField(from) || isBoxed(from));
-    }
-
-    // See if any variable in the top-scope of the function is captured. If yes
-    // we need to create a box-object.
-    ClosureScope scopeData = closureData.capturingScopes[node];
-    if (scopeData !== null) {
-      // The top-scope has captured variables. Create a box.
-      // TODO(floitsch): Clean up this hack. Should we create a box-object by
-      // just creating an empty object literal?
-      HInstruction box = new HForeign(const SourceString("{}"),
-                                      const SourceString('Object'),
-                                      <HInstruction>[]);
-      builder.add(box);
-      // Add the box to the known locals.
-      directLocals[scopeData.boxElement] = box;
-      // Make sure that accesses to the boxed locals go into the box. We also
-      // need to make sure that parameters are copied into the box if necessary.
-      scopeData.capturedVariableMapping.forEach((Element from, Element to) {
-        if (from.kind == ElementKind.PARAMETER) {
-          // Store the captured parameter in the box. Get the current value
-          // before we put the redirection in place.
-          HInstruction instruction = readLocal(from);
-          redirectElement(from, to);
-          // Now that the redirection is set up, the update to the local will
-          // write the parameter value into the box.
-          updateLocal(from, instruction);
-        } else {
-          redirectElement(from, to);
-        }
-      });
-    }
+    enterScope(node);
 
     // If the freeVariableMapping is not empty, then this function was a
     // nested closure that captures variables. Redirect the captured
@@ -228,6 +240,29 @@ class LocalsHandler {
     closureData.freeVariableMapping.forEach((Element from, Element to) {
       redirectElement(from, to);
     });
+  }
+
+  /**
+   * Returns true if the [For] loop declares a variable that is boxed.
+   */
+  bool isForLoopDeclaringBoxedLoopVariable(Loop node) {
+    For forNode = node.asFor();
+    if (forNode === null) return false;
+    VariableDefinitions definitions =
+        forNode.initializer.asVariableDefinitions();
+    if (definitions == null) return false;
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData === null) return false;
+    Map<Element, Element> capturedVariableMapping =
+        scopeData.capturedVariableMapping;
+    for (Link<Node> link = definitions.definitions.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      Node definition = link.head;
+      Element element = builder.elements[definition];
+      if (capturedVariableMapping.containsKey(element)) return true;
+    }
+    return false;
   }
 
   bool hasValueForDirectLocal(Element element) {
@@ -345,11 +380,6 @@ class LocalsHandler {
   }
 
   void startLoop(Node node, HBasicBlock loopEntry) {
-    ClosureScope scopeData = closureData.capturingScopes[node];
-    if (scopeData !== null) {
-      builder.compiler.unimplemented("Captured variable in a loop", node: node);
-    }
-
     // Create a copy because we modify the map while iterating over
     // it.
     Map<Element, HInstruction> saved =
@@ -366,6 +396,8 @@ class LocalsHandler {
         directLocals[element] = instruction;
       }
     });
+
+    enterScope(node);
   }
 
   void endLoop(HBasicBlock loopEntry) {
@@ -755,6 +787,12 @@ class SsaBuilder implements Visitor {
   // For while loops, initializer and update are null.
   visitLoop(Node loop, Node initializer, Expression condition, NodeList updates,
             Node body) {
+    if ((condition !== null || updates !== null) &&
+        localsHandler.isForLoopDeclaringBoxedLoopVariable(loop)) {
+      compiler.unimplemented("SsaBuilder for loop with boxed loop variable",
+                             node: loop);
+    }
+
     assert(condition !== null && body !== null);
     // The initializer.
     if (initializer !== null) {

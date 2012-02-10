@@ -486,6 +486,7 @@ class For extends Loop {
     if (initializer !== null) initializer.accept(visitor);
     if (conditionStatement !== null) conditionStatement.accept(visitor);
     if (update !== null) update.accept(visitor);
+    if (body !== null) body.accept(visitor);
   }
 
   Token getBeginToken() => forToken;

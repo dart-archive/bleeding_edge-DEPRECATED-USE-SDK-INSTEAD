@@ -243,7 +243,7 @@ class ClosureTranslator extends AbstractVisitor {
   visitLoop(Loop node) {
     List<Element> oldScopeVariables = scopeVariables;
     scopeVariables = new List<Element>();
-    super.visitLoop(node);
+    node.visitChildren(this);
     attachCapturedScopeVariables(node);
     scopeVariables = oldScopeVariables;
   }
