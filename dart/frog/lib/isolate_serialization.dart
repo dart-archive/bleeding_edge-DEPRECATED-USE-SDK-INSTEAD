@@ -50,7 +50,8 @@ class MessageTraverser {
     if (isPrimitive(x)) return visitPrimitive(x);
     if (x is List) return visitList(x);
     if (x is Map) return visitMap(x);
-    if (x is SendPortImpl) return visitSendPort(x);
+    if (x is NativeJsSendPort) return visitNativeJsSendPort(x);
+    if (x is WorkerSendPort) return visitWorkerSendPort(x);
     if (x is ReceivePortImpl) return visitReceivePort(x);
     if (x is ReceivePortSingleShotImpl) return visitReceivePortSingleShot(x);
     // TODO(floitsch): make this a real exception. (which one)?
@@ -60,7 +61,8 @@ class MessageTraverser {
   abstract visitPrimitive(x);
   abstract visitList(List x);
   abstract visitMap(Map x);
-  abstract visitSendPort(SendPortImpl x);
+  abstract visitNativeJsSendPort(NativeJsSendPort x);
+  abstract visitWorkerSendPort(WorkerSendPort x);
   abstract visitReceivePort(ReceivePortImpl x);
   abstract visitReceivePortSingleShot(ReceivePortSingleShotImpl x);
 
@@ -110,10 +112,13 @@ class Copier extends MessageTraverser {
     return copy;
   }
 
-  SendPort visitSendPort(SendPortImpl port) {
-    return new SendPortImpl(port._workerId,
-                            port._isolateId,
-                            port._receivePortId);
+  SendPort visitNativeJsSendPort(NativeJsSendPort port) {
+    return new NativeJsSendPort(port._receivePort, port._isolateId);
+  }
+
+  SendPort visitWorkerSendPort(WorkerSendPort port) {
+    return new WorkerSendPort(
+        port._workerId, port._isolateId, port._receivePortId);
   }
 
   SendPort visitReceivePort(ReceivePortImpl port) {
@@ -154,16 +159,21 @@ class Serializer extends MessageTraverser {
     return ['map', id, keys, values];
   }
 
-  visitSendPort(SendPortImpl port) {
+  visitNativeJsSendPort(NativeJsSendPort port) {
+    return ['sendport', _globalState.currentWorkerId,
+        port._isolateId, port._receivePort._id];
+  }
+
+  visitWorkerSendPort(WorkerSendPort port) {
     return ['sendport', port._workerId, port._isolateId, port._receivePortId];
   }
 
   visitReceivePort(ReceivePortImpl port) {
-    return visitSendPort(port.toSendPort());;
+    return visitNativeJsSendPort(port.toSendPort());;
   }
 
   visitReceivePortSingleShot(ReceivePortSingleShotImpl port) {
-    return visitSendPort(port.toSendPort());
+    return visitNativeJsSendPort(port.toSendPort());
   }
 
   _serializeList(List list) {
@@ -245,9 +255,17 @@ class Deserializer {
     int workerId = x[1];
     int isolateId = x[2];
     int receivePortId = x[3];
-    return new SendPortImpl(workerId, isolateId, receivePortId);
+    // If two isolates are in the same worker, we use NativeJsSendPorts to
+    // deliver messages directly without using postMessage.
+    if (workerId == _globalState.currentWorkerId) {
+      var isolate = _globalState.isolates[isolateId];
+      if (isolate == null) return null; // Isolate has been closed.
+      var receivePort = isolate.lookup(receivePortId);
+      return new NativeJsSendPort(receivePort, isolateId);
+    } else {
+      return new WorkerSendPort(workerId, isolateId, receivePortId);
+    }
   }
 
-  // TODO(floitsch): this should by Map<int, var> or Map<int, Dynamic>.
   Map<int, Dynamic> _deserialized;
 }

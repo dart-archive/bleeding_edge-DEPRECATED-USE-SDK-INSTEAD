@@ -326,21 +326,12 @@ class IsolateEvent {
   }
 }
 
-/** Implementation of a send port on top of JavaScript. */
-class SendPortImpl implements SendPort {
+/** Common functionality to all send ports. */
+class BaseSendPort implements SendPort {
+  /** Id for the destination isolate. */
+  final int _isolateId;
 
-  const SendPortImpl(this._workerId, this._isolateId, this._receivePortId);
-
-  void send(var message, [SendPort replyTo = null]) {
-    if (replyTo !== null && !(replyTo is SendPortImpl)) {
-      throw "SendPort::send: Illegal replyTo type.";
-    }
-    IsolateNatives._sendMessage(_workerId, _isolateId, _receivePortId,
-        _serializeMessage(message), _serializeMessage(replyTo));
-  }
-
-  // TODO(sigmund): get rid of _sendNow (still used in corelib code)
-  void _sendNow(var message, replyTo) { send(message, replyTo); }
+  BaseSendPort(this._isolateId);
 
   ReceivePortSingleShotImpl call(var message) {
     final result = new ReceivePortSingleShotImpl();
@@ -348,26 +339,113 @@ class SendPortImpl implements SendPort {
     return result;
   }
 
-  ReceivePortSingleShotImpl _callNow(var message) {
-    final result = new ReceivePortSingleShotImpl();
-    send(message, result.toSendPort());
-    return result;
+  static void checkReplyTo(SendPort replyTo) {
+    if (replyTo !== null && replyTo is! NativeJsSendPort
+        && replyTo is! WorkerSendPort) {
+      throw "SendPort.send: Illegal replyTo port type.";
+    }
   }
 
-  bool operator==(var other) {
-    return (other is SendPortImpl) &&
+  // TODO(sigmund): replace the current SendPort.call with the following:
+  //Future call(var message) {
+  //   final completer = new Completer();
+  //   final port = new ReceivePort.singleShot();
+  //   send(message, port.toSendPort());
+  //   port.receive((value, ignoreReplyTo) {
+  //     if (value is Exception) {
+  //       completer.completeException(value);
+  //     } else {
+  //       completer.complete(value);
+  //     }
+  //   });
+  //   return completer.future;
+  //}
+
+  abstract void send(var message, [SendPort replyTo]);
+  abstract bool operator ==(var other);
+  abstract int hashCode();
+}
+
+/** A send port that delivers messages in-memory via native JavaScript calls. */
+class NativeJsSendPort extends BaseSendPort implements SendPort {
+  final ReceivePortImpl _receivePort;
+
+  const NativeJsSendPort(this._receivePort, int isolateId) : super(isolateId);
+
+  void send(var message, [SendPort replyTo = null]) {
+    checkReplyTo(replyTo);
+    // Check that the isolate still runs and the port is still open
+    final isolate = _globalState.isolates[_isolateId];
+    if (isolate == null) return;
+    if (_receivePort._callback == null) return;
+
+    // We force serialization/deserialization as a simple way to ensure isolate
+    // communication restrictions are respected between isolates that live in
+    // the same worker. NativeJsSendPort delivers both messages from the same
+    // worker and messages from other workers. In particular, messages sent from
+    // a worker via a WorkerSendPort are received at [_processWorkerMessage] and
+    // forwarded to a native port. In such cases, here we'll see
+    // [_globalState.currentContext == null].
+    final shouldSerialize = _globalState.currentContext != null
+        && _globalState.currentContext.id != _isolateId;
+    var msg = message;
+    var reply = replyTo;
+    if (shouldSerialize) {
+      msg = _serializeMessage(msg);
+      reply = _serializeMessage(reply);
+    }
+    _globalState.topEventLoop.enqueue(isolate, () {
+      if (_receivePort._callback != null) {
+        if (shouldSerialize) {
+          msg = _deserializeMessage(msg);
+          reply = _deserializeMessage(reply);
+        }
+        _receivePort._callback(msg, reply);
+      }
+    }, 'receive ' + message);
+  }
+
+  bool operator ==(var other) => (other is NativeJsSendPort) &&
+      (_receivePort == other._receivePort);
+
+  int hashCode() => _receivePort._id;
+}
+
+/** A send port that delivers messages via worker.postMessage. */
+class WorkerSendPort extends BaseSendPort implements SendPort {
+  final int _workerId;
+  final int _receivePortId;
+
+  const WorkerSendPort(this._workerId, int isolateId, this._receivePortId)
+      : super(isolateId);
+
+  void send(var message, [SendPort replyTo = null]) {
+    checkReplyTo(replyTo);
+    final workerMessage = _serializeMessage({
+        'command': 'message',
+        'port': this,
+        'msg': message,
+        'replyTo': replyTo});
+
+    if (_globalState.isWorker) {
+      // communication from one worker to another go through the main worker:
+      _globalState.mainWorker.postMessage(workerMessage);
+    } else {
+      _globalState.workers[_workerId].postMessage(workerMessage);
+    }
+  }
+
+  bool operator ==(var other) {
+    return (other is WorkerSendPort) &&
         (_workerId == other._workerId) &&
         (_isolateId == other._isolateId) &&
         (_receivePortId == other._receivePortId);
   }
 
   int hashCode() {
+    // TODO(sigmund): use a standard hash when we get one available in corelib.
     return (_workerId << 16) ^ (_isolateId << 8) ^ _receivePortId;
   }
-
-  final int _receivePortId;
-  final int _isolateId;
-  final int _workerId;
 }
 
 /** Default factory for receive ports. */
@@ -384,6 +462,10 @@ class ReceivePortFactory {
 
 /** Implementation of a multi-use [ReceivePort] on top of JavaScript. */
 class ReceivePortImpl implements ReceivePort {
+  int _id;
+  Function _callback;
+  static int _nextFreeId = 1;
+
   ReceivePortImpl()
       : _id = _nextFreeId++ {
     _globalState.currentContext.register(_id, this);
@@ -398,19 +480,9 @@ class ReceivePortImpl implements ReceivePort {
     _globalState.currentContext.unregister(_id);
   }
 
-  /**
-   * Returns a fresh [SendPort]. The implementation is not allowed to cache
-   * existing ports.
-   */
   SendPort toSendPort() {
-    return new SendPortImpl(
-        _globalState.currentWorkerId, _globalState.currentContext.id, _id);
+    return new NativeJsSendPort(this, _globalState.currentContext.id);
   }
-
-  int _id;
-  Function _callback;
-
-  static int _nextFreeId = 1;
 }
 
 /** Implementation of a single-shot [ReceivePort]. */
@@ -551,8 +623,7 @@ class IsolateNatives {
         _spawnWorker(msg['factoryName'], msg['replyPort']);
         break;
       case 'message':
-        _sendMessage(msg['workerId'], msg['isolateId'], msg['portId'],
-            msg['msg'], msg['replyTo']);
+        msg['port'].send(msg['msg'], msg['replyTo']);
         _globalState.topEventLoop.run();
         break;
       case 'close':
@@ -637,38 +708,5 @@ class IsolateNatives {
     ReceivePort port = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
     isolate._run(port);
-  }
-
-  static void _sendMessage(int workerId, int isolateId, int receivePortId,
-      message, replyTo) {
-    // Both the message and the replyTo are already serialized.
-    if (workerId == _globalState.currentWorkerId) {
-      var isolate = _globalState.isolates[isolateId];
-      if (isolate == null) return;  // Isolate has been closed.
-      var receivePort = isolate.lookup(receivePortId);
-      if (receivePort == null) return;  // ReceivePort has been closed.
-      _globalState.topEventLoop.enqueue(isolate, () {
-        if (receivePort._callback != null) {
-          receivePort._callback(
-            _deserializeMessage(message), _deserializeMessage(replyTo));
-        }
-      }, 'receive ' + message);
-    } else {
-      var worker;
-      // communication between workers go through the main worker
-      if (_globalState.isWorker) {
-        worker = _globalState.mainWorker;
-      } else {
-        // TODO(sigmund): make sure this works
-        worker = _globalState.workers[workerId];
-      }
-      worker.postMessage(_serializeMessage({
-          'command': 'message',
-          'workerId': workerId,
-          'isolateId': isolateId,
-          'portId': receivePortId,
-          'msg': message,
-          'replyTo': replyTo }));
-    }
   }
 }
