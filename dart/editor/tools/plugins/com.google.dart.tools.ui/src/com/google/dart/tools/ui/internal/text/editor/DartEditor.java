@@ -16,8 +16,8 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -25,6 +25,8 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
+import com.google.dart.tools.core.utilities.ast.DartElementLocator;
+import com.google.dart.tools.core.utilities.ast.NameOccurrencesFinder;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -73,7 +75,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -1772,6 +1773,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private final ASTCache astCache = new ASTCache();
 
+  private boolean isEditableStateKnown;
+  private boolean isEditable;
+
   /**
    * Default constructor.
    */
@@ -2144,6 +2148,26 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     sourceViewer.revealRange(targetOffset, selection.getLength());
   }
 
+  @Override
+  public boolean isDirty() {
+    return isContentEditable() ? super.isDirty() : false;
+  }
+
+  @Override
+  public boolean isEditable() {
+    return isContentEditable() ? super.isEditable() : false;
+  }
+
+  @Override
+  public boolean isEditorInputModifiable() {
+    return isContentEditable() ? super.isEditorInputModifiable() : false;
+  }
+
+  @Override
+  public boolean isEditorInputReadOnly() {
+    return isContentEditable() ? super.isEditorInputReadOnly() : true;
+  }
+
   /**
    * Informs the editor that its outliner has been closed.
    */
@@ -2275,6 +2299,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected boolean affectsTextPresentation(PropertyChangeEvent event) {
     return ((DartSourceViewerConfiguration) getSourceViewerConfiguration()).affectsTextPresentation(event)
         || super.affectsTextPresentation(event);
+  }
+
+  protected void checkEditableState() {
+    isEditableStateKnown = false;
   }
 
   /*
@@ -3155,7 +3183,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     setPreferenceStore(store);
     setSourceViewerConfiguration(createDartSourceViewerConfiguration());
     fMarkOccurrenceAnnotations = store.getBoolean(PreferenceConstants.EDITOR_MARK_OCCURRENCES);
-    fMarkOccurrenceAnnotations = false; // TODO re-enable when implemented
     fStickyOccurrenceAnnotations = store.getBoolean(PreferenceConstants.EDITOR_STICKY_OCCURRENCES);
     fMarkTypeOccurrences = store.getBoolean(PreferenceConstants.EDITOR_MARK_TYPE_OCCURRENCES);
     fMarkMethodOccurrences = store.getBoolean(PreferenceConstants.EDITOR_MARK_METHOD_OCCURRENCES);
@@ -3300,6 +3327,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     } finally {
       projectionViewer.setRedraw(true);
+      checkEditableState();
     }
   }
 
@@ -3604,13 +3632,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     DartX.todo("marking");
     List<DartNode> matches = null;
 
-    try {
-      DartNode selectedNode = NodeFinder.perform(astRoot, selection.getOffset(),
-          selection.getLength());
-    } catch (NullPointerException ex) {
-      // TODO Got a bad AST; what should happen here?
-      return;
-    }
+    CompilationUnit input = getInputDartElement().getAncestor(CompilationUnit.class);
+    DartElementLocator locator = new DartElementLocator(input, selection.getOffset(),
+        selection.getOffset() + selection.getLength(), true);
+    DartElement selectedModelNode = locator.searchWithin(astRoot);
+    Element selectedNode = locator.getResolvedElement();
 
 //    if (fMarkExceptions || fMarkTypeOccurrences) {
 //      ExceptionOccurrencesFinder exceptionFinder = new ExceptionOccurrencesFinder();
@@ -3657,18 +3683,25 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
 //    if (matches == null) {
 //      IBinding binding = null;
-//      if (selectedNode instanceof Name)
+//      if (selectedNode instanceof Name) {
 //        binding = ((Name) selectedNode).resolveBinding();
+//      }
 //
 //      if (binding != null && markOccurrencesOfType(binding)) {
 //        // Find the matches && extract positions so we can forget the AST
 //        NameOccurrencesFinder finder = new NameOccurrencesFinder(binding);
 //        String message = finder.initialize(astRoot, selectedNode);
-//        if (message == null)
+//        if (message == null) {
 //          matches = finder.perform();
+//        }
 //      }
 //    }
 
+    if (matches == null && selectedModelNode != null && selectedNode != null) {
+      NameOccurrencesFinder finder = new NameOccurrencesFinder(selectedNode);
+      finder.searchWithin(astRoot);
+      matches = finder.getMatches();
+    }
     if (matches == null || matches.size() == 0) {
       if (!fStickyOccurrenceAnnotations) {
         removeOccurrenceAnnotations();
@@ -3680,14 +3713,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     int i = 0;
     for (Iterator<DartNode> each = matches.iterator(); each.hasNext();) {
       DartNode currentNode = each.next();
-      positions[i++] = new Position(currentNode.getStartPosition(), currentNode.getLength());
+      positions[i++] = new Position(currentNode.getSourceStart(), currentNode.getSourceLength());
     }
 
-    fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);
-    // fOccurrencesFinderJob.setPriority(Job.DECORATE);
-    // fOccurrencesFinderJob.setSystem(true);
-    // fOccurrencesFinderJob.schedule();
-    fOccurrencesFinderJob.run(new NullProgressMonitor());
+//    fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);
+//    fOccurrencesFinderJob.setPriority(Job.DECORATE);
+//    fOccurrencesFinderJob.setSystem(true);
+//    fOccurrencesFinderJob.schedule();
+//    fOccurrencesFinderJob.run(new NullProgressMonitor());
   }
 
   /*
@@ -3900,6 +3933,27 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
+  /*
+   * Tells whether the content is editable.
+   */
+  private boolean isContentEditable() {
+    if (true) {
+      return true;
+    }
+    if (!isEditableStateKnown) {
+      IDocumentProvider p = getDocumentProvider();
+      if (p instanceof ICompilationUnitDocumentProvider) {
+        ICompilationUnitDocumentProvider prov = (ICompilationUnitDocumentProvider) getDocumentProvider();
+        CompilationUnit unit = prov.getWorkingCopy(getEditorInput());
+        isEditable = !unit.isReadOnly();
+      } else {
+        isEditable = true;
+      }
+      isEditableStateKnown = true;
+    }
+    return isEditable;
+  }
+
   private boolean isJavaEditorHoverProperty(String property) {
     return PreferenceConstants.EDITOR_TEXT_HOVER_MODIFIERS.equals(property);
   }
@@ -3963,4 +4017,5 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     }
   }
+
 }

@@ -652,10 +652,10 @@
          markerSeverity="0">
       </type>
       <type
-         name="org.eclipse.wst.jsdt.ui.occurrences">
+         name="com.google.dart.tools.ui.occurrences">
       </type>
       <type
-         name="org.eclipse.wst.jsdt.ui.overrideIndicator">
+         name="com.google.dart.tools.ui.overrideIndicator">
       </type>
    </extension>
    <extension
@@ -673,7 +673,7 @@
             annotationImageProvider="org.eclipse.wst.jsdt.internal.ui.javaeditor.JavaAnnotationImageProvider">
       </specification>
      <specification
-            annotationType="org.eclipse.wst.jsdt.ui.occurrences"
+            annotationType="com.google.dart.tools.ui.occurrences"
             label="%OccurrenceAnnotation.label"
             icon="$nl$/icons/full/obj16/searchm_obj.gif"
             textPreferenceKey="javaScriptOccurrenceIndication"
@@ -691,15 +691,15 @@
             showInNextPrevDropdownToolbarActionKey="javaScriptShowOccurrenceInNextPrevDropdownToolbarAction"
             showInNextPrevDropdownToolbarAction="true"
             isGoToNextNavigationTargetKey="javaScriptIsOccurrenceGoToNextNavigationTarget"
-           isGoToNextNavigationTarget="false"
+            isGoToNextNavigationTarget="false"
             isGoToPreviousNavigationTargetKey="javaScriptIsOccurrenceGoToPreviousNavigationTarget"
-           isGoToPreviousNavigationTarget="false">
+            isGoToPreviousNavigationTarget="false">
      </specification>
      <specification
-            annotationType="org.eclipse.wst.jsdt.ui.overrideIndicator"
+            annotationType="com.google.dart.tools.ui.overrideIndicator"
             label="%OverrideIndicator.label"
             icon="$nl$/icons/full/ovr16/over_co.gif"
-         annotationImageProvider ="org.eclipse.wst.jsdt.internal.ui.javaeditor.OverrideIndicatorImageProvider"
+            annotationImageProvider ="org.eclipse.wst.jsdt.internal.ui.javaeditor.OverrideIndicatorImageProvider"
             textPreferenceKey="javaScriptOverrideIndicator"
             textPreferenceValue="false"
             highlightPreferenceKey="javaScriptOverrideIndicatorHighlighting"
@@ -715,9 +715,9 @@
             showInNextPrevDropdownToolbarActionKey="javaScriptShowoverrideIndicatorInNextPrevDropdownToolbarAction"
             showInNextPrevDropdownToolbarAction="false"
             isGoToNextNavigationTargetKey="javaScriptIsOverrideIndicatorGoToNextNavigationTarget"
-           isGoToNextNavigationTarget="false"
+            isGoToNextNavigationTarget="false"
             isGoToPreviousNavigationTargetKey="javaScriptIsOverrideIndicatorGoToPreviousNavigationTarget"
-           isGoToPreviousNavigationTarget="false">
+            isGoToPreviousNavigationTarget="false">
      </specification>
 
       <!-- linked annotations -->

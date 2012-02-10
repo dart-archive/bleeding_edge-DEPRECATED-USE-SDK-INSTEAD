@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpConstants;
 import com.google.dart.tools.ui.internal.text.IJavaThemeConstants;
@@ -3516,7 +3517,8 @@ public class PreferenceConstants {
 //        FormatterProfileManager.DEFAULT_PROFILE);
 
     // mark occurrences
-    store.setDefault(PreferenceConstants.EDITOR_MARK_OCCURRENCES, true);
+    boolean enable = DartCoreDebug.ENABLE_MARK_OCCURRENCES;
+    store.setDefault(PreferenceConstants.EDITOR_MARK_OCCURRENCES, enable);
     store.setDefault(PreferenceConstants.EDITOR_STICKY_OCCURRENCES, true);
     store.setDefault(PreferenceConstants.EDITOR_MARK_TYPE_OCCURRENCES, true);
     store.setDefault(PreferenceConstants.EDITOR_MARK_METHOD_OCCURRENCES, true);

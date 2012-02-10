@@ -1518,6 +1518,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     super.doSetInput(input);
     configureToggleCommentAction();
     if (fJavaEditorErrorTickUpdater != null) {
+      checkEditableState();
       fJavaEditorErrorTickUpdater.updateEditorImage(getInputDartElement());
     }
   }
@@ -1774,6 +1775,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       if (p instanceof ICompilationUnitDocumentProvider) {
         ICompilationUnitDocumentProvider cp = (ICompilationUnitDocumentProvider) p;
         cp.setSavePolicy(null);
+        checkEditableState();
       }
     }
   }

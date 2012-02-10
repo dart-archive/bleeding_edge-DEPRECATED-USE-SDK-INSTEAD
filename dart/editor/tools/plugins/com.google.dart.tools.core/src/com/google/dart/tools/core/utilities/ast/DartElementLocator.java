@@ -117,6 +117,12 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
   private ChildVisitor<Void> childVisitor = new ChildVisitor<Void>(this);
 
   /**
+   * The resolved element that was found that corresponds to the given source range, or
+   * <code>null</code> if there is no such element.
+   */
+  private Element resolvedElement;
+
+  /**
    * Initialize a newly created locator to locate one or more {@link DartElement Dart elements} by
    * locating the node within the given compilation unit that corresponds to the given offset in the
    * source.
@@ -185,13 +191,23 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
   }
 
   /**
-   * Return element that was found that corresponds to the given source range, or <code>null</code>
-   * if there is no such element.
+   * Return the element that was found that corresponds to the given source range, or
+   * <code>null</code> if there is no such element.
    * 
    * @return the element that was found
    */
   public DartElement getFoundElement() {
     return foundElement;
+  }
+
+  /**
+   * Return the resolved element that was found that corresponds to the given source range, or
+   * <code>null</code> if there is no such element.
+   * 
+   * @return the element that was found
+   */
+  public Element getResolvedElement() {
+    return resolvedElement;
   }
 
   /**
@@ -353,6 +369,7 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
             DartNode variableNode = ((VariableElement) targetSymbol).getNode();
             if (variableNode instanceof DartParameter) {
               DartParameter parameter = (DartParameter) variableNode;
+              resolvedElement = targetSymbol;
               DartMethodDefinition method = DartAstUtilities.getEnclosingNodeOfType(
                   DartMethodDefinition.class, parameter);
               if (method == null) {
@@ -375,6 +392,7 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
               }
             } else if (variableNode instanceof DartVariable) {
               DartVariable variable = (DartVariable) variableNode;
+              resolvedElement = targetSymbol;
               DartClass containingType = DartAstUtilities.getEnclosingDartClass(variableNode);
               if (containingType != null) {
                 DartIdentifier variableName = variable.getName();
@@ -424,6 +442,7 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
         DartNode parent = node.getParent();
         if (parent instanceof DartImportDirective
             && ((DartImportDirective) parent).getLibraryUri() == node) {
+          resolvedElement = (Element) ((DartImportDirective) parent).getSymbol();
           DartLibrary library = compilationUnit.getLibrary();
           String libraryName = node.getValue();
           if (libraryName.startsWith("dart:")) {
@@ -456,6 +475,7 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
           }
         } else if (parent instanceof DartSourceDirective
             && ((DartSourceDirective) parent).getSourceUri() == node) {
+          resolvedElement = (Element) ((DartSourceDirective) parent).getSymbol();
           DartLibrary library = compilationUnit.getLibrary();
           String fileName = getFileName(library, node.getValue());
           CompilationUnit sourcedUnit = library.getCompilationUnit(fileName);
@@ -464,6 +484,7 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
           }
         } else if (parent instanceof DartResourceDirective
             && ((DartResourceDirective) parent).getResourceUri() == node) {
+          resolvedElement = (Element) ((DartResourceDirective) parent).getSymbol();
           DartLibrary library = compilationUnit.getLibrary();
           try {
             DartSource unitSource = compilationUnit.getSourceRef();
@@ -593,6 +614,7 @@ public class DartElementLocator extends DartNodeTraverser<Void> {
     if (definingLibrary == null) {
       definingLibrary = compilationUnit.getLibrary();
     }
+    resolvedElement = targetSymbol;
     foundElement = BindingUtils.getDartElement(definingLibrary, targetSymbol);
     if (foundElement instanceof SourceReference) {
       try {

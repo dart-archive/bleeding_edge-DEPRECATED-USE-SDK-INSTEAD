@@ -42,6 +42,7 @@ public class DartCoreDebug {
 
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
   public static final boolean ENABLE_TYPE_REFINEMENT = isOptionTrue("debug/RefineTypes");
+  public static final boolean ENABLE_MARK_OCCURRENCES = isOptionTrue("debug/markOccurrences");
 
   // Performance measurement and reporting options.
 
