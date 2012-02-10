@@ -28,8 +28,8 @@ $throw(String msg) {
   * exception.
   */
 bool checkNumbers(var a, var b, var message) {
-  if (JS("bool", @"typeof $0 === 'number'", a)) {
-    if (JS("bool", @"typeof $0 === 'number'", b)) {
+  if (a is num) {
+    if (b is num) {
       return true;
     } else {
       throw message;
@@ -47,9 +47,9 @@ bool isJSArray(var value) {
 add(var a, var b) {
   if (checkNumbers(a, b, "num+ expects a number as second operand.")) {
     return JS("num", @"$0 + $1", a, b);
-  } else if (JS("bool", @"typeof $0 === 'string'", a)) {
+  } else if (a is String) {
     b = b.toString();
-    if (JS("bool", @"typeof $0 === 'string'", b)) {
+    if (b is String) {
       return JS("String", @"$0 + $1", a, b);
     }
     // The following line is too long, but we can't break it using the +
@@ -216,8 +216,8 @@ neg(var a) {
 }
 
 index(var a, var index) {
-  if (JS("bool", @"typeof $0 === 'string'", a) || isJSArray(a)) {
-    if (!isInt(index)) $throw('Illegal argument');
+  if (a is String || isJSArray(a)) {
+    if (!(index is int)) $throw('Illegal argument');
     if (index < 0 || index >= a.length) $throw('Out of bounds');
     return JS("Object", @"$0[$1]", a, index);
   }
@@ -226,7 +226,7 @@ index(var a, var index) {
 
 indexSet(var a, var index, var value) {
   if (isJSArray(a)) {
-    if (!isInt(index)) $throw('Illegal argument');
+    if (!(index is int)) $throw('Illegal argument');
     if (index < 0 || index >= a.length) $throw('Out of bounds');
     return JS("Object", @"$0[$1] = $2", a, index, value);
   }
@@ -258,7 +258,7 @@ builtin$filter$1(var receiver, var predicate) {
 
 
 builtin$get$length(var receiver) {
-  if (JS("bool", @"typeof $0 === 'string'", receiver) || isJSArray(receiver)) {
+  if (receiver is String || isJSArray(receiver)) {
     return JS("num", @"$0.length", receiver);
   }
   return UNINTERCEPTED(receiver.length);
@@ -288,7 +288,7 @@ builtin$iterator$0(var receiver) {
 }
 
 builtin$charCodeAt$1(var receiver, int index) {
-  if (JS("bool", @"typeof receiver === 'string'")) {
+  if (receiver is String) {
     return JS("string", @"$0.charCodeAt($1)", receiver, index);
   } else {
     return UNINTERCEPTED(receiver.charCodeAt(index));
@@ -296,16 +296,12 @@ builtin$charCodeAt$1(var receiver, int index) {
 }
 
 builtin$isEmpty$0(var receiver) {
-  if (JS("bool", @"typeof $0 === 'string'", receiver) || isJSArray(receiver)) {
+  if (receiver is String || isJSArray(receiver)) {
     return JS("bool", @"$0.length === 0", receiver);
   }
   return UNINTERCEPTED(receiver.isEmpty());
 }
 
-
-bool isInt(var v) {
-  return JS("bool", @"($0 | 0) === $1", v, v);
-}
 
 /* Include when interfaces are implemented
 interface Iterable<T> {
@@ -321,6 +317,7 @@ class int {}
 class double {}
 class String {}
 class bool {}
+class num {}
 class Object {
   String toString() {
     String name = JS('String', @'this.constructor.name');
@@ -351,7 +348,7 @@ class List<T> /* implements Iterable<T> */ {
 
   factory List([int length]) {
     if (length == null) return JS("Object", @"new Array()");
-    if (!isInt(length)) throw "Invalid argument";
+    if (!(length is int)) throw "Invalid argument";
     if (length < 0) throw "Negative size";
     return JS("Object", @"new Array($0)", length);
   }

@@ -785,21 +785,65 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
+  void checkInt(HInstruction input, String cmp) {
+    use(input);
+    buffer.add(' $cmp (');
+    use(input);
+    buffer.add(' | 0)');
+  }
+
+  void checkNum(HInstruction input, String cmp) {
+    buffer.add('typeof ');
+    use(input);
+    buffer.add(" $cmp 'number'");
+  }
+
+  void checkDouble(HInstruction input, String cmp) {
+    checkNum(input, cmp);
+  }
+
+  void checkString(HInstruction input, String cmp) {
+    buffer.add('typeof ');
+    use(input);
+    buffer.add(" $cmp 'string'");
+  }
+
+  void checkBool(HInstruction input, String cmp) {
+    buffer.add('typeof ');
+    use(input);
+    buffer.add(" $cmp 'boolean'");
+  }
+
+  void checkArray(HInstruction input, String cmp) {
+    use(input);
+    buffer.add('.constructor $cmp Array');
+  }
+
   void visitIs(HIs node) {
-    // TODO(ahe): Get Object class from somewhere instead.
-    if (node.typeExpression.name == const SourceString('Object')) {
+    ClassElement element = node.typeExpression;
+    LibraryElement coreLibrary = compiler.coreLibrary;
+    HInstruction input = node.expression;
+    if (element == coreLibrary.find(const SourceString('Object'))) {
       // TODO(ahe): This probably belongs in the constant folder.
-      if (node.expression.generateAtUseSite()) {
-        buffer.add('((');
-        visit(node.expression);
-        buffer.add('), true)');
-      } else {
-        buffer.add('true');
-      }
+      buffer.add('true');
+    } else if (element == coreLibrary.find(const SourceString('String'))) {
+      checkString(input, '===');
+    } else if (element == coreLibrary.find(const SourceString('double'))) {
+      checkDouble(input, '===');
+    } else if (element == coreLibrary.find(const SourceString('num'))) {
+      checkNum(input, '===');
+    } else if (element == coreLibrary.find(const SourceString('bool'))) {
+      checkBool(input, '===');
+    } else if (element == coreLibrary.find(const SourceString('int'))) {
+      checkInt(input, '===');
     } else {
-      buffer.add('(!!(');
-      use(node.expression);
-      buffer.add(').');
+      if (element == coreLibrary.find(const SourceString('List'))) {
+        checkArray(input, '===');
+        buffer.add(' || ');
+      }
+      buffer.add('!!(');
+      use(input);
+      buffer.add('.');
       buffer.add(compiler.namer.operatorIs(node.typeExpression));
       buffer.add(')');
     }
@@ -858,37 +902,35 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     assert(!input.generateAtUseSite() || input is HParameterValue);
     if (node.isInteger()) {
       buffer.add('if (');
-      use(input);
-      buffer.add(' !== (');
-      use(input);
-      buffer.add(' | 0)) ');
+      checkInt(input, '!==');
+      buffer.add(') ');
       bailout(node, 'Not an integer');
     } else if (node.isNumber()) {
-      buffer.add('if (typeof ');
-      use(input);
-      buffer.add(" !== 'number') ");
+      buffer.add('if (');
+      checkNum(input, '!==');
+      buffer.add(') ');
       bailout(node, 'Not a number');
     } else if (node.isBoolean()) {
-      buffer.add('if (typeof ');
-      use(input);
-      buffer.add(" !== 'boolean') ");
+      buffer.add('if (');
+      checkBool(input, '!==');
+      buffer.add(') ');
       bailout(node, 'Not a boolean');
     } else if (node.isString()) {
-      buffer.add('if (typeof ');
-      use(input);
-      buffer.add(" !== 'string') ");
+      buffer.add('if (');
+      checkString(input, '!==');
+      buffer.add(') ');
       bailout(node, 'Not a string');
     } else if (node.isArray()) {
       buffer.add('if (');
-      use(input);
-      buffer.add(".constructor !== Array) ");
+      checkArray(input, '!==');
+      buffer.add(') ');
       bailout(node, 'Not an array');
     } else if (node.isStringOrArray()) {
-      buffer.add('if (typeof ');
-      use(input);
-      buffer.add(" !== 'string' && ");
-      use(input);
-      buffer.add(".constructor !== Array) ");
+      buffer.add('if (');
+      checkString(input, '!==');
+      buffer.add(' && ');
+      checkArray(input, '!==');
+      buffer.add(') ');
       bailout(node, 'Not a string or array');
     } else {
       unreachable();

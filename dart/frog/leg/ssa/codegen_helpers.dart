@@ -12,7 +12,9 @@
  * t0 and t1 would be marked and the resulting code would then be:
  *   t2 = add(4, 3);
  */
-class SsaInstructionMerger extends HGraphVisitor {
+class SsaInstructionMerger extends HBaseVisitor {
+  List<HInstruction> expectedInputs;
+
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
@@ -24,6 +26,18 @@ class SsaInstructionMerger extends HGraphVisitor {
     return true;
   }
 
+  void visitInstruction(HInstruction instruction) {
+    for (HInstruction input in instruction.inputs) {
+      if (!input.generateAtUseSite() && input.usedBy.length == 1) {
+        expectedInputs.add(input);
+      }
+    }
+  }
+
+  // The codegen might use the input multiple times, so it must not be
+  // set generate at use site.
+  void visitIs(HIs instruction) {}
+
   void visitBasicBlock(HBasicBlock block) {
     // Visit each instruction of the basic block in last-to-first order.
     // Keep a list of expected inputs of the current "expression" being
@@ -32,15 +46,11 @@ class SsaInstructionMerger extends HGraphVisitor {
 
     // The expectedInputs list holds non-trivial instructions that may
     // be generated at their use site, if they occur in the correct order.
-    List<HInstruction> expectedInputs = new List<HInstruction>();
+    expectedInputs = new List<HInstruction>();
     // Add non-trivial inputs of instruction to expectedInputs, in
     // evaluation order.
     void addInputs(HInstruction instruction) {
-      for (HInstruction input in instruction.inputs) {
-        if (!input.generateAtUseSite() && input.usedBy.length == 1) {
-          expectedInputs.add(input);
-        }
-      }
+      instruction.accept(this);
     }
     // Pop instructions from expectedInputs until instruction is found.
     // Return true if it is found, or false if not.
@@ -80,6 +90,7 @@ class SsaInstructionMerger extends HGraphVisitor {
         addInputs(instruction);
       }
     }
+    expectedInputs = null;
   }
 }
 

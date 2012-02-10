@@ -576,14 +576,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   resolveTypeTest(TypeAnnotation node) {
-    ClassElement cls = resolveTypeRequired(node);
-    if (cls.name == const SourceString('String') ||
-        cls.name == const SourceString('List') ||
-        cls.name == const SourceString('int') ||
-        cls.name == const SourceString('num') ||
-        cls.name == const SourceString('double')) {
-      cancel(node, "type test for ${cls.name} is not implemented");
-    }
+    resolveTypeRequired(node);
   }
 
   void handleArguments(Send node) {
