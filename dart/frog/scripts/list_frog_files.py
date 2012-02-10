@@ -10,7 +10,11 @@ import os
 import sys
 
 def main(argv):
-  for root, directories, files in os.walk(os.curdir):
+  if len(argv) == 1:
+    dir = os.curdir
+  else:
+    dir = argv[1]
+  for root, directories, files in os.walk(dir):
     if root == os.curdir:
       directories[0:] = ['leg', 'lib',
                          os.path.join('..', 'client', 'dom', 'frog'),
