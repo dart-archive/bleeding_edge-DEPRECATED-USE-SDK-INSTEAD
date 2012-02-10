@@ -116,6 +116,10 @@ def main(args):
     print ' ' + build_file + ' -m release'
     return 1
 
+  return compileAndRun(options, dartArgs, dart)
+
+
+def ensureJsEngine(options):
   proc = subprocess.Popen("node --help",
       stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
   if proc.wait() != 0:
@@ -125,9 +129,7 @@ def main(args):
       return 1
     elif 'node' in options.js_cmd:
       options.js_cmd = D8
-
-  return compileAndRun(options, dartArgs, dart)
-
+  return 0
 
 def compileAndRun(options, args, dart):
   nodeArgs = []
@@ -195,6 +197,8 @@ def compileAndRun(options, args, dart):
   result = 0
   if not outfile_given:
     if not options.html:
+      if ensureJsEngine(options) != 0:
+        return 1
       js_cmd = options.js_cmd
       result = execute(js_cmd.split(' ') + [outfile] + nodeArgs)
     else:

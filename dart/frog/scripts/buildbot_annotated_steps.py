@@ -128,12 +128,6 @@ def BuildFrog(arch, mode, system):
   print '@@@BUILD_STEP build frog@@@'
 
   args = [sys.executable, '../tools/build.py', '--mode=' + mode]
-
-  # TODO(jmesserly): until "frogsh" is gone, make sure we don't try to build it
-  # on bots. (They don't have node.js installed, so the build doesn't work.)
-  if system == 'frogium':
-    args.append('frog')
-
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
