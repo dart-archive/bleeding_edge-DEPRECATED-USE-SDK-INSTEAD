@@ -215,7 +215,7 @@ def main():
   ant_property_file = None
   sdk_zip = None
 
-  gsutil_test = os.path.join(scriptdir, './gsutilTest.py')
+  gsutil_test = os.path.join(editorpath, 'build', './gsutilTest.py')
   cmds = [sys.executable, gsutil_test]
   subprocess.call(cmds)
 

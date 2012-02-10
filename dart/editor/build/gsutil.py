@@ -55,7 +55,7 @@ class GsUtil(object):
     if operating_system == 'Windows' or operating_system == 'Microsoft':
     # On Windows Vista platform.system() can return "Microsoft" with some
     # versions of Python, see http://bugs.python.org/issue1082 for details.
-      bot_gs_util = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
+      bot_gs_util = 'e:\\b\\build\\scripts\\slave\\gsutil'
       self._useshell = True
     if gsutil_loc is None:
       home_gs_util = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
@@ -128,6 +128,9 @@ class GsUtil(object):
                          ' of the bucket {0}\n').format(bucket)
       self._LogStream(err, failure_message, True)
     else:
+      print '*****'
+      print 'err: {0}'.format(str(err))
+      print '*****'
       out_stream = None
       try:
         out_stream = StringIO.StringIO(str(out))
