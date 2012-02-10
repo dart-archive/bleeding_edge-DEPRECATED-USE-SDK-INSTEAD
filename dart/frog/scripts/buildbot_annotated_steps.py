@@ -164,7 +164,8 @@ def TestFrog(arch, mode, system, browser, flags):
     # we don't have this translation step. See dartbug.com/1158.
     # Ideally we can run most Chrome tests in DumpRenderTree because it's more
     # debuggable, but still have some tests run the full browser.
-    if browser == 'chrome':
+    # Also: we don't have DumpRenderTree on Windows yet
+    if browser == 'chrome' and not system.startswith('win'):
       TestStep('browser', mode, system, 'frogium', tests, flags)
     else:
       TestStep(browser, mode, system, 'webdriver', tests,
