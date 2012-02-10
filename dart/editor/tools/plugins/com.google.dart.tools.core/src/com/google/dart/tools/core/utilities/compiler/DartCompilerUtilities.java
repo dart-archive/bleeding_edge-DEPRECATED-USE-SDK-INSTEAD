@@ -188,6 +188,7 @@ public class DartCompilerUtilities {
     private DartUnit parsedUnit;
     private DartSourceString source;
     private DartNode analyzedNode;
+    private URI unitUri;
 
     DeltaAnalysisRunnable(LibrarySource librarySource, URI unitUri,
         Map<URI, String> suppliedSources, DartUnit suppliedUnit, DartNode completionNode,
@@ -205,12 +206,13 @@ public class DartCompilerUtilities {
       this.completionLocation = completionLocation;
       String sourceString = suppliedSources.get(unitUri);
       this.source = new DartSourceString(unitUri.getPath(), sourceString);
+      this.unitUri = unitUri;
     }
 
     @Override
     public void run() throws Exception {
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
-      LibraryElement enclosingLibrary = cachedLibraries.get(librarySource.wrappedSource).getElement();
+      final LibraryElement enclosingLibrary = cachedLibraries.get(librarySource.wrappedSource).getElement();
 
       // Try to find the core library in the enclosing set of libraries, otherwise the typeAnalyzer
       // will be void of core types.
@@ -229,6 +231,11 @@ public class DartCompilerUtilities {
 
         @Override
         public Source getSourceBefore() {
+          for (DartUnit u : enclosingLibrary.getLibraryUnit().getUnits()) {
+            if (u.getSource().getUri().equals(unitUri)) {
+              return u.getSource();
+            }
+          }
           return null;
         }
 
