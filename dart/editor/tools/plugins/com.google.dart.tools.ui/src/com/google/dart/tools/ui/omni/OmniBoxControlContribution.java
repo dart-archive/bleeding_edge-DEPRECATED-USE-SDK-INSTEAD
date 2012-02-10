@@ -383,7 +383,8 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
       textControl.addListener(SWT.Deactivate, new Listener() {
         @Override
         public void handleEvent(Event event) {
-          //selecting the scrollbar will deactivate but in that case we don't want to close  
+          //selecting the scrollbar will deactivate but in that case we don't want to close
+          // TODO: bug; going from scrollbar back to text entry clears text!
           if (event.display.getFocusControl() != popup.table) {
             popup.close();
           }
@@ -405,9 +406,12 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
 
   //set text without notifying listeners
   private void silentSetControlText(String txt) {
-    listenForTextModify = false;
-    textControl.setText(txt);
-    listenForTextModify = true;
+    try {
+      listenForTextModify = false;
+      textControl.setText(txt);
+    } finally {
+      listenForTextModify = true;
+    }
   }
 
 }

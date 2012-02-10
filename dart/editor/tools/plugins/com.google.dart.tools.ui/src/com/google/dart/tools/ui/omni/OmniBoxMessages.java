@@ -34,6 +34,7 @@ public class OmniBoxMessages extends NLS {
   public static String OmniBoxControlContribution_control_tooltip;
   public static String TextSearchElement_occurences;
   public static String TextSearchProvider_label;
+  public static String TextSearch_taskName;
 
   static {
     NLS.initializeMessages(BUNDLE_NAME, OmniBoxMessages.class);

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.omni;
 
-import com.google.dart.tools.search.ui.actions.TextSearchAction;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.omni.elements.FileProvider;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
@@ -23,7 +22,10 @@ import com.google.dart.tools.ui.omni.elements.TypeProvider;
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.bindings.TriggerSequence;
 import org.eclipse.jface.bindings.keys.KeySequence;
 import org.eclipse.jface.bindings.keys.SWTKeySupport;
@@ -84,6 +86,19 @@ import java.util.Map;
 
 @SuppressWarnings("restriction")
 public class OmniBoxPopup extends BasePopupDialog {
+
+  private class OmniRefreshJob extends Job {
+    OmniRefreshJob() {
+      super("Omni refresher");
+    }
+
+    @Override
+    protected IStatus run(IProgressMonitor monitor) {
+      refreshInternal(searchFilter);
+      return Status.OK_STATUS;
+    }
+  }
+
   private class PreviousPicksProvider extends OmniProposalProvider {
 
     @Override
@@ -153,6 +168,13 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   private Text filterControl;
 
+  private Job refreshJob = new OmniRefreshJob();
+  private String searchFilter;
+
+  private int searchItemCount;
+
+  private String searchText;
+
   public OmniBoxPopup(IWorkbenchWindow window, final Command invokingCommand) {
     super(ProgressManagerUtil.getDefaultParent(), SWT.NONE, true, false, /* persist size */
     false, /* but not location */
@@ -210,7 +232,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   public String getFilterTextExactCase() {
-    return filterControl.getText();
+    return searchText; // this should be private
   }
 
   public boolean isDisposed() {
@@ -553,61 +575,16 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   void refresh(String filter) {
-
-    //an empty filter indicates a new query, meaning we need to clear caches
-    if (filter.length() == 0) {
-      for (OmniProposalProvider provider : providers) {
-        provider.reset();
-      }
-    }
-
-    int numItems = computeNumberOfItems();
-
-    // perfect match, to be selected in the table if not null
-    OmniElement perfectMatch = (OmniElement) elementMap.get(filter);
-
-    @SuppressWarnings("rawtypes")
-    List[] entries = computeMatchingEntries(filter, perfectMatch, numItems);
-
-    int selectionIndex = refreshTable(perfectMatch, entries);
-
-    if (table.getItemCount() > 0) {
-      table.setSelection(selectionIndex);
-    } else if (filter.length() == 0) {
-      {
-        TableItem item = new TableItem(table, SWT.NONE);
-        item.setText(0, OmniBoxMessages.OmniBox_Providers);
-        item.setForeground(0, OmniBoxColors.SEARCH_ENTRY_ITEM_TEXT);
-      }
-      for (int i = 0; i < providers.length; i++) {
-        OmniProposalProvider provider = providers[i];
-        TableItem item = new TableItem(table, SWT.NONE);
-        item.setText(1, provider.getName());
-        item.setForeground(1, OmniBoxColors.SEARCH_ENTRY_ITEM_TEXT);
-      }
-    }
-
-    if (filter.length() == 0) {
-      setInfoText(OmniBoxMessages.OmniBox_StartTypingToFindMatches);
-    } else {
-      TriggerSequence[] sequences = getInvokingCommandKeySequences();
-      if (sequences != null && sequences.length != 0) {
-        if (showAllMatches) {
-          setInfoText(NLS.bind(OmniBoxMessages.OmniBox_PressKeyToShowInitialMatches,
-              sequences[0].format()));
-        } else {
-          setInfoText(NLS.bind(OmniBoxMessages.OmniBox_PressKeyToShowAllMatches,
-              sequences[0].format()));
-        }
-      } else {
-        setInfoText(""); //$NON-NLS-1$
-      }
-    }
+    searchText = filterControl.getText();
+    searchItemCount = computeNumberOfItems();
+    searchFilter = filter;
+    refreshJob.setPriority(Job.INTERACTIVE);
+    refreshJob.schedule(100L);
+//    refreshInternal(filter);
   }
 
   void setFilterControl(Text filterControl) {
     this.filterControl = filterControl;
-
   }
 
   private void addPreviousPick(String text, OmniElement element) {
@@ -667,11 +644,11 @@ public class OmniBoxPopup extends BasePopupDialog {
     }
   }
 
-  @SuppressWarnings({"rawtypes", "unchecked"})
-  private List[] computeMatchingEntries(String filter, OmniElement perfectMatch, int maxCount) {
-
+  private List<OmniEntry>[] computeMatchingEntries(String filter, OmniElement perfectMatch,
+      int maxCount) {
     // collect matches in an array of lists
-    List[] entries = new ArrayList[providers.length];
+    @SuppressWarnings("unchecked")
+    List<OmniEntry>[] entries = new ArrayList[providers.length];
     int[] indexPerProvider = new int[providers.length];
     int countPerProvider = Math.min(maxCount / 4, INITIAL_COUNT_PER_PROVIDER);
     int countTotal = 0;
@@ -683,8 +660,7 @@ public class OmniBoxPopup extends BasePopupDialog {
     }
     boolean done;
     do {
-      // will be set to false if we find a provider with remaining
-      // elements
+      // will be set to false if we find a provider with remaining elements
       done = true;
       for (int i = 0; i < providers.length && (showAllMatches || countTotal < maxCount); i++) {
         if (entries[i] == null) {
@@ -813,8 +789,65 @@ public class OmniBoxPopup extends BasePopupDialog {
     return false;
   }
 
+  private void refreshInternal(final String filter) {
+    //an empty filter indicates a new query, meaning we need to clear caches
+    if (filter.length() == 0) {
+      for (OmniProposalProvider provider : providers) {
+        provider.reset();
+      }
+    }
+    // perfect match, to be selected in the table if not null
+    final OmniElement perfectMatch = (OmniElement) elementMap.get(filter);
+    final List<OmniEntry>[] entries = computeMatchingEntries(filter, perfectMatch, searchItemCount);
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        refreshInternalContent(filter, perfectMatch, entries);
+      }
+    });
+  }
+
+  private void refreshInternalContent(String filter, OmniElement perfectMatch,
+      List<OmniEntry>[] entries) {
+
+    int selectionIndex = refreshTable(perfectMatch, entries);
+
+    if (table.getItemCount() > 0) {
+      table.setSelection(selectionIndex);
+    } else if (filter.length() == 0) {
+      {
+        TableItem item = new TableItem(table, SWT.NONE);
+        item.setText(0, OmniBoxMessages.OmniBox_Providers);
+        item.setForeground(0, OmniBoxColors.SEARCH_ENTRY_ITEM_TEXT);
+      }
+      for (int i = 0; i < providers.length; i++) {
+        OmniProposalProvider provider = providers[i];
+        TableItem item = new TableItem(table, SWT.NONE);
+        item.setText(1, provider.getName());
+        item.setForeground(1, OmniBoxColors.SEARCH_ENTRY_ITEM_TEXT);
+      }
+    }
+
+    if (filter.length() == 0) {
+      setInfoText(OmniBoxMessages.OmniBox_StartTypingToFindMatches);
+    } else {
+      TriggerSequence[] sequences = getInvokingCommandKeySequences();
+      if (sequences != null && sequences.length != 0) {
+        if (showAllMatches) {
+          setInfoText(NLS.bind(OmniBoxMessages.OmniBox_PressKeyToShowInitialMatches,
+              sequences[0].format()));
+        } else {
+          setInfoText(NLS.bind(OmniBoxMessages.OmniBox_PressKeyToShowAllMatches,
+              sequences[0].format()));
+        }
+      } else {
+        setInfoText(""); //$NON-NLS-1$
+      }
+    }
+  }
+
   @SuppressWarnings("rawtypes")
-  private int refreshTable(OmniElement perfectMatch, List[] entries) {
+  private int refreshTable(OmniElement perfectMatch, List<OmniEntry>[] entries) {
 
     //TODO (pquitslund): clearing to force a complete redraw; prime for future optimization
     //if (table.getItemCount() > entries.length && table.getItemCount() - entries.length > 20) {

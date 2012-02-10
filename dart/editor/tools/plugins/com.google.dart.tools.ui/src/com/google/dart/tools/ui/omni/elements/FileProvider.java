@@ -28,7 +28,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ui.dialogs.SearchPattern;
-import org.eclipse.ui.internal.WorkbenchMessages;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,8 +57,7 @@ public class FileProvider extends OmniProposalProvider {
       this.projects = new ArrayList<IResource>(Arrays.asList(resources));
 
       if (progressMonitor != null) {
-        progressMonitor.beginTask(
-            WorkbenchMessages.FilteredItemsSelectionDialog_searchJob_taskName, projects.size());
+        progressMonitor.beginTask(OmniBoxMessages.TextSearch_taskName, projects.size());
       }
     }
 
