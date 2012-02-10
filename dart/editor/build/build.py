@@ -214,6 +214,11 @@ def main():
   os.chdir(buildpath)
   ant_property_file = None
   sdk_zip = None
+
+  gsutil_test = os.path.join(scriptdir, './gsutilTest.py')
+  cmds = [sys.executable, gsutil_test]
+  subprocess.call(cmds)
+
   try:
     ant_property_file = tempfile.NamedTemporaryFile(suffix='.property',
                                                     prefix='AntProperties',
@@ -797,8 +802,15 @@ def _InstallSdk(buildroot, buildout, buildos, sdk):
   files = os.listdir(buildout)
   for f in files:
     if f.startswith('DartBuild') and f.endswith('.zip'):
-      dart_zip = ziputils.ZipUtil(os.path.join(buildout, f), buildos)
+      dart_zip_path = os.path.join(buildout, f)
+      print ('_installSdk: before '
+             '{0} is {1}'.format(dart_zip_path,
+                                 os.path.getsize(dart_zip_path)))
+      dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
       dart_zip.AddDirectoryTree(unzip_dir, 'dart')
+      print ('_installSdk: after  '
+             '{0} is {1}'.format(dart_zip_path,
+                                 os.path.getsize(dart_zip_path)))
 
 
 def _InstallDartium(buildroot, buildout, buildos, gsu):
@@ -868,7 +880,11 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
       files = os.listdir(buildout)
       for f in files:
         if f.startswith('DartBuild') and f.endswith('.zip'):
-          dart_zip = ziputils.ZipUtil(os.path.join(buildout, f), buildos)
+          dart_zip_path = os.path.join(buildout, f)
+          print ('_installDartium: before '
+                 '{0} is {1}'.format(dart_zip_path,
+                                     os.path.getsize(dart_zip_path)))
+          dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
           dart_zip.AddDirectoryTree(add_path, zip_rel_path)
           revision_properties = None
           try:
@@ -881,6 +897,9 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
             revision_properties.close()
           dart_zip.AddFile(revision_properties_path,
                            'dart/dart-sdk/chromium.properties')
+          print ('_installDartium: after  '
+                 '{0} is {1}'.format(dart_zip_path,
+                                     os.path.getsize(dart_zip_path)))
     else:
       msg = 'no Dartium files found'
       _PrintError(msg)

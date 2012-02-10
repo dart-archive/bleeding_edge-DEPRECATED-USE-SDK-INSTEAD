@@ -25,7 +25,19 @@ class TestGsutil(unittest.TestCase):
     # On Windows Vista platform.system() can return "Microsoft" with some
     # versions of Python, see http://bugs.python.org/issue1082 for details.
       self._iswindows = True
-    self._gsu = gsutil.GsUtil()
+    username = os.environ.get('USER')
+    if username is None:
+      username = os.environ.get('USERNAME')
+
+    if username is None:
+      self.fail('could not find the user name tried environment variables'
+                ' USER and USERNAME')
+    if username.startswith('chrome'):
+      running_on_buildbot = True
+    else:
+      running_on_buildbot = False
+
+    self._gsu = gsutil.GsUtil(running_on_buildbot=running_on_buildbot)
     self._CleanFolder(self.test_folder)
     self._SetupFolder(self.test_bucket, self.test_folder, self.build_count)
 
@@ -109,9 +121,9 @@ class TestGsutil(unittest.TestCase):
     Returns:
       a collection (possibly empty) of the objects that match the search string
     """
-    test_uri = '{0}{1}'.format(self.test_prefix, self.test_bucket)
+    test_uri = '{0}{1}/{2}/*'.format(self.test_prefix, self.test_bucket,
+                                     self.test_folder)
     gs_objects = self._gsu.ReadBucket(test_uri)
-    self.assertTrue(gs_objects)
     objects = []
     for obj in gs_objects:
       if search_string in obj:
@@ -124,12 +136,11 @@ class TestGsutil(unittest.TestCase):
     Args:
       folder: the name of the folder to clear
     """
-    test_uri = '{0}{1}'.format(self.test_prefix, self.test_bucket)
+    test_uri = '{0}{1}/{2}/*'.format(self.test_prefix, self.test_bucket,
+                                     folder)
     bucket_list = self._gsu.ReadBucket(test_uri)
-    test_object = '/' + folder + '/'
     for obj in bucket_list:
-      if test_object in obj:
-        self._gsu.Remove(obj)
+      self._gsu.Remove(obj)
 
   def _SetupFolder(self, bucket, folder, items):
     """Setup a folder for testing.

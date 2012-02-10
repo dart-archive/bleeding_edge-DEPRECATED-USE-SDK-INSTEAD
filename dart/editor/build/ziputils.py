@@ -51,7 +51,7 @@ class ZipUtil(object):
         localzip = zip_in
       zip_name = zip_name.replace('\\\\', '/')
       zip_name = zip_name.replace('\\', '/')
-      localzip.write(new_file, zip_name)
+      localzip.write(new_file, zip_name, zipfile.ZIP_DEFLATED)
     finally:
       #only close the file if it was opened in this method
       if localzip is not None and zip_in is None:

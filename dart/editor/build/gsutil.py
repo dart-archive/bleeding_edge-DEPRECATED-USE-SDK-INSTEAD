@@ -85,6 +85,7 @@ class GsUtil(object):
       if path_gs_util is not None:
         msg += ', {0}'.format(path_gs_util)
       raise Exception(msg)
+    print 'using gsutil from {0}'.format(gsutil)
     return gsutil
 
   def _LogStream(self, stream, header, error_flag=False):
@@ -132,12 +133,17 @@ class GsUtil(object):
         out_stream = StringIO.StringIO(str(out))
         line = out_stream.readline().strip()
         while line:
+          print 'ReadBucket: processing {0}'.format(line)
           if line.startswith('gs:'):
             items.append(line)
           line = out_stream.readline().strip()
       finally:
         if out_stream is not None:
           out_stream.close()
+    print 'returning:'
+    for item in items:
+      print item
+
     return items
 
   def Copy(self, from_uri, to_uri, public_flag=True, recursive_flag=False):
