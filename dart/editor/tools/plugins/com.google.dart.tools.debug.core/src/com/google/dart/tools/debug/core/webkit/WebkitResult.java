@@ -14,11 +14,25 @@
 
 package com.google.dart.tools.debug.core.webkit;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * A WIP return value object. The return value can either be an error (untyped) or an untyped result
  * object.
  */
 public class WebkitResult {
+
+  static WebkitResult createFrom(JSONObject params) throws JSONException {
+    WebkitResult result = new WebkitResult();
+
+    if (params.has("error")) {
+      result.setError(params.get("error"));
+    }
+
+    return result;
+  }
+
   private Object error;
   private Object result;
 
