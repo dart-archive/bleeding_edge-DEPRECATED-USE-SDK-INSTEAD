@@ -248,6 +248,7 @@ class LocalsHandler {
   bool isForLoopDeclaringBoxedLoopVariable(Loop node) {
     For forNode = node.asFor();
     if (forNode === null) return false;
+    if (forNode.initializer === null) return false;
     VariableDefinitions definitions =
         forNode.initializer.asVariableDefinitions();
     if (definitions == null) return false;
