@@ -888,21 +888,6 @@ class HTTPResponseImplementation
 
 class SendBuffer {
   SendBuffer(this._buffer, this._offset, this._count);
-  SendBuffer.empty([int size = DEFAULT_SEND_BUFFER_SIZE]) {
-    _buffer = new ByteArray(size);
-    _offset = 0;
-    _count = 0;
-  }
-
-  // Add data to this send buffer. Returns the number of bytes
-  // actually added to the buffer.
-  int _addData(List<int> data, int offset, int count) {
-    int remaining = _buffer.length - _offset - _count;
-    int copyCount = Math.min(remaining, count);
-    _buffer.setRange(_count, copyCount, data, offset);
-    _count += copyCount;
-    return copyCount;
-  }
 
   int _write(Socket socket) {
     int written = socket.writeList(_buffer, _offset, _count);
@@ -916,14 +901,10 @@ class SendBuffer {
   int _offset;
   int _count;
   List<int> _buffer;
-
-  static final DEFAULT_SEND_BUFFER_SIZE = 1500;
 }
 
 
 class HTTPConnectionBase {
-  static final BUFFER_SIZE = 1500;
-
   HTTPConnectionBase(Socket this._socket)
       : _sendBuffers = new Queue(),
         _httpParser = new HTTPParser() {
@@ -943,26 +924,11 @@ class HTTPConnectionBase {
                     int count,
                     [bool keepBuffer = false]) {
     if (keepBuffer) {
-      // If there is a current send buffer add that in front of the
-      // buffer to keep.
-      if (_currentSendBuffer != null) {
-        _sendBuffers.addLast(_currentSendBuffer);
-        _currentSendBuffer = null;
-      }
       _sendBuffers.addLast(new SendBuffer(data, offset, count));
     } else {
-      while (count > 0) {
-        if (_currentSendBuffer == null) {
-          _currentSendBuffer = new SendBuffer.empty();
-        }
-        int copied = _currentSendBuffer._addData(data, offset, count);
-        offset += copied;
-        count -= copied;
-        if (_currentSendBuffer._isFull) {
-          _sendBuffers.addLast(_currentSendBuffer);
-          _currentSendBuffer = null;
-        }
-      }
+      _sendBuffers.addLast(new SendBuffer(data.getRange(offset, count),
+                                          0,
+                                          count));
     }
   }
 
@@ -1003,12 +969,6 @@ class HTTPConnectionBase {
       }
     }
 
-    // Queue the current send buffer now if any.
-    if (_currentSendBuffer != null) {
-      _sendBuffers.addLast(_currentSendBuffer);
-      _currentSendBuffer = null;
-    }
-
     // Send as much as possible.
     send();
 
@@ -1022,8 +982,8 @@ class HTTPConnectionBase {
       return;
     }
 
-    ByteArray buffer = new ByteArray(BUFFER_SIZE);
-    int bytesRead = _socket.readList(buffer, 0, BUFFER_SIZE);
+    ByteArray buffer = new ByteArray(available);
+    int bytesRead = _socket.readList(buffer, 0, available);
     if (bytesRead > 0) {
       int parsed = _httpParser.writeList(buffer, 0, bytesRead);
       if (parsed != bytesRead) {
@@ -1059,7 +1019,6 @@ class HTTPConnectionBase {
   Socket _socket;
   HTTPParser _httpParser;
 
-  SendBuffer _currentSendBuffer;
   Queue _sendBuffers;
 
   Function _disconnectHandlerCallback;
@@ -1125,9 +1084,6 @@ class HTTPConnection extends HTTPConnectionBase {
 // HTTP server waiting for socket connections. The connections are
 // managed by the server and as requests are received the request.
 class HTTPServerImplementation implements HTTPServer {
-
-  static final BUFFER_SIZE = 1500;
-
   HTTPServerImplementation () : _debugTrace = false;
 
   void listen(String host, int port, var callback, [int backlog = 5]) {

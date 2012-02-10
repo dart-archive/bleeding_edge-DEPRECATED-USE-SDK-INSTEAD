@@ -83,6 +83,11 @@ interface HTTPServer default HTTPServerImplementation {
    * Returns the port that the server is listening on.
    */
   int get port();
+
+  /**
+   * Set the error handler that is called when a connection error occours.
+   */
+  void set errorHandler(void handler(String errorMessage));
 }
 
 
