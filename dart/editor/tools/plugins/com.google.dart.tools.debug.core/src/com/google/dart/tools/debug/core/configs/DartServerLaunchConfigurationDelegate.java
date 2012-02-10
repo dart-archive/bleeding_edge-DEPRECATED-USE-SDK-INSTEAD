@@ -58,18 +58,16 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
   @Override
   public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
-
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
 
     launchVM(launch, launchConfig, monitor);
-
   }
 
   protected void launchVM(ILaunch launch, DartLaunchConfigWrapper launchConfig,
       IProgressMonitor monitor) throws CoreException {
     // Usage: dart [options] script.dart [arguments]
 
-    File outputDirectory = launchConfig.getProject().getLocation().toFile();
+    File currentWorkingDirectory = getCurrentWorkingDirectory(launchConfig);
 
     String scriptPath = launchConfig.getApplicationName();
 
@@ -79,12 +77,14 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     if (DartSdk.isInstalled()) {
       File vmExec = DartSdk.getInstance().getVmExecutable();
+
       if (vmExec != null) {
         vmExecPath = vmExec.getAbsolutePath().toString();
       }
     } else {
       vmExecPath = DartDebugCorePlugin.getPlugin().getDartVmExecutablePath();
     }
+
     if (vmExecPath.length() == 0) {
       throw new CoreException(
           DartDebugCorePlugin.createErrorStatus("The executable path for the Dart VM has not been set."));
@@ -100,7 +100,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     String[] commands = commandsList.toArray(new String[commandsList.size()]);
     ProcessBuilder processBuilder = new ProcessBuilder(commands);
 
-    processBuilder.directory(outputDirectory);
+    processBuilder.directory(currentWorkingDirectory);
 
     Process runtimeProcess = null;
 
@@ -151,6 +151,22 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     }
 
     return builder.toString();
+  }
+
+  private File getCurrentWorkingDirectory(DartLaunchConfigWrapper launchConfig) {
+    IResource resource = launchConfig.getApplicationResource();
+
+    if (resource == null) {
+      return launchConfig.getProject().getLocation().toFile();
+    } else {
+      if (resource.isLinked()) {
+        // If the resource is linked, set the cwd to the parent directory of the resolved resource.
+        return resource.getLocation().toFile().getParentFile();
+      } else {
+        // If the resource is not linked, set the cwd to the project's directory.
+        return resource.getProject().getLocation().toFile();
+      }
+    }
   }
 
   private String translateToFilePath(String scriptPath) {
