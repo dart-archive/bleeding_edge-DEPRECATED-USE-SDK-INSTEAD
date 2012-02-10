@@ -42,10 +42,16 @@ def GetD8():
 
 D8 = GetD8()
 
+# The following environment variable is needed for isolate tests to work.
+# TODO(sigmund): delete this and the 'env' parameter in 'execute' when we remove
+# dependencies to nodejs
+os.environ['NODE_MODULE_CONTEXTS'] = '1'
+
 def execute(cmd):
   """Execute a command in a subprocess. """
   try:
-    proc = subprocess.Popen(cmd, stdout=sys.stdout, stderr=sys.stderr)
+    proc = subprocess.Popen(cmd, stdout=sys.stdout, stderr=sys.stderr,
+        env=os.environ)
     return proc.wait()
   except Exception as e:
     print 'Exception when executing: ' + ' '.join(cmd)

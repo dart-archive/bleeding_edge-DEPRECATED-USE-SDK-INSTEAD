@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -52,6 +52,7 @@ class MessageTraverser {
     if (x is Map) return visitMap(x);
     if (x is NativeJsSendPort) return visitNativeJsSendPort(x);
     if (x is WorkerSendPort) return visitWorkerSendPort(x);
+    if (x is BufferingSendPort) return visitBufferingSendPort(x);
     if (x is ReceivePortImpl) return visitReceivePort(x);
     if (x is ReceivePortSingleShotImpl) return visitReceivePortSingleShot(x);
     // TODO(floitsch): make this a real exception. (which one)?
@@ -63,6 +64,7 @@ class MessageTraverser {
   abstract visitMap(Map x);
   abstract visitNativeJsSendPort(NativeJsSendPort x);
   abstract visitWorkerSendPort(WorkerSendPort x);
+  abstract visitBufferingSendPort(BufferingSendPort x);
   abstract visitReceivePort(ReceivePortImpl x);
   abstract visitReceivePortSingleShot(ReceivePortSingleShotImpl x);
 
@@ -76,6 +78,12 @@ class MessageTraverser {
 
   _getAttachedInfo(var o) native
       "return o['__MessageTraverser__attached_info__'];";
+
+  _visitNativeOrWorkerPort(SendPort p) {
+    if (p is NativeJsSendPort) return visitNativeJsSendPort(p);
+    if (p is WorkerSendPort) return visitWorkerSendPort(p);
+    throw "Illegal underlying port $p";
+  }
 }
 
 /** A visitor that recursively copies a message. */
@@ -119,6 +127,16 @@ class Copier extends MessageTraverser {
   SendPort visitWorkerSendPort(WorkerSendPort port) {
     return new WorkerSendPort(
         port._workerId, port._isolateId, port._receivePortId);
+  }
+
+  SendPort visitBufferingSendPort(BufferingSendPort port) {
+    if (port._port != null) {
+      return _visitNativeOrWorkerPort(port._port);
+    } else {
+      // TODO(floitsch): Use real exception (which one?).
+      throw "internal error: must call _waitForPendingPorts to ensure all"
+          + " ports are resolved at this point.";
+    }
   }
 
   SendPort visitReceivePort(ReceivePortImpl port) {
@@ -168,6 +186,16 @@ class Serializer extends MessageTraverser {
     return ['sendport', port._workerId, port._isolateId, port._receivePortId];
   }
 
+  SendPort visitBufferingSendPort(BufferingSendPort port) {
+    if (port._port != null) {
+      return _visitNativeOrWorkerPort(port._port);
+    } else {
+      // TODO(floitsch): Use real exception (which one?).
+      throw "internal error: must call _waitForPendingPorts to ensure all"
+          + " ports are resolved at this point.";
+    }
+  }
+
   visitReceivePort(ReceivePortImpl port) {
     return visitNativeJsSendPort(port.toSendPort());;
   }
@@ -187,6 +215,40 @@ class Serializer extends MessageTraverser {
 
   int _nextFreeRefId = 0;
 }
+
+/** Visitor that finds all unresolved [SendPort]s in a message. */
+class PendingSendPortFinder extends MessageTraverser {
+  List<Future<SendPort>> ports;
+  PendingSendPortFinder() : super(), ports = [];
+
+  visitPrimitive(x) {}
+  visitNativeJsSendPort(NativeJsSendPort port) {}
+  visitWorkerSendPort(WorkerSendPort port) {}
+  visitReceivePort(ReceivePortImpl port) {}
+  visitReceivePortSingleShot(ReceivePortSingleShotImpl port) {}
+
+  visitList(List list) {
+    final visited = _getInfo(list);
+    if (visited !== null) return;
+    _attachInfo(list, true);
+    list.forEach(_dispatch);
+  }
+
+  visitMap(Map map) {
+    final visited = _getInfo(map);
+    if (visited !== null) return;
+
+    _attachInfo(map, true);
+    map.getValues().forEach(_dispatch);
+  }
+
+  visitBufferingSendPort(BufferingSendPort port) {
+    if (port._port == null) {
+      ports.add(port._futurePort);
+    }
+  }
+}
+
 
 /** Deserializes arrays created with [Serializer]. */
 class Deserializer {
