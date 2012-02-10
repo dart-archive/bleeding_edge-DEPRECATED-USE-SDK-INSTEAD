@@ -4,10 +4,10 @@
 
 // Test that hidden native exception classes can be marked as existing.
 //
-// To infer which naitve hidden types exist, we need
+// To infer which native hidden types exist, we need
 //   (1) return types of native methods and getters
 //   (2) argument types of callbacks
-//   (3) execptions thrown by the operation.
+//   (3) exceptions thrown by the operation.
 //
 // (1) and (2) can be achieved by having nicely typed native methods, but there
 // is no place in the Dart language to communicate (3).  So we use the following
@@ -24,7 +24,7 @@ class E native "*E" {
 // Type with exception-throwing methods.
 class A native "*A" {
   op(int x) native {
-    // Fake body calls constructor to mark type as used.
+    // Fake body calls constructor to mark the exception class (E) as used.
     throw new E._used();
   }
 }
