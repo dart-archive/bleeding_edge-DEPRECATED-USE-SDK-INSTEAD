@@ -88,7 +88,7 @@ def GetBuildInfo():
 
 
 def TestStep(name, mode, system, component, targets, flags):
-  print '@@@BUILD_STEP %s tests: %s %s@@@' % (name, component, flags)
+  print '@@@BUILD_STEP %s tests: %s %s@@@' % (name, component, ' '.join(flags))
   sys.stdout.flush()
   if (component == 'frogium' or component == 'webdriver') and system == 'linux':
     cmd = ['xvfb-run', '-a']
