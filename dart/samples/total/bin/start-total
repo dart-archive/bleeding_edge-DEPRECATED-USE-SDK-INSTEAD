@@ -7,6 +7,7 @@ import optparse
 import os
 import subprocess
 import sys
+import shutil
 
 ROOT=os.path.abspath(
   os.path.join(os.path.dirname(sys.argv[0]), '../../../'))
@@ -34,11 +35,20 @@ def BuildDart(mode):
   return True
 
 def RunTotal(mode):
-  subprocess.call(
-    [GetOutputPath(mode), 'TotalRunner.dart'],
-    cwd = herePath('server'))
+  serverPath = herePath('server')
+  # Update dart.js
+  outJsPath = serverPath + '/out';
+  if not os.path.exists(outJsPath):
+    os.makedirs(outJsPath)
+  shutil.copy(rootPath('client/dart.js'), outJsPath)
+  dartExePath = GetOutputPath(mode)
+  if not os.path.exists(dartExePath):
+    raise Exception("Couldn't find dart executable at " + dartExePath)
+  subprocess.check_call(
+    [dartExePath, 'TotalRunner.dart'],
+    cwd = serverPath)
 
-if __name__ == '__main__':
+def main():
   parser = optparse.OptionParser()
   parser.add_option('--no-build',
     dest = 'build',
@@ -50,5 +60,13 @@ if __name__ == '__main__':
     default = "release",
     help = 'Mode to use when building dependencies (release or debug)')
   options, args = parser.parse_args()
-  if not options.build or BuildDart(options.mode):
-    RunTotal(options.mode)
+  if options.build:
+    result = BuildDart(options.mode)
+    if not result:
+      print('Aborting servers startup - build failed. (bypass with --no-build).')
+      return 1
+  RunTotal(options.mode)
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main())

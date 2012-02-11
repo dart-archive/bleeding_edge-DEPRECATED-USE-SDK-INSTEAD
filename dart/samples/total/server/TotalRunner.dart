@@ -33,15 +33,28 @@ void main() {
 class ServerRunner {
   String _serverMain;
 
-  // TODO: Release or Debug? We should be able to find automatically
-  static final DART_EXEC_PATH = '../../../xcodebuild/Release_ia32/dart';
+  static final DART_EXECS = const <String>[
+      '../../../xcodebuild/Release_ia32/dart',
+      '../../../out/Release_ia32/dart'];
   static final CR = 0x0d;
   static final LF = 0x0a;
 
   ServerRunner(String this._serverMain);
 
   void run(ExitCallback exitCallback) {
-    Process dart = new Process.start(DART_EXEC_PATH, [_serverMain]);
+    var foundExec;
+    for (String dartExec in DART_EXECS) {
+      var file = new File(dartExec);
+      if (file.existsSync()) {
+        foundExec = dartExec;
+      }
+    }
+    if (foundExec == null) {
+      print("No executable found on DART_EXECS:\n" + DART_EXECS);
+      exitCallback(1, this);
+      return;      
+    }
+    Process dart = new Process.start(foundExec, [_serverMain]);
 
     dart.exitHandler = (int status) {
       dart.close();

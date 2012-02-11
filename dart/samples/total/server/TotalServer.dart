@@ -6,7 +6,7 @@
 
 #import("../../chat/chat_server_lib.dart");
 #import("../../chat/http.dart");
-#import("Dartc.dart");
+#import("DartCompiler.dart");
 #source("GetSpreadsheet.dart");
 #source("SYLKProducer.dart");
 
@@ -20,6 +20,66 @@ void main() {
 class TotalServer extends IsolatedServer {
   final String CLIENT_DIR = '../client';
   final String OUTPUT_DIR = 'out';
+  static final List<String> dartResources = const<String>[
+    'CellContents.dart',
+    'Cell.dart',
+    'CellLocation.dart',
+    'CellRange.dart',
+    'Chart.dart',
+    'ClientChart.dart',
+    'ColorPicker.dart',
+    'Command.dart',
+    'ContextMenuBuilder.dart',
+    'ContextMenu.dart',
+    'CopyPasteManager.dart',
+    'CssStyles.dart',
+    'CSVReader.dart',
+    'DateTimeUtils.dart',
+    'DomUtils.dart',
+    'Exceptions.dart',
+    'Formats.dart',
+    'Formula.dart',
+    'Functions.dart',
+    'GeneralCommand.dart',
+    'HtmlTable.dart',
+    'HtmlUtils.dart',
+    'IdGenerator.dart',
+    'IndexedValue.dart',
+    'InnerMenuView.dart',
+    'Logger.dart',
+    'Parser.dart',
+    'Picker.dart',
+    'PopupHandler.dart',
+    'Reader.dart',
+    'RowCol.dart',
+    'RowColStyle.dart',
+    'Scanner.dart',
+    'SelectionManager.dart',
+    'ServerChart.dart',
+    'Spreadsheet.dart',
+    'SpreadsheetLayout.dart',
+    'SpreadsheetListener.dart',
+    'SpreadsheetPresenter.dart',
+    'StringUtils.dart',
+    'Style.dart',
+    'SYLKReader.dart',
+    'Total.dart',
+    'TotalLib.dart',
+    'UndoableAction.dart',
+    'UndoStack.dart',
+    'Value.dart',
+    'ValuePicker.dart',
+    'ZoomTracker.dart'];
+
+  static final List<String> imageResources = const<String>[
+    '123.png',
+    'fake-profile-photo.png',
+    'fake-profile-controls.png',
+    'favicon.png',
+    'graphobject.png',
+    'inner-menu-bg.png',
+    'objectbarbg.png',
+    'tableobject.png'];
 
   TotalServer() : super() {
     addHandler("/",
@@ -28,7 +88,10 @@ class TotalServer extends IsolatedServer {
     addHandler("/Total.html",
                (HTTPRequest request, HTTPResponse response) 
                => fileHandler(request, response, '${CLIENT_DIR}/Total.html'));
-    addHandler("/Total.dart.app.js",
+    addHandler("/dart.js",
+      (HTTPRequest request, HTTPResponse response) 
+      => fileHandler(request, response, '${OUTPUT_DIR}/dart.js'));
+    addHandler("/Total.dart.js",
                (HTTPRequest request, HTTPResponse response) 
                => compileAndServe(request, response, 'Total.dart'));
     addHandler("/total.css",
@@ -36,17 +99,17 @@ class TotalServer extends IsolatedServer {
                => fileHandler(request, response, '${CLIENT_DIR}/total.css'));
     addHandler("/favicon.png",  (HTTPRequest request, HTTPResponse response)
                => redirectPageHandler(request, response, "img/favicon.png"));
-    for (String fileName in [
-             '123.png',
-             'fake-profile-photo.png',
-             'fake-profile-controls.png',
-             'favicon.png',
-             'graphobject.png',
-             'inner-menu-bg.png',
-             'objectbarbg.png',
-             'tableobject.png',]) {
-      addHandler("/img/$fileName",  (HTTPRequest request, HTTPResponse response)
-                 => fileHandler(request, response, "${CLIENT_DIR}/img/$fileName"));
+    for (String fileName in dartResources) {
+      addHandler("/$fileName",  
+                (HTTPRequest request, HTTPResponse response)
+                  => fileHandler(request, response, 
+                                 "${CLIENT_DIR}/$fileName"));
+    }
+    for (String fileName in imageResources) {
+      addHandler("/img/$fileName",  
+                (HTTPRequest request, HTTPResponse response)
+                  => fileHandler(request, response, 
+                                 "${CLIENT_DIR}/img/$fileName"));
     }
     addHandler('/spreadsheet/get', GetSpreadsheet.getSample);
     addHandler('/spreadsheet/list', GetSpreadsheet.listSamples);
@@ -81,12 +144,11 @@ class TotalServer extends IsolatedServer {
   }
 
   void compileAndServe(HTTPRequest request, HTTPResponse response, String fileName) {
-    Dartc dartc = new Dartc('${CLIENT_DIR}/${fileName}');
-    dartc.work = OUTPUT_DIR;
-    dartc.out = '${OUTPUT_DIR}/${fileName}.app.js';
-    dartc.compile((int exitCode, String errorOutput) {
+    DartCompiler compiler = new DartCompiler('${CLIENT_DIR}/${fileName}');
+    compiler.out = '${OUTPUT_DIR}/${fileName}.js';
+    compiler.compile((int exitCode, String errorOutput) {
         if (exitCode == 0) {
-          fileHandler(request, response, "${OUTPUT_DIR}/${fileName}.app.js"); 
+          fileHandler(request, response, "${OUTPUT_DIR}/${fileName}.js"); 
         } else {
           print(errorOutput);
           errorOutput = errorOutput.replaceAll('&','&amp;');
