@@ -186,7 +186,7 @@ class Serializer extends MessageTraverser {
     return ['sendport', port._workerId, port._isolateId, port._receivePortId];
   }
 
-  SendPort visitBufferingSendPort(BufferingSendPort port) {
+  visitBufferingSendPort(BufferingSendPort port) {
     if (port._port != null) {
       return _visitNativeOrWorkerPort(port._port);
     } else {
