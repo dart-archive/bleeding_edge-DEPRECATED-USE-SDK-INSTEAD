@@ -36,7 +36,7 @@
         <condition property="osfamily" value="macos">
             <os family="mac"/>
         </condition>
-        <condition property="build.eclipse.os.ws" value="macosx.macosx">
+        <condition property="build.eclipse.os.ws" value="macosx.cocoa">
             <os family="mac"/>
         </condition>
         <condition property="osfamily" value="linux">
