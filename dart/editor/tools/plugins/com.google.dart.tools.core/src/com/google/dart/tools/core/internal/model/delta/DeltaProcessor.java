@@ -537,7 +537,7 @@ public class DeltaProcessor {
             if (libraryIFile != null && libraryIFile.exists() && libraryIFile.isLinked()) {
               DartProjectImpl project = (DartProjectImpl) DartCore.create(libraryIFile.getProject());
               DartLibrary dartLibrary = new DartLibraryImpl(project, libraryIFile,
-                  new UrlLibrarySource(uri));
+                  new UrlLibrarySource(uri, SystemLibraryManagerProvider.getSystemLibraryManager()));
               libraryInfo.removeImport(dartLibrary);
               currentDelta().changed(library, DartElementDelta.CHANGED);
             } else {
@@ -581,7 +581,7 @@ public class DeltaProcessor {
             if (libraryIFile != null && libraryIFile.exists() && libraryIFile.isLinked()) {
               DartProjectImpl project = (DartProjectImpl) DartCore.create(libraryIFile.getProject());
               DartLibrary dartLibrary = new DartLibraryImpl(project, libraryIFile,
-                  new UrlLibrarySource(uri));
+                  new UrlLibrarySource(uri, SystemLibraryManagerProvider.getSystemLibraryManager()));
               libraryInfo.addImport(dartLibrary);
               currentDelta().changed(dartLibrary, DartElementDelta.CHANGED);
             } else {
