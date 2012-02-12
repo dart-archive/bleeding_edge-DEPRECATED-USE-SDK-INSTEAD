@@ -7,6 +7,7 @@
     'corelib.dart',
     'math.dart',
     'natives.dart',
+    'newisolate.dart',
     'num.dart',
   ],
 }
