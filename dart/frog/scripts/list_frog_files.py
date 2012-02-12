@@ -20,7 +20,7 @@ def main(argv):
                          os.path.join('..', 'client', 'dom', 'frog'),
                          os.path.join('..', 'client', 'html', 'release')]
     for filename in files:
-      if filename.endswith('.dart') or filename.endswith('.js'):
+      if filename.endswith(('.dart', '.gypi', '.js')):
         print os.path.relpath(os.path.join(root, filename))
 
 if __name__ == '__main__':
