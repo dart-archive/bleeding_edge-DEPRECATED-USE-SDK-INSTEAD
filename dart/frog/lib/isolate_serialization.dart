@@ -231,7 +231,9 @@ class PendingSendPortFinder extends MessageTraverser {
     final visited = _getInfo(list);
     if (visited !== null) return;
     _attachInfo(list, true);
-    list.forEach(_dispatch);
+    // TODO(sigmund): replace with the following: (bug #1660)
+    // list.forEach(_dispatch);
+    list.forEach((e) => _dispatch(e));
   }
 
   visitMap(Map map) {
@@ -239,7 +241,9 @@ class PendingSendPortFinder extends MessageTraverser {
     if (visited !== null) return;
 
     _attachInfo(map, true);
-    map.getValues().forEach(_dispatch);
+    // TODO(sigmund): replace with the following: (bug #1660)
+    // map.getValues().forEach(_dispatch);
+    map.getValues().forEach((e) => _dispatch(e));
   }
 
   visitBufferingSendPort(BufferingSendPort port) {
