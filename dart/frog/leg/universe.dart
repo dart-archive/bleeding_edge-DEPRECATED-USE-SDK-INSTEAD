@@ -138,7 +138,7 @@ class Invocation extends Selector {
   List<SourceString> getOrderedNamedArguments() {
     if (namedArguments.isEmpty()) return namedArguments;
     // We use the empty const List as a sentinel.
-    if (!orderedNamedArguments.isEmpty()) return namedArguments;
+    if (!orderedNamedArguments.isEmpty()) return orderedNamedArguments;
 
     List<SourceString> list = new List<SourceString>.from(namedArguments);
     list.sort((SourceString first, SourceString second) {
