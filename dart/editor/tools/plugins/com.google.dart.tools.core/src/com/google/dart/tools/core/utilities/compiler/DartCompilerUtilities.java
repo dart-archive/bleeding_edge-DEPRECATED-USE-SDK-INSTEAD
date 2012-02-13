@@ -263,11 +263,6 @@ public class DartCompilerUtilities {
         }
 
         @Override
-        public boolean shouldWarnOnNoSuchType() {
-          return false;
-        }
-
-        @Override
         public boolean typeErrorsAreFatal() {
           return false;
         }
