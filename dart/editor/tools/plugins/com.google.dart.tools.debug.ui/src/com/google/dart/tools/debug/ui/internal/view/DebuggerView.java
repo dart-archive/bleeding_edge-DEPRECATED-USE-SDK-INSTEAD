@@ -50,6 +50,9 @@ import org.eclipse.ui.PartInitException;
  */
 @SuppressWarnings("restriction")
 public class DebuggerView extends LaunchView implements ILaunchesListener {
+
+  public static final String ID = "com.google.dart.tools.debug.debuggerView";
+
   private static final String SASH_WEIGHTS = "sashWeights";
 
   private ToolBar toolbar;

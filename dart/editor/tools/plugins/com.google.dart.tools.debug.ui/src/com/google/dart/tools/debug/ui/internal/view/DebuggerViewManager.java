@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.debug.ui.internal.view;
@@ -54,30 +52,6 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
           trigger.addSuspendTriggerListener(this);
         }
 
-        // open debugger view
-        Display.getDefault().asyncExec(new Runnable() {
-
-          @Override
-          public void run() {
-            try {
-              IWorkbenchWindow window = DartDebugUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
-              if (window == null) {
-                IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
-                if (windows.length > 0) {
-                  IWorkbenchPage[] pages = windows[0].getPages();
-                  if (pages.length > 0) {
-                    pages[0].showView("com.google.dart.tools.debug.debuggerView"); //$NON-NLS-N$
-                  }
-                }
-              } else {
-                window.getActivePage().showView("com.google.dart.tools.debug.debuggerView"); //$NON-NLS-N$
-              }
-            } catch (PartInitException e) {
-              DartUtil.logError(e);
-            }
-          }
-        });
-
       }
     } catch (CoreException e) {
       DartUtil.logError(e);
@@ -110,13 +84,13 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
 
       @Override
       public void run() {
+        openDebuggerView();
         IWorkbenchWindow window = DartDebugUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
         if (window == null) {
-          window = getWindowWithView("com.google.dart.tools.debug.debuggerView"); //$NON-NLS-N$
+          window = getWindowWithView(DebuggerView.ID);
         }
         window.getShell().forceActive();
-        IViewReference viewReference = window.getActivePage().findViewReference(
-            "com.google.dart.tools.debug.debuggerView"); //$NON-NLS-N$
+        IViewReference viewReference = window.getActivePage().findViewReference(DebuggerView.ID);
         window.getActivePage().activate(viewReference.getPart(true));
 
       }
@@ -138,6 +112,25 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
       }
     }
     return null;
+  }
+
+  private void openDebuggerView() {
+    try {
+      IWorkbenchWindow window = DartDebugUIPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
+      if (window == null) {
+        IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
+        if (windows.length > 0) {
+          IWorkbenchPage[] pages = windows[0].getPages();
+          if (pages.length > 0) {
+            pages[0].showView(DebuggerView.ID);
+          }
+        }
+      } else {
+        window.getActivePage().showView(DebuggerView.ID);
+      }
+    } catch (PartInitException e) {
+      DartUtil.logError(e);
+    }
   }
 
 }
