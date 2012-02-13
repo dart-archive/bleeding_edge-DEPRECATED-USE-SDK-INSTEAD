@@ -84,8 +84,6 @@ class MessageKind {
       "cannot resolve parameter");
   static final NOT_INSTANCE_FIELD = const MessageKind(
       '#{1} is not an instance field');
-  static final EXPECTED_LITERAL_NUMBER = const MessageKind(
-      'expected a literal number after +');
   static final NO_CATCH_NOR_FINALLY = const MessageKind(
       "expected 'catch' or 'finally'");
   static final EMPTY_CATCH_DECLARATION = const MessageKind(

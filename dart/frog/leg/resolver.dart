@@ -605,11 +605,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         assert(node.arguments.tail.isEmpty());
         mapping.setSelector(node, Selector.BINARY_OPERATOR);
       } else if (node.arguments.isEmpty()) {
-        if (node.isPrefix && op.source.stringValue === '+'
-            && node.receiver.asLiteralInt() === null
-            && node.receiver.asLiteralDouble() === null) {
-          error(node, MessageKind.EXPECTED_LITERAL_NUMBER);
-        }
+        assert(op.token.kind !== PLUS_TOKEN);
         mapping.setSelector(node, Selector.UNARY_OPERATOR);
       } else {
         visit(node.argumentsNode);

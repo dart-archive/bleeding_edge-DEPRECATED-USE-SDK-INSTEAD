@@ -950,16 +950,21 @@ class Parser {
     // Prefix:
     if (value === '+') {
       // Dart only allows "prefix plus" as an initial part of a
-      // decimal literal. We scan it as a separate token and treat it
-      // as a unary operator anyway.
-      Token operator = token;
+      // decimal literal. We scan it as a separate token and let
+      // the parser listener combine it with the digits.
       Token next = token.next;
-      if (next.charOffset !== token.charOffset + 1 ||
-          (next.kind !== INT_TOKEN && next.kind !== DOUBLE_TOKEN)) {
-        listener.recoverableError("Unexpected token '+'", token: token);
+      if (next.charOffset === token.charOffset + 1) {
+        if (next.kind === INT_TOKEN) {
+          listener.handleLiteralInt(token);
+          return next.next;
+        }
+        if (next.kind === DOUBLE_TOKEN) {
+          listener.handleLiteralDouble(token);
+          return next.next;
+        }
       }
-      token = parsePrecedenceExpression(next, POSTFIX_PRECEDENCE);
-      listener.handleUnaryPrefixExpression(operator);
+      listener.recoverableError("Unexpected token '+'", token: token);
+      return parsePrecendenceExpression(next, POSTFIX_PRECEDENCE);
     } else if ((value === '!') ||
                (value === '-') ||
                (value === '~')) {

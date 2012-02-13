@@ -246,7 +246,11 @@ class Send extends Expression {
   }
 
   Token getEndToken() {
-    if (isPrefix) return firstBeginToken(receiver, selector);
+    if (isPrefix) {
+      if (receiver !== null) return receiver.getEndToken();
+      if (selector !== null) return selector.getEndToken();
+      return null;
+    }
     if (argumentsNode !== null) return argumentsNode.getEndToken();
     if (selector !== null) return selector.getEndToken();
     return receiver.getBeginToken();
@@ -563,6 +567,8 @@ class LiteralInt extends Literal<int> {
 
   int get value() {
     try {
+      Token token = this.token;
+      if (token.kind === PLUS_TOKEN) token = token.next;
       return Math.parseInt(token.value.toString());
     } catch (BadNumberFormatException ex) {
       (this.handler)(token, ex);
@@ -580,6 +586,8 @@ class LiteralDouble extends Literal<double> {
 
   double get value() {
     try {
+      Token token = this.token;
+      if (token.kind === PLUS_TOKEN) token = token.next;
       return Math.parseDouble(token.value.toString());
     } catch (BadNumberFormatException ex) {
       (this.handler)(token, ex);

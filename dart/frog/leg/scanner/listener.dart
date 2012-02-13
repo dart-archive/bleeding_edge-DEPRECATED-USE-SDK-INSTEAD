@@ -324,9 +324,15 @@ class Listener {
   void handleEmptyStatement(Token token) {
   }
 
+  /** Called with either the token containing a double literal, or
+    * an immediately preceding "unary plus" token.
+    */
   void handleLiteralDouble(Token token) {
   }
 
+  /** Called with either the token containing an integer literal,
+    * or an immediately preceding "unary plus" token.
+    */
   void handleLiteralInt(Token token) {
   }
 
