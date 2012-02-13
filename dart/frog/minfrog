@@ -1648,8 +1648,20 @@ EnvMap.prototype.$index = function(key) {
 // ********** Code for ReadableStream **************
 // ********** Code for WritableStream **************
 $defProp(Object.prototype, '$typeNameOf', function() {
+  // TODO(kasperl): This seems very brittle. When running on top of V8 using
+  // constructor.name seems to be the only realiable way of computing this.
+  // It would be interesting to experiment with something like:
+  //
+  //   var cons = this.constructor;
+  //   if (typeof(cons) == 'function') {
+  //     var name = cons.name;
+  //     if (name) return name;
+  //   }
+  //
   if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
-      || typeof(process) != 'undefined') { // fast-path for Chrome and Node
+      || typeof(process) != 'undefined'
+      || String(write) == 'function write() { [native code] }') {
+    // Fast-path for Chrome, Node, and d8.
     return this.constructor.name;
   }
   var str = Object.prototype.toString.call(this);
@@ -1872,6 +1884,9 @@ MethodAnalyzer.prototype.visitValue = function(node) {
   var value = node.visit(this);
   value.checkFirstClass(node.span);
   return value;
+}
+MethodAnalyzer.prototype.get$visitValue = function() {
+  return this.visitValue.bind(this);
 }
 MethodAnalyzer.prototype.visitTypedValue = function(node, expectedType) {
   var val = this.visitValue(node);
@@ -2380,6 +2395,7 @@ MethodAnalyzer.prototype.visitLiteralExpression = function(node) {
   return new PureStaticValue(node.value.get$type(), node.span, true, false);
 }
 MethodAnalyzer.prototype.visitStringInterpExpression = function(node) {
+  node.pieces.forEach(this.get$visitValue());
   return this._frame._makeValue($globals.world.stringType, node);
 }
 MethodAnalyzer.prototype._pushBlock$1 = MethodAnalyzer.prototype._pushBlock;
@@ -2829,7 +2845,7 @@ CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
   this._generatedTypeNameOf = true;
   this.ensureDefProp();
-  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', function() {\n  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')\n      || typeof(process) != 'undefined') { // fast-path for Chrome and Node\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  str = str.substring(8, str.length - 1);\n  if (str == 'Window') {\n    str = 'DOMWindow';\n  } else if (str == 'Document') {\n    str = 'HTMLDocument';\n  }\n  return str;\n});");
+  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', function() {\n  // TODO(kasperl): This seems very brittle. When running on top of V8 using\n  // constructor.name seems to be the only realiable way of computing this.\n  // It would be interesting to experiment with something like:\n  //\n  //   var cons = this.constructor;\n  //   if (typeof(cons) == 'function') {\n  //     var name = cons.name;\n  //     if (name) return name;\n  //   }\n  //\n  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')\n      || typeof(process) != 'undefined'\n      || String(write) == 'function write() { [native code] }') {\n    // Fast-path for Chrome, Node, and d8.\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  str = str.substring(8, str.length - 1);\n  if (str == 'Window') {\n    str = 'DOMWindow';\n  } else if (str == 'Document') {\n    str = 'HTMLDocument';\n  }\n  return str;\n});");
 }
 CoreJs.prototype.ensureInheritsHelper = function() {
   if (this._generatedInherits) return;
@@ -6784,7 +6800,10 @@ InvokeKey.prototype.addMembers = function(members, context, target, args) {
     if (!(member.get$parameters().get$length() == this.bareArgs && this.namedArgs == null)) {
       this.needsVarCall = true;
     }
-    if ($eq(member.get$library(), $globals.world.dom)) {
+    else if ($globals.options.enableTypeChecks && member.get$isMethod() && member.needsArgumentConversion(args)) {
+      this.needsVarCall = true;
+    }
+    else if ($eq(member.get$library(), $globals.world.dom)) {
       var $$list = member.get$parameters();
       for (var $i0 = $$list.iterator(); $i0.hasNext(); ) {
         var p = $i0.next();

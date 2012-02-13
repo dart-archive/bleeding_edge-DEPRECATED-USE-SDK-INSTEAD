@@ -256,17 +256,23 @@ class InvokeKey {
 
   void addMembers(List<Member> members, CallingContext context, Value target,
       Arguments args) {
-    // TODO(jimhug): In checked mode include parameter types to determine
-    // need for varCall.
     for (var member in members) {
-      // check that this is a "perfect" match - or require a var call
-      // TODO(jimhug): Add support of "perfect matches" even with names
+      // Check that this is a "perfect" match - or require a var call.
+      // TODO(jimhug): Add support of "perfect matches" even with names.
       if (!(member.parameters.length == bareArgs && namedArgs == null)) {
+        // If we have named arguments or a mismatch in the number of
+        // formal and actual parameters, we go through a var call.
         needsVarCall = true;
-      }
-      // TODO(jimhug): Egregious hack for isolates + DOM - see
-      // Value._maybeWrapFunction for more details.
-      if (member.library == world.dom) {
+      } else if (options.enableTypeChecks &&
+                 member.isMethod &&
+                 member.needsArgumentConversion(args)) {
+        // The member we're adding is a method that needs argument
+        // conversion, so we have to make it go through the var call
+        // path to get the correct type checks inserted.
+        needsVarCall = true;
+      } else if (member.library == world.dom) {
+        // TODO(jimhug): Egregious hack for isolates + DOM - see
+        // Value._maybeWrapFunction for more details.
         for (var p in member.parameters) {
           if (p.type.getCallMethod() != null) {
             needsVarCall = true;
