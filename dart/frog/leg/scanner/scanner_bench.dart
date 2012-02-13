@@ -21,7 +21,7 @@ class ScannerBench {
   }
 
   void tokenizeAll(void log(String s), int iterations, List<String> arguments) {
-    ProgressBar bar = new ProgressBar(iterations);
+    VerboseProgressBar bar = new VerboseProgressBar(iterations);
     bar.begin();
     for (int i = 0; i < iterations; i++) {
       bar.tick();
@@ -123,5 +123,28 @@ class ProgressBar {
     }
     geoMean = Math.pow(geoMean, 1/Math.max(count, 1));
     return geoMean.round().toInt();
+  }
+}
+
+class VerboseProgressBar {
+  final int total;
+  int ticks = 0;
+
+  VerboseProgressBar(int this.total);
+
+  void begin() {
+  }
+
+  void tick() {
+    ++ticks;
+  }
+
+  void end() {
+  }
+
+  void recordScore(num score) {
+    if (total > 10) {
+      print("$ticks, $score, ${ticks * 100 ~/ total}%");
+    }
   }
 }

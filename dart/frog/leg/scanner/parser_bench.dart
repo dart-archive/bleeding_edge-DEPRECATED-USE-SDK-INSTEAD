@@ -67,7 +67,7 @@ class ParserBench extends BaseParserBench {
       timedParseAll(arguments);
     }
     final int iterations = 500;
-    ProgressBar bar = new ProgressBar(iterations);
+    VerboseProgressBar bar = new VerboseProgressBar(iterations);
     bar.begin();
     for (int i = 0; i < iterations; i++) {
       bar.tick();
