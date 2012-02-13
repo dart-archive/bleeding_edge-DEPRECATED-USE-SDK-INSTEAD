@@ -431,12 +431,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return element;
   }
 
-  Element defineElement(Node node, Element element) {
+  Element defineElement(Node node, Element element,
+                        [bool doAddToScope = true]) {
     compiler.ensure(element !== null);
     mapping[node] = element;
-    Element existing = context.add(element);
-    if (existing != element) {
-      error(node, MessageKind.DUPLICATE_DEFINITION, [node]);
+    if (doAddToScope) { 
+      Element existing = context.add(element);
+      if (existing != element) {
+        error(node, MessageKind.DUPLICATE_DEFINITION, [node]);
+      }
     }
     return element;
   }
@@ -496,14 +499,16 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitFunctionExpression(FunctionExpression node) {
     visit(node.returnType);
+    SourceString name;
     if (node.name === null) {
-      cancel(node, "anonymous functions are not implemented");
+      name = const SourceString("");
+    } else {
+      name = node.name.asIdentifier().source;
     }
-    SourceString name = node.name.asIdentifier().source;
     FunctionElement enclosingElement = new FunctionElement.node(
         name, node, ElementKind.FUNCTION, new Modifiers.empty(),
         context.element);
-    defineElement(node, enclosingElement);
+    defineElement(node, enclosingElement, doAddToScope: node.name !== null);
     setupFunction(node, enclosingElement);
 
     visit(node.body);
