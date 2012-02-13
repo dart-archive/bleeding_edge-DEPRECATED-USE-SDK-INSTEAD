@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,7 +15,6 @@ package com.google.dart.tools.debug.ui.internal;
 
 import com.google.dart.tools.debug.ui.internal.view.DebuggerViewManager;
 
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -89,7 +88,8 @@ public class DartDebugUIPlugin extends AbstractUIPlugin {
 
     super.start(context);
 
-    DebugPlugin.getDefault().getLaunchManager().addLaunchListener(DebuggerViewManager.getDefault());
+    // Initialize the DebuggerViewManager.
+    DebuggerViewManager.getDefault();
   }
 
   /**
@@ -97,8 +97,7 @@ public class DartDebugUIPlugin extends AbstractUIPlugin {
    */
   @Override
   public void stop(BundleContext context) throws Exception {
-    DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(
-        DebuggerViewManager.getDefault());
+    DebuggerViewManager.dispose();
 
     super.stop(context);
 

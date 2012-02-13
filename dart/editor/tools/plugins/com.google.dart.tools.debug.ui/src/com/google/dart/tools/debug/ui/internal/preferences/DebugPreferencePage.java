@@ -57,7 +57,6 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
   @Override
   public boolean performOk() {
-
     if (vmField != null) {
       DartDebugCorePlugin.getPlugin().setDartVmExecutablePath(vmField.getText());
     }

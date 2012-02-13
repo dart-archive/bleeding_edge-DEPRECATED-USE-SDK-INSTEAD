@@ -16,7 +16,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jface.text,
  org.eclipse.core.expressions,
  org.eclipse.core.filesystem,
- com.google.dart.compiler.js
+ com.google.dart.compiler.js,
+ org.eclipse.ui.console
 Export-Package: com.google.dart.tools.debug.ui.internal.dartium;x-friends:="com.google.dart.tools.deploy",
  com.google.dart.tools.debug.ui.internal.util;x-friends:="com.google.dart.tools.deploy",
  com.google.dart.tools.debug.ui.launch;x-friends:="com.google.dart.tools.deploy"

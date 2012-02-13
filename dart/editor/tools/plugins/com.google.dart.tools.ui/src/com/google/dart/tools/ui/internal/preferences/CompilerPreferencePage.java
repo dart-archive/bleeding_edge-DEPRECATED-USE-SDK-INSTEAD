@@ -34,6 +34,7 @@ public class CompilerPreferencePage extends PreferencePage implements IWorkbench
   public static final String PAGE_ID = "com.google.dart.tools.ui.compilerPreferencePage"; //$NON-NLS-1$
 
   public CompilerPreferencePage() {
+    setDescription("Dart SDK Status");
     noDefaultAndApplyButton();
   }
 
@@ -44,7 +45,6 @@ public class CompilerPreferencePage extends PreferencePage implements IWorkbench
 
   @Override
   public boolean performOk() {
-
     return true;
   }
 
@@ -76,4 +76,5 @@ public class CompilerPreferencePage extends PreferencePage implements IWorkbench
 
     return composite;
   }
+
 }
