@@ -216,13 +216,6 @@ class LocalsHandler {
         new ClosureTranslator(builder.compiler, builder.elements);
     closureData = translator.translate(node);
 
-    if (closureData.thisElement !== null &&
-        isAccessedDirectly(closureData.thisElement)) {
-      HInstruction thisInstruction = new HThis();
-      updateLocal(closureData.thisElement, thisInstruction);
-      builder.add(thisInstruction);
-    }
-
     FunctionParameters params = function.computeParameters(builder.compiler);
     params.forEachParameter((Element element) {
       HParameterValue parameter = new HParameterValue(element);
@@ -240,6 +233,17 @@ class LocalsHandler {
     closureData.freeVariableMapping.forEach((Element from, Element to) {
       redirectElement(from, to);
     });
+    if (closureData.isClosure()) {
+      // Inside closure redirect references to itself to [:this:].
+      HInstruction thisInstruction = new HThis();
+      builder.add(thisInstruction);
+      updateLocal(closureData.closureElement, thisInstruction);
+    } else if (function.isInstanceMember() ||
+               function.isGenerativeConstructor()) {
+      HInstruction thisInstruction = new HThis();
+      builder.add(thisInstruction);
+      updateLocal(closureData.thisElement, thisInstruction);
+    }
   }
 
   /**
@@ -888,16 +892,16 @@ class SsaBuilder implements Visitor {
   visitFunctionExpression(FunctionExpression node) {
     ClosureData nestedClosureData = closureDataCache[node];
     assert(nestedClosureData !== null);
-    assert(nestedClosureData.globalizedClosureElement !== null);
-    ClassElement globalizedClosureElement =
-        nestedClosureData.globalizedClosureElement;
+    assert(nestedClosureData.closureClassElement !== null);
+    ClassElement closureClassElement =
+        nestedClosureData.closureClassElement;
     FunctionElement callElement = nestedClosureData.callElement;
     compiler.enqueue(new WorkItem.toCodegen(callElement, elements));
-    compiler.registerInstantiatedClass(globalizedClosureElement);
-    assert(globalizedClosureElement.members.isEmpty());
+    compiler.registerInstantiatedClass(closureClassElement);
+    assert(closureClassElement.members.isEmpty());
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    for (Element member in globalizedClosureElement.backendMembers) {
+    for (Element member in closureClassElement.backendMembers) {
       // The backendMembers also contains the call method(s). We are only
       // interested in the fields.
       if (member.kind == ElementKind.FIELD) {
@@ -907,7 +911,7 @@ class SsaBuilder implements Visitor {
       }
     }
 
-    push(new HForeignNew(globalizedClosureElement, capturedVariables));
+    push(new HForeignNew(closureClassElement, capturedVariables));
   }
 
   visitIdentifier(Identifier node) {
@@ -1403,8 +1407,7 @@ class SsaBuilder implements Visitor {
       visit(node.selector);
       closureTarget = pop();
     } else {
-      assert(element.kind === ElementKind.VARIABLE ||
-             element.kind === ElementKind.PARAMETER);
+      assert(Elements.isLocal(element));
       closureTarget = localsHandler.readLocal(element);
     }
     var inputs = <HInstruction>[];

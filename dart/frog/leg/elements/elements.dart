@@ -624,18 +624,25 @@ class Elements {
                || element.kind === ElementKind.SETTER);
   }
 
-  static bool isStaticOrTopLevelField(Element element) {
+  static bool isStaticOrTopLevel(Element element) {
     return (element != null)
            && !element.isInstanceMember()
+           && element.enclosingElement !== null
+           && (element.enclosingElement.kind == ElementKind.CLASS ||
+               element.enclosingElement.kind == ElementKind.COMPILATION_UNIT ||
+               element.enclosingElement.kind == ElementKind.LIBRARY);    
+  }
+
+  static bool isStaticOrTopLevelField(Element element) {
+    return isStaticOrTopLevel(element)
            && (element.kind === ElementKind.FIELD
                || element.kind === ElementKind.GETTER
                || element.kind === ElementKind.SETTER);
   }
 
   static bool isStaticOrTopLevelFunction(Element element) {
-    return (element != null)
-            && !element.isInstanceMember()
-            && (element.kind === ElementKind.FUNCTION);    
+    return isStaticOrTopLevel(element)
+           && (element.kind === ElementKind.FUNCTION);    
   }
 
   static bool isInstanceMethod(Element element) {
@@ -658,7 +665,7 @@ class Elements {
     if (element === null && send.selector.asIdentifier() === null) return true;
     if (element === null) return false;
     // foo() with foo a local or a parameter.
-    return element.isVariable() || element.isParameter();
+    return isLocal(element);
   }
 
   static SourceString constructConstructorName(SourceString receiver,

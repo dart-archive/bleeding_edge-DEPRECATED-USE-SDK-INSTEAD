@@ -22,9 +22,11 @@ class ClosureScope {
 }
 
 class ClosureData {
-  // The globalizedClosureElement will be null for methods that are not local
+  // The closure's element before any translation. Will be null for methods.
+  final FunctionElement closureElement;
+  // The closureClassElement will be null for methods that are not local
   // closures.
-  final ClassElement globalizedClosureElement;
+  final ClassElement closureClassElement;
   // The callElement will be null for methods that are not local closures.
   final FunctionElement callElement;
   // The [thisElement] makes handling 'this' easier by treating it like any
@@ -49,11 +51,16 @@ class ClosureData {
 
   final Set<Element> usedVariablesInTry;
 
-  ClosureData(this.globalizedClosureElement, this.callElement, this.thisElement)
+  ClosureData(this.closureElement,
+              this.closureClassElement,
+              this.callElement,
+              this.thisElement)
       : this.freeVariableMapping = new Map<Element, Element>(),
         this.capturedFieldMapping = new Map<Element, Element>(),
         this.capturingScopes = new Map<Node, ClosureScope>(),
         this.usedVariablesInTry = new Set<Element>();
+
+  bool isClosure() => closureElement !== null;
 }
 
 Map<Node, ClosureData> _closureDataCache;
@@ -136,7 +143,7 @@ class ClosureTranslator extends AbstractVisitor {
           fieldCaptures.add(boxElement);
         }
       });
-      ClassElement closureElement = data.globalizedClosureElement;
+      ClassElement closureElement = data.closureClassElement;
       assert(closureElement != null || fieldCaptures.isEmpty());
       for (Element boxElement in fieldCaptures) {
         Element fieldElement =
@@ -266,7 +273,8 @@ class ClosureTranslator extends AbstractVisitor {
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     Element thisElement = closureData.thisElement;
-    return new ClosureData(globalizedElement, callElement, thisElement);
+    return new ClosureData(element, globalizedElement,
+                           callElement, thisElement);
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -303,7 +311,7 @@ class ClosureTranslator extends AbstractVisitor {
                                   ElementKind.PARAMETER,
                                   thisEnclosingElement);
       }
-      closureData = new ClosureData(null, null, thisElement);
+      closureData = new ClosureData(null, null, null, thisElement);
     }
     scopeVariables = new List<Element>();
 
@@ -334,18 +342,18 @@ class ClosureTranslator extends AbstractVisitor {
     List<Element> freeVariables =
         savedClosureData.freeVariableMapping.getKeys();
     assert(freeVariables.isEmpty() || savedInsideClosure);
-    for (Element element in freeVariables) {
-      assert(capturedVariableMapping[element] == null ||
-             capturedVariableMapping[element] == element);
-      capturedVariableMapping[element] = element;
-      useLocal(element);
+    for (Element freeElement in freeVariables) {
+      assert(capturedVariableMapping[freeElement] == null ||
+             capturedVariableMapping[freeElement] == freeElement);
+      capturedVariableMapping[freeElement] = freeElement;
+      useLocal(freeElement);
     }
 
     // If we just visited a closure we declare it. This is not always correct
     // since some closures are used as expressions and don't introduce any
     // name. But in this case the added local is simply not used.
     if (savedInsideClosure) {
-      declareLocal(elements[node]);
+      declareLocal(element);
     }
   }
 
