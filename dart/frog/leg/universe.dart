@@ -6,8 +6,7 @@ class Universe {
   Map<Element, String> generatedCode;
   Map<Element, String> generatedBailoutCode;
   final Set<ClassElement> instantiatedClasses;
-  // TODO(floitsch): we want more information than just the method name. For
-  // example the number of arguments, etc.
+  final Set<FunctionElement> staticFunctionsNeedingGetter;
   final Map<SourceString, Set<Selector>> invokedNames;
   final Set<SourceString> invokedGetters;
   final Set<SourceString> invokedSetters;
@@ -17,6 +16,7 @@ class Universe {
                generatedBailoutCode = new Map<Element, String>(),
                libraries = new Map<String, LibraryElement>(),
                instantiatedClasses = new Set<ClassElement>(),
+               staticFunctionsNeedingGetter = new Set<FunctionElement>(),
                invokedNames = new Map<SourceString, Set<Invocation>>(),
                invokedGetters = new Set<SourceString>(),
                invokedSetters = new Set<SourceString>();

@@ -276,6 +276,9 @@ builtin$toString$0(var value) {
     return "-0.0";
   }
   if (value === null) return "null";
+  if (JS("bool", @"typeof $0 == 'function'", value)) {
+    return "Closure";
+  }
   return JS("string", @"String($0)", value);
 }
 

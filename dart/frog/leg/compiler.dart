@@ -265,6 +265,11 @@ class Compiler implements DiagnosticListener {
     addToWorklist(element);
   }
 
+  void registerGetOfStaticFunction(FunctionElement element) {
+    registerStaticUse(element);
+    universe.staticFunctionsNeedingGetter.add(element);
+  }
+
   void registerDynamicInvocation(SourceString methodName, Selector selector) {
     assert(selector !== null);
     Set<Invocation> existing = universe.invokedNames[methodName];

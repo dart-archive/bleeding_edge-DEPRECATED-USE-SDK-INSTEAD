@@ -1168,7 +1168,8 @@ class SsaBuilder implements Visitor {
         push(new HInvokeDynamicGetter(selector, null, getterName, receiver));
       }
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
-      compiler.unimplemented("SsaBuilder.visitSend with static", node: send);
+      push(new HStatic(element));
+      compiler.registerGetOfStaticFunction(element);
     } else {
       stack.add(localsHandler.readLocal(element));
     }

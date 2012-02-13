@@ -266,6 +266,28 @@ function(child, parent) {
                                  namer.isolateBailoutPropertyAccess);
   }
 
+  void emitStaticFunctionGetters(StringBuffer buffer) {
+    Set<FunctionElement> functionsNeedingGetter =
+        compiler.universe.staticFunctionsNeedingGetter;
+    for (FunctionElement element in functionsNeedingGetter) {
+      // The static function does not have the correct name. Since
+      // [addParameterStubs] use the name to create its stubs we simply
+      // create a fake element with the correct name.
+      // Note: the callElement will not have the correct modifiers (in case
+      // of static functions) and will not have any enclosingElement.
+      FunctionElement callElement =
+          new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME,
+                                   element,
+                                   null);
+      String staticName = namer.isolatePropertyAccess(element);
+      int parameterCount = element.parameterCount(compiler);
+      String invocationName =
+          namer.instanceMethodName(callElement.name, parameterCount);
+      buffer.add("$staticName.$invocationName = $staticName;\n");
+      addParameterStubs(callElement, staticName, buffer);
+    }
+  }
+
   void emitStaticNonFinalFieldInitializations(StringBuffer buffer) {
     // Adds initializations inside the Isolate constructor.
     // Example:
@@ -357,6 +379,7 @@ function(child, parent) {
       emitClasses(buffer);
       emitNoSuchMethodCalls(buffer);
       emitStaticFunctions(buffer);
+      emitStaticFunctionGetters(buffer);
       emitStaticFinalFieldInitializations(buffer);
       buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
       Element main = compiler.mainApp.find(Compiler.MAIN);
