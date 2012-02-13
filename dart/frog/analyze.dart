@@ -773,6 +773,7 @@ class MethodAnalyzer implements TreeVisitor {
   }
 
   Value visitStringInterpExpression(StringInterpExpression node) {
+    node.pieces.forEach(visitValue);
     return _frame._makeValue(world.stringType, node);
 
     // TODO(jimhug): Do we need this more elaborate analysis?
