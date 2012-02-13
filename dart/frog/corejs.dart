@@ -342,8 +342,20 @@ function $dynamicSetMetadata(inputTable) {
 /** Snippet for `$typeNameOf`. */
 final String _TYPE_NAME_OF_FUNCTION = @"""
 $defProp(Object.prototype, '$typeNameOf', function() {
+  // TODO(kasperl): This seems very brittle. When running on top of V8 using
+  // constructor.name seems to be the only realiable way of computing this.
+  // It would be interesting to experiment with something like:
+  //
+  //   var cons = this.constructor;
+  //   if (typeof(cons) == 'function') {
+  //     var name = cons.name;
+  //     if (name) return name;
+  //   }
+  //
   if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
-      || typeof(process) != 'undefined') { // fast-path for Chrome and Node
+      || typeof(process) != 'undefined'
+      || String(write) == 'function write() { [native code] }') {
+    // Fast-path for Chrome, Node, and d8.
     return this.constructor.name;
   }
   var str = Object.prototype.toString.call(this);
