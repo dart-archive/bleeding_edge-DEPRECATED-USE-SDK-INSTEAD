@@ -45,43 +45,43 @@ class Interceptors {
 
   Element getStaticInterceptor(SourceString name, int parameters) {
     String mangledName = "builtin\$${name}\$${parameters}";
-    Element result = compiler.coreLibrary.find(new SourceString(mangledName));
+    Element result = compiler.findHelper(new SourceString(mangledName));
     return result;
   }
 
   Element getStaticGetInterceptor(SourceString name) {
     String mangledName = "builtin\$get\$${name}";
-    Element result = compiler.coreLibrary.find(new SourceString(mangledName));
+    Element result = compiler.findHelper(new SourceString(mangledName));
     return result;
   }
 
   Element getOperatorInterceptor(Operator op) {
     SourceString name = mapOperatorToMethodName(op);
-    Element result = compiler.coreLibrary.find(name);
+    Element result = compiler.findHelper(name);
     return result;
   }
 
   Element getPrefixOperatorInterceptor(Operator op) {
     String name = op.source.stringValue;
     if (name === '~') {
-      return compiler.coreLibrary.find(const SourceString('not'));
+      return compiler.findHelper(const SourceString('not'));
     }
     if (name === '-') {
-      return compiler.coreLibrary.find(const SourceString('neg'));
+      return compiler.findHelper(const SourceString('neg'));
     }
     compiler.unimplemented('Unknown operator', node: op);
   }
 
   Element getIndexInterceptor() {
-    return compiler.coreLibrary.find(const SourceString('index'));
+    return compiler.findHelper(const SourceString('index'));
   }
 
   Element getIndexAssignmentInterceptor() {
-    return compiler.coreLibrary.find(const SourceString('indexSet'));
+    return compiler.findHelper(const SourceString('indexSet'));
   }
 
   Element getEqualsNullInterceptor() {
-    return compiler.coreLibrary.find(const SourceString('eqNull'));
+    return compiler.findHelper(const SourceString('eqNull'));
   }
 }
 

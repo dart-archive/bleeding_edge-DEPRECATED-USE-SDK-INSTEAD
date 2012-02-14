@@ -375,7 +375,9 @@ class TypeCheckerVisitor implements Visitor<Type> {
         funType = memberType;
       } else {
         Element element = elements[node];
-        if (element.kind === ElementKind.FUNCTION) {
+        if (element === null) {
+          fail(node, 'unresolved ${node.selector}');
+        } else if (element.kind === ElementKind.FUNCTION) {
           funType = computeType(element);
         } else if (element.kind === ElementKind.FOREIGN) {
           return types.dynamicType;

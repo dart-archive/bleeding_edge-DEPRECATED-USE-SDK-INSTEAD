@@ -20,10 +20,10 @@ class WarningMessage {
   toString() => message.toString();
 }
 
-final String DEFAULT_CORELIB = @'''
+final String DEFAULT_HELPERLIB = @'''
   lt() {} add(var a, var b) {} sub() {} mul() {} div() {} tdiv() {} mod() {}
   neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}
-  or() {} and() {} not() {} print(var obj) {} eqNull(a) {} eqq() {}
+  or() {} and() {} not() {} eqNull(a) {} eqq() {}
   guard$array(x) { return x; }
   guard$num(x) { return x; }
   guard$string(x) { return x; }
@@ -33,7 +33,10 @@ final String DEFAULT_CORELIB = @'''
   builtin$filter$1(receiver, predicate) {}
   builtin$removeLast$0(receiver) {}
   index(a, index) {}
-  indexSet(a, index, value) {}
+  indexSet(a, index, value) {}''';
+
+final String DEFAULT_CORELIB = @'''
+  print(var obj) {}
   class int {}
   class double {}
   class bool {}
@@ -46,12 +49,16 @@ class MockCompiler extends Compiler {
   Node parsedTree;
   WorkItem lastBailoutWork;
 
-  MockCompiler([String coreSource = DEFAULT_CORELIB])
+  MockCompiler([String coreSource = DEFAULT_CORELIB,
+                String helperSource = DEFAULT_HELPERLIB])
       : warnings = [], errors = [], super() {
     Uri uri = new Uri(scheme: "source");
     var script = new Script(uri, new MockFile(coreSource));
     coreLibrary = new LibraryElement(script);
     parseScript(coreSource, coreLibrary);
+    script = new Script(uri, new MockFile(helperSource));
+    jsHelperLibrary = new LibraryElement(script);
+    parseScript(helperSource, jsHelperLibrary);
     mainApp = mockLibrary(this, "");
   }
 
@@ -112,7 +119,7 @@ class MockCompiler extends Compiler {
     return resolver.resolveType(element);
   }
 
-  void scanCoreLibrary() {
+  void scanBuiltinLibraries() {
     // Do nothing. The mock core library is already handled in the constructor.
   }
 }

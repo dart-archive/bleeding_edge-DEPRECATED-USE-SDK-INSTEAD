@@ -47,6 +47,8 @@ class Compiler implements DiagnosticListener {
   CompilerTask measuredTask;
   Element _currentElement;
   LibraryElement coreLibrary;
+  LibraryElement coreImplLibrary;
+  LibraryElement jsHelperLibrary;
   LibraryElement mainApp;
 
   Element get currentElement() => _currentElement;
@@ -143,20 +145,26 @@ class Compiler implements DiagnosticListener {
     return true;
   }
 
-  void scanCoreLibrary() {
-    String fileName = io.join([legDirectory, 'lib', 'core.dart']);
+  LibraryElement scanBuiltinLibrary(String filename) {
+    String fileName = io.join([legDirectory, 'lib', filename]);
     Uri cwd = new Uri(scheme: 'file', path: currentDirectory);
     Uri uri = cwd.resolve(fileName);
-    Script script = readScript(uri);
-    coreLibrary = new LibraryElement(script);
-    withCurrentElement(coreLibrary, () => scanner.scan(currentElement));
+    LibraryElement library = scanner.loadLibrary(uri, null);
     // Make our special function a foreign kind.
-    coreLibrary.define(new ForeignElement(
-        const SourceString('JS'), coreLibrary), this);
-    coreLibrary.define(new ForeignElement(
-        const SourceString('UNINTERCEPTED'), coreLibrary), this);
-    coreLibrary.define(new ForeignElement(
-        const SourceString('JS_HAS_EQUALS'), coreLibrary), this);
+    // TODO(ahe): We should only add these elements to one library.
+    library.define(new ForeignElement(
+        const SourceString('JS'), library), this);
+    library.define(new ForeignElement(
+        const SourceString('UNINTERCEPTED'), library), this);
+    library.define(new ForeignElement(
+        const SourceString('JS_HAS_EQUALS'), library), this);
+    return library;
+  }
+
+  void scanBuiltinLibraries() {
+    coreLibrary = scanBuiltinLibrary('core.dart');
+    coreImplLibrary = scanBuiltinLibrary('coreimpl.dart');
+    jsHelperLibrary = scanBuiltinLibrary('js_helper.dart');
     // TODO(ngeoffray): Lazily add this method.
     universe.invokedNames[NO_SUCH_METHOD] =
         new Set<Invocation>.from(<Invocation>[new Invocation(2)]);
@@ -199,7 +207,7 @@ class Compiler implements DiagnosticListener {
   }
 
   void runCompiler(Script script) {
-    scanCoreLibrary();
+    scanBuiltinLibraries();
     mainApp = new LibraryElement(script);
     Element element;
     withCurrentElement(mainApp, () {
@@ -318,6 +326,8 @@ class Compiler implements DiagnosticListener {
   String get legDirectory() {
     unimplemented('Compiler.legDirectory');
   }
+
+  Element findHelper(SourceString name) => jsHelperLibrary.find(name);
 }
 
 class CompilerTask {

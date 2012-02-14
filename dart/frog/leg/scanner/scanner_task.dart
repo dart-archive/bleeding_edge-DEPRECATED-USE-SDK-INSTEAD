@@ -38,7 +38,7 @@ class ScannerTask extends CompilerTask {
         compiler.cancel("illegal script tag: ${tag.tag}", node: tag);
       }
     }
-    if (library !== compiler.coreLibrary) {
+    if (compiler.coreLibrary !== null) {
       importLibrary(library, compiler.coreLibrary, null);
     }
   }
