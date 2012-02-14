@@ -343,13 +343,16 @@ function $dynamicSetMetadata(inputTable) {
 final String _TYPE_NAME_OF_FUNCTION = @"""
 $defProp(Object.prototype, '$typeNameOf', function() {
   var constructor = this.constructor;
-  if (constructor != null) {
+  if (typeof(constructor) == 'function') {
     // The constructor isn't null or undefined at this point. Try
     // to grab hold of its name.
     var name = constructor.name;
     // If the name is a non-empty string, we use that as the type
-    // name of this object.
-    if (name && typeof(name) == 'string') return name;
+    // name of this object. On Firefox, we often get 'Object' as
+    // the constructor name even for more specialized objects so
+    // we have to fall through to the toString() based implementation
+    // below in that case.
+    if (name && typeof(name) == 'string' && name != 'Object') return name;
   }
   var string = Object.prototype.toString.call(this);
   var name = string.substring(8, string.length - 1);

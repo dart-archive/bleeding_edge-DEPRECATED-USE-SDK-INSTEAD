@@ -1649,13 +1649,16 @@ EnvMap.prototype.$index = function(key) {
 // ********** Code for WritableStream **************
 $defProp(Object.prototype, '$typeNameOf', function() {
   var constructor = this.constructor;
-  if (constructor != null) {
+  if (typeof(constructor) == 'function') {
     // The constructor isn't null or undefined at this point. Try
     // to grab hold of its name.
     var name = constructor.name;
     // If the name is a non-empty string, we use that as the type
-    // name of this object.
-    if (name && typeof(name) == 'string') return name;
+    // name of this object. On Firefox, we often get 'Object' as
+    // the constructor name even for more specialized objects so
+    // we have to fall through to the toString() based implementation
+    // below in that case.
+    if (name && typeof(name) == 'string' && name != 'Object') return name;
   }
   var string = Object.prototype.toString.call(this);
   var name = string.substring(8, string.length - 1);
@@ -2838,7 +2841,7 @@ CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
   this._generatedTypeNameOf = true;
   this.ensureDefProp();
-  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', function() {\n  var constructor = this.constructor;\n  if (constructor != null) {\n    // The constructor isn't null or undefined at this point. Try\n    // to grab hold of its name.\n    var name = constructor.name;\n    // If the name is a non-empty string, we use that as the type\n    // name of this object.\n    if (name && typeof(name) == 'string') return name;\n  }\n  var string = Object.prototype.toString.call(this);\n  var name = string.substring(8, string.length - 1);\n  if (name == 'Window') {\n    name = 'DOMWindow';\n  } else if (name == 'Document') {\n    name = 'HTMLDocument';\n  }\n  return name;\n});");
+  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', function() {\n  var constructor = this.constructor;\n  if (typeof(constructor) == 'function') {\n    // The constructor isn't null or undefined at this point. Try\n    // to grab hold of its name.\n    var name = constructor.name;\n    // If the name is a non-empty string, we use that as the type\n    // name of this object. On Firefox, we often get 'Object' as\n    // the constructor name even for more specialized objects so\n    // we have to fall through to the toString() based implementation\n    // below in that case.\n    if (name && typeof(name) == 'string' && name != 'Object') return name;\n  }\n  var string = Object.prototype.toString.call(this);\n  var name = string.substring(8, string.length - 1);\n  if (name == 'Window') {\n    name = 'DOMWindow';\n  } else if (name == 'Document') {\n    name = 'HTMLDocument';\n  }\n  return name;\n});");
 }
 CoreJs.prototype.ensureInheritsHelper = function() {
   if (this._generatedInherits) return;
