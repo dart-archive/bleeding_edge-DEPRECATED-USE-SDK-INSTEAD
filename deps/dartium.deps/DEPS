@@ -473,12 +473,6 @@ hooks = [
                "--no-gyp"],
   },
   {
-    "pattern": ".",
-    "action": ["svn", "export",
-               Var("multivm_url") +  "/tools/buildbot_annotated_steps.py",
-               "src/build/buildbot_annotated_steps.py" ],
-  },
-  {
     # This downloads binaries for Native Client's newlib toolchain.
     # Done in lieu of building the toolchain from scratch as it can take
     # anywhere from 30 minutes to 4 hours depending on platform to build.
@@ -511,6 +505,10 @@ hooks = [
     # which takes ~20s, but clang speeds up builds by more than 20s.
     "pattern": ".",
     "action": ["python", "src/tools/clang/scripts/update.py", "--mac-only"],
+  },
+  {
+    "pattern": ".",
+    "action": ["python", "src/dartium_tools/export_overrides.py"],
   },
   {
     # A change to a .gyp, .gypi, or to GYP itself should run the generator.
