@@ -1225,7 +1225,21 @@ class SsaBuilder implements Visitor {
     } else if (const SourceString("is") == op.source) {
       visit(node.receiver);
       HInstruction expression = pop();
-      push(new HIs(elements[node.arguments.head], expression));
+      Node argument = node.arguments.head;
+      TypeAnnotation type = argument.asTypeAnnotation();
+      bool isNot = false;
+      // TODO(ngeoffray): Duplicating pattern in resolver. We should
+      // add a new kind of node.
+      if (type == null) {
+        type = argument.asSend().receiver;
+        isNot = true;
+      }
+      HInstruction instruction = new HIs(elements[type], expression);
+      if (isNot) {
+        add(instruction);
+        instruction = new HNot(instruction);
+      }
+      push(instruction);
     } else {
       visit(node.receiver);
       visit(node.argumentsNode);

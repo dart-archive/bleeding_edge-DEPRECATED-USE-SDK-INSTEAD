@@ -580,7 +580,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return target;
   }
 
-  resolveTypeTest(TypeAnnotation node) {
+  resolveTypeTest(Node argument) {
+    TypeAnnotation node = argument.asTypeAnnotation();
+    if (node == null) {
+      node = argument.asSend().receiver;
+    }
     resolveTypeRequired(node);
   }
 

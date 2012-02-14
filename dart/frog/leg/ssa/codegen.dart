@@ -823,6 +823,7 @@ class SsaCodeGenerator implements HVisitor {
     ClassElement element = node.typeExpression;
     LibraryElement coreLibrary = compiler.coreLibrary;
     HInstruction input = node.expression;
+    buffer.add('(');
     if (element == coreLibrary.find(const SourceString('Object'))) {
       // TODO(ahe): This probably belongs in the constant folder.
       buffer.add('true');
@@ -835,6 +836,8 @@ class SsaCodeGenerator implements HVisitor {
     } else if (element == coreLibrary.find(const SourceString('bool'))) {
       checkBool(input, '===');
     } else if (element == coreLibrary.find(const SourceString('int'))) {
+      checkNum(input, '===');
+      buffer.add(' && ');
       checkInt(input, '===');
     } else {
       if (element == coreLibrary.find(const SourceString('List'))) {
@@ -847,6 +850,7 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add(compiler.namer.operatorIs(node.typeExpression));
       buffer.add(')');
     }
+    buffer.add(')');
   }
 }
 

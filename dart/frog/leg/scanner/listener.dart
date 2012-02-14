@@ -1257,12 +1257,16 @@ class NodeListener extends ElementListener {
   }
 
   void handleIsOperator(Token operathor, Token not, Token endToken) {
-    if (not !== null) {
-      listener.cancel('negated is-operator is not implemented', token: not);
-    }
     TypeAnnotation type = popNode();
     Expression expression = popNode();
-    NodeList arguments = new NodeList.singleton(type);
+    Node argument;
+    if (not != null) {
+      argument = new Send.prefix(type, new Operator(not));
+    } else {
+      argument = type;
+    }
+
+    NodeList arguments = new NodeList.singleton(argument);
     pushNode(new Send(expression, new Operator(operathor), arguments));
   }
 
