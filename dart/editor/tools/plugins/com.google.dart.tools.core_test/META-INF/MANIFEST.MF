@@ -18,5 +18,6 @@ Require-Bundle: com.google.dart.compiler.js,
  org.junit,
  com.google.dart.indexer_test
 Export-Package: com.google.dart.tools.core,
+ com.google.dart.tools.core.samples,
  com.google.dart.tools.core.test.util,
  com.google.dart.tools.core.testutil

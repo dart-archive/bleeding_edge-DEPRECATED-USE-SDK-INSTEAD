@@ -325,102 +325,48 @@ class ObjectArray<T> { }
     <target name="buildSamples">
 
         <!-- create the samples directory -->
+        
         <property name="samples.out.dir" 
                   value="${build.stage.include.dir}/samples" />
-    
-        <!-- Clock -->
-        <copy todir="${samples.out.dir}/clock">
-            <fileset dir="${build.source.root}/samples/clock">
-            </fileset>
-        </copy>
-
-        <!-- Time -->
-        <copy todir="${samples.out.dir}/time">
-            <fileset dir="${build.source.root}/samples/time"/>
-            <fileset dir="${build.source.root}/samples/chat">
-                <include name="http*"/>
-            </fileset>
-        </copy>
-        <replace dir="${samples.out.dir}/time"
-            token='#import("../chat/http.dart");'
-            value='#import("http.dart");'>
-            <include name="*.dart"/>
-        </replace>
         
-        <!-- Isolate -->
-        <copy todir="${samples.out.dir}/isolate">
-            <fileset dir="${build.source.root}/samples/isolate_html">
-              <exclude name="main.py"/>
-              <exclude name="deploy.sh"/>
-              <exclude name="app.yaml"/>
-            </fileset>
-        </copy>
+        <!-- copy specific samples -->
+        
+        <copy todir="${samples.out.dir}">
+            <fileset dir="${build.source.root}/samples">
+                <include name="chat/http*"/>
+                <include name="clock/**"/>
+                
+                <include name="isolate_html/**"/>
+                <exclude name="isolate_html/main.py"/>
+                <exclude name="isolate_html/deploy.sh"/>
+                <exclude name="isolate_html/app.yaml"/>
 
-        <!-- Slider -->
-        <copy todir="${samples.out.dir}/slider">
-            <fileset dir="${build.source.root}/samples/slider">
-            </fileset>
-        </copy>
+                <include name="slider/**"/>
+                <include name="sunflower/**"/>
+                <include name="time/**"/>
+                
+                <include name="total/**"/>
+                <exclude name="total/bin/**"/>
+                <!-- exclude total server until we can successfully run it in editor -->
+                <exclude name="total/server/**"/>
 
-        <!-- Sunflower -->
-        <copy todir="${samples.out.dir}/sunflower">
-            <fileset dir="${build.source.root}/samples/sunflower">
-            </fileset>
-        </copy>
-
-        <!-- Total -->
-        <copy todir="${samples.out.dir}/total">
-            <fileset dir="${build.source.root}/samples/total">
-                <exclude name="bin/**"/>
+                <include name="ui_lib/**"/>
             </fileset>
         </copy>
         
-        <!-- adjust sample imports -->
+        <!-- copy dart libraries used by the samples -->
+        
+        <copy todir="${samples.out.dir}/lib">
+            <fileset dir="${build.source.root}/lib">
+                <include name="uri/**"/>
+            </fileset>
+        </copy>
+
+        <!-- adjust imports to fit new location -->
 
         <replace dir="${samples.out.dir}"
-          token="#import('../../client/"
-          value="#import('../libraries/">
-            <include name="**/*.dart"/>
-        </replace>
-
-        <replace dir="${samples.out.dir}"
-          token='href="../../client/'
-          value='href="../libraries/'>
-            <include name="**/*.html"/>
-        </replace>
-        
-        <!-- copy over the dart libraries used by the samples -->
-
-        <property name="samples.libraries.out.dir" 
-                  value="${samples.out.dir}/libraries" />
-
-        <copy todir="${samples.libraries.out.dir}/base">
-            <fileset dir="${build.source.root}/samples/ui_lib/base"/>
-        </copy>
-        <copy todir="${samples.libraries.out.dir}/layout">
-            <fileset dir="${build.source.root}/samples/ui_lib/layout"/>
-        </copy>
-        <copy todir="${samples.libraries.out.dir}/observable">
-            <fileset dir="${build.source.root}/samples/ui_lib/observable"/>
-        </copy>
-        <copy todir="${samples.libraries.out.dir}/touch">
-            <fileset dir="${build.source.root}/samples/ui_lib/touch"/>
-        </copy>
-        <copy todir="${samples.libraries.out.dir}/util">
-            <fileset dir="${build.source.root}/samples/ui_lib/util"/>
-        </copy>
-        <copy todir="${samples.libraries.out.dir}/utils">
-            <fileset dir="${build.source.root}/utils"/>
-        </copy>
-        <copy todir="${samples.libraries.out.dir}/view">
-            <fileset dir="${build.source.root}/samples/ui_lib/view"/>
-        </copy>
-        
-        <!-- adjust library imports -->
-
-        <replace dir="${samples.out.dir}"
-          token="#import('../../utils/"
-          value="#import('../utils/">
+          token="#import('../../../lib/"
+          value="#import('../../lib/">
             <include name="**/*.dart"/>
         </replace>
     </target>
@@ -468,7 +414,7 @@ class ObjectArray<T> { }
           target: setupDevWorkspace
          - - - - - - - - - - - - - - - - - -->
     <target name="setupDevWorkspace" 
-            depends="initDevWorkspace, buildLibraries, installSdk">
+            depends="initDevWorkspace, buildSamples, buildLibraries, installSdk">
         <fail>
             <condition>
                 <not>
@@ -495,8 +441,11 @@ class ObjectArray<T> { }
             Define the "eclipse.home" property to point to your Eclipse installation
             **********************************
         </fail>
+
         <property name="build.stage.include.dir" location="${eclipse.home}"/>
         <property name="build.dart.sdk.zip" location="${eclipse.home}/dart-sdk.zip"/>
+        <property name="samples.out.dir" location="${eclipse.home}/samples"/>
+
         <condition property="build.os" value="win32">
             <os family="windows"/>
         </condition>
@@ -506,6 +455,21 @@ class ObjectArray<T> { }
         <condition property="build.os" value="linux">
             <os family="unix"/>
         </condition>
+
+        <property name="data.location" location="./build-settings" />
+        <property name="user.os.property.file" location="${data.location}/${user.name}.${build.os}.properties" />
+        <echo message="reading ${user.os.property.file}" />
+        <property file="${user.os.property.file}" />
+        <property name="user.property.file" location="${data.location}/${user.name}.properties" /> 
+        <echo message="reading ${user.property.file}" />
+        <property file="${user.property.file}" />
+
+        <fail unless="build.source">*
+            **********************************
+            Define the "build.source" property to point to your dart/eclipse SVN directory
+            **********************************
+        </fail>
+        <dirname file="${build.source}" property="build.source.root"/>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
