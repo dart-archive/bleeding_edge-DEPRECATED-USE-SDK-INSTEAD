@@ -171,7 +171,7 @@ public class IntroEditor extends EditorPart {
         html = welcomeTemplate.replace("${samples}", sb.toString());
       }
       // create Browser
-      Browser browser = new Browser(composite, SWT.WEBKIT);
+      Browser browser = new Browser(composite, SWT.NONE);
       browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
       browser.setText(html);
       // open links in external browser
