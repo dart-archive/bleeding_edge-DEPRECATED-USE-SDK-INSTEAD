@@ -5781,11 +5781,11 @@ FieldMember.prototype.get$isNative = function() { return this.isNative; };
 FieldMember.prototype.set$isNative = function(value) { return this.isNative = value; };
 FieldMember.prototype.override = function(other) {
   if (!Member.prototype.override.call(this, other)) return false;
-  if (other.get$isProperty()) {
+  if (other.get$isProperty() || other.get$isField()) {
     return true;
   }
   else {
-    $globals.world.error("field cannot override anything but property", this.get$span(), other.get$span());
+    $globals.world.error("field can only override field or property", this.get$span(), other.get$span());
     return false;
   }
 }

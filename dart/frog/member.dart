@@ -381,14 +381,15 @@ class FieldMember extends Member {
   bool override(Member other) {
     if (!super.override(other)) return false;
 
-      // fields can override properties - but nothing else?
-    if (other.isProperty) {
+    // According to the specification, fields can override properties
+    // and other fields.
+    if (other.isProperty || other.isField) {
       // TODO(jimhug):
       // other.returnType.ensureAssignableFrom(returnType, null, true);
       return true;
       // TODO(jimhug): Merge in overridesProperty logic here.
     } else {
-      world.error('field cannot override anything but property',
+      world.error('field can only override field or property',
           span, other.span);
       return false;
     }
