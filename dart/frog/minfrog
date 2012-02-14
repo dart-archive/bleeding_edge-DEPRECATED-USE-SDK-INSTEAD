@@ -1648,20 +1648,8 @@ EnvMap.prototype.$index = function(key) {
 // ********** Code for ReadableStream **************
 // ********** Code for WritableStream **************
 $defProp(Object.prototype, '$typeNameOf', function() {
-  // TODO(kasperl): This seems very brittle. When running on top of V8 using
-  // constructor.name seems to be the only realiable way of computing this.
-  // It would be interesting to experiment with something like:
-  //
-  //   var cons = this.constructor;
-  //   if (typeof(cons) == 'function') {
-  //     var name = cons.name;
-  //     if (name) return name;
-  //   }
-  //
   if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
-      || typeof(process) != 'undefined'
-      || String(write) == 'function write() { [native code] }') {
-    // Fast-path for Chrome, Node, and d8.
+      || typeof(process) != 'undefined') { // fast-path for Chrome and Node
     return this.constructor.name;
   }
   var str = Object.prototype.toString.call(this);
@@ -2845,7 +2833,7 @@ CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
   this._generatedTypeNameOf = true;
   this.ensureDefProp();
-  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', function() {\n  // TODO(kasperl): This seems very brittle. When running on top of V8 using\n  // constructor.name seems to be the only realiable way of computing this.\n  // It would be interesting to experiment with something like:\n  //\n  //   var cons = this.constructor;\n  //   if (typeof(cons) == 'function') {\n  //     var name = cons.name;\n  //     if (name) return name;\n  //   }\n  //\n  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')\n      || typeof(process) != 'undefined'\n      || String(write) == 'function write() { [native code] }') {\n    // Fast-path for Chrome, Node, and d8.\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  str = str.substring(8, str.length - 1);\n  if (str == 'Window') {\n    str = 'DOMWindow';\n  } else if (str == 'Document') {\n    str = 'HTMLDocument';\n  }\n  return str;\n});");
+  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', function() {\n  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')\n      || typeof(process) != 'undefined') { // fast-path for Chrome and Node\n    return this.constructor.name;\n  }\n  var str = Object.prototype.toString.call(this);\n  str = str.substring(8, str.length - 1);\n  if (str == 'Window') {\n    str = 'DOMWindow';\n  } else if (str == 'Document') {\n    str = 'HTMLDocument';\n  }\n  return str;\n});");
 }
 CoreJs.prototype.ensureInheritsHelper = function() {
   if (this._generatedInherits) return;
