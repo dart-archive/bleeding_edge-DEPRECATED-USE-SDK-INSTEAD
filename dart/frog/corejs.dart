@@ -342,18 +342,23 @@ function $dynamicSetMetadata(inputTable) {
 /** Snippet for `$typeNameOf`. */
 final String _TYPE_NAME_OF_FUNCTION = @"""
 $defProp(Object.prototype, '$typeNameOf', function() {
-  if ((typeof(window) != 'undefined' && window.constructor.name == 'DOMWindow')
-      || typeof(process) != 'undefined') { // fast-path for Chrome and Node
-    return this.constructor.name;
+  var constructor = this.constructor;
+  if (constructor != null) {
+    // The constructor isn't null or undefined at this point. Try
+    // to grab hold of its name.
+    var name = constructor.name;
+    // If the name is a non-empty string, we use that as the type
+    // name of this object.
+    if (name && typeof(name) == 'string') return name;
   }
-  var str = Object.prototype.toString.call(this);
-  str = str.substring(8, str.length - 1);
-  if (str == 'Window') {
-    str = 'DOMWindow';
-  } else if (str == 'Document') {
-    str = 'HTMLDocument';
+  var string = Object.prototype.toString.call(this);
+  var name = string.substring(8, string.length - 1);
+  if (name == 'Window') {
+    name = 'DOMWindow';
+  } else if (name == 'Document') {
+    name = 'HTMLDocument';
   }
-  return str;
+  return name;
 });""";
 
 /** Snippet for `$inherits`. */
