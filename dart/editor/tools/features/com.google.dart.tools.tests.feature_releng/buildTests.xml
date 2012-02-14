@@ -115,18 +115,6 @@
             </fileset>
         </move>
 
-        <!-- Expand "libraries" directory -->
-        <unzip dest="${build.target}/eclipse" src="${build.out}/DartBuild-${build.eclipse.os.ws}.${build.eclipse.arch}.zip">
-            <patternset>
-                <include name="dart/libraries/**" />
-            </patternset>
-        </unzip>
-        <move todir="${build.target}/eclipse">
-            <fileset dir="${build.target}/eclipse/dart">
-                <include name="libraries/**"/>
-            </fileset>
-        </move>
-        
         <property name="build.eclipse.test_application"
                   value="org.eclipse.pde.junit.runtime.coretestapplication" />
         <property name="build.test.platform.vm.args" value="" />
@@ -297,17 +285,28 @@
                   value="${build.stage.plugins}/com.google.dart.tools.core_test" />
 
         <mkdir dir="${com.google.dart.core.tests}/src-compiler-javatests" />
-        <!--
-        <copy todir="${com.google.dart.core.tests}/src-compiler-javatests">
-            <fileset dir="${build.source.root}/compiler/javatests" />
-        </copy>
-        -->
+        <!-- deploy the plugins and features to the dropins directory -->
         <unzip dest="${build.target.dropins}" src="${build.out}/DartBuild-${build.eclipse.os.ws}.${build.eclipse.arch}.zip">
             <patternset>
                 <include name="**/plugins/com.google.dart*/**" />
                 <include name="**/features/com.google.dart*/**" />
             </patternset>
         </unzip>
+        <!-- deploy samples, libraries, and dart-sdk to the target eclipse -->
+        <unzip dest="${build.target}" src="${build.out}/DartBuild-${build.eclipse.os.ws}.${build.eclipse.arch}.zip">
+            <patternset>
+                <include name="*/samples/**" />
+                <include name="*/libraries/**" />
+                <include name="*/dart-sdk/**" />
+            </patternset>
+        </unzip>
+        <move todir="${build.target}/eclipse" verbose="true">
+            <fileset dir="${build.target}/dart">
+                <include name="samples/**" />
+                <include name="libraries/**" />
+                <include name="dart-sdk/**" />
+            </fileset>
+        </move>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
@@ -333,7 +332,7 @@
         <condition property="data.location" value="${dataLocation}">
             <isset property="dataLocation" />
         </condition>
-        <property name="data.location" location="./build-settings" />
+        <property name="data.location" location="../com.google.dart.tools.deploy.feature_releng/build-settings" />
         <echoProperty propertyName="data.location" />
         <!--
           validate that the data location is a directory
@@ -411,6 +410,9 @@
         <echoProperty propertyName="eclipse-sdk.3.8.linux.gtk.x86.zip" />
         <echoProperty propertyName="eclipse-sdk.3.7.url" />
         <echoProperty propertyName="eclipse-sdk.3.7.linux.gtk.x86.zip" />
+        <echoProperty propertyName="eclipse-sdk-win32.win32.ext" />
+        <echoProperty propertyName="eclipse-sdk-linux.gtk.ext" />
+        <echoProperty propertyName="eclipse-sdk-macosx.macosx.ext" />
         <!--
         cleanup the build.tmp directory
         -->
