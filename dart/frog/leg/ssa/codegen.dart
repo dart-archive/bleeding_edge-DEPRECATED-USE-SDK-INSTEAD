@@ -814,6 +814,12 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(" $cmp 'boolean'");
   }
 
+  void checkObject(HInstruction input, String cmp) {
+    buffer.add('typeof ');
+    use(input);
+    buffer.add(" $cmp 'object'");
+  }
+
   void checkArray(HInstruction input, String cmp) {
     use(input);
     buffer.add('.constructor $cmp Array');
@@ -840,6 +846,8 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add(' && ');
       checkInt(input, '===');
     } else {
+      checkObject(input, '===');
+      buffer.add(' && (');
       if (element == coreLibrary.find(const SourceString('List'))) {
         checkArray(input, '===');
         buffer.add(' || ');
@@ -848,7 +856,7 @@ class SsaCodeGenerator implements HVisitor {
       use(input);
       buffer.add('.');
       buffer.add(compiler.namer.operatorIs(node.typeExpression));
-      buffer.add(')');
+      buffer.add('))');
     }
     buffer.add(')');
   }
