@@ -18,11 +18,11 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitBreakpoint;
+import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.WebkitConnectionListener;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.DebuggerListenerAdapter;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
-import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.debug.core.DebugException;
@@ -215,9 +215,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       // TODO(devoncarew): the VM does not yet support this, and we'd want a way to expose this in
       // the UI as an toggle.
       //connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
+
+      connection.getPage().navigate(url);
     }
 
-    connection.getPage().navigate(url);
   }
 
   @Override

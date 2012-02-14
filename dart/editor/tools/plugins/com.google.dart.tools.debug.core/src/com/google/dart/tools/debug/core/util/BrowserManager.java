@@ -133,9 +133,6 @@ public class BrowserManager {
 
   protected void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
       String url, IProgressMonitor monitor, boolean debug) throws CoreException {
-    if (!DartDebugCorePlugin.ENABLE_DEBUGGING) {
-      debug = false;
-    }
 
     monitor.beginTask("Launching Chromium...", debug ? 7 : 3);
 
@@ -180,7 +177,7 @@ public class BrowserManager {
 
     IResourceResolver resourceResolver = null;
 
-    if (debug) {
+    if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
       // Start the embedded web server. It is used to serve files from our workspace.
       if (file != null) {
         try {
@@ -237,14 +234,8 @@ public class BrowserManager {
 
     timer.endTimer();
 
-    if (debug) {
-      connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, javaProcess,
-          resourceResolver);
-    } else {
-      // If we don't do this, the launch configurations will keep accumulating in the UI. This was
-      // not a problem when we wrapped the runtime process with an IProcess.
-      DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
-    }
+    connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, javaProcess,
+        resourceResolver);
 
     monitor.done();
   }
@@ -254,10 +245,8 @@ public class BrowserManager {
 
     arguments.add(browserLocation.toOSString());
 
-    if (debug) {
-      // Enable remote debug over HTTP on the specified port.
-      arguments.add("--remote-debugging-port=" + PORT_NUMBER);
-    }
+    // Enable remote debug over HTTP on the specified port.
+    arguments.add("--remote-debugging-port=" + PORT_NUMBER);
 
     // In order to start up multiple Chrome processes, we need to specify a different user dir.
     arguments.add("--user-data-dir=" + getUserDataDirectoryPath());
@@ -279,17 +268,17 @@ public class BrowserManager {
     // Whether or not it's actually the first run.
     arguments.add("--no-first-run");
 
-    // Causes the browser to launch directly into incognito mode.
-    // We use this to prevent the previous session's tabs from re-opening.
-    arguments.add("--incognito");
-
     // Disables the default browser check.
     arguments.add("--no-default-browser-check");
 
     // Bypass the error dialog when the profile lock couldn't be attained.
     arguments.add("--no-process-singleton-dialog");
 
-    if (debug) {
+    if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
+      // Causes the browser to launch directly into incognito mode.
+      // We use this to prevent the previous session's tabs from re-opening.
+      arguments.add("--incognito");
+
       // Start up with a blank page.
       arguments.add("--homepage=about:blank");
     } else {
