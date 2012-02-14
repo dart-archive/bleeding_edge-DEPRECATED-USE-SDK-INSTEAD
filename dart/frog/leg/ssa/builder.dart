@@ -225,6 +225,15 @@ class LocalsHandler {
       directLocals[element] = parameter;
     });
 
+    // We need to set up [:this:] for instance members before we enter the
+    // scope. If [:this:] is boxed then it will be copied into the box and
+    // must already exist.
+    if (function.isInstanceMember() || function.isGenerativeConstructor()) {
+      HInstruction thisInstruction = new HThis();
+      builder.add(thisInstruction);
+      updateLocal(closureData.thisElement, thisInstruction);
+    }
+
     enterScope(node);
 
     // If the freeVariableMapping is not empty, then this function was a
@@ -233,16 +242,14 @@ class LocalsHandler {
     closureData.freeVariableMapping.forEach((Element from, Element to) {
       redirectElement(from, to);
     });
+
+    // Inside closure redirect references to itself to [:this:]. We can only
+    // do this once redirections are in place, in case the closure is boxed
+    // in which case the [:updateLocal:] below stores the value in the box.
     if (closureData.isClosure()) {
-      // Inside closure redirect references to itself to [:this:].
       HInstruction thisInstruction = new HThis();
       builder.add(thisInstruction);
       updateLocal(closureData.closureElement, thisInstruction);
-    } else if (function.isInstanceMember() ||
-               function.isGenerativeConstructor()) {
-      HInstruction thisInstruction = new HThis();
-      builder.add(thisInstruction);
-      updateLocal(closureData.thisElement, thisInstruction);
     }
   }
 
