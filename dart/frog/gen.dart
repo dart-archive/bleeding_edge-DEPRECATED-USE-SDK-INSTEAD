@@ -542,7 +542,9 @@ class WorldGenerator {
     m.methodData.writeDefinition(m, writer);
 
     if (m.isNative && m._provideGetter) {
-      MethodGenerator._maybeGenerateBoundGetter(m, writer);
+      if (MethodGenerator._maybeGenerateBoundGetter(m, writer)) {
+        world.gen.corejs.ensureBind();
+      }
     }
   }
 
@@ -904,8 +906,9 @@ class MethodGenerator implements TreeVisitor, CallingContext {
     // TODO(jimhug): Lots of string translation here - perf bottleneck?
     defWriter.writeln(writer.text);
 
+    bool usesBind = false;
     if (names != null) {
-      // TODO(jmesserly): bind isn't implemented in older Safari.
+      usesBind = true;
       defWriter.exitBlock('}).bind(null, ${Strings.join(names, ", ")})');
     } else if (isClosure && method.name == '') {
       defWriter.exitBlock('})');
@@ -921,18 +924,23 @@ class MethodGenerator implements TreeVisitor, CallingContext {
     _provideOptionalParamInfo(defWriter);
 
     if (method is MethodMember) {
-      _maybeGenerateBoundGetter(method, defWriter);
+      if (_maybeGenerateBoundGetter(method, defWriter)) {
+        usesBind = true;
+      }
     }
+
+    if (usesBind) world.gen.corejs.ensureBind();
   }
 
-  static _maybeGenerateBoundGetter(MethodMember m, CodeWriter defWriter) {
+  static bool _maybeGenerateBoundGetter(MethodMember m, CodeWriter defWriter) {
     if (m._provideGetter) {
       String suffix = world.gen._writePrototypePatch(m.declaringType,
           'get\$' + m.jsname, 'function() {', defWriter, false);
-      // TODO(jimhug): Bind not available in older Safari, need fallback?
       defWriter.writeln('return this.${m.jsname}.bind(this);');
       defWriter.exitBlock(suffix);
+      return true;
     }
+    return false;
   }
 
   /**

@@ -28,6 +28,7 @@ class CoreJs {
   bool _generatedDynamicSetMetadata = false;
   bool _generatedInherits = false;
   bool _generatedDefProp = false;
+  bool _generatedBind = false;
 
 
   Map<String, String> _usedOperators;
@@ -126,6 +127,12 @@ class CoreJs {
     if (_generatedDefProp) return;
     _generatedDefProp = true;
     writer.writeln(_DEF_PROP_FUNCTION);
+  }
+
+  void ensureBind() {
+    if (_generatedBind) return;
+    _generatedBind = true;
+    writer.writeln(_BIND_CODE);
   }
 
   void generate(CodeWriter w) {
@@ -437,11 +444,11 @@ $defProp(Object.prototype, '$index', function(i) {
   }
   return this[i];
 });
-$defProp(Array.prototype, '$index', function(i) { 
-  return this[i]; 
+$defProp(Array.prototype, '$index', function(i) {
+  return this[i];
 });
-$defProp(String.prototype, '$index', function(i) { 
-  return this[i]; 
+$defProp(String.prototype, '$index', function(i) {
+  return this[i];
 });""";
 
 final String _CHECKED_INDEX_OPERATORS = @"""
@@ -540,3 +547,24 @@ final String _ISOLATE_INIT_CODE = @"""
 var $globalThis = this;
 var $globals = null;
 var $globalState = null;""";
+
+
+/** Snippet that initializes Function.prototype.bind. */
+final String _BIND_CODE = @"""
+Function.prototype.bind = Function.prototype.bind ||
+  function(thisObj, args) {
+    var func = this;
+    if (typeof args !== 'undefined') {
+      var boundArgs = Array.prototype.slice.call(arguments, 3);
+      return function() {
+        // Prepend the bound arguments to the current arguments.
+        var newArgs = Array.prototype.slice.call(arguments);
+        Array.prototype.unshift.apply(newArgs, boundArgs);
+        return func.apply(thisObj, newArgs);
+      };
+    } else {
+      return function() {
+        return func.apply(thisObj, arguments);
+      };
+    }
+  };""";

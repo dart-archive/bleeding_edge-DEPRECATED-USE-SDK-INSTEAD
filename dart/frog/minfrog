@@ -5,6 +5,23 @@ function $defProp(obj, prop, value) {
   Object.defineProperty(obj, prop,
       {value: value, enumerable: false, writable: true, configurable: true});
 }
+Function.prototype.bind = Function.prototype.bind ||
+  function(thisObj, args) {
+    var func = this;
+    if (typeof args !== 'undefined') {
+      var boundArgs = Array.prototype.slice.call(arguments, 3);
+      return function() {
+        // Prepend the bound arguments to the current arguments.
+        var newArgs = Array.prototype.slice.call(arguments);
+        Array.prototype.unshift.apply(newArgs, boundArgs);
+        return func.apply(thisObj, newArgs);
+      };
+    } else {
+      return function() {
+        return func.apply(thisObj, arguments);
+      };
+    }
+  };
 function $throw(e) {
   // If e is not a value, we can use V8's captureStackTrace utility method.
   // TODO(jmesserly): capture the stack trace on other JS engines.
@@ -2766,6 +2783,7 @@ function CoreJs() {
   this.useWrap0 = false;
   this.useThrow = false;
   this._generatedDynamicProto = false;
+  this._generatedBind = false;
   this.useWrap1 = false;
   this.useSetIndex = false;
   this.useIndex = false;
@@ -2853,6 +2871,11 @@ CoreJs.prototype.ensureDefProp = function() {
   this._generatedDefProp = true;
   this.writer.writeln("function $defProp(obj, prop, value) {\n  Object.defineProperty(obj, prop,\n      {value: value, enumerable: false, writable: true, configurable: true});\n}");
 }
+CoreJs.prototype.ensureBind = function() {
+  if (this._generatedBind) return;
+  this._generatedBind = true;
+  this.writer.writeln("Function.prototype.bind = Function.prototype.bind ||\n  function(thisObj, args) {\n    var func = this;\n    if (typeof args !== 'undefined') {\n      var boundArgs = Array.prototype.slice.call(arguments, 3);\n      return function() {\n        // Prepend the bound arguments to the current arguments.\n        var newArgs = Array.prototype.slice.call(arguments);\n        Array.prototype.unshift.apply(newArgs, boundArgs);\n        return func.apply(thisObj, newArgs);\n      };\n    } else {\n      return function() {\n        return func.apply(thisObj, arguments);\n      };\n    }\n  };");
+}
 CoreJs.prototype.generate = function(w) {
   w.write(this.writer.get$text());
   this.writer = w;
@@ -2865,7 +2888,7 @@ CoreJs.prototype.generate = function(w) {
   }
   if (this.useIndex) {
     this.ensureDefProp();
-    w.writeln($globals.options.disableBoundsChecks ? "$defProp(Object.prototype, '$index', function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n});\n$defProp(Array.prototype, '$index', function(i) { \n  return this[i]; \n});\n$defProp(String.prototype, '$index', function(i) { \n  return this[i]; \n});" : "$defProp(Object.prototype, '$index', function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n});\n$defProp(Array.prototype, '$index', function(index) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i];\n});\n$defProp(String.prototype, '$index', function(i) {\n  return this[i];\n});");
+    w.writeln($globals.options.disableBoundsChecks ? "$defProp(Object.prototype, '$index', function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n});\n$defProp(Array.prototype, '$index', function(i) {\n  return this[i];\n});\n$defProp(String.prototype, '$index', function(i) {\n  return this[i];\n});" : "$defProp(Object.prototype, '$index', function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n});\n$defProp(Array.prototype, '$index', function(index) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i];\n});\n$defProp(String.prototype, '$index', function(i) {\n  return this[i];\n});");
   }
   if (this.useSetIndex) {
     this.ensureDefProp();
@@ -3446,7 +3469,9 @@ WorldGenerator.prototype._writeProperty = function(property) {
 WorldGenerator.prototype._writeMethod = function(m) {
   m.get$methodData().writeDefinition(m, this.writer);
   if (m.get$isNative() && m._provideGetter) {
-    MethodGenerator._maybeGenerateBoundGetter(m, this.writer);
+    if (MethodGenerator._maybeGenerateBoundGetter(m, this.writer)) {
+      $globals.world.gen.corejs.ensureBind();
+    }
   }
 }
 WorldGenerator.prototype.get$_writeMethod = function() {
@@ -3764,7 +3789,9 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.writeln(("var " + Strings.join(this._freeTemps, ", ") + ";"));
   }
   defWriter.writeln(this.writer.get$text());
+  var usesBind = false;
   if ($ne(names)) {
+    usesBind = true;
     defWriter.exitBlock(("}).bind(null, " + Strings.join(names, ", ") + ")"));
   }
   else if (this.get$isClosure() && this.method.name == "") {
@@ -3778,15 +3805,20 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
   }
   this._provideOptionalParamInfo(defWriter);
   if ((this.method instanceof MethodMember)) {
-    MethodGenerator._maybeGenerateBoundGetter(this.method, defWriter);
+    if (MethodGenerator._maybeGenerateBoundGetter(this.method, defWriter)) {
+      usesBind = true;
+    }
   }
+  if (usesBind) $globals.world.gen.corejs.ensureBind();
 }
 MethodGenerator._maybeGenerateBoundGetter = function(m, defWriter) {
   if (m._provideGetter) {
     var suffix = $globals.world.gen._writePrototypePatch(m.declaringType, $add("get$", m.get$jsname()), "function() {", defWriter, false);
     defWriter.writeln(("return this." + m.get$jsname() + ".bind(this);"));
     defWriter.exitBlock(suffix);
+    return true;
   }
+  return false;
 }
 MethodGenerator.prototype._provideOptionalParamInfo = function(defWriter) {
   if ((this.method instanceof MethodMember)) {
