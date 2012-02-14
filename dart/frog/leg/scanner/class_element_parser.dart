@@ -23,7 +23,7 @@ class PartialClassElement extends ClassElement {
     if (cachedNode != null) return cachedNode;
     MemberListener listener = new MemberListener(diagnosticListener, this);
     Parser parser = new ClassElementParser(listener);
-    Token token = parser.parseClass(beginToken);
+    Token token = parser.parseTopLevelDeclaration(beginToken);
     assert(token === endToken.next);
     cachedNode = listener.popNode();
     assert(listener.nodes.isEmpty());

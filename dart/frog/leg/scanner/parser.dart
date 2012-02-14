@@ -14,18 +14,22 @@ class Parser {
 
   void parseUnit(Token token) {
     while (token.kind !== EOF_TOKEN) {
-      final String value = token.stringValue;
-      if (value === 'interface') {
-        token = parseInterface(token);
-      } else if ((value === 'abstract') || (value === 'class')) {
-        token = parseClass(token);
-      } else if (value === 'typedef') {
-        token = parseNamedFunctionAlias(token);
-      } else if (value === '#') {
-        token = parseScriptTags(token);
-      } else {
-        token = parseTopLevelMember(token);
-      }
+      token = parseTopLevelDeclaration(token);
+    }
+  }
+
+  Token parseTopLevelDeclaration(Token token) {
+    final String value = token.stringValue;
+    if (value === 'interface') {
+      return parseInterface(token);
+    } else if ((value === 'abstract') || (value === 'class')) {
+      return parseClass(token);
+    } else if (value === 'typedef') {
+      return parseNamedFunctionAlias(token);
+    } else if (value === '#') {
+      return parseScriptTags(token);
+    } else {
+      return parseTopLevelMember(token);
     }
   }
 
