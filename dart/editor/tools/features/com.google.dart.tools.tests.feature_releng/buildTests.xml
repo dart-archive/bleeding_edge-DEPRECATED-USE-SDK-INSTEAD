@@ -116,7 +116,7 @@
         </move>
 
         <!-- Expand "libraries" directory -->
-        <unzip dest="${build.target}/eclipse" src="${build.out}/DartBuild-linux.gtk.${build.eclipse.arch}.zip">
+        <unzip dest="${build.target}/eclipse" src="${build.out}/DartBuild-${build.eclipse.os.ws}.${build.eclipse.arch}.zip">
             <patternset>
                 <include name="dart/libraries/**" />
             </patternset>
