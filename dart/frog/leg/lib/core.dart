@@ -39,26 +39,10 @@
 #source('../../../corelib/src/strings.dart');
 #source('../../../corelib/src/time_zone.dart');
 
-void print(var obj) {
-  obj = obj.toString();
-  var hasConsole = JS("bool", @"typeof console == 'object'");
-  if (hasConsole) {
-    JS("void", @"console.log($0)", obj);
-  } else {
-    JS("void", @"write($0)", obj);
-    JS("void", @"write('\n')");
-  }
-}
+void print(var obj) => Primitives.printString(obj.toString());
 
 class Object {
-  String toString() {
-    String name = JS('String', @'this.constructor.name');
-    if (name === null) {
-      name = JS('String', @'$0.match(/^\s*function\s*(\S*)\s*\(/)[1]',
-                JS('String', @'this.constructor.toString()'));
-    }
-    return "Instance of '$name'";
-  }
+  String toString() => Primitives.objectToString(this);
 
   void noSuchMethod(String name, List args) {
     throw new NoSuchMethodException(this, name, args);
@@ -77,25 +61,7 @@ class NoSuchMethodException {
 }
 
 class List<T> implements Iterable<T> {
-
-  factory List([int length]) {
-    if (length == null) return JS("Object", @"new Array()");
-    if (!(length is int)) throw "Invalid argument";
-    if (length < 0) throw "Negative size";
-    return JS("Object", @"new Array($0)", length);
-  }
-}
-
-class ListIterator<T> implements Iterator<T> {
-  int i;
-  List<T> list;
-  ListIterator(List<T> this.list) : i = 0;
-  bool hasNext() => i < JS("int", @"$0.length", list);
-  T next() {
-    var value = JS("Object", @"$0[$1]", list, i);
-    i += 1;
-    return value;
-  }
+  factory List([int length]) => Primitives.newList(length);
 }
 
 class Expect {
@@ -149,20 +115,20 @@ class Stopwatch {
 
   void start() {
     if (startMs == null) {
-      startMs = JS("num", @"Date.now()");
+      startMs = Primitives.dateNow();
     }
   }
 
   void stop() {
     if (startMs == null) return;
-    elapsedMs += JS("num", @"Date.now() - $0", startMs);
+    elapsedMs += Primitives.dateNow() - startMs;
     startMs = null;
   }
 
   void reset() {
     elapsedMs = 0.0;
     if (startMs == null) return;
-    startMs = JS("num", @"Date.now()");
+    startMs = Primitives.dateNow();
   }
 
   int elapsed() {
@@ -175,10 +141,9 @@ class Stopwatch {
 
   int elapsedInMs() {
     if (startMs == null) {
-      return JS("num", @"Math.floor($0)", elapsedMs);
+      return Primitives.mathFloor(elapsedMs);
     } else {
-      return
-        JS("num", @"Math.floor($0 + (Date.now() - $1))", elapsedMs, startMs);
+      return Primitives.mathFloor(elapsedMs + (Primitives.dateNow() - startMs));
     }
   }
 

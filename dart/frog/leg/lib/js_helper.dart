@@ -281,6 +281,18 @@ builtin$iterator$0(var receiver) {
   return UNINTERCEPTED(receiver.iterator());
 }
 
+class ListIterator<T> implements Iterator<T> {
+  int i;
+  List<T> list;
+  ListIterator(List<T> this.list) : i = 0;
+  bool hasNext() => i < JS("int", @"$0.length", list);
+  T next() {
+    var value = JS("Object", @"$0[$1]", list, i);
+    i += 1;
+    return value;
+  }
+}
+
 builtin$charCodeAt$1(var receiver, int index) {
   if (receiver is String) {
     return JS("string", @"$0.charCodeAt($1)", receiver, index);
@@ -294,4 +306,36 @@ builtin$isEmpty$0(var receiver) {
     return JS("bool", @"$0.length === 0", receiver);
   }
   return UNINTERCEPTED(receiver.isEmpty());
+}
+
+class Primitives {
+  static void printString(String string) {
+    var hasConsole = JS("bool", @"typeof console == 'object'");
+    if (hasConsole) {
+      JS("void", @"console.log($0)", string);
+    } else {
+      JS("void", @"write($0)", string);
+      JS("void", @"write('\n')");
+    }
+  }
+
+  static String objectToString(Object object) {
+    String name = JS('String', @'$0.constructor.name', object);
+    if (name === null) {
+      name = JS('String', @'$0.match(/^\s*function\s*(\S*)\s*\(/)[1]',
+                JS('String', @'$0.constructor.toString()', object));
+    }
+    return "Instance of '$name'";
+  }
+
+  static List newList(int length) {
+    if (length == null) return JS("Object", @"new Array()");
+    if (!(length is int)) throw "Invalid argument";
+    if (length < 0) throw "Negative size";
+    return JS("Object", @"new Array($0)", length);
+  }
+
+  static num dateNow() => JS("num", @"Date.now()");
+
+  static num mathFloor(num value) => JS("num", @"Math.floor($0)", value);
 }

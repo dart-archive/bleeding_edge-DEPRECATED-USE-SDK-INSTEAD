@@ -150,14 +150,6 @@ class Compiler implements DiagnosticListener {
     Uri cwd = new Uri(scheme: 'file', path: currentDirectory);
     Uri uri = cwd.resolve(fileName);
     LibraryElement library = scanner.loadLibrary(uri, null);
-    // Make our special function a foreign kind.
-    // TODO(ahe): We should only add these elements to one library.
-    library.define(new ForeignElement(
-        const SourceString('JS'), library), this);
-    library.define(new ForeignElement(
-        const SourceString('UNINTERCEPTED'), library), this);
-    library.define(new ForeignElement(
-        const SourceString('JS_HAS_EQUALS'), library), this);
     return library;
   }
 
@@ -165,16 +157,28 @@ class Compiler implements DiagnosticListener {
     coreImplLibrary = scanBuiltinLibrary('coreimpl.dart');
     jsHelperLibrary = scanBuiltinLibrary('js_helper.dart');
     coreLibrary = scanBuiltinLibrary('core.dart');
-    // Since the three libraries "core", "coreimpl", and "js_helper"
-    // coreLibrary is null when they are being built. So we add the
-    // implicit import of coreLibrary now. This can be cleaned up when
-    // we have proper support for "dart:core".
+    // Since coreLibrary import the libraries "coreimpl", and
+    // "js_helper", coreLibrary is null when they are being built. So
+    // we add the implicit import of coreLibrary now. This can be
+    // cleaned up when we have proper support for "dart:core" and
+    // don't need to access it through the field "coreLibrary".
     // TODO(ahe): Clean this up as described above.
     scanner.importLibrary(coreImplLibrary, coreLibrary, null);
     scanner.importLibrary(jsHelperLibrary, coreLibrary, null);
+    addForeignFunctions(jsHelperLibrary);
     // TODO(ngeoffray): Lazily add this method.
     universe.invokedNames[NO_SUCH_METHOD] =
         new Set<Invocation>.from(<Invocation>[new Invocation(2)]);
+  }
+
+  /** Define the JS helper functions in the given library. */
+  void addForeignFunctions(LibraryElement library) {
+    library.define(new ForeignElement(
+        const SourceString('JS'), library), this);
+    library.define(new ForeignElement(
+        const SourceString('UNINTERCEPTED'), library), this);
+    library.define(new ForeignElement(
+        const SourceString('JS_HAS_EQUALS'), library), this);
   }
 
   void enqueueInvokedInstanceMethods() {
