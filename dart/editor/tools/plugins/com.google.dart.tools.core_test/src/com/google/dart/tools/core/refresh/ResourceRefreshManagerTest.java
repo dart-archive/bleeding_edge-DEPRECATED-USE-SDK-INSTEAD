@@ -80,21 +80,7 @@ public class ResourceRefreshManagerTest extends TestCase {
         IProject project = DartCore.openLibrary(dartFile, null).getDartProject().getProject();
         manager.refresh();
 
-        writer = null;
-        try {
-          writer = new PrintWriter(new FileWriter(dartFile));
-          writer.println("#library('test');");
-          writer.println();
-          writer.println("class test {");
-          writer.println("int count;");
-          writer.println("}");
-        } finally {
-          if (writer != null) {
-            writer.flush();
-            writer.close();
-          }
-        }
-
+        updateModificationTime(dartFile);
         manager.refresh();
         assertNotNull(addedFiles[0]);
         assertEquals(0, addedFiles[0].length);
@@ -169,5 +155,30 @@ public class ResourceRefreshManagerTest extends TestCase {
     Method method = ResourceRefreshManager.class.getDeclaredMethod("getTimeStore");
     method.setAccessible(true);
     return (File) method.invoke(null);
+  }
+
+  private void updateModificationTime(File dartFile) throws Exception {
+    long initialTime = dartFile.lastModified();
+    long currentTime = initialTime;
+    while (currentTime == initialTime) {
+      PrintWriter writer = null;
+      try {
+        writer = new PrintWriter(new FileWriter(dartFile));
+        writer.println("#library('test');");
+        writer.println();
+        writer.println("class test {");
+        writer.println("int count;");
+        writer.println("}");
+      } finally {
+        if (writer != null) {
+          writer.flush();
+          writer.close();
+        }
+      }
+      currentTime = dartFile.lastModified();
+      if (currentTime == initialTime) {
+        Thread.sleep(10);
+      }
+    }
   }
 }
