@@ -111,6 +111,9 @@ class MessageKind {
   static final NO_SUCH_LIBRARY_MEMBER = const MessageKind(
       '#{1} has no member named #{2}');
 
+  static final CANNOT_INSTANTIATE_INTERFACE = const MessageKind(
+      "cannot instantiate interface '#{1}'");
+
   toString() => template;
 }
 

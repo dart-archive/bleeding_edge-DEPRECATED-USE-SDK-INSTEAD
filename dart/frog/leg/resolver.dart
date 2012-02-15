@@ -800,13 +800,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitNewExpression(NewExpression node) {
     if (node.isConst()) cancel(node, 'const expressions are not implemented');
-    if (node.send.selector.asTypeAnnotation() === null) {
+    Node selector = node.send.selector;
+    if (selector.asTypeAnnotation() === null) {
       cancel(
           node, 'named constructors with type arguments are not implemented');
     }
 
     SourceString constructorName;
-    Node typeName = node.send.selector.asTypeAnnotation().typeName;
+    Node typeName = selector.asTypeAnnotation().typeName;
     if (typeName.asSend() !== null) {
       Identifier receiver = typeName.asSend().receiver.asIdentifier();
       Identifier selector = typeName.asSend().selector.asIdentifier();
@@ -816,10 +817,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       constructorName = typeName.asIdentifier().source;
     }
-    ClassElement cls = resolveTypeRequired(node.send.selector);
+    ClassElement cls = resolveTypeRequired(selector);
     Element constructor = null;
     if (cls !== null) {
-      constructor = cls.resolve(compiler).lookupConstructor(constructorName);
+      cls.resolve(compiler);
+      if (cls.isInterface() && (cls.defaultClass === null)) {
+        error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
+      }
+      constructor = cls.lookupConstructor(constructorName);
       if (constructorName == cls.name
           && constructor === null
           && node.send.argumentsNode.isEmpty()) {
@@ -837,7 +842,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         }
       }
     } else {
-      Node selector = node.send.selector;
       error(selector, MessageKind.CANNOT_RESOLVE_TYPE, [selector]);
     }
     handleArguments(node.send);
@@ -1024,6 +1028,9 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       element.supertype = new SimpleType(Types.OBJECT,
                                          objectElement);
     }
+    if (node.defaultClause !== null) {
+      element.defaultClass = visit(node.defaultClause.nodes.head);
+    }
     for (Link<Node> link = node.interfaces.nodes;
          !link.isEmpty();
          link = link.tail) {
@@ -1037,11 +1044,15 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     if (name === null) {
       unimplemented(node.typeName, "prefixes");
     }
-    Element element = context.lookup(name.source);
+    return visit(name);
+  }
+
+  Type visitIdentifier(Identifier node) {
+    Element element = context.lookup(node.source);
     if (element === null) {
-      error(node, MessageKind.CANNOT_RESOLVE_TYPE, [name]);
+      error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node]);
     } else if (element.kind !== ElementKind.CLASS) {
-      error(node, MessageKind.NOT_A_TYPE, [name]);
+      error(node, MessageKind.NOT_A_TYPE, [node]);
     } else {
       compiler.resolver.toResolve.add(element);
       // TODO(ngeoffray): Use type variables.

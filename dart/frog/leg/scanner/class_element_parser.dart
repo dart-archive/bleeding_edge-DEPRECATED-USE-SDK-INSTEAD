@@ -31,6 +31,8 @@ class PartialClassElement extends ClassElement {
   }
 
   Token position() => beginToken;
+
+  bool isInterface() => beginToken.stringValue === "interface";
 }
 
 class MemberListener extends NodeListener {
@@ -55,27 +57,25 @@ class MemberListener extends NodeListener {
     return enclosingElement.name == name;
   }
 
+  SourceString getMethodNameHack(Node methodName) {
+    Send send = methodName.asSend();
+    if (send === null) return methodName.asIdentifier().source;
+    Identifier receiver = send.receiver.asIdentifier();
+    Identifier selector = send.selector.asIdentifier();
+    if (selector.asOperator() !== null) {
+      return Elements.constructOperatorName(receiver.source, selector.source);
+    } else {
+      return Elements.constructConstructorName(receiver.source,
+                                               selector.source);
+    }
+  }
+
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     super.endMethod(getOrSet, beginToken, endToken);
     FunctionExpression method = popNode();
     pushNode(null);
     bool isConstructor = isConstructorName(method.name);
-    SourceString name;
-    Node methodName = method.name;
-    if (methodName.asSend() !== null) {
-      Send send = methodName.asSend();
-      Identifier receiver = send.receiver.asIdentifier();
-      Identifier selector = send.selector.asIdentifier();
-      if (selector.asOperator() !== null) {
-        name = Elements.constructOperatorName(
-            receiver.source, selector.source);
-      } else {
-        name = Elements.constructConstructorName(
-            receiver.source, selector.source);
-      }
-    } else {
-      name = methodName.asIdentifier().source;
-    }
+    SourceString name = getMethodNameHack(method.name);
     ElementKind kind = ElementKind.FUNCTION;
     if (isConstructor) {
       if (getOrSet !== null) {
@@ -97,14 +97,10 @@ class MemberListener extends NodeListener {
     super.endFactoryMethod(factoryKeyword, periodBeforeName, endToken);
     FunctionExpression method = popNode();
     pushNode(null);
-    // TODO(ahe): Named constructors.
-    if (method.name.asIdentifier() == null) {
-      listener.cancel('Qualified factory names not implemented', node: method);
-    }
-    Identifier name = method.name;
+    SourceString name = getMethodNameHack(method.name);
     ElementKind kind = ElementKind.FUNCTION;
     Element memberElement =
-        new PartialFunctionElement(name.source, factoryKeyword, null, endToken,
+        new PartialFunctionElement(name, factoryKeyword, null, endToken,
                                    kind, method.modifiers, enclosingElement);
     enclosingElement.addMember(memberElement, listener);
   }

@@ -491,6 +491,7 @@ class SynthesizedConstructorElement extends FunctionElement {
 class ClassElement extends ContainerElement {
   Type type;
   Type supertype;
+  Type defaultClass;
   Link<Element> members = const EmptyLink<Element>();
   Map<SourceString, Element> localMembers;
   Map<SourceString, Element> constructors;
@@ -612,6 +613,8 @@ class ClassElement extends ContainerElement {
     assert(isResolved);
     return supertype === null ? null : supertype.element;
   }
+
+  bool isInterface() => false;
 }
 
 class Elements {
