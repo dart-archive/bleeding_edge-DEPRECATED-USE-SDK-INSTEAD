@@ -274,11 +274,11 @@ public class BrowserManager {
     // Bypass the error dialog when the profile lock couldn't be attained.
     arguments.add("--no-process-singleton-dialog");
 
-    if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
-      // Causes the browser to launch directly into incognito mode.
-      // We use this to prevent the previous session's tabs from re-opening.
-      arguments.add("--incognito");
+    // Causes the browser to launch directly into incognito mode.
+    // We use this to prevent the previous session's tabs from re-opening.
+    arguments.add("--incognito");
 
+    if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
       // Start up with a blank page.
       arguments.add("--homepage=about:blank");
     } else {
