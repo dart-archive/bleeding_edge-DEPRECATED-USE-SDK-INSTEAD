@@ -540,7 +540,12 @@ class ElementListener extends Listener {
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
-    listener.cancel("typedef is not implemented", token: typedefKeyword);
+    Identifier name = popNode();
+    TypeAnnotation returnType = popNode();
+  }
+
+  void handleVoidKeyword(Token token) {
+    pushNode(new TypeAnnotation(new Identifier(token), null));
   }
 
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
@@ -919,10 +924,6 @@ class NodeListener extends ElementListener {
     Node selector = popNode();
     // TODO(ahe): Handle receiver.
     pushNode(new Send(null, selector, arguments));
-  }
-
-  void handleVoidKeyword(Token token) {
-    pushNode(new TypeAnnotation(new Identifier(token), null));
   }
 
   void endFunctionBody(int count, Token beginToken, Token endToken) {
