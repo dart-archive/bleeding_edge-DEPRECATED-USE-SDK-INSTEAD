@@ -339,3 +339,33 @@ class Primitives {
 
   static num mathFloor(num value) => JS("num", @"Math.floor($0)", value);
 }
+
+builtin$compareTo$1(a, b) {
+  if (checkNumbers(a, b, 'illegal argument')) {
+    if (a < b) {
+      return -1;
+    } else if (a > b) {
+      return 1;
+    } else if (a == b) {
+      if (a == 0) {
+        bool aIsNegative = a.isNegative();
+        bool bIsNegative = b.isNegative();
+        if (aIsNegative == bIsNegative) return 0;
+        if (aIsNegative) return -1;
+        return 1;
+      }
+      return 0;
+    } else if (a.isNaN()) {
+      if (b.isNaN()) {
+        return 0;
+      }
+      return 1;
+    } else {
+      return -1;
+    }
+  } else if (a is String) {
+    throw 'String.compareTo is not implemented';
+  } else {
+    return UNINTERCEPTED(a.compareTo(b));
+  }
+}

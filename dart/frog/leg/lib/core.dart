@@ -15,7 +15,7 @@
 #source('../../../corelib/src/double.dart');
 #source('../../../corelib/src/duration.dart');
 // #source('../../../corelib/src/exceptions.dart');
-// #source('../../../corelib/src/expect.dart');
+#source('../../../corelib/src/expect.dart');
 #source('../../../corelib/src/function.dart');
 #source('../../../corelib/src/future.dart');
 #source('../../../corelib/src/hashable.dart');
@@ -64,46 +64,7 @@ class List<T> implements Iterable<T> {
   factory List([int length]) => Primitives.newList(length);
 }
 
-class Expect {
-  // TODO(ngeoffray): add optional message parameters to these
-  // methods.
-  static void equals(var expected, var actual) {
-    if (expected == actual) return;
-    _fail('Expect.equals(expected: <$expected>, actual:<$actual> fails.');
-  }
-
-  static void fail(String message) {
-    _fail("Expect.fail('$message')");
-  }
-
-  static void _fail(String message) {
-    throw message;
-  }
-
-  static void isTrue(var actual) {
-    if (actual === true) return;
-    _fail("Expect.isTrue($actual) fails.");
-  }
-
-  static void isFalse(var actual) {
-    if (actual === false) return;
-    _fail("Expect.isFalse($actual) fails.");
-  }
-
-  static void listEquals(List expected, List actual) {
-    // We check on length at the end in order to provide better error
-    // messages when an unexpected item is inserted in a list.
-    if (expected.length != actual.length) {
-      _fail('list not equals');
-    }
-
-    for (int i = 0; i < expected.length; i++) {
-      if (expected[i] != actual[i]) {
-        _fail('list not equals');
-      }
-    }
-  }
-}
+interface Exception {}
 
 class Stopwatch {
   double startMs;
