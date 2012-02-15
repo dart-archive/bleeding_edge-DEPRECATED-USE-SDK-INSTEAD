@@ -15,18 +15,50 @@ package com.google.dart.tools.core.internal.index.operation;
 
 /**
  * Instances of the class <code>OperationProcessor</code> process the operations on a single
- * {@link OperationQueue operation queue}.
+ * {@link OperationQueue operation queue}. Each processor can be run one time on a single thread.
  */
 public class OperationProcessor {
+  /**
+   * The enumeration <code>ProcessorState</code> represents the possible states of an operation
+   * processor.
+   */
+  private enum ProcessorState {
+    /**
+     * The processor is ready to be run (has not been run before).
+     */
+    READY,
+
+    /**
+     * The processor is currently performing operations.
+     */
+    RUNNING,
+
+    /**
+     * The processor is currently performing operations but has been asked to stop.
+     */
+    STOP_REQESTED,
+
+    /**
+     * The processor has stopped performing operations and cannot be used again.
+     */
+    STOPPED;
+  }
+
   /**
    * The queue containing the operations to be processed.
    */
   private OperationQueue queue;
 
   /**
-   * A flag indicating whether the processor should continue to process operations.
+   * The current state of the processor.
    */
-  private boolean running = false;
+  private ProcessorState state = ProcessorState.READY;
+
+  /**
+   * The number of milliseconds for which the thread on which the processor is running will sleep if
+   * there are no operations waiting to be processed.
+   */
+  private static long SLEEP_DURATION = 100L;
 
   /**
    * Initialize a newly created operation processor to process the operations on the given queue.
@@ -40,35 +72,82 @@ public class OperationProcessor {
   /**
    * Start processing operations. If the processor is already running on a different thread, then
    * this method will return immediately with no effect. Otherwise, this method will not return
-   * until after the processor has been stopped from a different thread.
+   * until after the processor has been stopped from a different thread or until the thread running
+   * the processor has been interrupted.
    */
   public void run() {
     synchronized (this) {
-      if (running) {
-        // This processor is already running on a different thread.
-        return;
+      if (state != ProcessorState.READY) {
+        // This processor is, or was, already running on a different thread.
+        throw new IllegalStateException("Operation processors can only be run one time");
       }
-      running = true;
+      state = ProcessorState.RUNNING;
     }
-    while (running) {
-      IndexOperation operation = queue.dequeue();
-      if (operation == null) {
-        try {
-          Thread.sleep(500);
-        } catch (InterruptedException exception) {
-          running = false;
+    try {
+      while (isRunning()) {
+        IndexOperation operation = queue.dequeue();
+        if (operation == null) {
+          try {
+            Thread.sleep(SLEEP_DURATION);
+          } catch (InterruptedException exception) {
+            synchronized (this) {
+              if (state == ProcessorState.RUNNING) {
+                state = ProcessorState.STOP_REQESTED;
+              }
+            }
+          }
+        } else {
+          operation.performOperation();
         }
-      } else {
-        operation.performOperation();
+      }
+    } finally {
+      synchronized (this) {
+        state = ProcessorState.STOPPED;
       }
     }
   }
 
   /**
-   * Stop processing operations after the current operation has completed. This method can return
-   * before the last operation has completed.
+   * Stop processing operations after the current operation has completed. If the argument is
+   * <code>true</code> then this method will wait until the last operation has completed; otherwise
+   * this method might return before the last operation has completed.
+   * 
+   * @param wait <code>true</code> if this method will wait until the last operation has completed
+   *          before returning
    */
-  public void stop() {
-    running = false;
+  public void stop(boolean wait) {
+    synchronized (this) {
+      if (state == ProcessorState.READY) {
+        state = ProcessorState.STOPPED;
+        return;
+      } else if (state == ProcessorState.STOPPED) {
+        return;
+      } else if (state == ProcessorState.RUNNING) {
+        state = ProcessorState.STOP_REQESTED;
+      }
+    }
+    while (wait) {
+      synchronized (this) {
+        if (state == ProcessorState.STOPPED) {
+          return;
+        }
+      }
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException exception) {
+        // Ignored
+      }
+    }
+  }
+
+  /**
+   * Return <code>true</code> if the current state is {@link ProcessorState#RUNNING}.
+   * 
+   * @return <code>true</code> if this processor is running
+   */
+  private boolean isRunning() {
+    synchronized (this) {
+      return state == ProcessorState.RUNNING;
+    }
   }
 }

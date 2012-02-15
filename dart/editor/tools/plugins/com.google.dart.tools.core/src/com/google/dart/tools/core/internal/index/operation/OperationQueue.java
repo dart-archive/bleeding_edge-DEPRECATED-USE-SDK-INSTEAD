@@ -32,6 +32,12 @@ public class OperationQueue {
     super();
   }
 
+  /**
+   * Remove the next operation from the head of this queue. Return the operation that was removed
+   * from the queue, or <code>null</code> if the queue is empty.
+   * 
+   * @return the operation that was removed from the queue
+   */
   public IndexOperation dequeue() {
     synchronized (operations) {
       if (operations.isEmpty()) {
@@ -41,6 +47,11 @@ public class OperationQueue {
     }
   }
 
+  /**
+   * Add the given operation to the tail of this queue.
+   * 
+   * @param operation the operation to be added to the queue
+   */
   public void enqueue(IndexOperation operation) {
     synchronized (operations) {
       operations.add(operation);
