@@ -14,22 +14,29 @@
 package com.google.dart.tools.ui.internal.view.files;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DirectorySetManager;
+import com.google.dart.tools.core.internal.directoryset.DirectorySetEvent;
+import com.google.dart.tools.core.internal.directoryset.DirectorySetListener;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.CopyFilePathAction;
+import com.google.dart.tools.ui.actions.HideDirectoryAction;
+import com.google.dart.tools.ui.actions.ShowDirectoryWizardAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
+import com.google.dart.tools.ui.internal.text.editor.SimpleTextEditor;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -39,8 +46,12 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorRegistry;
@@ -58,12 +69,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * File-oriented view for navigating Dart projects.
- * <p>
- * TODO(jwren) we still need to persist both a list of directories, list of expanded to directories,
- * and a list of files which were recently opened
+ * File-oriented view for navigating files and directories
  */
-public class FilesView extends ViewPart implements ISetSelectionTarget {
+public class FilesView extends ViewPart implements ISetSelectionTarget, DirectorySetListener {
 
   private class FontPropertyChangeListener implements IPropertyChangeListener {
     @Override
@@ -90,8 +98,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private IMemento memento;
 
-  private DirectorySetManager model;
-
   /**
    * A final static String for the Link with Editor memento.
    */
@@ -103,6 +109,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private static final String EXPANDED_DIRS = "expandedDirs";
 
   private LinkWithEditorAction linkWithEditorAction;
+  private ShowDirectoryWizardAction showDirectoryWizardAction;
+  private HideDirectoryAction hideDirectoryAction;
+  private CopyFilePathAction copyFilePathAction;
 //  private MoveResourceAction moveAction;
 //  private RenameResourceAction renameAction;
 //  private DeleteAction deleteAction;
@@ -119,14 +128,28 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.setContentProvider(new FilesContentProvider());
     treeViewer.setLabelProvider(fileLabelProvider);
     treeViewer.setComparator(new DartElementComparator());
+    // double-click listener
     treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
         handleDoubleClick(event);
       }
     });
+    // F5 key refresh listener
+    treeViewer.getControl().addKeyListener(new KeyListener() {
+      @Override
+      public void keyPressed(KeyEvent e) {
+      }
 
-    treeViewer.setInput(model = DartCore.getDirectorySetManager());
+      @Override
+      public void keyReleased(KeyEvent e) {
+        if (e.keyCode == SWT.F5) {
+          refreshTree();
+        }
+      }
+    });
+
+    treeViewer.setInput(DartCore.getDirectorySetManager());
 
     if (memento != null && memento.getString(EXPANDED_DIRS) != null) {
       File[] expandedDirs = retrieveExpandedElementsFromMemento(memento.getString(EXPANDED_DIRS));
@@ -142,12 +165,32 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     // Create the TreeViewer's context menu.
     createContextMenu();
 
+    showDirectoryWizardAction = new ShowDirectoryWizardAction();
+    treeViewer.addSelectionChangedListener(showDirectoryWizardAction);
+    hideDirectoryAction = new HideDirectoryAction(getSite());
+    treeViewer.addSelectionChangedListener(hideDirectoryAction);
+    copyFilePathAction = new CopyFilePathAction(getSite());
+    treeViewer.addSelectionChangedListener(copyFilePathAction);
+
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
     updateTreeFont();
+
+    // now that the tree view has been created, listen to changes so that we are updated when there
+    // are changes
+    DartCore.getDirectorySetManager().addListener(this);
+  }
+
+  @Override
+  public void directorySetChange(DirectorySetEvent event) {
+    refreshTree();
   }
 
   @Override
   public void dispose() {
+    if (linkWithEditorAction != null) {
+      linkWithEditorAction.dispose();
+    }
+    DartCore.getDirectorySetManager().removeListener(this);
     super.dispose();
   }
 
@@ -178,36 +221,83 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   protected void createContextMenu() {
     MenuManager menuMgr = new MenuManager("#PopupMenu"); //$NON-NLS-1$
-//    menuMgr.setRemoveAllWhenShown(true);
-//    menuMgr.addMenuListener(new IMenuListener() {
-//      @Override
-//      public void menuAboutToShow(IMenuManager manager) {
-//        fillContextMenu(manager);
-//      }
-//    });
+    menuMgr.setRemoveAllWhenShown(true);
+    menuMgr.addMenuListener(new IMenuListener() {
+      @Override
+      public void menuAboutToShow(IMenuManager manager) {
+        fillContextMenu(manager);
+      }
+    });
     Menu menu = menuMgr.createContextMenu(treeViewer.getTree());
     treeViewer.getTree().setMenu(menu);
     getSite().registerContextMenu(menuMgr, treeViewer);
   }
 
   protected void fillContextMenu(IMenuManager manager) {
+    // This code is commented out since we aren't currently using it, but it can be used as a
+    // starting point for any actions which are conditionally included in context menu.
+    // (Note: this is different than actions appearing grayed out in the context menu.)
+//    IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
+//    Object element = selection.getFirstElement();
+//    boolean isFile = element instanceof File;
+//    boolean isDirectory = isFile && ((File) element).isDirectory();
+//    boolean isTopLevelDir = isDirectory
+//        && DartCore.getDirectorySetManager().hasPath(((File) element).getAbsolutePath());
 
+    // Show Directory...
+    manager.add(showDirectoryWizardAction);
+
+    // Hide Directory
+    manager.add(hideDirectoryAction);
+
+    // Copy File Path
+    manager.add(new Separator());
+    manager.add(copyFilePathAction);
+//
+//    // New File/ New Folder/ New Project
+//
+//    manager.add(createFileAction);
+//
+//    //manager.add(new OpenNewFileWizardAction(getViewSite().getWorkbenchWindow()));
+//    //manager.add(new OpenNewApplicationWizardAction());
+//    manager.add(new CreateFolderAction(getShell()));
+//    manager.add(new OpenNewProjectWizardAction());
+//
+//    // Rename... / Move..., iff single element and is an IResource
+//
+//    IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
+//    Object element = selection.getFirstElement();
+//    if (selection.size() == 1 && element instanceof IResource) {
+//      manager.add(new Separator());
+//      manager.add(renameAction);
+//      manager.add(moveAction);
+//    }
+//
+//    // Delete, iff non-empty selection, all elements are IResources
+//
+//    boolean allEltsAreIResources = true;
+//    for (Iterator iterator = selection.iterator(); iterator.hasNext();) {
+//      Object selectedElement = iterator.next();
+//      if (!(selectedElement instanceof IResource)) {
+//        allEltsAreIResources = false;
+//        break;
+//      }
+//    }
+//    if (!selection.isEmpty() && allEltsAreIResources) {
+//      manager.add(new Separator());
+//      manager.add(deleteAction);
+//    }
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {
-
     // Link with Editor
-
     linkWithEditorAction = new LinkWithEditorAction(getViewSite().getPage(), treeViewer);
-
     if (memento != null && memento.getBoolean(LINK_WITH_EDITOR_ID) != null) {
       linkWithEditorAction.setLinkWithEditor(memento.getBoolean(LINK_WITH_EDITOR_ID).booleanValue());
     } else {
       linkWithEditorAction.setLinkWithEditor(true);
     }
-
     // Collapse All
-
     toolbar.add(new CollapseAllAction(treeViewer));
     toolbar.add(linkWithEditorAction);
   }
@@ -259,7 +349,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
       if (iFile != null) {
         try {
-
           EditorUtility.openInEditor(iFile, true);
         } catch (PartInitException e) {
           e.printStackTrace();
@@ -267,11 +356,19 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
           e.printStackTrace();
         }
       } else {
-        IWorkbenchPage p = DartToolsPlugin.getActivePage();
+        IWorkbenchPage page = DartToolsPlugin.getActivePage();
         try {
           // open the external editor if the File is not a directory (don't want OS to open Finder/Explorer window)
           if (!file.isDirectory()) {
-            IDE.openEditor(p, file.toURI(), IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID, true);
+            String fileName = file.getName();
+            if (DartCore.isCSSLikeFileName(fileName) || DartCore.isTXTLikeFileName(fileName)
+                || DartCore.isHTMLLikeFileName(fileName) || DartCore.isJSLikeFileName(fileName)) {
+              // if the file has a text-type, then open in the Dart Editor
+              IDE.openEditor(page, file.toURI(), SimpleTextEditor.ID, true);
+            } else {
+              // otherwise, open the file with the system editor
+              IDE.openEditor(page, file.toURI(), IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID, true);
+            }
           }
         } catch (PartInitException e) {
           // system was unable to open the file selected, fall through
@@ -289,6 +386,15 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private Shell getShell() {
     return getSite().getShell();
+  }
+
+  private void refreshTree() {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        treeViewer.refresh();
+      }
+    });
   }
 
   private File[] retrieveExpandedElementsFromMemento(String str) {

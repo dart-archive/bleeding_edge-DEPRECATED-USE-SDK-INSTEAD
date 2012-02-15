@@ -16,6 +16,7 @@ package com.google.dart.tools.core;
 import com.google.dart.tools.core.frog.FrogManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
+import com.google.dart.tools.core.internal.directoryset.DirectorySetManager;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.operation.BatchOperation;
@@ -373,7 +374,7 @@ public class DartCore extends Plugin {
    * Return the static {@link DirectorySetManager} instance.
    */
   public static DirectorySetManager getDirectorySetManager() {
-    return DirectorySetManager.instance;
+    return DirectorySetManager.getInstance();
   }
 
   /**

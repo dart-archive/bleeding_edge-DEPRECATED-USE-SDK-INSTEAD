@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.view.files;
 
-import com.google.dart.tools.core.DirectorySetManager;
+import com.google.dart.tools.core.internal.directoryset.DirectorySetManager;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ITreeContentProvider;

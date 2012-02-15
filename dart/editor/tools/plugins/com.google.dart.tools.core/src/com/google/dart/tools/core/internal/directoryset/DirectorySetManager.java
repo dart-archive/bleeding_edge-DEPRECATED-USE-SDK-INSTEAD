@@ -11,18 +11,22 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core;
+package com.google.dart.tools.core.internal.directoryset;
 
-import com.google.dart.tools.core.model.DartSdk;
+import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * A manager for the set of top-level directories displayed in the Files view.
+ * 
+ * @see DirectorySetEvent
+ * @see DirectorySetListener
  */
 public class DirectorySetManager {
 
@@ -30,11 +34,19 @@ public class DirectorySetManager {
 
   private static String PATH_SEPARATOR = ";";
 
-  static DirectorySetManager instance = new DirectorySetManager();
+  private static DirectorySetManager instance = new DirectorySetManager();
+
+  public static DirectorySetManager getInstance() {
+    return instance;
+  }
 
   private Set<String> pathSet;
 
   private IEclipsePreferences prefs;
+
+  private ArrayList<DirectorySetListener> listeners;
+
+  private DirectorySetEvent directorySetEvent;
 
   private DirectorySetManager() {
     String defaultDirectories = getDefaultDirectorySet();
@@ -50,6 +62,13 @@ public class DirectorySetManager {
       }
     }
     prefs.put(DIR_SET, toString());
+    listeners = new ArrayList<DirectorySetListener>();
+  }
+
+  public void addListener(DirectorySetListener listener) {
+    synchronized (listeners) {
+      listeners.add(listener);
+    }
   }
 
   public boolean addPath(String str) {
@@ -59,6 +78,7 @@ public class DirectorySetManager {
       if (f.exists() && !f.isHidden()) {
         result = pathSet.add(str);
         prefs.put(DIR_SET, toString());
+        fire();
       }
     }
     return result;
@@ -73,6 +93,16 @@ public class DirectorySetManager {
     return fileArray;
   }
 
+  public boolean hasPath(String str) {
+    return pathSet.contains(str);
+  }
+
+  public void removeListener(DirectorySetListener listener) {
+    synchronized (listeners) {
+      listeners.remove(listener);
+    }
+  }
+
   public boolean removePath(String str) {
     boolean result = false;
     if (str != null) {
@@ -80,6 +110,7 @@ public class DirectorySetManager {
       // if the path was removed, then update the preference
       if (result) {
         prefs.put(DIR_SET, toString());
+        fire();
       }
     }
     return result;
@@ -99,22 +130,49 @@ public class DirectorySetManager {
     return result;
   }
 
-  private String getDefaultDirectorySet() {
-    String homeDir = System.getProperty("user.home");
-    String samplesStrDir = DartSdk.getInstallDirectory().getAbsolutePath() + File.separator
-        + "samples";
-    String result = "";
-    if (new File(homeDir).exists()) {
-      result = homeDir;
-    }
-    File samplesFile = new File(samplesStrDir);
-    if (samplesFile.exists() && !samplesFile.isHidden()) {
-      if (result.length() > 0) {
-        result += PATH_SEPARATOR;
+  private void fire() {
+    synchronized (listeners) {
+      for (int i = 0; i < listeners.size(); i++) {
+        DirectorySetListener listener = listeners.get(i);
+        // if directorySetEvent is null, initialize it
+        if (directorySetEvent == null) {
+          directorySetEvent = new DirectorySetEvent();
+        }
+        // fire the event for this listener
+        listener.directorySetChange(directorySetEvent);
       }
-      result += samplesStrDir;
     }
-    return result;
+  }
+
+  private String getDefaultDirectorySet() {
+    // This commented out source code can be used for manually testing the Files view.
+//    String homeDir = System.getProperty("user.home");
+//    String samplesStrDir = DartSdk.getInstallDirectory().getAbsolutePath() + File.separator
+//        + "samples";
+//    String librariesStrDir = DartSdk.getInstallDirectory().getAbsolutePath() + File.separator
+//        + "libraries";
+//    String result = "";
+//    if (new File(homeDir).exists()) {
+//      result = homeDir;
+//    }
+//    // append samples directory
+//    File samplesFile = new File(samplesStrDir);
+//    if (samplesFile.exists() && !samplesFile.isHidden()) {
+//      if (result.length() > 0) {
+//        result += PATH_SEPARATOR;
+//      }
+//      result += samplesStrDir;
+//    }
+//    // append libraries directory
+//    File librariesFile = new File(librariesStrDir);
+//    if (librariesFile.exists() && !librariesFile.isHidden()) {
+//      if (result.length() > 0) {
+//        result += PATH_SEPARATOR;
+//      }
+//      result += librariesStrDir;
+//    }
+//    return result;
+    return "";
   }
 
 }

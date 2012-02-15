@@ -438,6 +438,20 @@ public final class ActionMessages extends NLS {
   public static String OpenOnlineDocsAction_tooltip;
   public static String OpenOnlineDocsAction_href;
 
+  public static String CopyFilePathAction_text;
+  public static String CopyFilePathAction_description;
+  public static String CopyFilePathAction_tooltip;
+  public static String CopyFilePathAction_dialogTitle;
+  public static String CopyFilePathAction_dialogMessage;
+
+  public static String HideDirectoryAction_text;
+  public static String HideDirectoryAction_description;
+  public static String HideDirectoryAction_tooltip;
+
+  public static String ShowDirectoryWizardAction_text;
+  public static String ShowDirectoryWizardAction_description;
+  public static String ShowDirectoryWizardAction_tooltip;
+
   public static ResourceBundle getBundle() {
     return bundle;
   }
