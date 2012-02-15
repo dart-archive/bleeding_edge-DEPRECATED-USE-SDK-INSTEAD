@@ -4,3 +4,15 @@
 
 #library('coreimpl');
 
+#source('../../../corelib/src/implementation/dual_pivot_quicksort.dart');
+#source('../../../corelib/src/implementation/duration_implementation.dart');
+#source('../../../corelib/src/implementation/exceptions.dart');
+#source('../../../corelib/src/implementation/future_implementation.dart');
+#source('../../../corelib/src/implementation/hash_map_set.dart');
+#source('../../../corelib/src/implementation/linked_hash_map.dart');
+#source('../../../corelib/src/implementation/maps.dart');
+#source('../../../corelib/src/implementation/options.dart');
+#source('../../../corelib/src/implementation/promise_implementation.dart');
+#source('../../../corelib/src/implementation/queue.dart');
+#source('../../../corelib/src/implementation/splay_tree.dart');
+#source('../../../corelib/src/implementation/stopwatch_implementation.dart');

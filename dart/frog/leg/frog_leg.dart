@@ -59,6 +59,7 @@ class WorldCompiler extends Compiler {
   }
 
   currentScript() {
+    if (currentElement === null) return null;
     CompilationUnitElement compilationUnit =
       currentElement.getCompilationUnit();
     if (compilationUnit === null) return null;

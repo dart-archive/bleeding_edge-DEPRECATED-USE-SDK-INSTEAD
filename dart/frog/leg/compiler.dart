@@ -162,9 +162,16 @@ class Compiler implements DiagnosticListener {
   }
 
   void scanBuiltinLibraries() {
-    coreLibrary = scanBuiltinLibrary('core.dart');
     coreImplLibrary = scanBuiltinLibrary('coreimpl.dart');
     jsHelperLibrary = scanBuiltinLibrary('js_helper.dart');
+    coreLibrary = scanBuiltinLibrary('core.dart');
+    // Since the three libraries "core", "coreimpl", and "js_helper"
+    // coreLibrary is null when they are being built. So we add the
+    // implicit import of coreLibrary now. This can be cleaned up when
+    // we have proper support for "dart:core".
+    // TODO(ahe): Clean this up as described above.
+    scanner.importLibrary(coreImplLibrary, coreLibrary, null);
+    scanner.importLibrary(jsHelperLibrary, coreLibrary, null);
     // TODO(ngeoffray): Lazily add this method.
     universe.invokedNames[NO_SUCH_METHOD] =
         new Set<Invocation>.from(<Invocation>[new Invocation(2)]);

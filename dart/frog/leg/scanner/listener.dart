@@ -520,8 +520,7 @@ class ElementListener extends Listener {
   }
 
   void endDefaultClause(Token defaultKeyword) {
-    listener.cancel("Default clauses are not implemented",
-                    token: defaultKeyword);
+    pushNode(makeNodeList(1, defaultKeyword, null, null));
   }
 
   void handleNoDefaultClause(Token token) {

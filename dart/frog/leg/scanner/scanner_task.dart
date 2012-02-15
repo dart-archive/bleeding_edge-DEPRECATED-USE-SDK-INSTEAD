@@ -16,13 +16,18 @@ class ScannerTask extends CompilerTask {
   }
 
   void processScriptTags(LibraryElement library) {
+    LinkBuilder<ScriptTag> imports = new LinkBuilder<ScriptTag>();
+    Uri cwd = new Uri(scheme: 'file', path: compiler.currentDirectory);
+    Uri base = cwd.resolve(library.script.name.toString());
     for (ScriptTag tag in library.tags.reverse()) {
       SourceString argument = tag.argument.value.copyWithoutQuotes(1, 1);
-      Uri cwd = new Uri(scheme: 'file', path: compiler.currentDirectory);
-      Uri base = cwd.resolve(library.script.name.toString());
       Uri resolved = base.resolve(argument.toString());
       if (tag.isImport()) {
-        importLibrary(library, loadLibrary(resolved, tag), tag.prefix);
+        // It is not safe to import other libraries at this point as
+        // another library could then observe the current library
+        // before it fully declares all the members that are sourced
+        // in.
+        imports.addLast(tag);
       } else if (tag.isLibrary()) {
         if (library.libraryTag !== null) {
           compiler.cancel("duplicated library declaration", node: tag);
@@ -37,6 +42,13 @@ class ScannerTask extends CompilerTask {
       } else {
         compiler.cancel("illegal script tag: ${tag.tag}", node: tag);
       }
+    }
+    for (ScriptTag tag in imports.toLink()) {
+      // Now that we have processed all the source tags, it is safe to
+      // start loading other libraries.
+      SourceString argument = tag.argument.value.copyWithoutQuotes(1, 1);
+      Uri resolved = base.resolve(argument.toString());
+      importLibrary(library, loadLibrary(resolved, tag), tag.prefix);
     }
     if (compiler.coreLibrary !== null) {
       importLibrary(library, compiler.coreLibrary, null);

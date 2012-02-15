@@ -4,8 +4,6 @@
 
 #library('js_helper');
 
-#import('core.dart');
-
 $throw(String msg) {
   var e = JS("Object", @"new Error($0)", msg);
   var hasTrace = JS("bool", @"Error.captureStackTrace !== (void 0)");

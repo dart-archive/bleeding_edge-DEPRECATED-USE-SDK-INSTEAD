@@ -8,6 +8,37 @@
 
 #import('js_helper.dart'); // TODO(ahe): remove this import.
 
+#source('../../../corelib/src/bool.dart');
+#source('../../../corelib/src/collection.dart');
+#source('../../../corelib/src/comparable.dart');
+#source('../../../corelib/src/date.dart');
+#source('../../../corelib/src/double.dart');
+#source('../../../corelib/src/duration.dart');
+// #source('../../../corelib/src/exceptions.dart');
+// #source('../../../corelib/src/expect.dart');
+#source('../../../corelib/src/function.dart');
+#source('../../../corelib/src/future.dart');
+#source('../../../corelib/src/hashable.dart');
+#source('../../../corelib/src/int.dart');
+#source('../../../corelib/src/isolate.dart');
+#source('../../../corelib/src/iterable.dart');
+#source('../../../corelib/src/iterator.dart');
+// #source('../../../corelib/src/list.dart');
+#source('../../../corelib/src/map.dart');
+#source('../../../corelib/src/math.dart');
+#source('../../../corelib/src/num.dart');
+#source('../../../corelib/src/options.dart');
+#source('../../../corelib/src/pattern.dart');
+#source('../../../corelib/src/promise.dart');
+#source('../../../corelib/src/queue.dart');
+#source('../../../corelib/src/regexp.dart');
+#source('../../../corelib/src/set.dart');
+// #source('../../../corelib/src/stopwatch.dart');
+#source('../../../corelib/src/string.dart');
+#source('../../../corelib/src/string_buffer.dart');
+#source('../../../corelib/src/strings.dart');
+#source('../../../corelib/src/time_zone.dart');
+
 void print(var obj) {
   obj = obj.toString();
   var hasConsole = JS("bool", @"typeof console == 'object'");
@@ -19,21 +50,6 @@ void print(var obj) {
   }
 }
 
-/* Include when interfaces are implemented
-interface Iterable<T> {
-  Iterator<T> iterator();
-}
-
-interface Iterator<T> {
-  bool hasNext();
-  T next();
-}
-*/
-class int {}
-class double {}
-class String {}
-class bool {}
-class num {}
 class Object {
   String toString() {
     String name = JS('String', @'this.constructor.name');
@@ -60,7 +76,7 @@ class NoSuchMethodException {
   }
 }
 
-class List<T> /* implements Iterable<T> */ {
+class List<T> implements Iterable<T> {
 
   factory List([int length]) {
     if (length == null) return JS("Object", @"new Array()");
@@ -70,7 +86,7 @@ class List<T> /* implements Iterable<T> */ {
   }
 }
 
-class ListIterator<T> /* implements Iterator<T> */ {
+class ListIterator<T> implements Iterator<T> {
   int i;
   List<T> list;
   ListIterator(List<T> this.list) : i = 0;

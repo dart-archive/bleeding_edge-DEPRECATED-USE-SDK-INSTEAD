@@ -327,7 +327,11 @@ Type getType(TypeAnnotation typeAnnotation,
     // TODO(karlklose): substitute type parameters.
     return element.computeType(compiler);
   }
-  return compiler.types.lookup(name);
+  Type type = compiler.types.lookup(name);
+  if (type === null) {
+    type = compiler.types.dynamicType;
+  }
+  return type;
 }
 
 class FunctionParameters {
