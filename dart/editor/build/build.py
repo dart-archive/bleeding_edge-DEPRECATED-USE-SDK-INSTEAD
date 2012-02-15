@@ -378,26 +378,25 @@ def main():
         _PrintError('could not find any zipped up RCP files.'
                     '  The Ant build must have failed')
         return 1
-      else:
-        _DeployToStaging(buildos, staging_bucket, found_zips, revision, gsu)
-        _WriteTagFile(buildos, staging_bucket, revision, gsu)
-        if _ShouldMoveStagingToContinuous(staging_bucket, revision, gsu):
-          _MoveStagingToContinuous(staging_bucket, to_bucket, revision, gsu)
-          _CleanupStaging(staging_bucket, revision, gsu)
+      _DeployToStaging(buildos, staging_bucket, found_zips, revision, gsu)
+      _WriteTagFile(buildos, staging_bucket, revision, gsu)
+      if _ShouldMoveStagingToContinuous(staging_bucket, revision, gsu):
+        _MoveStagingToContinuous(staging_bucket, to_bucket, revision, gsu)
+        _CleanupStaging(staging_bucket, revision, gsu)
       return 0
-
-    #if the build passed run the deploy artifacts
-    _PrintSeparator("Deploying the built RCP's to Google Storage")
-    status = _DeployArtifacts(buildout, to_bucket,
-                              properties['build.tmp'], revision,
-                              gsu)
-    if status:
-      return status
-
-    _PrintSeparator("Setting the ACL'sfor the RCP's in Google Storage")
-    _SetAclOnArtifacts(to_bucket,
-                       [revision + '/DartBuild', 'latest/DartBuild'],
-                       gsu)
+#    else:
+#      #if the build passed deploy the artifacts
+#      _PrintSeparator("Deploying the built RCP's to Google Storage")
+#      status = _DeployArtifacts(buildout, to_bucket,
+#                                properties['build.tmp'], revision,
+#                                gsu)
+#      if status:
+#        return status
+#
+#      _PrintSeparator("Setting the ACL's for the RCP's in Google Storage")
+#      _SetAclOnArtifacts(to_bucket,
+#                         [revision + '/DartBuild', 'latest/DartBuild'],
+#                         gsu)
 
     sys.stdout.flush()
 
@@ -416,6 +415,7 @@ def main():
     if ant_property_file is not None:
       print 'cleaning up temp file {0}'.format(ant_property_file.name)
       os.remove(ant_property_file.name)
+    print 'Build Done'
 
 
 def _ReadPropertyFile(buildos, property_file):
@@ -655,13 +655,18 @@ def _MoveStagingToContinuous(bucket_stage, bucket_continuous, svnid, gsu):
     elements = gsu.ReadBucket(bucket_from_template.substitute(data_from))
     for element in elements:
       elements_to_copy.append(element)
-  data_to = {'bucket': bucket_continuous, 'revision': svnid, 'file': ''}
+  data_to = {'bucket': bucket_continuous}
   for element in elements_to_copy:
     file_name = os.path.basename(element)
     data_to['file'] = file_name
+    data_to['revision'] = str(svnid)
     element_to = bucket_to_template.substitute(data_to)
-    print 'gsutil cp {0} {1}'.format(element, element_to)
-#    gsu.Copy(element, element_to)
+    data_to['revision'] = 'latest'
+    element_to_latest = bucket_to_template.substitute(data_to)
+    gsu.Copy(element, element_to)
+    gsu.Copy(element_to, element_to_latest)
+    _SetAcl(element_to, gsu)
+    _SetAcl(element_to_latest, gsu)
 
 
 def _CleanupStaging(bucket_stage, svnid, gsu):
@@ -675,8 +680,8 @@ def _CleanupStaging(bucket_stage, svnid, gsu):
   """
   print '_CLeanupStaging({0}, {1}, gsu'.format(bucket_stage, svnid)
   tag_file_re = re.compile('^.+done-(\d+)-([lwm].+)')
-  tag_template = '{0}/tags/{1}'
-  stage_template = '{0}/stage/{1}/{2}'
+  tag_template = '{0}/tags/done-{1}-*'
+  stage_template = '{0}/staging/{1}/{2}/*'
   target_revistion = int(svnid)
   version_map = {}
   elements_to_remove = []
@@ -697,7 +702,7 @@ def _CleanupStaging(bucket_stage, svnid, gsu):
                                                         os_name,
                                                         current_revision))
   for element in elements_to_remove:
-    print 'removing {0}'.format(element)
+    gsu.Remove(element)
 
 
 def _SetAclOnArtifacts(to, bucket_tags, gsu):
@@ -832,9 +837,9 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
   #there is no dartum for windows so skip it
   if 'win' in buildos:
     return
-  
+
   try:
-    file_name_re = re.compile('dartium-([lm].+)-(.+)-(\d+)\\..+')
+    file_name_re = re.compile(r'dartium-([lmw].+)-(.+)-.+\.(\d+)M?.+')
     tmp_dir = os.path.join(buildroot, 'tmp')
     unzip_dir = os.path.join(tmp_dir, 'unzip_dartium')
     elements = gsu.ReadBucket('gs://dartium-archive/latest/*.zip')
@@ -848,14 +853,15 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
       base_name = os.path.basename(element)
       print 'processing {0} ({1})'.format(element, base_name)
       try:
-        file_match = file_name_re.search(base_name)
-        dartum_os = file_match.group(1)
-        dartum_type = file_match.group(2)
-        dartum_version = file_match.group(3)
-      except IndexError:
         dartum_os = '    '
         dartum_type = '    '
         dartum_version = '    '
+        file_match = file_name_re.search(base_name)
+        if file_match is not None:
+          dartum_os = file_match.group(1)
+          dartum_type = file_match.group(2)
+          dartum_version = file_match.group(3)
+      except IndexError:
         _PrintError('Regular Expression error processing {0}'.format(element))
 
       key = buildos[:3] + dartum_os[:3] + dartum_type[:3]
@@ -942,8 +948,3 @@ def _PrintError(text):
 
 if __name__ == '__main__':
   sys.exit(main())
-#  homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
-#  gsu = gsutil.GsUtil(False, homegsutil,
-#                      running_on_buildbot=False)
-#  _MoveStagingToContinuous('gs://dart-editor-archive-testing',
-#                           'gs://dart-editor-archive-testing', 123, gsu)
