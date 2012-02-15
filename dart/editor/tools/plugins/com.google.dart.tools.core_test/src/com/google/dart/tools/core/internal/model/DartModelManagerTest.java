@@ -60,8 +60,8 @@ public class DartModelManagerTest extends TestCase {
 
   public void test_DartModelManager_getBaseLibraryName_directive() throws Exception {
     String libraryName = "library";
-    DartUnit unit =
-        new DartUnit(new TestDartSource("test.dart", "#library('" + libraryName + "')"), false);
+    DartUnit unit = new DartUnit(
+        new TestDartSource("test.dart", "#library('" + libraryName + "')"), false);
     unit.addDirective(new DartLibraryDirective(DartStringLiteral.get(libraryName)));
     String result = getBaseLibraryName(unit);
     assertEquals(libraryName, result);
@@ -119,8 +119,8 @@ public class DartModelManagerTest extends TestCase {
 
   public void test_DartModelManager_getLibraryName_directive() throws Exception {
     String libraryName = "library";
-    DartUnit unit =
-        new DartUnit(new TestDartSource("test.dart", "#library('" + libraryName + "')"), false);
+    DartUnit unit = new DartUnit(
+        new TestDartSource("test.dart", "#library('" + libraryName + "')"), false);
     unit.addDirective(new DartLibraryDirective(DartStringLiteral.get(libraryName)));
     String result = getLibraryName(unit);
     assertEquals(libraryName, result);
@@ -227,6 +227,13 @@ public class DartModelManagerTest extends TestCase {
   public void test_DartModelManager_parseLibraryFile_valid() throws Exception {
     File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
         new Path("test_data/Geometry/geometry.dart")).toFile();
+    DartUnit libraryUnit = parseLibraryFile(libraryFile);
+    assertNotNull(libraryUnit);
+  }
+
+  public void test_DartModelManager_parseLibraryFile_valid2() throws Exception {
+    File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
+        new Path("test_data/UserLibrary/userLib.dart")).toFile();
     DartUnit libraryUnit = parseLibraryFile(libraryFile);
     assertNotNull(libraryUnit);
   }

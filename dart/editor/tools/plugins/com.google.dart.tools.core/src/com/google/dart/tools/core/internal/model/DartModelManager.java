@@ -1602,8 +1602,7 @@ public class DartModelManager {
       DartUnit unit = DartCompilerUtilities.parseSource(file.getName(),
           FileUtilities.getContents(file), null);
       List<DartDirective> directives = unit.getDirectives();
-      if (directives != null && directives.size() > 0
-          && directives.get(0) instanceof DartLibraryDirective) {
+      if (directives != null && directives.size() > 0) {
         return unit;
       }
       // check if there is a main method
