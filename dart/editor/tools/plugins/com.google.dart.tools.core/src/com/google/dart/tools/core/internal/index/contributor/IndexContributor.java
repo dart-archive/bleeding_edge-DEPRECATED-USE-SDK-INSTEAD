@@ -46,7 +46,9 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.indexer.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.dom.visitor.ChildVisitor;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Location;
@@ -159,7 +161,8 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     if (symbol instanceof MethodElement) {
       // TODO(brianwilkerson) Find the real source range associated with the operator.
       DartExpression index = node.getKey();
-      processMethod(index.getSourceStart() - 1, index.getSourceLength() + 2, (MethodElement) symbol);
+      processMethodInvocation(index.getSourceStart() - 1, index.getSourceLength() + 2,
+          (MethodElement) symbol);
     } else {
       notFound("array access", node);
     }
@@ -168,9 +171,9 @@ public class IndexContributor extends DartNodeTraverser<Void> {
 
   @Override
   public Void visitBinaryExpression(DartBinaryExpression node) {
-    Symbol symbol = node.getReferencedElement();
     Token operatorToken = node.getOperator();
     if (operatorToken.isUserDefinableOperator()) {
+      Symbol symbol = node.getReferencedElement();
       if (symbol instanceof MethodElement) {
         String operator = operatorToken.getSyntax();
         DartExpression leftOperand = node.getArg1();
@@ -181,7 +184,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
         if (offset < 0) {
           // TODO(brianwilkerson) Handle a missing offset.
         }
-        processMethod(offset, operator.length(), (MethodElement) symbol);
+        processMethodInvocation(offset, operator.length(), (MethodElement) symbol);
       } else {
         notFound("binary expression: " + operatorToken.getSyntax(), node);
       }
@@ -233,7 +236,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
   public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
     Symbol symbol = node.getReferencedElement();
     if (symbol instanceof MethodElement) {
-      processMethod(getIdentifier(node.getTarget()), (MethodElement) symbol);
+      processMethodInvocation(getIdentifier(node.getTarget()), (MethodElement) symbol);
     } else {
       notFound("function invocation: [" + (symbol == null ? "null" : symbol.toString()) + "] "
           + node.toString(), node);
@@ -297,7 +300,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
       symbol = node.getTargetSymbol();
     }
     if (symbol instanceof MethodElement) {
-      processMethod(node.getFunctionName(), (MethodElement) symbol);
+      processMethodInvocation(node.getFunctionName(), (MethodElement) symbol);
     } else {
       notFound("method invocation: " + node.toString(), node);
     }
@@ -309,7 +312,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     Symbol symbol = node.getReferencedElement();
     if (symbol instanceof MethodElement) {
       DartNode className = node.getConstructor();
-      processMethod(getIdentifier(className), (MethodElement) symbol);
+      processMethodInvocation(getIdentifier(className), (MethodElement) symbol);
     } else {
       notFound("new expression", node);
     }
@@ -328,7 +331,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     if (symbol instanceof MethodElement) {
       // TODO(brianwilkerson) The name is always null, so we can't record references to the invoked
       // constructor.
-      processMethod(node.getName(), (MethodElement) symbol);
+      processMethodInvocation(node.getName(), (MethodElement) symbol);
     } else {
       notFound("super constructor invocation", node);
     }
@@ -351,7 +354,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
       if (offset < 0) {
         // TODO(brianwilkerson) Handle a missing offset.
       }
-      processMethod(offset, operator.length(), (MethodElement) symbol);
+      processMethodInvocation(offset, operator.length(), (MethodElement) symbol);
     } else {
       notFound("unary expression: " + node.getOperator().getSyntax(), node);
     }
@@ -362,7 +365,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
   public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
     Symbol symbol = node.getReferencedElement();
     if (symbol instanceof MethodElement) {
-      processMethod(node.getTarget(), (MethodElement) symbol);
+      processMethodInvocation(node.getTarget(), (MethodElement) symbol);
     } else if (symbol instanceof FieldElement) {
       processField(node.getTarget(), (FieldElement) symbol);
     } else if (symbol instanceof VariableElement) {
@@ -399,17 +402,6 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     }
     return null;
   }
-
-//  @Override
-//  public Void visitUnit(DartUnit node) {
-//    pushElement(getElement(node));
-//    try {
-//      super.visitUnit(node);
-//    } finally {
-//      popElement();
-//    }
-//    return null;
-//  }
 
   /**
    * Return the offset in the source of the first occurrence of the target string that occurs
@@ -555,16 +547,6 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     System.out.println("Could not getElement for " + element.getClass().getName());
     return null;
   }
-
-//  /**
-//   * Return an element representing the given compilation unit.
-//   * 
-//   * @param node the node representing the compilation unit
-//   * @return an element representing the given compilation unit
-//   */
-//  private Element getElement(DartUnit node) {
-//    return new Element(compilationUnitResource, compilationUnitResource.getResourceId());
-//  }
 
   /**
    * Return an element representing the given field.
@@ -868,15 +850,44 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     return targetMethod.getName().equals(candidateMethod.getName());
   }
 
+  /**
+   * If debugging is enabled, report that we were not able to find an element corresponding to the
+   * given node.
+   * 
+   * @param string a description of what the node represents
+   * @param node the node that should have had an element associated with it
+   */
   private void notFound(String string, DartNode node) {
-//    System.out.print(string);
-//    System.out.print(" in ");
-//    System.out.print(compilationUnit.getElementName());
-//    System.out.print("[");
-//    System.out.print(node.getSourceStart());
-//    System.out.print(", ");
-//    System.out.print(node.getSourceStart() + node.getSourceLength() - 1);
-//    System.out.println("]");
+    if (node == null) {
+      notFound(string, -1, 0);
+    } else {
+      notFound(string, node.getSourceStart(), node.getSourceLength());
+    }
+  }
+
+  /**
+   * If debugging is enabled, report that we were not able to find an element corresponding to a
+   * node at the given location.
+   * 
+   * @param string a description of what the node represents
+   * @param offset the offset of the node that should have had an element associated with it
+   * @param length the length of the node that should have had an element associated with it
+   */
+  private void notFound(String string, int offset, int length) {
+    if (DartCoreDebug.DEBUG_INDEX_CONTRIBUTOR) {
+      PrintStringWriter writer = new PrintStringWriter();
+      writer.print(string);
+      writer.print(" in ");
+      writer.print(compilationUnit.getElementName());
+      if (offset >= 0) {
+        writer.print(" [");
+        writer.print(offset);
+        writer.print(", ");
+        writer.print(offset + length - 1);
+        writer.print("]");
+      }
+      DartCore.logInformation(writer.toString());
+    }
   }
 
   private String pathTo(com.google.dart.compiler.resolver.Element element) {
@@ -980,35 +991,6 @@ public class IndexContributor extends DartNodeTraverser<Void> {
   }
 
   /**
-   * Record the invocation of a method or function.
-   * 
-   * @param methodName the node representing the name of the method being invoked
-   * @param binding the element representing the method being invoked
-   */
-  private void processMethod(DartIdentifier methodName, MethodElement binding) {
-    if (methodName == null || binding == null) {
-      return;
-    }
-    index.recordRelationship(compilationUnitResource, getElement(binding),
-        IndexConstants.IS_REFERENCED_BY, getLocation(methodName));
-  }
-
-  /**
-   * Record the invocation of a method or function.
-   * 
-   * @param offset the offset of the name of the method being invoked
-   * @param length the length of the name of the method being invoked
-   * @param binding the element representing the method being invoked
-   */
-  private void processMethod(int offset, int length, MethodElement binding) {
-    if (binding == null) {
-      return;
-    }
-    index.recordRelationship(compilationUnitResource, getElement(binding),
-        IndexConstants.IS_REFERENCED_BY, getLocation(offset, length));
-  }
-
-  /**
    * Record any information implied by the given method definition.
    * 
    * @param node the node representing the definition of the method
@@ -1025,6 +1007,37 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     } else {
       notFound("unqualified invocation", node);
     }
+  }
+
+  /**
+   * Record the invocation of a method or function.
+   * 
+   * @param methodName the node representing the name of the method being invoked
+   * @param binding the element representing the method being invoked
+   */
+  private void processMethodInvocation(DartIdentifier methodName, MethodElement binding) {
+    if (methodName == null || binding == null) {
+      notFound("method invocation", methodName);
+      return;
+    }
+    index.recordRelationship(compilationUnitResource, getElement(binding),
+        IndexConstants.IS_REFERENCED_BY, getLocation(methodName));
+  }
+
+  /**
+   * Record the invocation of a method or function.
+   * 
+   * @param offset the offset of the name of the method being invoked
+   * @param length the length of the name of the method being invoked
+   * @param binding the element representing the method being invoked
+   */
+  private void processMethodInvocation(int offset, int length, MethodElement binding) {
+    if (binding == null) {
+      notFound("method invocation", offset, length);
+      return;
+    }
+    index.recordRelationship(compilationUnitResource, getElement(binding),
+        IndexConstants.IS_REFERENCED_BY, getLocation(offset, length));
   }
 
   private void processSupertype(DartClass node, InterfaceType binding) {
