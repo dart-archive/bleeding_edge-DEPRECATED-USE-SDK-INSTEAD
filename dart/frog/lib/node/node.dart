@@ -577,8 +577,10 @@ class Buffer native "Buffer" {
   static int get charsWritten()
     native "return Buffer._charsWritten;";
   String toString(String encoding, int start, int end) native;
-  int operator[](int index) native;
-  int operator[]=(int index, int value) native;
+  int operator[](int index)
+    native "return this[index];";
+  int operator[]=(int index, int value)
+    native "this[index] = value; return value;";
   static bool isBuffer(obj) native;
   static int byteLength(String string, [String encoding='utf8']) native;
   int length;
