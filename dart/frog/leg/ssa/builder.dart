@@ -171,6 +171,16 @@ class LocalsHandler {
     assert(isStoredInClosureField(from) || isBoxed(from));
   }
 
+  HInstruction createBox() {
+    // TODO(floitsch): Clean up this hack. Should we create a box-object by
+    // just creating an empty object literal?
+    HInstruction box = new HForeign(const SourceString("{}"),
+                                    const SourceString('Object'),
+                                    <HInstruction>[]);
+    builder.add(box);
+    return box;
+  }
+
   /**
    * If the scope (function or loop) [node] has captured variables then this
    * method creates a box and sets up the redirections.
@@ -183,10 +193,7 @@ class LocalsHandler {
       // The scope has captured variables. Create a box.
       // TODO(floitsch): Clean up this hack. Should we create a box-object by
       // just creating an empty object literal?
-      HInstruction box = new HForeign(const SourceString("{}"),
-                                      const SourceString('Object'),
-                                      <HInstruction>[]);
-      builder.add(box);
+      HInstruction box = createBox();
       // Add the box to the known locals.
       directLocals[scopeData.boxElement] = box;
       // Make sure that accesses to the boxed locals go into the box. We also
@@ -206,7 +213,27 @@ class LocalsHandler {
           redirectElement(from, to);
         }
       });
-    }    
+    }
+  }
+
+  /**
+   * Replaces the current box with a new box and copies over the given list
+   * of elements from the old box into the new box.
+   */
+  void updateCaptureBox(Element boxElement, List<Element> toBeCopiedElements) {
+    // Create a new box and copy over the values from the old box into the
+    // new one.
+    HInstruction oldBox = readLocal(boxElement);
+    HInstruction newBox = createBox();
+    for (Element boxedVariable in toBeCopiedElements) {
+      // [readLocal] uses the [boxElement] to find its box. By replacing it
+      // behind its back we can still get to the old values.
+      updateLocal(boxElement, oldBox);
+      HInstruction oldValue = readLocal(boxedVariable);
+      updateLocal(boxElement, newBox);
+      updateLocal(boxedVariable, oldValue);
+    }
+    updateLocal(boxElement, newBox);
   }
 
   void startFunction(FunctionElement function,
@@ -246,30 +273,6 @@ class LocalsHandler {
     }
   }
 
-  /**
-   * Returns true if the [For] loop declares a variable that is boxed.
-   */
-  bool isForLoopDeclaringBoxedLoopVariable(Loop node) {
-    For forNode = node.asFor();
-    if (forNode === null) return false;
-    if (forNode.initializer === null) return false;
-    VariableDefinitions definitions =
-        forNode.initializer.asVariableDefinitions();
-    if (definitions == null) return false;
-    ClosureScope scopeData = closureData.capturingScopes[node];
-    if (scopeData === null) return false;
-    Map<Element, Element> capturedVariableMapping =
-        scopeData.capturedVariableMapping;
-    for (Link<Node> link = definitions.definitions.nodes;
-         !link.isEmpty();
-         link = link.tail) {
-      Node definition = link.head;
-      Element element = builder.elements[definition];
-      if (capturedVariableMapping.containsKey(element)) return true;
-    }
-    return false;
-  }
-
   bool hasValueForDirectLocal(Element element) {
     assert(element !== null);
     assert(isAccessedDirectly(element));
@@ -289,10 +292,10 @@ class LocalsHandler {
   bool isStoredInClosureField(Element element) {
     assert(element !== null);
     if (isAccessedDirectly(element)) return false;
-    Element redirectElement = redirectionMapping[element];
-    if (redirectElement == null) return false;
-    if (redirectElement.enclosingElement.kind == ElementKind.CLASS) {
-      assert(redirectElement is ClosureFieldElement);
+    Element redirectTarget = redirectionMapping[element];
+    if (redirectTarget == null) return false;
+    if (redirectTarget.enclosingElement.kind == ElementKind.CLASS) {
+      assert(redirectTarget is ClosureFieldElement);
       return true;
     }
     return false;
@@ -384,7 +387,64 @@ class LocalsHandler {
     }
   }
 
-  void startLoop(Node node, HBasicBlock loopEntry) {
+  /**
+   * This function must be called before visiting any children of the loop. In
+   * particular it needs to be called before executing the initializers.
+   *
+   * The [LocalsHandler] will make the boxes and updates at the right moment.
+   * The builder just needs to call [enterLoopBody] and [enterLoopUpdates] (for
+   * [For] loops) at the correct places. For phi-handling [beginLoopHeader] and
+   * [endLoop] must also be called.
+   *
+   * The correct place for the box depends on the given loop. In most cases
+   * the box will be created when entering the loop-body: while, do-while, and
+   * for-in (assuming the call to [:next:] is inside the body) can always be
+   * constructed this way.
+   *
+   * Things are slightly more complicated for [For] loops. If no declared
+   * loop variable is boxed then the loop-body approach works here too. If a
+   * loop-variable is boxed we need to introduce a new box for the
+   * loop-variable before we enter the initializer so that the initializer
+   * writes the values into the box. In any case we need to create the box
+   * before the condition since the condition could box the variable.
+   * Since the first box is created outside the actual loop we have a second
+   * location where a box is created: just before the updates. This is
+   * necessary since updates are considered to be part of the next iteration
+   * (and can again capture variables).
+   *
+   * For example the following Dart code prints 1 3 -- 3 4.
+   *
+   *     var fs = [];
+   *     for (var i = 0; i < 3; (f() { fs.add(f); print(i); i++; })()) {
+   *       i++;
+   *     }
+   *     print("--");
+   *     for (var i = 0; i < 2; i++) fs[i]();
+   *
+   * We solve this by emitting the following code (only for [For] loops):
+   *  <Create box>    <== move the first box creation outside the loop.
+   *  <initializer>;
+   *  loop-entry:
+   *    if (!<condition>) goto loop-exit;
+   *    <body>
+   *    <update box>  // create a new box and copy the captured loop-variables.
+   *    <updates>
+   *    goto loop-entry;
+   *  loop-exit:
+   */
+  void startLoop(Loop node) {
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData == null) return;
+    if (scopeData.hasBoxedLoopVariables()) {
+      // If there are boxed loop variables then we set up the box and
+      // redirections already now. This way the initializer can write its
+      // values into the box.
+      // For other loops the box will be created when entering the body.
+      enterScope(node);
+    }
+  }
+
+  void beginLoopHeader(Loop node, HBasicBlock loopEntry) {
     // Create a copy because we modify the map while iterating over
     // it.
     Map<Element, HInstruction> saved =
@@ -401,8 +461,29 @@ class LocalsHandler {
         directLocals[element] = instruction;
       }
     });
+  }
 
-    enterScope(node);
+  void enterLoopBody(Loop node) {
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData == null) return;
+    // If there are no declared boxed loop variables then we did not create the
+    // box before the initializer and we have to create the box now.
+    if (!scopeData.hasBoxedLoopVariables()) {
+      enterScope(node);
+    }
+  }
+
+  void enterLoopUpdates(Loop node) {
+    // If there are declared boxed loop variables then the updates might have
+    // access to the box and we must switch to a new box before executing the
+    // updates.
+    // In all other cases a new box will be created when entering the body of
+    // the next iteration.
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData == null) return;
+    if (scopeData.hasBoxedLoopVariables()) {
+      updateCaptureBox(scopeData.boxElement, scopeData.boxedLoopVariables);
+    }    
   }
 
   void endLoop(HBasicBlock loopEntry) {
@@ -764,7 +845,7 @@ class SsaBuilder implements Visitor {
    * is closed with an [HGoto] and replaced by the newly created block.
    * Also notifies the locals handler that we're entering a loop.
    */
-  void startLoop(Node node) {
+  void beginLoopHeader(Node node) {
     assert(!isAborted());
     HBasicBlock previousBlock = close(new HGoto());
 
@@ -772,7 +853,7 @@ class SsaBuilder implements Visitor {
     previousBlock.addSuccessor(loopEntry);
     open(loopEntry);
 
-    localsHandler.startLoop(node, loopEntry);
+    localsHandler.beginLoopHeader(node, loopEntry);
   }
 
   /**
@@ -792,13 +873,22 @@ class SsaBuilder implements Visitor {
   // For while loops, initializer and update are null.
   visitLoop(Node loop, Node initializer, Expression condition, NodeList updates,
             Node body) {
-    if ((condition !== null || updates !== null) &&
-        localsHandler.isForLoopDeclaringBoxedLoopVariable(loop)) {
-      compiler.unimplemented("SsaBuilder for loop with boxed loop variable",
-                             node: loop);
+    // Generate:
+    //  <initializer>
+    //  loop-entry:
+    //    if (!<condition>) goto loop-exit;
+    //    <body>
+    //    <updates>
+    //    goto loop-entry;
+    //  loop-exit:
+    if (condition === null || body === null) {
+      compiler.unimplemented(
+          'SsaBuilder.visitLoop with empty condition or body',
+          node: loop);
     }
 
-    assert(condition !== null && body !== null);
+    localsHandler.startLoop(loop);
+
     // The initializer.
     if (initializer !== null) {
       visit(initializer);
@@ -807,7 +897,7 @@ class SsaBuilder implements Visitor {
     }
     assert(!isAborted());
 
-    startLoop(loop);
+    beginLoopHeader(loop);
     HBasicBlock conditionBlock = current;
 
     // The condition.
@@ -820,6 +910,8 @@ class SsaBuilder implements Visitor {
     HBasicBlock bodyBlock = addNewBlock();
     conditionExitBlock.addSuccessor(bodyBlock);
     open(bodyBlock);
+
+    localsHandler.enterLoopBody(loop);
     visit(body);
     if (isAborted()) {
       compiler.unimplemented("SsaBuilder for loop with aborting body",
@@ -834,6 +926,8 @@ class SsaBuilder implements Visitor {
     HBasicBlock updateBlock = addNewBlock();
     bodyBlock.addSuccessor(updateBlock);
     open(updateBlock);
+
+    localsHandler.enterLoopUpdates(loop);
     if (updates !== null) {
       for (Expression expression in updates) {
         visit(expression);
@@ -865,9 +959,11 @@ class SsaBuilder implements Visitor {
   }
 
   visitDoWhile(DoWhile node) {
-    startLoop(node);
+    localsHandler.startLoop(node);
+    beginLoopHeader(node);
     HBasicBlock loopEntryBlock = current;
 
+    localsHandler.enterLoopBody(node);
     visit(node.body);
     if (isAborted()) {
       compiler.unimplemented("SsaBuilder for loop with aborting body");
@@ -1788,6 +1884,8 @@ class SsaBuilder implements Visitor {
     //     E <declaredIdentifier> = $iter.next();
     //     <body>
     //   }
+    localsHandler.startLoop(node);
+
     SourceString iteratorName = const SourceString("iterator");
 
     Selector selector = Selector.INVOCATION_0;
@@ -1801,7 +1899,7 @@ class SsaBuilder implements Visitor {
         selector, iteratorName, false, inputs);
     add(iterator);
 
-    startLoop(node);
+    beginLoopHeader(node);
     HBasicBlock conditionBlock = current;
 
     // The condition.
@@ -1815,6 +1913,9 @@ class SsaBuilder implements Visitor {
     HBasicBlock bodyBlock = addNewBlock();
     conditionExitBlock.addSuccessor(bodyBlock);
     open(bodyBlock);
+
+    // The call to next is considered to be part of the loop body.
+    localsHandler.enterLoopBody(node);
 
     push(new HInvokeDynamicMethod(
         selector, const SourceString('next'), [iterator]));
@@ -1906,11 +2007,11 @@ class SsaBuilder implements Visitor {
         if (declaration.type == null) {
           condition = new HLiteral(true, HType.BOOLEAN);
         } else {
-          Element element = elements[declaration.type];
-          if (element == null) {
+          Element typeElement = elements[declaration.type];
+          if (typeElement == null) {
             compiler.cancel('Catch with unresolved type', node: catchBlock);
           }
-          condition = new HIs(element, exception);
+          condition = new HIs(typeElement, exception);
         }
         push(condition);
       }

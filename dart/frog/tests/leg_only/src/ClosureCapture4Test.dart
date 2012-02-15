@@ -69,10 +69,25 @@ closure4() {
   Expect.equals(4, fs[2]());
 }
 
+closure5() {
+  var input = [1, 2, 3];
+  var fs = [];
+  var i = 0;
+  do {
+    var x = input[i];
+    fs.add(fun() { return x; });
+  } while (++i < input.length);
+  Expect.equals(3, fs.length);
+  Expect.equals(1, fs[0]());
+  Expect.equals(2, fs[1]());
+  Expect.equals(3, fs[2]());
+}
+
 main() {
   closure0();
   closure1();
   closure2();
   closure3();
   closure4();
+  closure5();
 }

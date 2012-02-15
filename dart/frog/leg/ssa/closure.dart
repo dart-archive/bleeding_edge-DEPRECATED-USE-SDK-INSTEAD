@@ -17,8 +17,15 @@ class ClosureFieldElement extends Element {
 class ClosureScope {
   Element boxElement;
   Map<Element, Element> capturedVariableMapping;
+  // If the scope is attached to a [For] contains the variables that are
+  // declared in the initializer of the [For] and that need to be boxed.
+  // Otherwise contains the empty List.
+  List<Element> boxedLoopVariables;
 
-  ClosureScope(this.boxElement, this.capturedVariableMapping);
+  ClosureScope(this.boxElement, this.capturedVariableMapping)
+      : boxedLoopVariables = const <Element>[];
+
+  bool hasBoxedLoopVariables() => !boxedLoopVariables.isEmpty();
 }
 
 class ClosureData {
@@ -253,6 +260,27 @@ class ClosureTranslator extends AbstractVisitor {
     node.visitChildren(this);
     attachCapturedScopeVariables(node);
     scopeVariables = oldScopeVariables;
+  }
+
+  visitFor(For node) {
+    visitLoop(node);
+    // See if we have declared loop variables that need to be boxed.
+    if (node.initializer === null) return;
+    VariableDefinitions definitions = node.initializer.asVariableDefinitions();
+    if (definitions == null) return;
+    ClosureScope scopeData = closureData.capturingScopes[node];
+    if (scopeData === null) return;
+    List<Element> result = <Element>[];
+    for (Link<Node> link = definitions.definitions.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      Node definition = link.head;
+      Element element = elements[definition];
+      if (capturedVariableMapping.containsKey(element)) {
+        result.add(element);
+      };
+    }
+    scopeData.boxedLoopVariables = result;
   }
 
   ClosureData globalizeClosure(FunctionExpression node) {
