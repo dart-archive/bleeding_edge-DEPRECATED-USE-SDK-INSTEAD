@@ -121,8 +121,7 @@ class FrontView extends CompositeView {
 
     currentSection.dataSourceView.reattachSubview(
         detachedView.source, detachedView, true);
-
-    storyView.node.on.transitionEnd.add(handler(e) {
+    handler(e) {
       // Only listen once.
       // TODO(rnystrom): Look into adding .once() to EventListenerList to allow
       // this for any event.
@@ -135,7 +134,8 @@ class FrontView extends CompositeView {
       storyView = null;
       detachedView.removeClass('sel');
       detachedView = null;
-    });
+    }
+    storyView.node.on.transitionEnd.add(handler);
   }
 
   void _animateToStory(Article item) {
