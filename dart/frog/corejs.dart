@@ -37,6 +37,10 @@ class CoreJs {
 
   CoreJs(): _usedOperators = {}, writer = new CodeWriter();
 
+  void markCorelibTypeUsed(String typeName) {
+    world.gen.markTypeUsed(world.corelib.types[typeName]);
+  }
+
   /**
    * Generates the special operator method, e.g. $add.
    * We want to do $add(x, y) instead of x.$add(y) so it doesn't box.
@@ -44,6 +48,15 @@ class CoreJs {
    */
   void useOperator(String name) {
     if (_usedOperators[name] != null) return;
+
+    if (name != ':ne' && name != ':eq') {
+      // TODO(jimhug): Only do this once!
+      markCorelibTypeUsed('NoSuchMethodException');
+    }
+    if (name != ':bit_not' && name != ':negate') {
+        // TODO(jimhug): Only do this once!
+      markCorelibTypeUsed('IllegalArgumentException');
+    }
 
     var code;
     switch (name) {
@@ -71,8 +84,7 @@ class CoreJs {
       case ':truncdiv':
         useThrow = true;
         // TODO(jimhug): Only do this once!
-        world.gen.markTypeUsed(
-          world.corelib.types['IntegerDivisionByZeroException']);
+        markCorelibTypeUsed('IntegerDivisionByZeroException');
         code = _TRUNCDIV_FUNCTION;
         break;
 
@@ -152,12 +164,14 @@ class CoreJs {
     }
 
     if (useIndex) {
+      markCorelibTypeUsed('NoSuchMethodException');
       ensureDefProp();
       w.writeln(options.disableBoundsChecks ?
         _INDEX_OPERATORS : _CHECKED_INDEX_OPERATORS);
     }
 
     if (useSetIndex) {
+      markCorelibTypeUsed('NoSuchMethodException');
       ensureDefProp();
       w.writeln(options.disableBoundsChecks ?
         _SETINDEX_OPERATORS : _CHECKED_SETINDEX_OPERATORS);
@@ -202,20 +216,14 @@ class CoreJs {
 final String _NE_FUNCTION = @"""
 function $ne(x, y) {
   if (x == null) return y != null;
-  return (typeof(x) == 'number' && typeof(y) == 'number') ||
-         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||
-         (typeof(x) == 'string' && typeof(y) == 'string')
-    ? x != y : !x.$eq(y);
+  return (typeof(x) != 'object') ? x !== y : !x.$eq(y);
 }""";
 
 /** Snippet for `$eq`. */
 final String _EQ_FUNCTION = @"""
 function $eq(x, y) {
   if (x == null) return y == null;
-  return (typeof(x) == 'number' && typeof(y) == 'number') ||
-         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||
-         (typeof(x) == 'string' && typeof(y) == 'string')
-    ? x == y : x.$eq(y);
+  return (typeof(x) != 'object') ? x === y : x.$eq(y);
 }
 // TODO(jimhug): Should this or should it not match equals?
 $defProp(Object.prototype, '$eq', function(other) {
@@ -225,61 +233,102 @@ $defProp(Object.prototype, '$eq', function(other) {
 /** Snippet for `$bit_not`. */
 final String _BIT_NOT_FUNCTION = @"""
 function $bit_not(x) {
-  return (typeof(x) == 'number') ? ~x : x.$bit_not();
+  if (typeof(x) == 'number') return ~x;
+  if (typeof(x) == 'object') return  x.$bit_not();
+  $throw(new NoSuchMethodException(x, "operator ~", []));
 }""";
 
 /** Snippet for `$negate`. */
 final String _NEGATE_FUNCTION = @"""
 function $negate(x) {
-  return (typeof(x) == 'number') ? -x : x.$negate();
+  if (typeof(x) == 'number') return -x;
+  if (typeof(x) == 'object') return x.$negate();
+  $throw(new NoSuchMethodException(x, "operator negate", []));
 }""";
 
 /** Snippet for `$add`. This relies on JS's string "+" to match Dart's. */
 final String _ADD_FUNCTION = @"""
+function $add$complex(x, y) {
+  if (typeof(x) == 'number') {
+    $throw(new IllegalArgumentException(y));
+  } else if (typeof(x) == 'string') {
+    var str = (y == null) ? 'null' : y.toString();
+    if (typeof(str) != 'string') {
+      throw new Error("calling toString() on right hand operand of operator " +
+      "+ did not return a String");
+    }
+    return x + str;
+  } else if (typeof(x) == 'object') {
+    return x.$add(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator +", [y]));
+  }
+}
+
 function $add(x, y) {
-  return ((typeof(x) == 'number' && typeof(y) == 'number') ||
-          (typeof(x) == 'string'))
-    ? x + y : x.$add(y);
+  if (typeof(x) == 'number' && typeof(y) == 'number') return x + y;
+  return $add$complex(x, y);
 }""";
 
 /** Snippet for `$truncdiv`. This uses `$throw`. */
 final String _TRUNCDIV_FUNCTION = @"""
 function $truncdiv(x, y) {
-  if (typeof(x) == 'number' && typeof(y) == 'number') {
-    if (y == 0) $throw(new IntegerDivisionByZeroException());
-    var tmp = x / y;
-    return (tmp < 0) ? Math.ceil(tmp) : Math.floor(tmp);
-  } else {
+  if (typeof(x) == 'number') {
+    if (typeof(y) == 'number') {
+      if (y == 0) $throw(new IntegerDivisionByZeroException());
+      var tmp = x / y;
+      return (tmp < 0) ? Math.ceil(tmp) : Math.floor(tmp);
+    } else {
+      $throw(new IllegalArgumentException(y));
+    }
+  } else if (typeof(x) == 'object') {
     return x.$truncdiv(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator ~/", [y]));
   }
 }""";
 
 /** Snippet for `$mod`. */
 final String _MOD_FUNCTION = @"""
 function $mod(x, y) {
-  if (typeof(x) == 'number' && typeof(y) == 'number') {
-    var result = x % y;
-    if (result == 0) {
-      return 0;  // Make sure we don't return -0.0.
-    } else if (result < 0) {
-      if (y < 0) {
-        return result - y;
-      } else {
-        return result + y;
+  if (typeof(x) == 'number') {
+    if (typeof(y) == 'number') {
+      var result = x % y;
+      if (result == 0) {
+        return 0;  // Make sure we don't return -0.0.
+      } else if (result < 0) {
+        if (y < 0) {
+          return result - y;
+        } else {
+          return result + y;
+        }
       }
+      return result;
+    } else {
+      $throw(new IllegalArgumentException(y));
     }
-    return result;
-  } else {
+  } else if (typeof(x) == 'object') {
     return x.$mod(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator %", [y]));
   }
 }""";
 
 /** Code snippet for all other operators. */
 String _otherOperator(String jsname, String op) {
   return """
+function $jsname\$complex(x, y) {
+  if (typeof(x) == 'number') {
+    \$throw(new IllegalArgumentException(y));
+  } else if (typeof(x) == 'object') {
+    return x.$jsname(y);
+  } else {
+    \$throw(new NoSuchMethodException(x, "operator $op", [y]));
+  }
+}
 function $jsname(x, y) {
-  return (typeof(x) == 'number' && typeof(y) == 'number')
-    ? x $op y : x.$jsname(y);
+  if (typeof(x) == 'number' && typeof(y) == 'number') return x $op y;
+  return $jsname\$complex(x, y);
 }""";
 }
 
@@ -438,11 +487,7 @@ function $throw(e) {
 // like a normal method.
 final String _INDEX_OPERATORS = @"""
 $defProp(Object.prototype, '$index', function(i) {
-  var proto = Object.getPrototypeOf(this);
-  if (proto !== Object) {
-    proto.$index = function(i) { return this[i]; }
-  }
-  return this[i];
+  $throw(new NoSuchMethodException(this, "operator []", [i]));
 });
 $defProp(Array.prototype, '$index', function(i) {
   return this[i];
@@ -453,11 +498,7 @@ $defProp(String.prototype, '$index', function(i) {
 
 final String _CHECKED_INDEX_OPERATORS = @"""
 $defProp(Object.prototype, '$index', function(i) {
-  var proto = Object.getPrototypeOf(this);
-  if (proto !== Object) {
-    proto.$index = function(i) { return this[i]; }
-  }
-  return this[i];
+  $throw(new NoSuchMethodException(this, "operator []", [i]));
 });
 $defProp(Array.prototype, '$index', function(index) {
   var i = index | 0;
@@ -477,22 +518,14 @@ $defProp(String.prototype, '$index', function(i) {
 /** Snippet for `$setindex` in Object, Array, and String. */
 final String _SETINDEX_OPERATORS = @"""
 $defProp(Object.prototype, '$setindex', function(i, value) {
-  var proto = Object.getPrototypeOf(this);
-  if (proto !== Object) {
-    proto.$setindex = function(i, value) { return this[i] = value; }
-  }
-  return this[i] = value;
+  $throw(new NoSuchMethodException(this, "operator []=", [i, value]));
 });
 $defProp(Array.prototype, '$setindex',
     function(i, value) { return this[i] = value; });""";
 
 final String _CHECKED_SETINDEX_OPERATORS = @"""
 $defProp(Object.prototype, '$setindex', function(i, value) {
-  var proto = Object.getPrototypeOf(this);
-  if (proto !== Object) {
-    proto.$setindex = function(i, value) { return this[i] = value; }
-  }
-  return this[i] = value;
+  $throw(new NoSuchMethodException(this, "operator []=", [i, value]));
 });
 $defProp(Array.prototype, '$setindex', function(index, value) {
   var i = index | 0;
