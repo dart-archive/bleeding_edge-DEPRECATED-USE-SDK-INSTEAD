@@ -345,6 +345,59 @@ class CommonResolverVisitor<R> extends AbstractVisitor<Element> {
   }
 }
 
+interface LabelScope {
+  StatementElement lookup(String label);
+}
+
+class LabeledStatementLabelScope implements LabelScope {
+  final LabelScope outer;
+  final String label;
+  final StatementElement reference;
+  LabeledStatementLabelScope(this.outer, this.label, this.reference);
+  StatementElement lookup(String label) {
+    if (this.label == label) return reference;
+    return outer.lookup(label);
+  }
+}
+
+class EmptyLabelScope implements LabelScope {
+  const EmptyLabelScope();
+  StatementElement lookup(String label) => null;
+}
+
+class StatementScope {
+  LabelScope labels;
+  Link<StatementElement> breakTargetStack;
+  Link<StatementElement> continueTargetStack;
+
+  StatementScope()
+      : labels = const EmptyLabelScope(),
+        breakTargetStack = const EmptyLink<StatementElement>(),
+        continueTargetStack = const EmptyLink<StatementElement>();
+
+  StatementElement lookupLabel(String label) => labels.lookup(label);
+  StatementElement currentBreakTarget() =>
+    breakTargetStack.isEmpty() ? null : breakTargetStack.head;
+  StatementElement currentContinueTarget() =>
+    continueTargetStack.isEmpty() ? null : continueTargetStack.head;
+
+  void enterLabelScope(String label, StatementElement element) {
+    labels = new LabeledStatementLabelScope(labels, label, element);
+  }
+  void exitLabelScope() {
+    labels = labels.outer;
+  }
+  void enterLoop(StatementElement element) {
+    breakTargetStack = breakTargetStack.prepend(element);
+    continueTargetStack = continueTargetStack.prepend(element);
+  }
+  void exitLoop() {
+    breakTargetStack = breakTargetStack.tail;
+    continueTargetStack = continueTargetStack.tail;
+  }
+}
+
+
 class ResolverVisitor extends CommonResolverVisitor<Element> {
   final TreeElementMapping mapping;
   final Element enclosingElement;
@@ -352,6 +405,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   Scope context;
   ClassElement currentClass;
   bool typeRequired = false;
+  StatementScope statementScope;
 
   ResolverVisitor(Compiler compiler, Element element)
     : this.mapping  = new TreeElementMapping(),
@@ -362,6 +416,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         ? new ClassScope(element.enclosingElement, element.getLibrary())
         : new TopScope(element.getLibrary()),
       this.currentClass = element.isMember() ? element.enclosingElement : null,
+      this.statementScope = new StatementScope(),
       super(compiler);
 
   Element lookup(Node node, SourceString name) {
@@ -435,7 +490,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
                         [bool doAddToScope = true]) {
     compiler.ensure(element !== null);
     mapping[node] = element;
-    if (doAddToScope) { 
+    if (doAddToScope) {
       Element existing = context.add(element);
       if (existing != element) {
         error(node, MessageKind.DUPLICATE_DEFINITION, [node]);
@@ -452,7 +507,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   void setupFunction(FunctionExpression node, FunctionElement function) {
     context = new MethodScope(context, function);
     // Put the parameters in scope.
-    FunctionParameters functionParameters = function.computeParameters(compiler);
+    FunctionParameters functionParameters =
+        function.computeParameters(compiler);
     Link<Node> parameterNodes = node.parameters.nodes;
     functionParameters.forEachParameter((Element element) {
       if (element == functionParameters.optionalParameters.head) {
@@ -476,12 +532,26 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return element;
   }
 
+  /**
+   * Introduces new default targets for break and continue
+   * before visiting the body of the loop
+   */
+  visitLoopBodyIn(Node loop, Node body, Scope scope) {
+    StatementElement element = new StatementElement(loop, enclosingElement);
+    statementScope.enterLoop(element);
+    visitIn(body, scope);
+    statementScope.exitLoop();
+    if (element.isTarget) {
+      mapping[loop] = element;
+    }
+  }
+
   visitBlock(Block node) {
     visitIn(node.statements, new BlockScope(context));
   }
 
   visitDoWhile(DoWhile node) {
-    visitIn(node.body, new BlockScope(context));
+    visitLoopBodyIn(node, node.body, new BlockScope(context));
     visit(node.condition);
   }
 
@@ -494,7 +564,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     visitIn(node.initializer, scope);
     visitIn(node.condition, scope);
     visitIn(node.update, scope);
-    visitIn(node.body, scope);
+    visitLoopBodyIn(node, node.body, scope);
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -511,7 +581,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     defineElement(node, enclosingElement, doAddToScope: node.name !== null);
     setupFunction(node, enclosingElement);
 
+    // Run the body in a fresh statement scope.
+    StatementScope oldScope = statementScope;
+    statementScope = new StatementScope();
     visit(node.body);
+    statementScope = oldScope;
+
     context = context.parent;
     return enclosingElement;
   }
@@ -716,7 +791,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitWhile(While node) {
     visit(node.condition);
-    visitIn(node.body, new BlockScope(context));
+    visitLoopBodyIn(node, node.body, new BlockScope(context));
   }
 
   visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -801,11 +876,46 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitBreakStatement(BreakStatement node) {
-    unimplemented(node, 'break');
+    StatementElement target;
+    if (node.target === null) {
+      target = statementScope.currentBreakTarget();
+      if (target === null) {
+        error(node, MessageKind.NO_BREAK_TARGET);
+        return;
+      }
+    } else {
+      String labelName = node.target.source.stringValue;
+      target = statementScope.lookupLabel(labelName);
+      if (target === null) {
+        error(node.target, MessageKind.UNBOUND_LABEL, [labelName]);
+        return;
+      }
+    }
+    target.isBreakTarget = true;
+    mapping[node] = target;
   }
 
   visitContinueStatement(ContinueStatement node) {
-    unimplemented(node, 'continue');
+    StatementElement target;
+    if (node.target === null) {
+      target = statementScope.currentContinueTarget();
+      if (target === null) {
+        error(node, MessageKind.NO_CONTINUE_TARGET);
+        return;
+      }
+    } else {
+      String labelName = node.target.source.stringValue;
+      target = statementScope.lookupLabel(labelName);
+      if (target === null) {
+        error(node.target, MessageKind.UNBOUND_LABEL, [labelName]);
+        return;
+      }
+      if (!target.origin.isValidContinueTarget()) {
+        error(node.target, MessageKind.INVALID_CONTINUE, [labelName]);
+      }
+    }
+    target.isContinueTarget = true;
+    mapping[node] = target;
   }
 
   visitForInStatement(ForInStatement node) {
@@ -813,7 +923,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Scope scope = new BlockScope(context);
     Node declaration = node.declaredIdentifier;
     visitIn(declaration, scope);
-    visitIn(node.body, scope);
+    visitLoopBodyIn(node, node.body, scope);
+
     // TODO(lrn): Also allow a single identifier.
     if ((declaration is !Send || declaration.asSend().selector is !Identifier)
         && (declaration is !VariableDefinitions ||
@@ -826,7 +937,23 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLabelledStatement(LabelledStatement node) {
-    unimplemented(node, 'label');
+    String labelName = node.label.source.stringValue;
+    StatementElement existingElement = statementScope.lookupLabel(labelName);
+    if (existingElement !== null) {
+      LabelledStatement declaration = existingElement.origin;
+      warning(node.label, MessageKind.DUPLICATE_LABEL, [labelName]);
+      warning(declaration.label, MessageKind.EXISTING_LABEL, [labelName]);
+    }
+    StatementElement element =
+        new StatementElement.Label(labelName, node, enclosingElement);
+    statementScope.enterLabelScope(labelName, element);
+    visit(node.statement);
+    statementScope.exitLabelScope();
+    if (element.isTarget) {
+      mapping[node] = element;
+    } else {
+      warning(node.label, MessageKind.UNUSED_LABEL, [labelName]);
+    }
   }
 
   visitLiteralMap(LiteralMap node) {

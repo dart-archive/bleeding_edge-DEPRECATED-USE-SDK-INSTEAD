@@ -46,7 +46,7 @@ class MemberListener extends NodeListener {
       return false;
     }
     SourceString name;
-    if (nameNode.asIdentifier() != null) {
+    if (nameNode.asIdentifier() !== null) {
       name = nameNode.asIdentifier().source;
     } else {
       Send send = nameNode.asSend();
@@ -62,11 +62,11 @@ class MemberListener extends NodeListener {
     bool isConstructor = isConstructorName(method.name);
     SourceString name;
     Node methodName = method.name;
-    if (methodName.asSend() != null) {
+    if (methodName.asSend() !== null) {
       Send send = methodName.asSend();
       Identifier receiver = send.receiver.asIdentifier();
       Identifier selector = send.selector.asIdentifier();
-      if (selector.asOperator() != null) {
+      if (selector.asOperator() !== null) {
         name = Elements.constructOperatorName(
             receiver.source, selector.source);
       } else {

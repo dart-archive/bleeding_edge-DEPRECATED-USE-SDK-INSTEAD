@@ -34,6 +34,8 @@ class ElementKind {
   static final ElementKind LIBRARY = const ElementKind('library');
   static final ElementKind PREFIX = const ElementKind('prefix');
 
+  static final ElementKind STATEMENT = const ElementKind('statement');
+
   toString() => id;
 }
 
@@ -51,17 +53,19 @@ class Element implements Hashable {
     compiler.internalError("Element.computeType.");
   }
 
-  bool isFunction() => kind == ElementKind.FUNCTION;
+  bool isFunction() => kind === ElementKind.FUNCTION;
   bool isMember() =>
-      enclosingElement !== null && enclosingElement.kind == ElementKind.CLASS;
+      enclosingElement !== null && enclosingElement.kind === ElementKind.CLASS;
   bool isInstanceMember() => false;
-  bool isFactoryConstructor() => modifiers != null && modifiers.isFactory();
-  bool isGenerativeConstructor() => kind == ElementKind.GENERATIVE_CONSTRUCTOR;
+  bool isFactoryConstructor() => modifiers !== null && modifiers.isFactory();
+  bool isGenerativeConstructor() => kind === ElementKind.GENERATIVE_CONSTRUCTOR;
   bool isCompilationUnit() {
-    return kind == ElementKind.COMPILATION_UNIT || kind == ElementKind.LIBRARY;
+    return kind === ElementKind.COMPILATION_UNIT ||
+           kind === ElementKind.LIBRARY;
   }
-  bool isVariable() => kind == ElementKind.VARIABLE;
-  bool isParameter() => kind == ElementKind.PARAMETER;
+  bool isVariable() => kind === ElementKind.VARIABLE;
+  bool isParameter() => kind === ElementKind.PARAMETER;
+  bool isStatement() => kind === ElementKind.STATEMENT;
 
   bool isAssignable() {
     if (modifiers != null && modifiers.isFinal()) return false;
@@ -356,6 +360,7 @@ class FunctionElement extends Element {
   FunctionExpression cachedNode;
   Type type;
   final Modifiers modifiers;
+
   FunctionParameters functionParameters;
 
   FunctionElement(SourceString name,
@@ -630,7 +635,7 @@ class Elements {
            && element.enclosingElement !== null
            && (element.enclosingElement.kind == ElementKind.CLASS ||
                element.enclosingElement.kind == ElementKind.COMPILATION_UNIT ||
-               element.enclosingElement.kind == ElementKind.LIBRARY);    
+               element.enclosingElement.kind == ElementKind.LIBRARY);
   }
 
   static bool isStaticOrTopLevelField(Element element) {
@@ -642,7 +647,7 @@ class Elements {
 
   static bool isStaticOrTopLevelFunction(Element element) {
     return isStaticOrTopLevel(element)
-           && (element.kind === ElementKind.FUNCTION);    
+           && (element.kind === ElementKind.FUNCTION);
   }
 
   static bool isInstanceMethod(Element element) {
@@ -700,4 +705,20 @@ class Elements {
     else if (str === '|' || str === '|=') str = 'or';
     return new SourceString('$receiver\$$str');
   }
+}
+
+// Represents a reference to a statement, either a label or the
+// default target of a break or continue.
+class StatementElement extends Element {
+  final Statement origin;
+  bool isBreakTarget = false;
+  bool isContinueTarget = false;
+
+  StatementElement(this.origin, Element enclosingElement)
+      : super(const SourceString(""), ElementKind.STATEMENT, enclosingElement);
+  StatementElement.label(String name, this.origin, Element enclosingElement)
+      : super(new SourceString(name), ElementKind.STATEMENT, enclosingElement);
+  bool get isTarget() => isBreakTarget || isContinueTarget;
+
+  Node parseNode(DiagnosticListener l) => origin;
 }

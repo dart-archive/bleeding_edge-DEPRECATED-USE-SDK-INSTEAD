@@ -190,6 +190,8 @@ class Statement extends Node {
 
   // TODO(ahe): make class abstract instead of adding an abstract method.
   abstract accept(Visitor visitor);
+
+  bool isValidContinueTarget() => false;
 }
 
 /**
@@ -989,6 +991,8 @@ class Loop extends Statement {
   final Statement body;
 
   Loop(this.body);
+
+  bool isValidContinueTarget() => true;
 }
 
 class DoWhile extends Loop {
@@ -1339,6 +1343,8 @@ class LabelledStatement extends Statement {
   Token getBeginToken() => label.getBeginToken();
 
   Token getEndToken() => statement.getEndToken();
+
+  bool isValidContinueTarget() => statement.isValidContinueTarget();
 }
 
 class ScriptTag extends Node {

@@ -90,6 +90,20 @@ class MessageKind {
       'expected a variable in catch declaration');
   static final EXTRA_CATCH_DECLARATION = const MessageKind(
       'extra variable in catch declaration');
+  static final UNBOUND_LABEL = const MessageKind(
+      'cannot resolve label #{1}');
+  static final NO_BREAK_TARGET = const MessageKind(
+      'break statement not inside switch or loop');
+  static final NO_CONTINUE_TARGET = const MessageKind(
+      'continue statement not inside loop');
+  static final EXISTING_LABEL = const MessageKind(
+      'original declaration of duplicate label #{1}');
+  static final DUPLICATE_LABEL = const MessageKind(
+      'duplicate declaration of label #{1}');
+  static final UNUSED_LABEL = const MessageKind(
+      'unused label #{1}');
+  static final INVALID_CONTINUE = const MessageKind(
+      'target of continue is not a loop or switch case');
 
   static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       '#{1} cannot be used as compile-time constant');
