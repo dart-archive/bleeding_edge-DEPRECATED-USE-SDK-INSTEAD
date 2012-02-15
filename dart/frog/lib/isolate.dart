@@ -124,7 +124,10 @@ class GlobalState {
         IsolateNatives._processWorkerMessage(this.mainWorker, e);
       };
     }
-  """;
+  """ {
+    // Declare that the native code has a dependency on this fn.
+    IsolateNatives._processWorkerMessage(null, null);
+  }
 
   /**
    * Close the worker running this code, called when there is nothing else to
@@ -827,6 +830,9 @@ class IsolateNatives {
 
   static SendPort _startNonWorker2(
       String functionName, String uri, SendPort replyPort) {
+    // TODO(eub): support IE9 using an iframe -- Dart issue 1702.
+    if (uri != null) throw new UnsupportedOperationException(
+            "Currently Isolate2.fromUri is not supported without web workers.");
     _globalState.topEventLoop.enqueue(new IsolateContext(), function() {
       final func = _getJSFunctionFromName(functionName);
       _startIsolate2(func, replyPort);
@@ -845,6 +851,8 @@ class IsolateNatives {
    * name for the isolate entry point class.
    */
   static void _spawnWorker2(functionName, uri, replyPort) {
+    // TODO(eub): convert to 'main' once we switch back to port at top-level.
+    if (functionName == null) functionName = 'isolateMain';
     if (uri == null) uri = _thisScript;
     final worker = _newWorker(uri);
     worker.onmessage = (e) { _processWorkerMessage(worker, e); };
