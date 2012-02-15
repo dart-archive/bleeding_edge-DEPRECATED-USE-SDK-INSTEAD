@@ -1,0 +1,145 @@
+/*
+ * Copyright 2012 Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package com.google.dart.tools.core.frog;
+
+import com.google.dart.tools.core.DartCore;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+
+/**
+ * Execute the process created by the given process builder; collect the results and the exit code.
+ * The process runs to completion before the run() method returns.
+ */
+public class ProcessRunner {
+  private ProcessBuilder processBuilder;
+
+  private int exitCode;
+  private StringBuilder stdout = new StringBuilder();
+  private StringBuilder stderr = new StringBuilder();
+
+  public ProcessRunner(ProcessBuilder processBuilder) {
+    this.processBuilder = processBuilder;
+  }
+
+  public int getExitCode() {
+    return exitCode;
+  }
+
+  public String getStdErr() {
+    return stderr.toString();
+  }
+
+  public String getStdOut() {
+    return stdout.toString();
+  }
+
+  /**
+   * Execute the process created by the process builder; return the exit value. This call happens
+   * synchronously. The monitor parameter is optional; if used, it is polled to see if the user
+   * cancelled the operation.
+   * 
+   * @param monitor
+   * @return
+   * @throws IOException
+   * @throws OperationCanceledException if the user cancelled the operation
+   */
+  public int run(IProgressMonitor monitor) throws IOException {
+    exitCode = 0;
+    stdout.setLength(0);
+    stderr.setLength(0);
+
+    final Process process = processBuilder.start();
+
+    Thread processThread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          exitCode = process.waitFor();
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+    });
+
+    // Read from stdout.
+    Thread stdoutThread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        pipeOutput(process.getInputStream(), stdout);
+      }
+    });
+
+    // Read from stderr.
+    Thread stderrThread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        pipeOutput(process.getErrorStream(), stderr);
+      }
+    });
+
+    processThread.start();
+    stdoutThread.start();
+    stderrThread.start();
+
+    try {
+      // Run the process; check periodically for user cancellation.
+      while (processThread.isAlive()) {
+        if (monitor != null && monitor.isCanceled()) {
+          process.destroy();
+
+          throw new OperationCanceledException();
+        }
+
+        processThread.join(100);
+      }
+
+      // Make sure we've read all the output.
+      stdoutThread.join();
+      stderrThread.join();
+
+      return exitCode;
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    }
+  }
+
+  protected void pipeOutput(InputStream in, StringBuilder builder) {
+    try {
+      Reader reader = new InputStreamReader(in, "UTF-8");
+      char[] buffer = new char[512];
+
+      int count = reader.read(buffer);
+
+      while (count != -1) {
+        builder.append(buffer, 0, count);
+
+        count = reader.read(buffer);
+      }
+    } catch (UnsupportedEncodingException e) {
+      DartCore.logError(e);
+    } catch (IOException e) {
+      // This exception is expected.
+
+    }
+  }
+
+}

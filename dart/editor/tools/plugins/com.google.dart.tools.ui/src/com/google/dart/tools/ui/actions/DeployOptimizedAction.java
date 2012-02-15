@@ -14,25 +14,18 @@
 
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.compiler.backend.js.AbstractJsBackend;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.frog.FrogManager;
-import com.google.dart.tools.core.frog.Response;
-import com.google.dart.tools.core.frog.ResponseDone;
-import com.google.dart.tools.core.frog.ResponseHandler;
-import com.google.dart.tools.core.frog.ResponseMessage;
+import com.google.dart.tools.core.frog.FrogCompiler;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -40,8 +33,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
@@ -50,10 +42,10 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
-
-import java.io.File;
-import java.util.concurrent.CountDownLatch;
+import org.eclipse.ui.console.IConsoleConstants;
 
 /**
  * An action to create an optimized Javascript build of a Dart library.
@@ -61,58 +53,12 @@ import java.util.concurrent.CountDownLatch;
 public class DeployOptimizedAction extends AbstractInstrumentedAction implements IWorkbenchAction,
     ISelectionListener, IPartListener {
 
-  class CompileResponseHandler extends ResponseHandler {
-    private CountDownLatch latch;
-    private IStatus exitStatus = Status.OK_STATUS;
-
-    public CompileResponseHandler(CountDownLatch latch) {
-      this.latch = latch;
-    }
-
-    @Override
-    public void handleException(Response response, Exception exception) {
-      super.handleException(response, exception);
-      DartCore.getConsole().println(
-          "Internal compiler error: " + exception + " while processing " + response);
-      latch.countDown();
-    }
-
-    @Override
-    public void processDone(ResponseDone done) {
-      if (!done.isSuccess()) {
-        exitStatus = new Status(IStatus.ERROR, DartCore.PLUGIN_ID, 0,
-            ActionMessages.DeployOptimizedAction_Fail, null);
-      }
-      latch.countDown();
-    }
-
-    @Override
-    public void processMessage(ResponseMessage message) {
-      String path = null;
-      if (message.getLocation() != null) {
-        path = message.getLocation().path;
-        if (message.getLocation().line != -1) {
-          path += ":" + message.getLocation().line;
-        }
-      }
-      DartCore.getConsole().println(
-          "[" + message.getSeverity() + "] " + (path == null ? "" : path + ", ")
-              + message.getMessage());
-    }
-
-    protected IStatus getExitStatus() {
-      return exitStatus;
-    }
-  }
-
   class DeployOptimizedJob extends Job {
-    private File file;
     private DartLibrary library;
 
-    public DeployOptimizedJob(IWorkbenchPage page, File file, DartLibrary library) {
+    public DeployOptimizedJob(IWorkbenchPage page, DartLibrary library) {
       super(ActionMessages.DeployOptimizedAction_jobTitle);
 
-      this.file = file;
       this.library = library;
 
       // Synchronize on the workspace root to catch any builds that are in progress.
@@ -124,63 +70,32 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
-      IPath path = new Path(file.getAbsolutePath());
-
       if (DartCore.getPlugin().getCompileWithFrog()) {
-        long startTime = System.currentTimeMillis();
-
-        CountDownLatch latch = new CountDownLatch(1);
-
-        CompileResponseHandler responseHandler = new CompileResponseHandler(latch);
-
-        Exception serverException = null;
+        showConsole();
 
         try {
           monitor.beginTask(
               ActionMessages.DeployOptimizedAction_Compiling + library.getElementName(),
               IProgressMonitor.UNKNOWN);
 
-          DartCore.getConsole().clear();
-          DartCore.getConsole().println(ActionMessages.DeployOptimizedAction_GenerateMessage);
-
-          FrogManager.getServer().compile(library.getCorrespondingResource().getLocation(), path,
-              responseHandler);
-
-          latch.await();
+          FrogCompiler.compileLibrary(library, monitor, DartCore.getConsole());
 
           return Status.OK_STATUS;
+        } catch (OperationCanceledException exception) {
+          // The user cancelled.
+          DartCore.getConsole().println("Generation cancelled.");
+
+          return Status.CANCEL_STATUS;
         } catch (Exception exception) {
-          serverException = exception;
+          DartCore.getConsole().println(
+              NLS.bind(ActionMessages.DeployOptimizedAction_FailException, exception.toString()));
 
           return Status.CANCEL_STATUS;
         } finally {
-          long elapsed = System.currentTimeMillis() - startTime;
-
-          // Trim to 1/10th of a second.
-          elapsed = (elapsed / 100) * 100;
-
-          if (serverException != null) {
-            DartCore.getConsole().println(
-                NLS.bind(ActionMessages.DeployOptimizedAction_FailException,
-                    serverException.toString()));
-          } else if (!responseHandler.getExitStatus().isOK()) {
-            DartCore.getConsole().println(ActionMessages.DeployOptimizedAction_Fail);
-          } else {
-            File outputFile = path.toFile();
-            // Trim to 1/10th of a kb.
-            double fileLength = ((int) ((outputFile.length() / 1024) * 10)) / 10;
-
-            String message = fileLength + "kb";
-            message += " written in " + (elapsed / 1000.0) + "sec";
-
-            DartCore.getConsole().println(
-                NLS.bind(ActionMessages.DeployOptimizedAction_DoneSuccess, outputFile.getPath(),
-                    message));
-          }
-
           monitor.done();
         }
       }
+
       return new Status(Status.WARNING, "Deploy optimized", "Dart SDK not installed");
     }
   }
@@ -265,26 +180,8 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
           ActionMessages.DeployOptimizedAction_unableToLaunch,
           ActionMessages.DeployOptimizedAction_noneSelected);
     } else {
-      try {
-        // Get the output location
-        FileDialog saveDialog = new FileDialog(window.getShell(), SWT.SAVE);
-        IResource libraryResource = library.getCorrespondingResource();
-        saveDialog.setFilterPath(libraryResource.getRawLocation().toFile().getParent());
-        saveDialog.setFileName(libraryResource.getName() + "." + AbstractJsBackend.EXTENSION_JS); //$NON-NLS-1$
-
-        String fileName = saveDialog.open();
-
-        if (fileName != null) {
-          DeployOptimizedJob job = new DeployOptimizedJob(page, new File(fileName), library);
-          job.schedule(isSaveNeeded ? 100 : 0);
-        }
-      } catch (DartModelException exception) {
-        DartToolsPlugin.log(exception);
-
-        MessageDialog.openError(window.getShell(),
-            ActionMessages.DeployOptimizedAction_unableToLaunch,
-            NLS.bind(ActionMessages.DeployOptimizedAction_errorLaunching, exception.getMessage()));
-      }
+      DeployOptimizedJob job = new DeployOptimizedJob(page, library);
+      job.schedule(isSaveNeeded ? 100 : 0);
     }
   }
 
@@ -351,6 +248,20 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
 
   private boolean saveDirtyEditors(IWorkbenchPage page) {
     return page.saveAllEditors(false);
+  }
+
+  private void showConsole() {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
+              IConsoleConstants.ID_CONSOLE_VIEW);
+        } catch (PartInitException e) {
+          DartToolsPlugin.log(e);
+        }
+      }
+    });
   }
 
 }

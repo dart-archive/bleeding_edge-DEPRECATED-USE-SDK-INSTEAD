@@ -14,19 +14,21 @@
 package com.google.dart.tools.debug.ui.internal.browser;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.builder.DartBuilder;
+import com.google.dart.tools.core.frog.FrogCompiler;
+import com.google.dart.tools.core.frog.FrogCompiler.CompilationResult;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
+import com.google.dart.tools.debug.ui.internal.DartUtil;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -36,8 +38,10 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.console.IConsoleConstants;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -58,12 +62,20 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
 
     if (launchConfig.getShouldLaunchFile()) {
       IResource resource = launchConfig.getApplicationResource();
+
       if (resource == null) {
         throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_HtmlFileNotFound));
       }
 
-      checkJavascriptIsAvailable(resource);
+      try {
+        compileJavascript(resource, monitor);
+      } catch (OperationCanceledException ex) {
+        // The user cancelled the launch.
+        DartCore.getConsole().println("Launch cancelled.");
+
+        return;
+      }
 
       url = resource.getLocationURI().toString();
     } else {
@@ -80,6 +92,7 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     }
 
     final String uri = url;
+
     if (launchConfig.getUseDefaultBrowser()) {
       Display.getDefault().asyncExec(new Runnable() {
         @Override
@@ -105,7 +118,8 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
    * @param resource
    * @throws CoreException
    */
-  private void checkJavascriptIsAvailable(IResource resource) throws CoreException {
+  private void compileJavascript(IResource resource, IProgressMonitor monitor)
+      throws CoreException, OperationCanceledException {
     DartElement element = DartCore.create(resource);
 
     if (element == null) {
@@ -120,23 +134,26 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       try {
         if (htmlFile.getReferencedLibraries().length > 0) {
           DartLibrary library = htmlFile.getReferencedLibraries()[0];
-          File jsOutFile = DartBuilder.getJsAppArtifactFile(library.getCorrespondingResource().getLocation());
 
-          if (!jsOutFile.exists()) {
-            String errMsg = NLS.bind(
-                "Unable to launch {0}. The Javascript output was not generated for the {1} library.",
-                resource.getName(), library.getDisplayName());
+          showConsole();
 
-            DartDebugCorePlugin.logError(errMsg);
+          CompilationResult result = FrogCompiler.compileLibrary(library, monitor,
+              DartCore.getConsole());
+
+          if (result.getExitCode() != 0) {
+            String errMsg = NLS.bind("Failure to launch - unable to generate Javascript for {0}.",
+                resource.getName());
 
             throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, errMsg));
           }
         }
-      } catch (DartModelException e) {
+      } catch (CoreException e) {
         DartDebugCorePlugin.logError(e);
 
         throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID,
             e.toString(), e));
+      } finally {
+        monitor.done();
       }
     }
   }
@@ -156,12 +173,14 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       throws CoreException {
     final String browserName = launchConfig.getBrowserName();
     final int result[] = new int[1];
+
     if (!browserName.isEmpty()) {
       Display.getDefault().asyncExec(new Runnable() {
         @Override
         public void run() {
           try {
             Program program = findProgram(browserName);
+
             if (program != null) {
               program.execute(url);
               result[0] = 0;
@@ -175,11 +194,26 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
           }
         }
       });
+
       if (result[0] == -1) {
         throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_BrowserNotFound));
       }
     }
+  }
+
+  private void showConsole() {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
+              IConsoleConstants.ID_CONSOLE_VIEW);
+        } catch (PartInitException e) {
+          DartUtil.logError(e);
+        }
+      }
+    });
   }
 
 }

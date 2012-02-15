@@ -37,7 +37,6 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
 import org.eclipse.core.resources.IProject;
@@ -284,7 +283,7 @@ public class DartcBuildHandler {
    * @param monitor the progress monitor (not <code>null</code>)
    */
   protected void buildAllApplications(IProject project, boolean shouldGenerateJs,
-      IProgressMonitor monitor, boolean allowFrogMarkers) throws CoreException {
+      IProgressMonitor monitor) throws CoreException {
     DartProject proj = DartCore.create(project);
     DartLibrary[] allLibraries = proj.getDartLibraries();
 
@@ -297,7 +296,7 @@ public class DartcBuildHandler {
           throw new OperationCanceledException();
         }
 
-        buildLibrary(project, lib, shouldGenerateJs, subMonitor.newChild(100), allowFrogMarkers);
+        buildLibrary(project, lib, shouldGenerateJs, subMonitor.newChild(100));
       }
     } finally {
       monitor.done();
@@ -311,7 +310,7 @@ public class DartcBuildHandler {
    * @param monitor the progress monitor (not <code>null</code>)
    */
   protected void buildLibrary(IProject project, DartLibrary lib, final boolean shouldGenerateJs,
-      final IProgressMonitor monitor, boolean allowFrogMarkers) {
+      final IProgressMonitor monitor) {
 
     final DartLibraryImpl libImpl = (DartLibraryImpl) lib;
 
@@ -402,7 +401,7 @@ public class DartcBuildHandler {
           return true;
         }
       };
-      final CompilerListener listener = new CompilerListener(lib, project, true, allowFrogMarkers);
+      final CompilerListener listener = new CompilerListener(lib, project, true);
 
       //Try:
       //1. Have the compiler build the Library
@@ -424,8 +423,6 @@ public class DartcBuildHandler {
       MetricsMessenger.getSingleton().fireUpdates(config,
           new Path(libSource.getName()).lastSegment());
 
-//        emitArtifactDetailsToConsole(libImpl);
-
       // TODO(brianwilkerson) Figure out how to get the library units out of the compiler so that
       // they can be used to drive the indexer.
       // queueFilesForIndexer(...);
@@ -437,24 +434,6 @@ public class DartcBuildHandler {
       DartCore.logError("Exception caught while building " + lib.getElementName(), exception);
     } finally {
       monitor.done();
-    }
-  }
-
-  private void emitArtifactDetailsToConsole(DartLibraryImpl libImpl) throws DartModelException {
-    File artifactFile = DartBuilder.getJsAppArtifactFile(libImpl.getCorrespondingResource());
-    if (artifactFile != null && artifactFile.exists()) {
-      DartCore.getConsole().println(
-          DartBuilderMessages.DartBuilder_console_js_file_description + ": "
-              + artifactFile.getAbsolutePath());
-
-      List<HTMLFile> htmlFiles = libImpl.getChildrenOfType(HTMLFile.class);
-      IResource res;
-      for (HTMLFile htmlFile : htmlFiles) {
-        res = htmlFile.getCorrespondingResource();
-        DartCore.getConsole().println(
-            DartBuilderMessages.DartBuilder_console_html_file_description + ": "
-                + res.getLocation().toOSString());
-      }
     }
   }
 

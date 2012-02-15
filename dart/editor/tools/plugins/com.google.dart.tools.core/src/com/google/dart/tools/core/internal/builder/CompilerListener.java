@@ -26,8 +26,6 @@ import com.google.dart.indexer.standard.StandardDriver;
 import com.google.dart.indexer.workspace.index.IndexingTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-//import com.google.dart.tools.core.index.Resource;
-//import com.google.dart.tools.core.internal.index.impl.IndexImpl;
 import com.google.dart.tools.core.internal.indexer.task.CompilationUnitIndexingTarget;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -69,16 +67,13 @@ class CompilerListener implements DartCompilerListener {
   private final IProject project;
 
   private boolean createMarkers;
-  private boolean allowFrogMarkers;
 
   private static final int MISSING_SOURCE_REPORT_LIMIT = 5;
 
-  CompilerListener(DartLibrary library, IProject project, boolean createMarkers,
-      boolean allowFrogMarkers) {
+  CompilerListener(DartLibrary library, IProject project, boolean createMarkers) {
     this.project = project;
     this.library = library;
     this.createMarkers = createMarkers;
-    this.allowFrogMarkers = allowFrogMarkers;
   }
 
   @Override
@@ -99,7 +94,9 @@ class CompilerListener implements DartCompilerListener {
     if (diet || !createMarkers) {
       return;
     }
+
     IFile file = ResourceUtil.getResource(source);
+
     if (file == null && source != null) {
       // Don't report issues removing markers for dart: based source files.
       if (DartCoreDebug.VERBOSE && !"dart".equals(source.getUri().getScheme())) {
@@ -108,10 +105,9 @@ class CompilerListener implements DartCompilerListener {
       }
       return;
     }
+
     try {
-      if (!allowFrogMarkers) {
-        file.deleteMarkers(null, true, IResource.DEPTH_ZERO);
-      }
+      file.deleteMarkers(null, true, IResource.DEPTH_ZERO);
     } catch (CoreException exception) {
       DartCore.logInformation("Unable to remove markers for source \"" + source.getUri().toString()
           + "\"", exception);
