@@ -138,8 +138,7 @@ public class DartCompilerWarmup {
 
     @Override
     public LibrarySource getImportFor(String relPath) throws IOException {
-      return new UrlLibrarySource(getAbsoluteUri().resolve(relPath).normalize(),
-          systemLibraryManager);
+      return new UrlLibrarySource(getUri().resolve(relPath).normalize(), systemLibraryManager);
     }
 
     @Override
