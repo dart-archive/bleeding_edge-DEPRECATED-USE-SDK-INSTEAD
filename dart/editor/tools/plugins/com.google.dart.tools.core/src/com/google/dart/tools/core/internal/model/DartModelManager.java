@@ -1627,6 +1627,8 @@ public class DartModelManager {
 
   private void shutdownImpl() {
     DartCore.notYetImplemented();
+    ResourceUtil.shutdown();
+
     IEclipsePreferences preferences = getInstanceScope().getNode(DartCore.PLUGIN_ID);
     try {
       preferences.flush();
@@ -1760,6 +1762,7 @@ public class DartModelManager {
 
       startIndexing();
 
+      ResourceUtil.startup();
       DartCore.notYetImplemented();
       // // process deltas since last activated in indexer thread so that
       // indexes are up-to-date.

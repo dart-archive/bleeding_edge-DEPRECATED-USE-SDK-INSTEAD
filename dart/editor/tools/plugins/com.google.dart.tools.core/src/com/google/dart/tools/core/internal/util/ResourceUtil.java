@@ -19,17 +19,49 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceProxy;
+import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 
 import java.io.File;
 import java.net.URI;
+import java.util.HashMap;
 
 /**
  * Utilities for mapping {@link Source} to {@link File} to {@link IFile}
  */
 public class ResourceUtil {
+  /**
+   * The root of the workspace, cached for efficiency.
+   */
   public static IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+
+  /**
+   * A cached table mapping the URI's of file resources to the resource associated with the URI.
+   */
+  private static HashMap<URI, IFile> resourceMap = null;
+
+  /**
+   * The listener used to maintain the resource map when the list of resources has changed.
+   */
+  private static final IResourceChangeListener listener = new IResourceChangeListener() {
+    @Override
+    public void resourceChanged(IResourceChangeEvent event) {
+      //
+      // This is overkill, but it has the advantage that it is not error prone. We can consider
+      // implementing a more efficient version that would update the state of the map if the
+      // performance still isn't good enough.
+      //
+      synchronized (ResourceUtil.class) {
+        resourceMap = null;
+      }
+    }
+  };
 
   /**
    * Return the file corresponding to the specified Dart source, or <code>null</code> if there is no
@@ -65,15 +97,7 @@ public class ResourceUtil {
    * Answer the Eclipse resource associated with the specified file or <code>null</code> if none
    */
   public static IFile getResource(File file) {
-    IFile[] resources = ResourceUtil.getResources(file);
-    if (resources != null) {
-      for (IFile iFile : resources) {
-        if (iFile.exists()) {
-          return iFile;
-        }
-      }
-    }
-    return null;
+    return getResource(file.getAbsoluteFile().toURI());
   }
 
   /**
@@ -109,8 +133,7 @@ public class ResourceUtil {
     if (file == null) {
       return null;
     }
-    URI fileURI = file.getAbsoluteFile().toURI();
-    return root.findFilesForLocationURI(fileURI);
+    return getResources(file.getAbsoluteFile().toURI());
   }
 
   /**
@@ -131,7 +154,53 @@ public class ResourceUtil {
           new Exception());
       return null;
     }
+    IFile file = getResourceMap().get(uri);
+    if (file != null) {
+      return new IFile[] {file};
+    }
     return root.findFilesForLocationURI(uri);
+  }
+
+  /**
+   * Perform any clean up required when the core plug-in is shutting down.
+   */
+  public static void shutdown() {
+    ResourcesPlugin.getWorkspace().removeResourceChangeListener(listener);
+  }
+
+  /**
+   * Perform any initialization required when the core plug-in is starting up.
+   */
+  public static void startup() {
+    ResourcesPlugin.getWorkspace().addResourceChangeListener(listener);
+  }
+
+  /**
+   * Return a table mapping the URI's of file resources to the resource associated with the URI.
+   * 
+   * @return a table mapping the URI's of file resources to the resource associated with the URI
+   */
+  private static HashMap<URI, IFile> getResourceMap() {
+    synchronized (ResourceUtil.class) {
+      if (resourceMap == null) {
+        resourceMap = new HashMap<URI, IFile>();
+        try {
+          root.accept(new IResourceProxyVisitor() {
+            @Override
+            public boolean visit(IResourceProxy proxy) {
+              if (proxy.getType() == IResource.FILE) {
+                IFile file = (IFile) proxy.requestResource();
+                resourceMap.put(file.getLocationURI(), file);
+              }
+              return true;
+            }
+          }, 0);
+        } catch (CoreException exception) {
+          DartCore.logError("Could not visit resources", exception);
+        }
+      }
+      return resourceMap;
+    }
   }
 
   // No instances
