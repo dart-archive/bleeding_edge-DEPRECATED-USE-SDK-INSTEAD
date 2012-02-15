@@ -9,6 +9,7 @@
 
 #library("editor_stub");
 
+#import("../proxy/proxy.dart");
 #import("editors.dart");
 
 /**

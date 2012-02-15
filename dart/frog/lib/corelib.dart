@@ -30,7 +30,6 @@
 #source("../../corelib/src/options.dart");
 #source("../../corelib/src/pattern.dart");
 #source("../../corelib/src/promise.dart");
-#source("../../corelib/src/proxy.dart");
 #source("../../corelib/src/queue.dart");
 #source("../../corelib/src/regexp.dart");
 #source("../../corelib/src/set.dart");
