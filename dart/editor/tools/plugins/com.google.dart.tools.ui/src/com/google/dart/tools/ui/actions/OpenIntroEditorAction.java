@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Google Inc.
+ * Copyright 2012 Google Inc.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -20,15 +20,19 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 
 /**
- * Open the intro editor.
+ * Opens {@link IntroEditor}.
  */
 public class OpenIntroEditorAction extends AbstractInstrumentedAction {
+
+  public OpenIntroEditorAction() {
+    super("&Welcome");
+  }
 
   @Override
   public void run() {
     EmitInstrumentationCommand();
     try {
-      IDE.openEditor(DartToolsPlugin.getActivePage(), IntroEditor.getInput(), IntroEditor.ID);
+      IDE.openEditor(DartToolsPlugin.getActivePage(), IntroEditor.INPUT, IntroEditor.ID);
     } catch (PartInitException e) {
       DartToolsPlugin.log(e);
     }

@@ -20,6 +20,7 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.DeployOptimizedAction;
+import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
@@ -882,8 +883,12 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private MenuManager createHelpMenu() {
     MenuManager menu = new MenuManager(IDEWorkbenchMessages.Workbench_help,
         IWorkbenchActionConstants.M_HELP);
+
+    menu.add(new GroupMarker("group.intro")); //$NON-NLS-1$
+    menu.add(new OpenIntroEditorAction());
     menu.add(new GroupMarker("group.intro.ext")); //$NON-NLS-1$
-    menu.add(new GroupMarker("group.main")); //$NON-NLS-1$
+
+    menu.add(new Separator("group.main")); //$NON-NLS-1$
     menu.add(openOnlineDocsAction);
     //menu.add(helpContentsAction);
     //menu.add(helpSearchAction);

@@ -46,46 +46,40 @@ import java.util.List;
  * A "fake" editor for showing intro content to first time users.
  */
 public class IntroEditor extends EditorPart {
-  public static final String ID = "com.google.dart.tools.ui.intro.editor";
+  public static final String ID = "com.google.dart.tools.ui.intro.editor"; //$NON-NLS-1$
 
-  /*
-   * TODO (pquitslund): string content should be externalized.
-   */
+  public static final IEditorInput INPUT = new IEditorInput() {
 
-  public static IEditorInput getInput() {
-    return new IEditorInput() {
+    @Override
+    public boolean exists() {
+      return false;
+    }
 
-      @Override
-      public boolean exists() {
-        return false;
-      }
+    @Override
+    public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
+      return null;
+    }
 
-      @Override
-      public Object getAdapter(@SuppressWarnings("rawtypes") Class adapter) {
-        return null;
-      }
+    @Override
+    public ImageDescriptor getImageDescriptor() {
+      return null;
+    }
 
-      @Override
-      public ImageDescriptor getImageDescriptor() {
-        return null;
-      }
+    @Override
+    public String getName() {
+      return IntroMessages.IntroEditor_name;
+    }
 
-      @Override
-      public String getName() {
-        return "Welcome";
-      }
+    @Override
+    public IPersistableElement getPersistable() {
+      return null;
+    }
 
-      @Override
-      public IPersistableElement getPersistable() {
-        return null;
-      }
-
-      @Override
-      public String getToolTipText() {
-        return "Welcome to Dart!";
-      }
-    };
-  }
+    @Override
+    public String getToolTipText() {
+      return IntroMessages.IntroEditor_tooltip;
+    }
+  };
 
   /**
    * Reads the existing text file with give name in the package of {@link IntroEditor}.
@@ -155,20 +149,20 @@ public class IntroEditor extends EditorPart {
       // prepare HTML
       String html;
       {
-        String sampleTemplate = readTemplate("sample-template.html");
+        String sampleTemplate = readTemplate("sample-template.html"); //$NON-NLS-1$
         // prepare samples
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < descriptions.size(); i++) {
           SampleDescription description = descriptions.get(i);
-          String sampleHtml = sampleTemplate.replace("${id}", Integer.toString(i));
-          sampleHtml = sampleHtml.replace("${name}", description.name);
-          sampleHtml = sampleHtml.replace("${logo}", description.logo.toURI().toString());
-          sampleHtml = sampleHtml.replace("${description}", description.description);
+          String sampleHtml = sampleTemplate.replace("${id}", Integer.toString(i)); //$NON-NLS-1$
+          sampleHtml = sampleHtml.replace("${name}", description.name); //$NON-NLS-1$
+          sampleHtml = sampleHtml.replace("${logo}", description.logo.toURI().toString()); //$NON-NLS-1$
+          sampleHtml = sampleHtml.replace("${description}", description.description); //$NON-NLS-1$
           sb.append(sampleHtml);
         }
         // apply "samples" into template
-        String welcomeTemplate = readTemplate("welcome-template.html");
-        html = welcomeTemplate.replace("${samples}", sb.toString());
+        String welcomeTemplate = readTemplate("welcome-template.html"); //$NON-NLS-1$
+        html = welcomeTemplate.replace("${samples}", sb.toString()); //$NON-NLS-1$
       }
       // create Browser
       Browser browser = new Browser(composite, SWT.NONE);
@@ -183,7 +177,7 @@ public class IntroEditor extends EditorPart {
         }
       });
       // register JavaScript function
-      new BrowserFunction(browser, "openSample") {
+      new BrowserFunction(browser, "openSample") { //$NON-NLS-1$
         @Override
         public Object function(Object[] arguments) {
           String indexString = (String) arguments[0];
