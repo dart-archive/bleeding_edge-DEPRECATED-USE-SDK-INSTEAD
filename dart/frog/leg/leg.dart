@@ -12,9 +12,10 @@
 #import('scanner/scannerlib.dart');
 #import('scanner/scanner_implementation.dart');
 #import('ssa/ssa.dart');
-#import('tree/tree.dart');
-#import('util/util.dart');
 #import('string_validator.dart');
+#import('tree/tree.dart');
+#import('util/characters.dart');
+#import('util/util.dart');
 
 #source('compiler.dart');
 #source('compile_time_constants.dart');

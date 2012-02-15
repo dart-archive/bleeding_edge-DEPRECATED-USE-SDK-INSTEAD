@@ -107,7 +107,9 @@ function(child, parent) {
           argumentsBuffer[count] = jsName;
           parametersBuffer[selector.positionalArgumentCount + index] = jsName;
         } else {
-          argumentsBuffer[count] = constants.getJsCodeForVariable(element);
+          var value = constants.writeJsCodeForVariable(new StringBuffer(),
+                                                       element);
+          argumentsBuffer[count] = value.toString();
         }
       }
       count++;
@@ -302,7 +304,7 @@ function(child, parent) {
     for (Element element in staticNonFinalFields) {
       buffer.add('  this.${namer.getName(element)} = ');
       compiler.withCurrentElement(element, () {
-          buffer.add(constants.getJsCodeForVariable(element));
+          constants.writeJsCodeForVariable(buffer, element);
         });
       buffer.add(';\n');
     }
@@ -315,7 +317,7 @@ function(child, parent) {
     for (VariableElement element in staticFinalFields) {
       buffer.add('${namer.isolatePropertyAccess(element)} = ');
       compiler.withCurrentElement(element, () {
-          buffer.add(constants.getJsCodeForVariable(element));
+          constants.writeJsCodeForVariable(buffer, element);
         });
       buffer.add(';\n');
     }

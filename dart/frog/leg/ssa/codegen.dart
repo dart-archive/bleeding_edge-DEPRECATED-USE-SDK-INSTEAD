@@ -551,61 +551,6 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(')');
   }
 
-  /**
-   * Write the contents of the quoted string to a [StringBuffer] in
-   * a form that is valid as JavaScript string literal content.
-   * The string is assumed quoted by single quote characters.
-   */
-  static void writeEscapedString(DartString string,
-                                 StringBuffer buffer,
-                                 void cancel(String reason)) {
-    Iterator<int> iterator = string.iterator();
-    while (iterator.hasNext()) {
-      int code = iterator.next();
-      if (code === $SQ) {
-        buffer.add(@"\'");
-      } else if (code === $LF) {
-        buffer.add(@'\n');
-      } else if (code === $CR) {
-        buffer.add(@'\r');
-      } else if (code === $LS) {
-        // This Unicode line terminator and $PS are invalid in JS string
-        // literals.
-        buffer.add(@'\u2028');
-      } else if (code === $PS) {
-        buffer.add(@'\u2029');
-      } else if (code === $BACKSLASH) {
-        buffer.add(@'\\');
-      } else {
-        if (code > 0xffff) {
-          cancel("Unhandled non-BMP character: U+" + code.toRadixString(16));
-        }
-        // TODO(lrn): Consider whether all codes above 0x7f really need to
-        // be escaped. We build a Dart string here, so it should be a literal
-        // stage that converts it to, e.g., UTF-8 for a JS interpreter.
-        if (code < 0x20) {
-          buffer.add(@'\x');
-          if (code < 0x10) buffer.add('0');
-          buffer.add(code.toRadixString(16));
-        } else if (code >= 0x80) {
-          if (code < 0x100) {
-            buffer.add(@'\x');
-            buffer.add(code.toRadixString(16));
-          } else {
-            buffer.add(@'\u');
-            if (code < 0x1000) {
-              buffer.add('0');
-            }
-            buffer.add(code.toRadixString(16));
-          }
-        } else {
-          buffer.add(new String.fromCharCodes(<int>[code]));
-        }
-      }
-    }
-  }
-
-
   visitLiteral(HLiteral node) {
     if (node.isLiteralNull()) {
       buffer.add("(void 0)");
@@ -614,10 +559,10 @@ class SsaCodeGenerator implements HVisitor {
     } else if (node.isLiteralString()) {
       DartString string = node.value;
       buffer.add("'");
-      writeEscapedString(string, buffer,
-                         (String reason) {
-                           compiler.cancel(reason, instruction:node);
-                         });
+      CompileTimeConstantHandler.writeEscapedString(string, buffer,
+                                                    (String reason) {
+        compiler.cancel(reason, instruction: node);
+      });
       buffer.add("'");
     } else {
       buffer.add(node.value);
