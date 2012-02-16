@@ -62,28 +62,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
- * The unique instances of the class <code>IndexImpl</code> maintains an index storing information
- * about the elements in a collection of resources. There are two kinds of information that can be
- * stored: relationships between elements and attributes associated with elements.
- * <p>
- * More concretely, the index deals with the following concepts:
- * <dl>
- * <dt>resource</dt>
- * <dd>A resource is a file, whether on the local file system or on a remote server. Resources have
- * a unique ID, which is typically the URI of the file, and are used to represent compilation units.
- * </dd>
- * <dt>element</dt>
- * <dd>An element is anything that can be declared within the language, including types, methods,
- * fields, and local variables. Elements also have a unique ID. The ID of a top-level element is
- * typically composed of the ID of the library that contains the element and the name of the
- * element. Elements that are nested inside other elements typically have IDs that are composed of
- * the ID of the enclosing element and the name of the element.</dd>
- * <dt>location</dt>
- * <dd>A location is a location within an element. Locations are used to pinpoint such things as the
- * site of a reference to an element.</dd>
- * </dl>
+ * The unique instance of the class <code>InMemoryIndex</code> maintains an in-memory {@link Index
+ * index}. The index is expected to be initialized once before it is used in any given session and
+ * shut down at the end of the session. The index will be read from disk when it is initialized and
+ * written to disk when it is shut down.
  */
-public class IndexImpl implements Index {
+public class InMemoryIndex implements Index {
   /**
    * The index store used to hold the data in the index.
    */
@@ -124,7 +108,7 @@ public class IndexImpl implements Index {
   /**
    * The unique instance of this class.
    */
-  private static final IndexImpl UniqueInstance = new IndexImpl();
+  private static final InMemoryIndex UniqueInstance = new InMemoryIndex();
 
   /**
    * The name of the file containing the index.
@@ -141,7 +125,7 @@ public class IndexImpl implements Index {
    * 
    * @return the unique instance of this class
    */
-  public static IndexImpl getInstance() {
+  public static InMemoryIndex getInstance() {
     return UniqueInstance;
   }
 
@@ -150,7 +134,7 @@ public class IndexImpl implements Index {
   /**
    * Initialize a newly created index.
    */
-  private IndexImpl() {
+  private InMemoryIndex() {
     super();
   }
 
@@ -169,6 +153,7 @@ public class IndexImpl implements Index {
       value = indexStore.getAttribute(element, attribute);
     }
     callback.hasValue(element, attribute, value);
+    // queue.enqueue(new GetAttributeOperation(indexStore, element, attribute, callback));
   }
 
   /**
@@ -199,6 +184,7 @@ public class IndexImpl implements Index {
       locations = indexStore.getRelationships(element, relationship);
     }
     callback.hasRelationships(element, relationship, locations);
+    // queue.enqueue(new GetRelationshipsOperation(indexStore, element, relationship, callback));
   }
 
   /**
@@ -228,6 +214,7 @@ public class IndexImpl implements Index {
 //      DartCore.logInformation("Indexed " + resource.getResourceId() + " in " + indexTime + " ms ["
 //          + bindingTime + "] (" + totalIndexTime + ", " + totalBindingTime + ")");
     }
+    // queue.enqueue(new IndexResourceOperation(indexStore, resource, unit));
   }
 
   /**
@@ -274,6 +261,7 @@ public class IndexImpl implements Index {
     synchronized (indexStore) {
       indexStore.removeResource(resource);
     }
+    // queue.enqueue(new RemoveResourceOperation(indexStore, resource));
   }
 
   /**
