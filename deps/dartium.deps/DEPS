@@ -17,10 +17,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "106215",
+  "webkit_revision": "107835",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "7664",
+  "nacl_revision": "7800",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "7139",  # native_client/DEPS: tools_rev
@@ -29,32 +29,41 @@ vars = {
   # After changing nacl_toolchain_revision, run 'gclient runhooks' to get the
   # new values.
   "nacl_toolchain_linux_x86_hash":
-      "9db88d4b92913d494d47ceb936d8a0c4af9b7ddb",
+      "030324df172abc67f69dca80012c2a37ccd9ebb0",
   "nacl_toolchain_linux_x86_newlib_hash":
-      "d091970ba08e6d0349568184e6d91980447ff827",
+      "23697d53dce9a506f65a713d6913e99ecb882f18",
   "nacl_toolchain_mac_x86_hash":
-      "ab054c9fad027ce705f6c7be17569c4a58ff0b73",
+      "ea06ee0e55d5e4e252fc85c916474a40b6cad023",
   "nacl_toolchain_mac_x86_newlib_hash":
-      "36744d062e149563b948accf5f88221e4be4f4c2",
+      "039a39d2323c8e9380252607bcf9bca1a1cfa7d6",
+  "nacl_toolchain_pnacl_darwin_i386_hash":
+      "fadb4949172a2cc918ddcadca06ec524f19b29b8",
+  "nacl_toolchain_pnacl_linux_i686_hash":
+      "a1be3e4ecea3f3d3becfff6860e8a593ec014d81",
+  "nacl_toolchain_pnacl_linux_x86_64_hash":
+      "f34c8efb57ca0d1f9fb3f71d9e343bfa7026bd03",
   "nacl_toolchain_win_x86_hash":
-      "396ca98c3021666a08819b89eecb69a79fd7bad8",
+      "6a8fd328bcbdaa88887a39fd9a83a006129b44dd",
   "nacl_toolchain_win_x86_newlib_hash":
-      "b41a2e565716b3ddc0212d185afa79881e971c58",
-  "nacl_toolchain_revision": "7537",
+      "bd8dd553c9998e7bf826f5746c8ef69c3c5e5ac7",
+  "nacl_toolchain_revision": "7799",
+  "pnacl_toolchain_revision": "7799",
 
-  "libjingle_revision": "114",
-  "libphonenumber_revision": "407",
-  "libvpx_revision": "117975",
+  "libjingle_revision": "115",
+  "libphonenumber_revision": "425",
+  "libvpx_revision": "119942",
   "lss_revision": "9",
-  "ffmpeg_revision": "118948",
+  "ffmpeg_revision": "122092",
   "sfntly_revision": "118",
-  "skia_revision": "3089",
+  "skia_revision": "3180",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "10507",
+  "v8_revision": "10703",
   "webrtc_revision": "1538",
   "jsoncpp_revision": "248",
+  "nss_revision": "122093",
+  "rlz_revision": "52",
 }
 
 deps = {
@@ -69,7 +78,7 @@ deps = {
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
 
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@907",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@915",
 
   "src/build/util/support":
     Var("chromium_url") + "/trunk/deps/support@20411",
@@ -90,7 +99,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@374",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@950",
+    (Var("googlecode_url") % "angleproject") + "/trunk@985",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -100,7 +109,7 @@ deps = {
     Var("chromium_url") + "/trunk/deps/third_party/WebKit@76115",
 
   "src/third_party/icu":
-    Var("chromium_url") + "/trunk/deps/third_party/icu46@118861",
+    Var("chromium_url") + "/trunk/deps/third_party/icu46@122103",
 
   "src/third_party/hunspell":
    Var("chromium_url") + "/trunk/deps/third_party/hunspell@110423",
@@ -113,10 +122,10 @@ deps = {
 
   "src/third_party/cacheinvalidation/files/src/google":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src/google@183",
+    "/trunk/src/google@185",
 
   "src/third_party/leveldatabase/src":
-    (Var("googlecode_url") % "leveldb") + "/trunk@55",
+    (Var("googlecode_url") % "leveldb") + "/trunk@58",
 
   "src/third_party/snappy/src":
     (Var("googlecode_url") % "snappy") + "/trunk@37",
@@ -125,7 +134,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@9",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1185",
+    (Var("googlecode_url") % "gyp") + "/trunk@1203",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -189,7 +198,7 @@ deps = {
   # When roll to another webgl conformance tests revision, please goto
   # chrome/test/gpu and run generate_webgl_conformance_test_list.py.
   "src/third_party/webgl_conformance":
-    Var("chromium_url") + "/trunk/deps/third_party/webgl/sdk/tests@106432",
+    Var("chromium_url") + "/trunk/deps/third_party/webgl/sdk/tests@121363",
 
   # We should use the same software_rendering_list.json for all branches.
   "src/chrome/browser/resources/software_rendering_list":
@@ -276,7 +285,7 @@ deps = {
     Var("libjingle_revision"),
 
   "src/third_party/libsrtp":
-    Var("chromium_url") + "/trunk/deps/third_party/libsrtp@119424",
+    Var("chromium_url") + "/trunk/deps/third_party/libsrtp@121481",
 
   "src/third_party/speex":
     Var("chromium_url") + "/trunk/deps/third_party/speex@111570",
@@ -285,10 +294,10 @@ deps = {
     Var("chromium_url") + "/trunk/deps/third_party/yasm/patched-yasm@73761",
 
   "src/third_party/libjpeg_turbo":
-    Var("chromium_url") + "/trunk/deps/third_party/libjpeg_turbo@118072",
+    Var("chromium_url") + "/trunk/deps/third_party/libjpeg_turbo@119959",
 
   "src/third_party/flac":
-    Var("chromium_url") + "/trunk/deps/third_party/flac@118218",
+    Var("chromium_url") + "/trunk/deps/third_party/flac@120197",
 
   "src/third_party/pyftpdlib/src":
     (Var("googlecode_url") % "pyftpdlib") + "/trunk@977",
@@ -312,7 +321,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@124",
+    (Var("googlecode_url") % "libyuv") + "/trunk@164",
 
   "src/third_party/mozc/session":
     (Var("googlecode_url") % "mozc") + "/trunk/src/session@83",
@@ -332,6 +341,9 @@ deps = {
   "src/third_party/libphonenumber/src/resources":
      (Var("googlecode_url") % "libphonenumber") + "/trunk/resources@" +
          Var("libphonenumber_revision"),
+
+  "src/third_party/undoview":
+    Var("chromium_url") + "/trunk/deps/third_party/undoview@119694",
 }
 
 
@@ -357,7 +369,7 @@ deps_os = {
 
     # Chrome Frame related deps
     "src/third_party/xulrunner-sdk":
-      Var("chromium_url") + "/trunk/deps/third_party/xulrunner-sdk@71609",
+      Var("chromium_url") + "/trunk/deps/third_party/xulrunner-sdk@119756",
     "src/chrome_frame/tools/test/reference_build/chrome_win":
       Var("chromium_url") + "/trunk/deps/reference_builds/chrome_win@89574",
 
@@ -367,7 +379,7 @@ deps_os = {
 
     # NSS, for SSLClientSocketNSS.
     "src/third_party/nss":
-      Var("chromium_url") + "/trunk/deps/third_party/nss@117974",
+      Var("chromium_url") + "/trunk/deps/third_party/nss@" + Var("nss_revision"),
 
     "src/third_party/swig/win":
       Var("chromium_url") + "/trunk/deps/third_party/swig/win@" + Var("swig_revision"),
@@ -377,7 +389,7 @@ deps_os = {
        Var("nacl_tools_revision")),
 
     "src/rlz":
-      (Var("googlecode_url") % "rlz") + "/trunk@49",
+      (Var("googlecode_url") % "rlz") + "/trunk@" + Var("rlz_revision"),
 
     # Dependencies used by libjpeg-turbo
     "src/third_party/yasm/binaries":
@@ -386,7 +398,7 @@ deps_os = {
     # Binary level profile guided optimizations. This points to the
     # latest release binaries for the toolchain.
     "src/third_party/syzygy/binaries":
-      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@596",
+      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@640",
 
     # Binaries for nacl sdk.
     "src/third_party/nacl_sdk_binaries":
@@ -406,9 +418,12 @@ deps_os = {
     "src/third_party/swig/mac":
       Var("chromium_url") + "/trunk/deps/third_party/swig/mac@" + Var("swig_revision"),
 
+    "src/rlz":
+      (Var("googlecode_url") % "rlz") + "/trunk@" + Var("rlz_revision"),
+
     # NSS, for SSLClientSocketNSS.
     "src/third_party/nss":
-      Var("chromium_url") + "/trunk/deps/third_party/nss@115445",
+      Var("chromium_url") + "/trunk/deps/third_party/nss@" + Var("nss_revision"),
 
     "src/chrome/installer/mac/third_party/xz/xz":
       Var("chromium_url") + "/trunk/deps/third_party/xz@87706",
@@ -433,6 +448,9 @@ deps_os = {
 
     "src/third_party/WebKit/Tools/gdb":
       Var("webkit_trunk") + "/Tools/gdb@" + Var("webkit_revision"),
+
+    "src/third_party/gold":
+      Var("chromium_url") + "/trunk/deps/third_party/gold@120645",
   },
 }
 
@@ -479,8 +497,15 @@ hooks = [
     "pattern": ".",
     "action": [
         "python", "src/build/download_nacl_toolchains.py",
-         "--no-pnacl",
          "--no-arm-trusted",
+         "--optional-pnacl",
+         "--pnacl-version", Var("pnacl_toolchain_revision"),
+         "--file-hash", "pnacl_linux_i686",
+             Var("nacl_toolchain_pnacl_linux_i686_hash"),
+         "--file-hash", "pnacl_linux_x86_64",
+             Var("nacl_toolchain_pnacl_linux_x86_64_hash"),
+         "--file-hash", "pnacl_darwin_i386",
+             Var("nacl_toolchain_pnacl_darwin_i386_hash"),
          "--x86-version", Var("nacl_toolchain_revision"),
          "--file-hash", "mac_x86_newlib",
              Var("nacl_toolchain_mac_x86_newlib_hash"),
@@ -505,6 +530,17 @@ hooks = [
     # which takes ~20s, but clang speeds up builds by more than 20s.
     "pattern": ".",
     "action": ["python", "src/tools/clang/scripts/update.py", "--mac-only"],
+  },
+  {
+    # Update the cygwin mount on Windows.
+    "pattern": ".",
+    "action": ["python", "src/build/win/setup_cygwin_mount.py", "--win-only"],
+  },
+  {
+    # Update LASTCHANGE.
+    "pattern": ".",
+    "action": ["python", "src/build/util/lastchange.py",
+               "-o", "src/build/util/LASTCHANGE"],
   },
   {
     "pattern": ".",
