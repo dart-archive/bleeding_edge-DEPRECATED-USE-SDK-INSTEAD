@@ -336,6 +336,26 @@ public class FileUtilities {
   }
 
   /**
+   * Return <code>true</code> if the given parent directory is either the same as or a parent of the
+   * given child directory.
+   * 
+   * @param parentDirectory the directory that might be a parent of the child directory
+   * @param childDirectory the directory that might be a child of the parent directory
+   * @return <code>true</code> if the given parent directory is a parent of the given child
+   *         directory
+   */
+  public static boolean isParentOf(File parentDirectory, File childDirectory) {
+    File directory = childDirectory;
+    while (directory != null) {
+      if (parentDirectory.equals(directory)) {
+        return true;
+      }
+      directory = directory.getParentFile();
+    }
+    return false;
+  }
+
+  /**
    * Overwrite the contents of the given file to the given contents.
    * 
    * @param file the file whose contents are to be written
