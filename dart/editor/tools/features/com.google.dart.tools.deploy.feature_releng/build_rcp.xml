@@ -242,10 +242,12 @@ build system.  The PDE build system has to run under Eclipse.
         <!-- dart:html -->
         <copyDartLib name="html" dir="${build.source.root}/client/html"/>
         <copyDartLib name="htmlimpl" dir="${build.source.root}/client/html"/>
-        
-        <!-- dart:json -->
-        <copyDartLib name="json" dir="${build.source.root}/lib/json"/>
-        
+
+        <!-- dart:json, dart:uri, dart:utf8 -->
+        <copy todir="${libraries.out.dir}">
+            <fileset dir="${build.source.root}/lib" includes="**/*.dart"/>
+        </copy>
+
         <!-- dart:builtin -->
         <copy todir="${libraries.out.dir}/builtin">
             <fileset dir="${build.source.root}/runtime/bin" includes="builtin.dart"/>
