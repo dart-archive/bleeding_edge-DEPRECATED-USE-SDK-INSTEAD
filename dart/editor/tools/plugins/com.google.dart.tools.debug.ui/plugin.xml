@@ -191,16 +191,6 @@
       </shortcut>
    </extension>
    
-   <!-- preference page -->
-
-   <extension point="org.eclipse.ui.preferencePages">
-      <page
-         class="com.google.dart.tools.debug.ui.internal.preferences.DebugPreferencePage"
-         id="com.google.dart.tools.debug.debugPreferencePage"
-         name="%debugPreferencePageName">
-      </page>
-   </extension>
-
    <!-- breakpoints -->
 
    <extension
