@@ -827,7 +827,12 @@ class NodeListener extends ElementListener {
   void endFormalParameter(Token token, Token thisKeyword) {
     Expression name = popNode();
     if (thisKeyword !== null) {
-      name = new Send(new Identifier(thisKeyword), name);
+      Identifier thisIdentifier = new Identifier(thisKeyword);
+      if (name.asSend() === null) {
+        name = new Send(thisIdentifier, name);
+      } else {
+        name = name.asSend().copyWithReceiver(thisIdentifier);
+      }
     }
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();

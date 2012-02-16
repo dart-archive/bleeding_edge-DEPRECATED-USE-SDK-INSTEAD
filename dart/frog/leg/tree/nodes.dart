@@ -258,8 +258,9 @@ class Send extends Expression {
     return receiver.getBeginToken();
   }
 
-  Send copyWithReceiver(Node receiver) {
-    return new Send(receiver, selector, argumentsNode);
+  Send copyWithReceiver(Node newReceiver) {
+    assert(receiver === null);
+    return new Send(newReceiver, selector, argumentsNode);
   }
 }
 
@@ -297,8 +298,10 @@ class SendSet extends Send {
     if (assignmentOperator !== null) assignmentOperator.accept(visitor);
   }
 
-  Send copyWithReceiver(Node receiver) {
-    throw 'not implemented';
+  Send copyWithReceiver(Node newReceiver) {
+    assert(receiver === null);
+    return new SendSet(newReceiver, selector, assignmentOperator,
+                       argumentsNode);
   }
 }
 

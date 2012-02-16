@@ -6,26 +6,6 @@
 
 // TODO(ahe): Remove this file.
 
-interface Exception default ExceptionImplementation {
-  const Exception([var msg]);
-}
-class IndexOutOfRangeException implements Exception {}
-class IllegalAccessException implements Exception {}
-class ClosureArgumentMismatchException implements Exception {}
-class ObjectNotClosureException implements Exception {}
-class IllegalArgumentException implements Exception {}
-class OutOfMemoryException implements Exception {}
-class StackOverflowException implements Exception {}
-class BadNumberFormatException implements Exception {}
-class WrongArgumentCountException implements Exception {}
-class NullPointerException implements Exception {}
-class NoMoreElementsException implements Exception {}
-class EmptyQueueException implements Exception {}
-class UnsupportedOperationException implements Exception {}
-class NotImplementedException implements Exception {}
-class IllegalJSRegExpException implements Exception {}
-class IntegerDivisionByZeroException implements Exception {}
-
 class AssertionError {}
 class TypeError extends AssertionError {}
 class FallThroughError {}
@@ -35,17 +15,6 @@ class InternalError {}
 
 // TODO(ahe): VM specfic exception?
 class StaticResolutionException implements Exception {}
-
-class NoSuchMethodException implements Exception {
-  Object receiver;
-  String name;
-  List args;
-  NoSuchMethodException(Object this.receiver, String this.name, List this.args);
-  String toString() {
-    return "NoSuchMethodException - receiver: '$receiver'" +
-        "function name: '$name' arguments: [$args]";
-  }
-}
 
 class List<E> implements Iterable<E> {
   factory List([int length]) => Primitives.newList(length);

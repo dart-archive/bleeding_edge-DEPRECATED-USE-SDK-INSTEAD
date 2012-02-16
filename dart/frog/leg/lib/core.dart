@@ -14,7 +14,7 @@
 #source('../../../corelib/src/date.dart');
 #source('../../../corelib/src/double.dart');
 #source('../../../corelib/src/duration.dart');
-// #source('../../../corelib/src/exceptions.dart');
+#source('../../../corelib/src/exceptions.dart');
 #source('../../../corelib/src/expect.dart');
 #source('../../../corelib/src/function.dart');
 #source('../../../corelib/src/future.dart');
