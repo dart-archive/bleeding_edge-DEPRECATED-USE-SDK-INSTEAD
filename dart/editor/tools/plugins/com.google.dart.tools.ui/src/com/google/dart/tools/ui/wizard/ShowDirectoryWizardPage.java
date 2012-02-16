@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.wizard;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.generator.ApplicationGenerator;
 import com.google.dart.tools.core.internal.util.StatusUtil;
 
 import org.eclipse.core.runtime.IStatus;
@@ -37,10 +36,9 @@ import org.eclipse.swt.widgets.Text;
 import java.io.File;
 
 /**
- * The New Application wizard page.
+ * The Show Directory wizard page.
  * 
- * @see NewApplicationWizard
- * @see ApplicationGenerator
+ * @see ShowDirectoryWizard
  */
 public class ShowDirectoryWizardPage extends AbstractDartWizardPage {
 

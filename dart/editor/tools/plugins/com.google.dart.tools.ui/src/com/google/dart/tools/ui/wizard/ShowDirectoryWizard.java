@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.wizard;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.directoryset.DirectorySetManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.ShowDirectoryWizardAction;
 import com.google.dart.tools.ui.internal.view.files.FilesView;
 
 import org.eclipse.core.runtime.CoreException;
@@ -30,6 +31,7 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * This wizard is used to add a new top-level directory into the {@link FilesView}.
  * 
+ * @see ShowDirectoryWizardAction
  * @see ShowDirectoryWizardPage
  */
 public class ShowDirectoryWizard extends AbstractDartWizard implements INewWizard {
