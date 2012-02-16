@@ -21,6 +21,7 @@ import org.eclipse.debug.core.sourcelookup.ISourceLookupParticipant;
  * 
  * @see org.eclipse.debug.core.sourcelookup.ISourceLookupParticipant
  */
+@Deprecated
 public class DartSourceLookupDirector extends AbstractSourceLookupDirector {
 
   public DartSourceLookupDirector() {

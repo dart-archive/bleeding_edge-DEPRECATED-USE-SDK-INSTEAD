@@ -13,8 +13,9 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
+
 import org.eclipse.debug.core.DebugException;
-import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 
@@ -22,38 +23,39 @@ import org.eclipse.debug.core.model.IVariable;
  * The IValue implementation of Dartium Debug element
  */
 public class DartiumDebugValue extends DartiumDebugElement implements IValue {
-  private IVariable[] variables;
+  private static final IVariable[] EMPTY = new IVariable[0];
 
-  /**
-   * @param target
-   */
-  public DartiumDebugValue(IDebugTarget target) {
+  private WebkitRemoteObject value;
+
+  public DartiumDebugValue(DartiumDebugTarget target, WebkitRemoteObject value) {
     super(target);
+
+    this.value = value;
   }
 
   @Override
   public String getReferenceTypeName() throws DebugException {
-    return null;
+    return value.getClassName();
   }
 
   @Override
   public String getValueString() throws DebugException {
-    return null;
+    return String.valueOf(value.getValue());
   }
 
   @Override
   public IVariable[] getVariables() throws DebugException {
-    return variables;
+    return EMPTY;
   }
 
   @Override
   public boolean hasVariables() throws DebugException {
-    return false;
+    return getVariables().length > 0;
   }
 
   @Override
   public boolean isAllocated() throws DebugException {
-    return false;
+    return true;
   }
 
 }

@@ -115,13 +115,13 @@ class BreakpointManager implements IBreakpointListener {
     int line = WebkitLocation.eclipseToWebkitLine(breakpoint.getLine());
 
     debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(url, null, line,
-        new WebkitCallback() {
+        new WebkitCallback<WebkitBreakpoint>() {
           @Override
-          public void handleResult(WebkitResult result) {
+          public void handleResult(WebkitResult<WebkitBreakpoint> result) {
             // This will resolve immediately if the script is loaded in the browser. Otherwise the 
             // breakpoint info will be sent to us using the breakpoint resolved notification.
             if (result.getResult() instanceof WebkitBreakpoint) {
-              webkitBreakpoints.add((WebkitBreakpoint) result.getResult());
+              webkitBreakpoints.add(result.getResult());
             }
           }
         });

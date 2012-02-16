@@ -17,19 +17,26 @@ package com.google.dart.tools.debug.core.util;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -126,6 +133,12 @@ class ResourceServerHandler implements Runnable {
 
   private static final String CRLF = "\r\n";
 
+  /**
+   * Special resources to serve - i.e. non-workspace resources.
+   */
+  private static final String[][] embeddedResources = new String[][] {{
+      "/favicon.ico", TYPE_GIF, "/resources/dart_16_16.gif"}};
+
   private Socket socket;
 
   public ResourceServerHandler(Socket socket) {
@@ -135,20 +148,20 @@ class ResourceServerHandler implements Runnable {
   @Override
   public void run() {
     try {
-      HttpHeader header = parseHeader();
+      if (isLocalAddress()) {
+        HttpHeader header = parseHeader();
 
-      if (header == null) {
-        // Totally invalid request.
+        if (header != null) {
+          HttpResponse response = createResponse(header);
 
-        socket.close();
-      } else {
-        HttpResponse response = createResponse(header);
-
-        sendResponse(response);
-
-        socket.close();
+          sendResponse(response);
+        }
       }
+
+      socket.close();
     } catch (IOException ioe) {
+      safeClose(socket);
+
       DartDebugCorePlugin.logError(ioe);
     }
   }
@@ -175,10 +188,10 @@ class ResourceServerHandler implements Runnable {
   }
 
   private HttpResponse createResponse(HttpHeader header) throws IOException {
-    boolean head = false;
+    boolean headOnly = false;
 
     if (HttpHeader.METHOD_HEAD.equals(header.method)) {
-      head = true;
+      headOnly = true;
     } else if (!HttpHeader.METHOD_GET.equals(header.method)) {
       return createErrorResponse("Only GET requests are understood.");
     }
@@ -187,53 +200,55 @@ class ResourceServerHandler implements Runnable {
       return createErrorResponse("No file specified.");
     }
 
-    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(new Path(header.file));
-
-    if (resource == null) {
-      return createErrorResponse("File not found: " + header.file);
+    if (isSpecialResource(header.file)) {
+      return serveEmbeddedResource(header.file, headOnly);
     }
-
-    if (!(resource instanceof IFile)) {
-      return createErrorResponse("Resource is not a file: " + header.file);
-    }
-
-    IFile file = (IFile) resource;
 
     File javaFile = null;
 
-    if (file.getRawLocation() != null) {
-      javaFile = file.getRawLocation().toFile();
+    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(new Path(header.file));
+
+    if (resource instanceof IFile) {
+      IFile file = (IFile) resource;
+
+      if (file.getRawLocation() != null) {
+        javaFile = file.getRawLocation().toFile();
+      }
+    } else if (resource == null) {
+      // happy linking story
+
+      javaFile = locateUsingLinkedSiblings(new Path(header.file));
+    }
+
+    if (javaFile == null) {
+      return createErrorResponse("File not found: " + header.file);
     }
 
     HttpResponse response = new HttpResponse();
 
-    try {
-      // Last-Modified: Wed, 08 Jan 2003 23:11:55 GMT
-      Date date = new Date(file.getLocalTimeStamp());
-      response.headers.put("Last-Modified", HttpResponse.RFC_1123_DATE_FORMAT.format(date));
+    // Last-Modified: Wed, 08 Jan 2003 23:11:55 GMT
+    Date date = new Date(javaFile.lastModified());
+    response.headers.put("Last-Modified", HttpResponse.RFC_1123_DATE_FORMAT.format(date));
 
-      // Content-Length: 438
-      if (javaFile != null) {
-        response.headers.put("Content-Length", Long.toString(javaFile.length()));
-      }
+    // Content-Length: 438
+    if (javaFile != null) {
+      response.headers.put("Content-Length", Long.toString(javaFile.length()));
+    }
 
-      // Content-Type: text/html; charset=UTF-8
-      String contentType = getContentType(file.getFileExtension());
+    // Content-Type: text/html; charset=UTF-8
+    String contentType = getContentType(getFileExtension(javaFile.getName()));
 
-      if (contentType.startsWith("text/")) {
-        response.headers.put("Content-Type", contentType + "; charset=" + file.getCharset());
-      } else {
-        response.headers.put("Content-Type", contentType);
-      }
+//      if (contentType.startsWith("text/")) {
+//        response.headers.put("Content-Type", contentType + "; charset=" + file.getCharset());
+//      } else {
+    response.headers.put("Content-Type", contentType);
+//      }
 
-      // Cache-control: no-cache
-      response.headers.put("Cache-control", "no-cache");
+    // Cache-control: no-cache
+    response.headers.put("Cache-control", "no-cache");
 
-      if (!head) {
-        response.responseBodyStream = file.getContents(true);
-      }
-    } catch (CoreException exception) {
-      throw new IOException(exception);
+    if (!headOnly) {
+      response.responseBodyStream = new FileInputStream(javaFile);
     }
 
     addStandardResponseHeaders(response);
@@ -251,6 +266,86 @@ class ResourceServerHandler implements Runnable {
     }
 
     return TYPE_OCTET;
+  }
+
+  private String getFileExtension(String name) {
+    int index = name.lastIndexOf('.');
+
+    if (index != -1) {
+      return name.substring(index + 1);
+    } else {
+      return null;
+    }
+  }
+
+  private File getRawLocationFor(IPath path) throws CoreException {
+    if (path.isEmpty()) {
+      return null;
+    }
+
+    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
+
+    if (resource == null) {
+      File rawParent = getRawLocationFor(path.removeLastSegments(1));
+
+      if (rawParent == null) {
+        return null;
+      } else {
+        return new File(rawParent, path.lastSegment());
+      }
+    } else if (resource instanceof IWorkspaceRoot) {
+      return null;
+    } else {
+      IContainer container = (IContainer) resource;
+
+      for (IResource siblingResource : container.members()) {
+        if (siblingResource.isLinked() && siblingResource.getRawLocation() != null) {
+          File siblingFile = siblingResource.getRawLocation().toFile();
+          File parentFile = siblingFile.getParentFile();
+
+          return parentFile;
+        }
+      }
+
+      return null;
+    }
+  }
+
+  private boolean isLocalAddress() {
+    InetAddress remoteAddress = socket.getInetAddress();
+
+    return remoteAddress.isAnyLocalAddress() || remoteAddress.isLoopbackAddress();
+  }
+
+  private boolean isSpecialResource(String path) {
+    for (String[] resourceInfo : embeddedResources) {
+      if (resourceInfo[0].equals(path)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private File locateUsingLinkedSiblings(Path path) {
+    // TODO(devoncarew): Handle the case where the user is requesting non-linked resources from a
+    // child directory (i.e. Total and their /img directory).
+
+    try {
+      File parentFile = getRawLocationFor(path.removeLastSegments(1));
+
+      if (parentFile != null) {
+        File file = new File(parentFile, path.lastSegment());
+
+        if (file.exists()) {
+          return file;
+        }
+      }
+    } catch (CoreException e) {
+
+    }
+
+    return null;
   }
 
   private HttpHeader parseHeader() throws IOException {
@@ -300,6 +395,14 @@ class ResourceServerHandler implements Runnable {
     return header;
   }
 
+  private void safeClose(Socket socket) {
+    try {
+      socket.close();
+    } catch (IOException e) {
+
+    }
+  }
+
   private void sendResponse(HttpResponse response) throws IOException {
     OutputStream out = socket.getOutputStream();
 
@@ -334,5 +437,31 @@ class ResourceServerHandler implements Runnable {
 
     out.flush();
     out.close();
+  }
+
+  private HttpResponse serveEmbeddedResource(String path, boolean headOnly) throws IOException {
+    for (String[] resourceInfo : embeddedResources) {
+      if (resourceInfo[0].equals(path)) {
+        HttpResponse response = new HttpResponse();
+
+        URL url = ResourceServerHandler.class.getResource(resourceInfo[2]);
+
+        URLConnection conn = url.openConnection();
+
+        response.headers.put("Content-Length", Integer.toString(conn.getContentLength()));
+        response.headers.put("Content-Type", resourceInfo[1]);
+        response.headers.put("Cache-control", "no-cache");
+
+        if (!headOnly) {
+          response.responseBodyStream = conn.getInputStream();
+        }
+
+        addStandardResponseHeaders(response);
+
+        return response;
+      }
+    }
+
+    return null;
   }
 }

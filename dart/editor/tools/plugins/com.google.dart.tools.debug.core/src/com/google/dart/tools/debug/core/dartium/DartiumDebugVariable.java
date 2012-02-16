@@ -13,8 +13,9 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
+
 import org.eclipse.debug.core.DebugException;
-import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 
@@ -22,7 +23,10 @@ import org.eclipse.debug.core.model.IVariable;
  * The IVariable implementation of the Dartium Debug Element
  */
 public class DartiumDebugVariable extends DartiumDebugElement implements IVariable {
-  private String name;
+  private WebkitPropertyDescriptor descriptor;
+
+  private DartiumDebugValue value;
+
   private String currentValue;
   private String previousValue;
 
@@ -31,34 +35,29 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
    * 
    * @param target
    */
-  public DartiumDebugVariable(IDebugTarget target) {
-    this(target, null);
-  }
-
-  /**
-   * Create a new Dartium Debug Variable
-   * 
-   * @param target
-   * @param name
-   */
-  public DartiumDebugVariable(IDebugTarget target, String name) {
+  public DartiumDebugVariable(DartiumDebugTarget target, WebkitPropertyDescriptor descriptor) {
     super(target);
-    this.name = name;
+
+    this.descriptor = descriptor;
   }
 
   @Override
   public String getName() throws DebugException {
-    return name;
+    return descriptor.getName();
   }
 
   @Override
   public String getReferenceTypeName() throws DebugException {
-    return null;
+    return getValue().getReferenceTypeName();
   }
 
   @Override
   public IValue getValue() throws DebugException {
-    return new DartiumDebugValue(getDebugTarget());
+    if (value == null) {
+      value = new DartiumDebugValue(getTarget(), descriptor.getValue());
+    }
+
+    return value;
   }
 
   @Override
@@ -66,6 +65,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
     if (previousValue != null) {
       // TODO(keertip): check to see if value has changed
     }
+
     return false;
   }
 

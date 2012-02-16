@@ -57,6 +57,10 @@ public class WebkitScope {
     return type;
   }
 
+  public boolean isGlobal() {
+    return "global".equals(type);
+  }
+
   @Override
   public String toString() {
     return "[" + type + "," + object + "]";

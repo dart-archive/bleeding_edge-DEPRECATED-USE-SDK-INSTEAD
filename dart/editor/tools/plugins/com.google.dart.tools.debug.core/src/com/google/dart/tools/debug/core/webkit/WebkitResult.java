@@ -21,10 +21,10 @@ import org.json.JSONObject;
  * A WIP return value object. The return value can either be an error (untyped) or an untyped result
  * object.
  */
-public class WebkitResult {
+public class WebkitResult<T> {
 
-  static WebkitResult createFrom(JSONObject params) throws JSONException {
-    WebkitResult result = new WebkitResult();
+  static <T> WebkitResult<T> createFrom(JSONObject params) throws JSONException {
+    WebkitResult<T> result = new WebkitResult<T>();
 
     if (params.has("error")) {
       result.setError(params.get("error"));
@@ -34,7 +34,7 @@ public class WebkitResult {
   }
 
   private Object error;
-  private Object result;
+  private T result;
 
   WebkitResult() {
 
@@ -44,7 +44,7 @@ public class WebkitResult {
     return error;
   }
 
-  public Object getResult() {
+  public T getResult() {
     return result;
   }
 
@@ -67,7 +67,7 @@ public class WebkitResult {
     this.error = error;
   }
 
-  void setResult(Object result) {
+  void setResult(T result) {
     this.result = result;
   }
 }

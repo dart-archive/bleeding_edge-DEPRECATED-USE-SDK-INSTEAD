@@ -59,6 +59,12 @@ public class DartDebugCorePlugin extends Plugin {
   // TODO(devoncarew): this is a temporary compile time flag -
   public static final boolean ENABLE_DEBUGGING = false;
 
+  // TODO(devoncarew): remove this when the debugger supports stepping
+  public static boolean VM_SUPPORTS_STEPPING = false;
+
+  // TODO(devoncarew): remove this when the debugger supports pausing
+  public static boolean VM_SUPPORTS_PAUSING = false;
+
   public static final String BROWSER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.browserLaunchConfig";
 
   public static final String REMOTE_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.remoteLaunchConfig";

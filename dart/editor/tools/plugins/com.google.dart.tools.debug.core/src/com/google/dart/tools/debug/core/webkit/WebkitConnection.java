@@ -291,7 +291,7 @@ public class WebkitConnection {
         callback.handleResult(result);
       } else if (result.has("error")) {
         // If we get an error back, and nobody was listening for the result, then log it.
-        WebkitResult webkitResult = WebkitResult.createFrom(result);
+        WebkitResult<?> webkitResult = WebkitResult.createFrom(result);
 
         DartDebugCorePlugin.logInfo("Error from command id " + id + ": " + webkitResult.getError());
       }

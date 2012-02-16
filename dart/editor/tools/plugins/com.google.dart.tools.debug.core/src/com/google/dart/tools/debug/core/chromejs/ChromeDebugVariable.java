@@ -106,19 +106,19 @@ public class ChromeDebugVariable {
 //   */
 //  @Override
 //  public void setValue(final String valueStr) throws DebugException {
-//    // TODO(devoncarew): the library we're using (and V8 itself) does not support value
-//    // modification. Tabled for now.
+//    // The library we're using (and V8 itself) does not support value modification.
+//    // Tabled for now.
 //
 //    try {
 //      jsVariable.setValue(valueStr, new SetValueCallback() {
 //        @Override
 //        public void failure(String errorMessage) {
-//          // TODO(devoncarew): V8 does not currently support value modification
+//          // V8 does not currently support value modification
 //        }
 //
 //        @Override
 //        public void success() {
-//          // TODO(devoncarew): V8 does not currently support value modification
+//          // V8 does not currently support value modification
 //        }
 //      });
 //    } catch (UnsupportedOperationException ex) {

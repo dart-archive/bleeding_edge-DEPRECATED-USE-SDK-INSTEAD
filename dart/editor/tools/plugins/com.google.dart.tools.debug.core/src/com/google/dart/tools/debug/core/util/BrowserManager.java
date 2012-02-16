@@ -60,7 +60,7 @@ public class BrowserManager {
 
   public void dispose() {
     for (Process process : browserProcesses.values()) {
-      if (!processTerminated(process)) {
+      if (!isProcessTerminated(process)) {
         process.destroy();
       }
     }
@@ -82,59 +82,10 @@ public class BrowserManager {
     launchBrowser(launch, launchConfig, null, url, monitor, debug);
   }
 
-  /**
-   * Launch browser and open file url. If debug mode also connect to browser.
-   */
-  protected void connectToChromiumDebug(String browserName, ILaunch launch,
-      DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
-      Process javaProcess, IResourceResolver resourceResolver) throws CoreException {
-    monitor.worked(1);
-
-    try {
-      LogTimer timer = new LogTimer("get chromium tabs");
-
-      List<ChromiumTabInfo> tabs = getChromiumTabs();
-
-      monitor.worked(2);
-
-      timer.endTimer();
-
-      timer = new LogTimer("open WIP connection");
-
-      if (tabs.size() == 0 || tabs.get(0).getWebSocketDebuggerUrl() == null) {
-        throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-            "Unable to connect to Dartium"));
-      }
-
-      WebkitConnection connection = new WebkitConnection(tabs.get(0).getWebSocketDebuggerUrl());
-
-      DartiumDebugTarget debugTarget = new DartiumDebugTarget(browserName, connection, launch,
-          javaProcess, resourceResolver);
-
-      monitor.worked(1);
-
-      if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
-        launch.addDebugTarget(debugTarget);
-      }
-      launch.addProcess(debugTarget.getProcess());
-
-      debugTarget.openConnection(url);
-
-      timer.endTimer();
-    } catch (IOException e) {
-      DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
-
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          e.toString(), e));
-    }
-
-    monitor.worked(1);
-  }
-
   protected void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
       String url, IProgressMonitor monitor, boolean debug) throws CoreException {
 
-    monitor.beginTask("Launching Chromium...", debug ? 7 : 3);
+    monitor.beginTask("Launching Chromium...", debug ? 7 : 2);
 
     File dartium = DartSdk.getInstance().getDartiumExecutable();
 
@@ -146,22 +97,28 @@ public class BrowserManager {
     IPath browserLocation = new Path(dartium.getAbsolutePath());
 
     String browserName = dartium.getName();
-    LogTimer timer = new LogTimer(browserName + " startup");
+
+    // avg: 0.434 sec (old: 0.597)
+    LogTimer timer = new LogTimer("Dartium debug startup");
+
+    // avg: 55ms
+    timer.startTask(browserName + " startup");
 
     // for now, check if browser is open, if so, exit and restart again
     if (browserProcesses.containsKey(browserName)) {
       Process process = browserProcesses.get(browserName);
 
-      if (!processTerminated(process)) {
+      if (!isProcessTerminated(process)) {
         process.destroy();
-        browserProcesses.remove(browserName);
 
         // The process needs time to exit.
-        sleep(100);
+        waitForProcessToTerminate(process, 200);
       }
+
+      browserProcesses.remove(browserName);
     }
 
-    Process javaProcess = null;
+    Process runtimeProcess = null;
     monitor.worked(1);
 
     ProcessBuilder builder = new ProcessBuilder();
@@ -202,7 +159,7 @@ public class BrowserManager {
     builder.directory(new File(DartSdk.getInstance().getDartiumWorkingDirectory()));
 
     try {
-      javaProcess = builder.start();
+      runtimeProcess = builder.start();
     } catch (IOException e) {
       DebugPlugin.logMessage("Exception while starting browser", e);
 
@@ -210,34 +167,77 @@ public class BrowserManager {
           "Could not launch browser"));
     }
 
-    browserProcesses.put(browserName, javaProcess);
+    browserProcesses.put(browserName, runtimeProcess);
 
-    readFromProcessPipes(browserName, javaProcess.getInputStream());
-    readFromProcessPipes(browserName, javaProcess.getErrorStream());
-
-    timer.endTimer();
-
-    timer = new LogTimer("chromium startup delay");
+    readFromProcessPipes(browserName, runtimeProcess.getInputStream());
+    readFromProcessPipes(browserName, runtimeProcess.getErrorStream());
 
     monitor.worked(1);
 
-    // Check to see if the process exits soon after starting up, and if so stop the debug launch
-    // process.
-    sleep(100);
-
-    monitor.worked(1);
-
-    if (processTerminated(javaProcess)) {
+    if (isProcessTerminated(runtimeProcess)) {
       throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
           "Could not launch browser"));
     }
 
-    timer.endTimer();
+    timer.stopTask();
 
-    connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, javaProcess,
-        resourceResolver);
+    connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, runtimeProcess,
+        resourceResolver, timer);
 
+    timer.stopTimer();
     monitor.done();
+  }
+
+  /**
+   * Launch browser and open file url. If debug mode also connect to browser.
+   */
+  void connectToChromiumDebug(String browserName, ILaunch launch,
+      DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
+      Process runtimeProcess, IResourceResolver resourceResolver, LogTimer timer)
+      throws CoreException {
+    monitor.worked(1);
+
+    try {
+      // avg: 383ms
+      timer.startTask("get chromium tabs");
+
+      List<ChromiumTabInfo> tabs = getChromiumTabs(runtimeProcess);
+
+      monitor.worked(2);
+
+      timer.stopTask();
+
+      // avg: 46ms
+      timer.startTask("open WIP connection");
+
+      if (tabs.size() == 0 || tabs.get(0).getWebSocketDebuggerUrl() == null) {
+        throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+            "Unable to connect to Dartium"));
+      }
+
+      WebkitConnection connection = new WebkitConnection(tabs.get(0).getWebSocketDebuggerUrl());
+
+      DartiumDebugTarget debugTarget = new DartiumDebugTarget(browserName, connection, launch,
+          runtimeProcess, resourceResolver);
+
+      monitor.worked(1);
+
+      if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
+        launch.addDebugTarget(debugTarget);
+      }
+      launch.addProcess(debugTarget.getProcess());
+
+      debugTarget.openConnection(url);
+
+      timer.stopTask();
+    } catch (IOException e) {
+      DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
+
+      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+          e.toString(), e));
+    }
+
+    monitor.worked(1);
   }
 
   private List<String> buildArgumentsList(IPath browserLocation, String url, boolean debug) {
@@ -288,22 +288,26 @@ public class BrowserManager {
     return arguments;
   }
 
-  private List<ChromiumTabInfo> getChromiumTabs() throws IOException {
-    // Give Chromium 5 seconds to start up.
-    final int maxFailureCount = 50;
+  private List<ChromiumTabInfo> getChromiumTabs(Process runtimeProcess) throws IOException,
+      CoreException {
+    // Give Chromium a maximum of 10 seconds to start up.
+    final int maxStartupDelay = 10 * 1000;
 
-    int failureCount = 0;
+    long startTime = System.currentTimeMillis();
 
     while (true) {
+      if (isProcessTerminated(runtimeProcess)) {
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+            "Could not launch browser"));
+      }
+
       try {
         return ChromiumConnector.getAvailableTabs(PORT_NUMBER);
       } catch (IOException exception) {
-        failureCount++;
-
-        if (failureCount >= maxFailureCount) {
+        if ((System.currentTimeMillis() - startTime) > maxStartupDelay) {
           throw exception;
         } else {
-          sleep(100);
+          sleep(25);
         }
       }
     }
@@ -326,7 +330,7 @@ public class BrowserManager {
     return dataDirPath;
   }
 
-  private boolean processTerminated(Process process) {
+  private boolean isProcessTerminated(Process process) {
     try {
       process.exitValue();
 
@@ -370,6 +374,18 @@ public class BrowserManager {
     try {
       Thread.sleep(millis);
     } catch (Exception exception) {
+    }
+  }
+
+  private void waitForProcessToTerminate(Process process, int maxWaitTimeMs) {
+    long startTime = System.currentTimeMillis();
+
+    while ((System.currentTimeMillis() - startTime) < maxWaitTimeMs) {
+      if (isProcessTerminated(process)) {
+        return;
+      }
+
+      sleep(10);
     }
   }
 

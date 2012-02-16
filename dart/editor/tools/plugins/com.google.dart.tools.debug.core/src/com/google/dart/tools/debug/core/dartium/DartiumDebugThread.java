@@ -14,8 +14,8 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
-import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
+import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -58,23 +58,23 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public boolean canStepInto() {
-    return isSuspended();
+    return DartDebugCorePlugin.VM_SUPPORTS_STEPPING && isSuspended();
   }
 
   @Override
   public boolean canStepOver() {
-    return isSuspended();
+    return DartDebugCorePlugin.VM_SUPPORTS_STEPPING && isSuspended();
   }
 
   @Override
   public boolean canStepReturn() {
     // aka stepOut
-    return isSuspended();
+    return DartDebugCorePlugin.VM_SUPPORTS_STEPPING && isSuspended();
   }
 
   @Override
   public boolean canSuspend() {
-    return !isTerminated() && !isSuspended();
+    return DartDebugCorePlugin.VM_SUPPORTS_PAUSING && !isTerminated() && !isSuspended();
   }
 
   @Override

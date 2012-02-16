@@ -13,10 +13,18 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
+import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitLocation;
+import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
+import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
+import com.google.dart.tools.debug.core.webkit.WebkitResult;
+import com.google.dart.tools.debug.core.webkit.WebkitScope;
 import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IRegisterGroup;
@@ -24,6 +32,7 @@ import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
 
+import java.io.IOException;
 import java.net.URI;
 
 /**
@@ -31,10 +40,9 @@ import java.net.URI;
  * represents a Dart frame.
  */
 public class DartiumDebugStackFrame extends DartiumDebugElement implements IStackFrame {
-  private static final IVariable[] EMPTY_VARIABLES = new IVariable[0];
-
   private IThread thread;
   private WebkitCallFrame webkitFrame;
+  private DartiumDebugVariableCollector variableCollector = DartiumDebugVariableCollector.empty();
 
   public DartiumDebugStackFrame(IDebugTarget target, IThread thread, WebkitCallFrame webkitFrame) {
     super(target);
@@ -121,9 +129,12 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   @Override
   public IVariable[] getVariables() throws DebugException {
-    // TODO(devoncarew): get this information from fillInDartiumVariables()
-
-    return EMPTY_VARIABLES;
+    try {
+      return variableCollector.getVariables();
+    } catch (InterruptedException e) {
+      throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+          e.toString(), e));
+    }
   }
 
   @Override
@@ -182,8 +193,29 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   private void fillInDartiumVariables() {
-    // TODO(devoncarew): fill in our dartium variables
+    variableCollector = new DartiumDebugVariableCollector(getTarget(),
+        webkitFrame.getScopeChain().length);
 
+    for (WebkitScope scope : webkitFrame.getScopeChain()) {
+      if (scope.isGlobal()) {
+        variableCollector.worked();
+      } else {
+        final WebkitRemoteObject obj = scope.getObject();
+
+        try {
+          // TODO(devoncarew): should we pass in ownProperties == true or not?
+          getConnection().getRuntime().getProperties(obj.getObjectId(), false,
+              new WebkitCallback<WebkitPropertyDescriptor[]>() {
+                @Override
+                public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
+                  variableCollector.collect(result);
+                }
+              });
+        } catch (IOException e) {
+          variableCollector.worked();
+        }
+      }
+    }
   }
 
 }

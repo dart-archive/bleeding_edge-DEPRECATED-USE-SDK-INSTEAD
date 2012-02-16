@@ -19,7 +19,7 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 /**
  * Log the call's result to the editor's log file.
  */
-public class LoggingWebkitCallback implements WebkitCallback {
+public class LoggingWebkitCallback<T> implements WebkitCallback<T> {
   private String label;
 
   public LoggingWebkitCallback(String label) {
@@ -27,7 +27,7 @@ public class LoggingWebkitCallback implements WebkitCallback {
   }
 
   @Override
-  public void handleResult(WebkitResult result) {
+  public void handleResult(WebkitResult<T> result) {
     DartDebugCorePlugin.logInfo(label + ": " + result);
   }
 

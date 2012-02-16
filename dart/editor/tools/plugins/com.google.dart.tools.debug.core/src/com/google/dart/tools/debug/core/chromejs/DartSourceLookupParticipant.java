@@ -29,6 +29,7 @@ import org.eclipse.debug.core.sourcelookup.AbstractSourceLookupParticipant;
  * The returned source path will either be workspace relative or be relative to a bundled library
  * identifier.
  */
+@Deprecated
 public class DartSourceLookupParticipant extends AbstractSourceLookupParticipant {
 
   public DartSourceLookupParticipant() {

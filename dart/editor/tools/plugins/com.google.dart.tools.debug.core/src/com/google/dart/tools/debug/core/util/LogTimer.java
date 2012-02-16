@@ -15,6 +15,8 @@ package com.google.dart.tools.debug.core.util;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +26,7 @@ import java.util.List;
 public class LogTimer {
   public static interface LogListener {
     /**
-     * Handle a log event w/ the given action name and duraction (in milliseconds).
+     * Handle a log event w/ the given action name and duration (in milliseconds).
      * 
      * @param actionName
      * @param durationMs
@@ -43,8 +45,15 @@ public class LogTimer {
   }
 
   private String name;
-
   private long startTime;
+
+  private String taskName;
+  private long taskStart;
+
+  /**
+   * This formatter always shows the thousandths position (0.000).
+   */
+  private static final NumberFormat numberFormat = new DecimalFormat("#.###");
 
   /**
    * Create a new LogTimer.
@@ -57,16 +66,41 @@ public class LogTimer {
   }
 
   /**
+   * Start a sub-task timer. This does not interfere with the main timer.
+   * 
+   * @param taskName
+   */
+  public void startTask(String taskName) {
+    this.taskName = taskName;
+    this.taskStart = System.currentTimeMillis();
+  }
+
+  /**
+   * Stop a sub-task timer. This does not interfere with the main timer.
+   */
+  public void stopTask() {
+    long duration = System.currentTimeMillis() - taskStart;
+
+    DartDebugCorePlugin.logInfo(taskName + " time: " + duration + "ms");
+
+    taskName = null;
+  }
+
+  /**
    * Stop the timer, and log the duration to the Eclipse .log.
    */
-  public void endTimer() {
+  public void stopTimer() {
     long duration = System.currentTimeMillis() - startTime;
 
-    DartDebugCorePlugin.logInfo(name + " time: " + duration + "ms");
+    DartDebugCorePlugin.logInfo(name + " total time: " + getSeconds(duration) + " sec");
 
     for (LogListener listener : listeners) {
       listener.timerLog(name, duration);
     }
+  }
+
+  private String getSeconds(long durationMs) {
+    return numberFormat.format(durationMs / 1000.0);
   }
 
 }

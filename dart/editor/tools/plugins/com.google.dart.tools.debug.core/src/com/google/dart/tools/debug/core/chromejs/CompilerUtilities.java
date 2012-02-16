@@ -36,13 +36,13 @@ public class CompilerUtilities {
   }
 
   public static boolean isDartFieldName(String name) {
-    // TODO(devoncarew): return name.indexOf(FIELD_ID) != -1
+    // return name.indexOf(FIELD_ID) != -1
 
     return true;
   }
 
   public static boolean isDartLocalVariable(String name) {
-    // TODO(devoncarew): we're depending on an implicit contract from the compiler here
+    // We're depending on an implicit contract from the compiler here
     return name.indexOf(SYNTHETIC_LOCAL_VARIABLE) == -1
         && name.indexOf(SYNTHETIC_LOCAL_VARIABLE2) == -1;
   }

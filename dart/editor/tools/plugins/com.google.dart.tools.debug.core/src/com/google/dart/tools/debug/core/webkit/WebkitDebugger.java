@@ -99,7 +99,24 @@ public class WebkitDebugger extends WebkitDomain {
   }
 
   public static enum PausedReasonType {
-    DOM, EventListener, XHR, exception, other
+    DOM, EventListener, XHR, exception, other;
+
+    /**
+     * Call valueOf(); Catch exceptions in the cases of invalid enum values and return null in those
+     * cases.
+     * 
+     * @param str
+     * @return
+     */
+    public static PausedReasonType value(String str) {
+      try {
+        return PausedReasonType.valueOf(str);
+      } catch (IllegalArgumentException exception) {
+        return null;
+      } catch (NullPointerException exception) {
+        return null;
+      }
+    }
   }
 
   public static enum PauseOnExceptionsType {
@@ -161,7 +178,8 @@ public class WebkitDebugger extends WebkitDomain {
    * @param callback
    * @throws IOException
    */
-  public void getScriptSource(String scriptId, final WebkitCallback callback) throws IOException {
+  public void getScriptSource(String scriptId, final WebkitCallback<String> callback)
+      throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("callback is required");
     }
@@ -220,8 +238,8 @@ public class WebkitDebugger extends WebkitDomain {
    * @param callback
    * @throws IOException
    */
-  public void setBreakpoint(WebkitScript script, int line, final WebkitCallback callback)
-      throws IOException {
+  public void setBreakpoint(WebkitScript script, int line,
+      final WebkitCallback<WebkitBreakpoint> callback) throws IOException {
     try {
       JSONObject location = new JSONObject().put("lineNumber", line).put("scriptId",
           script.getScriptId());
@@ -262,7 +280,7 @@ public class WebkitDebugger extends WebkitDomain {
    * @param callback
    */
   public void setBreakpointByUrl(String url, String urlRegex, int line,
-      final WebkitCallback callback) throws IOException {
+      final WebkitCallback<WebkitBreakpoint> callback) throws IOException {
     try {
       JSONObject params = new JSONObject();
 
@@ -373,7 +391,7 @@ public class WebkitDebugger extends WebkitDomain {
         listener.debuggerBreakpointResolved(breakpoint);
       }
     } else if (method.equals(DEBUGGER_PAUSED)) {
-      PausedReasonType reason = PausedReasonType.valueOf(params.getString("reason"));
+      PausedReasonType reason = PausedReasonType.value(params.getString("reason"));
 
       List<WebkitCallFrame> frames = WebkitCallFrame.createFrom(params.getJSONArray("callFrames"));
 
@@ -396,8 +414,8 @@ public class WebkitDebugger extends WebkitDomain {
     scriptMap.clear();
   }
 
-  private WebkitResult convertGetScriptSourceResult(JSONObject object) throws JSONException {
-    WebkitResult result = WebkitResult.createFrom(object);
+  private WebkitResult<String> convertGetScriptSourceResult(JSONObject object) throws JSONException {
+    WebkitResult<String> result = WebkitResult.createFrom(object);
 
     if (object.has("result")) {
       result.setResult(JsonUtils.getString(object.getJSONObject("result"), "scriptSource"));
@@ -406,13 +424,14 @@ public class WebkitDebugger extends WebkitDomain {
     return result;
   }
 
-  private WebkitResult convertSetBreakpointByUrlResult(JSONObject object) throws JSONException {
+  private WebkitResult<WebkitBreakpoint> convertSetBreakpointByUrlResult(JSONObject object)
+      throws JSONException {
     // "result":{
     //   "locations":[{"lineNumber":9,"scriptId":"-1","columnNumber":0}],
     //   "breakpointId":"http://0.0.0.0:3030/webapp/webapp.dart:9:0"
     // }
 
-    WebkitResult result = WebkitResult.createFrom(object);
+    WebkitResult<WebkitBreakpoint> result = WebkitResult.createFrom(object);
 
     if (object.has("result")) {
       JSONObject temp = object.getJSONObject("result");
@@ -434,13 +453,14 @@ public class WebkitDebugger extends WebkitDomain {
     return result;
   }
 
-  private WebkitResult convertSetBreakpointResult(JSONObject object) throws JSONException {
+  private WebkitResult<WebkitBreakpoint> convertSetBreakpointResult(JSONObject object)
+      throws JSONException {
     // "result": {
     //   "breakpointId": <BreakpointId>,
     //   "actualLocation": <Location> 
     // }
 
-    WebkitResult result = WebkitResult.createFrom(object);
+    WebkitResult<WebkitBreakpoint> result = WebkitResult.createFrom(object);
 
     if (object.has("result")) {
       WebkitBreakpoint breakpoint = WebkitBreakpoint.createFromActual(object.getJSONObject("result"));

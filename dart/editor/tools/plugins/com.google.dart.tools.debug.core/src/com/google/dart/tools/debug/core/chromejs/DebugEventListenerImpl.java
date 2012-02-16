@@ -43,36 +43,26 @@ public class DebugEventListenerImpl {
 //
 //  @Override
 //  public void resumed() {
-//    // TODO(devoncarew):
-//
 //    System.out.println("resumed()");
 //  }
 //
 //  @Override
 //  public void scriptCollected(Script script) {
-//    // TODO(devoncarew):
-//
 //    System.out.println("scriptCollected()");
 //  }
 //
 //  @Override
 //  public void scriptContentChanged(Script newScript) {
-//    // TODO(devoncarew):
-//
 //    System.out.println("scriptContentChanged()");
 //  }
 //
 //  @Override
 //  public void scriptLoaded(Script newScript) {
-//    // TODO(devoncarew):
-//
 //    System.out.println("scriptLoaded()");
 //  }
 //
 //  @Override
 //  public void suspended(DebugContext context) {
-//    // TODO(devoncarew):
-//
 //    System.out.println("suspended()");
 //  }
 //

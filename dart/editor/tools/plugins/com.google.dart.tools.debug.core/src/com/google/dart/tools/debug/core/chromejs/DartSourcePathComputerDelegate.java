@@ -38,6 +38,7 @@ import java.util.List;
  * Compute and return the default source lookup path (set of source containers that should be
  * considered) for a launch configuration.
  */
+@Deprecated
 public class DartSourcePathComputerDelegate implements ISourcePathComputerDelegate {
 
   public DartSourcePathComputerDelegate() {
@@ -50,7 +51,6 @@ public class DartSourcePathComputerDelegate implements ISourcePathComputerDelega
 
     List<ISourceContainer> containers = new ArrayList<ISourceContainer>();
 
-    // TODO: can we resolve the bundle libraries without having to explicitly name them ?
     SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
 
     URI domUri = libraryManager.translateDartUri(URI.create("dart://dom/dart_dom.lib"));

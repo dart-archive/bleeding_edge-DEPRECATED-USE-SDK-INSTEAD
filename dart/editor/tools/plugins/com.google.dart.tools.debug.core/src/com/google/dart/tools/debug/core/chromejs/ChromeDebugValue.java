@@ -58,7 +58,6 @@ public class ChromeDebugValue {
 //
 //    // To get the name of the object type. Need to fetch the internal properties. This take time as this
 //    // gets value from remote. object > proto > constructor > name
-//    // TODO: can we make these calls faster
 ////    Collection<? extends JsVariable> internalProperties = jsObject.getInternalProperties();
 ////    JsVariable proto = (JsVariable) internalProperties.toArray()[0];
 ////    if (proto != null) {

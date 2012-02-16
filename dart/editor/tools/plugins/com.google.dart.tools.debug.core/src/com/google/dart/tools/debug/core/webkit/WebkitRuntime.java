@@ -47,8 +47,8 @@ public class WebkitRuntime extends WebkitDomain {
    * @param callback
    * @throws IOException
    */
-  public void getProperties(String objectId, boolean ownProperties, final WebkitCallback callback)
-      throws IOException {
+  public void getProperties(String objectId, boolean ownProperties,
+      final WebkitCallback<WebkitPropertyDescriptor[]> callback) throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("callback is required");
     }
@@ -109,8 +109,9 @@ public class WebkitRuntime extends WebkitDomain {
     }
   }
 
-  private WebkitResult convertGetPropertiesResult(JSONObject object) throws JSONException {
-    WebkitResult result = WebkitResult.createFrom(object);
+  private WebkitResult<WebkitPropertyDescriptor[]> convertGetPropertiesResult(JSONObject object)
+      throws JSONException {
+    WebkitResult<WebkitPropertyDescriptor[]> result = WebkitResult.createFrom(object);
 
     if (object.has("result")) {
       JSONObject obj = object.getJSONObject("result");

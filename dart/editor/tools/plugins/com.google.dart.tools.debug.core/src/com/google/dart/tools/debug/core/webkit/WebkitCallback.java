@@ -19,8 +19,8 @@ package com.google.dart.tools.debug.core.webkit;
  * 
  * @see WebkitResult
  */
-public interface WebkitCallback {
+public interface WebkitCallback<T> {
 
-  public void handleResult(WebkitResult result);
+  public void handleResult(WebkitResult<T> result);
 
 }

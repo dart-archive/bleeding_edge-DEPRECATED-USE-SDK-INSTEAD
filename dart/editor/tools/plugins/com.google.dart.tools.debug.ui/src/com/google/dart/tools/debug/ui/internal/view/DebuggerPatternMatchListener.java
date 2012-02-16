@@ -135,6 +135,17 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     }
   }
 
+  private IFile getIFileForAbsolutePath(String path) {
+    IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(
+        new File(path).toURI());
+
+    if (files.length > 0) {
+      return files[0];
+    } else {
+      return null;
+    }
+  }
+
   private Location parseMatch(String match) {
     // ['http://0.0.0.0:3030/webapp/webapp.dart' line:32]
 
@@ -156,24 +167,35 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     String lineStr = match.substring(match.lastIndexOf(':') + 1);
 
     try {
-      String file;
+      String filePath;
       int line = Integer.parseInt(lineStr);
+
+      // /Users/foo/dart/serverapp/serverapp.dart
+      // file:///Users/foo/dart/webapp2/webapp2.dart
+      // http://0.0.0.0:3030/webapp/webapp.dart
 
       // Handle both fully absolute path names and http: urls.
       if (url.startsWith("/")) {
-        IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(
-            new File(url).toURI());
+        IFile file = getIFileForAbsolutePath(url);
 
-        if (files.length > 0) {
-          file = files[0].getFullPath().toPortableString();
+        if (file != null) {
+          filePath = file.getFullPath().toPortableString();
+        } else {
+          return null;
+        }
+      } else if (url.startsWith("file:")) {
+        IFile file = getIFileForAbsolutePath(new URI(url).getPath());
+
+        if (file != null) {
+          filePath = file.getFullPath().toPortableString();
         } else {
           return null;
         }
       } else {
-        file = new URI(url).getPath();
+        filePath = new URI(url).getPath();
       }
 
-      return new Location(file, line);
+      return new Location(filePath, line);
     } catch (NumberFormatException nfe) {
       return null;
     } catch (URISyntaxException e) {
