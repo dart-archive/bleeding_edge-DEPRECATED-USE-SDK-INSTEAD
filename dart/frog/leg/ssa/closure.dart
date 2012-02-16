@@ -139,7 +139,7 @@ class ClosureTranslator extends AbstractVisitor {
         assert(updatedElement !== null);
         if (fromElement == updatedElement) {
           assert(freeVariableMapping[fromElement] == updatedElement);
-          assert(updatedElement.isVariable() || updatedElement.isParameter());
+          assert(Elements.isLocal(updatedElement));
           // The variable has not been boxed.
           fieldCaptures.add(updatedElement);
         } else {
@@ -170,7 +170,10 @@ class ClosureTranslator extends AbstractVisitor {
       ConstructorBodyElement body = functionElement;
       functionElement = body.constructor;
     }
-    if (element.enclosingElement != functionElement) {
+    // If the element is not declared in the current function and the element
+    // is not the closure itself we need to mark the element as free variable.
+    if (element.enclosingElement != functionElement &&
+        element != functionElement) {
       assert(closureData.freeVariableMapping[element] == null ||
              closureData.freeVariableMapping[element] == element);
       closureData.freeVariableMapping[element] = element;
@@ -350,6 +353,12 @@ class ClosureTranslator extends AbstractVisitor {
     if (!insideClosure && closureData.thisElement !== null) {
       declareLocal(closureData.thisElement);
     }
+    // If we are inside a named closure we have to declare ourselve. For
+    // simplicity we declare the local even if the closure does not have a name
+    // It will simply not be used.
+    if (insideClosure) {
+      declareLocal(element);
+    }
 
     node.visitChildren(this);
 
@@ -375,13 +384,6 @@ class ClosureTranslator extends AbstractVisitor {
              capturedVariableMapping[freeElement] == freeElement);
       capturedVariableMapping[freeElement] = freeElement;
       useLocal(freeElement);
-    }
-
-    // If we just visited a closure we declare it. This is not always correct
-    // since some closures are used as expressions and don't introduce any
-    // name. But in this case the added local is simply not used.
-    if (savedInsideClosure) {
-      declareLocal(element);
     }
   }
 
