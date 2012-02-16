@@ -1,7 +1,7 @@
 vars = {
   # Additions for Dart
   "chromium_url": "http://src.chromium.org/svn",
-  "chromium_revision": "119649",
+  "chromium_revision": "122251",
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_url": "http://dart.googlecode.com/svn",
