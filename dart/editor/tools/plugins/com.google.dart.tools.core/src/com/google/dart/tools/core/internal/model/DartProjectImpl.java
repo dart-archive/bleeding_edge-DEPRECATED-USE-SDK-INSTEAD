@@ -103,38 +103,6 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     this.project = project;
   }
 
-  @Override
-  public void addLibraryFile(IFile file) {
-    try {
-      // Get the element info
-      DartProjectInfo projectInfo = (DartProjectInfo) getElementInfo();
-
-      // Read the set of child paths from the .children file for the project
-      List<String> childPaths = getChildPaths(projectInfo);
-
-      // Append the new file path to the list
-      childPaths.add(file.getProjectRelativePath().toPortableString());
-
-      // Write out the new contents to the .children file
-      setChildPaths(projectInfo, childPaths);
-
-      // Update the project info object to include the new file as a DartLibraryImpl
-      IProject project = file.getProject();
-      ArrayList<DartElementImpl> children = new ArrayList<DartElementImpl>();
-      for (String path : childPaths) {
-        IFile resource = project.getFile(new Path(path));
-        if (resource != null) {
-          children.add(new DartLibraryImpl(DartProjectImpl.this, resource));
-        }
-      }
-      projectInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
-    } catch (DartModelException e) {
-      Util.log(e, "Failed to add the new libray file " + file.getName() + " to the project "
-          + getElementName());
-    }
-
-  }
-
   /**
    * This should be called when a project is created or opened and immediately before it is closed
    * or deleted to clear any cached {@link DartLibraryInfo} instances as they change as a result of

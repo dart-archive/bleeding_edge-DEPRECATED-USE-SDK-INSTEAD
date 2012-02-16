@@ -13,9 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.projects;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartProject;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -95,8 +92,6 @@ public class CreateFileWizard extends BasicNewResourceWizard {
       return false;
     }
 
-    //TODO (jwren): remove this when the deltaprocessor does the right thing 
-    updateModelIfNeeded(file);
     selectAndReveal(file);
     openEditor(file);
 
@@ -121,14 +116,6 @@ public class CreateFileWizard extends BasicNewResourceWizard {
     } catch (PartInitException e) {
       DialogUtil.openError(dw.getShell(), ResourceMessages.FileResource_errorMessage,
           e.getMessage(), e);
-    }
-  }
-
-  // If this is a new Dart file, add it to the model (and .children file, cached model)
-  protected void updateModelIfNeeded(IFile file) {
-    if (DartCore.isDartLikeFileName(file.getName())) {
-      DartProject dartProject = DartCore.create(file.getProject());
-      dartProject.addLibraryFile(file);
     }
   }
 }
