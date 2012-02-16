@@ -1,0 +1,17 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+This directory contains two experimental ideas. They both introduce an
+abstraction layer on top of isolates and futures to help make the code more
+oblivious of the underlying isolate architecture.
+
+  promise.dart - contains an old example that was based on Promise<T> (an
+                 earlier prototype of Future<T>). Tests based on this code under
+                 'sample/tests/proxy' serve as an illustration of how promise
+                 pipelining could look like.
+
+  proxy.dart - contains an RPC layer that sits on top of isolates and futures.
+               It provides base classes to define client and server rpc stubs.
+               The test 'sample/tests/proxy/MintMakerRpcTest' illustrates how
+               this can be used.

@@ -6,8 +6,8 @@
 
 #import('dart:html'); // TODO(rnystrom): Only needed to tell architecture.py
                       // that this is a web test. Come up with cleaner solution.
-#import('../../../testing/unittest/unittest.dart');
-#import('../../../touch/touch.dart');
+#import('../../../../../../client/testing/unittest/unittest.dart');
+#import('../../../../../ui_lib/touch/touch.dart');
 
 main() {
   test('Solver', () {

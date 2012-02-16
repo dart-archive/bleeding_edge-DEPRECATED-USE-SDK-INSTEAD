@@ -5,7 +5,7 @@
 prefix samples
 
 [ $component == dartc ]
-*: Skip
+chat/*: Skip
 
 [ $arch == x64 ]
 *: Skip
@@ -28,6 +28,7 @@ ChatServerTest: Skip
 HttpTest: Skip
 HttpParserTest: Skip
 UrlEncodingTest: Skip
+#proxy/*_generatedTest: Skip
 
 [ $component == chromium ]
 dartcombat/DartCombatTest: Skip # Issue 1218
@@ -44,6 +45,9 @@ SwarmTest: Skip
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
 dartcombat/DartCombatTest: Skip # passes locally but timeout on bot?
 DartCombatTest: Skip
+
+[ $component == webdriver && $browser == safari ]
+PromiseBasedTest: Skip
 
 [ $component == vm]
 dartcombat/DartCombatTest: Skip

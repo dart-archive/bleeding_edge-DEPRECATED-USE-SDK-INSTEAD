@@ -1,10 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // IsolateStubs=MintMakerFullyIsolatedTest.dart:Mint,Purse,PowerfulPurse
-#library("MintMakerFullyIsolatedTest-generatedTest");
-#import("../../../tests/isolate/src/TestFramework.dart");
+#library("MintMakerFullyIsolatedTest_generatedTest");
+#import("../../../../proxy/promise.dart");
+#import("../../../../../tests/isolate/src/TestFramework.dart");
 
 /* class = Purse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 9) */
 
@@ -456,7 +457,15 @@ class PurseImpl implements PowerfulPurse {
 
 }
 
+
 class MintMakerFullyIsolatedTest {
+
+  static completesWithValue(
+      TestExpectation expect, Promise promise, var expected) {
+    promise.then(expect.runs1((value) {
+      Expect.equals(expected, value);
+    }));
+  }
 
   static void testMain(TestExpectation expect) {
     Mint$Proxy mint = new Mint$ProxyImpl.createIsolate();
@@ -465,34 +474,38 @@ class MintMakerFullyIsolatedTest {
     //PowerfulPurse$Proxy power = (PowerfulPurse$Proxy)purse;
     //expectEqualsStr("xxx", power.grab());
     Promise<int> balance = purse.queryBalance();
-    expect.completesWithValue(balance, 100);
+    completesWithValue(expect, balance, 100);
 
     Purse$Proxy sprouted = purse.sproutPurse();
-    expect.completesWithValue(sprouted.queryBalance(), 0);
+    completesWithValue(expect, sprouted.queryBalance(), 0);
 
     Promise<int> done = sprouted.deposit(5, purse);
-    Promise<int> d3 = expect.completesWithValue(done, 5);
+    Promise<int> d3 = done;
+    completesWithValue(expect, done, 5);
     Promise<int> inner = new Promise<int>();
     Promise<int> inner2 = new Promise<int>();
     // FIXME(benl): it should not be necessary to wait here, I think,
     // but without this, the tests seem to execute prematurely.
     Promise<int> d1 = done.then((val) {
-      expect.completesWithValue(sprouted.queryBalance(), 0 + 5);
-      expect.completesWithValue(purse.queryBalance(), 100 - 5);
+      completesWithValue(expect, sprouted.queryBalance(), 0 + 5);
+      completesWithValue(expect, purse.queryBalance(), 100 - 5);
 
       done = sprouted.deposit(42, purse); 
-      expect.completesWithValue(done, 5 + 42);
+      completesWithValue(expect, done, 5 + 42);
       Promise<int> d2 = done.then((val_) {
-        expect.completesWithValue(sprouted.queryBalance(), 0 + 5 + 42)
-          .then((int value) => inner.complete(0));
-        expect.completesWithValue(purse.queryBalance(), 100 - 5 - 42)
-          .then((int value) => inner2.complete(0));
-      });
-      expect.completes(d2);
+        Promise<int> bal1 = sprouted.queryBalance();
+        completesWithValue(expect, bal1, 0 + 5 + 42);
+        bal1.then(expect.runs1((int value) => inner.complete(0)));
 
+        Promise<int> bal2 = purse.queryBalance();
+        completesWithValue(expect, bal2, 100 - 5 - 42);
+        bal2.then(expect.runs1((int value) => inner2.complete(0)));
+        return 0;
+      });
+      completesWithValue(expect, d2, 0);
       return 0;
     });
-    expect.completesWithValue(d1, 0);
+    completesWithValue(expect, d1, 0);
     Promise<int> allDone = new Promise<int>();
     allDone.waitFor([d3, inner, inner2], 3);
     allDone.then((_) {
