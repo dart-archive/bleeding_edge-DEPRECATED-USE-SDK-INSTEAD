@@ -276,7 +276,7 @@ public class BrowserManager {
 
     // Causes the browser to launch directly into incognito mode.
     // We use this to prevent the previous session's tabs from re-opening.
-    arguments.add("--incognito");
+    //arguments.add("--incognito");
 
     if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
       // Start up with a blank page.
