@@ -949,7 +949,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       warning(declaration.label, MessageKind.EXISTING_LABEL, [labelName]);
     }
     StatementElement element =
-        new StatementElement.Label(labelName, node, enclosingElement);
+        new StatementElement.label(labelName, node, enclosingElement);
     statementScope.enterLabelScope(labelName, element);
     visit(node.statement);
     statementScope.exitLabelScope();

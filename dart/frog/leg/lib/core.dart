@@ -38,6 +38,7 @@
 #source('../../../corelib/src/string_buffer.dart');
 #source('../../../corelib/src/strings.dart');
 #source('../../../corelib/src/time_zone.dart');
+#source('mock.dart');
 
 void print(var obj) => Primitives.printString(obj.toString());
 
@@ -46,69 +47,5 @@ class Object {
 
   void noSuchMethod(String name, List args) {
     throw new NoSuchMethodException(this, name, args);
-  }
-}
-
-class NoSuchMethodException {
-  Object receiver;
-  String name;
-  List args;
-  NoSuchMethodException(Object this.receiver, String this.name, List this.args);
-  String toString() {
-    return "NoSuchMethodException - receiver: '$receiver'" +
-        "function name: '$name' arguments: [$args]";
-  }
-}
-
-class List<T> implements Iterable<T> {
-  factory List([int length]) => Primitives.newList(length);
-}
-
-interface Exception {}
-
-class Stopwatch {
-  double startMs;
-  double elapsedMs;
-
-  Stopwatch() {
-    elapsedMs = 0.0;
-  }
-
-  void start() {
-    if (startMs == null) {
-      startMs = Primitives.dateNow();
-    }
-  }
-
-  void stop() {
-    if (startMs == null) return;
-    elapsedMs += Primitives.dateNow() - startMs;
-    startMs = null;
-  }
-
-  void reset() {
-    elapsedMs = 0.0;
-    if (startMs == null) return;
-    startMs = Primitives.dateNow();
-  }
-
-  int elapsed() {
-    return elapsedInMs();
-  }
-
-  int elapsedInUs() {
-    return elapsedInMs() * 1000;
-  }
-
-  int elapsedInMs() {
-    if (startMs == null) {
-      return Primitives.mathFloor(elapsedMs);
-    } else {
-      return Primitives.mathFloor(elapsedMs + (Primitives.dateNow() - startMs));
-    }
-  }
-
-  int frequency() {
-    return 1000;
   }
 }
