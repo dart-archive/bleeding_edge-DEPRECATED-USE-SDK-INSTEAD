@@ -511,6 +511,10 @@ hooks = [
     "action": ["python", "src/dartium_tools/export_overrides.py"],
   },
   {
+    "pattern": "dart",
+    "action": ["python", "src/dartium_tools/generate_dart_vm_version.py"],
+  },
+  {
     # A change to a .gyp, .gypi, or to GYP itself should run the generator.
     "pattern": ".",
     "action": ["python", "src/build/gyp_chromium"],
