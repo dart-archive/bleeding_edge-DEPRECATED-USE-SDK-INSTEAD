@@ -43,14 +43,21 @@ class ScannerTask extends CompilerTask {
         compiler.cancel("illegal script tag: ${tag.tag}", node: tag);
       }
     }
+    // TODO(ahe): During Compiler.scanBuiltinLibraries,
+    // compiler.coreLibrary is null. Clean this up when there is a
+    // better way to access "dart:core".
+    bool implicitlyImportCoreLibrary = compiler.coreLibrary !== null;
     for (ScriptTag tag in imports.toLink()) {
       // Now that we have processed all the source tags, it is safe to
       // start loading other libraries.
       SourceString argument = tag.argument.value.copyWithoutQuotes(1, 1);
       Uri resolved = base.resolve(argument.toString());
+      if (resolved.toString() == "dart:core") {
+        implicitlyImportCoreLibrary = false;
+      }
       importLibrary(library, loadLibrary(resolved, tag), tag.prefix);
     }
-    if (compiler.coreLibrary !== null) {
+    if (implicitlyImportCoreLibrary) {
       importLibrary(library, compiler.coreLibrary, null);
     }
   }

@@ -169,6 +169,9 @@ class Compiler implements DiagnosticListener {
     // TODO(ngeoffray): Lazily add this method.
     universe.invokedNames[NO_SUCH_METHOD] =
         new Set<Invocation>.from(<Invocation>[new Invocation(2)]);
+
+    universe.libraries['dart:core'] = coreLibrary;
+    universe.libraries['dart:coreimpl'] = coreImplLibrary;
   }
 
   /** Define the JS helper functions in the given library. */
