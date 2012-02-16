@@ -206,6 +206,11 @@ class Compiler implements DiagnosticListener {
                 }
               }
             }
+            // If there is a property access with the same name as a method we
+            // need to emit the method.
+            if (universe.invokedGetters.contains(member.name)) {
+              addToWorklist(member);
+            }
           } else if (member.kind == ElementKind.GETTER) {
             if (universe.invokedGetters.contains(member.name)) {
               addToWorklist(member);

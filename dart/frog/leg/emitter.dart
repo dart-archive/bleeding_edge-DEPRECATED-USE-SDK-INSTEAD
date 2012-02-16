@@ -290,6 +290,86 @@ function(child, parent) {
     }
   }
 
+  void emitDynamicFunctionGetter(StringBuffer buffer,
+                                 ClassElement enclosingClass,
+                                 FunctionElement member) {
+    // For every method that has the same name as a property-get we create a
+    // getter that returns a bound closure. Say we have a class 'A' with method
+    // 'foo' and somewhere in the code there is a dynamic property get of
+    // 'foo'. Then we generate the following code (in pseudo Dart):
+    //
+    // class A {
+    //    foo(x, y, z) { ... } // Original function.
+    //    get foo() { return new BoundClosure499(this); }
+    // }
+    // class BoundClosure499 {
+    //   var self;
+    //   BoundClosure499(this.self);
+    //   $call3(x, y, z) { return self.foo(x, y, z); }
+    // }
+
+    // TODO(floitsch): share the closure classes with other classes
+    // if they share methods with the same signature.
+
+    // The closure class.
+    SourceString name = const SourceString("BoundClosure");
+    CompilationUnitElement compilationUnit = member.getCompilationUnit();
+    ClassElement closureClassElement = new ClassElement(name, compilationUnit);
+    String isolateAccess = namer.isolatePropertyAccess(closureClassElement);
+    buffer.add("$isolateAccess = function(self) { this.self = self; };\n");
+    String prototype = "$isolateAccess.prototype";
+
+    // Now add the methods on the closure class. The instance method does not
+    // have the correct name. Since [addParameterStubs] use the name to create
+    // its stubs we simply create a fake element with the correct name.
+    // Note: the callElement will not have the correct modifiers (in case
+    // of static functions) and will not have any enclosingElement.
+    FunctionElement callElement =
+        new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME, member, null);
+
+    int parameterCount = member.parameterCount(compiler);
+    String invocationName =
+        namer.instanceMethodName(callElement.name, parameterCount);
+    String targetName = namer.instanceMethodName(member.name, parameterCount);
+    List<String> arguments = new List<String>(parameterCount);
+    for (int i = 0; i < parameterCount; i++) {
+      arguments[i] = "arg$i";
+    }
+    String joinedArgs = Strings.join(arguments, ", ");
+    buffer.add("$prototype.$invocationName = function($joinedArgs) {\n");
+    buffer.add("  return this.self.$targetName($joinedArgs);\n");
+    buffer.add("};\n");
+    addParameterStubs(callElement, prototype, buffer);
+
+    // And finally the getter.
+    String enclosingClassAccess = namer.isolatePropertyAccess(enclosingClass);
+    String enclosingClassPrototype = "$enclosingClassAccess.prototype";
+    String getterName = namer.getterName(member.name);
+    String closureClass = namer.isolateAccess(closureClassElement);
+    buffer.add("$enclosingClassPrototype.$getterName = function() {\n");
+    buffer.add("  return new $closureClass(this);\n");
+    buffer.add("};\n");
+  }
+
+  void emitDynamicFunctionGetters(StringBuffer buffer) {
+    for (ClassElement classElement in compiler.universe.instantiatedClasses) {
+      for (ClassElement currentClass = classElement;
+           currentClass !== null;
+           currentClass = currentClass.superclass) {
+        // TODO(floitsch): we don't need to deal with members that have been
+        // overwritten by subclasses.
+        for (Element member in currentClass.members) {
+          if (!member.isInstanceMember()) continue;
+          if (member.kind == ElementKind.FUNCTION) {
+            if (compiler.universe.invokedGetters.contains(member.name)) {
+              emitDynamicFunctionGetter(buffer, currentClass, member);
+            }
+          }
+        }
+      }
+    }
+  }
+
   void emitStaticNonFinalFieldInitializations(StringBuffer buffer) {
     // Adds initializations inside the Isolate constructor.
     // Example:
@@ -382,6 +462,7 @@ function(child, parent) {
       emitNoSuchMethodCalls(buffer);
       emitStaticFunctions(buffer);
       emitStaticFunctionGetters(buffer);
+      emitDynamicFunctionGetters(buffer);
       emitStaticFinalFieldInitializations(buffer);
       buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
       Element main = compiler.mainApp.find(Compiler.MAIN);

@@ -64,6 +64,24 @@ class Namer {
     return 'get\$$name';
   }
 
+  String getFreshGlobalName(String proposedName) {
+    int usedCount = usedGlobals[proposedName];
+    if (usedCount === null) {
+      // No element with this name has been used before.
+      usedGlobals[proposedName] = 1;
+      return proposedName;
+    } else {
+      // Not the first time we see this name. Append a number to make it unique.
+      String name;
+      do {
+        usedCount++;
+        name = '$proposedName$usedCount';
+      } while (usedGlobals[name] !== null);
+      usedGlobals[proposedName] = usedCount;
+      return name;
+    }
+  }
+
   /**
    * Returns a preferred JS-id for the given top-level or static element.
    * The returned id is guaranteed to be a valid JS-id.
@@ -110,7 +128,6 @@ class Namer {
    */
   String getName(Element element) {
     if (element.isInstanceMember()) {
-      SourceString name;
       if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
         ConstructorBodyElement bodyElement = element;
         SourceString name = bodyElement.constructor.name;
@@ -144,25 +161,9 @@ class Namer {
         case ElementKind.FIELD:
         case ElementKind.GETTER:
         case ElementKind.SETTER:
-          // We need to make sure the name is unique.
-          int usedCount = usedGlobals[guess];
-          if (usedCount === null) {
-            // No element with this name has been used before.
-            usedGlobals[guess] = 1;
-            globals[element] = guess;
-            return guess;
-          } else {
-            // Not the first time we see an element with this name. Append a
-            // number to make it unique.
-            String name;
-            do {
-              usedCount++;
-              name = '$guess$usedCount';
-            } while (usedGlobals[name] !== null);
-            usedGlobals[guess] = usedCount;
-            globals[element] = name;
-            return name;
-          }
+          String result = getFreshGlobalName(guess);
+          globals[element] = result;
+          return result;
 
         default:
           compiler.internalError('getName for unknown kind: ${element.kind}',
