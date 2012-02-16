@@ -30,12 +30,18 @@ class TestIsolate extends Isolate {
 
 }
 
+Future promiseToFuture(Promise p) {
+  Completer c = new Completer();
+  p.then((v) { c.complete(v); });
+  return c.future;
+}
+
 void test(TestExpectation expect) {
   Proxy proxy = new Proxy.forIsolate(new TestIsolate());
   proxy.send([42]);  // Seed the isolate.
   Promise<int> result = new PromiseProxy<int>(proxy.call([87]));
   Completer completer = new Completer();
-  expect.completes(result).then((int value) {
+  expect.completes(promiseToFuture(result)).then((int value) {
     //print("expect 1: $value");
     Expect.equals(42 + 87, value);
     completer.complete(99);
@@ -62,7 +68,7 @@ void expandedTest(TestExpectation expect) {
     port.send([receivePort.toSendPort()], null);
   });
   Completer completer = new Completer();
-  expect.completes(result).then((int value) {
+  expect.completes(promiseToFuture(result)).then((int value) {
     //print("expect 1: $value");
     Expect.equals(42 + 87, value);
     completer.complete(99);

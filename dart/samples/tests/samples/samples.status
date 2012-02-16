@@ -37,6 +37,7 @@ DartCombatTest: Skip
 [ $component == dartium ]
 dartcombat/DartCombatTest: Skip # Bug 5279716
 DartCombatTest: Skip
+proxy/MintMakerFullyIsolated_generatedTest: Skip
 
 [ $component == dartium && $mode == debug ]
 swarm/SwarmTest: Skip # Issue 1617
