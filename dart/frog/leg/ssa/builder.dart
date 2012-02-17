@@ -732,8 +732,11 @@ class SsaBuilder implements Visitor {
     // Generate calls to the constructor bodies.
     for (int index = constructors.length - 1; index >= 0; index--) {
       FunctionElement constructor = constructors[index];
-      ConstructorBodyElement body = this.getConstructorBody(classElement,
-                                                            constructor);
+      // TODO(floitsch): find better way to detect that constructor body is
+      // empty.
+      if (constructor is SynthesizedConstructorElement) continue;
+      ConstructorBodyElement body = getConstructorBody(classElement,
+                                                       constructor);
       List bodyCallInputs = <HInstruction>[];
       bodyCallInputs.add(newObject);
       body.functionParameters.forEachParameter((parameter) {

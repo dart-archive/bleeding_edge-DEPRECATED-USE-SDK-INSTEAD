@@ -213,7 +213,11 @@ function(child, parent) {
     String className = namer.isolatePropertyAccess(classElement);
     buffer.add('$className = function ${classElement.name}(');
     StringBuffer bodyBuffer = new StringBuffer();
-    generateFieldInits(classElement, buffer, bodyBuffer);
+    // If the class is never instantiated we still need to set it up for
+    // inheritance purposes, but we can leave its JavaScript constructor empty.
+    if (compiler.universe.instantiatedClasses.contains(classElement)) {
+      generateFieldInits(classElement, buffer, bodyBuffer);
+    }
     buffer.add(') {\n');
     buffer.add(bodyBuffer);
     buffer.add('};\n');
