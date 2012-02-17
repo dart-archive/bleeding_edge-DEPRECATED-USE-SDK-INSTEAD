@@ -58,34 +58,87 @@ class ResolverTask extends CompilerTask {
   }
 
   TreeElements resolveMethodElement(FunctionElement element) {
-    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR &&
-        constructorElements[element] !== null) {
-      return constructorElements[element];
-    }
-    FunctionExpression tree = element.parseNode(compiler);
-    ResolverVisitor visitor = new ResolverVisitor(compiler, element);
-    visitor.useElement(tree, element);
-    visitor.setupFunction(tree, element);
-
-    if (tree.initializers != null) {
-      new InitializerResolver(visitor, element).resolveInitializers(tree);
-    }
-    visitor.visit(tree.body);
-
-    // Resolve the type annotations encountered in the method.
-    Link<ClassElement> newResolvedClasses = const EmptyLink<ClassElement>();
-    while (!toResolve.isEmpty()) {
-      ClassElement classElement = toResolve.removeFirst();
-      if (!classElement.isResolved) {
-        classElement.resolve(compiler);
+    return compiler.withCurrentElement(element, () {
+      bool isConstructor = element.kind === ElementKind.GENERATIVE_CONSTRUCTOR;
+      if (isConstructor) {
+        TreeElements elements = constructorElements[element];
+        if (elements !== null) return elements;
       }
-      newResolvedClasses = newResolvedClasses.prepend(classElement);
+      FunctionExpression tree = element.parseNode(compiler);
+      if (isConstructor) {
+        resolveConstructorImplementation(element, tree);
+      }
+      ResolverVisitor visitor = new ResolverVisitor(compiler, element);
+      visitor.useElement(tree, element);
+      visitor.setupFunction(tree, element);
+
+      if (tree.initializers != null) {
+        new InitializerResolver(visitor, element).resolveInitializers(tree);
+      }
+      visitor.visit(tree.body);
+
+      // Resolve the type annotations encountered in the method.
+      Link<ClassElement> newResolvedClasses = const EmptyLink<ClassElement>();
+      while (!toResolve.isEmpty()) {
+        ClassElement classElement = toResolve.removeFirst();
+        if (!classElement.isResolved) {
+          classElement.resolve(compiler);
+        }
+        newResolvedClasses = newResolvedClasses.prepend(classElement);
+      }
+      checkClassHierarchy(newResolvedClasses);
+      if (isConstructor) {
+        constructorElements[element] = visitor.mapping;
+      }
+      return visitor.mapping;
+    });
+  }
+
+  void resolveConstructorImplementation(FunctionElement constructor,
+                                        FunctionExpression node) {
+    assert(constructor.defaultImplementation === constructor);
+    ClassElement intrface = constructor.enclosingElement;
+    if (!intrface.isInterface()) return;
+    Type defaultType = intrface.defaultClass;
+    if (defaultType === null) {
+      error(node, MessageKind.NO_DEFAULT_CLASS, [intrface.name]);
     }
-    checkClassHierarchy(newResolvedClasses);
-    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
-      constructorElements[element] = visitor.mapping;
+    ClassElement defaultClass = defaultType.element;
+    defaultClass.resolve(compiler);
+    if (defaultClass.isInterface()) {
+      error(node, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
+            [defaultClass.name]);
     }
-    return visitor.mapping;
+    // We have now established the following:
+    // [intrface] is an interface, let's say "MyInterface".
+    // [defaultClass] is a class, let's say "MyClass".
+
+    // First look up the constructor named "MyInterface.name".
+    constructor.defaultImplementation =
+      defaultClass.lookupConstructor(constructor.name);
+
+    // If that fails, try looking up "MyClass.name".
+    if (constructor.defaultImplementation === null) {
+      SourceString name =
+          new SourceString(constructor.name.toString().replaceFirst(
+              intrface.name.toString(),
+              defaultClass.name.toString()));
+      constructor.defaultImplementation = defaultClass.lookupConstructor(name);
+
+      if (constructor.defaultImplementation === null
+          && name == defaultClass.name
+          && constructor.computeParameters(compiler).parameterCount === 0) {
+        constructor.defaultImplementation =
+            defaultClass.getSynthesizedConstructor();
+      }
+
+      if (constructor.defaultImplementation === null) {
+        // We failed find a constrcutor named either
+        // "MyInterface.name" or "MyClass.name".
+        error(node, MessageKind.CANNOT_FIND_CONSTRUCTOR2,
+              [constructor.name, name]);
+      }
+    }
   }
 
   TreeElements resolveVariableElement(Element element) {
@@ -806,46 +859,45 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           node, 'named constructors with type arguments are not implemented');
     }
 
+    FunctionElement constructor = resolveConstructor(node);
+    handleArguments(node.send);
+    if (constructor === null) return null;
+    // TODO(karlklose): handle optional arguments.
+    if (node.send.argumentCount() != constructor.parameterCount(compiler)) {
+      // TODO(ngeoffray): resolution error with wrong number of
+      // parameters. We cannot do this rigth now because of the
+      // List constructor.
+    }
+    useElement(node.send, constructor);
+    return null;
+  }
+
+  FunctionElement resolveConstructor(NewExpression node) {
     SourceString constructorName;
+    Node selector = node.send.selector;
     Node typeName = selector.asTypeAnnotation().typeName;
     if (typeName.asSend() !== null) {
-      Identifier receiver = typeName.asSend().receiver.asIdentifier();
-      Identifier selector = typeName.asSend().selector.asIdentifier();
-      SourceString className = receiver.source;
-      SourceString name = selector.source;
+      SourceString className = typeName.asSend().receiver.asIdentifier().source;
+      SourceString name = typeName.asSend().selector.asIdentifier().source;
       constructorName = Elements.constructConstructorName(className, name);
     } else {
       constructorName = typeName.asIdentifier().source;
     }
     ClassElement cls = resolveTypeRequired(selector);
-    Element constructor = null;
-    if (cls !== null) {
-      cls.resolve(compiler);
-      if (cls.isInterface() && (cls.defaultClass === null)) {
-        error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
-      }
-      constructor = cls.lookupConstructor(constructorName);
-      if (constructorName == cls.name
-          && constructor === null
-          && node.send.argumentsNode.isEmpty()) {
-        constructor = cls.getSynthesizedConstructor();
-      }
-      if (constructor === null) {
-        error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
-      } else {
-        FunctionElement function = constructor;
-        // TODO(karlklose): handle optional arguments.
-        if (node.send.argumentCount() != function.parameterCount(compiler)) {
-          // TODO(ngeoffray): reslution error with wrong number of
-          // parameters. We cannot do this rigth now because of the
-          // List constructor.
-        }
-      }
-    } else {
+    if (cls === null) {
       error(selector, MessageKind.CANNOT_RESOLVE_TYPE, [selector]);
+      return null;
     }
-    handleArguments(node.send);
-    useElement(node.send, constructor);
+    cls.resolve(compiler);
+    if (cls.isInterface() && (cls.defaultClass === null)) {
+      error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
+    }
+    FunctionElement constructor = cls.lookupConstructor(constructorName);
+    if (constructor !== null) return constructor;
+    if (constructorName == cls.name && node.send.argumentsNode.isEmpty()) {
+      return cls.getSynthesizedConstructor();
+    }
+    error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
     return null;
   }
 

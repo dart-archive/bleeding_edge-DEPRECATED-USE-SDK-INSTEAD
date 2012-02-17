@@ -32,7 +32,7 @@
 #source('../../../corelib/src/queue.dart');
 #source('../../../corelib/src/regexp.dart');
 #source('../../../corelib/src/set.dart');
-// #source('../../../corelib/src/stopwatch.dart');
+#source('../../../corelib/src/stopwatch.dart');
 #source('../../../corelib/src/string.dart');
 #source('../../../corelib/src/string_buffer.dart');
 #source('../../../corelib/src/strings.dart');

@@ -6,8 +6,20 @@
 
 // TODO(ahe): Remove this file.
 
-class JSSyntaxRegExp {}
-class StringBufferImpl {}
+class JSSyntaxRegExp implements RegExp {
+  JSSyntaxRegExp(String pattern,
+                 [bool multiLine = false,
+                  bool ignoreCase = false]) {
+    throw 'JSSyntaxRegExp is not implemented';
+  }
+}
+
+class StringBufferImpl {
+  StringBufferImpl() {
+    throw 'StringBufferImpl is not implemented';
+  }
+}
+
 class DateImplementation {}
 class ReceivePortFactory {}
 

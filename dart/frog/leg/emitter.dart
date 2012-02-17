@@ -242,6 +242,17 @@ function(child, parent) {
     for (Type ifc in classElement.interfaces) {
       buffer.add('$prototype.${namer.operatorIs(ifc.element)} = true;\n');
     }
+    if (superclass === null) {
+      // JS "toString" wrapper. This gives better exceptions.
+      buffer.add('$prototype.toString = function() {\n');
+      buffer.add('  try {');
+      buffer.add('    return ${namer.CURRENT_ISOLATE}');
+      buffer.add('.builtin\$toString\$0\$1(this);');
+      buffer.add('  } catch (ex) {');
+      buffer.add('     return "uncaught exception in toString";');
+      buffer.add('  }');
+      buffer.add('};\n');
+    }
   }
 
   void emitClasses(StringBuffer buffer) {

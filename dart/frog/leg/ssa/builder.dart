@@ -1587,8 +1587,10 @@ class SsaBuilder implements Visitor {
   visitStaticSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
-    if (element.kind != ElementKind.FUNCTION &&
-        element.kind != ElementKind.GENERATIVE_CONSTRUCTOR) {
+    if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
+      compiler.resolver.resolveMethodElement(element);
+      element = element.defaultImplementation;
+    } else if (element.kind != ElementKind.FUNCTION) {
       compiler.unimplemented(
           "SsaBuilder.visitStaticSend static field invocation",
           node: node);

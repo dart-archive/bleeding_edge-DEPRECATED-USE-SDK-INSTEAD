@@ -367,26 +367,43 @@ class FunctionElement extends Element {
 
   FunctionParameters functionParameters;
 
+  /**
+   * If this is an interface constructor, [defaultImplementation] will
+   * changed by the resolver to point to the default
+   * implementation. Otherwise, [:defaultImplementation === this:].
+   */
+  FunctionElement defaultImplementation;
+
   FunctionElement(SourceString name,
                   ElementKind kind,
-                  Modifiers this.modifiers,
+                  Modifiers modifiers,
                   Element enclosing)
-    : super(name, kind, enclosing);
+    : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null);
 
   FunctionElement.node(SourceString name,
                        FunctionExpression node,
                        ElementKind kind,
-                       Modifiers this.modifiers,
+                       Modifiers modifiers,
                        Element enclosing)
-    : super(name, kind, enclosing), cachedNode = node;
+    : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null);
 
   FunctionElement.from(SourceString name,
                        FunctionElement other,
                        Element enclosing)
-    : super(name, other.kind, enclosing),
-      cachedNode = other.cachedNode,
-      modifiers = other.modifiers,
-      functionParameters = other.functionParameters;
+    : this.tooMuchOverloading(name, other.cachedNode, other.kind,
+                              other.modifiers, enclosing,
+                              other.functionParameters);
+
+  FunctionElement.tooMuchOverloading(SourceString name,
+                                     FunctionExpression this.cachedNode,
+                                     ElementKind kind,
+                                     Modifiers this.modifiers,
+                                     Element enclosing,
+                                     FunctionParameters this.functionParameters)
+    : super(name, kind, enclosing)
+  {
+    defaultImplementation = this;
+  }
 
   bool isInstanceMember() {
     return isMember()
@@ -598,6 +615,9 @@ class ClassElement extends ContainerElement {
   bool canHaveDefaultConstructor() => constructors.length == 0;
 
   SynthesizedConstructorElement getSynthesizedConstructor() {
+    // TODO(ahe): Get rid of this method. Add the
+    // SynthesizedConstructorElement to [constructors] if empty when
+    // [resolve] is called.
     if (synthesizedConstructor === null && canHaveDefaultConstructor()) {
       synthesizedConstructor = new SynthesizedConstructorElement(this);
     }
