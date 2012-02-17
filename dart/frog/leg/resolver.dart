@@ -852,7 +852,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitNewExpression(NewExpression node) {
-    if (node.isConst()) cancel(node, 'const expressions are not implemented');
+    if (node.isConst()) {
+      warning(node, MessageKind.GENERIC,
+              ['const expressions are not implemented']);
+    }
     Node selector = node.send.selector;
     if (selector.asTypeAnnotation() === null) {
       cancel(
@@ -915,7 +918,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralList(LiteralList node) {
-    if (node.isConst()) cancel(node, 'const literal lists are not implemented');
+    if (node.isConst()) {
+      warning(node, MessageKind.GENERIC,
+              ['const literal lists are not implemented']);
+    }
     visit(node.elements);
   }
 
