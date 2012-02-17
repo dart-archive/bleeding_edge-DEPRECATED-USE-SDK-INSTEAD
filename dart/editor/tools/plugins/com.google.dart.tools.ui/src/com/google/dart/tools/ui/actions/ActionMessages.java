@@ -452,6 +452,10 @@ public final class ActionMessages extends NLS {
   public static String ShowDirectoryWizardAction_description;
   public static String ShowDirectoryWizardAction_tooltip;
 
+  public static String NewDirectoryWizardAction_text;
+  public static String NewDirectoryWizardAction_description;
+  public static String NewDirectoryWizardAction_tooltip;
+
   public static ResourceBundle getBundle() {
     return bundle;
   }

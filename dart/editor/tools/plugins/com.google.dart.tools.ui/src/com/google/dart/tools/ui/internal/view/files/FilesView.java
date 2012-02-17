@@ -23,6 +23,7 @@ import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.actions.HideDirectoryAction;
+import com.google.dart.tools.ui.actions.NewDirectoryWizardAction;
 import com.google.dart.tools.ui.actions.ShowDirectoryWizardAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
@@ -53,7 +54,6 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
@@ -69,7 +69,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * File-oriented view for navigating files and directories
+ * File-oriented view for navigating files and directories.
  */
 public class FilesView extends ViewPart implements ISetSelectionTarget, DirectorySetListener {
 
@@ -109,6 +109,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget, Director
   private static final String EXPANDED_DIRS = "expandedDirs";
 
   private LinkWithEditorAction linkWithEditorAction;
+  private NewDirectoryWizardAction newDirectoryWizardAction;
   private ShowDirectoryWizardAction showDirectoryWizardAction;
   private HideDirectoryAction hideDirectoryAction;
   private CopyFilePathAction copyFilePathAction;
@@ -169,6 +170,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget, Director
     treeViewer.addSelectionChangedListener(showDirectoryWizardAction);
     hideDirectoryAction = new HideDirectoryAction(getSite());
     treeViewer.addSelectionChangedListener(hideDirectoryAction);
+    newDirectoryWizardAction = new NewDirectoryWizardAction();
+    treeViewer.addSelectionChangedListener(newDirectoryWizardAction);
     copyFilePathAction = new CopyFilePathAction(getSite());
     treeViewer.addSelectionChangedListener(copyFilePathAction);
 
@@ -190,6 +193,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget, Director
     if (linkWithEditorAction != null) {
       linkWithEditorAction.dispose();
     }
+    treeViewer.removeSelectionChangedListener(showDirectoryWizardAction);
+    treeViewer.removeSelectionChangedListener(hideDirectoryAction);
+    treeViewer.removeSelectionChangedListener(newDirectoryWizardAction);
+    treeViewer.removeSelectionChangedListener(copyFilePathAction);
     DartCore.getDirectorySetManager().removeListener(this);
     super.dispose();
   }
@@ -244,7 +251,15 @@ public class FilesView extends ViewPart implements ISetSelectionTarget, Director
 //    boolean isTopLevelDir = isDirectory
 //        && DartCore.getDirectorySetManager().hasPath(((File) element).getAbsolutePath());
 
+    // TODO- New File
+    // TODO- New Application
+    // TODO- Open Application
+
+    // New Directory...
+    manager.add(newDirectoryWizardAction);
+
     // Show Directory...
+    manager.add(new Separator());
     manager.add(showDirectoryWizardAction);
 
     // Hide Directory
@@ -253,40 +268,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget, Director
     // Copy File Path
     manager.add(new Separator());
     manager.add(copyFilePathAction);
-//
-//    // New File/ New Folder/ New Project
-//
-//    manager.add(createFileAction);
-//
-//    //manager.add(new OpenNewFileWizardAction(getViewSite().getWorkbenchWindow()));
-//    //manager.add(new OpenNewApplicationWizardAction());
-//    manager.add(new CreateFolderAction(getShell()));
-//    manager.add(new OpenNewProjectWizardAction());
-//
-//    // Rename... / Move..., iff single element and is an IResource
-//
-//    IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
-//    Object element = selection.getFirstElement();
-//    if (selection.size() == 1 && element instanceof IResource) {
-//      manager.add(new Separator());
-//      manager.add(renameAction);
-//      manager.add(moveAction);
-//    }
-//
-//    // Delete, iff non-empty selection, all elements are IResources
-//
-//    boolean allEltsAreIResources = true;
-//    for (Iterator iterator = selection.iterator(); iterator.hasNext();) {
-//      Object selectedElement = iterator.next();
-//      if (!(selectedElement instanceof IResource)) {
-//        allEltsAreIResources = false;
-//        break;
-//      }
-//    }
-//    if (!selection.isEmpty() && allEltsAreIResources) {
-//      manager.add(new Separator());
-//      manager.add(deleteAction);
-//    }
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {
@@ -382,10 +363,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget, Director
     Font oldFont = treeViewer.getTree().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     treeViewer.getTree().setFont(font);
-  }
-
-  private Shell getShell() {
-    return getSite().getShell();
   }
 
   private void refreshTree() {

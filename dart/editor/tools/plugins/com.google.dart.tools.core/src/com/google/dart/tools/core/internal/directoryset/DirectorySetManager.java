@@ -84,6 +84,20 @@ public class DirectorySetManager {
     return result;
   }
 
+  public void fire() {
+    synchronized (listeners) {
+      for (int i = 0; i < listeners.size(); i++) {
+        DirectorySetListener listener = listeners.get(i);
+        // if directorySetEvent is null, initialize it
+        if (directorySetEvent == null) {
+          directorySetEvent = new DirectorySetEvent();
+        }
+        // fire the event for this listener
+        listener.directorySetChange(directorySetEvent);
+      }
+    }
+  }
+
   public File[] getChildren() {
     String[] strArray = pathSet.toArray(new String[pathSet.size()]);
     File[] fileArray = new File[strArray.length];
@@ -128,20 +142,6 @@ public class DirectorySetManager {
       }
     }
     return result;
-  }
-
-  private void fire() {
-    synchronized (listeners) {
-      for (int i = 0; i < listeners.size(); i++) {
-        DirectorySetListener listener = listeners.get(i);
-        // if directorySetEvent is null, initialize it
-        if (directorySetEvent == null) {
-          directorySetEvent = new DirectorySetEvent();
-        }
-        // fire the event for this listener
-        listener.directorySetChange(directorySetEvent);
-      }
-    }
   }
 
   private String getDefaultDirectorySet() {
