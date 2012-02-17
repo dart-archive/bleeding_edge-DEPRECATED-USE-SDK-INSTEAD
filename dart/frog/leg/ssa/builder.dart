@@ -319,8 +319,7 @@ class LocalsHandler {
   HInstruction readLocal(Element element) {
     if (isAccessedDirectly(element)) {
       if (directLocals[element] == null) {
-        builder.compiler.internalError(
-            "Could not find value", node: element.parseNode(builder.compiler));
+        builder.compiler.internalError("Cannot find value", element: element);
       }
       return directLocals[element];
     } else if (isStoredInClosureField(element)) {

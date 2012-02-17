@@ -1025,8 +1025,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       } else if (objectElement === null){
         error(node, MessageKind.CANNOT_RESOLVE_TYPE, [Types.OBJECT]);
       }
-      element.supertype = new SimpleType(Types.OBJECT,
-                                         objectElement);
+      element.supertype = new SimpleType(Types.OBJECT, objectElement);
     }
     if (node.defaultClause !== null) {
       element.defaultClass = visit(node.defaultClause.nodes.head);

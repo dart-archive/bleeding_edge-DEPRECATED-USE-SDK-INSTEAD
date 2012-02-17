@@ -298,9 +298,10 @@ class ClosureTranslator extends AbstractVisitor {
     globalizedElement.backendMembers =
         const EmptyLink<Element>().prepend(callElement);
     globalizedElement.isResolved = true;
-    ClassElement objectClass =
-        compiler.coreLibrary.find(const SourceString('Object'));
-    globalizedElement.supertype = new SimpleType(Types.OBJECT, objectClass);
+    // TODO(karlklose): create function to get the resolved class object.
+    ClassElement objectClass = compiler.coreLibrary.find(Types.OBJECT);
+    globalizedElement.supertype = objectClass.computeType(compiler);
+    objectClass.resolve(compiler);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     Element thisElement = closureData.thisElement;
