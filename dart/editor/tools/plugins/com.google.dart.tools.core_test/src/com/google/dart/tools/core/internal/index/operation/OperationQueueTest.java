@@ -20,12 +20,12 @@ public class OperationQueueTest extends TestCase {
     assertNotNull(new OperationQueue());
   }
 
-  public void test_OperationQueue_dequeue_empty() {
+  public void test_OperationQueue_dequeue_empty() throws InterruptedException {
     OperationQueue queue = new OperationQueue();
-    assertNull(queue.dequeue());
+    assertNull(queue.dequeue(0));
   }
 
-  public void test_OperationQueue_dequeue_multiple() {
+  public void test_OperationQueue_dequeue_multiple() throws InterruptedException {
     OperationQueue queue = new OperationQueue();
     IndexOperation operation1 = new NullOperation();
     IndexOperation operation2 = new NullOperation();
@@ -35,16 +35,16 @@ public class OperationQueueTest extends TestCase {
     queue.enqueue(operation2);
     queue.enqueue(operation3);
 
-    assertEquals(operation1, queue.dequeue());
-    assertEquals(operation2, queue.dequeue());
-    assertEquals(operation3, queue.dequeue());
-    assertNull(queue.dequeue());
+    assertEquals(operation1, queue.dequeue(0));
+    assertEquals(operation2, queue.dequeue(0));
+    assertEquals(operation3, queue.dequeue(0));
+    assertNull(queue.dequeue(0));
   }
 
-  public void test_OperationQueue_dequeue_nonEmpty() {
+  public void test_OperationQueue_dequeue_nonEmpty() throws InterruptedException {
     OperationQueue queue = new OperationQueue();
     IndexOperation operation = new NullOperation();
     queue.enqueue(operation);
-    assertEquals(operation, queue.dequeue());
+    assertEquals(operation, queue.dequeue(0));
   }
 }

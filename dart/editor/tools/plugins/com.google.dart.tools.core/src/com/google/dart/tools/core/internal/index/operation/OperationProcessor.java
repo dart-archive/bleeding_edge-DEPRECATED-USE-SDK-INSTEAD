@@ -55,10 +55,10 @@ public class OperationProcessor {
   private ProcessorState state = ProcessorState.READY;
 
   /**
-   * The number of milliseconds for which the thread on which the processor is running will sleep if
-   * there are no operations waiting to be processed.
+   * The number of milliseconds for which the thread on which the processor is running will wait for
+   * an operation to become available if there are no operations ready to be processed.
    */
-  private static long SLEEP_DURATION = 100L;
+  private static long WAIT_DURATION = 100L;
 
   /**
    * Initialize a newly created operation processor to process the operations on the given queue.
@@ -85,18 +85,17 @@ public class OperationProcessor {
     }
     try {
       while (isRunning()) {
-        IndexOperation operation = queue.dequeue();
-        if (operation == null) {
-          try {
-            Thread.sleep(SLEEP_DURATION);
-          } catch (InterruptedException exception) {
-            synchronized (this) {
-              if (state == ProcessorState.RUNNING) {
-                state = ProcessorState.STOP_REQESTED;
-              }
+        IndexOperation operation = null;
+        try {
+          operation = queue.dequeue(WAIT_DURATION);
+        } catch (InterruptedException exception) {
+          synchronized (this) {
+            if (state == ProcessorState.RUNNING) {
+              state = ProcessorState.STOP_REQESTED;
             }
           }
-        } else {
+        }
+        if (operation != null) {
           operation.performOperation();
         }
       }
