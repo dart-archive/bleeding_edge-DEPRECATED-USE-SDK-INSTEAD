@@ -338,6 +338,38 @@ class Primitives {
   static num dateNow() => JS("num", @"Date.now()");
 
   static num mathFloor(num value) => JS("num", @"Math.floor($0)", value);
+
+  static brokenDownDateToSecondsSinceEpoch(
+      int years, int month, int day, int hours, int minutes, int seconds,
+      bool isUtc) {
+    throw 'Primitives.brokenDownDateToSecondsSinceEpoch is not implemented';
+  }
+
+  static int getCurrentMs() {
+    throw 'Primitives.getCurrentMs is not implemented';
+  }
+
+  static int getYear(int secondsSinceEpoch, bool isUtc) {
+    throw 'Primitives.getYear is not implemented';
+  }
+
+  static int getMonth(int secondsSinceEpoch, bool isUtc) {
+    throw 'Primitives.getMonth is not implemented';
+  }
+
+  static int getDay_(int secondsSinceEpoch, bool isUtc);
+
+  static int getHours(int secondsSinceEpoch, bool isUtc) {
+    throw 'Primitives.getHours is not implemented';
+  }
+
+  static int getMinutes(int secondsSinceEpoch, bool isUtc) {
+    throw 'Primitives.getMinutes is not implemented';
+  }
+
+  static int getSeconds(int secondsSinceEpoch, bool isUtc) {
+    throw 'Primitives.getSeconds is not implemented';
+  }
 }
 
 builtin$compareTo$1(a, b) {

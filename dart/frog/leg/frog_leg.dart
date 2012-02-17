@@ -108,6 +108,15 @@ class WorldCompiler extends Compiler {
       print(script.file.getLocationMessage("cancel leg: $reason",
                                            begin, end, true));
     } else if (element !== null) {
+      if (element.position() === null) {
+        // Sometimes, the backend fakes up elements that have no
+        // position. So we use the enclosing element instead. It is
+        // not a good error location, but cancel really is "internal
+        // error" or "not implemented yet", so the vicinity is good
+        // enough for now.
+        element = element.enclosingElement;
+        // TODO(ahe): I plan to overhaul this infrastructure anyways.
+      }
       withCurrentElement(element,
           () => cancel(reason: reason, token: element.position()));
     }

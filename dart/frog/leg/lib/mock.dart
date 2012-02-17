@@ -11,7 +11,11 @@ class TypeError extends AssertionError {}
 class FallThroughError {}
 
 // TODO(ahe): VM specfic exception?
-class InternalError {}
+class InternalError {
+  const InternalError(this._msg);
+  String toString() => "InternalError: '${_msg}'";
+  final String _msg;
+}
 
 // TODO(ahe): VM specfic exception?
 class StaticResolutionException implements Exception {}

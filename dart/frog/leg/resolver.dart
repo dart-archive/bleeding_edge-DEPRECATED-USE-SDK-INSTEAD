@@ -668,7 +668,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       SourceString name = node.selector.asIdentifier().source;
       if (node.receiver === null) {
         target = lookup(node, name);
-        if (target === null && !enclosingElement.isInstanceMember()) {
+        if (target === null && !inInstanceContext) {
           error(node, MessageKind.CANNOT_RESOLVE, [name]);
         }
       } else if (node.isSuperCall) {
@@ -1239,6 +1239,12 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     resolveExpression(node.arguments.head);
     compiler.enqueue(new WorkItem.toCompile(element));
     return element;
+  }
+
+  Element visitFunctionExpression(FunctionExpression node) {
+    // This is a function typed parameter.
+    // TODO(ahe): Resolve the function type.
+    return visit(node.name);
   }
 
   LinkBuilder<Element> analyzeNodes(Link<Node> link) {

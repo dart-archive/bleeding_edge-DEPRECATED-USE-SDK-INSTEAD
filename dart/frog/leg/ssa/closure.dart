@@ -310,7 +310,12 @@ class ClosureTranslator extends AbstractVisitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    FunctionElement element = elements[node];
+    Element element = elements[node];
+    if (element.kind === ElementKind.PARAMETER) {
+      // TODO(ahe): This is a hack. This method should *not* call
+      // visitChildren.
+      return node.name.accept(this);
+    }
     bool isClosure = (closureData !== null);
 
     if (isClosure) closures.add(node);
@@ -361,6 +366,9 @@ class ClosureTranslator extends AbstractVisitor {
       declareLocal(element);
     }
 
+    // TODO(ahe): This is problematic. The backend should not repeat
+    // the work of the resolver. It is the resolver's job to create
+    // parameters, etc. Other phases should only visit statements.
     node.visitChildren(this);
 
     attachCapturedScopeVariables(node);
