@@ -102,7 +102,6 @@ def TestStep(name, mode, system, component, targets, flags):
           '--component=' + component,
           '--time',
           '--report',
-          '-j 8',
           '--progress=buildbot',
           '-v']
       + targets)
