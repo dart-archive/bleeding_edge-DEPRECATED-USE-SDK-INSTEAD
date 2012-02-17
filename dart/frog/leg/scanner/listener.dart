@@ -550,8 +550,16 @@ class ElementListener extends Listener {
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     Identifier name = popNode();
     Modifiers modifiers = popNode();
+    ElementKind kind;
+    if (getOrSet === null) {
+      kind = ElementKind.FUNCTION;
+    } else if (getOrSet.stringValue === 'get') {
+      kind = ElementKind.GETTER;
+    } else if (getOrSet.stringValue === 'set') {
+      kind = ElementKind.SETTER;
+    }
     pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
-                                           endToken, ElementKind.FUNCTION,
+                                           endToken, kind,
                                            modifiers, compilationUnitElement));
   }
 
@@ -819,8 +827,16 @@ class NodeListener extends ElementListener {
     NodeList formalParameters = popNode();
     Identifier name = popNode();
     Modifiers modifiers = popNode();
+    ElementKind kind;
+    if (getOrSet === null) {
+      kind = ElementKind.FUNCTION;
+    } else if (getOrSet.stringValue === 'get') {
+      kind = ElementKind.GETTER;
+    } else if (getOrSet.stringValue === 'set') {
+      kind = ElementKind.SETTER;
+    }    
     pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
-                                           endToken, ElementKind.FUNCTION,
+                                           endToken, kind,
                                            modifiers, compilationUnitElement));
   }
 

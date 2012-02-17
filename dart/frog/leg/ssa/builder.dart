@@ -1590,17 +1590,24 @@ class SsaBuilder implements Visitor {
     if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
       compiler.resolver.resolveMethodElement(element);
       element = element.defaultImplementation;
-    } else if (element.kind != ElementKind.FUNCTION) {
-      compiler.unimplemented(
-          "SsaBuilder.visitStaticSend static field invocation",
-          node: node);
     }
-    HStatic target = new HStatic(element);
+    HInstruction target = new HStatic(element);
     add(target);
     var inputs = <HInstruction>[];
     inputs.add(target);
-    addStaticSendArgumentsToList(node, element, inputs);
-    push(new HInvokeStatic(selector, inputs));
+    if (element.kind == ElementKind.FUNCTION ||
+        element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+      addStaticSendArgumentsToList(node, element, inputs);
+      push(new HInvokeStatic(selector, inputs));
+    } else {
+      if (element.kind == ElementKind.GETTER) {
+        target = new HInvokeStatic(Selector.GETTER, inputs);
+        add(target);
+        inputs = <HInstruction>[target];
+      }
+      addDynamicSendArgumentsToList(node, inputs);
+      push(new HInvokeClosure(selector, inputs));
+    }
   }
 
   visitSend(Send node) {
