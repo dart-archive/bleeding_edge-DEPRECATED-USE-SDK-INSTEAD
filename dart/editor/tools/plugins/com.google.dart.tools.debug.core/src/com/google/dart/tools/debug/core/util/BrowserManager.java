@@ -113,6 +113,7 @@ public class BrowserManager {
 
         // The process needs time to exit.
         waitForProcessToTerminate(process, 200);
+        //sleep(100);
       }
 
       browserProcesses.remove(browserName);
@@ -161,22 +162,27 @@ public class BrowserManager {
     try {
       runtimeProcess = builder.start();
     } catch (IOException e) {
-      DebugPlugin.logMessage("Exception while starting browser", e);
+      DartDebugCorePlugin.logError("Exception while starting Dartium", e);
 
       throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          "Could not launch browser"));
+          "Could not launch browser: " + e.toString()));
     }
 
     browserProcesses.put(browserName, runtimeProcess);
 
-    readFromProcessPipes(browserName, runtimeProcess.getInputStream());
-    readFromProcessPipes(browserName, runtimeProcess.getErrorStream());
+    StringBuilder stdout = readFromProcessPipes(browserName, runtimeProcess.getInputStream());
+    StringBuilder stderr = readFromProcessPipes(browserName, runtimeProcess.getErrorStream());
+
+    sleep(100);
 
     monitor.worked(1);
 
     if (isProcessTerminated(runtimeProcess)) {
+      DartDebugCorePlugin.logError("Dartium stdout: " + stdout);
+      DartDebugCorePlugin.logError("Dartium stderr: " + stderr);
+
       throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          "Could not launch browser"));
+          "Could not launch browser - process terminated on startup"));
     }
 
     timer.stopTask();
@@ -298,11 +304,18 @@ public class BrowserManager {
     while (true) {
       if (isProcessTerminated(runtimeProcess)) {
         throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-            "Could not launch browser"));
+            "Could not launch browser - process terminated while trying to connect"));
       }
 
       try {
-        return ChromiumConnector.getAvailableTabs(PORT_NUMBER);
+        List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(PORT_NUMBER);
+
+        if (tabs.size() == 0) {
+          // Keep waiting - Dartium sometimes needs time to bring up the first tab.
+          continue;
+        } else {
+          return tabs;
+        }
       } catch (IOException exception) {
         if ((System.currentTimeMillis() - startTime) > maxStartupDelay) {
           throw exception;
@@ -340,7 +353,9 @@ public class BrowserManager {
     }
   }
 
-  private void readFromProcessPipes(final String processName, final InputStream in) {
+  private StringBuilder readFromProcessPipes(final String processName, final InputStream in) {
+    final StringBuilder output = new StringBuilder();
+
     Thread thread = new Thread(new Runnable() {
       @Override
       public void run() {
@@ -355,6 +370,8 @@ public class BrowserManager {
 
               // Log any browser process output to the debug log.
               DartDebugCorePlugin.logInfo(processName + ": " + str.trim());
+
+              output.append(str);
             }
 
             count = in.read(buffer);
@@ -368,6 +385,8 @@ public class BrowserManager {
     }, "Read from " + processName);
 
     thread.start();
+
+    return output;
   }
 
   private void sleep(int millis) {

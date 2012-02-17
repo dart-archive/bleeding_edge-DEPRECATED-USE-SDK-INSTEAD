@@ -122,6 +122,7 @@ public class DartLaunchConfigWrapper {
 
   public boolean getCheckedMode() {
     try {
+      // TODO(devoncarew): change this to default to true when our samples are fixed 
       return launchConfig.getAttribute(VM_CHECKED_MODE, false);
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);

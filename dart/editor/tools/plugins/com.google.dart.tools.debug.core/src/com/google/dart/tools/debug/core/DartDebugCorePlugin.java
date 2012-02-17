@@ -134,6 +134,18 @@ public class DartDebugCorePlugin extends Plugin {
   /**
    * Log the given exception.
    * 
+   * @param message
+   * @param exception
+   */
+  public static void logError(String message, Throwable exception) {
+    if (getPlugin() != null) {
+      getPlugin().getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, message, exception));
+    }
+  }
+
+  /**
+   * Log the given exception.
+   * 
    * @param exception
    */
   public static void logError(Throwable exception) {
