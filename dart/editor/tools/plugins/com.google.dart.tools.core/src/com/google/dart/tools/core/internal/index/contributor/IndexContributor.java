@@ -274,9 +274,15 @@ public class IndexContributor extends DartNodeTraverser<Void> {
       processTypeReference(node, ((ClassElement) symbol).getType());
     } else if (symbol instanceof FieldElement) {
       boolean isAssignedTo = isAssignedTo(node);
-      index.recordRelationship(compilationUnitResource,
-          getElement((FieldElement) symbol, !isAssignedTo, isAssignedTo),
-          IndexConstants.IS_REFERENCED_BY, getLocation(node));
+      Element element = getElement((FieldElement) symbol, !isAssignedTo, isAssignedTo);
+      Location location = getLocation(node);
+      if (isAssignedTo) {
+        index.recordRelationship(compilationUnitResource, element, IndexConstants.IS_MODIFIED_BY,
+            location);
+      } else {
+        index.recordRelationship(compilationUnitResource, element, IndexConstants.IS_ACCESSED_BY,
+            location);
+      }
     }
     return super.visitIdentifier(node);
   }
