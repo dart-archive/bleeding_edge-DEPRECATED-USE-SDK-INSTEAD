@@ -1241,7 +1241,7 @@ class SsaBuilder implements Visitor {
       if (element.kind == ElementKind.GETTER) {
         push(new HInvokeStatic(selector, <HInstruction>[pop()]));
       }
-    } else if (element === null || Elements.isInstanceField(element)) {
+    } else if (Elements.isInstanceSend(send, elements)) {
       HInstruction receiver;
       if (send.receiver == null) {
         receiver = localsHandler.readThis();

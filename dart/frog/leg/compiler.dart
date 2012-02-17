@@ -186,6 +186,7 @@ class Compiler implements DiagnosticListener {
 
   void enqueueInvokedInstanceMethods() {
     // TODO(floitsch): find a more efficient way of doing this.
+
     // Run through the classes and see if we need to compile methods.
     for (ClassElement classElement in universe.instantiatedClasses) {
       for (ClassElement currentClass = classElement;
@@ -215,9 +216,33 @@ class Compiler implements DiagnosticListener {
             if (universe.invokedGetters.contains(member.name)) {
               addToWorklist(member);
             }
+            // A method invocation like in o.foo(x, y) might actually be an
+            // invocation of the getter foo followed by an invocation of the
+            // returned closure.
+            Set<Selector> invokedSelectors = universe.invokedNames[member.name];
+            // We don't know what selectors the returned closure accepts. If
+            // the set contains any selector we have to assume that it matches.
+            if (invokedSelectors !== null && !invokedSelectors.isEmpty()) {
+              addToWorklist(member);
+            }
           } else if (member.kind === ElementKind.SETTER) {
              if (universe.invokedSetters.contains(member.name)) {
               addToWorklist(member);
+            }
+          }
+
+          // Make sure that the closure understands a call with the given
+          // selector. For a method-invocation of the form o.foo(a: 499), we
+          // need to make sure that closures can handle the optional argument if
+          // there exists a field or getter 'foo'.
+          if (member.kind === ElementKind.GETTER ||
+              member.kind === ElementKind.FIELD) {
+            Set<Selector> invokedSelectors = universe.invokedNames[member.name];
+            if (invokedSelectors != null) {
+              for (Selector selector in invokedSelectors) {
+                registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME,
+                                          selector);
+              }
             }
           }
         }

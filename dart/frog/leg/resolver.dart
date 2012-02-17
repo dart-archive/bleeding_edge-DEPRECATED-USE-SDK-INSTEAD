@@ -701,12 +701,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       mapping.setSelector(node, Selector.INDEX);
     } else if (node.isPropertyAccess) {
       mapping.setSelector(node, Selector.GETTER);
-      if (target != null && target.kind == ElementKind.ABSTRACT_FIELD) {
-        AbstractFieldElement field = target;
-        target = field.getter;
-      }
     } else {
       handleArguments(node);
+    }
+    if (target != null && target.kind == ElementKind.ABSTRACT_FIELD) {
+      AbstractFieldElement field = target;
+      target = field.getter;
     }
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.

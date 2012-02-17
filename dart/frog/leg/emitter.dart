@@ -370,6 +370,56 @@ function(child, parent) {
     }
   }
 
+  void emitCallStubForGetter(StringBuffer buffer,
+                             ClassElement enclosingClass,
+                             Element member,
+                             Set<Selector> selectors) {
+    String prototype =
+        "${namer.isolatePropertyAccess(enclosingClass)}.prototype";
+    String getter;
+    if (member.kind == ElementKind.GETTER) {
+      getter = "this.${namer.getterName(member.name)}()";
+    } else {
+      getter = "this.${namer.instanceFieldName(member.name)}";
+    }
+    for (Selector selector in selectors) {
+      String invocationName =
+          namer.instanceMethodInvocationName(member.name, selector);
+      SourceString callName = Namer.CLOSURE_INVOCATION_NAME;
+      String closureCallName =
+          namer.instanceMethodInvocationName(callName, selector);
+      List<String> arguments = <String>[];
+      for (int i = 0; i < selector.argumentCount; i++) {
+        arguments.add("arg$i");
+      }
+      String joined = Strings.join(arguments, ", ");
+      buffer.add("$prototype.$invocationName = function($joined) {\n");
+      buffer.add("  return $getter.$closureCallName($joined);\n");
+      buffer.add("};\n");
+    }
+  }
+
+  void emitCallStubForGetters(StringBuffer buffer) {
+    for (ClassElement classElement in compiler.universe.instantiatedClasses) {
+      for (ClassElement currentClass = classElement;
+           currentClass !== null;
+           currentClass = currentClass.superclass) {
+        // TODO(floitsch): we don't need to deal with members that have been
+        // overwritten by subclasses.
+        for (Element member in currentClass.members) {
+          if (!member.isInstanceMember()) continue;
+          if (member.kind == ElementKind.GETTER ||
+              member.kind == ElementKind.FIELD) {
+            Set<Selector> selectors =
+                compiler.universe.invokedNames[member.name];
+            if (selectors == null || selectors.isEmpty()) continue;
+            emitCallStubForGetter(buffer, currentClass, member, selectors);
+          }
+        }
+      }
+    }    
+  }
+
   void emitStaticNonFinalFieldInitializations(StringBuffer buffer) {
     // Adds initializations inside the Isolate constructor.
     // Example:
@@ -463,6 +513,7 @@ function(child, parent) {
       emitStaticFunctions(buffer);
       emitStaticFunctionGetters(buffer);
       emitDynamicFunctionGetters(buffer);
+      emitCallStubForGetters(buffer);
       emitStaticFinalFieldInitializations(buffer);
       buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
       Element main = compiler.mainApp.find(Compiler.MAIN);
