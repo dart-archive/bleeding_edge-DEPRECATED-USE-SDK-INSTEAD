@@ -3,20 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  A();
-  A.a()
-    : this.b()  /// 01: compile-time error
-  ;
+  A.a() : this.b();
   A.b()
-    : this.a()  /// 02: compile-time error
+    : this.a()  /// 01: compile-time error
   ;
-  A.c()
-    : this.b()  /// 03: compile-time error
-  ;
+  A.c() : this.b();
 }
 
 main() {
-  new A();
   new A.a();
   new A.b();
   new A.c();

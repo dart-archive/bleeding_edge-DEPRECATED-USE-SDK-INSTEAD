@@ -564,7 +564,7 @@ testInitializers() {
                 A(int i);
               }""";
   resolveConstructor(script, "A a = new A.a();", "A", @"A$a", 2,
-                     [], [MessageKind.REDIRECTING_CTOR_HAS_INITIALIZER]);
+                     [], [MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER]);
 
   script = """class A {
                 int i;

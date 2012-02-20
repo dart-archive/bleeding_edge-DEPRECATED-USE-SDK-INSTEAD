@@ -32,11 +32,7 @@ function $throw(e) {
   throw e;
 }
 $defProp(Object.prototype, '$index', function(i) {
-  var proto = Object.getPrototypeOf(this);
-  if (proto !== Object) {
-    proto.$index = function(i) { return this[i]; }
-  }
-  return this[i];
+  $throw(new NoSuchMethodException(this, "operator []", [i]));
 });
 $defProp(Array.prototype, '$index', function(index) {
   var i = index | 0;
@@ -51,11 +47,7 @@ $defProp(String.prototype, '$index', function(i) {
   return this[i];
 });
 $defProp(Object.prototype, '$setindex', function(i, value) {
-  var proto = Object.getPrototypeOf(this);
-  if (proto !== Object) {
-    proto.$setindex = function(i, value) { return this[i] = value; }
-  }
-  return this[i] = value;
+  $throw(new NoSuchMethodException(this, "operator []=", [i, value]));
 });
 $defProp(Array.prototype, '$setindex', function(index, value) {
   var i = index | 0;
@@ -66,85 +58,179 @@ $defProp(Array.prototype, '$setindex', function(index, value) {
   }
   return this[i] = value;
 });
+function $add$complex(x, y) {
+  if (typeof(x) == 'number') {
+    $throw(new IllegalArgumentException(y));
+  } else if (typeof(x) == 'string') {
+    var str = (y == null) ? 'null' : y.toString();
+    if (typeof(str) != 'string') {
+      throw new Error("calling toString() on right hand operand of operator " +
+      "+ did not return a String");
+    }
+    return x + str;
+  } else if (typeof(x) == 'object') {
+    return x.$add(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator +", [y]));
+  }
+}
+
 function $add(x, y) {
-  return ((typeof(x) == 'number' && typeof(y) == 'number') ||
-          (typeof(x) == 'string'))
-    ? x + y : x.$add(y);
+  if (typeof(x) == 'number' && typeof(y) == 'number') return x + y;
+  return $add$complex(x, y);
+}
+function $bit_xor$complex(x, y) {
+  if (typeof(x) == 'number') {
+    $throw(new IllegalArgumentException(y));
+  } else if (typeof(x) == 'object') {
+    return x.$bit_xor(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator ^", [y]));
+  }
 }
 function $bit_xor(x, y) {
-  return (typeof(x) == 'number' && typeof(y) == 'number')
-    ? x ^ y : x.$bit_xor(y);
+  if (typeof(x) == 'number' && typeof(y) == 'number') return x ^ y;
+  return $bit_xor$complex(x, y);
 }
 function $eq(x, y) {
   if (x == null) return y == null;
-  return (typeof(x) == 'number' && typeof(y) == 'number') ||
-         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||
-         (typeof(x) == 'string' && typeof(y) == 'string')
-    ? x == y : x.$eq(y);
+  return (typeof(x) != 'object') ? x === y : x.$eq(y);
 }
 // TODO(jimhug): Should this or should it not match equals?
 $defProp(Object.prototype, '$eq', function(other) {
   return this === other;
 });
+function $gt$complex(x, y) {
+  if (typeof(x) == 'number') {
+    $throw(new IllegalArgumentException(y));
+  } else if (typeof(x) == 'object') {
+    return x.$gt(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator >", [y]));
+  }
+}
 function $gt(x, y) {
-  return (typeof(x) == 'number' && typeof(y) == 'number')
-    ? x > y : x.$gt(y);
+  if (typeof(x) == 'number' && typeof(y) == 'number') return x > y;
+  return $gt$complex(x, y);
+}
+function $gte$complex(x, y) {
+  if (typeof(x) == 'number') {
+    $throw(new IllegalArgumentException(y));
+  } else if (typeof(x) == 'object') {
+    return x.$gte(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator >=", [y]));
+  }
 }
 function $gte(x, y) {
-  return (typeof(x) == 'number' && typeof(y) == 'number')
-    ? x >= y : x.$gte(y);
+  if (typeof(x) == 'number' && typeof(y) == 'number') return x >= y;
+  return $gte$complex(x, y);
+}
+function $lt$complex(x, y) {
+  if (typeof(x) == 'number') {
+    $throw(new IllegalArgumentException(y));
+  } else if (typeof(x) == 'object') {
+    return x.$lt(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator <", [y]));
+  }
 }
 function $lt(x, y) {
-  return (typeof(x) == 'number' && typeof(y) == 'number')
-    ? x < y : x.$lt(y);
+  if (typeof(x) == 'number' && typeof(y) == 'number') return x < y;
+  return $lt$complex(x, y);
+}
+function $lte$complex(x, y) {
+  if (typeof(x) == 'number') {
+    $throw(new IllegalArgumentException(y));
+  } else if (typeof(x) == 'object') {
+    return x.$lte(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator <=", [y]));
+  }
 }
 function $lte(x, y) {
-  return (typeof(x) == 'number' && typeof(y) == 'number')
-    ? x <= y : x.$lte(y);
+  if (typeof(x) == 'number' && typeof(y) == 'number') return x <= y;
+  return $lte$complex(x, y);
 }
 function $mod(x, y) {
-  if (typeof(x) == 'number' && typeof(y) == 'number') {
-    var result = x % y;
-    if (result == 0) {
-      return 0;  // Make sure we don't return -0.0.
-    } else if (result < 0) {
-      if (y < 0) {
-        return result - y;
-      } else {
-        return result + y;
+  if (typeof(x) == 'number') {
+    if (typeof(y) == 'number') {
+      var result = x % y;
+      if (result == 0) {
+        return 0;  // Make sure we don't return -0.0.
+      } else if (result < 0) {
+        if (y < 0) {
+          return result - y;
+        } else {
+          return result + y;
+        }
       }
+      return result;
+    } else {
+      $throw(new IllegalArgumentException(y));
     }
-    return result;
-  } else {
+  } else if (typeof(x) == 'object') {
     return x.$mod(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator %", [y]));
+  }
+}
+function $mul$complex(x, y) {
+  if (typeof(x) == 'number') {
+    $throw(new IllegalArgumentException(y));
+  } else if (typeof(x) == 'object') {
+    return x.$mul(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator *", [y]));
   }
 }
 function $mul(x, y) {
-  return (typeof(x) == 'number' && typeof(y) == 'number')
-    ? x * y : x.$mul(y);
+  if (typeof(x) == 'number' && typeof(y) == 'number') return x * y;
+  return $mul$complex(x, y);
 }
 function $ne(x, y) {
   if (x == null) return y != null;
-  return (typeof(x) == 'number' && typeof(y) == 'number') ||
-         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||
-         (typeof(x) == 'string' && typeof(y) == 'string')
-    ? x != y : !x.$eq(y);
+  return (typeof(x) != 'object') ? x !== y : !x.$eq(y);
+}
+function $shl$complex(x, y) {
+  if (typeof(x) == 'number') {
+    $throw(new IllegalArgumentException(y));
+  } else if (typeof(x) == 'object') {
+    return x.$shl(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator <<", [y]));
+  }
 }
 function $shl(x, y) {
-  return (typeof(x) == 'number' && typeof(y) == 'number')
-    ? x << y : x.$shl(y);
+  if (typeof(x) == 'number' && typeof(y) == 'number') return x << y;
+  return $shl$complex(x, y);
+}
+function $sub$complex(x, y) {
+  if (typeof(x) == 'number') {
+    $throw(new IllegalArgumentException(y));
+  } else if (typeof(x) == 'object') {
+    return x.$sub(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator -", [y]));
+  }
 }
 function $sub(x, y) {
-  return (typeof(x) == 'number' && typeof(y) == 'number')
-    ? x - y : x.$sub(y);
+  if (typeof(x) == 'number' && typeof(y) == 'number') return x - y;
+  return $sub$complex(x, y);
 }
 function $truncdiv(x, y) {
-  if (typeof(x) == 'number' && typeof(y) == 'number') {
-    if (y == 0) $throw(new IntegerDivisionByZeroException());
-    var tmp = x / y;
-    return (tmp < 0) ? Math.ceil(tmp) : Math.floor(tmp);
-  } else {
+  if (typeof(x) == 'number') {
+    if (typeof(y) == 'number') {
+      if (y == 0) $throw(new IntegerDivisionByZeroException());
+      var tmp = x / y;
+      return (tmp < 0) ? Math.ceil(tmp) : Math.floor(tmp);
+    } else {
+      $throw(new IllegalArgumentException(y));
+    }
+  } else if (typeof(x) == 'object') {
     return x.$truncdiv(y);
+  } else {
+    $throw(new NoSuchMethodException(x, "operator ~/", [y]));
   }
 }
 // ********** Code for Object **************
@@ -255,6 +341,7 @@ function NoSuchMethodException(_receiver, _functionName, _arguments, _existingAr
   this._functionName = _functionName;
   this._arguments = _arguments;
 }
+NoSuchMethodException.prototype.is$NoSuchMethodException = function(){return true};
 NoSuchMethodException.prototype.toString = function() {
   var sb = new StringBufferImpl("");
   for (var i = (0);
@@ -2791,46 +2878,55 @@ function CoreJs() {
 }
 CoreJs.prototype.get$writer = function() { return this.writer; };
 CoreJs.prototype.set$writer = function(value) { return this.writer = value; };
+CoreJs.prototype.markCorelibTypeUsed = function(typeName) {
+  $globals.world.gen.markTypeUsed($globals.world.corelib.types.$index(typeName));
+}
 CoreJs.prototype.useOperator = function(name) {
   if ($ne(this._usedOperators.$index(name))) return;
+  if (name != ":ne" && name != ":eq") {
+    this.markCorelibTypeUsed("NoSuchMethodException");
+  }
+  if (name != ":bit_not" && name != ":negate") {
+    this.markCorelibTypeUsed("IllegalArgumentException");
+  }
   var code;
   switch (name) {
     case ":ne":
 
-      code = "function $ne(x, y) {\n  if (x == null) return y != null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x != y : !x.$eq(y);\n}";
+      code = "function $ne(x, y) {\n  if (x == null) return y != null;\n  return (typeof(x) != 'object') ? x !== y : !x.$eq(y);\n}";
       break;
 
     case ":eq":
 
       this.ensureDefProp();
-      code = "function $eq(x, y) {\n  if (x == null) return y == null;\n  return (typeof(x) == 'number' && typeof(y) == 'number') ||\n         (typeof(x) == 'boolean' && typeof(y) == 'boolean') ||\n         (typeof(x) == 'string' && typeof(y) == 'string')\n    ? x == y : x.$eq(y);\n}\n// TODO(jimhug): Should this or should it not match equals?\n$defProp(Object.prototype, '$eq', function(other) {\n  return this === other;\n});";
+      code = "function $eq(x, y) {\n  if (x == null) return y == null;\n  return (typeof(x) != 'object') ? x === y : x.$eq(y);\n}\n// TODO(jimhug): Should this or should it not match equals?\n$defProp(Object.prototype, '$eq', function(other) {\n  return this === other;\n});";
       break;
 
     case ":bit_not":
 
-      code = "function $bit_not(x) {\n  return (typeof(x) == 'number') ? ~x : x.$bit_not();\n}";
+      code = "function $bit_not(x) {\n  if (typeof(x) == 'number') return ~x;\n  if (typeof(x) == 'object') return  x.$bit_not();\n  $throw(new NoSuchMethodException(x, \"operator ~\", []));\n}";
       break;
 
     case ":negate":
 
-      code = "function $negate(x) {\n  return (typeof(x) == 'number') ? -x : x.$negate();\n}";
+      code = "function $negate(x) {\n  if (typeof(x) == 'number') return -x;\n  if (typeof(x) == 'object') return x.$negate();\n  $throw(new NoSuchMethodException(x, \"operator negate\", []));\n}";
       break;
 
     case ":add":
 
-      code = "function $add(x, y) {\n  return ((typeof(x) == 'number' && typeof(y) == 'number') ||\n          (typeof(x) == 'string'))\n    ? x + y : x.$add(y);\n}";
+      code = "function $add$complex(x, y) {\n  if (typeof(x) == 'number') {\n    $throw(new IllegalArgumentException(y));\n  } else if (typeof(x) == 'string') {\n    var str = (y == null) ? 'null' : y.toString();\n    if (typeof(str) != 'string') {\n      throw new Error(\"calling toString() on right hand operand of operator \" +\n      \"+ did not return a String\");\n    }\n    return x + str;\n  } else if (typeof(x) == 'object') {\n    return x.$add(y);\n  } else {\n    $throw(new NoSuchMethodException(x, \"operator +\", [y]));\n  }\n}\n\nfunction $add(x, y) {\n  if (typeof(x) == 'number' && typeof(y) == 'number') return x + y;\n  return $add$complex(x, y);\n}";
       break;
 
     case ":truncdiv":
 
       this.useThrow = true;
-      $globals.world.gen.markTypeUsed($globals.world.corelib.types.$index("IntegerDivisionByZeroException"));
-      code = "function $truncdiv(x, y) {\n  if (typeof(x) == 'number' && typeof(y) == 'number') {\n    if (y == 0) $throw(new IntegerDivisionByZeroException());\n    var tmp = x / y;\n    return (tmp < 0) ? Math.ceil(tmp) : Math.floor(tmp);\n  } else {\n    return x.$truncdiv(y);\n  }\n}";
+      this.markCorelibTypeUsed("IntegerDivisionByZeroException");
+      code = "function $truncdiv(x, y) {\n  if (typeof(x) == 'number') {\n    if (typeof(y) == 'number') {\n      if (y == 0) $throw(new IntegerDivisionByZeroException());\n      var tmp = x / y;\n      return (tmp < 0) ? Math.ceil(tmp) : Math.floor(tmp);\n    } else {\n      $throw(new IllegalArgumentException(y));\n    }\n  } else if (typeof(x) == 'object') {\n    return x.$truncdiv(y);\n  } else {\n    $throw(new NoSuchMethodException(x, \"operator ~/\", [y]));\n  }\n}";
       break;
 
     case ":mod":
 
-      code = "function $mod(x, y) {\n  if (typeof(x) == 'number' && typeof(y) == 'number') {\n    var result = x % y;\n    if (result == 0) {\n      return 0;  // Make sure we don't return -0.0.\n    } else if (result < 0) {\n      if (y < 0) {\n        return result - y;\n      } else {\n        return result + y;\n      }\n    }\n    return result;\n  } else {\n    return x.$mod(y);\n  }\n}";
+      code = "function $mod(x, y) {\n  if (typeof(x) == 'number') {\n    if (typeof(y) == 'number') {\n      var result = x % y;\n      if (result == 0) {\n        return 0;  // Make sure we don't return -0.0.\n      } else if (result < 0) {\n        if (y < 0) {\n          return result - y;\n        } else {\n          return result + y;\n        }\n      }\n      return result;\n    } else {\n      $throw(new IllegalArgumentException(y));\n    }\n  } else if (typeof(x) == 'object') {\n    return x.$mod(y);\n  } else {\n    $throw(new NoSuchMethodException(x, \"operator %\", [y]));\n  }\n}";
       break;
 
     default:
@@ -2887,12 +2983,14 @@ CoreJs.prototype.generate = function(w) {
     w.writeln("function $throw(e) {\n  // If e is not a value, we can use V8's captureStackTrace utility method.\n  // TODO(jmesserly): capture the stack trace on other JS engines.\n  if (e && (typeof e == 'object') && Error.captureStackTrace) {\n    // TODO(jmesserly): this will clobber the e.stack property\n    Error.captureStackTrace(e, $throw);\n  }\n  throw e;\n}");
   }
   if (this.useIndex) {
+    this.markCorelibTypeUsed("NoSuchMethodException");
     this.ensureDefProp();
-    w.writeln($globals.options.disableBoundsChecks ? "$defProp(Object.prototype, '$index', function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n});\n$defProp(Array.prototype, '$index', function(i) {\n  return this[i];\n});\n$defProp(String.prototype, '$index', function(i) {\n  return this[i];\n});" : "$defProp(Object.prototype, '$index', function(i) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$index = function(i) { return this[i]; }\n  }\n  return this[i];\n});\n$defProp(Array.prototype, '$index', function(index) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i];\n});\n$defProp(String.prototype, '$index', function(i) {\n  return this[i];\n});");
+    w.writeln($globals.options.disableBoundsChecks ? "$defProp(Object.prototype, '$index', function(i) {\n  $throw(new NoSuchMethodException(this, \"operator []\", [i]));\n});\n$defProp(Array.prototype, '$index', function(i) {\n  return this[i];\n});\n$defProp(String.prototype, '$index', function(i) {\n  return this[i];\n});" : "$defProp(Object.prototype, '$index', function(i) {\n  $throw(new NoSuchMethodException(this, \"operator []\", [i]));\n});\n$defProp(Array.prototype, '$index', function(index) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i];\n});\n$defProp(String.prototype, '$index', function(i) {\n  return this[i];\n});");
   }
   if (this.useSetIndex) {
+    this.markCorelibTypeUsed("NoSuchMethodException");
     this.ensureDefProp();
-    w.writeln($globals.options.disableBoundsChecks ? "$defProp(Object.prototype, '$setindex', function(i, value) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$setindex = function(i, value) { return this[i] = value; }\n  }\n  return this[i] = value;\n});\n$defProp(Array.prototype, '$setindex',\n    function(i, value) { return this[i] = value; });" : "$defProp(Object.prototype, '$setindex', function(i, value) {\n  var proto = Object.getPrototypeOf(this);\n  if (proto !== Object) {\n    proto.$setindex = function(i, value) { return this[i] = value; }\n  }\n  return this[i] = value;\n});\n$defProp(Array.prototype, '$setindex', function(index, value) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i] = value;\n});");
+    w.writeln($globals.options.disableBoundsChecks ? "$defProp(Object.prototype, '$setindex', function(i, value) {\n  $throw(new NoSuchMethodException(this, \"operator []=\", [i, value]));\n});\n$defProp(Array.prototype, '$setindex',\n    function(i, value) { return this[i] = value; });" : "$defProp(Object.prototype, '$setindex', function(i, value) {\n  $throw(new NoSuchMethodException(this, \"operator []=\", [i, value]));\n});\n$defProp(Array.prototype, '$setindex', function(index, value) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i] = value;\n});");
   }
   if (this.useIsolates) {
     if (this.useWrap0) {
@@ -8968,7 +9066,7 @@ Parser.prototype.isPrematureEndOfFile = function() {
     $throw(new IncompleteSourceException(this._previousToken));
   }
   else if (this._maybeEat((1))) {
-    this._lang_error("unexpected end of file", this._peekToken.get$span());
+    this._error("unexpected end of file", this._peekToken.get$span());
     return true;
   }
   else {
@@ -9026,13 +9124,13 @@ Parser.prototype._errorExpected = function(expected) {
   if (this.throwOnIncomplete) this.isPrematureEndOfFile();
   var tok = this._lang_next();
   if ((tok instanceof ErrorToken) && tok.get$message() != null) {
-    this._lang_error(tok.get$message(), tok.get$span());
+    this._error(tok.get$message(), tok.get$span());
   }
   else {
-    this._lang_error(("expected " + expected + ", but found " + tok), tok.get$span());
+    this._error(("expected " + expected + ", but found " + tok), tok.get$span());
   }
 }
-Parser.prototype._lang_error = function(message, location) {
+Parser.prototype._error = function(message, location) {
   if (this._recover) return;
   if (location == null) {
     location = this._peekToken.get$span();
@@ -9053,7 +9151,7 @@ Parser.prototype._skipBlock = function() {
       if (depth == (0)) return;
     }
     else if (tok.get$kind() == (1)) {
-      this._lang_error("unexpected end of file during diet parse", tok.get$span());
+      this._error("unexpected end of file during diet parse", tok.get$span());
       return;
     }
   }
@@ -9200,7 +9298,7 @@ Parser.prototype.functionBody = function(inExpression) {
       return null;
     }
   }
-  this._lang_error("Expected function body (neither { nor => found)");
+  this._error("Expected function body (neither { nor => found)");
 }
 Parser.prototype.finishField = function(start, modifiers, type, name, value) {
   var names = [name];
@@ -9287,7 +9385,7 @@ Parser.prototype.factoryConstructorDeclaration = function() {
     }
   }
   if (names.get$length() > (1)) {
-    this._lang_error("unsupported qualified name for factory", names.$index((0)).get$span());
+    this._error("unsupported qualified name for factory", names.$index((0)).get$span());
   }
   type = new NameTypeReference(false, names.$index((0)), null, names.$index((0)).get$span());
   var di = new DeclaredIdentifier(type, name, this._makeSpan(start));
@@ -9566,7 +9664,7 @@ Parser.prototype.caseNode = function() {
     }
   }
   if (cases.get$length() == (0)) {
-    this._lang_error("case or default");
+    this._error("case or default");
   }
   var stmts = [];
   while (!this._peekCaseEnd()) {
@@ -9651,7 +9749,7 @@ Parser.prototype._makeType = function(expr) {
     return type;
   }
   else {
-    this._lang_error("expected type reference");
+    this._error("expected type reference");
     return null;
   }
 }
@@ -9829,7 +9927,7 @@ Parser.prototype.finishCallOrLambdaExpression = function(expr) {
   }
   else {
     if ((expr instanceof DeclaredIdentifier)) {
-      this._lang_error("illegal target for call, did you mean to declare a function?", expr.get$span());
+      this._error("illegal target for call, did you mean to declare a function?", expr.get$span());
     }
     var args = this.arguments();
     return this.finishPostfixExpression(new CallExpression(expr, args, this._makeSpan(expr.get$span().start)));
@@ -10055,7 +10153,7 @@ Parser.prototype._specialIdentifier = function(includeOperators) {
     case (15):
 
       this._eat((15));
-      this._lang_error("rest no longer supported", this._previousToken.get$span());
+      this._error("rest no longer supported", this._previousToken.get$span());
       name = this.identifier().get$name();
       break;
 
@@ -10364,12 +10462,12 @@ Parser.prototype.formalParameter = function(inOptionalBlock) {
   var type = di.get$type();
   var name = di.get$name();
   if ($eq(name)) {
-    this._lang_error("Formal parameter invalid", this._makeSpan(start));
+    this._error("Formal parameter invalid", this._makeSpan(start));
   }
   var value = null;
   if (this._maybeEat((20))) {
     if (!inOptionalBlock) {
-      this._lang_error("default values only allowed inside [optional] section");
+      this._error("default values only allowed inside [optional] section");
     }
     value = this.expression();
   }
@@ -10395,7 +10493,7 @@ Parser.prototype.formalParameterList = function() {
     while (this._maybeEat((11))) {
       if (this._maybeEat((4))) {
         if (inOptionalBlock) {
-          this._lang_error("already inside an optional block", this._previousToken.get$span());
+          this._error("already inside an optional block", this._previousToken.get$span());
         }
         inOptionalBlock = true;
       }
@@ -10412,17 +10510,17 @@ Parser.prototype.identifierForType = function() {
   var $0;
   var tok = this._lang_next();
   if (!this._isIdentifier(tok.get$kind())) {
-    this._lang_error(("expected identifier, but found " + tok), tok.get$span());
+    this._error(("expected identifier, but found " + tok), tok.get$span());
   }
   if ((($0 = tok.get$kind()) == null ? null != ((70)) : $0 !== (70)) && tok.get$kind() != (80)) {
-    this._lang_error(("" + tok + " may not be used as a type name"), tok.get$span());
+    this._error(("" + tok + " may not be used as a type name"), tok.get$span());
   }
   return new Identifier(tok.get$text(), this._makeSpan(tok.get$start()));
 }
 Parser.prototype.identifier = function() {
   var tok = this._lang_next();
   if (!this._isIdentifier(tok.get$kind())) {
-    this._lang_error(("expected identifier, but found " + tok), tok.get$span());
+    this._error(("expected identifier, but found " + tok), tok.get$span());
   }
   return new Identifier(tok.get$text(), this._makeSpan(tok.get$start()));
 }
@@ -10436,11 +10534,11 @@ Parser.prototype._makeFunction = function(expr, formals, body) {
     name = expr.get$name();
     type = expr.get$type();
     if ($eq(name)) {
-      this._lang_error("expected name and type", expr.get$span());
+      this._error("expected name and type", expr.get$span());
     }
   }
   else {
-    this._lang_error("bad function body", expr.get$span());
+    this._error("bad function body", expr.get$span());
   }
   var span = new SourceSpan(expr.get$span().file, expr.get$span().start, body.get$span().end);
   var func = new FunctionDefinition(null, type, name, formals, null, null, body, span);
@@ -10454,7 +10552,7 @@ Parser.prototype._makeDeclaredIdentifier = function(e) {
     return e;
   }
   else {
-    this._lang_error("expected declared identifier");
+    this._error("expected declared identifier");
     return new DeclaredIdentifier(null, null, e.get$span());
   }
 }
@@ -14465,7 +14563,7 @@ VarMethodSet.prototype.generate = function(code) {
 }
 // ********** Code for top level **************
 function _otherOperator(jsname, op) {
-  return ("function " + jsname + "(x, y) {\n  return (typeof(x) == 'number' && typeof(y) == 'number')\n    ? x " + op + " y : x." + jsname + "(y);\n}");
+  return ("function " + jsname + "$complex(x, y) {\n  if (typeof(x) == 'number') {\n    $throw(new IllegalArgumentException(y));\n  } else if (typeof(x) == 'object') {\n    return x." + jsname + "(y);\n  } else {\n    $throw(new NoSuchMethodException(x, \"operator " + op + "\", [y]));\n  }\n}\nfunction " + jsname + "(x, y) {\n  if (typeof(x) == 'number' && typeof(y) == 'number') return x " + op + " y;\n  return " + jsname + "$complex(x, y);\n}");
 }
 function map(source, mapper) {
   var result = new Array();
