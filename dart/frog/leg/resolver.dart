@@ -57,10 +57,61 @@ class ResolverTask extends CompilerTask {
     });
   }
 
+  SourceString getConstructorName(Send node) {
+    if (node.receiver !== null) {
+      return node.selector.asIdentifier().source;
+    } else {
+      return const SourceString('');
+    }
+  }
+
+  FunctionElement lookupConstructor(ClassElement classElement, Send send,
+                                    [noConstructor(Element)]) {
+    final SourceString constructorName = getConstructorName(send);
+    final SourceString className = classElement.name;
+    FunctionElement result = classElement.lookupConstructor(className,
+                                                            constructorName,
+                                                            noConstructor);
+    if (result === null && send.arguments.isEmpty()) {
+      result = classElement.getSynthesizedConstructor();
+    }
+    return result;
+  }
+
+  FunctionElement resolveConstructorRedirection(FunctionElement constructor) {
+    FunctionExpression node = constructor.parseNode(compiler);
+    // A synthetic constructor does not have a node.
+    if (node === null) return null;
+    if (node.initializers === null) return null;
+    Link<Node> initializers = node.initializers.nodes;
+    if (!initializers.isEmpty() &&
+        Initializers.isConstructorRedirect(initializers.head)) {
+      return lookupConstructor(constructor.enclosingElement, initializers.head);
+    }
+    return null;
+  }
+
+  void resolveRedirectingConstructor(InitializerResolver resolver,
+                                     Node node,
+                                     FunctionElement constructor,
+                                     FunctionElement redirection) {
+    Set<FunctionElement> seen = new Set<FunctionElement>();
+    seen.add(constructor);
+    while (redirection !== null) {
+      if (seen.contains(redirection)) {
+        resolver.visitor.error(node, MessageKind.REDIRECTING_CONSTRUCTOR_CYCLE);
+        return;
+      }
+      seen.add(redirection);
+      redirection = resolveConstructorRedirection(redirection);
+    }
+  }
+
   TreeElements resolveMethodElement(FunctionElement element) {
     return compiler.withCurrentElement(element, () {
       bool isConstructor = element.kind === ElementKind.GENERATIVE_CONSTRUCTOR;
-      if (isConstructor) {
+      if (constructorElements.containsKey(element)) {
+        assert(isConstructor);
         TreeElements elements = constructorElements[element];
         if (elements !== null) return elements;
       }
@@ -73,7 +124,15 @@ class ResolverTask extends CompilerTask {
       visitor.setupFunction(tree, element);
 
       if (tree.initializers != null) {
-        new InitializerResolver(visitor, element).resolveInitializers(tree);
+        if (!isConstructor) {
+          error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
+        }
+        InitializerResolver resolver = new InitializerResolver(visitor);
+        FunctionElement redirection =
+            resolver.resolveInitializers(element, tree);
+        if (redirection !== null) {
+          resolveRedirectingConstructor(resolver, tree, element, redirection);
+        }
       }
       visitor.visit(tree.body);
 
@@ -193,7 +252,6 @@ class ResolverTask extends CompilerTask {
             [classElement.name]);
       classElement.allSupertypes = const EmptyLink<Type>();
     } else if (supertype != null) {
-      Type supertype = classElement.supertype;
       seen.add(classElement);
       Link<Type> superSupertypes =
         getOrCalculateAllSupertypes(supertype.element, seen);
@@ -214,19 +272,18 @@ class ResolverTask extends CompilerTask {
   }
 
   error(Node node, MessageKind kind, [arguments = const []]) {
-    ResolutionError error = new ResolutionError(kind, arguments);
-    compiler.reportError(node, error);
+    ResolutionError message = new ResolutionError(kind, arguments);
+    compiler.reportError(node, message);
   }
 }
 
 class InitializerResolver {
   final ResolverVisitor visitor;
-  final FunctionElement constructor;
   final Map<SourceString, Node> initialized;
   Link<Node> initializers;
   bool hasSuper;
 
-  InitializerResolver(this.visitor, this.constructor)
+  InitializerResolver(this.visitor)
     : initialized = new Map<SourceString, Node>(), hasSuper = false;
 
   error(Node node, MessageKind kind, [arguments = const []]) {
@@ -244,7 +301,7 @@ class InitializerResolver {
     return node.receiver.asIdentifier().isThis();
   }
 
-  void resolveFieldInitializer(SendSet init) {
+  void resolveFieldInitializer(FunctionElement constructor, SendSet init) {
     // init is of the form [this.]field = value.
     final Node selector = init.selector;
     final SourceString name = selector.asIdentifier().source;
@@ -274,21 +331,16 @@ class InitializerResolver {
     visitor.visitInStaticContext(init.arguments.head);
   }
 
-  SourceString getConstructorName(Send node) {
-    if (node.receiver !== null) {
-      return node.selector.asIdentifier().source;
-    } else {
-      return const SourceString('');
-    }
-  }
-
-  void resolveSuperOrThis(Send call) {
+  Element resolveSuperOrThis(FunctionElement constructor,
+                             FunctionExpression functionNode,
+                             Send call) {
     noConstructor(e) {
       if (e !== null) error(call, MessageKind.NO_CONSTRUCTOR, [e.name, e.kind]);
     }
 
     ClassElement lookupTarget = constructor.enclosingElement;
     bool validTarget = true;
+    FunctionElement result;
     if (Initializers.isSuperConstructorCall(call)) {
       // Check for invalid initializers.
       if (hasSuper) {
@@ -302,9 +354,13 @@ class InitializerResolver {
         lookupTarget = lookupTarget.supertype.element;
       }
     } else if (Initializers.isConstructorRedirect(call)) {
+      // Check that there is no body (Language specification 7.5.1).
+      if (functionNode.hasBody()) {
+        error(functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
+      }
       // Check that there are no other initializers.
       if (!initializers.tail.isEmpty()) {
-        error(call, MessageKind.REDIRECTING_CTOR_HAS_INITIALIZER);
+        error(call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
       }
     } else {
       visitor.error(call, MessageKind.CONSTRUCTOR_CALL_EXPECTED);
@@ -312,15 +368,11 @@ class InitializerResolver {
     }
 
     if (validTarget) {
-      final SourceString className = lookupTarget.name;
-      final SourceString constructorName = getConstructorName(call);
-      FunctionElement target =
-          lookupTarget.lookupConstructor(className, constructorName,
-                                         noConstructor);
-      if (target === null && call.arguments.isEmpty()) {
-        target = lookupTarget.getSynthesizedConstructor();
-      }
-      if (target === null) {
+      ResolverTask resolver = visitor.compiler.resolver;
+      result = resolver.lookupConstructor(lookupTarget, call);
+      if (result === null) {
+        SourceString constructorName = resolver.getConstructorName(call);
+        SourceString className = lookupTarget.name;
         String name = (constructorName === const SourceString(''))
                           ? className.stringValue
                           : "$className.$constructorName";
@@ -328,11 +380,11 @@ class InitializerResolver {
       } else {
         final Compiler compiler = visitor.compiler;
         // TODO(karlklose): support optional arguments.
-        if (target.parameterCount(compiler) != call.argumentCount()) {
+        if (result.parameterCount(compiler) != call.argumentCount()) {
           error(call, MessageKind.NO_MATCHING_CONSTRUCTOR);
         }
       }
-      visitor.useElement(call, target);
+      visitor.useElement(call, result);
     }
     // Resolve the arguments of the call.
     for (Link<Node> arguments = call.arguments;
@@ -340,30 +392,46 @@ class InitializerResolver {
          arguments = arguments.tail) {
       visitor.visitInStaticContext(arguments.head);
     }
+    return result;
   }
 
-  void resolveInitializers(FunctionExpression node) {
-    if (node.initializers === null) return;
-    initializers = node.initializers.nodes;
-    Compiler compiler = visitor.compiler;
+  FunctionElement resolveRedirection(FunctionElement constructor,
+                                     FunctionExpression functionNode) {
+    if (functionNode.initializers === null) return null;
+    Link<Node> link = functionNode.initializers.nodes;
+    if (!link.isEmpty() && Initializers.isConstructorRedirect(link.head)) {
+      return resolveSuperOrThis(constructor, functionNode, link.head);
+    }
+    return null;
+  }
+
+  /**
+   * Resolve all initializers of this constructor. In the case of a redirecting
+   * constructor, the resolved constructor's function element is returned.
+   */
+  FunctionElement resolveInitializers(FunctionElement constructor,
+                                      FunctionExpression functionNode) {
+    if (functionNode.initializers === null) return null;
+    initializers = functionNode.initializers.nodes;
+    FunctionElement result;
     for (Link<Node> link = initializers;
          !link.isEmpty();
          link = link.tail) {
       if (link.head.asSendSet() != null) {
         final SendSet init = link.head.asSendSet();
-        resolveFieldInitializer(init);
+        resolveFieldInitializer(constructor, init);
       } else if (link.head.asSend() !== null) {
         final Send call = link.head.asSend();
-        resolveSuperOrThis(call);
+        result = resolveSuperOrThis(constructor, functionNode, call);
       } else {
-        visitor.compiler.cancel('internal error: invalid initializer',
-                                node: link.head);
+        error(link.head, MessageKind.INVALID_INITIALIZER);
       }
     }
+    return result;
   }
 }
 
-class CommonResolverVisitor<R> extends AbstractVisitor<Element> {
+class CommonResolverVisitor<R> extends AbstractVisitor<R> {
   final Compiler compiler;
 
   CommonResolverVisitor(Compiler this.compiler);
@@ -376,13 +444,13 @@ class CommonResolverVisitor<R> extends AbstractVisitor<Element> {
   R visit(Node node) => (node == null) ? null : node.accept(this);
 
   void error(Node node, MessageKind kind, [arguments = const []]) {
-    ResolutionError error  = new ResolutionError(kind, arguments);
-    compiler.reportError(node, error);
+    ResolutionError message  = new ResolutionError(kind, arguments);
+    compiler.reportError(node, message);
   }
 
   void warning(Node node, MessageKind kind, [arguments = const []]) {
-    ResolutionWarning warning  = new ResolutionWarning(kind, arguments);
-    compiler.reportWarning(node, warning);
+    ResolutionWarning message  = new ResolutionWarning(kind, arguments);
+    compiler.reportWarning(node, message);
   }
 
   void cancel(Node node, String message) {

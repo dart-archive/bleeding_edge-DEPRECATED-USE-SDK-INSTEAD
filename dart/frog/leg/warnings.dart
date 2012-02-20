@@ -69,8 +69,16 @@ class MessageKind {
   static final CONSTRUCTOR_CALL_EXPECTED = const MessageKind(
       "only call to 'this' or 'super' constructor allowed");
   static final INVALID_FOR_IN = const MessageKind(
-      'Invalid for-in variable declaration.');
-  static final REDIRECTING_CTOR_HAS_INITIALIZER = const MessageKind(
+      'invalid for-in variable declaration.');
+  static final INVALID_INITIALIZER = const MessageKind(
+      'invalid initializer');
+  static final FUNCTION_WITH_INITIALIZER = const MessageKind(
+      'only constructors can have initializers');
+  static final REDIRECTING_CONSTRUCTOR_CYCLE = const MessageKind(
+      'cyclic constructor redirection');
+  static final REDIRECTING_CONSTRUCTOR_HAS_BODY = const MessageKind(
+      'redirecting constructor cannot have a body');
+  static final REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER = const MessageKind(
       'redirecting constructor cannot have other initializers');
   static final SUPER_INITIALIZER_IN_OBJECT = const MessageKind(
       "'Object' cannot have a super initializer");

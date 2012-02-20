@@ -536,6 +536,14 @@ class FunctionExpression extends Expression {
     if (returnType !== null) returnType.accept(visitor);
   }
 
+  bool hasBody() {
+    // TODO(karlklose,ahe): refactor AST nodes (issue 1713).
+    if (body.asReturn() !== null) return true;
+    NodeList statements = body.asBlock().statements;
+    return (!statements.nodes.isEmpty() ||
+            statements.getBeginToken().kind !== $SEMICOLON);
+  }
+
   Token getBeginToken() {
     Token token = firstBeginToken(modifiers, returnType);
     if (token !== null) return token;

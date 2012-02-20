@@ -588,7 +588,7 @@ class SsaBuilder implements Visitor {
     if (bodyElement === null) {
       bodyElement = new ConstructorBodyElement(constructor);
       TreeElements treeElements =
-          compiler.resolver.resolveMethodElement(bodyElement);
+          compiler.resolver.resolveMethodElement(constructor);
       compiler.enqueue(new WorkItem.toCodegen(bodyElement, treeElements));
       classElement.backendMembers =
           classElement.backendMembers.prepend(bodyElement);
@@ -627,19 +627,17 @@ class SsaBuilder implements Visitor {
       if (link.head is !SendSet) {
         // A super initializer or constructor redirection.
         Send call = link.head;
-        if (Initializers.isSuperConstructorCall(call)) {
-          assert(nextConstructor === null);
-          nextConstructor = elements[call];
-          // Visit arguments and map the corresponding parameter value to
-          // the resulting HInstruction value.
-          forEachArgument(call, nextConstructor, (parameter, node) {
-            visit(node);
-            HInstruction value = pop();
-            localsHandler.updateLocal(parameter, value);
-          });
-        } else {
-          compiler.unimplemented('SsaBuilder.buildFactory redirect');
-        }
+        assert(Initializers.isSuperConstructorCall(call) ||
+               Initializers.isConstructorRedirect(call));
+        assert(nextConstructor === null);
+        nextConstructor = elements[call];
+        // Visit arguments and map the corresponding parameter value to
+        // the resulting HInstruction value.
+        forEachArgument(call, nextConstructor, (parameter, node) {
+          visit(node);
+          HInstruction value = pop();
+          localsHandler.updateLocal(parameter, value);
+        });
       } else {
         // A field initializer.
         SendSet init = link.head;
