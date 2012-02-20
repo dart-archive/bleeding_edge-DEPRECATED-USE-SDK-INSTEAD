@@ -49,10 +49,17 @@ class PartialParser extends Parser {
 
   Token parseFormalParameters(Token token) => skipFormals(token);
 
-  Token skipFormals(BeginGroupToken token) {
+  Token skipFormals(Token token) {
     listener.beginOptionalFormalParameters(token);
-    expect('(', token);
-    Token endToken = token.endGroup;
+    if (!optional('(', token)) {
+      if (optional(';', token)) {
+        listener.recoverableError("expected '('", token: token);
+        return token;
+      }
+      return listener.unexpected(token);
+    }
+    BeginGroupToken beginGroupToken = token;
+    Token endToken = beginGroupToken.endGroup;
     listener.endFormalParameters(0, token, endToken);
     return endToken.next;
   }

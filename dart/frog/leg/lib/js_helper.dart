@@ -4,15 +4,6 @@
 
 #library('js_helper');
 
-$throw(String msg) {
-  var e = JS("Object", @"new Error($0)", msg);
-  var hasTrace = JS("bool", @"Error.captureStackTrace !== (void 0)");
-  if (hasTrace) {
-    JS("void", @"Error.captureStackTrace($0)", e);
-  }
-  throw e;
-}
-
 /**
   * Returns true if both arguments are numbers.
   * If only the first argument is a number, throws the given message as
@@ -208,8 +199,12 @@ neg(var a) {
 
 index(var a, var index) {
   if (a is String || isJSArray(a)) {
-    if (!(index is int)) $throw('Illegal argument');
-    if (index < 0 || index >= a.length) $throw('Out of bounds');
+    if (!(index is int)) {
+      throw new IllegalArgumentException(index);
+    }
+    if (index < 0 || index >= a.length) {
+      throw new IndexOutOfRangeException(index);
+    }
     return JS("Object", @"$0[$1]", a, index);
   }
   return UNINTERCEPTED(a[index]);
@@ -217,8 +212,12 @@ index(var a, var index) {
 
 indexSet(var a, var index, var value) {
   if (isJSArray(a)) {
-    if (!(index is int)) $throw('Illegal argument');
-    if (index < 0 || index >= a.length) $throw('Out of bounds');
+    if (!(index is int)) {
+      throw new IllegalArgumentException(index);
+    }
+    if (index < 0 || index >= a.length) {
+      throw new IndexOutOfRangeException(index);
+    }
     return JS("Object", @"$0[$1] = $2", a, index, value);
   }
   return UNINTERCEPTED(a[index] = value);
