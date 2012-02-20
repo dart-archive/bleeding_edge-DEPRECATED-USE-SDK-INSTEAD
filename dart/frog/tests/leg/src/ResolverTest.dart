@@ -458,7 +458,7 @@ resolveConstructor(String script, String statement, String className,
       classElement.lookupConstructor(buildSourceString(constructor));
   FunctionExpression tree = element.parseNode(compiler);
   ResolverVisitor visitor = new ResolverVisitor(compiler, element);
-  new InitializerResolver(visitor, element).resolveInitializers(tree);
+  new InitializerResolver(visitor).resolveInitializers(element, tree);
   visitor.visit(tree.body);
   Expect.equals(expectedElementCount, map(visitor).length);
 
