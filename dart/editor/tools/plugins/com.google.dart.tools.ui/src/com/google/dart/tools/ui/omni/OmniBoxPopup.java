@@ -731,7 +731,8 @@ public class OmniBoxPopup extends BasePopupDialog {
         new TypeProvider(getProgressMonitor()), new FileProvider(getProgressMonitor()),
 //        new EditorProvider(),
 //        new ActionProvider(),
-//        new PreferenceProvider()
+//        new PreferenceProvider(),
+//        new ViewProvider()
     };
   }
 
