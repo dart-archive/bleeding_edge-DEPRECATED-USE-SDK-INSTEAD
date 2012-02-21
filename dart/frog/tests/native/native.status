@@ -3,3 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 prefix frog_native
+
+[ $component == webdriver && $browser == ie ]
+NativeClassAvoidsHiddenNameFrogTest: Fail
+
+[ $component == webdriver && $browser == opera ]
+*: Skip
