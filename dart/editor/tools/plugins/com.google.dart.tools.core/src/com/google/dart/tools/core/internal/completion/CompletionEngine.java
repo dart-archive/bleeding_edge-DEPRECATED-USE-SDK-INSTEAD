@@ -1304,6 +1304,9 @@ public class CompletionEngine {
   private void createCompletionsForMethodInvocation(DartIdentifier node, Type type,
       boolean isQualifiedByThis, boolean isMethodStatic) {
     String prefix = extractFilterPrefix(node);
+    if (TypeKind.of(type) == TypeKind.VOID) {
+      return;
+    }
     InterfaceType itype = (InterfaceType) type;
     List<Element> members = getAllElements(itype);
     for (Element elem : members) {
