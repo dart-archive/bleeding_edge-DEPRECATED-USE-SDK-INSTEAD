@@ -5,6 +5,7 @@
 #library('ssa');
 
 #import('../leg.dart');
+#import('../native_handler.dart', prefix: 'native');
 #import('../elements/elements.dart');
 #import('../scanner/scannerlib.dart');
 #import('../tree/tree.dart');

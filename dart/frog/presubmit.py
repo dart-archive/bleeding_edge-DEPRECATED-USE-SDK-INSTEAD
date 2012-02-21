@@ -145,7 +145,8 @@ def main():
       #   than pain.
       # Run frogsh on most of the tests.
       cmd = test_cmd + ['--component=frogsh', 'language', 'corelib',
-                        'isolate', 'peg', 'frog', 'css', 'dartdoc']
+                        'isolate', 'peg', 'frog', 'css', 'dartdoc',
+                        'frog_native']
       RunCommand(*cmd, verbose=True)
 
     # Run leg unit tests.
@@ -156,6 +157,9 @@ def main():
     test_cmd.remove('--checked')
 
     cmd = test_cmd + ['--component=leg', 'leg_only']
+    RunCommand(*cmd, verbose=True)
+
+    cmd = test_cmd + ['--component=leg', 'frog_native']
     RunCommand(*cmd, verbose=True)
 
     # Run leg on "built-in" tests.

@@ -536,7 +536,11 @@ class SsaCodeGenerator implements HVisitor {
       }
       code = code.replaceAll('\$$i', name);
     }
-    buffer.add('($code)');
+    if (node.generateAtUseSite()) {
+      buffer.add('($code)');
+    } else {
+      buffer.add('$code');
+    }
   }
 
   visitForeignNew(HForeignNew node) {

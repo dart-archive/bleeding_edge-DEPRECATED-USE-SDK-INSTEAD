@@ -423,12 +423,27 @@ class Listener {
   }
 
   Token expectedExpression(Token token) {
-    error("Expected an expression, but got '$token'", token);
+    error("expected an expression, but got '$token'", token);
     return skipToEof(token);
   }
 
   Token unexpected(Token token) {
-    error("Unexpected token '$token'", token);
+    error("unexpected token '$token'", token);
+    return skipToEof(token);
+  }
+
+  Token expectedBlockToSkip(Token token) {
+    error("expected a block, but got '$token'", token);
+    return skipToEof(token);
+  }
+
+  Token expectedFunctionBody(Token token) {
+    error("expected a function body, but got '$token'", token);
+    return skipToEof(token);
+  }
+
+  Token expectedClassBody(Token token) {
+    error("expected a class body, but got '$token'", token);
     return skipToEof(token);
   }
 
@@ -511,12 +526,15 @@ class ElementListener extends Listener {
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,
                            Token endToken) {
+    SourceString nativeName = native.checkForNativeClass(this);
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
     TypeAnnotation supertype = popNode();
     Identifier name = popNode();
-    pushElement(new PartialClassElement(
-        name.source, beginToken, endToken, compilationUnitElement));
+    ClassElement element = new PartialClassElement(
+        name.source, beginToken, endToken, compilationUnitElement);
+    element.nativeName = nativeName;
+    pushElement(element);
   }
 
   void endDefaultClause(Token defaultKeyword) {
@@ -665,14 +683,40 @@ class ElementListener extends Listener {
   }
 
   Token expectedExpression(Token token) {
-    listener.cancel("Expected an expression, but got '$token'", token: token);
+    listener.cancel("expected an expression, but got '$token'", token: token);
     pushNode(null);
     return skipToEof(token);
   }
 
   Token unexpected(Token token) {
-    listener.cancel("Unexpected token '$token'", token: token);
+    listener.cancel("unexpected token '$token'", token: token);
     return skipToEof(token);
+  }
+
+  Token expectedBlockToSkip(Token token) {
+    if (token.stringValue === 'native') {
+      return native.handleNativeBlockToSkip(this, token);
+    } else {
+      return unexpected(token);
+    }
+  }
+
+  Token expectedFunctionBody(Token token) {
+    listener.cancel("expected a function body, but got '$token'", token: token);
+    return skipToEof(token);
+  }
+
+  Token expectedClassBody(Token token) {
+    listener.cancel("expected a class body, but got '$token'", token: token);
+    return skipToEof(token);
+  }
+
+  Token expectedClassBodyToSkip(Token token) {
+    if (token.stringValue === 'native') {
+      return native.handleNativeClassBodyToSkip(this, token);
+    } else {
+      return unexpected(token);
+    }
   }
 
   void recoverableError(String message, [Token token, Node node]) {
@@ -834,7 +878,7 @@ class NodeListener extends ElementListener {
       kind = ElementKind.GETTER;
     } else if (getOrSet.stringValue === 'set') {
       kind = ElementKind.SETTER;
-    }    
+    }
     pushElement(new PartialFunctionElement(name.source, beginToken, getOrSet,
                                            endToken, kind,
                                            modifiers, compilationUnitElement));
@@ -880,6 +924,25 @@ class NodeListener extends ElementListener {
 
   void handleOnError(Token token, var error) {
     listener.cancel("internal error: '${token.value}': ${error}", token: token);
+  }
+
+  Token expectedFunctionBody(Token token) {
+    if (token.stringValue === 'native') {
+      return native.handleNativeFunctionBody(this, token);
+    } else {
+      listener.cancel(
+          "expected a function body, but got '$token'", token: token);
+      return skipToEof(token);
+    }
+  }
+
+  Token expectedClassBody(Token token) {
+    if (token.stringValue === 'native') {
+      return native.handleNativeClassBody(this, token);
+    } else {
+      listener.cancel("expected a class body, but got '$token'", token: token);
+      return skipToEof(token);
+    }
   }
 
   void handleLiteralInt(Token token) {

@@ -9,6 +9,7 @@
 #import('io/io.dart', prefix: 'io');
 
 #import('elements/elements.dart');
+#import('native_handler.dart', prefix: 'native');
 #import('scanner/scannerlib.dart');
 #import('scanner/scanner_implementation.dart');
 #import('ssa/ssa.dart');

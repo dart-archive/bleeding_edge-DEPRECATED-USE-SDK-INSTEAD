@@ -8,6 +8,7 @@
 #import('../../../lib/uri/uri.dart');
 #import('../elements/elements.dart');
 #import('../leg.dart');
+#import('../native_handler.dart', prefix: 'native');
 #import('../string_validator.dart');
 #import('../tree/tree.dart');
 #import('../util/characters.dart');

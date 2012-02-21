@@ -147,7 +147,7 @@ def TestFrog(arch, mode, system, browser, flags):
   if arch != 'frogium': # frog and frogsh
     TestStep("frog", mode, system, arch, [], flags)
     TestStep("frog_extra", mode, system,
-        arch, ['frog', 'peg', 'css'], flags)
+        arch, ['frog', 'frog_native', 'peg', 'css'], flags)
 
     if arch == 'frogsh':
       # There is no need to run these tests both for frog and frogsh.
@@ -158,7 +158,8 @@ def TestFrog(arch, mode, system, browser, flags):
       TestStep("leg_extra", mode, system, 'vm', ['leg'], flags)
 
   else:
-    tests = ['client', 'language', 'corelib', 'isolate', 'frog', 'peg', 'css']
+    tests = ['client', 'language', 'corelib', 'isolate', 'frog',
+             'frog_native', 'peg', 'css']
 
     # TODO(jmesserly): make DumpRenderTree more like other browser tests, so
     # we don't have this translation step. See dartbug.com/1158.

@@ -197,7 +197,7 @@ class Parser {
 
   Token skipBlock(Token token) {
     if (!optional('{', token)) {
-      return listener.unexpected(token);
+      return listener.expectedBlockToSkip(token);
     }
     BeginGroupToken beginGroupToken = token;
     assert(beginGroupToken.endGroup === null ||
@@ -527,9 +527,7 @@ class Parser {
     Token begin = token;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
-      token = listener.unexpected(token);
-      listener.endClassBody(0, begin, null);
-      return token;
+      token = listener.expectedClassBody(token);
     }
     token = token.next;
     int count = 0;
@@ -759,7 +757,11 @@ class Parser {
     Token begin = token;
     int statementCount = 0;
     listener.beginFunctionBody(begin);
-    token = expect('{', token);
+    if (!optional('{', token)) {
+      return listener.expectedFunctionBody(token);
+    } else {
+      token = token.next;
+    }
     while (notEofOrValue('}', token)) {
       token = parseStatement(token);
       ++statementCount;

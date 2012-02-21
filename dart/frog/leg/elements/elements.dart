@@ -635,6 +635,8 @@ class ClassElement extends ContainerElement {
   }
 
   bool isInterface() => false;
+  bool isNative() => nativeName != null;
+  SourceString nativeName;
 }
 
 class Elements {

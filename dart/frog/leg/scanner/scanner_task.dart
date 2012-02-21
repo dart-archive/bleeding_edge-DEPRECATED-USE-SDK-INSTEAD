@@ -12,6 +12,7 @@ class ScannerTask extends CompilerTask {
       if (compilationUnit.kind === ElementKind.LIBRARY) {
         processScriptTags(compilationUnit);
       }
+      native.processNativeClasses(compiler, compilationUnit);
     });
   }
 

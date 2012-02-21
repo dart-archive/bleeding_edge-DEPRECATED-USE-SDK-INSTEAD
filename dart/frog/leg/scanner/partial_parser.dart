@@ -5,7 +5,7 @@
 class PartialParser extends Parser {
   PartialParser(Listener listener) : super(listener);
 
-  Token parseClassBody(Token token) => skipBlock(token);
+  Token parseClassBody(Token token) => skipClassBody(token);
 
   Token fullParseClassBody(Token token) => super.parseClassBody(token);
 
@@ -28,6 +28,16 @@ class PartialParser extends Parser {
       }
       token = token.next;
     }
+  }
+
+  Token skipClassBody(Token token) {
+    if (!optional('{', token)) {
+      return listener.expectedClassBodyToSkip(token);
+    }
+    BeginGroupToken beginGroupToken = token;
+    assert(beginGroupToken.endGroup === null ||
+           beginGroupToken.endGroup.kind === $CLOSE_CURLY_BRACKET);
+    return beginGroupToken.endGroup;
   }
 
   Token parseFunctionBody(Token token, bool isExpression) {

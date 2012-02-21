@@ -482,7 +482,7 @@ class LocalsHandler {
     if (scopeData == null) return;
     if (scopeData.hasBoxedLoopVariables()) {
       updateCaptureBox(scopeData.boxElement, scopeData.boxedLoopVariables);
-    }    
+    }
   }
 
   void endLoop(HBasicBlock loopEntry) {
@@ -1565,6 +1565,9 @@ class SsaBuilder implements Visitor {
             Namer.OPERATOR_EQUALS, 1);
         push(new HForeign(
             new SourceString('\$0.$name'), const SourceString('bool'), inputs));
+        break;
+      case "native":
+        native.handleSsaNative(this, node);
         break;
       default:
         throw "Unknown foreign: ${node.selector}";
