@@ -694,7 +694,8 @@ class SsaCodeGenerator implements HVisitor {
     use(node.index, JSPrecedence.RELATIONAL_PRECEDENCE);
     buffer.add(' >= ');
     use(node.length, JSPrecedence.SHIFT_PRECEDENCE);
-    buffer.add(") throw 'Out of bounds'");
+    buffer.add(") ");
+    generateFail('ioore', node.index);
   }
 
   visitIntegerCheck(HIntegerCheck node) {
@@ -702,7 +703,20 @@ class SsaCodeGenerator implements HVisitor {
     use(node.value, JSPrecedence.EQUALITY_PRECEDENCE);
     buffer.add(' !== (');
     use(node.value, JSPrecedence.BITWISE_OR_PRECEDENCE);
-    buffer.add(" | 0)) throw 'Illegal argument'");
+    buffer.add(" | 0)) ");
+    generateFail('iae', node.value);
+  }
+
+  void generateFail(String helperName, HInstruction argument) {
+    Element helper = compiler.findHelper(new SourceString(helperName));
+    compiler.registerStaticUse(helper);
+    buffer.add('throw ');
+    beginExpression(JSPrecedence.EXPRESSION_PRECEDENCE);
+    beginExpression(JSPrecedence.CALL_PRECEDENCE);
+    buffer.add(compiler.namer.isolateAccess(helper));
+    visitArguments([null, argument]);
+    endExpression(JSPrecedence.CALL_PRECEDENCE);
+    endExpression(JSPrecedence.EXPRESSION_PRECEDENCE);
   }
 
   void addIndentation() {

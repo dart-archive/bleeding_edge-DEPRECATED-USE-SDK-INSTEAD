@@ -1091,7 +1091,8 @@ class HInvokeInterceptor extends HInvokeStatic {
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
   HType computeType() {
-    if (name == const SourceString('length') && inputs[1].isStringOrArray()) {
+    if (getter && name == const SourceString('length')
+        && inputs[1].isStringOrArray()) {
       builtinJsName = 'length';
       return HType.INTEGER;
     } else if (name == const SourceString('add') && inputs[1].isArray()) {

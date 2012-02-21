@@ -20,11 +20,4 @@ class InternalError {
 // TODO(ahe): VM specfic exception?
 class StaticResolutionException implements Exception {}
 
-class List<E> implements Iterable<E> {
-  factory List([int length]) => Primitives.newList(length);
-  factory List.from(Iterable<E> other) {
-    throw 'List.from is not implemented';
-  }
-}
-
 void assert(condition) {}

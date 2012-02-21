@@ -23,7 +23,7 @@
 #source('../../../corelib/src/isolate.dart');
 #source('../../../corelib/src/iterable.dart');
 #source('../../../corelib/src/iterator.dart');
-// #source('../../../corelib/src/list.dart');
+#source('../../../corelib/src/list.dart');
 #source('../../../corelib/src/map.dart');
 #source('../../../corelib/src/math.dart');
 #source('../../../corelib/src/num.dart');

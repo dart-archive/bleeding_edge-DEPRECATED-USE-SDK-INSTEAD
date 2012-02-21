@@ -4,6 +4,8 @@
 
 #library('js_helper');
 
+#import('coreimpl.dart');
+
 /**
   * Returns true if both arguments are numbers.
   * If only the first argument is a number, throws the given message as
@@ -14,7 +16,7 @@ bool checkNumbers(var a, var b, var message) {
     if (b is num) {
       return true;
     } else {
-      throw message;
+      throw new IllegalArgumentException(message);
     }
   }
   return false;
@@ -64,6 +66,7 @@ sub(var a, var b) {
 
 mod(var a, var b) {
   if (checkNumbers(a, b, "int% expects an int as second operand.")) {
+    if (b === 0) throw new IntegerDivisionByZeroException();
     // Euclidean Modulo.
     int result = JS("num", @"$0 % $1", a, b);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
@@ -150,6 +153,7 @@ le(var a, var b) {
 shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b, "int<< expects an int as second operand.")) {
+    if (b < 0) throw new IllegalArgumentException(b);
     return JS("num", @"$0 << $1", a, b);
   }
   return UNINTERCEPTED(a << b);
@@ -158,6 +162,7 @@ shl(var a, var b) {
 shr(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b, "int>> expects an int as second operand.")) {
+    if (b < 0) throw new IllegalArgumentException(b);
     return JS("num", @"$0 >> $1", a, b);
   }
   return UNINTERCEPTED(a >> b);
@@ -198,6 +203,7 @@ neg(var a) {
 }
 
 index(var a, var index) {
+  checkNull(a);
   if (a is String || isJSArray(a)) {
     if (!(index is int)) {
       throw new IllegalArgumentException(index);
@@ -211,6 +217,7 @@ index(var a, var index) {
 }
 
 indexSet(var a, var index, var value) {
+  checkNull(a);
   if (isJSArray(a)) {
     if (!(index is int)) {
       throw new IllegalArgumentException(index);
@@ -224,6 +231,7 @@ indexSet(var a, var index, var value) {
 }
 
 builtin$add$1(var receiver, var value) {
+  checkNull(receiver);
   if (isJSArray(receiver)) {
     JS("Object", @"$0.push($1)", receiver, value);
     return;
@@ -232,13 +240,16 @@ builtin$add$1(var receiver, var value) {
 }
 
 builtin$removeLast$0(var receiver) {
+  checkNull(receiver);
   if (isJSArray(receiver)) {
+    if (receiver.length === 0) throw new IndexOutOfRangeException(-1);
     return JS("Object", @"$0.pop()", receiver);
   }
   return UNINTERCEPTED(receiver.removeLast());
 }
 
 builtin$filter$1(var receiver, var predicate) {
+  checkNull(receiver);
   if (isJSArray(receiver)) {
     return JS("Object", @"$0.filter(function(v) { return $1(v) === true; })",
               receiver, predicate);
@@ -248,12 +259,24 @@ builtin$filter$1(var receiver, var predicate) {
 
 
 builtin$get$length(var receiver) {
+  checkNull(receiver);
   if (receiver is String || isJSArray(receiver)) {
     return JS("num", @"$0.length", receiver);
   }
   return UNINTERCEPTED(receiver.length);
 }
 
+builtin$set$length(receiver, newLength) {
+  checkNull(receiver);
+  if (isJSArray(receiver)) {
+    checkNull(newLength); // TODO(ahe): This is not specified but co19 tests it.
+    if (newLength is !int) throw new IllegalArgumentException(newLength);
+    if (newLength < 0) throw new IndexOutOfRangeException(newLength);
+    JS('void', @"$0.length = $1", receiver, newLength);
+  } else {
+    UNINTERCEPTED(receiver.length = newLength);
+  }
+}
 
 builtin$toString$0(var value) {
   if (JS("bool", @"typeof $0 == 'object'", value)) {
@@ -273,7 +296,8 @@ builtin$toString$0(var value) {
 }
 
 
-builtin$iterator$0(var receiver) {
+builtin$iterator$0(receiver) {
+  checkNull(receiver);
   if (isJSArray(receiver)) {
     return new ListIterator(receiver);
   }
@@ -286,6 +310,7 @@ class ListIterator<T> implements Iterator<T> {
   ListIterator(List<T> this.list) : i = 0;
   bool hasNext() => i < JS("int", @"$0.length", list);
   T next() {
+    if (!hasNext()) throw new NoMoreElementsException();
     var value = JS("Object", @"$0[$1]", list, i);
     i += 1;
     return value;
@@ -300,7 +325,8 @@ builtin$charCodeAt$1(var receiver, int index) {
   }
 }
 
-builtin$isEmpty$0(var receiver) {
+builtin$isEmpty$0(receiver) {
+  checkNull(receiver);
   if (receiver is String || isJSArray(receiver)) {
     return JS("bool", @"$0.length === 0", receiver);
   }
@@ -327,10 +353,11 @@ class Primitives {
     return "Instance of '$name'";
   }
 
-  static List newList(int length) {
+  static List newList(length) {
     if (length == null) return JS("Object", @"new Array()");
-    if (!(length is int)) throw "Invalid argument";
-    if (length < 0) throw "Negative size";
+    if ((length is !int) || (length < 0)) {
+      throw new IllegalArgumentException(length);
+    }
     return JS("Object", @"new Array($0)", length);
   }
 
@@ -399,4 +426,448 @@ builtin$compareTo$1(a, b) {
   } else {
     return UNINTERCEPTED(a.compareTo(b));
   }
+}
+
+/**
+ * Called by generated code to throw an illegal-argument exception,
+ * for example, if a non-integer index is given to an optimized
+ * indexed access.
+ */
+iae(argument) {
+  throw new IllegalArgumentException(argument);
+}
+
+/**
+ * Called by generated code to throw an index-out-of-range exception,
+ * for example, if a bounds check fails in an optimized indexed
+ * access.
+ */
+ioore(index) {
+  throw new IndexOutOfRangeException(index);
+}
+
+builtin$addAll$1(receiver, collection) {
+  checkNull(receiver);
+  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.addAll(collection));
+
+  // TODO(ahe): Use for-in when it is implemented correctly.
+  var iterator = collection.iterator();
+  while (iterator.hasNext()) {
+    receiver.add(iterator.next());
+  }
+}
+
+// TODO(ahe): Investigate why this method causes a compiler crash.
+XXX_builtin$addLast$1(receiver, value) {
+  checkNull(receiver);
+  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.addLast(value));
+
+  throw @'builtin$addLast$1 is not implemented';
+}
+
+builtin$clear$0(receiver) {
+  checkNull(receiver);
+  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.clear());
+  receiver.length = 0;
+}
+
+// TODO(ahe): Investigate why this method causes a compiler crash.
+XXX_builtin$forEach$1(receiver, f) {
+  checkNull(receiver);
+  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.forEach(f));
+
+  throw @'builtin$forEach$1 is not implemented';
+}
+
+builtin$getRange$2(receiver, start, length) {
+  checkNull(receiver);
+  if (!isJSArray(receiver)) {
+    return UNINTERCEPTED(receiver.getRange(start, length));
+  }
+  if (0 === length) return [];
+  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
+  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
+  if (start is !int) throw new IllegalArgumentException(start);
+  if (length is !int) throw new IllegalArgumentException(length);
+  if (start < 0) throw new IndexOutOfRangeException(start);
+  var end = start + length;
+  if (end > receiver.length) {
+    throw new IndexOutOfRangeException(length);
+  }
+  if (length < 0) throw new IllegalArgumentException(length);
+  return JS("Object", @"$0.slice($1, $2)", receiver, start, end);
+}
+
+builtin$indexOf$1(receiver, element) {
+  checkNull(receiver);
+  if (isJSArray(receiver) || receiver is String) {
+    return builtin$indexOf$2(receiver, element, 0);
+  }
+  return UNINTERCEPTED(receiver.indexOf(element));
+}
+
+builtin$indexOf$2(receiver, element, start) {
+  checkNull(receiver);
+  if (isJSArray(receiver)) {
+    if (start is !int) throw new IllegalArgumentException(start);
+    var length = JS("num", @"$0.length", receiver);
+    return Arrays.indexOf(receiver, element, start, length);
+  } else if (receiver is String) {
+    throw new NotImplementedException();
+  }
+  return UNINTERCEPTED(receiver.indexOf(element, start));
+}
+
+builtin$insertRange$2(receiver, start, length) {
+  checkNull(receiver);
+  if (isJSArray(receiver)) {
+    return builtin$insertRange$3(receiver, start, length, null);
+  }
+  return UNINTERCEPTED(receiver.insertRange(start, length));
+}
+
+builtin$insertRange$3(receiver, start, length, initialValue) {
+  checkNull(receiver);
+  if (!isJSArray(receiver)) {
+    return UNINTERCEPTED(receiver.insertRange(start, length, initialValue));
+  }
+  return listInsertRange(receiver, start, length, initialValue);
+}
+
+listInsertRange(receiver, start, length, initialValue) {
+  if (length === 0) {
+    return;
+  }
+  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
+  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
+  if (length is !int) throw new IllegalArgumentException(length);
+  if (length < 0) throw new IllegalArgumentException(length);
+  if (start is !int) throw new IllegalArgumentException(start);
+
+  var receiverLength = JS("num", @"$0.length", receiver);
+  if (start < 0 || start > receiverLength) {
+    throw new IndexOutOfRangeException(start);
+  }
+  receiver.length = receiverLength + length;
+  Arrays.copy(receiver,
+              start,
+              receiver,
+              start + length,
+              receiverLength - start);
+  if (initialValue !== null) {
+    for (int i = start; i < start + length; i++) {
+      receiver[i] = initialValue;
+    }
+  }
+  receiver.length = receiverLength + length;
+}
+
+builtin$last$0(receiver) {
+  checkNull(receiver);
+  if (!isJSArray(receiver)) {
+    return UNINTERCEPTED(receiver.last());
+  }
+  return receiver[receiver.length - 1];
+}
+
+builtin$lastIndexOf$1(receiver, element) {
+  checkNull(receiver);
+  if (isJSArray(receiver)) {
+    var start = JS("num", @"$0.length", receiver);
+    return Arrays.lastIndexOf(receiver, element, start);
+  } else if (receiver is String) {
+    throw new NotImplementedException();
+  }
+  return UNINTERCEPTED(receiver.lastIndexOf(element));
+}
+
+builtin$lastIndexOf$2(receiver, element, start) {
+  checkNull(receiver);
+  if (isJSArray(receiver)) {
+    return Arrays.lastIndexOf(receiver, element, start);
+  } else if (receiver is String) {
+    throw new NotImplementedException();
+  }
+  return UNINTERCEPTED(receiver.lastIndexOf(element, start));
+}
+
+builtin$removeRange$2(receiver, start, length) {
+  checkNull(receiver);
+  if (!isJSArray(receiver)) {
+    return UNINTERCEPTED(receiver.removeRange(start, length));
+  }
+  if (length == 0) {
+    return;
+  }
+  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
+  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
+  if (start is !int) throw new IllegalArgumentException(start);
+  if (length is !int) throw new IllegalArgumentException(length);
+  if (length < 0) throw new IllegalArgumentException(length);
+  var receiverLength = JS("num", @"$0.length", receiver);
+  if (start < 0 || start >= receiverLength) {
+    throw new IndexOutOfRangeException(start);
+  }
+  if (start + length > receiverLength) {
+    throw new IndexOutOfRangeException(start + length);
+  }
+  Arrays.copy(receiver,
+              start + length,
+              receiver,
+              start,
+              receiverLength - length - start);
+  receiver.length = receiverLength - length;
+}
+
+builtin$setRange$3(receiver, start, length, from) {
+  checkNull(receiver);
+  if (isJSArray(receiver)) {
+    return builtin$setRange$4(receiver, start, length, from, 0);
+  }
+  return UNINTERCEPTED(receiver.setRange(start, length, from));
+}
+
+builtin$setRange$4(receiver, start, length, from, startFrom) {
+  checkNull(receiver);
+  if (!isJSArray(receiver)) {
+    return UNINTERCEPTED(receiver.setRange(start, length, from, startFrom));
+  }
+
+  if (length === 0) return;
+  checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
+  checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
+  checkNull(from); // TODO(ahe): This is not specified but co19 tests it.
+  checkNull(startFrom); // TODO(ahe): This is not specified but co19 tests it.
+  if (start is !int) throw new IllegalArgumentException(start);
+  if (length is !int) throw new IllegalArgumentException(length);
+  if (startFrom is !int) throw new IllegalArgumentException(startFrom);
+  if (length < 0) throw new IllegalArgumentException(length);
+  if (start < 0) throw new IndexOutOfRangeException(start);
+  if (start + length > receiver.length) {
+    throw new IndexOutOfRangeException(start + length);
+  }
+
+  Arrays.copy(from, startFrom, receiver, start, length);
+}
+
+builtin$some$1(receiver, f) {
+  checkNull(receiver);
+  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.some(f));
+
+  return Collections.some(receiver, f);
+}
+
+builtin$sort$1(receiver, compare) {
+  checkNull(receiver);
+  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.sort(compare));
+
+  DualPivotQuicksort.sort(receiver, compare);
+}
+
+checkNull(object) {
+  if (object === null) throw new NullPointerException();
+}
+
+builtin$isNegative$0(receiver) {
+  checkNull(receiver);
+  if (receiver is num) {
+    return (receiver === 0) ? (1 / receiver) < 0 : receiver < 0;
+  } else {
+    return UNINTERCEPTED(receiver.isNegative());
+  }
+}
+
+builtin$isNaN$0(receiver) {
+  checkNull(receiver);
+  if (receiver is num) {
+    return JS("bool", @"isNaN($0)", receiver);
+  } else {
+    return UNINTERCEPTED(receiver.isNegative());
+  }
+}
+
+builtin$remainder$1(a, b) {
+  checkNull(a);
+  if (checkNumbers(a, b, "num.remainder expects a number as second operand.")) {
+    throw new NotImplementedException();
+  } else {
+    return UNINTERCEPTED(a.remainder(b));
+  }
+}
+
+builtin$abs$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !num) return UNINTERCEPTED(receiver.abs());
+
+  throw new NotImplementedException();
+}
+
+builtin$toInt$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !num) return UNINTERCEPTED(receiver.toInt());
+
+  throw new NotImplementedException();
+}
+
+builtin$ceil$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !num) return UNINTERCEPTED(receiver.ceil());
+
+  throw new NotImplementedException();
+}
+
+builtin$floor$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !num) return UNINTERCEPTED(receiver.floor());
+
+  throw new NotImplementedException();
+}
+
+builtin$isInfinite$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !num) return UNINTERCEPTED(receiver.isInfinite());
+
+  throw new NotImplementedException();
+}
+
+builtin$negate$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !num) return UNINTERCEPTED(receiver.negate());
+
+  throw new NotImplementedException();
+}
+
+builtin$round$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !num) return UNINTERCEPTED(receiver.round());
+
+  throw new NotImplementedException();
+}
+
+builtin$toDouble$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !num) return UNINTERCEPTED(receiver.toDouble());
+
+  throw new NotImplementedException();
+}
+
+builtin$truncate$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !num) return UNINTERCEPTED(receiver.truncate());
+
+  throw new NotImplementedException();
+}
+
+
+builtin$toStringAsFixed$1(receiver, fractionDigits) {
+  checkNull(receiver);
+  if (receiver is !num) {
+    return UNINTERCEPTED(receiver.toStringAsFixed(fractionDigits));
+  }
+
+  throw new NotImplementedException();
+}
+
+builtin$allMatches$1(receiver, str) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.allMatches(str));
+
+  throw new NotImplementedException();
+}
+
+builtin$concat$1(receiver, other) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.concat(other));
+
+  throw new NotImplementedException();
+}
+
+builtin$contains$2(receiver, other, startIndex) {
+  checkNull(receiver);
+  if (receiver is !String) {
+    return UNINTERCEPTED(receiver.contains(other, startIndex));
+  }
+
+  throw new NotImplementedException();
+}
+
+builtin$endsWith$1(receiver, other) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.endsWith(other));
+
+  throw new NotImplementedException();
+}
+
+builtin$replaceAll$2(receiver, from, to) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.replaceAll(from, to));
+
+  throw new NotImplementedException();
+}
+
+builtin$replaceFirst$2(receiver, from, to) {
+  checkNull(receiver);
+  if (receiver is !String) {
+    return UNINTERCEPTED(receiver.replaceFirst(from, to));
+  }
+
+  throw new NotImplementedException();
+}
+
+builtin$split$1(receiver, pattern) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.split(pattern));
+
+  throw new NotImplementedException();
+}
+
+builtin$splitChars$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.splitChars());
+
+  throw new NotImplementedException();
+}
+
+builtin$startsWith$1(receiver, other) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.startsWith(other));
+
+  throw new NotImplementedException();
+}
+
+builtin$substring$1(receiver, startIndex) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.substring(startIndex));
+
+  throw new NotImplementedException();
+}
+
+builtin$substring$2(receiver, startIndex, endIndex) {
+  checkNull(receiver);
+  if (receiver is !String) {
+    return UNINTERCEPTED(receiver.substring(startIndex, endIndex));
+  }
+
+  throw new NotImplementedException();
+}
+
+builtin$toLowerCase$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.toLowerCase());
+
+  throw new NotImplementedException();
+}
+
+builtin$toUpperCase$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.toUpperCase());
+
+  throw new NotImplementedException();
+}
+
+builtin$trim$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.trim());
+
+  throw new NotImplementedException();
 }

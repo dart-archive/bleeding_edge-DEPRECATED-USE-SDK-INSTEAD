@@ -55,6 +55,12 @@ class Interceptors {
     return result;
   }
 
+  Element getStaticSetInterceptor(SourceString name) {
+    String mangledName = "builtin\$set\$${name}";
+    Element result = compiler.findHelper(new SourceString(mangledName));
+    return result;
+  }
+
   Element getOperatorInterceptor(Operator op) {
     SourceString name = mapOperatorToMethodName(op);
     Element result = compiler.findHelper(name);
@@ -1291,8 +1297,20 @@ class SsaBuilder implements Visitor {
         visit(send.receiver);
         receiver = pop();
       }
-      add(new HInvokeDynamicSetter(
-          selector, null, dartSetterName, receiver, value));
+      Element staticInterceptor = null;
+      if (methodInterceptionEnabled) {
+        staticInterceptor =
+          interceptors.getStaticSetInterceptor(dartSetterName);
+      }
+      if (staticInterceptor != null) {
+        HStatic target = new HStatic(staticInterceptor);
+        add(target);
+        List<HInstruction> inputs = <HInstruction>[target, receiver, value];
+        add(new HInvokeInterceptor(selector, dartSetterName, false, inputs));
+      } else {
+        add(new HInvokeDynamicSetter(selector, null, dartSetterName,
+                                     receiver, value));
+      }
       stack.add(value);
     } else {
       localsHandler.updateLocal(element, value);

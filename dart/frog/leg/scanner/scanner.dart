@@ -462,7 +462,7 @@ class AbstractScanner<T> implements Scanner {
       next = advance();
     }
     if (!hasDigit) {
-      appendByteStringToken(INT_INFO, asciiString(start, -2));
+      appendByteStringToken(INT_INFO, asciiString(start, -1));
       // TODO(ahe): Wrong offset for the period.
       appendPrecenceToken(PERIOD_INFO);
       return bigSwitch(next);

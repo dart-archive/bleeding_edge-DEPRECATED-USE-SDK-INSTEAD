@@ -77,7 +77,7 @@ def parseOptions(args):
     help='The location of the VM.')
 
   optionParser.add_option('--js_cmd',
-    default = 'node --crankshaft', # node is really slow without this.
+    default = '%s --crankshaft' % D8,
     metavar='FILE', help='The shell cmd to use to run output JS code.')
 
   optionParser.add_option('--keep_files',

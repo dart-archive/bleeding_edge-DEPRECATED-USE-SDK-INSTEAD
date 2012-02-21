@@ -17,4 +17,8 @@
 #source('../../../corelib/src/implementation/queue.dart');
 #source('../../../corelib/src/implementation/splay_tree.dart');
 #source('../../../corelib/src/implementation/stopwatch_implementation.dart');
+
+#source('../../../runtime/lib/arrays.dart');
+#source('../../../runtime/lib/collections.dart');
+
 #source('mockimpl.dart');

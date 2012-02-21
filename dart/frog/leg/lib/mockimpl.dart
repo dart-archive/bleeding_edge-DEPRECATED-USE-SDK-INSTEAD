@@ -484,3 +484,16 @@ class DateImplementation implements Date {
     return adjustedSeconds * Duration.MILLISECONDS_PER_SECOND + milliseconds;
   }
 }
+
+class ListFactory<E> implements List<E> {
+  factory List([int length]) => Primitives.newList(length);
+  factory List.from(Iterable<E> other) {
+    List<E> result = new List<E>();
+    // TODO(ahe): Use for-in when it is implemented correctly.
+    Iterator<E> iterator = other.iterator();
+    while (iterator.hasNext()) {
+      result.add(iterator.next());
+    }
+    return result;
+  }
+}

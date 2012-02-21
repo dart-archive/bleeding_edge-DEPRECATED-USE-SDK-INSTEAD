@@ -500,7 +500,19 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
     CompilationUnitElement compilationUnit = member.getCompilationUnit();
     ClassElement closureClassElement = new ClassElement(name, compilationUnit);
     String isolateAccess = namer.isolatePropertyAccess(closureClassElement);
-    buffer.add("$isolateAccess = function(self) { this.self = self; };\n");
+
+    // Define the constructor with a name so that Object.toString can
+    // find the class name of the closure class.
+    buffer.add("$isolateAccess = function $name(self) ");
+    buffer.add("{ this.self = self; };\n");
+
+    // Make the closure class extend Object.
+    addInheritFunctionIfNecessary(buffer);
+    ClassElement objectClass =
+        compiler.coreLibrary.find(const SourceString('Object'));
+    String superName = namer.isolatePropertyAccess(objectClass);
+    buffer.add('${inheritsName}($isolateAccess, $superName);\n');
+
     String prototype = "$isolateAccess.prototype";
 
     // Now add the methods on the closure class. The instance method does not
