@@ -70,22 +70,22 @@ public class BrowserManager {
    * Launch the browser and open the given file. If debug mode also connect to browser.
    */
   public void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
-      IProgressMonitor monitor, boolean debug) throws CoreException {
-    launchBrowser(launch, launchConfig, file, null, monitor, debug);
+      IProgressMonitor monitor, boolean enableDebugging) throws CoreException {
+    launchBrowser(launch, launchConfig, file, null, monitor, enableDebugging);
   }
 
   /**
    * Launch the browser and open the given url. If debug mode also connect to browser.
    */
   public void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, String url,
-      IProgressMonitor monitor, boolean debug) throws CoreException {
-    launchBrowser(launch, launchConfig, null, url, monitor, debug);
+      IProgressMonitor monitor, boolean enableDebugging) throws CoreException {
+    launchBrowser(launch, launchConfig, null, url, monitor, enableDebugging);
   }
 
   protected void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
-      String url, IProgressMonitor monitor, boolean debug) throws CoreException {
+      String url, IProgressMonitor monitor, boolean enableDebugging) throws CoreException {
 
-    monitor.beginTask("Launching Chromium...", debug ? 7 : 2);
+    monitor.beginTask("Launching Chromium...", enableDebugging ? 7 : 2);
 
     File dartium = DartSdk.getInstance().getDartiumExecutable();
 
@@ -135,7 +135,7 @@ public class BrowserManager {
 
     IResourceResolver resourceResolver = null;
 
-    if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
+    if (enableDebugging) {
       // Start the embedded web server. It is used to serve files from our workspace.
       if (file != null) {
         try {
@@ -155,7 +155,7 @@ public class BrowserManager {
       }
     }
 
-    List<String> arguments = buildArgumentsList(browserLocation, url, debug);
+    List<String> arguments = buildArgumentsList(browserLocation, url, enableDebugging);
     builder.command(arguments);
     builder.directory(new File(DartSdk.getInstance().getDartiumWorkingDirectory()));
 
@@ -187,8 +187,12 @@ public class BrowserManager {
 
     timer.stopTask();
 
-    connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, runtimeProcess,
-        resourceResolver, timer);
+    if (enableDebugging) {
+      connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, runtimeProcess,
+          resourceResolver, timer);
+    } else {
+      DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
+    }
 
     timer.stopTimer();
     monitor.done();
@@ -228,9 +232,7 @@ public class BrowserManager {
 
       monitor.worked(1);
 
-      if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
-        launch.addDebugTarget(debugTarget);
-      }
+      launch.addDebugTarget(debugTarget);
       launch.addProcess(debugTarget.getProcess());
 
       debugTarget.openConnection(url);
@@ -246,7 +248,7 @@ public class BrowserManager {
     monitor.worked(1);
   }
 
-  private List<String> buildArgumentsList(IPath browserLocation, String url, boolean debug) {
+  private List<String> buildArgumentsList(IPath browserLocation, String url, boolean enableDebugging) {
     List<String> arguments = new ArrayList<String>();
 
     arguments.add(browserLocation.toOSString());
@@ -284,7 +286,7 @@ public class BrowserManager {
     // We use this to prevent the previous session's tabs from re-opening.
     //arguments.add("--incognito");
 
-    if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
+    if (enableDebugging) {
       // Start up with a blank page.
       arguments.add("--homepage=about:blank");
     } else {

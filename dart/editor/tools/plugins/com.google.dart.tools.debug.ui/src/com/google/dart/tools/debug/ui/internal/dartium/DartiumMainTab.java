@@ -102,6 +102,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Button checkedModeButton;
 
+  private Button enableDebuggingButton;
+
   /**
    * Create a new instance of DartServerMainTab.
    */
@@ -137,6 +139,16 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     checkedModeButton.setText("Run in checked mode");
     GridDataFactory.swtDefaults().span(2, 1).applyTo(checkedModeButton);
     checkedModeButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
+
+    enableDebuggingButton = new Button(group, SWT.CHECK);
+    enableDebuggingButton.setText("Enable debugging");
+    GridDataFactory.swtDefaults().span(2, 1).applyTo(enableDebuggingButton);
+    enableDebuggingButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         notifyPanelChanged();
@@ -203,6 +215,9 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     if (checkedModeButton != null) {
       checkedModeButton.setSelection(dartLauncher.getCheckedMode());
     }
+    if (enableDebuggingButton != null) {
+      enableDebuggingButton.setSelection(dartLauncher.getEnableDebugging());
+    }
   }
 
   @Override
@@ -246,6 +261,9 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setProjectName(projectText.getText().trim());
     if (checkedModeButton != null) {
       dartLauncher.setCheckedMode(checkedModeButton.getSelection());
+    }
+    if (enableDebuggingButton != null) {
+      dartLauncher.setEnableDebugging(enableDebuggingButton.getSelection());
     }
   }
 

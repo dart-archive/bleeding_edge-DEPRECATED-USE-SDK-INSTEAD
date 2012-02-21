@@ -17,13 +17,9 @@ package com.google.dart.tools.debug.core.util;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 import java.io.BufferedReader;
@@ -215,9 +211,7 @@ class ResourceServerHandler implements Runnable {
         javaFile = file.getRawLocation().toFile();
       }
     } else if (resource == null) {
-      // happy linking story
-
-      javaFile = locateUsingLinkedSiblings(new Path(header.file));
+      javaFile = locateAbsoluteFile(header.file);
     }
 
     if (javaFile == null) {
@@ -278,39 +272,6 @@ class ResourceServerHandler implements Runnable {
     }
   }
 
-  private File getRawLocationFor(IPath path) throws CoreException {
-    if (path.isEmpty()) {
-      return null;
-    }
-
-    IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
-
-    if (resource == null) {
-      File rawParent = getRawLocationFor(path.removeLastSegments(1));
-
-      if (rawParent == null) {
-        return null;
-      } else {
-        return new File(rawParent, path.lastSegment());
-      }
-    } else if (resource instanceof IWorkspaceRoot) {
-      return null;
-    } else {
-      IContainer container = (IContainer) resource;
-
-      for (IResource siblingResource : container.members()) {
-        if (siblingResource.isLinked() && siblingResource.getRawLocation() != null) {
-          File siblingFile = siblingResource.getRawLocation().toFile();
-          File parentFile = siblingFile.getParentFile();
-
-          return parentFile;
-        }
-      }
-
-      return null;
-    }
-  }
-
   private boolean isLocalAddress() {
     InetAddress remoteAddress = socket.getInetAddress();
 
@@ -327,25 +288,14 @@ class ResourceServerHandler implements Runnable {
     return false;
   }
 
-  private File locateUsingLinkedSiblings(Path path) {
-    // TODO(devoncarew): Handle the case where the user is requesting non-linked resources from a
-    // child directory (i.e. Total and their /img directory).
+  private File locateAbsoluteFile(String path) {
+    File file = new File(path);
 
-    try {
-      File parentFile = getRawLocationFor(path.removeLastSegments(1));
-
-      if (parentFile != null) {
-        File file = new File(parentFile, path.lastSegment());
-
-        if (file.exists()) {
-          return file;
-        }
-      }
-    } catch (CoreException e) {
-
+    if (file.exists() && !file.isDirectory()) {
+      return file;
+    } else {
+      return null;
     }
-
-    return null;
   }
 
   private HttpHeader parseHeader() throws IOException {

@@ -99,7 +99,10 @@ class BreakpointManager implements IBreakpointListener {
   }
 
   public void dispose() {
-    DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
+    // Null check for when the editor is shutting down.
+    if (DebugPlugin.getDefault() != null) {
+      DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
+    }
   }
 
   void handleBreakpointResolved(WebkitBreakpoint webkitBreakpoint) {

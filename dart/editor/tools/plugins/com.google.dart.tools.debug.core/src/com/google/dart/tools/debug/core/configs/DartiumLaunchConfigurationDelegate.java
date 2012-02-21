@@ -55,9 +55,9 @@ public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDeleg
           + "' is not supported."));
     }
 
-    boolean debugLaunch = ILaunchManager.DEBUG_MODE.equals(mode);
-
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
+
+    boolean enableDebugging = launchConfig.getEnableDebugging();
 
     // Launch the browser - show errors if we couldn't.
     IResource resource = null;
@@ -77,9 +77,9 @@ public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     BrowserManager manager = BrowserManager.getManager();
 
     if (resource instanceof IFile) {
-      manager.launchBrowser(launch, launchConfig, (IFile) resource, monitor, debugLaunch);
+      manager.launchBrowser(launch, launchConfig, (IFile) resource, monitor, enableDebugging);
     } else {
-      manager.launchBrowser(launch, launchConfig, url, monitor, debugLaunch);
+      manager.launchBrowser(launch, launchConfig, url, monitor, enableDebugging);
     }
   }
 

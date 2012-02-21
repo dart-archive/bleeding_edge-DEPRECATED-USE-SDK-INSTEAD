@@ -14,12 +14,15 @@
 
 package com.google.dart.tools.debug.core.dartium;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.sourcelookup.ISourceContainerType;
 import org.eclipse.debug.core.sourcelookup.containers.AbstractSourceContainer;
+
+import java.io.File;
 
 /**
  * A source container that expects its input path to be a workspace relative path.
@@ -41,9 +44,19 @@ public class WorkspaceSourceContainer extends AbstractSourceContainer {
 
     if (resource != null) {
       return new Object[] {resource};
-    } else {
-      return EMPTY_COLLECTION;
     }
+
+    File file = new File(path);
+
+    if (file.exists() && !file.isDirectory()) {
+      IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
+
+      if (files.length > 0) {
+        return new Object[] {files[0]};
+      }
+    }
+
+    return EMPTY_COLLECTION;
   }
 
   @Override

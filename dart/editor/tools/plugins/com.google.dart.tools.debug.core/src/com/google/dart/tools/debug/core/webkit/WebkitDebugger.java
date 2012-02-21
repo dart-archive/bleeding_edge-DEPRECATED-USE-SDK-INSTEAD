@@ -24,6 +24,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -147,6 +148,41 @@ public class WebkitDebugger extends WebkitDomain {
 
   public void addDebuggerListener(DebuggerListener listener) {
     listeners.add(listener);
+  }
+
+  /**
+   * Tells whether setScriptSource is supported.
+   * <p>
+   * If successful, the WebkitResult object contains a Boolean value.
+   * 
+   * @throws IOException
+   */
+  public void canSetScriptSource(final WebkitCallback<Boolean> callback) throws IOException {
+    sendSimpleCommand("Debugger.canSetScriptSource", new Callback() {
+      @Override
+      public void handleResult(JSONObject result) throws JSONException {
+        callback.handleResult(convertCanSetScriptSourceResult(result));
+      }
+    });
+  }
+
+  /**
+   * Continues execution until specific location is reached.
+   * 
+   * @param location
+   * @throws IOException
+   */
+  public void continueToLocation(WebkitLocation location) throws IOException {
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("method", "Debugger.continueToLocation");
+      request.put("params", new JSONObject().put("location", location.toJSONObject()));
+
+      connection.sendRequest(request);
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
   }
 
   public void disable() throws IOException {
@@ -353,6 +389,41 @@ public class WebkitDebugger extends WebkitDomain {
     }
   }
 
+  /**
+   * Edits source live.
+   * <p>
+   * If the VM is paused, and the source change causes changes to the stack, a debugger paused event
+   * will be fired with the new stack information.
+   * 
+   * @throws IOException
+   */
+  public void setScriptSource(String scriptId, String scriptSource) throws IOException {
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("method", "Debugger.setScriptSource");
+      request.put("params",
+          new JSONObject().put("scriptId", scriptId).put("scriptSource", scriptSource));
+
+      connection.sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          WebkitResult<WebkitCallFrame[]> webkitResult = convertSetScriptSourceResult(result);
+
+          if (!webkitResult.isError() && webkitResult.getResult() != null) {
+            List<WebkitCallFrame> frames = Arrays.asList(webkitResult.getResult());
+
+            for (DebuggerListener listener : listeners) {
+              listener.debuggerPaused(PausedReasonType.other, frames, null);
+            }
+          }
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
   public void stepInto() throws IOException {
     sendSimpleCommand("Debugger.stepInto");
   }
@@ -414,6 +485,17 @@ public class WebkitDebugger extends WebkitDomain {
     scriptMap.clear();
   }
 
+  private WebkitResult<Boolean> convertCanSetScriptSourceResult(JSONObject object)
+      throws JSONException {
+    WebkitResult<Boolean> result = WebkitResult.createFrom(object);
+
+    if (object.has("result")) {
+      result.setResult(Boolean.valueOf(object.getJSONObject("result").getBoolean("result")));
+    }
+
+    return result;
+  }
+
   private WebkitResult<String> convertGetScriptSourceResult(JSONObject object) throws JSONException {
     WebkitResult<String> result = WebkitResult.createFrom(object);
 
@@ -466,6 +548,23 @@ public class WebkitDebugger extends WebkitDomain {
       WebkitBreakpoint breakpoint = WebkitBreakpoint.createFromActual(object.getJSONObject("result"));
 
       result.setResult(breakpoint);
+    }
+
+    return result;
+  }
+
+  private WebkitResult<WebkitCallFrame[]> convertSetScriptSourceResult(JSONObject object)
+      throws JSONException {
+    WebkitResult<WebkitCallFrame[]> result = WebkitResult.createFrom(object);
+
+    if (object.has("result")) {
+      JSONObject obj = object.getJSONObject("result");
+
+      if (obj.has("callFrames")) {
+        List<WebkitCallFrame> frames = WebkitCallFrame.createFrom(obj.getJSONArray("callFrames"));
+
+        result.setResult(frames.toArray(new WebkitCallFrame[frames.size()]));
+      }
     }
 
     return result;

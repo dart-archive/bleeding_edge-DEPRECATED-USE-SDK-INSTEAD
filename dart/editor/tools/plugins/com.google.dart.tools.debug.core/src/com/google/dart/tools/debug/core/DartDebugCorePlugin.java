@@ -56,9 +56,6 @@ public class DartDebugCorePlugin extends Plugin {
    */
   public static final boolean LOGGING = Boolean.getBoolean("dart.debug.logging");
 
-  // TODO(devoncarew): this is a temporary compile time flag -
-  public static final boolean ENABLE_DEBUGGING = false;
-
   // TODO(devoncarew): remove this when the debugger supports stepping
   public static boolean VM_SUPPORTS_STEPPING = false;
 

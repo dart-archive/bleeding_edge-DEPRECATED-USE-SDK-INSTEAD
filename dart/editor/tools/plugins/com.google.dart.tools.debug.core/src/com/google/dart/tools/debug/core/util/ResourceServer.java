@@ -66,8 +66,16 @@ public class ResourceServer implements IResourceResolver {
   @Override
   public String getUrlForResource(IFile file) {
     try {
+      String path;
+
+      if (file.isLinked()) {
+        path = file.getRawLocation().toOSString();
+      } else {
+        path = file.getFullPath().toPortableString();
+      }
+
       URI uri = new URI("http", null, serverSocket.getInetAddress().getHostAddress(),
-          serverSocket.getLocalPort(), file.getFullPath().toPortableString(), null, null);
+          serverSocket.getLocalPort(), path, null, null);
       return uri.toString();
     } catch (URISyntaxException e) {
       DartDebugCorePlugin.logError(e);

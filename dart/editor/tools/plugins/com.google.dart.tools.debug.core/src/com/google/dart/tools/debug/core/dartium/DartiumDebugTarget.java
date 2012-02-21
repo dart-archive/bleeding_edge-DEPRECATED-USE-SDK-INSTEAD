@@ -14,7 +14,6 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.NotYetImplementedException;
-import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitBreakpoint;
@@ -26,6 +25,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -112,7 +112,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
     debugThread = null;
 
-    super.fireTerminateEvent();
+    // Check for null on system shutdown.
+    if (DebugPlugin.getDefault() != null) {
+      super.fireTerminateEvent();
+    }
   }
 
   @Override
@@ -208,17 +211,14 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     fireCreationEvent();
     process.fireCreationEvent();
 
-    if (DartDebugCorePlugin.ENABLE_DEBUGGING) {
-      // Set our existing breakpoints, and start listening for new breakpoints.
-      breakpointManager.connect();
+    // Set our existing breakpoints, and start listening for new breakpoints.
+    breakpointManager.connect();
 
-      // TODO(devoncarew): the VM does not yet support this, and we'd want a way to expose this in
-      // the UI as an toggle.
-      //connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
+    // TODO(devoncarew): the VM does not yet support this, and we'd want a way to expose this in
+    // the UI as an toggle.
+    //connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
 
-      connection.getPage().navigate(url);
-    }
-
+    connection.getPage().navigate(url);
   }
 
   @Override

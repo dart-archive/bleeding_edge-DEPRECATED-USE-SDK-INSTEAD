@@ -64,6 +64,16 @@ public class WebkitLocation {
     return scriptId;
   }
 
+  public JSONObject toJSONObject() throws JSONException {
+    JSONObject object = new JSONObject();
+
+    object.put("scriptId", scriptId);
+    object.put("lineNumber", lineNumber);
+    object.put("columnNumber", columnNumber);
+
+    return object;
+  }
+
   @Override
   public String toString() {
     return "[" + scriptId + "," + lineNumber + "," + columnNumber + "]";
