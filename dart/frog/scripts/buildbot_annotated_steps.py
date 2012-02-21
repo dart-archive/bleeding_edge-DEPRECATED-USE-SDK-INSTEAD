@@ -18,19 +18,15 @@ BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 
 FROG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# TODO(jmesserly): remove 'frogium' once builder is renamed
-FROG_BUILDER = r'(frog|frogsh|frogium)-(linux|mac|windows)-(debug|release)'
+FROG_BUILDER = r'(frog|frogsh)-(linux|mac|windows)-(debug|release)'
 WEB_BUILDER = r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(\d+))?'
 
 NO_COLOR_ENV = dict(os.environ)
 NO_COLOR_ENV['TERM'] = 'nocolor'
 
-# Patterns are of the form "dart_client-linux-chromium-debug"
-OLD_CLIENT_BUILDER = r'dart_client-(\w+)-chromium-(\w+)'
-
 def GetBuildInfo():
   """Returns a tuple (name, mode, system) where:
-    - name: 'frog', 'frogsh', 'frogium' or None when the builder has an
+    - name: 'frog', 'frogsh', 'frogium', or None when the builder has an 
       incorrect name
     - mode: 'debug' or 'release'
     - system: 'linux', 'mac', or 'win7'
@@ -46,22 +42,11 @@ def GetBuildInfo():
     frog_pattern = re.match(FROG_BUILDER, builder_name)
     web_pattern = re.match(WEB_BUILDER, builder_name)
 
-    # TODO(jmesserly): remove this once builder is renamed
-    old_client_pattern = re.match(OLD_CLIENT_BUILDER, builder_name)
-
     if frog_pattern:
       name = frog_pattern.group(1)
       system = frog_pattern.group(2)
       mode = frog_pattern.group(3)
 
-      # TODO(jmesserly): remove this once builder is renamed
-      if name == 'frogium':
-        # Note: even though the browsers can run on more than one OS, we
-        # found identical browser behavior across OS, so we're not running
-        # everywhere for faster turnaround time. We're going to split different
-        # browser+OS combinations into different bots.
-        browsers = { 'windows': 'ie', 'mac': 'safari', 'linux': 'ff' }
-        browser = browsers[system]
     elif web_pattern:
       name = 'frogium'
       mode = 'release'
@@ -71,16 +56,7 @@ def GetBuildInfo():
       # TODO(jmesserly): do we want to do anything different for the second IE
       # bot? For now we're using it to track down flakiness.
       number = web_pattern.group(4)
-
-    elif old_client_pattern:
-      name = 'frogium'
-      system = old_client_pattern.group(1)
-      mode = old_client_pattern.group(2)
-      browser = 'chrome'
-
-  # TODO(jmesserly): remove this once builder is renamed
-  if name == 'frogium':
-    mode = 'release'
+  
   if system == 'windows':
     system = 'win7'
 
@@ -169,8 +145,14 @@ def TestFrog(arch, mode, system, browser, flags):
     if browser == 'chrome' and not system.startswith('win'):
       TestStep('browser', mode, system, 'frogium', tests, flags)
     else:
+      additional_flags = ['--browser=' + browser]
+      if system.startswith('win') and browser == 'ie':
+        # There should not be more than one InternetExplorerDriver instance
+        # running at a time. For details, see 
+        # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
+        additional_flags += ['-j1']
       TestStep(browser, mode, system, 'webdriver', tests,
-          flags + ['--browser=' + browser])
+          flags + additional_flags)
 
   return 0
 
