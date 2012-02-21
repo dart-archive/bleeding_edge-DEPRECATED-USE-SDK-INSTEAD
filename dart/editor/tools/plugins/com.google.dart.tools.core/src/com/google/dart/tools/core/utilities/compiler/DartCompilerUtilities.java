@@ -67,6 +67,14 @@ import java.util.Map;
  * compiling Dart source, including compilation units, libraries, and applications.
  */
 public class DartCompilerUtilities {
+
+  public interface PerformanceListener {
+
+    void analysisComplete(long start, String libName);
+
+    void compileComplete(long start, String libName);
+  }
+
   /**
    * The abstract class <code>CompilerRunner</code> defines behavior common to classes used to
    * safely invoke the parser, record compilation errors, and capture any parser exception.
@@ -465,6 +473,7 @@ public class DartCompilerUtilities {
 
   private static LRUCache<LibrarySource, LibraryUnit> cachedLibraries = new LRUCache<LibrarySource, LibraryUnit>(
       10);
+  private static PerformanceListener performanceListener = null;
 
   public static DartNode analyzeDelta(LibrarySource library, String sourceString,
       DartUnit suppliedUnit, DartNode completionNode, int completionLocation,
@@ -780,7 +789,13 @@ public class DartCompilerUtilities {
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
     synchronized (compilerLock) {
       // Any calls to compiler involving artifact provider must be synchronized
-      return DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider, listener);
+      long start = System.currentTimeMillis();
+      LibraryUnit unit = DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider,
+          listener);
+      if (performanceListener != null) {
+        performanceListener.analysisComplete(start, librarySource.getName());
+      }
+      return unit;
     }
   }
 
@@ -792,6 +807,7 @@ public class DartCompilerUtilities {
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
     synchronized (compilerLock) {
       // Any calls to compiler involving artifact provider must be synchronized
+      long start = System.currentTimeMillis();
       List<LibrarySource> embeddedLibraries = new ArrayList<LibrarySource>();
       for (String spec : DartCoreDebug.getLibrariesEmbedded()) {
         LibrarySource lib = config.getSystemLibraryFor(spec);
@@ -800,7 +816,14 @@ public class DartCompilerUtilities {
         }
       }
       DartCompiler.compileLib(libSource, embeddedLibraries, config, provider, listener);
+      if (performanceListener != null) {
+        performanceListener.compileComplete(start, libSource.getName());
+      }
     }
+  }
+
+  public static void setPerformanceListener(PerformanceListener performanceListener) {
+    DartCompilerUtilities.performanceListener = performanceListener;
   }
 
   private static Map<URI, DartUnit> createMap(Collection<DartUnit> suppliedUnits) {

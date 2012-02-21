@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.swtbot.dialog;
 
 import com.google.dart.tools.ui.swtbot.DartLib;
-import com.google.dart.tools.ui.swtbot.Performance;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
 
 import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.editorWithTitle;
 import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.waitForEditorWithTitle;

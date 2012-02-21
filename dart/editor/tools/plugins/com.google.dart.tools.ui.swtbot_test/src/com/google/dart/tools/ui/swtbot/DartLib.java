@@ -17,9 +17,10 @@ import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
 import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
 import com.google.dart.tools.ui.swtbot.util.AntRunner;
 
-import static com.google.dart.tools.ui.swtbot.Performance.prepend;
+import static com.google.dart.tools.ui.swtbot.performance.Performance.prepend;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -30,13 +31,15 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Represents a Dart library
  */
 public class DartLib {
   public static final DartLib CLOCK_SAMPLE = new DartLib("clock", "Clock");
-  public static final DartLib ISOLATE_SAMPLE = new DartLib("isolate", "isolate_sample");
+  public static final DartLib ISOLATE_SAMPLE = new DartLib("isolate_html", "isolate_sample");
   public static final DartLib SLIDER_SAMPLE = new DartLib("slider", "slider_sample");
   public static final DartLib SUNFLOWER_SAMPLE = new DartLib("sunflower", "Sunflower");
   public static final DartLib TIME_SERVER_SAMPLE = new DartLib("time", "time_server");
@@ -70,11 +73,12 @@ public class DartLib {
       allSamples = new DartLib[] {
           CLOCK_SAMPLE, ISOLATE_SAMPLE, SLIDER_SAMPLE, SUNFLOWER_SAMPLE, TIME_SERVER_SAMPLE,
           TOTAL_SAMPLE};
+      List<String> libDirs = Arrays.asList("chat", "lib", "ui_lib");
 
       // Assert that all samples are included
       StringBuilder missing = new StringBuilder();
       for (File dir : samplesDir.listFiles()) {
-        if (!dir.isDirectory() || dir.getName().equals("libraries")) {
+        if (!dir.isDirectory() || libDirs.contains(dir.getName())) {
           continue;
         }
         boolean found = false;
@@ -126,7 +130,7 @@ public class DartLib {
   /**
    * Answer the Dart Editor samples directory
    */
-  private static File getSamplesDir() {
+  public static File getSamplesDir() {
     if (samplesDir == null) {
       File homeDir = new File(System.getProperty("user.home"));
       File downloadsDir = new File(homeDir, "Downloads");
@@ -181,14 +185,14 @@ public class DartLib {
    * Wait then log the time for the JS file to be generated, without blocking the current thread.
    */
   public void logFullCompileTime(String... comments) {
-    Performance.COMPILE_FULL.logInBackground(new BuildLibCondition(this), prepend(name, comments));
+    Performance.BUILD_FULL.logInBackground(new BuildLibCondition(this), prepend(name, comments));
   }
 
   /**
    * Wait then log the time for the JS file to be generated, without blocking the current thread.
    */
   public void logIncrementalCompileTime(String... comments) {
-    Performance.COMPILE_INCREMENTAL.logInBackground(new BuildLibCondition(this),
+    Performance.BUILD_INCREMENTAL.logInBackground(new BuildLibCondition(this),
         prepend(name, comments));
   }
 

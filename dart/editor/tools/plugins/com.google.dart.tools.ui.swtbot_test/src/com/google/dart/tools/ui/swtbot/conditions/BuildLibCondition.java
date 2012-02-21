@@ -13,7 +13,10 @@
  */
 package com.google.dart.tools.ui.swtbot.conditions;
 
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities.PerformanceListener;
 import com.google.dart.tools.ui.swtbot.DartLib;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
 
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
@@ -50,6 +53,26 @@ public final class BuildLibCondition implements ICondition {
         if (job.getName().startsWith("Building workspace")) {
           buildJobs.add(job);
         }
+      }
+    });
+    DartCompilerUtilities.setPerformanceListener(new PerformanceListener() {
+
+      @Override
+      public void analysisComplete(long start, String libName) {
+        Performance.ANALYZE.log(start, fileNameWithoutExtension(libName));
+      }
+
+      @Override
+      public void compileComplete(long start, String libName) {
+        Performance.COMPILE.log(start, fileNameWithoutExtension(libName));
+      }
+
+      private String fileNameWithoutExtension(String libName) {
+        String simpleName = libName.substring(libName.lastIndexOf('/') + 1);
+        if (simpleName.endsWith(".dart")) {
+          simpleName = simpleName.substring(0, simpleName.length() - 5);
+        }
+        return simpleName;
       }
     });
   }

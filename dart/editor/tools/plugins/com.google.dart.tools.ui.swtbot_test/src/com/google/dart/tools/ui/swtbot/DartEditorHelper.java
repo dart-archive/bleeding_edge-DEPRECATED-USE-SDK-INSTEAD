@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.swtbot;
 
 import com.google.dart.tools.ui.swtbot.matchers.TableItemWithText;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.SWT;

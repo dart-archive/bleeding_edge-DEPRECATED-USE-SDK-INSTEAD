@@ -263,7 +263,10 @@ Click on "Arguments" tab
 Change "VM Arguments" to "-Xms128m -Xmx1024m"
 Click on "Plugins" tab
 Change "Launch with" to "Plugins selected below only"
-Uncheck all "Target Platform" plugins
-Check the workspace com...swtbot_test plugin only
+Uncheck all plugins
+Check the "Workspace" com...swtbot_test plugin
+Check the "Target Platform" org.apache.ant plugin 
 Click "Add required plugins"
+Click on "Environment" tab
+Click "New..." to add a new "DART_TRUNK" environment variable that points to your SVN root
 Click Run

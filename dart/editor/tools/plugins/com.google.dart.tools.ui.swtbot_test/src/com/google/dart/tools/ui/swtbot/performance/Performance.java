@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.swtbot;
+package com.google.dart.tools.ui.swtbot.performance;
 
 import com.google.dart.tools.core.DartCore;
 
@@ -22,11 +22,10 @@ import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Date;
+import java.util.List;
 import java.util.TreeSet;
 
 public class Performance {
@@ -38,9 +37,9 @@ public class Performance {
     public final String name;
     public final long threshold;
     private int resultCount = 0;
-    private long resultAverage = 0;
     private long resultHigh = 0;
     private long resultLow = 0;
+    private long resultTotal = 0;
 
     Metric(String name, long threshold) {
       this.name = name;
@@ -53,17 +52,16 @@ public class Performance {
      * @param start the start time
      */
     public void log(long start, String... comments) {
-      Result result = new Result(this, System.currentTimeMillis() - start, comments);
-      result.print();
+      Result result = new Result(this, start, comments);
+      result.print(0);
       synchronized (allResults) {
         allResults.add(result);
         resultCount++;
+        resultTotal += result.elapsed;
         if (resultCount == 1) {
-          resultAverage = result.elapsed;
           resultHigh = result.elapsed;
           resultLow = result.elapsed;
         } else {
-          resultAverage = (resultAverage * (resultCount - 1) + result.elapsed) / resultCount;
           resultHigh = Math.max(resultHigh, result.elapsed);
           resultLow = Math.min(resultLow, result.elapsed);
         }
@@ -149,19 +147,21 @@ public class Performance {
     }
 
     public void printAverage() {
+      long resultAverage = resultTotal / resultCount;
       StringBuilder line = new StringBuilder();
-      appendLong(line, resultCount, 2);
+      appendLong(line, resultCount, 3);
       line.append(' ');
       appendText(line, name, 20);
-      appendLong(line, threshold, 7);
+      appendLong(line, threshold, NUM_COL_WIDTH);
       line.append(" ms ");
       line.append(threshold < resultAverage ? '<' : ' ');
-      appendLong(line, resultAverage, 7);
-      line.append(" ms");
-      appendLong(line, resultHigh, 7);
-      line.append(" ms");
-      appendLong(line, resultLow, 7);
-      line.append(" ms");
+      line.append(' ');
+      appendLong(line, resultAverage, NUM_COL_WIDTH);
+      line.append(" ms ");
+      appendLong(line, resultHigh, NUM_COL_WIDTH);
+      line.append(" ms ");
+      appendLong(line, resultLow, NUM_COL_WIDTH);
+      line.append(" ms ");
       System.out.println(line);
     }
   }
@@ -171,21 +171,30 @@ public class Performance {
    */
   private static class Result {
     private final Metric metric;
+    private final long start;
     private final long elapsed;
     private final String[] comments;
 
-    Result(Metric metric, long elapsed, String... comments) {
+    Result(Metric metric, long start, String... comments) {
       this.metric = metric;
-      this.elapsed = elapsed;
+      this.start = start;
+      this.elapsed = System.currentTimeMillis() - start;
       this.comments = comments;
+    }
+
+    long getStart() {
+      return start;
     }
 
     /**
      * Log the elapsed time
      */
-    void print() {
+    void print(int depth) {
       StringBuilder line = new StringBuilder();
-      appendText(line, metric.name, 20);
+      for (int i = 0; i < depth; i++) {
+        line.append("   ");
+      }
+      appendText(line, metric.name, 26 - 3 * depth);
       appendLong(line, metric.threshold, 7);
       line.append(" ms ");
       line.append(metric.threshold < elapsed ? '<' : ' ');
@@ -199,18 +208,22 @@ public class Performance {
     }
   }
 
+  public static final Metric ANALYZE = new Metric("Analyze", 200);
+  public static final Metric BUILD_FULL = new Metric("Build (Full)", 3000);
+  public static final Metric BUILD_INCREMENTAL = new Metric("Build (Inc)", 500);
+  public static final Metric CODE_COMPLETION = new Metric("Code Completion", 200);
+  public static final Metric COMPILE = new Metric("Compile", 1000);
+  public static final Metric COMPILER_PARSE = new Metric("Compiler Parse", 10);
+  public static final Metric COMPILER_WARMUP = new Metric("Compiler Warmup", 5000);
+  public static final Metric LAUNCH_APP = new Metric("Launch App", 3000);
   public static final Metric NEW_APP = new Metric("New App", 300);
   public static final Metric OPEN_LIB = new Metric("Open Library", 300);
-  public static final Metric LAUNCH_APP = new Metric("Launch App", 3000);
-  public static final Metric COMPILE_FULL = new Metric("Compile (Full)", 3000);
-  public static final Metric COMPILE_INCREMENTAL = new Metric("Compile (Inc)", 500);
-  public static final Metric CODE_COMPLETION = new Metric("Code Completion", 200);
-  public static final Metric COMPILER_WARMUP = new Metric("Compiler Warmup", 5000);
 
-  private static final Collection<Result> allResults = new ArrayList<Performance.Result>(20);
+  private static final List<Result> allResults = new ArrayList<Performance.Result>(20);
   private static int pending = 0;
 
   public static final int DEFAULT_TIMEOUT_MS = 180000; // 3 minutes
+  private static final int NUM_COL_WIDTH = 7;
 
   /**
    * Append the specified {@link String} to an array of {@link String}
@@ -239,17 +252,26 @@ public class Performance {
    */
   public static void printResults() {
     System.out.println("==========================================================================");
-    System.out.println("Editor Version: " + getEditorVersion());
+    System.out.println("Editor Version: " + DartCore.getBuildIdOrDate());
     System.out.println("OS: " + getOsInfo());
     System.out.println();
-    System.out.println("Metric               Expected    Actual    Comments");
-    System.out.println("==================== ========= = ========= ===============================");
-    for (Result result : allResults) {
-      result.print();
+    System.out.println("Metric                     Expected    Actual    Comments");
+    System.out.println("========================== ========= = ========= ===============================");
+    // Calculate depth to display metrics within other metrics
+    int[] depth = new int[allResults.size()];
+    for (int i = allResults.size() - 1; i >= 0; i--) {
+      long start = allResults.get(i).getStart();
+      int j = i - 1;
+      while (j >= 0 && allResults.get(j).getStart() > start) {
+        depth[j--]++;
+      }
+    }
+    for (int i = 0; i < allResults.size(); i++) {
+      allResults.get(i).print(depth[i]);
     }
     System.out.println();
-    System.out.println("#  Metric              Expected     Average    High       Low");
-    System.out.println("== =================== ========== = ========== ========== ==========");
+    System.out.println("#   Metric              Expected     Average    High       Low");
+    System.out.println("=== =================== ========== = ========== ========== ==========");
     for (Metric metric : getMetricsWithResults()) {
       metric.printAverage();
     }
@@ -286,14 +308,6 @@ public class Performance {
         }
       }
     }, timeout);
-  }
-
-  private static String getEditorVersion() {
-    String version = DartCore.getBuildId();
-    if (version.startsWith("@")) {
-      version = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-    }
-    return version;
   }
 
   private static Collection<Metric> getMetricsWithResults() {

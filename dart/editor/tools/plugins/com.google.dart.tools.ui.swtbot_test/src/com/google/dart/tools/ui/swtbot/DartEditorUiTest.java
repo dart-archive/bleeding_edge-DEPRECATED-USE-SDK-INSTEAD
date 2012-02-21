@@ -13,13 +13,13 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
+import com.google.dart.tools.core.samples.SamplesTest;
 import com.google.dart.tools.ui.swtbot.app.NewSimpleApp;
 import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
 import com.google.dart.tools.ui.swtbot.conditions.CompilerWarmedUp;
 import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
-
-import static com.google.dart.tools.ui.swtbot.DartLib.SLIDER_SAMPLE;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
@@ -45,6 +45,7 @@ public class DartEditorUiTest {
 
   @BeforeClass
   public static void setUp() throws Exception {
+    // TODO (danrubel) hook launching LogTimer for launching performance measurements
     bot = new SWTWorkbenchBot();
     CompilerWarmedUp.waitUntilWarmedUp(bot);
     BuildLibCondition.startListening();
@@ -52,20 +53,35 @@ public class DartEditorUiTest {
   }
 
   @Test
-  public void testDartEditorUI() throws Exception {
-    SLIDER_SAMPLE.openAndLaunch(bot);
-
-    new NewSimpleApp(bot).create();
-
-    new NewApplicationHelper(bot).create("NewAppTest2");
+  public void testNewApp() throws Exception {
+    new NewApplicationHelper(bot).create("NewAppTest");
     Performance.waitForResults(bot);
+    new ProblemsViewHelper(bot).assertNoProblems();
+  }
 
+  @Test
+  public void testOpenSamples() throws Exception {
     for (DartLib lib : DartLib.getAllSamples()) {
-      if (lib != SLIDER_SAMPLE) {
-        lib.openAndLaunch(bot);
-      }
+      lib.openAndLaunch(bot);
     }
+    new ProblemsViewHelper(bot).assertNoProblems();
+  }
 
+  @Test
+  public void testSamplesStructure() throws Exception {
+    new SamplesTest(new SamplesTest.Listener() {
+      @Override
+      public void logParse(long elapseTime, String... comments) {
+        long start = System.currentTimeMillis() - elapseTime;
+        Performance.COMPILER_PARSE.log(start, comments);
+      }
+    }).testSamples(DartLib.getSamplesDir());
+  }
+
+  @Test
+  public void testSimpleApp() throws Exception {
+    new NewSimpleApp(bot).create();
+    Performance.waitForResults(bot);
     new ProblemsViewHelper(bot).assertNoProblems();
   }
 }

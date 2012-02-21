@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.swtbot.dialog;
 
-import com.google.dart.tools.ui.swtbot.Performance;
 import com.google.dart.tools.ui.swtbot.conditions.NativeShellClosed;
 import com.google.dart.tools.ui.swtbot.conditions.NativeShellShowing;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
 import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 
 import org.eclipse.swt.SWT;

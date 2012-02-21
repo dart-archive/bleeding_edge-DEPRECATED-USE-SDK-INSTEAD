@@ -14,8 +14,8 @@
 package com.google.dart.tools.ui.swtbot.dialog;
 
 import com.google.dart.tools.ui.swtbot.DartLib;
-import com.google.dart.tools.ui.swtbot.Performance;
 import com.google.dart.tools.ui.swtbot.matchers.EditorWithTitle;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.keyboard.Keystrokes;

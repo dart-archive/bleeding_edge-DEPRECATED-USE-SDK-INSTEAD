@@ -16,10 +16,10 @@ package com.google.dart.tools.ui.swtbot.app;
 import com.google.dart.tools.ui.swtbot.DartEditorHelper;
 import com.google.dart.tools.ui.swtbot.DartEditorUiTest;
 import com.google.dart.tools.ui.swtbot.DartLib;
-import com.google.dart.tools.ui.swtbot.Performance;
 import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.conditions.ProblemsViewCount;
 import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
 
 import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.printActiveEditorText;
 
@@ -38,7 +38,7 @@ public class NewSimpleApp {
   }
 
   public void create() throws Exception {
-    app = new NewApplicationHelper(bot).create("NewTestApp");
+    app = new NewApplicationHelper(bot).create("SimpleApp");
     new LaunchBrowserHelper(DartEditorUiTest.bot).launch(app);
     Performance.waitForResults(DartEditorUiTest.bot);
     try {

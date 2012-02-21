@@ -14,8 +14,8 @@
 package com.google.dart.tools.ui.swtbot.action;
 
 import com.google.dart.tools.ui.swtbot.DartLib;
-import com.google.dart.tools.ui.swtbot.Performance;
-import com.google.dart.tools.ui.swtbot.Performance.Metric;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.Performance.Metric;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
 
 import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.activeShell;
@@ -103,7 +103,10 @@ public class LaunchBrowserHelper {
 
     // Ensure main shell has focus
     bot.sleep(100);
-    if (!mainShell.isActive()) {
+    for (int i = 0; i < 50; i++) {
+      if (mainShell.isActive()) {
+        break;
+      }
       mainShell.setFocus();
       bot.sleep(100);
     }
