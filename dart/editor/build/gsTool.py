@@ -228,36 +228,31 @@ def _PromoteBuild(gsu, revision, from_bucket, to_bucket):
     from_bucket: the bucket to promote from
     to_bucket: the bucket to promote from
   """
-  print '_PromoteBuild({0} , {1}, {2})'.format(gsu, from_bucket, to_bucket)
+  print '_PromoteBuild(gsu, {0} , {1}, {2})'.format(revision, from_bucket,
+                                                    to_bucket)
 
-  elements = _ReadBucket(gsu, from_bucket)
-  rev_int = int(revision)
-  if rev_int in elements:
-    for element in elements[rev_int]:
-      from_element = element
-      to_element = element.replace(from_bucket, to_bucket)
-      print 'promoting {0} to {1}'.format(from_element, to_element)
-      gsu.Copy(from_element, to_element, False)
-      gsu.SetCannedAcl(to_element, 'project-private')
-      acl = gsu.GetAcl(to_element)
-      if acl is None:
-        _PrintFailure('non-fatal failure, could not get'
-                      ' ACL for {0}'.format(to_element))
-      else:
-        newacl = gsu.AddPublicAcl(acl)
-        gsu.SetAcl(to_element, newacl)
-      to_element = to_element.replace(revision, 'latest')
-      gsu.Copy(from_element, to_element)
-      gsu.SetCannedAcl(to_element, 'project-private')
-      acl = gsu.GetAcl(to_element)
-      if acl is None:
-        _PrintFailure('non-fatal failure, could not get'
-                      ' ACL for {0}'.format(to_element))
-      else:
-        newacl = gsu.AddPublicAcl(acl)
-        gsu.SetAcl(to_element, newacl)
-  else:
-    print 'could not find element with {0} as it\'s revision'.format(revision)
+  elements = gsu.ReadBucket('{0}/{1}/*'.format(from_bucket, revision))
+  for element in elements:
+    from_element = element
+    to_element = element.replace(from_bucket, to_bucket)
+    print 'promoting {0} to {1}'.format(from_element, to_element)
+    gsu.Copy(from_element, to_element)
+    acl = gsu.GetAcl(to_element)
+    if acl is None:
+      _PrintFailure('non-fatal failure, could not get'
+                    ' ACL for {0}'.format(to_element))
+    else:
+      newacl = gsu.AddPublicAcl(acl)
+      gsu.SetAcl(to_element, newacl)
+    to_element = to_element.replace(revision, 'latest')
+    gsu.Copy(from_element, to_element)
+    acl = gsu.GetAcl(to_element)
+    if acl is None:
+      _PrintFailure('non-fatal failure, could not get'
+                    ' ACL for {0}'.format(to_element))
+    else:
+      newacl = gsu.AddPublicAcl(acl)
+      gsu.SetAcl(to_element, newacl)
 
 
 def _PrintSeparator(text):
