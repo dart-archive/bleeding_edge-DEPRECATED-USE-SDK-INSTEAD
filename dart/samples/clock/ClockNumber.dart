@@ -12,12 +12,12 @@ class ClockNumber {
   List<List<int>> pixels;
   int ballColor;
 
-  ClockNumber(CountDownClock this.app, int pos, int this.ballColor) {
+  ClockNumber(CountDownClock this.app, double pos, int this.ballColor) {
     imgs = new List<List<HTMLImageElement>>(HEIGHT);
 
     root = window.document.createElement('div');
     Util.abs(root);
-    Util.pos(root, pos, 0);
+    Util.pos(root, pos, 0.0);
 
     // HACK(jgw): Need a better way to initialize multi-dimensional arrays.
     for (int y = 0; y < HEIGHT; ++y) {
@@ -41,9 +41,9 @@ class ClockNumber {
 
         if (pixels != null) {
           if ((pixels[y][x] != 0) && (px[y][x] == 0)) {
-            int absx = Util.bounds(img).left;
-            int absy = Util.bounds(img).top;
-            app.balls.add(absx, absy, ballColor);
+            int absx = Util.bounds(img).left.toInt();
+            int absy = Util.bounds(img).top.toInt();
+            app.balls.add(absx.toDouble(), absy.toDouble(), ballColor);
           }
         }
 

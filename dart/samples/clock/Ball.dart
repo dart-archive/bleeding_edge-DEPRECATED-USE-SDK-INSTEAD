@@ -16,16 +16,16 @@ class Ball {
 
   Element root;
   HTMLImageElement elem;
-  int x, y;
+  double x, y;
   double vx, vy;
   double ax, ay;
   double age;
 
-  Ball(Element this.root, int this.x, int this.y, int color) {
+  Ball(Element this.root, double this.x, double this.y, int color) {
     elem = window.document.createElement('img');
     elem.src = Balls.PNGS[color];
     Util.abs(elem);
-    Util.pos(elem, x, y);
+    Util.pos(elem, x.toDouble(), y.toDouble());
     root.appendChild(elem);
 
     ax = 0.0;
@@ -41,8 +41,8 @@ class Ball {
     vx += ax * delta;
     vy += ay * delta;
 
-    x += vx * delta;
-    y += vy * delta;
+    x += (vx * delta).toInt();
+    y += (vy * delta).toInt();
 
     // Handle falling off the edge.
     if ((x < RADIUS) || (x > Util.clientWidth())) {

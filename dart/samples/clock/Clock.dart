@@ -18,8 +18,8 @@ void main() {
 class CountDownClock {
 
   static final int NUMBER_SPACING = 19;
-  static final int BALL_WIDTH = 19;
-  static final int BALL_HEIGHT = 19;
+  static final double BALL_WIDTH = 19.0;
+  static final double BALL_HEIGHT = 19.0;
 
   List<ClockNumber> hours, minutes, seconds;
   Balls balls;
@@ -38,13 +38,11 @@ class CountDownClock {
   }
 
   void updateTime() {
-    int time = Util.currentTimeMillis() ~/ 1000;
-    time %= 86400;
-    setDigits(pad2(time ~/ 3600), hours);
-    time %= 3600;
-    setDigits(pad2((time ~/ 60)), minutes);
-    time %= 60;
-    setDigits(pad2(time), seconds);
+    Date now = new Date.now();
+    
+    setDigits(pad2(now.hours), hours);
+    setDigits(pad2(now.minutes), minutes);
+    setDigits(pad2(now.seconds), seconds);
   }
 
   void setDigits(String digits, List<ClockNumber> numbers) {
@@ -77,12 +75,12 @@ class CountDownClock {
     root.style.setProperty("textAlign", 'center');
     window.document.getElementById("canvas-content").appendChild(root);
 
-    int x = 0;
+    double x = 0.0;
 
     for (int i = 0; i < hours.length; ++i) {
       hours[i] = new ClockNumber(this, x, 2);
       root.appendChild(hours[i].root);
-      Util.pos(hours[i].root, x, 0);
+      Util.pos(hours[i].root, x.toDouble(), 0.0);
       x += BALL_WIDTH * ClockNumber.WIDTH + NUMBER_SPACING;
     }
 
@@ -92,7 +90,7 @@ class CountDownClock {
     for (int i = 0; i < minutes.length; ++i) {
       minutes[i] = new ClockNumber(this, x, 5);
       root.appendChild(minutes[i].root);
-      Util.pos(minutes[i].root, x, 0);
+      Util.pos(minutes[i].root, x.toDouble(), 0.0);
       x += BALL_WIDTH * ClockNumber.WIDTH + NUMBER_SPACING;
     }
 
@@ -102,7 +100,7 @@ class CountDownClock {
     for (int i = 0; i < seconds.length; ++i) {
       seconds[i] = new ClockNumber(this, x, 1);
       root.appendChild(seconds[i].root);
-      Util.pos(seconds[i].root, x, 0);
+      Util.pos(seconds[i].root, x.toDouble(), 0.0);
       x += BALL_WIDTH * ClockNumber.WIDTH + NUMBER_SPACING;
     }
   }

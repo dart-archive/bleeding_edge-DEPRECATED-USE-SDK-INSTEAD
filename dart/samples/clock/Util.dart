@@ -11,12 +11,12 @@ class Util {
     elem.style.setProperty("position", 'relative');
   }
 
-  static void pos(HTMLElement elem, int x, int y) {
+  static void pos(HTMLElement elem, double x, double y) {
     elem.style.setProperty("left", x.toString() + "PX");
     elem.style.setProperty("top", y.toString() + "PX");
   }
 
-  static void posSize(HTMLElement elem, int l, int t, int r, int b) {
+  static void posSize(HTMLElement elem, double l, double t, double r, double b) {
     pos(elem, l, t);
     elem.style.setProperty("right", r.toString() + "PX");
     elem.style.setProperty("bottom", b.toString() + "PX");

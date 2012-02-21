@@ -22,7 +22,7 @@ class Balls {
     window.document.body.appendChild(root);
     root.style.setProperty("zIndex", '100');
     Util.abs(root);
-    Util.posSize(root, 0, 0, 0, 0);
+    Util.posSize(root, 0.0, 0.0, 0.0, 0.0);
   }
 
   void tick() {
@@ -87,7 +87,7 @@ class Balls {
     return nd2;
   }
 
-  void add(int x, int y, int color) {
+  void add(double x, double y, int color) {
     balls.add(new Ball(root, x, y, color));
   }
 }
