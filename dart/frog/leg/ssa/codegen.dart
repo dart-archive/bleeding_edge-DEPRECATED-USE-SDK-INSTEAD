@@ -100,6 +100,7 @@ class SsaCodeGenerator implements HVisitor {
 
   Element equalsNullElement;
   int indent = 0;
+  int expectedPrecedence = JSPrecedence.STATEMENT_PRECEDENCE;
   HGraph currentGraph;
   HBasicBlock currentBlock;
 
@@ -133,6 +134,17 @@ class SsaCodeGenerator implements HVisitor {
   abstract endThen(HIf node);
   abstract startElse(HIf node);
   abstract endElse(HIf node);
+
+  void beginExpression(int precedence) {
+    if (precedence < expectedPrecedence) {
+      buffer.add('(');
+    }
+  }
+  void endExpression(int precedence) {
+    if (precedence < expectedPrecedence) {
+      buffer.add(')');
+    }
+  }
 
   visitGraph(HGraph graph) {
     currentGraph = graph;
@@ -189,26 +201,29 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add('(');
     for (int i = HInvoke.ARGUMENTS_OFFSET; i < inputs.length; i++) {
       if (i != HInvoke.ARGUMENTS_OFFSET) buffer.add(', ');
-      use(inputs[i]);
+      use(inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
     }
     buffer.add(")");
   }
 
   void define(HInstruction instruction) {
     buffer.add('var ${temporary(instruction)} = ');
-    visit(instruction);
+    visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
   }
 
-  void use(HInstruction argument) {
+  void use(HInstruction argument, int expectedPrecedence) {
     if (argument.generateAtUseSite()) {
-      visit(argument);
+      visit(argument, expectedPrecedence);
     } else {
       buffer.add(temporary(argument));
     }
   }
 
-  visit(HInstruction node) {
-    return node.accept(this);
+  visit(HInstruction node, int expectedPrecedence) {
+    int oldPrecedence = this.expectedPrecedence;
+    this.expectedPrecedence = expectedPrecedence;
+    node.accept(this);
+    this.expectedPrecedence = oldPrecedence;
   }
 
   visitBasicBlock(HBasicBlock node) {
@@ -221,14 +236,14 @@ class SsaCodeGenerator implements HVisitor {
     HInstruction instruction = node.first;
     while (instruction != null) {
       if (instruction is HGoto || instruction is HExit || instruction is HTry) {
-        visit(instruction);
+        visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
         return;
       } else if (!instruction.generateAtUseSite()) {
         if (instruction is !HIf && instruction is !HBailoutTarget) {
           addIndentation();
         }
         if (instruction.usedBy.isEmpty() || instruction is HLocal) {
-          visit(instruction);
+          visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
         } else {
           define(instruction);
         }
@@ -251,11 +266,12 @@ class SsaCodeGenerator implements HVisitor {
 
   visitInvokeBinary(HInvokeBinary node, String op) {
     if (node.builtin) {
-      buffer.add('(');
-      use(node.left);
+      JSBinaryOperatorPrecedence operatorPrecedences = JSPrecedence.binary[op];
+      beginExpression(operatorPrecedences.precedence);
+      use(node.left, operatorPrecedences.left);
       buffer.add(' $op ');
-      use(node.right);
-      buffer.add(')');
+      use(node.right, operatorPrecedences.right);
+      endExpression(operatorPrecedences.precedence);
     } else {
       visitInvokeStatic(node);
     }
@@ -263,9 +279,10 @@ class SsaCodeGenerator implements HVisitor {
 
   visitInvokeUnary(HInvokeUnary node, String op) {
     if (node.builtin) {
-      buffer.add('($op');
-      use(node.operand);
-      buffer.add(')');
+      beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
+      buffer.add('$op');
+      use(node.operand, JSPrecedence.PREFIX_PRECEDENCE);
+      endExpression(JSPrecedence.PREFIX_PRECEDENCE);
     } else {
       visitInvokeStatic(node);
     }
@@ -273,16 +290,18 @@ class SsaCodeGenerator implements HVisitor {
 
   visitEquals(HEquals node) {
     if (node.builtin) {
-      buffer.add('(');
-      use(node.left);
+      beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      use(node.left, JSPrecedence.EQUALITY_PRECEDENCE);
       buffer.add(' === ');
-      use(node.right);
-      buffer.add(')');
+      use(node.right, JSPrecedence.RELATIONAL_PRECEDENCE);
+      endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     } else if (node.element === equalsNullElement) {
-      use(node.target);
+      beginExpression(JSPrecedence.CALL_PRECEDENCE);
+      use(node.target, JSPrecedence.CALL_PRECEDENCE);
       buffer.add('(');
-      use(node.left);
+      use(node.left, JSPrecedence.ASSIGNMENT_PRECEDENCE);
       buffer.add(')');
+      endExpression(JSPrecedence.CALL_PRECEDENCE);
     } else {
       visitInvokeStatic(node);
     }
@@ -315,18 +334,21 @@ class SsaCodeGenerator implements HVisitor {
   visitGreaterEqual(HGreaterEqual node) => visitInvokeBinary(node, '>=');
 
   visitLogicalOperator(HLogicalOperator node) {
-    buffer.add("((");
-    use(node.left);
-    buffer.add(")${node.operation}(");
-    use(node.right);
-    buffer.add("))");
+    JSBinaryOperatorPrecedence operatorPrecedence =
+        JSPrecedence.binary[node.operation];
+    beginExpression(operatorPrecedence.precedence);
+    use(node.left, operatorPrecedence.left);
+    buffer.add(" ${node.operation} ");
+    use(node.right, operatorPrecedence.right);
+    endExpression(operatorPrecedence.precedence);
   }
 
   visitBoolify(HBoolify node) {
+    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     assert(node.inputs.length == 1);
-    buffer.add('(');
-    use(node.inputs[0]);
-    buffer.add(' === true)');
+    use(node.inputs[0], JSPrecedence.EQUALITY_PRECEDENCE);
+    buffer.add(' === true');
+    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
   }
 
   visitExit(HExit node) {
@@ -434,7 +456,8 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
-    use(node.receiver);
+    beginExpression(JSPrecedence.CALL_PRECEDENCE);
+    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
     // Avoid adding the generative constructor name to the list of
     // seen selectors.
@@ -449,40 +472,50 @@ class SsaCodeGenerator implements HVisitor {
       visitArguments(node.inputs);
       compiler.registerDynamicInvocation(node.name, node.selector);
     }
+    endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
-    use(node.receiver);
+    beginExpression(JSPrecedence.CALL_PRECEDENCE);
+    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
     buffer.add(compiler.namer.setterName(node.name));
     visitArguments(node.inputs);
     compiler.registerDynamicSetter(node.name);
+    endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
-    use(node.receiver);
+    beginExpression(JSPrecedence.CALL_PRECEDENCE);
+    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
     buffer.add(compiler.namer.getterName(node.name));
     visitArguments(node.inputs);
     compiler.registerDynamicGetter(node.name);
+    endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
   visitInvokeClosure(HInvokeClosure node) {
-    use(node.receiver);
+    beginExpression(JSPrecedence.CALL_PRECEDENCE);
+    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
     buffer.add(compiler.namer.closureInvocationName(node.selector));
     visitArguments(node.inputs);
     // TODO(floitsch): we should have a separate list for closure invocations.
     compiler.registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME,
                                        node.selector);
+    endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
   visitInvokeStatic(HInvokeStatic node) {
-    use(node.target);
+    beginExpression(JSPrecedence.CALL_PRECEDENCE);
+    use(node.target, JSPrecedence.CALL_PRECEDENCE);
     visitArguments(node.inputs);
+    endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
   visitInvokeSuper(HInvokeSuper node) {
+    beginExpression(JSPrecedence.CALL_PRECEDENCE);
     Element superMethod = node.element;
     Element superClass = superMethod.enclosingElement;
     // Remove the element and 'this'.
@@ -492,21 +525,27 @@ class SsaCodeGenerator implements HVisitor {
         superMethod.name, argumentCount);
     buffer.add('$className.prototype.$methodName.call');
     visitArguments(node.inputs);
+    endExpression(JSPrecedence.CALL_PRECEDENCE);
     compiler.registerStaticUse(superMethod);
   }
 
   visitFieldGet(HFieldGet node) {
-    if (node.receiver != null) {
-      use(node.receiver);
-      buffer.add('.');
-    }
     String name = JsNames.getValid('${node.element.name}');
-    buffer.add(name);
+    if (node.receiver !== null) {
+      beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
+      use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
+      buffer.add('.');
+      buffer.add(name);
+      beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
+    } else {
+      buffer.add(name);
+    }
   }
 
   visitFieldSet(HFieldSet node) {
-    if (node.receiver != null) {
-      use(node.receiver);
+    if (node.receiver !== null) {
+      beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
     } else {
       // TODO(ngeoffray): Remove the 'var' once we don't globally box
@@ -516,7 +555,10 @@ class SsaCodeGenerator implements HVisitor {
     String name = JsNames.getValid('${node.element.name}');
     buffer.add(name);
     buffer.add(' = ');
-    use(node.value);
+    use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    if (node.receiver !== null) {
+      endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    }
   }
 
   visitForeign(HForeign node) {
@@ -536,30 +578,44 @@ class SsaCodeGenerator implements HVisitor {
       }
       code = code.replaceAll('\$$i', name);
     }
-    if (node.generateAtUseSite()) {
-      buffer.add('($code)');
-    } else {
-      buffer.add('$code');
-    }
+    beginExpression(JSPrecedence.EXPRESSION_PRECEDENCE);
+    buffer.add(code);
+    endExpression(JSPrecedence.EXPRESSION_PRECEDENCE);
   }
 
   visitForeignNew(HForeignNew node) {
     String jsClassReference = compiler.namer.isolateAccess(node.element);
+    beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('new $jsClassReference(');
     // We can't use 'visitArguments', since our arguments start at input[0].
     List<HInstruction> inputs = node.inputs;
     for (int i = 0; i < inputs.length; i++) {
       if (i != 0) buffer.add(', ');
-      use(inputs[i]);
+      use(inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
     }
     buffer.add(')');
+    endExpression(JSPrecedence.MEMBER_PRECEDENCE);
   }
 
   visitLiteral(HLiteral node) {
     if (node.isLiteralNull()) {
-      buffer.add("(void 0)");
-    } else if (node.value is num && node.value < 0) {
-      buffer.add('(${node.value})');
+      beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
+      buffer.add("void 0");
+      endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    } else if (node.value is num) {
+      int precedence = JSPrecedence.PRIMARY_PRECEDENCE;
+      if (node.value < 0 ||
+          expectedPrecedence == JSPrecedence.MEMBER_PRECEDENCE) {
+        // Negative constants are really unary minus operator expressions.
+        // If the constant appear as a MemberExpression, it might be subject
+        // to the '.' operator, which shouldn't be put next to a number
+        // literal. It might be mistaken for a decimal point. Setting
+        // precedence to PREFIX_PRECEDENCE forces parentheses in this case.
+        precedence = JSPrecedence.PREFIX_PRECEDENCE;
+      }
+      beginExpression(precedence);
+      buffer.add(node.value);
+      endExpression(precedence);
     } else if (node.isLiteralString()) {
       DartString string = node.value;
       buffer.add("'");
@@ -595,9 +651,10 @@ class SsaCodeGenerator implements HVisitor {
 
   visitNot(HNot node) {
     assert(node.inputs.length == 1);
-    buffer.add('(!');
-    use(node.inputs[0]);
-    buffer.add(')');
+    beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    buffer.add('!');
+    use(node.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
+    endExpression(JSPrecedence.PREFIX_PRECEDENCE);
   }
 
   visitParameterValue(HParameterValue node) {
@@ -615,7 +672,7 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add('return;\n');
     } else {
       buffer.add('return ');
-      use(node.inputs[0]);
+      use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
       buffer.add(';\n');
     }
   }
@@ -626,25 +683,25 @@ class SsaCodeGenerator implements HVisitor {
 
   visitThrow(HThrow node) {
     buffer.add('throw ');
-    use(node.inputs[0]);
+    use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
     buffer.add(';\n');
   }
 
   visitBoundsCheck(HBoundsCheck node) {
     buffer.add('if (');
-    use(node.index);
+    use(node.index, JSPrecedence.RELATIONAL_PRECEDENCE);
     buffer.add(' < 0 || ');
-    use(node.index);
+    use(node.index, JSPrecedence.RELATIONAL_PRECEDENCE);
     buffer.add(' >= ');
-    use(node.length);
+    use(node.length, JSPrecedence.SHIFT_PRECEDENCE);
     buffer.add(") throw 'Out of bounds'");
   }
 
   visitIntegerCheck(HIntegerCheck node) {
     buffer.add('if (');
-    use(node.value);
+    use(node.value, JSPrecedence.EQUALITY_PRECEDENCE);
     buffer.add(' !== (');
-    use(node.value);
+    use(node.value, JSPrecedence.BITWISE_OR_PRECEDENCE);
     buffer.add(" | 0)) throw 'Illegal argument'");
   }
 
@@ -661,17 +718,24 @@ class SsaCodeGenerator implements HVisitor {
 
   void visitStaticStore(HStaticStore node) {
     compiler.registerStaticUse(node.element);
+    beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
     buffer.add(compiler.namer.isolateAccess(node.element));
     buffer.add(' = ');
-    use(node.inputs[0]);
+    use(node.inputs[0], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
   }
 
   void visitStore(HStore node) {
     if (node.local.declaredBy === node) {
       buffer.add('var ');
+    } else {
+      beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
     }
     buffer.add('${local(node.local)} = ');
-    use(node.value);
+    use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    if (node.local.declaredBy !== node) {
+      endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    }
   }
 
   void visitLoad(HLoad node) {
@@ -687,17 +751,19 @@ class SsaCodeGenerator implements HVisitor {
     int len = node.inputs.length;
     for (int i = 0; i < len; i++) {
       if (i != 0) buffer.add(', ');
-      use(node.inputs[i]);
+      use(node.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
     }
     buffer.add(']');
   }
 
   void visitIndex(HIndex node) {
     if (node.builtin) {
-      use(node.inputs[1]);
+      beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
+      use(node.inputs[1], JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('[');
-      use(node.inputs[2]);
+      use(node.inputs[2], JSPrecedence.EXPRESSION_PRECEDENCE);
       buffer.add(']');
+      endExpression(JSPrecedence.MEMBER_PRECEDENCE);
     } else {
       visitInvokeStatic(node);
     }
@@ -705,13 +771,13 @@ class SsaCodeGenerator implements HVisitor {
 
   void visitIndexAssign(HIndexAssign node) {
     if (node.builtin) {
-      buffer.add('(');
-      use(node.inputs[1]);
+      beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      use(node.inputs[1], JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('[');
-      use(node.inputs[2]);
+      use(node.inputs[2], JSPrecedence.EXPRESSION_PRECEDENCE);
       buffer.add('] = ');
-      use(node.inputs[3]);
-      buffer.add(')');
+      use(node.inputs[3], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
     } else {
       visitInvokeStatic(node);
     }
@@ -719,32 +785,38 @@ class SsaCodeGenerator implements HVisitor {
 
   void visitInvokeInterceptor(HInvokeInterceptor node) {
     if (node.builtinJsName != null) {
-      use(node.inputs[1]);
+      beginExpression(JSPrecedence.CALL_PRECEDENCE);
+      use(node.inputs[1], JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
       buffer.add(node.builtinJsName);
       if (node.getter) return;
       buffer.add('(');
       for (int i = 2; i < node.inputs.length; i++) {
         if (i != 2) buffer.add(', ');
-        use(node.inputs[i]);
+        use(node.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
       }
       buffer.add(")");
+      endExpression(JSPrecedence.CALL_PRECEDENCE);
     } else {
       return visitInvokeStatic(node);
     }
   }
 
   void checkInt(HInstruction input, String cmp) {
-    use(input);
+    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    use(input, JSPrecedence.EQUALITY_PRECEDENCE);
     buffer.add(' $cmp (');
-    use(input);
+    use(input, JSPrecedence.BITWISE_OR_PRECEDENCE);
     buffer.add(' | 0)');
+    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
   }
 
   void checkNum(HInstruction input, String cmp) {
+    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     buffer.add('typeof ');
-    use(input);
+    use(input, JSPrecedence.PREFIX_PRECEDENCE);
     buffer.add(" $cmp 'number'");
+    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
   }
 
   void checkDouble(HInstruction input, String cmp) {
@@ -752,33 +824,40 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void checkString(HInstruction input, String cmp) {
+    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     buffer.add('typeof ');
-    use(input);
+    use(input, JSPrecedence.PREFIX_PRECEDENCE);
     buffer.add(" $cmp 'string'");
+    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
   }
 
   void checkBool(HInstruction input, String cmp) {
+    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     buffer.add('typeof ');
-    use(input);
+    use(input, JSPrecedence.PREFIX_PRECEDENCE);
     buffer.add(" $cmp 'boolean'");
+    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
   }
 
   void checkObject(HInstruction input, String cmp) {
+    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     buffer.add('typeof ');
-    use(input);
+    use(input, JSPrecedence.PREFIX_PRECEDENCE);
     buffer.add(" $cmp 'object'");
+    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
   }
 
   void checkArray(HInstruction input, String cmp) {
-    use(input);
+    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    use(input, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.constructor $cmp Array');
+    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
   }
 
   void visitIs(HIs node) {
     ClassElement element = node.typeExpression;
     LibraryElement coreLibrary = compiler.coreLibrary;
     HInstruction input = node.expression;
-    buffer.add('(');
     if (element == coreLibrary.find(const SourceString('Object'))) {
       // TODO(ahe): This probably belongs in the constant folder.
       buffer.add('true');
@@ -791,23 +870,35 @@ class SsaCodeGenerator implements HVisitor {
     } else if (element == coreLibrary.find(const SourceString('bool'))) {
       checkBool(input, '===');
     } else if (element == coreLibrary.find(const SourceString('int'))) {
+      beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
       checkNum(input, '===');
       buffer.add(' && ');
       checkInt(input, '===');
+      endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
     } else {
+      beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
       checkObject(input, '===');
-      buffer.add(' && (');
+      buffer.add(' && ');
+      int precedence = JSPrecedence.PREFIX_PRECEDENCE;
+      bool endParen = false;
       if (element == coreLibrary.find(const SourceString('List'))) {
+        buffer.add("(");
+        endParen = true;
+        beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
         checkArray(input, '===');
         buffer.add(' || ');
+        precedence = JSPrecedence.LOGICAL_OR_PRECEDENCE;
+      } else {
+        beginExpression(precedence);
       }
-      buffer.add('!!(');
-      use(input);
+      buffer.add('!!');
+      use(input, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
       buffer.add(compiler.namer.operatorIs(node.typeExpression));
-      buffer.add('))');
+      endExpression(precedence);
+      if (endParen) buffer.add(')');
+      endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
     }
-    buffer.add(')');
   }
 }
 
@@ -849,7 +940,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       for (int i = 0; i < guard.inputs.length; i++) {
         HInstruction input = guard.inputs[i];
         buffer.add(', ');
-        use(guard.inputs[i]);
+        use(guard.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
       }
     } else {
       assert(guard.guarded is HParameterValue);
@@ -911,9 +1002,9 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void handleLoopCondition(HLoopBranch node) {
-    buffer.add('if (!(');
-    use(node.inputs[0]);
-    buffer.add(')) break;\n');
+    buffer.add('if (!');
+    use(node.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
+    buffer.add(') break;\n');
   }
 
   void startIf(HIf node) {
@@ -928,7 +1019,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   void startThen(HIf node) {
     addIndentation();
     buffer.add('if (');
-    use(node.inputs[0]);
+    use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
     buffer.add(') {\n');
     indent++;
   }
@@ -1089,9 +1180,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void handleLoopCondition(HLoopBranch node) {
-    buffer.add('if (!(');
-    use(node.inputs[0]);
-    buffer.add(')) break ${currentLabel()};\n');
+    buffer.add('if (!');
+    use(node.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
+    buffer.add(') break ${currentLabel()};\n');
   }
 
   void startIf(HIf node) {
@@ -1114,6 +1205,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     bool hasBailouts = node.thenBlock.hasBailouts()
         || (node.hasElse && node.elseBlock.hasBailouts());
     buffer.add('if (');
+    int precedence = JSPrecedence.EXPRESSION_PRECEDENCE;
     if (hasBailouts) {
       // TODO(ngeoffray): Put the condition initialization in the
       // [setup] buffer.
@@ -1122,8 +1214,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
         buffer.add('state == ${bailouts[i].state} || ');
       }
       buffer.add('(state == 0 && ');
+      precedence = JSPrecedence.BITWISE_OR_PRECEDENCE;
     }
-    use(node.inputs[0]);
+    use(node.inputs[0], precedence);
     if (hasBailouts) {
       buffer.add(')');
     }

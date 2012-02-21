@@ -66,10 +66,10 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, 'main');
-  regexp = new RegExp("t = \\($anyIdentifier +");
+  regexp = new RegExp("t = \\(?$anyIdentifier +");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = new RegExp("i = \\($anyIdentifier +");
+  regexp = new RegExp("i = \\(?$anyIdentifier +");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_THREE, 'foo');

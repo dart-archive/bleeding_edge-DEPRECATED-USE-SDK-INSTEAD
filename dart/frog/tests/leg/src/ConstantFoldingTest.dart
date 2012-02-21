@@ -46,7 +46,7 @@ main() {
   RegExp regexp = const RegExp(@'eqNull\$1\(a\)');
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp(@'\(void 0\) === b');
+  regexp = const RegExp(@'\(?void 0\)? === b');
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp('4 === c');
