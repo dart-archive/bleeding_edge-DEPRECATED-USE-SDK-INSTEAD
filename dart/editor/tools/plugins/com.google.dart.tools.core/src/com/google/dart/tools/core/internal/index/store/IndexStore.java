@@ -107,6 +107,21 @@ public class IndexStore {
   }
 
   /**
+   * Return the number of relationships that are currently recorded in this index.
+   * 
+   * @return the number of relationships that are currently recorded in this index
+   */
+  public int getRelationshipCount() {
+    int count = 0;
+    for (HashMap<Relationship, ArrayList<ContributedLocation>> elementRelationshipMap : relationshipMap.values()) {
+      for (ArrayList<ContributedLocation> contributedLocations : elementRelationshipMap.values()) {
+        count += contributedLocations.size();
+      }
+    }
+    return count;
+  }
+
+  /**
    * Return the locations of the elements that have the given relationship with the given element.
    * For example, if the element represents a method and the relationship is the is-referenced-by
    * relationship, then the returned locations will be all of the places where the method is

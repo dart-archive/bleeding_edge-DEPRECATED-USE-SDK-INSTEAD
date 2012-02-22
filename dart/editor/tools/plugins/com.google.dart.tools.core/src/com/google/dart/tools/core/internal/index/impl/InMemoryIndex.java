@@ -41,6 +41,7 @@ import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
@@ -166,6 +167,17 @@ public class InMemoryIndex implements Index {
   }
 
   /**
+   * Return the number of relationships that are currently recorded in this index.
+   * 
+   * @return the number of relationships that are currently recorded in this index
+   */
+  public int getRelationshipCount() {
+    synchronized (indexStore) {
+      return indexStore.getRelationshipCount();
+    }
+  }
+
+  /**
    * Asynchronously invoke the given callback with an array containing all of the locations of the
    * elements that have the given relationship with the given element. For example, if the element
    * represents a method and the relationship is the is-referenced-by relationship, then the
@@ -221,11 +233,11 @@ public class InMemoryIndex implements Index {
    * Initialize this index, assuming that it has not already been initialized.
    */
   public void initializeIndex() {
-    if (hasBeenInitialized) {
-      return;
-    }
-    hasBeenInitialized = true;
     synchronized (indexStore) {
+      if (hasBeenInitialized) {
+        return;
+      }
+      hasBeenInitialized = true;
       indexStore.clear();
       if (!initializeIndexFrom(getIndexFile())) {
         indexStore.clear();
@@ -279,8 +291,10 @@ public class InMemoryIndex implements Index {
   }
 
   public void shutdown() {
-    if (hasBeenInitialized) {
-      writeIndexTo(getIndexFile());
+    synchronized (indexStore) {
+      if (hasBeenInitialized) {
+        writeIndexTo(getIndexFile());
+      }
     }
   }
 
@@ -435,7 +449,8 @@ public class InMemoryIndex implements Index {
       DartSource unitSource = ast.getSource();
       URI unitUri = unitSource.getUri();
       Resource resource = new Resource(unitUri.toString());
-      CompilationUnit compilationUnit = new CompilationUnitImpl(library, unitUri, null);
+      CompilationUnit compilationUnit = new CompilationUnitImpl(library, unitUri,
+          DefaultWorkingCopyOwner.getInstance());
       // library.getCompilationUnit(unitUri);
       long startTime = System.currentTimeMillis();
       indexResource(resource, compilationUnit, ast);
