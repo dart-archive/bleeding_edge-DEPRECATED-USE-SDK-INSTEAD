@@ -2032,7 +2032,7 @@ class SsaBuilder implements Visitor {
         VariableDefinitions declaration = catchBlock.formals.nodes.head;
         HInstruction condition = null;
         if (declaration.type == null) {
-          condition = graph.addNewLiteralBool(true);
+          condition = graph.addNewLiteralTrue();
           stack.add(condition);
         } else {
           Element typeElement = elements[declaration.type];

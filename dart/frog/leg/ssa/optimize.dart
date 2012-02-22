@@ -76,7 +76,7 @@ class SsaConstantFolder extends HBaseVisitor {
     HInstruction input = inputs[0];
     if (input.isBoolean()) return input;
     // All values !== true are boolified to false.
-    if (input.type.isKnown()) return graph.addNewLiteralBool(false);
+    if (input.type.isKnown()) return graph.addNewLiteralFalse();
     return node;
   }
 
@@ -144,7 +144,7 @@ class SsaConstantFolder extends HBaseVisitor {
       HLiteral op2 = node.right;
       if (op1.isLiteralString()) {
         if (op2.isLiteralString() && op1.value.definitelyEquals(op2.value)) {
-          return graph.addNewLiteralBool(true);
+          return graph.addNewLiteralTrue();
         }
       } else {
         return graph.addNewLiteralBool(op1.value == op2.value);

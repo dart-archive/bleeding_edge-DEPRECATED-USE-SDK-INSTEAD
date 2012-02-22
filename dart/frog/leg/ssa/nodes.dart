@@ -115,6 +115,17 @@ class HGraph {
   HBasicBlock exit;
   final List<HBasicBlock> blocks;
 
+  // We canonicalize all literals used within a graph so we do not
+  // have to worry about them for global value numbering.
+  HLiteral nullLiteral;
+  HLiteral trueLiteral;
+  HLiteral falseLiteral;
+  HLiteral nanLiteral;
+  Map<int, HLiteral> intLiterals;
+  Map<double, HLiteral> doubleLiterals;
+  Map<num, HLiteral> numLiterals;
+  Map<String, HLiteral> stringLiterals;
+
   HGraph() : blocks = new List<HBasicBlock>() {
     entry = addNewBlock();
     // The exit block will be added later, so it has an id that is
@@ -142,46 +153,93 @@ class HGraph {
   }
 
   HLiteral addNewLiteralInt(int value) {
-    HLiteral result = new HLiteral.internal(value, HType.INTEGER);
-    entry.addAtExit(result);
+    if (intLiterals === null) intLiterals = new Map<int, HLiteral>();
+    HLiteral result = intLiterals[value];
+    if (result === null) {
+      result = new HLiteral.internal(value, HType.INTEGER);
+      entry.addAtExit(result);
+      intLiterals[value] = result;
+    }
     return result;
   }
 
+  HLiteral addNewLiteralNaN() {
+    if (nanLiteral === null) {
+      nanLiteral = new HLiteral.internal(double.NAN, HType.DOUBLE);
+      entry.addAtExit(nanLiteral);
+    }
+    return nanLiteral;
+  }
+
   HLiteral addNewLiteralDouble(double value) {
-    HLiteral result = new HLiteral.internal(value, HType.DOUBLE);
-    entry.addAtExit(result);
+    if (value.isNaN()) return addNewLiteralNaN();  // Avoid hashing NaN.
+    if (doubleLiterals === null) doubleLiterals = new Map<double, HLiteral>();
+    HLiteral result = doubleLiterals[value];
+    if (result === null) {
+      result = new HLiteral.internal(value, HType.DOUBLE);
+      entry.addAtExit(result);
+      doubleLiterals[value] = result;
+    }
     return result;
   }
 
   HLiteral addNewLiteralNum(num value, HType type) {
-    if (type.isInteger()) return addNewLiteralInt(value);
-    if (type.isDouble()) return addNewLiteralDouble(value);
     // If we've propagated type information then the type must be a
     // number or in conflict, but when we turn off speculative
     // optimization the type may be unknown. In any case, we make it a
     // number from this point forward.
     assert(type.isUnknown() || type.isConflicting() || type.isNumber());
-    HLiteral result = new HLiteral.internal(value, HType.NUMBER);
-    entry.addAtExit(result);
+    if (type.isInteger()) return addNewLiteralInt(value);
+    if (type.isDouble() || value.isNaN()) return addNewLiteralDouble(value);
+    // Probe our literals map and add a new number literal if necessary.
+    if (numLiterals === null) numLiterals = new Map<num, HLiteral>();
+    HLiteral result = numLiterals[value];
+    if (result === null) {
+      result = new HLiteral.internal(value, HType.NUMBER);
+      entry.addAtExit(result);
+      numLiterals[value] = result;
+     }
     return result;
+  }
+
+  HLiteral addNewLiteralTrue() {
+    if (trueLiteral === null) {
+      trueLiteral = new HLiteral.internal(true, HType.BOOLEAN);
+      entry.addAtExit(trueLiteral);
+    }
+    return trueLiteral;
+  }
+
+  HLiteral addNewLiteralFalse() {
+    if (falseLiteral === null) {
+      falseLiteral = new HLiteral.internal(false, HType.BOOLEAN);
+      entry.addAtExit(falseLiteral);
+    }
+    return falseLiteral;
   }
 
   HLiteral addNewLiteralBool(bool value) {
-    HLiteral result = new HLiteral.internal(value, HType.BOOLEAN);
-    entry.addAtExit(result);
-    return result;
+    return value ? addNewLiteralTrue() : addNewLiteralFalse();
   }
 
   HLiteral addNewLiteralString(DartString value) {
-    HLiteral result = new HLiteral.internal(value, HType.STRING);
-    entry.addAtExit(result);
+    if (stringLiterals === null) stringLiterals = new Map<String, HLiteral>();
+    String key = value.toString();  // We need something hashable.
+    HLiteral result = stringLiterals[key];
+    if (result === null) {
+      result = new HLiteral.internal(value, HType.STRING);
+      entry.addAtExit(result);
+      stringLiterals[key] = result;
+    }
     return result;
   }
 
   HLiteral addNewLiteralNull() {
-    HLiteral result = new HLiteral.internal(null, HType.UNKNOWN);
-    entry.addAtExit(result);
-    return result;
+    if (nullLiteral === null) {
+      nullLiteral = new HLiteral.internal(null, HType.UNKNOWN);
+      entry.addAtExit(nullLiteral);
+    }
+    return nullLiteral;
   }
 
   void finalize() {
@@ -1755,11 +1813,7 @@ class HLiteral extends HInstruction {
   }
 
   void prepareGvn() {
-    // We allow global value numbering of literals, but we still
-    // prefer generating them at use sites. This allows us to do
-    // better GVN'ing of instructions that use literals as input.
     assert(!hasSideEffects());
-    setUseGvn();
   }
 
   toString() => 'literal: $value';
@@ -1775,13 +1829,6 @@ class HLiteral extends HInstruction {
   bool isLiteralNull() => value === null;
   bool isLiteralNumber() => value is num;
   bool isLiteralString() => value is DartString;
-  bool typeEquals(other) => other is HLiteral;
-  bool dataEquals(HLiteral other) {
-    if (isLiteralNumber() && other.isLiteralNumber()) {
-      if (value.isNaN()) return other.value.isNaN();
-    }
-    return value == other.value;
-  }
 }
 
 class HNot extends HInstruction {
