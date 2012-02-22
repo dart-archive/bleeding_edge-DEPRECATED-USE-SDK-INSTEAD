@@ -1891,8 +1891,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitEmptyStatement(EmptyStatement node) {
-    compiler.unimplemented('SsaBuilder.visitEmptyStatement',
-                           node: node);
+    // Do nothing, empty statement.
   }
 
   visitModifiers(Modifiers node) {

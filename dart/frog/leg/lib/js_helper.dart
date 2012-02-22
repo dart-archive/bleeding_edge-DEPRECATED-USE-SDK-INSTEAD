@@ -82,14 +82,7 @@ mod(var a, var b) {
 
 tdiv(var a, var b) {
   if (checkNumbers(a, b, "num~/ expects a number as second operand.")) {
-    var tmp = a / b;
-    // TODO(ngeoffray): Use tmp.floor and tmp.ceil when
-    // we can handle them.
-    if (tmp < 0) {
-      return JS("num", @"Math.ceil($0)", tmp);
-    } else {
-      return JS("num", @"Math.floor($0)", tmp);
-    }
+    return (a / b).truncate();
   }
   return UNINTERCEPTED(a ~/ b);
 }
@@ -668,6 +661,12 @@ checkNull(object) {
   if (object === null) throw new NullPointerException();
 }
 
+checkNum(value) {
+  checkNull(value);
+  if (value is !num) throw new IllegalArgumentException(value);
+  return value;
+}
+
 builtin$isNegative$0(receiver) {
   checkNull(receiver);
   if (receiver is num) {
@@ -689,7 +688,7 @@ builtin$isNaN$0(receiver) {
 builtin$remainder$1(a, b) {
   checkNull(a);
   if (checkNumbers(a, b, "num.remainder expects a number as second operand.")) {
-    throw new NotImplementedException();
+    return JS("num", @"$0 % $1", a, b);
   } else {
     return UNINTERCEPTED(a.remainder(b));
   }
@@ -699,65 +698,71 @@ builtin$abs$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.abs());
 
-  throw new NotImplementedException();
+  return JS("num", @"Math.abs($0)", receiver);
 }
 
 builtin$toInt$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.toInt());
 
-  throw new NotImplementedException();
+  if (receiver.isNaN()) throw new BadNumberFormatException("NaN");
+
+  if (receiver.isInfinite()) throw new BadNumberFormatException("Infinity");
+
+  var truncated = receiver.truncate();
+  return JS("bool", @"$0 == -0.0", truncated) ? 0 : truncated;
 }
 
 builtin$ceil$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.ceil());
 
-  throw new NotImplementedException();
+  return JS("num", @"Math.ceil($0)", receiver);
 }
 
 builtin$floor$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.floor());
 
-  throw new NotImplementedException();
+  return JS("num", @"Math.floor($0)", receiver);
 }
 
 builtin$isInfinite$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.isInfinite());
 
-  throw new NotImplementedException();
+  return JS("bool", @"$0 == Infinity", receiver)
+    || JS("bool", @"$0 == -Infinity", receiver);
 }
 
 builtin$negate$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.negate());
 
-  throw new NotImplementedException();
+  return JS("num", @"-$0", receiver);
 }
 
 builtin$round$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.round());
 
-  throw new NotImplementedException();
+  return JS("num", @"Math.round($0)", receiver);
 }
 
 builtin$toDouble$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.toDouble());
 
-  throw new NotImplementedException();
+  // TODO(ahe): Just return receiver?
+  return JS("double", @"$0 + 0", receiver);
 }
 
 builtin$truncate$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.truncate());
 
-  throw new NotImplementedException();
+  return receiver < 0 ? receiver.ceil() : receiver.floor();
 }
-
 
 builtin$toStringAsFixed$1(receiver, fractionDigits) {
   checkNull(receiver);
@@ -765,7 +770,7 @@ builtin$toStringAsFixed$1(receiver, fractionDigits) {
     return UNINTERCEPTED(receiver.toStringAsFixed(fractionDigits));
   }
 
-  throw new NotImplementedException();
+  return JS("String", @"$0.toFixed($1)", receiver, fractionDigits);
 }
 
 builtin$allMatches$1(receiver, str) {
@@ -870,4 +875,52 @@ builtin$trim$0(receiver) {
   if (receiver is !String) return UNINTERCEPTED(receiver.trim());
 
   throw new NotImplementedException();
+}
+
+class MathNatives {
+  static int parseInt(String str) {
+    throw 'MathNatives.parseInt is not implemented';
+  }
+
+  static double parseDouble(String str) {
+    throw 'MathNatives.parseDouble is not implemented';
+  }
+
+  static double sqrt(num value)
+    => JS("double", @"Math.sqrt($0)", checkNum(value));
+
+  static double sin(num value)
+    => JS("double", @"Math.sin($0)", checkNum(value));
+
+  static double cos(num value)
+    => JS("double", @"Math.cos($0)", checkNum(value));
+
+  static double tan(num value)
+    => JS("double", @"Math.tan($0)", checkNum(value));
+
+  static double acos(num value)
+    => JS("double", @"Math.acos($0)", checkNum(value));
+
+  static double asin(num value)
+    => JS("double", @"Math.asin($0)", checkNum(value));
+
+  static double atan(num value)
+    => JS("double", @"Math.atan($0)", checkNum(value));
+
+  static double atan2(num a, num b)
+    => JS("double", @"Math.atan2($0)", checkNum(value));
+
+  static double exp(num value)
+    => JS("double", @"Math.exp($0)", checkNum(value));
+
+  static double log(num value)
+    => JS("double", @"Math.log($0)", checkNum(value));
+
+  static num pow(num value, num exponent) {
+    checkNum(value);
+    checkNum(exponent);
+    return JS("num", @"Math.pow($0, $1)", value, exponent);
+  }
+
+  static double random() => JS("double", "Math.random()");
 }

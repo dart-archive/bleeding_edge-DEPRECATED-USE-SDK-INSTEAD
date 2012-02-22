@@ -440,6 +440,8 @@ class CommonResolverVisitor<R> extends AbstractVisitor<R> {
     cancel(node, 'internal error');
   }
 
+  R visitEmptyStatement(Node node) => null;
+
   /** Convenience method for visiting nodes that may be null. */
   R visit(Node node) => (node == null) ? null : node.accept(this);
 
