@@ -145,7 +145,7 @@ class ReceivePortFactory {
 class StringBase {
   static String createFromCharCodes(List<int> charCodes) {
     checkNull(charCodes);
-    if (!isJSArray(charCodes)) {
+    if (!isJsArray(charCodes)) {
       if (charCodes is !List) throw new IllegalArgumentException(charCodes);
       charCodes = new List.from(charCodes);
     }

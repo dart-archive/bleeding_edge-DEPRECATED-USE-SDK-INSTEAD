@@ -27,7 +27,7 @@ bool checkNumbers(var a, var b, var message) {
 }
 
 
-bool isJSArray(var value) {
+bool isJsArray(var value) {
   return value !== null && JS("bool", @"$0.constructor === Array", value);
 }
 
@@ -218,7 +218,7 @@ neg(var a) {
 
 index(var a, var index) {
   checkNull(a);
-  if (a is String || isJSArray(a)) {
+  if (a is String || isJsArray(a)) {
     if (index is !int) {
       if (index is !num) throw new IllegalArgumentException(index);
       if (index.truncate() !== index) throw new IllegalArgumentException(index);
@@ -234,7 +234,7 @@ index(var a, var index) {
 
 indexSet(var a, var index, var value) {
   checkNull(a);
-  if (isJSArray(a)) {
+  if (isJsArray(a)) {
     if (!(index is int)) {
       throw new IllegalArgumentException(index);
     }
@@ -249,7 +249,7 @@ indexSet(var a, var index, var value) {
 
 builtin$add$1(var receiver, var value) {
   checkNull(receiver);
-  if (isJSArray(receiver)) {
+  if (isJsArray(receiver)) {
     JS("Object", @"$0.push($1)", receiver, value);
     return;
   }
@@ -258,7 +258,7 @@ builtin$add$1(var receiver, var value) {
 
 builtin$removeLast$0(var receiver) {
   checkNull(receiver);
-  if (isJSArray(receiver)) {
+  if (isJsArray(receiver)) {
     if (receiver.length === 0) throw new IndexOutOfRangeException(-1);
     return JS("Object", @"$0.pop()", receiver);
   }
@@ -267,7 +267,7 @@ builtin$removeLast$0(var receiver) {
 
 builtin$filter$1(var receiver, var predicate) {
   checkNull(receiver);
-  if (isJSArray(receiver)) {
+  if (isJsArray(receiver)) {
     return JS("Object", @"$0.filter(function(v) { return $1(v) === true; })",
               receiver, predicate);
   }
@@ -277,7 +277,7 @@ builtin$filter$1(var receiver, var predicate) {
 
 builtin$get$length(var receiver) {
   checkNull(receiver);
-  if (receiver is String || isJSArray(receiver)) {
+  if (receiver is String || isJsArray(receiver)) {
     return JS("num", @"$0.length", receiver);
   }
   return UNINTERCEPTED(receiver.length);
@@ -285,7 +285,7 @@ builtin$get$length(var receiver) {
 
 builtin$set$length(receiver, newLength) {
   checkNull(receiver);
-  if (isJSArray(receiver)) {
+  if (isJsArray(receiver)) {
     checkNull(newLength); // TODO(ahe): This is not specified but co19 tests it.
     if (newLength is !int) throw new IllegalArgumentException(newLength);
     if (newLength < 0) throw new IndexOutOfRangeException(newLength);
@@ -297,7 +297,7 @@ builtin$set$length(receiver, newLength) {
 
 builtin$toString$0(var value) {
   if (JS("bool", @"typeof $0 == 'object'", value)) {
-    if (isJSArray(value)) {
+    if (isJsArray(value)) {
       return "Instance of 'List'";
     }
     return UNINTERCEPTED(value.toString());
@@ -315,7 +315,7 @@ builtin$toString$0(var value) {
 
 builtin$iterator$0(receiver) {
   checkNull(receiver);
-  if (isJSArray(receiver)) {
+  if (isJsArray(receiver)) {
     return new ListIterator(receiver);
   }
   return UNINTERCEPTED(receiver.iterator());
@@ -348,7 +348,7 @@ builtin$charCodeAt$1(var receiver, int index) {
 
 builtin$isEmpty$0(receiver) {
   checkNull(receiver);
-  if (receiver is String || isJSArray(receiver)) {
+  if (receiver is String || isJsArray(receiver)) {
     return JS("bool", @"$0.length === 0", receiver);
   }
   return UNINTERCEPTED(receiver.isEmpty());
@@ -529,7 +529,8 @@ builtin$compareTo$1(a, b) {
     }
   } else if (a is String) {
     if (b is !String) throw new IllegalArgumentException(b);
-    return (a === b) ? 0 : JS('bool', @'$0 < $1', a, b) ? -1 : 1;
+    return JS('bool', @'$0 == $1', a, b) ? 0
+      : JS('bool', @'$0 < $1', a, b) ? -1 : 1;
   } else {
     return UNINTERCEPTED(a.compareTo(b));
   }
@@ -555,7 +556,7 @@ ioore(index) {
 
 builtin$addAll$1(receiver, collection) {
   checkNull(receiver);
-  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.addAll(collection));
+  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addAll(collection));
 
   // TODO(ahe): Use for-in when it is implemented correctly.
   var iterator = collection.iterator();
@@ -566,20 +567,20 @@ builtin$addAll$1(receiver, collection) {
 
 builtin$addLast$1(receiver, value) {
   checkNull(receiver);
-  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.addLast(value));
+  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addLast(value));
 
   JS("Object", @"$0.push($1)", receiver, value);
 }
 
 builtin$clear$0(receiver) {
   checkNull(receiver);
-  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.clear());
+  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.clear());
   receiver.length = 0;
 }
 
 builtin$forEach$1(receiver, f) {
   checkNull(receiver);
-  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.forEach(f));
+  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.forEach(f));
 
   var length = JS("num", @"$0.length", receiver);
   for (var i = 0; i < length; i++) {
@@ -589,7 +590,7 @@ builtin$forEach$1(receiver, f) {
 
 builtin$getRange$2(receiver, start, length) {
   checkNull(receiver);
-  if (!isJSArray(receiver)) {
+  if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.getRange(start, length));
   }
   if (0 === length) return [];
@@ -608,7 +609,7 @@ builtin$getRange$2(receiver, start, length) {
 
 builtin$indexOf$1(receiver, element) {
   checkNull(receiver);
-  if (isJSArray(receiver) || receiver is String) {
+  if (isJsArray(receiver) || receiver is String) {
     return builtin$indexOf$2(receiver, element, 0);
   }
   return UNINTERCEPTED(receiver.indexOf(element));
@@ -616,7 +617,7 @@ builtin$indexOf$1(receiver, element) {
 
 builtin$indexOf$2(receiver, element, start) {
   checkNull(receiver);
-  if (isJSArray(receiver)) {
+  if (isJsArray(receiver)) {
     if (start is !int) throw new IllegalArgumentException(start);
     var length = JS("num", @"$0.length", receiver);
     return Arrays.indexOf(receiver, element, start, length);
@@ -632,7 +633,7 @@ builtin$indexOf$2(receiver, element, start) {
 
 builtin$insertRange$2(receiver, start, length) {
   checkNull(receiver);
-  if (isJSArray(receiver)) {
+  if (isJsArray(receiver)) {
     return builtin$insertRange$3(receiver, start, length, null);
   }
   return UNINTERCEPTED(receiver.insertRange(start, length));
@@ -640,7 +641,7 @@ builtin$insertRange$2(receiver, start, length) {
 
 builtin$insertRange$3(receiver, start, length, initialValue) {
   checkNull(receiver);
-  if (!isJSArray(receiver)) {
+  if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.insertRange(start, length, initialValue));
   }
   return listInsertRange(receiver, start, length, initialValue);
@@ -676,7 +677,7 @@ listInsertRange(receiver, start, length, initialValue) {
 
 builtin$last$0(receiver) {
   checkNull(receiver);
-  if (!isJSArray(receiver)) {
+  if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.last());
   }
   return receiver[receiver.length - 1];
@@ -684,7 +685,7 @@ builtin$last$0(receiver) {
 
 builtin$lastIndexOf$1(receiver, element) {
   checkNull(receiver);
-  if (isJSArray(receiver)) {
+  if (isJsArray(receiver)) {
     var start = JS("num", @"$0.length", receiver);
     return Arrays.lastIndexOf(receiver, element, start);
   } else if (receiver is String) {
@@ -697,7 +698,7 @@ builtin$lastIndexOf$1(receiver, element) {
 
 builtin$lastIndexOf$2(receiver, element, start) {
   checkNull(receiver);
-  if (isJSArray(receiver)) {
+  if (isJsArray(receiver)) {
     return Arrays.lastIndexOf(receiver, element, start);
   } else if (receiver is String) {
     checkNull(element);
@@ -707,17 +708,17 @@ builtin$lastIndexOf$2(receiver, element, start) {
       if (start < 0) return -1;
       if (start >= receiver.length) start = receiver.length - 1;
     }
-    return rawStringLastIndexOf(receiver, element, start);
+    return stringLastIndexOfUnchecked(receiver, element, start);
   }
   return UNINTERCEPTED(receiver.lastIndexOf(element, start));
 }
 
-rawStringLastIndexOf(receiver, element, start)
+stringLastIndexOfUnchecked(receiver, element, start)
   => JS('int', @'$0.lastIndexOf($1, $2)', receiver, element, start);
 
 builtin$removeRange$2(receiver, start, length) {
   checkNull(receiver);
-  if (!isJSArray(receiver)) {
+  if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.removeRange(start, length));
   }
   if (length == 0) {
@@ -745,7 +746,7 @@ builtin$removeRange$2(receiver, start, length) {
 
 builtin$setRange$3(receiver, start, length, from) {
   checkNull(receiver);
-  if (isJSArray(receiver)) {
+  if (isJsArray(receiver)) {
     return builtin$setRange$4(receiver, start, length, from, 0);
   }
   return UNINTERCEPTED(receiver.setRange(start, length, from));
@@ -753,7 +754,7 @@ builtin$setRange$3(receiver, start, length, from) {
 
 builtin$setRange$4(receiver, start, length, from, startFrom) {
   checkNull(receiver);
-  if (!isJSArray(receiver)) {
+  if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.setRange(start, length, from, startFrom));
   }
 
@@ -776,14 +777,14 @@ builtin$setRange$4(receiver, start, length, from, startFrom) {
 
 builtin$some$1(receiver, f) {
   checkNull(receiver);
-  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.some(f));
+  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.some(f));
 
   return Collections.some(receiver, f);
 }
 
 builtin$sort$1(receiver, compare) {
   checkNull(receiver);
-  if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.sort(compare));
+  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.sort(compare));
 
   DualPivotQuicksort.sort(receiver, compare);
 }
@@ -1011,7 +1012,7 @@ builtin$replaceFirst$2(receiver, from, to) {
     return UNINTERCEPTED(receiver.replaceFirst(from, to));
   }
   if (from is !String) throw new IllegalArgumentException(from);
-  if (from is !String) throw new IllegalArgumentException(from);
+  if (to is !String) throw new IllegalArgumentException(to);
 
   return JS('String', @'$0.replace($1, $2)', receiver, from, to);
 }
@@ -1040,7 +1041,8 @@ builtin$startsWith$1(receiver, other) {
 
   int length = other.length;
   if (length > receiver.length) return false;
-  return other === JS('String', @'$0.substring(0, $1)', receiver, length);
+  return JS('bool', @'$0 == $1', other,
+            JS('String', @'$0.substring(0, $1)', receiver, length));
 }
 
 builtin$substring$1(receiver, startIndex) {
@@ -1155,7 +1157,7 @@ builtin$hashCode$0(receiver) {
   if (receiver is String) {
     throw 'String.hashCode is not implemented';
   }
-  if (isJSArray(receiver)) {
+  if (isJsArray(receiver)) {
     throw 'List.hashCode is not implemented';
   }
   return UNINTERCEPTED(receiver.hashCode());
