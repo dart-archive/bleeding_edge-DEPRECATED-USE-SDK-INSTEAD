@@ -134,6 +134,9 @@ class AntWrapper(object):
     os.chdir(cwd)
     return status
 
+global aclfile
+aclfile = None
+
 
 def _BuildOptions():
   """Setup the argument processing for this program."""
@@ -185,8 +188,11 @@ def main():
   if not sys.argv:
     print 'Script pathname not known, giving up.'
     return 1
+  os_tmp_dir = {'linux': '/tmp', 'macos': '/tmp', 'win32': r'e:\tmp'}
 
-  scriptdir = os.path.dirname(sys.argv[0])
+  scriptdir = os.path.abspath(os.path.dirname(sys.argv[0]))
+  global aclfile
+  aclfile = os.path.join(scriptdir, 'acl.xml')
   editorpath = os.path.abspath(os.path.join(scriptdir, '..'))
   thirdpartypath = os.path.abspath(os.path.join(scriptdir, '..', '..',
                                                 'third_party'))
@@ -197,9 +203,9 @@ def main():
   bzip2libpath = os.path.join(thirdpartypath, 'bzip2')
   buildpath = os.path.join(editorpath, 'tools', 'features',
                            'com.google.dart.tools.deploy.feature_releng')
-  buildroot = os.path.join(editorpath, 'build_root')
   utils = GetUtils(toolspath)
   buildos = utils.GuessOS()
+  buildroot = os.path.join(os_tmp_dir[buildos], 'dart-editor', 'build_root')
   print 'buildos        = {0}'.format(buildos)
   print 'scriptdir      = {0}'.format(scriptdir)
   print 'editorpath     = {0}'.format(editorpath)
@@ -353,13 +359,11 @@ def main():
     if not properties:
       raise Exception('no data was found in file {0}'.
                       format(ant_property_file.name))
-    if status and properties['build.runtime']:
-      _PrintErrorLog(properties['build.runtime'])
-      #This build script is currently not using any post processing
-      #so this line is commented out
-      # If the preprocessor needs to be run in the
-      #  if not status and properties['build.tmp']:
-      #    postProcessZips(properties['build.tmp'], buildout)
+    if status:
+      if properties['build.runtime']:
+        _PrintErrorLog(properties['build.runtime'])
+      return status
+
     sys.stdout.flush()
     #This is an override to for local testing
     force_run_install = os.environ.get('FORCE_RUN_INSTALL')
@@ -383,20 +387,6 @@ def main():
       if _ShouldMoveStagingToContinuous(staging_bucket, revision, gsu):
         _MoveStagingToContinuous(staging_bucket, to_bucket, revision, gsu)
         _CleanupStaging(staging_bucket, revision, gsu)
-      return 0
-#    else:
-#      #if the build passed deploy the artifacts
-#      _PrintSeparator("Deploying the built RCP's to Google Storage")
-#      status = _DeployArtifacts(buildout, to_bucket,
-#                                properties['build.tmp'], revision,
-#                                gsu)
-#      if status:
-#        return status
-#
-#      _PrintSeparator("Setting the ACL's for the RCP's in Google Storage")
-#      _SetAclOnArtifacts(to_bucket,
-#                         [revision + '/DartBuild', 'latest/DartBuild'],
-#                         gsu)
 
     sys.stdout.flush()
 
@@ -406,10 +396,12 @@ def main():
                         revision, options.name, buildroot, buildout,
                         editorpath, buildos)
     properties = _ReadPropertyFile(buildos, ant_property_file.name)
-    if status and properties['build.runtime']:
-      #if there is a build.runtime and the status is not
-      #zero see if there are any *.log entries
-      _PrintErrorLog(properties['build.runtime'])
+    _UploadTestHtml(buildout, to_bucket, revision, buildos, gsu)
+    if status:
+      if properties['build.runtime']:
+        #if there is a build.runtime and the status is not
+        #zero see if there are any *.log entries
+        _PrintErrorLog(properties['build.runtime'])
     return status
   finally:
     if ant_property_file is not None:
@@ -490,71 +482,6 @@ def _PrintErrorLog(rootdir):
         print logline
   if not found:
     print 'no log file was found in ' + configdir
-
-
-def _DeployArtifacts(fromd, to, tmp, svnid, gsu):
-  """Deploy the artifacts (zipped RCP applications) to Google Storage.
-
-  This function copies the artifacts to two places
-  gs://dart-editor-archive-continuous/svnid and
-  gs://dart-editor-archive-continuous/latest.
-  Google Storage Does not have sym links so we have to make two
-  copies of the deployed artifacts so there will always be a
-  constant continuous URL.
-
-  Args:
-    fromd: directory the zipped RCP applications are located
-    to: the base location in Google Storage
-    tmp: the temporary working directory
-    svnid: the svn revision number for this build
-    gsu: the gsutil wrapper object
-
-  Returns:
-    the status of the gsutil copy to Google Storage
-  """
-  print ('deploying zips in {0} to {1}'
-         ' (tmp: {2} svnID: {3})').format(str(fromd), str(to),
-                                          str(tmp), str(svnid))
-  cwd = os.getcwd()
-  deploydir = None
-  status = None
-  print 'deploying to {0}'.format(to)
-  try:
-    os.chdir(tmp)
-    deploydir = os.path.join(tmp, str(svnid))
-    print 'creating directory ' + deploydir
-    os.makedirs(deploydir)
-    artifacts = []
-    for zipfile in glob.glob(os.path.join(fromd, '*.zip')):
-      artifacts.append(zipfile)
-      print 'copying {0} to {1}'.format(zipfile, deploydir)
-      shutil.copy2(zipfile, deploydir)
-
-    status = gsu.Copy(deploydir, to, False, True)
-    if status:
-      _PrintError('the push to Google Storage of {0} failed'.format(svnid))
-    else:
-      deploydir = os.path.join(tmp, 'latest')
-      shutil.move(svnid, 'latest')
-      status = gsu.Copy('latest', to, True, True)
-      if status:
-        _PrintError('the push to Google Storage of latest failed')
-      else:
-        print ('code Successfully deployed to:'
-               '{2}\t{0}/{1}{2}\t{0}/latest').format(to, svnid, os.linesep)
-        print 'The URL\'s for the artifacts:'
-        for artifact in artifacts:
-          print '  {1} -> {0}/latest/{1}'.format(to, os.path.basename(artifact))
-        print
-        print 'the console for Google storage for this project can be found at'
-        print ('https://sandbox.google.com/storage/?project=375406243259'
-               '&pli=1#dart-editor-archive-continuous')
-    sys.stdout.flush()
-
-  finally:
-    os.chdir(cwd)
-
-  return status
 
 
 def _DeployToStaging(build_os, to_bucket, zip_files, svnid, gsu):
@@ -705,6 +632,46 @@ def _CleanupStaging(bucket_stage, svnid, gsu):
     gsu.Remove(element)
 
 
+def _UploadTestHtml(buildout, bucket, svnid, buildos, gsu):
+  """Upload the Test Results HTML to GoogleStorage.
+
+  Args:
+    buildout: the location ofthe output of the build
+    bucket: the Google Storage bucket the code is staged in
+    svnid: the revision id for this build
+    buildos: the os the build is running on
+    gsu: the gsutil object
+  """
+  print '_UploadTestHtml({0}, {1}, {2}, {3}, gsu)'.format(buildout,
+                                                          bucket,
+                                                          svnid,
+                                                          buildos)
+  gs_dir = '{0}/{1}'.format(bucket, svnid)
+  local_dir = '{0}'.format(svnid)
+  html_dir = os.path.join(buildout, 'html')
+  cwd = os.getcwd()
+  gs_test_dir_name = 'tests'
+  tmp_dir = None
+  try:
+    if os.path.exists(html_dir):
+      tmp_dir = tempfile.mkdtemp(prefix=gs_test_dir_name)
+      local_path = os.path.join(tmp_dir, local_dir)
+      os.makedirs(local_path)
+      os.chdir(tmp_dir)
+      shutil.copytree(html_dir, os.path.join(local_path, gs_test_dir_name,
+                                             buildos))
+      gsu.Copy(svnid, bucket, recursive_flag=True)
+      gs_elements = gsu.ReadBucket('{0}/{1}/{2}/*'.format(gs_dir,
+                                                          gs_test_dir_name,
+                                                          buildos))
+      for gs_element in gs_elements:
+        _SetAcl(gs_element, gsu)
+  finally:
+    os.chdir(cwd)
+    if tmp_dir is not None and os.path.exists(tmp_dir):
+      shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
 def _SetAclOnArtifacts(to, bucket_tags, gsu):
   """Set the ACL's on the GoogleStorage Objects.
 
@@ -739,7 +706,6 @@ def _SetAcl(element, gsu):
 #  acl = gsu.GetAcl(element)
 #  print 'acl = {0}'.format(acl)
 #  acl = gsu.AddPublicAcl(acl)
-  aclfile = os.path.abspath(os.path.join('..', '..', '..', 'build', 'acl.xml'))
   gsu.SetAclFromFile(element, aclfile)
 
 
@@ -777,7 +743,7 @@ def _FindRcpZipFiles(out_dir):
   Returns:
     a collection of rcp zip files
   """
-  out_dir = os.path.normpath(out_dir)
+  out_dir = os.path.normpath(os.path.normcase(out_dir))
   print '_FindRcpZipFiles({0})'.format(out_dir)
   rcp_out_dir = os.listdir(out_dir)
   found_zips = []
@@ -948,3 +914,11 @@ def _PrintError(text):
 
 if __name__ == '__main__':
   sys.exit(main())
+#  scriptdir = os.path.dirname(sys.argv[0])
+#  editorpath = os.path.abspath(os.path.join(scriptdir, '..'))
+#  homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
+#  global aclfile
+#  aclfile = os.path.join(scriptdir, 'acl.xml')
+#  gsu = gsutil.GsUtil(False, homegsutil, running_on_buildbot=False)
+#  _UploadTestHtml(os.path.join(editorpath, 'build_root', 'out'),
+#                  'gs://dart-editor-archive-testing', '123', 'linux', gsu)

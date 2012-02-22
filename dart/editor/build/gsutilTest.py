@@ -6,6 +6,7 @@ Python file to test gsutil.py.
 """
 import os
 import platform
+import shutil
 import tempfile
 import unittest
 import gsutil
@@ -19,6 +20,7 @@ class TestGsutil(unittest.TestCase):
   build_count = 3
 
   def setUp(self):
+    """Setup the test."""
     self._iswindows = False
     operating_system = platform.system()
     if operating_system == 'Windows' or operating_system == 'Microsoft':
@@ -32,16 +34,18 @@ class TestGsutil(unittest.TestCase):
     if username is None:
       self.fail('could not find the user name tried environment variables'
                 ' USER and USERNAME')
+    self.test_folder = 'test_folder-{0}-{1}'.format(username, operating_system)
     if username.startswith('chrome'):
-      running_on_buildbot = True
+      self.running_on_buildbot = True
     else:
-      running_on_buildbot = False
+      self.running_on_buildbot = False
 
-    self._gsu = gsutil.GsUtil(running_on_buildbot=running_on_buildbot)
+    self._gsu = gsutil.GsUtil(running_on_buildbot=self.running_on_buildbot)
     self._CleanFolder(self.test_folder)
     self._SetupFolder(self.test_bucket, self.test_folder, self.build_count)
 
   def tearDown(self):
+    """Teardown the test."""
     self._gsu = None
 
   def test_initialization(self):
@@ -112,6 +116,39 @@ class TestGsutil(unittest.TestCase):
     acl_xml = self._gsu.GetAcl(objects[0])
     self.assertTrue(acl_xml)
 
+  def test_copyTree(self):
+    """Test GsUtil.Copying a tree of objects.
+
+    Make sure Make sure the objects get coppied to the correct
+    structure in Google Storage
+    """
+    print '*' * 50
+    print 'test_copyTree'
+    print '*' * 50
+    parent_dir = None
+    test_uri = '{0}{1}'.format(self.test_prefix, self.test_bucket)
+    tag = 'CopyTree'
+    try:
+      test_dir = self._SetupDirectoryTree(3, 2, tag)
+      parent_dir = os.path.dirname(test_dir)
+      self._CleanFolder(self.test_folder)
+      objects = self._FindInBucket(tag)
+      self.assertFalse(len(objects))
+      self._gsu.Copy(test_dir, test_uri, recursive_flag=True)
+      objects = self._FindInBucket(tag)
+      self.assertTrue(len(objects) > 20,
+                      msg='using the recursive gsutil call'.format(test_dir))
+      self._CleanFolder(self.test_folder)
+      objects = self._FindInBucket(tag)
+      self.assertFalse(len(objects))
+      self._gsu._TreeWalkCopy('file://' + test_dir, test_uri)
+      objects = self._FindInBucket(tag)
+      self.assertTrue(len(objects) > 20,
+                      msg='using the tree walker {0}'.format(test_dir))
+    finally:
+      if parent_dir is not None:
+        shutil.rmtree(parent_dir, ignore_errors=True)
+
   def _FindInBucket(self, search_string):
     """Find a list of objects that match a given search string.
 
@@ -130,6 +167,42 @@ class TestGsutil(unittest.TestCase):
         objects.append(obj)
     return objects
 
+  def _SetupDirectoryTree(self, dir_depth, items, tag):
+    """setup a directory tree to test CopyTree.
+
+    Args:
+      dir_depth: the depth of the directories
+      items: the number of files in each directory
+      tag: the tag to add to the files
+
+    Returns:
+      Root of the created directory structure.
+    """
+    tmp_dir = tempfile.mkdtemp(prefix=tag)
+    sub_dir = os.path.join(tmp_dir, self.test_folder)
+    os.makedirs(sub_dir)
+    dirs = self._CreateDirectory(sub_dir, dir_depth)
+    for d in dirs:
+      for file_count in range(0, items):
+        fname = tag + str(file_count)
+        tmp_file = tempfile.NamedTemporaryFile(suffix='.txt',
+                                               prefix=fname,
+                                               delete=False,
+                                               dir=d)
+        tmp_file.write(str(file_count))
+        tmp_file.close()
+    return sub_dir
+
+  def _CreateDirectory(self, base, items):
+    dir_list = []
+    if items > 0:
+      for dir_num in range(items, 0, -1):
+        new_dir = tempfile.mkdtemp(prefix='GsutilTest-{0}-'.format(dir_num),
+                                   dir=base)
+        dir_list.append(new_dir)
+        dir_list.extend(self._CreateDirectory(new_dir, items - 1))
+    return dir_list
+
   def _CleanFolder(self, folder):
     """CLean out a given folder.
 
@@ -138,9 +211,8 @@ class TestGsutil(unittest.TestCase):
     """
     test_uri = '{0}{1}/{2}/*'.format(self.test_prefix, self.test_bucket,
                                      folder)
-    bucket_list = self._gsu.ReadBucket(test_uri)
-    for obj in bucket_list:
-      self._gsu.Remove(obj)
+    print 'cleaning folder {0}'.format(test_uri)
+    self._gsu.Remove(test_uri)
 
   def _SetupFolder(self, bucket, folder, items):
     """Setup a folder for testing.

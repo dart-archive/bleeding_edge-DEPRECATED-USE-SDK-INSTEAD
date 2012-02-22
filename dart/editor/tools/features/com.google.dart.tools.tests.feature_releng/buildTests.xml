@@ -215,7 +215,6 @@
     create an HTML version of the Junit output
     -->
     <target name="generateHtml">
-        <!--
         <junitreport>
             <fileset dir="${build.test.reports.dir}">
                 <include name="TEST-${build.test.suite}.xml" />
@@ -223,7 +222,6 @@
             <report todir="${build.out}/html" >
             </report>    
         </junitreport>
-        -->
     </target>
     
     <!--
@@ -300,7 +298,7 @@
                 <include name="*/dart-sdk/**" />
             </patternset>
         </unzip>
-        <move todir="${build.target}/eclipse" verbose="true">
+        <move todir="${build.target}/eclipse">
             <fileset dir="${build.target}/dart">
                 <include name="samples/**" />
                 <include name="libraries/**" />
@@ -405,7 +403,7 @@
         <property name="build.target.abs" location="${build.target}" />
         <property name="build.stage.abs" location="${build.stage}" />
         <echoproperties prefix="build." />
-        <echoproperties prefix="build." destfile="/var/tmp/${build.builder}-build.properties"/>
+        <echoproperties prefix="build." destfile="${build.out.property.file}"/>
         <echoProperty propertyName="eclipse-sdk.3.8.url" />
         <echoProperty propertyName="eclipse-sdk.3.8.linux.gtk.x86.zip" />
         <echoProperty propertyName="eclipse-sdk.3.7.url" />

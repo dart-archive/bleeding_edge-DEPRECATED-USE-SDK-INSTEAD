@@ -156,7 +156,7 @@ class GsUtil(object):
       from_uri: the location to copy from
       to_uri: the location to copy to
       public_flag: flag indicating that the file should be readable from
-                    the internet
+                    the Internet
       recursive_flag: copy files recursively to Google Storage
 
     Returns:
@@ -187,6 +187,145 @@ class GsUtil(object):
       scheme = to_uri[:index_col]
       if len(scheme) <= 1:
         to_url = r'file://' + to_uri
+    # On windows gsutil does not convert \ to / on a recursive copy.
+    # Therefore the data loaded to GoogleStorage from directory
+    # 3333\test\data.txt looks like an object 3333\test\data.txt
+    # in the root of the bucket.
+    if self._useshell and recursive_flag:
+      print '*' * 40
+      print 'copy (recursive)'
+      print '*' * 40
+      return self._TreeWalkCopy(from_url, to_url, public_flag)
+    else:
+      cmd.append(from_url)
+      cmd.append(to_url)
+
+      print ' '.join(cmd)
+      if not self._dryrun:
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             shell=self._useshell)
+        (out, err) = p.communicate()
+        if p.returncode:
+          failure_message = 'failed to copy {0} to {1}'.format(from_uri, to_uri)
+          self._LogStream(err, failure_message, True)
+        else:
+          self._LogStream(out, '')
+        return p.returncode
+    return 0
+
+  def _TreeWalkCopy(self, from_url, to_url, public_flag=True):
+    """Do the recursive copy by walking the directory tree.
+
+    Gsutil does not convert \ to / so the data loaded to GoogleStorage
+      looks like 3333\test\data.txt in the root of the bucket
+
+    Args:
+      from_url: the location to copy from
+      to_url: the location to copy to
+      public_flag: flag indicating that the file should be readable from
+                    the Internet
+
+    Returns:
+      returns the exit code of gsutil copy
+
+    Raises:
+      Exception: if the schema of the from url is not gs:
+    """
+    print '*' * 40
+    print 'walktree ({0}, {1}, pub = {2})'.format(from_url, to_url, public_flag)
+    print '*' * 40
+    pos = from_url.find(':')
+    if pos >= 0:
+      scheme = from_url[:pos]
+      path = from_url[pos + 3:]
+    else:
+      scheme = ''
+      path = from_url
+    target_path_element = os.path.basename(path)
+    elements_to_copy = []
+    if scheme is 'gs':
+      raise Exception('gs can not be the scheme of the from URL in a '
+                      'GsUtil.Copy command')
+    print 'schema = ({0}), path = ({1})'.format(scheme, path)
+    if 'file' in scheme or not scheme:
+      for root, dirs, files in os.walk(path):
+        for f in files:
+          elements_to_copy.append(os.path.join(root, f))
+
+    cmd = []
+    cmd.extend(self._CommandGsutil())
+    cmd.append('cp')
+    if public_flag:
+      cmd.append('-a')
+      cmd.append('public-read')
+
+    copy_target = None
+    for element in elements_to_copy:
+      full_cmd = []
+      full_cmd.extend(cmd)
+      #if a Windows Drive letter is on the file that is being copied then
+      # Gsutil will treat it as a scheme.  So any file with a windows drive
+      # letter has to have file:// appended to it
+      colon_pos = element.find(':')
+      if colon_pos >= 0:
+        scheme = element[:colon_pos]
+        if len(scheme) <= 1:
+          full_cmd.append('file://' + element)
+        else:
+          full_cmd.append(element)
+      else:
+        full_cmd.append(element)
+      pos = element.find(target_path_element)
+      if pos >= 0:
+        copy_target = '{0}/{1}'.format(to_url, element[pos:].replace('\\', '/'))
+        full_cmd.append(copy_target)
+      else:
+        print 'could not find {0} in {1}'.format(target_path_element,
+                                                 element)
+        continue
+
+      print ' '.join(full_cmd)
+      if not self._dryrun:
+        p = subprocess.Popen(full_cmd, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             shell=self._useshell)
+        (out, err) = p.communicate()
+        if p.returncode:
+          failure_message = 'failed to copy {0}\n to {1}'.format(element,
+                                                                 copy_target)
+          self._LogStream(err, failure_message, True)
+          return p.returncode
+        else:
+          print str(out)
+    return 0
+
+  def Move(self, from_uri, to_uri, preserve_acl_flag=True):
+    """Use GsUtil to move/rename an element.
+
+    Args:
+      from_uri: the location to copy from (mist be gs:)
+      to_uri: the location to copy to (must be gs:)
+      preserve_acl_flag: causes ACL to be preserved when renaming
+
+    Returns:
+      returns the exit code of gsutil copy
+    """
+    cmd = []
+    cmd.extend(self._CommandGsutil())
+    cmd.append('mv')
+    if preserve_acl_flag:
+      cmd.append('-p')
+    from_url = from_uri
+    if not from_url.startswith('gs://'):
+      self._PrintFailure('from URL {0} does not '
+                         'start with gs://'.format(from_url))
+      return 1
+
+    to_url = to_uri
+    if not to_url.startswith('gs://'):
+      self._PrintFailure('to URL {0} does not start with gs://'.format(to_url))
+      return 1
 
     cmd.append(from_url)
     cmd.append(to_url)
@@ -198,7 +337,7 @@ class GsUtil(object):
                            shell=self._useshell)
       (out, err) = p.communicate()
       if p.returncode:
-        failure_message = 'failed to copy {0} to {1}'.format(from_uri, to_uri)
+        failure_message = 'failed to move {0} to {1}'.format(from_uri, to_uri)
         self._LogStream(err, failure_message, True)
       else:
         self._LogStream(out, '')
