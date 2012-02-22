@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.actions.HideDirectoryAction;
 import com.google.dart.tools.ui.actions.NewDirectoryWizardAction;
@@ -41,6 +42,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -60,6 +62,7 @@ import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.ViewPart;
 
@@ -84,15 +87,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget, Director
     }
   }
 
-  private LabelProvider fileLabelProvider = new LabelProvider() {
-    @Override
-    public String getText(Object element) {
-      if (element instanceof File) {
-        return ((File) element).getName();
-      }
-      return element == null ? "" : element.toString();//$NON-NLS-1$
-    }
-  };
 
   private TreeViewer treeViewer;
 
@@ -127,8 +121,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget, Director
   public void createPartControl(Composite parent) {
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new FilesContentProvider());
-    treeViewer.setLabelProvider(fileLabelProvider);
     treeViewer.setComparator(new DartElementComparator());
+    treeViewer.setLabelProvider(new DecoratingLabelProvider(new WorkbenchLabelProvider(),
+        new ProblemsLabelDecorator()));
+
     // double-click listener
     treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override

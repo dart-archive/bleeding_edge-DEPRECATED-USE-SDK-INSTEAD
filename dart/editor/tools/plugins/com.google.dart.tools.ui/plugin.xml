@@ -123,6 +123,12 @@
             
             <adapter type="org.eclipse.ui.model.IWorkbenchAdapter"/>
       </factory>
+      <factory 
+            class="com.google.dart.tools.ui.internal.view.files.FileAdapterFactory" 
+            adaptableType="java.io.File">
+                       
+            <adapter type="org.eclipse.ui.model.IWorkbenchAdapter"/>
+      </factory>
    </extension>
 
    <!-- content assist processors - do not change their order -->  
