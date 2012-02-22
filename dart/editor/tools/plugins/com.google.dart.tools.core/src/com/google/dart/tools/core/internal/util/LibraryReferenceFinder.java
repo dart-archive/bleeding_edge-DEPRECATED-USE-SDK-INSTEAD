@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -195,7 +195,8 @@ public class LibraryReferenceFinder {
     String srcLocation = getAttributeValue(scriptTag, "src");
     if (srcLocation != null) {
       String scriptType = getAttributeValue(scriptTag, "type");
-      if (scriptType == null || scriptType.equals("text/javascript")) {
+      if (scriptType == null || scriptType.equals("text/javascript")
+          || scriptType.equals("application/javascript")) {
         if (srcLocation.endsWith('.' + JavascriptBackend.EXTENSION_APP_JS)) {
           String fileName = extractFileNameFromSrc(srcLocation);
           fileName = fileName.substring(0,
