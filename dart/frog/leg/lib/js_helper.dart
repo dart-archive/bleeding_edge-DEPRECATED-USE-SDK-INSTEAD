@@ -391,6 +391,13 @@ class Primitives {
   static int getSeconds(int secondsSinceEpoch, bool isUtc) {
     throw 'Primitives.getSeconds is not implemented';
   }
+
+  static String stringFromCharCodes(charCodes) {
+    for (var i in charCodes) {
+      checkNum(i);
+    }
+    return JS('String', @'String.fromCharCode.apply($0, $1)', null, charCodes);
+  }
 }
 
 builtin$compareTo$1(a, b) {

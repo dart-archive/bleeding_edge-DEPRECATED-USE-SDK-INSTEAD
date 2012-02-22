@@ -32,15 +32,38 @@ class ReceivePortFactory {
 
 class StringBase {
   static String createFromCharCodes(List<int> charCodes) {
-    throw "StringBase.createFromCharCodes is not implemented";
+    checkNull(charCodes);
+    if (!isJSArray(charCodes)) {
+      charCodes = new List.from(charCodes);
+    }
+    return Primitives.stringFromCharCodes(charCodes);
   }
 
   static String join(List<String> strings, String separator) {
-    throw "StringBase.join is not implemented";
+    checkNull(strings);
+    checkNull(separator);
+    if (separator is !String) throw new IllegalArgumentException(separator);
+    var result = "";
+    var first = true;
+    for (var string in strings) {
+      checkNull(string);
+      if (string is !String) throw new IllegalArgumentException(string);
+      if (!first) result += separator; // TODO(ahe): Use string buffer.
+      result += string; // TODO(ahe): Use string buffer.
+      first = false;
+    }
+    return result;
   }
 
   static String concatAll(List<String> strings) {
-    throw "StringBase.concatAll is not implemented";
+    checkNull(strings);
+    var result = "";
+    for (var string in strings) {
+      checkNull(string);
+      if (string is !String) throw new IllegalArgumentException(string);
+      result += string; // TODO(ahe): Use string buffer.
+    }
+    return result;
   }
 }
 
