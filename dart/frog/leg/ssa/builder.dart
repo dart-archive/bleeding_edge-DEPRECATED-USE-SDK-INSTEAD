@@ -1494,7 +1494,7 @@ class SsaBuilder implements Visitor {
     }
 
     Element interceptor = null;
-    if (methodInterceptionEnabled) {
+    if (methodInterceptionEnabled && node.receiver !== null) {
       interceptor = interceptors.getStaticInterceptor(dartMethodName,
                                                       node.argumentCount());
     }

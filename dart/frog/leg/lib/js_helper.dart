@@ -563,12 +563,11 @@ builtin$addAll$1(receiver, collection) {
   }
 }
 
-// TODO(ahe): Investigate why this method causes a compiler crash.
-XXX_builtin$addLast$1(receiver, value) {
+builtin$addLast$1(receiver, value) {
   checkNull(receiver);
   if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.addLast(value));
 
-  throw @'builtin$addLast$1 is not implemented';
+  JS("Object", @"$0.push($1)", receiver, value);
 }
 
 builtin$clear$0(receiver) {
@@ -577,12 +576,14 @@ builtin$clear$0(receiver) {
   receiver.length = 0;
 }
 
-// TODO(ahe): Investigate why this method causes a compiler crash.
-XXX_builtin$forEach$1(receiver, f) {
+builtin$forEach$1(receiver, f) {
   checkNull(receiver);
   if (!isJSArray(receiver)) return UNINTERCEPTED(receiver.forEach(f));
 
-  throw @'builtin$forEach$1 is not implemented';
+  var length = JS("num", @"$0.length", receiver);
+  for (var i = 0; i < length; i++) {
+    f(JS("Object", @"$0[$1]", receiver, i));
+  }
 }
 
 builtin$getRange$2(receiver, start, length) {
