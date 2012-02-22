@@ -31,10 +31,10 @@ void main() {
     .test('createTextNode', () {
       for (int i = 0; i < num; i++) {
         ret = document.createTextNode(str);
-        ret = document.createTextNode(str + '2');
-        ret = document.createTextNode(str + '3');
-        ret = document.createTextNode(str + '4');
-        ret = document.createTextNode(str + '5');
+        ret = document.createTextNode('${str}2');
+        ret = document.createTextNode('${str}3');
+        ret = document.createTextNode('${str}4');
+        ret = document.createTextNode('${str}5');
       }
     })
     .test('innerHTML', () {

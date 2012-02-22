@@ -29,12 +29,12 @@ void main() {
     })
     .test('getElementById', () {
       for (int i = 0; i < num * 30; i++) {
-        ret = document.getElementById('testA' + num).nodeType;
-        ret = document.getElementById('testB' + num).nodeType;
-        ret = document.getElementById('testC' + num).nodeType;
-        ret = document.getElementById('testD' + num).nodeType;
-        ret = document.getElementById('testE' + num).nodeType;
-        ret = document.getElementById('testF' + num).nodeType;
+        ret = document.getElementById('testA$num').nodeType;
+        ret = document.getElementById('testB$num').nodeType;
+        ret = document.getElementById('testC$num').nodeType;
+        ret = document.getElementById('testD$num').nodeType;
+        ret = document.getElementById('testE$num').nodeType;
+        ret = document.getElementById('testF$num').nodeType;
       }
     })
     .test('getElementById (not in document)', () {
@@ -79,13 +79,13 @@ void main() {
     })
     .test('getElementsByName', () {
       for (int i = 0; i < num * 20; i++) {
-        var elems = document.getElementsByName('test' + num);
+        var elems = document.getElementsByName('test$num');
         ret = elems[elems.length-1].nodeType;
-        elems = document.getElementsByName('test' + num);
+        elems = document.getElementsByName('test$num');
         ret = elems[elems.length-1].nodeType;
-        elems = document.getElementsByName('test' + num);
+        elems = document.getElementsByName('test$num');
         ret = elems[elems.length-1].nodeType;
-        elems = document.getElementsByName('test' + num);
+        elems = document.getElementsByName('test$num');
         ret = elems[elems.length-1].nodeType;
       }
     })

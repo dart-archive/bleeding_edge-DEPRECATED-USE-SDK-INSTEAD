@@ -50,7 +50,7 @@ class SuiteController {
     String info = '';
     if (done) {
       final parent = _element.parentNode;
-      parent.setAttribute('class', parent.getAttribute('class') + ' done');
+      parent.setAttribute('class', '${parent.getAttribute("class")} done');
       final mean = Math.pow(_meanProduct, 1.0 / _nTests).toStringAsFixed(2);
       info = '<span>${mean} runs/s</span>';
     }
@@ -64,7 +64,7 @@ class SuiteController {
     div.appendChild(_element);
     final description = _suiteDescription.description;
     final originUrl = _suiteDescription.origin.url;
-    final testUrl = 'tests/' + _suiteDescription.file;
+    final testUrl = 'tests/${_suiteDescription.file}';
     div.innerHTML +=
         '<p>${description}<br/><a href="${originUrl}">Origin</a>' +
         ', <a href="${testUrl}">Source</a>' +
@@ -114,7 +114,7 @@ class Dromaeo {
       final iframe = document.createElement('iframe');
       _css(iframe, 'height', '1px');
       _css(iframe, 'width', '1px');
-      iframe.src = 'tests/' + suite.file;
+      iframe.src = 'tests/${suite.file}';
       document.body.appendChild(iframe);
 
       _suiteControllers.add(new SuiteController(suite, iframe));
@@ -133,7 +133,7 @@ class Dromaeo {
     void _updateTime() {
       final mins = (estimatedTimeSecs / 60).floor().toInt();
       final secs = (estimatedTimeSecs - mins * 60).round().toInt();
-      final secsAsString = (secs < 10 ? '0' : '') + secs;
+      final secsAsString = '${(secs < 10 ? "0" : "")}$secs';
       _byId('left').innerHTML = '${mins}:${secsAsString}';
 
       final elapsed = totalTimeSecs - estimatedTimeSecs;
