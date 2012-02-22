@@ -1,6 +1,8 @@
-#library("dom-modify.dart");
-#import("dart:dom");
-#import('runner.dart');
+#library("dom_modify.dart");
+#import("dart:html");
+#import("dart:json");
+#source("Common.dart");
+#source("RunnerSuite.dart");
 
 void main() {
   final int num = 400;
@@ -21,20 +23,20 @@ void main() {
   new Suite(window, 'dom-modify')
     .test('createElement', () {
       for (int i = 0; i < num; i++) {
-        ret = document.createElement('div');
-        ret = document.createElement('span');
-        ret = document.createElement('table');
-        ret = document.createElement('tr');
-        ret = document.createElement('select');
+        ret = new Element.tag('div');
+        ret = new Element.tag('span');
+        ret = new Element.tag('table');
+        ret = new Element.tag('tr');
+        ret = new Element.tag('select');
       }
     })
     .test('createTextNode', () {
       for (int i = 0; i < num; i++) {
-        ret = document.createTextNode(str);
-        ret = document.createTextNode('${str}2');
-        ret = document.createTextNode('${str}3');
-        ret = document.createTextNode('${str}4');
-        ret = document.createTextNode('${str}5');
+        ret = new Text(str);
+        ret = new Text('${str}2');
+        ret = new Text('${str}3');
+        ret = new Text('${str}4');
+        ret = new Text('${str}5');
       }
     })
     .test('innerHTML', () {
@@ -42,25 +44,25 @@ void main() {
     })
     .prep(() {
       elems = new List<Node>();
-      final telems = document.body.childNodes;
+      final telems = document.body.nodes;
       for (int i = 0; i < telems.length; i++) {
         elems.add(telems[i]);
       }
     })
     .test('cloneNode', () {
       for (int i = 0; i < elems.length; i++) {
-        ret = elems[i].cloneNode(false);
-        ret = elems[i].cloneNode(true);
-        ret = elems[i].cloneNode(true);
+        ret = elems[i].clone(false);
+        ret = elems[i].clone(true);
+        ret = elems[i].clone(true);
         }
     })
     .test('appendChild', () {
       for (int i = 0; i < elems.length; i++)
-        document.body.appendChild(elems[i]);
+        document.body.nodes.add(elems[i]);
     })
     .test('insertBefore', () {
       for (int i = 0; i < elems.length; i++)
-        document.body.insertBefore(elems[i], document.body.firstChild);
+        document.body.insertBefore(elems[i], document.body.nodes.first);
     })
     .end();
 }

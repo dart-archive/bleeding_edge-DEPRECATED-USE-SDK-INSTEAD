@@ -22,23 +22,43 @@ class Suites {
   static final SUITE_DESCRIPTIONS = const [
       const SuiteDescription(
           'dom-attr.html',
-          'DOM Attributes',
+          'DOM Attributes (dart:dom)',
+          JOHN_RESIG,
+          'Setting and getting DOM node attributes'),
+      const SuiteDescription(
+          'dom-attr-html.html',
+          'DOM Attributes (dart:html)',
           JOHN_RESIG,
           'Setting and getting DOM node attributes'),
       const SuiteDescription(
           'dom-modify.html',
-          'DOM Modification',
+          'DOM Modification (dart:dom)',
+          JOHN_RESIG,
+          'Creating and injecting DOM nodes into a document'),
+      const SuiteDescription(
+          'dom-modify-html.html',
+          'DOM Modification (dart:html)',
           JOHN_RESIG,
           'Creating and injecting DOM nodes into a document'),
       const SuiteDescription(
           'dom-query.html',
-          'DOM Query',
+          'DOM Query (dart:dom)',
+          JOHN_RESIG,
+          'Querying DOM elements in a document'),
+      const SuiteDescription(
+          'dom-query-html.html',
+          'DOM Query (dart:html)',
           JOHN_RESIG,
           'Querying DOM elements in a document'),
       const SuiteDescription(
           'dom-traverse.html',
-          'DOM Traversal',
+          'DOM Traversal (dart:dom)',
           JOHN_RESIG,
-          'Traversing a DOM structure')
+          'Traversing a DOM structure'),
+      const SuiteDescription(
+          'dom-traverse-html.html',
+          'DOM Traversal (dart:html)',
+          JOHN_RESIG,
+          'Traversing a DOM structure'),
   ];
 }

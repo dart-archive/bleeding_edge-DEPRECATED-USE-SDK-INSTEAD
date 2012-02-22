@@ -11,21 +11,23 @@ class Suite {
   Suite(this._window, this._name) :
       _operations = new List<Operation>(),
       _nTests = 0, _nRanTests = 0 {
-    _window.addEventListener(
-        'message',
-        (MessageEvent event) {
-          String command = event.data;
-          switch (command) {
-            case 'start':
-              _run();
-              return;
-
-            default:
-              _window.alert('[${_name}]: unknown command ${command}');
-          }
-        },
-        false
-    );
+    starter(MessageEvent event) {
+      String command = event.data;
+      switch (command) {
+        case 'start':
+          _run();
+          return;
+        default:
+          _window.alert('[${_name}]: unknown command ${command}');
+      }
+    };
+    try {
+      // dart:dom
+      _window.addEventListener('message', starter, false);
+    } catch (NoSuchMethodException e) {
+      // dart:html
+      _window.on.message.add(starter);
+    }
   }
 
   /**
