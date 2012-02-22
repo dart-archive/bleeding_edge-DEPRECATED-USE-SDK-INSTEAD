@@ -23,6 +23,8 @@ void processNativeClasses(Compiler compiler,
         // otherwise it will only be parsed if there is a call to
         // one of its constructor.
         element.parseNode(compiler);
+        // Resolve to setup the inheritance.
+        element.resolve(compiler);
       }
     }
   }
@@ -115,19 +117,80 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     int i = 0;
     String receiver = '';
     if (element.isInstanceMember()) {
-      receiver = '\$$i';
+      receiver = '\$$i.';
       i++;
       inputs.add(builder.localsHandler.readThis());
     }
+
     parameters.forEachParameter((Element element) {
       arguments.add('\$$i');
       inputs.add(builder.localsHandler.readLocal(element));
       i++;
     });
     String foreignParameters = Strings.join(arguments, ',');
-    SourceString jsCode = new SourceString(
-        '$receiver${element.name}($foreignParameters)');
-    builder.push(new HForeign(jsCode, const SourceString('Object'), inputs));
+
+    String methodName = builder.compiler.namer.instanceMethodName(
+        element.name, parameters.parameterCount);
+
+    HInstruction thenInstruction;
+    void visitThen() {
+      SourceString jsCode = new SourceString(
+          '$receiver${element.name}($foreignParameters)');
+      thenInstruction =
+          new HForeign(jsCode, const SourceString('Object'), inputs);
+      builder.add(thenInstruction);
+    }
+
+    if (!element.isInstanceMember()) {
+      // If the method is a non-instance method, we just generate a direct
+      // call to the native method.
+      visitThen();
+      builder.stack.add(thenInstruction);
+    } else {
+      // If the method is an instance method, we generate the following code:
+      // function(params) {
+      //   return Object.getPrototypeOf(this).hasOwnProperty(methodName))
+      //      ? this.methodName(params)
+      //      : Object.prototype.methodName.call(this, params);
+      // }
+      //
+      // The property check at the beginning is to make sure we won't
+      // call the method from the super class, in case the prototype of
+      // 'this' does not have the method yet.
+      //
+      // TODO(ngeoffray): We can avoid this if we know the class of this
+      // method does not have subclasses.
+      HInstruction elseInstruction;
+      void visitElse() {
+        SourceString jsCode = new SourceString('Object.prototype.$methodName');
+        HInstruction instruction =
+            new HForeign(jsCode, const SourceString('Object'), []);
+        builder.add(instruction);
+        List<HInstruction> elseInputs = new List<HInstruction>.from(inputs);
+        elseInputs.add(instruction);
+        String params = arguments.isEmpty() ? '' : ', $foreignParameters';
+        jsCode = new SourceString('\$${i}.call(\$0$params)');
+        elseInstruction =
+            new HForeign(jsCode, const SourceString('Object'), elseInputs);
+        builder.add(elseInstruction);
+      }
+
+      HLiteral literal = builder.graph.addNewLiteralString(
+          new DartString.literal('$methodName'));
+      SourceString jsCode = new SourceString(
+          'Object.getPrototypeOf(\$0).hasOwnProperty(\$1)');
+      builder.push(new HForeign(
+          jsCode, const SourceString('Object'),
+          <HInstruction>[builder.localsHandler.readThis(), literal]));
+
+      builder.handleIf(visitThen, visitElse);
+
+      HPhi phi = new HPhi.manyInputs(
+          null, <HInstruction>[thenInstruction, elseInstruction]);
+      builder.current.addPhi(phi);
+      builder.stack.add(phi);
+    }
+
   } else if (!node.arguments.tail.isEmpty()) {
     builder.compiler.cancel('More than one argument to native');
   } else {

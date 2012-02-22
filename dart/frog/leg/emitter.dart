@@ -82,7 +82,10 @@ function(name) {
   if (f && f.methods) return f.methods;
 
   var methods = {};
-  if (f) methods.Object = f;
+  // If there is a method attached to the Dart Object class, use it as
+  // the method to call in case no method is registered for that type.
+  var dartMethod = $objectClassName.prototype[name];
+  if (dartMethod) methods.Object = dartMethod;
   function dynamicBind() {
     // Find the target method
     var obj = this;
@@ -129,6 +132,11 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
   String get typeNameOfName() => '${compiler.namer.ISOLATE}.\$typeNameOf';
   String get dynamicMetadataName() =>
       '${compiler.namer.ISOLATE}.\$dynamicMetatada';
+  String get objectClassName() {
+    ClassElement objectClass =
+        compiler.coreLibrary.find(const SourceString('Object'));
+    return namer.isolatePropertyAccess(objectClass);
+  }
 
   void addInheritFunctionIfNecessary(StringBuffer buffer) {
     if (addedInheritFunction) return;
@@ -157,7 +165,8 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
   void addParameterStub(FunctionElement member,
                         String attachTo(String invocationName),
                         StringBuffer buffer,
-                        Selector selector) {
+                        Selector selector,
+                        bool isNative) {
     FunctionParameters parameters = member.computeParameters(compiler);
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
@@ -231,20 +240,40 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
       }
       count++;
     });
-
     buffer.add('${Strings.join(parametersBuffer, ",")}) {\n');
-    buffer.add('  return this.${namer.getName(member)}');
-    buffer.add('(${Strings.join(argumentsBuffer, ",")})\n}\n');
+    String arguments = Strings.join(argumentsBuffer, ",");
+
+    // If the method is native, we must check if the prototype of
+    // 'this' has the method available. Otherwise, we may end up
+    // calling the method from the super class. If the method is not
+    // available, we make a direct call to
+    // Object.prototype.$invocationName. This method will patch the
+    // prototype of 'this' to the real method.
+    // TODO(ngeoffray): We can avoid this if we know the class of this
+    // method does not have subclasses.
+    if (isNative) {
+      buffer.add('  if (Object.getPrototypeOf(this).hasOwnProperty(');
+      buffer.add("'$invocationName')) {\n");
+      buffer.add('    return this.${namer.getName(member)}($arguments)');
+      buffer.add('\n  }\n');
+      buffer.add('  return Object.prototype.$invocationName.call(this');
+      buffer.add(argumentsBuffer.isEmpty() ? '' : ', $arguments');
+      buffer.add(');');
+    } else {
+      buffer.add('  return this.${namer.getName(member)}($arguments)');
+    }
+    buffer.add('\n}\n');
   }
 
   void addParameterStubs(FunctionElement member,
                          String attachTo(String invocationName),
-                         StringBuffer buffer) {
+                         StringBuffer buffer,
+                         [bool isNative = false]) {
     Set<Selector> selectors = compiler.universe.invokedNames[member.name];
     if (selectors == null) return;
     for (Selector selector in selectors) {
       if (!selector.applies(compiler, member)) continue;
-      addParameterStub(member, attachTo, buffer, selector);
+      addParameterStub(member, attachTo, buffer, selector, isNative);
     }
   }
 
@@ -341,7 +370,8 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
           FunctionParameters parameters = function.computeParameters(compiler);
           if (!parameters.optionalParameters.isEmpty()) {
             addParameterStubs(
-                member, (name) => "$dynamicName('$name').$nativeName", buffer);
+                member, (name) => "$dynamicName('$name').$nativeName", buffer,
+                isNative: true);
           }
         } else if (member.kind === ElementKind.FIELD) {
           if (compiler.universe.invokedSetters.contains(member.name)) {
@@ -421,6 +451,12 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
       buffer.add('     return "uncaught exception in toString";');
       buffer.add('  }');
       buffer.add('};\n');
+
+      // Emit the noSuchMethods on the Object prototype now, so that
+      // the code in the dynamicMethod can find them. Note that the
+      // code in dynamicMethod is invoked before analyzing the full JS
+      // script.
+      emitNoSuchMethodCalls(buffer);
     }
   }
 
@@ -613,7 +649,7 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
           }
         }
       }
-    }    
+    }
   }
 
   void emitStaticNonFinalFieldInitializations(StringBuffer buffer) {
@@ -670,8 +706,15 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
         if (i != 0) args.add(', ');
         args.add('arg$i');
       }
+      // We need to check if the object has a noSuchMethod. If not, it
+      // means the object is a native object, and we can just call our
+      // generic noSuchMethod. Note that when calling this method, the
+      // 'this' object is not a Dart object.
       buffer.add(' ($args) {\n');
-      buffer.add("  return this.$noSuchMethodName('$methodName', [$args]);\n");
+      buffer.add('  return this.$noSuchMethodName\n');
+      buffer.add("      ? this.$noSuchMethodName('$methodName', [$args])\n");
+      buffer.add("      : $objectClassName.prototype.$noSuchMethodName.call(");
+      buffer.add("this, '$methodName', [$args])\n");
       buffer.add('}\n');
     }
 
@@ -705,7 +748,6 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
       emitStaticNonFinalFieldInitializations(buffer);
       buffer.add('}\n\n');
       emitClasses(buffer);
-      emitNoSuchMethodCalls(buffer);
       emitStaticFunctions(buffer);
       emitStaticFunctionGetters(buffer);
       emitDynamicFunctionGetters(buffer);

@@ -4,8 +4,5 @@
 
 prefix frog_native
 
-[ $component == webdriver && $browser == ie ]
-NativeClassAvoidsHiddenNameFrogTest: Fail
-
-[ $component == webdriver && $browser == opera ]
+[ $component == webdriver ]
 *: Skip
