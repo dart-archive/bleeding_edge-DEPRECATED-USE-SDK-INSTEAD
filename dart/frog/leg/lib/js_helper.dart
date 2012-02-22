@@ -82,6 +82,7 @@ mod(var a, var b) {
 
 tdiv(var a, var b) {
   if (checkNumbers(a, b, "num~/ expects a number as second operand.")) {
+    if (b === 0) throw new IntegerDivisionByZeroException();
     return (a / b).truncate();
   }
   return UNINTERCEPTED(a ~/ b);
@@ -688,6 +689,7 @@ builtin$isNaN$0(receiver) {
 builtin$remainder$1(a, b) {
   checkNull(a);
   if (checkNumbers(a, b, "num.remainder expects a number as second operand.")) {
+    if (b === 0) throw new IntegerDivisionByZeroException();
     return JS("num", @"$0 % $1", a, b);
   } else {
     return UNINTERCEPTED(a.remainder(b));
@@ -769,8 +771,39 @@ builtin$toStringAsFixed$1(receiver, fractionDigits) {
   if (receiver is !num) {
     return UNINTERCEPTED(receiver.toStringAsFixed(fractionDigits));
   }
+  checkNum(fractionDigits);
 
   return JS("String", @"$0.toFixed($1)", receiver, fractionDigits);
+}
+
+builtin$toStringAsExponential$1(receiver, fractionDigits) {
+  checkNull(receiver);
+  if (receiver is !num) {
+    return UNINTERCEPTED(receiver.toStringAsExponential(fractionDigits));
+  }
+  checkNum(fractionDigits);
+
+  return JS("String", @"$0.toExponential($1)", receiver, fractionDigits);
+}
+
+builtin$toStringAsPrecision$1(receiver, fractionDigits) {
+  checkNull(receiver);
+  if (receiver is !num) {
+    return UNINTERCEPTED(receiver.toStringAsPrecision(fractionDigits));
+  }
+  checkNum(fractionDigits);
+
+  return JS("String", @"$0.toPrecision($1)", receiver, fractionDigits);
+}
+
+builtin$toRadixString$1(receiver, radix) {
+  checkNull(receiver);
+  if (receiver is !num) {
+    return UNINTERCEPTED(receiver.toRadixString(radix));
+  }
+  checkNum(radix);
+
+  return JS("String", @"$0.toString($1)", receiver, radix);
 }
 
 builtin$allMatches$1(receiver, str) {
@@ -923,4 +956,15 @@ class MathNatives {
   }
 
   static double random() => JS("double", "Math.random()");
+}
+
+builtin$hashCode$0(receiver) {
+  if (receiver is num) return receiver & 0x1FFFFFFF;
+  if (receiver is String) {
+    throw new NotImplementedException();
+  }
+  if (isJSArray(receiver)) {
+    throw new NotImplementedException();
+  }
+  return UNINTERCEPTED(receiver.hashCode());
 }
