@@ -723,8 +723,7 @@ class SsaBuilder implements Visitor {
             value = localsHandler.readLocal(member);
           } else {
             // TODO(karlklose): get default value.
-            value = new HLiteral(null, HType.UNKNOWN);
-            add(value);
+            value = graph.addNewLiteralNull();
           }
           constructorArguments.add(value);
         }
@@ -1457,8 +1456,11 @@ class SsaBuilder implements Visitor {
         if (foundIndex != -1) {
           list.add(namedArguments[foundIndex]);
         } else {
-          push(new HLiteral(
-              compiler.compileVariable(parameter), HType.UNKNOWN));
+          // TODO(kasperl): This needs more work. Ideally these
+          // constants should be treated like any other constant and
+          // canonicalized by the graph methods.
+          var constant = compiler.compileVariable(parameter);
+          push(new HLiteral.internal(constant, HType.UNKNOWN));
           list.add(pop());
         }
       }
@@ -1693,8 +1695,7 @@ class SsaBuilder implements Visitor {
             index = pop();
           } else {
             index = pop();
-            value = new HLiteral(1, HType.INTEGER);
-            add(value);
+            value = graph.addNewLiteralInt(1);
           }
           HStatic indexMethod = new HStatic(interceptors.getIndexInterceptor());
           add(indexMethod);
@@ -1735,8 +1736,7 @@ class SsaBuilder implements Visitor {
         visit(node.argumentsNode);
         right = pop();
       } else {
-        right = new HLiteral(1, HType.INTEGER);
-        add(right);
+        right = graph.addNewLiteralInt(1);
       }
       visitBinary(left, op, right);
       HInstruction operation = pop();
@@ -1750,23 +1750,23 @@ class SsaBuilder implements Visitor {
   }
 
   void visitLiteralInt(LiteralInt node) {
-    push(new HLiteral(node.value, HType.INTEGER));
+    stack.add(graph.addNewLiteralInt(node.value));
   }
 
   void visitLiteralDouble(LiteralDouble node) {
-    push(new HLiteral(node.value, HType.DOUBLE));
+    stack.add(graph.addNewLiteralDouble(node.value));
   }
 
   void visitLiteralBool(LiteralBool node) {
-    push(new HLiteral(node.value, HType.BOOLEAN));
+    stack.add(graph.addNewLiteralBool(node.value));
   }
 
   void visitLiteralString(LiteralString node) {
-    push(new HLiteral(node.dartString, HType.STRING));
+    stack.add(graph.addNewLiteralString(node.dartString));
   }
 
   void visitLiteralNull(LiteralNull node) {
-    push(new HLiteral(null, HType.UNKNOWN));
+    stack.add(graph.addNewLiteralNull());
   }
 
   visitNodeList(NodeList node) {
@@ -1787,8 +1787,7 @@ class SsaBuilder implements Visitor {
   visitReturn(Return node) {
     HInstruction value;
     if (node.expression === null) {
-      value = new HLiteral(null, HType.UNKNOWN);
-      add(value);
+      value = graph.addNewLiteralNull();
     } else {
       visit(node.expression);
       value = pop();
@@ -1815,8 +1814,7 @@ class SsaBuilder implements Visitor {
          link = link.tail) {
       Node definition = link.head;
       if (definition is Identifier) {
-        HInstruction initialValue = new HLiteral(null, HType.UNKNOWN);
-        add(initialValue);
+        HInstruction initialValue = graph.addNewLiteralNull();
         localsHandler.updateLocal(elements[definition], initialValue);
       } else {
         assert(definition is SendSet);
@@ -2034,15 +2032,16 @@ class SsaBuilder implements Visitor {
         VariableDefinitions declaration = catchBlock.formals.nodes.head;
         HInstruction condition = null;
         if (declaration.type == null) {
-          condition = new HLiteral(true, HType.BOOLEAN);
+          condition = graph.addNewLiteralBool(true);
+          stack.add(condition);
         } else {
           Element typeElement = elements[declaration.type];
           if (typeElement == null) {
             compiler.cancel('Catch with unresolved type', node: catchBlock);
           }
           condition = new HIs(typeElement, exception);
+          push(condition);
         }
-        push(condition);
       }
 
       void visitThen() {

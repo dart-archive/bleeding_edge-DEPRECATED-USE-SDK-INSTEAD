@@ -16,7 +16,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypeGuardBuilder(compiler).visitGraph(graph);
           new SsaCheckInserter(compiler).visitGraph(graph);
         }
-        new SsaConstantFolder(compiler).visitGraph(graph);
+        new SsaConstantFolder(compiler, graph).visit();
         new SsaRedundantPhiEliminator().visitGraph(graph);
         new SsaDeadPhiEliminator().visitGraph(graph);
         new SsaGlobalValueNumberer(compiler).visitGraph(graph);
@@ -36,12 +36,11 @@ class SsaOptimizerTask extends CompilerTask {
  */
 class SsaConstantFolder extends HBaseVisitor {
   Compiler compiler;
+  HGraph graph;
 
-  SsaConstantFolder(Compiler this.compiler);
+  SsaConstantFolder(this.compiler, this.graph);
 
-  visitGraph(HGraph graph) {
-    visitDominatorTree(graph);
-  }
+  visit() => visitDominatorTree(graph);
 
   visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
@@ -77,7 +76,7 @@ class SsaConstantFolder extends HBaseVisitor {
     HInstruction input = inputs[0];
     if (input.isBoolean()) return input;
     // All values !== true are boolified to false.
-    if (input.type.isKnown()) return new HLiteral(false, HType.BOOLEAN);
+    if (input.type.isKnown()) return graph.addNewLiteralBool(false);
     return node;
   }
 
@@ -87,15 +86,15 @@ class SsaConstantFolder extends HBaseVisitor {
     HInstruction input = inputs[0];
     if (input is HLiteral) {
       HLiteral literal = input;
-      return new HLiteral(literal.value !== true, HType.BOOLEAN);
+      return graph.addNewLiteralBool(literal.value !== true);
     }
     return node;
   }
 
-  HInstruction visitInvokeBinary(HInvokeBinary node) => node.fold();
-  HInstruction visitInvokeUnary(HInvokeUnary node) => node.fold();
+  HInstruction visitInvokeBinary(HInvokeBinary node) => node.fold(graph);
+  HInstruction visitInvokeUnary(HInvokeUnary node) => node.fold(graph);
   HInstruction visitInvokeInterceptor(HInvokeInterceptor node)
-      => node.fold();
+      => node.fold(graph);
 
   HInstruction visitAdd(HAdd node) {
     // String + is defined for all literals. We don't need to know which
@@ -130,7 +129,7 @@ class SsaConstantFolder extends HBaseVisitor {
                    right.isLiteralNumber() ||
                    right.isLiteralNull());
             String str = right.value.toString();
-            return new HLiteral(new DartString.literal(str), HType.STRING);
+            return graph.addNewLiteralString(new DartString.literal(str));
           }
         }
         // TODO(lrn): Perform concatenation in Dart.
@@ -145,10 +144,10 @@ class SsaConstantFolder extends HBaseVisitor {
       HLiteral op2 = node.right;
       if (op1.isLiteralString()) {
         if (op2.isLiteralString() && op1.value.definitelyEquals(op2.value)) {
-          return new HLiteral(true, HType.BOOLEAN);
+          return graph.addNewLiteralBool(true);
         }
       } else {
-        return new HLiteral(op1.value == op2.value, HType.BOOLEAN);
+        return graph.addNewLiteralBool(op1.value == op2.value);
       }
     } else if (node.right.isLiteralNull()) {
       HStatic target = new HStatic(

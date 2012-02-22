@@ -141,6 +141,49 @@ class HGraph {
     return result;
   }
 
+  HLiteral addNewLiteralInt(int value) {
+    HLiteral result = new HLiteral.internal(value, HType.INTEGER);
+    entry.addAtExit(result);
+    return result;
+  }
+
+  HLiteral addNewLiteralDouble(double value) {
+    HLiteral result = new HLiteral.internal(value, HType.DOUBLE);
+    entry.addAtExit(result);
+    return result;
+  }
+
+  HLiteral addNewLiteralNum(num value, HType type) {
+    if (type.isInteger()) return addNewLiteralInt(value);
+    if (type.isDouble()) return addNewLiteralDouble(value);
+    // If we've propagated type information then the type must be a
+    // number or in conflict, but when we turn off speculative
+    // optimization the type may be unknown. In any case, we make it a
+    // number from this point forward.
+    assert(type.isUnknown() || type.isConflicting() || type.isNumber());
+    HLiteral result = new HLiteral.internal(value, HType.NUMBER);
+    entry.addAtExit(result);
+    return result;
+  }
+
+  HLiteral addNewLiteralBool(bool value) {
+    HLiteral result = new HLiteral.internal(value, HType.BOOLEAN);
+    entry.addAtExit(result);
+    return result;
+  }
+
+  HLiteral addNewLiteralString(DartString value) {
+    HLiteral result = new HLiteral.internal(value, HType.STRING);
+    entry.addAtExit(result);
+    return result;
+  }
+
+  HLiteral addNewLiteralNull() {
+    HLiteral result = new HLiteral.internal(null, HType.UNKNOWN);
+    entry.addAtExit(result);
+    return result;
+  }
+
   void finalize() {
     addBlock(exit);
     exit.open();
@@ -655,6 +698,7 @@ class HType {
   bool isUnknown() => this === UNKNOWN;
   bool isBoolean() => this === BOOLEAN;
   bool isInteger() => this === INTEGER;
+  bool isDouble() => this === DOUBLE;
   bool isString() => this === STRING;
   bool isArray() => this === ARRAY;
   bool isNumber() => (this.flag & (FLAG_INTEGER | FLAG_DOUBLE)) != 0;
@@ -1117,11 +1161,11 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   bool hasExpectedType() => builtinJsName != null;
 
-  HInstruction fold() {
+  HInstruction fold(HGraph graph) {
     if (name == const SourceString('length') && inputs[1].isLiteralString()) {
       HLiteral input = inputs[1];
       DartString string = input.value;
-      return new HLiteral(string.length, HType.INTEGER);
+      return graph.addNewLiteralInt(string.length);
     }
     return this;
   }
@@ -1203,15 +1247,6 @@ class HInvokeBinary extends HInvokeStatic {
   HInvokeBinary(HStatic target, HInstruction left, HInstruction right)
       : super(Selector.BINARY_OPERATOR, <HInstruction>[target, left, right]);
 
-  HInstruction fold() {
-    if (left.isLiteralNumber() && right.isLiteralNumber()) {
-      HLiteral op1 = left;
-      HLiteral op2 = right;
-      return new HLiteral(evaluate(op1.value, op2.value), type);
-    }
-    return this;
-  }
-
   HInstruction get left() => inputs[1];
   HInstruction get right() => inputs[2];
 
@@ -1223,7 +1258,8 @@ class HInvokeBinary extends HInvokeStatic {
     }
     return leftType.combine(rightType);
   }
-
+  
+  abstract HInstruction fold(HGraph graph);
   abstract evaluate(num a, num b);
 }
 
@@ -1241,6 +1277,15 @@ class HBinaryArithmetic extends HInvokeBinary {
     } else {
       setAllSideEffects();
     }
+  }
+
+  HInstruction fold(HGraph graph) {
+    if (left.isLiteralNumber() && right.isLiteralNumber()) {
+      HLiteral op1 = left;
+      HLiteral op2 = right;
+      return graph.addNewLiteralNum(evaluate(op1.value, op2.value), type);
+    }
+    return this;
   }
 
   HType computeType() {
@@ -1297,7 +1342,7 @@ class HAdd extends HBinaryArithmetic {
     return HType.UNKNOWN;
   }
 
-  HInstruction fold() {
+  HInstruction fold(HGraph graph) {
     if (left.isLiteralString() && right is HLiteral) {
       HLiteral op1 = left;
       HLiteral op2 = right;
@@ -1312,9 +1357,9 @@ class HAdd extends HBinaryArithmetic {
         otherString = new DartString.literal(op2.value.toString());
       }
       DartString cons = new ConsDartString(leftString, otherString);
-      return new HLiteral(cons, HType.STRING);
+      return graph.addNewLiteralString(cons);
     }
-    return super.fold();
+    return super.fold(graph);
   }
 }
 
@@ -1322,6 +1367,14 @@ class HDivide extends HBinaryArithmetic {
   HDivide(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitDivide(this);
+
+  HType computeType() {
+    HType type = computeInputsType();
+    builtin = type.isNumber();
+    if (left.isNumber()) return HType.DOUBLE;
+    return HType.UNKNOWN;
+  }
+
   num evaluate(num a, num b) => a / b;
   bool typeEquals(other) => other is HDivide;
   bool dataEquals(HInstruction other) => true;
@@ -1359,12 +1412,12 @@ class HTruncatingDivide extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
-  HInstruction fold() {
+  HInstruction fold(HGraph graph) {
     // Avoid a DivisionByZeroException.
     if (right.isLiteralNumber() && right.dynamic.value == 0) {
       return this;
     }
-    return super.fold();
+    return super.fold(graph);
   }
 
   num evaluate(num a, num b) => a ~/ b;
@@ -1447,14 +1500,14 @@ class HBinaryBitOp extends HBinaryArithmetic {
     return HType.INTEGER;
   }
 
-  HInstruction fold() {
+  HInstruction fold(HGraph graph) {
     // Bit-operations are only defined on integers.
     if (left.isLiteralNumber() && right.isLiteralNumber()) {
       HLiteral op1 = left;
       HLiteral op2 = right;
       // Avoid exceptions.
       if (op1.isInteger() && op2.isInteger()) {
-        return new HLiteral(evaluate(op1.value, op2.value), HType.INTEGER);
+        return graph.addNewLiteralInt(evaluate(op1.value, op2.value));
       }
     }
     return this;
@@ -1469,7 +1522,7 @@ class HShiftLeft extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
-  HInstruction fold() {
+  HInstruction fold(HGraph graph) {
     if (right.isLiteralNumber()) {
       // TODO(floitsch): find good max left-shift amount.
       final int MAX_SHIFT_LEFT_AMOUNT = 50;
@@ -1478,7 +1531,7 @@ class HShiftLeft extends HBinaryBitOp {
       // shifts.
       if (op2.value < 0 || op2.value > MAX_SHIFT_LEFT_AMOUNT) return this;
     }
-    return super.fold();
+    return super.fold(graph);
   }
 
   int evaluate(int a, int b) => a << b;
@@ -1491,13 +1544,13 @@ class HShiftRight extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
-  HInstruction fold() {
+  HInstruction fold(HGraph graph) {
     if (right.isLiteralNumber()) {
       HLiteral op2 = right;
       // Only positive shifting is allowed.
       if (op2.value < 0) return this;
     }
-    return super.fold();
+    return super.fold(graph);
   }
 
   int evaluate(int a, int b) => a >> b;
@@ -1569,7 +1622,7 @@ class HInvokeUnary extends HInvokeStatic {
 
   bool hasExpectedType() => builtin || (type.isUnknown());
 
-  abstract HInstruction fold();
+  abstract HInstruction fold(HGraph graph);
 
   abstract num evaluate(num a);
 }
@@ -1578,10 +1631,10 @@ class HNegate extends HInvokeUnary {
   HNegate(HStatic target, HInstruction input) : super(target, input);
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
-  HInstruction fold() {
+  HInstruction fold(HGraph graph) {
     if (operand.isLiteralNumber()) {
       HLiteral input = operand;
-      return new HLiteral(evaluate(input.value), type);
+      return graph.addNewLiteralNum(evaluate(input.value), type);
     }
     return this;
   }
@@ -1608,11 +1661,11 @@ class HBitNot extends HInvokeUnary {
     return HType.INTEGER;
   }
 
-  HInstruction fold() {
+  HInstruction fold(HGraph graph) {
     if (operand.isLiteralNumber()) {
       HLiteral input = operand;
       if (input.isInteger()) {
-        return new HLiteral(evaluate(input.value), HType.INTEGER);
+        return graph.addNewLiteralInt(evaluate(input.value));
       }
     }
     return this;
@@ -1695,10 +1748,11 @@ class HLoopBranch extends HConditionalBranch {
 
 class HLiteral extends HInstruction {
   final value;
-  HLiteral(this.value, HType type) : super(<HInstruction>[]) {
+  HLiteral.internal(this.value, HType type) : super(<HInstruction>[]) {
     this.type = type;
     tryGenerateAtUseSite();  // Maybe avoid this if the literal is big?
   }
+
   void prepareGvn() {
     // We allow global value numbering of literals, but we still
     // prefer generating them at use sites. This allows us to do
@@ -1706,12 +1760,10 @@ class HLiteral extends HInstruction {
     assert(!hasSideEffects());
     setUseGvn();
   }
+
   toString() => 'literal: $value';
   accept(HVisitor visitor) => visitor.visitLiteral(this);
-
-  HType computeType() {
-    return type;
-  }
+  HType computeType() => type;
 
   // Literals have the type they have. It can't be changed.
   bool updateType() => false;
@@ -1862,6 +1914,15 @@ class HRelational extends HInvokeBinary {
     } else {
       setAllSideEffects();
     }
+  }
+
+   HInstruction fold(HGraph graph) {
+    if (left.isLiteralNumber() && right.isLiteralNumber()) {
+      HLiteral op1 = left;
+      HLiteral op2 = right;
+      return graph.addNewLiteralBool(evaluate(op1.value, op2.value));
+    }
+    return this;
   }
 
   HType computeType() {
