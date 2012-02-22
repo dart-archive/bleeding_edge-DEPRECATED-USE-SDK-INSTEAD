@@ -6,6 +6,7 @@
 
 #import('js_helper.dart');
 
+#source('../../../corelib/src/implementation/collections.dart');
 #source('../../../corelib/src/implementation/dual_pivot_quicksort.dart');
 #source('../../../corelib/src/implementation/duration_implementation.dart');
 #source('../../../corelib/src/implementation/exceptions.dart');
@@ -19,6 +20,5 @@
 #source('../../../corelib/src/implementation/stopwatch_implementation.dart');
 
 #source('../../../runtime/lib/arrays.dart');
-#source('../../../runtime/lib/collections.dart');
 
 #source('mockimpl.dart');
