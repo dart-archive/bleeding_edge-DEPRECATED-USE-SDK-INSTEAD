@@ -898,7 +898,9 @@ class SsaCodeGenerator implements HVisitor {
       if (element == coreLibrary.find(const SourceString('List'))) {
         buffer.add("(");
         endParen = true;
-        beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+        beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+        checkObject(input, '===');
+        buffer.add(' && ');
         checkArray(input, '===');
         buffer.add(' || ');
         precedence = JSPrecedence.LOGICAL_OR_PRECEDENCE;
@@ -988,15 +990,19 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       bailout(node, 'Not a string');
     } else if (node.isArray()) {
       buffer.add('if (');
+      checkObject(input, '!==');
+      buffer.add('||');
       checkArray(input, '!==');
       buffer.add(') ');
       bailout(node, 'Not an array');
     } else if (node.isStringOrArray()) {
       buffer.add('if (');
       checkString(input, '!==');
-      buffer.add(' && ');
+      buffer.add(' && (');
+      checkObject(input, '!==');
+      buffer.add('||');
       checkArray(input, '!==');
-      buffer.add(') ');
+      buffer.add(')) ');
       bailout(node, 'Not a string or array');
     } else {
       unreachable();

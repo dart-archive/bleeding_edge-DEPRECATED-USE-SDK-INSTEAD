@@ -27,7 +27,7 @@ bool checkNumbers(var a, var b, var message) {
 
 
 bool isJSArray(var value) {
-  return JS("bool", @"$0.constructor === Array", value);
+  return value !== null && JS("bool", @"$0.constructor === Array", value);
 }
 
 
@@ -971,7 +971,7 @@ builtin$contains$2(receiver, other, startIndex) {
   if (other is !String) {
     throw 'String.contains with non-String is not implemented';
   }
-  if ((startIndex !== null) || (startIndex is !num)) {
+  if ((startIndex !== null) && (startIndex is !num)) {
     throw new IllegalArgumentException(startIndex);
   }
   return receiver.indexOf(other, startIndex) >= 0;

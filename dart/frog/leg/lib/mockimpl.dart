@@ -15,7 +15,7 @@ class JSSyntaxRegExp implements RegExp {
 }
 
 class StringBufferImpl {
-  StringBufferImpl() {
+  StringBufferImpl([content]) {
     throw 'StringBufferImpl is not implemented';
   }
 }
@@ -217,6 +217,7 @@ class ListFactory<E> implements List<E> {
     Iterator<E> iterator = other.iterator();
     while (iterator.hasNext()) {
       result.add(iterator.next());
+    }
     return result;
   }
 }
