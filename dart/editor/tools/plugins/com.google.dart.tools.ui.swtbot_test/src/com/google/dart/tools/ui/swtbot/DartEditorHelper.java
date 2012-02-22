@@ -51,6 +51,7 @@ import java.util.List;
 /**
  * Helper for manipulating source code in an editor
  */
+@SuppressWarnings("restriction")
 public class DartEditorHelper {
 
   private final SWTWorkbenchBot bot;
