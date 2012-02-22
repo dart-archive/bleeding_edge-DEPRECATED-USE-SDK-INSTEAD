@@ -6,6 +6,8 @@
 
 #import('coreimpl.dart');
 
+#source('date_helper.dart');
+
 /**
   * Returns true if both arguments are numbers.
   * If only the first argument is a number, throws the given message as
@@ -363,45 +365,122 @@ class Primitives {
 
   static num dateNow() => JS("num", @"Date.now()");
 
-  static num mathFloor(num value) => JS("num", @"Math.floor($0)", value);
-
-  static brokenDownDateToSecondsSinceEpoch(
-      int years, int month, int day, int hours, int minutes, int seconds,
-      bool isUtc) {
-    throw 'Primitives.brokenDownDateToSecondsSinceEpoch is not implemented';
-  }
-
-  static int getCurrentMs() {
-    throw 'Primitives.getCurrentMs is not implemented';
-  }
-
-  static int getYear(int secondsSinceEpoch, bool isUtc) {
-    throw 'Primitives.getYear is not implemented';
-  }
-
-  static int getMonth(int secondsSinceEpoch, bool isUtc) {
-    throw 'Primitives.getMonth is not implemented';
-  }
-
-  static int getDay_(int secondsSinceEpoch, bool isUtc);
-
-  static int getHours(int secondsSinceEpoch, bool isUtc) {
-    throw 'Primitives.getHours is not implemented';
-  }
-
-  static int getMinutes(int secondsSinceEpoch, bool isUtc) {
-    throw 'Primitives.getMinutes is not implemented';
-  }
-
-  static int getSeconds(int secondsSinceEpoch, bool isUtc) {
-    throw 'Primitives.getSeconds is not implemented';
-  }
-
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
       if (i is !int) throw new IllegalArgumentException(i);
     }
     return JS('String', @'String.fromCharCode.apply($0, $1)', null, charCodes);
+  }
+
+  static valueFromDecomposedDate(years, month, day, hours, minutes, seconds,
+                                 milliseconds, isUtc) {
+    checkInt(years);
+    checkInt(month);
+    if (month < 1 || 12 < month) throw new IllegalArgumentException(month);
+    checkInt(day);
+    if (day < 1 || 31 < day) throw new IllegalArgumentException(day);
+    checkInt(hours);
+    if (hours < 0 || 24 < hours) throw new IllegalArgumentException(hours);
+    checkInt(minutes);
+    if (minutes < 0 || 59 < minutes) {
+      throw new IllegalArgumentException(minutes);
+    }
+    checkInt(seconds);
+    if (seconds < 0 || 59 < seconds) {
+      // TODO(ahe): Leap seconds?
+      throw new IllegalArgumentException(seconds);
+    }
+    checkInt(milliseconds);
+    if (milliseconds < 0 || 999 < milliseconds) {
+      throw new IllegalArgumentException(milliseconds);
+    }
+    checkBool(isUtc);
+    var jsMonth = month - 1;
+    var value;
+    if (isUtc) {
+      value = JS('num', @'Date.UTC($0, $1, $2, $3, $4, $5, $6)',
+                 years, jsMonth, day, hours, minutes, seconds, milliseconds);
+    } else {
+      value = JS('num', @'new Date($0, $1, $2, $3, $4, $5, $6).valueOf()',
+                 years, jsMonth, day, hours, minutes, seconds, milliseconds);
+    }
+    if (value.isNaN()) throw new IllegalArgumentException('');
+    if (years <= 0 || years < 100) return patchUpY2K(value, years, isUtc);
+    return value;
+  }
+
+  static patchUpY2K(value, years, isUtc) {
+    var date = JS('Object', @'new Date($0)', value);
+    if (isUtc) {
+      JS('num', @'$0.setUTCFullYear($1)', date, years);
+    } else {
+      JS('num', @'$0.setFullYear($1)', date, years);
+    }
+    return JS('num', @'$0.valueOf()', date);
+  }
+
+  // Lazily keep a JS Date stored in the JS object.
+  static lazyAsJsDate(receiver) {
+    if (JS('bool', @'$0.date === (void 0)', receiver)) {
+      JS('void', @'$0.date = new Date($1)', receiver, receiver.value);
+    }
+    return JS('Date', @'$0.date', receiver);
+  }
+
+  static getYear(receiver) {
+    return (receiver.timeZone.isUtc)
+      ? JS('int', @'$0.getUTCFullYear()', lazyAsJsDate(receiver))
+      : JS('int', @'$0.getFullYear()', lazyAsJsDate(receiver));
+  }
+
+  static getMonth(receiver) {
+    return (receiver.timeZone.isUtc)
+      ? JS('int', @'$0.getUTCMonth()', lazyAsJsDate(receiver)) + 1
+      : JS('int', @'$0.getMonth()', lazyAsJsDate(receiver)) + 1;
+  }
+
+  static getDay(receiver) {
+    return (receiver.timeZone.isUtc)
+      ? JS('int', @'$0.getUTCDate()', lazyAsJsDate(receiver))
+      : JS('int', @'$0.getDate()', lazyAsJsDate(receiver));
+  }
+
+  static getHours(receiver) {
+    return (receiver.timeZone.isUtc)
+      ? JS('int', @'$0.getUTCHours()', lazyAsJsDate(receiver))
+      : JS('int', @'$0.getHours()', lazyAsJsDate(receiver));
+  }
+
+  static getMinutes(receiver) {
+    return (receiver.timeZone.isUtc)
+      ? JS('int', @'$0.getUTCMinutes()', lazyAsJsDate(receiver))
+      : JS('int', @'$0.getMinutes()', lazyAsJsDate(receiver));
+  }
+
+  static getSeconds(receiver) {
+    return (receiver.timeZone.isUtc)
+      ? JS('int', @'$0.getUTCSeconds()', lazyAsJsDate(receiver))
+      : JS('int', @'$0.getSeconds()', lazyAsJsDate(receiver));
+  }
+
+  static getMilliseconds(receiver) {
+    return (receiver.timeZone.isUtc)
+      ? JS('int', @'$0.getUTCMilliseconds()', lazyAsJsDate(receiver))
+      : JS('int', @'$0.getMilliseconds()', lazyAsJsDate(receiver));
+  }
+
+  static getWeekday(receiver) {
+    return (receiver.timeZone.isUtc)
+      ? JS('int', @'$0.getUTCDay()', lazyAsJsDate(receiver))
+      : JS('int', @'$0.getDay()', lazyAsJsDate(receiver));
+  }
+
+  static valueFromDateString(str) {
+    checkNull(str);
+    if (str is !String) throw new IllegalArgumentException(str);
+    var value = JS('num', @'Date.parse($0)', str);
+    if (value.isNaN()) throw new IllegalArgumentException(str);
+    return value;
   }
 }
 
@@ -691,11 +770,24 @@ builtin$sort$1(receiver, compare) {
 
 checkNull(object) {
   if (object === null) throw new NullPointerException();
+  return object;
 }
 
 checkNum(value) {
   checkNull(value);
   if (value is !num) throw new IllegalArgumentException(value);
+  return value;
+}
+
+checkInt(value) {
+  checkNull(value);
+  if (value is !int) throw new IllegalArgumentException(value);
+  return value;
+}
+
+checkBool(value) {
+  checkNull(value);
+  if (value is !bool) throw new IllegalArgumentException(value);
   return value;
 }
 

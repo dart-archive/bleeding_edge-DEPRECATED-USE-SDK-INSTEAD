@@ -117,8 +117,13 @@ class WorldCompiler extends Compiler {
         element = element.enclosingElement;
         // TODO(ahe): I plan to overhaul this infrastructure anyways.
       }
-      withCurrentElement(element,
-          () => cancel(reason: reason, token: element.position()));
+      if (element !== null) {
+        withCurrentElement(element,
+            () => cancel(reason: reason, token: element.position()));
+      }
+    } else if (currentElement !== null) {
+      cancel(reason, element: currentElement);
+      return;
     }
     if (throwOnError) {
       throw new AbortLeg(reason);
