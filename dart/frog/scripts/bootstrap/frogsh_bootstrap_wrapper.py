@@ -31,7 +31,10 @@ def main(args):
     vm = vm + '.exe'
     shutil.copy(os.path.join(HOME, 'scripts', 'bootstrap', 'frogsh.bat'),
                 js_out + '.bat')
-  frog_args = ['frog.py', '--vm=' + vm, '--', '--out=' + js_out, 'minfrog.dart']
+  frog_args = ['frog.py', '--vm=' + vm,
+               '--js_cmd=node --crankshaft',
+               '--',
+               '--out=' + js_out, 'minfrog.dart']
 
   # TODO(ngeoffray): Compile frogsh without checks integrated.
   # if js_out.find('Release') != -1:

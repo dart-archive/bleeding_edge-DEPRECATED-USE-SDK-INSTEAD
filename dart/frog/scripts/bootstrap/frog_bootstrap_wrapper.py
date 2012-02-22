@@ -13,6 +13,7 @@ BUILDER_NAME = os.environ.get('BUILDBOT_BUILDERNAME')
 END_SCRIPT = '''
 VM = '%s'
 VM_FLAGS = '%s'
+D8 = '%s'
 if __name__ == '__main__':
   sys.exit(main(sys.argv))
 '''
@@ -20,6 +21,7 @@ if __name__ == '__main__':
 def main(args):
   product_dir = args[1]
   vm = os.path.join(product_dir, 'dart')
+  d8 = os.path.join(product_dir, 'd8')
   id = platform.system()
   if id == 'Windows' or id == 'Microsoft':
     vm = vm + '.exe'
@@ -38,12 +40,12 @@ def main(args):
     # (release VM, developer mode) and (debug VM, production mode).
     vm_flags = '--vm_flags=--enable_asserts --enable_type_checks'
   else:
-    # For test turnaround time, we run fully in release mode on 
+    # For test turnaround time, we run fully in release mode on
     # our web browser buildbots (and with debug VM).
     vm_flags = ''
 
   with open(frog, 'a+') as f:
-    f.write(END_SCRIPT % (vm, vm_flags))
+    f.write(END_SCRIPT % (vm, vm_flags, d8))
 
   os.chmod(frog, stat.S_IXUSR | stat.S_IXGRP | stat.S_IRUSR |
            stat.S_IRGRP | stat.S_IWUSR)

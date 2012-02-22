@@ -17,7 +17,14 @@ def main(args):
     print "Could not find frog"
     return 1
 
-  frog_args = [ 'frog.py', '--vm=' + VM ]
+  frog_args = [ 'frog.py', '--vm=%s' % VM]
+  js_cmd_flag = '--js_cmd=%s --crankshaft' % D8
+  for arg in args:
+    if arg.startswith('--js_cmd'):
+      js_cmd_flag = arg
+  if js_cmd_flag in args:
+    args.remove(js_cmd_flag)
+  frog_args.append(js_cmd_flag)
   if VM_FLAGS:
     frog_args.append(VM_FLAGS)
   frog_args.append('--')
