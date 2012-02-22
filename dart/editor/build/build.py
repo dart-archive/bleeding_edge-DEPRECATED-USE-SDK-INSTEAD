@@ -396,7 +396,8 @@ def main():
                         revision, options.name, buildroot, buildout,
                         editorpath, buildos)
     properties = _ReadPropertyFile(buildos, ant_property_file.name)
-    _UploadTestHtml(buildout, to_bucket, revision, buildos, gsu)
+    if buildos:
+      _UploadTestHtml(buildout, to_bucket, revision, buildos, gsu)
     if status:
       if properties['build.runtime']:
         #if there is a build.runtime and the status is not
@@ -913,7 +914,9 @@ def _PrintError(text):
 
 
 if __name__ == '__main__':
-  sys.exit(main())
+  exit_code = main()
+  print 'exit code = {0}'.format(exit_code)
+  sys.exit(exit_code)
 #  scriptdir = os.path.dirname(sys.argv[0])
 #  editorpath = os.path.abspath(os.path.join(scriptdir, '..'))
 #  homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
