@@ -245,7 +245,8 @@ indexSet(var a, var index, var value) {
     return JS("Object", @"$0[$1] = $2", a, index, value);
   }
   checkNull(a);
-  return UNINTERCEPTED(a[index] = value);
+  UNINTERCEPTED(a[index] = value);
+  return value;
 }
 
 builtin$add$1(var receiver, var value) {
@@ -294,6 +295,7 @@ builtin$set$length(receiver, newLength) {
   } else {
     UNINTERCEPTED(receiver.length = newLength);
   }
+  return newLength;
 }
 
 builtin$toString$0(var value) {
@@ -602,6 +604,7 @@ builtin$getRange$2(receiver, start, length) {
   if (start is !int) throw new IllegalArgumentException(start);
   if (length is !int) throw new IllegalArgumentException(length);
   if (start < 0) throw new IndexOutOfRangeException(start);
+  if (length < 0) throw new IllegalArgumentException(length);
   var end = start + length;
   if (end > receiver.length) {
     throw new IndexOutOfRangeException(length);

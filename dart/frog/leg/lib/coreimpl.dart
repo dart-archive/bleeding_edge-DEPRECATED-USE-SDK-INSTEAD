@@ -21,7 +21,6 @@
 #source('../../../corelib/src/implementation/stopwatch_implementation.dart');
 
 #source('../../../runtime/lib/arrays.dart');
-#source('../../../runtime/lib/collections.dart');
 #source('../../../runtime/lib/string_buffer.dart');
 
 #source('mockimpl.dart');
