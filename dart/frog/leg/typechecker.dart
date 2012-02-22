@@ -318,7 +318,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
     Identifier selector = node.selector.asIdentifier();
     String name = selector.source.stringValue;
 
-    if (node.isOperator) {
+    if (node.isOperator && name === 'is') {
+      analyze(node.receiver);
+      return boolType;
+    } else if (node.isOperator) {
       final Node firstArgument = node.receiver;
       final Type firstArgumentType = analyze(node.receiver);
       final arguments = node.arguments;
@@ -341,8 +344,6 @@ class TypeCheckerVisitor implements Visitor<Type> {
           // TODO(karlklose): check number of arguments in validator.
           checkAssignable(secondArgument, boolType, secondArgumentType);
         }
-        return boolType;
-      } else if (name === 'is') {
         return boolType;
       }
       fail(selector, 'unexpected operator ${name}');
