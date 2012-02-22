@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
 
 import org.eclipse.debug.core.DebugException;
@@ -26,19 +27,31 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
   private WebkitPropertyDescriptor descriptor;
 
   private DartiumDebugValue value;
-
-  private String currentValue;
-  private String previousValue;
+  private boolean isThisObject;
 
   /**
    * Create a new Dartium Debug Variable
    * 
    * @param target
+   * @param descriptor
    */
   public DartiumDebugVariable(DartiumDebugTarget target, WebkitPropertyDescriptor descriptor) {
+    this(target, descriptor, false);
+  }
+
+  /**
+   * Create a new Dartium Debug Variable
+   * 
+   * @param target
+   * @param descriptor
+   * @param isThisObject
+   */
+  public DartiumDebugVariable(DartiumDebugTarget target, WebkitPropertyDescriptor descriptor,
+      boolean isThisObject) {
     super(target);
 
     this.descriptor = descriptor;
+    this.isThisObject = isThisObject;
   }
 
   @Override
@@ -55,6 +68,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
   public IValue getValue() throws DebugException {
     if (value == null) {
       value = new DartiumDebugValue(getTarget(), descriptor.getValue());
+      value.populate();
     }
 
     return value;
@@ -62,11 +76,21 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
 
   @Override
   public boolean hasValueChanged() throws DebugException {
-    if (previousValue != null) {
-      // TODO(keertip): check to see if value has changed
-    }
+    // TODO(keertip): check to see if value has changed
 
     return false;
+  }
+
+  public boolean isListValue() {
+    return value.isList();
+  }
+
+  public boolean isPrimitiveValue() {
+    return value.isPrimitive();
+  }
+
+  public boolean isThisObject() {
+    return isThisObject;
   }
 
   @Override
@@ -76,23 +100,32 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
 
   @Override
   public void setValue(String expression) throws DebugException {
-    previousValue = currentValue;
-    currentValue = expression;
+    if (DartDebugCorePlugin.VM_SUPPORTS_VALUE_MODIFICATION) {
+      // TODO(devoncarew):
+
+      System.out.println("change: " + expression);
+    }
   }
 
   @Override
   public boolean supportsValueModification() {
-    return false;
+    if (DartDebugCorePlugin.VM_SUPPORTS_VALUE_MODIFICATION) {
+      return descriptor.isWritable() && descriptor.getValue().isPrimitive();
+    } else {
+      return false;
+    }
   }
 
   @Override
   public boolean verifyValue(IValue value) throws DebugException {
-    return false;
+    return verifyValue(value.getValueString());
   }
 
   @Override
   public boolean verifyValue(String expression) throws DebugException {
-    return false;
+    // TODO(devoncarew): do verification for numbers
+
+    return true;
   }
 
 }

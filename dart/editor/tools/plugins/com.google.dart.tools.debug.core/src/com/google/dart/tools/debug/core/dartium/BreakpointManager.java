@@ -114,20 +114,22 @@ class BreakpointManager implements IBreakpointListener {
   }
 
   private void addBreakpoint(DartBreakpoint breakpoint) throws IOException {
-    String url = resourceResolver.getUrlForResource(breakpoint.getFile());
-    int line = WebkitLocation.eclipseToWebkitLine(breakpoint.getLine());
+    if (breakpoint.isBreakpointEnabled()) {
+      String url = resourceResolver.getUrlForResource(breakpoint.getFile());
+      int line = WebkitLocation.eclipseToWebkitLine(breakpoint.getLine());
 
-    debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(url, null, line,
-        new WebkitCallback<WebkitBreakpoint>() {
-          @Override
-          public void handleResult(WebkitResult<WebkitBreakpoint> result) {
-            // This will resolve immediately if the script is loaded in the browser. Otherwise the 
-            // breakpoint info will be sent to us using the breakpoint resolved notification.
-            if (result.getResult() instanceof WebkitBreakpoint) {
-              webkitBreakpoints.add(result.getResult());
+      debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(url, null, line,
+          new WebkitCallback<WebkitBreakpoint>() {
+            @Override
+            public void handleResult(WebkitResult<WebkitBreakpoint> result) {
+              // This will resolve immediately if the script is loaded in the browser. Otherwise the 
+              // breakpoint info will be sent to us using the breakpoint resolved notification.
+              if (result.getResult() instanceof WebkitBreakpoint) {
+                webkitBreakpoints.add(result.getResult());
+              }
             }
-          }
-        });
+          });
+    }
   }
 
   /**

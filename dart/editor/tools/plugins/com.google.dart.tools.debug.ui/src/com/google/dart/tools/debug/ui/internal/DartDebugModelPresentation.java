@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,14 +13,15 @@
  */
 package com.google.dart.tools.debug.ui.internal;
 
+import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
+import com.google.dart.tools.debug.core.dartium.DartiumDebugVariable;
+
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.ILineBreakpoint;
 import org.eclipse.debug.core.model.IValue;
-import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.core.sourcelookup.containers.LocalFileStorage;
 import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IValueDetailListener;
@@ -39,7 +40,6 @@ import java.util.List;
  * with debug elements in a specific debug model.
  */
 public class DartDebugModelPresentation implements IDebugModelPresentation {
-
   private static final String DART_EDITOR_ID = "com.google.dart.tools.ui.text.editor.CompilationUnitEditor";
 
   private List<ILabelProviderListener> listeners = new ArrayList<ILabelProviderListener>();
@@ -64,9 +64,19 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
    * @param listener the listener to report the details to asynchronously
    */
   @Override
-  public void computeDetail(IValue value, IValueDetailListener listener) {
-    // TODO(devoncarew): at some point, we can provide additional detail for objects here.
-    listener.detailComputed(value, null);
+  public void computeDetail(final IValue value, final IValueDetailListener listener) {
+    if (value instanceof DartiumDebugValue) {
+      DartiumDebugValue debugValue = (DartiumDebugValue) value;
+
+      debugValue.computeDetail(new DartiumDebugValue.ValueCallback() {
+        @Override
+        public void detailComputed(String stringValue) {
+          listener.detailComputed(value, stringValue);
+        }
+      });
+    } else {
+      listener.detailComputed(value, null);
+    }
   }
 
   @Override
@@ -111,17 +121,17 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
    */
   @Override
   public Image getImage(Object element) {
-    if (element instanceof IVariable) {
-      IVariable variable = (IVariable) element;
+    if (element instanceof DartiumDebugVariable) {
+      DartiumDebugVariable variable = (DartiumDebugVariable) element;
 
-      try {
-        if (dartSymbolNameIsPrivate(variable.getName())) {
-          return DartDebugUIPlugin.getImage("obj16/field_private.png");
-        } else {
-          return DartDebugUIPlugin.getImage("obj16/field_public.png");
-        }
-      } catch (DebugException ex) {
-        return null;
+      if (variable.isThisObject()) {
+        return DartDebugUIPlugin.getImage("obj16/this_obj.gif");
+      } else if (variable.isPrimitiveValue()) {
+        return DartDebugUIPlugin.getImage("obj16/object_obj.png");
+      } else if (variable.isListValue()) {
+        return DartDebugUIPlugin.getImage("obj16/list_obj.png");
+      } else {
+        return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       }
     } else {
       return null;
@@ -146,10 +156,6 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
   @Override
   public void setAttribute(String attribute, Object value) {
 
-  }
-
-  private boolean dartSymbolNameIsPrivate(String name) {
-    return name.startsWith("_");
   }
 
 }

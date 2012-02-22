@@ -13,6 +13,7 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: com.google.dart.tools.debug.core,
- com.google.dart.tools.debug.core.breakpoints
+ com.google.dart.tools.debug.core.breakpoints,
+ com.google.dart.tools.debug.core.dartium;x-friends:="com.google.dart.tools.debug.ui"
 Bundle-ClassPath: lib/weberknecht-0.1.1.jar,
  .

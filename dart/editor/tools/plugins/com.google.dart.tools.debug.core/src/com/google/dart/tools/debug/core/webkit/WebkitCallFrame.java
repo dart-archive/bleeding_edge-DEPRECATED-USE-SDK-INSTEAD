@@ -28,17 +28,6 @@ import java.util.List;
  */
 public class WebkitCallFrame {
 
-//  callFrameId ( CallFrameId )
-//  Call frame identifier. This identifier is only valid while the virtual machine is paused.
-//  functionName ( string )
-//  Name of the JavaScript function called on this call frame.
-//  location ( Location )
-//  Location in the source code.
-//  scopeChain ( array of Scope )
-//  Scope chain for this call frame.
-//  this ( Runtime.RemoteObject )
-//  this object for this call frame.
-
   static List<WebkitCallFrame> createFrom(JSONArray arr) throws JSONException {
     List<WebkitCallFrame> frames = new ArrayList<WebkitCallFrame>();
 
@@ -74,24 +63,49 @@ public class WebkitCallFrame {
 
   private WebkitRemoteObject thisObject;
 
+  /**
+   * Call frame identifier. This identifier is only valid while the virtual machine is paused.
+   */
   public String getCallFrameId() {
     return callFrameId;
   }
 
+  /**
+   * Name of the Dart function called on this call frame.
+   */
   public String getFunctionName() {
     return functionName;
   }
 
+  /**
+   * Location in the source code.
+   */
   public WebkitLocation getLocation() {
     return location;
   }
 
+  /**
+   * Scope chain for this call frame.
+   */
   public WebkitScope[] getScopeChain() {
     return scopeChain;
   }
 
+  /**
+   * This object for this call frame.
+   */
   public WebkitRemoteObject getThisObject() {
     return thisObject;
+  }
+
+  public boolean isPrivateMethod() {
+    // _bar or foo._bar
+
+    return functionName.startsWith("_") || functionName.contains("._");
+  }
+
+  public boolean isStaticMethod() {
+    return thisObject.getObjectId() == null;
   }
 
   @Override

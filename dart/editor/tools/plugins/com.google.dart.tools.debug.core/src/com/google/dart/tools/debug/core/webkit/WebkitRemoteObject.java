@@ -47,8 +47,8 @@ public class WebkitRemoteObject {
     remoteObject.type = JsonUtils.getString(params, "type");
 
     if (params.has("value")) {
-      // TODO(devoncarew): encode this better
-      remoteObject.value = "" + params.get("value");
+      Object obj = params.get("value");
+      remoteObject.value = String.valueOf(obj);
     }
 
     return remoteObject;
@@ -64,7 +64,7 @@ public class WebkitRemoteObject {
 
   private String type;
 
-  private Object value;
+  private String value;
 
   public String getClassName() {
     return className;
@@ -82,17 +82,42 @@ public class WebkitRemoteObject {
     return subtype;
   }
 
+  /**
+   * Valid values include "object", "string", and "number".
+   * 
+   * @return
+   */
   public String getType() {
     return type;
   }
 
-  public Object getValue() {
+  public String getValue() {
     return value;
+  }
+
+  public boolean hasObjectId() {
+    return getObjectId() != null;
+  }
+
+  public boolean isFunction() {
+    return "function".equals(type);
+  }
+
+  public boolean isList() {
+    return "array".equals(subtype);
+  }
+
+  public boolean isPrimitive() {
+    return "number".equals(type) || "string".equals(type);
   }
 
   @Override
   public String toString() {
-    return "[" + type + "," + value + "]";
+    if (value == null) {
+      return "[" + type + "," + description + "]";
+    } else {
+      return "[" + type + "," + value + "]";
+    }
   }
 
 }

@@ -45,6 +45,8 @@ public class DartBreakpoint extends LineBreakpoint {
   /**
    * Create a new DartBreakpoint.
    * 
+   * @param resource
+   * @param line
    * @throws CoreException
    */
   public DartBreakpoint(final IResource resource, final int line) throws CoreException {
@@ -55,11 +57,12 @@ public class DartBreakpoint extends LineBreakpoint {
 
         setMarker(marker);
 
-        marker.setAttribute(IBreakpoint.ENABLED, Boolean.TRUE);
         marker.setAttribute(IMarker.LINE_NUMBER, line);
         marker.setAttribute(IBreakpoint.ID, getModelIdentifier());
         marker.setAttribute(IMarker.MESSAGE,
             NLS.bind("Line Breakpoint: {0} [line: {1}]", resource.getName(), line));
+
+        setEnabled(true);
       }
     };
 
@@ -71,10 +74,12 @@ public class DartBreakpoint extends LineBreakpoint {
   }
 
   public int getLine() {
-    IMarker m = getMarker();
-    if (m != null) {
-      return m.getAttribute(IMarker.LINE_NUMBER, -1);
+    IMarker marker = getMarker();
+
+    if (marker != null) {
+      return marker.getAttribute(IMarker.LINE_NUMBER, -1);
     }
+
     return -1;
   }
 
@@ -83,21 +88,14 @@ public class DartBreakpoint extends LineBreakpoint {
     return DartDebugCorePlugin.DEBUG_MODEL_ID;
   }
 
-  public String getUrlRegex() {
-    IFile file = getFile();
+  public boolean isBreakpointEnabled() {
+    IMarker marker = getMarker();
 
-    if (file != null) {
-      String path = file.getFullPath().toPortableString();
-
-      // Match anything then ends in the file's workspace relative path.
-      return ".*" + path.replace(".", "\\.");
+    if (marker != null) {
+      return marker.getAttribute(ENABLED, false);
     }
 
-    return null;
-  }
-
-  public boolean isBreakpointEnabled() {
-    return getMarker().getAttribute(ENABLED, false);
+    return false;
   }
 
   @Override

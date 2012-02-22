@@ -53,6 +53,11 @@ public class WebkitScope {
     return object;
   }
 
+  /**
+   * Valid values include "local".
+   * 
+   * @return the scope type
+   */
   public String getType() {
     return type;
   }

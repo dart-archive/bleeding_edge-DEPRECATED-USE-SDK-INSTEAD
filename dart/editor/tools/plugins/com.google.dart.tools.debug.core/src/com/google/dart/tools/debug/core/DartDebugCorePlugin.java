@@ -62,6 +62,9 @@ public class DartDebugCorePlugin extends Plugin {
   // TODO(devoncarew): remove this when the debugger supports pausing
   public static boolean VM_SUPPORTS_PAUSING = false;
 
+  // TODO(devoncarew): remove this when the debugger supports value modification
+  public static boolean VM_SUPPORTS_VALUE_MODIFICATION = false;
+
   public static final String BROWSER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.browserLaunchConfig";
 
   public static final String REMOTE_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.remoteLaunchConfig";
@@ -73,8 +76,6 @@ public class DartDebugCorePlugin extends Plugin {
   private static IDebugEventSetListener debugEventListener;
 
   private static DartDebugCorePlugin plugin;
-
-  private static final String PREFS_JRE_PATH = "jrePath";
 
   public static final String PREFS_DART_VM_PATH = "vmPath";
 
@@ -214,16 +215,6 @@ public class DartDebugCorePlugin extends Plugin {
     return getPrefs().getBoolean(PREFS_DEFAULT_BROWSER, true);
   }
 
-  /**
-   * Returns the path to the JRE executable, if it has been set. Otherwise, this method returns the
-   * empty string.
-   * 
-   * @return the path to the JRE executable
-   */
-  public String getJreExecutablePath() {
-    return getPrefs().get(PREFS_JRE_PATH, "");
-  }
-
   public IEclipsePreferences getPrefs() {
     if (prefs == null) {
       prefs = new InstanceScope().getNode(PLUGIN_ID);
@@ -273,22 +264,6 @@ public class DartDebugCorePlugin extends Plugin {
 
   public void setDefaultBrowser(boolean value) {
     getPrefs().putBoolean(PREFS_DEFAULT_BROWSER, value);
-  }
-
-  /**
-   * Set the path to the JRE executable. This is used to invoke a Java process by the Rhino launch
-   * configuration.
-   * 
-   * @param value the path to the JRE executable.
-   */
-  public void setJreExecutablePath(String value) {
-    getPrefs().put(PREFS_JRE_PATH, value);
-
-    try {
-      getPrefs().flush();
-    } catch (BackingStoreException exception) {
-      logError(exception);
-    }
   }
 
   @Override

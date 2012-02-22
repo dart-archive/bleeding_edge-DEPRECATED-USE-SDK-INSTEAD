@@ -25,7 +25,7 @@ import java.io.IOException;
 // TODO(devoncarew): Runtime.evaluate
 
 /**
- * A WIP runime domain object.
+ * A WIP runtime domain object.
  * 
  * @see http://code.google.com/chrome/devtools/docs/protocol/tot/runtime.html
  */
@@ -33,6 +33,35 @@ public class WebkitRuntime extends WebkitDomain {
 
   public WebkitRuntime(WebkitConnection connection) {
     super(connection);
+  }
+
+  /**
+   * Calls the toString() method on the given remote object. This is a convenience method for the
+   * Runtime.callFunctionOn call.
+   * 
+   * @param objectId
+   * @throws IOException
+   */
+  public void callToString(String objectId, final WebkitCallback<String> callback)
+      throws IOException {
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("method", "Runtime.callFunctionOn");
+      request.put(
+          "params",
+          new JSONObject().put("objectId", objectId).put("functionDeclaration", "toString").put(
+              "returnByValue", true));
+
+      connection.sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          callback.handleResult(convertCallFunctionOnResult(result));
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
   }
 
   /**
@@ -107,6 +136,30 @@ public class WebkitRuntime extends WebkitDomain {
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
+  }
+
+  protected WebkitResult<String> convertCallFunctionOnResult(JSONObject object)
+      throws JSONException {
+    WebkitResult<String> result = WebkitResult.createFrom(object);
+
+//    "result": {
+//      "result": <RemoteObject>,
+//      "wasThrown": <boolean> 
+//    }
+
+    if (object.has("result")) {
+      JSONObject obj = object.getJSONObject("result");
+
+      WebkitRemoteObject remoteObject = WebkitRemoteObject.createFrom(obj.getJSONObject("result"));
+
+      if (obj.has("wasThrown")) {
+        result.setError(remoteObject);
+      } else {
+        result.setResult(remoteObject.getValue());
+      }
+    }
+
+    return result;
   }
 
   private WebkitResult<WebkitPropertyDescriptor[]> convertGetPropertiesResult(JSONObject object)

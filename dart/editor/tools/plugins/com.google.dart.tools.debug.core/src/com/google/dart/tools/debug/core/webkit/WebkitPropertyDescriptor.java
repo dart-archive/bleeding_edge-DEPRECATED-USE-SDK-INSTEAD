@@ -25,6 +25,15 @@ import org.json.JSONObject;
  */
 public class WebkitPropertyDescriptor {
 
+  public static WebkitPropertyDescriptor createThisObjectDescriptor(WebkitRemoteObject thisObject) {
+    WebkitPropertyDescriptor descriptor = new WebkitPropertyDescriptor();
+
+    descriptor.name = "this";
+    descriptor.value = thisObject;
+
+    return descriptor;
+  }
+
   static WebkitPropertyDescriptor[] createFrom(JSONArray arr) throws JSONException {
     WebkitPropertyDescriptor[] results = new WebkitPropertyDescriptor[arr.length()];
 
@@ -107,18 +116,41 @@ public class WebkitPropertyDescriptor {
     return value;
   }
 
+  /**
+   * True if the type of this property descriptor may be changed and if the property may be deleted
+   * from the corresponding object.
+   */
   public boolean isConfigurable() {
     return configurable;
   }
 
+  /**
+   * True if this property shows up during enumeration of the properties on the corresponding
+   * object.
+   */
   public boolean isEnumerable() {
     return enumerable;
   }
 
+  /**
+   * Returns whether this property is a hidden, system property. Generally something like __proto__.
+   * 
+   * @return whether this property is a hidden, system property
+   */
+  public boolean isHidden() {
+    return name.startsWith("__");
+  }
+
+  /**
+   * True if the result was thrown during the evaluation.
+   */
   public boolean isWasThrown() {
     return wasThrown;
   }
 
+  /**
+   * True if the value associated with the property may be changed (data descriptors only).
+   */
   public boolean isWritable() {
     return writable;
   }

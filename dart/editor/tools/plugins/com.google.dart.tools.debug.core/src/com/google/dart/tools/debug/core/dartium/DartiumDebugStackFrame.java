@@ -15,11 +15,8 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
-import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitLocation;
-import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
-import com.google.dart.tools.debug.core.webkit.WebkitResult;
 import com.google.dart.tools.debug.core.webkit.WebkitScope;
 import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
@@ -32,8 +29,9 @@ import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
 
-import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The IStackFrame implementation for the dartium debug elements. This stack frame element
@@ -42,7 +40,7 @@ import java.net.URI;
 public class DartiumDebugStackFrame extends DartiumDebugElement implements IStackFrame {
   private IThread thread;
   private WebkitCallFrame webkitFrame;
-  private DartiumDebugVariableCollector variableCollector = DartiumDebugVariableCollector.empty();
+  private VariableCollector variableCollector = VariableCollector.empty();
 
   public DartiumDebugStackFrame(IDebugTarget target, IThread thread, WebkitCallFrame webkitFrame) {
     super(target);
@@ -147,6 +145,10 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return getVariables().length > 0;
   }
 
+  public boolean isPrivateMethod() {
+    return webkitFrame.isPrivateMethod();
+  }
+
   @Override
   public boolean isStepping() {
     return getThread().isStepping();
@@ -193,29 +195,21 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   private void fillInDartiumVariables() {
-    variableCollector = new DartiumDebugVariableCollector(getTarget(),
-        webkitFrame.getScopeChain().length);
+    List<WebkitRemoteObject> remoteObjects = new ArrayList<WebkitRemoteObject>();
+
+    WebkitRemoteObject thisObject = null;
+
+    if (!webkitFrame.isStaticMethod()) {
+      thisObject = webkitFrame.getThisObject();
+    }
 
     for (WebkitScope scope : webkitFrame.getScopeChain()) {
-      if (scope.isGlobal()) {
-        variableCollector.worked();
-      } else {
-        final WebkitRemoteObject obj = scope.getObject();
-
-        try {
-          // TODO(devoncarew): should we pass in ownProperties == true or not?
-          getConnection().getRuntime().getProperties(obj.getObjectId(), false,
-              new WebkitCallback<WebkitPropertyDescriptor[]>() {
-                @Override
-                public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
-                  variableCollector.collect(result);
-                }
-              });
-        } catch (IOException e) {
-          variableCollector.worked();
-        }
+      if (!scope.isGlobal()) {
+        remoteObjects.add(scope.getObject());
       }
     }
+
+    variableCollector = VariableCollector.createCollector(getTarget(), thisObject, remoteObjects);
   }
 
 }
