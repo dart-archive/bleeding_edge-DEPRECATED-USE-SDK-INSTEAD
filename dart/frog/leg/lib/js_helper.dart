@@ -583,7 +583,9 @@ builtin$forEach$1(receiver, f) {
   checkNull(receiver);
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.forEach(f));
 
+
   var length = JS("num", @"$0.length", receiver);
+  if (length > 0 && f === null) throw new ObjectNotClosureException(); // Sigh.
   for (var i = 0; i < length; i++) {
     f(JS("Object", @"$0[$1]", receiver, i));
   }
@@ -1164,3 +1166,6 @@ builtin$hashCode$0(receiver) {
   }
   return UNINTERCEPTED(receiver.hashCode());
 }
+
+// TODO(ahe): Dynamic may be overridden.
+builtin$get$dynamic(receiver) => receiver;
