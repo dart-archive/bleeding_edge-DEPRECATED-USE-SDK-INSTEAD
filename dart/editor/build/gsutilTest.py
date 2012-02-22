@@ -129,28 +129,33 @@ class TestGsutil(unittest.TestCase):
     test_uri = '{0}{1}'.format(self.test_prefix, self.test_bucket)
     tag = 'CopyTree'
     try:
-      test_dir = self._SetupDirectoryTree(3, 2, tag)
+      (test_dir, files_created) = self._SetupDirectoryTree(3, 2, tag)
       parent_dir = os.path.dirname(test_dir)
       self._CleanFolder(self.test_folder)
       objects = self._FindInBucket(tag)
       self.assertFalse(len(objects))
       self._gsu.Copy(test_dir, test_uri, recursive_flag=True)
       objects = self._FindInBucket(tag)
-      self.assertTrue(len(objects) > 20,
-                      msg='using the recursive gsutil call'.format(test_dir))
+      self.assertEqual(len(objects), files_created,
+                       msg='using the recursive gsutil'
+                       'call{0}, {1} != {2}'.format(test_dir,
+                                                    len(objects),
+                                                    files_created))
       self._CleanFolder(self.test_folder)
       objects = self._FindInBucket(tag)
       self.assertFalse(len(objects))
       self._gsu._TreeWalkCopy('file://' + test_dir, test_uri)
       objects = self._FindInBucket(tag)
-      self.assertTrue(len(objects) > 20,
-                      msg='using the tree walker {0}'.format(test_dir))
+      self.assertEqual(len(objects), files_created,
+                       msg='using the tree walker '
+                       '{0}, {1} != {2}'.format(test_dir, len(objects),
+                                                files_created))
     finally:
       if parent_dir is not None:
         shutil.rmtree(parent_dir, ignore_errors=True)
 
   def _FindInBucket(self, search_string):
-    """Find a list of objects that match a given search string.
+    """Return a list of objects that match a given search string.
 
     Args:
       search_string: the string to match
@@ -182,6 +187,7 @@ class TestGsutil(unittest.TestCase):
     sub_dir = os.path.join(tmp_dir, self.test_folder)
     os.makedirs(sub_dir)
     dirs = self._CreateDirectory(sub_dir, dir_depth)
+    files_created = 0
     for d in dirs:
       for file_count in range(0, items):
         fname = tag + str(file_count)
@@ -190,8 +196,9 @@ class TestGsutil(unittest.TestCase):
                                                delete=False,
                                                dir=d)
         tmp_file.write(str(file_count))
+        files_created += 1
         tmp_file.close()
-    return sub_dir
+    return sub_dir, files_created
 
   def _CreateDirectory(self, base, items):
     dir_list = []
@@ -249,3 +256,4 @@ class TestGsutil(unittest.TestCase):
 
 if __name__ == '__main__':
   unittest.main()
+

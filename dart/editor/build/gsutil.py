@@ -122,27 +122,20 @@ class GsUtil(object):
     p = subprocess.Popen(args, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
                          shell=self._useshell)
-    (out, err) = p.communicate()
+    while p.poll() is None:
+      line = p.stdout.readline()
+      print line
+      print '*' * 40
+      line = line.strip()
+      if line.startswith('gs:'):
+        items.append(line)
+
     if p.returncode:
       failure_message = ('failed to read the contents'
                          ' of the bucket {0}\n').format(bucket)
-      self._LogStream(err, failure_message, True)
-    else:
-      print '*****'
-      print 'err: {0}'.format(str(err))
-      print '*****'
-      out_stream = None
-      try:
-        out_stream = StringIO.StringIO(str(out))
-        line = out_stream.readline().strip()
-        while line:
-          print 'ReadBucket: processing {0}'.format(line)
-          if line.startswith('gs:'):
-            items.append(line)
-          line = out_stream.readline().strip()
-      finally:
-        if out_stream is not None:
-          out_stream.close()
+      self._LogStream(p.stderr.read(), failure_message, True)
+      return []
+
     print 'returning:'
     for item in items:
       print item
