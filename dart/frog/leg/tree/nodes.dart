@@ -711,6 +711,18 @@ class DartString implements Iterable<int> {
   bool definitelyEquals(DartString other) => toString() == other.toString();
   abstract Iterator<int> iterator();
   abstract String toString();
+
+  bool operator ==(var other) {
+    if (other is !DartString) return false;
+    DartString otherString = other;
+    if (length != otherString.length) return false;
+    Iterator it1 = iterator();
+    Iterator it2 = otherString.iterator();
+    while (it1.hasNext()) {
+      if (it1.next() != it2.next()) return false;
+    }
+    return true;
+  }
 }
 
 class LiteralDartString extends DartString {
@@ -747,15 +759,67 @@ class EscapedSourceDartString extends SourceBasedDartString {
   String toString() {
     if (toStringCache !== null) return toStringCache;
     StringBuffer buffer = new StringBuffer();
-    StringEscapeIterator iterator = new StringEscapeIterator(source);
-    while (iterator.hasNext()) {
-      buffer.add(new String.fromCharCodes(<int>[iterator.next()]));
+    StringEscapeIterator it = new StringEscapeIterator(source);
+    while (it.hasNext()) {
+      buffer.add(new String.fromCharCodes(<int>[it.next()]));
     }
     toStringCache = buffer.toString();
     return toStringCache;
   }
 }
 
+class ConsDartString extends DartString {
+  final DartString left;
+  final DartString right;
+  final int length;
+  int hashCache = null;
+  String toStringCache;
+  ConsDartString(DartString left, DartString right)
+      : this.left = left,
+        this.right = right,
+        length = left.length + right.length;
+
+  Iterator<int> iterator() => new ConsDartStringIterator(this);
+
+  String toString() {
+    if (toStringCache !== null) return toStringCache;
+    toStringCache = left.toString().concat(right.toString());
+    return toStringCache;
+  }
+}
+
+class ConsDartStringIterator implements Iterator<int> {
+  Iterator<int> current;
+  DartString right;
+  bool hasNextLookAhead;
+  ConsDartStringIterator(ConsDartString cons)
+      : current = cons.left.iterator(),
+        right = cons.right {
+    hasNextLookAhead = current.hasNext();
+    if (!hasNextLookAhead) {
+      nextPart();
+    }
+  }
+  bool hasNext() {
+    return hasNextLookAhead;
+  }
+  int next() {
+    assert(hasNextLookAhead);
+    int result = current.next();
+    hasNextLookAhead = current.hasNext();
+    if (!hasNextLookAhead) {
+      nextPart();
+    }
+    return result;
+  }
+  void nextPart() {
+    if (right !== null) {
+      current = right.iterator();
+      right = null;
+      hasNextLookAhead = current.hasNext();
+    }
+  }
+}
 
 /**
  *Iterator that returns the actual string contents of a string with escapes.

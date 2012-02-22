@@ -96,7 +96,15 @@ class CompileTimeConstantHandler extends CompilerTask {
     if (value === null) {
       buffer.add("(void 0)");
     } else if (value is num) {
-      buffer.add("($value)");
+      if (value.isNaN()) {
+        buffer.add("(0/0)");
+      } else if (value == double.INFINITY) {
+        buffer.add("(1/0)");
+      } else if (value == -double.INFINITY) {
+        buffer.add("(-1/0)");
+      } else {
+        buffer.add("($value)");        
+      }
     } else if (value === true) {
       buffer.add("true");
     } else if (value === false) {
@@ -111,7 +119,7 @@ class CompileTimeConstantHandler extends CompilerTask {
       // TODO(floitsch): support more values.
       compiler.unimplemented("CompileTimeConstantHandler" +
                              "writeJsCodeForVariable",
-                             node: element.parseNode(compiler));
+                             element: element);
     }
     return buffer;
   }
@@ -196,25 +204,94 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     return literal.value;
   }
 
+  // TODO(floitsch): provide better error-messages.
   visitSend(Send send) {
     Element element = definitions[send];
-    if (element !== null && element.kind == ElementKind.FIELD) {
-      if (element.isInstanceMember() ||
-          element.modifiers === null ||
+    if (Elements.isStaticOrTopLevelField(element)) {
+      if (element.modifiers === null ||
           !element.modifiers.isFinal()) {
-        error(element);
+        error(send);
       }
       return constantHandler.compileVariable(element);
+    } else if (send.isPrefix) {
+      assert(send.isOperator);
+      var receiverValue = evaluate(send.receiver);
+      Operator op = send.selector;
+      switch (op.source.stringValue) {
+        case "-":
+          if (receiverValue is !num) error(send);
+          return -receiverValue;
+        case "~": 
+          if (receiverValue is !int) error(send); 
+          return ~receiverValue;
+        case "!":
+          if (receiverValue is !bool) error(send);
+          return !receiverValue;
+        default:
+          error(send);
+      }
+    } else if (send.isOperator && !send.isPostfix) {
+      assert(send.argumentCount() == 1);
+      var left = evaluate(send.receiver);
+      var right = evaluate(send.argumentsNode.nodes.head);
+      String op = send.selector.asOperator().source.stringValue;
+
+      if (op == "==" || op == "===") {
+        // We use == instead of === so that non-canonicalized DartStrings can
+        // use their equality operator.
+        return left == right;
+      } else if (op == "!=" || op == "!==") {
+        return left != right;
+      }
+      if (left is num && right is num) {
+        switch (op) {
+          case "+": return left + right;
+          case "-": return left - right;
+          case "*": return left * right;
+          case "/": return left / right;
+          case "~/":
+          case "%":
+            if (left is int && right is int && right == 0) {
+              error(send);
+            }
+            return op == "~/" ? left ~/ right : left % right;
+          case "<": return left < right;
+          case "<=": return left <= right;
+          case ">": return left > right;
+          case ">=": return left >= right;
+        }
+      }
+      if (left is int && right is int) {
+        switch (op) {
+          case "|": return left | right;
+          case "&": return left & right;
+          case "<<":
+            // TODO(floitsch): find a better way to guard against shifts to the
+            // left.
+            if (right > 100) error(send);
+            if (right < 0) error(send);
+            return left << right;
+          case ">>":
+            if (right < 0) error(send);
+            return left >> right;        
+          case "^": return left ^ right;        
+        }
+      }
+      if (left is DartString && right is DartString && op == "+") {
+        return new ConsDartString(left, right);
+      }
     }
     return super.visitSend(send);
   }
 
-  error(Element element) {
+  visitSendSet(SendSet node) {
+    error(node);
+  }
+
+  error(Node node) {
     // TODO(floitsch): get the list of constants that are currently compiled
     // and present some kind of stack-trace.
     MessageKind kind = MessageKind.NOT_A_COMPILE_TIME_CONSTANT;
-    List arguments = [element.name];
-    Node node = element.parseNode(compiler);
-    compiler.reportError(node, new CompileTimeConstantError(kind, arguments));
+    compiler.reportError(node, new CompileTimeConstantError(kind, const []));
   }
 }

@@ -116,7 +116,7 @@ class MessageKind {
       'target of continue is not a loop or switch case');
 
   static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
-      '#{1} cannot be used as compile-time constant');
+      'not a compile-time constant');
 
   static final NO_SUCH_LIBRARY_MEMBER = const MessageKind(
       '#{1} has no member named #{2}');

@@ -1504,60 +1504,6 @@ class HTruncatingDivide extends HBinaryArithmetic {
 }
 
 
-class ConsDartStringIterator implements Iterator<int> {
-  Iterator<int> current;
-  DartString right;
-  bool hasNextLookAhead;
-  ConsDartStringIterator(ConsDartString cons)
-      : current = cons.left.iterator(),
-        right = cons.right {
-    hasNextLookAhead = current.hasNext();
-    if (!hasNextLookAhead) {
-      nextPart();
-    }
-  }
-  bool hasNext() {
-    return hasNextLookAhead;
-  }
-  int next() {
-    assert(hasNextLookAhead);
-    int result = current.next();
-    hasNextLookAhead = current.hasNext();
-    if (!hasNextLookAhead) {
-      nextPart();
-    }
-    return result;
-  }
-  void nextPart() {
-    if (right !== null) {
-      current = right.iterator();
-      right = null;
-      hasNextLookAhead = current.hasNext();
-    }
-  }
-}
-
-class ConsDartString extends DartString {
-  final DartString left;
-  final DartString right;
-  final int length;
-  int hashCache = null;
-  String toStringCache;
-  ConsDartString(DartString left, DartString right)
-      : this.left = left,
-        this.right = right,
-        length = left.length + right.length;
-
-  Iterator<int> iterator() => new ConsDartStringIterator(this);
-
-  String toString() {
-    if (toStringCache !== null) return toStringCache;
-    toStringCache = left.toString().concat(right.toString());
-    return toStringCache;
-  }
-}
-
-
 // TODO(floitsch): Should HBinaryArithmetic really be the super class of
 // HBinaryBitOp?
 class HBinaryBitOp extends HBinaryArithmetic {

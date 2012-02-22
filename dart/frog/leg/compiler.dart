@@ -103,8 +103,9 @@ class Compiler implements DiagnosticListener {
   }
 
   void unimplemented(String methodName,
-                     [Node node, Token token, HInstruction instruction]) {
-    cancel("$methodName not implemented", node, token, instruction);
+                     [Node node, Token token, HInstruction instruction,
+                      Element element]) {
+    cancel("$methodName not implemented", node, token, instruction, element);
   }
 
   void internalError(String message,
