@@ -135,7 +135,9 @@ public class BindingUtils {
     EnclosingElement parent = element.getEnclosingElement();
     if (parent instanceof LibraryElement) {
       DartLibrary library = getDartElement((LibraryElement) parent);
-      return getDartElement(library, element);
+      if (library != null) {
+        return getDartElement(library, element);
+      }
     }
     String typeName = element.getName();
     try {

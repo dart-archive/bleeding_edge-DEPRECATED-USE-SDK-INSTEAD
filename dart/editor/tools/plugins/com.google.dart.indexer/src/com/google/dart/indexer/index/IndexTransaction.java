@@ -98,6 +98,9 @@ public class IndexTransaction {
   public void indexTarget(IndexingTarget target) throws IndexRequestFailed {
     try {
       IFile file = target.getFile();
+      if (file == null) {
+        return;
+      }
       Processor[] processors = configuration.findProcessors(file);
       if (processors.length == 0) {
         return;
