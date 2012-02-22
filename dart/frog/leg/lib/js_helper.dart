@@ -7,6 +7,7 @@
 #import('coreimpl.dart');
 
 #source('date_helper.dart');
+#source('regexp_helper.dart');
 
 /**
   * Returns true if both arguments are numbers.
@@ -807,6 +808,12 @@ checkInt(value) {
 checkBool(value) {
   checkNull(value);
   if (value is !bool) throw new IllegalArgumentException(value);
+  return value;
+}
+
+checkString(value) {
+  checkNull(value);
+  if (value is !String) throw new IllegalArgumentException(value);
   return value;
 }
 

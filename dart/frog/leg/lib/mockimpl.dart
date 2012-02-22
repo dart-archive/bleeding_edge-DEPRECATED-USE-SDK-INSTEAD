@@ -7,10 +7,128 @@
 // TODO(ahe): Remove this file.
 
 class JSSyntaxRegExp implements RegExp {
-  JSSyntaxRegExp(String pattern,
-                 [bool multiLine = false,
-                  bool ignoreCase = false]) {
-    throw 'JSSyntaxRegExp is not implemented';
+  final String pattern;
+  final bool multiLine;
+  final bool ignoreCase;
+  final RegExpWrapper _re;
+
+  const JSSyntaxRegExp(String pattern, [bool multiLine, bool ignoreCase])
+    // TODO(ahe): Redirect to _internal when that is supported.
+    : this.pattern = pattern,
+      this.multiLine = multiLine,
+      this.ignoreCase = ignoreCase,
+      this._re = const RegExpWrapper(pattern, multiLine, ignoreCase, false);
+
+  const JSSyntaxRegExp._internal(String pattern, bool multiLine,
+                                 bool ignoreCase, bool global)
+    : this.pattern = pattern,
+      this.multiLine = multiLine,
+      this.ignoreCase = ignoreCase,
+      this._re = const RegExpWrapper(pattern, multiLine, ignoreCase, global);
+
+  Match firstMatch(String str) {
+    List<String> m = _re.exec(str);
+    if (m === null) return null;
+    var matchStart = RegExpWrapper.matchStart(m);
+    return new MatchImplementation(pattern, str, matchStart,
+                                   _re.lastIndex(), m);
+  }
+
+  bool hasMatch(String str) => _re.test(str);
+
+  String stringMatch(String str) {
+    var match = firstMatch(str);
+    return match === null ? null : match.group(0);
+  }
+
+  Iterable<Match> allMatches(String str) => new _AllMatchesIterable(this, str);
+
+  /**
+   * Returns a new RegExp with the same pattern as this one and with the
+   * "global" flag set. This allows us to match this RegExp against a string
+   * multiple times, to support things like [allMatches] and
+   * [String.replaceAll].
+   *
+   * Note that the returned RegExp disobeys the normal API in that it maintains
+   * state about the location of the last match.
+   */
+  JSSyntaxRegExp get _global() {
+    return new JSSyntaxRegExp._internal(pattern, multiLine, ignoreCase, true);
+  }
+}
+
+class MatchImplementation implements Match {
+  const MatchImplementation(
+      String this.pattern,
+      String this.str,
+      int this._start,
+      int this._end,
+      List<String> this._groups);
+
+  final String pattern;
+  final String str;
+  final int _start;
+  final int _end;
+  final List<String> _groups;
+
+  int start() => _start;
+  int end() => _end;
+  String group(int group) => _groups[group];
+  String operator [](int group) => _groups[group];
+  int groupCount() => _groups.length;
+
+  List<String> groups(List<int> groups) {
+    List<String> out = [];
+    for (int group in groups) {
+      out.add(_groups[group]);
+    }
+    return out;
+  }
+}
+
+class _AllMatchesIterable implements Iterable<Match> {
+  final JSSyntaxRegExp _re;
+  final String _str;
+
+  const _AllMatchesIterable(this._re, this._str);
+
+  Iterator<Match> iterator() => new _AllMatchesIterator(_re, _str);
+}
+
+class _AllMatchesIterator implements Iterator<Match> {
+  final RegExp _re;
+  final String _str;
+  Match _next;
+  bool _done;
+
+  _AllMatchesIterator(JSSyntaxRegExp re, String this._str)
+    : _done = false, _re = re._global;
+
+  Match next() {
+    if (!hasNext()) {
+      throw const NoMoreElementsException();
+    }
+
+    // _next is set by #hasNext
+    var next = _next;
+    _next = null;
+    return next;
+  }
+
+  bool hasNext() {
+    if (_done) {
+      return false;
+    } else if (_next != null) {
+      return true;
+    }
+
+    _next = _re.firstMatch(_str);
+    if (_next == null) {
+      _done = true;
+      return false;
+    } else {
+      return true;
+    }
   }
 }
 
