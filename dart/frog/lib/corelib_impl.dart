@@ -7,6 +7,7 @@
 #source("../../corelib/src/implementation/dual_pivot_quicksort.dart");
 #source("../../corelib/src/implementation/duration_implementation.dart");
 #source("../../corelib/src/implementation/exceptions.dart");
+#source("../../corelib/src/implementation/collections.dart");
 #source("../../corelib/src/implementation/future_implementation.dart");
 #source("../../corelib/src/implementation/hash_map_set.dart");
 // TODO(jimhug): Re-explore tradeoffs with using builtin JS maps.
@@ -21,7 +22,6 @@
 #source("string_base.dart");
 #source("string_implementation.dart");
 #source("arrays.dart");
-#source("collections.dart");
 #source("date_implementation.dart");
 
 #source("isolate.dart");
@@ -133,6 +133,8 @@ class ListFactory<E> implements List<E> native "Array" {
 
   // Iterable<E> members:
   Iterator<E> iterator() => new ListIterator(this);
+
+  String toString() => Collections.collectionToString(this);
 }
 
 // Iterator for lists.
@@ -226,15 +228,7 @@ class ImmutableList<E> extends ListFactory<E> {
     throw const IllegalAccessException();
   }
 
-
-  // The base Array.prototype.toString does not like getting derived arrays,
-  // so copy the array if needed.
-  // TODO(jmesserly): this is not the right long term fix because it only works
-  // for ImmutableList, but all derived types of ListFactory have this problem.
-  // We need to implment ListFactory.toString in Dart. However, the
-  // mplmentation needs correct handling of cycles (isolate tests depend on
-  // this), so it's not trivial.
-  String toString() => new List.from(this).toString();
+  String toString() => Collections.collectionToString(this);
 }
 
 
@@ -289,6 +283,8 @@ class ImmutableMap<K, V> implements Map<K, V> {
   V remove(K key) {
     throw const IllegalAccessException();
   }
+
+  String toString() => Maps.mapToString(this);
 }
 
 

@@ -5,7 +5,6 @@
 {
   'sources': [
     'arrays.dart',
-    'collections.dart',
     'corelib.dart',
     'corelib_impl.dart',
     'date_implementation.dart',
