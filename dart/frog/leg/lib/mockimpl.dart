@@ -43,7 +43,6 @@ class StringBase {
   static String join(List<String> strings, String separator) {
     checkNull(strings);
     checkNull(separator);
-    if (separator is !String) throw new IllegalArgumentException(separator);
     var result = "";
     var first = true;
     for (var string in strings) {

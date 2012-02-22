@@ -39,10 +39,10 @@ add(var a, var b) {
     if (b is String) {
       return JS("String", @"$0 + $1", a, b);
     }
-    // The following line is too long, but we can't break it using the +
-    // operator, since that's what we are defining here.
-    throw "calling toString() on right hand operand of operator + did not return a String";
+    checkNull(b);
+    throw new IllegalArgumentException(b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a + b);
 }
 
@@ -50,6 +50,7 @@ div(var a, var b) {
   if (checkNumbers(a, b, "num/ expects a number as second operand.")) {
     return JS("num", @"$0 / $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a / b);
 }
 
@@ -57,6 +58,7 @@ mul(var a, var b) {
   if (checkNumbers(a, b, "num* expects a number as second operand.")) {
     return JS("num", @"$0 * $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a * b);
 }
 
@@ -64,6 +66,7 @@ sub(var a, var b) {
   if (checkNumbers(a, b, "num- expects a number as second operand.")) {
     return JS("num", @"$0 - $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a - b);
 }
 
@@ -80,6 +83,7 @@ mod(var a, var b) {
       return result + b;
     }
   }
+  checkNull(a);
   return UNINTERCEPTED(a % b);
 }
 
@@ -88,6 +92,7 @@ tdiv(var a, var b) {
     if (b === 0) throw new IntegerDivisionByZeroException();
     return (a / b).truncate();
   }
+  checkNull(a);
   return UNINTERCEPTED(a ~/ b);
 }
 
@@ -123,6 +128,7 @@ gt(var a, var b) {
   if (checkNumbers(a, b, "num> expects a number as second operand.")) {
     return JS("bool", @"$0 > $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a > b);
 }
 
@@ -130,6 +136,7 @@ ge(var a, var b) {
   if (checkNumbers(a, b, "num>= expects a number as second operand.")) {
     return JS("bool", @"$0 >= $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a >= b);
 }
 
@@ -137,6 +144,7 @@ lt(var a, var b) {
   if (checkNumbers(a, b, "num< expects a number as second operand.")) {
     return JS("bool", @"$0 < $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a < b);
 }
 
@@ -144,6 +152,7 @@ le(var a, var b) {
   if (checkNumbers(a, b, "num<= expects a number as second operand.")) {
     return JS("bool", @"$0 <= $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a <= b);
 }
 
@@ -153,6 +162,7 @@ shl(var a, var b) {
     if (b < 0) throw new IllegalArgumentException(b);
     return JS("num", @"$0 << $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a << b);
 }
 
@@ -162,6 +172,7 @@ shr(var a, var b) {
     if (b < 0) throw new IllegalArgumentException(b);
     return JS("num", @"$0 >> $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a >> b);
 }
 
@@ -170,6 +181,7 @@ and(var a, var b) {
   if (checkNumbers(a, b, "int& expects an int as second operand.")) {
     return JS("num", @"$0 & $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a & b);
 }
 
@@ -178,6 +190,7 @@ or(var a, var b) {
   if (checkNumbers(a, b, "int| expects an int as second operand.")) {
     return JS("num", @"$0 | $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a | b);
 }
 
@@ -186,16 +199,19 @@ xor(var a, var b) {
   if (checkNumbers(a, b, "int^ expects an int as second operand.")) {
     return JS("num", @"$0 ^ $1", a, b);
   }
+  checkNull(a);
   return UNINTERCEPTED(a ^ b);
 }
 
 not(var a) {
   if (JS("bool", @"typeof $0 === 'number'", a)) return JS("num", @"~$0", a);
+  checkNull(a);
   return UNINTERCEPTED(~a);
 }
 
 neg(var a) {
   if (JS("bool", @"typeof $0 === 'number'", a)) return JS("num", @"-$0", a);
+  checkNull(a);
   return UNINTERCEPTED(-a);
 }
 
@@ -211,6 +227,7 @@ index(var a, var index) {
     }
     return JS("Object", @"$0[$1]", a, index);
   }
+  checkNull(a);
   return UNINTERCEPTED(a[index]);
 }
 
@@ -225,6 +242,7 @@ indexSet(var a, var index, var value) {
     }
     return JS("Object", @"$0[$1] = $2", a, index, value);
   }
+  checkNull(a);
   return UNINTERCEPTED(a[index] = value);
 }
 
