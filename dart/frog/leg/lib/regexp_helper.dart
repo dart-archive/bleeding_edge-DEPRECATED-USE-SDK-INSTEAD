@@ -14,15 +14,19 @@ class RegExpWrapper {
                                   ignoreCase == true ? 'i' : ''}${
                                   global == true ? 'g' : ''}");
 
+  RegExpWrapper.fromRegExp(other, global)
+    // TODO(ahe): Use redirection.
+    : re = makeRegExp(other.pattern, "${other.multiLine == true ? 'm' : ''}${
+                                        other.ignoreCase == true ? 'i' : ''}${
+                                        global == true ? 'g' : ''}");
+
   exec(str) {
     var result = JS('List', @'$0.exec($1)', re, checkString(str));
     if (JS('bool', @'$0 === null', result)) return null;
     return result;
   }
 
-  lastIndex() => JS('List', @'$0.lastIndex', re);
-
-  test(str) => JS('List', @'$0.test($1)', re, checkString(str));
+  test(str) => JS('bool', @'$0.test($1)', re, checkString(str));
 
   static matchStart(m) => JS('int', @'$0.index', m);
 
@@ -36,3 +40,5 @@ class RegExpWrapper {
     }
   }
 }
+
+stringify(x) => x === null ? "" : x.toString();

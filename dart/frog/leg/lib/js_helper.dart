@@ -8,6 +8,7 @@
 
 #source('date_helper.dart');
 #source('regexp_helper.dart');
+#source('string_helper.dart');
 
 /**
   * Returns true if both arguments are numbers.
@@ -959,8 +960,8 @@ builtin$toRadixString$1(receiver, radix) {
 builtin$allMatches$1(receiver, str) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.allMatches(str));
-
-  throw 'String.allMatches is not implemented';
+  checkString(str);
+  return allMatchesInStringUnchecked(receiver, str);
 }
 
 builtin$concat$1(receiver, other) {
@@ -971,19 +972,21 @@ builtin$concat$1(receiver, other) {
   return JS('String', @'$0.concat($1)', receiver, other);
 }
 
+builtin$contains$1(receiver, other) {
+  if (receiver is !String) {
+    checkNull(receiver);
+    return UNINTERCEPTED(receiver.contains(other));
+  }
+  return builtin$contains$2(receiver, other, 0);
+}
+
 builtin$contains$2(receiver, other, startIndex) {
   checkNull(receiver);
   if (receiver is !String) {
     return UNINTERCEPTED(receiver.contains(other, startIndex));
   }
   checkNull(other);
-  if (other is !String) {
-    throw 'String.contains with non-String is not implemented';
-  }
-  if ((startIndex !== null) && (startIndex is !num)) {
-    throw new IllegalArgumentException(startIndex);
-  }
-  return receiver.indexOf(other, startIndex) >= 0;
+  return stringContainsUnchecked(receiver, other, startIndex);
 }
 
 builtin$endsWith$1(receiver, other) {
@@ -1003,7 +1006,9 @@ builtin$replaceAll$2(receiver, from, to) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.replaceAll(from, to));
 
-  throw 'String.replaceAll is not implemented';
+  checkNull(from);
+  checkString(to);
+  return stringReplaceAllUnchecked(receiver, from, to);
 }
 
 builtin$replaceFirst$2(receiver, from, to) {
@@ -1011,19 +1016,16 @@ builtin$replaceFirst$2(receiver, from, to) {
   if (receiver is !String) {
     return UNINTERCEPTED(receiver.replaceFirst(from, to));
   }
-  if (from is !String) throw new IllegalArgumentException(from);
-  if (to is !String) throw new IllegalArgumentException(to);
-
-  return JS('String', @'$0.replace($1, $2)', receiver, from, to);
+  checkNull(from);
+  checkString(to);
+  return stringReplaceFirstUnchecked(receiver, from, to);
 }
 
 builtin$split$1(receiver, pattern) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.split(pattern));
   checkNull(pattern);
-  if (pattern is !String) throw new IllegalArgumentException(pattern);
-
-  return JS('List', @'$0.split($1)', receiver, pattern);
+  return stringSplitUnchecked(receiver, pattern);
 }
 
 builtin$splitChars$0(receiver) {

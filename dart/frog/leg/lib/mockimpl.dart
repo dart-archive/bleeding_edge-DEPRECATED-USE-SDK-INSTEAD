@@ -12,7 +12,8 @@ class JSSyntaxRegExp implements RegExp {
   final bool ignoreCase;
   final RegExpWrapper _re;
 
-  const JSSyntaxRegExp(String pattern, [bool multiLine, bool ignoreCase])
+  const JSSyntaxRegExp(String pattern,
+                       [bool multiLine = false, bool ignoreCase = false])
     // TODO(ahe): Redirect to _internal when that is supported.
     : this.pattern = pattern,
       this.multiLine = multiLine,
@@ -30,8 +31,9 @@ class JSSyntaxRegExp implements RegExp {
     List<String> m = _re.exec(str);
     if (m === null) return null;
     var matchStart = RegExpWrapper.matchStart(m);
-    return new MatchImplementation(pattern, str, matchStart,
-                                   _re.lastIndex(), m);
+    // m.lastIndex only works with flag 'g'.
+    var matchEnd = matchStart + m[0].length;
+    return new MatchImplementation(pattern, str, matchStart, matchEnd, m);
   }
 
   bool hasMatch(String str) => _re.test(str);
@@ -41,7 +43,10 @@ class JSSyntaxRegExp implements RegExp {
     return match === null ? null : match.group(0);
   }
 
-  Iterable<Match> allMatches(String str) => new _AllMatchesIterable(this, str);
+  Iterable<Match> allMatches(String str) {
+    checkString(str);
+    return new _AllMatchesIterable(this, str);
+  }
 
   /**
    * Returns a new RegExp with the same pattern as this one and with the
@@ -73,14 +78,14 @@ class MatchImplementation implements Match {
 
   int start() => _start;
   int end() => _end;
-  String group(int group) => _groups[group];
-  String operator [](int group) => _groups[group];
-  int groupCount() => _groups.length;
+  String group(int index) => stringify(_groups[index]);
+  String operator [](int index) => group(index);
+  int groupCount() => _groups.length - 1;
 
   List<String> groups(List<int> groups) {
     List<String> out = [];
-    for (int group in groups) {
-      out.add(_groups[group]);
+    for (int i in groups) {
+      out.add(group(i));
     }
     return out;
   }
