@@ -14,12 +14,6 @@ class JSSyntaxRegExp implements RegExp {
   }
 }
 
-class StringBufferImpl {
-  StringBufferImpl([content]) {
-    throw 'StringBufferImpl is not implemented';
-  }
-}
-
 class ReceivePortFactory {
   factory ReceivePort() {
     throw 'factory ReceivePort is not implemented';
