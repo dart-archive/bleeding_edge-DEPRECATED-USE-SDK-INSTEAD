@@ -8,7 +8,7 @@
 
 Graph readGraph(String fileName) {
   File f = new File(fileName);
-  StringInputStream sis = new StringInputStream(f.openInputStream());
+  StringInputStream sis = new StringInputStream(f.openInputStreamSync());
   String l = sis.readLine();
   List<Vertex> vertices;
   List<Edge> edges = <Edge>[];
