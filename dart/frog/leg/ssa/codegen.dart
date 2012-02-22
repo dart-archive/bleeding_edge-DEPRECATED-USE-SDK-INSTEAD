@@ -226,12 +226,43 @@ class SsaCodeGenerator implements HVisitor {
     this.expectedPrecedence = oldPrecedence;
   }
 
+  void handleLabeledBlock(HBasicBlock node) {
+    HLabeledBlockInformation labeledBlockInfo = node.labeledBlockInformation;
+    if (labeledBlockInfo.start === node) {
+      addIndentation();
+      for (SourceString label in labeledBlockInfo.labels) {
+        addLabel(label);
+        buffer.add(":");
+      }
+      buffer.add("{\n");
+      indent++;
+    } else {
+      assert(labeledBlockInfo.end === node);
+      assert((){
+        // Check that this block is (transitively) dominated by the start block.
+        HBasicBlock block = node;
+        while (block.dominator !== null) {
+          block = block.dominator;
+          if (block === labeledBlockInfo.start) return true;
+        }
+        return false;
+      });
+      indent--;
+      addIndentation();
+      buffer.add("}\n");
+    }
+  }
+
   visitBasicBlock(HBasicBlock node) {
     currentBlock = node;
 
-    // While loop will be closed by the conditional loop-branch.
-    // TODO(floitsch): HACK HACK HACK.
-    if (currentBlock.isLoopHeader()) beginLoop(node);
+    if (node.hasLabeledBlockInformation()) {
+      handleLabeledBlock(node);
+    } else if (currentBlock.isLoopHeader()) {
+      // While loop will be closed by the conditional loop-branch.
+      // TODO(floitsch): HACK HACK HACK.
+      beginLoop(node);
+    }
 
     HInstruction instruction = node.first;
     while (instruction != null) {
@@ -372,6 +403,31 @@ class SsaCodeGenerator implements HVisitor {
     visitBasicBlock(dominated[0]);
   }
 
+  // Used to write the name of labels.
+  // The default implementation uses the unmodified Dart label name.
+  // Specializations might change this.
+  void addLabel(SourceString label) {
+    buffer.add(label.toString());
+  }
+
+  visitBreak(HBreak node) {
+    assert(currentBlock.successors.length == 1);
+    // No block finishing with a 'break' can have more than
+    // one dominated block (since it has only one successor).
+    // If the successor is dominated by another block, then the other block
+    // is responsible for visiting the successor.
+    List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
+    assert(dominated.isEmpty());
+    // Otherwise we would have bailed out in the builder.
+    addIndentation();
+    buffer.add("break");
+    if (node.label !== null) {
+      buffer.add(" ");
+      addLabel(node.label);
+    }
+    buffer.add(";\n");
+  }
+
   visitTry(HTry node) {
     addIndentation();
     buffer.add('try {\n');
@@ -406,54 +462,31 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitIf(HIf node) {
+    List<HBasicBlock> dominated = node.block.dominatedBlocks;
     startIf(node);
     assert(!node.generateAtUseSite());
     startThen(node);
+    assert(node.thenBlock === dominated[0]);
     visitBasicBlock(node.thenBlock);
+    int preVisitedBlocks = 1;
     endThen(node);
     if (node.hasElse) {
       startElse(node);
+      assert(node.elseBlock === dominated[1]);
       visitBasicBlock(node.elseBlock);
+      preVisitedBlocks = 2;
       endElse(node);
     }
     endIf(node);
 
-    // Normally the HIf dominates the join-block. In this case there is one
-    // dominated block that we need to visit:
-    // If both the then and else blocks return/throw, then the join-block is
-    // either the exit-block, or there is none.
-    // We can also have the case where the HIf has no else, but the then-branch
-    // terminates. If the code after the 'if' terminates, then the
-    // if could become the dominator of the exit-block, thus having
-    // three dominated blocks: the then, the code after the if, and the exit
-    // block.
-
-    List<HBasicBlock> dominated = node.block.dominatedBlocks;
+    // Visit all the dominated blocks that are not part of the then or else
+    // branches. Depending on how the then/else branches terminate
+    // (e.g., return/throw/break) there can be any number of these.
     int dominatedCount = dominated.length;
-    if (node.hasElse && (dominatedCount == 3 || dominatedCount == 4)) {
-      // Normal case. The third dominated block is either the join-block or
-      // the exit-block (if both branches terminate).
-      // If the if dominates 4 blocks, then at least one branch does a
-      // conditional return, and the 4th block is the exit-block.
-      assert(dominatedCount != 4 || dominated.last().isExitBlock());
-      visitBasicBlock(dominated[2]);
-    } else if (node.hasElse) {
-      // Both branches terminate, but this HIf is not the dominator of the exit
-      // block.
-      assert(dominatedCount == 2);
-    } else if (!node.hasElse && dominatedCount == 2) {
-      // Normal case. Even if the then-branch terminated there is still
-      // a join-block.
-      assert(!dominated.last().isExitBlock());
-      visitBasicBlock(dominated[1]);
-    } else {
-      // The then-branch terminates, and the code following the if terminates
-      // too. The if happens to dominate the exit-block.
-      assert(!node.hasElse);
-      assert(dominatedCount == 3);
-      assert(dominated.last().isExitBlock());
-      visitBasicBlock(dominated[1]);
-      visitBasicBlock(dominated[2]);
+    for (int i = preVisitedBlocks; i < dominatedCount; i++) {
+      HBasicBlock dominatedBlock = dominated[i];
+      assert(dominatedBlock.dominator === node.block);
+      visitBasicBlock(dominatedBlock);
     }
   }
 
@@ -641,13 +674,11 @@ class SsaCodeGenerator implements HVisitor {
     }
     endLoop(node.block);
     visitBasicBlock(branchBlock.successors[1]);
-    // TODO(floitsch): with labeled breaks we can have more dominated blocks.
-    assert(dominated.length <= 3);
-    if (dominated.length == 3) {
-      // This happens when the body contains a 'return', and the exit-block is
-      // not dominated by a dominator of the while loop.
-      assert(dominated[2].isExitBlock());
-      visitBasicBlock(dominated[2]);
+    // With labeled breaks we can have more dominated blocks.
+    if (dominated.length >= 3) {
+      for (int i = 2; i < dominated.length; i++) {
+        visitBasicBlock(dominated[i]);
+      }
     }
   }
 
@@ -1013,6 +1044,9 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void beginLoop(HBasicBlock block) {
     addIndentation();
+    for (SourceString label in block.loopInformation.labels) {
+      buffer.add("${label.stringValue}:");
+    }
     buffer.add('while (true) {\n');
     indent++;
   }
@@ -1174,6 +1208,13 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     buffer.add('}\n');  // Close 'switch'.
   }
 
+  // Adds a "$" in front of names of labels from the original source.
+  // This avoids conflicts with labels introduced by bailouts, which
+  // starts with a non-"$" character.
+  void addLabel(SourceString label) {
+    buffer.add("\$$label");
+  }
+
   void beginLoop(HBasicBlock block) {
     // TODO(ngeoffray): Don't put labels on loops that don't bailout.
     String newLabel = pushLabel();
@@ -1182,6 +1223,10 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     }
 
     addIndentation();
+    for (SourceString label in block.loopInformation.labels) {
+      addLabel(label);
+      buffer.add(":");
+    }
     buffer.add('$newLabel: while (true) {\n');
     indent++;
 

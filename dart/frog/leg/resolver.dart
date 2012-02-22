@@ -678,6 +678,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     visit(node.condition);
   }
 
+  visitEmptyStatement(EmptyStatement node) { }
+
   visitExpressionStatement(ExpressionStatement node) {
     visit(node.expression);
   }

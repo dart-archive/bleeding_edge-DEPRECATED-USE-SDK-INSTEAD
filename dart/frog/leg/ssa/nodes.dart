@@ -11,6 +11,7 @@ interface HVisitor<R> {
   R visitBitXor(HBitXor node);
   R visitBoolify(HBoolify node);
   R visitBoundsCheck(HBoundsCheck node);
+  R visitBreak(HBreak node);
   R visitDivide(HDivide node);
   R visitEquals(HEquals node);
   R visitExit(HExit node);
@@ -146,9 +147,9 @@ class HGraph {
     return result;
   }
 
-  HBasicBlock addNewLoopHeaderBlock() {
+  HBasicBlock addNewLoopHeaderBlock(List<SourceString> labels) {
     HBasicBlock result = addNewBlock();
-    result.loopInformation = new HLoopInformation(result);
+    result.loopInformation = new HLoopInformation(result, labels);
     return result;
   }
 
@@ -308,6 +309,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBailoutTarget(HBailoutTarget node) => visitInstruction(node);
   visitBoolify(HBoolify node) => visitInstruction(node);
   visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
+  visitBreak(HBreak node) => visitGoto(node);
   visitCheck(HCheck node) => visitInstruction(node);
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitEquals(HEquals node) => visitRelational(node);
@@ -451,6 +453,7 @@ class HBasicBlock extends HInstructionList {
   HInstructionList phis;
 
   HLoopInformation loopInformation = null;
+  HLabeledBlockInformation labeledBlockInformation = null;
   HBasicBlock parentLoopHeader = null;
   List<HBailoutTarget> bailouts;
 
@@ -459,6 +462,9 @@ class HBasicBlock extends HInstructionList {
 
   HBasicBlock dominator = null;
   final List<HBasicBlock> dominatedBlocks;
+
+  // For recognizing labeled statements.
+  List<SourceString> labels;
 
   HBasicBlock() : this.withId(null);
   HBasicBlock.withId(this.id)
@@ -473,6 +479,8 @@ class HBasicBlock extends HInstructionList {
   bool isClosed() => status == STATUS_CLOSED;
 
   bool isLoopHeader() => loopInformation !== null;
+  bool hasLabeledBlockInformation() => labeledBlockInformation !== null;
+
   bool hasBailouts() => !bailouts.isEmpty();
 
   void open() {
@@ -684,12 +692,24 @@ class HBasicBlock extends HInstructionList {
   }
 }
 
-class HLoopInformation {
+class HBlockInformation {
+  // Just a marker class.
+}
+
+class HLabeledBlockInformation extends HBlockInformation {
+  final HBasicBlock start;
+  final HBasicBlock end;
+  final List<SourceString> labels;
+  HLabeledBlockInformation(this.start, this.end, this.labels);
+}
+
+class HLoopInformation extends HBlockInformation {
   final HBasicBlock header;
   final List<HBasicBlock> blocks;
   final List<HBasicBlock> backEdges;
+  final List<SourceString> labels;
 
-  HLoopInformation(this.header)
+  HLoopInformation(this.header, this.labels)
       : blocks = new List<HBasicBlock>(),
         backEdges = new List<HBasicBlock>();
 
@@ -1744,6 +1764,13 @@ class HGoto extends HControlFlow {
   HGoto() : super(const <HInstruction>[]);
   toString() => 'goto';
   accept(HVisitor visitor) => visitor.visitGoto(this);
+}
+
+class HBreak extends HGoto {
+  final SourceString label;
+  HBreak([this.label]);
+  toString() => 'break';
+  accept(HVisitor visitor) => visitor.visitBreak(this);
 }
 
 class HTry extends HControlFlow {

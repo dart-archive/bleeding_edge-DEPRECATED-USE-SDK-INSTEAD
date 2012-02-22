@@ -499,6 +499,15 @@ class LocalsHandler {
     });
   }
 
+  /**
+   * Merge [otherLocals] into this locals handler, creating phi-nodes when
+   * there is a conflict.
+   * If a phi node is necessary, it will use the otherLocals instruction as the
+   * first input, and this handler's instruction as the second.
+   * NOTICE: This means that the predecessor corresponding to [otherLocals]
+   * should be the first predecessor of the current block, and the one
+   * corresponding to this locals handler should be the second.
+   */
   void mergeWith(LocalsHandler otherLocals, HBasicBlock joinBlock) {
     // If an element is in one map but not the other we can safely
     // ignore it. It means that a variable was declared in the
@@ -527,6 +536,90 @@ class LocalsHandler {
   }
 }
 
+
+// Represents a single break instruction.
+class BreakHandlerEntry {
+  final HBreak breakInstruction;
+  final LocalsHandler locals;
+  BreakHandlerEntry(this.breakInstruction, this.locals);
+}
+
+interface BreakHandler default BreakHandlerImpl {
+  BreakHandler(SsaBuilder builder);
+  void addTarget(StatementElement element);
+  void addBreak(HBreak breakInstruction);
+  void forEachBreak(Function action);
+  void close();
+  List<SourceString> labels();
+}
+
+// Inert break handler used to avoid null checks when a loop isn't
+// used as the target of a break, and therefore doesn't need a break
+// handler associated with it.
+class NullBreakHandler implements BreakHandler {
+  const NullBreakHandler();
+  void addTarget(StatementElement element) { unreachable(); }
+  void addBreak(HBreak breakInstruction) { unreachable() }
+  void forEachBreak(Function ignored) { }
+  void close() { }
+  List<SourceString> labels() => const <SourceString>[];
+}
+
+// Records breaks until a target block is available.
+// Breaks are always forward jumps.
+class BreakHandlerImpl implements BreakHandler{
+  final BreakHandler previous;
+  final SsaBuilder builder;
+  final List<StatementElement> elements;
+  final List<BreakHandlerEntry> breaks;
+  BreakHandlerImpl(SsaBuilder builder)
+      : this.builder = builder,
+        previous = builder.currentBreakHandler,
+        elements = <StatementElement>[],
+        breaks = <BreakHandlerEntry>[] {
+    builder.currentBreakHandler = this;
+  }
+
+  void addTarget(StatementElement element) {
+    assert(builder.breakTargets[element] === null);
+    elements.add(element);
+    builder.breakTargets[element] = this;
+  }
+
+  void addBreak(HBreak breakInstruction,
+                LocalsHandler locals) {
+    breaks.add(new BreakHandlerEntry(breakInstruction, locals));
+  }
+
+  void forEachBreak(Function action) {
+    for (BreakHandlerEntry entry in breaks) {
+      action(entry.breakInstruction, entry.locals);
+    }
+  }
+
+  void close() {
+    assert(builder.currentBreakHandler === this);
+    // The mapping from StatementElement to BreakHandler is no longer needed.
+    for (StatementElement element in elements) {
+      assert(builder.breakTargets[element] === this);
+      builder.breakTargets.remove(element);
+    }
+    builder.currentBreakHandler = previous;
+  }
+
+  List<SourceString> labels() {
+    List<SourceString> result = null;
+    for (StatementElement element in elements) {
+      SourceString name = element.name;
+      if (!name.isEmpty()) {
+        if (result === null) result = <SourceString>[];
+        result.add(name);
+      }
+    }
+    return result === null ? const <SourceString>[] : result;
+  }
+}
+
 class SsaBuilder implements Visitor {
   final Compiler compiler;
   TreeElements elements;
@@ -536,12 +629,21 @@ class SsaBuilder implements Visitor {
   HGraph graph;
   LocalsHandler localsHandler;
 
+  Map<StatementElement, BreakHandler> breakTargets;
+
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
 
   // The current block to add instructions to. Might be null, if we are
   // visiting dead code.
   HBasicBlock current;
+
+  // Linked list of active break-handlers. Will be removed in the order
+  // they are added.
+  BreakHandler currentBreakHandler = const NullBreakHandler();
+  // The break handler to use for an upcoming loop statement (temporarily set
+  // if a labeled statement is labeling a loop).
+  BreakHandler loopBreakHandler = null;
 
   SsaBuilder(Compiler compiler, WorkItem work)
     : this.compiler = compiler,
@@ -550,7 +652,8 @@ class SsaBuilder implements Visitor {
       methodInterceptionEnabled = true,
       elements = work.resolutionTree,
       graph = new HGraph(),
-      stack = new List<HInstruction>() {
+      stack = new List<HInstruction>(),
+      breakTargets = new Map<StatementElement, BreakHandler>() {
     localsHandler = new LocalsHandler(this);
   }
 
@@ -850,15 +953,16 @@ class SsaBuilder implements Visitor {
    * is closed with an [HGoto] and replaced by the newly created block.
    * Also notifies the locals handler that we're entering a loop.
    */
-  void beginLoopHeader(Node node) {
+  BreakHandler beginLoopHeader(Node node) {
     assert(!isAborted());
     HBasicBlock previousBlock = close(new HGoto());
-
-    HBasicBlock loopEntry = graph.addNewLoopHeaderBlock();
+    BreakHandler breakHandler = getLoopBreakHandler(node);
+    HBasicBlock loopEntry = graph.addNewLoopHeaderBlock(breakHandler.labels());
     previousBlock.addSuccessor(loopEntry);
     open(loopEntry);
 
     localsHandler.beginLoopHeader(node, loopEntry);
+    return breakHandler;
   }
 
   /**
@@ -867,12 +971,21 @@ class SsaBuilder implements Visitor {
    * - opens the new block (setting as [current]).
    * - notifies the locals handler that we're exiting a loop.
    */
-  void endLoop(HBasicBlock loopEntry, HBasicBlock branchBlock) {
+  void endLoop(HBasicBlock loopEntry,
+               HBasicBlock branchBlock,
+               BreakHandler breakHandler) {
     HBasicBlock loopExitBlock = addNewBlock();
     assert(branchBlock.successors.length == 1);
     branchBlock.addSuccessor(loopExitBlock);
     open(loopExitBlock);
     localsHandler.endLoop(loopEntry);
+    breakHandler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
+      HBasicBlock joinBlock = addNewBlock();
+      breakInstruction.block.addSuccessor(joinBlock);
+      goto(current, joinBlock);
+      open(joinBlock);
+      localsHandler.mergeWith(locals, joinBlock);
+    });
   }
 
   // For while loops, initializer and update are null.
@@ -902,7 +1015,7 @@ class SsaBuilder implements Visitor {
     }
     assert(!isAborted());
 
-    beginLoopHeader(loop);
+    BreakHandler breakHandler = beginLoopHeader(loop);
     HBasicBlock conditionBlock = current;
 
     // The condition.
@@ -947,7 +1060,7 @@ class SsaBuilder implements Visitor {
     updateBlock.addSuccessor(conditionBlock);
     conditionBlock.postProcessLoopHeader();
 
-    endLoop(conditionBlock, conditionExitBlock);
+    endLoop(conditionBlock, conditionExitBlock, breakHandler);
     localsHandler = savedLocals;
   }
 
@@ -965,7 +1078,7 @@ class SsaBuilder implements Visitor {
 
   visitDoWhile(DoWhile node) {
     localsHandler.startLoop(node);
-    beginLoopHeader(node);
+    BreakHandler breakHandler = beginLoopHeader(node);
     HBasicBlock loopEntryBlock = current;
 
     localsHandler.enterLoopBody(node);
@@ -987,7 +1100,7 @@ class SsaBuilder implements Visitor {
     conditionBlock.addSuccessor(loopEntryBlock);  // The back-edge.
     loopEntryBlock.postProcessLoopHeader();
 
-    endLoop(loopEntryBlock, conditionBlock);
+    endLoop(loopEntryBlock, conditionBlock, breakHandler);
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -1897,11 +2010,40 @@ class SsaBuilder implements Visitor {
   }
 
   visitBreakStatement(BreakStatement node) {
-    compiler.unimplemented('SsaBuilder.visitBreakStatement', node: node);
+    work.allowSpeculativeOptimization = false;
+    assert(!isAborted());
+    StatementElement target = elements[node];
+    assert(target !== null);
+    BreakHandler handler = breakTargets[target];
+    assert(handler !== null);
+    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
+    HBreak breakInstruction;
+    if (node.target === null) {
+      breakInstruction = new HBreak();
+    }  else {
+      breakInstruction = new HBreak(node.target.source);
+    }
+    close(breakInstruction);
+    handler.addBreak(breakInstruction, savedLocals);
   }
 
   visitContinueStatement(ContinueStatement node) {
     compiler.unimplemented('SsaBuilder.visitContinueStatement', node: node);
+  }
+
+  BreakHandler getLoopBreakHandler(Loop node) {
+    StatementElement element = elements[node];
+    BreakHandler handler;
+    if (loopBreakHandler === null) {
+      if (element === null) return const NullBreakHandler();
+      handler = new BreakHandler(this);
+    } else {
+      handler = loopBreakHandler;
+      loopBreakHandler = null;
+      if (element === null) return handler;
+    }
+    handler.addTarget(element);
+    return handler;
   }
 
   visitForInStatement(ForInStatement node) {
@@ -1926,7 +2068,7 @@ class SsaBuilder implements Visitor {
         selector, iteratorName, false, inputs);
     add(iterator);
 
-    beginLoopHeader(node);
+    BreakHandler breakHandler = beginLoopHeader(node);
     HBasicBlock conditionBlock = current;
 
     // The condition.
@@ -1976,12 +2118,67 @@ class SsaBuilder implements Visitor {
     updateBlock.addSuccessor(conditionBlock);
     conditionBlock.postProcessLoopHeader();
 
-    endLoop(conditionBlock, conditionExitBlock);
+    endLoop(conditionBlock, conditionExitBlock, breakHandler);
     localsHandler = savedLocals;
+    breakHandler.close();
   }
 
   visitLabelledStatement(LabelledStatement node) {
-    compiler.unimplemented('SsaBuilder.visitLabelledStatement', node: node);
+    BreakHandler handler = null;
+    Node currentNode = node;
+    do {
+      StatementElement element = elements[currentNode];
+      if (element !== null && element.isBreakTarget) {
+        if (handler === null) handler = new BreakHandler(this);
+        handler.addTarget(element);
+      }
+      currentNode = currentNode.statement;
+    } while (currentNode is LabelledStatement);
+    if (handler === null) {
+      // The labels are not break targets.
+      visit(currentNode);
+    } else if (currentNode is Loop || currentNode is SwitchStatement) {
+      // The labels apply to that statement, and will be handled there.
+      loopBreakHandler = handler;
+      visit(currentNode);
+      assert(loopBreakHandler === null);
+    } else {
+      // Introduce a new basic block.
+      HBasicBlock entryBlock = graph.addNewBlock();
+      goto(current, entryBlock);
+      open(entryBlock);
+      visit(currentNode);
+      if (isAborted()) {
+        compiler.unimplemented(
+            "SsaBuilder for labeled statement with aborting body", node: node);
+      }
+      HBasicBlock exitBlock = current;
+      handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
+        HBasicBlock joinBlock = graph.addNewBlock();
+        breakInstruction.block.addSuccessor(joinBlock);
+        if (!isAborted()) {
+          goto(current, joinBlock);
+          open(joinBlock);
+          localsHandler.mergeWith(locals, joinBlock);
+        } else {
+          open(joinBlock);
+          localsHandler = locals;
+        }
+      });
+      if (current !== exitBlock) {
+        // There was at least one reachable break, so the label is needed.
+        HLabeledBlockInformation blockInfo =
+            new HLabeledBlockInformation(entryBlock, current,
+                                         handler.labels());
+        handler.close();
+        entryBlock.labeledBlockInformation = blockInfo;
+        // Mark both entry and exit with the information. You can
+        // tell which one is which by comparing with blockInfo.start/end.
+        // It doesn't matter which merge block we use, they won't be generating
+        // any code, so put the end-marker on the last join block.
+        current.labeledBlockInformation = blockInfo;
+      }
+    }
   }
 
   visitLiteralMap(LiteralMap node) {

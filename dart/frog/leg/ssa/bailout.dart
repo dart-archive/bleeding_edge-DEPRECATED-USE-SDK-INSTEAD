@@ -171,6 +171,10 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     visitBasicBlock(block.successors[0]);
   }
 
+  void visitBreak(HBreak breakInstruction) {
+    unimplemented();
+  }
+
   void visitLoopBranch(HLoopBranch branch) {
     HBasicBlock block = branch.block;
 

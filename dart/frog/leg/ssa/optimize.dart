@@ -295,12 +295,19 @@ class SsaDeadPhiEliminator {
     }
 
     // Remove phis that are not live.
-    for (final block in graph.blocks) {
+    // Traverse in reverse order to remove phis with no uses before the
+    // phis that they might use.
+    // TODO(lrn): Handle cyclic usages.
+    List<HBasicBlock> blocks = graph.blocks;
+    for (int i = blocks.length - 1; i >= 0; i--) {
+      HBasicBlock block = blocks[i];
       HPhi current = block.phis.first;
       HPhi next = null;
       while (current != null) {
         next = current.next;
-        if (!livePhis.contains(current)) block.removePhi(current);
+        if (!livePhis.contains(current)) {
+          current.block.removePhi(current);
+        }
         current = next;
       }
     }

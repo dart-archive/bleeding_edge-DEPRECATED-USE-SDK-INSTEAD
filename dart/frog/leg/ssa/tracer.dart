@@ -202,6 +202,14 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Bounds check: length = $lengthId, index = $indexId";
   }
 
+  String visitBreak(HBreak node) {
+    HBasicBlock target = currentBlock.successors[0];
+    if (node.label !== null) {
+      return "Break ${node.label.stringValue}: (B${target.id})";
+    }
+    return "Break: (B${target.id})";
+  }
+
   String visitDivide(HDivide node) => visitInvokeStatic(node);
 
   String visitEquals(HEquals node) => visitInvokeStatic(node);

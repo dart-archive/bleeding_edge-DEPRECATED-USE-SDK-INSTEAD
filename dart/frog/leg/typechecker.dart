@@ -587,7 +587,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitBreakStatement(BreakStatement node) {
-    compiler.unimplemented('visitBreakStatement', node: node);
+    return StatementType.NOT_RETURNING;
   }
 
   visitContinueStatement(ContinueStatement node) {
@@ -595,11 +595,13 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitForInStatement(ForInStatement node) {
-    node.visitChildren(this);
+    analyze(node.expression);
+    StatementType bodyType = analyze(node.body);
+    return bodyType.join(StatementType.NOT_RETURNING);
   }
 
   visitLabelledStatement(LabelledStatement node) {
-    compiler.unimplemented('visitLabelledStatement', node: node);
+    return node.statement.accept(this);
   }
 
   visitLiteralMap(LiteralMap node) {

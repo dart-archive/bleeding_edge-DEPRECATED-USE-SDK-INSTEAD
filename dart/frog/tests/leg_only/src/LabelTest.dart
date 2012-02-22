@@ -49,23 +49,6 @@ noncaptureContinue() {
   while(true) (() { continue; })();  /// 09: compile-time error
 }
 
-// Duplicate labels are reported as a warning only.
-duplicateLabels() {
-  foo: {          /// 10: compile-time error
-    foo: {        /// 10: continued
-      return;     /// 10: continued
-      break foo;  /// 10: continued
-    }             /// 10: continued
-  }               /// 10: continued
-}
-
-
-// Unused  labels are reported as a warning only.
-unusedLabels() {
-  foo: { return; }  /// 11: compile-time error
-}
-
-
 main() {
   undeclaredBreakLabel1();
   undeclaredBreakLabel2();
@@ -76,6 +59,4 @@ main() {
   noncaptureLabel();
   noncaptureBreak();
   noncaptureContinue();
-  duplicateLabels();
-  unusedLabels();
 }
