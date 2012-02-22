@@ -40,7 +40,6 @@ import static com.google.dart.tools.core.internal.builder.BuilderUtil.createWarn
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 
 import java.net.URI;
 
@@ -106,12 +105,7 @@ class CompilerListener implements DartCompilerListener {
       return;
     }
 
-    try {
-      file.deleteMarkers(null, true, IResource.DEPTH_ZERO);
-    } catch (CoreException exception) {
-      DartCore.logInformation("Unable to remove markers for source \"" + source.getUri().toString()
-          + "\"", exception);
-    }
+    BuilderUtil.clearErrorMarkers(file);
   }
 
   @Override
