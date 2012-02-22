@@ -397,10 +397,12 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add('} finally {\n');
       indent++;
       visitBasicBlock(node.finallyBlock);
+      indent--;
     }
-    indent--;
     addIndentation();
     buffer.add('}\n');
+
+    visitBasicBlock(node.joinBlock);
   }
 
   visitIf(HIf node) {

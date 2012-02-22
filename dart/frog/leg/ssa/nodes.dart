@@ -1694,6 +1694,7 @@ class HTry extends HControlFlow {
   HTry() : super(const <HInstruction>[]);
   toString() => 'try';
   accept(HVisitor visitor) => visitor.visitTry(this);
+  HBasicBlock get joinBlock() => this.block.successors.last();
 }
 
 class HIf extends HConditionalBranch {

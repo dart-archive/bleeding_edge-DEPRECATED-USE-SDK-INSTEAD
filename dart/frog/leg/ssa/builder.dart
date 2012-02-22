@@ -2007,13 +2007,13 @@ class SsaBuilder implements Visitor {
     close(new HGoto()).addSuccessor(enterBlock);
     open(enterBlock);
     HTry tryInstruction = new HTry();
-    close(tryInstruction);
+    List<HBasicBlock> blocks = <HBasicBlock>[];
+    blocks.add(close(tryInstruction));
 
     HBasicBlock tryBody = graph.addNewBlock();
     enterBlock.addSuccessor(tryBody);
     open(tryBody);
     visit(node.tryBlock);
-    List<HBasicBlock> blocks = <HBasicBlock>[];
     if (!isAborted()) blocks.add(close(new HGoto()));
 
     if (!node.catchBlocks.isEmpty()) {
@@ -2078,17 +2078,13 @@ class SsaBuilder implements Visitor {
       tryInstruction.finallyBlock = finallyBlock;
     }
 
-    // If no block is going to an exit block, the Dart code after the
-    // try is dead code.
-    if (!blocks.isEmpty()) {
-      HBasicBlock exitBlock = graph.addNewBlock();
+    HBasicBlock exitBlock = graph.addNewBlock();
 
-      for (HBasicBlock block in blocks) {
-        block.addSuccessor(exitBlock);
-      }
-
-      open(exitBlock);
+    for (HBasicBlock block in blocks) {
+      block.addSuccessor(exitBlock);
     }
+
+    open(exitBlock);
   }
 
   visitScriptTag(ScriptTag node) {
