@@ -16,6 +16,7 @@ bool checkNumbers(var a, var b, var message) {
     if (b is num) {
       return true;
     } else {
+      checkNull(b);
       throw new IllegalArgumentException(message);
     }
   }
@@ -393,6 +394,7 @@ class Primitives {
 }
 
 builtin$compareTo$1(a, b) {
+  checkNull(a);
   if (checkNumbers(a, b, 'illegal argument')) {
     if (a < b) {
       return -1;
@@ -907,16 +909,28 @@ builtin$trim$0(receiver) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.trim());
 
-  throw new NotImplementedException();
+  return JS('String', @'$0.trim()', receiver);
 }
 
 class MathNatives {
-  static int parseInt(String str) {
-    throw 'MathNatives.parseInt is not implemented';
+  static int parseInt(str) {
+    checkNull(str);
+    if (str is !String) throw new IllegalArgumentException(str);
+    var trimmed = str.trim();
+    if (!JS('bool', @'/^(0[xX])?[+-]?[0-9]+$/.test($0)', trimmed)) {
+      throw new BadNumberFormatException(str);
+    }
+    var ret = JS("num", @"parseInt($0, 10)", str);
+    if (ret.isNaN()) throw new BadNumberFormatException(str);
+    return ret;
   }
 
   static double parseDouble(String str) {
-    throw 'MathNatives.parseDouble is not implemented';
+    checkNull(str);
+    if (str is !String) throw new IllegalArgumentException();
+    var ret = JS("num", @"parseFloat($0)", str);
+    if (ret.isNaN() && str != 'NaN') throw new BadNumberFormatException(str);
+    return ret;
   }
 
   static double sqrt(num value)
@@ -941,7 +955,7 @@ class MathNatives {
     => JS("double", @"Math.atan($0)", checkNum(value));
 
   static double atan2(num a, num b)
-    => JS("double", @"Math.atan2($0)", checkNum(value));
+    => JS("double", @"Math.atan2($0, $1)", checkNum(a), checkNum(b));
 
   static double exp(num value)
     => JS("double", @"Math.exp($0)", checkNum(value));
@@ -955,7 +969,7 @@ class MathNatives {
     return JS("num", @"Math.pow($0, $1)", value, exponent);
   }
 
-  static double random() => JS("double", "Math.random()");
+  static double random() => JS("double", @"Math.random()");
 }
 
 builtin$hashCode$0(receiver) {
