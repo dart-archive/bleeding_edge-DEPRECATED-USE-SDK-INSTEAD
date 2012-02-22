@@ -5,6 +5,7 @@
 #library('file_system_vm');
 #import('dart:io');
 #import('file_system.dart');
+#import('dart:utf8');
 
 /** File system implementation using the vm api's. */
 class VMFileSystem implements FileSystem {
@@ -21,7 +22,7 @@ class VMFileSystem implements FileSystem {
     var buffer = new List<int>(length);
     var bytes = file.readListSync(buffer, 0, length);
     file.closeSync();
-    return new String.fromCharCodes(buffer);
+    return new String.fromCharCodes(Utf8Decoder.decodeUtf8(buffer));
   }
 
   bool fileExists(String filename) {

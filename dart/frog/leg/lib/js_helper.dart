@@ -200,8 +200,9 @@ neg(var a) {
 index(var a, var index) {
   checkNull(a);
   if (a is String || isJSArray(a)) {
-    if (!(index is int)) {
-      throw new IllegalArgumentException(index);
+    if (index is !int) {
+      if (index is !num) throw new IllegalArgumentException(index);
+      if (index.truncate() !== index) throw new IllegalArgumentException(index);
     }
     if (index < 0 || index >= a.length) {
       throw new IndexOutOfRangeException(index);
@@ -313,7 +314,11 @@ class ListIterator<T> implements Iterator<T> {
 }
 
 builtin$charCodeAt$1(var receiver, int index) {
+  checkNull(receiver);
   if (receiver is String) {
+    if (index is !num) throw new IllegalArgumentException(index);
+    if (index < 0) throw new IndexOutOfRangeException(index);
+    if (index >= receiver.length) throw new IndexOutOfRangeException(index);
     return JS("string", @"$0.charCodeAt($1)", receiver, index);
   } else {
     return UNINTERCEPTED(receiver.charCodeAt(index));
@@ -394,7 +399,7 @@ class Primitives {
 
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
-      checkNum(i);
+      if (i is !int) throw new IllegalArgumentException(i);
     }
     return JS('String', @'String.fromCharCode.apply($0, $1)', null, charCodes);
   }
@@ -425,7 +430,8 @@ builtin$compareTo$1(a, b) {
       return -1;
     }
   } else if (a is String) {
-    throw 'String.compareTo is not implemented';
+    if (b is !String) throw new IllegalArgumentException(b);
+    return (a === b) ? 0 : JS('bool', @'$0 < $1', a, b) ? -1 : 1;
   } else {
     return UNINTERCEPTED(a.compareTo(b));
   }
@@ -516,7 +522,11 @@ builtin$indexOf$2(receiver, element, start) {
     var length = JS("num", @"$0.length", receiver);
     return Arrays.indexOf(receiver, element, start, length);
   } else if (receiver is String) {
-    throw new NotImplementedException();
+    checkNull(element);
+    if (start is !int) throw new IllegalArgumentException(start);
+    if (element is !String) throw new IllegalArgumentException(element);
+    if (start < 0) return -1; // TODO(ahe): Is this correct?
+    return JS('int', @'$0.indexOf($1, $2)', receiver, element, start);
   }
   return UNINTERCEPTED(receiver.indexOf(element, start));
 }
@@ -579,7 +589,9 @@ builtin$lastIndexOf$1(receiver, element) {
     var start = JS("num", @"$0.length", receiver);
     return Arrays.lastIndexOf(receiver, element, start);
   } else if (receiver is String) {
-    throw new NotImplementedException();
+    checkNull(element);
+    if (element is !String) throw new IllegalArgumentException(element);
+    return JS('int', @'$0.lastIndexOf($1)', receiver, element);
   }
   return UNINTERCEPTED(receiver.lastIndexOf(element));
 }
@@ -589,10 +601,20 @@ builtin$lastIndexOf$2(receiver, element, start) {
   if (isJSArray(receiver)) {
     return Arrays.lastIndexOf(receiver, element, start);
   } else if (receiver is String) {
-    throw new NotImplementedException();
+    checkNull(element);
+    if (element is !String) throw new IllegalArgumentException(element);
+    if (start !== null) {
+      if (start is !num) throw new IllegalArgumentException(start);
+      if (start < 0) return -1;
+      if (start >= receiver.length) start = receiver.length - 1;
+    }
+    return rawStringLastIndexOf(receiver, element, start);
   }
   return UNINTERCEPTED(receiver.lastIndexOf(element, start));
 }
+
+rawStringLastIndexOf(receiver, element, start)
+  => JS('int', @'$0.lastIndexOf($1, $2)', receiver, element, start);
 
 builtin$removeRange$2(receiver, start, length) {
   checkNull(receiver);
@@ -819,14 +841,15 @@ builtin$allMatches$1(receiver, str) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.allMatches(str));
 
-  throw new NotImplementedException();
+  throw 'String.allMatches is not implemented';
 }
 
 builtin$concat$1(receiver, other) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.concat(other));
 
-  throw new NotImplementedException();
+  if (other is !String) throw new IllegalArgumentException(other);
+  return JS('String', @'$0.concat($1)', receiver, other);
 }
 
 builtin$contains$2(receiver, other, startIndex) {
@@ -834,22 +857,34 @@ builtin$contains$2(receiver, other, startIndex) {
   if (receiver is !String) {
     return UNINTERCEPTED(receiver.contains(other, startIndex));
   }
-
-  throw new NotImplementedException();
+  checkNull(other);
+  if (other is !String) {
+    throw 'String.contains with non-String is not implemented';
+  }
+  if ((startIndex !== null) || (startIndex is !num)) {
+    throw new IllegalArgumentException(startIndex);
+  }
+  return receiver.indexOf(other, startIndex) >= 0;
 }
 
 builtin$endsWith$1(receiver, other) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.endsWith(other));
 
-  throw new NotImplementedException();
+  checkNull(other);
+  if (other is !String) throw new IllegalArgumentException(other);
+
+  int receiverLength = receiver.length;
+  int otherLength = other.length;
+  if (otherLength > receiverLength) return false;
+  return other == receiver.substring(receiverLength - otherLength);
 }
 
 builtin$replaceAll$2(receiver, from, to) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.replaceAll(from, to));
 
-  throw new NotImplementedException();
+  throw 'String.replaceAll is not implemented';
 }
 
 builtin$replaceFirst$2(receiver, from, to) {
@@ -857,36 +892,44 @@ builtin$replaceFirst$2(receiver, from, to) {
   if (receiver is !String) {
     return UNINTERCEPTED(receiver.replaceFirst(from, to));
   }
+  if (from is !String) throw new IllegalArgumentException(from);
+  if (from is !String) throw new IllegalArgumentException(from);
 
-  throw new NotImplementedException();
+  return JS('String', @'$0.replace($1, $2)', receiver, from, to);
 }
 
 builtin$split$1(receiver, pattern) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.split(pattern));
+  checkNull(pattern);
+  if (pattern is !String) throw new IllegalArgumentException(pattern);
 
-  throw new NotImplementedException();
+  return JS('List', @'$0.split($1)', receiver, pattern);
 }
 
 builtin$splitChars$0(receiver) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.splitChars());
 
-  throw new NotImplementedException();
+  return JS('List', @'$0.split("")', receiver);
 }
 
 builtin$startsWith$1(receiver, other) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.startsWith(other));
+  checkNull(other);
+  if (other is !String) throw new IllegalArgumentException(other);
 
-  throw new NotImplementedException();
+  int length = other.length;
+  if (length > receiver.length) return false;
+  return other === JS('String', @'$0.substring(0, $1)', receiver, length);
 }
 
 builtin$substring$1(receiver, startIndex) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.substring(startIndex));
 
-  throw new NotImplementedException();
+  return builtin$substring$2(receiver, startIndex, null);
 }
 
 builtin$substring$2(receiver, startIndex, endIndex) {
@@ -894,22 +937,32 @@ builtin$substring$2(receiver, startIndex, endIndex) {
   if (receiver is !String) {
     return UNINTERCEPTED(receiver.substring(startIndex, endIndex));
   }
-
-  throw new NotImplementedException();
+  checkNum(startIndex);
+  var length = receiver.length;
+  if (endIndex === null) endIndex = length;
+  checkNum(endIndex);
+  if (startIndex < 0 ) throw new IndexOutOfRangeException(startIndex);
+  if (startIndex > endIndex) throw new IndexOutOfRangeException(startIndex);
+  if (endIndex > length) throw new IndexOutOfRangeException(endIndex);
+  return substringUnchecked(receiver, startIndex, endIndex);
 }
+
+substringUnchecked(receiver, startIndex, endIndex)
+  => JS('String', @'$0.substring($1, $2)', receiver, startIndex, endIndex);
+
 
 builtin$toLowerCase$0(receiver) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.toLowerCase());
 
-  throw new NotImplementedException();
+  return JS('String', @'$0.toLowerCase()', receiver);
 }
 
 builtin$toUpperCase$0(receiver) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.toUpperCase());
 
-  throw new NotImplementedException();
+  return JS('String', @'$0.toUpperCase()', receiver);
 }
 
 builtin$trim$0(receiver) {
@@ -982,10 +1035,10 @@ class MathNatives {
 builtin$hashCode$0(receiver) {
   if (receiver is num) return receiver & 0x1FFFFFFF;
   if (receiver is String) {
-    throw new NotImplementedException();
+    throw 'String.hashCode is not implemented';
   }
   if (isJSArray(receiver)) {
-    throw new NotImplementedException();
+    throw 'List.hashCode is not implemented';
   }
   return UNINTERCEPTED(receiver.hashCode());
 }
