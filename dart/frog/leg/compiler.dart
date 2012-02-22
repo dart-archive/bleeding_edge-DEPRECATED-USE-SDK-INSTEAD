@@ -135,13 +135,7 @@ class Compiler implements DiagnosticListener {
       log('compilation failed');
       return false;
     }
-    // TODO(floitsch): the following code can be removed once the HTracer
-    // writes directly into a file.
-    if (GENERATE_SSA_TRACE) {
-      print("------------------");
-      print(new HTracer.singleton());
-      print("------------------");
-    }
+    if (GENERATE_SSA_TRACE) new HTracer.singleton().close();
     log('compilation succeeded');
     return true;
   }

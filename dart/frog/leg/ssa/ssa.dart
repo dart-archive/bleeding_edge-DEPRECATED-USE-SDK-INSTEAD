@@ -4,6 +4,7 @@
 
 #library('ssa');
 
+#import('tracer.dart');
 #import('../leg.dart');
 #import('../native_handler.dart', prefix: 'native');
 #import('../elements/elements.dart');
@@ -21,7 +22,6 @@
 #source('nodes.dart');
 #source('optimize.dart');
 #source('phi_eliminator.dart');
-#source('tracer.dart');
 #source('types.dart');
 #source('validate.dart');
 #source('value_set.dart');

@@ -2,16 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library('tracer');
+
+#import('dart:io');
+#import('ssa.dart');
+
 class HTracer extends HGraphVisitor {
   int indent = 0;
-  final StringBuffer output;
+  final RandomAccessFile output;
 
-  factory HTracer.singleton() {
-    if (_singleton === null) _singleton = new HTracer._internal();
+  factory HTracer.singleton([String path = "dart.cfg"]) {
+    if (_singleton === null) _singleton = new HTracer._internal(path);
     return _singleton;
   }
 
-  HTracer._internal() : output = new StringBuffer();
+  HTracer._internal(String path)
+      : output = new File(path).openSync(FileMode.WRITE);
+
+  void close() {
+    output.close();
+  }
 
   void traceCompilation(String methodName) {
     tag("compilation", () {
@@ -93,7 +103,7 @@ class HTracer extends HGraphVisitor {
               inputIds.add(stringifier.temporaryId(phi.inputs[i]));
               inputIds.add(" ");
             }
-            print("${phi.id} $phiId [ $inputIds]");
+            println("${phi.id} $phiId [ $inputIds]");
           });
         });
       });
@@ -105,33 +115,33 @@ class HTracer extends HGraphVisitor {
   }
 
   void tag(String tagName, Function f) {
-    print("begin_$tagName");
+    println("begin_$tagName");
     indent++;
     f();
     indent--;
-    print("end_$tagName");
+    println("end_$tagName");
   }
 
-  void print(String string) {
+  void println(String string) {
     addIndent();
     add(string);
     add("\n");
   }
 
   void printEmptyProperty(String propertyName) {
-    print(propertyName);
+    println(propertyName);
   }
 
   void printProperty(String propertyName, var value) {
     if (value is num) {
-      print("$propertyName $value");
+      println("$propertyName $value");
     } else {
-      print('$propertyName "$value"');
+      println('$propertyName "$value"');
     }
   }
 
   void add(String string) {
-    output.add(string);
+    output.writeStringSync(string);
   }
 
   void addIndent() {
@@ -139,8 +149,6 @@ class HTracer extends HGraphVisitor {
       add("  ");
     }
   }
-
-  toString() => output.toString();
 
   static HTracer _singleton = null;
 }

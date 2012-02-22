@@ -13,6 +13,7 @@
 #import('scanner/scannerlib.dart');
 #import('scanner/scanner_implementation.dart');
 #import('ssa/ssa.dart');
+#import('ssa/tracer.dart');
 #import('string_validator.dart');
 #import('tree/tree.dart');
 #import('util/characters.dart');
