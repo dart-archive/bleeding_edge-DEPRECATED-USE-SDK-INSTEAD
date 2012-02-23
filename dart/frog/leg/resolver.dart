@@ -263,6 +263,7 @@ class ResolverTask extends CompilerTask {
         Link<Type> interfaceSupertypes =
             getOrCalculateAllSupertypes(element, seen);
         supertypes = supertypes.reversePrependAll(interfaceSupertypes);
+        supertypes = supertypes.prepend(interfaces.head);
       }
       seen.remove(classElement);
       classElement.allSupertypes = supertypes;

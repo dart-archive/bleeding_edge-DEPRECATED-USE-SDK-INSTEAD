@@ -6,6 +6,8 @@ class TypeCheckerTask extends CompilerTask {
   TypeCheckerTask(Compiler compiler) : super(compiler);
   String get name() => "Type checker";
 
+  static final bool LOG_FAILURES = false;
+
   void check(Node tree, TreeElements elements) {
     measure(() {
       Visitor visitor =
@@ -13,8 +15,10 @@ class TypeCheckerTask extends CompilerTask {
       try {
         tree.accept(visitor);
       } catch (CancelTypeCheckException e) {
-        // Do not warn about unimplemented features; log message instead.
-        compiler.log("'${e.node}': ${e.reason}");
+        if (LOG_FAILURES) {
+          // Do not warn about unimplemented features; log message instead.
+          compiler.log("'${e.node}': ${e.reason}");
+        }
       }
     });
   }
@@ -85,6 +89,7 @@ class Types {
   static final STRING = const SourceString('String');
   static final BOOL = const SourceString('bool');
   static final OBJECT = const SourceString('Object');
+  static final LIST = const SourceString('List');
 
   final SimpleType voidType;
   final SimpleType dynamicType;
@@ -105,8 +110,33 @@ class Types {
 
   /** Returns true if t is a subtype of s */
   bool isSubtype(Type t, Type s) {
-    return t === s || t === dynamicType || s === dynamicType ||
-           s.name == Types.OBJECT;
+    if (t === s || t === dynamicType || s === dynamicType ||
+        s.name === OBJECT) return true;
+    if (t is SimpleType) {
+      if (s is !SimpleType) return false;
+      ClassElement tc = t.element;
+      for (Link<Type> supertypes = tc.allSupertypes;
+           supertypes != null && !supertypes.isEmpty();
+           supertypes = supertypes.tail) {
+        Type supertype = supertypes.head;
+        if (supertype.element === s.element) return true;
+      }
+      return false;
+    } else if (t is FunctionType) {
+      if (s is !FunctionType) return false;
+      FunctionType tf = t;
+      FunctionType sf = s;
+      Link<Type> tps = tf.parameterTypes;
+      Link<Type> sps = sf.parameterTypes;
+      while (!tps.isEmpty() && !sps.isEmpty()) {
+        if (!isAssignable(tps.head, sps.head)) return false;
+      }
+      if (tps.isEmpty() || sps.isEmpty()) return false;
+      if (!isAssignable(sf.returnType, tf.returnType)) return false;
+      return true;
+    } else {
+      throw 'internal error: unknown type kind';
+    }
   }
 
   bool isAssignable(Type r, Type s) {
@@ -145,6 +175,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type boolType;
   Type stringType;
   Type objectType;
+  Type listType;
 
   TypeCheckerVisitor(Compiler this.compiler, TreeElements this.elements,
                      Types this.types) {
@@ -153,6 +184,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     boolType = lookupType(Types.BOOL, compiler, types);
     stringType = lookupType(Types.STRING, compiler, types);
     objectType = lookupType(Types.OBJECT, compiler, types);
+    listType = lookupType(Types.LIST, compiler, types);
   }
 
   Type fail(node, [reason]) {
@@ -192,6 +224,9 @@ class TypeCheckerVisitor implements Visitor<Type> {
     }
     Type result = node.accept(this);
     // TODO(karlklose): record type?
+    if (result === null) {
+      compiler.cancel('internal error: type of "$node" is null');
+    }
     return result;
   }
 
@@ -446,7 +481,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitLiteralList(LiteralList node) {
-    fail(node, 'unimplemented');
+    return listType;
   }
 
   Type visitNodeList(NodeList node) {
@@ -581,6 +616,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   visitStringInterpolationPart(StringInterpolationPart node) {
     node.visitChildren(this);
+    return stringType;
   }
 
   visitEmptyStatement(EmptyStatement node) {
