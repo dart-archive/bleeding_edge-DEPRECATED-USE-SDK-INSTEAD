@@ -35,6 +35,11 @@ class CompileTimeConstantHandler extends CompilerTask {
         super(compiler);
   String get name() => 'CompileTimeConstantHandler';
 
+  void registerCompileTimeConstant(Constant constant) {
+    Function ifAbsentThunk = (() => compiler.namer.getFreshGlobalName("CTC"));
+    compiledConstants.putIfAbsent(constant, ifAbsentThunk);
+  }
+
   /**
    * Compiles the initial value of the given field and stores it in an internal
    * map.
@@ -102,8 +107,27 @@ class CompileTimeConstantHandler extends CompilerTask {
     Namer namer = compiler.namer;
     String instantiation = "new ${namer.isolatePropertyAccess(classElement)}()";
     Constant constant = new Constant(instantiation);
-    compiledConstants.putIfAbsent(constant,
-                                  () => namer.getFreshGlobalName("CTC"));
+    registerCompileTimeConstant(constant);
+    return constant;
+  }
+
+  compileListLiteral(Node node, List arguments) {
+    StringBuffer buffer = new StringBuffer();
+    for (int i = 0; i < arguments.length; i++) {
+      if (i != 0) buffer.add(", ");
+      if (arguments[i] is Constant) {
+        // TODO(floitsch): canonicalize if the constant is in the
+        // [compiledConstant] set.
+        Constant constant = arguments[i];
+        buffer.add(constant.jsCode);
+      } else {
+        writeJsCode(buffer, arguments[i]);
+      }
+    }
+    // TODO(floitsch): do we have to register 'List' as instantiated class?
+    String array = "[$buffer]";
+    Constant constant = new Constant(array);
+    registerCompileTimeConstant(constant);
     return constant;
   }
 
@@ -141,9 +165,7 @@ class CompileTimeConstantHandler extends CompilerTask {
     return compiledConstants[constant];
   }
 
-  StringBuffer writeJsCodeForVariable(StringBuffer buffer,
-                                      VariableElement element) {
-    var value = initialVariableValues[element];
+  StringBuffer writeJsCode(StringBuffer buffer, var value) {
     if (value === null) {
       buffer.add("(void 0)");
     } else if (value is num) {
@@ -175,7 +197,12 @@ class CompileTimeConstantHandler extends CompilerTask {
                              "writeJsCodeForVariable",
                              element: element);
     }
-    return buffer;
+    return buffer;    
+  }
+
+  StringBuffer writeJsCodeForVariable(StringBuffer buffer,
+                                      VariableElement element) {
+    return writeJsCode(buffer, initialVariableValues[element]);
   }
 
   /**
@@ -358,6 +385,17 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     }
     return constantHandler.compileObjectCreation(node, definitions[node.send],
                                                  arguments);
+  }
+
+  visitLiteralList(LiteralList node) {
+    if (!node.isConst()) error(node);
+    List arguments = [];
+    for (Link<Node> link = node.elements.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      arguments.add(evaluate(link.head));
+    }
+    return constantHandler.compileListLiteral(node, arguments);
   }
 
   error(Node node) {
