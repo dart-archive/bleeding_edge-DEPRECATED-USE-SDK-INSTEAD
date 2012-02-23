@@ -225,7 +225,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     Type result = node.accept(this);
     // TODO(karlklose): record type?
     if (result === null) {
-      compiler.cancel('internal error: type of "$node" is null');
+      fail(node, 'internal error: type is null');
     }
     return result;
   }
