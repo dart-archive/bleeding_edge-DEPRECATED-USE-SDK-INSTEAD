@@ -2,6 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(floitsch): finish implementation.
+class Constant implements Hashable {
+  // TODO(floitsch): remove the direct access to the string.
+  final String jsCode;
+  Constant(this.jsCode);
+
+  int hashCode() => jsCode.hashCode();
+  bool operator ==(var other) {
+    if (other is !Constant) return false;
+    Constant otherConstant = other;
+    return jsCode == otherConstant.jsCode;
+  }
+}
+
 /**
  * The [CompileTimeConstantHandler] keeps track of compile-time constants,
  * initializations of global and static fields, and default values of
@@ -12,8 +26,12 @@ class CompileTimeConstantHandler extends CompilerTask {
   // initializations of used fields. May contain caches for instance fields.
   final Map<VariableElement, Dynamic> initialVariableValues;
 
+  // Map from compile-time constants to their JS name.
+  final Map<Constant, String> compiledConstants;
+
   CompileTimeConstantHandler(Compiler compiler)
       : initialVariableValues = new Map<VariableElement, Dynamic>(),
+        compiledConstants = new Map<Constant, String>(),
         super(compiler);
   String get name() => 'CompileTimeConstantHandler';
 
@@ -64,6 +82,31 @@ class CompileTimeConstantHandler extends CompilerTask {
     });
   }
 
+  compileObjectCreation(Node node, Element constructor, List arguments) {
+    if (!arguments.isEmpty()) {
+      compiler.unimplemented("CompileTimeConstantHandler with arguments",
+                             node: node);
+    }
+    ClassElement classElement = constructor.enclosingElement;
+    for (Element member in classElement.members) {
+      if (Elements.isInstanceField(member)) {
+        compiler.unimplemented("CompileTimeConstantHandler with fields",
+                               node: node);
+      }
+    }
+    if (classElement.superclass != compiler.coreLibrary.find(Types.OBJECT)) {
+      compiler.unimplemented("CompileTimeConstantHandler with super",
+                             node: node);
+    }
+    compiler.registerInstantiatedClass(classElement);
+    Namer namer = compiler.namer;
+    String instantiation = "new ${namer.isolatePropertyAccess(classElement)}()";
+    Constant constant = new Constant(instantiation);
+    compiledConstants.putIfAbsent(constant,
+                                  () => namer.getFreshGlobalName("CTC"));
+    return constant;
+  }
+
   /**
    * Returns a [List] of static non final fields that need to be initialized.
    * The list must be evaluated in order since the fields might depend on each
@@ -88,6 +131,14 @@ class CompileTimeConstantHandler extends CompilerTask {
           && !element.isInstanceMember()
           && element.modifiers.isFinal();
     });
+  }
+
+  List<Constant> getConstantsForEmission() {
+    return compiledConstants.getKeys();
+  }
+
+  String getNameForConstant(Constant constant) {
+    return compiledConstants[constant];
   }
 
   StringBuffer writeJsCodeForVariable(StringBuffer buffer,
@@ -115,6 +166,9 @@ class CompileTimeConstantHandler extends CompilerTask {
         compiler.cancel("failed to write escaped string: $value");
       });
       buffer.add("'");
+    } else if (value is Constant) {
+      String name = compiledConstants[value];
+      buffer.add("${compiler.namer.ISOLATE}.prototype.$name");
     } else {
       // TODO(floitsch): support more values.
       compiler.unimplemented("CompileTimeConstantHandler" +
@@ -286,6 +340,24 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
 
   visitSendSet(SendSet node) {
     error(node);
+  }
+
+  visitNewExpression(NewExpression node) {
+    if (!node.isConst()) error(node);
+    Send send = node.send;
+    List arguments;
+    if (send.arguments.isEmpty()) {
+      arguments = const [];
+    } else {
+      arguments = [];
+      for (Link<Node> link = send.arguments;
+           !link.isEmpty();
+           link = link.tail) {
+        arguments.add(evaluate(link.head));
+      }
+    }
+    return constantHandler.compileObjectCreation(node, definitions[node.send],
+                                                 arguments);
   }
 
   error(Node node) {

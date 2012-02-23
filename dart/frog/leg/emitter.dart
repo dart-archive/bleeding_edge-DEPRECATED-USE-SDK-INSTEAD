@@ -659,16 +659,26 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
     //       this.staticNonFinal = Isolate.prototype.someVal;
     //       ...
     //    }
-    CompileTimeConstantHandler constants = compiler.compileTimeConstantHandler;
+    CompileTimeConstantHandler handler = compiler.compileTimeConstantHandler;
     List<VariableElement> staticNonFinalFields =
-        constants.getStaticNonFinalFieldsForEmission();
+        handler.getStaticNonFinalFieldsForEmission();
     if (!staticNonFinalFields.isEmpty()) buffer.add('\n');
     for (Element element in staticNonFinalFields) {
       buffer.add('  this.${namer.getName(element)} = ');
       compiler.withCurrentElement(element, () {
-          constants.writeJsCodeForVariable(buffer, element);
+          handler.writeJsCodeForVariable(buffer, element);
         });
       buffer.add(';\n');
+    }
+  }
+
+  void emitCompileTimeConstants(StringBuffer buffer) {
+    CompileTimeConstantHandler handler = compiler.compileTimeConstantHandler;
+    List<Constant> constants = handler.getConstantsForEmission();
+    String prototype = "${namer.ISOLATE}.prototype";
+    for (Constant constant in constants) {
+      String name = handler.getNameForConstant(constant);
+      buffer.add('$prototype.$name = ${constant.jsCode};\n');
     }
   }
 
@@ -752,6 +762,7 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
       emitStaticFunctionGetters(buffer);
       emitDynamicFunctionGetters(buffer);
       emitCallStubForGetters(buffer);
+      emitCompileTimeConstants(buffer);
       emitStaticFinalFieldInitializations(buffer);
       buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
       Element main = compiler.mainApp.find(Compiler.MAIN);
