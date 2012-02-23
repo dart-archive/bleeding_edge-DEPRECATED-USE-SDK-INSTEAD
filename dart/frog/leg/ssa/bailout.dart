@@ -46,6 +46,7 @@ class Environment {
 
   bool isEmpty() => lives.isEmpty();
   bool contains(HInstruction instruction) => lives.contains(instruction);
+  void clear() => lives.clear();
 }
 
 /**
@@ -200,8 +201,16 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
   // Deal with all kinds of control flow instructions. In case we add
   // a new one, we will hit an internal error.
   void visitExit(HExit exit) {}
-  void visitReturn(HReturn instruction) {}
-  void visitThrow(HThrow instruction) {}
+
+  void visitReturn(HReturn instruction) {
+    environment.clear();
+    visitInstruction(instruction);
+  }
+
+  void visitThrow(HThrow instruction) {
+    environment.clear();
+    visitInstruction(instruction);
+  }
 
   void visitControlFlow(HControlFlow instruction) {
     compiler.internalError('Control flow instructions already dealt with.',
@@ -217,8 +226,8 @@ class SsaTypeGuardBuilder extends SsaEnvironmentBuilder {
 
   SsaTypeGuardBuilder(Compiler compiler) : super(compiler);
 
-  HInstruction tryInsertTypeGuard(HInstruction instruction,
-                                  HInstruction insertionPoint) {
+  void tryInsertTypeGuard(HInstruction instruction,
+                          HInstruction insertionPoint) {
     // If we found a type for the instruction, but the instruction
     // does not know if it produces that type, add a type guard.
     if (instruction.type.isKnown() && !instruction.hasExpectedType()) {
