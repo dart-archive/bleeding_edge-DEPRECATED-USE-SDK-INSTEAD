@@ -115,14 +115,9 @@ class CompileTimeConstantHandler extends CompilerTask {
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < arguments.length; i++) {
       if (i != 0) buffer.add(", ");
-      if (arguments[i] is Constant) {
-        // TODO(floitsch): canonicalize if the constant is in the
-        // [compiledConstant] set.
-        Constant constant = arguments[i];
-        buffer.add(constant.jsCode);
-      } else {
-        writeJsCode(buffer, arguments[i]);
-      }
+      // TODO(floitsch): canonicalize if the constant is in the
+      // [compiledConstant] set.
+      writeJsCode(buffer, arguments[i]);
     }
     // TODO(floitsch): do we have to register 'List' as instantiated class?
     String array = "[$buffer]";
@@ -189,12 +184,11 @@ class CompileTimeConstantHandler extends CompilerTask {
       });
       buffer.add("'");
     } else if (value is Constant) {
-      String name = compiledConstants[value];
-      buffer.add("${compiler.namer.ISOLATE}.prototype.$name");
+      Constant constant = value;
+      buffer.add(constant.jsCode);
     } else {
       // TODO(floitsch): support more values.
-      compiler.unimplemented("CompileTimeConstantHandler" +
-                             "writeJsCodeForVariable",
+      compiler.unimplemented("CompileTimeConstantHandler writeJsCode",
                              element: element);
     }
     return buffer;    
@@ -202,7 +196,13 @@ class CompileTimeConstantHandler extends CompilerTask {
 
   StringBuffer writeJsCodeForVariable(StringBuffer buffer,
                                       VariableElement element) {
-    return writeJsCode(buffer, initialVariableValues[element]);
+    var value = initialVariableValues[element];
+    if (value is Constant) {
+      String name = compiledConstants[value];
+      buffer.add("${compiler.namer.ISOLATE}.prototype.$name");
+    } else {
+      return writeJsCode(buffer, initialVariableValues[element]);      
+    }
   }
 
   /**

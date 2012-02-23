@@ -678,7 +678,9 @@ if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];
     String prototype = "${namer.ISOLATE}.prototype";
     for (Constant constant in constants) {
       String name = handler.getNameForConstant(constant);
-      buffer.add('$prototype.$name = ${constant.jsCode};\n');
+      buffer.add('$prototype.$name = ');
+      handler.writeJsCode(buffer, constant);
+      buffer.add(';\n');
     }
   }
 
