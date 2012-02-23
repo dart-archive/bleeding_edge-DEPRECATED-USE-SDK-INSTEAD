@@ -114,11 +114,22 @@ public class LogReader {
    * Remove obvious references to user details.
    */
   private static String scrub(String logString) {
-    // Users/johndoe/dev/ws/... -> ${user.home}/dev/ws/... 
-    String userHome = System.getProperty("user.home");//$NON-NLS-1$
+    // Users/johndoe/dev/ws/... -> ${user.home}/dev/ws/...
+    String userHome = System.getProperty("user.home"); //$NON-NLS-1$
     if (userHome != null) {
-      logString = logString.replace(userHome, "${user.home}");//$NON-NLS-1$
+      logString = logString.replace(userHome, "${user.home}"); //$NON-NLS-1$
+      //
+      // Under Windows the user home contains backslashes but the log prints with forward slashes.
+      //
+      userHome.replace('\\', '/');
+      logString = logString.replace(userHome, "${user.home}"); //$NON-NLS-1$
     }
+
+    String userName = System.getProperty("user.name"); //$NON-NLS-1$
+    if (userName != null) {
+      logString = logString.replace("/" + userName + "/", "/${user.name}/"); //$NON-NLS-1$
+    }
+
     return logString;
   }
 
