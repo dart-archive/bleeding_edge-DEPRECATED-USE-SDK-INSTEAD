@@ -26,7 +26,7 @@ NO_COLOR_ENV['TERM'] = 'nocolor'
 
 def GetBuildInfo():
   """Returns a tuple (name, mode, system) where:
-    - name: 'frog', 'frogsh', 'frogium', or None when the builder has an 
+    - name: 'frog', 'frogsh', 'frogium', or None when the builder has an
       incorrect name
     - mode: 'debug' or 'release'
     - system: 'linux', 'mac', or 'win7'
@@ -125,9 +125,7 @@ def TestFrog(arch, mode, system, browser, flags):
     TestStep("frog_extra", mode, system,
         arch, ['frog', 'frog_native', 'peg', 'css'], flags)
 
-    if arch == 'frogsh':
-      # There is no need to run these tests both for frog and frogsh.
-
+    if not '--checked' in flags:
       TestStep("leg", mode, system, 'leg', [], flags)
       TestStep("leg_extra", mode, system, 'leg',
                ['leg_only', 'frog_native'], flags)
@@ -149,7 +147,7 @@ def TestFrog(arch, mode, system, browser, flags):
       additional_flags = ['--browser=' + browser]
       if system.startswith('win') and browser == 'ie':
         # There should not be more than one InternetExplorerDriver instance
-        # running at a time. For details, see 
+        # running at a time. For details, see
         # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
         additional_flags += ['-j1']
       TestStep(browser, mode, system, 'webdriver', tests,
