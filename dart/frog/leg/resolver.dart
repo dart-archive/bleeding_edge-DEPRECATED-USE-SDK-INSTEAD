@@ -470,6 +470,7 @@ class CommonResolverVisitor<R> extends AbstractVisitor<R> {
 
 interface LabelScope {
   StatementElement lookup(String label);
+  LabelScope get outer();
 }
 
 class LabeledStatementLabelScope implements LabelScope {
@@ -486,6 +487,9 @@ class LabeledStatementLabelScope implements LabelScope {
 class EmptyLabelScope implements LabelScope {
   const EmptyLabelScope();
   StatementElement lookup(String label) => null;
+  LabelScope get outer() {
+    throw 'internal error: empty label scope has no outer';
+  }
 }
 
 class StatementScope {

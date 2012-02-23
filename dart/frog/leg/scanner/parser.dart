@@ -970,7 +970,7 @@ class Parser {
         }
       }
       listener.recoverableError("Unexpected token '+'", token: token);
-      return parsePrecendenceExpression(next, POSTFIX_PRECEDENCE);
+      return parsePrecedenceExpression(next, POSTFIX_PRECEDENCE);
     } else if ((value === '!') ||
                (value === '-') ||
                (value === '~')) {

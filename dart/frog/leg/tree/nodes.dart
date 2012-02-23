@@ -723,6 +723,7 @@ class DartString implements Iterable<int> {
     }
     return true;
   }
+  abstract SourceString get source();
 }
 
 class LiteralDartString extends DartString {
@@ -731,6 +732,7 @@ class LiteralDartString extends DartString {
   int get length() => string.length;
   Iterator<int> iterator() => new StringCodeIterator(string);
   String toString() => string;
+  SourceString get source() => new StringWrapper(string);
 }
 
 class SourceBasedDartString extends DartString {
@@ -738,6 +740,7 @@ class SourceBasedDartString extends DartString {
   final SourceString source;
   final int length;
   SourceBasedDartString(this.source, this.length);
+  abstract Iterator<int> iterator();
 }
 
 class RawSourceDartString extends SourceBasedDartString {
@@ -786,6 +789,7 @@ class ConsDartString extends DartString {
     toStringCache = left.toString().concat(right.toString());
     return toStringCache;
   }
+  SourceString get source() => new StringWrapper(toString());
 }
 
 class ConsDartStringIterator implements Iterator<int> {

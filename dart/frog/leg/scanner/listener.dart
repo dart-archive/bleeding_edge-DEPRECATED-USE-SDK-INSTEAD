@@ -447,6 +447,11 @@ class Listener {
     return skipToEof(token);
   }
 
+  Token expectedClassBodyToSkip(Token token) {
+    error("expected a class body, but got '$token'", token);
+    return skipToEof(token);
+  }
+
   skipToEof(Token token) {
     while (token.info !== EOF_INFO) {
       token = token.next;

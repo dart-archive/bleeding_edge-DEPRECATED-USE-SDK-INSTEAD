@@ -360,7 +360,7 @@ class Compiler implements DiagnosticListener {
   reportWarning(Node node, var message) {}
   reportError(Node node, var message) {}
 
-  Script readScript(Uri uri) {
+  Script readScript(Uri uri, [ScriptTag node]) {
     unimplemented('Compiler.readScript');
   }
 

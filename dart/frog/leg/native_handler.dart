@@ -17,7 +17,7 @@ void processNativeClasses(Compiler compiler,
     Element element = link.head;
     if (element.kind == ElementKind.CLASS) {
       ClassElement classElement = element;
-      if (element.isNative()) {
+      if (classElement.isNative()) {
         compiler.registerInstantiatedClass(classElement);
         // Also parse the node to know all its methods because
         // otherwise it will only be parsed if there is a call to
@@ -74,7 +74,7 @@ Token handleNativeClassBody(Listener listener, Token token) {
   return token;
 }
 
-Token handleNativeFunctionBody(Listener listener, Token token) {
+Token handleNativeFunctionBody(ElementListener listener, Token token) {
   Token begin = token;
   listener.beginExpressionStatement(token);
   listener.handleIdentifier(token);
@@ -96,7 +96,7 @@ Token handleNativeFunctionBody(Listener listener, Token token) {
   return token.next;
 }
 
-SourceString checkForNativeClass(Listener listener) {
+SourceString checkForNativeClass(ElementListener listener) {
   SourceString nativeName;
   Node node = listener.nodes.head;
   if (node != null
@@ -112,7 +112,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
   if (node.arguments.isEmpty()) {
     List<String> arguments = <String>[];
     List<HInstruction> inputs = <HInstruction>[];
-    Element element = builder.work.element;
+    FunctionElement element = builder.work.element;
     FunctionParameters parameters = element.computeParameters(builder.compiler);
     int i = 0;
     String receiver = '';
@@ -121,10 +121,9 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       i++;
       inputs.add(builder.localsHandler.readThis());
     }
-
-    parameters.forEachParameter((Element element) {
+    parameters.forEachParameter((Element parameter) {
       arguments.add('\$$i');
-      inputs.add(builder.localsHandler.readLocal(element));
+      inputs.add(builder.localsHandler.readLocal(parameter));
       i++;
     });
     String foreignParameters = Strings.join(arguments, ',');

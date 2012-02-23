@@ -192,7 +192,8 @@ class PrefixElement extends Element {
                 LibraryElement this.library,
                 Element enclosing)
     : this.prefix = prefix,
-      super(prefix.dartString.source, ElementKind.PREFIX, enclosing);
+      super(prefix.dartString.source, ElementKind.PREFIX, enclosing) {
+    }
 }
 
 class VariableElement extends Element {

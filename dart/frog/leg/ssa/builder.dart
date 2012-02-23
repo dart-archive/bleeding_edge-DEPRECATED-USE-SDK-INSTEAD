@@ -1723,7 +1723,8 @@ class SsaBuilder implements Visitor {
     Element element = elements[node];
     if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
       compiler.resolver.resolveMethodElement(element);
-      element = element.defaultImplementation;
+      FunctionElement functionElement = element;
+      element = functionElement.defaultImplementation;
     }
     HInstruction target = new HStatic(element);
     add(target);
