@@ -14,16 +14,20 @@ class ValueSet {
 
   void add(HInstruction instruction) {
     assert(lookup(instruction) === null);
-    int index = tableIndexForInstruction(instruction);
-    table[index] = new ValueSetNode(instruction, table[index]);
+    int hashCode = instruction.gvnHashCode();
+    int index = hashCode % table.length;
+    table[index] = new ValueSetNode(instruction, hashCode, table[index]);
     size++;
   }
 
   HInstruction lookup(HInstruction instruction) {
-    int index = tableIndexForInstruction(instruction);
+    int hashCode = instruction.gvnHashCode();
+    int index = hashCode % table.length;
     for (ValueSetNode node = table[index]; node !== null; node = node.next) {
-      HInstruction cached = node.value;
-      if (cached.equals(instruction)) return cached;
+      if (node.hashCode == hashCode) {
+        HInstruction cached = node.value;
+        if (cached.gvnEquals(instruction)) return cached;
+      }
     }
     return null;
   }
@@ -88,13 +92,11 @@ class ValueSet {
   List<HInstruction> toList() {
     return copyTo(<HInstruction>[]);
   }
-
-  // TODO(kasperl): Replace this with a proper hash based version.
-  int tableIndexForInstruction(HInstruction instruction) => 0;
 }
 
 class ValueSetNode {
   final HInstruction value;
+  final int hashCode;
   ValueSetNode next;
-  ValueSetNode(this.value, this.next);
+  ValueSetNode(this.value, this.hashCode, this.next);
 }

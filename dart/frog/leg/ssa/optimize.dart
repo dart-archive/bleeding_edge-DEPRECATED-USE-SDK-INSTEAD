@@ -434,7 +434,7 @@ class SsaGlobalValueNumberer {
       } else if (instruction.useGvn()) {
         HInstruction other = values.lookup(instruction);
         if (other !== null) {
-          assert(other.equals(instruction) && instruction.equals(other));
+          assert(other.gvnEquals(instruction) && instruction.gvnEquals(other));
           block.rewrite(instruction, other);
           block.remove(instruction);
         } else {

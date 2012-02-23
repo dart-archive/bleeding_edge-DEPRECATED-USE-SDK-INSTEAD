@@ -925,10 +925,12 @@ class HInstruction implements Hashable {
     return buffer.toString();
   }
 
-  bool equals(HInstruction other) {
+  bool gvnEquals(HInstruction other) {
     assert(useGvn() && other.useGvn());
     // Check that the type and the flags match.
-    if (!typeEquals(other)) return false;
+    bool hasSameType = typeEquals(other);
+    assert(hasSameType == (typeCode() == other.typeCode()));
+    if (!hasSameType) return false;
     if (flags != other.flags) return false;
     // Check that the inputs match.
     final int inputsLength = inputs.length;
@@ -941,8 +943,18 @@ class HInstruction implements Hashable {
     return dataEquals(other);
   }
 
+  int gvnHashCode() {
+    int result = typeCode();
+    int length = inputs.length;
+    for (int i = 0; i < length; i++) {
+      result = (result * 19) + (inputs[i].id) + (result >> 7);
+    }
+    return result;
+  }
+
   // These methods should be overwritten by instructions that
   // participate in global value numbering.
+  int typeCode() => -1;
   bool typeEquals(HInstruction other) => false;
   bool dataEquals(HInstruction other) => false;
 
@@ -1003,6 +1015,7 @@ class HBoolify extends HInstruction {
   bool hasExpectedType() => true;
 
   accept(HVisitor visitor) => visitor.visitBoolify(this);
+  int typeCode() => 0;
   bool typeEquals(other) => other is HBoolify;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1042,6 +1055,7 @@ class HTypeGuard extends HInstruction {
   void tryGenerateAtUseSite() {}
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
+  int typeCode() => 1;
   bool typeEquals(other) => other is HTypeGuard;
   bool dataEquals(HTypeGuard other) => type == other.type;
 }
@@ -1069,6 +1083,7 @@ class HBoundsCheck extends HCheck {
   bool hasExpectedType() => true;
 
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
+  int typeCode() => 2;
   bool typeEquals(other) => other is HBoundsCheck;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1087,6 +1102,7 @@ class HIntegerCheck extends HCheck {
   bool hasExpectedType() => true;
 
   accept(HVisitor visitor) => visitor.visitIntegerCheck(this);
+  int typeCode() => 3;
   bool typeEquals(other) => other is HIntegerCheck;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1256,6 +1272,7 @@ class HInvokeInterceptor extends HInvokeStatic {
     }
   }
 
+  int typeCode() => 4;
   bool typeEquals(other) => other is HInvokeInterceptor;
   bool dataEquals(HInvokeInterceptor other) {
     return builtinJsName == other.builtinJsName && name == other.name;
@@ -1392,6 +1409,7 @@ class HAdd extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitAdd(this);
   num evaluate(num a, num b) => a + b;
+  int typeCode() => 5;
   bool typeEquals(other) => other is HAdd;
   bool dataEquals(HInstruction other) => true;
 
@@ -1454,6 +1472,7 @@ class HDivide extends HBinaryArithmetic {
   }
 
   num evaluate(num a, num b) => a / b;
+  int typeCode() => 6;
   bool typeEquals(other) => other is HDivide;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1463,6 +1482,7 @@ class HModulo extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitModulo(this);
   num evaluate(num a, num b) => a % b;
+  int typeCode() => 7;
   bool typeEquals(other) => other is HModulo;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1472,6 +1492,7 @@ class HMultiply extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
   num evaluate(num a, num b) => a * b;
+  int typeCode() => 8;
   bool typeEquals(other) => other is HMultiply;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1481,6 +1502,7 @@ class HSubtract extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
   num evaluate(num a, num b) => a - b;
+  int typeCode() => 9;
   bool typeEquals(other) => other is HSubtract;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1499,6 +1521,7 @@ class HTruncatingDivide extends HBinaryArithmetic {
   }
 
   num evaluate(num a, num b) => a ~/ b;
+  int typeCode() => 10;
   bool typeEquals(other) => other is HTruncatingDivide;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1559,6 +1582,7 @@ class HShiftLeft extends HBinaryBitOp {
   }
 
   int evaluate(int a, int b) => a << b;
+  int typeCode() => 11;
   bool typeEquals(other) => other is HShiftLeft;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1578,6 +1602,7 @@ class HShiftRight extends HBinaryBitOp {
   }
 
   int evaluate(int a, int b) => a >> b;
+  int typeCode() => 12;
   bool typeEquals(other) => other is HShiftRight;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1588,6 +1613,7 @@ class HBitOr extends HBinaryBitOp {
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
   int evaluate(int a, int b) => a | b;
+  int typeCode() => 13;
   bool typeEquals(other) => other is HBitOr;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1598,6 +1624,7 @@ class HBitAnd extends HBinaryBitOp {
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
   int evaluate(int a, int b) => a & b;
+  int typeCode() => 14;
   bool typeEquals(other) => other is HBitAnd;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1608,6 +1635,7 @@ class HBitXor extends HBinaryBitOp {
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
   int evaluate(int a, int b) => a ^ b;
+  int typeCode() => 15;
   bool typeEquals(other) => other is HBitXor;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1664,6 +1692,7 @@ class HNegate extends HInvokeUnary {
   }
 
   num evaluate(num a) => -a;
+  int typeCode() => 16;
   bool typeEquals(other) => other is HNegate;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1696,6 +1725,7 @@ class HBitNot extends HInvokeUnary {
   }
 
   int evaluate(int a) => ~a;
+  int typeCode() => 17;
   bool typeEquals(other) => other is HBitNot;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1818,6 +1848,7 @@ class HNot extends HInstruction {
   }
 
   accept(HVisitor visitor) => visitor.visitNot(this);
+  int typeCode() => 18;
   bool typeEquals(other) => other is HNot;
   bool dataEquals(HInstruction other) => true;
 }
@@ -1971,6 +2002,7 @@ class HEquals extends HRelational {
       : super(target, left, right);
   bool evaluate(num a, num b) => a == b;
   accept(HVisitor visitor) => visitor.visitEquals(this);
+  int typeCode() => 19;
   bool typeEquals(other) => other is HEquals;
   bool dataEquals(HInstruction other) => true;
 
@@ -1992,6 +2024,7 @@ class HIdentity extends HRelational {
       : super(target, left, right);
   bool evaluate(num a, num b) => a === b;
   accept(HVisitor visitor) => visitor.visitIdentity(this);
+  int typeCode() => 20;
   bool typeEquals(other) => other is HIdentity;
   bool dataEquals(HInstruction other) => true;
 
@@ -2010,6 +2043,7 @@ class HGreater extends HRelational {
       : super(target, left, right);
   bool evaluate(num a, num b) => a > b;
   accept(HVisitor visitor) => visitor.visitGreater(this);
+  int typeCode() => 21;
   bool typeEquals(other) => other is HGreater;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2019,6 +2053,7 @@ class HGreaterEqual extends HRelational {
       : super(target, left, right);
   bool evaluate(num a, num b) => a >= b;
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
+  int typeCode() => 22;
   bool typeEquals(other) => other is HGreaterEqual;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2037,6 +2072,7 @@ class HLessEqual extends HRelational {
       : super(target, left, right);
   bool evaluate(num a, num b) => a <= b;
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
+  int typeCode() => 23;
   bool typeEquals(other) => other is HLessEqual;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2067,6 +2103,7 @@ class HStatic extends HInstruction {
   toString() => 'static ${element.name}';
   accept(HVisitor visitor) => visitor.visitStatic(this);
 
+  int typeCode() => 24;
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
 }
@@ -2077,6 +2114,7 @@ class HStaticStore extends HInstruction {
   toString() => 'static store ${element.name}';
   accept(HVisitor visitor) => visitor.visitStaticStore(this);
 
+  int typeCode() => 25;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
 }
