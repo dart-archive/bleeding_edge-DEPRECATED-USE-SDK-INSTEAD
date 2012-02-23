@@ -134,7 +134,7 @@ function(child, parent) {
           member, invocationName, arguments, buffer);
     } else {
       buffer.add('  return this.${namer.getName(member)}($arguments)');
-    }
+  }
     buffer.add('\n}\n');
   }
 
@@ -262,25 +262,43 @@ function(child, parent) {
       }
     }
     buffer.add('$prototype.${namer.operatorIs(classElement)} = true;\n');
-    for (Type ifc in classElement.interfaces) {
-      buffer.add('$prototype.${namer.operatorIs(ifc.element)} = true;\n');
-    }
+    generateInterfacesIsTests(buffer, prototype, classElement);
     if (superclass === null) {
-      // JS "toString" wrapper. This gives better exceptions.
-      buffer.add('$prototype.toString = function() {\n');
-      buffer.add('  try {');
-      buffer.add('    return ${namer.CURRENT_ISOLATE}');
-      buffer.add('.builtin\$toString\$0\$1(this);');
-      buffer.add('  } catch (ex) {');
-      buffer.add('     return "uncaught exception in toString";');
-      buffer.add('  }');
-      buffer.add('};\n');
+      // JS "toString" wrapper. This gives better exceptions. The
+      // function must handle the situation where builtin$toString$0
+      // is not generated.
+      buffer.add('''
+$prototype.toString = function() {
+  try {
+    if (typeof ${namer.CURRENT_ISOLATE}.builtin\$toString\$0\$1 == 'function') {
+      return ${namer.CURRENT_ISOLATE}.builtin\$toString\$0\$1(this);
+    } else {
+      var name = this.constructor.name;
+      if (typeof name != 'string') {
+        name = this.constructor.toString();
+        name = name.match(/^\s*function\s*(\S*)\s*\(/)[1];
+      }
+      return "Instance of '" + name +"'";
+    }
+  } catch (ex) {
+     return "uncaught exception in toString";
+  }
+};
+''');
 
       // Emit the noSuchMethods on the Object prototype now, so that
       // the code in the dynamicMethod can find them. Note that the
       // code in dynamicMethod is invoked before analyzing the full JS
       // script.
       emitNoSuchMethodCalls(buffer);
+    }
+  }
+
+  void generateInterfacesIsTests(StringBuffer buffer, String prototype,
+                                 ClassElement cls) {
+    for (Type ifc in cls.interfaces) {
+      buffer.add('$prototype.${namer.operatorIs(ifc.element)} = true;\n');
+      generateInterfacesIsTests(buffer, prototype, ifc.element);
     }
   }
 
@@ -473,7 +491,7 @@ function(child, parent) {
           }
         }
       }
-    }
+    }    
   }
 
   void emitStaticNonFinalFieldInitializations(StringBuffer buffer) {

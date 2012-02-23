@@ -1172,3 +1172,27 @@ builtin$hashCode$0(receiver) {
 
 // TODO(ahe): Dynamic may be overridden.
 builtin$get$dynamic(receiver) => receiver;
+
+/**
+ * Called by generated code to capture the stacktrace before throwing
+ * an exception.
+ */
+captureStackTrace(ex) {
+  if (JS('bool', @'typeof $0 != "object"', ex)) return ex;
+  var hasCapture = JS('bool', @'!!(Error.captureStackTrace)');
+  if (hasCapture) {
+    JS('Object', @'Error.captureStackTrace($0)', ex);
+  }
+  return ex;
+}
+
+builtin$charCodes$0(receiver) {
+  checkNull(receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.charCodes());
+  int len = receiver.length;
+  List<int> result = new List<int>(len);
+  for (int i = 0; i < len; i++) {
+    result[i] = receiver.charCodeAt(i);
+  }
+  return result;
+}

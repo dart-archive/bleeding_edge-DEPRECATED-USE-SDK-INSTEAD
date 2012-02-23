@@ -715,8 +715,12 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitThrow(HThrow node) {
-    buffer.add('throw ');
-    use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+    // Make sure that the toString interceptor is emitted so the JS
+    // toString method can call it.
+    Element toStringHelper =
+      compiler.findHelper(new SourceString(@'builtin$toString$0'));
+    compiler.registerStaticUse(toStringHelper);
+    generateThrowWithHelper('captureStackTrace', node.inputs[0]);
     buffer.add(';\n');
   }
 
@@ -728,7 +732,7 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(' >= ');
     use(node.length, JSPrecedence.SHIFT_PRECEDENCE);
     buffer.add(") ");
-    generateFail('ioore', node.index);
+    generateThrowWithHelper('ioore', node.index);
   }
 
   visitIntegerCheck(HIntegerCheck node) {
@@ -737,10 +741,10 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(' !== (');
     use(node.value, JSPrecedence.BITWISE_OR_PRECEDENCE);
     buffer.add(" | 0)) ");
-    generateFail('iae', node.value);
+    generateThrowWithHelper('iae', node.value);
   }
 
-  void generateFail(String helperName, HInstruction argument) {
+  void generateThrowWithHelper(String helperName, HInstruction argument) {
     Element helper = compiler.findHelper(new SourceString(helperName));
     compiler.registerStaticUse(helper);
     buffer.add('throw ');
@@ -924,16 +928,18 @@ class SsaCodeGenerator implements HVisitor {
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
     } else {
       beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+      if (isStringSupertype(element)) {
+        checkString(input, '===');
+        buffer.add(' || ');
+      }
       checkObject(input, '===');
       buffer.add(' && ');
       int precedence = JSPrecedence.PREFIX_PRECEDENCE;
       bool endParen = false;
-      if (element == coreLibrary.find(const SourceString('List'))) {
+      if (isListOrSupertype(element)) {
         buffer.add("(");
         endParen = true;
-        beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-        checkObject(input, '===');
-        buffer.add(' && ');
+        beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
         checkArray(input, '===');
         buffer.add(' || ');
         precedence = JSPrecedence.LOGICAL_OR_PRECEDENCE;
@@ -948,6 +954,20 @@ class SsaCodeGenerator implements HVisitor {
       if (endParen) buffer.add(')');
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
     }
+  }
+
+  bool isStringSupertype(ClassElement cls) {
+    LibraryElement coreLibrary = compiler.coreLibrary;
+    return (cls == coreLibrary.find(const SourceString('Comparable')))
+      || (cls == coreLibrary.find(const SourceString('Hashable')))
+      || (cls == coreLibrary.find(const SourceString('Pattern')));
+  }
+
+  bool isListOrSupertype(ClassElement cls) {
+    LibraryElement coreLibrary = compiler.coreLibrary;
+    return (cls == coreLibrary.find(const SourceString('List')))
+      || (cls == coreLibrary.find(const SourceString('Collection')))
+      || (cls == coreLibrary.find(const SourceString('Iterable')));
   }
 }
 
