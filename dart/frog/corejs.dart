@@ -585,9 +585,9 @@ var $globalState = null;""";
 /** Snippet that initializes Function.prototype.bind. */
 final String _BIND_CODE = @"""
 Function.prototype.bind = Function.prototype.bind ||
-  function(thisObj, args) {
+  function(thisObj) {
     var func = this;
-    if (typeof args !== 'undefined') {
+    if (arguments.length > 1) {
       var boundArgs = Array.prototype.slice.call(arguments, 1);
       return function() {
         // Prepend the bound arguments to the current arguments.
