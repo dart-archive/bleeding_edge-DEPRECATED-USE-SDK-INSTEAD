@@ -56,7 +56,7 @@ def GetBuildInfo():
       # TODO(jmesserly): do we want to do anything different for the second IE
       # bot? For now we're using it to track down flakiness.
       number = web_pattern.group(4)
-  
+
   if system == 'windows':
     system = 'win7'
 
@@ -129,7 +129,8 @@ def TestFrog(arch, mode, system, browser, flags):
       # There is no need to run these tests both for frog and frogsh.
 
       TestStep("leg", mode, system, 'leg', [], flags)
-      TestStep("leg_extra", mode, system, 'leg', ['leg_only'], flags)
+      TestStep("leg_extra", mode, system, 'leg',
+               ['leg_only', 'frog_native'], flags)
       # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
       TestStep("leg_extra", mode, system, 'vm', ['leg'], flags)
 
