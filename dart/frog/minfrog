@@ -9,7 +9,7 @@ Function.prototype.bind = Function.prototype.bind ||
   function(thisObj, args) {
     var func = this;
     if (typeof args !== 'undefined') {
-      var boundArgs = Array.prototype.slice.call(arguments, 3);
+      var boundArgs = Array.prototype.slice.call(arguments, 1);
       return function() {
         // Prepend the bound arguments to the current arguments.
         var newArgs = Array.prototype.slice.call(arguments);
@@ -3087,7 +3087,7 @@ CoreJs.prototype.ensureDefProp = function() {
 CoreJs.prototype.ensureBind = function() {
   if (this._generatedBind) return;
   this._generatedBind = true;
-  this.writer.writeln("Function.prototype.bind = Function.prototype.bind ||\n  function(thisObj, args) {\n    var func = this;\n    if (typeof args !== 'undefined') {\n      var boundArgs = Array.prototype.slice.call(arguments, 3);\n      return function() {\n        // Prepend the bound arguments to the current arguments.\n        var newArgs = Array.prototype.slice.call(arguments);\n        Array.prototype.unshift.apply(newArgs, boundArgs);\n        return func.apply(thisObj, newArgs);\n      };\n    } else {\n      return function() {\n        return func.apply(thisObj, arguments);\n      };\n    }\n  };");
+  this.writer.writeln("Function.prototype.bind = Function.prototype.bind ||\n  function(thisObj, args) {\n    var func = this;\n    if (typeof args !== 'undefined') {\n      var boundArgs = Array.prototype.slice.call(arguments, 1);\n      return function() {\n        // Prepend the bound arguments to the current arguments.\n        var newArgs = Array.prototype.slice.call(arguments);\n        Array.prototype.unshift.apply(newArgs, boundArgs);\n        return func.apply(thisObj, newArgs);\n      };\n    } else {\n      return function() {\n        return func.apply(thisObj, arguments);\n      };\n    }\n  };");
 }
 CoreJs.prototype.generate = function(w) {
   w.write(this.writer.get$text());

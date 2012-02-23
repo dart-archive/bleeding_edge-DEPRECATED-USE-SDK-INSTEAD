@@ -588,7 +588,7 @@ Function.prototype.bind = Function.prototype.bind ||
   function(thisObj, args) {
     var func = this;
     if (typeof args !== 'undefined') {
-      var boundArgs = Array.prototype.slice.call(arguments, 3);
+      var boundArgs = Array.prototype.slice.call(arguments, 1);
       return function() {
         // Prepend the bound arguments to the current arguments.
         var newArgs = Array.prototype.slice.call(arguments);
