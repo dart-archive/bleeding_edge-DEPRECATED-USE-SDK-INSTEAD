@@ -124,6 +124,8 @@ def TestFrog(arch, mode, system, browser, flags):
     TestStep("frog", mode, system, arch, [], flags)
     TestStep("frog_extra", mode, system,
         arch, ['frog', 'frog_native', 'peg', 'css'], flags)
+    TestStep("sdk", mode, system,
+        'vm', ['dartdoc'], flags)
 
     if not '--checked' in flags:
       TestStep("leg", mode, system, 'leg', [], flags)
