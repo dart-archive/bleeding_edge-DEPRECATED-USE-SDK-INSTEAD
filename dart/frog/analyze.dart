@@ -601,6 +601,9 @@ class MethodAnalyzer implements TreeVisitor {
     var type = resolveType(typeRef, true, true);
     if (type.isTop) {
       type = type.library.findTypeByName(constructorName);
+      if (type == null) {
+        world.error('cannot resolve type $constructorName', node.span);
+      }
       constructorName = '';
     }
 
