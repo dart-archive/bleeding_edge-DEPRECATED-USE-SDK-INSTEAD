@@ -1,7 +1,7 @@
 vars = {
   # Additions for Dart
   "chromium_url": "http://src.chromium.org/svn",
-  "chromium_revision": "122251",
+  "chromium_revision": "123195",
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
   "dart_url": "http://dart.googlecode.com/svn",
@@ -17,10 +17,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "107835",
+  "webkit_revision": "108512",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "7800",
+  "nacl_revision": "7813",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "7139",  # native_client/DEPS: tools_rev
@@ -51,19 +51,24 @@ vars = {
 
   "libjingle_revision": "115",
   "libphonenumber_revision": "425",
-  "libvpx_revision": "119942",
+  "libvpx_revision": "122996",
   "lss_revision": "9",
-  "ffmpeg_revision": "122092",
+
+  # These two FFmpeg variables must be updated together.  One is used for SVN
+  # checkouts and the other for Git checkouts.
+  "ffmpeg_revision": "123079",
+  "ffmpeg_hash": "8a05b9314610683d837eec3b03306ca7a894bef7",
+
   "sfntly_revision": "118",
-  "skia_revision": "3180",
+  "skia_revision": "3226",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "10703",
+  "v8_revision": "10776",
   "webrtc_revision": "1538",
   "jsoncpp_revision": "248",
-  "nss_revision": "122093",
-  "rlz_revision": "52",
+  "nss_revision": "122528",
+  "rlz_revision": "59",
 }
 
 deps = {
@@ -78,7 +83,7 @@ deps = {
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
 
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@915",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@922",
 
   "src/build/util/support":
     Var("chromium_url") + "/trunk/deps/support@20411",
@@ -99,7 +104,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@374",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@985",
+    (Var("googlecode_url") % "angleproject") + "/trunk@993",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -109,7 +114,7 @@ deps = {
     Var("chromium_url") + "/trunk/deps/third_party/WebKit@76115",
 
   "src/third_party/icu":
-    Var("chromium_url") + "/trunk/deps/third_party/icu46@122103",
+    Var("chromium_url") + "/trunk/deps/third_party/icu46@122842",
 
   "src/third_party/hunspell":
    Var("chromium_url") + "/trunk/deps/third_party/hunspell@110423",
@@ -131,10 +136,10 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@37",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@9",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@15",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1203",
+    (Var("googlecode_url") % "gyp") + "/trunk@1226",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -185,6 +190,9 @@ deps = {
 
   "src/tools/page_cycler/acid3":
     Var("chromium_url") + "/trunk/deps/page_cycler/acid3@102714",
+
+  "src/chrome/test/data/perf/canvas_bench":
+    Var("chromium_url") + "/trunk/deps/canvas_bench@122605",
 
   "src/chrome/test/data/perf/frame_rate/content":
     Var("chromium_url") + "/trunk/deps/frame_rate/content@93671",
@@ -252,17 +260,11 @@ deps = {
   "src/chrome/test/data/layout_tests/LayoutTests/storage/indexeddb":
     Var("webkit_trunk") + "/LayoutTests/storage/indexeddb@" +
     Var("webkit_revision"),
-  "src/chrome/test/data/layout_tests/LayoutTests/media":
-    Var("webkit_trunk") + "/LayoutTests/media@" +
-    Var("webkit_revision"),
-  "src/chrome/test/data/layout_tests/LayoutTests/fast/filesystem/workers":
-    Var("webkit_trunk") + "/LayoutTests/fast/filesystem/workers@" +
-    Var("webkit_revision"),
   "src/chrome/test/data/layout_tests/LayoutTests/fast/filesystem/resources":
     Var("webkit_trunk") + "/LayoutTests/fast/filesystem/resources@" +
     Var("webkit_revision"),
-  "src/chrome/test/data/layout_tests/LayoutTests/http/tests/filesystem":
-    Var("webkit_trunk") + "/LayoutTests/http/tests/filesystem@" +
+  "src/chrome/test/data/layout_tests/LayoutTests/media":
+    Var("webkit_trunk") + "/LayoutTests/media@" +
     Var("webkit_revision"),
 
   "src/third_party/swig/Lib":
@@ -277,7 +279,7 @@ deps = {
     Var("libvpx_revision"),
 
   "src/third_party/ffmpeg":
-    Var("chromium_url") + "/trunk/deps/third_party/ffmpeg/source@" +
+    Var("chromium_url") + "/trunk/deps/third_party/ffmpeg@" +
     Var("ffmpeg_revision"),
 
   "src/third_party/libjingle/source":
@@ -363,9 +365,6 @@ deps_os = {
 
     "src/third_party/lighttpd":
       Var("chromium_url") + "/trunk/deps/third_party/lighttpd@33727",
-
-    "src/third_party/ffmpeg/binaries/chromium/win/ia32":
-      Var("chromium_url") + "/trunk/deps/third_party/ffmpeg/binaries/win@" + Var("ffmpeg_revision"),
 
     # Chrome Frame related deps
     "src/third_party/xulrunner-sdk":
