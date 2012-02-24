@@ -175,6 +175,10 @@ public class DartSdk {
     return false;
   }
 
+  public boolean isLinux() {
+    return !isMac() && !isWindows();
+  }
+
   protected void initializeSdk() {
     if (!isWindows()) {
       ensureVmIsExecutable();

@@ -54,6 +54,10 @@ public class BrowserManager {
     return manager;
   }
 
+  private StringBuilder stdout;
+
+  private StringBuilder stderr;
+
   private BrowserManager() {
 
   }
@@ -85,13 +89,13 @@ public class BrowserManager {
   protected void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
       String url, IProgressMonitor monitor, boolean enableDebugging) throws CoreException {
 
-    monitor.beginTask("Launching Chromium...", enableDebugging ? 7 : 2);
+    monitor.beginTask("Launching Dartium...", enableDebugging ? 7 : 2);
 
     File dartium = DartSdk.getInstance().getDartiumExecutable();
 
     if (dartium == null) {
       throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          "Could not find Chromium"));
+          "Could not find Dartium"));
     }
 
     IPath browserLocation = new Path(dartium.getAbsolutePath());
@@ -170,8 +174,8 @@ public class BrowserManager {
 
     browserProcesses.put(browserName, runtimeProcess);
 
-    StringBuilder stdout = readFromProcessPipes(browserName, runtimeProcess.getInputStream());
-    StringBuilder stderr = readFromProcessPipes(browserName, runtimeProcess.getErrorStream());
+    stdout = readFromProcessPipes(browserName, runtimeProcess.getInputStream());
+    stderr = readFromProcessPipes(browserName, runtimeProcess.getErrorStream());
 
     sleep(100);
 
@@ -182,7 +186,7 @@ public class BrowserManager {
       DartDebugCorePlugin.logError("Dartium stderr: " + stderr);
 
       throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          "Could not launch browser - process terminated on startup"));
+          "Could not launch browser - process terminated on startup" + getProcessStreamMessage()));
     }
 
     timer.stopTask();
@@ -253,6 +257,8 @@ public class BrowserManager {
 
     arguments.add(browserLocation.toOSString());
 
+    arguments.add("--crash-test");
+
     // Enable remote debug over HTTP on the specified port.
     arguments.add("--remote-debugging-port=" + PORT_NUMBER);
 
@@ -306,7 +312,8 @@ public class BrowserManager {
     while (true) {
       if (isProcessTerminated(runtimeProcess)) {
         throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-            "Could not launch browser - process terminated while trying to connect"));
+            "Could not launch browser - process terminated while trying to connect"
+                + getProcessStreamMessage()));
       }
 
       try {
@@ -326,6 +333,26 @@ public class BrowserManager {
         }
       }
     }
+  }
+
+  private String getProcessStreamMessage() {
+    StringBuilder msg = new StringBuilder();
+    if (stdout.length() != 0) {
+      msg.append("Dartium stdout: ").append(stdout).append("\n");
+    }
+    if (stderr.length() != 0) {
+      msg.append("Dartium stderr: ").append(stderr);
+    }
+    if (DartSdk.getInstance().isLinux()) {
+      msg.append("\nFor information on how to setup your machine to run Dartium visit ");
+      msg.append("http://code.google.com/p/dart/wiki/PreparingYourMachine#Linux");
+    }
+    if (msg.length() != 0) {
+      msg.insert(0, ":\n\n");
+    } else {
+      msg.append(".");
+    }
+    return msg.toString();
   }
 
   /**
@@ -409,5 +436,4 @@ public class BrowserManager {
       sleep(10);
     }
   }
-
 }
