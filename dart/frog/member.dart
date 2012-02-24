@@ -1148,7 +1148,7 @@ class MethodMember extends Member {
       } else if (args.length == 1 && args.values[0].type.isNum) {
         if (name == ':truncdiv' || name == ':mod') {
           world.gen.corejs.useOperator(name);
-          code = '$jsname(${target.code}, ${argsCode[0]})';
+          code = '\$$jsname(${target.code}, ${argsCode[0]})';
         } else {
           var op = TokenKind.rawOperatorFromMethod(name);
           code = '${target.code} $op ${argsCode[0]}';
@@ -1197,7 +1197,7 @@ class MethodMember extends Member {
       world.gen.corejs.useOperator(name);
       // TODO(jimhug): Should be able to use faster path sometimes here!
       return new Value(inferredResult,
-          '$jsname(${target.code}, ${argsCode[0]})', node.span);
+          '\$$jsname(${target.code}, ${argsCode[0]})', node.span);
     }
 
     if (isCallMethod) {
@@ -1214,7 +1214,7 @@ class MethodMember extends Member {
     } else {
       world.gen.corejs.useOperator(name);
       var argsString = argsCode.length == 0 ? '' : ', ${argsCode[0]}';
-      return new Value(returnType, '$jsname(${target.code}${argsString})',
+      return new Value(returnType, '\$$jsname(${target.code}${argsString})',
         node.span);
     }
 
