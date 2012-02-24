@@ -175,7 +175,7 @@ class MemberSet {
     } else {
       if (argsString.length > 0) argsString = ', $argsString';
       world.gen.corejs.useOperator(name);
-      return new Value(returnType, '$jsname(${target.code}$argsString)',
+      return new Value(returnType, '\$$jsname(${target.code}$argsString)',
           target.span);
     }
   }
