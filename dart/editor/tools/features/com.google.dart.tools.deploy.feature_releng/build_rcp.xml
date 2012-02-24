@@ -129,6 +129,7 @@ build system.  The PDE build system has to run under Eclipse.
         </fail>
         <echo message="reading ${default-user.property.file}" />
         <property file="${default-user.property.file}" />
+        <property name="build.osgi.arch" value="${build.eclipse.arch}" />
      </target>
     
     <!--
@@ -145,6 +146,7 @@ build system.  The PDE build system has to run under Eclipse.
         <tstamp>
             <format property="build.year" pattern="yyyy" />
         </tstamp>
+        <echoProperty propertyname="build.osgi.arch"/>
         <echoProperty propertyName="ant.file" />
         <echoProperty propertyName="ant.home" />
         <echoProperty propertyName="ant.version" />
@@ -213,6 +215,16 @@ build system.  The PDE build system has to run under Eclipse.
         <mkdir dir="${build.stage.plugins}" />
         <mkdir dir="${build.stage.features}" />
         <mkdir dir="${build.out}" />
+        <echoProperty propertyname="build.revision" />
+        <echoProperty propertyname="build.builder" />
+        <echoProperty propertyname="build.root" />
+        <echoProperty propertyname="build.out" />
+        <echoProperty propertyname="build.source" />
+        <echoProperty propertyname="build.source.root"/>
+        <echoProperty propertyname="build.out.property.file" />
+        <echoProperty propertyname="build.os" />
+        <echoProperty propertyname="build.dart.sdk.zip" />
+        <echoProperty propertyname="build.local.build" />
     </target>
 
     <!-- - - - - - - - - - - - - - - - - - 

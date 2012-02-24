@@ -188,7 +188,6 @@ def main():
   if not sys.argv:
     print 'Script pathname not known, giving up.'
     return 1
-  os_tmp_dir = {'linux': '/tmp', 'macos': '/tmp', 'win32': r'e:\tmp'}
 
   scriptdir = os.path.abspath(os.path.dirname(sys.argv[0]))
   global aclfile
@@ -205,17 +204,8 @@ def main():
                            'com.google.dart.tools.deploy.feature_releng')
   utils = GetUtils(toolspath)
   buildos = utils.GuessOS()
-  buildroot = os.path.join(os_tmp_dir[buildos], 'dart-editor', 'build_root')
-  print 'buildos        = {0}'.format(buildos)
-  print 'scriptdir      = {0}'.format(scriptdir)
-  print 'editorpath     = {0}'.format(editorpath)
-  print 'thirdpartypath = {0}'.format(thirdpartypath)
-  print 'toolspath      = {0}'.format(toolspath)
-  print 'antpath        = {0}'.format(antpath)
-  print 'bzip2libpath   = {0}'.format(bzip2libpath)
-  print 'buildpath      = {0}'.format(buildpath)
-  print 'buildroot      = {0}'.format(buildroot)
-  print 'dartpath       = {0}'.format(dartpath)
+  buildroot_parent = {'linux': dartpath, 'macos': dartpath, 'win32': r'e:\tmp'}
+  buildroot = os.path.join(buildroot_parent[buildos], 'build_root')
 
   os.chdir(buildpath)
   ant_property_file = None
@@ -223,7 +213,17 @@ def main():
 
   gsutil_test = os.path.join(editorpath, 'build', './gsutilTest.py')
   cmds = [sys.executable, gsutil_test]
-  subprocess.call(cmds)
+  print 'running gsutil tests'
+  sys.stdout.flush()
+  p = subprocess.Popen(cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  (out_stream, err_strteam) = p.communicate()
+  print 'gsutil tests:'
+  print 'stdout:'
+  print str(out_stream)
+  print '*' * 40
+  print 'stderr:'
+  print str(err_strteam)
+  print '*' * 40
 
   try:
     ant_property_file = tempfile.NamedTemporaryFile(suffix='.property',
@@ -259,6 +259,17 @@ def main():
       parser.print_help()
       return 2
 
+    print 'buildos        = {0}'.format(buildos)
+    print 'scriptdir      = {0}'.format(scriptdir)
+    print 'editorpath     = {0}'.format(editorpath)
+    print 'thirdpartypath = {0}'.format(thirdpartypath)
+    print 'toolspath      = {0}'.format(toolspath)
+    print 'antpath        = {0}'.format(antpath)
+    print 'bzip2libpath   = {0}'.format(bzip2libpath)
+    print 'buildpath      = {0}'.format(buildpath)
+    print 'buildroot      = {0}'.format(buildroot)
+    print 'dartpath       = {0}'.format(dartpath)
+    print 'revision(in)   = |{0}|'.format(options.revision)
     #this code handles getting the revision on the developer machine
     #where it can be 123, 123M 123:125M
     print 'revision(in)   = {0}|'.format(options.revision)
@@ -269,8 +280,10 @@ def main():
     index = revision.find(':')
     if index > -1:
       revision = revision[0:index]
-    print 'revision       = {0}|'.format(revision)
-    buildout = os.path.join(buildroot, options.out)
+    print 'revision       = |{0}|'.format(revision)
+    buildout = os.path.abspath(options.out)
+    print 'buildout       = {0}'.format(buildout)
+    
     sys.stdout.flush()
 
     #get user name if it does not start with chrome then deploy
@@ -349,6 +362,8 @@ def main():
     #be expanded later
     sdk_zip = os.path.join(buildroot, 'downloads',
                            'dart-{0}.zip'.format(buildos))
+    if not os.path.exists(os.path.dirname(sdk_zip)):
+      os.makedirs(os.path.dirname(sdk_zip))
     status = ant.RunAnt('.', 'build_rcp.xml', revision, options.name,
                         buildroot, buildout, editorpath, buildos,
                         sdk_zip=sdk_zip, running_on_bot=running_on_buildbot)
@@ -408,6 +423,8 @@ def main():
     if ant_property_file is not None:
       print 'cleaning up temp file {0}'.format(ant_property_file.name)
       os.remove(ant_property_file.name)
+    print 'cleaning up {0}'.format(buildroot)
+    shutil.rmtree(buildroot, True)
     print 'Build Done'
 
 
@@ -899,6 +916,7 @@ def _PrintSeparator(text):
   print tag_line_text.format(text)
   print tag_line_sep
   print tag_line_sep
+  sys.stdout.flush()
 
 
 def _PrintError(text):
@@ -911,7 +929,8 @@ def _PrintError(text):
   print error_text.format(text)
   print error_sep
   print error_sep
-
+  sys.stdout.flush()
+  sys.stderr.flush()
 
 if __name__ == '__main__':
   exit_code = main()

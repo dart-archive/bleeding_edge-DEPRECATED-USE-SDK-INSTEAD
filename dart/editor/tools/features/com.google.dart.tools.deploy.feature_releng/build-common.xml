@@ -25,61 +25,90 @@
           target: setOS
           set the osfamily, isWindows, and notWindows properties
          - - - - - - - - - - - - - - - - - -->
-    <target name="setOS">
+    <target name="setOS" depends="setOSTest,setOSLinux,setOSMac,setOSWin">
+        <echoProperty propertyname="build.local.build" />
+        <echoProperty propertyname="osfamily" />
+        <echoProperty propertyname="build.os.linux" />
+        <echoProperty propertyname="build.os.mac" />
+        <echoProperty propertyname="build.os.win" />
+        <echoProperty propertyname="build.osgi.os" />
+        <echoProperty propertyname="build.osgi.ws" />
+        <echoProperty propertyname="isWindows" />
+        <echoProperty propertyname="isNotWindows" />
+        <echoProperty propertyname="installSdkNotWindows" />
+        <echoProperty propertyname="installSdkWindows" />
+        <!-- fail fast if the os did not get set -->
+        <fail message="os family is not set the build will not work">
+            <condition>
+                <not>
+                    <isset property="osfamily" />
+                </not>
+            </condition>
+        </fail>
+    </target>
+    <target name="setOSTest">
         <property name="build.local.build" value="true" />
-        <condition property="osfamily" value="win32">
+        <condition property="build.os.win" value="win32">
             <os family="windows"/>
         </condition>
-        <condition property="build.eclipse.os.ws" value="win32.win32">
-            <os family="windows"/>
-        </condition>
-        <condition property="osfamily" value="macos">
+        <condition property="build.os.mac" value="mac">
             <os family="mac"/>
         </condition>
-        <condition property="build.eclipse.os.ws" value="macosx.cocoa">
-            <os family="mac"/>
+        <condition property="build.os.linux" value="linux2">
+            <!-- macos is a linux OS only set if macos is not set -->
+            <and>
+                <os family="unix"/>
+                <not>
+                    <isset property="build.os.mac" />
+                </not>
+            </and>
         </condition>
-        <condition property="osfamily" value="linux">
-            <os family="unix"/>
-        </condition>
-        <condition property="build.eclipse.os.ws" value="linux.gtk">
-            <os family="unix"/>
+    </target>
+    <target name="setOSWin" if="build.os.win">
+        <echo message="setup win" />
+        <property name="build.eclipse.os.ws" value="win32.win32" />
+        <property name="osfamily" value="win32" />
+        <property name="build.osgi.os" value="win32" />
+        <property name="build.osgi.ws" value="win32" />
+        <condition property="installSdkWindows">
+            <istrue value="${build.local.build}" />
         </condition>
         <condition property="isWindows">
-            <and>
-                <os family="windows"/>
-                <!-- TODO (mrrusell) this can be removed once the build is only running on OS specific builds -->
-                <isset property="build.os" />
-            </and>
+            <!-- TODO (mrrusell) this can be turned into a property  once the
+                  build is only running on OS specific builds -->
+            <isset property="build.os" />
+        </condition>
+    </target>
+    <target name="setOSMac" if="build.os.mac">
+        <echo message="setup mac" />
+        <property name="build.eclipse.os.ws" value="macosx.cocoa" />
+        <property name="osfamily" value="macos" />
+        <property name="build.osgi.os" value="macos" />
+        <property name="build.osgi.ws" value="cocoa" />
+        <condition property="installSdkNotWindows">
+            <istrue value="${build.local.build}" />
         </condition>
         <condition property="isNotWindows">
-            <and>
-                <not>
-                    <os family="windows"/>
-                </not>
-                <!-- TODO (mrrussell) this can be removed once the build is only running on OS specific builds -->
-                <isset property="build.os" />
-            </and>
+            <!-- TODO (mrrusell) this can be turned into a property  once the
+                  build is only running on OS specific builds -->
+            <isset property="build.os" />
         </condition>
-        <condition property="installSdkWindows">
-            <and>
-                <isset property="isWindows" />
-                <istrue value="${build.local.build}" />
-            </and>
-        </condition>
-        <condition property="installSdkNotWindows">
-            <and>
-                <isset property="isNotWindows" />
-                <istrue value="${build.local.build}" />
-            </and>
-        </condition>
-        <echo message="build.local.build    = ${build.local.build}" />
-        <echo message="isWindows            = ${isWindows}" />
-        <echo message="isNotWindows         = ${isNotWindows}" />
-        <echo message="installSdkNotWindows = ${installSdkNotWindows}" />
-        <echo message="installSdkWindows    = ${installSdkWindows}" />
     </target>
-    
+    <target name="setOSLinux" if="build.os.linux">
+        <echo message="setup linux" />
+        <property name="build.eclipse.os.ws" value="linux.gtk" />
+        <property name="osfamily" value="linux" />
+        <property name="build.osgi.os" value="linux" />
+        <property name="build.osgi.ws" value="gtk" />
+        <condition property="installSdkNotWindows">
+            <istrue value="${build.local.build}" />
+        </condition>
+        <condition property="isNotWindows">
+            <!-- TODO (mrrusell) this can be turned into a property  once the
+                  build is only running on OS specific builds -->
+            <isset property="build.os" />
+        </condition>
+    </target>
 
     <!--
     ********************************************************************************
@@ -404,6 +433,9 @@
                 <arg value="-Dbuild.tmp=${build.tmp}" />
                 <arg value="-Dbuild.target=${build.target}" />
                 <arg value="-Dbuild.stage=${build.stage}" />
+                <arg value="-Dbuild.osgi.os=${build.osgi.os}" />
+                <arg value="-Dbuild.osgi.ws=${build.osgi.ws}" />
+                <arg value="-Dbuild.osgi.arch=${build.osgi.arch}" />
                 <arg value="-verbose" />
                 <arg value="-noinput" />
                 <arg value="-vmargs" />
