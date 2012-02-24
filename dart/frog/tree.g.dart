@@ -485,8 +485,9 @@ class Identifier extends Node {
 class DeclaredIdentifier extends Expression {
   TypeReference type;
   Identifier name;
+  bool isFinal;
 
-  DeclaredIdentifier(this.type, this.name, SourceSpan span): super(span) {}
+  DeclaredIdentifier(this.type, this.name, this.isFinal, SourceSpan span): super(span) {}
 
   visit(TreeVisitor visitor) => visitor.visitDeclaredIdentifier(this);
 }
@@ -925,6 +926,7 @@ class TreePrinter implements TreeVisitor {
     output.heading('DeclaredIdentifier', node.span);
     output.writeNode('type', node.type);
     output.writeNode('name', node.name);
+    output.writeValue('isFinal', node.isFinal);
   }
 
 }

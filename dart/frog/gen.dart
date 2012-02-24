@@ -1574,7 +1574,7 @@ class MethodGenerator implements TreeVisitor, CallingContext {
 
   void _visitForInBody(ForInStatement node, Type itemType, Value list) {
     // TODO(jimhug): Check that itemType matches list members...
-    bool isFinal = _isFinal(node.item.type);
+    bool isFinal = node.item.isFinal;
     var itemName = node.item.name.name;
     var item = _scope.create(itemName, itemType, node.item.name.span, isFinal);
     if (list.needsTemp) {

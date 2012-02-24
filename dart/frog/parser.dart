@@ -461,7 +461,7 @@ class Parser {
       _error('unsupported qualified name for factory', names[0].span);
     }
     type = new NameTypeReference(false, names[0], null, names[0].span);
-    var di = new DeclaredIdentifier(type, name, _makeSpan(start));
+    var di = new DeclaredIdentifier(type, name, false, _makeSpan(start));
     return finishDefinition(start, [factoryToken], di);
   }
 
@@ -651,7 +651,7 @@ class Parser {
         var typeArgs = [_makeType(init.y)];
         var gt = _finishTypeArguments(baseType, 0, typeArgs);
         var name = identifier();
-        init = new DeclaredIdentifier(gt, name, _makeSpan(init.span.start));
+        init = new DeclaredIdentifier(gt, name, false, _makeSpan(init.span.start));
       }
 
       if (_maybeEat(TokenKind.IN)) {
@@ -845,7 +845,7 @@ class Parser {
   _finishDeclaredId(type) {
     var name = identifier();
     return finishPostfixExpression(
-      new DeclaredIdentifier(type, name, _makeSpan(type.span.start)));
+      new DeclaredIdentifier(type, name, false, _makeSpan(type.span.start)));
   }
 
   /**
@@ -1019,7 +1019,7 @@ class Parser {
         if (_peekIdentifier()) {
           return finishPostfixExpression(
             new DeclaredIdentifier(_makeType(expr), identifier(),
-              _makeSpan(expr.span.start)));
+              false, _makeSpan(expr.span.start)));
         } else {
           return expr;
         }
@@ -1322,6 +1322,7 @@ class Parser {
     int start = _peekToken.start;
     var myType = null;
     var name = _specialIdentifier(includeOperators);
+    bool isFinal = false;
     if (name == null) {
       myType = type();
       name = _specialIdentifier(includeOperators);
@@ -1330,13 +1331,14 @@ class Parser {
           name = identifier();
         } else if (myType is NameTypeReference && myType.names == null) {
           name = _typeAsIdentifier(myType);
+          isFinal = myType.isFinal;
           myType = null;
         } else {
           // TODO(jimhug): Where do these errors get handled?
         }
       }
     }
-    return new DeclaredIdentifier(myType, name, _makeSpan(start));
+    return new DeclaredIdentifier(myType, name, isFinal, _makeSpan(start));
   }
 
   finishNewExpression(int start, bool isConst) {
@@ -1674,12 +1676,12 @@ class Parser {
   /** Converts an expression to a [DeclaredIdentifier]. */
   _makeDeclaredIdentifier(e) {
     if (e is VarExpression) {
-      return new DeclaredIdentifier(null, e.name, e.span);
+      return new DeclaredIdentifier(null, e.name, false, e.span);
     } else if (e is DeclaredIdentifier) {
       return e;
     } else {
       _error('expected declared identifier');
-      return new DeclaredIdentifier(null, null, e.span);
+      return new DeclaredIdentifier(null, null, false, e.span);
     }
   }
 

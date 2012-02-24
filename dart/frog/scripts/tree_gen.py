@@ -209,7 +209,8 @@ nodes = [
   Node('Identifier!', 'String name'),
 
   # Pseudo Expression for cover grammar approach
-  Expression('DeclaredIdentifier!', 'TypeReference type, Identifier name'),
+  Expression('DeclaredIdentifier!',
+             'TypeReference type, Identifier name, bool isFinal'),
 ]
 
 def main():
