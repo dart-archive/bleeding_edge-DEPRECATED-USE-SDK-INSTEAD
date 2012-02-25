@@ -35,10 +35,6 @@ public class DartCoreDebug {
 
   public static final boolean TRACE_ARTIFACT_PROVIDER = isOptionTrue("trace/artifactProvider");
 
-  public static final boolean PROJECTS_VIEW = isOptionTrue("experimental/projectsview");
-
-  public static final boolean FILES_VIEW = isOptionTrue("experimental/filesview");
-
   public static final boolean FROG = isOptionTrue("debug/frog");
 
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
@@ -48,6 +44,16 @@ public class DartCoreDebug {
   // Performance measurement and reporting options.
 
   public static final boolean PERF_INDEX = isOptionTrue("perf/index");
+
+  // Experimental functionality options.
+
+  public static final boolean FILES_VIEW = isOptionTrue("experimental/filesview");
+
+  public static final boolean NEW_INDEXER = isOptionTrue("experimental/newIndexer");
+
+  public static final boolean PROJECTS_VIEW = isOptionTrue("experimental/projectsview");
+
+  // Compilation options.
 
   public static Collection<String> getLibrariesEmbedded() {
     List<String> result = new ArrayList<String>();
