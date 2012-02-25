@@ -257,8 +257,6 @@ public class BrowserManager {
 
     arguments.add(browserLocation.toOSString());
 
-    arguments.add("--crash-test");
-
     // Enable remote debug over HTTP on the specified port.
     arguments.add("--remote-debugging-port=" + PORT_NUMBER);
 
