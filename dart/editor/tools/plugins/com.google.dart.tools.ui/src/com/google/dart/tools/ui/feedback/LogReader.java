@@ -26,7 +26,7 @@ import java.io.UnsupportedEncodingException;
 /**
  * A utility for reading eclipse platform logs.
  */
-public class LogReader {
+class LogReader {
 
   private static class TailInputStream extends InputStream {
 
@@ -84,18 +84,6 @@ public class LogReader {
   private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
   /**
-   * Tail the contents of the log into a String up to {@link #MAX_FILE_LENGTH} characters long.
-   * 
-   * @return the log contents
-   * @throws UnsupportedEncodingException
-   * @throws IOException
-   */
-  public static String readLog() throws UnsupportedEncodingException, IOException {
-    File file = Platform.getLogFileLocation().toFile();
-    return scrub(toString(new TailInputStream(file, MAX_FILE_LENGTH), "UTF-8"));//$NON-NLS-1$
-  }
-
-  /**
    * Tail the contents of the log into a String up to {@link #MAX_FILE_LENGTH} characters long. If
    * an exception occurs in reading the log it is consumed, logged (if possible), and an error
    * string is returned.
@@ -104,10 +92,31 @@ public class LogReader {
    */
   public static String readLogSafely() {
     try {
-      return LogReader.readLog();
+      File logFile = getLogFile();
+
+      if (logFile.exists()) {
+        return LogReader.readLog(logFile);
+      } else {
+        return "<no log file available>";
+      }
     } catch (Exception e) {
-      return "log unavailable: " + e.getMessage(); //$NON-NLS-1$
+      return "error reading log file: " + e.getMessage(); //$NON-NLS-1$
     }
+  }
+
+  private static File getLogFile() {
+    return Platform.getLogFileLocation().toFile();
+  }
+
+  /**
+   * Tail the contents of the log into a String up to {@link #MAX_FILE_LENGTH} characters long.
+   * 
+   * @return the log contents
+   * @throws UnsupportedEncodingException
+   * @throws IOException
+   */
+  private static String readLog(File file) throws UnsupportedEncodingException, IOException {
+    return scrub(toString(new TailInputStream(file, MAX_FILE_LENGTH), "UTF-8")); //$NON-NLS-1$
   }
 
   /**
