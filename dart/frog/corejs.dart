@@ -214,14 +214,14 @@ class CoreJs {
 
 /** Snippet for `$ne`. */
 final String _NE_FUNCTION = @"""
-function $$ne(x, y) {
+function $ne$(x, y) {
   if (x == null) return y != null;
   return (typeof(x) != 'object') ? x !== y : !x.$eq(y);
 }""";
 
 /** Snippet for `$eq`. */
 final String _EQ_FUNCTION = @"""
-function $$eq(x, y) {
+function $eq$(x, y) {
   if (x == null) return y == null;
   return (typeof(x) != 'object') ? x === y : x.$eq(y);
 }
@@ -232,7 +232,7 @@ $defProp(Object.prototype, '$eq', function(other) {
 
 /** Snippet for `$bit_not`. */
 final String _BIT_NOT_FUNCTION = @"""
-function $$bit_not(x) {
+function $bit_not$(x) {
   if (typeof(x) == 'number') return ~x;
   if (typeof(x) == 'object') return  x.$bit_not();
   $throw(new NoSuchMethodException(x, "operator ~", []));
@@ -240,7 +240,7 @@ function $$bit_not(x) {
 
 /** Snippet for `$negate`. */
 final String _NEGATE_FUNCTION = @"""
-function $$negate(x) {
+function $negate$(x) {
   if (typeof(x) == 'number') return -x;
   if (typeof(x) == 'object') return x.$negate();
   $throw(new NoSuchMethodException(x, "operator negate", []));
@@ -248,7 +248,7 @@ function $$negate(x) {
 
 /** Snippet for `$add`. This relies on JS's string "+" to match Dart's. */
 final String _ADD_FUNCTION = @"""
-function $$add$complex(x, y) {
+function $add$complex$(x, y) {
   if (typeof(x) == 'number') {
     $throw(new IllegalArgumentException(y));
   } else if (typeof(x) == 'string') {
@@ -265,14 +265,14 @@ function $$add$complex(x, y) {
   }
 }
 
-function $$add(x, y) {
+function $add$(x, y) {
   if (typeof(x) == 'number' && typeof(y) == 'number') return x + y;
-  return $$add$complex(x, y);
+  return $add$complex$(x, y);
 }""";
 
 /** Snippet for `$truncdiv`. This uses `$throw`. */
 final String _TRUNCDIV_FUNCTION = @"""
-function $$truncdiv(x, y) {
+function $truncdiv$(x, y) {
   if (typeof(x) == 'number') {
     if (typeof(y) == 'number') {
       if (y == 0) $throw(new IntegerDivisionByZeroException());
@@ -290,7 +290,7 @@ function $$truncdiv(x, y) {
 
 /** Snippet for `$mod`. */
 final String _MOD_FUNCTION = @"""
-function $$mod(x, y) {
+function $mod$(x, y) {
   if (typeof(x) == 'number') {
     if (typeof(y) == 'number') {
       var result = x % y;
@@ -317,7 +317,7 @@ function $$mod(x, y) {
 /** Code snippet for all other operators. */
 String _otherOperator(String jsname, String op) {
   return """
-function \$$jsname\$complex(x, y) {
+function $jsname\$complex\$(x, y) {
   if (typeof(x) == 'number') {
     \$throw(new IllegalArgumentException(y));
   } else if (typeof(x) == 'object') {
@@ -326,9 +326,9 @@ function \$$jsname\$complex(x, y) {
     \$throw(new NoSuchMethodException(x, "operator $op", [y]));
   }
 }
-function \$$jsname(x, y) {
+function $jsname\$(x, y) {
   if (typeof(x) == 'number' && typeof(y) == 'number') return x $op y;
-  return \$$jsname\$complex(x, y);
+  return $jsname\$complex\$(x, y);
 }""";
 }
 
