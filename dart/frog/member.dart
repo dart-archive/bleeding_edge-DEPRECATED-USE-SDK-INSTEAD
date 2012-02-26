@@ -90,7 +90,7 @@ class Member extends Element {
   Member(String name, Type declaringType)
       : this.declaringType = declaringType,
         super(name, declaringType) {
-    if (_jsname != null && declaringType.isTop) {
+    if (_jsname != null && declaringType != null && declaringType.isTop) {
       _jsname = JsNames.getValid(_jsname);
     }
   }
