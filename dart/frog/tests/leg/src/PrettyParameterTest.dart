@@ -74,7 +74,8 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(BAR, 'bar');
-  regexp = const RegExp(@"function\(\$eval, \$\$eval\) {");
+  regexp = const RegExp(@"function\(eval\$, \$\$eval\) {");
+  print(generated);
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(PARAMETER_AND_TEMP, 'bar');

@@ -173,7 +173,8 @@ class JsNames {
    */
   static String getValid(String name) {
     if (reserved.contains(name)) {
-      return getValid('\$$name');
+      name = '$name\$';
+      assert(!reserved.contains(name));
     } else if (name.contains(@'$')) {
       name = name.replaceAll(@'$', @'$$');
     }
