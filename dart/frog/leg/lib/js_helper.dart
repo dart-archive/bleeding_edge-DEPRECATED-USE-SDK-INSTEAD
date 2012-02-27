@@ -242,6 +242,7 @@ indexSet(var a, var index, var value) {
     if (index < 0 || index >= a.length) {
       throw new IndexOutOfRangeException(index);
     }
+    checkMutable(a, 'indexed set');
     return JS("Object", @"$0[$1] = $2", a, index, value);
   }
   checkNull(a);
@@ -249,9 +250,16 @@ indexSet(var a, var index, var value) {
   return value;
 }
 
+checkMutable(list, reason) {
+  if (JS('bool', @'!!($0.immutable$list)', list)) {
+    throw new UnsupportedOperationException(reason);
+  }
+}
+
 builtin$add$1(var receiver, var value) {
   checkNull(receiver);
   if (isJsArray(receiver)) {
+    checkGrowable(receiver, 'add');
     JS("Object", @"$0.push($1)", receiver, value);
     return;
   }
@@ -261,6 +269,7 @@ builtin$add$1(var receiver, var value) {
 builtin$removeLast$0(var receiver) {
   checkNull(receiver);
   if (isJsArray(receiver)) {
+    checkGrowable(receiver, 'removeLast');
     if (receiver.length === 0) throw new IndexOutOfRangeException(-1);
     return JS("Object", @"$0.pop()", receiver);
   }
@@ -291,11 +300,18 @@ builtin$set$length(receiver, newLength) {
     checkNull(newLength); // TODO(ahe): This is not specified but co19 tests it.
     if (newLength is !int) throw new IllegalArgumentException(newLength);
     if (newLength < 0) throw new IndexOutOfRangeException(newLength);
+    checkGrowable(receiver, 'set length');
     JS('void', @"$0.length = $1", receiver, newLength);
   } else {
     UNINTERCEPTED(receiver.length = newLength);
   }
   return newLength;
+}
+
+checkGrowable(list, reason) {
+  if (JS('bool', @'!!($0.fixed$length)', list)) {
+    throw new UnsupportedOperationException(reason);
+  }
 }
 
 builtin$toString$0(var value) {
@@ -378,11 +394,13 @@ class Primitives {
   }
 
   static List newList(length) {
-    if (length == null) return JS("Object", @"new Array()");
+    if (length === null) return JS("Object", @"new Array()");
     if ((length is !int) || (length < 0)) {
       throw new IllegalArgumentException(length);
     }
-    return JS("Object", @"new Array($0)", length);
+    var result = JS("Object", @"new Array($0)", length);
+    JS('void', @'$0.fixed$length = $1', result, true);
+    return result;
   }
 
   static num dateNow() => JS("num", @"Date.now()");
@@ -572,6 +590,7 @@ builtin$addLast$1(receiver, value) {
   checkNull(receiver);
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addLast(value));
 
+  checkGrowable(receiver, 'addLast');
   JS("Object", @"$0.push($1)", receiver, value);
 }
 
@@ -727,6 +746,7 @@ builtin$removeRange$2(receiver, start, length) {
   if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.removeRange(start, length));
   }
+  checkGrowable(receiver, 'removeRange');
   if (length == 0) {
     return;
   }
@@ -764,6 +784,7 @@ builtin$setRange$4(receiver, start, length, from, startFrom) {
     return UNINTERCEPTED(receiver.setRange(start, length, from, startFrom));
   }
 
+  checkMutable(receiver, 'indexed set');
   if (length === 0) return;
   checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
   checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
@@ -1195,4 +1216,10 @@ builtin$charCodes$0(receiver) {
     result[i] = receiver.charCodeAt(i);
   }
   return result;
+}
+
+makeLiteralListConst(list) {
+  JS('bool', @'$0.immutable$list = $1', list, true);
+  JS('bool', @'$0.fixed$length = $1', list, true);
+  return list;
 }

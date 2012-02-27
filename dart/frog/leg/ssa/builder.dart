@@ -1930,7 +1930,7 @@ class SsaBuilder implements Visitor {
       visit(link.head);
       inputs.add(pop());
     }
-    push(new HLiteralList(inputs));
+    push(new HLiteralList(inputs, node.isConst()));
   }
 
   visitConditional(Conditional node) {

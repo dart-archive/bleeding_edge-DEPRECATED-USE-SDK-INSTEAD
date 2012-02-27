@@ -113,14 +113,18 @@ class CompileTimeConstantHandler extends CompilerTask {
 
   compileListLiteral(Node node, List arguments) {
     StringBuffer buffer = new StringBuffer();
+    buffer.add(compiler.namer.ISOLATE);
+    buffer.add(".prototype.makeConstantList");
+    buffer.add("([");
     for (int i = 0; i < arguments.length; i++) {
       if (i != 0) buffer.add(", ");
       // TODO(floitsch): canonicalize if the constant is in the
       // [compiledConstant] set.
       writeJsCode(buffer, arguments[i]);
     }
+    buffer.add("])");
     // TODO(floitsch): do we have to register 'List' as instantiated class?
-    String array = "[$buffer]";
+    String array = buffer.toString();
     Constant constant = new Constant(array);
     registerCompileTimeConstant(constant);
     return constant;

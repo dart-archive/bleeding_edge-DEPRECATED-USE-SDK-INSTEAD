@@ -526,12 +526,23 @@ $prototype.toString = function() {
     CompileTimeConstantHandler handler = compiler.compileTimeConstantHandler;
     List<Constant> constants = handler.getConstantsForEmission();
     String prototype = "${namer.ISOLATE}.prototype";
+    emitMakeConstantList(prototype, buffer);
     for (Constant constant in constants) {
       String name = handler.getNameForConstant(constant);
       buffer.add('$prototype.$name = ');
       handler.writeJsCode(buffer, constant);
       buffer.add(';\n');
     }
+  }
+
+  void emitMakeConstantList(String prototype, StringBuffer buffer) {
+    buffer.add(prototype);
+    buffer.add(@'''.makeConstantList = function(list) {
+  list.immutable$list = true;
+  list.fixed$length = true;
+  return list;
+};
+''');
   }
 
   void emitStaticFinalFieldInitializations(StringBuffer buffer) {
