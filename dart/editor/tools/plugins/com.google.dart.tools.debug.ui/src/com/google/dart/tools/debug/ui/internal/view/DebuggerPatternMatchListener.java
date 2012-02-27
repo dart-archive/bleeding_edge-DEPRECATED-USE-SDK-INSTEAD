@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,18 +14,20 @@
 
 package com.google.dart.tools.debug.ui.internal.view;
 
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.DartUI;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.debug.ui.console.FileLink;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.ui.console.IPatternMatchListener;
 import org.eclipse.ui.console.PatternMatchEvent;
 import org.eclipse.ui.console.TextConsole;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -67,9 +69,11 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
 
       if (resource instanceof IFile) {
         return (IFile) resource;
-      } else {
-        return null;
       }
+
+      IPath path = new Path(filePath);
+
+      return ResourceUtil.getResource(path.toFile());
     }
 
     public int getLine() {
@@ -135,15 +139,10 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     }
   }
 
-  private IFile getIFileForAbsolutePath(String path) {
-    IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(
-        new File(path).toURI());
+  private IFile getIFileForAbsolutePath(String pathStr) {
+    IPath path = new Path(pathStr);
 
-    if (files.length > 0) {
-      return files[0];
-    } else {
-      return null;
-    }
+    return ResourceUtil.getResource(path.toFile());
   }
 
   private Location parseMatch(String match) {
