@@ -185,6 +185,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     connection.getConsole().addConsoleListener(outputStreamMonitor);
     connection.getConsole().enable();
 
+    // TODO(devoncarew): testing css support
+    //connection.getPage().enable();
+    connection.getCSS().enable();
+
     connection.getDebugger().addDebuggerListener(new DebuggerListenerAdapter() {
       @Override
       public void debuggerBreakpointResolved(WebkitBreakpoint breakpoint) {

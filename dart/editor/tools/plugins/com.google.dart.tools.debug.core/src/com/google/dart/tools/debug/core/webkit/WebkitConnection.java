@@ -92,6 +92,7 @@ public class WebkitConnection {
   private WebkitDebugger debugger;
   private WebkitPage page;
   private WebkitRuntime runtime;
+  private WebkitCSS css;
 
   private int requestId = 0;
 
@@ -160,6 +161,14 @@ public class WebkitConnection {
     }
 
     return console;
+  }
+
+  public WebkitCSS getCSS() {
+    if (css == null) {
+      css = new WebkitCSS(this);
+    }
+
+    return css;
   }
 
   public WebkitDebugger getDebugger() {
@@ -253,7 +262,7 @@ public class WebkitConnection {
     // Two notifications we receive but don't do anything with:
     //   "Profiler.resetProfiles", "CSS.mediaQueryResultChanged"
 
-    final String[] ignoreDomains = {"Profiler.", "CSS."};
+    final String[] ignoreDomains = {"Profiler."}; //, "CSS."};
 
     if (object.has("method")) {
       String method = object.getString("method");
