@@ -21,15 +21,15 @@
 		</builder>
 	</extension>
 
-	<extension
-			point="org.eclipse.core.contenttype.contentTypes">
-		<content-type
-				id="dartSourceFile"
-				name="%dart.contentType.sourceFile.name"
-				base-type="org.eclipse.core.runtime.text"
-				priority="high"
-				file-extensions="dart"/>
-	</extension>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            id="com.google.dart.tools.core.dartSourceFile"
+            name="%dart.contentType.sourceFile.name"
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="dart"
+            default-charset="UTF-8"/>
+   </extension>
 
 	<extension
 			point="org.eclipse.team.core.fileTypes">
