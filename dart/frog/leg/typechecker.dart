@@ -111,7 +111,7 @@ class Types {
   /** Returns true if t is a subtype of s */
   bool isSubtype(Type t, Type s) {
     if (t === s || t === dynamicType || s === dynamicType ||
-        s.name === OBJECT) return true;
+        s.name == OBJECT) return true;
     if (t is SimpleType) {
       if (s is !SimpleType) return false;
       ClassElement tc = t.element;
