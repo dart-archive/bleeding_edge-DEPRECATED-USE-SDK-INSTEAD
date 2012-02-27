@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -25,6 +25,7 @@ import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.indexer.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.dom.visitor.SafeDartNodeTraverser;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaImpl;
@@ -234,6 +235,14 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
   @Override
   public void delete(IProgressMonitor monitor) throws DartModelException {
+    if (DartCoreDebug.ANALYSIS_SERVER) {
+      if (libraryFile != null) {
+        IPath location = libraryFile.getLocation();
+        if (location != null) {
+          SystemLibraryManagerProvider.getDefaultAnalysisServer().discardLibrary(location.toFile());
+        }
+      }
+    }
     DartProject project = getDartProject();
     project.close();
     try {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,6 +19,7 @@ import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.directoryset.DirectorySetManager;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.operation.BatchOperation;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
@@ -756,6 +757,9 @@ public class DartCore extends Plugin {
   @Override
   public void stop(BundleContext context) throws Exception {
     try {
+      if (DartCoreDebug.ANALYSIS_SERVER) {
+        SystemLibraryManagerProvider.stop();
+      }
       DartModelManager.shutdown();
       RootArtifactProvider.shutdown();
       FrogManager.shutdown();

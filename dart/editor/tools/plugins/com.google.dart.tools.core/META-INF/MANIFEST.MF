@@ -15,6 +15,7 @@ Require-Bundle: com.google.dart.compiler.js,
  org.eclipse.ltk.core.refactoring;bundle-version="3.5.0",
  org.eclipse.text;bundle-version="3.5.0"
 Export-Package: com.google.dart.tools.core,
+ com.google.dart.tools.core.analysis,
  com.google.dart.tools.core.buffer,
  com.google.dart.tools.core.completion,
  com.google.dart.tools.core.dom,

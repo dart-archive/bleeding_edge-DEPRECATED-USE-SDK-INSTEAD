@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.Extensions;
 
 import org.eclipse.core.resources.IProject;
@@ -74,6 +75,12 @@ public class DartBuilder extends IncrementalProjectBuilder {
   @SuppressWarnings("rawtypes")
   @Override
   protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
+
+    // Use AnalysisServer instead
+    if (DartCoreDebug.ANALYSIS_SERVER) {
+      return new IProject[] {};
+    }
+
     boolean compileWithFrog = DartCore.getPlugin().getCompileWithFrog();
 
     // TODO(keertip) : remove call to dartc if frog is being used, once indexer is independent

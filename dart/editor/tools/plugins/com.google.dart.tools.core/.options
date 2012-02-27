@@ -14,6 +14,7 @@ com.google.dart.tools.core/debug/metrics = false
 com.google.dart.tools.core/debug/warmup = false
 com.google.dart.tools.core/debug/verbose = false
 
+com.google.dart.tools.core/experimental/analysis/server = false
 com.google.dart.tools.core/experimental/filesview = false
 com.google.dart.tools.core/experimental/newIndexer = false
 com.google.dart.tools.core/experimental/projectsview = false
