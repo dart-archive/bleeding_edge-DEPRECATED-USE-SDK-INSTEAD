@@ -71,7 +71,7 @@ public class OpenLibraryHelper extends NativeDialogHelper {
       // Press Enter and wait for the operation to complete
       typeChar(SWT.CR);
       waitForNativeShellClosed();
-      lib.logFullCompileTime();
+      lib.logFullAnalysisTime();
       String title = lib.dartFile.getName();
       Performance.OPEN_LIB.log(bot, waitForEditorWithTitle(title), lib.name);
       lib.editor = editorWithTitle(bot, title);

@@ -14,6 +14,8 @@
 package com.google.dart.tools.ui.swtbot.performance;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.ui.swtbot.conditions.AnalysisCompleteCondition;
 
 import static com.google.dart.tools.ui.swtbot.util.FormattedStringBuilder.appendLong;
 import static com.google.dart.tools.ui.swtbot.util.FormattedStringBuilder.appendText;
@@ -36,14 +38,20 @@ public class Performance {
   public static class Metric {
     public final String name;
     public final long threshold;
+    public final boolean printIndividualResults;
     private int resultCount = 0;
     private long resultHigh = 0;
     private long resultLow = 0;
     private long resultTotal = 0;
 
     Metric(String name, long threshold) {
+      this(name, threshold, true);
+    }
+
+    Metric(String name, long threshold, boolean printWhileLogging) {
       this.name = name;
       this.threshold = threshold;
+      this.printIndividualResults = printWhileLogging;
     }
 
     /**
@@ -53,7 +61,9 @@ public class Performance {
      */
     public void log(long start, String... comments) {
       Result result = new Result(this, start, comments);
-      result.print(0);
+      if (printIndividualResults) {
+        result.print(0);
+      }
       synchronized (allResults) {
         allResults.add(result);
         resultCount++;
@@ -149,7 +159,7 @@ public class Performance {
     public void printAverage() {
       long resultAverage = resultTotal / resultCount;
       StringBuilder line = new StringBuilder();
-      appendLong(line, resultCount, 3);
+      appendLong(line, resultCount, 5);
       line.append(' ');
       appendText(line, name, 20);
       appendLong(line, threshold, NUM_COL_WIDTH);
@@ -209,8 +219,7 @@ public class Performance {
   }
 
   public static final Metric ANALYZE = new Metric("Analyze", 200);
-  public static final Metric BUILD_FULL = new Metric("Build (Full)", 3000);
-  public static final Metric BUILD_INCREMENTAL = new Metric("Build (Inc)", 500);
+  public static final Metric ANALYZE_FULL = new Metric("Analyze (Full)", 3000);
   public static final Metric CODE_COMPLETION = new Metric("Code Completion", 200);
   public static final Metric COMPILE = new Metric("Compile", 1000);
   public static final Metric COMPILER_PARSE = new Metric("Compiler Parse", 10);
@@ -218,6 +227,8 @@ public class Performance {
   public static final Metric LAUNCH_APP = new Metric("Launch App", 3000);
   public static final Metric NEW_APP = new Metric("New App", 300);
   public static final Metric OPEN_LIB = new Metric("Open Library", 300);
+  public static final Metric PARSE = new Metric("Parse", 10, false);
+  public static final Metric RESOLVE = new Metric("Resolve", 100, false);
 
   private static final List<Result> allResults = new ArrayList<Performance.Result>(20);
   private static int pending = 0;
@@ -267,11 +278,14 @@ public class Performance {
       }
     }
     for (int i = 0; i < allResults.size(); i++) {
-      allResults.get(i).print(depth[i]);
+      Result result = allResults.get(i);
+      if (result.metric.printIndividualResults) {
+        result.print(depth[i]);
+      }
     }
     System.out.println();
-    System.out.println("#   Metric              Expected     Average    High       Low");
-    System.out.println("=== =================== ========== = ========== ========== ==========");
+    System.out.println("#     Metric              Expected     Average    High       Low");
+    System.out.println("===== =================== ========== = ========== ========== ==========");
     for (Metric metric : getMetricsWithResults()) {
       metric.printAverage();
     }
@@ -281,6 +295,15 @@ public class Performance {
    * Wait for any timed background operations to complete
    */
   public static void waitForResults(SWTWorkbenchBot bot) {
+
+    // Wait for the AnalysisServer to complete its background tasks
+
+    if (DartCoreDebug.ANALYSIS_SERVER) {
+      bot.waitUntil(new AnalysisCompleteCondition(), DEFAULT_TIMEOUT_MS);
+    }
+
+    // Wait for any pending operations
+
     int timeout;
     synchronized (allResults) {
       if (pending < 1) {

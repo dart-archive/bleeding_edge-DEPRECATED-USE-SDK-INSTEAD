@@ -64,7 +64,7 @@ public class NewApplicationHelper {
 
     // Press Enter and wait for the operation to complete
     shell.pressShortcut(Keystrokes.LF);
-    lib.logFullCompileTime();
+    lib.logFullAnalysisTime();
     EditorWithTitle matcher = new EditorWithTitle(lib.dartFile.getName());
     Performance.NEW_APP.log(bot, waitForEditor(matcher), appName);
     lib.editor = bot.editor(matcher).toTextEditor();

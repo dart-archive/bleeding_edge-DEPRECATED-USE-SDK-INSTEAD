@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
+import com.google.dart.tools.ui.swtbot.conditions.AnalysisCompleteCondition;
 import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
 import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
@@ -26,6 +28,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
+import org.eclipse.swtbot.swt.finder.waits.ICondition;
 
 import static org.junit.Assert.fail;
 
@@ -184,16 +187,10 @@ public class DartLib {
   /**
    * Wait then log the time for the JS file to be generated, without blocking the current thread.
    */
-  public void logFullCompileTime(String... comments) {
-    Performance.BUILD_FULL.logInBackground(new BuildLibCondition(this), prepend(name, comments));
-  }
-
-  /**
-   * Wait then log the time for the JS file to be generated, without blocking the current thread.
-   */
-  public void logIncrementalCompileTime(String... comments) {
-    Performance.BUILD_INCREMENTAL.logInBackground(new BuildLibCondition(this),
-        prepend(name, comments));
+  public void logFullAnalysisTime(String... comments) {
+    ICondition condition = DartCoreDebug.ANALYSIS_SERVER ? new AnalysisCompleteCondition()
+        : new BuildLibCondition(this);
+    Performance.ANALYZE_FULL.logInBackground(condition, prepend(name, comments));
   }
 
   /**

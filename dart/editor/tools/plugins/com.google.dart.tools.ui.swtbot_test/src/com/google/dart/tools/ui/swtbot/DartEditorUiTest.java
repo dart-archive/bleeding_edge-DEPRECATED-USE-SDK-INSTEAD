@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.samples.SamplesTest;
 import com.google.dart.tools.ui.swtbot.app.NewSimpleApp;
+import com.google.dart.tools.ui.swtbot.conditions.AnalysisCompleteCondition;
 import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
 import com.google.dart.tools.ui.swtbot.conditions.CompilerWarmedUp;
 import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
@@ -48,7 +50,11 @@ public class DartEditorUiTest {
     // TODO (danrubel) hook launching LogTimer for launching performance measurements
     bot = new SWTWorkbenchBot();
     CompilerWarmedUp.waitUntilWarmedUp(bot);
-    BuildLibCondition.startListening();
+    if (DartCoreDebug.ANALYSIS_SERVER) {
+      AnalysisCompleteCondition.startListening();
+    } else {
+      BuildLibCondition.startListening();
+    }
     DartLib.buildSamples();
   }
 

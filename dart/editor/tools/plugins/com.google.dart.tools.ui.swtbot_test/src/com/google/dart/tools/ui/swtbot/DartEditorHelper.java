@@ -115,7 +115,7 @@ public class DartEditorHelper {
    */
   public void save(String... comments) {
     editor.save();
-    app.logIncrementalCompileTime(comments);
+    app.logFullAnalysisTime(comments);
   }
 
   /**
