@@ -369,6 +369,10 @@ class InitializerResolver {
     }
 
     if (validTarget) {
+      // Resolve the arguments, and make sure the call gets a selector
+      // by calling handleArguments.
+      visitor.inStaticContext( () => visitor.handleArguments(call) );
+      // Lookup constructor and try to match it to the selector.
       ResolverTask resolver = visitor.compiler.resolver;
       result = resolver.lookupConstructor(lookupTarget, call);
       if (result === null) {
@@ -380,18 +384,13 @@ class InitializerResolver {
         error(call, MessageKind.CANNOT_RESOLVE_CONSTRUCTOR, [name]);
       } else {
         final Compiler compiler = visitor.compiler;
+        Selector selector = visitor.mapping.getSelector(call);
         // TODO(karlklose): support optional arguments.
-        if (result.parameterCount(compiler) != call.argumentCount()) {
+        if (!selector.applies(compiler, result)) {
           error(call, MessageKind.NO_MATCHING_CONSTRUCTOR);
         }
       }
       visitor.useElement(call, result);
-    }
-    // Resolve the arguments of the call.
-    for (Link<Node> arguments = call.arguments;
-         !arguments.isEmpty();
-         arguments = arguments.tail) {
-      visitor.visitInStaticContext(arguments.head);
     }
     return result;
   }
@@ -555,11 +554,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return result;
   }
 
-  visitInStaticContext(Node node) {
+  inStaticContext(action()) {
     bool wasInstanceContext = inInstanceContext;
     inInstanceContext = false;
-    visit(node);
+    action();
     inInstanceContext = wasInstanceContext;
+  }
+
+  visitInStaticContext(Node node) {
+    inStaticContext(() => visit(node));
   }
 
   visitIdentifier(Identifier node) {

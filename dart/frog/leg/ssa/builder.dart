@@ -707,25 +707,6 @@ class SsaBuilder implements Visitor {
   }
 
   /**
-   * Call [f] for every argument and parameter element of [target]
-   * that is used in the invocation [send].
-   */
-  forEachArgument(Send send, FunctionElement target,
-                  f(VariableElement parameter, Node argument)) {
-    final FunctionParameters parameters = target.computeParameters(compiler);
-    Link<Element> parameterElements = parameters.requiredParameters;
-    for (Link<Node> arguments = send.arguments;
-         !arguments.isEmpty();
-         arguments = arguments.tail) {
-      if (parameterElements.isEmpty()) {
-        parameterElements = parameters.optionalParameters;
-      }
-      f(parameterElements.head, arguments.head);
-      parameterElements = parameterElements.tail;
-    };
-  }
-
-  /**
    * Run through the initializers and inline all field initializers. Returns the
    * next constructor to analyze.
    */
@@ -742,10 +723,13 @@ class SsaBuilder implements Visitor {
         nextConstructor = elements[call];
         // Visit arguments and map the corresponding parameter value to
         // the resulting HInstruction value.
-        forEachArgument(call, nextConstructor, (parameter, node) {
-          visit(node);
-          HInstruction value = pop();
-          localsHandler.updateLocal(parameter, value);
+        List<HInstruction> arguments = new List<HInstruction>();
+        addStaticSendArgumentsToList(call, nextConstructor, arguments);
+        int index = 0;
+        FunctionParameters parameters =
+            nextConstructor.computeParameters(compiler);
+        parameters.forEachParameter((parameter) {
+          localsHandler.updateLocal(parameter, arguments[index++]);
         });
       } else {
         // A field initializer.
