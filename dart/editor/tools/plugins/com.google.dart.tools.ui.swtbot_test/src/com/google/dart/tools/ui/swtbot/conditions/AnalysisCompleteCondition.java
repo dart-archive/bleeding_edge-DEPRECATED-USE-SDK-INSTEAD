@@ -51,12 +51,12 @@ public class AnalysisCompleteCondition implements ICondition {
 
           @Override
           public void parsed(AnalysisEvent event) {
-            Performance.PARSE.log(event.getStartTime());
+            //Performance.PARSE.log(event.getStartTime());
           }
 
           @Override
           public void resolved(AnalysisEvent event) {
-            Performance.RESOLVE.log(event.getStartTime());
+            //Performance.RESOLVE.log(event.getStartTime());
           }
         });
   }
