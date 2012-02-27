@@ -18,4 +18,4 @@ REM Canonicalize the direction of the slashes.
 set script=%*
 set script=%script:\=/%
 
-python "%SCRIPTPATH%\frog" --no_colors "%script%"
+python %SCRIPTPATH%\frog %script%
