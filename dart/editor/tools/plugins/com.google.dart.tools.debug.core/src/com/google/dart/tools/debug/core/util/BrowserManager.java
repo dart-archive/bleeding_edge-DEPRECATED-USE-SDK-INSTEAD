@@ -261,7 +261,7 @@ public class BrowserManager {
     arguments.add("--remote-debugging-port=" + PORT_NUMBER);
 
     // In order to start up multiple Chrome processes, we need to specify a different user dir.
-    arguments.add("--user-data-dir=" + getUserDataDirectoryPath());
+    arguments.add("--user-data-dir=" + getCreateUserDataDirectoryPath());
 
     //arguments.add("--disable-breakpad");
 
@@ -333,6 +333,35 @@ public class BrowserManager {
     }
   }
 
+  /**
+   * Create a Chrome user data directory, and return the path to that directory.
+   * 
+   * @return the user data directory path
+   */
+  private String getCreateUserDataDirectoryPath() {
+    String dataDirPath = System.getProperty("user.home") + File.separator + ".dartChromeSettings";
+
+    File dataDir = new File(dataDirPath);
+
+    if (!dataDir.exists()) {
+      dataDir.mkdir();
+    } else {
+      // Remove the "<dataDir>/Default/Current Tabs" file if it exists - it can cause old tabs to
+      // restore themselves when we launch the browser.
+      File defaultDir = new File(dataDir, "Default");
+
+      if (defaultDir.exists()) {
+        File tabInfoFile = new File(defaultDir, "Current Tabs");
+
+        if (tabInfoFile.exists()) {
+          tabInfoFile.delete();
+        }
+      }
+    }
+
+    return dataDirPath;
+  }
+
   private String getProcessStreamMessage() {
     StringBuilder msg = new StringBuilder();
     if (stdout.length() != 0) {
@@ -351,23 +380,6 @@ public class BrowserManager {
       msg.append(".");
     }
     return msg.toString();
-  }
-
-  /**
-   * Create a Chrome user data directory, and return the path to that directory.
-   * 
-   * @return the user data directory path
-   */
-  private String getUserDataDirectoryPath() {
-    String dataDirPath = System.getProperty("user.home") + File.separator + ".dartChromeSettings";
-
-    File dataDir = new File(dataDirPath);
-
-    if (!dataDir.exists()) {
-      dataDir.mkdir();
-    }
-
-    return dataDirPath;
   }
 
   private boolean isProcessTerminated(Process process) {
