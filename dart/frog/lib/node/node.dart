@@ -15,7 +15,7 @@
 var createSandbox() native
   """return {'require': require, 'process': process, 'console': console,
       'Buffer' : Buffer,
-      'setTimeout\$': setTimeout, 'clearTimeout': clearTimeout};""";
+      'setTimeout\$': this.setTimeout, 'clearTimeout': clearTimeout};""";
 
 typedef void RequestListener(ServerRequest request, ServerResponse response);
 
