@@ -177,15 +177,7 @@ class CoreJs {
         _SETINDEX_OPERATORS : _CHECKED_SETINDEX_OPERATORS);
     }
 
-    if (useIsolates) {
-      if (useWrap0) {
-        w.writeln(_WRAP_CALL0_FUNCTION);
-      }
-      if (useWrap1) {
-        w.writeln(_WRAP_CALL1_FUNCTION);
-      }
-      w.writeln(_ISOLATE_INIT_CODE);
-    } else {
+    if (!useIsolates) {
       if (useWrap0) {
         w.writeln(_EMPTY_WRAP_CALL0_FUNCTION);
       }
@@ -537,50 +529,13 @@ $defProp(Array.prototype, '$setindex', function(index, value) {
   return this[i] = value;
 });""";
 
-/** Snippet for `$wrap_call$0`. */
-final String _WRAP_CALL0_FUNCTION = @"""
-// Wrap a 0-arg dom-callback to bind it with the current isolate:
-function $wrap_call$0(fn) { return fn && fn.wrap$call$0(); }
-Function.prototype.wrap$call$0 = function() {
-  var isolateContext = $globalState.currentContext;
-  var self = this;
-  this.wrap$0 = function() {
-    isolateContext.eval(self);
-    $globalState.topEventLoop.run();
-  };
-  this.wrap$call$0 = function() { return this.wrap$0; };
-  return this.wrap$0;
-}""";
-
 /** Snippet for `$wrap_call$0`, in case it was not necessary. */
 final String _EMPTY_WRAP_CALL0_FUNCTION =
     @"function $wrap_call$0(fn) { return fn; }";
 
-/** Snippet for `$wrap_call$1`. */
-final String _WRAP_CALL1_FUNCTION = @"""
-// Wrap a 1-arg dom-callback to bind it with the current isolate:
-function $wrap_call$1(fn) { return fn && fn.wrap$call$1(); }
-Function.prototype.wrap$call$1 = function() {
-  var isolateContext = $globalState.currentContext;
-  var self = this;
-  this.wrap$1 = function(arg) {
-    isolateContext.eval(function() { self(arg); });
-    $globalState.topEventLoop.run();
-  };
-  this.wrap$call$1 = function() { return this.wrap$1; };
-  return this.wrap$1;
-}""";
-
 /** Snippet for `$wrap_call$1`, in case it was not necessary. */
 final String _EMPTY_WRAP_CALL1_FUNCTION =
     @"function $wrap_call$1(fn) { return fn; }";
-
-/** Snippet that initializes the isolates state. */
-final String _ISOLATE_INIT_CODE = @"""
-var $globalThis = this;
-var $globals = null;
-var $globalState = null;""";
-
 
 /** Snippet that initializes Function.prototype.bind. */
 final String _BIND_CODE = @"""

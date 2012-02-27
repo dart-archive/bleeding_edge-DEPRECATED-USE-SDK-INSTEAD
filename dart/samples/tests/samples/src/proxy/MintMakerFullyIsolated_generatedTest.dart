@@ -4,6 +4,7 @@
 
 // IsolateStubs=MintMakerFullyIsolatedTest.dart:Mint,Purse,PowerfulPurse
 #library("MintMakerFullyIsolatedTest_generatedTest");
+#import("dart:isolate");
 #import("../../../../proxy/promise.dart");
 #import("../../../../../tests/isolate/src/TestFramework.dart");
 

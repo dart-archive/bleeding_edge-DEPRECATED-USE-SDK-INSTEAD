@@ -24,9 +24,6 @@
 #source("arrays.dart");
 #source("date_implementation.dart");
 
-#source("isolate.dart");
-#source("isolate_serialization.dart");
-
 #source("function_implementation.dart");
 
 /**

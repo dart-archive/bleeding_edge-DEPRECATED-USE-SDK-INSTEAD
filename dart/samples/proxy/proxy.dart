@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("proxy");
+#import("dart:isolate");
 
 /**
  * Base class for all RpcProxy's

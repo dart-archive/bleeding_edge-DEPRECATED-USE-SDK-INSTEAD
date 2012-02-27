@@ -4,6 +4,7 @@
 
 #library('dartcombatlib');
 
+#import('dart:isolate');
 #import('dart:html');
 
 #source('setup.dart');

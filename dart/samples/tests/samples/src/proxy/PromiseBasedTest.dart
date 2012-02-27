@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("PromiseBasedTest");
+#import("dart:isolate");
 #import("../../../../proxy/promise.dart");
 #import("../../../../../tests/isolate/src/TestFramework.dart");
 

@@ -10,6 +10,7 @@
 
 #library("chat_server_test.dart");
 #import("dart:json");
+#import("dart:isolate");
 #import("../../../../chat/http.dart");
 #import("../../../../chat/chat_server_lib.dart");
 

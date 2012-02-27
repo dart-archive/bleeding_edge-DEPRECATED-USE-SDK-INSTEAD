@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("MintMakerPromiseTest");
+#import("dart:isolate");
 #import("../../../../proxy/promise.dart");
 
 interface Mint default MintImpl {

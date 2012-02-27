@@ -1727,7 +1727,6 @@ StringImplementation.prototype.compareTo = function(other) {
 StringImplementation.prototype.contains$1 = StringImplementation.prototype.contains;
 StringImplementation.prototype.indexOf$1 = StringImplementation.prototype.indexOf;
 StringImplementation.prototype.substring$1 = StringImplementation.prototype.substring;
-// ********** Code for _Worker **************
 // ********** Code for _ArgumentMismatchException **************
 $inherits(_ArgumentMismatchException, ClosureArgumentMismatchException);
 function _ArgumentMismatchException(_message) {
@@ -3119,16 +3118,7 @@ CoreJs.prototype.generate = function(w) {
     this.ensureDefProp();
     w.writeln($globals.options.disableBoundsChecks ? "$defProp(Object.prototype, '$setindex', function(i, value) {\n  $throw(new NoSuchMethodException(this, \"operator []=\", [i, value]));\n});\n$defProp(Array.prototype, '$setindex',\n    function(i, value) { return this[i] = value; });" : "$defProp(Object.prototype, '$setindex', function(i, value) {\n  $throw(new NoSuchMethodException(this, \"operator []=\", [i, value]));\n});\n$defProp(Array.prototype, '$setindex', function(index, value) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i] = value;\n});");
   }
-  if (this.useIsolates) {
-    if (this.useWrap0) {
-      w.writeln("// Wrap a 0-arg dom-callback to bind it with the current isolate:\nfunction $wrap_call$0(fn) { return fn && fn.wrap$call$0(); }\nFunction.prototype.wrap$call$0 = function() {\n  var isolateContext = $globalState.currentContext;\n  var self = this;\n  this.wrap$0 = function() {\n    isolateContext.eval(self);\n    $globalState.topEventLoop.run();\n  };\n  this.wrap$call$0 = function() { return this.wrap$0; };\n  return this.wrap$0;\n}");
-    }
-    if (this.useWrap1) {
-      w.writeln("// Wrap a 1-arg dom-callback to bind it with the current isolate:\nfunction $wrap_call$1(fn) { return fn && fn.wrap$call$1(); }\nFunction.prototype.wrap$call$1 = function() {\n  var isolateContext = $globalState.currentContext;\n  var self = this;\n  this.wrap$1 = function(arg) {\n    isolateContext.eval(function() { self(arg); });\n    $globalState.topEventLoop.run();\n  };\n  this.wrap$call$1 = function() { return this.wrap$1; };\n  return this.wrap$1;\n}");
-    }
-    w.writeln("var $globalThis = this;\nvar $globals = null;\nvar $globalState = null;");
-  }
-  else {
+  if (!this.useIsolates) {
     if (this.useWrap0) {
       w.writeln("function $wrap_call$0(fn) { return fn; }");
     }
@@ -3334,15 +3324,10 @@ WorldGenerator.prototype.run = function() {
       this.markTypeUsed($globals.world.corelib.types.$index("IllegalArgumentException"));
     }
   }
-  if ($globals.world.corelib.types.$index("Isolate").get$isUsed() || $globals.world.coreimpl.types.$index("ReceivePortImpl").get$isUsed()) {
-    if (this.corejs.useWrap0 || this.corejs.useWrap1) {
-      this.genMethod($globals.world.coreimpl.types.$index("IsolateContext").getMember("eval"));
-      this.genMethod($globals.world.coreimpl.types.$index("EventLoop").getMember("run"));
-    }
+  if ($globals.world.isolatelib != null) {
     this.corejs.useIsolates = true;
-    var isolateMain = $globals.world.coreimpl.lookup("startRootIsolate", this.main.get$span());
-    var isolateMainTarget = new TypeValue($globals.world.coreimpl.topType, this.main.get$span());
-    mainCall = isolateMain.invoke(this.mainContext, null, isolateMainTarget, new Arguments(null, [this.main._get(this.mainContext, this.main.definition, null)]));
+    var isolateMain = $globals.world.isolatelib.lookup("startRootIsolate", this.main.get$span());
+    mainCall = isolateMain.invoke(this.mainContext, null, new TypeValue($globals.world.isolatelib.topType, this.main.get$span()), new Arguments(null, [this.main._get(this.mainContext, this.main.definition, null)]));
   }
   this.writeTypes($globals.world.coreimpl);
   this.writeTypes($globals.world.corelib);
@@ -14184,6 +14169,9 @@ World.prototype.getOrAddLibrary = function(filename) {
     if (filename == "dart:dom") {
       this.dom = library;
     }
+    else if (filename == "dart:isolate") {
+      this.isolatelib = library;
+    }
   }
   return library;
 }
@@ -14499,10 +14487,10 @@ function FrogOptions(homedir, args, files) {
 // ********** Code for LibraryReader **************
 function LibraryReader() {
   if ($eq$($globals.options.config, "dev")) {
-    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "corelib.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "corelib_impl.dart"), "dart:html", joinPaths($globals.options.libDir, "../../client/html/release/html.dart"), "dart:htmlimpl", joinPaths($globals.options.libDir, "../../client/html/release/htmlimpl.dart"), "dart:dom", joinPaths($globals.options.libDir, "../../client/dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "../../lib/json/json_frog.dart")]);
+    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "corelib.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "corelib_impl.dart"), "dart:html", joinPaths($globals.options.libDir, "../../client/html/release/html.dart"), "dart:htmlimpl", joinPaths($globals.options.libDir, "../../client/html/release/htmlimpl.dart"), "dart:dom", joinPaths($globals.options.libDir, "../../client/dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "../../lib/json/json_frog.dart"), "dart:isolate", joinPaths($globals.options.libDir, "../../lib/isolate/isolate_frog.dart")]);
   }
   else if ($eq$($globals.options.config, "sdk")) {
-    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "core/core_frog.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "coreimpl/coreimpl_frog.dart"), "dart:html", joinPaths($globals.options.libDir, "html/html.dart"), "dart:htmlimpl", joinPaths($globals.options.libDir, "htmlimpl/htmlimpl.dart"), "dart:dom", joinPaths($globals.options.libDir, "dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "json/json_frog.dart")]);
+    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "core/core_frog.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "coreimpl/coreimpl_frog.dart"), "dart:html", joinPaths($globals.options.libDir, "html/html.dart"), "dart:htmlimpl", joinPaths($globals.options.libDir, "htmlimpl/htmlimpl.dart"), "dart:dom", joinPaths($globals.options.libDir, "dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "json/json_frog.dart"), "dart:isolate", joinPaths($globals.options.libDir, "isolate/isolate_frog.dart")]);
   }
   else {
     $globals.world.error(("Invalid configuration " + $globals.options.config));

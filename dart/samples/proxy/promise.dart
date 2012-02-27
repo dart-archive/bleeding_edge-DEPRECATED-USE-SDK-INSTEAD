@@ -4,6 +4,7 @@
 
 /** A library to illustrate pipelining. */
 #library("promise");
+#import("dart:isolate");
 
 /** A promise to value of type [T] that may be computed asynchronously. */
 // TODO(sigmund,benl): remove Promise<T> use Future<T> instead.

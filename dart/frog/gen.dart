@@ -89,21 +89,13 @@ class WorldGenerator {
       }
     }
 
-    // Only include isolate-specific code if isolates are used.
-    if (world.corelib.types['Isolate'].isUsed
-        || world.coreimpl.types['ReceivePortImpl'].isUsed) {
-
-      // Generate callbacks from JS to isolate code if needed
-      if (corejs.useWrap0 || corejs.useWrap1) {
-        genMethod(world.coreimpl.types['IsolateContext'].getMember('eval'));
-        genMethod(world.coreimpl.types['EventLoop'].getMember('run'));
-      }
-
+    // Only wrap the app as an isolate if the isolate library was imported.
+    if (world.isolatelib != null) {
       corejs.useIsolates = true;
       MethodMember isolateMain =
-        world.coreimpl.lookup('startRootIsolate', main.span);
-      var isolateMainTarget = new TypeValue(world.coreimpl.topType, main.span);
-      mainCall = isolateMain.invoke(mainContext, null, isolateMainTarget,
+        world.isolatelib.lookup('startRootIsolate', main.span);
+      mainCall = isolateMain.invoke(mainContext, null,
+          new TypeValue(world.isolatelib.topType, main.span),
           new Arguments(null, [main._get(mainContext, main.definition, null)]));
     }
 

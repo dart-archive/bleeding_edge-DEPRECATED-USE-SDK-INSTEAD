@@ -5,6 +5,7 @@
 // IsolateStubs=MintMakerPromiseWithStubsTest.dart:Mint,Purse
 
 #library("MintMakerPromiseWithStubsTest-generatedTest");
+#import("dart:isolate");
 #import("../../../../proxy/promise.dart");
 #import("../../../../../tests/isolate/src/TestFramework.dart");
 

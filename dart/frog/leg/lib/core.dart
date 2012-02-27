@@ -20,7 +20,6 @@
 #source('../../../corelib/src/future.dart');
 #source('../../../corelib/src/hashable.dart');
 #source('../../../corelib/src/int.dart');
-#source('../../../corelib/src/isolate.dart');
 #source('../../../corelib/src/iterable.dart');
 #source('../../../corelib/src/iterator.dart');
 #source('../../../corelib/src/list.dart');

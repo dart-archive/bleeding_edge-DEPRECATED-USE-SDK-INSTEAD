@@ -20,6 +20,8 @@ class LibraryReader {
         'dart:dom': joinPaths(options.libDir,
             '../../client/dom/frog/dom_frog.dart'),
         'dart:json': joinPaths(options.libDir, '../../lib/json/json_frog.dart'),
+        'dart:isolate': joinPaths(options.libDir,
+            '../../lib/isolate/isolate_frog.dart'),
       };
     } else if (options.config == 'sdk') {
       _specialLibs = {
@@ -30,6 +32,7 @@ class LibraryReader {
         'dart:htmlimpl': joinPaths(options.libDir, 'htmlimpl/htmlimpl.dart'),
         'dart:dom': joinPaths(options.libDir, 'dom/frog/dom_frog.dart'),
         'dart:json': joinPaths(options.libDir, 'json/json_frog.dart'),
+        'dart:isolate': joinPaths(options.libDir, 'isolate/isolate_frog.dart'),
       };
     } else {
       world.error('Invalid configuration ${options.config}');

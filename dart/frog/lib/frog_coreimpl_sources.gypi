@@ -9,8 +9,6 @@
     'corelib_impl.dart',
     'date_implementation.dart',
     'function_implementation.dart',
-    'isolate.dart',
-    'isolate_serialization.dart',
     'math.dart',
     'num.dart',
     'string_base.dart',

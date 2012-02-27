@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("mintmakerrpctest");
-
+#import("dart:isolate");
 #import("../../../../proxy/proxy.dart");
 
 /***

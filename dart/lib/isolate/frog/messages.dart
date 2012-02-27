@@ -2,16 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Abstract visitor for dart objects that can be passed as messages between any
- * isolates.
- */
-class MessageTraverser {
-  static bool isPrimitive(x) {
-    return (x === null) || (x is String) || (x is num) || (x is bool);
-  }
+// Defines message visitors, serialization, and deserialization.
 
-  MessageTraverser();
+/** Serialize [message] (or simulate serialization). */
+_serializeMessage(message) {
+  if (globalState.needSerialization) {
+    return new _Serializer().traverse(message);
+  } else {
+    return new _Copier().traverse(message);
+  }
+}
+
+/** Deserialize [message] (or simulate deserialization). */
+_deserializeMessage(message) {
+  if (globalState.needSerialization) {
+    return new _Deserializer().deserialize(message);
+  } else {
+    // Nothing more to do.
+    return message;
+  }
+}
+
+/** Abstract visitor for dart objects that can be sent as isolate messages. */
+class _MessageTraverser {
+
+  List _taggedObjects;
+
+  _MessageTraverser();
 
   /** Visitor's entry point. */
   traverse(var x) {
@@ -50,11 +67,11 @@ class MessageTraverser {
     if (isPrimitive(x)) return visitPrimitive(x);
     if (x is List) return visitList(x);
     if (x is Map) return visitMap(x);
-    if (x is NativeJsSendPort) return visitNativeJsSendPort(x);
-    if (x is WorkerSendPort) return visitWorkerSendPort(x);
-    if (x is BufferingSendPort) return visitBufferingSendPort(x);
-    if (x is ReceivePortImpl) return visitReceivePort(x);
-    if (x is ReceivePortSingleShotImpl) return visitReceivePortSingleShot(x);
+    if (x is _NativeJsSendPort) return visitNativeJsSendPort(x);
+    if (x is _WorkerSendPort) return visitWorkerSendPort(x);
+    if (x is _BufferingSendPort) return visitBufferingSendPort(x);
+    if (x is _ReceivePortImpl) return visitReceivePort(x);
+    if (x is _ReceivePortSingleShotImpl) return visitReceivePortSingleShot(x);
     // TODO(floitsch): make this a real exception. (which one)?
     throw "Message serialization: Illegal value $x passed";
   }
@@ -62,13 +79,11 @@ class MessageTraverser {
   abstract visitPrimitive(x);
   abstract visitList(List x);
   abstract visitMap(Map x);
-  abstract visitNativeJsSendPort(NativeJsSendPort x);
-  abstract visitWorkerSendPort(WorkerSendPort x);
-  abstract visitBufferingSendPort(BufferingSendPort x);
-  abstract visitReceivePort(ReceivePortImpl x);
-  abstract visitReceivePortSingleShot(ReceivePortSingleShotImpl x);
-
-  List _taggedObjects;
+  abstract visitNativeJsSendPort(_NativeJsSendPort x);
+  abstract visitWorkerSendPort(_WorkerSendPort x);
+  abstract visitBufferingSendPort(_BufferingSendPort x);
+  abstract visitReceivePort(_ReceivePortImpl x);
+  abstract visitReceivePortSingleShot(_ReceivePortSingleShotImpl x);
 
   _clearAttachedInfo(var o) native
       "o['__MessageTraverser__attached_info__'] = (void 0);";
@@ -80,15 +95,20 @@ class MessageTraverser {
       "return o['__MessageTraverser__attached_info__'];";
 
   _visitNativeOrWorkerPort(SendPort p) {
-    if (p is NativeJsSendPort) return visitNativeJsSendPort(p);
-    if (p is WorkerSendPort) return visitWorkerSendPort(p);
+    if (p is _NativeJsSendPort) return visitNativeJsSendPort(p);
+    if (p is _WorkerSendPort) return visitWorkerSendPort(p);
     throw "Illegal underlying port $p";
+  }
+
+  static bool isPrimitive(x) {
+    return (x === null) || (x is String) || (x is num) || (x is bool);
   }
 }
 
+
 /** A visitor that recursively copies a message. */
-class Copier extends MessageTraverser {
-  Copier() : super();
+class _Copier extends _MessageTraverser {
+  _Copier() : super();
 
   visitPrimitive(x) => x;
 
@@ -120,16 +140,16 @@ class Copier extends MessageTraverser {
     return copy;
   }
 
-  SendPort visitNativeJsSendPort(NativeJsSendPort port) {
-    return new NativeJsSendPort(port._receivePort, port._isolateId);
+  SendPort visitNativeJsSendPort(_NativeJsSendPort port) {
+    return new _NativeJsSendPort(port._receivePort, port._isolateId);
   }
 
-  SendPort visitWorkerSendPort(WorkerSendPort port) {
-    return new WorkerSendPort(
+  SendPort visitWorkerSendPort(_WorkerSendPort port) {
+    return new _WorkerSendPort(
         port._workerId, port._isolateId, port._receivePortId);
   }
 
-  SendPort visitBufferingSendPort(BufferingSendPort port) {
+  SendPort visitBufferingSendPort(_BufferingSendPort port) {
     if (port._port != null) {
       return _visitNativeOrWorkerPort(port._port);
     } else {
@@ -139,18 +159,20 @@ class Copier extends MessageTraverser {
     }
   }
 
-  SendPort visitReceivePort(ReceivePortImpl port) {
+  SendPort visitReceivePort(_ReceivePortImpl port) {
     return port.toSendPort();
   }
 
-  SendPort visitReceivePortSingleShot(ReceivePortSingleShotImpl port) {
+  SendPort visitReceivePortSingleShot(_ReceivePortSingleShotImpl port) {
     return port.toSendPort();
   }
 }
 
 /** Visitor that serializes a message as a JSON array. */
-class Serializer extends MessageTraverser {
-  Serializer() : super();
+class _Serializer extends _MessageTraverser {
+  int _nextFreeRefId = 0;
+
+  _Serializer() : super();
 
   visitPrimitive(x) => x;
 
@@ -177,16 +199,16 @@ class Serializer extends MessageTraverser {
     return ['map', id, keys, values];
   }
 
-  visitNativeJsSendPort(NativeJsSendPort port) {
-    return ['sendport', _globalState.currentWorkerId,
+  visitNativeJsSendPort(_NativeJsSendPort port) {
+    return ['sendport', globalState.currentWorkerId,
         port._isolateId, port._receivePort._id];
   }
 
-  visitWorkerSendPort(WorkerSendPort port) {
+  visitWorkerSendPort(_WorkerSendPort port) {
     return ['sendport', port._workerId, port._isolateId, port._receivePortId];
   }
 
-  visitBufferingSendPort(BufferingSendPort port) {
+  visitBufferingSendPort(_BufferingSendPort port) {
     if (port._port != null) {
       return _visitNativeOrWorkerPort(port._port);
     } else {
@@ -196,11 +218,11 @@ class Serializer extends MessageTraverser {
     }
   }
 
-  visitReceivePort(ReceivePortImpl port) {
+  visitReceivePort(_ReceivePortImpl port) {
     return visitNativeJsSendPort(port.toSendPort());;
   }
 
-  visitReceivePortSingleShot(ReceivePortSingleShotImpl port) {
+  visitReceivePortSingleShot(_ReceivePortSingleShotImpl port) {
     return visitNativeJsSendPort(port.toSendPort());
   }
 
@@ -212,51 +234,13 @@ class Serializer extends MessageTraverser {
     }
     return result;
   }
-
-  int _nextFreeRefId = 0;
 }
 
-/** Visitor that finds all unresolved [SendPort]s in a message. */
-class PendingSendPortFinder extends MessageTraverser {
-  List<Future<SendPort>> ports;
-  PendingSendPortFinder() : super(), ports = [];
+/** Deserializes arrays created with [_Serializer]. */
+class _Deserializer {
+  Map<int, Dynamic> _deserialized;
 
-  visitPrimitive(x) {}
-  visitNativeJsSendPort(NativeJsSendPort port) {}
-  visitWorkerSendPort(WorkerSendPort port) {}
-  visitReceivePort(ReceivePortImpl port) {}
-  visitReceivePortSingleShot(ReceivePortSingleShotImpl port) {}
-
-  visitList(List list) {
-    final visited = _getInfo(list);
-    if (visited !== null) return;
-    _attachInfo(list, true);
-    // TODO(sigmund): replace with the following: (bug #1660)
-    // list.forEach(_dispatch);
-    list.forEach((e) => _dispatch(e));
-  }
-
-  visitMap(Map map) {
-    final visited = _getInfo(map);
-    if (visited !== null) return;
-
-    _attachInfo(map, true);
-    // TODO(sigmund): replace with the following: (bug #1660)
-    // map.getValues().forEach(_dispatch);
-    map.getValues().forEach((e) => _dispatch(e));
-  }
-
-  visitBufferingSendPort(BufferingSendPort port) {
-    if (port._port == null) {
-      ports.add(port._futurePort);
-    }
-  }
-}
-
-
-/** Deserializes arrays created with [Serializer]. */
-class Deserializer {
-  Deserializer();
+  _Deserializer();
 
   static bool isPrimitive(x) {
     return (x === null) || (x is String) || (x is num) || (x is bool);
@@ -323,15 +307,28 @@ class Deserializer {
     int receivePortId = x[3];
     // If two isolates are in the same worker, we use NativeJsSendPorts to
     // deliver messages directly without using postMessage.
-    if (workerId == _globalState.currentWorkerId) {
-      var isolate = _globalState.isolates[isolateId];
+    if (workerId == globalState.currentWorkerId) {
+      var isolate = globalState.isolates[isolateId];
       if (isolate == null) return null; // Isolate has been closed.
       var receivePort = isolate.lookup(receivePortId);
-      return new NativeJsSendPort(receivePort, isolateId);
+      return new _NativeJsSendPort(receivePort, isolateId);
     } else {
-      return new WorkerSendPort(workerId, isolateId, receivePortId);
+      return new _WorkerSendPort(workerId, isolateId, receivePortId);
     }
   }
+}
 
-  Map<int, Dynamic> _deserialized;
+// only visible for testing purposes
+// TODO(sigmund): remove once we can disable privacy for testing (bug #1882)
+class TestingOnly {
+  static copy(x) {
+    return new _Copier().traverse(x);
+  }
+
+  // only visible for testing purposes
+  static serialize(x) {
+    _Serializer serializer = new _Serializer();
+    _Deserializer deserializer = new _Deserializer();
+    return deserializer.deserialize(serializer.traverse(x));
+  }
 }

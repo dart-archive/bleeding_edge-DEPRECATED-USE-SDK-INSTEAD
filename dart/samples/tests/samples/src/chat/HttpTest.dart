@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("http_test.dart");
+#import("dart:isolate");
 #import("../../../../chat/http.dart");
 #import("../../../../chat/chat_server_lib.dart");
 
