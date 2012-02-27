@@ -14,6 +14,7 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 import com.google.dart.tools.debug.ui.launch.DartRunAction;
 import com.google.dart.tools.debug.ui.launch.ManageLaunchesAction;
 import com.google.dart.tools.ui.DartUI;
@@ -726,6 +727,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         IConsoleConstants.ID_CONSOLE_VIEW);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
+    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DebuggerView.ID);
+    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+
     if (DartCoreDebug.PROJECTS_VIEW) {
       viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_FILE_EXPLORER);
       menu.add(new AccessibleShowViewAction(window, viewDesc, false));
@@ -739,6 +743,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_PROBLEMS);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+
   }
 
   /**

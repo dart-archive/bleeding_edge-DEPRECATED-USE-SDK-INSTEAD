@@ -20,6 +20,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui.console
 Export-Package: com.google.dart.tools.debug.ui.internal.dartium;x-friends:="com.google.dart.tools.deploy",
  com.google.dart.tools.debug.ui.internal.util;x-friends:="com.google.dart.tools.deploy",
+ com.google.dart.tools.debug.ui.internal.view;x-friends:="com.google.dart.tools.deploy",
  com.google.dart.tools.debug.ui.launch;x-friends:="com.google.dart.tools.deploy"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

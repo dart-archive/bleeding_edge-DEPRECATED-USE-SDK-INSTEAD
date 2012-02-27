@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -27,11 +27,12 @@ import org.eclipse.ui.progress.IProgressConstants;
  */
 public class DartPerspective implements IPerspectiveFactory {
 
-  //private static final String DEBUGGER_VIEW_ID = "com.google.dart.tools.debug.debuggerView"; //$NON-NLS-1$
+  private static final String DEBUGGER_VIEW_ID = "com.google.dart.tools.debug.debuggerView"; //$NON-NLS-1$
   private static final String METRICS_VIEW_ID = "com.google.dart.tools.ui.internal.metricsView"; //$NON-NLS-1$
 
   private static final String BR = "bottomRight"; //$NON-NLS-1$
   private static final String TL = "topLeft"; //$NON-NLS-1$
+  private static final String TR = "topRight"; //$NON-NLS-1$
   private static final String OUTLINE_FOLDER = "outlineFolder"; //$NON-NLS-1$
 
 //  private static final String BL = "bottomLeft"; //$NON-NLS-1$
@@ -76,7 +77,11 @@ public class DartPerspective implements IPerspectiveFactory {
     outputfolder.addView(IConsoleConstants.ID_CONSOLE_VIEW);
     outputfolder.addPlaceholder(IPageLayout.ID_TASK_LIST);
     outputfolder.addPlaceholder(IProgressConstants.PROGRESS_VIEW_ID);
-    //outputfolder.addPlaceholder(DEBUGGER_VIEW_ID);
+
+    // Top right: Debugger View
+    IPlaceholderFolderLayout debuggerFolder = layout.createPlaceholderFolder(TR, IPageLayout.RIGHT,
+        0.70f, editorArea);
+    debuggerFolder.addPlaceholder(DEBUGGER_VIEW_ID);
 
     layout.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET);
 
@@ -87,7 +92,6 @@ public class DartPerspective implements IPerspectiveFactory {
     layout.addShowViewShortcut(IPageLayout.ID_TASK_LIST);
     layout.addShowViewShortcut(IPageLayout.ID_PROJECT_EXPLORER);
     layout.addShowViewShortcut(DartUI.ID_LIBRARIES);
-    //layout.addShowViewShortcut(DEBUGGER_VIEW_ID);
     layout.addShowViewShortcut(METRICS_VIEW_ID);
 
     // new actions - wizards
