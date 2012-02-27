@@ -40,10 +40,14 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.browser.IWebBrowser;
+import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.console.IConsoleConstants;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
  * Launches the Dart application (compiled to js) in the browser.
@@ -91,22 +95,24 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       }
     }
 
-    final String uri = url;
-
     if (launchConfig.getUseDefaultBrowser()) {
-      Display.getDefault().asyncExec(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            Program program = Program.findProgram("html");
-            program.execute(uri);
-          } catch (Throwable t) {
-            DartDebugCorePlugin.logError(t);
-            MessageDialog.openError(Display.getDefault().getActiveShell(), "Launch Browser Error",
-                t.getMessage());
-          }
+      IWebBrowser browser = null;
+      try {
+        browser = PlatformUI.getWorkbench().getBrowserSupport().createBrowser(
+            IWorkbenchBrowserSupport.AS_EXTERNAL, "defaultBrowser", "Default Browser", "Browser");
+        if (browser != null) {
+          browser.openURL(new URL(url));
+        } else {
+          throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+              Messages.BrowserLaunchConfigurationDelegate_DefaultBrowserNotFound));
         }
-      });
+      } catch (PartInitException e1) {
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+            Messages.BrowserLaunchConfigurationDelegate_DefaultBrowserNotFound));
+      } catch (MalformedURLException e) {
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+            Messages.BrowserLaunchConfigurationDelegate_UrlError));
+      }
     } else {
       launchInExternalBrowser(launchConfig, url);
     }
