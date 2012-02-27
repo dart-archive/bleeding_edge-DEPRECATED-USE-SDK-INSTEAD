@@ -344,10 +344,8 @@ class ObjectArray<T> { }
                   value="${build.stage.include.dir}/samples" />
         
         <!-- copy specific samples -->
-        
         <copy todir="${samples.out.dir}">
             <fileset dir="${build.source.root}/samples">
-                <include name="chat/http*"/>
                 <include name="clock/**"/>
                 
                 <include name="isolate_html/**"/>
@@ -368,16 +366,22 @@ class ObjectArray<T> { }
             </fileset>
         </copy>
         
-        <!-- copy dart libraries used by the samples -->
-        
-        <copy todir="${samples.out.dir}/lib">
-            <fileset dir="${build.source.root}/lib">
-                <include name="uri/**"/>
+        <!-- copy dart.js to Total -->
+        <copy todir="${samples.out.dir}/Total/client" file="${build.source.root}/client/dart.js"/>
+
+        <!-- copy chat http libraries to the time sample -->
+        <copy todir="${samples.out.dir}/time">
+            <fileset dir="${build.source.root}/samples/chat">
+                <include name="http**"/>
             </fileset>
         </copy>
+        <replace dir="${samples.out.dir}/time"
+          token='#import("../chat/http.dart"'
+          value='#import("http.dart"'>
+            <include name="**/*.dart"/>
+        </replace>
 
         <!-- adjust imports to fit new location -->
-
         <replace dir="${samples.out.dir}"
           token="#import('../../../lib/"
           value="#import('../../lib/">
@@ -391,8 +395,7 @@ class ObjectArray<T> { }
     <target name="getSdk" if="osfamily" depends="setOS">
         <get src="http://gsdview.appspot.com/dart-editor-archive-continuous/latest/dart-${osfamily}.zip"
              dest="${build.dart.sdk.zip}"
-             usetimestamp="true"
-             verbose="true" />
+             usetimestamp="true" />
         <delete dir="${build.stage.include.dir}/dart-sdk"/>
     </target>
 
