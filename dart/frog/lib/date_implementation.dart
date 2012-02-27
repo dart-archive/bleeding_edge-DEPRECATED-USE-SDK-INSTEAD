@@ -42,10 +42,40 @@ class DateImplementation implements Date {
     _asJs();
   }
 
-  DateImplementation.fromString(String formattedString)
-      : timeZone = new TimeZone.local(),
-        value = _valueFromString(formattedString) {
-    _asJs();
+  factory DateImplementation.fromString(String formattedString) {
+    // JavaScript's parse function is not specified and there are differences
+    // between the different implementations. Make sure we can at least read in
+    // Dart's output: try to read in (a subset of) ISO 8601 first. If that fails
+    // fall back to JavaScript's implementation.
+    final RegExp re =
+        const RegExp(@'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d) (\d\d):(\d\d):(\d\d)(?:.(\d{1,3}))? ?([zZ]?)$');
+    Match match = re.firstMatch(formattedString);
+    if (match !== null) {
+      int years = Math.parseInt(match[1]);
+      int month = Math.parseInt(match[2]);
+      int day = Math.parseInt(match[3]);
+      int hours = Math.parseInt(match[4]);
+      int minutes = Math.parseInt(match[5]);
+      int seconds = Math.parseInt(match[6]);
+      int milliseconds = 0;
+      if (match[7] !== null) {
+        milliseconds = Math.parseInt(match[7]);
+        if (match[7].length == 1) {
+          milliseconds *= 100;
+        } else if (match[7].length == 2) {
+          milliseconds *= 10;
+        } else {
+          assert(match[7].length == 3);
+        }
+      }
+      bool isUtc = match[8] !== null;
+      TimeZone timezone = isUtc ? const TimeZone.utc() : new TimeZone.local();
+      return new DateImplementation.withTimeZone(
+          years, month, day, hours, minutes, seconds, milliseconds, timezone);
+    } else {
+      return new DateImplementation.fromEpoch(formattedString,
+                                              new TimeZone.local());
+    }
   }
 
   const DateImplementation.fromEpoch(this.value, this.timeZone);
@@ -67,32 +97,57 @@ class DateImplementation implements Date {
   }
 
   int get year() native
-  '''return this.isUtc ? this._asJs().getUTCFullYear() :
-    this._asJs().getFullYear();''';
+  '''return this.isUtc() ? this._asJs().getUTCFullYear() :
+    this._asJs().getFullYear();''' {
+    isUtc();
+    _asJs();
+  }
 
   int get month() native
-  '''return this.isUtc ? this._asJs().getMonth() + 1 :
-      this._asJs().getMonth() + 1;''';
+  '''return this.isUtc() ? this._asJs().getUTCMonth() + 1 :
+      this._asJs().getMonth() + 1;'''  {
+    isUtc();
+    _asJs();
+  }
 
   int get day() native
-    'return this.isUtc ? this._asJs().getUTCDate() : this._asJs().getDate()';
+  '''return this.isUtc() ? this._asJs().getUTCDate() :
+      this._asJs().getDate();''' {
+    isUtc();
+    _asJs();
+  }
 
   int get hours() native
-    'return this.isUtc ? this._asJs().getUTCHours() : this._asJs().getHours()';
+  '''return this.isUtc() ? this._asJs().getUTCHours() :
+      this._asJs().getHours();''' {
+    isUtc();
+    _asJs();
+  }
 
   int get minutes() native
-    'return this.isUtc ? this._asJs().getUTCMinutes() : this._asJs().getMinutes()';
+  '''return this.isUtc() ? this._asJs().getUTCMinutes() :
+      this._asJs().getMinutes();''' {
+    isUtc();
+    _asJs();
+  }
 
   int get seconds() native
-    'return this.isUtc ? this._asJs().getUTCSeconds() : this._asJs().getSeconds()';
+  '''return this.isUtc() ? this._asJs().getUTCSeconds() :
+      this._asJs().getSeconds();''' {
+    isUtc();
+    _asJs();
+  }
 
   int get milliseconds() native
-  '''return this.isUtc ? this._asJs().getUTCMilliseconds() :
-    this._asJs().getMilliseconds();''';
+  '''return this.isUtc() ? this._asJs().getUTCMilliseconds() :
+    this._asJs().getMilliseconds();''' {
+    isUtc();
+    _asJs();
+  }
 
   // Adjust by one because JS weeks start on Sunday.
   int get weekday() native '''
-    var day = this.isUtc ? this._asJs().getUTCDay() : this._asJs().getDay();
+    var day = this.isUtc() ? this._asJs().getUTCDay() : this._asJs().getDay();
     return (day + 6) % 7;''';
 
   // TODO(jimhug): Could this please be getters?
