@@ -443,6 +443,8 @@ class SsaCodeGenerator implements HVisitor {
       parameterNames[node.exception.element] = name;
       buffer.add('} catch ($name) {\n');
       indent++;
+      addIndentation();
+      buffer.add('$name = $name.dartException;\n');
       visitBasicBlock(successors[1]);
       parameterNames.remove(node.exception.element);
       indent--;
@@ -715,11 +717,6 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitThrow(HThrow node) {
-    // Make sure that the toString interceptor is emitted so the JS
-    // toString method can call it.
-    Element toStringHelper =
-      compiler.findHelper(new SourceString(@'builtin$toString$0'));
-    compiler.registerStaticUse(toStringHelper);
     generateThrowWithHelper('captureStackTrace', node.inputs[0]);
     buffer.add(';\n');
   }

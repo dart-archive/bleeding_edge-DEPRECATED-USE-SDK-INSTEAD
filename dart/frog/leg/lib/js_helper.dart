@@ -1199,13 +1199,19 @@ builtin$get$dynamic(receiver) => receiver;
  * an exception.
  */
 captureStackTrace(ex) {
-  if (JS('bool', @'typeof $0 != "object"', ex)) return ex;
-  var hasCapture = JS('bool', @'!!(Error.captureStackTrace)');
-  if (hasCapture) {
-    JS('Object', @'Error.captureStackTrace($0)', ex);
-  }
-  return ex;
+  var jsError = JS('Object', @'new Error()');
+  JS('void', @'$0.dartException = $1', jsError, ex);
+  JS('void', @'''$0.toString = $1''', jsError, toStringWrapper);
+  return jsError;
 }
+
+/**
+ * This method is installed as JavaScript toString method on exception
+ * objects in [captureStackTrace]. So JavaScript 'this' binds to an
+ * instance of JavaScript Error to which we have added a property
+ * "dartException" which holds a Dart object.
+ */
+toStringWrapper() => JS('Object', @'this.dartException').toString();
 
 builtin$charCodes$0(receiver) {
   checkNull(receiver);

@@ -276,28 +276,6 @@ function(child, parent) {
     buffer.add('$prototype.${namer.operatorIs(classElement)} = true;\n');
     generateInterfacesIsTests(buffer, prototype, classElement);
     if (superclass === null) {
-      // JS "toString" wrapper. This gives better exceptions. The
-      // function must handle the situation where builtin$toString$0
-      // is not generated.
-      buffer.add('''
-$prototype.toString = function() {
-  try {
-    if (typeof ${namer.CURRENT_ISOLATE}.builtin\$toString\$0\$1 == 'function') {
-      return ${namer.CURRENT_ISOLATE}.builtin\$toString\$0\$1(this);
-    } else {
-      var name = this.constructor.name;
-      if (typeof name != 'string') {
-        name = this.constructor.toString();
-        name = name.match(/^\s*function\s*(\S*)\s*\(/)[1];
-      }
-      return "Instance of '" + name +"'";
-    }
-  } catch (ex) {
-     return "uncaught exception in toString";
-  }
-};
-''');
-
       // Emit the noSuchMethods on the Object prototype now, so that
       // the code in the dynamicMethod can find them. Note that the
       // code in dynamicMethod is invoked before analyzing the full JS
