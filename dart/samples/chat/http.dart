@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -59,20 +59,18 @@ interface HTTPStatus {
 /**
  * HTTP server.
  */
-interface HTTPServer default HTTPServerImplementation {
+interface HTTPServer default _HTTPServer {
   HTTPServer();
 
   /**
-   * Start listening on the specified [host] and [port]. For each HTTP
-   * request the specified [callback] will be invoked. If a [port] of
-   * 0 is specified the server will choose an ephemeral port. The
-   * optional argument [backlog] can be used to specify the listen
-   * backlog for the underlying OS listen setup.
+   * Start listening for HTTP requests on the specified [host] and
+   * [port]. For each HTTP request the handler set through
+   * [requestHandler] will be invoked. If a [port] of 0 is specified
+   * the server will choose an ephemeral port. The optional argument
+   * [backlog] can be used to specify the listen backlog for the
+   * underlying OS listen setup.
    */
-  void listen(String host,
-              int port,
-              void callback(HTTPRequest, HTTPResponse),
-              [int backlog]);
+  void listen(String host, int port, [int backlog]);
 
   /**
    * Stop server listening.
@@ -80,12 +78,19 @@ interface HTTPServer default HTTPServerImplementation {
   void close();
 
   /**
-   * Returns the port that the server is listening on.
+   * Returns the port that the server is listening on. This can be
+   * used to get the actual port used when a value of 0 for [port] is
+   * specified in the [listen] call.
    */
   int get port();
 
   /**
-   * Set the error handler that is called when a connection error occours.
+   * Sets the handler that gets called when a new HTTP request is received.
+   */
+  void set requestHandler(void handler(HTTPRequest, HTTPResponse));
+
+  /**
+   * Sets the error handler that is called when a connection error occurs.
    */
   void set errorHandler(void handler(String errorMessage));
 }
@@ -94,7 +99,7 @@ interface HTTPServer default HTTPServerImplementation {
 /**
  * HTTP request delivered to the HTTP server callback.
  */
-interface HTTPRequest default HTTPRequestImplementation {
+interface HTTPRequest default _HTTPRequest {
   /**
    * Returns the content length of the request body. If the size of
    * the request body is not known in advance this -1.
@@ -137,27 +142,27 @@ interface HTTPRequest default HTTPRequestImplementation {
   Map<String, String> get headers();
 
   /**
-   * Sets callback to be called as request data becomes available. The
-   * data delivered are the raw received. If the data is UTF-8 encoded
-   * and this callback is not set the callback [dataEnd] will be
-   * called with the decoded [String].
+   * Sets the handler that gets called as request data becomes
+   * available. The data delivered are the raw bytes received. If the
+   * data is UTF-8 encoded and this callback is not set the callback
+   * [dataEnd] will be called with the decoded [String].
    */
-  void set dataReceived(void callback(List<int> data));
+  void set dataReceived(void handler(List<int> data));
 
   /**
-   * Sets the callback to be called when all request data have been
+   * Sets the handler that gets called when all request data have been
    * received. If the callback [dataReceived] is set the [String]
    * argument will be [null] otherwise it will be the result of UTF-8
    * decoding the request body,
    */
-  void set dataEnd(void callback(String data));
+  void set dataEnd(void handler(String data));
 }
 
 
 /**
  * HTTP response to be send back to the client.
  */
-interface HTTPResponse default HTTPResponseImplementation {
+interface HTTPResponse default _HTTPResponse {
   /**
    * Gets and sets the content length of the response. If the size of
    * the response is not known in advance set the content length to
@@ -182,67 +187,92 @@ interface HTTPResponse default HTTPResponseImplementation {
   void setHeader(String name, String value);
 
   /**
-   * Write [count] bytes from index [offset] in the List [data] to
-   * the response. When this is called for the first time the response
-   * header is send as well. Written data might be buffered and send
-   * it in larger chunks than supplied to this function. The return
-   * value is true if all data is actually sent right away. If the
-   * return value is false the supplied [callback] will be called when
-   * the data has been sent. The [callback] will not be called if the
-   * return value is true.
+   * Returns the output stream for the response. This is used to write
+   * the response data. When all response data has been written close
+   * the stream to indicate the end of the response.
+   *
+   * When this is accessed for the first time the response header is
+   * send. Calling any methods that will change the header after
+   * having retrieved the output stream will throw an exception.
    */
-  bool writeList(List<int> data, int offset, int count, [void callback()]);
+  OutputStream get outputStream();
 
   /**
    * Write string data to the response. The string characters will be
-   * encoded using UFT-8. When this is called for the first time the
-   * response header is send as well. See [writeList] for information
-   * on the return value and the [callback] argument. NOTE: The content
-   * length set must be -1 (unknown) to use this method.
+   * encoded using UFT-8. This is a temporary convenience method as
+   * long as the OutputStream interface does not have a writeString
+   * method.
    */
-  bool writeString(String string, [void callback()]);
-
-  /**
-   * Indicate that all the response data has been written.
-   */
-  void writeDone();
+  bool writeString(String string);
 }
 
 
 /**
  * HTTP client factory.
  */
-interface HTTPClient default HTTPClientImplementation {
+interface HTTPClient default _HTTPClient {
   HTTPClient();
 
   /**
-   * Open a HTTP connection. The [openHandler] is called with an
-   * HTTPClientRequest when the connection has been successfully
-   * opened.
+   * Opens a HTTP connection. The returned [HTTPClientConnection] is
+   * used to register handlers for asynchronous events on a HTTP
+   * connection.
    */
-  void open(String method, String host, int port, String path);
+  HTTPClientConnection open(String method, String host, int port, String path);
+
+  /**
+   * Opens a HTTP connection using the GET method.
+   */
+  HTTPClientConnection get(String host, int port, String path);
+
+  /**
+   * Opens a HTTP connection using the POST method.
+   */
+  HTTPClientConnection post(String host, int port, String path);
 
   /**
    * Shutdown the HTTP client releasing all resources.
    */
   void shutdown();
+}
+
+
+/**
+ * A [HTTPClientConnection] is returned by all [HTTPClient] methods
+ * that initiate a connection to an HTTP server. The handlers will be
+ * called as the connection state progresses.
+ *
+ * The setting of all handlers is optional. If the [requestHandler] is
+ * not set the request will be send without any additional headers and
+ * an empty body. If the [responseHandler] is not set the response
+ * will be read and discarded.
+ */
+interface HTTPClientConnection {
+  /**
+   * Sets the handler that is called when the connection is established.
+   */
+  void set requestHandler(void handler(HTTPClientRequest request));
 
   /**
-   * Set the open handler that is called on successful open operations.
+   * Sets callback to be called when the request has been send and
+   * the response is ready for processing. The callback is called when
+   * all headers of the response are received and data is ready to be
+   * received.
    */
-  void set openHandler(void handler(HTTPClientRequest request));
+  void set responseHandler(void handler(HTTPClientResponse response));
 
   /**
-   * Set the error handler that is called on failure to open a connection.
+   * Sets the handler that gets called if an error occurs while
+   * processing the HTTP request.
    */
-  void set errorHandler(void handler(int status));
+ void set errorHandler(void handler(HTTPException e));
 }
 
 
 /**
  * HTTP request for a client connection.
  */
-interface HTTPClientRequest default HTTPClientRequestImplementation {
+interface HTTPClientRequest default _HTTPClientRequest {
   /**
    * Gets and sets the content length of the request. If the size of
    * the request is not known in advance set content length to -1,
@@ -265,48 +295,30 @@ interface HTTPClientRequest default HTTPClientRequestImplementation {
   void setHeader(String name, String value);
 
   /**
-   * Sets callback to be called when the request have been send and
-   * the response is ready for processing. The callback is called when
-   * all headers of the response are received and data is reqdy to be
-   * received.
+   * Returns the output stream for the request. This is used to write
+   * the request data. When all request data has been written close
+   * the stream to indicate the end of the request.
+   *
+   * When this is accessed for the first time the request header is
+   * send. Calling any methods that will change the header after
+   * having retrieved the output stream will throw an exception.
    */
-  void set responseReceived(void callback(HTTPClientResponse response));
-
-  /**
-   * Write [count] bytes from index [offset] in the List [data] to
-   * the request. When this is called for the first time the request
-   * header is send as well. Written data might be buffered and send
-   * it in larger chunks than supplied to this function. The return
-   * value is true if all data is actually sent right away. If the
-   * return value is false the supplied [callback] will be called when
-   * the data has been sent. The [callback] will not be called if the
-   * return value is true.
-   */
-  bool writeList(List<int> data, int offset, int count, [void callback()]);
+  OutputStream get outputStream();
 
   /**
    * Write string data to the request. The string characters will be
-   * encoded using UFT-8. When this is called for the first time the
-   * request header is send as well. See [writeList] for information
-   * in the return value and the [callback] argumnt. NOTE: The content
-   * length set must be -1 (unknown) to use this method.
+   * encoded using UFT-8. This is a temporary convenience method as
+   * long as the OutputStream interface does not have a writeString
+   * method.
    */
-  bool writeString(String string, [void callback()]);
-
-  /**
-   * Indicate that all the request data has been written. After this
-   * metod is called no more data can be written. When the response is
-   * ready for processing the callback set with [setResponseReceived]
-   * is called.
-   */
-  void writeDone();
+  bool writeString(String string);
 }
 
 
 /**
  * HTTP response for a client connection.
  */
-interface HTTPClientResponse default HTTPClientResponseImplementation {
+interface HTTPClientResponse default _HTTPClientResponse {
   /**
    * Returns the status code.
    */
@@ -351,69 +363,8 @@ interface HTTPClientResponse default HTTPClientResponseImplementation {
 }
 
 
-interface HTTPException {
-  /*
-   * Returns the error message for the exception.
-   */
-  String get message();
-}
-
-class HTTPUtil {
-  static String decodeUrlEncodedString(String urlEncoded) {
-    void invalidEscape() {
-      // TODO(jrgfogh): Handle the error.
-      print("Invalid escape code.");
-    }
-
-    StringBuffer result = new StringBuffer();
-    for (int ii = 0; urlEncoded.length > ii; ++ii) {
-      if ('+' == urlEncoded[ii]) {
-        result.add(' ');
-      } else if ('%' == urlEncoded[ii] &&
-                 urlEncoded.length - 2 > ii) {
-        try {
-          int charCode =
-            Math.parseInt('0x' + urlEncoded.substring(ii + 1, ii + 3));
-          if (charCode <= 0x7f) {
-            result.add(new String.fromCharCodes([charCode]));
-            ii += 2;
-          } else {
-            invalidEscape();
-            return '';
-          }
-        } catch (BadNumberFormatException ignored) {
-          invalidEscape();
-          return '';
-        }
-      } else {
-        result.add(urlEncoded[ii]);
-      }
-    }
-    return result.toString();
-  }
-
-  static Map<String, String> splitQueryString(String queryString) {
-    Map<String, String> result = new Map<String, String>();
-    int currentPosition = 0;
-    while (currentPosition < queryString.length) {
-      int position = queryString.indexOf("=", currentPosition);
-      if (position == -1) {
-        break;
-      }
-      String name = queryString.substring(currentPosition, position);
-      currentPosition = position + 1;
-      position = queryString.indexOf("&", currentPosition);
-      String value;
-      if (position == -1) {
-        value = queryString.substring(currentPosition);
-        currentPosition = queryString.length;
-      } else {
-        value = queryString.substring(currentPosition, position);
-        currentPosition = position + 1;
-      }
-      result[HTTPUtil.decodeUrlEncodedString(name)] =
-        HTTPUtil.decodeUrlEncodedString(value);
-    }
-    return result;
-  }
+class HTTPException implements Exception {
+  const HTTPException([String this.message = ""]);
+  String toString() => "HTTPException: $message";
+  final String message;
 }

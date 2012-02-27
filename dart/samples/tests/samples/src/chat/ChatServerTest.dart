@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -9,8 +9,8 @@
 
 
 #library("chat_server_test.dart");
+#import("dart:json");
 #import("../../../../chat/http.dart");
-#import("../../../../../lib/json/json.dart");
 #import("../../../../chat/chat_server_lib.dart");
 
 
@@ -62,18 +62,18 @@ class ChatTestClient extends Isolate {
         statusPort.send("Test succeeded", null);
       }
 
-      Map messageRequest = new Map();
-      messageRequest["request"] = "leave";
-      messageRequest["sessionId"] = sessionId;
-      httpClient.openHandler = (HTTPClientRequest request) {
-        request.writeString(JSON.stringify(messageRequest));
-        request.writeDone();
-        request.responseReceived = (HTTPClientResponse r) {
-          response = r;
-          response.dataEnd = leaveResponseHandler;
-        };
+      Map leaveRequest = new Map();
+      leaveRequest["request"] = "leave";
+      leaveRequest["sessionId"] = sessionId;
+      HTTPClientConnection conn = httpClient.post("127.0.0.1", port, "/leave");
+      conn.requestHandler = (HTTPClientRequest request) {
+        request.writeString(JSON.stringify(leaveRequest));
+        request.outputStream.close();
       };
-      httpClient.open("POST", "127.0.0.1", port, "/leave");
+      conn.responseHandler = (HTTPClientResponse r) {
+        response = r;
+        response.dataEnd = leaveResponseHandler;
+      };
     }
 
     void receive() {
@@ -118,19 +118,20 @@ class ChatTestClient extends Isolate {
         }
       }
 
-      Map messageRequest = new Map();
-      messageRequest["request"] = "receive";
-      messageRequest["sessionId"] = sessionId;
-      messageRequest["nextMessage"] = receiveMessageNumber;
-      httpClient.openHandler = (HTTPClientRequest request) {
-        request.writeString(JSON.stringify(messageRequest));
-        request.writeDone();
-        request.responseReceived = (HTTPClientResponse r) {
-          response = r;
-          response.dataEnd = receiveResponseHandler;
-        };
+      Map receiveRequest = new Map();
+      receiveRequest["request"] = "receive";
+      receiveRequest["sessionId"] = sessionId;
+      receiveRequest["nextMessage"] = receiveMessageNumber;
+      HTTPClientConnection conn =
+          httpClient.post("127.0.0.1", port, "/receive");
+      conn.requestHandler = (HTTPClientRequest request) {
+        request.writeString(JSON.stringify(receiveRequest));
+        request.outputStream.close();
       };
-      httpClient.open("POST", "127.0.0.1", port, "/receive");
+      conn.responseHandler = (HTTPClientResponse r) {
+        response = r;
+        response.dataEnd = receiveResponseHandler;
+      };
     }
 
     void sendMessage() {
@@ -153,15 +154,16 @@ class ChatTestClient extends Isolate {
       messageRequest["request"] = "message";
       messageRequest["sessionId"] = sessionId;
       messageRequest["message"] = "message " + sendMessageNumber;
-      httpClient.openHandler = (HTTPClientRequest request) {
+      HTTPClientConnection conn =
+          httpClient.post("127.0.0.1", port, "/message");
+      conn.requestHandler = (HTTPClientRequest request) {
         request.writeString(JSON.stringify(messageRequest));
-        request.writeDone();
-        request.responseReceived = (HTTPClientResponse r) {
-          response = r;
-          response.dataEnd = sendResponseHandler;
-        };
+        request.outputStream.close();
       };
-      httpClient.open("POST", "127.0.0.1", port, "/message");
+      conn.responseHandler = (HTTPClientResponse r) {
+        response = r;
+        response.dataEnd = sendResponseHandler;
+      };
     }
 
     void join() {
@@ -185,15 +187,15 @@ class ChatTestClient extends Isolate {
       Map joinRequest = new Map();
       joinRequest["request"] = "join";
       joinRequest["handle"] = "test1";
-      httpClient.openHandler = (HTTPClientRequest request) {
+      HTTPClientConnection conn = httpClient.post("127.0.0.1", port, "/join");
+      conn.requestHandler = (HTTPClientRequest request) {
         request.writeString(JSON.stringify(joinRequest));
-        request.writeDone();
-        request.responseReceived = (HTTPClientResponse r) {
-          response = r;
-          response.dataEnd = joinResponseHandler;
-        };
+        request.outputStream.close();
       };
-      httpClient.open("POST", "127.0.0.1", port, "/join");
+      conn.responseHandler = (HTTPClientResponse r) {
+        response = r;
+        response.dataEnd = joinResponseHandler;
+      };
     }
 
     this.port.receive(

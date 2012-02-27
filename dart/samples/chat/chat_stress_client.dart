@@ -1,10 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #library("chat_stress_client.dart");
+#import("dart:json");
 #import("http.dart");
-#import("../../lib/json/json.dart");
 
 
 class ChatStressClient {
@@ -46,7 +46,6 @@ class ChatStressClient {
     }
 
     void leave() {
-      HTTPClientRequest request;
       HTTPClientResponse response;
 
       void leaveResponseHandler(String data) {
@@ -56,19 +55,19 @@ class ChatStressClient {
       Map leaveRequest = new Map();
       leaveRequest["request"] = "leave";
       leaveRequest["sessionId"] = sessionId;
-      request = httpClient.open("POST", "127.0.0.1", port, "/leave");
-      request.writeString(JSON.stringify(leaveRequest));
-      request.responseReceived =
-          void _(HTTPClientResponse r) {
-            response = r;
-            response.dataEnd = leaveResponseHandler;
-          };
-      request.writeDone();
+      HTTPClientConnection conn = httpClient.post("127.0.0.1", port, "/leave");
+      conn.requestHandler = (HTTPClientRequest request) {
+        request.writeString(JSON.stringify(leaveRequest));
+        request.outputStream.close();
+      };
+      conn.responseHandler = (HTTPClientResponse r) {
+        response = r;
+        response.dataEnd = leaveResponseHandler;
+      };
     }
 
     var sendMessage;
     void receive() {
-      HTTPClientRequest request;
       HTTPClientResponse response;
 
       void receiveResponseHandler(String data) {
@@ -84,17 +83,18 @@ class ChatStressClient {
       messageRequest["sessionId"] = sessionId;
       messageRequest["nextMessage"] = receiveMessageCount;
       messageRequest["maxMessages"] = 100;
-      request = httpClient.open("POST", "127.0.0.1", port, "/receive");
-      request.writeString(JSON.stringify(messageRequest));
-      request.responseReceived =
-          void _(HTTPClientResponse r) {
-            response = r;
-            response.dataEnd = receiveResponseHandler;
-          };
-      request.writeDone();
+      HTTPClientConnection conn = httpClient.post("127.0.0.1", port, "/receive");
+      conn.requestHandler = (HTTPClientRequest request) {
+        request.writeString(JSON.stringify(messageRequest));
+        request.outputStream.close();
+      };
+      conn.responseHandler = (HTTPClientResponse r) {
+        response = r;
+        response.dataEnd = receiveResponseHandler;
+      };
     }
 
-    sendMessage = void _() {
+    sendMessage = () {
       HTTPClientRequest request;
       HTTPClientResponse response;
 
@@ -119,18 +119,19 @@ class ChatStressClient {
       messageRequest["request"] = "message";
       messageRequest["sessionId"] = sessionId;
       messageRequest["message"] = "message " + sendMessageCount;
-      request = httpClient.open("POST", "127.0.0.1", port, "/message");
-      request.writeString(JSON.stringify(messageRequest));
-      request.responseReceived =
-          void _(HTTPClientResponse r) {
-            response = r;
-            response.dataEnd = sendResponseHandler;
-          };
-      request.writeDone();
+      HTTPClientConnection conn = httpClient.post("127.0.0.1", port, "/message");
+      conn.requestHandler = (HTTPClientRequest request) {
+        print(JSON.stringify(messageRequest));
+        request.writeString(JSON.stringify(messageRequest));
+        request.outputStream.close();
+      };
+      conn.responseHandler = (HTTPClientResponse r) {
+        response = r;
+        response.dataEnd = sendResponseHandler;
+      };
     };
 
     void join() {
-      HTTPClientRequest request;
       HTTPClientResponse response;
 
       void joinResponseHandler(String data) {
@@ -147,14 +148,15 @@ class ChatStressClient {
       Map joinRequest = new Map();
       joinRequest["request"] = "join";
       joinRequest["handle"] = "test1";
-      request = httpClient.open("POST", "127.0.0.1", port, "/join");
-      request.writeString(JSON.stringify(joinRequest));
-      request.responseReceived =
-          void _(HTTPClientResponse r) {
-            response = r;
-            response.dataEnd = joinResponseHandler;
-          };
-      request.writeDone();
+      HTTPClientConnection conn = httpClient.post("127.0.0.1", port, "/join");
+      conn.requestHandler = (HTTPClientRequest request) {
+        request.writeString(JSON.stringify(joinRequest));
+        request.outputStream.close();
+      };
+      conn.responseHandler = (HTTPClientResponse r) {
+        response = r;
+        response.dataEnd = joinResponseHandler;
+      };
     }
 
     // Create a HTTP client factory.

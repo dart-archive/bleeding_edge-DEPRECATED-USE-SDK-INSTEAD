@@ -4,8 +4,8 @@
 
 #library("chat_server");
 #import("dart:io");
+#import("dart:json");
 #import("http.dart");
-#import("../../lib/json/json.dart");
 
 typedef void RequestHandler(HTTPRequest request, HTTPResponse response);
 
@@ -337,7 +337,7 @@ class IsolatedServer extends Isolate {
   void _sendJSONResponse(HTTPResponse response, Map responseData) {
     response.setHeader("Content-Type", "application/json; charset=UTF-8");
     response.writeString(JSON.stringify(responseData));
-    response.writeDone();
+    response.outputStream.close();
   }
 
   IsolatedServer() : super() {
@@ -354,8 +354,8 @@ class IsolatedServer extends Isolate {
     response.setHeader(
         "Location", "http://$_host:$_port/${redirectPath}");
     response.contentLength = _redirectPage.length;
-    response.writeList(_redirectPage, 0, _redirectPage.length);
-    response.writeDone();
+    response.outputStream.write(_redirectPage);
+    response.outputStream.close();
   }
 
   // Serve the content of a file.
@@ -367,10 +367,6 @@ class IsolatedServer extends Isolate {
     }
     File file = new File(fileName);
     if (file.existsSync()) {
-      RandomAccessFile openedFile = file.openSync();
-      int totalRead = 0;
-      List<int> buffer = new List<int>(BUFFER_SIZE);
-
       String mimeType = "text/html; charset=UTF-8";
       int lastDot = fileName.lastIndexOf(".", fileName.length);
       if (lastDot != -1) {
@@ -381,36 +377,12 @@ class IsolatedServer extends Isolate {
         if (extension == ".png") { mimeType = "image/png"; }
       }
       response.setHeader("Content-Type", mimeType);
+      // Get the length of the file for setting the Content-Length header.
+      RandomAccessFile openedFile = file.openSync();
       response.contentLength = openedFile.lengthSync();
-
-      bool checkDone() {
-        if (totalRead == openedFile.lengthSync()) {
-          openedFile.closeSync();
-          response.writeDone();
-          return true;
-        }
-        return false;
-      }
-
-      void writeFileData() {
-        if (checkDone()) return;
-        while (totalRead < openedFile.lengthSync()) {
-          var read = openedFile.readListSync(buffer, 0, BUFFER_SIZE);
-          totalRead += read;
-
-          // Write this buffer and get a callback when it makes sense
-          // to write more.
-          bool writeCompleted =
-              response.writeList(buffer, 0, read, writeFileData);
-          if (writeCompleted) {
-            if (checkDone()) return;
-          } else {
-            break;
-          }
-        }
-      }
-
-      writeFileData();
+      openedFile.close();
+      // Pipe the file content into the response.
+      file.openInputStream().pipe(response.outputStream);
     } else {
       print("File not found: $fileName");
       _notFoundHandler(request, response);
@@ -425,15 +397,15 @@ class IsolatedServer extends Isolate {
     response.statusCode = HTTPStatus.NOT_FOUND;
     response.setHeader("Content-Type", "text/html; charset=UTF-8");
     response.contentLength = _notFoundPage.length;
-    response.writeList(_notFoundPage, 0, _notFoundPage.length);
-    response.writeDone();
+    response.outputStream.write(_notFoundPage);
+    response.outputStream.close();
   }
 
   // Unexpected protocol data.
   void _protocolError(HTTPRequest request, HTTPResponse response) {
-    response.statusCode = HTTPStatus.INTERNAL_ERROR;
+    response.statusCode = HTTPStatus.INTERNAL_SERVER_ERROR;
     response.contentLength = 0;
-    response.writeDone();
+    response.outputStream.close();
   }
 
   // Join request:
@@ -613,12 +585,9 @@ class IsolatedServer extends Isolate {
             replyTo.send(new ChatServerStatus.starting(), null);
             _server = new HTTPServer();
             try {
-              _server.listen(
-                  _host,
-                  _port,
-                  (HTTPRequest req, HTTPResponse rsp) =>
-                      _requestReceivedHandler(req, rsp),
-                  backlog: message.backlog);
+              _server.listen(_host, _port, backlog: message.backlog);
+              _server.requestHandler = (HTTPRequest req, HTTPResponse rsp) =>
+                  _requestReceivedHandler(req, rsp);
               replyTo.send(new ChatServerStatus.started(_server.port), null);
               _loggingTimer = new Timer.repeating(_handleLogging, 1000);
             } catch (var e) {

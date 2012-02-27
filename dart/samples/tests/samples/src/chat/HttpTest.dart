@@ -1,10 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #library("http_test.dart");
 #import("../../../../chat/http.dart");
-#import("../../../../../lib/json/json.dart");
 #import("../../../../chat/chat_server_lib.dart");
 
 
@@ -23,12 +22,11 @@ class TestServerMain {
 
   void start() {
     // Handle status messages from the server.
-    _statusPort.receive(
-        void _(var status, SendPort replyTo) {
-          if (status.isStarted) {
-            _startedCallback(status.port);
-          }
-        });
+    _statusPort.receive((var status, SendPort replyTo) {
+      if (status.isStarted) {
+        _startedCallback(status.port);
+      }
+    });
 
     // Send server start message to the server.
     var command = new TestServerCommand.start();
@@ -95,23 +93,20 @@ class TestServer extends Isolate {
   // Echo the request content back to the response.
   void _echoHandler(HTTPRequest request, HTTPResponse response) {
     Expect.equals("POST", request.method);
-    request.dataEnd =
-        void _(String body) {
-          response.writeString(body);
-          //response.contentLength = body.length;
-          //response.writeList(body.charCodes(), 0, body.length);
-          response.writeDone();
-        };
+    request.dataEnd = (String body) {
+      response.contentLength = body.length;
+      response.outputStream.writeFrom(body.charCodes(), 0, body.length);
+      response.outputStream.close();
+    };
   }
 
   // Echo the request content back to the response.
   void _zeroToTenHandler(HTTPRequest request, HTTPResponse response) {
     Expect.equals("GET", request.method);
-    request.dataEnd =
-        void _(String body) {
-          response.writeString("01234567890");
-          response.writeDone();
-        };
+    request.dataEnd = (String body) {
+      response.writeString("01234567890");
+      response.outputStream.close();
+    };
   }
 
   // Return a 404.
@@ -119,42 +114,41 @@ class TestServer extends Isolate {
     response.statusCode = HTTPStatus.NOT_FOUND;
     response.setHeader("Content-Type", "text/html; charset=UTF-8");
     response.writeString("Page not found");
-    response.writeDone();
+    response.outputStream.close();
   }
 
   void main() {
     // Setup request handlers.
     _requestHandlers = new Map();
-    _requestHandlers["/echo"] =
-        (HTTPRequest request, HTTPResponse response) =>
-           _echoHandler(request, response);
+    _requestHandlers["/echo"] = (HTTPRequest request, HTTPResponse response) {
+      _echoHandler(request, response);
+    };
     _requestHandlers["/0123456789"] =
-        (HTTPRequest request, HTTPResponse response) =>
-           _zeroToTenHandler(request, response);
+        (HTTPRequest request, HTTPResponse response) {
+          _zeroToTenHandler(request, response);
+        };
 
-    this.port.receive(
-        void _(var message, SendPort replyTo) {
-          if (message.isStart) {
-            _server = new HTTPServer();
-            try {
-              _chunkedEncoding = false;
-              _server.listen(
-                  "127.0.0.1",
-                  0,
-                  (HTTPRequest req, HTTPResponse rsp) =>
-                  _requestReceivedHandler(req, rsp));
-              replyTo.send(new TestServerStatus.started(_server.port), null);
-            } catch (var e) {
-              replyTo.send(new TestServerStatus.error(), null);
-            }
-          } else if (message.isStop) {
-            _server.close();
-            this.port.close();
-            replyTo.send(new TestServerStatus.stopped(), null);
-          } else if (message.isChunkedEncoding) {
-            _chunkedEncoding = true;
-          }
-        });
+    this.port.receive((var message, SendPort replyTo) {
+      if (message.isStart) {
+        _server = new HTTPServer();
+        try {
+          _chunkedEncoding = false;
+          _server.listen("127.0.0.1", 0);
+          _server.requestHandler = (HTTPRequest req, HTTPResponse rsp) {
+            _requestReceivedHandler(req, rsp);
+          };
+          replyTo.send(new TestServerStatus.started(_server.port), null);
+        } catch (var e) {
+          replyTo.send(new TestServerStatus.error(), null);
+        }
+      } else if (message.isStop) {
+        _server.close();
+        this.port.close();
+        replyTo.send(new TestServerStatus.stopped(), null);
+      } else if (message.isChunkedEncoding) {
+        _chunkedEncoding = true;
+      }
+    });
   }
 
   void _requestReceivedHandler(HTTPRequest request, HTTPResponse response) {
@@ -174,10 +168,9 @@ class TestServer extends Isolate {
 
 void testStartStop() {
   TestServerMain testServerMain = new TestServerMain();
-  testServerMain.setServerStartedHandler(
-      void _(int port) {
-        testServerMain.shutdown();
-      });
+  testServerMain.setServerStartedHandler((int port) {
+    testServerMain.shutdown();
+  });
   testServerMain.start();
 }
 
@@ -186,19 +179,16 @@ void testGET() {
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     HTTPClient httpClient = new HTTPClient();
-    httpClient.openHandler = (HTTPClientRequest request) {
-      request.responseReceived = (HTTPClientResponse response) {
-        Expect.equals(HTTPStatus.OK, response.statusCode);
-        response.dataEnd =
-        void _(String body) {
-          Expect.equals("01234567890", body);
-          httpClient.shutdown();
-          testServerMain.shutdown();
-        };
+    HTTPClientConnection conn =
+        httpClient.get("127.0.0.1", port, "/0123456789");
+    conn.responseHandler = (HTTPClientResponse response) {
+      Expect.equals(HTTPStatus.OK, response.statusCode);
+      response.dataEnd = (String body) {
+        Expect.equals("01234567890", body);
+        httpClient.shutdown();
+        testServerMain.shutdown();
       };
-      request.writeDone();
-    }; 
-    httpClient.open("GET", "127.0.0.1", port, "/0123456789");
+    };
   });
   testServerMain.start();
 }
@@ -215,30 +205,30 @@ void testPOST(bool chunkedEncoding) {
     HTTPClient httpClient = new HTTPClient();
     void sendRequest() {
 
-      httpClient.openHandler = (HTTPClientRequest request) {
-        request.responseReceived = (HTTPClientResponse response) {
-          Expect.equals(HTTPStatus.OK, response.statusCode);
-          response.dataEnd =
-          void _(String body) {
-            Expect.equals(data, body);
-            count++;
-            if (count < kMessageCount) {
-              sendRequest();
-            } else {
-              httpClient.shutdown();
-              testServerMain.shutdown();
-            }
-          };
-        };
+      HTTPClientConnection conn =
+          httpClient.post("127.0.0.1", port, "/echo");
+      conn.requestHandler = (HTTPClientRequest request) {
         if (chunkedEncoding) {
           request.writeString(data);
         } else {
           request.contentLength = data.length;
-          request.writeList(data.charCodes(), 0, data.length);
+          request.outputStream.write(data.charCodes());
         }
-        request.writeDone();
+        request.outputStream.close();
       };
-      httpClient.open("POST", "127.0.0.1", port, "/echo");
+      conn.responseHandler = (HTTPClientResponse response) {
+        Expect.equals(HTTPStatus.OK, response.statusCode);
+        response.dataEnd = (String body) {
+          Expect.equals(data, body);
+          count++;
+          if (count < kMessageCount) {
+            sendRequest();
+          } else {
+            httpClient.shutdown();
+            testServerMain.shutdown();
+          }
+        };
+      };
     }
 
     sendRequest();
@@ -256,16 +246,13 @@ void test404() {
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
     HTTPClient httpClient = new HTTPClient();
-    httpClient.openHandler = (HTTPClientRequest request) {
-      request.writeDone();
-      request.keepAlive = false;
-      request.responseReceived = (HTTPClientResponse response) {
-        Expect.equals(HTTPStatus.NOT_FOUND, response.statusCode);
-        httpClient.shutdown();
-        testServerMain.shutdown();
-      };
+    HTTPClientConnection conn =
+        httpClient.get("127.0.0.1", port, "/thisisnotfound");
+    conn.responseHandler = (HTTPClientResponse response) {
+      Expect.equals(HTTPStatus.NOT_FOUND, response.statusCode);
+      httpClient.shutdown();
+      testServerMain.shutdown();
     };
-    httpClient.open("GET", "127.0.0.1", port, "/thisisnotfound");
   });
   testServerMain.start();
 }
