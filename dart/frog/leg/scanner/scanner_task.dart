@@ -8,6 +8,9 @@ class ScannerTask extends CompilerTask {
 
   void scan(CompilationUnitElement compilationUnit) {
     measure(() {
+      if (compilationUnit.kind === ElementKind.LIBRARY) {
+        compiler.log("scanning library ${compilationUnit.script.name}");
+      }
       scanElements(compilationUnit);
       if (compilationUnit.kind === ElementKind.LIBRARY) {
         processScriptTags(compilationUnit);
@@ -64,7 +67,6 @@ class ScannerTask extends CompilerTask {
   }
 
   void scanElements(CompilationUnitElement compilationUnit) {
-    compiler.log("scanning $compilationUnit");
     Script script = compilationUnit.script;
     Token tokens;
     try {
@@ -80,9 +82,7 @@ class ScannerTask extends CompilerTask {
       }
       compiler.cancel(ex.message, token: token);
     }
-    ElementListener listener = new ElementListener(compiler, compilationUnit);
-    PartialParser parser = new PartialParser(listener);
-    parser.parseUnit(tokens);
+    compiler.dietParser.dietParse(compilationUnit, tokens);
   }
 
   LibraryElement loadLibrary(Uri uri, ScriptTag node) {
@@ -111,5 +111,18 @@ class ScannerTask extends CompilerTask {
           });
       }
     }
+  }
+}
+
+class DietParserTask extends CompilerTask {
+  DietParserTask(Compiler compiler) : super(compiler);
+  final String name = 'Diet Parser';
+
+  dietParse(CompilationUnitElement compilationUnit, Token tokens) {
+    measure(() {
+      ElementListener listener = new ElementListener(compiler, compilationUnit);
+      PartialParser parser = new PartialParser(listener);
+      parser.parseUnit(tokens);
+    });
   }
 }

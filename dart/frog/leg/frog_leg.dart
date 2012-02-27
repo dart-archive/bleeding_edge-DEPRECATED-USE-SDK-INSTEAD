@@ -91,6 +91,7 @@ class WorldCompiler extends Compiler {
     } catch (var exception) {
       cancel("${uri.path}: $exception", node: node);
     }
+    world.dartBytesRead += text.length;
     frog.SourceFile sourceFile = new frog.SourceFile(uri.toString(), text);
     return new Script(uri, sourceFile);
   }

@@ -64,6 +64,7 @@ class Compiler implements DiagnosticListener {
 
   List<CompilerTask> tasks;
   ScannerTask scanner;
+  DietParserTask dietParser;
   ParserTask parser;
   TreeValidatorTask validator;
   ResolverTask resolver;
@@ -86,6 +87,7 @@ class Compiler implements DiagnosticListener {
     namer = new Namer(this);
     compileTimeConstantHandler = new CompileTimeConstantHandler(this);
     scanner = new ScannerTask(this);
+    dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
     validator = new TreeValidatorTask(this);
     resolver = new ResolverTask(this);
@@ -94,7 +96,8 @@ class Compiler implements DiagnosticListener {
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
     emitter = new CodeEmitterTask(this);
-    tasks = [scanner, parser, resolver, checker, builder, optimizer, generator,
+    tasks = [scanner, dietParser, parser, resolver, checker,
+             builder, optimizer, generator,
              emitter, compileTimeConstantHandler];
   }
 
