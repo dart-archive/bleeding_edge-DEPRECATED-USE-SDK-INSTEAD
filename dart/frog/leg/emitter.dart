@@ -3,6 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
+ * A function element that represents a closure call. The signature is copied
+ * from the given element.
+ */
+class ClosureInvocationElement extends FunctionElement {
+  ClosureInvocationElement(SourceString name,
+                           FunctionElement other)
+      : super.from(name, other, null);
+
+  isInstanceMember() => true;
+}
+
+/**
  * Generates the code for all used classes in the program. Static fields (even
  * in classes) are ignored, since they can be treated as non-class elements.
  *
@@ -337,12 +349,9 @@ $prototype.toString = function() {
       // The static function does not have the correct name. Since
       // [addParameterStubs] use the name to create its stubs we simply
       // create a fake element with the correct name.
-      // Note: the callElement will not have the correct modifiers (in case
-      // of static functions) and will not have any enclosingElement.
+      // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
-          new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME,
-                                   element,
-                                   null);
+          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, element);
       String staticName = namer.isolatePropertyAccess(element);
       int parameterCount = element.parameterCount(compiler);
       String invocationName =
@@ -396,10 +405,9 @@ $prototype.toString = function() {
     // Now add the methods on the closure class. The instance method does not
     // have the correct name. Since [addParameterStubs] use the name to create
     // its stubs we simply create a fake element with the correct name.
-    // Note: the callElement will not have the correct modifiers (in case
-    // of static functions) and will not have any enclosingElement.
+    // Note: the callElement will not have any enclosingElement.
     FunctionElement callElement =
-        new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME, member, null);
+        new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, member);
 
     int parameterCount = member.parameterCount(compiler);
     String invocationName =
