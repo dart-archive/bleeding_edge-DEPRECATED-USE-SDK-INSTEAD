@@ -587,17 +587,23 @@ final String _BIND_CODE = @"""
 Function.prototype.bind = Function.prototype.bind ||
   function(thisObj) {
     var func = this;
-    if (arguments.length > 1) {
+    var funcLength = func.$length || func.length;
+    var argsLength = arguments.length;
+    if (argsLength > 1) {
       var boundArgs = Array.prototype.slice.call(arguments, 1);
-      return function() {
+      var bound = function() {
         // Prepend the bound arguments to the current arguments.
         var newArgs = Array.prototype.slice.call(arguments);
         Array.prototype.unshift.apply(newArgs, boundArgs);
         return func.apply(thisObj, newArgs);
       };
+      bound.$length = Math.max(0, funcLength - (argsLength - 1));
+      return bound;
     } else {
-      return function() {
+      var bound = function() {
         return func.apply(thisObj, arguments);
       };
+      bound.$length = funcLength;
+      return bound;
     }
   };""";

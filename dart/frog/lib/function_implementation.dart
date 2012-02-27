@@ -26,18 +26,19 @@ class _FunctionImplementation implements Function native "Function" {
    * arguments.
    */
   _genStub(argsLength, [names]) native @'''
-    // Fast path #1: if no named arguments and arg count matches
-    if (this.length == argsLength && !names) {
+    // Fast path #1: if no named arguments and arg count matches.
+    var thisLength = this.$length || this.length;
+    if (thisLength == argsLength && !names) {
       return this;
     }
 
     var paramsNamed = this.$optional ? (this.$optional.length / 2) : 0;
-    var paramsBare = this.length - paramsNamed;
+    var paramsBare = thisLength - paramsNamed;
     var argsNamed = names ? names.length : 0;
     var argsBare = argsLength - argsNamed;
 
     // Check we got the right number of arguments
-    if (argsBare < paramsBare || argsLength > this.length ||
+    if (argsBare < paramsBare || argsLength > thisLength ||
         argsNamed > paramsNamed) {
       return function() {
         $throw(new _ArgumentMismatchException(
@@ -78,7 +79,7 @@ class _FunctionImplementation implements Function native "Function" {
       lastParameterIndex = j;
     }
 
-    if (this.length == argsLength && namesInOrder) {
+    if (thisLength == argsLength && namesInOrder) {
       // Fast path #2: named arguments, but they're in order and all supplied.
       return this;
     }
