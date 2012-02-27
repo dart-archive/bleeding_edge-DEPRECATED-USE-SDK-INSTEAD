@@ -68,7 +68,7 @@ class DateImplementation implements Date {
           assert(match[7].length == 3);
         }
       }
-      bool isUtc = match[8] !== null;
+      bool isUtc = (match[8] !== null) && (match[8] != "");
       TimeZone timezone = isUtc ? const TimeZone.utc() : new TimeZone.local();
       return new DateImplementation.withTimeZone(
           years, month, day, hours, minutes, seconds, milliseconds, timezone);
