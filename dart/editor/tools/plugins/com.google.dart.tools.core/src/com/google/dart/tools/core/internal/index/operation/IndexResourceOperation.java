@@ -17,19 +17,14 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.contributor.IndexContributor;
+import com.google.dart.tools.core.internal.index.impl.IndexPerformanceRecorder;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-
-import org.eclipse.core.resources.IFile;
-
-import java.net.URI;
-import java.net.URISyntaxException;
+import com.google.dart.tools.core.model.DartModelException;
 
 /**
- * Instances of the class <code>IndexResourceOperation</code> implement an operation that adds
- * data to the index based on the content of a specified resource.
+ * Instances of the class <code>IndexResourceOperation</code> implement an operation that adds data
+ * to the index based on the content of a specified resource.
  */
 public class IndexResourceOperation implements IndexOperation {
   /**
@@ -43,38 +38,60 @@ public class IndexResourceOperation implements IndexOperation {
   private Resource resource;
 
   /**
+   * The compilation unit being indexed.
+   */
+  private CompilationUnit compilationUnit;
+
+  /**
    * The fully resolved AST structure representing the contents of the resource.
    */
   private DartUnit unit;
+
+  /**
+   * The object used to record performance information about this operation, or <code>null</code> if
+   * performance information is not suppose to be recorded.
+   */
+  private IndexPerformanceRecorder performanceRecorder;
 
   /**
    * Initialize a newly created operation that will index the specified resource.
    * 
    * @param indexStore the index store against which this operation is being run
    * @param resource the resource being indexed
+   * @param compilationUnit the compilation unit being indexed
    * @param unit the fully resolved AST structure representing the contents of the resource
+   * @param performanceRecorder the object used to record performance information about this
+   *          operation
    */
-  public IndexResourceOperation(IndexStore indexStore, Resource resource, DartUnit unit) {
+  public IndexResourceOperation(IndexStore indexStore, Resource resource,
+      CompilationUnit compilationUnit, DartUnit unit, IndexPerformanceRecorder performanceRecorder) {
     this.indexStore = indexStore;
     this.resource = resource;
+    this.compilationUnit = compilationUnit;
     this.unit = unit;
+    this.performanceRecorder = performanceRecorder;
   }
 
   @Override
   public void performOperation() {
-    try {
-      IFile file = ResourceUtil.getResource(new URI(resource.getResourceId()));
-      DartElement element = DartCore.create(file);
-      if (element instanceof CompilationUnit) {
-        synchronized (indexStore) {
-          indexStore.regenerateResource(resource);
-          IndexContributor contributor = new IndexContributor(indexStore, (CompilationUnit) element);
-          unit.accept(contributor);
-        }
+    long indexStart = 0L;
+    long indexEnd = 0L;
+    long bindingTime = 0L;
+    synchronized (indexStore) {
+      indexStart = System.currentTimeMillis();
+      indexStore.regenerateResource(resource);
+      try {
+        IndexContributor contributor = new IndexContributor(indexStore, compilationUnit);
+        unit.accept(contributor);
+        indexEnd = System.currentTimeMillis();
+        bindingTime = contributor.getBindingTime();
+      } catch (DartModelException exception) {
+        DartCore.logError("Could not index " + compilationUnit.getResource().getLocation(),
+            exception);
       }
-    } catch (URISyntaxException exception) {
-      DartCore.logError("Could not index resource, invalid URI: \"" + resource.getResourceId()
-          + "\"", exception);
+    }
+    if (performanceRecorder != null && indexEnd > 0L) {
+      performanceRecorder.recordIndexingTime(indexEnd - indexStart, bindingTime);
     }
   }
 }

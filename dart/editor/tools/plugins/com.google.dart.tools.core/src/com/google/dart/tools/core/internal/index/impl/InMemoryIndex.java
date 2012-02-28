@@ -90,21 +90,10 @@ public class InMemoryIndex implements Index {
   private boolean hasBeenInitialized = false;
 
   /**
-   * The number of resources that have been indexed since the last time performance statistics were
-   * reported.
+   * The object used to record performance information about the index, or <code>null</code> if
+   * performance information is not suppose to be recorded.
    */
-  private int resourceCount = 0;
-
-  /**
-   * The number of milliseconds spent indexing since the last time this value was accessed and
-   * cleared.
-   */
-  private long totalIndexTime = 0L;
-
-  /**
-   * The number of milliseconds spent resolving the AST structures.
-   */
-  private long totalBindingTime = 0L;
+  private IndexPerformanceRecorder performanceRecorder;
 
   /**
    * The unique instance of this class.
@@ -136,7 +125,9 @@ public class InMemoryIndex implements Index {
    * Initialize a newly created index.
    */
   private InMemoryIndex() {
-    super();
+    if (DartCoreDebug.PERF_INDEX) {
+      performanceRecorder = new IndexPerformanceRecorder();
+    }
   }
 
   /**
@@ -213,20 +204,21 @@ public class InMemoryIndex implements Index {
     long bindingTime = 0L;
     synchronized (indexStore) {
       indexStore.regenerateResource(resource);
-      IndexContributor contributor = new IndexContributor(indexStore, compilationUnit);
-      unit.accept(contributor);
-      bindingTime = contributor.getBindingTime();
+      try {
+        IndexContributor contributor = new IndexContributor(indexStore, compilationUnit);
+        unit.accept(contributor);
+        bindingTime = contributor.getBindingTime();
+      } catch (DartModelException exception) {
+        DartCore.logError("Could not index " + compilationUnit.getResource().getLocation(),
+            exception);
+      }
     }
-    if (DartCoreDebug.PERF_INDEX) {
+    if (performanceRecorder != null) {
       long indexEnd = System.currentTimeMillis();
       long indexTime = indexEnd - indexStart;
-      resourceCount++;
-      totalIndexTime += indexTime;
-      totalBindingTime += bindingTime;
-//      DartCore.logInformation("Indexed " + resource.getResourceId() + " in " + indexTime + " ms ["
-//          + bindingTime + "] (" + totalIndexTime + ", " + totalBindingTime + ")");
+      performanceRecorder.recordIndexingTime(indexTime, bindingTime);
     }
-    // queue.enqueue(new IndexResourceOperation(indexStore, resource, unit));
+    // queue.enqueue(new IndexResourceOperation(indexStore, resource, compilationUnit, unit, performanceRecorder));
   }
 
   /**
@@ -281,13 +273,12 @@ public class InMemoryIndex implements Index {
    * and cleared, clearing the value after reporting it.
    */
   public void reportAndResetIndexingTime() {
-    if (DartCoreDebug.PERF_INDEX) {
-      DartCore.logInformation("Indexed " + resourceCount + " resources in " + totalIndexTime
-          + " ms [" + totalBindingTime + " ms in binding]");
+    if (performanceRecorder != null) {
+      DartCore.logInformation("Indexed " + performanceRecorder.getResourceCount()
+          + " resources in " + performanceRecorder.getTotalIndexTime() + " ms ["
+          + performanceRecorder.getTotalBindingTime() + " ms in binding]");
+      performanceRecorder.clear();
     }
-    resourceCount = 0;
-    totalIndexTime = 0L;
-    totalBindingTime = 0L;
   }
 
   public void shutdown() {
