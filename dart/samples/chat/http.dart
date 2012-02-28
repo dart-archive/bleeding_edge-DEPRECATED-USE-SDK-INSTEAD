@@ -5,6 +5,8 @@
 #library("http");
 #import("dart:io");
 #source("http_impl.dart");
+#source("../../runtime/bin/buffer_list.dart");
+#source("../../runtime/bin/stream_util.dart");
 
 /**
  * HTTP status codes.
@@ -142,20 +144,10 @@ interface HTTPRequest default _HTTPRequest {
   Map<String, String> get headers();
 
   /**
-   * Sets the handler that gets called as request data becomes
-   * available. The data delivered are the raw bytes received. If the
-   * data is UTF-8 encoded and this callback is not set the callback
-   * [dataEnd] will be called with the decoded [String].
+   * Returns the input stream for the request. This is used to read
+   * the request data.
    */
-  void set dataReceived(void handler(List<int> data));
-
-  /**
-   * Sets the handler that gets called when all request data have been
-   * received. If the callback [dataReceived] is set the [String]
-   * argument will be [null] otherwise it will be the result of UTF-8
-   * decoding the request body,
-   */
-  void set dataEnd(void handler(String data));
+  InputStream get inputStream();
 }
 
 
@@ -346,20 +338,10 @@ interface HTTPClientResponse default _HTTPClientResponse {
   Map get headers();
 
   /**
-   * Sets callback to be called as request data becomes available. The
-   * data delivered are the raw received. If the data is UTF-8 encoded
-   * and this callback is not set the callback [dataEnd] will be
-   * called with the decoded [String].
+   * Returns the input stream for the response. This is used to read
+   * the response data.
    */
-  void set dataReceived(void callback(List<int> data));
-
-  /**
-   * Sets the callback to be called when all request data have been
-   * received. If the callback [dataReceived] is set the [String]
-   * argument will be [null] otherwise it will be the result of UTF-8
-   * decoding the request body,
-   */
-  void set dataEnd(void callback(String data));
+  InputStream get inputStream();
 }
 
 

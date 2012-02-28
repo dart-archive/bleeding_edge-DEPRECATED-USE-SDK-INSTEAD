@@ -57,11 +57,10 @@ class ServerMain {
 
     void _start(String hostAddress, int tcpPort, int listenBacklog) {
     // Handle status messages from the server.
-    _statusPort.receive(
-        void _(var message, SendPort replyTo) {
-          String status = message.message;
-          print("Received status: $status");
-        });
+    _statusPort.receive((var message, SendPort replyTo) {
+      String status = message.message;
+      print("Received status: $status");
+    });
 
     // Send server start message to the server.
     var command = new ChatServerCommand.start(hostAddress,
@@ -104,7 +103,7 @@ class Message {
   static final int JOIN = 0;
   static final int MESSAGE = 1;
   static final int LEAVE = 2;
-  static final int TIMEOUT = 2;
+  static final int TIMEOUT = 3;
   static final List<String> _typeName =
       const [ "join", "message", "leave", "timeout"];
 
@@ -174,10 +173,9 @@ class Topic {
     // Send the new message to all polling clients.
     List messages = new List();
     messages.add(message.toMap());
-    _callbacks.forEach(
-        void _(String sessionId, Function callback) {
-          callback(messages);
-        });
+    _callbacks.forEach((String sessionId, Function callback) {
+      callback(messages);
+    });
     _callbacks = new Map();
   }
 
@@ -222,22 +220,19 @@ class Topic {
     Set inactiveSessions = new Set();
     // Collect all sessions which have not been active for some time.
     Date now = new Date.now();
-    _activeUsers.forEach(
-        void _(String sessionId, User user) {
-          if (user.idleTime(now).inMilliseconds > DEFAULT_IDLE_TIMEOUT) {
-            inactiveSessions.add(sessionId);
-          }
-        });
+    _activeUsers.forEach((String sessionId, User user) {
+      if (user.idleTime(now).inMilliseconds > DEFAULT_IDLE_TIMEOUT) {
+        inactiveSessions.add(sessionId);
+      }
+    });
     // Terminate the inactive sessions.
-    inactiveSessions.forEach(
-        void _(String sessionId) {
-          Function callback = _callbacks.remove(sessionId);
-          if (callback != null) callback(null);
-          User user = _activeUsers.remove(sessionId);
-          Message message = new Message.timeout(user);
-          _addMessage(message);
-        });
-
+    inactiveSessions.forEach((String sessionId) {
+      Function callback = _callbacks.remove(sessionId);
+      if (callback != null) callback(null);
+      User user = _activeUsers.remove(sessionId);
+      Message message = new Message.timeout(user);
+      _addMessage(message);
+    });
   }
 
   Map<String, User> _activeUsers;
@@ -383,7 +378,7 @@ class IsolatedServer extends Isolate {
       response.contentLength = openedFile.lengthSync();
       openedFile.close();
       // Pipe the file content into the response.
-      file.openInputStream().pipe(response.outputStream);
+      file.openInputStreamSync().pipe(response.outputStream);
     } else {
       print("File not found: $fileName");
       _notFoundHandler(request, response);
@@ -413,7 +408,11 @@ class IsolatedServer extends Isolate {
   // { "request": "join",
   //   "handle": <handle> }
   void _joinHandler(HTTPRequest request, HTTPResponse response) {
-    void dataEndHandler(String data) {
+    StringBuffer body = new StringBuffer();
+    StringInputStream input = new StringInputStream(request.inputStream);
+    input.dataHandler = () => body.add(input.read());
+    input.closeHandler = () {
+      String data = body.toString();
       if (data != null) {
         var requestData = JSON.parse(data);
         if (requestData["request"] == "join") {
@@ -436,17 +435,18 @@ class IsolatedServer extends Isolate {
       } else {
         _protocolError(request, response);
       }
-    }
-
-    // Register callback for full request data.
-    request.dataEnd = dataEndHandler;
+    };
   }
 
   // Leave request:
   // { "request": "leave",
   //   "sessionId": <sessionId> }
   void _leaveHandler(HTTPRequest request, HTTPResponse response) {
-    void dataEndHandler(String data) {
+    StringBuffer body = new StringBuffer();
+    StringInputStream input = new StringInputStream(request.inputStream);
+    input.dataHandler = () => body.add(input.read());
+    input.closeHandler = () {
+      String data = body.toString();
       var requestData = JSON.parse(data);
       if (requestData["request"] == "leave") {
         String sessionId = requestData["sessionId"];
@@ -464,9 +464,7 @@ class IsolatedServer extends Isolate {
       } else {
         _protocolError(request, response);
       }
-    }
-
-    request.dataEnd = dataEndHandler;
+    };
   }
 
   // Message request:
@@ -474,7 +472,11 @@ class IsolatedServer extends Isolate {
   //   "sessionId": <sessionId>,
   //   "message": <message> }
   void _messageHandler(HTTPRequest request, HTTPResponse response) {
-    void dataEndHandler(String data) {
+    StringBuffer body = new StringBuffer();
+    StringInputStream input = new StringInputStream(request.inputStream);
+    input.dataHandler = () => body.add(input.read());
+    input.closeHandler = () {
+      String data = body.toString();
       _messageCount++;
       _messageRate.record(1);
       var requestData = JSON.parse(data);
@@ -498,9 +500,7 @@ class IsolatedServer extends Isolate {
       } else {
         _protocolError(request, response);
       }
-    }
-
-    request.dataEnd = dataEndHandler;
+    };
   }
 
   // Receive request:
@@ -509,7 +509,11 @@ class IsolatedServer extends Isolate {
   //   "nextMessage": <nextMessage>,
   //   "maxMessages": <maxMesssages> }
   void _receiveHandler(HTTPRequest request, HTTPResponse response) {
-    void dataEndHandler(String data) {
+    StringBuffer body = new StringBuffer();
+    StringInputStream input = new StringInputStream(request.inputStream);
+    input.dataHandler = () => body.add(input.read());
+    input.closeHandler = () {
+      String data = body.toString();
       var requestData = JSON.parse(data);
       if (requestData["request"] == "receive") {
         String sessionId = requestData["sessionId"];
@@ -546,9 +550,7 @@ class IsolatedServer extends Isolate {
       } else {
         _protocolError(request, response);
       }
-    }
-
-    request.dataEnd = dataEndHandler;
+    };
   }
 
   void addHandler(String path,
@@ -577,29 +579,28 @@ class IsolatedServer extends Isolate {
       }
     }
 
-    this.port.receive(
-        void _(var message, SendPort replyTo) {
-          if (message.isStart) {
-            _host = message.host;
-            _port = message.port;
-            _logging = message.logging;
-            replyTo.send(new ChatServerStatus.starting(), null);
-            _server = new HTTPServer();
-            try {
-              _server.listen(_host, _port, backlog: message.backlog);
-              _server.requestHandler = (HTTPRequest req, HTTPResponse rsp) =>
-                  _requestReceivedHandler(req, rsp);
-              replyTo.send(new ChatServerStatus.started(_server.port), null);
-              _loggingTimer = new Timer.repeating(_handleLogging, 1000);
-            } catch (var e) {
-              replyTo.send(new ChatServerStatus.error(e.toString()), null);
-            }
-          } else if (message.isStop) {
-            replyTo.send(new ChatServerStatus.stopping(), null);
-            stop();
-            replyTo.send(new ChatServerStatus.stopped(), null);
-          }
-        });
+    this.port.receive((var message, SendPort replyTo) {
+      if (message.isStart) {
+        _host = message.host;
+        _port = message.port;
+        _logging = message.logging;
+        replyTo.send(new ChatServerStatus.starting(), null);
+        _server = new HTTPServer();
+        try {
+          _server.listen(_host, _port, backlog: message.backlog);
+          _server.requestHandler = (HTTPRequest req, HTTPResponse rsp) =>
+              _requestReceivedHandler(req, rsp);
+          replyTo.send(new ChatServerStatus.started(_server.port), null);
+          _loggingTimer = new Timer.repeating(_handleLogging, 1000);
+        } catch (var e) {
+          replyTo.send(new ChatServerStatus.error(e.toString()), null);
+        }
+      } else if (message.isStop) {
+        replyTo.send(new ChatServerStatus.stopping(), null);
+        stop();
+        replyTo.send(new ChatServerStatus.stopped(), null);
+      }
+    });
   }
 
   stop() {

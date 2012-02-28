@@ -406,93 +406,12 @@ class HTTPParser {
   int _remainingContent;
 
   // Callbacks.
-  var requestStart;
-  var responseStart;
-  var headerReceived;
-  var headersComplete;
-  var dataReceived;
-  var dataEnd;
-}
-
-
-// Utility class which can deliver bytes one by one from a number of
-// buffers added.
-class _BufferList {
-  _BufferList() : _index = 0, _length = 0, _buffers = new Queue();
-
-  void add(List<int> buffer) {
-    _buffers.addLast(buffer);
-    _length += buffer.length;
-  }
-
-  int next() {
-    int value = _buffers.first()[_index++];
-    _length--;
-    if (_index == _buffers.first().length) {
-      _buffers.removeFirst();
-      _index = 0;
-    }
-    return value;
-  }
-
-  int get length() => _length;
-
-  int _length;
-  Queue<List<int>> _buffers;
-  int _index;
-}
-
-
-// Utility class for decoding UTF-8 from data delivered as a stream of
-// bytes.
-class _UTF8Decoder {
-  _UTF8Decoder()
-      : _bufferList = new _BufferList(),
-        _result = new StringBuffer();
-
-  // Add UTF-8 encoded data.
-  int writeList(List<int> buffer) {
-    _bufferList.add(buffer);
-    // Only process as much data as we know is safe.
-    while (_bufferList.length >= 4) {
-      _processNext();
-    }
-  }
-
-  // Return the decoded string.
-  String toString() {
-    // Process any leftover data.
-    while (_bufferList.length > 0) {
-      _processNext();
-    }
-    return _result.toString();
-  }
-
-  // Process the next UTF-8 encoded character.
-  void _processNext() {
-    int value = _bufferList.next() & 0xFF;
-    if ((value & 0x80) == 0x80) {
-      int additionalBytes;
-      if ((value & 0xe0) == 0xc0) {  // 110xxxxx
-        value = value & 0x1F;
-        additionalBytes = 1;
-      } else if ((value & 0xf0) == 0xe0) {  // 1110xxxx
-        value = value & 0x0F;
-        additionalBytes = 2;
-      } else {  // 11110xxx
-        value = value & 0x07;
-        additionalBytes = 3;
-      }
-      for (int i = 0; i < additionalBytes; i++) {
-        int byte = _bufferList.next();
-        value = value << 6 | (byte & 0x3F);
-      }
-    }
-    _result.addCharCode(value);
-  }
-
-  _BufferList _bufferList;
-  StringBuffer _result;
+  Function requestStart;
+  Function responseStart;
+  Function headerReceived;
+  Function headersComplete;
+  Function dataReceived;
+  Function dataEnd;
 }
 
 
@@ -544,8 +463,8 @@ class _UTF8Encoder {
 }
 
 
-class _HTTPRequestOrResponse {
-  _HTTPRequestOrResponse(_HTTPConnectionBase this._httpConnection)
+class _HTTPRequestResponseBase {
+  _HTTPRequestResponseBase(_HTTPConnectionBase this._httpConnection)
       : _contentLength = -1,
         _keepAlive = false,
         _headers = new Map();
@@ -557,50 +476,58 @@ class _HTTPRequestOrResponse {
     _headers[name] = value;
   }
 
-  void _write(List<int> data, bool copyBuffer) {
+  bool _write(List<int> data, bool copyBuffer) {
+    bool allWritten = true;
     if (data.length > 0) {
       if (_contentLength < 0) {
         // Write chunk size if transfer encoding is chunked.
         _writeHexString(data.length);
         _writeCRLF();
         _httpConnection.outputStream.write(data, copyBuffer);
-        _writeCRLF();
+        allWritten = _writeCRLF();
       } else {
-        _httpConnection.outputStream.write(data, copyBuffer);
+        allWritten = _httpConnection.outputStream.write(data, copyBuffer);
       }
     }
+    return allWritten;
   }
 
-  void _writeList(List<int> data, int offset, int count) {
+  bool _writeList(List<int> data, int offset, int count) {
+    bool allWritten = true;
     if (count > 0) {
       if (_contentLength < 0) {
         // Write chunk size if transfer encoding is chunked.
         _writeHexString(count);
         _writeCRLF();
         _httpConnection.outputStream.writeFrom(data, offset, count);
-        _writeCRLF();
+        allWritten = _writeCRLF();
       } else {
-        _httpConnection.outputStream.writeFrom(data, offset, count);
+        allWritten = _httpConnection.outputStream.writeFrom(data, offset, count);
       }
     }
+    return allWritten;
   }
 
-  void _writeString(String string) {
+  bool _writeString(String string) {
+    bool allWritten = true;
     if (string.length > 0) {
       // Encode as UTF-8 and write data.
       List<int> data = _UTF8Encoder.encodeString(string);
-      _writeList(data, 0, data.length);
+      allWritten = _writeList(data, 0, data.length);
     }
+    return allWritten;
   }
 
-  void _writeDone() {
+  bool _writeDone() {
+    bool allWritten = true;
     if (_contentLength < 0) {
       // Terminate the content if transfer encoding is chunked.
-      _httpConnection.outputStream.write(_Const.END_CHUNKED);
+      allWritten = _httpConnection.outputStream.write(_Const.END_CHUNKED);
     }
+    return allWritten;
   }
 
-  void _writeHeaders() {
+  bool _writeHeaders() {
     List<int> data;
 
     // Format headers.
@@ -614,13 +541,13 @@ class _HTTPRequestOrResponse {
       _writeCRLF();
     });
     // Terminate header.
-    _writeCRLF();
+    return _writeCRLF();
   }
 
-  void _writeHexString(int x) {
+  bool _writeHexString(int x) {
     final List<int> hexDigits = [0x30, 0x31, 0x32, 0x33, 0x34,
-                                  0x35, 0x36, 0x37, 0x38, 0x39,
-                                  0x41, 0x42, 0x43, 0x44, 0x45, 0x46];
+                                 0x35, 0x36, 0x37, 0x38, 0x39,
+                                 0x41, 0x42, 0x43, 0x44, 0x45, 0x46];
     ByteArray hex = new ByteArray(10);
     int index = hex.length;
     while (x > 0) {
@@ -628,34 +555,17 @@ class _HTTPRequestOrResponse {
       hex[index] = hexDigits[x % 16];
       x = x >> 4;
     }
-    _httpConnection.outputStream.writeFrom(hex, index, hex.length - index);
+    return _httpConnection.outputStream.writeFrom(hex, index, hex.length - index);
   }
 
-  void _writeCRLF() {
+  bool _writeCRLF() {
     final CRLF = const [_CharCode.CR, _CharCode.LF];
-    _httpConnection.outputStream.write(CRLF);
+    return _httpConnection.outputStream.write(CRLF);
   }
 
-  void _writeSP() {
+  bool _writeSP() {
     final SP = const [_CharCode.SP];
-    _httpConnection.outputStream.write(SP);
-  }
-
-  void _dataReceivedHandler(List<int> data) {
-    // If no data received handler exists collect data as a string.
-    if (dataReceived != null) {
-      dataReceived(data);
-    } else {
-      if (_decoder == null) _decoder = new _UTF8Decoder();
-      _decoder.writeList(data);
-    }
-  }
-
-  void _dataEndHandler() {
-    if (dataEnd != null) {
-      // Pass the string collected if any.
-      dataEnd(_decoder != null ? _decoder.toString() : null);
-    }
+    return _httpConnection.outputStream.write(SP);
   }
 
   _HTTPConnectionBase _httpConnection;
@@ -666,17 +576,11 @@ class _HTTPRequestOrResponse {
   // used.
   int _contentLength;
   bool _keepAlive;
-
-  _UTF8Decoder _decoder;
-
-  // Callbacks.
-  var dataReceived;
-  var dataEnd;
 }
 
 
 // Parsed HTTP request providing information on the HTTP headers.
-class _HTTPRequest extends _HTTPRequestOrResponse implements HTTPRequest {
+class _HTTPRequest extends _HTTPRequestResponseBase implements HTTPRequest {
   _HTTPRequest(_HTTPConnection connection) : super(connection);
 
   String get method() => _method;
@@ -685,6 +589,13 @@ class _HTTPRequest extends _HTTPRequestOrResponse implements HTTPRequest {
   Map get headers() => _headers;
   String get queryString() => _queryString;
   Map get queryParameters() => _queryParameters;
+
+  InputStream get inputStream() {
+    if (_inputStream == null) {
+      _inputStream = new _HTTPInputStream(this);
+    }
+    return _inputStream;
+  }
 
   void _requestStartHandler(String method, String uri) {
     _method = method;
@@ -697,7 +608,17 @@ class _HTTPRequest extends _HTTPRequestOrResponse implements HTTPRequest {
   }
 
   void _headersCompleteHandler() {
-    // Nothing to do.
+    // Prepare for receiving data.
+    _buffer = new _BufferList();
+  }
+
+  void _dataReceivedHandler(List<int> data) {
+    _buffer.add(data);
+    if (_inputStream != null) _inputStream._dataReceived();
+  }
+
+  void _dataEndHandler() {
+    if (_inputStream != null) _inputStream._closeReceived();
   }
 
   // Escaped characters in uri are expected to have been parsed.
@@ -715,16 +636,32 @@ class _HTTPRequest extends _HTTPRequestOrResponse implements HTTPRequest {
     }
   }
 
+  // Delegate functions for the HTTPInputStream implementation.
+  int _streamAvailable() {
+    return _buffer.length;
+  }
+
+  List<int> _streamRead(int bytesToRead) {
+    return _buffer.readBytes(bytesToRead);
+  }
+
+  int _streamReadInto(List<int> buffer, int offset, int len) {
+    List<int> data = _buffer.readBytes(len);
+    buffer.setRange(offset, data.length, data);
+  }
+
   String _method;
   String _uri;
   String _path;
   String _queryString;
   Map<String, String> _queryParameters;
+  _HTTPInputStream _inputStream;
+  _BufferList _buffer;
 }
 
 
 // HTTP response object for sending a HTTP response.
-class _HTTPResponse extends _HTTPRequestOrResponse implements HTTPResponse {
+class _HTTPResponse extends _HTTPRequestResponseBase implements HTTPResponse {
   static final int START = 0;
   static final int HEADERS_SENT = 1;
   static final int DONE = 2;
@@ -765,32 +702,35 @@ class _HTTPResponse extends _HTTPRequestOrResponse implements HTTPResponse {
   bool writeString(String string) {
     // Invoke the output stream getter to make sure the header is sent.
     outputStream;
-    _writeString(string);
-    return true;
+    return _writeString(string);
   }
 
-  /*
-   * Delegate functions for the HTTPOutputStream implementation.
-   */
+  // Delegate functions for the HTTPOutputStream implementation.
   bool _streamWrite(List<int> buffer, bool copyBuffer) {
-    _write(buffer, copyBuffer);
+    return _write(buffer, copyBuffer);
   }
 
   bool _streamWriteFrom(List<int> buffer, int offset, int len) {
-    _writeList(buffer, offset, len);
+    return _writeList(buffer, offset, len);
   }
 
   void _streamClose() {
+    _state = DONE;
     // Stop tracking no pending write events.
     _httpConnection.outputStream.noPendingWriteHandler = null;
-
     // Ensure that any trailing data is written.
     _writeDone();
-    _state = DONE;
+    // If the connection is closing then close the output stream to
+    // fully close the socket.
+    if (_httpConnection._closing) {
+      _httpConnection.outputStream.close();
+    }
   }
 
   void _streamSetNoPendingWriteHandler(callback()) {
-    _httpConnection.outputStream.noPendingWriteHandler = callback;
+    if (_state != DONE) {
+      _httpConnection.outputStream.noPendingWriteHandler = callback;
+    }
   }
 
   void _streamSetCloseHandler(callback()) {
@@ -856,7 +796,7 @@ class _HTTPResponse extends _HTTPRequestOrResponse implements HTTPResponse {
     }
   }
 
-  void _writeHeader() {
+  bool _writeHeader() {
     List<int> data;
     OutputStream stream = _httpConnection.outputStream;
 
@@ -882,8 +822,9 @@ class _HTTPResponse extends _HTTPRequestOrResponse implements HTTPResponse {
     }
 
     // Write headers.
-    _writeHeaders();
+    bool allWritten = _writeHeaders();
     _state = HEADERS_SENT;
+    return allWritten;
   }
 
   // Response status code.
@@ -894,29 +835,75 @@ class _HTTPResponse extends _HTTPRequestOrResponse implements HTTPResponse {
 }
 
 
+class _HTTPInputStream extends _BaseDataInputStream implements InputStream {
+  _HTTPInputStream(_HTTPRequestResponseBase this._requestOrResponse) {
+    _checkScheduleCallbacks();
+  }
+
+  int available() {
+    return _requestOrResponse._streamAvailable();
+  }
+
+  void pipe(OutputStream output, [bool close = true]) {
+    _pipe(this, output, close: close);
+  }
+
+  List<int> _read(int bytesToRead) {
+    List<int> result = _requestOrResponse._streamRead(bytesToRead);
+    _checkScheduleCallbacks();
+    return result;
+  }
+
+  int _readInto(List<int> buffer, int offset, int len) {
+    int result = _requestOrResponse._streamReadInto(buffer, offset, len);
+    _checkScheduleCallbacks();
+    return result;
+  }
+
+  void _close() {
+    // TODO(sgjesse): Handle this.
+  }
+
+  void _dataReceived() {
+    super._dataReceived();
+  }
+
+  _HTTPRequestResponseBase _requestOrResponse;
+}
+
+
 class _HTTPOutputStream implements OutputStream {
-  _HTTPOutputStream(_HTTPRequestOrResponse this._requestOrResponse);
+  _HTTPOutputStream(_HTTPRequestResponseBase this._requestOrResponse);
 
-  bool write(List<int> buffer, [bool copyBuffer = true]) =>
-      _requestOrResponse._streamWrite(buffer, copyBuffer);
+  bool write(List<int> buffer, [bool copyBuffer = true]) {
+    return _requestOrResponse._streamWrite(buffer, copyBuffer);
+  }
 
-  bool writeFrom(List<int> buffer, [int offset = 0, int len]) =>
-      _requestOrResponse._streamWriteFrom(buffer, offset, len);
+  bool writeFrom(List<int> buffer, [int offset = 0, int len]) {
+    return _requestOrResponse._streamWriteFrom(buffer, offset, len);
+  }
 
-  void close() => _requestOrResponse._streamClose();
+  void close() {
+    _requestOrResponse._streamClose();
+  }
 
-  void destroy() { throw "Not implemented"; }
+  void destroy() {
+    throw "Not implemented";
+  }
 
-  void set noPendingWriteHandler(void callback()) =>
-      _requestOrResponse._streamSetNoPendingWriteHandler(callback);
+  void set noPendingWriteHandler(void callback()) {
+    _requestOrResponse._streamSetNoPendingWriteHandler(callback);
+  }
 
-  void set closeHandler(void callback()) =>
-      _requestOrResponse._streamSetCloseHandler(callback);
+  void set closeHandler(void callback()) {
+    _requestOrResponse._streamSetCloseHandler(callback);
+  }
 
-  void set errorHandler(void callback()) =>
-      _requestOrResponse._streamSetErrorHandler(callback);
+  void set errorHandler(void callback()) {
+    _requestOrResponse._streamSetErrorHandler(callback);
+  }
 
-  _HTTPRequestOrResponse _requestOrResponse;
+  _HTTPRequestResponseBase _requestOrResponse;
 }
 
 
@@ -933,7 +920,6 @@ class _HTTPConnectionBase {
   }
 
   OutputStream get outputStream() {
-    if (_socket == null) throw new HTTPException("Connection closed");
     return _socket.outputStream;
   }
 
@@ -955,9 +941,9 @@ class _HTTPConnectionBase {
   }
 
   void _closeHandler() {
-    _socket.close();
-    // Set to null to avoid further write attempts.
-    _socket = null;
+    // Client closed socket for writing. Socket should still be open
+    // for writing the response.
+    _closing = true;
     if (_disconnectHandlerCallback != null) _disconnectHandlerCallback();
   }
 
@@ -978,6 +964,7 @@ class _HTTPConnectionBase {
   }
 
   Socket _socket;
+  bool _closing = false;  // Is the socket closed by the client?
   HTTPParser _httpParser;
 
   Queue _sendBuffers;
@@ -1102,7 +1089,7 @@ class _HTTPServer implements HTTPServer {
 
 
 class _HTTPClientRequest
-    extends _HTTPRequestOrResponse implements HTTPClientRequest {
+    extends _HTTPRequestResponseBase implements HTTPClientRequest {
   static final int START = 0;
   static final int HEADERS_SENT = 1;
   static final int DONE = 2;
@@ -1130,8 +1117,7 @@ class _HTTPClientRequest
 
   bool writeString(String string) {
     outputStream;
-    _writeString(string);
-    return true;
+    return _writeString(string);
   }
 
   OutputStream get outputStream() {
@@ -1146,25 +1132,32 @@ class _HTTPClientRequest
     return _outputStream;
   }
 
-  /*
-   * Delegate functions for the HTTPOutputStream implementation.
-   */
-  void _streamWrite(List<int> buffer, bool copyBuffer) {
-    _write(buffer, copyBuffer);
+  // Delegate functions for the HTTPOutputStream implementation.
+  bool _streamWrite(List<int> buffer, bool copyBuffer) {
+    return _write(buffer, copyBuffer);
   }
 
-  void _streamWriteFrom(List<int> buffer, int offset, int len) {
-    _writeList(buffer, offset, len);
+  bool _streamWriteFrom(List<int> buffer, int offset, int len) {
+    return _writeList(buffer, offset, len);
   }
 
   void _streamClose() {
+    _state = DONE;
+    // Stop tracking no pending write events.
+    _httpConnection.outputStream.noPendingWriteHandler = null;
     // Ensure that any trailing data is written.
     _writeDone();
-    _state = DONE;
+    // If the connection is closing then close the output stream to
+    // fully close the socket.
+    if (_httpConnection._closing) {
+      _httpConnection.outputStream.close();
+    }
   }
 
   void _streamSetNoPendingWriteHandler(callback()) {
-    _httpConnection.outputStream.noPendingWriteHandler = callback;
+    if (_state != DONE) {
+      _httpConnection.outputStream.noPendingWriteHandler = callback;
+    }
   }
 
   void _streamSetCloseHandler(callback()) {
@@ -1214,7 +1207,7 @@ class _HTTPClientRequest
 
 
 class _HTTPClientResponse
-    extends _HTTPRequestOrResponse implements HTTPClientResponse {
+    extends _HTTPRequestResponseBase implements HTTPClientResponse {
   _HTTPClientResponse(_HTTPClientConnection connection)
       : super(connection) {
     _connection = connection;
@@ -1223,6 +1216,13 @@ class _HTTPClientResponse
   int get statusCode() { return _statusCode; }
   int get reasonPhrase() { return _reasonPhrase; }
   Map get headers() => _headers;
+
+  InputStream get inputStream() {
+    if (_inputStream == null) {
+      _inputStream = new _HTTPInputStream(this);
+    }
+    return _inputStream;
+  }
 
   void _requestStartHandler(String method, String uri) {
     // TODO(sgjesse): Error handling
@@ -1238,16 +1238,42 @@ class _HTTPClientResponse
   }
 
   void _headersCompleteHandler() {
+    _buffer = new _BufferList();
     if (_connection._responseHandler != null) {
       _connection._responseHandler(this);
     }
+  }
+
+  void _dataReceivedHandler(List<int> data) {
+    _buffer.add(data);
+    if (_inputStream != null) _inputStream._dataReceived();
+  }
+
+  void _dataEndHandler() {
+    if (_inputStream != null) _inputStream._closeReceived();
+  }
+
+  // Delegate functions for the HTTPInputStream implementation.
+  int _streamAvailable() {
+    return _buffer.length;
+  }
+
+  List<int> _streamRead(int bytesToRead) {
+    return _buffer.readBytes(bytesToRead);
+  }
+
+  int _streamReadInto(List<int> buffer, int offset, int len) {
+    List<int> data = _buffer.readBytes(len);
+    buffer.setRange(offset, data.length, data);
+    return data.length;
   }
 
   int _statusCode;
   String _reasonPhrase;
 
   _HTTPClientConnection _connection;
-  var _responseReceived;
+  _HTTPInputStream _inputStream;
+  _BufferList _buffer;
 }
 
 

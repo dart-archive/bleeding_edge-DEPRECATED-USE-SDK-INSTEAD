@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("chat_stress_client.dart");
+#import("dart:io");
 #import("dart:json");
 #import("http.dart");
 
@@ -46,9 +47,7 @@ class ChatStressClient {
     }
 
     void leave() {
-      HTTPClientResponse response;
-
-      void leaveResponseHandler(String data) {
+      void leaveResponseHandler(HTTPClientResponse response, String data) {
         httpClient.shutdown();
       }
 
@@ -60,17 +59,19 @@ class ChatStressClient {
         request.writeString(JSON.stringify(leaveRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HTTPClientResponse r) {
-        response = r;
-        response.dataEnd = leaveResponseHandler;
+      conn.responseHandler = (HTTPClientResponse response) {
+        StringInputStream stream = new StringInputStream(response.inputStream);
+        StringBuffer body = new StringBuffer();
+        stream.dataHandler = () => body.add(stream.read());
+        stream.closeHandler = () {
+          leaveResponseHandler(response, body.toString());
+        };
       };
     }
 
     var sendMessage;
     void receive() {
-      HTTPClientResponse response;
-
-      void receiveResponseHandler(String data) {
+      void receiveResponseHandler(HTTPClientResponse response, String data) {
         var responseData = parseResponse(response, data, "receive");
         if (responseData == null) return;
         if (responseData["disconnect"] == true) return;
@@ -88,17 +89,18 @@ class ChatStressClient {
         request.writeString(JSON.stringify(messageRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HTTPClientResponse r) {
-        response = r;
-        response.dataEnd = receiveResponseHandler;
+      conn.responseHandler = (HTTPClientResponse response) {
+        StringInputStream stream = new StringInputStream(response.inputStream);
+        StringBuffer body = new StringBuffer();
+        stream.dataHandler = () => body.add(stream.read());
+        stream.closeHandler = () {
+          receiveResponseHandler(response, body.toString());
+        };
       };
     }
 
     sendMessage = () {
-      HTTPClientRequest request;
-      HTTPClientResponse response;
-
-      void sendResponseHandler(String data) {
+      void sendResponseHandler(HTTPClientResponse response, String data) {
         var responseData = parseResponse(response, data, "message");
         if (responseData == null) return;
 
@@ -121,20 +123,21 @@ class ChatStressClient {
       messageRequest["message"] = "message " + sendMessageCount;
       HTTPClientConnection conn = httpClient.post("127.0.0.1", port, "/message");
       conn.requestHandler = (HTTPClientRequest request) {
-        print(JSON.stringify(messageRequest));
         request.writeString(JSON.stringify(messageRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HTTPClientResponse r) {
-        response = r;
-        response.dataEnd = sendResponseHandler;
+      conn.responseHandler = (HTTPClientResponse response) {
+        StringInputStream stream = new StringInputStream(response.inputStream);
+        StringBuffer body = new StringBuffer();
+        stream.dataHandler = () => body.add(stream.read());
+        stream.closeHandler = () {
+          sendResponseHandler(response, body.toString());
+        };
       };
     };
 
     void join() {
-      HTTPClientResponse response;
-
-      void joinResponseHandler(String data) {
+      void joinResponseHandler(HTTPClientResponse response, String data) {
         var responseData = parseResponse(response, data, "join");
         if (responseData == null) return;
         sessionId = responseData["sessionId"];
@@ -153,9 +156,13 @@ class ChatStressClient {
         request.writeString(JSON.stringify(joinRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HTTPClientResponse r) {
-        response = r;
-        response.dataEnd = joinResponseHandler;
+      conn.responseHandler = (HTTPClientResponse response) {
+        StringInputStream stream = new StringInputStream(response.inputStream);
+        StringBuffer body = new StringBuffer();
+        stream.dataHandler = () => body.add(stream.read());
+        stream.closeHandler = () {
+          joinResponseHandler(response, body.toString());
+        };
       };
     }
 

@@ -4,6 +4,7 @@
 
 #library("http_test.dart");
 #import("dart:isolate");
+#import("dart:io");
 #import("../../../../chat/http.dart");
 #import("../../../../chat/chat_server_lib.dart");
 
@@ -44,7 +45,6 @@ class TestServerMain {
     // Send chunked encoding message to the server.
     _serverPort.send(
         new TestServerCommand.chunkedEncoding(), _statusPort.toSendPort());
-    _statusPort.close();
   }
 
   ReceivePort _statusPort;  // Port for receiving messages from the server.
@@ -56,7 +56,7 @@ class TestServerMain {
 class TestServerCommand {
   static final START = 0;
   static final STOP = 1;
-  static final CHUNKED_ENCODING = 1;
+  static final CHUNKED_ENCODING = 2;
 
   TestServerCommand.start() : _command = START;
   TestServerCommand.stop() : _command = STOP;
@@ -94,17 +94,15 @@ class TestServer extends Isolate {
   // Echo the request content back to the response.
   void _echoHandler(HTTPRequest request, HTTPResponse response) {
     Expect.equals("POST", request.method);
-    request.dataEnd = (String body) {
-      response.contentLength = body.length;
-      response.outputStream.writeFrom(body.charCodes(), 0, body.length);
-      response.outputStream.close();
-    };
+    response.contentLength = request.contentLength;
+    request.inputStream.pipe(response.outputStream);
   }
 
   // Echo the request content back to the response.
   void _zeroToTenHandler(HTTPRequest request, HTTPResponse response) {
     Expect.equals("GET", request.method);
-    request.dataEnd = (String body) {
+    request.inputStream.dataHandler = () {};
+    request.inputStream.closeHandler = () {
       response.writeString("01234567890");
       response.outputStream.close();
     };
@@ -133,7 +131,6 @@ class TestServer extends Isolate {
       if (message.isStart) {
         _server = new HTTPServer();
         try {
-          _chunkedEncoding = false;
           _server.listen("127.0.0.1", 0);
           _server.requestHandler = (HTTPRequest req, HTTPResponse rsp) {
             _requestReceivedHandler(req, rsp);
@@ -163,7 +160,7 @@ class TestServer extends Isolate {
 
   HTTPServer _server;  // HTTP server instance.
   Map _requestHandlers;
-  bool _chunkedEncoding;
+  bool _chunkedEncoding = false;
 }
 
 
@@ -184,8 +181,11 @@ void testGET() {
         httpClient.get("127.0.0.1", port, "/0123456789");
     conn.responseHandler = (HTTPClientResponse response) {
       Expect.equals(HTTPStatus.OK, response.statusCode);
-      response.dataEnd = (String body) {
-        Expect.equals("01234567890", body);
+      StringInputStream stream = new StringInputStream(response.inputStream);
+      StringBuffer body = new StringBuffer();
+      stream.dataHandler = () => body.add(stream.read());
+      stream.closeHandler = () {
+        Expect.equals("01234567890", body.toString());
         httpClient.shutdown();
         testServerMain.shutdown();
       };
@@ -205,12 +205,12 @@ void testPOST(bool chunkedEncoding) {
     int count = 0;
     HTTPClient httpClient = new HTTPClient();
     void sendRequest() {
-
       HTTPClientConnection conn =
           httpClient.post("127.0.0.1", port, "/echo");
       conn.requestHandler = (HTTPClientRequest request) {
         if (chunkedEncoding) {
-          request.writeString(data);
+          request.writeString(data.substring(0, 10));
+          request.writeString(data.substring(10, data.length));
         } else {
           request.contentLength = data.length;
           request.outputStream.write(data.charCodes());
@@ -219,8 +219,11 @@ void testPOST(bool chunkedEncoding) {
       };
       conn.responseHandler = (HTTPClientResponse response) {
         Expect.equals(HTTPStatus.OK, response.statusCode);
-        response.dataEnd = (String body) {
-          Expect.equals(data, body);
+        StringInputStream stream = new StringInputStream(response.inputStream);
+        StringBuffer body = new StringBuffer();
+        stream.dataHandler = () => body.add(stream.read());
+        stream.closeHandler = () {
+          Expect.equals(data, body.toString());
           count++;
           if (count < kMessageCount) {
             sendRequest();
@@ -236,10 +239,119 @@ void testPOST(bool chunkedEncoding) {
   }
 
   testServerMain.setServerStartedHandler(runTest);
-  testServerMain.start();
   if (chunkedEncoding) {
     testServerMain.chunkedEncoding();
   }
+  testServerMain.start();
+}
+
+
+void testReadInto(bool chunkedEncoding) {
+  String data = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  final int kMessageCount = 10;
+
+  TestServerMain testServerMain = new TestServerMain();
+
+  void runTest(int port) {
+    int count = 0;
+    HTTPClient httpClient = new HTTPClient();
+    void sendRequest() {
+      HTTPClientConnection conn =
+          httpClient.post("127.0.0.1", port, "/echo");
+      conn.requestHandler = (HTTPClientRequest request) {
+        if (chunkedEncoding) {
+          request.writeString(data.substring(0, 10));
+          request.writeString(data.substring(10, data.length));
+        } else {
+          request.contentLength = data.length;
+          request.outputStream.write(data.charCodes());
+        }
+        request.outputStream.close();
+      };
+      conn.responseHandler = (HTTPClientResponse response) {
+        Expect.equals(HTTPStatus.OK, response.statusCode);
+        InputStream stream = response.inputStream;
+        List<int> body = new List<int>();
+        stream.dataHandler = () {
+          List tmp = new List(3);
+          int bytes = stream.readInto(tmp);
+          body.addAll(tmp.getRange(0, bytes));
+        };
+        stream.closeHandler = () {
+          Expect.equals(data, new String.fromCharCodes(body));
+          count++;
+          if (count < kMessageCount) {
+            sendRequest();
+          } else {
+            httpClient.shutdown();
+            testServerMain.shutdown();
+          }
+        };
+      };
+    }
+
+    sendRequest();
+  }
+
+  testServerMain.setServerStartedHandler(runTest);
+  if (chunkedEncoding) {
+    testServerMain.chunkedEncoding();
+  }
+  testServerMain.start();
+}
+
+
+void testReadShort(bool chunkedEncoding) {
+  String data = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  final int kMessageCount = 10;
+
+  TestServerMain testServerMain = new TestServerMain();
+
+  void runTest(int port) {
+    int count = 0;
+    HTTPClient httpClient = new HTTPClient();
+    void sendRequest() {
+      HTTPClientConnection conn =
+          httpClient.post("127.0.0.1", port, "/echo");
+      conn.requestHandler = (HTTPClientRequest request) {
+        if (chunkedEncoding) {
+          request.writeString(data.substring(0, 10));
+          request.writeString(data.substring(10, data.length));
+        } else {
+          request.contentLength = data.length;
+          request.outputStream.write(data.charCodes());
+        }
+        request.outputStream.close();
+      };
+      conn.responseHandler = (HTTPClientResponse response) {
+        Expect.equals(HTTPStatus.OK, response.statusCode);
+        InputStream stream = response.inputStream;
+        List<int> body = new List<int>();
+        stream.dataHandler = () {
+          List tmp = stream.read(2);
+          body.addAll(tmp);
+        };
+        stream.closeHandler = () {
+          Expect.equals(data, new String.fromCharCodes(body));
+          count++;
+          if (count < kMessageCount) {
+            sendRequest();
+          } else {
+            httpClient.shutdown();
+            testServerMain.shutdown();
+          }
+        };
+      };
+    }
+
+    sendRequest();
+  }
+
+  testServerMain.setServerStartedHandler(runTest);
+  if (chunkedEncoding) {
+    testServerMain.chunkedEncoding();
+  }
+  testServerMain.start();
 }
 
 
@@ -264,5 +376,9 @@ void main() {
   testGET();
   testPOST(true);
   testPOST(false);
+  testReadInto(true);
+  testReadInto(false);
+  testReadShort(true);
+  testReadShort(false);
   test404();
 }

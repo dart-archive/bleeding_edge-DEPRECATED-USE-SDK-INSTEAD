@@ -9,6 +9,7 @@
 
 
 #library("chat_server_test.dart");
+#import("dart:io");
 #import("dart:json");
 #import("dart:isolate");
 #import("../../../../chat/http.dart");
@@ -73,7 +74,10 @@ class ChatTestClient extends Isolate {
       };
       conn.responseHandler = (HTTPClientResponse r) {
         response = r;
-        response.dataEnd = leaveResponseHandler;
+        StringInputStream stream = new StringInputStream(response.inputStream);
+        StringBuffer body = new StringBuffer();
+        stream.dataHandler = () => body.add(stream.read());
+        stream.closeHandler = () => leaveResponseHandler(body.toString());
       };
     }
 
@@ -131,7 +135,10 @@ class ChatTestClient extends Isolate {
       };
       conn.responseHandler = (HTTPClientResponse r) {
         response = r;
-        response.dataEnd = receiveResponseHandler;
+        StringInputStream stream = new StringInputStream(response.inputStream);
+        StringBuffer body = new StringBuffer();
+        stream.dataHandler = () => body.add(stream.read());
+        stream.closeHandler = () => receiveResponseHandler(body.toString());
       };
     }
 
@@ -163,7 +170,10 @@ class ChatTestClient extends Isolate {
       };
       conn.responseHandler = (HTTPClientResponse r) {
         response = r;
-        response.dataEnd = sendResponseHandler;
+        StringInputStream stream = new StringInputStream(response.inputStream);
+        StringBuffer body = new StringBuffer();
+        stream.dataHandler = () => body.add(stream.read());
+        stream.closeHandler = () => sendResponseHandler(body.toString());
       };
     }
 
@@ -195,24 +205,26 @@ class ChatTestClient extends Isolate {
       };
       conn.responseHandler = (HTTPClientResponse r) {
         response = r;
-        response.dataEnd = joinResponseHandler;
+        StringInputStream stream = new StringInputStream(response.inputStream);
+        StringBuffer body = new StringBuffer();
+        stream.dataHandler = () => body.add(stream.read());
+        stream.closeHandler = () => joinResponseHandler(body.toString());
       };
     }
 
-    this.port.receive(
-        void _(var message, SendPort replyTo) {
-          totalClients = message.totalClients;
-          messagesToSend = message.messagesToSend;
-          messagesToReceive = message.messagesToReceive;
-          port = message.port;
-          statusPort = replyTo;
+    this.port.receive((var message, SendPort replyTo) {
+      totalClients = message.totalClients;
+      messagesToSend = message.messagesToSend;
+      messagesToReceive = message.messagesToReceive;
+      port = message.port;
+      statusPort = replyTo;
 
-          // Create a HTTP client factory.
-          httpClient = new HTTPClient();
+      // Create a HTTP client factory.
+      httpClient = new HTTPClient();
 
-          // Start the client by joining the chat topic.
-          join();
-        });
+      // Start the client by joining the chat topic.
+      join();
+    });
   }
 }
 
@@ -222,7 +234,7 @@ class TestMain {
       : serverStatusPort = new ReceivePort(),
         serverPort = null,
         finishedClients = 0 {
-    new ChatServer().spawn().then(void _(SendPort port) {
+    new ChatServer().spawn().then((SendPort port) {
       serverPort = port;
       start();
     });
@@ -254,24 +266,23 @@ class TestMain {
     clientStatusPorts = new List<ReceivePort>(clientCount);
     for (int i = 0; i < clientCount; i++) {
       ReceivePort statusPort = new ReceivePort();
-      statusPort.receive(
-          void _(var message, SendPort replyTo) {
-            // First and only message from the client indicates that
-            // the test is done.
-            Expect.equals("Test succeeded", message);
-            statusPort.close();
-            finishedClients++;
+      statusPort.receive((var message, SendPort replyTo) {
+        // First and only message from the client indicates that
+        // the test is done.
+        Expect.equals("Test succeeded", message);
+        statusPort.close();
+        finishedClients++;
 
-            // If all clients are finished shutdown the server.
-            if (finishedClients == clientCount) {
-              // Send server stop message to the server.
-              serverPort.send(new ChatServerCommand.stop(),
-                              serverStatusPort.toSendPort());
+        // If all clients are finished shutdown the server.
+        if (finishedClients == clientCount) {
+          // Send server stop message to the server.
+          serverPort.send(new ChatServerCommand.stop(),
+                          serverStatusPort.toSendPort());
 
-              // Close the last port to terminate the test.
-              serverStatusPort.close();
-            }
-          });
+          // Close the last port to terminate the test.
+          serverStatusPort.close();
+        }
+      });
 
       clientStatusPorts[i] = statusPort;
       new ChatTestClient().spawn().then((SendPort p) {
