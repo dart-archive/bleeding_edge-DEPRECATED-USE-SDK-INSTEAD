@@ -77,7 +77,10 @@ public class SamplesTest extends TestCase {
     KNOWN_DART_LIBS.add("dart:html");
     KNOWN_DART_LIBS.add("dart:htmlimpl");
     KNOWN_DART_LIBS.add("dart:io");
+    KNOWN_DART_LIBS.add("dart:isolate");
     KNOWN_DART_LIBS.add("dart:json");
+    KNOWN_DART_LIBS.add("dart:uri");
+    KNOWN_DART_LIBS.add("dart:utf8");
   }
 
   private final Listener listener;
@@ -108,7 +111,7 @@ public class SamplesTest extends TestCase {
     for (File libFile : libraryFiles) {
       analyzeLibrary(libFile);
     }
-    assertEquals("Bad sample files", 2, badSampleFiles.size());
+    assertEquals("Bad sample files", 0, badSampleFiles.size());
   }
 
   /**

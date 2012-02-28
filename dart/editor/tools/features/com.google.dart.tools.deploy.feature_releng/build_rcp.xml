@@ -199,6 +199,7 @@ class NativeFieldWrapperClass4 { }
                 <exclude name="io.dart" />
             </fileset>
         </copy>
+    	  <!-- TODO(devoncarew): we really need to create this list dynamically -->
         <echo file="${libraries.out.dir}/io/io.dart"><![CDATA[
 #library('io');
 
@@ -211,6 +212,8 @@ class NativeFieldWrapperClass4 { }
 #source('directory_impl.dart');
 #source('file.dart');
 #source('file_impl.dart');
+#source('http_impl.dart');
+#source('http.dart');
 #source('input_stream.dart');
 #source('list_stream.dart');
 #source('list_stream_impl.dart');
@@ -282,15 +285,10 @@ class ObjectArray<T> { }
         <!-- copy dart.js to Total -->
         <copy todir="${samples.out.dir}/Total/client" file="${build.source.root}/client/dart.js"/>
 
-        <!-- copy chat http libraries to the time sample -->
-        <copy todir="${samples.out.dir}/time">
-            <fileset dir="${build.source.root}/samples/chat">
-                <include name="http**"/>
-            </fileset>
-        </copy>
-        <replace dir="${samples.out.dir}/time"
-          token='#import("../chat/http.dart"'
-          value='#import("http.dart"'>
+        <!-- fix a uri reference -->
+        <replace dir="${samples.out.dir}/ui_lib"
+          token="../../../lib/uri/uri.dart"
+          value="dart:uri">
             <include name="**/*.dart"/>
         </replace>
 

@@ -4,7 +4,7 @@
 
 #library("time_server");
 
-#import("../chat/http.dart");
+#import("dart:io");
 
 final HOST = "127.0.0.1";
 final PORT = 8080;
@@ -12,16 +12,17 @@ final PORT = 8080;
 final LOG_REQUESTS = true;
 
 void main() {
-  HTTPServer server = new HTTPServer();
+  HttpServer server = new HttpServer();
   
-  server.listen(HOST, PORT, (HTTPRequest req, HTTPResponse rsp) {
+  server.requestHandler = (HttpRequest req, HttpResponse rsp) {
     requestReceivedHandler(req, rsp);
-  });
+  };
+  server.listen(HOST, PORT);
   
   print("Serving the current time on http://${HOST}:${PORT}."); 
 }
 
-void requestReceivedHandler(HTTPRequest request, HTTPResponse response) {
+void requestReceivedHandler(HttpRequest request, HttpResponse response) {
   if (LOG_REQUESTS) {
     print("Request: ${request.method} ${request.uri}");
   }
@@ -29,8 +30,8 @@ void requestReceivedHandler(HTTPRequest request, HTTPResponse response) {
   String htmlResponse = createHtmlResponse();
   
   response.setHeader("Content-Type", "text/html; charset=UTF-8");
-  response.writeString(htmlResponse, null);
-  response.writeDone();
+  response.writeString(htmlResponse);
+  response.outputStream.close();
 }
 
 String createHtmlResponse() {
