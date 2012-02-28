@@ -25,7 +25,7 @@ class ScannerTask extends CompilerTask {
     Uri base = cwd.resolve(library.script.name.toString());
     for (ScriptTag tag in library.tags.reverse()) {
       SourceString argument = tag.argument.value.copyWithoutQuotes(1, 1);
-      Uri resolved = base.resolve(argument.toString());
+      Uri resolved = base.resolve(argument.slowToString());
       if (tag.isImport()) {
         // It is not safe to import other libraries at this point as
         // another library could then observe the current library
@@ -55,7 +55,7 @@ class ScannerTask extends CompilerTask {
       // Now that we have processed all the source tags, it is safe to
       // start loading other libraries.
       SourceString argument = tag.argument.value.copyWithoutQuotes(1, 1);
-      Uri resolved = base.resolve(argument.toString());
+      Uri resolved = base.resolve(argument.slowToString());
       if (resolved.toString() == "dart:core") {
         implicitlyImportCoreLibrary = false;
       }

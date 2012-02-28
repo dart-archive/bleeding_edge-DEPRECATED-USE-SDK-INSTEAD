@@ -213,7 +213,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitBreak(HBreak node) {
     HBasicBlock target = currentBlock.successors[0];
     if (node.label !== null) {
-      return "Break ${node.label.stringValue}: (B${target.id})";
+      return "Break ${node.label.slowToString()}: (B${target.id})";
     }
     return "Break: (B${target.id})";
   }
@@ -339,7 +339,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitLocal(HLocal node) {
     if (node.element !== null) {
-      return "Local: ${node.element.name.stringValue}";
+      return "Local: ${node.element.name.slowToString()}";
     } else {
       return "Local";
     }

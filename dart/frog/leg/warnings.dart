@@ -142,7 +142,8 @@ class Message {
       message = kind.template;
       int position = 1;
       for (var argument in arguments) {
-        message = message.replaceAll('#{${position++}}', argument.toString());
+        String string = slowToString(argument);
+        message = message.replaceAll('#{${position++}}', string);
       }
     }
     return message;
@@ -151,6 +152,14 @@ class Message {
   bool operator==(other) {
     if (other is !Message) return false;
     return (kind == other.kind) && (toString() == other.toString());
+  }
+
+  String slowToString(object) {
+    if (object is SourceString) {
+      return object.slowToString();
+    } else {
+      return object.toString();
+    }
   }
 }
 

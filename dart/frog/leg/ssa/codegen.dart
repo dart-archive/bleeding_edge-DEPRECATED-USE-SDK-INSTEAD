@@ -13,7 +13,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
           new LinkedHashMap<Element, String>();
 
       function.computeParameters(compiler).forEachParameter((Element element) {
-        parameterNames[element] = JsNames.getValid('${element.name}');
+        parameterNames[element] =
+            JsNames.getValid('${element.name.slowToString()}');
       });
 
       String code = generateMethod(parameterNames, work, graph);
@@ -175,7 +176,7 @@ class SsaCodeGenerator implements HVisitor {
 
     String prefix;
     if (element !== null) {
-      prefix = element.name.stringValue;
+      prefix = element.name.slowToString();
     } else {
       prefix = 'v';
     }
@@ -407,7 +408,7 @@ class SsaCodeGenerator implements HVisitor {
   // The default implementation uses the unmodified Dart label name.
   // Specializations might change this.
   void addLabel(SourceString label) {
-    buffer.add(label.toString());
+    buffer.add(label.slowToString());
   }
 
   visitBreak(HBreak node) {
@@ -567,7 +568,7 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitFieldGet(HFieldGet node) {
-    String name = JsNames.getValid('${node.element.name}');
+    String name = JsNames.getValid(node.element.name.slowToString());
     if (node.receiver !== null) {
       beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
       use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
@@ -589,7 +590,7 @@ class SsaCodeGenerator implements HVisitor {
       // variables used in a try/catch.
       buffer.add('var ');
     }
-    String name = JsNames.getValid('${node.element.name}');
+    String name = JsNames.getValid(node.element.name.slowToString());
     buffer.add(name);
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -1079,7 +1080,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   void beginLoop(HBasicBlock block) {
     addIndentation();
     for (SourceString label in block.loopInformation.labels) {
-      buffer.add("${label.stringValue}:");
+      buffer.add("${label.slowToString()}:");
     }
     buffer.add('while (true) {\n');
     indent++;

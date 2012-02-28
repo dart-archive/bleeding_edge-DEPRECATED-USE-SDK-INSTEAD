@@ -179,9 +179,9 @@ class ResolverTask extends CompilerTask {
     // If that fails, try looking up "MyClass.name".
     if (constructor.defaultImplementation === null) {
       SourceString name =
-          new SourceString(constructor.name.toString().replaceFirst(
-              intrface.name.toString(),
-              defaultClass.name.toString()));
+          new SourceString(constructor.name.slowToString().replaceFirst(
+              intrface.name.slowToString(),
+              defaultClass.name.slowToString()));
       constructor.defaultImplementation = defaultClass.lookupConstructor(name);
 
       if (constructor.defaultImplementation === null
@@ -377,10 +377,10 @@ class InitializerResolver {
       result = resolver.lookupConstructor(lookupTarget, call);
       if (result === null) {
         SourceString constructorName = resolver.getConstructorName(call);
-        SourceString className = lookupTarget.name;
+        String className = lookupTarget.name.slowToString();
         String name = (constructorName === const SourceString(''))
-                          ? className.stringValue
-                          : "$className.$constructorName";
+                          ? className
+                          : "$className.${constructorName.slowToString()}";
         error(call, MessageKind.CANNOT_RESOLVE_CONSTRUCTOR, [name]);
       } else {
         final Compiler compiler = visitor.compiler;
@@ -1026,7 +1026,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         return;
       }
     } else {
-      String labelName = node.target.source.stringValue;
+      String labelName = node.target.source.slowToString();
       target = statementScope.lookupLabel(labelName);
       if (target === null) {
         error(node.target, MessageKind.UNBOUND_LABEL, [labelName]);
@@ -1046,7 +1046,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         return;
       }
     } else {
-      String labelName = node.target.source.stringValue;
+      String labelName = node.target.source.slowToString();
       target = statementScope.lookupLabel(labelName);
       if (target === null) {
         error(node.target, MessageKind.UNBOUND_LABEL, [labelName]);
@@ -1079,7 +1079,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLabelledStatement(LabelledStatement node) {
-    String labelName = node.label.source.stringValue;
+    String labelName = node.label.source.slowToString();
     StatementElement existingElement = statementScope.lookupLabel(labelName);
     if (existingElement !== null) {
       LabelledStatement declaration = existingElement.origin;

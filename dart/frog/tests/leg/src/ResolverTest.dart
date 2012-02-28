@@ -428,7 +428,7 @@ testTopLevelFields() {
   Expect.equals(ElementKind.FIELD, element.kind);
   VariableDefinitions node = element.variables.parseNode(compiler);
   Identifier typeName = node.type.typeName;
-  Expect.equals(typeName.source.stringValue, 'int');
+  Expect.equals(typeName.source.slowToString(), 'int');
 
   compiler.parseScript("var b, c;");
   VariableElement bElement = compiler.mainApp.find(buildSourceString("b"));

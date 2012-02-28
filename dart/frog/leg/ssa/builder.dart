@@ -44,19 +44,19 @@ class Interceptors {
   }
 
   Element getStaticInterceptor(SourceString name, int parameters) {
-    String mangledName = "builtin\$${name}\$${parameters}";
+    String mangledName = "builtin\$${name.slowToString()}\$${parameters}";
     Element result = compiler.findHelper(new SourceString(mangledName));
     return result;
   }
 
   Element getStaticGetInterceptor(SourceString name) {
-    String mangledName = "builtin\$get\$${name}";
+    String mangledName = "builtin\$get\$${name.slowToString()}";
     Element result = compiler.findHelper(new SourceString(mangledName));
     return result;
   }
 
   Element getStaticSetInterceptor(SourceString name) {
-    String mangledName = "builtin\$set\$${name}";
+    String mangledName = "builtin\$set\$${name.slowToString()}";
     Element result = compiler.findHelper(new SourceString(mangledName));
     return result;
   }
@@ -1184,7 +1184,7 @@ class SsaBuilder implements Visitor {
   }
 
   SourceString unquote(LiteralString literal, int start) {
-    String str = '${literal.value}';
+    String str = '${literal.value.slowToString()}';
     int quotes = 1;
     String quote = str[start];
     while (str[quotes + start] === quote) quotes++;
@@ -1650,7 +1650,7 @@ class SsaBuilder implements Visitor {
 
   visitForeignSend(Send node) {
     Identifier selector = node.selector;
-    switch (selector.source.stringValue) {
+    switch (selector.source.slowToString()) {
       case "JS":
         Link<Node> link = node.arguments;
         // If the invoke is on foreign code, don't visit the first
@@ -1663,7 +1663,7 @@ class SsaBuilder implements Visitor {
         LiteralString literal = node.arguments.tail.head;
         compiler.ensure(literal is LiteralString);
         compiler.ensure(type is LiteralString);
-        compiler.ensure(literal.value.stringValue[0] == '@');
+        compiler.ensure(literal.value.slowToString()[0] == '@');
         push(new HForeign(unquote(literal, 1), unquote(type, 0), inputs));
         break;
       case "UNINTERCEPTED":

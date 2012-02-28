@@ -126,7 +126,7 @@ class Keyword implements SourceString {
   int hashCode() => syntax.hashCode();
 
   bool operator ==(other) {
-    return other is SourceString && toString() == other.toString();
+    return other is SourceString && toString() == other.slowToString();
   }
 
   Iterator<int> iterator() => new StringCodeIterator(syntax);
@@ -136,6 +136,7 @@ class Keyword implements SourceString {
   }
 
   String toString() => syntax;
+  String slowToString() => syntax;
   String get stringValue() => syntax;
 
   bool isEmtpy() => false;

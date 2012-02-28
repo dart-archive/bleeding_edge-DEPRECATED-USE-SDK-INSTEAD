@@ -582,7 +582,7 @@ class LiteralInt extends Literal<int> {
     try {
       Token token = this.token;
       if (token.kind === PLUS_TOKEN) token = token.next;
-      return Math.parseInt(token.value.toString());
+      return Math.parseInt(token.value.slowToString());
     } catch (BadNumberFormatException ex) {
       (this.handler)(token, ex);
     }
@@ -601,7 +601,7 @@ class LiteralDouble extends Literal<double> {
     try {
       Token token = this.token;
       if (token.kind === PLUS_TOKEN) token = token.next;
-      return Math.parseDouble(token.value.toString());
+      return Math.parseDouble(token.value.slowToString());
     } catch (BadNumberFormatException ex) {
       (this.handler)(token, ex);
     }
@@ -748,7 +748,7 @@ class RawSourceDartString extends SourceBasedDartString {
   Iterator<int> iterator() => source.iterator();
   String toString() {
     if (toStringCache !== null) return toStringCache;
-    toStringCache  = source.stringValue;
+    toStringCache  = source.slowToString();
     return toStringCache;
   }
 }
@@ -932,9 +932,9 @@ class Identifier extends Expression {
   Identifier(Token this.token);
   Identifier.synthetic(String name) : token = new StringToken(null, name, null);
 
-  bool isThis() => source.stringValue == 'this';
+  bool isThis() => source.stringValue === 'this';
 
-  bool isSuper() => source.stringValue == 'super';
+  bool isSuper() => source.stringValue === 'super';
 
   Identifier asIdentifier() => this;
 

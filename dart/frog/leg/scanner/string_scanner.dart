@@ -41,19 +41,21 @@ class SubstringWrapper implements SourceString {
   const SubstringWrapper(String this.internalString,
                          int this.begin, int this.end);
 
-  int hashCode() => toString().hashCode();
+  int hashCode() => slowToString().hashCode();
 
   bool operator ==(other) {
-    return other is SourceString && toString() == other.toString();
+    return other is SourceString && slowToString() == other.slowToString();
   }
 
   void printOn(StringBuffer sb) {
-    sb.add(this);
+    sb.add(internalString.substring(begin, end));
   }
 
-  String toString() => internalString.substring(begin, end);
+  String slowToString() => internalString.substring(begin, end);
 
-  String get stringValue() => toString();
+  String toString() => "SubstringWrapper(${slowToString()})";
+
+  String get stringValue() => null;
 
   Iterator<int> iterator() =>
       new StringCodeIterator.substring(internalString, begin, end);

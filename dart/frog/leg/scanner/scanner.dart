@@ -589,7 +589,7 @@ class AbstractScanner<T> implements Scanner {
         do {
           next = nextByte();
         } while (next > 127);
-        String string = utf8String(nonAsciiStart, -1).toString();
+        String string = utf8String(nonAsciiStart, -1).slowToString();
         isAscii = false;
         int byteLength = nonAsciiStart - byteOffset;
         addToCharOffset(string.length - byteLength);

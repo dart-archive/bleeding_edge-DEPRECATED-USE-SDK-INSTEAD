@@ -20,34 +20,34 @@ main() {
                       0xb6, 0xc3, 0xb1, 0xc3, 0xa5, 0xc4, 0xbc, 0xc3, 0xae,
                       0xc5, 0xbe, 0xc3, 0xa5, 0xc5, 0xa3, 0xc3, 0xae, 0xe1,
                       0xbb, 0x9d, 0xc3, 0xb1, $EOF]);
-  Expect.stringEquals("Îñţérñåţîöñåļîžåţîờñ", token.value.toString());
+  Expect.stringEquals("Îñţérñåţîöñåļîžåţîờñ", token.value.slowToString());
 
   // Blueberry porridge in Danish: "blåbærgrød".
   token = scan([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6, 0x72, 0x67, 0x72,
                 0xc3, 0xb8, 0x64, $EOF]);
-  Expect.stringEquals("blåbærgrød", token.value.toString());
+  Expect.stringEquals("blåbærgrød", token.value.slowToString());
 
   // "சிவா அணாமாைல", that is "Siva Annamalai" in Tamil.
   token = scan([0xe0, 0xae, 0x9a, 0xe0, 0xae, 0xbf, 0xe0, 0xae, 0xb5, 0xe0,
                 0xae, 0xbe, 0x20, 0xe0, 0xae, 0x85, 0xe0, 0xae, 0xa3, 0xe0,
                 0xae, 0xbe, 0xe0, 0xae, 0xae, 0xe0, 0xae, 0xbe, 0xe0, 0xaf,
                 0x88, 0xe0, 0xae, 0xb2, $EOF]);
-  Expect.stringEquals("சிவா", token.value.toString());
-  Expect.stringEquals("அணாமாைல", token.next.toString());
+  Expect.stringEquals("சிவா", token.value.slowToString());
+  Expect.stringEquals("அணாமாைல", token.next.value.slowToString());
 
   // "िसवा अणामालै", that is "Siva Annamalai" in Devanagari.
   token = scan([0xe0, 0xa4, 0xbf, 0xe0, 0xa4, 0xb8, 0xe0, 0xa4, 0xb5, 0xe0,
                 0xa4, 0xbe, 0x20, 0xe0, 0xa4, 0x85, 0xe0, 0xa4, 0xa3, 0xe0,
                 0xa4, 0xbe, 0xe0, 0xa4, 0xae, 0xe0, 0xa4, 0xbe, 0xe0, 0xa4,
                 0xb2, 0xe0, 0xa5, 0x88, $EOF]);
-  Expect.stringEquals("िसवा", token.value.toString());
-  Expect.stringEquals("अणामालै", token.next.toString());
+  Expect.stringEquals("िसवा", token.value.slowToString());
+  Expect.stringEquals("अणामालै", token.next.value.slowToString());
 
   if (!isRunningOnJavaScript()) {
     // DESERET CAPITAL LETTER BEE, unicode 0x10412(0xD801+0xDC12)
     // UTF-8: F0 90 90 92
     token = scan([0xf0, 0x90, 0x90, 0x92, $EOF]);
-    Expect.stringEquals("𐐒", token.value.toString());
+    Expect.stringEquals("𐐒", token.value.slowToString());
   } else {
     print('Skipping non-BMP character test');
   }

@@ -119,7 +119,7 @@ function(child, parent) {
 
     int count = 0;
     parameters.forEachParameter((Element element) {
-      String jsName = JsNames.getValid('${element.name}');
+      String jsName = JsNames.getValid(element.name.slowToString());
       if (count < positionalArgumentCount) {
         parametersBuffer[count] = jsName;
         argumentsBuffer[count] = jsName;
@@ -261,7 +261,7 @@ function(child, parent) {
     }
 
     String className = namer.isolatePropertyAccess(classElement);
-    buffer.add('$className = function ${classElement.name}(');
+    buffer.add('$className = function ${classElement.name.slowToString()}(');
     StringBuffer bodyBuffer = new StringBuffer();
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can leave its JavaScript constructor empty.
@@ -547,19 +547,21 @@ function(child, parent) {
         for (Selector selector in selectors) {
           String jsName =
               namer.instanceMethodInvocationName(methodName, selector);
-          generateMethod(methodName.stringValue, jsName, selector);
+          generateMethod(methodName.slowToString(), jsName, selector);
         }
       }
     });
 
     compiler.universe.invokedGetters.forEach((SourceString getterName) {
       String jsName = namer.getterName(getterName);
-      generateMethod('get $getterName', jsName, Selector.GETTER);
+      generateMethod('get ${getterName.slowToString()}', jsName,
+                     Selector.GETTER);
     });
 
     compiler.universe.invokedSetters.forEach((SourceString setterName) {
       String jsName = namer.setterName(setterName);
-      generateMethod('set $setterName', jsName, Selector.SETTER);
+      generateMethod('set ${setterName.slowToString()}', jsName,
+                     Selector.SETTER);
     });
   }
 

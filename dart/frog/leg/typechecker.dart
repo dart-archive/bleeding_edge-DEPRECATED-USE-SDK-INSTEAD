@@ -58,7 +58,7 @@ class SimpleType implements Type {
 
   const SimpleType(SourceString this.name, Element this.element);
 
-  String toString() => name.toString();
+  String toString() => name.slowToString();
 }
 
 class FunctionType implements Type {

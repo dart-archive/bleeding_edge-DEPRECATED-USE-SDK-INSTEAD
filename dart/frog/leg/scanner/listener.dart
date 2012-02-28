@@ -409,46 +409,46 @@ class Listener {
   }
 
   Token expected(String string, Token token) {
-    error("expected '$string', but got '$token'", token);
+    error("expected '$string', but got '${token.slowToString()}'", token);
     return skipToEof(token);
   }
 
   void expectedIdentifier(Token token) {
-    error("expected identifier, but got '$token'", token);
+    error("expected identifier, but got '${token.slowToString()}'", token);
   }
 
   Token expectedType(Token token) {
-    error("expected a type, but got '$token'", token);
+    error("expected a type, but got '${token.slowToString()}'", token);
     return skipToEof(token);
   }
 
   Token expectedExpression(Token token) {
-    error("expected an expression, but got '$token'", token);
+    error("expected an expression, but got '${token.slowToString()}'", token);
     return skipToEof(token);
   }
 
   Token unexpected(Token token) {
-    error("unexpected token '$token'", token);
+    error("unexpected token '${token.slowToString()}'", token);
     return skipToEof(token);
   }
 
   Token expectedBlockToSkip(Token token) {
-    error("expected a block, but got '$token'", token);
+    error("expected a block, but got '${token.slowToString()}'", token);
     return skipToEof(token);
   }
 
   Token expectedFunctionBody(Token token) {
-    error("expected a function body, but got '$token'", token);
+    error("expected a function body, but got '${token.slowToString()}'", token);
     return skipToEof(token);
   }
 
   Token expectedClassBody(Token token) {
-    error("expected a class body, but got '$token'", token);
+    error("expected a class body, but got '${token.slowToString()}'", token);
     return skipToEof(token);
   }
 
   Token expectedClassBodyToSkip(Token token) {
-    error("expected a class body, but got '$token'", token);
+    error("expected a class body, but got '${token.slowToString()}'", token);
     return skipToEof(token);
   }
 
@@ -672,29 +672,33 @@ class ElementListener extends Listener {
   }
 
   Token expected(String string, Token token) {
-    listener.cancel("expected '$string', but got '$token'", token: token);
+    listener.cancel("expected '$string', but got '${token.slowToString()}'",
+                    token: token);
     return skipToEof(token);
   }
 
   void expectedIdentifier(Token token) {
-    listener.cancel("expected identifier, but got '$token'", token: token);
+    listener.cancel("expected identifier, but got '${token.slowToString()}'",
+                    token: token);
     pushNode(null);
   }
 
   Token expectedType(Token token) {
-    listener.cancel("expected a type, but got '$token'", token: token);
+    listener.cancel("expected a type, but got '${token.slowToString()}'",
+                    token: token);
     pushNode(null);
     return skipToEof(token);
   }
 
   Token expectedExpression(Token token) {
-    listener.cancel("expected an expression, but got '$token'", token: token);
+    listener.cancel("expected an expression, but got '${token.slowToString()}'",
+                    token: token);
     pushNode(null);
     return skipToEof(token);
   }
 
   Token unexpected(Token token) {
-    listener.cancel("unexpected token '$token'", token: token);
+    listener.cancel("unexpected token '${token.slowToString()}'", token: token);
     return skipToEof(token);
   }
 
@@ -707,12 +711,15 @@ class ElementListener extends Listener {
   }
 
   Token expectedFunctionBody(Token token) {
-    listener.cancel("expected a function body, but got '$token'", token: token);
+    String printString = token.slowToString();
+    listener.cancel("expected a function body, but got '$printString'",
+                    token: token);
     return skipToEof(token);
   }
 
   Token expectedClassBody(Token token) {
-    listener.cancel("expected a class body, but got '$token'", token: token);
+    listener.cancel("expected a class body, but got '${token.slowToString()}'",
+                    token: token);
     return skipToEof(token);
   }
 
@@ -936,7 +943,8 @@ class NodeListener extends ElementListener {
       return native.handleNativeFunctionBody(this, token);
     } else {
       listener.cancel(
-          "expected a function body, but got '$token'", token: token);
+          "expected a function body, but got '${token.slowToString()}'",
+          token: token);
       return skipToEof(token);
     }
   }
@@ -945,7 +953,9 @@ class NodeListener extends ElementListener {
     if (token.stringValue === 'native') {
       return native.handleNativeClassBody(this, token);
     } else {
-      listener.cancel("expected a class body, but got '$token'", token: token);
+      listener.cancel(
+          "expected a class body, but got '${token.slowToString()}'",
+          token: token);
       return skipToEof(token);
     }
   }

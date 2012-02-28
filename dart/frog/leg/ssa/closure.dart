@@ -241,7 +241,7 @@ class ClosureTranslator extends AbstractVisitor {
                             currentFunctionElement);
         }
         // TODO(floitsch): construct better boxed names.
-        String elementName = element.name.toString();
+        String elementName = element.name.slowToString();
         // We are currently using the name in an HForeign which could replace
         // "$X" with something else.
         String escaped = elementName.replaceAll("\$", "_");

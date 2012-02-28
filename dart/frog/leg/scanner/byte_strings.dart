@@ -15,8 +15,10 @@ class ByteString implements SourceString {
 
   abstract String get charset();
 
-  String toString() => new String.fromCharCodes(
+  String slowToString() => new String.fromCharCodes(
       new Utf8Decoder(bytes, offset, length).decodeRest());
+
+  String toString() => "ByteString(${slowToString()})";
 
   bool operator ==(other) {
     throw "should be overridden in subclass";
@@ -41,7 +43,7 @@ class ByteString implements SourceString {
   }
 
   printOn(StringBuffer sb) {
-    sb.add(toString());
+    sb.add(slowToString());
   }
 
   bool isEmpty() => length == 0;

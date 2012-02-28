@@ -39,7 +39,7 @@ class Namer {
 
   String instanceMethodName(SourceString name, int arity) {
     // TODO(floitsch): mangle, while preserving uniqueness.
-    return '$name\$$arity';
+    return '${name.slowToString()}\$$arity';
   }
 
   String instanceMethodInvocationName(SourceString name, Selector selector) {
@@ -47,21 +47,22 @@ class Namer {
     StringBuffer buffer = new StringBuffer();
     List<SourceString> names = selector.getOrderedNamedArguments();
     for (SourceString name in names) {
-      buffer.add('\$$name');
+      buffer.add(@'$');
+      name.printOn(buffer);
     }
-    return '$name\$${selector.argumentCount}$buffer';
+    return '${name.slowToString()}\$${selector.argumentCount}$buffer';
   }
 
   String instanceFieldName(SourceString name) {
-    return '$name';
+    return name.slowToString();
   }
 
   String setterName(SourceString name) {
-    return 'set\$$name';
+    return 'set\$${name.slowToString()}';
   }
 
   String getterName(SourceString name) {
-    return 'get\$$name';
+    return 'get\$${name.slowToString()}';
   }
 
   String getFreshGlobalName(String proposedName) {
@@ -101,9 +102,10 @@ class Namer {
         name = setterName(element.name);
       } else if (element.kind == ElementKind.FUNCTION) {
         FunctionElement functionElement = element;
-        name = '${element.name}\$${functionElement.parameterCount(compiler)}';
+        name = element.name.slowToString();
+        name = '$name\$${functionElement.parameterCount(compiler)}';
       } else {
-        name = '${element.name}';
+        name = '${element.name.slowToString()}';
       }
       // Prefix the name with '$' if it is reserved.
       if (jsReserved.contains(name)) {

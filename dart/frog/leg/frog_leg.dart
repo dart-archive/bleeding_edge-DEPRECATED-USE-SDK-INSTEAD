@@ -54,7 +54,8 @@ class WorldCompiler extends Compiler {
       cancel('cannot find tokens to produce error message for $node.');
     }
     final startOffset = begin.charOffset;
-    final endOffset = end.charOffset + end.toString().length;
+    // TODO(ahe): Compute proper end offset.
+    final endOffset = end.charOffset + 1;
     return new frog.SourceSpan(current.file, startOffset, endOffset);
   }
 
@@ -103,9 +104,8 @@ class WorldCompiler extends Compiler {
     if (node !== null) {
       print(spanFromNode(node, script).toMessageString("cancel leg: $reason"));
     } else if (token !== null) {
-      String tokenString = token.toString();
       int begin = token.charOffset;
-      int end = begin + tokenString.length;
+      int end = begin + 1; // TODO(ahe): Compute proper length.
       print(script.file.getLocationMessage("cancel leg: $reason",
                                            begin, end, true));
     } else if (element !== null) {

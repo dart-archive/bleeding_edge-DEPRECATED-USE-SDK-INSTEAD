@@ -1199,7 +1199,7 @@ class HInvokeStatic extends HInvoke {
 
   HType computeType() {
     if (element.isFactoryConstructor()
-        && element.enclosingElement.name.toString() == 'List') {
+        && element.enclosingElement.name.slowToString() == 'List') {
       builtin = true;
       return HType.ARRAY;
     }
@@ -1321,10 +1321,10 @@ class HForeign extends HInstruction {
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
   HType computeType() {
-    if (declaredType.stringValue == 'bool') return HType.BOOLEAN;
-    if (declaredType.stringValue == 'int') return HType.INTEGER;
-    if (declaredType.stringValue == 'num') return HType.NUMBER;
-    if (declaredType.stringValue == 'String') return HType.STRING;
+    if (declaredType.slowToString() == 'bool') return HType.BOOLEAN;
+    if (declaredType.slowToString() == 'int') return HType.INTEGER;
+    if (declaredType.slowToString() == 'num') return HType.NUMBER;
+    if (declaredType.slowToString() == 'String') return HType.STRING;
     return HType.UNKNOWN;
   }
 

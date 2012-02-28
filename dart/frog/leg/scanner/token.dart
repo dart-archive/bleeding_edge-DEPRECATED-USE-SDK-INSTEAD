@@ -91,6 +91,8 @@ class Token {
   int get precedence() => info.precedence;
 
   String toString() => info.value.toString();
+
+  String slowToString() => toString();
 }
 
 /**
@@ -119,7 +121,9 @@ class StringToken extends Token {
   StringToken.fromSource(PrecedenceInfo info, this.value, int charOffset)
     : super(info, charOffset);
 
-  String toString() => value.toString();
+  String toString() => "StringToken(${value.slowToString()})";
+
+  String slowToString() => value.slowToString();
 }
 
 interface SourceString extends Hashable, Iterable<int> default StringWrapper {
@@ -146,7 +150,7 @@ class StringWrapper implements SourceString {
   int hashCode() => stringValue.hashCode();
 
   bool operator ==(other) {
-    return other is SourceString && toString() == other.toString();
+    return other is SourceString && toString() == other.slowToString();
   }
 
   Iterator<int> iterator() => new StringCodeIterator(stringValue);
@@ -156,6 +160,8 @@ class StringWrapper implements SourceString {
   }
 
   String toString() => stringValue;
+
+  String slowToString() => stringValue;
 
   SourceString copyWithoutQuotes(int initial, int terminal) {
     assert(0 <= initial);

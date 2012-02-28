@@ -537,7 +537,8 @@ class ClassElement extends ContainerElement {
       Element existing = localMembers[element.name];
       if (existing != null) {
         if (existing.kind !== ElementKind.ABSTRACT_FIELD) {
-          listener.cancel('duplicate definition of $name', element: element);
+          listener.cancel('duplicate definition of ${name.slowToString()}',
+                          element: element);
           listener.cancel('existing definition', element: existing);
         } else {
           AbstractFieldElement field = existing;
@@ -705,7 +706,9 @@ class Elements {
 
   static SourceString constructConstructorName(SourceString receiver,
                                                SourceString selector) {
-    return new SourceString('$receiver\$$selector');
+    String r = receiver.slowToString();
+    String s = selector.slowToString();
+    return new SourceString('$r\$$s');
   }
 
   static SourceString constructOperatorName(SourceString receiver,
@@ -733,6 +736,9 @@ class Elements {
     else if (str === '&' || str === '&=') str = 'and';
     else if (str === '^' || str === '^=') str = 'xor';
     else if (str === '|' || str === '|=') str = 'or';
+    else {
+      throw new Exception('Unhandled selector: ${selector.slowToString()}');
+    }
     return new SourceString('$receiver\$$str');
   }
 }

@@ -166,7 +166,7 @@ function(inputTable) {
     if (classElement.members.isEmpty()) return;
 
     assert(classElement.backendMembers.isEmpty());
-    String nativeName = classElement.nativeName.stringValue;
+    String nativeName = classElement.nativeName.slowToString();
     nativeName = nativeName.substring(2, nativeName.length - 1);
     bool hasUsedSelectors = false;
 
@@ -203,7 +203,7 @@ function(inputTable) {
             String setterName = compiler.namer.setterName(member.name);
             buffer.add(
               "$dynamicName('$setterName').$nativeName = function(v){\n" +
-              '  this.${member.name} = v;\n};\n');
+              '  this.${member.name.slowToString()} = v;\n};\n');
           }
           if (compiler.universe.invokedGetters.contains(member.name)) {
             addDynamicFunctionIfNecessary(buffer);
@@ -211,7 +211,7 @@ function(inputTable) {
             String getterName = compiler.namer.getterName(member.name);
             buffer.add(
               "$dynamicName('$getterName').$nativeName = function(){\n" +
-              '  return this.${member.name};\n};\n');
+              '  return this.${member.name.slowToString()};\n};\n');
           }
         } else {
           compiler.internalError('unexpected kind: "${member.kind}"',
@@ -319,10 +319,10 @@ function(inputTable) {
       // Expression fragments for this set of cls keys.
       List<String> expressions = <String>[];
       // TODO: Remove if cls is abstract.
-      List<String> subtags = ['${cls.name}'];
+      List<String> subtags = [cls.name.slowToString()];
       void walk(ClassElement cls) {
         for (final ClassElement subclass in computeDirectSubclasses(cls)) {
-          String tag = '${subclass.name}';
+          String tag = subclass.name.slowToString();
           String existing = tagDefns[tag];
           if (existing == null) {
             subtags.add(tag);
@@ -353,7 +353,7 @@ function(inputTable) {
     }
 
     for (final ClassElement cls in dispatchClasses) {
-      tagDefns['${cls.name}'] = makeExpression(cls);
+      tagDefns[cls.name.slowToString()] = makeExpression(cls);
     }
 
     // Write out a thunk that builds the metadata.
@@ -376,8 +376,8 @@ function(inputTable) {
       bool needsComma = false;
       List<String> entries = <String>[];
       for (final ClassElement cls in dispatchClasses) {
-        entries.add(
-            "\n    ['${cls.name}', ${tagDefns[cls.name.toString()]}]");
+        String clsName = cls.name.slowToString();
+        entries.add("\n    ['$clsName', ${tagDefns[clsName]}]");
       }
       buffer.add(Strings.join(entries, ','));
       buffer.add('];\n');

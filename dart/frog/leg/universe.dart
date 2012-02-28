@@ -142,7 +142,7 @@ class Invocation extends Selector {
 
     List<SourceString> list = new List<SourceString>.from(namedArguments);
     list.sort((SourceString first, SourceString second) {
-      return first.stringValue.compareTo(second.stringValue);
+      return first.slowToString().compareTo(second.slowToString());
     });
     orderedNamedArguments = list;
     return orderedNamedArguments;
