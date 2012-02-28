@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("http");
-#import("dart:io");
-#source("http_impl.dart");
-#source("../../runtime/bin/buffer_list.dart");
-#source("../../runtime/bin/stream_util.dart");
-
 /**
  * HTTP status codes.
  */

@@ -934,7 +934,7 @@ class _HttpConnectionBase {
     if (bytesRead > 0) {
       int parsed = _httpParser.writeList(buffer, 0, bytesRead);
       if (parsed != bytesRead) {
-        print("Failed to parse HTTP data $parsed $bytesRead");
+        // TODO(sgjesse): Error handling.
         _socket.close();
       }
     }
@@ -1032,8 +1032,6 @@ class _HttpConnection extends _HttpConnectionBase {
 // HTTP server waiting for socket connections. The connections are
 // managed by the server and as requests are received the request.
 class _HttpServer implements HttpServer {
-  _HttpServer () : _debugTrace = false;
-
   void listen(String host, int port, [int backlog = 5]) {
 
     void connectionHandler(Socket socket) {
@@ -1042,18 +1040,12 @@ class _HttpServer implements HttpServer {
       connection._connectionEstablished(socket);
       connection.requestReceived = _requestHandler;
       _connections.add(connection);
-      if (_debugTrace) {
-        print("New connection (total ${_connections.length} connections)");
-      }
       void disconnectHandler() {
         for (int i = 0; i < _connections.length; i++) {
           if (_connections[i] == connection) {
             _connections.removeRange(i, 1);
             break;
           }
-        }
-        if (_debugTrace) {
-          print("Closed connection (total ${_connections.length} connections)");
         }
       }
       connection.disconnectHandler = disconnectHandler;
@@ -1084,7 +1076,6 @@ class _HttpServer implements HttpServer {
   List<_HttpConnection> _connections;  // List of currently connected clients.
   Function _requestHandler;
   Function _errorHandler;
-  bool _debugTrace;
 }
 
 
@@ -1522,7 +1513,6 @@ class HttpUtil {
   static String decodeUrlEncodedString(String urlEncoded) {
     void invalidEscape() {
       // TODO(sgjesse): Handle the error.
-      print("Invalid escape code.");
     }
 
     StringBuffer result = new StringBuffer();

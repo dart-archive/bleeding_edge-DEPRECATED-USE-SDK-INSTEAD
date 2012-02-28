@@ -1,10 +1,8 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("HttpParserTest.dart");
-#import("../../../../chat/http.dart");
-
+#import("dart:io");
 
 class HttpParserTest {
   static void runAllTests() {
@@ -32,32 +30,29 @@ class HttpParserTest {
       httpParser = new HttpParser();
       httpParser.requestStart = (m, u) { method = m; uri = u; };
       httpParser.responseStart = (s, r) { Expect.fail("Expected request"); };
-      httpParser.headerReceived =
-          (f, v) {
-            Expect.isFalse(headersCompleteCalled);
-            headers[f] = v;
-          };
-      httpParser.headersComplete =
-          () {
-            Expect.isFalse(headersCompleteCalled);
-            if (!chunked) {
-              Expect.equals(expectedContentLength, httpParser.contentLength);
-            } else {
-              Expect.equals(-1, httpParser.contentLength);
-            }
-            if (expectedHeaders != null) {
-              expectedHeaders.forEach(
-                  (String name, String value) =>
-                      Expect.equals(value, headers[name]));
-            }
-            headersCompleteCalled = true;
-          };
-      httpParser.dataReceived =
-          (List<int> data) {
-            Expect.isTrue(headersCompleteCalled);
-            bytesReceived += data.length;
-          };
-      httpParser.dataEnd = () { dataEndCalled = true; };
+      httpParser.headerReceived = (f, v) {
+        Expect.isFalse(headersCompleteCalled);
+        headers[f] = v;
+      };
+      httpParser.headersComplete = () {
+        Expect.isFalse(headersCompleteCalled);
+        if (!chunked) {
+          Expect.equals(expectedContentLength, httpParser.contentLength);
+        } else {
+          Expect.equals(-1, httpParser.contentLength);
+        }
+        if (expectedHeaders != null) {
+          expectedHeaders.forEach(
+              (String name, String value) =>
+                  Expect.equals(value, headers[name]));
+        }
+        headersCompleteCalled = true;
+      };
+      httpParser.dataReceived = (List<int> data) {
+        Expect.isTrue(headersCompleteCalled);
+        bytesReceived += data.length;
+      };
+      httpParser.dataEnd = () => dataEndCalled = true;
 
       headersCompleteCalled = false;
       dataEndCalled = false;
@@ -118,34 +113,34 @@ class HttpParserTest {
 
     void reset() {
       httpParser = new HttpParser();
-      httpParser.requestStart = (m, u) { Expect.fail("Expected response"); };
-      httpParser.responseStart = (s, r) { statusCode = s; reasonPhrase = r; };
-      httpParser.headerReceived =
-          (f, v) {
-            Expect.isFalse(headersCompleteCalled);
-            headers[f] = v;
-          };
-      httpParser.headersComplete =
-          () {
-            Expect.isFalse(headersCompleteCalled);
-            if (!chunked) {
-              Expect.equals(expectedContentLength, httpParser.contentLength);
-            } else {
-              Expect.equals(-1, httpParser.contentLength);
-            }
-            if (expectedHeaders != null) {
-              expectedHeaders.forEach(
-                  (String name, String value) =>
-                      Expect.equals(value, headers[name]));
-            }
-            headersCompleteCalled = true;
-          };
-      httpParser.dataReceived =
-          (List<int> data) {
-            Expect.isTrue(headersCompleteCalled);
-            bytesReceived += data.length;
-          };
-      httpParser.dataEnd = () { dataEndCalled = true; };
+      httpParser.requestStart = (m, u) => Expect.fail("Expected response");
+      httpParser.responseStart = (s, r) {
+        statusCode = s;
+        reasonPhrase = r;
+      };
+      httpParser.headerReceived = (f, v) {
+        Expect.isFalse(headersCompleteCalled);
+        headers[f] = v;
+      };
+      httpParser.headersComplete = () {
+        Expect.isFalse(headersCompleteCalled);
+        if (!chunked) {
+          Expect.equals(expectedContentLength, httpParser.contentLength);
+        } else {
+          Expect.equals(-1, httpParser.contentLength);
+        }
+        if (expectedHeaders != null) {
+          expectedHeaders.forEach((String name, String value) {
+            Expect.equals(value, headers[name]);
+          });
+        }
+        headersCompleteCalled = true;
+      };
+      httpParser.dataReceived = (List<int> data) {
+        Expect.isTrue(headersCompleteCalled);
+        bytesReceived += data.length;
+      };
+      httpParser.dataEnd = () => dataEndCalled = true;
 
       headersCompleteCalled = false;
       dataEndCalled = false;

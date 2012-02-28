@@ -7,14 +7,10 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
-
-#library("chat_server_test.dart");
 #import("dart:io");
-#import("dart:json");
 #import("dart:isolate");
-#import("../../../../chat/http.dart");
+#import("dart:json");
 #import("../../../../chat/chat_server_lib.dart");
-
 
 // Message to start chat test client running in an isolate.
 class ChatTestClientStart {
