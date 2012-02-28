@@ -700,6 +700,16 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     visitLoopBodyIn(node, node.body, scope);
   }
 
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    SourceString name = node.function.name;
+    assert(name !== null);
+    visit(node.function);
+    FunctionElement functionElement = mapping[node.function];
+    // TODO(floitsch): this might lead to two errors complaining about
+    // shadowing.
+    defineElement(node, functionElement);
+  }
+
   visitFunctionExpression(FunctionExpression node) {
     visit(node.returnType);
     SourceString name;
@@ -711,8 +721,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     FunctionElement enclosingElement = new FunctionElement.node(
         name, node, ElementKind.FUNCTION, new Modifiers.empty(),
         context.element);
-    defineElement(node, enclosingElement, doAddToScope: node.name !== null);
     setupFunction(node, enclosingElement);
+    defineElement(node, enclosingElement, doAddToScope: node.name !== null);
 
     // Run the body in a fresh statement scope.
     StatementScope oldScope = statementScope;

@@ -14,6 +14,7 @@ interface Visitor<R> {
   R visitExpressionStatement(ExpressionStatement node);
   R visitFor(For node);
   R visitForInStatement(ForInStatement node);
+  R visitFunctionDeclaration(FunctionDeclaration node);
   R visitFunctionExpression(FunctionExpression node);
   R visitIdentifier(Identifier node);
   R visitIf(If node);
@@ -106,6 +107,7 @@ class Node implements Hashable {
   ExpressionStatement asExpressionStatement() => null;
   For asFor() => null;
   ForInStatement asForInStatement() => null;
+  FunctionDeclaration asFunctionDeclaration() => null;
   FunctionExpression asFunctionExpression() => null;
   Identifier asIdentifier() => null;
   If asIf() => null;
@@ -503,6 +505,21 @@ class For extends Loop {
   Token getEndToken() {
     return body.getEndToken();
   }
+}
+
+class FunctionDeclaration extends Statement {
+  final FunctionExpression function;
+
+  FunctionDeclaration(this.function);
+
+  FunctionDeclaration asFunctionDeclaration() => this;
+
+  accept(Visitor visitor) => visitor.visitFunctionDeclaration(this);
+
+  visitChildren(Visitor visitor) => function.accept(visitor);
+
+  Token getBeginToken() => function.getBeginToken();
+  Token getEndToken() => function.getEndToken();
 }
 
 class FunctionExpression extends Expression {

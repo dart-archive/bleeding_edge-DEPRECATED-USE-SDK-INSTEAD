@@ -724,6 +724,13 @@ class Parser {
     return isBlock ? token.next : token;
   }
 
+  Token parseFunctionDeclaration(Token token) {
+    listener.beginFunctionDeclaration(token);
+    token = parseFunction(token, null);
+    listener.endFunctionDeclaration(token);
+    return token;
+  }
+
   Token parseFunctionExpression(Token token) {
     listener.beginFunction(token);
     listener.handleModifiers(0);
@@ -852,7 +859,7 @@ class Parser {
         if (optional('{', afterParens) || optional('=>', afterParens)) {
           // We are looking at "type identifier '(' ... ')'" followed
           // by '=>' or '{'.
-          return parseFunction(token, null);
+          return parseFunctionDeclaration(token);
         }
       }
       // Fall-through to expression statement.
@@ -863,7 +870,7 @@ class Parser {
         BeginGroupToken begin = token.next;
         String afterParens = begin.endGroup.next.stringValue;
         if (afterParens === '{' || afterParens === '=>') {
-          return parseFunction(token, null);
+          return parseFunctionDeclaration(token);
         }
       }
     }

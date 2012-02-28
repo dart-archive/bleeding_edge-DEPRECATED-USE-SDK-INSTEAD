@@ -1121,6 +1121,11 @@ class SsaBuilder implements Visitor {
     push(new HForeignNew(closureClassElement, capturedVariables));
   }
 
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    visit(node.function);
+    localsHandler.updateLocal(elements[node], pop());
+  }
+
   visitIdentifier(Identifier node) {
     if (node.isThis()) {
       stack.add(localsHandler.readThis());

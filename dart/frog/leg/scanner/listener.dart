@@ -91,6 +91,12 @@ class Listener {
   void endFunction(Token getOrSet, Token endToken) {
   }
 
+  void beginFunctionDeclaration(Token token) {
+  }
+
+  void endFunctionDeclaration(Token token) {
+  }
+
   void beginFunctionBody(Token token) {
   }
 
@@ -1042,6 +1048,10 @@ class NodeListener extends ElementListener {
     Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formals, body, type,
                                     modifiers, initializers, getOrSet));
+  }
+
+  void endFunctionDeclaration(Token endToken) {
+    pushNode(new FunctionDeclaration(popNode()));
   }
 
   void endVariablesDeclaration(int count, Token endToken) {

@@ -272,6 +272,11 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return bodyType.join(StatementType.NOT_RETURNING);
   }
 
+  Type visitFunctionDeclaration(FunctionDeclaration node) {
+    analyze(node.function);
+    return StatementType.NOT_RETURNING;
+  }
+
   Type visitFunctionExpression(FunctionExpression node) {
     Type type;
     Type returnType;

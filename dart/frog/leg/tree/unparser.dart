@@ -75,6 +75,10 @@ class Unparser implements Visitor {
     visit(node.body);
   }
 
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    visit(node.function);
+  }
+
   visitFunctionExpression(FunctionExpression node) {
     if (node.returnType !== null) {
       visit(node.returnType);

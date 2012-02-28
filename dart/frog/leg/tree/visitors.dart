@@ -17,6 +17,7 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
   R visitFor(For node) => visitLoop(node);
   R visitForInStatement(ForInStatement node) => visitLoop(node);
+  R visitFunctionDeclaration(FunctionDeclaration node) => visitStatement(node);
   R visitFunctionExpression(FunctionExpression node) => visitExpression(node);
   R visitGotoStatement(GotoStatement node) => visitStatement(node);
   R visitIdentifier(Identifier node) => visitExpression(node);

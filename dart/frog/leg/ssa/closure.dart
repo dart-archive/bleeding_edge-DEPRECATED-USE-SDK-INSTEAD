@@ -396,6 +396,11 @@ class ClosureTranslator extends AbstractVisitor {
     }
   }
 
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    node.visitChildren(this);
+    declareLocal(elements[node]);
+  }
+
   visitTryStatement(TryStatement node) {
     // TODO(ngeoffray): implement finer grain state.
     inTryCatchOrFinally = true;
