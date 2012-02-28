@@ -408,6 +408,8 @@ $defProp(Object.prototype, '$typeNameOf', function() {
     name = 'DOMWindow';
   } else if (name == 'Document') {
     name = 'HTMLDocument';
+  } else if (name == 'XMLDocument') {
+    name = 'Document';
   }
   return name;
 });""";

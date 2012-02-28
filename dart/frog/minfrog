@@ -1893,6 +1893,8 @@ $defProp(Object.prototype, '$typeNameOf', function() {
     name = 'DOMWindow';
   } else if (name == 'Document') {
     name = 'HTMLDocument';
+  } else if (name == 'XMLDocument') {
+    name = 'Document';
   }
   return name;
 });
@@ -3081,7 +3083,7 @@ CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
   this._generatedTypeNameOf = true;
   this.ensureDefProp();
-  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', function() {\n  var constructor = this.constructor;\n  if (typeof(constructor) == 'function') {\n    // The constructor isn't null or undefined at this point. Try\n    // to grab hold of its name.\n    var name = constructor.name;\n    // If the name is a non-empty string, we use that as the type\n    // name of this object. On Firefox, we often get 'Object' as\n    // the constructor name even for more specialized objects so\n    // we have to fall through to the toString() based implementation\n    // below in that case.\n    if (name && typeof(name) == 'string' && name != 'Object') return name;\n  }\n  var string = Object.prototype.toString.call(this);\n  var name = string.substring(8, string.length - 1);\n  if (name == 'Window') {\n    name = 'DOMWindow';\n  } else if (name == 'Document') {\n    name = 'HTMLDocument';\n  }\n  return name;\n});");
+  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', function() {\n  var constructor = this.constructor;\n  if (typeof(constructor) == 'function') {\n    // The constructor isn't null or undefined at this point. Try\n    // to grab hold of its name.\n    var name = constructor.name;\n    // If the name is a non-empty string, we use that as the type\n    // name of this object. On Firefox, we often get 'Object' as\n    // the constructor name even for more specialized objects so\n    // we have to fall through to the toString() based implementation\n    // below in that case.\n    if (name && typeof(name) == 'string' && name != 'Object') return name;\n  }\n  var string = Object.prototype.toString.call(this);\n  var name = string.substring(8, string.length - 1);\n  if (name == 'Window') {\n    name = 'DOMWindow';\n  } else if (name == 'Document') {\n    name = 'HTMLDocument';\n  } else if (name == 'XMLDocument') {\n    name = 'Document';\n  }\n  return name;\n});");
 }
 CoreJs.prototype.ensureInheritsHelper = function() {
   if (this._generatedInherits) return;
