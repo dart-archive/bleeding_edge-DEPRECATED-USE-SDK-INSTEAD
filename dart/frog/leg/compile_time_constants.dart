@@ -256,7 +256,7 @@ class StringConstant extends PrimitiveConstant {
     buffer.add("'");
   }
 
-  StringConstant binaryFold(String op, Constant other) {
+  Constant binaryFold(String op, Constant other) {
     if (other.isString() && op == "+") {
       StringConstant otherString = other;
       DartString right = otherString.value;
