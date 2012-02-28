@@ -6,7 +6,7 @@
 #import("../../../../chat/http.dart");
 
 
-class HTTPParserTest {
+class HttpParserTest {
   static void runAllTests() {
     testParseRequest();
     testParseResponse();
@@ -19,7 +19,7 @@ class HTTPParserTest {
                                  int expectedBytesReceived = 0,
                                  Map expectedHeaders = null,
                                  bool chunked = false]) {
-    HTTPParser httpParser;
+    HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;
     String method;
@@ -29,7 +29,7 @@ class HTTPParserTest {
     int bytesReceived;
 
     void reset() {
-      httpParser = new HTTPParser();
+      httpParser = new HttpParser();
       httpParser.requestStart = (m, u) { method = m; uri = u; };
       httpParser.responseStart = (s, r) { Expect.fail("Expected request"); };
       httpParser.headerReceived =
@@ -107,7 +107,7 @@ class HTTPParserTest {
                                   int expectedBytesReceived = 0,
                                   Map expectedHeaders = null,
                                   bool chunked = false]) {
-    HTTPParser httpParser;
+    HttpParser httpParser;
     bool headersCompleteCalled;
     bool dataEndCalled;
     int statusCode;
@@ -117,7 +117,7 @@ class HTTPParserTest {
     int bytesReceived;
 
     void reset() {
-      httpParser = new HTTPParser();
+      httpParser = new HttpParser();
       httpParser.requestStart = (m, u) { Expect.fail("Expected response"); };
       httpParser.responseStart = (s, r) { statusCode = s; reasonPhrase = r; };
       httpParser.headerReceived =
@@ -362,5 +362,5 @@ Transfer-Encoding: chunked\r
 
 
 void main() {
-  HTTPParserTest.runAllTests();
+  HttpParserTest.runAllTests();
 }

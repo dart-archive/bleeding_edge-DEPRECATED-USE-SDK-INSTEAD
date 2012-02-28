@@ -92,14 +92,14 @@ class TestServerStatus {
 
 class TestServer extends Isolate {
   // Echo the request content back to the response.
-  void _echoHandler(HTTPRequest request, HTTPResponse response) {
+  void _echoHandler(HttpRequest request, HttpResponse response) {
     Expect.equals("POST", request.method);
     response.contentLength = request.contentLength;
     request.inputStream.pipe(response.outputStream);
   }
 
   // Echo the request content back to the response.
-  void _zeroToTenHandler(HTTPRequest request, HTTPResponse response) {
+  void _zeroToTenHandler(HttpRequest request, HttpResponse response) {
     Expect.equals("GET", request.method);
     request.inputStream.dataHandler = () {};
     request.inputStream.closeHandler = () {
@@ -109,8 +109,8 @@ class TestServer extends Isolate {
   }
 
   // Return a 404.
-  void _notFoundHandler(HTTPRequest request, HTTPResponse response) {
-    response.statusCode = HTTPStatus.NOT_FOUND;
+  void _notFoundHandler(HttpRequest request, HttpResponse response) {
+    response.statusCode = HttpStatus.NOT_FOUND;
     response.setHeader("Content-Type", "text/html; charset=UTF-8");
     response.writeString("Page not found");
     response.outputStream.close();
@@ -119,20 +119,20 @@ class TestServer extends Isolate {
   void main() {
     // Setup request handlers.
     _requestHandlers = new Map();
-    _requestHandlers["/echo"] = (HTTPRequest request, HTTPResponse response) {
+    _requestHandlers["/echo"] = (HttpRequest request, HttpResponse response) {
       _echoHandler(request, response);
     };
     _requestHandlers["/0123456789"] =
-        (HTTPRequest request, HTTPResponse response) {
+        (HttpRequest request, HttpResponse response) {
           _zeroToTenHandler(request, response);
         };
 
     this.port.receive((var message, SendPort replyTo) {
       if (message.isStart) {
-        _server = new HTTPServer();
+        _server = new HttpServer();
         try {
           _server.listen("127.0.0.1", 0);
-          _server.requestHandler = (HTTPRequest req, HTTPResponse rsp) {
+          _server.requestHandler = (HttpRequest req, HttpResponse rsp) {
             _requestReceivedHandler(req, rsp);
           };
           replyTo.send(new TestServerStatus.started(_server.port), null);
@@ -149,7 +149,7 @@ class TestServer extends Isolate {
     });
   }
 
-  void _requestReceivedHandler(HTTPRequest request, HTTPResponse response) {
+  void _requestReceivedHandler(HttpRequest request, HttpResponse response) {
     var requestHandler =_requestHandlers[request.path];
     if (requestHandler != null) {
       requestHandler(request, response);
@@ -158,7 +158,7 @@ class TestServer extends Isolate {
     }
   }
 
-  HTTPServer _server;  // HTTP server instance.
+  HttpServer _server;  // HTTP server instance.
   Map _requestHandlers;
   bool _chunkedEncoding = false;
 }
@@ -176,11 +176,11 @@ void testStartStop() {
 void testGET() {
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
-    HTTPClient httpClient = new HTTPClient();
-    HTTPClientConnection conn =
+    HttpClient httpClient = new HttpClient();
+    HttpClientConnection conn =
         httpClient.get("127.0.0.1", port, "/0123456789");
-    conn.responseHandler = (HTTPClientResponse response) {
-      Expect.equals(HTTPStatus.OK, response.statusCode);
+    conn.responseHandler = (HttpClientResponse response) {
+      Expect.equals(HttpStatus.OK, response.statusCode);
       StringInputStream stream = new StringInputStream(response.inputStream);
       StringBuffer body = new StringBuffer();
       stream.dataHandler = () => body.add(stream.read());
@@ -203,11 +203,11 @@ void testPOST(bool chunkedEncoding) {
 
   void runTest(int port) {
     int count = 0;
-    HTTPClient httpClient = new HTTPClient();
+    HttpClient httpClient = new HttpClient();
     void sendRequest() {
-      HTTPClientConnection conn =
+      HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/echo");
-      conn.requestHandler = (HTTPClientRequest request) {
+      conn.requestHandler = (HttpClientRequest request) {
         if (chunkedEncoding) {
           request.writeString(data.substring(0, 10));
           request.writeString(data.substring(10, data.length));
@@ -217,8 +217,8 @@ void testPOST(bool chunkedEncoding) {
         }
         request.outputStream.close();
       };
-      conn.responseHandler = (HTTPClientResponse response) {
-        Expect.equals(HTTPStatus.OK, response.statusCode);
+      conn.responseHandler = (HttpClientResponse response) {
+        Expect.equals(HttpStatus.OK, response.statusCode);
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
         stream.dataHandler = () => body.add(stream.read());
@@ -254,11 +254,11 @@ void testReadInto(bool chunkedEncoding) {
 
   void runTest(int port) {
     int count = 0;
-    HTTPClient httpClient = new HTTPClient();
+    HttpClient httpClient = new HttpClient();
     void sendRequest() {
-      HTTPClientConnection conn =
+      HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/echo");
-      conn.requestHandler = (HTTPClientRequest request) {
+      conn.requestHandler = (HttpClientRequest request) {
         if (chunkedEncoding) {
           request.writeString(data.substring(0, 10));
           request.writeString(data.substring(10, data.length));
@@ -268,8 +268,8 @@ void testReadInto(bool chunkedEncoding) {
         }
         request.outputStream.close();
       };
-      conn.responseHandler = (HTTPClientResponse response) {
-        Expect.equals(HTTPStatus.OK, response.statusCode);
+      conn.responseHandler = (HttpClientResponse response) {
+        Expect.equals(HttpStatus.OK, response.statusCode);
         InputStream stream = response.inputStream;
         List<int> body = new List<int>();
         stream.dataHandler = () {
@@ -309,11 +309,11 @@ void testReadShort(bool chunkedEncoding) {
 
   void runTest(int port) {
     int count = 0;
-    HTTPClient httpClient = new HTTPClient();
+    HttpClient httpClient = new HttpClient();
     void sendRequest() {
-      HTTPClientConnection conn =
+      HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/echo");
-      conn.requestHandler = (HTTPClientRequest request) {
+      conn.requestHandler = (HttpClientRequest request) {
         if (chunkedEncoding) {
           request.writeString(data.substring(0, 10));
           request.writeString(data.substring(10, data.length));
@@ -323,8 +323,8 @@ void testReadShort(bool chunkedEncoding) {
         }
         request.outputStream.close();
       };
-      conn.responseHandler = (HTTPClientResponse response) {
-        Expect.equals(HTTPStatus.OK, response.statusCode);
+      conn.responseHandler = (HttpClientResponse response) {
+        Expect.equals(HttpStatus.OK, response.statusCode);
         InputStream stream = response.inputStream;
         List<int> body = new List<int>();
         stream.dataHandler = () {
@@ -358,11 +358,11 @@ void testReadShort(bool chunkedEncoding) {
 void test404() {
   TestServerMain testServerMain = new TestServerMain();
   testServerMain.setServerStartedHandler((int port) {
-    HTTPClient httpClient = new HTTPClient();
-    HTTPClientConnection conn =
+    HttpClient httpClient = new HttpClient();
+    HttpClientConnection conn =
         httpClient.get("127.0.0.1", port, "/thisisnotfound");
-    conn.responseHandler = (HTTPClientResponse response) {
-      Expect.equals(HTTPStatus.NOT_FOUND, response.statusCode);
+    conn.responseHandler = (HttpClientResponse response) {
+      Expect.equals(HttpStatus.NOT_FOUND, response.statusCode);
       httpClient.shutdown();
       testServerMain.shutdown();
     };

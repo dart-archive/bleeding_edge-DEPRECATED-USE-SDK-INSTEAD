@@ -8,28 +8,28 @@
 #import("dart:isolate");
 #import("http.dart");
 
-typedef void RequestHandler(HTTPRequest request, HTTPResponse response);
+typedef void RequestHandler(HttpRequest request, HttpResponse response);
 
 class ChatServer extends IsolatedServer {
   ChatServer() : super() {
     addHandler("/",
-               (HTTPRequest request, HTTPResponse response) =>
+               (HttpRequest request, HttpResponse response) =>
                    redirectPageHandler(
                        request, response, "dart_client/index.html"));
     addHandler("/js_client/index.html",
-               (HTTPRequest request, HTTPResponse response) =>
+               (HttpRequest request, HttpResponse response) =>
                    fileHandler(request, response));
     addHandler("/js_client/code.js",
-               (HTTPRequest request, HTTPResponse response) =>
+               (HttpRequest request, HttpResponse response) =>
                    fileHandler(request, response));
     addHandler("/dart_client/index.html",
-               (HTTPRequest request, HTTPResponse response) =>
+               (HttpRequest request, HttpResponse response) =>
                    fileHandler(request, response));
     addHandler("/out/dart_client/chat.dart.app.js",
-               (HTTPRequest request, HTTPResponse response) =>
+               (HttpRequest request, HttpResponse response) =>
                    fileHandler(request, response));
     addHandler("/favicon.ico",
-               (HTTPRequest request, HTTPResponse response) =>
+               (HttpRequest request, HttpResponse response) =>
                    fileHandler(request, response, "static/favicon.ico"));
 
     addHandler("/join", _joinHandler);
@@ -330,7 +330,7 @@ class IsolatedServer extends Isolate {
 <p>The requested URL was not found on this server.</p>
 </body></html>""";
 
-  void _sendJSONResponse(HTTPResponse response, Map responseData) {
+  void _sendJSONResponse(HttpResponse response, Map responseData) {
     response.setHeader("Content-Type", "application/json; charset=UTF-8");
     response.writeString(JSON.stringify(responseData));
     response.outputStream.close();
@@ -340,13 +340,13 @@ class IsolatedServer extends Isolate {
     _requestHandlers = new Map();
   }
 
-  void redirectPageHandler(HTTPRequest request,
-                           HTTPResponse response,
+  void redirectPageHandler(HttpRequest request,
+                           HttpResponse response,
                            String redirectPath) {
     if (_redirectPage == null) {
       _redirectPage = redirectPageHtml.charCodes();
     }
-    response.statusCode = HTTPStatus.FOUND;
+    response.statusCode = HttpStatus.FOUND;
     response.setHeader(
         "Location", "http://$_host:$_port/${redirectPath}");
     response.contentLength = _redirectPage.length;
@@ -356,7 +356,7 @@ class IsolatedServer extends Isolate {
 
   // Serve the content of a file.
   void fileHandler(
-      HTTPRequest request, HTTPResponse response, [String fileName = null]) {
+      HttpRequest request, HttpResponse response, [String fileName = null]) {
     final int BUFFER_SIZE = 4096;
     if (fileName == null) {
       fileName = request.path.substring(1);
@@ -386,11 +386,11 @@ class IsolatedServer extends Isolate {
   }
 
   // Serve the not found page.
-  void _notFoundHandler(HTTPRequest request, HTTPResponse response) {
+  void _notFoundHandler(HttpRequest request, HttpResponse response) {
     if (_notFoundPage == null) {
       _notFoundPage = notFoundPageHtml.charCodes();
     }
-    response.statusCode = HTTPStatus.NOT_FOUND;
+    response.statusCode = HttpStatus.NOT_FOUND;
     response.setHeader("Content-Type", "text/html; charset=UTF-8");
     response.contentLength = _notFoundPage.length;
     response.outputStream.write(_notFoundPage);
@@ -398,8 +398,8 @@ class IsolatedServer extends Isolate {
   }
 
   // Unexpected protocol data.
-  void _protocolError(HTTPRequest request, HTTPResponse response) {
-    response.statusCode = HTTPStatus.INTERNAL_SERVER_ERROR;
+  void _protocolError(HttpRequest request, HttpResponse response) {
+    response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     response.contentLength = 0;
     response.outputStream.close();
   }
@@ -407,7 +407,7 @@ class IsolatedServer extends Isolate {
   // Join request:
   // { "request": "join",
   //   "handle": <handle> }
-  void _joinHandler(HTTPRequest request, HTTPResponse response) {
+  void _joinHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     StringInputStream input = new StringInputStream(request.inputStream);
     input.dataHandler = () => body.add(input.read());
@@ -441,7 +441,7 @@ class IsolatedServer extends Isolate {
   // Leave request:
   // { "request": "leave",
   //   "sessionId": <sessionId> }
-  void _leaveHandler(HTTPRequest request, HTTPResponse response) {
+  void _leaveHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     StringInputStream input = new StringInputStream(request.inputStream);
     input.dataHandler = () => body.add(input.read());
@@ -471,7 +471,7 @@ class IsolatedServer extends Isolate {
   // { "request": "message",
   //   "sessionId": <sessionId>,
   //   "message": <message> }
-  void _messageHandler(HTTPRequest request, HTTPResponse response) {
+  void _messageHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     StringInputStream input = new StringInputStream(request.inputStream);
     input.dataHandler = () => body.add(input.read());
@@ -508,7 +508,7 @@ class IsolatedServer extends Isolate {
   //   "sessionId": <sessionId>,
   //   "nextMessage": <nextMessage>,
   //   "maxMessages": <maxMesssages> }
-  void _receiveHandler(HTTPRequest request, HTTPResponse response) {
+  void _receiveHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     StringInputStream input = new StringInputStream(request.inputStream);
     input.dataHandler = () => body.add(input.read());
@@ -554,7 +554,7 @@ class IsolatedServer extends Isolate {
   }
 
   void addHandler(String path,
-                  void handler(HTTPRequest request, HTTPResponse response)) {
+                  void handler(HttpRequest request, HttpResponse response)) {
     _requestHandlers[path] = handler;
   }
 
@@ -585,10 +585,10 @@ class IsolatedServer extends Isolate {
         _port = message.port;
         _logging = message.logging;
         replyTo.send(new ChatServerStatus.starting(), null);
-        _server = new HTTPServer();
+        _server = new HttpServer();
         try {
           _server.listen(_host, _port, backlog: message.backlog);
-          _server.requestHandler = (HTTPRequest req, HTTPResponse rsp) =>
+          _server.requestHandler = (HttpRequest req, HttpResponse rsp) =>
               _requestReceivedHandler(req, rsp);
           replyTo.send(new ChatServerStatus.started(_server.port), null);
           _loggingTimer = new Timer.repeating(_handleLogging, 1000);
@@ -609,7 +609,7 @@ class IsolatedServer extends Isolate {
     this.port.close();
   }
 
-  void _requestReceivedHandler(HTTPRequest request, HTTPResponse response) {
+  void _requestReceivedHandler(HttpRequest request, HttpResponse response) {
     if (_logRequests) {
       String method = request.method;
       String uri = request.uri;
@@ -634,7 +634,7 @@ class IsolatedServer extends Isolate {
 
   String _host;
   int _port;
-  HTTPServer _server;  // HTTP server instance.
+  HttpServer _server;  // HTTP server instance.
   Map _requestHandlers;
   bool _logRequests;
 

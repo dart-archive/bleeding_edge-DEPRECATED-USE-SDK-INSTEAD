@@ -62,8 +62,8 @@ class _State {
  * are generated.
  * Currently only HTTP requests with Content-Length header are supported.
  */
-class HTTPParser {
-  HTTPParser()
+class HttpParser {
+  HttpParser()
       : _state = _State.START,
         _failure = false,
         _headerField = new StringBuffer(),
@@ -92,7 +92,7 @@ class HTTPParser {
           _chunked = false;
 
           if (byte == _Const.HTTP11[0]) {
-            // Start parsing http method.
+            // Start parsing HTTP method.
             _httpVersionIndex = 1;
             _state = _State.METHOD_OR_HTTP_VERSION;
           } else {
@@ -463,8 +463,8 @@ class _UTF8Encoder {
 }
 
 
-class _HTTPRequestResponseBase {
-  _HTTPRequestResponseBase(_HTTPConnectionBase this._httpConnection)
+class _HttpRequestResponseBase {
+  _HttpRequestResponseBase(_HttpConnectionBase this._httpConnection)
       : _contentLength = -1,
         _keepAlive = false,
         _headers = new Map();
@@ -568,7 +568,7 @@ class _HTTPRequestResponseBase {
     return _httpConnection.outputStream.write(SP);
   }
 
-  _HTTPConnectionBase _httpConnection;
+  _HttpConnectionBase _httpConnection;
   Map<String, String> _headers;
 
   // Length of the content body. If this is set to -1 (default value)
@@ -580,8 +580,8 @@ class _HTTPRequestResponseBase {
 
 
 // Parsed HTTP request providing information on the HTTP headers.
-class _HTTPRequest extends _HTTPRequestResponseBase implements HTTPRequest {
-  _HTTPRequest(_HTTPConnection connection) : super(connection);
+class _HttpRequest extends _HttpRequestResponseBase implements HttpRequest {
+  _HttpRequest(_HttpConnection connection) : super(connection);
 
   String get method() => _method;
   String get uri() => _uri;
@@ -592,7 +592,7 @@ class _HTTPRequest extends _HTTPRequestResponseBase implements HTTPRequest {
 
   InputStream get inputStream() {
     if (_inputStream == null) {
-      _inputStream = new _HTTPInputStream(this);
+      _inputStream = new _HttpInputStream(this);
     }
     return _inputStream;
   }
@@ -626,17 +626,17 @@ class _HTTPRequest extends _HTTPRequestResponseBase implements HTTPRequest {
     int position;
     position = uri.indexOf("?", 0);
     if (position == -1) {
-      _path = HTTPUtil.decodeUrlEncodedString(_uri);
+      _path = HttpUtil.decodeUrlEncodedString(_uri);
       _queryString = null;
       _queryParameters = new Map();
     } else {
-      _path = HTTPUtil.decodeUrlEncodedString(_uri.substring(0, position));
+      _path = HttpUtil.decodeUrlEncodedString(_uri.substring(0, position));
       _queryString = _uri.substring(position + 1);
-      _queryParameters = HTTPUtil.splitQueryString(_queryString);
+      _queryParameters = HttpUtil.splitQueryString(_queryString);
     }
   }
 
-  // Delegate functions for the HTTPInputStream implementation.
+  // Delegate functions for the HttpInputStream implementation.
   int _streamAvailable() {
     return _buffer.length;
   }
@@ -655,46 +655,46 @@ class _HTTPRequest extends _HTTPRequestResponseBase implements HTTPRequest {
   String _path;
   String _queryString;
   Map<String, String> _queryParameters;
-  _HTTPInputStream _inputStream;
+  _HttpInputStream _inputStream;
   _BufferList _buffer;
 }
 
 
 // HTTP response object for sending a HTTP response.
-class _HTTPResponse extends _HTTPRequestResponseBase implements HTTPResponse {
+class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
   static final int START = 0;
   static final int HEADERS_SENT = 1;
   static final int DONE = 2;
 
-  _HTTPResponse(_HTTPConnection httpConnection)
+  _HttpResponse(_HttpConnection httpConnection)
       : super(httpConnection),
-        statusCode = HTTPStatus.OK,
+        statusCode = HttpStatus.OK,
         _state = START;
 
   void set contentLength(int contentLength) {
-    if (_outputStream != null) return new HTTPException("Header already sent");
+    if (_outputStream != null) return new HttpException("Header already sent");
     _contentLength = contentLength;
   }
   void set keepAlive(bool keepAlive) {
-    if (_outputStream != null) return new HTTPException("Header already sent");
+    if (_outputStream != null) return new HttpException("Header already sent");
     _keepAlive = keepAlive;
   }
 
   // Set a header on the response. NOTE: If the same header is set
   // more than once only the last one will be part of the response.
   void setHeader(String name, String value) {
-    if (_outputStream != null) return new HTTPException("Header already sent");
+    if (_outputStream != null) return new HttpException("Header already sent");
     _setHeader(name, value);
   }
 
   OutputStream get outputStream() {
-    if (_state == DONE) throw new HTTPException("Response closed");
+    if (_state == DONE) throw new HttpException("Response closed");
     if (_outputStream == null) {
       // Ensure that headers are written.
       if (_state == START) {
         _writeHeader();
       }
-      _outputStream = new _HTTPOutputStream(this);
+      _outputStream = new _HttpOutputStream(this);
     }
     return _outputStream;
   }
@@ -705,7 +705,7 @@ class _HTTPResponse extends _HTTPRequestResponseBase implements HTTPResponse {
     return _writeString(string);
   }
 
-  // Delegate functions for the HTTPOutputStream implementation.
+  // Delegate functions for the HttpOutputStream implementation.
   bool _streamWrite(List<int> buffer, bool copyBuffer) {
     return _write(buffer, copyBuffer);
   }
@@ -747,51 +747,51 @@ class _HTTPResponse extends _HTTPRequestResponseBase implements HTTPResponse {
     }
 
     switch (statusCode) {
-      case HTTPStatus.CONTINUE: return "Continue";
-      case HTTPStatus.SWITCHING_PROTOCOLS: return "Switching Protocols";
-      case HTTPStatus.OK: return "OK";
-      case HTTPStatus.CREATED: return "Created";
-      case HTTPStatus.ACCEPTED: return "Accepted";
-      case HTTPStatus.NON_AUTHORITATIVE_INFORMATION:
+      case HttpStatus.CONTINUE: return "Continue";
+      case HttpStatus.SWITCHING_PROTOCOLS: return "Switching Protocols";
+      case HttpStatus.OK: return "OK";
+      case HttpStatus.CREATED: return "Created";
+      case HttpStatus.ACCEPTED: return "Accepted";
+      case HttpStatus.NON_AUTHORITATIVE_INFORMATION:
         return "Non-Authoritative Information";
-      case HTTPStatus.NO_CONTENT: return "No Content";
-      case HTTPStatus.RESET_CONTENT: return "Reset Content";
-      case HTTPStatus.PARTIAL_CONTENT: return "Partial Content";
-      case HTTPStatus.MULTIPLE_CHOICES: return "Multiple Choices";
-      case HTTPStatus.MOVED_PERMANENTLY: return "Moved Permanently";
-      case HTTPStatus.FOUND: return "Found";
-      case HTTPStatus.SEE_OTHER: return "See Other";
-      case HTTPStatus.NOT_MODIFIED: return "Not Modified";
-      case HTTPStatus.USE_PROXY: return "Use Proxy";
-      case HTTPStatus.TEMPORARY_REDIRECT: return "Temporary Redirect";
-      case HTTPStatus.BAD_REQUEST: return "Bad Request";
-      case HTTPStatus.UNAUTHORIZED: return "Unauthorized";
-      case HTTPStatus.PAYMENT_REQUIRED: return "Payment Required";
-      case HTTPStatus.FORBIDDEN: return "Forbidden";
-      case HTTPStatus.NOT_FOUND: return "Not Found";
-      case HTTPStatus.METHOD_NOT_ALLOWED: return "Method Not Allowed";
-      case HTTPStatus.NOT_ACCEPTABLE: return "Not Acceptable";
-      case HTTPStatus.PROXY_AUTHENTICATION_REQUIRED:
+      case HttpStatus.NO_CONTENT: return "No Content";
+      case HttpStatus.RESET_CONTENT: return "Reset Content";
+      case HttpStatus.PARTIAL_CONTENT: return "Partial Content";
+      case HttpStatus.MULTIPLE_CHOICES: return "Multiple Choices";
+      case HttpStatus.MOVED_PERMANENTLY: return "Moved Permanently";
+      case HttpStatus.FOUND: return "Found";
+      case HttpStatus.SEE_OTHER: return "See Other";
+      case HttpStatus.NOT_MODIFIED: return "Not Modified";
+      case HttpStatus.USE_PROXY: return "Use Proxy";
+      case HttpStatus.TEMPORARY_REDIRECT: return "Temporary Redirect";
+      case HttpStatus.BAD_REQUEST: return "Bad Request";
+      case HttpStatus.UNAUTHORIZED: return "Unauthorized";
+      case HttpStatus.PAYMENT_REQUIRED: return "Payment Required";
+      case HttpStatus.FORBIDDEN: return "Forbidden";
+      case HttpStatus.NOT_FOUND: return "Not Found";
+      case HttpStatus.METHOD_NOT_ALLOWED: return "Method Not Allowed";
+      case HttpStatus.NOT_ACCEPTABLE: return "Not Acceptable";
+      case HttpStatus.PROXY_AUTHENTICATION_REQUIRED:
         return "Proxy Authentication Required";
-      case HTTPStatus.REQUEST_TIMEOUT: return "Request Time-out";
-      case HTTPStatus.CONFLICT: return "Conflict";
-      case HTTPStatus.GONE: return "Gone";
-      case HTTPStatus.LENGTH_REQUIRED: return "Length Required";
-      case HTTPStatus.PRECONDITION_FAILED: return "Precondition Failed";
-      case HTTPStatus.REQUEST_ENTITY_TOO_LARGE:
+      case HttpStatus.REQUEST_TIMEOUT: return "Request Time-out";
+      case HttpStatus.CONFLICT: return "Conflict";
+      case HttpStatus.GONE: return "Gone";
+      case HttpStatus.LENGTH_REQUIRED: return "Length Required";
+      case HttpStatus.PRECONDITION_FAILED: return "Precondition Failed";
+      case HttpStatus.REQUEST_ENTITY_TOO_LARGE:
         return "Request Entity Too Large";
-      case HTTPStatus.REQUEST_URI_TOO_LONG: return "Request-URI Too Large";
-      case HTTPStatus.UNSUPPORTED_MEDIA_TYPE: return "Unsupported Media Type";
-      case HTTPStatus.REQUESTED_RANGE_NOT_SATISFIABLE:
+      case HttpStatus.REQUEST_URI_TOO_LONG: return "Request-URI Too Large";
+      case HttpStatus.UNSUPPORTED_MEDIA_TYPE: return "Unsupported Media Type";
+      case HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE:
         return "Requested range not satisfiable";
-      case HTTPStatus.EXPECTATION_FAILED: return "Expectation Failed";
-      case HTTPStatus.INTERNAL_SERVER_ERROR: return "Internal Server Error";
-      case HTTPStatus.NOT_IMPLEMENTED: return "Not Implemented";
-      case HTTPStatus.BAD_GATEWAY: return "Bad Gateway";
-      case HTTPStatus.SERVICE_UNAVAILABLE: return "Service Unavailable";
-      case HTTPStatus.GATEWAY_TIMEOUT: return "Gateway Time-out";
-      case HTTPStatus.HTTP_VERSION_NOT_SUPPORTED:
-        return "HTTP Version not supported";
+      case HttpStatus.EXPECTATION_FAILED: return "Expectation Failed";
+      case HttpStatus.INTERNAL_SERVER_ERROR: return "Internal Server Error";
+      case HttpStatus.NOT_IMPLEMENTED: return "Not Implemented";
+      case HttpStatus.BAD_GATEWAY: return "Bad Gateway";
+      case HttpStatus.SERVICE_UNAVAILABLE: return "Service Unavailable";
+      case HttpStatus.GATEWAY_TIMEOUT: return "Gateway Time-out";
+      case HttpStatus.HTTP_VERSION_NOT_SUPPORTED:
+        return "Http Version not supported";
       default: return "Status " + statusCode.toString();
     }
   }
@@ -830,13 +830,13 @@ class _HTTPResponse extends _HTTPRequestResponseBase implements HTTPResponse {
   // Response status code.
   int statusCode;
   String reasonPhrase;
-  _HTTPOutputStream _outputStream;
+  _HttpOutputStream _outputStream;
   int _state;
 }
 
 
-class _HTTPInputStream extends _BaseDataInputStream implements InputStream {
-  _HTTPInputStream(_HTTPRequestResponseBase this._requestOrResponse) {
+class _HttpInputStream extends _BaseDataInputStream implements InputStream {
+  _HttpInputStream(_HttpRequestResponseBase this._requestOrResponse) {
     _checkScheduleCallbacks();
   }
 
@@ -868,12 +868,12 @@ class _HTTPInputStream extends _BaseDataInputStream implements InputStream {
     super._dataReceived();
   }
 
-  _HTTPRequestResponseBase _requestOrResponse;
+  _HttpRequestResponseBase _requestOrResponse;
 }
 
 
-class _HTTPOutputStream implements OutputStream {
-  _HTTPOutputStream(_HTTPRequestResponseBase this._requestOrResponse);
+class _HttpOutputStream implements OutputStream {
+  _HttpOutputStream(_HttpRequestResponseBase this._requestOrResponse);
 
   bool write(List<int> buffer, [bool copyBuffer = true]) {
     return _requestOrResponse._streamWrite(buffer, copyBuffer);
@@ -903,13 +903,13 @@ class _HTTPOutputStream implements OutputStream {
     _requestOrResponse._streamSetErrorHandler(callback);
   }
 
-  _HTTPRequestResponseBase _requestOrResponse;
+  _HttpRequestResponseBase _requestOrResponse;
 }
 
 
-class _HTTPConnectionBase {
-  _HTTPConnectionBase() : _sendBuffers = new Queue(),
-                          _httpParser = new HTTPParser();
+class _HttpConnectionBase {
+  _HttpConnectionBase() : _sendBuffers = new Queue(),
+                          _httpParser = new HttpParser();
 
   void _connectionEstablished(Socket socket) {
     _socket = socket;
@@ -965,7 +965,7 @@ class _HTTPConnectionBase {
 
   Socket _socket;
   bool _closing = false;  // Is the socket closed by the client?
-  HTTPParser _httpParser;
+  HttpParser _httpParser;
 
   Queue _sendBuffers;
 
@@ -975,8 +975,8 @@ class _HTTPConnectionBase {
 
 
 // HTTP server connection over a socket.
-class _HTTPConnection extends _HTTPConnectionBase {
-  _HTTPConnection() {
+class _HttpConnection extends _HttpConnectionBase {
+  _HttpConnection() {
     // Register HTTP parser callbacks.
     _httpParser.requestStart =
         (method, uri) => _requestStartHandler(method, uri);
@@ -992,8 +992,8 @@ class _HTTPConnection extends _HTTPConnectionBase {
 
   void _requestStartHandler(String method, String uri) {
     // Create new request and response objects for this request.
-    _request = new _HTTPRequest(this);
-    _response = new _HTTPResponse(this);
+    _request = new _HttpRequest(this);
+    _response = new _HttpResponse(this);
     _request._requestStartHandler(method, uri);
   }
 
@@ -1021,8 +1021,8 @@ class _HTTPConnection extends _HTTPConnectionBase {
     _request._dataEndHandler();
   }
 
-  HTTPRequest _request;
-  HTTPResponse _response;
+  HttpRequest _request;
+  HttpResponse _response;
 
   // Callbacks.
   var requestReceived;
@@ -1031,14 +1031,14 @@ class _HTTPConnection extends _HTTPConnectionBase {
 
 // HTTP server waiting for socket connections. The connections are
 // managed by the server and as requests are received the request.
-class _HTTPServer implements HTTPServer {
-  _HTTPServer () : _debugTrace = false;
+class _HttpServer implements HttpServer {
+  _HttpServer () : _debugTrace = false;
 
   void listen(String host, int port, [int backlog = 5]) {
 
     void connectionHandler(Socket socket) {
       // Accept the client connection.
-      _HTTPConnection connection = new _HTTPConnection();
+      _HttpConnection connection = new _HttpConnection();
       connection._connectionEstablished(socket);
       connection.requestReceived = _requestHandler;
       _connections.add(connection);
@@ -1064,7 +1064,7 @@ class _HTTPServer implements HTTPServer {
     }
 
     // TODO(ajohnsen): Use Set once Socket is Hashable.
-    _connections = new List<_HTTPConnection>();
+    _connections = new List<_HttpConnection>();
     _server = new ServerSocket(host, port, backlog);
     _server.connectionHandler = connectionHandler;
   }
@@ -1076,27 +1076,27 @@ class _HTTPServer implements HTTPServer {
     _errorHandler = handler;
   }
 
-  void set requestHandler(void handler(HTTPRequest, HTTPResponse)) {
+  void set requestHandler(void handler(HttpRequest, HttpResponse)) {
     _requestHandler = handler;
   }
 
   ServerSocket _server;  // The server listen socket.
-  List<_HTTPConnection> _connections;  // List of currently connected clients.
+  List<_HttpConnection> _connections;  // List of currently connected clients.
   Function _requestHandler;
   Function _errorHandler;
   bool _debugTrace;
 }
 
 
-class _HTTPClientRequest
-    extends _HTTPRequestResponseBase implements HTTPClientRequest {
+class _HttpClientRequest
+    extends _HttpRequestResponseBase implements HttpClientRequest {
   static final int START = 0;
   static final int HEADERS_SENT = 1;
   static final int DONE = 2;
 
-  _HTTPClientRequest(String this._method,
+  _HttpClientRequest(String this._method,
                      String this._uri,
-                     _HTTPClientConnection connection)
+                     _HttpClientConnection connection)
       : super(connection),
         _state = START {
     _connection = connection;
@@ -1121,18 +1121,18 @@ class _HTTPClientRequest
   }
 
   OutputStream get outputStream() {
-    if (_state == DONE) throw new HTTPException("Request closed");
+    if (_state == DONE) throw new HttpException("Request closed");
     if (_outputStream == null) {
       // Ensure that headers are written.
       if (_state == START) {
         _writeHeader();
       }
-      _outputStream = new _HTTPOutputStream(this);
+      _outputStream = new _HttpOutputStream(this);
     }
     return _outputStream;
   }
 
-  // Delegate functions for the HTTPOutputStream implementation.
+  // Delegate functions for the HttpOutputStream implementation.
   bool _streamWrite(List<int> buffer, bool copyBuffer) {
     return _write(buffer, copyBuffer);
   }
@@ -1200,15 +1200,15 @@ class _HTTPClientRequest
 
   String _method;
   String _uri;
-  _HTTPClientConnection _connection;
-  _HTTPOutputStream _outputStream;
+  _HttpClientConnection _connection;
+  _HttpOutputStream _outputStream;
   int _state;
 }
 
 
-class _HTTPClientResponse
-    extends _HTTPRequestResponseBase implements HTTPClientResponse {
-  _HTTPClientResponse(_HTTPClientConnection connection)
+class _HttpClientResponse
+    extends _HttpRequestResponseBase implements HttpClientResponse {
+  _HttpClientResponse(_HttpClientConnection connection)
       : super(connection) {
     _connection = connection;
   }
@@ -1219,7 +1219,7 @@ class _HTTPClientResponse
 
   InputStream get inputStream() {
     if (_inputStream == null) {
-      _inputStream = new _HTTPInputStream(this);
+      _inputStream = new _HttpInputStream(this);
     }
     return _inputStream;
   }
@@ -1253,7 +1253,7 @@ class _HTTPClientResponse
     if (_inputStream != null) _inputStream._closeReceived();
   }
 
-  // Delegate functions for the HTTPInputStream implementation.
+  // Delegate functions for the HttpInputStream implementation.
   int _streamAvailable() {
     return _buffer.length;
   }
@@ -1271,15 +1271,15 @@ class _HTTPClientResponse
   int _statusCode;
   String _reasonPhrase;
 
-  _HTTPClientConnection _connection;
-  _HTTPInputStream _inputStream;
+  _HttpClientConnection _connection;
+  _HttpInputStream _inputStream;
   _BufferList _buffer;
 }
 
 
-class _HTTPClientConnection
-    extends _HTTPConnectionBase implements HTTPClientConnection {
-  _HTTPClientConnection(_HTTPClient this._client);
+class _HttpClientConnection
+    extends _HttpConnectionBase implements HttpClientConnection {
+  _HttpClientConnection(_HttpClient this._client);
 
   void _connectionEstablished(_SocketConnection socketConn) {
     super._connectionEstablished(socketConn._socket);
@@ -1297,10 +1297,10 @@ class _HTTPClientConnection
     _httpParser.dataEnd = () => _dataEndHandler();
   }
 
-  HTTPClientRequest open(String method, String uri) {
-    _request = new _HTTPClientRequest(method, uri, this);
+  HttpClientRequest open(String method, String uri) {
+    _request = new _HttpClientRequest(method, uri, this);
     _request.keepAlive = true;
-    _response = new _HTTPClientResponse(this);
+    _response = new _HttpClientResponse(this);
     return _request;
   }
 
@@ -1335,21 +1335,21 @@ class _HTTPClientConnection
     _response._dataEndHandler();
   }
 
-  void set requestHandler(void handler(HTTPClientRequest request)) {
+  void set requestHandler(void handler(HttpClientRequest request)) {
     _requestHandler = handler;
   }
 
-  void set responseHandler(void handler(HTTPClientResponse response)) {
+  void set responseHandler(void handler(HttpClientResponse response)) {
     _responseHandler = handler;
   }
 
   Function _requestHandler;
   Function _responseHandler;
 
-  _HTTPClient _client;
+  _HttpClient _client;
   _SocketConnection _socketConn;
-  HTTPClientRequest _request;
-  HTTPClientResponse _response;
+  HttpClientRequest _request;
+  HttpClientResponse _response;
 
   // Callbacks.
   var requestReceived;
@@ -1380,22 +1380,22 @@ class _SocketConnection {
 }
 
 
-class _HTTPClient implements HTTPClient {
+class _HttpClient implements HttpClient {
   static final int DEFAULT_EVICTION_TIMEOUT = 60000;
 
-  _HTTPClient() : _openSockets = new Map(), _shutdown = false;
+  _HttpClient() : _openSockets = new Map(), _shutdown = false;
 
-  HTTPClientConnection open(
+  HttpClientConnection open(
       String method, String host, int port, String path) {
-    if (_shutdown) throw new HTTPException("HTTPClient shutdown");
-    return _prepareHTTPClientConnection(host, port, method, path);
+    if (_shutdown) throw new HttpException("HttpClient shutdown");
+    return _prepareHttpClientConnection(host, port, method, path);
   }
 
-  HTTPClientConnection get(String host, int port, String path) {
+  HttpClientConnection get(String host, int port, String path) {
     return open("GET", host, port, path);
   }
 
-  HTTPClientConnection post(String host, int port, String path) {
+  HttpClientConnection post(String host, int port, String path) {
     return open("POST", host, port, path);
   }
 
@@ -1417,13 +1417,13 @@ class _HTTPClient implements HTTPClient {
     return "$host:$port";
   }
 
-  HTTPClientConnection _prepareHTTPClientConnection(
+  HttpClientConnection _prepareHttpClientConnection(
       String host, int port, String method, String path) {
 
     void _connectionOpened(_SocketConnection socketConn,
-                           _HTTPClientConnection connection) {
+                           _HttpClientConnection connection) {
       connection._connectionEstablished(socketConn);
-      HTTPClientRequest request = connection.open(method, path);
+      HttpClientRequest request = connection.open(method, path);
       if (connection._requestHandler != null) {
         connection._requestHandler(request);
       } else {
@@ -1431,7 +1431,7 @@ class _HTTPClient implements HTTPClient {
       }
     }
 
-    _HTTPClientConnection connection = new _HTTPClientConnection(this);
+    _HttpClientConnection connection = new _HttpClientConnection(this);
 
     // If there are active connections for this key get the first one
     // otherwise create a new one.
@@ -1446,7 +1446,7 @@ class _HTTPClient implements HTTPClient {
       };
       socket.errorHandler = () {
         if (_errorHandler !== null) {
-          _errorHandler(HTTPStatus.NETWORK_CONNECT_TIMEOUT_ERROR);
+          _errorHandler(HttpStatus.NETWORK_CONNECT_TIMEOUT_ERROR);
         }
       };
     } else {
@@ -1518,7 +1518,7 @@ class _HTTPClient implements HTTPClient {
 }
 
 
-class HTTPUtil {
+class HttpUtil {
   static String decodeUrlEncodedString(String urlEncoded) {
     void invalidEscape() {
       // TODO(sgjesse): Handle the error.
@@ -1571,8 +1571,8 @@ class HTTPUtil {
         value = queryString.substring(currentPosition, position);
         currentPosition = position + 1;
       }
-      result[HTTPUtil.decodeUrlEncodedString(name)] =
-        HTTPUtil.decodeUrlEncodedString(value);
+      result[HttpUtil.decodeUrlEncodedString(name)] =
+        HttpUtil.decodeUrlEncodedString(value);
     }
     return result;
   }

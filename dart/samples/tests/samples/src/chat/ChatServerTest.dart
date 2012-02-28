@@ -38,7 +38,7 @@ class ChatTestClient extends Isolate {
   void main() {
 
     SendPort statusPort;  // Port to reply to when test has finished.
-    HTTPClient httpClient;  // HTTP client connection factory.
+    HttpClient httpClient;  // HTTP client connection factory.
 
     int totalClients;  // Total number of clients in the test.
     int messagesToSend;  // Number of messages to send.
@@ -52,11 +52,11 @@ class ChatTestClient extends Isolate {
     int receiveMessageNumber;  // Number of messages received.
 
     void leave() {
-      HTTPClientRequest request;
-      HTTPClientResponse response;
+      HttpClientRequest request;
+      HttpClientResponse response;
 
       void leaveResponseHandler(String data) {
-        Expect.equals(HTTPStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.OK, response.statusCode);
         var responseData = JSON.parse(data);
         Expect.equals("leave", responseData["response"]);
 
@@ -67,12 +67,12 @@ class ChatTestClient extends Isolate {
       Map leaveRequest = new Map();
       leaveRequest["request"] = "leave";
       leaveRequest["sessionId"] = sessionId;
-      HTTPClientConnection conn = httpClient.post("127.0.0.1", port, "/leave");
-      conn.requestHandler = (HTTPClientRequest request) {
+      HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/leave");
+      conn.requestHandler = (HttpClientRequest request) {
         request.writeString(JSON.stringify(leaveRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HTTPClientResponse r) {
+      conn.responseHandler = (HttpClientResponse r) {
         response = r;
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
@@ -82,11 +82,11 @@ class ChatTestClient extends Isolate {
     }
 
     void receive() {
-      HTTPClientRequest request;
-      HTTPClientResponse response;
+      HttpClientRequest request;
+      HttpClientResponse response;
 
       void receiveResponseHandler(String data) {
-        Expect.equals(HTTPStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.OK, response.statusCode);
         var responseData = JSON.parse(data);
         Expect.equals("receive", responseData["response"]);
         Expect.equals(null, responseData["disconnect"]);
@@ -127,13 +127,13 @@ class ChatTestClient extends Isolate {
       receiveRequest["request"] = "receive";
       receiveRequest["sessionId"] = sessionId;
       receiveRequest["nextMessage"] = receiveMessageNumber;
-      HTTPClientConnection conn =
+      HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/receive");
-      conn.requestHandler = (HTTPClientRequest request) {
+      conn.requestHandler = (HttpClientRequest request) {
         request.writeString(JSON.stringify(receiveRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HTTPClientResponse r) {
+      conn.responseHandler = (HttpClientResponse r) {
         response = r;
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
@@ -143,11 +143,11 @@ class ChatTestClient extends Isolate {
     }
 
     void sendMessage() {
-      HTTPClientRequest request;
-      HTTPClientResponse response;
+      HttpClientRequest request;
+      HttpClientResponse response;
 
       void sendResponseHandler(String data) {
-        Expect.equals(HTTPStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.OK, response.statusCode);
         var responseData = JSON.parse(data);
         Expect.equals("message", responseData["response"]);
         sendMessageNumber++;
@@ -162,13 +162,13 @@ class ChatTestClient extends Isolate {
       messageRequest["request"] = "message";
       messageRequest["sessionId"] = sessionId;
       messageRequest["message"] = "message " + sendMessageNumber;
-      HTTPClientConnection conn =
+      HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/message");
-      conn.requestHandler = (HTTPClientRequest request) {
+      conn.requestHandler = (HttpClientRequest request) {
         request.writeString(JSON.stringify(messageRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HTTPClientResponse r) {
+      conn.responseHandler = (HttpClientResponse r) {
         response = r;
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
@@ -178,11 +178,11 @@ class ChatTestClient extends Isolate {
     }
 
     void join() {
-      HTTPClientRequest request;
-      HTTPClientResponse response;
+      HttpClientRequest request;
+      HttpClientResponse response;
 
       void joinResponseHandler(String data) {
-        Expect.equals(HTTPStatus.OK, response.statusCode);
+        Expect.equals(HttpStatus.OK, response.statusCode);
         var responseData = JSON.parse(data);
         Expect.equals("join", responseData["response"]);
         sessionId = responseData["sessionId"];
@@ -198,12 +198,12 @@ class ChatTestClient extends Isolate {
       Map joinRequest = new Map();
       joinRequest["request"] = "join";
       joinRequest["handle"] = "test1";
-      HTTPClientConnection conn = httpClient.post("127.0.0.1", port, "/join");
-      conn.requestHandler = (HTTPClientRequest request) {
+      HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/join");
+      conn.requestHandler = (HttpClientRequest request) {
         request.writeString(JSON.stringify(joinRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HTTPClientResponse r) {
+      conn.responseHandler = (HttpClientResponse r) {
         response = r;
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
@@ -220,7 +220,7 @@ class ChatTestClient extends Isolate {
       statusPort = replyTo;
 
       // Create a HTTP client factory.
-      httpClient = new HTTPClient();
+      httpClient = new HttpClient();
 
       // Start the client by joining the chat topic.
       join();

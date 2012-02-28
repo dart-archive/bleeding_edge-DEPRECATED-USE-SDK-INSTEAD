@@ -11,7 +11,7 @@
 /**
  * HTTP status codes.
  */
-interface HTTPStatus {
+interface HttpStatus {
   static final int CONTINUE = 100;
   static final int SWITCHING_PROTOCOLS = 101;
   static final int OK = 200;
@@ -61,8 +61,8 @@ interface HTTPStatus {
 /**
  * HTTP server.
  */
-interface HTTPServer default _HTTPServer {
-  HTTPServer();
+interface HttpServer default _HttpServer {
+  HttpServer();
 
   /**
    * Start listening for HTTP requests on the specified [host] and
@@ -89,7 +89,7 @@ interface HTTPServer default _HTTPServer {
   /**
    * Sets the handler that gets called when a new HTTP request is received.
    */
-  void set requestHandler(void handler(HTTPRequest, HTTPResponse));
+  void set requestHandler(void handler(HttpRequest, HttpResponse));
 
   /**
    * Sets the error handler that is called when a connection error occurs.
@@ -99,9 +99,9 @@ interface HTTPServer default _HTTPServer {
 
 
 /**
- * HTTP request delivered to the HTTP server callback.
+ * Http request delivered to the HTTP server callback.
  */
-interface HTTPRequest default _HTTPRequest {
+interface HttpRequest default _HttpRequest {
   /**
    * Returns the content length of the request body. If the size of
    * the request body is not known in advance this -1.
@@ -154,7 +154,7 @@ interface HTTPRequest default _HTTPRequest {
 /**
  * HTTP response to be send back to the client.
  */
-interface HTTPResponse default _HTTPResponse {
+interface HttpResponse default _HttpResponse {
   /**
    * Gets and sets the content length of the response. If the size of
    * the response is not known in advance set the content length to
@@ -202,25 +202,25 @@ interface HTTPResponse default _HTTPResponse {
 /**
  * HTTP client factory.
  */
-interface HTTPClient default _HTTPClient {
-  HTTPClient();
+interface HttpClient default _HttpClient {
+  HttpClient();
 
   /**
-   * Opens a HTTP connection. The returned [HTTPClientConnection] is
-   * used to register handlers for asynchronous events on a HTTP
+   * Opens a HTTP connection. The returned [HttpClientConnection] is
+   * used to register handlers for asynchronous events on a Http
    * connection.
    */
-  HTTPClientConnection open(String method, String host, int port, String path);
+  HttpClientConnection open(String method, String host, int port, String path);
 
   /**
    * Opens a HTTP connection using the GET method.
    */
-  HTTPClientConnection get(String host, int port, String path);
+  HttpClientConnection get(String host, int port, String path);
 
   /**
    * Opens a HTTP connection using the POST method.
    */
-  HTTPClientConnection post(String host, int port, String path);
+  HttpClientConnection post(String host, int port, String path);
 
   /**
    * Shutdown the HTTP client releasing all resources.
@@ -230,7 +230,7 @@ interface HTTPClient default _HTTPClient {
 
 
 /**
- * A [HTTPClientConnection] is returned by all [HTTPClient] methods
+ * A [HttpClientConnection] is returned by all [HttpClient] methods
  * that initiate a connection to an HTTP server. The handlers will be
  * called as the connection state progresses.
  *
@@ -239,11 +239,11 @@ interface HTTPClient default _HTTPClient {
  * an empty body. If the [responseHandler] is not set the response
  * will be read and discarded.
  */
-interface HTTPClientConnection {
+interface HttpClientConnection {
   /**
    * Sets the handler that is called when the connection is established.
    */
-  void set requestHandler(void handler(HTTPClientRequest request));
+  void set requestHandler(void handler(HttpClientRequest request));
 
   /**
    * Sets callback to be called when the request has been send and
@@ -251,20 +251,20 @@ interface HTTPClientConnection {
    * all headers of the response are received and data is ready to be
    * received.
    */
-  void set responseHandler(void handler(HTTPClientResponse response));
+  void set responseHandler(void handler(HttpClientResponse response));
 
   /**
    * Sets the handler that gets called if an error occurs while
    * processing the HTTP request.
    */
- void set errorHandler(void handler(HTTPException e));
+ void set errorHandler(void handler(HttpException e));
 }
 
 
 /**
  * HTTP request for a client connection.
  */
-interface HTTPClientRequest default _HTTPClientRequest {
+interface HttpClientRequest default _HttpClientRequest {
   /**
    * Gets and sets the content length of the request. If the size of
    * the request is not known in advance set content length to -1,
@@ -310,7 +310,7 @@ interface HTTPClientRequest default _HTTPClientRequest {
 /**
  * HTTP response for a client connection.
  */
-interface HTTPClientResponse default _HTTPClientResponse {
+interface HttpClientResponse default _HttpClientResponse {
   /**
    * Returns the status code.
    */
@@ -345,8 +345,8 @@ interface HTTPClientResponse default _HTTPClientResponse {
 }
 
 
-class HTTPException implements Exception {
-  const HTTPException([String this.message = ""]);
-  String toString() => "HTTPException: $message";
+class HttpException implements Exception {
+  const HttpException([String this.message = ""]);
+  String toString() => "HttpException: $message";
   final String message;
 }
