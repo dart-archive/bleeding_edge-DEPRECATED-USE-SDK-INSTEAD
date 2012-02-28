@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that native methods with optional arguments are called with the number
-// of arguments in the call site.  This is necessary because native methods can
-// dispatch on the number of arguments.  Passing null or undefined as the last
-// argumentg is not the same as passing one fewer arguments.
+// Test that native methods with unnamed* optional arguments are called with the
+// number of arguments in the call site.  This is necessary because native
+// methods can dispatch on the number of arguments.  Passing null or undefined
+// as the last argument is not the same as passing one fewer argument.
+//
+// * Named arguments are passed in the correct position, so require preceding
+// arguments to be passed.
 
 class A native "*A" {
   int foo(int x) native;
@@ -48,8 +51,9 @@ testDynamicContext() {
   Expect.equals(2, b.foo(10, 20));
   Expect.equals(3, b.foo(10, 20, 30));
 
-  Expect.equals(2, b.foo(y: 20));
-  Expect.equals(3, b.foo(z: 30));
+  Expect.equals(1, b.foo(x: 10));   // 1 = x
+  Expect.equals(2, b.foo(y: 20));   // 2 = x, y
+  Expect.equals(3, b.foo(z: 30));   // 3 = x, y, z
   Expect.throws(() => b.foo(10, 20, 30, 40));
 }
 
@@ -67,6 +71,7 @@ testStaticContext() {
   Expect.equals(2, b.foo(10, 20));
   Expect.equals(3, b.foo(10, 20, 30));
 
+  Expect.equals(1, b.foo(x: 10));
   Expect.equals(2, b.foo(y: 20));
   Expect.equals(3, b.foo(z: 30));
   Expect.throws(() => b.foo(10, 20, 30, 40));
