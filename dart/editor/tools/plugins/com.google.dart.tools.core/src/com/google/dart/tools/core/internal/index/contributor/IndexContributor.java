@@ -57,17 +57,13 @@ import com.google.dart.tools.core.index.Location;
 import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
+import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
-import com.google.dart.tools.core.internal.model.DartModelStatusImpl;
-import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartModelStatusConstants;
 import com.google.dart.tools.core.utilities.bindings.BindingUtils;
-
-import org.eclipse.core.resources.IResource;
 
 import java.util.ArrayList;
 
@@ -94,9 +90,9 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     StringBuilder builder = new StringBuilder();
     if (parentElement != null) {
       builder.append(parentElement.getElementId()); // This has already been escaped.
-      builder.append(SEPARATOR_CHAR);
+      builder.append(ResourceFactory.SEPARATOR_CHAR);
     }
-    escape(builder, childName);
+    ResourceFactory.escape(builder, childName);
     return builder.toString();
   }
 
@@ -108,44 +104,6 @@ public class IndexContributor extends DartNodeTraverser<Void> {
    */
   public static String composeElementId(String childName) {
     return composeElementId(null, childName);
-  }
-
-  /**
-   * Compose the given URI's into a resource id appropriate for the resource with the given URI.
-   * 
-   * @param libraryUri the URI of the library containing the resource whose id is being computed
-   * @param resourceUri the URI of the resource whose id is being computed
-   * @return the resource id appropriate for the resource
-   */
-  public static String composeResourceId(String libraryUri, String resourceUri) {
-    StringBuilder builder = new StringBuilder();
-    escape(builder, libraryUri);
-    builder.append(SEPARATOR_CHAR);
-    escape(builder, resourceUri);
-    return builder.toString();
-  }
-
-  /**
-   * Append the escaped version of the given id to the given builder.
-   * 
-   * @param builder the builder to which the escaped form of the id is to be appended
-   * @param id the id to be appended to the builder
-   */
-  private static void escape(StringBuilder builder, String id) {
-    if (id.indexOf(SEPARATOR_CHAR) >= 0) {
-      int length = id.length();
-      for (int i = 0; i < length; i++) {
-        char currentChar = id.charAt(i);
-        if (currentChar == SEPARATOR_CHAR) {
-          builder.append(SEPARATOR_CHAR);
-          builder.append(SEPARATOR_CHAR);
-        } else {
-          builder.append(currentChar);
-        }
-      }
-    } else {
-      builder.append(id);
-    }
   }
 
   /**
@@ -217,11 +175,6 @@ public class IndexContributor extends DartNodeTraverser<Void> {
    * A marker that is used to indicate that the source for the compilation unit cannot be accessed.
    */
   private static String MISSING_SOURCE = "";
-
-  /**
-   * The separator character used to compose identifiers.
-   */
-  private static char SEPARATOR_CHAR = '^';
 
   /**
    * Initialize a newly created contributor to contribute data and relationships to the given index
@@ -756,7 +709,8 @@ public class IndexContributor extends DartNodeTraverser<Void> {
    */
   private Element getElement(LibraryElement element) {
     String libraryId = element.getLibraryUnit().getSource().getUri().toString();
-    return new Element(new Resource(composeResourceId(libraryId, libraryId)), LIBRARY_ELEMENT_ID);
+    return new Element(new Resource(ResourceFactory.composeResourceId(libraryId, libraryId)),
+        LIBRARY_ELEMENT_ID);
   }
 
   /**
@@ -905,8 +859,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
   private Resource getResource(CompilationUnit compilationUnit) {
     if (compilationUnit != null) {
       try {
-        CompilationUnit libraryDefiningUnit = compilationUnit.getLibrary().getDefiningCompilationUnit();
-        return new Resource(composeResourceId(getUri(libraryDefiningUnit), getUri(compilationUnit)));
+        return ResourceFactory.getResource(compilationUnit);
       } catch (DartModelException exception) {
         DartCore.logError("Could not get underlying resource for compilation unit "
             + compilationUnit.getElementName(), exception);
@@ -966,29 +919,6 @@ public class IndexContributor extends DartNodeTraverser<Void> {
       return null;
     }
     return superType.getElement();
-  }
-
-  /**
-   * Return the URI of the given compilation unit.
-   * 
-   * @param compilationUnit the compilation unit whose URI is to be returned
-   * @return the URI of the given compilation unit
-   * @throws DartModelException if the URI could not be computed
-   */
-  private String getUri(CompilationUnit compilationUnit) throws DartModelException {
-    if (compilationUnit == null) {
-      throw new DartModelException(new DartModelStatusImpl(
-          DartModelStatusConstants.INVALID_RESOURCE));
-    }
-    if (compilationUnit instanceof ExternalCompilationUnitImpl) {
-      return ((ExternalCompilationUnitImpl) compilationUnit).getSourceRef().getUri().toString();
-    }
-    IResource resource = compilationUnit.getUnderlyingResource();
-    if (resource != null) {
-      return resource.getLocationURI().toString();
-    }
-    throw new DartModelException(new DartModelStatusImpl(DartModelStatusConstants.INVALID_RESOURCE,
-        compilationUnit));
   }
 
   private boolean isAssignedTo(DartIdentifier node) {
