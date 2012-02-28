@@ -48,6 +48,7 @@ public class NewDirectoryWizardAction extends AbstractOpenWizardAction implement
     setToolTipText(ActionMessages.NewDirectoryWizardAction_tooltip);
 //    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/library_new.png"));
     setId(ACTION_ID);
+    setEnabled(false);
   }
 
   /**
