@@ -2103,6 +2103,7 @@ class HStatic extends HInstruction {
   toString() => 'static ${element.name}';
   accept(HVisitor visitor) => visitor.visitStatic(this);
 
+  int gvnHashCode() => super.gvnHashCode() ^ element.hashCode();
   int typeCode() => 24;
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
