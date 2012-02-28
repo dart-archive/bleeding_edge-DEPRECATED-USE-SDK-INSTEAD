@@ -6,6 +6,9 @@ class NativeEmitter {
 
   Compiler compiler;
   bool addedDynamicFunction = false;
+  bool addedTypeNameOfFunction = false;
+  bool addedDefPropFunction = false;
+  bool addedNativeProperty = false;
 
   // Classes that participate in dynamic dispatch. These are the
   // classes that contain used members.
@@ -117,6 +120,29 @@ function(name) {
   String buildDynamicMetadataCode() => '''
 if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];''';
 
+  // This method will be called for 'is' checks on native types.
+  // It takes the object on which the 'is' check is being done, and the
+  // property name for the type check. The method patches the real
+  // prototype of the object with the value from the Dart object
+  // (see [generateNativeClass]).
+  String buildDynamicIsCheckCode() {
+    ClassElement objectClass =
+        compiler.coreLibrary.find(const SourceString('Object'));
+    return '''
+function(obj, isCheck) {
+  if (obj.constructor === Array) return false;
+  var proto = Object.getPrototypeOf(obj);
+  // Check if the Dart object corresponding to this class has the property.
+  var res =
+      !!${compiler.namer.CURRENT_ISOLATE}.native[$typeNameOfName(obj)][isCheck];
+  res = res || false;
+  $defPropName(proto, isCheck, res);
+  return res;
+}''';
+  }
+
+  String buildNativePropertyCode() => '''
+${compiler.namer.ISOLATE}.prototype.native = {};''';
 
   String buildDynamicSetMetadataCode() => """
 function(inputTable) {
@@ -141,18 +167,15 @@ function(inputTable) {
   String get typeNameOfName() => '${compiler.namer.ISOLATE}.\$typeNameOf';
   String get dynamicMetadataName() =>
       '${compiler.namer.ISOLATE}.\$dynamicMetatada';
+  String get dynamicIsCheckName() =>
+      '${compiler.namer.ISOLATE}.\$dynamicIsCheck';
   String get dynamicSetMetadataName() =>
       '${compiler.namer.ISOLATE}.\$dynamicSetMetatada';
 
   void addDynamicFunctionIfNecessary(StringBuffer buffer) {
     if (addedDynamicFunction) return;
     addedDynamicFunction = true;
-    buffer.add('$defPropName = ');
-    buffer.add(DEF_PROP_FUNCTION);
-    buffer.add('\n');
-    buffer.add('$typeNameOfName = ');
-    buffer.add(TYPE_NAME_OF_FUNCTION);
-    buffer.add('\n');
+    addTypeNameOfFunctionIfNecessary(buffer);
     buffer.add('$dynamicName = ');
     buffer.add(buildDynamicFunctionCode());
     buffer.add('\n');
@@ -160,10 +183,33 @@ function(inputTable) {
     buffer.add('\n');
   }
 
+  void addTypeNameOfFunctionIfNecessary(StringBuffer buffer) {
+    if (addedTypeNameOfFunction) return;
+    addedTypeNameOfFunction = true;
+    addDefPropFunctionIfNecessary(buffer);
+    buffer.add('$typeNameOfName = ');
+    buffer.add(TYPE_NAME_OF_FUNCTION);
+    buffer.add('\n');
+  }
+
+  void addDefPropFunctionIfNecessary(StringBuffer buffer) {
+    if (addedDefPropFunction) return;
+    addedDefPropFunction = true;
+    buffer.add('$defPropName = ');
+    buffer.add(DEF_PROP_FUNCTION);
+    buffer.add('\n');
+  }
+
+  void addNativePropertyIfNecessary(StringBuffer buffer) {
+    if (addedNativeProperty) return;
+    addedNativeProperty = true;
+    buffer.add(buildNativePropertyCode());
+    buffer.add('\n');
+  }
+
 
   void generateNativeClass(ClassElement classElement, StringBuffer buffer) {
     nativeClasses.add(classElement);
-    if (classElement.members.isEmpty()) return;
 
     assert(classElement.backendMembers.isEmpty());
     String nativeName = classElement.nativeName.slowToString();
@@ -230,6 +276,29 @@ function(inputTable) {
         }
       }
     }
+
+    addNativePropertyIfNecessary(buffer);
+    // Create an object that contains the is checks properties. The
+    // object will be used when entering [buildDynamicIsCheckCode].
+    buffer.add('${compiler.namer.ISOLATE}.prototype.native.$nativeName = { ');
+    List<String> tests = <String>[];
+
+    ClassElement objectClass =
+        compiler.coreLibrary.find(const SourceString('Object'));
+    Element element = classElement;
+    // We need to put the super class is checks too, since a check on
+    // the subclass can happen before a check on the super class
+    // (which does the patching on the prototype).
+    do {
+      compiler.emitter.generateTypeTests(element, (Element other) {
+        tests.add("${compiler.namer.operatorIs(other)}:true");
+      });
+      element = element.superclass;
+    } while (element !== objectClass);
+
+    buffer.add('${Strings.join(tests, ",")}');
+    buffer.add('};\n');
+
     if (hasUsedSelectors) classesWithDynamicDispatch.add(classElement);
   }
 
@@ -268,6 +337,12 @@ function(inputTable) {
   }
 
   void emitDynamicDispatchMetadata(StringBuffer buffer) {
+    // TODO(ngeoffray): emit this conditionally.
+    addTypeNameOfFunctionIfNecessary(buffer);
+    buffer.add('$dynamicIsCheckName = ');
+    buffer.add(buildDynamicIsCheckCode());
+    buffer.add('\n');
+
     if (classesWithDynamicDispatch.isEmpty()) return;
     buffer.add('// ${classesWithDynamicDispatch.length} dynamic classes.\n');
 
@@ -311,9 +386,9 @@ function(inputTable) {
     // Temporary variables for common substrings.
     List<String> varNames = <String>[];
     // var -> expression
-    Map<String, String> varDefns = <String, String>{};
+    Map<String, String> varDefns = <String>{};
     // tag -> expression (a string or a variable)
-    Map<String, String> tagDefns = <String, String>{};
+    Map<String, String> tagDefns = <String>{};
 
     String makeExpression(ClassElement cls) {
       // Expression fragments for this set of cls keys.

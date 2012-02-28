@@ -91,7 +91,9 @@ class ScannerTask extends CompilerTask {
       compiler.universe.libraries.putIfAbsent(uri.toString(), () {
           newLibrary = true;
           Script script = compiler.readScript(uri, node);
-          return new LibraryElement(script);
+          LibraryElement element = new LibraryElement(script);
+          native.checkNativeSupport(compiler, element);
+          return element;
         });
     if (newLibrary) {
       compiler.withCurrentElement(library, () => scan(library));

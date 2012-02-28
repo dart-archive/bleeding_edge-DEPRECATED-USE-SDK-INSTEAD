@@ -288,8 +288,10 @@ function(child, parent) {
         addInstanceMember(member, prototype, buffer);
       }
     }
-    buffer.add('$prototype.${namer.operatorIs(classElement)} = true;\n');
-    generateInterfacesIsTests(buffer, prototype, classElement);
+    generateTypeTests(classElement, (Element other) {
+      buffer.add('$prototype.${namer.operatorIs(other)} = true;\n');
+    });
+
     if (superclass === null) {
       // Emit the noSuchMethods on the Object prototype now, so that
       // the code in the dynamicMethod can find them. Note that the
@@ -299,11 +301,17 @@ function(child, parent) {
     }
   }
 
-  void generateInterfacesIsTests(StringBuffer buffer, String prototype,
-                                 ClassElement cls) {
-    for (Type ifc in cls.interfaces) {
-      buffer.add('$prototype.${namer.operatorIs(ifc.element)} = true;\n');
-      generateInterfacesIsTests(buffer, prototype, ifc.element);
+  void generateTypeTests(ClassElement cls,
+                         void generateTypeTest(ClassElement element)) {
+    generateTypeTest(cls);
+    generateInterfacesIsTests(cls, generateTypeTest);
+  }
+
+  void generateInterfacesIsTests(ClassElement cls,
+                                 void generateTypeTest(ClassElement element)) {
+    for (Type interfaceType in cls.interfaces) {
+      generateTypeTest(interfaceType.element);
+      generateInterfacesIsTests(interfaceType.element, generateTypeTest);
     }
   }
 

@@ -923,8 +923,9 @@ class SsaCodeGenerator implements HVisitor {
   void visitIs(HIs node) {
     ClassElement element = node.typeExpression;
     LibraryElement coreLibrary = compiler.coreLibrary;
+    ClassElement objectClass = coreLibrary.find(const SourceString('Object'));
     HInstruction input = node.expression;
-    if (element == coreLibrary.find(const SourceString('Object'))) {
+    if (element == objectClass) {
       // TODO(ahe): This probably belongs in the constant folder.
       buffer.add('true');
     } else if (element == coreLibrary.find(const SourceString('String'))) {
@@ -958,6 +959,9 @@ class SsaCodeGenerator implements HVisitor {
         checkArray(input, '===');
         buffer.add(' || ');
         precedence = JSPrecedence.LOGICAL_OR_PRECEDENCE;
+      } else if (element.isNative() || isSupertypeOfNativeClass(element)) {
+        buffer.add("(");
+        endParen = true;
       } else {
         beginExpression(precedence);
       }
@@ -965,6 +969,23 @@ class SsaCodeGenerator implements HVisitor {
       use(input, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
       buffer.add(compiler.namer.operatorIs(node.typeExpression));
+      if (element.isNative() || isSupertypeOfNativeClass(element)) {
+        buffer.add(' || ');
+        beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+        // First check if the object is not a Dart object. If the
+        // object is a Dart object, we know the property check was
+        // sufficient.
+        buffer.add('!');
+        use(input, JSPrecedence.MEMBER_PRECEDENCE);
+        buffer.add('.');
+        buffer.add(compiler.namer.operatorIs(objectClass));
+        buffer.add(' && ');
+        buffer.add(compiler.emitter.nativeEmitter.dynamicIsCheckName);
+        buffer.add('(');
+        use(input, JSPrecedence.MEMBER_PRECEDENCE);
+        buffer.add(", '${compiler.namer.operatorIs(node.typeExpression)}')");
+        endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+      }
       endExpression(precedence);
       if (endParen) buffer.add(')');
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
@@ -983,6 +1004,12 @@ class SsaCodeGenerator implements HVisitor {
     return (cls == coreLibrary.find(const SourceString('List')))
       || (cls == coreLibrary.find(const SourceString('Collection')))
       || (cls == coreLibrary.find(const SourceString('Iterable')));
+  }
+
+  bool isSupertypeOfNativeClass(ClassElement cls) {
+    // TODO(ngeoffray): Check all types that are super types of native
+    // classes.
+    return true;
   }
 }
 
