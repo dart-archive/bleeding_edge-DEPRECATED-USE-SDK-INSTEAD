@@ -108,7 +108,7 @@ public class SamplesTest extends TestCase {
     for (File libFile : libraryFiles) {
       analyzeLibrary(libFile);
     }
-    assertEquals("Bad sample files", 0, badSampleFiles.size());
+    assertEquals("Bad sample files", 2, badSampleFiles.size());
   }
 
   /**
