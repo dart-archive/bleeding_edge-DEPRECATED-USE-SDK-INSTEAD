@@ -2,18 +2,377 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(floitsch): finish implementation.
 class Constant implements Hashable {
-  // TODO(floitsch): remove the direct access to the string.
-  final String jsCode;
-  Constant(this.jsCode);
+  const Constant();
 
-  int hashCode() => jsCode.hashCode();
-  bool operator ==(var other) {
-    if (other is !Constant) return false;
-    Constant otherConstant = other;
-    return jsCode == otherConstant.jsCode;
+  bool isNull() => false;
+  /** [isInt] implies [isNum]. */
+  bool isInt() => false;
+  /** [isDouble] implies [isNum]. */
+  bool isDouble() => false;
+  bool isBool() => false;
+  bool isString() => false;
+  /** [isList] implies [isObject]. */
+  bool isList() => false;
+  /** [isMap] implies [isObject]. */
+  bool isMap() => false;
+  bool isConstructedObject() => false;
+
+  bool isNum() => isInt() || isDouble();
+  bool isObject() => isList() || isMap() || isConstructedObject();
+
+  /**
+   * Returns [:null:] if the operation is not supported on this constant.
+   * The [op] operator is assumed to be a prefix operator.
+   */
+  Constant unaryFold(String op) => null;
+
+  /**
+   * Returns [:null:] if the operation is not supported on this constant, or
+   * if the operation would have thrown an exception.
+   */
+  Constant binaryFold(String op, Constant other) {
+    if (op == "==" || op == "===") {
+      return new BoolConstant(this == other);
+    } else if (op == "!=" || op == "!==") {
+      return new BoolConstant(this != other);
+    }
   }
+
+  abstract void writeJsCode(StringBuffer buffer,
+                            CompileTimeConstantHandler handler);
+}
+
+class PrimitiveConstant extends Constant {
+  // TODO(floitsch): this should be an abstract getter, but there is a bug in
+  // the VM.
+  get value() => null;
+  const PrimitiveConstant();
+
+  bool operator ==(var other) {
+    if (other is !PrimitiveConstant) return false;
+    PrimitiveConstant otherPrimitive = other;
+    // We use == instead of === so that DartStrings compare correctly. 
+    return value == otherPrimitive.value;
+  }
+}
+
+class NullConstant extends PrimitiveConstant {
+  const NullConstant();
+  bool isNull() => true;
+  get value() => null;
+
+  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+    buffer.add("(void 0)");
+  }
+
+  // The magic constant has no meaning. It is just a random value.
+  int hashCode() => 785965825;
+}
+
+class IntConstant extends PrimitiveConstant {
+  final int value;
+  // TODO(floitsch): cache the most common integer values.
+  const IntConstant(this.value);
+  bool isInt() => true;
+
+  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+    buffer.add("($value)");
+  }
+
+  IntConstant unaryFold(String op) {
+    if (op == "-") return new IntConstant(-value);
+    if (op == "~") return new IntConstant(~value);
+    return null;
+  }
+
+  Constant binaryFold(String op, Constant other) {
+    if (other.isNum()) {
+      PrimitiveConstant otherPrimitive = other;
+      num rightNum = otherPrimitive.value;
+      switch (op) {
+        case "<": return new BoolConstant(value < rightNum);
+        case "<=": return new BoolConstant(value <= rightNum);
+        case ">": return new BoolConstant(value > rightNum);
+        case ">=": return new BoolConstant(value >= rightNum);
+        case "/": return new DoubleConstant(value / rightNum);
+        // We have to treat '==' and '!=' here in case rightNum is a double.
+        case "==": return new BoolConstant(value == rightNum);
+        case "!=": return new BoolConstant(value != rightNum);
+      }
+      if (other.isInt()) {
+        int right = rightNum;
+        switch (op) {
+          case "+": return new IntConstant(value + right);
+          case "-": return new IntConstant(value - right);
+          case "*": return new IntConstant(value * right);
+          case "%": return new IntConstant(value % right);
+          case "~/": return new IntConstant(value ~/ right);
+          case "|": return new IntConstant(value | right);
+          case "&": return new IntConstant(value & right);
+          case "^": return new IntConstant(value ^ right);        
+          case "<<":
+            // TODO(floitsch): find a better way to guard against shifts to the
+            // left.
+            if (right > 100) null;
+            if (right < 0) null;
+            return new IntConstant(value << right);
+          case ">>":
+            if (right < 0) return null;
+            return new IntConstant(value >> right);
+        }
+      } else if (other.isDouble()) {
+        double right = rightNum;
+        switch (op) {
+          case "+": return new DoubleConstant(value + right);
+          case "-": return new DoubleConstant(value - right);
+          case "*": return new DoubleConstant(value * right);
+          case "~/": return new DoubleConstant(value ~/ right);
+          case "%": return new DoubleConstant(value % right);
+        }
+      }
+    }
+    // Visit super in case the [op] was "==", "===", "!=" or "!==".
+    return super.binaryFold(op, other);
+  }
+
+  // We have to override the equality operator so that ints and doubles are
+  // treated as separate constants.
+  // The is [:!IntConstant:] check at the beginning of the function makes sure
+  // that we compare only equal to integer constants.
+  bool operator ==(var other) {
+    if (other is !IntConstant) return false;
+    IntConstant otherInt = other;
+    return value == otherInt.value;
+  }
+
+  int hashCode() => value.hashCode();
+}
+
+class DoubleConstant extends PrimitiveConstant {
+  final double value;
+  const DoubleConstant(this.value);
+  bool isDouble() => true;
+
+  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+    if (value.isNaN()) {
+      buffer.add("(0/0)");
+    } else if (value == double.INFINITY) {
+      buffer.add("(1/0)");
+    } else if (value == -double.INFINITY) {
+      buffer.add("(-1/0)");
+    } else {
+      buffer.add("($value)");        
+    }
+  }
+
+  DoubleConstant unaryFold(String op) {
+    if (op == "-") return new DoubleConstant(-value);
+    return null;
+  }
+
+  Constant binaryFold(String op, Constant other) {
+    if (other.isNum()) {
+      PrimitiveConstant otherPrimitive = other;
+      num right = otherPrimitive.value;
+      switch (op) {
+        case "<": return new BoolConstant(value < right);
+        case "<=": return new BoolConstant(value <= right);
+        case ">": return new BoolConstant(value > right);
+        case ">=": return new BoolConstant(value >= right);
+        case "+": return new DoubleConstant(value + right);
+        case "-": return new DoubleConstant(value - right);
+        case "*": return new DoubleConstant(value * right);
+        case "~/": return new DoubleConstant(value ~/ right);
+        case "/": return new DoubleConstant(value / right);
+        case "%": return new DoubleConstant(value % right);
+        // We have to handle '==' and '!=' here in case right is an integer,
+        // or one of the operands is NaN, -0.0 or 0.0.
+        case "==": return new BoolConstant(value == right);
+        case "!=": return new BoolConstant(value != right);
+      }
+    }
+    // Visit super in case the [op] was "==", "===", "!=" or "!===".
+    return super.binaryFold(op, other);
+  }
+
+  bool operator ==(var other) {
+    if (other is !DoubleConstant) return false;
+    DoubleConstant otherDouble = other;
+    double otherValue = otherDouble.value;
+    if (value == 0.0 && otherValue == 0.0) {
+      return value.isNegative() == otherValue.isNegative();
+    } else if (value.isNaN()) {
+      return otherValue.isNaN();
+    } else {
+      return value == otherValue;
+    }
+  }
+
+  int hashCode() => value.hashCode();
+}
+
+class BoolConstant extends PrimitiveConstant {
+  final bool value;
+  const BoolConstant(this.value);
+  bool isBool() => true;
+
+  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+    buffer.add(value ? "true" : "false");
+  }
+
+  BoolConstant unaryFold(String op) {
+    if (op == "!") return new BoolConstant(!value);
+    return null;
+  }
+
+  bool operator ==(var other) {
+    if (other is !BoolConstant) return false;
+    BoolConstant otherBool = other;
+    return value == otherBool.value;
+  }
+
+  // The magic constants are just random values. They don't have any
+  // significance.
+  int hashCode() => value ? 499 : 536555975;
+}
+
+class StringConstant extends PrimitiveConstant {
+  final DartString value;
+  int _hashCode;
+
+  StringConstant(this.value) {
+    // TODO(floitsch): compute hashcode without calling toString() on the
+    // DartString.
+    _hashCode = value.toString().hashCode();
+  }
+  bool isString() => true;
+
+  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+    buffer.add("'");
+    CompileTimeConstantHandler.writeEscapedString(value, buffer, (reason) {
+      throw new CompilerCancelledException(reason);
+    });
+    buffer.add("'");
+  }
+
+  StringConstant binaryFold(String op, Constant other) {
+    if (other.isString() && op == "+") {
+      StringConstant otherString = other;
+      DartString right = otherString.value;
+      return new StringConstant(new ConsDartString(value, right));
+    }
+    // Visit super in case the [op] was "==", "===", "!=" or "!===".
+    return super.binaryFold(op, other);
+  }
+
+  bool operator ==(var other) {
+    if (other is !StringConstant) return false;
+    StringConstant otherString = other;
+    return (_hashCode == otherString._hashCode) && (value == otherString.value);
+  }
+
+  int hashCode() => _hashCode;
+}
+
+class ObjectConstant extends Constant {
+  final Type type;
+
+  ObjectConstant(this.type);
+}
+
+class ListConstant extends ObjectConstant {
+  final List<Constant> entries;
+  int _hashCode;
+
+  ListConstant(Type type, this.entries) : super(type) {
+    // TODO(floitsch): create a better hash. 
+    int hash = 0;
+    for (Constant input in entries) hash ^= input.hashCode();
+    _hashCode = hash;
+  }
+  bool isList() => true;
+
+  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+    // TODO(floitsch): we should not need to go through the compiler to make
+    // the list constant.
+    buffer.add(handler.compiler.namer.ISOLATE);
+    buffer.add(".prototype.makeConstantList");
+    buffer.add("([");
+    for (int i = 0; i < entries.length; i++) {
+      if (i != 0) buffer.add(", ");
+      Constant entry = entries[i];
+      if (entry.isObject()) {
+        handler.getNameForConstant(entry);
+      } else {
+        entry.writeJsCode(buffer, handler);
+      }
+    }
+    buffer.add("])");
+  }
+
+  bool operator ==(var other) {
+    if (other is !ListConstant) return false;
+    ListConstant otherList = other;
+    if (hashCode() != otherList.hashCode()) return false;
+    // TODO(floitsch): verify that the types are the same.
+    if (entries.length != otherList.entries.length) return false;
+    for (int i = 0; i < entries.length; i++) {
+      if (entries[i] != otherList.entries[i]) return false;
+    }
+    return true;
+  }
+
+  int hashCode() => _hashCode;
+}
+
+class ConstructedConstant extends ObjectConstant {
+  final List<Constant> fields;
+  int _hashCode;
+
+  ConstructedConstant(Type type, this.fields) : super(type) {
+    assert(type !== null);
+    // TODO(floitsch): create a better hash. 
+    int hash = 0;
+    for (Constant field in fields) {
+      hash ^= field.hashCode();
+    }
+    hash ^= type.element.hashCode();
+    _hashCode = hash;
+  }
+  bool isConstructedObject() => true;
+
+  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+    buffer.add("new ");
+    buffer.add(handler.getJsConstructor(type.element));
+    buffer.add("(");
+    for (int i = 0; i < fields.length; i++) {
+      if (i != 0) buffer.add(", ");
+      Constant field = fields[i];
+      // TODO(floitsch): share this code with the ListConstant.
+      if (field.isObject()) {
+        handler.getNameForConstant(field);
+      } else {
+        field.writeJsCode(buffer, handler);
+      }
+    }
+    buffer.add(")");
+  }
+
+  bool operator ==(var otherVar) {
+    if (otherVar is !ConstructedConstant) return false;
+    ConstructedConstant other = otherVar;
+    if (hashCode() != other.hashCode()) return false;
+    // TODO(floitsch): verify that the (generic) types are the same.
+    if (type.element != other.type.element) return false;
+    if (fields.length != other.fields.length) return false;
+    for (int i = 0; i < fields.length; i++) {
+      if (fields[i] != other.fields[i]) return false;
+    }
+    return true;
+  }
+
+  int hashCode() => _hashCode;
 }
 
 /**
@@ -58,12 +417,20 @@ class CompileTimeConstantHandler extends CompilerTask {
 
   compileVariable(VariableElement element) {
     if (initialVariableValues.containsKey(element)) {
-      return initialVariableValues[element];
+      Constant result = initialVariableValues[element];
+      // TODO(floitsch): remove the following line once the rest of the
+      // compiler has been adapted.
+      if (!result.isObject()) return result.dynamic.value;
+      return result;
     }
     // TODO(floitsch): keep track of currently compiling elements so that we
     // don't end up in an infinite loop: final x = y; final y = x;
     TreeElements definitions = compiler.analyzeElement(element);
-    return compileVariableWithDefinitions(element, definitions);
+    Constant constant =  compileVariableWithDefinitions(element, definitions);
+    // TODO(floitsch): remove the following line once the rest of the
+    // compiler has been adapted.
+    if (!constant.isObject()) return constant.dynamic.value;
+    return constant;
   }
 
   compileVariableWithDefinitions(VariableElement element,
@@ -75,7 +442,7 @@ class CompileTimeConstantHandler extends CompilerTask {
       var value;
       if (assignment === null) {
         // No initial value.
-        value = null;
+        value = const NullConstant();
       } else {
         Node right = assignment.arguments.head;
         CompileTimeConstantEvaluator evaluator =
@@ -87,12 +454,14 @@ class CompileTimeConstantHandler extends CompilerTask {
     });
   }
 
-  compileObjectCreation(Node node, Element constructor, List arguments) {
+  ConstructedConstant compileObjectConstruction(Node node,
+                                                Type type,
+                                                List arguments) {
     if (!arguments.isEmpty()) {
       compiler.unimplemented("CompileTimeConstantHandler with arguments",
                              node: node);
     }
-    ClassElement classElement = constructor.enclosingElement;
+    ClassElement classElement = type.element;
     for (Element member in classElement.members) {
       if (Elements.isInstanceField(member)) {
         compiler.unimplemented("CompileTimeConstantHandler with fields",
@@ -104,28 +473,15 @@ class CompileTimeConstantHandler extends CompilerTask {
                              node: node);
     }
     compiler.registerInstantiatedClass(classElement);
-    Namer namer = compiler.namer;
-    String instantiation = "new ${namer.isolatePropertyAccess(classElement)}()";
-    Constant constant = new Constant(instantiation);
+    Constant constant = new ConstructedConstant(type, arguments);
     registerCompileTimeConstant(constant);
     return constant;
   }
 
-  compileListLiteral(Node node, List arguments) {
-    StringBuffer buffer = new StringBuffer();
-    buffer.add(compiler.namer.ISOLATE);
-    buffer.add(".prototype.makeConstantList");
-    buffer.add("([");
-    for (int i = 0; i < arguments.length; i++) {
-      if (i != 0) buffer.add(", ");
-      // TODO(floitsch): canonicalize if the constant is in the
-      // [compiledConstant] set.
-      writeJsCode(buffer, arguments[i]);
-    }
-    buffer.add("])");
-    // TODO(floitsch): do we have to register 'List' as instantiated class?
-    String array = buffer.toString();
-    Constant constant = new Constant(array);
+  ListConstant compileListLiteral(Node node,
+                                  Type type,
+                                  List<Constant> arguments) {
+    Constant constant = new ListConstant(type, arguments);
     registerCompileTimeConstant(constant);
     return constant;
   }
@@ -164,49 +520,31 @@ class CompileTimeConstantHandler extends CompilerTask {
     return compiledConstants[constant];
   }
 
-  StringBuffer writeJsCode(StringBuffer buffer, var value) {
-    if (value === null) {
-      buffer.add("(void 0)");
-    } else if (value is num) {
-      if (value.isNaN()) {
-        buffer.add("(0/0)");
-      } else if (value == double.INFINITY) {
-        buffer.add("(1/0)");
-      } else if (value == -double.INFINITY) {
-        buffer.add("(-1/0)");
-      } else {
-        buffer.add("($value)");        
-      }
-    } else if (value === true) {
-      buffer.add("true");
-    } else if (value === false) {
-      buffer.add("false");
-    } else if (value is DartString) {
-      buffer.add("'");
-      writeEscapedString(value, buffer, (reason) {
-        compiler.cancel("failed to write escaped string: $value");
-      });
-      buffer.add("'");
-    } else if (value is Constant) {
-      Constant constant = value;
-      buffer.add(constant.jsCode);
-    } else {
-      // TODO(floitsch): support more values.
-      compiler.unimplemented("CompileTimeConstantHandler writeJsCode",
-                             element: element);
-    }
+  StringBuffer writeJsCode(StringBuffer buffer, Constant value) {
+    value.writeJsCode(buffer, this);
     return buffer;    
   }
 
   StringBuffer writeJsCodeForVariable(StringBuffer buffer,
                                       VariableElement element) {
-    var value = initialVariableValues[element];
-    if (value is Constant) {
-      String name = compiledConstants[value];
+    if (!initialVariableValues.containsKey(element)) {
+      buffer.add("(void 0)");
+      return buffer;
+      // TODO(floitsch): reenable the following lines, once we fixed the rest
+      // of the compiler.
+      /*
+      compiler.internalError("No initial value for given element",
+                             element: element);
+      */
+    }
+    Constant constant = initialVariableValues[element];
+    if (constant.isObject()) {
+      String name = compiledConstants[constant];
       buffer.add("${compiler.namer.ISOLATE}.prototype.$name");
     } else {
-      return writeJsCode(buffer, initialVariableValues[element]);      
+      writeJsCode(buffer, constant);      
     }
+    return buffer;
   }
 
   /**
@@ -262,6 +600,10 @@ class CompileTimeConstantHandler extends CompilerTask {
       }
     }
   }
+
+  String getJsConstructor(ClassElement element) {
+    return compiler.namer.isolatePropertyAccess(element);
+  }
 }
 
 class CompileTimeConstantEvaluator extends AbstractVisitor {
@@ -273,7 +615,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
                                this.definitions,
                                this.compiler);
 
-  evaluate(Node node) {
+  Constant evaluate(Node node) {
     return node.accept(this);
   }
 
@@ -281,12 +623,43 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     compiler.unimplemented("CompileTimeConstantEvaluator", node: node);
   }
 
-  visitLiteral(Literal literal) {
-    if (literal is LiteralString) {
-      assert(literal.asLiteralString().isValidated());
-      return literal.asLiteralString().dartString;
+  Constant visitLiteralBool(LiteralBool node) {
+    // TODO(floitsch): make BoolConstant a factory and cache the two values
+    // there.
+    return node.value ? const BoolConstant(true) : const BoolConstant(false);
+  }
+  
+  Constant visitLiteralDouble(LiteralDouble node) {
+    return new DoubleConstant(node.value);
+  }
+  
+  Constant visitLiteralInt(LiteralInt node) {
+    return new IntConstant(node.value);
+  }
+
+  Constant visitLiteralList(LiteralList node) {
+    if (!node.isConst()) error(node);
+    List arguments = [];
+    for (Link<Node> link = node.elements.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      arguments.add(evaluate(link.head));
     }
-    return literal.value;
+    // TODO(floitsch): get type from somewhere.
+    Type type = null;
+    return constantHandler.compileListLiteral(node, type, arguments);
+  }
+
+  Constant visitLiteralMap(LiteralMap node) {
+    compiler.unimplemented("CompileTimeConstantEvaluator map", node: node);
+  }
+
+  Constant visitLiteralNull(LiteralNull node) {
+    return const NullConstant();
+  }
+
+  Constant visitLiteralString(LiteralString node) {
+    return new StringConstant(node.dartString);
   }
 
   // TODO(floitsch): provide better error-messages.
@@ -297,74 +670,27 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           !element.modifiers.isFinal()) {
         error(send);
       }
-      return constantHandler.compileVariable(element);
+      // TODO(floitsch): compileVariable temporarily returns primitives, so
+      // that the rest of the compiler can be adapted incrementally. Therefore
+      // we have to get the constant from the hashtable instead of using the
+      // returned result directly.
+      constantHandler.compileVariable(element);
+      return constantHandler.initialVariableValues[element];
     } else if (send.isPrefix) {
       assert(send.isOperator);
-      var receiverValue = evaluate(send.receiver);
+      Constant receiverConstant = evaluate(send.receiver);
       Operator op = send.selector;
-      switch (op.source.stringValue) {
-        case "-":
-          if (receiverValue is !num) error(send);
-          return -receiverValue;
-        case "~": 
-          if (receiverValue is !int) error(send); 
-          return ~receiverValue;
-        case "!":
-          if (receiverValue is !bool) error(send);
-          return !receiverValue;
-        default:
-          error(send);
-      }
+      Constant folded = receiverConstant.unaryFold(op.source.stringValue);
+      if (folded === null) error(send);
+      return folded;
     } else if (send.isOperator && !send.isPostfix) {
       assert(send.argumentCount() == 1);
-      var left = evaluate(send.receiver);
-      var right = evaluate(send.argumentsNode.nodes.head);
+      Constant left = evaluate(send.receiver);
+      Constant right = evaluate(send.argumentsNode.nodes.head);
       String op = send.selector.asOperator().source.stringValue;
-
-      if (op == "==" || op == "===") {
-        // We use == instead of === so that non-canonicalized DartStrings can
-        // use their equality operator.
-        return left == right;
-      } else if (op == "!=" || op == "!==") {
-        return left != right;
-      }
-      if (left is num && right is num) {
-        switch (op) {
-          case "+": return left + right;
-          case "-": return left - right;
-          case "*": return left * right;
-          case "/": return left / right;
-          case "~/":
-          case "%":
-            if (left is int && right is int && right == 0) {
-              error(send);
-            }
-            return op == "~/" ? left ~/ right : left % right;
-          case "<": return left < right;
-          case "<=": return left <= right;
-          case ">": return left > right;
-          case ">=": return left >= right;
-        }
-      }
-      if (left is int && right is int) {
-        switch (op) {
-          case "|": return left | right;
-          case "&": return left & right;
-          case "<<":
-            // TODO(floitsch): find a better way to guard against shifts to the
-            // left.
-            if (right > 100) error(send);
-            if (right < 0) error(send);
-            return left << right;
-          case ">>":
-            if (right < 0) error(send);
-            return left >> right;        
-          case "^": return left ^ right;        
-        }
-      }
-      if (left is DartString && right is DartString && op == "+") {
-        return new ConsDartString(left, right);
-      }
+      Constant folded = left.binaryFold(op, right);
+      if (folded === null) error(send);
+      return folded;
     }
     return super.visitSend(send);
   }
@@ -387,19 +713,13 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
         arguments.add(evaluate(link.head));
       }
     }
-    return constantHandler.compileObjectCreation(node, definitions[node.send],
-                                                 arguments);
-  }
-
-  visitLiteralList(LiteralList node) {
-    if (!node.isConst()) error(node);
-    List arguments = [];
-    for (Link<Node> link = node.elements.nodes;
-         !link.isEmpty();
-         link = link.tail) {
-      arguments.add(evaluate(link.head));
-    }
-    return constantHandler.compileListLiteral(node, arguments);
+    // TODO(floitsch): get the type from somewhere.
+    Element constructorElement = definitions[node.send];
+    ClassElement classElement = constructorElement.enclosingElement;
+    Type type = new SimpleType(classElement.name, classElement);
+    return constantHandler.compileObjectConstruction(node,
+                                                     type,
+                                                     arguments);
   }
 
   error(Node node) {

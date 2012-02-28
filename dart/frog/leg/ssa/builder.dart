@@ -559,7 +559,7 @@ interface BreakHandler default BreakHandlerImpl {
 class NullBreakHandler implements BreakHandler {
   const NullBreakHandler();
   void addTarget(StatementElement element) { unreachable(); }
-  void addBreak(HBreak breakInstruction) { unreachable() }
+  void addBreak(HBreak breakInstruction) { unreachable(); }
   void forEachBreak(Function ignored) { }
   void close() { }
   List<SourceString> labels() => const <SourceString>[];
