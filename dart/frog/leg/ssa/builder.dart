@@ -809,8 +809,12 @@ class SsaBuilder implements Visitor {
           if (localsHandler.hasValueForDirectLocal(member)) {
             value = localsHandler.readLocal(member);
           } else {
-            // TODO(karlklose): get default value.
-            value = graph.addNewLiteralNull();
+            var fieldValue =
+                compiler.compileTimeConstantHandler.compileVariable(member);
+            // TODO(floitsch): this constant should be treated like all
+            // other constants and should be at the top of the graph.
+            value = new HLiteral.internal(fieldValue, HType.UNKNOWN);
+            add(value);
           }
           constructorArguments.add(value);
         }
