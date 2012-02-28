@@ -390,12 +390,14 @@ testFunctionExpression() {
   MockCompiler compiler = new MockCompiler();
   ResolverVisitor visitor = compiler.resolverVisitor();
   Map mapping = compiler.resolveStatement("int f() {}").map;
-  Expect.equals(2, mapping.length);
+  Expect.equals(3, mapping.length);
   Element element;
   Node node;
   mapping.forEach((Node n, Element e) {
-    element = e;
-    node = n;
+    if (n is FunctionExpression) {
+      element = e;
+      node = n;
+    }
   });
   Expect.equals(ElementKind.FUNCTION, element.kind);
   Expect.equals(buildSourceString('f'), element.name);

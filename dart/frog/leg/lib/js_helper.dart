@@ -29,17 +29,17 @@ bool checkNumbers(var a, var b, var message) {
 
 
 bool isJsArray(var value) {
-  return value !== null && JS("bool", @"$0.constructor === Array", value);
+  return value !== null && JS('bool', @'$0.constructor === Array', value);
 }
 
 
 add(var a, var b) {
-  if (checkNumbers(a, b, "num+ expects a number as second operand.")) {
-    return JS("num", @"$0 + $1", a, b);
+  if (checkNumbers(a, b, 'num+ expects a number as second operand.')) {
+    return JS('num', @'$0 + $1', a, b);
   } else if (a is String) {
     b = b.toString();
     if (b is String) {
-      return JS("String", @"$0 + $1", a, b);
+      return JS('String', @'$0 + $1', a, b);
     }
     checkNull(b);
     throw new IllegalArgumentException(b);
@@ -49,34 +49,34 @@ add(var a, var b) {
 }
 
 div(var a, var b) {
-  if (checkNumbers(a, b, "num/ expects a number as second operand.")) {
-    return JS("num", @"$0 / $1", a, b);
+  if (checkNumbers(a, b, 'num/ expects a number as second operand.')) {
+    return JS('num', @'$0 / $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a / b);
 }
 
 mul(var a, var b) {
-  if (checkNumbers(a, b, "num* expects a number as second operand.")) {
-    return JS("num", @"$0 * $1", a, b);
+  if (checkNumbers(a, b, 'num* expects a number as second operand.')) {
+    return JS('num', @'$0 * $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a * b);
 }
 
 sub(var a, var b) {
-  if (checkNumbers(a, b, "num- expects a number as second operand.")) {
-    return JS("num", @"$0 - $1", a, b);
+  if (checkNumbers(a, b, 'num- expects a number as second operand.')) {
+    return JS('num', @'$0 - $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a - b);
 }
 
 mod(var a, var b) {
-  if (checkNumbers(a, b, "int% expects an int as second operand.")) {
+  if (checkNumbers(a, b, 'int% expects an int as second operand.')) {
     if (b === 0) throw new IntegerDivisionByZeroException();
     // Euclidean Modulo.
-    int result = JS("num", @"$0 % $1", a, b);
+    int result = JS('num', @'$0 % $1', a, b);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (b < 0) {
@@ -90,7 +90,7 @@ mod(var a, var b) {
 }
 
 tdiv(var a, var b) {
-  if (checkNumbers(a, b, "num~/ expects a number as second operand.")) {
+  if (checkNumbers(a, b, 'num~/ expects a number as second operand.')) {
     if (b === 0) throw new IntegerDivisionByZeroException();
     return (a / b).truncate();
   }
@@ -99,60 +99,60 @@ tdiv(var a, var b) {
 }
 
 eq(var a, var b) {
-  if (JS("bool", @"typeof $0 === 'object'", a)) {
+  if (JS('bool', @'typeof $0 === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
       return UNINTERCEPTED(a == b) === true;
     } else {
-      return JS("bool", @"$0 === $1", a, b);
+      return JS('bool', @'$0 === $1', a, b);
     }
   }
   // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
-  return JS("bool", @"$0 === $1", a, b);
+  return JS('bool', @'$0 === $1', a, b);
 }
 
 eqq(var a, var b) {
-  return JS("bool", @"$0 === $1", a, b);
+  return JS('bool', @'$0 === $1', a, b);
 }
 
 eqNull(var a) {
-  if (JS("bool", @"typeof $0 === 'object'", a)) {
+  if (JS('bool', @'typeof $0 === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
       return UNINTERCEPTED(a == null) === true;
     } else {
       return false;
     }
   } else {
-    return JS("bool", @"typeof $0 === 'undefined'", a);
+    return JS('bool', @'typeof $0 === "undefined"', a);
   }
 }
 
 gt(var a, var b) {
-  if (checkNumbers(a, b, "num> expects a number as second operand.")) {
-    return JS("bool", @"$0 > $1", a, b);
+  if (checkNumbers(a, b, 'num> expects a number as second operand.')) {
+    return JS('bool', @'$0 > $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a > b);
 }
 
 ge(var a, var b) {
-  if (checkNumbers(a, b, "num>= expects a number as second operand.")) {
-    return JS("bool", @"$0 >= $1", a, b);
+  if (checkNumbers(a, b, 'num>= expects a number as second operand.')) {
+    return JS('bool', @'$0 >= $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a >= b);
 }
 
 lt(var a, var b) {
-  if (checkNumbers(a, b, "num< expects a number as second operand.")) {
-    return JS("bool", @"$0 < $1", a, b);
+  if (checkNumbers(a, b, 'num< expects a number as second operand.')) {
+    return JS('bool', @'$0 < $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a < b);
 }
 
 le(var a, var b) {
-  if (checkNumbers(a, b, "num<= expects a number as second operand.")) {
-    return JS("bool", @"$0 <= $1", a, b);
+  if (checkNumbers(a, b, 'num<= expects a number as second operand.')) {
+    return JS('bool', @'$0 <= $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a <= b);
@@ -160,9 +160,9 @@ le(var a, var b) {
 
 shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b, "int<< expects an int as second operand.")) {
+  if (checkNumbers(a, b, 'int<< expects an int as second operand.')) {
     if (b < 0) throw new IllegalArgumentException(b);
-    return JS("num", @"$0 << $1", a, b);
+    return JS('num', @'$0 << $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a << b);
@@ -170,9 +170,9 @@ shl(var a, var b) {
 
 shr(var a, var b) {
   // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b, "int>> expects an int as second operand.")) {
+  if (checkNumbers(a, b, 'int>> expects an int as second operand.')) {
     if (b < 0) throw new IllegalArgumentException(b);
-    return JS("num", @"$0 >> $1", a, b);
+    return JS('num', @'$0 >> $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a >> b);
@@ -180,8 +180,8 @@ shr(var a, var b) {
 
 and(var a, var b) {
   // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b, "int& expects an int as second operand.")) {
-    return JS("num", @"$0 & $1", a, b);
+  if (checkNumbers(a, b, 'int& expects an int as second operand.')) {
+    return JS('num', @'$0 & $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a & b);
@@ -189,8 +189,8 @@ and(var a, var b) {
 
 or(var a, var b) {
   // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b, "int| expects an int as second operand.")) {
-    return JS("num", @"$0 | $1", a, b);
+  if (checkNumbers(a, b, 'int| expects an int as second operand.')) {
+    return JS('num', @'$0 | $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a | b);
@@ -198,21 +198,21 @@ or(var a, var b) {
 
 xor(var a, var b) {
   // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b, "int^ expects an int as second operand.")) {
-    return JS("num", @"$0 ^ $1", a, b);
+  if (checkNumbers(a, b, 'int^ expects an int as second operand.')) {
+    return JS('num', @'$0 ^ $1', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a ^ b);
 }
 
 not(var a) {
-  if (JS("bool", @"typeof $0 === 'number'", a)) return JS("num", @"~$0", a);
+  if (JS('bool', @'typeof $0 === "number"', a)) return JS('num', @'~$0', a);
   checkNull(a);
   return UNINTERCEPTED(~a);
 }
 
 neg(var a) {
-  if (JS("bool", @"typeof $0 === 'number'", a)) return JS("num", @"-$0", a);
+  if (JS('bool', @'typeof $0 === "number"', a)) return JS('num', @'-$0', a);
   checkNull(a);
   return UNINTERCEPTED(-a);
 }
@@ -227,7 +227,7 @@ index(var a, var index) {
     if (index < 0 || index >= a.length) {
       throw new IndexOutOfRangeException(index);
     }
-    return JS("Object", @"$0[$1]", a, index);
+    return JS('Object', @'$0[$1]', a, index);
   }
   checkNull(a);
   return UNINTERCEPTED(a[index]);
@@ -243,7 +243,7 @@ indexSet(var a, var index, var value) {
       throw new IndexOutOfRangeException(index);
     }
     checkMutable(a, 'indexed set');
-    return JS("Object", @"$0[$1] = $2", a, index, value);
+    return JS('Object', @'$0[$1] = $2', a, index, value);
   }
   checkNull(a);
   UNINTERCEPTED(a[index] = value);
@@ -260,7 +260,7 @@ builtin$add$1(var receiver, var value) {
   checkNull(receiver);
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'add');
-    JS("Object", @"$0.push($1)", receiver, value);
+    JS('Object', @'$0.push($1)', receiver, value);
     return;
   }
   return UNINTERCEPTED(receiver.add(value));
@@ -271,7 +271,7 @@ builtin$removeLast$0(var receiver) {
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'removeLast');
     if (receiver.length === 0) throw new IndexOutOfRangeException(-1);
-    return JS("Object", @"$0.pop()", receiver);
+    return JS('Object', @'$0.pop()', receiver);
   }
   return UNINTERCEPTED(receiver.removeLast());
 }
@@ -279,7 +279,7 @@ builtin$removeLast$0(var receiver) {
 builtin$filter$1(var receiver, var predicate) {
   checkNull(receiver);
   if (isJsArray(receiver)) {
-    return JS("Object", @"$0.filter(function(v) { return $1(v) === true; })",
+    return JS('Object', @'$0.filter(function(v) { return $1(v) === true; })',
               receiver, predicate);
   }
   return UNINTERCEPTED(receiver.filter(predicate));
@@ -289,7 +289,7 @@ builtin$filter$1(var receiver, var predicate) {
 builtin$get$length(var receiver) {
   checkNull(receiver);
   if (receiver is String || isJsArray(receiver)) {
-    return JS("num", @"$0.length", receiver);
+    return JS('num', @'$0.length', receiver);
   }
   return UNINTERCEPTED(receiver.length);
 }
@@ -301,7 +301,7 @@ builtin$set$length(receiver, newLength) {
     if (newLength is !int) throw new IllegalArgumentException(newLength);
     if (newLength < 0) throw new IndexOutOfRangeException(newLength);
     checkGrowable(receiver, 'set length');
-    JS('void', @"$0.length = $1", receiver, newLength);
+    JS('void', @'$0.length = $1', receiver, newLength);
   } else {
     UNINTERCEPTED(receiver.length = newLength);
   }
@@ -315,20 +315,20 @@ checkGrowable(list, reason) {
 }
 
 builtin$toString$0(var value) {
-  if (JS("bool", @"typeof $0 == 'object'", value)) {
+  if (JS('bool', @'typeof $0 == "object"', value)) {
     if (isJsArray(value)) {
       return "Instance of 'List'";
     }
     return UNINTERCEPTED(value.toString());
   }
-  if (JS("bool", @"$0 === 0 && (1 / $0) < 0", value)) {
-    return "-0.0";
+  if (JS('bool', @'$0 === 0 && (1 / $0) < 0', value)) {
+    return '-0.0';
   }
-  if (value === null) return "null";
-  if (JS("bool", @"typeof $0 == 'function'", value)) {
-    return "Closure";
+  if (value === null) return 'null';
+  if (JS('bool', @'typeof $0 == "function"', value)) {
+    return 'Closure';
   }
-  return JS("string", @"String($0)", value);
+  return JS('string', @'String($0)', value);
 }
 
 
@@ -344,10 +344,10 @@ class ListIterator<T> implements Iterator<T> {
   int i;
   List<T> list;
   ListIterator(List<T> this.list) : i = 0;
-  bool hasNext() => i < JS("int", @"$0.length", list);
+  bool hasNext() => i < JS('int', @'$0.length', list);
   T next() {
     if (!hasNext()) throw new NoMoreElementsException();
-    var value = JS("Object", @"$0[$1]", list, i);
+    var value = JS('Object', @'$0[$1]', list, i);
     i += 1;
     return value;
   }
@@ -359,7 +359,7 @@ builtin$charCodeAt$1(var receiver, int index) {
     if (index is !num) throw new IllegalArgumentException(index);
     if (index < 0) throw new IndexOutOfRangeException(index);
     if (index >= receiver.length) throw new IndexOutOfRangeException(index);
-    return JS("string", @"$0.charCodeAt($1)", receiver, index);
+    return JS('int', @'$0.charCodeAt($1)', receiver, index);
   } else {
     return UNINTERCEPTED(receiver.charCodeAt(index));
   }
@@ -368,19 +368,19 @@ builtin$charCodeAt$1(var receiver, int index) {
 builtin$isEmpty$0(receiver) {
   checkNull(receiver);
   if (receiver is String || isJsArray(receiver)) {
-    return JS("bool", @"$0.length === 0", receiver);
+    return JS('bool', @'$0.length === 0', receiver);
   }
   return UNINTERCEPTED(receiver.isEmpty());
 }
 
 class Primitives {
   static void printString(String string) {
-    var hasConsole = JS("bool", @"typeof console == 'object'");
+    var hasConsole = JS('bool', @'typeof console == "object"');
     if (hasConsole) {
-      JS("void", @"console.log($0)", string);
+      JS('void', @'console.log($0)', string);
     } else {
-      JS("void", @"write($0)", string);
-      JS("void", @"write('\n')");
+      JS('void', @'write($0)', string);
+      JS('void', @'write("\n")');
     }
   }
 
@@ -394,16 +394,16 @@ class Primitives {
   }
 
   static List newList(length) {
-    if (length === null) return JS("Object", @"new Array()");
+    if (length === null) return JS('Object', @'new Array()');
     if ((length is !int) || (length < 0)) {
       throw new IllegalArgumentException(length);
     }
-    var result = JS("Object", @"new Array($0)", length);
+    var result = JS('Object', @'new Array($0)', length);
     JS('void', @'$0.fixed$length = $1', result, true);
     return result;
   }
 
-  static num dateNow() => JS("num", @"Date.now()");
+  static num dateNow() => JS('num', @'Date.now()');
 
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
@@ -591,7 +591,7 @@ builtin$addLast$1(receiver, value) {
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addLast(value));
 
   checkGrowable(receiver, 'addLast');
-  JS("Object", @"$0.push($1)", receiver, value);
+  JS('Object', @'$0.push($1)', receiver, value);
 }
 
 builtin$clear$0(receiver) {
@@ -605,10 +605,10 @@ builtin$forEach$1(receiver, f) {
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.forEach(f));
 
 
-  var length = JS("num", @"$0.length", receiver);
+  var length = JS('num', @'$0.length', receiver);
   if (length > 0 && f === null) throw new ObjectNotClosureException(); // Sigh.
   for (var i = 0; i < length; i++) {
-    f(JS("Object", @"$0[$1]", receiver, i));
+    f(JS('Object', @'$0[$1]', receiver, i));
   }
 }
 
@@ -629,7 +629,7 @@ builtin$getRange$2(receiver, start, length) {
     throw new IndexOutOfRangeException(length);
   }
   if (length < 0) throw new IllegalArgumentException(length);
-  return JS("Object", @"$0.slice($1, $2)", receiver, start, end);
+  return JS('Object', @'$0.slice($1, $2)', receiver, start, end);
 }
 
 builtin$indexOf$1(receiver, element) {
@@ -644,7 +644,7 @@ builtin$indexOf$2(receiver, element, start) {
   checkNull(receiver);
   if (isJsArray(receiver)) {
     if (start is !int) throw new IllegalArgumentException(start);
-    var length = JS("num", @"$0.length", receiver);
+    var length = JS('num', @'$0.length', receiver);
     return Arrays.indexOf(receiver, element, start, length);
   } else if (receiver is String) {
     checkNull(element);
@@ -682,7 +682,7 @@ listInsertRange(receiver, start, length, initialValue) {
   if (length < 0) throw new IllegalArgumentException(length);
   if (start is !int) throw new IllegalArgumentException(start);
 
-  var receiverLength = JS("num", @"$0.length", receiver);
+  var receiverLength = JS('num', @'$0.length', receiver);
   if (start < 0 || start > receiverLength) {
     throw new IndexOutOfRangeException(start);
   }
@@ -711,7 +711,7 @@ builtin$last$0(receiver) {
 builtin$lastIndexOf$1(receiver, element) {
   checkNull(receiver);
   if (isJsArray(receiver)) {
-    var start = JS("num", @"$0.length", receiver);
+    var start = JS('num', @'$0.length', receiver);
     return Arrays.lastIndexOf(receiver, element, start);
   } else if (receiver is String) {
     checkNull(element);
@@ -755,7 +755,7 @@ builtin$removeRange$2(receiver, start, length) {
   if (start is !int) throw new IllegalArgumentException(start);
   if (length is !int) throw new IllegalArgumentException(length);
   if (length < 0) throw new IllegalArgumentException(length);
-  var receiverLength = JS("num", @"$0.length", receiver);
+  var receiverLength = JS('num', @'$0.length', receiver);
   if (start < 0 || start >= receiverLength) {
     throw new IndexOutOfRangeException(start);
   }
@@ -857,7 +857,7 @@ builtin$isNegative$0(receiver) {
 builtin$isNaN$0(receiver) {
   checkNull(receiver);
   if (receiver is num) {
-    return JS("bool", @"isNaN($0)", receiver);
+    return JS('bool', @'isNaN($0)', receiver);
   } else {
     return UNINTERCEPTED(receiver.isNegative());
   }
@@ -865,9 +865,9 @@ builtin$isNaN$0(receiver) {
 
 builtin$remainder$1(a, b) {
   checkNull(a);
-  if (checkNumbers(a, b, "num.remainder expects a number as second operand.")) {
+  if (checkNumbers(a, b, 'num.remainder expects a number as second operand.')) {
     if (b === 0) throw new IntegerDivisionByZeroException();
-    return JS("num", @"$0 % $1", a, b);
+    return JS('num', @'$0 % $1', a, b);
   } else {
     return UNINTERCEPTED(a.remainder(b));
   }
@@ -877,55 +877,55 @@ builtin$abs$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.abs());
 
-  return JS("num", @"Math.abs($0)", receiver);
+  return JS('num', @'Math.abs($0)', receiver);
 }
 
 builtin$toInt$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.toInt());
 
-  if (receiver.isNaN()) throw new BadNumberFormatException("NaN");
+  if (receiver.isNaN()) throw new BadNumberFormatException('NaN');
 
-  if (receiver.isInfinite()) throw new BadNumberFormatException("Infinity");
+  if (receiver.isInfinite()) throw new BadNumberFormatException('Infinity');
 
   var truncated = receiver.truncate();
-  return JS("bool", @"$0 == -0.0", truncated) ? 0 : truncated;
+  return JS('bool', @'$0 == -0.0', truncated) ? 0 : truncated;
 }
 
 builtin$ceil$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.ceil());
 
-  return JS("num", @"Math.ceil($0)", receiver);
+  return JS('num', @'Math.ceil($0)', receiver);
 }
 
 builtin$floor$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.floor());
 
-  return JS("num", @"Math.floor($0)", receiver);
+  return JS('num', @'Math.floor($0)', receiver);
 }
 
 builtin$isInfinite$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.isInfinite());
 
-  return JS("bool", @"$0 == Infinity", receiver)
-    || JS("bool", @"$0 == -Infinity", receiver);
+  return JS('bool', @'$0 == Infinity', receiver)
+    || JS('bool', @'$0 == -Infinity', receiver);
 }
 
 builtin$negate$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.negate());
 
-  return JS("num", @"-$0", receiver);
+  return JS('num', @'-$0', receiver);
 }
 
 builtin$round$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.round());
 
-  return JS("num", @"Math.round($0)", receiver);
+  return JS('num', @'Math.round($0)', receiver);
 }
 
 builtin$toDouble$0(receiver) {
@@ -933,7 +933,7 @@ builtin$toDouble$0(receiver) {
   if (receiver is !num) return UNINTERCEPTED(receiver.toDouble());
 
   // TODO(ahe): Just return receiver?
-  return JS("double", @"$0 + 0", receiver);
+  return JS('double', @'$0 + 0', receiver);
 }
 
 builtin$truncate$0(receiver) {
@@ -950,7 +950,7 @@ builtin$toStringAsFixed$1(receiver, fractionDigits) {
   }
   checkNum(fractionDigits);
 
-  return JS("String", @"$0.toFixed($1)", receiver, fractionDigits);
+  return JS('String', @'$0.toFixed($1)', receiver, fractionDigits);
 }
 
 builtin$toStringAsExponential$1(receiver, fractionDigits) {
@@ -960,7 +960,7 @@ builtin$toStringAsExponential$1(receiver, fractionDigits) {
   }
   checkNum(fractionDigits);
 
-  return JS("String", @"$0.toExponential($1)", receiver, fractionDigits);
+  return JS('String', @'$0.toExponential($1)', receiver, fractionDigits);
 }
 
 builtin$toStringAsPrecision$1(receiver, fractionDigits) {
@@ -970,7 +970,7 @@ builtin$toStringAsPrecision$1(receiver, fractionDigits) {
   }
   checkNum(fractionDigits);
 
-  return JS("String", @"$0.toPrecision($1)", receiver, fractionDigits);
+  return JS('String', @'$0.toPrecision($1)', receiver, fractionDigits);
 }
 
 builtin$toRadixString$1(receiver, radix) {
@@ -980,7 +980,7 @@ builtin$toRadixString$1(receiver, radix) {
   }
   checkNum(radix);
 
-  return JS("String", @"$0.toString($1)", receiver, radix);
+  return JS('String', @'$0.toString($1)', receiver, radix);
 }
 
 builtin$allMatches$1(receiver, str) {
@@ -1128,7 +1128,7 @@ class MathNatives {
     if (!JS('bool', @'/^(0[xX])?[+-]?[0-9]+$/.test($0)', trimmed)) {
       throw new BadNumberFormatException(str);
     }
-    var ret = JS("num", @"parseInt($0, 10)", str);
+    var ret = JS('num', @'parseInt($0, 10)', str);
     if (ret.isNaN()) throw new BadNumberFormatException(str);
     return ret;
   }
@@ -1136,59 +1136,72 @@ class MathNatives {
   static double parseDouble(String str) {
     checkNull(str);
     if (str is !String) throw new IllegalArgumentException();
-    var ret = JS("num", @"parseFloat($0)", str);
+    var ret = JS('num', @'parseFloat($0)', str);
     if (ret.isNaN() && str != 'NaN') throw new BadNumberFormatException(str);
     return ret;
   }
 
   static double sqrt(num value)
-    => JS("double", @"Math.sqrt($0)", checkNum(value));
+    => JS('double', @'Math.sqrt($0)', checkNum(value));
 
   static double sin(num value)
-    => JS("double", @"Math.sin($0)", checkNum(value));
+    => JS('double', @'Math.sin($0)', checkNum(value));
 
   static double cos(num value)
-    => JS("double", @"Math.cos($0)", checkNum(value));
+    => JS('double', @'Math.cos($0)', checkNum(value));
 
   static double tan(num value)
-    => JS("double", @"Math.tan($0)", checkNum(value));
+    => JS('double', @'Math.tan($0)', checkNum(value));
 
   static double acos(num value)
-    => JS("double", @"Math.acos($0)", checkNum(value));
+    => JS('double', @'Math.acos($0)', checkNum(value));
 
   static double asin(num value)
-    => JS("double", @"Math.asin($0)", checkNum(value));
+    => JS('double', @'Math.asin($0)', checkNum(value));
 
   static double atan(num value)
-    => JS("double", @"Math.atan($0)", checkNum(value));
+    => JS('double', @'Math.atan($0)', checkNum(value));
 
   static double atan2(num a, num b)
-    => JS("double", @"Math.atan2($0, $1)", checkNum(a), checkNum(b));
+    => JS('double', @'Math.atan2($0, $1)', checkNum(a), checkNum(b));
 
   static double exp(num value)
-    => JS("double", @"Math.exp($0)", checkNum(value));
+    => JS('double', @'Math.exp($0)', checkNum(value));
 
   static double log(num value)
-    => JS("double", @"Math.log($0)", checkNum(value));
+    => JS('double', @'Math.log($0)', checkNum(value));
 
   static num pow(num value, num exponent) {
     checkNum(value);
     checkNum(exponent);
-    return JS("num", @"Math.pow($0, $1)", value, exponent);
+    return JS('num', @'Math.pow($0, $1)', value, exponent);
   }
 
-  static double random() => JS("double", @"Math.random()");
+  static double random() => JS('double', @'Math.random()');
 }
 
+/**
+ * This is the [Jenkins hash function][1] but using masking to keep
+ * values in SMI range. This was inspired by jmesserly's work in
+ * Frog.
+ *
+ * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
+ */
 builtin$hashCode$0(receiver) {
-  if (receiver is num) return receiver & 0x1FFFFFFF;
-  if (receiver is String) {
-    throw 'String.hashCode is not implemented';
+  // TODO(ahe): This method shouldn't have to use JS. Update when our
+  // optimizations are smarter.
+  if (receiver is num) return JS('int', @'$0 & 0x1FFFFFFF', receiver);
+  if (receiver is !String) return UNINTERCEPTED(receiver.hashCode());
+  int hash = 0;
+  int length = JS('int', @'$0.length', receiver);
+  for (int i = 0; i < length; i++) {
+    hash = 0x1fffffff & (hash + JS('int', @'$0.charCodeAt($1)', receiver, i));
+    hash = 0x1fffffff & (hash + JS('int', @'$0 << $1', 0x0007ffff & hash, 10));
+    hash ^= hash >> 6;
   }
-  if (isJsArray(receiver)) {
-    throw 'List.hashCode is not implemented';
-  }
-  return UNINTERCEPTED(receiver.hashCode());
+  hash = 0x1fffffff & (hash + JS('int', @'$0 << $1', 0x03ffffff & hash, 3));
+  hash ^= hash >> 11;
+  return 0x1fffffff & (hash + JS('int', @'$0 << $1', 0x00003fff & hash, 15));
 }
 
 // TODO(ahe): Dynamic may be overridden.
@@ -1209,7 +1222,7 @@ captureStackTrace(ex) {
  * This method is installed as JavaScript toString method on exception
  * objects in [captureStackTrace]. So JavaScript 'this' binds to an
  * instance of JavaScript Error to which we have added a property
- * "dartException" which holds a Dart object.
+ * 'dartException' which holds a Dart object.
  */
 toStringWrapper() => JS('Object', @'this.dartException').toString();
 
@@ -1233,7 +1246,7 @@ makeLiteralListConst(list) {
 /**
  * Called from catch blocks in generated code to extract the Dart
  * exception from the thrown value. The thrown value may have been
- * created by [captureStackTrace] or it may be a "native" JS
+ * created by [captureStackTrace] or it may be a 'native' JS
  * exception.
  *
  * Some native exceptions are mapped to new Dart instances, others are

@@ -701,8 +701,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
-    SourceString name = node.function.name;
-    assert(name !== null);
+    assert(node.function.name !== null);
     visit(node.function);
     FunctionElement functionElement = mapping[node.function];
     // TODO(floitsch): this might lead to two errors complaining about
