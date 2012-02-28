@@ -89,6 +89,10 @@ class Interceptors {
   Element getEqualsNullInterceptor() {
     return compiler.findHelper(const SourceString('eqNull'));
   }
+
+  Element getExceptionUnwrapper() {
+    return compiler.findHelper(const SourceString('unwrapException'));
+  }
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -628,6 +632,7 @@ class SsaBuilder implements Visitor {
   bool methodInterceptionEnabled;
   HGraph graph;
   LocalsHandler localsHandler;
+  HInstruction rethrowableException;
 
   Map<StatementElement, BreakHandler> breakTargets;
 
@@ -1899,10 +1904,17 @@ class SsaBuilder implements Visitor {
 
   visitThrow(Throw node) {
     if (node.expression === null) {
-      compiler.unimplemented("SsaBuilder: throw without expression");
+      HInstruction exception = rethrowableException;
+      if (exception === null) {
+        exception = graph.addNewLiteralNull();
+        compiler.reportError(node,
+                             'throw without expression outside catch block');
+      }
+      close(new HThrow(exception, isRethrow: true));
+    } else {
+      visit(node.expression);
+      close(new HThrow(pop()));
     }
-    visit(node.expression);
-    close(new HThrow(pop()));
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
@@ -2017,7 +2029,11 @@ class SsaBuilder implements Visitor {
   }
 
   visitContinueStatement(ContinueStatement node) {
-    compiler.unimplemented('SsaBuilder.visitContinueStatement', node: node);
+    // TODO(lrn): Replace this with a real implementation of continue.
+    compiler.reportWarning(node, 'continue not implemented');
+    DartString string = new DartString.literal('continue not implemented');
+    HInstruction message = graph.addNewLiteralString(string);
+    close(new HThrow(message));
   }
 
   BreakHandler getLoopBreakHandler(Loop node) {
@@ -2211,6 +2227,14 @@ class SsaBuilder implements Visitor {
           const SourceString('exception'), ElementKind.PARAMETER, work.element);
       HParameterValue exception = new HParameterValue(element);
       add(exception);
+      HInstruction oldRethrowableException = rethrowableException;
+      rethrowableException = exception;
+      push(new HStatic(interceptors.getExceptionUnwrapper()));
+      List<HInstruction> inputs = <HInstruction>[pop(), exception];
+      HInvokeStatic unwrappedException =
+        new HInvokeStatic(Selector.INVOCATION_1, inputs);
+      add(unwrappedException);
+
       tryInstruction.exception = exception;
       Link<Node> link = node.catchBlocks.nodes;
 
@@ -2225,7 +2249,7 @@ class SsaBuilder implements Visitor {
           if (typeElement == null) {
             compiler.cancel('Catch with unresolved type', node: catchBlock);
           }
-          condition = new HIs(typeElement, exception);
+          condition = new HIs(typeElement, unwrappedException);
           push(condition);
         }
       }
@@ -2235,13 +2259,13 @@ class SsaBuilder implements Visitor {
         link = link.tail;
         VariableDefinitions declaration = catchBlock.formals.nodes.head;
         localsHandler.updateLocal(elements[declaration.definitions.nodes.head],
-                                  exception);
+                                  unwrappedException);
         visit(catchBlock);
       }
 
       void visitElse() {
         if (link.isEmpty()) {
-          close(new HThrow(exception));
+          close(new HThrow(exception, isRethrow: true));
         } else {
           CatchBlock newBlock = link.head;
           pushCondition(newBlock);
@@ -2253,6 +2277,7 @@ class SsaBuilder implements Visitor {
       pushCondition(firstBlock);
       handleIf(visitThen, visitElse);
       if (!isAborted()) blocks.add(close(new HGoto()));
+      rethrowableException = oldRethrowableException;
     }
 
     if (node.finallyBlock != null) {

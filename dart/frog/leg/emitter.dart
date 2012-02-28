@@ -174,6 +174,7 @@ function(child, parent) {
         || member.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY
         || member.kind === ElementKind.GETTER
         || member.kind === ElementKind.SETTER) {
+      if (member.modifiers !== null && member.modifiers.isAbstract()) return;
       String codeBlock = compiler.universe.generatedCode[member];
       if (codeBlock == null) return;
       buffer.add('$prototype.${namer.getName(member)} = $codeBlock;\n');
@@ -189,7 +190,8 @@ function(child, parent) {
     } else if (member.kind === ElementKind.FIELD) {
       // TODO(ngeoffray): Have another class generate the code for the
       // fields.
-      if (compiler.universe.invokedSetters.contains(member.name)) {
+      if ((member.modifiers === null || !member.modifiers.isFinal()) &&
+          compiler.universe.invokedSetters.contains(member.name)) {
         String setterName = namer.setterName(member.name);
         buffer.add('$prototype.$setterName = function(v){\n' +
           '  this.${namer.getName(member)} = v;\n};\n');

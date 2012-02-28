@@ -445,7 +445,6 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add('} catch ($name) {\n');
       indent++;
       addIndentation();
-      buffer.add('$name = $name.dartException;\n');
       visitBasicBlock(successors[1]);
       parameterNames.remove(node.exception.element);
       indent--;
@@ -718,7 +717,12 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitThrow(HThrow node) {
-    generateThrowWithHelper('captureStackTrace', node.inputs[0]);
+    if (node.isRethrow) {
+      buffer.add('throw ');
+      use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+    } else {
+      generateThrowWithHelper('captureStackTrace', node.inputs[0]);
+    }
     buffer.add(';\n');
   }
 

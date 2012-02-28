@@ -2084,7 +2084,8 @@ class HReturn extends HControlFlow {
 }
 
 class HThrow extends HControlFlow {
-  HThrow(value) : super(<HInstruction>[value]);
+  final bool isRethrow;
+  HThrow(value, [this.isRethrow = false]) : super(<HInstruction>[value]);
   toString() => 'throw';
   accept(HVisitor visitor) => visitor.visitThrow(this);
 }

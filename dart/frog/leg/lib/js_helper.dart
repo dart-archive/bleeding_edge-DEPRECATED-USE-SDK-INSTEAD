@@ -1229,3 +1229,45 @@ makeLiteralListConst(list) {
   JS('bool', @'$0.fixed$length = $1', list, true);
   return list;
 }
+
+/**
+ * Called from catch blocks in generated code to extract the Dart
+ * exception from the thrown value. The thrown value may have been
+ * created by [captureStackTrace] or it may be a "native" JS
+ * exception.
+ *
+ * Some native exceptions are mapped to new Dart instances, others are
+ * returned unmodified.
+ */
+unwrapException(ex) {
+  if (JS('bool', @'"dartException" in $0', ex)) {
+    return JS('Object', @'$0.dartException', ex);
+  } else if (JS('bool', @'$0 instanceof TypeError', ex)) {
+    // TODO(ahe): ex.type is Chrome specific.
+    var type = JS('String', @'$0.type', ex);
+    var jsArguments = JS('Object', @'$0.arguments', ex);
+    var name = jsArguments[0];
+    if (type == 'property_not_function' ||
+        type == 'called_non_callable' ||
+        type == 'non_object_property_call' ||
+        type == 'non_object_property_load') {
+      if (name !== null && name.startsWith(@'$call$')) {
+        return new ObjectNotClosureException();
+      } else {
+        return new NullPointerException();
+      }
+    } else if (type == 'undefined_method') {
+      if (name is String && name.startsWith(@'$call$')) {
+        return new ObjectNotClosureException();
+      } else {
+        return new NoSuchMethodException('', name, []);
+      }
+    }
+  } else if (JS('bool', @'$0 instanceof RangeError', ex)) {
+    var message = JS('String', @'$0.message', ex);
+    if (message.contains('call stack')) {
+      return new StackOverflowException();
+    }
+  }
+  return ex;
+}
