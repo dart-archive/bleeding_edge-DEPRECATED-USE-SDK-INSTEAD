@@ -109,6 +109,94 @@
             <isset property="build.os" />
         </condition>
     </target>
+    
+    <!-- configure and validate the data location -->
+    <target name="configDataLocation">
+        <property name="data.location"
+                  location="../com.google.dart.tools.deploy.feature_releng/build-settings" />
+        <echoProperty propertyName="data.location" />
+        <!--
+          validate that the data location is a directory
+        -->
+        <fail>*
+            **********************************
+            Error: 
+            data.location must be set to a valid directory containing 
+            the configuration properties file.
+            the current value is ${data.location}.
+            **********************************
+            <condition>
+                <not>
+                    <available file="${data.location}" type="dir" />
+                </not>
+            </condition>
+        </fail>
+    </target>
+    
+    <!-- conditiuonally read the os specific property file -->
+    <target name="readOsSpecificPropertyFile" if="build.os">
+        <property name="user.os.property.file" location="${data.location}/${user.name}.${build.os}.properties" />
+        <fail>*
+            **********************************
+            Error: 
+            ${user.os.property.file} must exist.
+            In the directory ${data.location}
+            look at ${data.location}/chrome-bot.linux.properties
+            and use it as a template to create 
+            ${user.os.property.file}
+            **********************************
+            <condition>
+                <not>
+                    <available file="${user.os.property.file}" type="file" />
+                </not>
+            </condition>
+        </fail>
+        <echo message="reading ${user.os.property.file}" />
+        <property file="${user.os.property.file}" />
+    </target>
+    
+    <!-- read the properties files -->
+    <target name="readProperties" depends="configDataLocation, readOsSpecificPropertyFile">
+        <property name="user.property.file" location="${data.location}/${user.name}.properties" /> 
+        <property name="default-user.property.file" location="${data.location}/default-user.properties" /> 
+        <property name="eclipse.property.file" location="${data.location}/eclipse-platform.properties" />
+        <echo message="reading ${eclipse.property.file}" />
+        <property file="${eclipse.property.file}" />
+        <!--
+          validate that the ${user.name}.property file exists
+        -->
+        <fail>*
+            **********************************
+            Error: 
+            ${user.property.file} must exist.
+            In the directory ${data.location}
+            copy the "user.properties" file to "${user.name}.properties"
+            and adjust the content for your build situation
+            **********************************
+            <condition>
+                <not>
+                    <available file="${user.property.file}" type="file" />
+                </not>
+            </condition>
+        </fail>
+        <echo message="reading ${user.property.file}" />
+        <property file="${user.property.file}" />
+        
+        <!--
+          validate that the default-user.property file exists
+        -->
+        <fail>Error: 
+            ${default-user.property.file} must exist.
+            <condition>
+                <not>
+                    <available file="${default-user.property.file}" type="file" />
+                </not>
+            </condition>
+        </fail>
+        <echo message="reading ${default-user.property.file}" />
+        <property file="${default-user.property.file}" />
+        <property name="build.osgi.arch" value="${build.eclipse.arch}" />
+     </target>
 
     <!--
     ********************************************************************************

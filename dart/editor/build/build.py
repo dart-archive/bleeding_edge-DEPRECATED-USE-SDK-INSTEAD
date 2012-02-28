@@ -210,20 +210,20 @@ def main():
   os.chdir(buildpath)
   ant_property_file = None
   sdk_zip = None
-
-  gsutil_test = os.path.join(editorpath, 'build', './gsutilTest.py')
-  cmds = [sys.executable, gsutil_test]
-  print 'running gsutil tests'
-  sys.stdout.flush()
-  p = subprocess.Popen(cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  (out_stream, err_strteam) = p.communicate()
-  print 'gsutil tests:'
-  print 'stdout:'
-  print str(out_stream)
-  print '*' * 40
-  print 'stderr:'
-  print str(err_strteam)
-  print '*' * 40
+  if 'lin' in buildos:
+    gsutil_test = os.path.join(editorpath, 'build', './gsutilTest.py')
+    cmds = [sys.executable, gsutil_test]
+    print 'running gsutil tests'
+    sys.stdout.flush()
+    p = subprocess.Popen(cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (out_stream, err_strteam) = p.communicate()
+    print 'gsutil tests:'
+    print 'stdout:'
+    print str(out_stream)
+    print '*' * 40
+    print 'stderr:'
+    print str(err_strteam)
+    print '*' * 40
 
   try:
     ant_property_file = tempfile.NamedTemporaryFile(suffix='.property',
@@ -283,7 +283,7 @@ def main():
     print 'revision       = |{0}|'.format(revision)
     buildout = os.path.abspath(options.out)
     print 'buildout       = {0}'.format(buildout)
-    
+
     sys.stdout.flush()
 
     #get user name if it does not start with chrome then deploy

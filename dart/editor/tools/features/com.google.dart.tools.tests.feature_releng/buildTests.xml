@@ -312,7 +312,7 @@
     initialize the build environment by cleaning up the  directory and 
     creating the needed directories
        - - - - - - - - - - - - - - - - - -->
-    <target name="init" depends="setOS">
+    <target name="init" depends="setOS, readProperties">
         <property environment="env" />
         <echoproperties prefix="env." />
 

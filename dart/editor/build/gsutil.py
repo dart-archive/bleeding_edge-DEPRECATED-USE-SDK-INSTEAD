@@ -124,8 +124,6 @@ class GsUtil(object):
                          shell=self._useshell)
     while p.poll() is None:
       line = p.stdout.readline()
-      print line
-      print '*' * 40
       line = line.strip()
       if line.startswith('gs:'):
         items.append(line)
@@ -135,10 +133,6 @@ class GsUtil(object):
                          ' of the bucket {0}\n').format(bucket)
       self._LogStream(p.stderr.read(), failure_message, True)
       return []
-
-    print 'returning:'
-    for item in items:
-      print item
 
     return items
 
@@ -185,9 +179,6 @@ class GsUtil(object):
     # 3333\test\data.txt looks like an object 3333\test\data.txt
     # in the root of the bucket.
     if self._useshell and recursive_flag:
-      print '*' * 40
-      print 'copy (recursive)'
-      print '*' * 40
       return self._TreeWalkCopy(from_url, to_url, public_flag)
     else:
       cmd.append(from_url)
@@ -225,9 +216,7 @@ class GsUtil(object):
     Raises:
       Exception: if the schema of the from url is not gs:
     """
-    print '*' * 40
     print 'walktree ({0}, {1}, pub = {2})'.format(from_url, to_url, public_flag)
-    print '*' * 40
     pos = from_url.find(':')
     if pos >= 0:
       scheme = from_url[:pos]
