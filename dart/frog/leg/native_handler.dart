@@ -194,7 +194,8 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     builder.compiler.cancel('More than one argument to native');
   } else {
     LiteralString jsCode = node.arguments.head;
-    builder.push(new HForeign(builder.unquote(jsCode, 0),
+    int start = '${jsCode.value}'[0] === '@' ? 1 : 0;
+    builder.push(new HForeign(builder.unquote(jsCode, start),
                               const SourceString('Object'),
                               <HInstruction>[]));
   }
