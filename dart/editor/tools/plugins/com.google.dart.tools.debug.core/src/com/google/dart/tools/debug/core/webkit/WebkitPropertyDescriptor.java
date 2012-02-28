@@ -133,15 +133,6 @@ public class WebkitPropertyDescriptor {
   }
 
   /**
-   * Returns whether this property is a hidden, system property. Generally something like __proto__.
-   * 
-   * @return whether this property is a hidden, system property
-   */
-  public boolean isHidden() {
-    return name.startsWith("__");
-  }
-
-  /**
    * True if the result was thrown during the evaluation.
    */
   public boolean isWasThrown() {

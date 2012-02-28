@@ -42,12 +42,14 @@ class DartiumProcess extends PlatformObject implements IProcess {
     this.target = target;
     this.javaProcess = javaProcess;
 
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        waitForExit();
-      }
-    }).start();
+    if (javaProcess != null) {
+      new Thread(new Runnable() {
+        @Override
+        public void run() {
+          waitForExit();
+        }
+      }).start();
+    }
   }
 
   @Override
@@ -121,11 +123,15 @@ class DartiumProcess extends PlatformObject implements IProcess {
   @Override
   public boolean isTerminated() {
     try {
-      javaProcess.exitValue();
-      return true;
+      if (javaProcess != null) {
+        javaProcess.exitValue();
+        return true;
+      }
     } catch (IllegalThreadStateException exception) {
-      return false;
+
     }
+
+    return false;
   }
 
   @Override
@@ -135,7 +141,9 @@ class DartiumProcess extends PlatformObject implements IProcess {
 
   @Override
   public void terminate() {
-    javaProcess.destroy();
+    if (javaProcess != null) {
+      javaProcess.destroy();
+    }
   }
 
   protected void waitForExit() {

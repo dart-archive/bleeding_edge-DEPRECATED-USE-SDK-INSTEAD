@@ -35,14 +35,19 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
     public void detailComputed(String stringValue);
   }
 
+  private DartiumDebugVariable variable;
   private WebkitRemoteObject value;
 
   private VariableCollector variableCollector = VariableCollector.empty();
 
-  public DartiumDebugValue(DartiumDebugTarget target, WebkitRemoteObject value) {
+  public DartiumDebugValue(DartiumDebugTarget target, DartiumDebugVariable variable,
+      WebkitRemoteObject value) {
     super(target);
 
+    this.variable = variable;
     this.value = value;
+
+    populate();
   }
 
   public void computeDetail(final ValueCallback callback) {
@@ -64,13 +69,26 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
     }
   }
 
+  /**
+   * @return a user-consumable string for the value object
+   */
+  public String getDisplayString() {
+    if (isPrimitive()) {
+      if ("string".equals(value.getType())) {
+        return "\"" + getValueString() + "\"";
+      }
+    }
+
+    return getValueString();
+  }
+
   @Override
   public String getReferenceTypeName() throws DebugException {
     return value.getClassName();
   }
 
   @Override
-  public String getValueString() throws DebugException {
+  public String getValueString() {
     if (value.isList()) {
       return value.getDescription();
     } else {
@@ -106,9 +124,9 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
     return value.isPrimitive();
   }
 
-  protected void populate() {
+  private void populate() {
     if (value.hasObjectId()) {
-      variableCollector = VariableCollector.createCollector(getTarget(),
+      variableCollector = VariableCollector.createCollector(getTarget(), variable,
           Collections.singletonList(value));
     }
   }

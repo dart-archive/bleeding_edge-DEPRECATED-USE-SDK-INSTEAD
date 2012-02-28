@@ -21,8 +21,6 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchesListener;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.internal.ui.views.launch.LaunchView;
-import org.eclipse.debug.ui.DebugUITools;
-import org.eclipse.debug.ui.contexts.IDebugContextService;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.ToolBarManager;
@@ -63,6 +61,8 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
   private static Image CONNECTED_IMAGE;
   private static Image NOT_CONNECTED_IMAGE;
 
+  private RemoveAllBreakpointsAction removeAllBreakpointsAction;
+
   /**
    * Create a new DebuggerView instance.
    */
@@ -81,7 +81,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     Label separator = new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
     GridDataFactory.fillDefaults().grab(true, false).applyTo(separator);
 
-    sashForm = new SashForm(composite, SWT.NONE);
+    sashForm = new SashForm(composite, SWT.VERTICAL);
     GridDataFactory.fillDefaults().grab(true, true).applyTo(sashForm);
 
     super.createPartControl(sashForm);
@@ -107,7 +107,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     IActionBars actionBars = getViewSite().getActionBars();
 
     actionBars.getMenuManager().removeAll();
-    actionBars.getToolBarManager().removeAll();
+    configureViewToolBar(actionBars.getToolBarManager());
 
     DebugPlugin.getDefault().getLaunchManager().addLaunchListener(this);
 
@@ -123,6 +123,10 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
 
   @Override
   public void dispose() {
+    if (removeAllBreakpointsAction != null) {
+      removeAllBreakpointsAction.dispose();
+    }
+
     DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
 
     variablesView.dispose();
@@ -155,7 +159,7 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
   }
 
   @Override
-  protected void configureToolBar(IToolBarManager tbm) {
+  protected void configureToolBar(IToolBarManager viewToolBarManager) {
     ToolBarManager manager = new ToolBarManager(toolbar);
 
     manager.add(getAction("resume"));
@@ -166,7 +170,6 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     manager.add(getAction("step_return"));
     manager.add(new BlankSeparator());
     manager.add(getAction("terminate"));
-    manager.add(getAction("remove"));
 
     manager.update(true);
     toolbar.pack();
@@ -174,15 +177,25 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     toolbar.getParent().layout(true);
   }
 
+  protected void configureViewToolBar(IToolBarManager manager) {
+    manager.removeAll();
+
+    manager.add(removeAllBreakpointsAction);
+    manager.update(true);
+  }
+
   @Override
   protected void createActions() {
     super.createActions();
 
-    IDebugContextService contextService = DebugUITools.getDebugContextManager().getContextService(
-        getSite().getWorkbenchWindow());
+//    IDebugContextService contextService = DebugUITools.getDebugContextManager().getContextService(
+//        getSite().getWorkbenchWindow());
+//
+//    RemoveLaunchAction removeLaunchAction = new RemoveLaunchAction(contextService);
+//    setAction("remove", removeLaunchAction);
 
-    RemoveLaunchAction removeLaunchAction = new RemoveLaunchAction(contextService);
-    setAction("remove", removeLaunchAction);
+    removeAllBreakpointsAction = new RemoveAllBreakpointsAction();
+    setAction("removeAllBreakpoints", removeAllBreakpointsAction);
   }
 
   /**
@@ -210,11 +223,14 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
       if (strs.length == 2) {
         try {
           sashForm.setWeights(new int[] {Integer.parseInt(strs[0]), Integer.parseInt(strs[1])});
+          return;
         } catch (NumberFormatException ex) {
           DartUtil.logError(ex);
         }
       }
     }
+
+    sashForm.setWeights(new int[] {40, 60});
   }
 
   private void updateConnectionStatus() {

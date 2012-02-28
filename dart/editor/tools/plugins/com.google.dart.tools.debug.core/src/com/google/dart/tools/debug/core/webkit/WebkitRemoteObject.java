@@ -108,7 +108,7 @@ public class WebkitRemoteObject {
   }
 
   public boolean isPrimitive() {
-    return "number".equals(type) || "string".equals(type);
+    return "number".equals(type) || "string".equals(type) || "boolean".equals(type);
   }
 
   @Override

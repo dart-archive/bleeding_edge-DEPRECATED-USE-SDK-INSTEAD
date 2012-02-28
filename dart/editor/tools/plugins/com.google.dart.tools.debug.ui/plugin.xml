@@ -243,7 +243,7 @@
 
    <extension point="org.eclipse.debug.ui.debugModelPresentations">
       <debugModelPresentation
-         class="com.google.dart.tools.debug.ui.internal.DartDebugModelPresentation"
+         class="com.google.dart.tools.debug.ui.internal.presentation.DartDebugModelPresentation"
          id="com.google.dart.tools.debug.core">
       </debugModelPresentation>
    </extension>

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.ui.internal;
 
+import com.google.dart.tools.debug.ui.internal.presentation.DebugElementAdapterFactory;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerViewManager;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -87,6 +88,8 @@ public class DartDebugUIPlugin extends AbstractUIPlugin {
     imageMap = new HashMap<String, Image>();
 
     super.start(context);
+
+    DebugElementAdapterFactory.init();
 
     // Initialize the DebuggerViewManager.
     DebuggerViewManager.getDefault();

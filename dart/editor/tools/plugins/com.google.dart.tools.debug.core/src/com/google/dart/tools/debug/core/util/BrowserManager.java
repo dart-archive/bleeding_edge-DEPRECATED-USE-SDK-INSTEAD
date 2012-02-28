@@ -356,6 +356,12 @@ public class BrowserManager {
         if (tabInfoFile.exists()) {
           tabInfoFile.delete();
         }
+
+        File sessionInfoFile = new File(defaultDir, "Current Session");
+
+        if (sessionInfoFile.exists()) {
+          sessionInfoFile.delete();
+        }
       }
     }
 

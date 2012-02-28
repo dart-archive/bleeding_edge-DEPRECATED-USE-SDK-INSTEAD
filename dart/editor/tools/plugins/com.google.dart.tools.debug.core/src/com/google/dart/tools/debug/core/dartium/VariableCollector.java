@@ -32,8 +32,30 @@ import java.util.concurrent.CountDownLatch;
 class VariableCollector {
 
   public static VariableCollector createCollector(DartiumDebugTarget target,
+      DartiumDebugVariable variable, List<WebkitRemoteObject> remoteObjects) {
+    final VariableCollector collector = new VariableCollector(target, remoteObjects.size(),
+        variable);
+
+    for (WebkitRemoteObject obj : remoteObjects) {
+      try {
+        target.getConnection().getRuntime().getProperties(obj.getObjectId(), true,
+            new WebkitCallback<WebkitPropertyDescriptor[]>() {
+              @Override
+              public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
+                collector.collect(result);
+              }
+            });
+      } catch (IOException e) {
+        collector.worked();
+      }
+    }
+
+    return collector;
+  }
+
+  public static VariableCollector createCollector(DartiumDebugTarget target,
       List<WebkitRemoteObject> remoteObjects) {
-    return createCollector(target, null, remoteObjects);
+    return createCollector(target, (WebkitRemoteObject) null, remoteObjects);
   }
 
   public static VariableCollector createCollector(DartiumDebugTarget target,
@@ -66,12 +88,18 @@ class VariableCollector {
   }
 
   private DartiumDebugTarget target;
+  private DartiumDebugVariable parentVariable;
 
   private CountDownLatch latch;
   private List<IVariable> variables = new ArrayList<IVariable>();
 
   private VariableCollector(DartiumDebugTarget target, int work) {
+    this(target, work, null);
+  }
+
+  private VariableCollector(DartiumDebugTarget target, int work, DartiumDebugVariable parentVariable) {
     this.target = target;
+    this.parentVariable = parentVariable;
 
     latch = new CountDownLatch(work);
   }
@@ -85,8 +113,14 @@ class VariableCollector {
   private void collect(WebkitResult<WebkitPropertyDescriptor[]> results) {
     if (!results.isError()) {
       for (WebkitPropertyDescriptor descriptor : results.getResult()) {
-        if (!descriptor.isHidden()) {
-          variables.add(new DartiumDebugVariable(target, descriptor));
+        if (descriptor.isEnumerable()) {
+          DartiumDebugVariable variable = new DartiumDebugVariable(target, descriptor);
+
+          if (parentVariable != null) {
+            variable.setParent(parentVariable);
+          }
+
+          variables.add(variable);
         }
       }
     }

@@ -11,10 +11,12 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.debug.ui.internal;
+package com.google.dart.tools.debug.ui.internal.presentation;
 
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugVariable;
+import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
+import com.google.dart.tools.debug.ui.internal.DartUtil;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -113,6 +115,7 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
         DartUtil.logError(e);
       }
     }
+
     return null;
   }
 

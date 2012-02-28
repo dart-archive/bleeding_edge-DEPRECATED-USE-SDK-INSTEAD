@@ -26,6 +26,7 @@ import org.eclipse.debug.core.model.IVariable;
 public class DartiumDebugVariable extends DartiumDebugElement implements IVariable {
   private WebkitPropertyDescriptor descriptor;
 
+  private DartiumDebugVariable parent;
   private DartiumDebugValue value;
   private boolean isThisObject;
 
@@ -54,8 +55,19 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
     this.isThisObject = isThisObject;
   }
 
+  /**
+   * @return a user-consumable string for the variable name
+   */
+  public String getDisplayName() {
+    if (isListMember()) {
+      return "[" + getName() + "]";
+    }
+
+    return getName();
+  }
+
   @Override
-  public String getName() throws DebugException {
+  public String getName() {
     return descriptor.getName();
   }
 
@@ -67,8 +79,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
   @Override
   public IValue getValue() throws DebugException {
     if (value == null) {
-      value = new DartiumDebugValue(getTarget(), descriptor.getValue());
-      value.populate();
+      value = new DartiumDebugValue(getTarget(), this, descriptor.getValue());
     }
 
     return value;
@@ -117,6 +128,11 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
   }
 
   @Override
+  public String toString() {
+    return descriptor.toString();
+  }
+
+  @Override
   public boolean verifyValue(IValue value) throws DebugException {
     return verifyValue(value.getValueString());
   }
@@ -126,6 +142,18 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
     // TODO(devoncarew): do verification for numbers
 
     return true;
+  }
+
+  protected void setParent(DartiumDebugVariable parent) {
+    this.parent = parent;
+  }
+
+  private boolean isListMember() {
+    if (parent != null && parent.isListValue()) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
 }
