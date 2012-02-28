@@ -605,6 +605,7 @@ function(child, parent) {
       emitCallStubForGetters(buffer);
       emitCompileTimeConstants(buffer);
       emitStaticFinalFieldInitializations(buffer);
+      nativeEmitter.emitDynamicDispatchMetadata(buffer);
       buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
       Element main = compiler.mainApp.find(Compiler.MAIN);
       buffer.add('${namer.isolateAccess(main)}();\n');
