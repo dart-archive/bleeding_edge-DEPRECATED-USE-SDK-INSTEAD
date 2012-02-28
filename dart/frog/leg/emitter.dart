@@ -165,6 +165,10 @@ function(child, parent) {
   void addInstanceMember(Element member,
                          String prototype,
                          StringBuffer buffer) {
+    // TODO(floitsch): we don't need to deal with members of
+    // uninstantiated classes, that have been overwritten by subclasses.
+    String attachTo(String name) => '$prototype.$name';
+
     assert(member.isInstanceMember());
     if (member.kind === ElementKind.FUNCTION
         || member.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY
@@ -180,7 +184,7 @@ function(child, parent) {
       }
       FunctionElement function = member;
       if (!function.computeParameters(compiler).optionalParameters.isEmpty()) {
-        addParameterStubs(member, (name) => '$prototype.$name', buffer);
+        addParameterStubs(member, attachTo, buffer);
       }
     } else if (member.kind === ElementKind.FIELD) {
       // TODO(ngeoffray): Have another class generate the code for the
@@ -198,6 +202,17 @@ function(child, parent) {
     } else {
       compiler.internalError('unexpected kind: "${member.kind}"',
                              element: member);
+    }
+
+    if (member.kind == ElementKind.GETTER || member.kind == ElementKind.FIELD) {
+      Set<Selector> selectors = compiler.universe.invokedNames[member.name];
+      if (selectors !== null && !selectors.isEmpty()) {
+        emitCallStubForGetter(buffer, attachTo, member, selectors);
+      }
+    } else if (member.kind == ElementKind.FUNCTION) {
+      if (compiler.universe.invokedGetters.contains(member.name)) {
+        emitDynamicFunctionGetter(buffer, attachTo, member);
+      }
     }
   }
 
@@ -340,7 +355,7 @@ function(child, parent) {
   }
 
   void emitDynamicFunctionGetter(StringBuffer buffer,
-                                 ClassElement enclosingClass,
+                                 String attachTo(String invocationName),
                                  FunctionElement member) {
     // For every method that has the same name as a property-get we create a
     // getter that returns a bound closure. Say we have a class 'A' with method
@@ -402,40 +417,17 @@ function(child, parent) {
     addParameterStubs(callElement, (name) => '$prototype.$name', buffer);
 
     // And finally the getter.
-    String enclosingClassAccess = namer.isolatePropertyAccess(enclosingClass);
-    String enclosingClassPrototype = "$enclosingClassAccess.prototype";
     String getterName = namer.getterName(member.name);
     String closureClass = namer.isolateAccess(closureClassElement);
-    buffer.add("$enclosingClassPrototype.$getterName = function() {\n");
+    buffer.add("${attachTo(getterName)} = function() {\n");
     buffer.add("  return new $closureClass(this);\n");
     buffer.add("};\n");
   }
 
-  void emitDynamicFunctionGetters(StringBuffer buffer) {
-    for (ClassElement classElement in compiler.universe.instantiatedClasses) {
-      for (ClassElement currentClass = classElement;
-           currentClass !== null;
-           currentClass = currentClass.superclass) {
-        // TODO(floitsch): we don't need to deal with members that have been
-        // overwritten by subclasses.
-        for (Element member in currentClass.members) {
-          if (!member.isInstanceMember()) continue;
-          if (member.kind == ElementKind.FUNCTION) {
-            if (compiler.universe.invokedGetters.contains(member.name)) {
-              emitDynamicFunctionGetter(buffer, currentClass, member);
-            }
-          }
-        }
-      }
-    }
-  }
-
   void emitCallStubForGetter(StringBuffer buffer,
-                             ClassElement enclosingClass,
+                             String attachTo(String name),
                              Element member,
                              Set<Selector> selectors) {
-    String prototype =
-        "${namer.isolatePropertyAccess(enclosingClass)}.prototype";
     String getter;
     if (member.kind == ElementKind.GETTER) {
       getter = "this.${namer.getterName(member.name)}()";
@@ -453,31 +445,10 @@ function(child, parent) {
         arguments.add("arg$i");
       }
       String joined = Strings.join(arguments, ", ");
-      buffer.add("$prototype.$invocationName = function($joined) {\n");
+      buffer.add("${attachTo(invocationName)} = function($joined) {\n");
       buffer.add("  return $getter.$closureCallName($joined);\n");
       buffer.add("};\n");
     }
-  }
-
-  void emitCallStubForGetters(StringBuffer buffer) {
-    for (ClassElement classElement in compiler.universe.instantiatedClasses) {
-      for (ClassElement currentClass = classElement;
-           currentClass !== null;
-           currentClass = currentClass.superclass) {
-        // TODO(floitsch): we don't need to deal with members that have been
-        // overwritten by subclasses.
-        for (Element member in currentClass.members) {
-          if (!member.isInstanceMember()) continue;
-          if (member.kind == ElementKind.GETTER ||
-              member.kind == ElementKind.FIELD) {
-            Set<Selector> selectors =
-                compiler.universe.invokedNames[member.name];
-            if (selectors == null || selectors.isEmpty()) continue;
-            emitCallStubForGetter(buffer, currentClass, member, selectors);
-          }
-        }
-      }
-    }    
   }
 
   void emitStaticNonFinalFieldInitializations(StringBuffer buffer) {
@@ -601,8 +572,6 @@ function(child, parent) {
       emitClasses(buffer);
       emitStaticFunctions(buffer);
       emitStaticFunctionGetters(buffer);
-      emitDynamicFunctionGetters(buffer);
-      emitCallStubForGetters(buffer);
       emitCompileTimeConstants(buffer);
       emitStaticFinalFieldInitializations(buffer);
       nativeEmitter.emitDynamicDispatchMetadata(buffer);

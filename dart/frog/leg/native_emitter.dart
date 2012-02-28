@@ -170,6 +170,8 @@ function(inputTable) {
     nativeName = nativeName.substring(2, nativeName.length - 1);
     bool hasUsedSelectors = false;
 
+    String attachTo(name) => "$dynamicName('$name').$nativeName";
+
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
         String memberName = compiler.namer.getName(member);
@@ -192,8 +194,7 @@ function(inputTable) {
           FunctionParameters parameters = function.computeParameters(compiler);
           if (!parameters.optionalParameters.isEmpty()) {
             compiler.emitter.addParameterStubs(
-                member, (name) => "$dynamicName('$name').$nativeName", buffer,
-                isNative: true);
+                member, attachTo, buffer, isNative: true);
           }
         } else if (member.kind === ElementKind.FIELD) {
           if (compiler.universe.invokedSetters.contains(member.name)) {
@@ -215,6 +216,17 @@ function(inputTable) {
         } else {
           compiler.internalError('unexpected kind: "${member.kind}"',
                                  element: member);
+        }
+        if (member.kind == ElementKind.GETTER
+            || member.kind == ElementKind.FIELD) {
+          Set<Selector> selectors = compiler.universe.invokedNames[member.name];
+          if (selectors !== null && !selectors.isEmpty()) {
+            emitCallStubForGetter(buffer, attachTo, member, selectors);
+          }
+        } else if (member.kind == ElementKind.FUNCTION) {
+          if (compiler.universe.invokedGetters.contains(member.name)) {
+            emitDynamicFunctionGetter(buffer, attachTo, member);
+          }
         }
       }
     }
