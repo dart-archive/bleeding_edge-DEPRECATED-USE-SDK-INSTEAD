@@ -25,8 +25,7 @@ public interface IndexConstants {
   /**
    * An element used to represent the workspace.
    */
-  public static final Element WORKSPACE = new Element(new Resource("--workspace--"),
-      "--workspace--");
+  public static final Element UNIVERSE = new Element(new Resource("--universe--"), "--universe--");
 
   /**
    * The relationship used to indicate that a container (the left-operand) contains the definition

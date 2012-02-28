@@ -13,14 +13,15 @@
  */
 package com.google.dart.tools.core.internal.index.contributor;
 
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunction;
+import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionObjectInvocation;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -29,6 +30,7 @@ import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
@@ -56,12 +58,13 @@ import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.internal.model.DartModelStatusImpl;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartModelStatusConstants;
 import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 
 import org.eclipse.core.resources.IResource;
@@ -73,6 +76,78 @@ import java.util.ArrayList;
  * and relationships to be contributed to an index.
  */
 public class IndexContributor extends DartNodeTraverser<Void> {
+  /*
+   * TODO(brianwilkerson) This class does not find or record implicit references, such as the
+   * implicit invocation of toString() when an expression is embedded in a string interpolation
+   * expression.
+   */
+
+  /**
+   * Compose the element id of the given parent element and the name of a child element into an
+   * element id appropriate for the child element.
+   * 
+   * @param parentElement the element representing the parent of the child element
+   * @param childName the unescaped name of a child element
+   * @return the element id appropriate for the child element
+   */
+  public static String composeElementId(Element parentElement, String childName) {
+    StringBuilder builder = new StringBuilder();
+    if (parentElement != null) {
+      builder.append(parentElement.getElementId()); // This has already been escaped.
+      builder.append(SEPARATOR_CHAR);
+    }
+    escape(builder, childName);
+    return builder.toString();
+  }
+
+  /**
+   * Compose the name of a child element into an element id appropriate for the child element.
+   * 
+   * @param childName the unescaped name of a child element
+   * @return the element id appropriate for the child element
+   */
+  public static String composeElementId(String childName) {
+    return composeElementId(null, childName);
+  }
+
+  /**
+   * Compose the given URI's into a resource id appropriate for the resource with the given URI.
+   * 
+   * @param libraryUri the URI of the library containing the resource whose id is being computed
+   * @param resourceUri the URI of the resource whose id is being computed
+   * @return the resource id appropriate for the resource
+   */
+  public static String composeResourceId(String libraryUri, String resourceUri) {
+    StringBuilder builder = new StringBuilder();
+    escape(builder, libraryUri);
+    builder.append(SEPARATOR_CHAR);
+    escape(builder, resourceUri);
+    return builder.toString();
+  }
+
+  /**
+   * Append the escaped version of the given id to the given builder.
+   * 
+   * @param builder the builder to which the escaped form of the id is to be appended
+   * @param id the id to be appended to the builder
+   */
+  private static void escape(StringBuilder builder, String id) {
+    if (id.indexOf(SEPARATOR_CHAR) >= 0) {
+      int length = id.length();
+      for (int i = 0; i < length; i++) {
+        char currentChar = id.charAt(i);
+        if (currentChar == SEPARATOR_CHAR) {
+          builder.append(SEPARATOR_CHAR);
+          builder.append(SEPARATOR_CHAR);
+        } else {
+          builder.append(currentChar);
+        }
+      }
+    } else {
+      builder.append(id);
+    }
+  }
+
   /**
    * The index to which data and relationships will be contributed.
    */
@@ -123,10 +198,8 @@ public class IndexContributor extends DartNodeTraverser<Void> {
   private ChildVisitor<Void> childVisitor = new ChildVisitor<Void>(this);
 
   /**
-   * A marker that is used to indicate that the source for the compilation unit cannot be accessed.
+   * The number of milliseconds taken to convert AST nodes or elements into core model elements.
    */
-  private static String MISSING_SOURCE = "";
-
   private long bindingTime = 0L;
 
   /**
@@ -136,27 +209,38 @@ public class IndexContributor extends DartNodeTraverser<Void> {
   private int relationshipCount = 0;
 
   /**
+   * The element id used for library elements.
+   */
+  private static final String LIBRARY_ELEMENT_ID = "#library";
+
+  /**
+   * A marker that is used to indicate that the source for the compilation unit cannot be accessed.
+   */
+  private static String MISSING_SOURCE = "";
+
+  /**
+   * The separator character used to compose identifiers.
+   */
+  private static char SEPARATOR_CHAR = '^';
+
+  /**
    * Initialize a newly created contributor to contribute data and relationships to the given index
    * while processing the AST structure associated with the given compilation unit.
    * 
    * @param index the index to which data and relationships will be contributed
    * @param compilationUnit the compilation unit that will be visited
+   * @throws DartModelException if the library associated with the compilation unit does not have a
+   *           defining compilation unit
    */
-  public IndexContributor(IndexStore index, CompilationUnit compilationUnit) {
+  public IndexContributor(IndexStore index, CompilationUnit compilationUnit)
+      throws DartModelException {
     this.index = index;
     library = compilationUnit.getLibrary();
     this.compilationUnit = compilationUnit;
-    libraryResource = getResource(((DartLibraryImpl) library).getLibrarySourceFile());
-    libraryElement = new Element(libraryResource, libraryResource.getResourceId());
-    pushElement(libraryElement);
+    libraryResource = getResource(library.getDefiningCompilationUnit());
+    libraryElement = new Element(libraryResource, LIBRARY_ELEMENT_ID);
     compilationUnitResource = getResource(compilationUnit);
   }
-
-  /*
-   * TODO(brianwilkerson) This class does not find or record implicit references, such as the
-   * implicit invocation of toString() when an expression is embedded in a string interpolation
-   * expression.
-   */
 
   public long getBindingTime() {
     return bindingTime;
@@ -233,6 +317,21 @@ public class IndexContributor extends DartNodeTraverser<Void> {
   }
 
   @Override
+  public Void visitFieldDefinition(DartFieldDefinition node) {
+    // TODO(brianwilkerson) We need to decide how we're going to represent references to the type:
+    // one reference from the class that contains the field declaration, or one reference for each
+    // field being declared.
+    DartTypeNode type = node.getTypeNode();
+    if (type != null) {
+      type.accept(this);
+    }
+    for (DartField field : node.getFields()) {
+      visitField(field);
+    }
+    return null;
+  }
+
+  @Override
   public Void visitFunction(DartFunction node) {
     if (node.getParent() instanceof DartMethodDefinition) {
       super.visitFunction(node);
@@ -281,12 +380,44 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     if (symbol == null) {
       DartNode parent = node.getParent();
       if (parent instanceof DartTypeNode) {
-        Type type = ((DartTypeNode) parent).getType();
-        if (type instanceof InterfaceType) {
-          processTypeReference(node, (InterfaceType) type);
+        DartNode grandparent = parent.getParent();
+        if (grandparent instanceof DartNewExpression) {
+          symbol = ((DartNewExpression) grandparent).getReferencedElement();
+        }
+        if (symbol == null) {
+          Type type = ((DartTypeNode) parent).getType();
+          if (type instanceof InterfaceType) {
+            processTypeReference(node, (InterfaceType) type);
+          }
+          return super.visitIdentifier(node);
+        }
+      } else if (parent instanceof DartMethodInvocation) {
+        DartMethodInvocation invocation = (DartMethodInvocation) parent;
+        if (node == invocation.getFunctionName()) {
+          symbol = invocation.getReferencedElement();
+        }
+      } else if (parent instanceof DartPropertyAccess) {
+        DartPropertyAccess access = (DartPropertyAccess) parent;
+        if (node == access.getName()) {
+          symbol = access.getReferencedElement();
+        }
+      } else if (parent instanceof DartUnqualifiedInvocation) {
+        DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation) parent;
+        if (node == invocation.getTarget()) {
+          symbol = invocation.getReferencedElement();
+        }
+      } else if (parent instanceof DartParameterizedTypeNode) {
+        DartParameterizedTypeNode typeNode = (DartParameterizedTypeNode) parent;
+        DartNode grandparent = typeNode.getParent();
+        if (grandparent instanceof DartClass) {
+          DartClass classDef = (DartClass) grandparent;
+          if (typeNode == classDef.getDefaultClass()) {
+            symbol = classDef.getSymbol().getDefaultClass().getElement();
+          }
         }
       }
-    } else if (symbol instanceof ClassElement) {
+    }
+    if (symbol instanceof ClassElement) {
       processTypeReference(node, ((ClassElement) symbol).getType());
     } else if (symbol instanceof FieldElement) {
       boolean isAssignedTo = isAssignedTo(node);
@@ -396,17 +527,6 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     return super.visitUnqualifiedInvocation(node);
   }
 
-  private String compose(Element parentElement, String childName) {
-    return parentElement.getElementId() + "^" + escape(childName);
-  }
-
-  private String escape(String id) {
-    if (id.indexOf('^') >= 0) {
-      return id.replace("^", "^^");
-    }
-    return id;
-  }
-
   /**
    * Return the method defined in the given type that matches the given method.
    * 
@@ -492,7 +612,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     if (element.isDynamic()) {
       return null;
     }
-    LibraryElement libraryElement = (LibraryElement) element.getEnclosingElement();
+    LibraryElement libraryElement = getLibraryElement(element);
     long start = System.currentTimeMillis();
     CompilationUnitElement dartType = BindingUtils.getDartElement(
         BindingUtils.getDartElement(libraryElement), element);
@@ -500,8 +620,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     if (dartType == null) {
       return null;
     }
-    return new Element(getResource(dartType),
-        compose(getElement(libraryElement), element.getName()));
+    return new Element(getResource(dartType), composeElementId(element.getName()));
   }
 
   /**
@@ -511,7 +630,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
    * @return an element representing the given type
    */
   private Element getElement(DartClass node) {
-    return new Element(compilationUnitResource, compose(peekElement(), node.getClassName()));
+    return new Element(compilationUnitResource, composeElementId(node.getClassName()));
   }
 
   /**
@@ -521,7 +640,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
    * @return an element representing the given field
    */
   private Element getElement(DartField node) {
-    return new Element(compilationUnitResource, compose(peekElement(),
+    return new Element(compilationUnitResource, composeElementId(peekElement(),
         node.getName().getTargetName()));
   }
 
@@ -532,8 +651,18 @@ public class IndexContributor extends DartNodeTraverser<Void> {
    * @return an element representing the given function
    */
   private Element getElement(DartFunction node) {
-    // TODO(brianwilkerson) Decide on the form of the unique id for a function.
-    return new Element(compilationUnitResource, compose(peekElement(), "???"));
+    String functionName = null;
+    DartNode parent = node.getParent();
+    if (parent instanceof DartFunctionExpression) {
+      functionName = ((DartFunctionExpression) parent).getFunctionName();
+    } else {
+      DartCore.logInformation("Could not get name of function in " + parent.getClass().getName());
+    }
+    if (functionName == null) {
+      // TODO(brianwilkerson) Decide on the form of the element id for an unnamed function.
+      functionName = "???";
+    }
+    return new Element(compilationUnitResource, composeElementId(peekElement(), functionName));
   }
 
   /**
@@ -543,8 +672,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
    * @return an element representing the given function type
    */
   private Element getElement(DartFunctionTypeAlias node) {
-    return new Element(compilationUnitResource, compose(peekElement(),
-        node.getName().getTargetName()));
+    return new Element(compilationUnitResource, composeElementId(node.getName().getTargetName()));
   }
 
   /**
@@ -554,7 +682,8 @@ public class IndexContributor extends DartNodeTraverser<Void> {
    * @return an element representing the given method
    */
   private Element getElement(DartMethodDefinition node) {
-    return new Element(compilationUnitResource, compose(peekElement(), toString(node.getName())));
+    return new Element(compilationUnitResource, composeElementId(peekElement(),
+        toString(node.getName())));
   }
 
   /**
@@ -573,7 +702,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     } else if (element instanceof MethodElement) {
       return getElement((MethodElement) element);
     }
-    System.out.println("Could not getElement for " + element.getClass().getName());
+    DartCore.logInformation("Could not getElement for " + element.getClass().getName());
     return null;
   }
 
@@ -602,11 +731,11 @@ public class IndexContributor extends DartNodeTraverser<Void> {
         allowSetter);
     bindingTime += (System.currentTimeMillis() - start);
     if (field == null) {
-      System.out.println("Could not getElement for field " + pathTo(element));
+      DartCore.logInformation("Could not getElement for field " + pathTo(element));
       return null;
     }
-    return new Element(getResource(field), compose(getElement(element.getEnclosingElement()),
-        element.getName()));
+    return new Element(getResource(field), composeElementId(
+        getElement(element.getEnclosingElement()), element.getName()));
   }
 
   /**
@@ -627,7 +756,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
    */
   private Element getElement(LibraryElement element) {
     String libraryId = element.getLibraryUnit().getSource().getUri().toString();
-    return new Element(new Resource(libraryId), escape(libraryId));
+    return new Element(new Resource(composeResourceId(libraryId, libraryId)), LIBRARY_ELEMENT_ID);
   }
 
   /**
@@ -642,15 +771,15 @@ public class IndexContributor extends DartNodeTraverser<Void> {
         BindingUtils.getDartElement(BindingUtils.getLibrary(element)), element);
     bindingTime += (System.currentTimeMillis() - start);
     if (method == null) {
-      System.out.println("Could not getElement for method " + pathTo(element));
+      DartCore.logInformation("Could not getElement for method " + pathTo(element));
       return null;
     }
     String methodName = element.getName();
     if (element instanceof ConstructorElement) {
       methodName = element.getEnclosingElement().getName();
     }
-    return new Element(getResource(method), compose(getElement(element.getEnclosingElement()),
-        methodName));
+    return new Element(getResource(method), composeElementId(
+        getElement(element.getEnclosingElement()), methodName));
   }
 
   /**
@@ -668,7 +797,24 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     } else if (node instanceof DartTypeNode) {
       return getIdentifier(((DartTypeNode) node).getIdentifier());
     }
-    System.out.println("Could not getIdentifier for " + node.getClass().getName());
+    DartCore.logInformation("Could not getIdentifier for " + node.getClass().getName());
+    return null;
+  }
+
+  /**
+   * Return the library element for the library that contains the given element, or
+   * <code>null</code> if the given element is not contained in a library.
+   * 
+   * @param element the element whose enclosing library is to be returned
+   * @return the library element for the library that contains the given element
+   */
+  private LibraryElement getLibraryElement(com.google.dart.compiler.resolver.Element element) {
+    EnclosingElement parentElement = element.getEnclosingElement();
+    while (parentElement != null) {
+      if (parentElement instanceof LibraryElement) {
+        return (LibraryElement) parentElement;
+      }
+    }
     return null;
   }
 
@@ -720,6 +866,9 @@ public class IndexContributor extends DartNodeTraverser<Void> {
    * @return a location representing the location of the given node within the given element
    */
   private Location getLocation(Element element, DartNode node) {
+    if (element == null) {
+      element = libraryElement;
+    }
     return new Location(element, node.getSourceStart(), node.getSourceLength());
   }
 
@@ -754,21 +903,14 @@ public class IndexContributor extends DartNodeTraverser<Void> {
    * @return the resource representing the given compilation unit
    */
   private Resource getResource(CompilationUnit compilationUnit) {
-    if (compilationUnit instanceof ExternalCompilationUnitImpl) {
-      return new Resource(
-          ((ExternalCompilationUnitImpl) compilationUnit).getSourceRef().getUri().toString());
-    }
-    try {
-      IResource resource = compilationUnit.getUnderlyingResource();
-      if (resource != null) {
-        return new Resource(resource.getLocationURI().toString());
+    if (compilationUnit != null) {
+      try {
+        CompilationUnit libraryDefiningUnit = compilationUnit.getLibrary().getDefiningCompilationUnit();
+        return new Resource(composeResourceId(getUri(libraryDefiningUnit), getUri(compilationUnit)));
+      } catch (DartModelException exception) {
+        DartCore.logError("Could not get underlying resource for compilation unit "
+            + compilationUnit.getElementName(), exception);
       }
-      DartCore.logInformation("The compilation unit " + compilationUnit.getElementName()
-          + " has no underlying resource");
-    } catch (DartModelException exception) {
-      DartCore.logError(
-          "Could not get underlying resource for compilation unit "
-              + compilationUnit.getElementName(), exception);
     }
     return libraryResource;
   }
@@ -782,20 +924,11 @@ public class IndexContributor extends DartNodeTraverser<Void> {
   private Resource getResource(CompilationUnitElement element) {
     CompilationUnitImpl unit = (CompilationUnitImpl) element.getCompilationUnit();
     if (unit == null) {
-      // TODO(brianwilkerson) Figure out whether this can ever happen.
+      // TODO(brianwilkerson) Figure out whether this can ever happen and whether there's anything
+      // we can do about it if it can.
       return null;
     }
     return getResource(unit);
-  }
-
-  /**
-   * Return a resource representing the same file as the file referenced by the given source.
-   * 
-   * @param source the source referencing the file to be represented as a resource
-   * @return a resource representing the same file as the given source info
-   */
-  private Resource getResource(Source source) {
-    return new Resource(source.getUri().toString());
   }
 
   /**
@@ -835,15 +968,28 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     return superType.getElement();
   }
 
-//  /**
-//   * Return a resource representing the same file as the file referenced by the given source info.
-//   * 
-//   * @param sourceInfo the source info referencing the file to be represented as a resource
-//   * @return a resource representing the same file as the given source info
-//   */
-//  private Resource getResource(SourceInfo sourceInfo) {
-//    return getResource(sourceInfo.getSource());
-//  }
+  /**
+   * Return the URI of the given compilation unit.
+   * 
+   * @param compilationUnit the compilation unit whose URI is to be returned
+   * @return the URI of the given compilation unit
+   * @throws DartModelException if the URI could not be computed
+   */
+  private String getUri(CompilationUnit compilationUnit) throws DartModelException {
+    if (compilationUnit == null) {
+      throw new DartModelException(new DartModelStatusImpl(
+          DartModelStatusConstants.INVALID_RESOURCE));
+    }
+    if (compilationUnit instanceof ExternalCompilationUnitImpl) {
+      return ((ExternalCompilationUnitImpl) compilationUnit).getSourceRef().getUri().toString();
+    }
+    IResource resource = compilationUnit.getUnderlyingResource();
+    if (resource != null) {
+      return resource.getLocationURI().toString();
+    }
+    throw new DartModelException(new DartModelStatusImpl(DartModelStatusConstants.INVALID_RESOURCE,
+        compilationUnit));
+  }
 
   private boolean isAssignedTo(DartIdentifier node) {
     DartNode child = node;
@@ -928,7 +1074,8 @@ public class IndexContributor extends DartNodeTraverser<Void> {
   }
 
   /**
-   * Return the element representing the inner-most enclosing scope.
+   * Return the element representing the inner-most enclosing scope, or <code>null</code> if we are
+   * at the top-level of the compilation unit.
    * 
    * @return the element representing the inner-most enclosing scope
    */
@@ -959,11 +1106,11 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     // Record the class as being contained by the workspace and the library.
     //
     if (node.isInterface()) {
-      recordRelationship(IndexConstants.WORKSPACE, IndexConstants.DEFINES_INTERFACE,
+      recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_INTERFACE,
           getLocation(node));
       recordRelationship(libraryElement, IndexConstants.DEFINES_INTERFACE, getLocation(node));
     } else {
-      recordRelationship(IndexConstants.WORKSPACE, IndexConstants.DEFINES_CLASS, getLocation(node));
+      recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_CLASS, getLocation(node));
       recordRelationship(libraryElement, IndexConstants.DEFINES_CLASS, getLocation(node));
     }
     //
@@ -1010,7 +1157,7 @@ public class IndexContributor extends DartNodeTraverser<Void> {
     //
     // Record the function type as being contained by the workspace and the library.
     //
-    recordRelationship(IndexConstants.WORKSPACE, IndexConstants.DEFINES_FUNCTION_TYPE,
+    recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_FUNCTION_TYPE,
         getLocation(node));
     recordRelationship(libraryElement, IndexConstants.DEFINES_FUNCTION_TYPE, getLocation(node));
   }

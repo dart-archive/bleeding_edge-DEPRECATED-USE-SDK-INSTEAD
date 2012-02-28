@@ -24,7 +24,7 @@ public final class Element {
   private Resource resource;
 
   /**
-   * The globally unique identifier for this element.
+   * The resource unique identifier for this element.
    */
   private String elementId;
 
@@ -33,7 +33,7 @@ public final class Element {
    * resource.
    * 
    * @param resource the resource containing this element
-   * @param elementId the globally unique identifier for this element
+   * @param elementId the resource unique identifier for this element
    */
   public Element(Resource resource, String elementId) {
     this.resource = resource;
@@ -50,9 +50,9 @@ public final class Element {
   }
 
   /**
-   * Return the globally unique identifier for this element.
+   * Return the resource unique identifier for this element.
    * 
-   * @return the globally unique identifier for this element
+   * @return the resource unique identifier for this element
    */
   public String getElementId() {
     return elementId;
