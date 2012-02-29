@@ -121,13 +121,16 @@ class SsaBuilderTask extends CompilerTask {
       assert(graph.isValid());
       if (GENERATE_SSA_TRACE) {
         String name;
-        if (element.enclosingElement !== null) {
-          name = "${element.enclosingElement.name}.${element.name}";
+        if (element.enclosingElement !== null &&
+            element.enclosingElement.kind == ElementKind.CLASS) {
+          String className = element.enclosingElement.name.slowToString();
+          String memberName = element.name.slowToString();
+          name = "$className.$memberName";
           if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
             name = "$name (body)";
           }
         } else {
-          name = "${element.name}";
+          name = "${element.name.slowToString()}";
         }
         new HTracer.singleton().traceCompilation(name);
         new HTracer.singleton().traceGraph('builder', graph);

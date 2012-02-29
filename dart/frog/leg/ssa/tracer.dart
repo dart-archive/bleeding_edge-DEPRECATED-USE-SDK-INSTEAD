@@ -224,11 +224,13 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitExit(HExit node) => "exit";
 
-  String visitFieldGet(HFieldGet node) => 'get ${node.element.name}';
+  String visitFieldGet(HFieldGet node) {
+    return 'get ${node.element.name.slowToString()}';
+  }
 
   String visitFieldSet(HFieldSet node) {
     String valueId = temporaryId(node.value);
-    'set ${node.element.name} to $valueId';
+    return 'set ${node.element.name.slowToString()} to $valueId';
   }
 
   String visitGoto(HGoto node) {
@@ -280,7 +282,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitInvokeDynamic(HInvokeDynamic invoke, String kind) {
     String receiver = temporaryId(invoke.receiver);
-    String target = "($kind) $receiver.${invoke.name}";
+    String target = "($kind) $receiver.${invoke.name.slowToString()}";
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments =
         invoke.inputs.getRange(offset, invoke.inputs.length - offset);
@@ -318,7 +320,9 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitForeignNew(HForeignNew node) {
-    return visitGenericInvoke("New", "${node.element.name}", node.inputs);
+    return visitGenericInvoke("New",
+                              "${node.element.name.slowToString()}",
+                              node.inputs);
   }
 
   String visitLess(HLess node) => visitInvokeStatic(node);
@@ -365,7 +369,9 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitNot(HNot node) => "Not: ${temporaryId(node.inputs[0])}";
 
-  String visitParameterValue(HParameterValue node) => "p${node.element.name}";
+  String visitParameterValue(HParameterValue node) {
+    return "p${node.element.name.slowToString()}";
+  }
 
   String visitPhi(HPhi phi) {
     StringBuffer buffer = new StringBuffer();
@@ -385,9 +391,11 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitShiftRight(HShiftRight node) => visitInvokeStatic(node);
 
   String visitStatic(HStatic node)
-      => "Static ${node.element.name}";
-  String visitStaticStore(HStaticStore node)
-      => "Static ${node.element.name} = ${temporaryId(node.inputs[0])}";
+      => "Static ${node.element.name.slowToString()}";
+  String visitStaticStore(HStaticStore node) {
+    String lhs = node.element.name.slowToString();
+    return "Static $lhs = ${temporaryId(node.inputs[0])}";
+  }
 
   String visitStore(HStore node) {
     String localId = temporaryId(node.inputs[0]);
