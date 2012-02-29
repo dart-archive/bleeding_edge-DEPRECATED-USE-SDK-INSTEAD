@@ -549,8 +549,7 @@ class BreakHandlerEntry {
 }
 
 interface BreakHandler default BreakHandlerImpl {
-  BreakHandler(SsaBuilder builder);
-  void addTarget(StatementElement element);
+  BreakHandler(SsaBuilder builder, StatementElement target);
   void addBreak(HBreak breakInstruction);
   void forEachBreak(Function action);
   void close();
@@ -562,7 +561,6 @@ interface BreakHandler default BreakHandlerImpl {
 // handler associated with it.
 class NullBreakHandler implements BreakHandler {
   const NullBreakHandler();
-  void addTarget(StatementElement element) { unreachable(); }
   void addBreak(HBreak breakInstruction) { unreachable(); }
   void forEachBreak(Function ignored) { }
   void close() { }
@@ -571,23 +569,18 @@ class NullBreakHandler implements BreakHandler {
 
 // Records breaks until a target block is available.
 // Breaks are always forward jumps.
-class BreakHandlerImpl implements BreakHandler{
+class BreakHandlerImpl implements BreakHandler {
   final BreakHandler previous;
   final SsaBuilder builder;
-  final List<StatementElement> elements;
+  final StatementElement target;
   final List<BreakHandlerEntry> breaks;
-  BreakHandlerImpl(SsaBuilder builder)
+  BreakHandlerImpl(SsaBuilder builder, this.target)
       : this.builder = builder,
         previous = builder.currentBreakHandler,
-        elements = <StatementElement>[],
         breaks = <BreakHandlerEntry>[] {
     builder.currentBreakHandler = this;
-  }
-
-  void addTarget(StatementElement element) {
-    assert(builder.breakTargets[element] === null);
-    elements.add(element);
-    builder.breakTargets[element] = this;
+    assert(builder.breakTargets[target] === null);
+    builder.breakTargets[target] = this;
   }
 
   void addBreak(HBreak breakInstruction,
@@ -604,23 +597,19 @@ class BreakHandlerImpl implements BreakHandler{
   void close() {
     assert(builder.currentBreakHandler === this);
     // The mapping from StatementElement to BreakHandler is no longer needed.
-    for (StatementElement element in elements) {
-      assert(builder.breakTargets[element] === this);
-      builder.breakTargets.remove(element);
-    }
+    builder.breakTargets.remove(target);
     builder.currentBreakHandler = previous;
   }
 
   List<SourceString> labels() {
     List<SourceString> result = null;
-    for (StatementElement element in elements) {
-      SourceString name = element.name;
-      if (!name.isEmpty()) {
+    for (LabelElement element in target.labels) {
+      if (element.isBreakTarget) {
         if (result === null) result = <SourceString>[];
-        result.add(name);
+        result.add(element.label.source);
       }
     }
-    return result === null ? const <SourceString>[] : result;
+    return (result === null) ? const <SourceString>[] : result;
   }
 }
 
@@ -2046,13 +2035,12 @@ class SsaBuilder implements Visitor {
     BreakHandler handler;
     if (loopBreakHandler === null) {
       if (element === null) return const NullBreakHandler();
-      handler = new BreakHandler(this);
+      handler = new BreakHandler(this, element);
     } else {
       handler = loopBreakHandler;
       loopBreakHandler = null;
       if (element === null) return handler;
     }
-    handler.addTarget(element);
     return handler;
   }
 
@@ -2134,60 +2122,55 @@ class SsaBuilder implements Visitor {
   }
 
   visitLabelledStatement(LabelledStatement node) {
-    BreakHandler handler = null;
-    Node currentNode = node;
-    do {
-      StatementElement element = elements[currentNode];
-      if (element !== null && element.isBreakTarget) {
-        if (handler === null) handler = new BreakHandler(this);
-        handler.addTarget(element);
+    Statement body = node.getBody();
+    if (body is Loop || body is SwitchStatement) {
+      // Loops handle their own labels.
+      visit(body);
+      return;
+    }
+    // Non-loop statements can only be break targets, not continue targets.
+    StatementElement targetElement = elements[body];
+    if (targetElement === null) {
+      // Labeled statements with no element on the body have no breaks.
+      visit(body);
+      return;
+    }
+    assert(targetElement.isBreakTarget);
+    BreakHandler handler = new BreakHandler(this, targetElement);
+    // Introduce a new basic block.
+    HBasicBlock entryBlock = graph.addNewBlock();
+    goto(current, entryBlock);
+    open(entryBlock);
+    visit(body);
+    if (isAborted()) {
+      compiler.unimplemented(
+          "SsaBuilder for labeled statement with aborting body", node: node);
+    }
+    HBasicBlock exitBlock = current;
+    handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
+      HBasicBlock joinBlock = graph.addNewBlock();
+      breakInstruction.block.addSuccessor(joinBlock);
+      if (!isAborted()) {
+        goto(current, joinBlock);
+        open(joinBlock);
+        localsHandler.mergeWith(locals, joinBlock);
+      } else {
+        open(joinBlock);
+        localsHandler = locals;
       }
-      currentNode = currentNode.statement;
-    } while (currentNode is LabelledStatement);
-    if (handler === null) {
-      // The labels are not break targets.
-      visit(currentNode);
-    } else if (currentNode is Loop || currentNode is SwitchStatement) {
-      // The labels apply to that statement, and will be handled there.
-      loopBreakHandler = handler;
-      visit(currentNode);
-      assert(loopBreakHandler === null);
-    } else {
-      // Introduce a new basic block.
-      HBasicBlock entryBlock = graph.addNewBlock();
-      goto(current, entryBlock);
-      open(entryBlock);
-      visit(currentNode);
-      if (isAborted()) {
-        compiler.unimplemented(
-            "SsaBuilder for labeled statement with aborting body", node: node);
-      }
-      HBasicBlock exitBlock = current;
-      handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
-        HBasicBlock joinBlock = graph.addNewBlock();
-        breakInstruction.block.addSuccessor(joinBlock);
-        if (!isAborted()) {
-          goto(current, joinBlock);
-          open(joinBlock);
-          localsHandler.mergeWith(locals, joinBlock);
-        } else {
-          open(joinBlock);
-          localsHandler = locals;
-        }
-      });
-      if (current !== exitBlock) {
-        // There was at least one reachable break, so the label is needed.
-        HLabeledBlockInformation blockInfo =
-            new HLabeledBlockInformation(entryBlock, current,
-                                         handler.labels());
-        handler.close();
-        entryBlock.labeledBlockInformation = blockInfo;
-        // Mark both entry and exit with the information. You can
-        // tell which one is which by comparing with blockInfo.start/end.
-        // It doesn't matter which merge block we use, they won't be generating
-        // any code, so put the end-marker on the last join block.
-        current.labeledBlockInformation = blockInfo;
-      }
+    });
+    if (current !== exitBlock) {
+      // There was at least one reachable break, so the label is needed.
+      HLabeledBlockInformation blockInfo =
+          new HLabeledBlockInformation(entryBlock, current,
+                                       handler.labels());
+      handler.close();
+      entryBlock.labeledBlockInformation = blockInfo;
+      // Mark both entry and exit with the information. You can
+      // tell which one is which by comparing with blockInfo.start/end.
+      // It doesn't matter which merge block we use, they won't be generating
+      // any code, so put the end-marker on the last join block.
+      current.labeledBlockInformation = blockInfo;
     }
   }
 

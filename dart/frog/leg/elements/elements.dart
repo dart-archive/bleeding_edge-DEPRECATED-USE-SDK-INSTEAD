@@ -35,6 +35,7 @@ class ElementKind {
   static final ElementKind PREFIX = const ElementKind('prefix');
 
   static final ElementKind STATEMENT = const ElementKind('statement');
+  static final ElementKind LABEL = const ElementKind('label');
 
   toString() => id;
 }
@@ -743,18 +744,49 @@ class Elements {
   }
 }
 
+
+class LabelElement extends Element {
+  final Identifier label;
+  final String labelName;
+  final StatementElement target;
+  bool isBreakTarget = false;
+  bool isContinueTarget = false;
+  LabelElement(Identifier label, this.labelName, this.target,
+               Element enclosingElement)
+      : this.label = label,
+        super(label.source, ElementKind.LABEL, enclosingElement);
+
+  void setBreakTarget() {
+    isBreakTarget = true;
+    target.isBreakTarget = true;
+  }
+  void setContinueTarget() {
+    isContinueTarget = true;
+    target.isContinueTarget = true;
+  }
+
+  bool get isTarget() => isBreakTarget || isContinueTarget;
+  Node parseNode(DiagnosticListener l) => label;
+}
+
 // Represents a reference to a statement, either a label or the
 // default target of a break or continue.
 class StatementElement extends Element {
-  final Statement origin;
+  final Statement statement;
+  Link<LabelElement> labels = const EmptyLink<LabelElement>();
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
-  StatementElement(this.origin, Element enclosingElement)
+  StatementElement(this.statement, Element enclosingElement)
       : super(const SourceString(""), ElementKind.STATEMENT, enclosingElement);
-  StatementElement.label(String name, this.origin, Element enclosingElement)
-      : super(new SourceString(name), ElementKind.STATEMENT, enclosingElement);
   bool get isTarget() => isBreakTarget || isContinueTarget;
 
-  Node parseNode(DiagnosticListener l) => origin;
+  LabelElement addLabel(Identifier label, String labelName) {
+    LabelElement result = new LabelElement(label, labelName, this,
+                                           enclosingElement);
+    labels = labels.prepend(result);
+    return result;
+  }
+
+  Node parseNode(DiagnosticListener l) => statement;
 }

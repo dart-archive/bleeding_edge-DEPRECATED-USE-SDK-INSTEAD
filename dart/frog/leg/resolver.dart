@@ -469,24 +469,23 @@ class CommonResolverVisitor<R> extends AbstractVisitor<R> {
 }
 
 interface LabelScope {
-  StatementElement lookup(String label);
   LabelScope get outer();
+  LabelElement lookup(String label);
 }
 
 class LabeledStatementLabelScope implements LabelScope {
   final LabelScope outer;
-  final String label;
-  final StatementElement reference;
-  LabeledStatementLabelScope(this.outer, this.label, this.reference);
-  StatementElement lookup(String label) {
-    if (this.label == label) return reference;
-    return outer.lookup(label);
+  final LabelElement label;
+  LabeledStatementLabelScope(this.outer, this.label);
+  LabelElement lookup(String labelName) {
+    if (this.label.labelName == labelName) return label;
+    return outer.lookup(labelName);
   }
 }
 
 class EmptyLabelScope implements LabelScope {
   const EmptyLabelScope();
-  StatementElement lookup(String label) => null;
+  LabelElement lookup(String label) => null;
   LabelScope get outer() {
     throw 'internal error: empty label scope has no outer';
   }
@@ -502,14 +501,14 @@ class StatementScope {
         breakTargetStack = const EmptyLink<StatementElement>(),
         continueTargetStack = const EmptyLink<StatementElement>();
 
-  StatementElement lookupLabel(String label) => labels.lookup(label);
+  LabelElement lookupLabel(String label) => labels.lookup(label);
   StatementElement currentBreakTarget() =>
     breakTargetStack.isEmpty() ? null : breakTargetStack.head;
   StatementElement currentContinueTarget() =>
     continueTargetStack.isEmpty() ? null : continueTargetStack.head;
 
-  void enterLabelScope(String label, StatementElement element) {
-    labels = new LabeledStatementLabelScope(labels, label, element);
+  void enterLabelScope(LabelElement element) {
+    labels = new LabeledStatementLabelScope(labels, element);
   }
   void exitLabelScope() {
     labels = labels.outer;
@@ -552,6 +551,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       error(node, MessageKind.NO_INSTANCE_AVAILABLE, [node]);
     }
     return result;
+  }
+
+  // Create, or reuse an already created, statement element for a statement.
+  StatementElement getOrCreateStatementElement(Node statement) {
+    StatementElement element = mapping[statement];
+    if (element !== null) return element;
+    element = new StatementElement(statement, enclosingElement);
+    mapping[statement] = element;
+    return element;
   }
 
   inStaticContext(action()) {
@@ -668,12 +676,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
    * before visiting the body of the loop
    */
   visitLoopBodyIn(Node loop, Node body, Scope scope) {
-    StatementElement element = new StatementElement(loop, enclosingElement);
+    StatementElement element = getOrCreateStatementElement(loop);
     statementScope.enterLoop(element);
     visitIn(body, scope);
     statementScope.exitLoop();
-    if (element.isTarget) {
-      mapping[loop] = element;
+    if (!element.isTarget) {
+      mapping.map.remove(loop);
     }
   }
 
@@ -1034,15 +1042,19 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         error(node, MessageKind.NO_BREAK_TARGET);
         return;
       }
+      target.isBreakTarget = true;
     } else {
       String labelName = node.target.source.slowToString();
-      target = statementScope.lookupLabel(labelName);
-      if (target === null) {
+      LabelElement label = statementScope.lookupLabel(labelName);
+      if (label === null) {
         error(node.target, MessageKind.UNBOUND_LABEL, [labelName]);
         return;
       }
+      target = label.target;
+      label.setBreakTarget();
+      mapping[node.target] = label;
     }
-    target.isBreakTarget = true;
+    assert(mapping[node] === null || mapping[node] === target);
     mapping[node] = target;
   }
 
@@ -1056,12 +1068,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
     } else {
       String labelName = node.target.source.slowToString();
-      target = statementScope.lookupLabel(labelName);
-      if (target === null) {
+      LabelElement label = statementScope.lookupLabel(labelName);
+      if (label === null) {
         error(node.target, MessageKind.UNBOUND_LABEL, [labelName]);
         return;
       }
-      if (!target.origin.isValidContinueTarget()) {
+      target = label.target;
+      if (!target.statement.isValidContinueTarget()) {
         error(node.target, MessageKind.INVALID_CONTINUE, [labelName]);
       }
     }
@@ -1089,21 +1102,25 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitLabelledStatement(LabelledStatement node) {
     String labelName = node.label.source.slowToString();
-    StatementElement existingElement = statementScope.lookupLabel(labelName);
+    LabelElement existingElement = statementScope.lookupLabel(labelName);
     if (existingElement !== null) {
-      LabelledStatement declaration = existingElement.origin;
       warning(node.label, MessageKind.DUPLICATE_LABEL, [labelName]);
-      warning(declaration.label, MessageKind.EXISTING_LABEL, [labelName]);
+      warning(existingElement.label, MessageKind.EXISTING_LABEL, [labelName]);
     }
-    StatementElement element =
-        new StatementElement.label(labelName, node, enclosingElement);
-    statementScope.enterLabelScope(labelName, element);
+    Node body = node.getBody();
+    StatementElement statementElement = getOrCreateStatementElement(body);
+
+    LabelElement element = statementElement.addLabel(node.label, labelName);
+    statementScope.enterLabelScope(element);
     visit(node.statement);
     statementScope.exitLabelScope();
     if (element.isTarget) {
-      mapping[node] = element;
+      mapping[node.label] = element;
     } else {
       warning(node.label, MessageKind.UNUSED_LABEL, [labelName]);
+    }
+    if (!statementElement.isBreakTarget) {
+      mapping.map.remove(body);
     }
   }
 

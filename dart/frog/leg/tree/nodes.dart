@@ -1441,6 +1441,11 @@ class LabelledStatement extends Statement {
   Token getEndToken() => statement.getEndToken();
 
   bool isValidContinueTarget() => statement.isValidContinueTarget();
+
+  Node getBody() {
+    if (statement is! LabelledStatement) return statement;
+    return statement.getBody();
+  }
 }
 
 class ScriptTag extends Node {
