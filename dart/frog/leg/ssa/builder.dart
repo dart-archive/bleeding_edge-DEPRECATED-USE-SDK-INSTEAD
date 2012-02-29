@@ -538,6 +538,46 @@ class LocalsHandler {
     });
     directLocals = joinedLocals;
   }
+
+  /**
+   * The current localsHandler is not used for its values, only for its
+   * declared variables. This is a way to exclude local values from the
+   * result when they are no longer in scope.
+   * Returns the new LocalsHandler to use (may not be [this]).
+   */
+  LocalsHandler mergeMultiple(List<LocalsHandler> locals,
+                              HBasicBlock joinBlock) {
+    assert(locals.length > 0);
+    if (locals.length == 1) return locals[0];
+    Map<Element, HInstruction> joinedLocals = new Map<Element,HInstruction>();
+    HInstruction thisValue = null;
+    directLocals.forEach((Element element, HInstruction instruction) {
+      if (element !== closureData.thisElement) {
+        HPhi phi = new HPhi.noInputs(element);
+        joinedLocals[element] = phi;
+        joinBlock.addPhi(phi);
+      } else {
+        // We know that "this" never changes, if it's there.
+        // Save it for later. While merging, there is no phi for "this",
+        // so we don't have to special case it in the merge loop.
+        thisValue = instruction;
+      }
+    });
+    for (LocalsHandler local in locals) {
+      local.directLocals.forEach((Element element, HInstruction instruction) {
+        HPhi phi = joinedLocals[element];
+        if (phi !== null) {
+          phi.addInput(instruction);
+        }
+      });
+    }
+    if (thisValue !== null) {
+      // If there was a "this" for the scope, add it to the new locals.
+      joinedLocals[closureData.thisElement] = thisValue;
+    }
+    directLocals = joinedLocals;
+    return this;
+  }
 }
 
 
@@ -958,16 +998,18 @@ class SsaBuilder implements Visitor {
                BreakHandler breakHandler) {
     HBasicBlock loopExitBlock = addNewBlock();
     assert(branchBlock.successors.length == 1);
+    List<LocalsHandler> breakLocals = <LocalsHandler>[];
+    breakHandler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
+      breakInstruction.block.addSuccessor(loopExitBlock);
+      breakLocals.add(locals);
+    });
     branchBlock.addSuccessor(loopExitBlock);
     open(loopExitBlock);
     localsHandler.endLoop(loopEntry);
-    breakHandler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
-      HBasicBlock joinBlock = addNewBlock();
-      breakInstruction.block.addSuccessor(joinBlock);
-      goto(current, joinBlock);
-      open(joinBlock);
-      localsHandler.mergeWith(locals, joinBlock);
-    });
+    if (!breakLocals.isEmpty()) {
+      breakLocals.add(localsHandler);
+      localsHandler = localsHandler.mergeMultiple(breakLocals, loopExitBlock);
+    }
   }
 
   // For while loops, initializer and update are null.
@@ -1077,7 +1119,8 @@ class SsaBuilder implements Visitor {
     open(conditionBlock);
     visit(node.condition);
     assert(!isAborted());
-    conditionBlock = close(new HLoopBranch(popBoolified()));
+    conditionBlock = close(new HLoopBranch(popBoolified(),
+                                           HLoopBranch.DO_WHILE_LOOP));
 
     conditionBlock.addSuccessor(loopEntryBlock);  // The back-edge.
     loopEntryBlock.postProcessLoopHeader();
@@ -2146,30 +2189,31 @@ class SsaBuilder implements Visitor {
       compiler.unimplemented(
           "SsaBuilder for labeled statement with aborting body", node: node);
     }
-    HBasicBlock exitBlock = current;
+
+    HBasicBlock joinBlock = graph.addNewBlock();
+    List<LocalsHandler> breakLocals = <LocalsHandler>[];
     handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
-      HBasicBlock joinBlock = graph.addNewBlock();
       breakInstruction.block.addSuccessor(joinBlock);
-      if (!isAborted()) {
-        goto(current, joinBlock);
-        open(joinBlock);
-        localsHandler.mergeWith(locals, joinBlock);
-      } else {
-        open(joinBlock);
-        localsHandler = locals;
-      }
+      breakLocals.add(locals);
     });
-    if (current !== exitBlock) {
+    bool hasBreak = breakLocals.length > 0;
+    if (!isAborted()) {
+      goto(current, joinBlock);
+      breakLocals.add(localsHandler);
+    }
+    localsHandler = beforeLocals.mergeMultiple(breakLocals, joinBlock);
+
+    if (hasBreak) {
       // There was at least one reachable break, so the label is needed.
       HLabeledBlockInformation blockInfo =
           new HLabeledBlockInformation(entryBlock, current,
                                        handler.labels());
       handler.close();
-      entryBlock.labeledBlockInformation = blockInfo;
       // Mark both entry and exit with the information. You can
       // tell which one is which by comparing with blockInfo.start/end.
       // It doesn't matter which merge block we use, they won't be generating
       // any code, so put the end-marker on the last join block.
+      entryBlock.labeledBlockInformation = blockInfo;
       current.labeledBlockInformation = blockInfo;
     }
   }

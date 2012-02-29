@@ -297,7 +297,8 @@ class SsaDeadPhiEliminator {
     // Remove phis that are not live.
     // Traverse in reverse order to remove phis with no uses before the
     // phis that they might use.
-    // TODO(lrn): Handle cyclic usages.
+    // NOTICE: Doesn't handle circular references, but we don't currently
+    // create any.
     List<HBasicBlock> blocks = graph.blocks;
     for (int i = blocks.length - 1; i >= 0; i--) {
       HBasicBlock block = blocks[i];
@@ -306,7 +307,7 @@ class SsaDeadPhiEliminator {
       while (current != null) {
         next = current.next;
         if (!livePhis.contains(current)) {
-          current.block.removePhi(current);
+          block.removePhi(current);
         }
         current = next;
       }

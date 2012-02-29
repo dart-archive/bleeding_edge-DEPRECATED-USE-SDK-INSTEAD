@@ -1353,7 +1353,7 @@ class HInvokeBinary extends HInvokeStatic {
     }
     return leftType.combine(rightType);
   }
-  
+
   abstract HInstruction fold(HGraph graph);
   abstract evaluate(num a, num b);
 }
@@ -1790,21 +1790,17 @@ class HIf extends HConditionalBranch {
 }
 
 class HLoopBranch extends HConditionalBranch {
-  HLoopBranch(HInstruction condition) : super(<HInstruction>[condition]);
+  static final int CONDITION_FIRST_LOOP = 0;
+  static final int DO_WHILE_LOOP = 1;
+
+  final int kind;
+  HLoopBranch(HInstruction condition, [this.kind = CONDITION_FIRST_LOOP])
+      : super(<HInstruction>[condition]);
   toString() => 'loop-branch';
   accept(HVisitor visitor) => visitor.visitLoopBranch(this);
 
   bool isDoWhile() {
-    bool result = block.dominatedBlocks.length == 1;
-    if (result) {
-      // The first successor is the loop-body and thus a back-edge.
-      assert(block.successors[0].id < block.id);
-      assert(block.dominatedBlocks[0] === block.successors[1]);
-    } else {
-      assert(block.dominatedBlocks[0] === block.successors[0]);
-      assert(block.dominatedBlocks[1] === block.successors[1]);;
-    }
-    return result;
+    return kind === DO_WHILE_LOOP;
   }
 }
 
@@ -1885,10 +1881,12 @@ class HPhi extends HInstruction {
   // The order of the [inputs] must correspond to the order of the
   // predecessor-edges. That is if an input comes from the first predecessor
   // of the surrounding block, then the input must be the first in the [HPhi].
-  HPhi.singleInput(this.element, HInstruction input)
-      : super(<HInstruction>[input]);
-  HPhi.manyInputs(this.element, List<HInstruction> inputs)
-      : super(inputs);
+  HPhi(this.element, List<HInstruction> inputs) : super(inputs);
+  HPhi.noInputs(Element element) : this(element, <HInstruction>[]);
+  HPhi.singleInput(Element element, HInstruction input)
+      : this(element, <HInstruction>[input]);
+  HPhi.manyInputs(Element element, List<HInstruction> inputs)
+      : this(element, inputs);
 
   void addInput(HInstruction input) {
     assert(isInBasicBlock());
