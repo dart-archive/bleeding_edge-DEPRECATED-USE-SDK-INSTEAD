@@ -261,6 +261,13 @@
                   id="com.google.dart.tools.ui.BroadcastCommand"
                   name="BroadcastCommand">
             </command>
+       <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.ui.internal.handlers.GenerateJavascriptHandler"
+            description="%command.generateJavascript.name"
+            id="com.google.dart.tools.ui.generateJavascript"
+            name="%command.generateJavascript.name">
+      </command>
    </extension>
    
    <extension

@@ -20,7 +20,7 @@ import com.google.dart.tools.debug.ui.launch.ManageLaunchesAction;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
-import com.google.dart.tools.ui.actions.DeployOptimizedAction;
+import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
@@ -169,7 +169,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private DartRunAction dartRunAction;
 
-  private IWorkbenchAction deployOptimizedAction;
+  private GenerateJavascriptAction deployOptimizedAction;
 
   private IWorkbenchAction importResourcesAction;
 
@@ -462,7 +462,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     dartRunAction = new DartRunAction(window);
 
-    deployOptimizedAction = new DeployOptimizedAction(window);
+    deployOptimizedAction = new GenerateJavascriptAction(window);
 
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
     register(newApplicationWizardAction);

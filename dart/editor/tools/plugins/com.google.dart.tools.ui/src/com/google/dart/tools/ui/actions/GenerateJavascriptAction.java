@@ -50,14 +50,14 @@ import org.eclipse.ui.console.IConsoleConstants;
 /**
  * An action to create an optimized Javascript build of a Dart library.
  */
-public class DeployOptimizedAction extends AbstractInstrumentedAction implements IWorkbenchAction,
-    ISelectionListener, IPartListener {
+public class GenerateJavascriptAction extends AbstractInstrumentedAction implements
+    IWorkbenchAction, ISelectionListener, IPartListener {
 
   class DeployOptimizedJob extends Job {
     private DartLibrary library;
 
     public DeployOptimizedJob(IWorkbenchPage page, DartLibrary library) {
-      super(ActionMessages.DeployOptimizedAction_jobTitle);
+      super(ActionMessages.GenerateJavascriptAction_jobTitle);
 
       this.library = library;
 
@@ -75,7 +75,7 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
 
         try {
           monitor.beginTask(
-              ActionMessages.DeployOptimizedAction_Compiling + library.getElementName(),
+              ActionMessages.GenerateJavascriptAction_Compiling + library.getElementName(),
               IProgressMonitor.UNKNOWN);
 
           FrogCompiler.compileLibrary(library, monitor, DartCore.getConsole());
@@ -88,7 +88,7 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
           return Status.CANCEL_STATUS;
         } catch (Exception exception) {
           DartCore.getConsole().println(
-              NLS.bind(ActionMessages.DeployOptimizedAction_FailException, exception.toString()));
+              NLS.bind(ActionMessages.GenerateJavascriptAction_FailException, exception.toString()));
 
           return Status.CANCEL_STATUS;
         } finally {
@@ -104,13 +104,13 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
 
   private Object selectedObject;
 
-  public DeployOptimizedAction(IWorkbenchWindow window) {
+  public GenerateJavascriptAction(IWorkbenchWindow window) {
     this.window = window;
 
-    setText(ActionMessages.DeployOptimizedAction_title);
-    setId(DartToolsPlugin.PLUGIN_ID + ".deployOptimizedAction"); //$NON-NLS-1$
-    setDescription(ActionMessages.DeployOptimizedAction_description);
-    setToolTipText(ActionMessages.DeployOptimizedAction_tooltip);
+    setText(ActionMessages.GenerateJavascriptAction_title);
+    setActionDefinitionId("com.google.dart.tools.ui.generateJavascript");
+    setDescription(ActionMessages.GenerateJavascriptAction_description);
+    setToolTipText(ActionMessages.GenerateJavascriptAction_tooltip);
     //setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/library_opt.png"));
     setEnabled(false);
 
@@ -177,8 +177,8 @@ public class DeployOptimizedAction extends AbstractInstrumentedAction implements
 
     if (library == null) {
       MessageDialog.openError(window.getShell(),
-          ActionMessages.DeployOptimizedAction_unableToLaunch,
-          ActionMessages.DeployOptimizedAction_noneSelected);
+          ActionMessages.GenerateJavascriptAction_unableToLaunch,
+          ActionMessages.GenerateJavascriptAction_noneSelected);
     } else {
       DeployOptimizedJob job = new DeployOptimizedJob(page, library);
       job.schedule(isSaveNeeded ? 100 : 0);
