@@ -47,6 +47,9 @@ public class PrefixSearchPattern implements SearchPattern {
 
   @Override
   public MatchQuality matches(DartElement element) {
+    if (element == null) {
+      return null;
+    }
     String name = element.getElementName();
     if (name == null) {
       return null;
