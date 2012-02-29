@@ -363,7 +363,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     GridLayoutFactory.fillDefaults().margins(12, 6).applyTo(parent);
 
     SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
-    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(675, 325).applyTo(
+    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(675, 340).applyTo(
         sashForm);
 
     Composite leftComposite = new Composite(sashForm, SWT.NONE);

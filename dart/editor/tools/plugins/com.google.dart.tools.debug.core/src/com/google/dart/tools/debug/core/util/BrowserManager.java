@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.core.util;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -376,7 +377,7 @@ public class BrowserManager {
     if (stderr.length() != 0) {
       msg.append("Dartium stderr: ").append(stderr);
     }
-    if (DartSdk.getInstance().isLinux()) {
+    if (DartCore.isLinux()) {
       msg.append("\nFor information on how to setup your machine to run Dartium visit ");
       msg.append("http://code.google.com/p/dart/wiki/PreparingYourMachine#Linux");
     }

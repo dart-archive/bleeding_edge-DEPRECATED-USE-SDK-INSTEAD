@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.ui.internal.browser;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.frog.FrogCompiler;
 import com.google.dart.tools.core.frog.FrogCompiler.CompilationResult;
+import com.google.dart.tools.core.frog.ProcessRunner;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.HTMLFile;
@@ -34,9 +35,7 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -44,10 +43,13 @@ import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.console.IConsoleConstants;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Launches the Dart application (compiled to js) in the browser.
@@ -164,48 +166,36 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     }
   }
 
-  private Program findProgram(String name) {
-    Program[] programs = Program.getPrograms();
-    for (Program program : programs) {
-      if (program.getName().equals(name)) {
-        return program;
-      }
-    }
-
-    return null;
-  }
-
   private void launchInExternalBrowser(DartLaunchConfigWrapper launchConfig, final String url)
       throws CoreException {
-    final String browserName = launchConfig.getBrowserName();
-    final int result[] = new int[1];
 
-    if (!browserName.isEmpty()) {
-      Display.getDefault().asyncExec(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            Program program = findProgram(browserName);
+    String browserName = launchConfig.getBrowserName();
+    List<String> cmd = new ArrayList<String>();
 
-            if (program != null) {
-              program.execute(url);
-              result[0] = 0;
-            } else {
-              result[0] = -1;
-            }
-          } catch (Throwable t) {
-            DartDebugCorePlugin.logError(t);
-            MessageDialog.openError(Display.getDefault().getActiveShell(), "Launch Browser Error",
-                t.getMessage());
-          }
-        }
-      });
-
-      if (result[0] == -1) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-            Messages.BrowserLaunchConfigurationDelegate_BrowserNotFound));
-      }
+    if (DartCore.isMac()) {
+      // use open command on mac
+      cmd.add("/usr/bin/open");
+      cmd.add("-a");
     }
+    cmd.add(browserName);
+    cmd.add(url);
+
+    try {
+      ProcessBuilder builder = new ProcessBuilder(cmd);
+      ProcessRunner runner = new ProcessRunner(builder);
+      runner.run(null);
+      sleep(500);
+
+      if (runner.getExitCode() != 0) {
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID,
+            "Could not launch browser \"" + browserName + "\" : \n\n" + runner.getStdErr()));
+      }
+
+    } catch (IOException e) {
+      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+          Messages.BrowserLaunchConfigurationDelegate_BrowserNotFound, e));
+    }
+
   }
 
   private void showConsole() {
@@ -220,6 +210,13 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
         }
       }
     });
+  }
+
+  private void sleep(int millis) {
+    try {
+      Thread.sleep(millis);
+    } catch (Exception exception) {
+    }
   }
 
 }

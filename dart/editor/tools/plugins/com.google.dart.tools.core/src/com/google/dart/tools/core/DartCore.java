@@ -507,6 +507,15 @@ public class DartCore extends Plugin {
     return isLikeFileName(fileName, JS_FILE_EXTENSIONS);
   }
 
+  public static boolean isLinux() {
+    return !isMac() && !isWindows();
+  }
+
+  public static boolean isMac() {
+    // Look for the "Mac" OS name.
+    return System.getProperty("os.name").toLowerCase().startsWith("mac");
+  }
+
   /**
    * Return <code>true</code> if the given file name's extension is an HTML-like extension.
    * 
@@ -515,6 +524,11 @@ public class DartCore extends Plugin {
    */
   public static boolean isTXTLikeFileName(String fileName) {
     return isLikeFileName(fileName, TXT_FILE_EXTENSIONS);
+  }
+
+  public static boolean isWindows() {
+    // Look for the "Windows" OS name.
+    return System.getProperty("os.name").toLowerCase().startsWith("win");
   }
 
   /**

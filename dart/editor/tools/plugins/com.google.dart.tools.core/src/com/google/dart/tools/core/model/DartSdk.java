@@ -110,7 +110,7 @@ public class DartSdk {
    * Returns the directory where dartium can be found in the dart-sdk
    */
   public String getDartiumWorkingDirectory() {
-    if (isWindows() || isMac()) {
+    if (DartCore.isWindows() || DartCore.isMac()) {
       return sdkPath.toOSString();
     } else {
       return sdkPath.toOSString().concat("/chromium");
@@ -175,12 +175,8 @@ public class DartSdk {
     return false;
   }
 
-  public boolean isLinux() {
-    return !isMac() && !isWindows();
-  }
-
   protected void initializeSdk() {
-    if (!isWindows()) {
+    if (!DartCore.isWindows()) {
       ensureVmIsExecutable();
     }
   }
@@ -202,7 +198,7 @@ public class DartSdk {
   }
 
   private String getBinaryName() {
-    if (isWindows()) {
+    if (DartCore.isWindows()) {
       return "dart.exe";
     } else {
       return "dart";
@@ -210,23 +206,13 @@ public class DartSdk {
   }
 
   private String getDartiumBinaryName() {
-    if (isWindows()) {
+    if (DartCore.isWindows()) {
       return "Chromium.exe";
-    } else if (isMac()) {
+    } else if (DartCore.isMac()) {
       return "Chromium.app/Contents/MacOS/Chromium";
     } else {
       return "chromium/chrome";
     }
-  }
-
-  private boolean isMac() {
-    // Look for the "Mac" OS name.
-    return System.getProperty("os.name").toLowerCase().startsWith("mac");
-  }
-
-  private boolean isWindows() {
-    // Look for the "Windows" OS name.
-    return System.getProperty("os.name").toLowerCase().startsWith("win");
   }
 
   /**

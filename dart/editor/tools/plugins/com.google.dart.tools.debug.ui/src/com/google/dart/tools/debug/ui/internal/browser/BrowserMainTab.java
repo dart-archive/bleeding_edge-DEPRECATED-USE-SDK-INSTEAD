@@ -23,44 +23,26 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.layout.PixelConverter;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.ui.dialogs.ListDialog;
+import org.eclipse.swt.widgets.Text;
 
 /**
  * Main launch tab for Browser launch configurations
  */
 public class BrowserMainTab extends DartiumMainTab {
 
-  private class ProgramLabelProvider extends LabelProvider {
-    @Override
-    public Image getImage(Object element) {
-      ImageData data = ((Program) element).getImageData();
-      return (data == null) ? null : new Image(Display.getDefault(), data);
-    }
-
-    @Override
-    public String getText(Object element) {
-      return ((Program) element).getName();
-    }
-  }
-
-  private Label browserText;
-  private Button defaultBrowserButton;
   private Button selectBrowserButton;
+  private Button defaultBrowserButton;
+  private Text browserText;
 
   @Override
   public void createControl(Composite parent) {
@@ -93,7 +75,9 @@ public class BrowserMainTab extends DartiumMainTab {
       public void widgetSelected(SelectionEvent e) {
         if (defaultBrowserButton.getSelection()) {
           selectBrowserButton.setEnabled(false);
+          browserText.setEnabled(false);
         } else {
+          browserText.setEnabled(true);
           selectBrowserButton.setEnabled(true);
         }
         notifyPanelChanged();
@@ -102,10 +86,9 @@ public class BrowserMainTab extends DartiumMainTab {
 
     Label browserLabel = new Label(browserGroup, SWT.NONE);
     browserLabel.setText(Messages.BrowserMainTab_Browser);
-    GridDataFactory.swtDefaults().hint(getLabelColumnWidth(), -1).applyTo(browserLabel);
+    GridDataFactory.swtDefaults().hint(getLabelColumnWidth(), -1).span(3, 1).applyTo(browserLabel);
 
-    browserText = new Label(browserGroup, SWT.NONE);
-    browserText.setBackground(composite.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+    browserText = new Text(browserGroup, SWT.BORDER | SWT.SINGLE);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(browserText);
 
     selectBrowserButton = new Button(browserGroup, SWT.PUSH);
@@ -216,20 +199,14 @@ public class BrowserMainTab extends DartiumMainTab {
   }
 
   private void handleBrowserConfigBrowseButton() {
-    ListDialog listDialog = new ListDialog(getShell());
-    listDialog.setTitle(Messages.BrowserMainTab_DialogTitle);
-    listDialog.setMessage(Messages.BrowserMainTab_DialogMessage);
 
-    listDialog.setLabelProvider(new ProgramLabelProvider());
-    listDialog.setContentProvider(new ArrayContentProvider());
-    listDialog.setInput(Program.getPrograms());
+    FileDialog fd = new FileDialog(getShell(), SWT.OPEN);
 
-    if (listDialog.open() == Window.OK) {
-      Object[] result = listDialog.getResult();
-      browserText.setText(((Program) result[0]).getName());
-      notifyPanelChanged();
+    String filePath = fd.open();
+
+    if (filePath != null) {
+      browserText.setText(filePath);
     }
-
   }
 
 }
