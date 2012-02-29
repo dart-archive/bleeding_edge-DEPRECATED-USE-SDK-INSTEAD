@@ -178,8 +178,12 @@ class ClosureTranslator extends AbstractVisitor {
              closureData.freeVariableMapping[element] == element);
       closureData.freeVariableMapping[element] = element;
     } else if (inTryCatchOrFinally) {
-      // TODO(ngeoffray): only do this if the variable is mutated.
-      closureData.usedVariablesInTry.add(element);
+      // Don't mark the this-element. This would complicate things in the
+      // builder.
+      if (element != closureData.thisElement) {
+        // TODO(ngeoffray): only do this if the variable is mutated.
+        closureData.usedVariablesInTry.add(element);
+      }
     }
   }
 

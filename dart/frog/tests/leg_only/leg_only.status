@@ -10,7 +10,6 @@ ClassTest: Fail
 StatementsTest: Fail
 TypedLocalsTest: Fail
 ForeignTest: Fail # JS methods are only visible within core library.
-ClosureCapture3Test: Fail # TODO(floitsch): Investigate.
 
 
 [ $mode == debug ]
