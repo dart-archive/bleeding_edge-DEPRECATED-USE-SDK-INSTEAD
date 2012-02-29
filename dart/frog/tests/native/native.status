@@ -6,6 +6,7 @@ prefix frog_native
 
 [ $component == frog || $component == frogsh ]
 NativePropertyFrogTest: Fail
+NativeMissingMethod1FrogTest: Fail # Issue 1912
 
 
 [ $checked ]
