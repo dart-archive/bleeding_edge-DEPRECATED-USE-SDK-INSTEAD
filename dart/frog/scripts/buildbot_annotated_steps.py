@@ -143,7 +143,10 @@ def TestFrog(arch, mode, system, browser, flags):
     # Ideally we can run most Chrome tests in DumpRenderTree because it's more
     # debuggable, but still have some tests run the full browser.
     # Also: we don't have DumpRenderTree on Windows yet
-    if browser == 'chrome' and not system.startswith('win'):
+    # TODO(efortuna): Move Mac back to DumpRenderTree when we have a more stable
+    # solution for DRT. Right now DRT is flakier than regular Chrome for the
+    # isolate tests, so we're switching to use Chrome in the short term.
+    if browser == 'chrome' and system == 'linux':
       TestStep('browser', mode, system, 'frogium', tests, flags)
     else:
       additional_flags = ['--browser=' + browser]
