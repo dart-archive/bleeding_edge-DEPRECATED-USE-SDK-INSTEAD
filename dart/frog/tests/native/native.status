@@ -4,5 +4,13 @@
 
 prefix frog_native
 
-[ $component == webdriver ]
+[ $component == frog || $component == frogsh ]
+NativePropertyFrogTest: Fail
+
+
+[ $checked ]
+NativeCheckedFieldsFrogTest: Fail
+
+
+[ $component == webdriver || $component == dartc || $component == chromium || $component == dartium || $component == frogium ]
 *: Skip

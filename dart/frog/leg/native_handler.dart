@@ -128,13 +128,28 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     });
     String foreignParameters = Strings.join(arguments, ',');
 
-    String methodName = builder.compiler.namer.instanceMethodName(
-        element.name, parameters.parameterCount);
+    String dartMethodName;
+    String nativeMethodName = element.name.slowToString();
+    String nativeMethodCall;
+
+    if (element.kind == ElementKind.FUNCTION) {
+      dartMethodName = builder.compiler.namer.instanceMethodName(
+          element.name, parameters.parameterCount);
+      nativeMethodCall = '$receiver$nativeMethodName($foreignParameters)';
+    } else if (element.kind == ElementKind.GETTER) {
+      dartMethodName = builder.compiler.namer.getterName(element.name);
+      nativeMethodCall = '$receiver$nativeMethodName';
+    } else if (element.kind == ElementKind.SETTER) {
+      dartMethodName = builder.compiler.namer.setterName(element.name);
+      nativeMethodCall = '$receiver$nativeMethodName = $foreignParameters';
+    } else {
+      builder.compiler.internalError('unexpected kind: "${element.kind}"',
+                                     element: element);
+    }
 
     HInstruction thenInstruction;
     void visitThen() {
-      SourceString jsCode = new SourceString(
-          '$receiver${element.name.slowToString()}($foreignParameters)');
+      SourceString jsCode = new SourceString(nativeMethodCall);
       thenInstruction =
           new HForeign(jsCode, const SourceString('Object'), inputs);
       builder.add(thenInstruction);
@@ -148,7 +163,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     } else {
       // If the method is an instance method, we generate the following code:
       // function(params) {
-      //   return Object.getPrototypeOf(this).hasOwnProperty(methodName))
+      //   return Object.getPrototypeOf(this).hasOwnProperty(dartMethodName))
       //      ? this.methodName(params)
       //      : Object.prototype.methodName.call(this, params);
       // }
@@ -161,7 +176,8 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       // method does not have subclasses.
       HInstruction elseInstruction;
       void visitElse() {
-        SourceString jsCode = new SourceString('Object.prototype.$methodName');
+        SourceString jsCode =
+            new SourceString('Object.prototype.$dartMethodName');
         HInstruction instruction =
             new HForeign(jsCode, const SourceString('Object'), []);
         builder.add(instruction);
@@ -175,7 +191,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       }
 
       HLiteral literal = builder.graph.addNewLiteralString(
-          new DartString.literal('$methodName'));
+          new DartString.literal('$dartMethodName'));
       SourceString jsCode = new SourceString(
           'Object.getPrototypeOf(\$0).hasOwnProperty(\$1)');
       builder.push(new HForeign(

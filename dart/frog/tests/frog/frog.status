@@ -24,7 +24,6 @@ Node*Test: Skip
 
 [ $component == frog || $component == frogsh || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == leg ]
 FrogServerTest: Skip
-NativePropertyFrogTest: Fail
 
 
 [ $component == webdriver ]
