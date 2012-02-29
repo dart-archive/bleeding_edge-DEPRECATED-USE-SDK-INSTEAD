@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(ahe): Remove this file and use the shared one.
+
 // Hash map implementation with open addressing and quadratic probing.
 class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
 
@@ -156,14 +158,13 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
       // [key] can be either of type [K] or [_DeletedKeySentinel].
       Object key = oldKeys[i];
       // If there is no key, we don't need to deal with the current slot.
-      if (key === null || key === _DELETED_KEY) {
-        continue;
+      if (key !== null && key !== _DELETED_KEY) {
+        V value = oldValues[i];
+        // Insert the {key, value} pair in their new slot.
+        int newIndex = _probeForAdding(key);
+        _keys[newIndex] = key;
+        _values[newIndex] = value;
       }
-      V value = oldValues[i];
-      // Insert the {key, value} pair in their new slot.
-      int newIndex = _probeForAdding(key);
-      _keys[newIndex] = key;
-      _values[newIndex] = value;
     }
     _numberOfDeleted = 0;
   }
@@ -321,7 +322,7 @@ class HashSetImplementation<E extends Hashable> implements HashSet<E> {
   }
 
   bool isSubsetOf(Collection<E> other) {
-    return new Set<E>.from(other).containsAll(this);
+    return new Set.from(other).containsAll(this);
   }
 
   void removeAll(Collection<E> collection) {

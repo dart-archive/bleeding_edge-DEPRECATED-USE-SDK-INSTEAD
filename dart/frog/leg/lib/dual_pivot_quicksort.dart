@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(ahe): Remove this file and use the shared one.
+
 /**
  * Dual-Pivot Quicksort algorithm.
  *
@@ -135,8 +137,8 @@ class DualPivotQuicksort {
       for (int k = less; k <= great; k++) {
         var ak = a[k];
         int comp = compare(ak, pivot);
-        if (comp == 0) continue;
-        if (comp < 0) {
+        if (comp == 0) {
+        } else if (comp < 0) {
           if (k != less) {
             a[k] = a[less];
             a[less] = ak;
@@ -158,7 +160,7 @@ class DualPivotQuicksort {
               great--;
               // This is the only location in the while-loop where a new
               // iteration is started.
-              continue;
+              // continue;
             } else if (comp < 0) {
               // Triple exchange.
               a[k] = a[less];
@@ -213,7 +215,7 @@ class DualPivotQuicksort {
                 if (great < k) break;
                 // This is the only location inside the loop where a new
                 // iteration is started.
-                continue;
+                // continue;
               } else {
                 // a[great] <= pivot2.
                 comp = compare(a[great], pivot1);
@@ -303,7 +305,7 @@ class DualPivotQuicksort {
                 if (great < k) break;
                 // This is the only location inside the loop where a new
                 // iteration is started.
-                continue;
+                // continue;
               } else {
                 // a[great] < pivot2.
                 comp = compare(a[great], pivot1);

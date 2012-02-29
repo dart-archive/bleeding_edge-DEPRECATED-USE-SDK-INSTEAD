@@ -278,11 +278,9 @@ builtin$removeLast$0(var receiver) {
 
 builtin$filter$1(var receiver, var predicate) {
   checkNull(receiver);
-  if (isJsArray(receiver)) {
-    return JS('Object', @'$0.filter(function(v) { return $1(v) === true; })',
-              receiver, predicate);
-  }
-  return UNINTERCEPTED(receiver.filter(predicate));
+  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.filter(predicate));
+
+  return Collections.filter(receiver, [], predicate);
 }
 
 
@@ -807,6 +805,12 @@ builtin$some$1(receiver, f) {
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.some(f));
 
   return Collections.some(receiver, f);
+}
+
+builtin$every$1(receiver, f) {
+  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.every(f));
+
+  return Collections.every(receiver, f);
 }
 
 builtin$sort$1(receiver, compare) {
