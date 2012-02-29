@@ -60,6 +60,8 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
       IProgressMonitor monitor) throws CoreException {
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
 
+    launchConfig.markAsLaunched();
+
     launchVM(launch, launchConfig, monitor);
   }
 

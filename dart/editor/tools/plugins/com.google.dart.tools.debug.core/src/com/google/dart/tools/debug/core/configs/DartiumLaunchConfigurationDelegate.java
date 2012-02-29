@@ -57,6 +57,8 @@ public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDeleg
 
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
 
+    launchConfig.markAsLaunched();
+
     boolean enableDebugging = launchConfig.getEnableDebugging();
 
     // Launch the browser - show errors if we couldn't.

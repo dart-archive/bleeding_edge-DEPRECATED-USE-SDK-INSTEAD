@@ -49,6 +49,8 @@ public class DartLaunchConfigWrapper {
 
   private static final String PROJECT_NAME = "projectName";
 
+  private static final String LAST_LAUNCH_TIME = "launchTime";
+
   private ILaunchConfiguration launchConfig;
 
   /**
@@ -186,6 +188,23 @@ public class DartLaunchConfigWrapper {
   }
 
   /**
+   * @return the last time this config was launched, or 0 or no such
+   */
+  public long getLastLaunchTime() {
+    try {
+      String value = launchConfig.getAttribute(LAST_LAUNCH_TIME, "0");
+
+      return Long.parseLong(value);
+    } catch (NumberFormatException ex) {
+      return 0;
+    } catch (CoreException ce) {
+      DartDebugCorePlugin.logError(ce);
+
+      return 0;
+    }
+  }
+
+  /**
    * @return the DartProject that contains the application to run
    */
   public IProject getProject() {
@@ -269,6 +288,23 @@ public class DartLaunchConfigWrapper {
     }
 
     return args.toArray(new String[args.size()]);
+  }
+
+  /**
+   * Indicate that this launch configuration was just launched.
+   */
+  public void markAsLaunched() {
+    try {
+      ILaunchConfigurationWorkingCopy workingCopy = launchConfig.getWorkingCopy();
+
+      long launchTime = System.currentTimeMillis();
+
+      workingCopy.setAttribute(LAST_LAUNCH_TIME, Long.toString(launchTime));
+
+      workingCopy.doSave();
+    } catch (CoreException ce) {
+      DartDebugCorePlugin.logError(ce);
+    }
   }
 
   /**

@@ -14,10 +14,13 @@
 
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
+import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -73,6 +76,8 @@ import java.lang.reflect.InvocationTargetException;
 @SuppressWarnings("restriction")
 public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConfigurationDialog,
     ILaunchConfigurationListener {
+  private IWorkbenchWindow window;
+
   private TableViewer launchesViewer;
   private Composite configUI;
   private Text configNameText;
@@ -87,6 +92,8 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
   public ManageLaunchesDialog(IWorkbenchWindow window) {
     super(window.getShell());
+
+    this.window = window;
 
     setShellStyle(getShellStyle() | SWT.RESIZE);
   }
@@ -431,7 +438,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
     sashForm.setWeights(new int[] {30, 70});
 
-    selectFirstLaunchConfig();
+    selectLaunchConfigFromPage();
   }
 
   private ILaunchConfiguration getConfigurationNamed(String name) {
@@ -468,10 +475,6 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     launchesViewer.refresh();
   }
 
-//  private boolean isDirty() {
-//    return workingCopy == null ? false : workingCopy.isDirty();
-//  }
-
   private void saveConfig() {
     if (currentTabGroup != null) {
       currentTabGroup.performApply(workingCopy);
@@ -488,12 +491,35 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     updateMessage();
   }
 
+//  private boolean isDirty() {
+//    return workingCopy == null ? false : workingCopy.isDirty();
+//  }
+
   private void selectFirstLaunchConfig() {
     final ILaunchConfiguration launchConfig = (ILaunchConfiguration) launchesViewer.getElementAt(0);
 
     if (launchConfig != null && launchesViewer.getSelection().isEmpty()) {
       launchesViewer.setSelection(new StructuredSelection(launchConfig));
     }
+  }
+
+  private void selectLaunchConfigFromPage() {
+    IResource resource = LaunchUtils.getSelectedResource(window);
+
+    if (resource != null) {
+      try {
+        ILaunchConfiguration config = LaunchUtils.getLaunchFor(resource);
+
+        if (config != null) {
+          launchesViewer.setSelection(new StructuredSelection(config));
+          return;
+        }
+      } catch (DartModelException exception) {
+        DartUtil.logError(exception);
+      }
+    }
+
+    selectFirstLaunchConfig();
   }
 
   private void show(ILaunchConfiguration config) {

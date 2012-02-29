@@ -14,40 +14,24 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
-import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
+import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionProvider;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.IWorkbenchWindow;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A toolbar action to enumerate a launch debug launch configurations.
@@ -76,115 +60,51 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
 
   @Override
   public void run() {
-    IResource resource = getSelectedResource();
+    try {
+      IResource resource = LaunchUtils.getSelectedResource(window);
 
-    if (resource == null) {
-      chooseAndLaunch(getAllLaunches());
+      if (resource == null) {
+        List<ILaunchConfiguration> launches = LaunchUtils.getAllLaunches();
 
-      return;
-    }
-
-    // TODO(devoncarew): we should first check if any existing launch configs match the given resource
-
-    // TODO(devoncarew): then check if any config types can launch it
-
-    List<ILaunchShortcut> shortcuts = LaunchUtils.getLaunchShortcuts();
-
-    List<ILaunchShortcut> candidates = new ArrayList<ILaunchShortcut>();
-
-    for (ILaunchShortcut shortcut : shortcuts) {
-      if (shortcut instanceof ILaunchShortcutExt) {
-        ILaunchShortcutExt handler = (ILaunchShortcutExt) shortcut;
-
-        if (handler.canLaunch(resource)) {
-          candidates.add(shortcut);
+        if (launches.size() == 0) {
+          MessageDialog.openInformation(getWindow().getShell(), "Unable to Run",
+              "Unable to run the current selection. Please choose a file in a library with a main() function.");
+        } else {
+          chooseAndLaunch(launches);
         }
-      }
-    }
 
-    ISelection sel = new StructuredSelection(resource);
-
-    if (candidates.size() == 0 && resource instanceof IProject) {
-      IProject project = (IProject) resource;
-
-      chooseAndLaunch(getLaunchesFor(project));
-    } else {
-      if (candidates.size() == 0) {
-        MessageDialog.openInformation(getWindow().getShell(), "Unable to Run", "Unable to run "
-            + resource.getName() + ".");
-      } else if (candidates.size() == 1) {
-        launch(candidates.get(0), sel);
+        return;
       } else {
-        Set<ILaunchConfiguration> configs = new LinkedHashSet<ILaunchConfiguration>();
-
-        for (ILaunchShortcut shortcut : candidates) {
-          ILaunchShortcutExt handler = (ILaunchShortcutExt) shortcut;
-
-          configs.addAll(Arrays.asList(handler.getAssociatedLaunchConfigurations(resource)));
-        }
-
-        if (configs.size() == 0) {
-          launch(candidates.get(0), sel);
-        } else if (configs.size() > 0) {
-          chooseAndLaunch(new ArrayList<ILaunchConfiguration>(configs));
-        }
+        launchResource(resource);
       }
+    } catch (Throwable exception) {
+      // We need to defensively show all errors coming out of here - the user needs feedback as
+      // to why their launch didn't work.
+      DartUtil.logError(exception);
+
+      DebugErrorHandler.errorDialog(window.getShell(), "Error During Launch",
+          "Internal error during launch - please report this using the feedback mechanism!",
+          exception);
     }
   }
 
-  protected IResource getSelectedResource() {
-    IWorkbenchPage page = getWindow().getActivePage();
+  protected void launchResource(IResource resource) throws DartModelException {
+    ILaunchConfiguration config = LaunchUtils.getLaunchFor(resource);
 
-    if (page == null) {
-      return null;
-    }
+    if (config != null) {
+      launch(config);
+    } else {
+      List<ILaunchShortcut> candidates = LaunchUtils.getApplicableLaunchShortcuts(resource);
 
-    IWorkbenchPart part = page.getActivePart();
+      if (candidates.size() == 0) {
+        MessageDialog.openInformation(getWindow().getShell(), "Unable to Run", "Unable to run "
+            + resource.getName() + ". Please choose a file in a library with a main() function.");
+      } else {
+        ISelection sel = new StructuredSelection(resource);
 
-    if (part instanceof IEditorPart) {
-      IEditorPart epart = (IEditorPart) part;
-
-      return (IResource) epart.getEditorInput().getAdapter(IResource.class);
-    } else if (part != null) {
-      IWorkbenchPartSite site = part.getSite();
-
-      if (site != null) {
-        ISelectionProvider provider = site.getSelectionProvider();
-
-        if (provider != null) {
-          ISelection selection = provider.getSelection();
-
-          if (selection instanceof IStructuredSelection) {
-            IStructuredSelection ss = (IStructuredSelection) selection;
-
-            if (!ss.isEmpty()) {
-              Iterator<?> iterator = ss.iterator();
-
-              while (iterator.hasNext()) {
-                Object next = iterator.next();
-
-                if (next instanceof DartElement) {
-                  next = ((DartElement) next).getResource();
-                }
-
-                IResource resource = (IResource) Platform.getAdapterManager().getAdapter(next,
-                    IResource.class);
-
-                if (resource != null) {
-                  return resource;
-                }
-              }
-            }
-          }
-        }
+        launch(candidates.get(0), sel);
       }
     }
-
-    if (page.getActiveEditor() != null) {
-      return (IResource) page.getActiveEditor().getEditorInput().getAdapter(IResource.class);
-    }
-
-    return null;
   }
 
   private boolean chooseAndLaunch(List<ILaunchConfiguration> launches) {
@@ -207,37 +127,4 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
     }
   }
 
-  private List<ILaunchConfiguration> getAllLaunches() {
-    try {
-      return Arrays.asList(DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations());
-    } catch (CoreException exception) {
-      DartUtil.logError(exception);
-
-      return Collections.emptyList();
-    }
-  }
-
-  private List<ILaunchConfiguration> getLaunchesFor(IProject project) {
-    List<ILaunchConfiguration> launches = new ArrayList<ILaunchConfiguration>();
-
-    for (ILaunchConfiguration config : getAllLaunches()) {
-      try {
-        if (config.getMappedResources() == null) {
-          continue;
-        }
-
-        for (IResource resource : config.getMappedResources()) {
-          if (project.equals(resource.getProject())) {
-            if (!launches.contains(config)) {
-              launches.add(config);
-            }
-          }
-        }
-      } catch (CoreException exception) {
-        DartUtil.logError(exception);
-      }
-    }
-
-    return launches;
-  }
 }

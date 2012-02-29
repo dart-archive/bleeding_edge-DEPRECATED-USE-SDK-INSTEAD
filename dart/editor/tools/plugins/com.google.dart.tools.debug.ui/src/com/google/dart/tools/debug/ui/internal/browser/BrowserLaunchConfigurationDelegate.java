@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
@@ -63,7 +64,10 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
   public void launch(ILaunchConfiguration config, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
     mode = ILaunchManager.RUN_MODE;
+
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(config);
+    launchConfig.markAsLaunched();
+
     String url;
 
     if (launchConfig.getShouldLaunchFile()) {
@@ -118,6 +122,8 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     } else {
       launchInExternalBrowser(launchConfig, url);
     }
+
+    DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
   }
 
   /**
@@ -149,8 +155,11 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
               DartCore.getConsole());
 
           if (result.getExitCode() != 0) {
-            String errMsg = NLS.bind("Failure to launch - unable to generate Javascript for {0}.",
-                resource.getName());
+            String errMsg = NLS.bind(
+                "Failure to launch - unable to generate Javascript for {0}.\n\n{1}",
+                resource.getName(), result.getAllOutput());
+
+            errMsg = errMsg.trim();
 
             throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, errMsg));
           }
