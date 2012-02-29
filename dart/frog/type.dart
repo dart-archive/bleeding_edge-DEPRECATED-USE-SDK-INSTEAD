@@ -915,11 +915,9 @@ class DefinedType extends Type {
       if (definition.values != null) {
         value = definition.values[i];
       }
-      var field = new FieldMember(name, this, definition, value);
+      var field =
+          new FieldMember(name, this, definition, value, isNative: isNative);
       members[name] = field;
-      if (isNative) {
-        field.isNative = true;
-      }
     }
   }
 

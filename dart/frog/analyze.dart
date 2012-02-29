@@ -164,8 +164,7 @@ class MethodAnalyzer implements TreeVisitor {
   }
 
   MethodMember _makeLambdaMethod(String name, FunctionDefinition func) {
-    var meth = new MethodMember(name, method.declaringType, func);
-    meth.isLambda = true;
+    var meth = new MethodMember.lambda(name, method.declaringType, func);
     meth.enclosingElement = method;
     meth._methodData = new MethodData(meth, _frame);
     meth.resolve();

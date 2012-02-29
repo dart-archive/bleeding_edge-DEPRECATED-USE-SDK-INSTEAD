@@ -89,9 +89,22 @@ class Member extends Element {
 
   Member(String name, Type declaringType)
       : this.declaringType = declaringType,
-        super(name, declaringType) {
-    if (_jsname != null && declaringType != null && declaringType.isTop) {
-      _jsname = JsNames.getValid(_jsname);
+        super(name, declaringType);
+
+  String mangleJsName() {
+    var mangled = super.mangleJsName();
+    if (mangled == 'split') {
+      // Hack: We don't want Dart's String.split to overwrite the
+      // existing JS String.prototype.split method. By mangling it we
+      // ensure that frog will not use the 'split' name, thus leaving
+      // the original JS String.prototype.split untouched.
+      return 'split_';
+    } else if (declaringType != null && declaringType.isTop) {
+      return JsNames.getValid(mangled);
+    } else {
+      // We don't need to mangle native member names unless
+      // they contain illegal characters.
+      return (isNative && !name.contains(':')) ? name : mangled;
     }
   }
 
@@ -368,7 +381,7 @@ class FieldMember extends Member {
 
   bool isStatic;
   bool isFinal;
-  bool isNative;
+  final bool isNative;
 
   // TODO(jimhug): Better notion of fields that need special handling...
   bool get overridesProperty() {
@@ -413,8 +426,9 @@ class FieldMember extends Member {
     }
   }
 
-  FieldMember(String name, Type declaringType, this.definition, this.value)
-      : super(name, declaringType), isNative = false;
+  FieldMember(String name, Type declaringType, this.definition, this.value,
+              [bool this.isNative = false])
+      : super(name, declaringType);
 
   Member makeConcrete(Type concreteType) {
     var ret = new FieldMember(name, concreteType, definition, value);
@@ -422,7 +436,6 @@ class FieldMember extends Member {
     ret._jsname = _jsname;
     return ret;
   }
-
 
   SourceSpan get span() => definition == null ? null : definition.span;
 
@@ -701,7 +714,7 @@ class MethodMember extends Member {
   bool isFactory = false;
 
   /** True if this is a function defined inside another method. */
-  bool isLambda = false;
+  final bool isLambda;
 
   /**
    * True if we should provide info on optional parameters for use by runtime
@@ -716,7 +729,10 @@ class MethodMember extends Member {
   Member initDelegate;
 
   MethodMember(String name, Type declaringType, this.definition)
-      : super(name, declaringType);
+      : isLambda = false, super(name, declaringType);
+
+  MethodMember.lambda(String name, Type declaringType, this.definition)
+      : isLambda = true, super(name, declaringType);
 
   Member makeConcrete(Type concreteType) {
     var _name = isConstructor ? concreteType.name : name;
@@ -738,7 +754,10 @@ class MethodMember extends Member {
   bool get isConstructor() => name == declaringType.name;
   bool get isMethod() => !isConstructor;
 
-  bool get isNative() => definition.nativeBody != null;
+  bool get isNative() {
+    if (definition == null) return false;
+    return definition.nativeBody != null;
+  }
 
   bool get canGet() => true;
   bool get canSet() => false;

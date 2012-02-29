@@ -333,13 +333,7 @@ class World {
         'try', 'typeof', 'var', 'void', 'while', 'with',
         'class', 'enum', 'export', 'extends', 'import', 'super',
         'implements', 'interface', 'let', 'package', 'private',
-        'protected', 'public', 'static', 'yield',
-        // Hack: we don't want Dart's String.split to overwrite the existing
-        // JS String.split method. By adding 'split' to the keyword-set we
-        // ensure that frog will not use the 'split' name but mangle it, thus
-        // leaving the original JS String.split untouched.
-        'split',
-        'native']);
+        'protected', 'public', 'static', 'yield', 'native']);
     }
     if (_jsKeywords.contains(name)) {
       return name + '_';

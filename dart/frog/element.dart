@@ -18,7 +18,11 @@ class Element implements Hashable {
   Element _enclosingElement;
 
   Element(this.name, this._enclosingElement) {
-    _jsname = world.toJsIdentifier(name);
+    if (name !== null) {
+      String mangled = mangleJsName();
+      assert(!mangled.contains(':'));
+      _jsname = mangled;
+    }
   }
 
   // TODO - walk tree
@@ -49,6 +53,12 @@ class Element implements Hashable {
 
   /** Resolve types and other references in the [Element]. */
   void resolve() {}
+
+  /**
+   * By default we mangle the JS name of an element to avoid
+   * giving them names that clash with JS keywords.
+   */
+  String mangleJsName() => world.toJsIdentifier(name);
 
   /**
    * Any type parameters that this element defines to setup a generic

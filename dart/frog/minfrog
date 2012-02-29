@@ -2136,8 +2136,7 @@ MethodAnalyzer.prototype._visitArgs = function(arguments) {
   return new Arguments(arguments, args);
 }
 MethodAnalyzer.prototype._makeLambdaMethod = function(name, func) {
-  var meth = new MethodMember(name, this.method.declaringType, func);
-  meth.set$isLambda(true);
+  var meth = new MethodMember.lambda$ctor(name, this.method.declaringType, func);
   meth.set$enclosingElement(this.method);
   meth.set$_methodData(new MethodData(meth, this._frame));
   meth.resolve();
@@ -3143,7 +3142,10 @@ CoreJs.prototype.generate = function(w) {
 function Element(name, _enclosingElement) {
   this.name = name;
   this._enclosingElement = _enclosingElement;
-  this._jsname = $globals.world.toJsIdentifier(this.name);
+  if (null != this.name) {
+    var mangled = this.mangleJsName();
+    this._jsname = mangled;
+  }
 }
 Element.prototype.get$name = function() { return this.name; };
 Element.prototype.set$name = function(value) { return this.name = value; };
@@ -3174,6 +3176,9 @@ Element.prototype.get$jsnamePriority = function() {
 }
 Element.prototype.resolve = function() {
 
+}
+Element.prototype.mangleJsName = function() {
+  return $globals.world.toJsIdentifier(this.name);
 }
 Element.prototype.get$typeParameters = function() {
   return null;
@@ -4316,8 +4321,7 @@ MethodGenerator.prototype._loopFixedPoint = function(node, visitBody) {
   this.counters = savedCounters;
 }
 MethodGenerator.prototype._makeLambdaMethod = function(name, func) {
-  var meth = new MethodMember(name, this.method.declaringType, func);
-  meth.set$isLambda(true);
+  var meth = new MethodMember.lambda$ctor(name, this.method.declaringType, func);
   meth.set$enclosingElement(this.method);
   meth.set$_methodData(new MethodData(meth, this));
   meth.resolve();
@@ -5252,13 +5256,22 @@ function Member(name, declaringType) {
   this._provideSetter = false;
   this.declaringType = declaringType;
   Element.call(this, name, declaringType);
-  if (this._jsname != null && declaringType != null && declaringType.get$isTop()) {
-    this._jsname = JsNames.getValid(this._jsname);
-  }
 }
 Member.prototype.get$declaringType = function() { return this.declaringType; };
 Member.prototype.get$genericMember = function() { return this.genericMember; };
 Member.prototype.set$genericMember = function(value) { return this.genericMember = value; };
+Member.prototype.mangleJsName = function() {
+  var mangled = Element.prototype.mangleJsName.call(this);
+  if ($eq$(mangled, "split")) {
+    return "split_";
+  }
+  else if (this.declaringType != null && this.declaringType.get$isTop()) {
+    return JsNames.getValid(mangled);
+  }
+  else {
+    return (this.get$isNative() && !this.name.contains(":")) ? this.name : mangled;
+  }
+}
 Member.prototype.get$library = function() {
   return this.declaringType.get$library();
 }
@@ -6005,8 +6018,8 @@ TypeMember.prototype.invoke = function(context, node, target, args) {
 }
 // ********** Code for FieldMember **************
 $inherits(FieldMember, Member);
-function FieldMember(name, declaringType, definition, value) {
-  this.isNative = false;
+function FieldMember(name, declaringType, definition, value, isNative) {
+  this.isNative = isNative;
   this.definition = definition;
   this._computing = false;
   this.value = value;
@@ -6019,7 +6032,6 @@ FieldMember.prototype.get$isStatic = function() { return this.isStatic; };
 FieldMember.prototype.set$isStatic = function(value) { return this.isStatic = value; };
 FieldMember.prototype.get$isFinal = function() { return this.isFinal; };
 FieldMember.prototype.get$isNative = function() { return this.isNative; };
-FieldMember.prototype.set$isNative = function(value) { return this.isNative = value; };
 FieldMember.prototype.override = function(other) {
   if (!Member.prototype.override.call(this, other)) return false;
   if (other.get$isProperty() || other.get$isField()) {
@@ -6043,7 +6055,7 @@ FieldMember.prototype.provideSetter = function() {
   }
 }
 FieldMember.prototype.makeConcrete = function(concreteType) {
-  var ret = new FieldMember(this.name, concreteType, this.definition, this.value);
+  var ret = new FieldMember(this.name, concreteType, this.definition, this.value, false);
   ret.set$genericMember(this);
   ret.set$_jsname(this._jsname);
   return ret;
@@ -6278,6 +6290,17 @@ function MethodMember(name, declaringType, definition) {
   this.isStatic = false;
   Member.call(this, name, declaringType);
 }
+MethodMember.lambda$ctor = function(name, declaringType, definition) {
+  this.isLambda = true;
+  this._provideOptionalParamInfo = false;
+  this.isFactory = false;
+  this.definition = definition;
+  this.isConst = false;
+  this.isAbstract = false;
+  this.isStatic = false;
+  Member.call(this, name, declaringType);
+}
+MethodMember.lambda$ctor.prototype = MethodMember.prototype;
 MethodMember.prototype.get$definition = function() { return this.definition; };
 MethodMember.prototype.get$returnType = function() { return this.returnType; };
 MethodMember.prototype.set$returnType = function(value) { return this.returnType = value; };
@@ -6290,7 +6313,6 @@ MethodMember.prototype.get$isAbstract = function() { return this.isAbstract; };
 MethodMember.prototype.set$isAbstract = function(value) { return this.isAbstract = value; };
 MethodMember.prototype.get$isConst = function() { return this.isConst; };
 MethodMember.prototype.get$isFactory = function() { return this.isFactory; };
-MethodMember.prototype.set$isLambda = function(value) { return this.isLambda = value; };
 MethodMember.prototype.get$initDelegate = function() { return this.initDelegate; };
 MethodMember.prototype.set$initDelegate = function(value) { return this.initDelegate = value; };
 MethodMember.prototype.makeConcrete = function(concreteType) {
@@ -6314,6 +6336,7 @@ MethodMember.prototype.get$isMethod = function() {
   return !this.get$isConstructor();
 }
 MethodMember.prototype.get$isNative = function() {
+  if (this.definition == null) return false;
   return this.definition.nativeBody != null;
 }
 MethodMember.prototype.get$canGet = function() {
@@ -11841,7 +11864,6 @@ DefinedType.prototype.get$factories = function() { return this.factories; };
 DefinedType.prototype.get$_concreteTypes = function() { return this._concreteTypes; };
 DefinedType.prototype.get$isUsed = function() { return this.isUsed; };
 DefinedType.prototype.get$isNative = function() { return this.isNative; };
-DefinedType.prototype.set$isNative = function(value) { return this.isNative = value; };
 DefinedType.prototype.set$baseGenericType = function(value) { return this.baseGenericType = value; };
 DefinedType.prototype.get$genericType = function() {
   return null == this.baseGenericType ? this : this.baseGenericType;
@@ -12164,11 +12186,8 @@ DefinedType.prototype.addField = function(definition) {
     if (definition.values != null) {
       value = definition.values.$index(i);
     }
-    var field = new FieldMember(name, this, definition, value);
+    var field = new FieldMember(name, this, definition, value, this.isNative);
     this.members.$setindex(name, field);
-    if (this.isNative) {
-      field.set$isNative(true);
-    }
   }
 }
 DefinedType.prototype.getFactory = function(type, constructorName) {
@@ -14051,7 +14070,7 @@ World.prototype._addType = function(type) {
 World.prototype.toJsIdentifier = function(name) {
   if (name == null) return null;
   if (this._jsKeywords == null) {
-    this._jsKeywords = HashSetImplementation.HashSetImplementation$from$factory(["break", "case", "catch", "continue", "debugger", "default", "delete", "do", "else", "finally", "for", "function", "if", "in", "instanceof", "new", "return", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with", "class", "enum", "export", "extends", "import", "super", "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield", "split", "native"]);
+    this._jsKeywords = HashSetImplementation.HashSetImplementation$from$factory(["break", "case", "catch", "continue", "debugger", "default", "delete", "do", "else", "finally", "for", "function", "if", "in", "instanceof", "new", "return", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with", "class", "enum", "export", "extends", "import", "super", "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield", "native"]);
   }
   if (this._jsKeywords.contains(name)) {
     return $add$(name, "_");
