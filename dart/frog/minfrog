@@ -1874,30 +1874,55 @@ EnvMap.prototype.$index = function(key) {
 }
 // ********** Code for ReadableStream **************
 // ********** Code for WritableStream **************
-$defProp(Object.prototype, '$typeNameOf', function() {
-  var constructor = this.constructor;
-  if (typeof(constructor) == 'function') {
-    // The constructor isn't null or undefined at this point. Try
-    // to grab hold of its name.
-    var name = constructor.name;
-    // If the name is a non-empty string, we use that as the type
-    // name of this object. On Firefox, we often get 'Object' as
-    // the constructor name even for more specialized objects so
-    // we have to fall through to the toString() based implementation
-    // below in that case.
-    if (name && typeof(name) == 'string' && name != 'Object') return name;
+$defProp(Object.prototype, '$typeNameOf', (function() {
+  function constructorNameWithFallback(obj) {
+    var constructor = obj.constructor;
+    if (typeof(constructor) == 'function') {
+      // The constructor isn't null or undefined at this point. Try
+      // to grab hold of its name.
+      var name = constructor.name;
+      // If the name is a non-empty string, we use that as the type
+      // name of this object. On Firefox, we often get 'Object' as
+      // the constructor name even for more specialized objects so
+      // we have to fall through to the toString() based implementation
+      // below in that case.
+      if (typeof(name) == 'string' && name && name != 'Object') return name;
+    }
+    var string = Object.prototype.toString.call(obj);
+    return string.substring(8, string.length - 1);
   }
-  var string = Object.prototype.toString.call(this);
-  var name = string.substring(8, string.length - 1);
-  if (name == 'Window') {
-    name = 'DOMWindow';
-  } else if (name == 'Document') {
-    name = 'HTMLDocument';
-  } else if (name == 'XMLDocument') {
-    name = 'Document';
+
+  function chrome$typeNameOf() {
+    return this.constructor.name;
   }
-  return name;
-});
+
+  function firefox$typeNameOf() {
+    var name = constructorNameWithFallback(this);
+    if (name == 'Window') return 'DOMWindow';
+    if (name == 'Document') return 'HTMLDocument';
+    if (name == 'XMLDocument') return 'Document';
+    return name;
+  }
+
+  function ie$typeNameOf() {
+    var name = constructorNameWithFallback(this);
+    if (name == 'Window') return 'DOMWindow';
+    // IE calls both HTML and XML documents 'Document', so we check for the
+    // xmlVersion property, which is the empty string on HTML documents.
+    if (name == 'Document' && this.xmlVersion) return 'Document';
+    if (name == 'Document') return 'HTMLDocument';
+    return name;
+  }
+
+  // If we're not in the browser, we're almost certainly running on v8.
+  if (typeof(navigator) != 'object') return chrome$typeNameOf;
+
+  var userAgent = navigator.userAgent;
+  if (/Chrome/.test(userAgent)) return chrome$typeNameOf;
+  if (/Firefox/.test(userAgent)) return firefox$typeNameOf;
+  if (/MSIE/.test(userAgent)) return ie$typeNameOf;
+  return function() { return constructorNameWithFallback(this); };
+})());
 function $dynamic(name) {
   var f = Object.prototype[name];
   if (f && f.methods) return f.methods;
@@ -3082,7 +3107,7 @@ CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
   this._generatedTypeNameOf = true;
   this.ensureDefProp();
-  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', function() {\n  var constructor = this.constructor;\n  if (typeof(constructor) == 'function') {\n    // The constructor isn't null or undefined at this point. Try\n    // to grab hold of its name.\n    var name = constructor.name;\n    // If the name is a non-empty string, we use that as the type\n    // name of this object. On Firefox, we often get 'Object' as\n    // the constructor name even for more specialized objects so\n    // we have to fall through to the toString() based implementation\n    // below in that case.\n    if (name && typeof(name) == 'string' && name != 'Object') return name;\n  }\n  var string = Object.prototype.toString.call(this);\n  var name = string.substring(8, string.length - 1);\n  if (name == 'Window') {\n    name = 'DOMWindow';\n  } else if (name == 'Document') {\n    name = 'HTMLDocument';\n  } else if (name == 'XMLDocument') {\n    name = 'Document';\n  }\n  return name;\n});");
+  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', (function() {\n  function constructorNameWithFallback(obj) {\n    var constructor = obj.constructor;\n    if (typeof(constructor) == 'function') {\n      // The constructor isn't null or undefined at this point. Try\n      // to grab hold of its name.\n      var name = constructor.name;\n      // If the name is a non-empty string, we use that as the type\n      // name of this object. On Firefox, we often get 'Object' as\n      // the constructor name even for more specialized objects so\n      // we have to fall through to the toString() based implementation\n      // below in that case.\n      if (typeof(name) == 'string' && name && name != 'Object') return name;\n    }\n    var string = Object.prototype.toString.call(obj);\n    return string.substring(8, string.length - 1);\n  }\n\n  function chrome$typeNameOf() {\n    return this.constructor.name;\n  }\n\n  function firefox$typeNameOf() {\n    var name = constructorNameWithFallback(this);\n    if (name == 'Window') return 'DOMWindow';\n    if (name == 'Document') return 'HTMLDocument';\n    if (name == 'XMLDocument') return 'Document';\n    return name;\n  }\n\n  function ie$typeNameOf() {\n    var name = constructorNameWithFallback(this);\n    if (name == 'Window') return 'DOMWindow';\n    // IE calls both HTML and XML documents 'Document', so we check for the\n    // xmlVersion property, which is the empty string on HTML documents.\n    if (name == 'Document' && this.xmlVersion) return 'Document';\n    if (name == 'Document') return 'HTMLDocument';\n    return name;\n  }\n\n  // If we're not in the browser, we're almost certainly running on v8.\n  if (typeof(navigator) != 'object') return chrome$typeNameOf;\n\n  var userAgent = navigator.userAgent;\n  if (/Chrome/.test(userAgent)) return chrome$typeNameOf;\n  if (/Firefox/.test(userAgent)) return firefox$typeNameOf;\n  if (/MSIE/.test(userAgent)) return ie$typeNameOf;\n  return function() { return constructorNameWithFallback(this); };\n})());");
 }
 CoreJs.prototype.ensureInheritsHelper = function() {
   if (this._generatedInherits) return;
