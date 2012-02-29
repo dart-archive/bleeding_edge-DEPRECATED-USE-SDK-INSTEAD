@@ -1,53 +1,7 @@
 <html>
 <head>
-<script src="../htmlrunner.js"></script>
-<script>
-window.onload = function(){
-startTest("dom-attr");
-
-// Try to force real results
-var ret, tmp;
-
-var elem = document.getElementById("test1");
-var a = document.getElementsByTagName("a")[0];
-var num = 10240;
-	
-	test( "getAttribute", function(){
-		for ( var i = 0; i < num; i++ )
-			ret = elem.getAttribute("id");
-	});
-
-	test( "element.property", function(){
-		for ( var i = 0; i < num * 2; i++ )
-			ret = elem.id;
-	});
-
-	test( "setAttribute", function(){
-		for ( var i = 0; i < num; i++ )
-			a.setAttribute("id", "foo");
-	});
-
-	test( "element.property = value", function(){
-		for ( var i = 0; i < num; i++ )
-			a.id = "foo";
-	});
-
-        // Removing these two as Dart has no expandos.
-        /*
-	test( "element.expando = value", function(){
-		for ( var i = 0; i < num; i++ )
-			a["test" + num] = function(){};
-	});
-
-	test( "element.expando", function(){
-		for ( var i = 0; i < num; i++ )
-			ret = a["test" + num];
-	});
-        */
-
-endTest();
-};
-</script>
+<script type="application/dart" src="dom-query.dart"></script>
+<script src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script>
 </head>
 <body>
   <div class="head">
@@ -194,7 +148,7 @@ endTest();
 
   <div class="subtoc">
 
-   <h2 id="test1"><a name=contents>Table of contents</a></h2>
+   <h2 id="testF10"><a name=contents>Table of contents</a></h2>
 
    <ul class="toc">
     <li class="tocline2"><a href="#context">1. Introduction</a>
@@ -285,7 +239,7 @@ endTest();
 
   </div>
 
-  <h2><a name=context>1. Introduction</a></h2>
+  <h2 id="testA10"><a name=context>1. Introduction</a></h2>
 
   <h3><a name=dependencies></a>1.1. Dependencies</h3>
 
@@ -340,7 +294,7 @@ endTest();
 
   </ul>
 
-<h2><a name=selectors></a>2. Selectors</h2>
+<h2 id="testB10"><a name=selectors></a>2. Selectors</h2>
 
 <p><em>This section is non-normative, as it merely summarizes the
 following sections.</em></p>
@@ -654,14 +608,14 @@ representations.</p>
 prepending "matches" to the contents of each cell in the "Meaning"
 column.</p>
 
-<h2><a name=casesens>3. Case sensitivity</a></h2>
+<h2 id="testC10"><a name=casesens>3. Case sensitivity</a></h2>
 
 <p>The case sensitivity of document language element names, attribute
 names, and attribute values in selectors depends on the document
 language. For example, in HTML, element names are case-insensitive,
 but in XML, they are case-sensitive.</p>
 
-<h2><a name=selector-syntax>4. Selector syntax</a></h2>
+<h2 id="testD10"><a name=selector-syntax>4. Selector syntax</a></h2>
 
 <p>A <dfn><a name=selector>selector</a></dfn> is a chain of one
 or more <a href="#sequence">sequences of simple selectors</a>
@@ -709,7 +663,7 @@ simple selectors.</p>
 no pseudo-element, is an <a href="#Conformance">invalid
 selector</a>.</p>
 
-<h2><a name=grouping>5. Groups of selectors</a></h2>
+<h2 id="testE10"><a name=grouping>5. Groups of selectors</a></h2>
 
 <p>When several selectors share the same declarations, they may be
 grouped into a comma-separated list. (A comma is U+002C.)</p>
@@ -2795,7 +2749,7 @@ matching it. </div>
     <td>some selectors and combinators are not allowed in fragment
       descriptions on the right side of STTS declarations.</td></tr></tbody></table>
 <form>
-<input type="text" name="test1"/>
+<input type="text" name="test10"/>
 <input type="text" name="foo"/>
 <input type="text" name="foo"/>
 <input type="text" name="foo"/>
@@ -2855,7 +2809,7 @@ which is not allowed at the current parsing point.
   <li>a group of selectors containing an invalid selector is invalid.</li>
 </ul>
 
-<p class="foo test1 bar">Specifications reusing Selectors must define how to handle parsing
+<p class="foo test10 bar">Specifications reusing Selectors must define how to handle parsing
 errors. (In the case of CSS, the entire rule in which the selector is
 used is dropped.)</p>
 

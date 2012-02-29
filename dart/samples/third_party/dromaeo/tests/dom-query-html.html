@@ -2425,7 +2425,7 @@ attrib
             SUBSTRINGMATCH |
             '=' |
             INCLUDES |
-            DARTMATCH ] S* [ IDENT | STRING ] S*
+            DASHMATCH ] S* [ IDENT | STRING ] S*
         ]? ']'
   ;
 
@@ -2492,7 +2492,7 @@ w         [ \t\r\n\f]*
 [ \t\r\n\f]+     return S;
 
 "~="             return INCLUDES;
-"|="             return DARTMATCH;
+"|="             return DASHMATCH;
 "^="             return PREFIXMATCH;
 "$="             return SUFFIXMATCH;
 "*="             return SUBSTRINGMATCH;

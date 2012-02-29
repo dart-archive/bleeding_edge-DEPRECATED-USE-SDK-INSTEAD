@@ -106,11 +106,20 @@ class Dromaeo {
   }
 
   run() {
+    // TODO(vsm): Initial page should not run.  For now, run the Dart
+    // tests by default.
+    final splitUrl = window.location.href.split('?');
+    final tags = splitUrl.length == 2 ? splitUrl[1].split('|')
+        : ['dart'];
+
     // TODO(antonm): create Re-run tests href.
     final HTMLElement suiteNameElement = _byId('overview').firstChild;
-    suiteNameElement.innerHTML = 'DOM Core Tests';
+    final category = Suites.getCategory(tags);
+    if (category != null) {
+      suiteNameElement.innerHTML = category;
+    }
     _css(_byId('tests'), 'display', 'none');
-    for (SuiteDescription suite in Suites.SUITE_DESCRIPTIONS) {
+    for (SuiteDescription suite in Suites.getSuites(tags)) {
       final iframe = document.createElement('iframe');
       _css(iframe, 'height', '1px');
       _css(iframe, 'width', '1px');
