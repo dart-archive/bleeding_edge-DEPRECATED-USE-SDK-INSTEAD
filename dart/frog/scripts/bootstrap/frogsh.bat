@@ -10,4 +10,4 @@ REM Canonicalize the direction of the slashes.
 set script=%*
 set script=%script:\=/%
 
-node %SCRIPTPATH%\frogsh %script%
+node "%SCRIPTPATH%\frogsh" --no_colors %script%
