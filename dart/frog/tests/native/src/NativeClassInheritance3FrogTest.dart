@@ -7,7 +7,6 @@
 // noSuchMethod is cached on Object.prototype.
 
 class A1 native "*A1" {
-  foo() native;
 }
 
 class B1 extends A1 native "*B1" {
