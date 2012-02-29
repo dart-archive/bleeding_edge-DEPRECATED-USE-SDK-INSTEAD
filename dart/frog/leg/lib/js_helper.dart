@@ -1141,7 +1141,13 @@ class MathNatives {
     checkNull(str);
     if (str is !String) throw new IllegalArgumentException();
     var ret = JS('num', @'parseFloat($0)', str);
-    if (ret.isNaN() && str != 'NaN') throw new BadNumberFormatException(str);
+    if (ret == 0 && (str.startsWith("0x") || str.startsWith("0X"))) {
+      // TODO(ahe): This is unspecified, but tested by co19.
+      ret = JS('num', @'parseInt($0)', str);
+    }
+    if (ret.isNaN() && str != 'NaN' && str != '-NaN') {
+      throw new BadNumberFormatException(str);
+    }
     return ret;
   }
 

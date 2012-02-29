@@ -122,6 +122,7 @@ class HGraph {
   HLiteral trueLiteral;
   HLiteral falseLiteral;
   HLiteral nanLiteral;
+  HLiteral negativeZeroLiteral;
   Map<int, HLiteral> intLiterals;
   Map<double, HLiteral> doubleLiterals;
   Map<num, HLiteral> numLiterals;
@@ -172,8 +173,20 @@ class HGraph {
     return nanLiteral;
   }
 
+  HLiteral addNewNegativeZeroLiteral() {
+    if (negativeZeroLiteral === null) {
+      negativeZeroLiteral = new HLiteral.internal(-0.0, HType.DOUBLE);
+      entry.addAtExit(negativeZeroLiteral);
+    }
+    return negativeZeroLiteral;
+  }
+
   HLiteral addNewLiteralDouble(double value) {
     if (value.isNaN()) return addNewLiteralNaN();  // Avoid hashing NaN.
+    if (value == 0 && value.isNegative()) {
+      // Avoid hashing -0.0 as it compares equal to 0.0.
+      return addNewNegativeZeroLiteral();
+    }
     if (doubleLiterals === null) doubleLiterals = new Map<double, HLiteral>();
     HLiteral result = doubleLiterals[value];
     if (result === null) {
