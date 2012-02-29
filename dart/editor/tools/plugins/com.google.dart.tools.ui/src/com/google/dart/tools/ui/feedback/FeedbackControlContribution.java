@@ -25,6 +25,7 @@ import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
 
 /**
@@ -39,6 +40,8 @@ public class FeedbackControlContribution extends WorkbenchWindowControlContribut
   private Control control;
   private CLabel label;
   private boolean inControl;
+
+  private OpenFeedbackDialogAction openFeedbackDialogAction;
 
   public FeedbackControlContribution() {
     super(CONTRIB_ID);
@@ -60,7 +63,10 @@ public class FeedbackControlContribution extends WorkbenchWindowControlContribut
   }
 
   protected void handleSelection() {
-    new OpenFeedbackDialogAction(getWorkbenchWindow()).run();
+    if (openFeedbackDialogAction == null) {
+      openFeedbackDialogAction = createOpenDialogAction();
+    }
+    openFeedbackDialogAction.run();
   }
 
   private Control createLabel(Composite parent) {
@@ -81,6 +87,21 @@ public class FeedbackControlContribution extends WorkbenchWindowControlContribut
     GridDataFactory.fillDefaults().hint(4, 0).applyTo(spacer);
 
     return composite;
+  }
+
+  private OpenFeedbackDialogAction createOpenDialogAction() {
+    return new OpenFeedbackDialogAction(getWorkbenchWindow()) {
+      @Override
+      public void run() {
+        //if there is a dialog, give it focus, else open one
+        Shell shell = getDialogShell();
+        if (shell != null) {
+          shell.forceFocus();
+        } else {
+          super.run();
+        }
+      }
+    };
   }
 
   private void hookupLabelListeners() {

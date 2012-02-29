@@ -216,6 +216,11 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
   }
 
   @Override
+  protected int getShellStyle() {
+    return SWT.ON_TOP | SWT.MODELESS | SWT.CLOSE | SWT.MIN | SWT.MAX | SWT.RESIZE;
+  }
+
+  @Override
   protected boolean isResizable() {
     return true;
   }
