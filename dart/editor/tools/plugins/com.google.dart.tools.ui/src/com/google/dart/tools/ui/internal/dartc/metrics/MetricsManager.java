@@ -58,10 +58,9 @@ public class MetricsManager implements MetricsListener, ISelectionChangedListene
   public String[] metricTitles = {
       "total-compilation-time", "parse-time", "units-parsed", "src-chars-parsed",
       "src-lines-parsed", "non-comment-src-chars-parsed", "non-comment-src-lines-parsed",
-      "js-output-char-size", "js-native-lib-output-char-size",
-      "JS output characters consumed by nativelibraries", "Percent time spent parsing",
-      "Time spent per compilation Unit", "lines per ms", "non-comment lines per ms",
-      "output:input characters including comments", "output:input characters excluding comments"};
+      "js-native-lib-output-char-size", "JS output characters consumed by nativelibraries",
+      "Percent time spent parsing", "Time spent per compilation Unit", "lines per ms",
+      "non-comment lines per ms"};
 
   /**
    * Map from the name of a compilation unit to a map of statistic names and their values.
@@ -124,25 +123,20 @@ public class MetricsManager implements MetricsListener, ISelectionChangedListene
     statMap.put(metricTitles[4], String.valueOf(metrics.getNumLinesParsed()));
     statMap.put(metricTitles[5], String.valueOf(metrics.getNumNonCommentChars()));
     statMap.put(metricTitles[6], String.valueOf(metrics.getNumNonCommentLines()));
-    statMap.put(metricTitles[7], String.valueOf(metrics.getJSOutputCharSize()));
     if (metrics.getJSNativeLibCharSize() != -1) {
-      statMap.put(metricTitles[8], String.valueOf(metrics.getJSNativeLibCharSize()));
+      statMap.put(metricTitles[7], String.valueOf(metrics.getJSNativeLibCharSize()));
     } else {
-      statMap.put(metricTitles[8], "N/A");
+      statMap.put(metricTitles[7], "N/A");
     }
-    statMap.put(metricTitles[9],
+    statMap.put(metricTitles[8],
         Double.toString(roundTo(2, metrics.getPercentCharsConsumedByNativeLibraries())) + " %");
-    statMap.put(metricTitles[10], Double.toString(roundTo(2, metrics.getPercentTimeParsing()))
-        + "%");
-    statMap.put(metricTitles[11], Double.toString(roundTo(2, metrics.getTimeSpentPerUnit()))
+    statMap.put(metricTitles[9], Double.toString(roundTo(2, metrics.getPercentTimeParsing())) + "%");
+    statMap.put(metricTitles[10], Double.toString(roundTo(2, metrics.getTimeSpentPerUnit()))
         + " ms");
-    statMap.put(metricTitles[12], Double.toString(roundTo(2, metrics.getLinesPerMS()))
+    statMap.put(metricTitles[11], Double.toString(roundTo(2, metrics.getLinesPerMS()))
         + " lines/ms");
-    statMap.put(metricTitles[13], Double.toString(roundTo(2, metrics.getNonCommentLinesPerMS()))
+    statMap.put(metricTitles[12], Double.toString(roundTo(2, metrics.getNonCommentLinesPerMS()))
         + " lines/ms");
-    statMap.put(metricTitles[14], Double.toString(roundTo(2, metrics.getRatioOutputToInput())));
-    statMap.put(metricTitles[15],
-        Double.toString(roundTo(2, metrics.getRatioOutputToInputExcludingComments())));
     return statMap;
   }
 

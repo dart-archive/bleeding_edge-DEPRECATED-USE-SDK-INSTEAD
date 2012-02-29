@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.utilities.compiler;
 
-import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
@@ -25,7 +24,6 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.UrlSource;
-import com.google.dart.compiler.backend.js.AbstractJsBackend;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.tools.core.DartCore;
@@ -41,8 +39,6 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Utility class for "warming up" the compiler by loading artifacts and performing some simple
@@ -84,13 +80,6 @@ public class DartCompilerWarmup {
     public Writer getArtifactWriter(Source source, String part, String extension)
         throws IOException {
       if (source.getName().equals(WARMUP_DART)) {
-
-        // Don't write the final application JS and map files
-
-        if (extension.equals(AbstractJsBackend.EXTENSION_APP_JS)) {
-          return new NullWriter();
-        }
-
         // Cache "warmup" artifacts locally so that they can be thrown away
 
         return super.getArtifactWriter(source, part, extension);
@@ -213,12 +202,6 @@ public class DartCompilerWarmup {
 
     try {
       CompilerConfiguration config = new DefaultCompilerConfiguration(options, sysLibMgr) {
-
-        @Override
-        public List<Backend> getBackends() {
-          return new ArrayList<Backend>();
-        }
-
         @Override
         public CompilerMetrics getCompilerMetrics() {
           return metrics;

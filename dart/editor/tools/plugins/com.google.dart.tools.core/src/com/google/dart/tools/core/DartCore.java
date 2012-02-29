@@ -104,6 +104,14 @@ public class DartCore extends Plugin {
   public static final String DART_PROBLEM_MARKER_TYPE = PLUGIN_ID + ".problem";
 
   /**
+   * Extension for single unit compiled into JavaScript.
+   * 
+   * @deprecated inline this constant or keep it, if still needed for frog
+   */
+  @Deprecated
+  public static final String EXTENSION_JS = "js";
+
+  /**
    * Cached extensions for CSS files.
    */
   private static final String[] CSS_FILE_EXTENSIONS = {"css"};

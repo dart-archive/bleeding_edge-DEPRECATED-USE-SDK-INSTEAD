@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartCompilationPhase;
@@ -23,8 +22,6 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.backend.js.AbstractJsBackend;
-import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.tools.core.DartCore;
@@ -47,12 +44,8 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubMonitor;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Reader;
@@ -114,20 +107,6 @@ public class DartcBuildHandler {
         IProject project = res.getProject();
         prerequisiteProjects.add(project);
       }
-      if (extension.startsWith(AbstractJsBackend.EXTENSION_APP_JS)) {
-        File appJsFile = getAppJsFile(source, part, extension);
-        if (appJsFile != null) {
-          if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
-            DartCore.logInformation("DartcBuildHandler.ArtifactProvider.getArtifactReader("
-                + source.getName() + ", " + part + ", " + extension + ") => file = "
-                + appJsFile.getAbsolutePath());
-          }
-          return new BufferedReader(new FileReader(appJsFile));
-        }
-        // Artifacts with an "app.js*" extension
-        // are cached only for the duration of this compilation
-        return super.getArtifactReader(source, part, extension);
-      }
       return rootProvider.getArtifactReader(source, part, extension);
     }
 
@@ -139,28 +118,6 @@ public class DartcBuildHandler {
     @Override
     public Writer getArtifactWriter(Source source, String part, String extension)
         throws IOException {
-      if (extension.startsWith(AbstractJsBackend.EXTENSION_APP_JS)) {
-        final File appJsFile = getAppJsFile(source, part, extension);
-        if (appJsFile != null) {
-          if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
-            DartCore.logInformation("DartcBuildHandler.ArtifactProvider.getArtifactWriter("
-                + source.getName() + ", " + part + ", " + extension + ") => file = "
-                + appJsFile.getAbsolutePath());
-          }
-          return new BufferedWriter(new FileWriter(appJsFile));
-        }
-        // Don't bother caching or writing source maps until we need them
-//        if (extension.equals(AbstractJsBackend.EXTENSION_APP_JS_SRC_MAP)) {
-//          if (DartCoreDebug.TRACE_ARTIFACT_PROVIDER) {
-//            DartCore.logInformation("DartcBuildHandler.ArtifactProvider.getArtifactWriter("
-//                + source.getName() + ", " + part + ", " + extension + ") => NullWriter");
-//          }
-//          return new NullWriter();
-//        }
-        // Otherwise, any artifact with an "app.js*" extension
-        // should be cached only for the duration of this compilation
-        return super.getArtifactWriter(source, part, extension);
-      }
       writeArtifactCount++;
       return rootProvider.getArtifactWriter(source, part, extension);
     }
@@ -184,30 +141,6 @@ public class DartcBuildHandler {
         outOfDateCount++;
       }
       return isOutOfDate;
-    }
-
-    /**
-     * Answer the final application JS file if that is what is specified
-     * 
-     * @return the file or <code>null</code> if it is not specified
-     */
-    private File getAppJsFile(Source source, String part, String extension) throws AssertionError {
-
-      // DartC currently generates *.js files for each class; we cache these files in memory
-      // When DartC asks for a the *.app.js file, we return a *.js file on disk
-
-      if (!AbstractJsBackend.EXTENSION_APP_JS.equals(extension) || !"".equals(part)) {
-        return null;
-      }
-      File srcFile = ResourceUtil.getFile(source);
-      if (srcFile == null) {
-        if (source == null) {
-          throw new AssertionError("Cannot write " + AbstractJsBackend.EXTENSION_APP_JS
-              + " for null source");
-        }
-        throw new AssertionError("Expected file for " + source.getName());
-      }
-      return DartBuilder.getJsAppArtifactFile(new Path(srcFile.getPath()));
     }
 
     private List<DartLibrary> getDartLibraries(IProject project) {
@@ -332,34 +265,12 @@ public class DartcBuildHandler {
         }
       }
 
-      // Delete the older style .app.js file, if it exists
-      // TODO (danrubel): remove after sufficient time has passed for old files to be cleaned up
-      file = libResource.getLocation().addFileExtension(JavascriptBackend.EXTENSION_APP_JS).toFile();
-      if (file.exists()) {
-        file.delete();
-      }
-
       // Call the Dart to JS compiler
       final LibrarySource libSource = libImpl.getLibrarySourceFile();
       final CompilerMetrics metrics = new CompilerMetrics();
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
       final CompilerConfiguration config = new DefaultCompilerConfiguration(new CompilerOptions(),
           libraryManager) {
-
-        @Override
-        public boolean checkOnly() {
-          return !shouldGenerateJs;
-        }
-
-        @Override
-        public List<Backend> getBackends() {
-          // Generate JS if this is a browser application
-          if (shouldGenerateJs && libImpl.isBrowserApplication()) {
-            return super.getBackends();
-          } else {
-            return new ArrayList<Backend>();
-          }
-        }
 
         @Override
         public CompilerMetrics getCompilerMetrics() {

@@ -27,7 +27,6 @@ import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -39,14 +38,8 @@ import java.util.List;
 class ErrorRecordingContext implements DartCompilerContext {
   private CompilerConfiguration configuration;
   {
-    try {
-      configuration = new DefaultCompilerConfiguration(new CompilerOptions(),
-          SystemLibraryManagerProvider.getSystemLibraryManager());
-    } catch (FileNotFoundException e) {
-      // Currently this exception is thrown only during isolation stub generation
-      // is specified ... a situation which we do not support.
-      throw new AssertionError(e);
-    }
+    configuration = new DefaultCompilerConfiguration(new CompilerOptions(),
+        SystemLibraryManagerProvider.getSystemLibraryManager());
   }
 
   private List<DartCompilationError> errors = new ArrayList<DartCompilationError>();

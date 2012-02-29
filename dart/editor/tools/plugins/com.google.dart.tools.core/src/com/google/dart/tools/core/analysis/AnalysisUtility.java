@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartCompilationError;
@@ -42,14 +41,7 @@ import java.util.HashMap;
  */
 class AnalysisUtility {
   private static final CompilerConfiguration config = new DefaultCompilerConfiguration(
-      new CompilerOptions(), SystemLibraryManagerProvider.getSystemLibraryManager(),
-      new Backend[] {}) {
-
-    @Override
-    public boolean checkOnly() {
-      return true;
-    }
-
+      new CompilerOptions(), SystemLibraryManagerProvider.getSystemLibraryManager()) {
     @Override
     public boolean incremental() {
       return false;

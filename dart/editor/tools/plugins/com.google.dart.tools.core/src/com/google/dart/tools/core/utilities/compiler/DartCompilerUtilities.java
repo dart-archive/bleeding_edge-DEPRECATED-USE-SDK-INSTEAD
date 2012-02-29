@@ -256,11 +256,6 @@ public class DartCompilerUtilities {
           libraryManager) {
 
         @Override
-        public boolean checkOnly() {
-          return true;
-        }
-
-        @Override
         public boolean incremental() {
           return true;
         }
@@ -423,11 +418,6 @@ public class DartCompilerUtilities {
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
       final CompilerConfiguration config = new DefaultCompilerConfiguration(new CompilerOptions(),
           libraryManager) {
-
-        @Override
-        public boolean checkOnly() {
-          return true;
-        }
 
         @Override
         public boolean incremental() {

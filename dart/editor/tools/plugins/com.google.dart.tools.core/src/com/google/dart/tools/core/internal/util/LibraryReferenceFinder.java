@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.core.internal.util;
 
-import com.google.dart.compiler.backend.js.JavascriptBackend;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -197,12 +195,6 @@ public class LibraryReferenceFinder {
       String scriptType = getAttributeValue(scriptTag, "type");
       if (scriptType == null || scriptType.equals("text/javascript")
           || scriptType.equals("application/javascript")) {
-        if (srcLocation.endsWith('.' + JavascriptBackend.EXTENSION_APP_JS)) {
-          String fileName = extractFileNameFromSrc(srcLocation);
-          fileName = fileName.substring(0,
-              fileName.length() - JavascriptBackend.EXTENSION_APP_JS.length() - 1);
-          libraryList.add(fileName);
-        }
         // Match the "Generate Optimized Javascript" default extension
         if (srcLocation.endsWith(".dart.js")) {
           String fileName = extractFileNameFromSrc(srcLocation);

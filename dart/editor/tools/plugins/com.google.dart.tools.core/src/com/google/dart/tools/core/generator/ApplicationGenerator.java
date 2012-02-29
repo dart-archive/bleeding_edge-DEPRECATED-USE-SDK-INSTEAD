@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.generator;
 
-import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -179,7 +178,6 @@ public class ApplicationGenerator extends AbstractGenerator {
     File iHtmlFile = getSystemFile(htmlFileName);
     substitutions.put("title", className);
     substitutions.put("dartSrcPath", applicationFileName);
-    substitutions.put("dartPath", applicationFileName + "." + JavascriptBackend.EXTENSION_APP_JS);
     execute("generated-html.txt", iHtmlFile, substitutions, monitor); //$NON-NLS-1$
     subMonitor.newChild(100);
     subMonitor.done();

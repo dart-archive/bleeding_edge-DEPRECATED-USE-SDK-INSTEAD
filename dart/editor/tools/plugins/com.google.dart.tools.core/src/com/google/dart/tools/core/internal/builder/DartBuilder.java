@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.Extensions;
@@ -45,7 +44,7 @@ public class DartBuilder extends IncrementalProjectBuilder {
    * @return the application file (may not exist)
    */
   public static File getJsAppArtifactFile(IPath sourceLocation) {
-    return sourceLocation.addFileExtension(JavascriptBackend.EXTENSION_JS).toFile();
+    return sourceLocation.addFileExtension(DartCore.EXTENSION_JS).toFile();
   }
 
   /**
