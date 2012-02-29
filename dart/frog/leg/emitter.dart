@@ -118,6 +118,7 @@ function(child, parent) {
     // stub arguments and the real method may be different.
 
     int count = 0;
+    int indexOfLastOptionalArgumentInParameters = positionalArgumentCount - 1;
     parameters.forEachParameter((Element element) {
       String jsName = JsNames.getValid(element.name.slowToString());
       if (count < positionalArgumentCount) {
@@ -126,25 +127,35 @@ function(child, parent) {
       } else {
         int index = names.indexOf(element.name);
         if (index != -1) {
+          indexOfLastOptionalArgumentInParameters = count;
           // The order of the named arguments is not the same as the
           // one in the real method (which is in Dart source order).
           argumentsBuffer[count] = jsName;
           parametersBuffer[selector.positionalArgumentCount + index] = jsName;
         } else {
-          var value = constants.writeJsCodeForVariable(new StringBuffer(),
-                                                       element);
-          argumentsBuffer[count] = value.toString();
+          Constant value = constants.initialVariableValues[element];
+          if (value == null) {
+            argumentsBuffer[count] = '(void 0)';
+          } else {
+            // If we have an optional value, we need to pass it to the
+            // JS function.
+            indexOfLastOptionalArgumentInParameters = count;
+            argumentsBuffer[count] =
+                constants.writeJsCode(new StringBuffer(), value).toString();
+          }
         }
       }
       count++;
     });
-    buffer.add('${Strings.join(parametersBuffer, ",")}) {\n');
-    String arguments = Strings.join(argumentsBuffer, ",");
+    String parametersString = Strings.join(parametersBuffer, ",");
+    buffer.add('$parametersString) {\n');
 
     if (isNative) {
       nativeEmitter.emitParameterStub(
-          member, invocationName, arguments, buffer);
+          member, invocationName, parametersString, argumentsBuffer,
+          indexOfLastOptionalArgumentInParameters, buffer);
     } else {
+      String arguments = Strings.join(argumentsBuffer, ",");
       buffer.add('  return this.${namer.getName(member)}($arguments)');
   }
     buffer.add('\n}\n');

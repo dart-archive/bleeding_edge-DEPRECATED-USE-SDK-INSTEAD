@@ -304,7 +304,9 @@ function(inputTable) {
 
   void emitParameterStub(Element member,
                          String invocationName,
-                         String arguments,
+                         String stubParameters,
+                         List<String> argumentsBuffer,
+                         int indexOfLastOptionalArgumentInParameters,
                          StringBuffer buffer) {
     // If the method is native, we must check if the prototype of
     // 'this' has the method available. Otherwise, we may end up
@@ -314,12 +316,28 @@ function(inputTable) {
     // prototype of 'this' to the real method.
     // TODO(ngeoffray): We can avoid this if we know the class of this
     // method does not have subclasses.
+
+    // The target JS function may check arguments.length so we need to
+    // make sure not to pass any unspecified optional arguments to it.
+    // For example, for the following Dart method:
+    //   foo([x, y, z]);
+    // The call:
+    //   foo(y: 1)
+    // must be turned into a JS call to:
+    //   foo(null, y).
+
+    List<String> nativeArgumentsBuffer = argumentsBuffer.getRange(
+        0, indexOfLastOptionalArgumentInParameters + 1);
+
+    String nativeArguments = Strings.join(nativeArgumentsBuffer, ",");
+
     buffer.add('  if (Object.getPrototypeOf(this).hasOwnProperty(');
     buffer.add("'$invocationName')) {\n");
-    buffer.add('    return this.${compiler.namer.getName(member)}($arguments)');
+    buffer.add('    return this.${member.name.slowToString()}');
+    buffer.add('($nativeArguments)');
     buffer.add('\n  }\n');
     buffer.add('  return Object.prototype.$invocationName.call(this');
-    buffer.add(arguments == '' ? '' : ', $arguments');
+    buffer.add(stubParameters == '' ? '' : ', $stubParameters');
     buffer.add(');');
   }
 
