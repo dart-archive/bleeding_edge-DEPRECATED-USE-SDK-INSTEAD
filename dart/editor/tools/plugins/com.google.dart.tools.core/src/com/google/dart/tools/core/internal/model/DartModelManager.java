@@ -33,6 +33,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.DartPreferenceConstants;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.generator.DartProjectGenerator;
+import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.indexer.location.CompilationUnitLocation;
 import com.google.dart.tools.core.internal.indexer.location.FieldLocation;
 import com.google.dart.tools.core.internal.indexer.location.FunctionLocation;
@@ -1650,7 +1651,12 @@ public class DartModelManager {
     // Platform.getContentTypeManager().removeContentTypeChangeListener(this);
 
     // Stop indexing
-    StandardDriver.shutdown();
+    if (DartCoreDebug.NEW_INDEXER) {
+      InMemoryIndex.getInstance().getOperationProcessor().stop(true);
+      InMemoryIndex.getInstance().shutdown();
+    } else {
+      StandardDriver.shutdown();
+    }
 
     // Stop listening to preferences changes
     preferences.removePreferenceChangeListener(propertyListener);
@@ -1678,28 +1684,37 @@ public class DartModelManager {
    * Initiate the background indexing process. This should be deferred after the plug-in activation.
    */
   private void startIndexing() {
-    LocationPersitence lp = LocationPersitence.getInstance();
-    lp.registerLocationType(CompilationUnitLocation.TYPE); // C
-    lp.registerLocationType(FieldLocation.TYPE); // F
-    lp.registerLocationType(FunctionLocation.TYPE); // N
-    lp.registerLocationType(FunctionTypeAliasLocation.TYPE); // A
-    lp.registerLocationType(MethodLocation.TYPE); // M
-    lp.registerLocationType(SyntheticLocationType.getInstance()); // Z
-    lp.registerLocationType(TypeLocation.TYPE); // T
-    lp.registerLocationType(VariableLocation.TYPE); // V
+    if (DartCoreDebug.NEW_INDEXER) {
+      new Thread(new Runnable() {
+        @Override
+        public void run() {
+          InMemoryIndex.getInstance().getOperationProcessor().run();
+        }
+      }, "Index Operation Processor").start(); //$NON-NLS-0$
+    } else {
+      LocationPersitence lp = LocationPersitence.getInstance();
+      lp.registerLocationType(CompilationUnitLocation.TYPE); // C
+      lp.registerLocationType(FieldLocation.TYPE); // F
+      lp.registerLocationType(FunctionLocation.TYPE); // N
+      lp.registerLocationType(FunctionTypeAliasLocation.TYPE); // A
+      lp.registerLocationType(MethodLocation.TYPE); // M
+      lp.registerLocationType(SyntheticLocationType.getInstance()); // Z
+      lp.registerLocationType(TypeLocation.TYPE); // T
+      lp.registerLocationType(VariableLocation.TYPE); // V
 
-    StandardDriver.getInstance();
-    //
-    // TODO(brianwilkerson) The following line is a short-term work around. The issue is that when
-    // the indexer is out of sync we have no way to recognize that fact. The most common cause for
-    // the indexer getting out of sync is changes to the mementos for elements.
-    //
-    // StandardDriver.getInstance().rebuildIndex();
+      StandardDriver.getInstance();
+      //
+      // TODO(brianwilkerson) The following line is a short-term work around. The issue is that when
+      // the indexer is out of sync we have no way to recognize that fact. The most common cause for
+      // the indexer getting out of sync is changes to the mementos for elements.
+      //
+      // StandardDriver.getInstance().rebuildIndex();
 
-    DartCore.notYetImplemented();
-    // if (indexManager != null) {
-    // indexManager.reset();
-    // }
+      DartCore.notYetImplemented();
+      // if (indexManager != null) {
+      // indexManager.reset();
+      // }
+    }
   }
 
   private void startupImpl() {

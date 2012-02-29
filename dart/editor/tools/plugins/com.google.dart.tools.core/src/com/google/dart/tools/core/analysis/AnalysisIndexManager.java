@@ -18,6 +18,9 @@ import com.google.dart.indexer.standard.StandardDriver;
 import com.google.dart.indexer.workspace.driver.WorkspaceIndexingDriver;
 import com.google.dart.indexer.workspace.index.IndexingTarget;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
+import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.indexer.task.CompilationUnitIndexingTarget;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -36,10 +39,12 @@ import java.util.Set;
  * Forwards resolved units to the indexServer for processing
  */
 public class AnalysisIndexManager implements AnalysisListener {
+  private final InMemoryIndex index;
 
   private final WorkspaceIndexingDriver indexServer;
 
   public AnalysisIndexManager() {
+    index = InMemoryIndex.getInstance();
     indexServer = StandardDriver.getInstance();
   }
 
@@ -70,18 +75,38 @@ public class AnalysisIndexManager implements AnalysisListener {
     }
     DartLibrary library = (DartLibrary) element;
     Set<Entry<File, DartUnit>> entries = units.entrySet();
-    IndexingTarget[] indexTargets = new IndexingTarget[entries.size()];
-    int index = 0;
-    for (Entry<File, DartUnit> entry : entries) {
-      File sourceFile = entry.getKey();
-      CompilationUnit compilationUnit = library.getCompilationUnit(sourceFile.toURI());
-      if (compilationUnit == null) {
-        DartCore.logError("Expected unit associated with " + sourceFile + "\n  in " + libraryFile);
-        continue;
+    if (DartCoreDebug.NEW_INDEXER) {
+      for (Entry<File, DartUnit> entry : entries) {
+        File sourceFile = entry.getKey();
+        CompilationUnit compilationUnit = library.getCompilationUnit(sourceFile.toURI());
+        if (compilationUnit == null) {
+          DartCore.logError("Expected unit associated with \"" + sourceFile + "\" in \""
+              + libraryFile + "\"");
+        } else {
+          DartUnit dartUnit = entry.getValue();
+          try {
+            index.indexResource(ResourceFactory.getResource(compilationUnit), compilationUnit,
+                dartUnit);
+          } catch (Exception exception) {
+            DartCore.logError("Could not index \"" + sourceFile + "\" in \"" + libraryFile + "\"",
+                exception);
+          }
+        }
       }
-      DartUnit dartUnit = entry.getValue();
-      indexTargets[index++] = new CompilationUnitIndexingTarget(compilationUnit, dartUnit);
+    } else {
+      IndexingTarget[] indexTargets = new IndexingTarget[entries.size()];
+      int index = 0;
+      for (Entry<File, DartUnit> entry : entries) {
+        File sourceFile = entry.getKey();
+        CompilationUnit compilationUnit = library.getCompilationUnit(sourceFile.toURI());
+        if (compilationUnit == null) {
+          DartCore.logError("Expected unit associated with " + sourceFile + "\n  in " + libraryFile);
+          continue;
+        }
+        DartUnit dartUnit = entry.getValue();
+        indexTargets[index++] = new CompilationUnitIndexingTarget(compilationUnit, dartUnit);
+      }
+      indexServer.enqueueTargets(indexTargets);
     }
-    indexServer.enqueueTargets(indexTargets);
   }
 }
