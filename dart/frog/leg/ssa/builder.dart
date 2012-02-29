@@ -339,7 +339,8 @@ class LocalsHandler {
   HInstruction readLocal(Element element) {
     if (isAccessedDirectly(element)) {
       if (directLocals[element] == null) {
-        builder.compiler.internalError("Cannot find value", element: element);
+        builder.compiler.internalError("Cannot find value $element",
+                                       element: element);
       }
       return directLocals[element];
     } else if (isStoredInClosureField(element)) {
@@ -2078,9 +2079,7 @@ class SsaBuilder implements Visitor {
   visitContinueStatement(ContinueStatement node) {
     // TODO(lrn): Replace this with a real implementation of continue.
     compiler.reportWarning(node, 'continue not implemented');
-    DartString string = new DartString.literal('continue not implemented');
-    HInstruction message = graph.addNewLiteralString(string);
-    close(new HThrow(message));
+    generateUnimplemented('continue not implemented');
   }
 
   BreakHandler getLoopBreakHandler(Loop node) {
@@ -2229,7 +2228,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitLiteralMap(LiteralMap node) {
-    compiler.unimplemented('SsaBuilder.visitLiteralMap', node: node);
+    generateUnimplemented('literal map not implemented', isExpression: true);
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
@@ -2241,7 +2240,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    compiler.unimplemented('SsaBuilder.visitSwitchStatement', node: node);
+    generateUnimplemented('switch statement not implemented');
   }
 
   visitTryStatement(TryStatement node) {
@@ -2350,5 +2349,19 @@ class SsaBuilder implements Visitor {
 
   visitTypedef(Typedef node) {
     compiler.unimplemented('SsaBuilder.visitTypedef', node: node);
+  }
+
+  generateUnimplemented(String reason, [bool isExpression = false]) {
+    DartString string = new DartString.literal(reason);
+    HInstruction message = graph.addNewLiteralString(string);
+
+    // Normally, we would call [close] here. However, then we hit
+    // another unimplemented feature: aborting loop body. Simply
+    // calling [add] does not work as it asserts that the instruction
+    // isn't a control flow instruction. So we inline parts of [add].
+    current.addAfter(current.last, new HThrow(message));
+    if (isExpression) {
+      stack.add(graph.addNewLiteralNull());
+    }
   }
 }

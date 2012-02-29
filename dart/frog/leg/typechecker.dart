@@ -633,7 +633,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitContinueStatement(ContinueStatement node) {
-    compiler.unimplemented('visitContinueStatement', node: node);
+    return StatementType.NOT_RETURNING;
   }
 
   visitForInStatement(ForInStatement node) {
@@ -647,11 +647,11 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitLiteralMap(LiteralMap node) {
-    compiler.unimplemented('visitLiteralMap', node: node);
+    fail(node);
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
-    compiler.unimplemented('visitLiteralMapEntry', node: node);
+    fail(node);
   }
 
   visitNamedArgument(NamedArgument node) {
@@ -659,7 +659,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    compiler.unimplemented('visitSwitchStatement', node: node);
+    fail(node);
   }
 
   visitTryStatement(TryStatement node) {
@@ -667,14 +667,14 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   visitScriptTag(ScriptTag node) {
-    compiler.unimplemented('visitScriptTag', node: node);
+    fail(node);
   }
 
   visitCatchBlock(CatchBlock node) {
-    compiler.unimplemented('visitCatchBlock', node: node);
+    fail(node);
   }
 
   visitTypedef(Typedef node) {
-    compiler.unimplemented('visitTypedef', node: node);
+    fail(node);
   }
 }

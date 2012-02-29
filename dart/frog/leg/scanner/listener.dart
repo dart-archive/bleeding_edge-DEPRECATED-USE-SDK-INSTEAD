@@ -1299,7 +1299,6 @@ class NodeListener extends ElementListener {
       popNode(); // Discard label.
     }
     pushNode(statements);
-    listener.cancel('switch cases are not implemented', token: caseKeyword);
   }
 
   void handleDefaultCase(Token colon, Token defaultKeyword, int statementCount,
@@ -1309,7 +1308,6 @@ class NodeListener extends ElementListener {
       popNode(); // Discard label.
     }
     pushNode(statements);
-    listener.cancel('default case is not implemented', token: defaultKeyword);
   }
 
   void handleBreakStatement(bool hasTarget,

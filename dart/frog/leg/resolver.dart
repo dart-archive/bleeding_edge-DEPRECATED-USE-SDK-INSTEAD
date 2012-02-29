@@ -1125,7 +1125,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralMap(LiteralMap node) {
-    unimplemented(node, 'map');
+    warning(node, MessageKind.GENERIC, ['map literals are not implemented']);
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
@@ -1137,7 +1137,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    unimplemented(node, 'switch');
+    warning(node, MessageKind.GENERIC, ['switch statement is not implemented']);
   }
 
   visitTryStatement(TryStatement node) {
