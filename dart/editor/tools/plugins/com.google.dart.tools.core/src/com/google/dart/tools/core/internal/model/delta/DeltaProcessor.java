@@ -693,13 +693,15 @@ public class DeltaProcessor {
             return currentElement;
           }
           IProject proj = (IProject) resource;
-          if (DartProjectNature.hasDartNature(proj)) {
-            element = DartCore.create(proj);
-          } else {
-            // Dart project may have been been closed or removed (look for
-            // element amongst old Dart projects list).
-            element = state.findDartProject(proj.getName());
-          }
+          // The following, commented out code, checks that the project has a Dart nature, since all
+          // projects in the DartEditor are DartProjects, this check has been removed for the time being.
+          //if (DartProjectNature.hasDartNature(proj)) {
+          element = DartCore.create(proj);
+          //} else {
+          // Dart project may have been been closed or removed (look for
+          // element amongst old Dart projects list).
+          //  element = state.findDartProject(proj.getName());
+          //}
         }
         break;
       case DartElement.COMPILATION_UNIT:
@@ -1453,6 +1455,11 @@ public class DeltaProcessor {
         element = createElement(deltaRes, elementType);
         if (element == null) {
           return true;
+        }
+        // If the element being removed is a DartProject, do NOT have its' children visited
+        // recursively, return false.
+        if (element instanceof DartProject) {
+          return false;
         }
         dartProjectImpl = (DartProjectImpl) element.getDartProject();
         dartProjectImpl.recomputeLibrarySet();
