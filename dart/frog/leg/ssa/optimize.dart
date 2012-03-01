@@ -246,7 +246,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor {
     // (e.g. branching instructions have side effects).
     return !instruction.hasSideEffects()
            && instruction.usedBy.isEmpty()
-           && instruction is !HCheck;
+           && instruction is !HCheck
+           && instruction is !HTypeGuard;
   }
 
   void visitGraph(HGraph graph) {
