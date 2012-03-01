@@ -16,7 +16,6 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.ui.IContextMenuConstants;
-import com.google.dart.tools.ui.internal.libraryview.DeleteAction;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
