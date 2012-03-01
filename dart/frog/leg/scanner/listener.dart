@@ -170,6 +170,9 @@ class Listener {
   void endLiteralString(int interpolationCount) {
   }
 
+  void handleLiteralStringJuxtaposition(int literalCount) {
+  }
+
   void beginMember(Token token) {
   }
 
@@ -831,6 +834,16 @@ class ElementListener extends Listener {
       NodeList nodes = new NodeList(null, parts, null, null);
       pushNode(new StringInterpolation(string, nodes));
     }
+  }
+
+  void handleLiteralStringJuxtaposition(int literalCount) {
+    Link<Expression> literals = const EmptyLink<Expression>();
+    while (literalCount > 0) {
+      Expression expression = popNode();
+      literals = literals.prepend(expression);
+      literalCount -= 1;
+    }
+    pushNode(new LiteralStringJuxtaposition(literals));
   }
 }
 

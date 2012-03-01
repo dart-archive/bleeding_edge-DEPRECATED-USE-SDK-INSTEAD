@@ -1931,6 +1931,10 @@ class SsaBuilder implements Visitor {
     stack.add(graph.addNewLiteralString(node.dartString));
   }
 
+  void visitLiteralStringJuxtaposition(LiteralStringJuxtaposition node) {
+    visitLiteralString(node);
+  }
+
   void visitLiteralNull(LiteralNull node) {
     stack.add(graph.addNewLiteralNull());
   }

@@ -32,6 +32,9 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitLiteralMapEntry(LiteralMapEntry node) => visitNode(node);
   R visitLiteralNull(LiteralNull node) => visitLiteral(node);
   R visitLiteralString(LiteralString node) => visitLiteral(node);
+  R visitLiteralStringJuxtaposition(LiteralStringJuxtaposition node) {
+    return visitLiteralString(node);
+  }
   R visitLoop(Loop node) => visitStatement(node);
   R visitModifiers(Modifiers node) => visitNode(node);
   R visitNamedArgument(NamedArgument node) => visitExpression(node);

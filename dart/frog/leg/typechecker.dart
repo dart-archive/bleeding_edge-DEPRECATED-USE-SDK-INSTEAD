@@ -477,6 +477,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
     return stringType;
   }
 
+  Type visitLiteralStringJuxtaposition(LiteralStringJuxtaposition node) {
+    return stringType;
+  }
+
   Type visitLiteralNull(LiteralNull node) {
     return types.dynamicType;
   }

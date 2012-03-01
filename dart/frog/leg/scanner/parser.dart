@@ -1241,6 +1241,19 @@ class Parser {
   }
 
   Token parseLiteralString(Token token) {
+    token = parseSingleLiteralString(token);
+    int count = 1;
+    while (token.kind === STRING_TOKEN) {
+      token = parseSingleLiteralString(token);
+      count++;
+    }
+    if (count > 1) {
+      listener.handleLiteralStringJuxtaposition(count);
+    }
+    return token;
+  }
+
+  Token parseSingleLiteralString(Token token) {
     listener.beginLiteralString(token);
     token = token.next;
     int interpolationCount = 0;

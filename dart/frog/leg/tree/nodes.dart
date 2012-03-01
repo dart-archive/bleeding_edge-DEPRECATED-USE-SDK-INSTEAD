@@ -27,6 +27,7 @@ interface Visitor<R> {
   R visitLiteralMapEntry(LiteralMapEntry node);
   R visitLiteralNull(LiteralNull node);
   R visitLiteralString(LiteralString node);
+  R visitLiteralStringJuxtaposition(LiteralStringJuxtaposition node);
   R visitModifiers(Modifiers node);
   R visitNamedArgument(NamedArgument node);
   R visitNewExpression(NewExpression node);
@@ -1248,6 +1249,47 @@ class StringInterpolationPart extends Node {
   Token getBeginToken() => expression.getBeginToken();
 
   Token getEndToken() => string.getEndToken();
+}
+
+class LiteralStringJuxtaposition extends LiteralString {
+  // List of either StringLiteral or StringInterpolation.
+  final Link<Expression> literals;
+
+  LiteralStringJuxtaposition(Link<Expression> literals)
+      : this.literals = literals,
+        super(literals.head.getBeginToken(), concatenateLiterals(literals));
+
+  static DartString concatenateLiterals(Link<Expression> literals) {
+    assert(!literals.isEmpty());
+    LiteralString literal = literals.head;
+    if (literals.tail.isEmpty()) {
+      return literal.dartString;
+    }
+    return new ConsDartString(literal.dartString,
+                              concatenateLiterals(literals.tail));
+  }
+
+  SourceString get value() => null;
+
+  accept(Visitor visitor) => visitor.visitLiteralStringJuxtaposition(this);
+
+  visitChildren(Visitor visitor) {
+    for (Expression literal in literals) {
+      literal.accept(visitor);
+    }
+  }
+
+  Token getBeginToken() => literals.head.beginToken();
+
+  Token getEndToken() {
+    Link<Expression> current = literals;
+    Expression lastExpresion = null;
+    while (!current.isEmpty()) {
+      lastExpression = current.head;
+      current = current.tail;
+    }
+    return lastExpression.getEndToken();
+  }
 }
 
 class EmptyStatement extends Statement {
