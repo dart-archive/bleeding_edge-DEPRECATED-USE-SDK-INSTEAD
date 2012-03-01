@@ -469,7 +469,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     deployOptimizedAction = new GenerateJavascriptAction(window);
 
-    newApplicationWizardAction = new OpenNewApplicationWizardAction();
+    newApplicationWizardAction = DartCoreDebug.PROJECTS_VIEW ? new OpenNewProjectWizardAction()
+        : new OpenNewApplicationWizardAction();
     register(newApplicationWizardAction);
 
     importResourcesAction = ActionFactory.IMPORT.create(window);
