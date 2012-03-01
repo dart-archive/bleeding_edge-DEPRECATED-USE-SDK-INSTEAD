@@ -163,6 +163,12 @@ public final class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public void searchImplementors(Type type, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+  }
+
+  @Override
   public void searchReferences(final DartFunction function, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     SearchHelper helper = new SearchHelper() {

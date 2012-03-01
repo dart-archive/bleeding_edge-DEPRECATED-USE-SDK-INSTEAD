@@ -58,8 +58,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 /**
- * Instances of the class <code>NewSearchEngineImpl</code> implement a search engine that used the new
- * index to obtain results.
+ * Instances of the class <code>NewSearchEngineImpl</code> implement a search engine that used the
+ * new index to obtain results.
  */
 public class NewSearchEngineImpl implements SearchEngine {
   /**
@@ -313,6 +313,18 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public void searchImplementors(Type type, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    index.getRelationships(
+        createElement(type),
+        IndexConstants.IS_IMPLEMENTED_BY,
+        new RelationshipCallbackImpl(MatchKind.INTERFACE_IMPLEMENTED, applyFilter(filter, listener)));
+  }
+
+  @Override
   public void searchReferences(DartFunction function, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     if (listener == null) {
@@ -328,9 +340,11 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    // TODO(brianwilkerson) The match kind should be MatchKind.FUNCTION_TYPE_REFERENCE, but it doesn't exist yet
-    index.getRelationships(createElement(alias), IndexConstants.IS_REFERENCED_BY,
-        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter, listener)));
+    index.getRelationships(
+        createElement(alias),
+        IndexConstants.IS_REFERENCED_BY,
+        new RelationshipCallbackImpl(MatchKind.FUNCTION_TYPE_REFERENCE, applyFilter(filter,
+            listener)));
   }
 
   @Override
@@ -362,9 +376,8 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    // TODO(brianwilkerson) The match kind should be MatchKind.TYPE_REFERENCE, but it doesn't exist yet
     index.getRelationships(createElement(type), IndexConstants.IS_REFERENCED_BY,
-        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter, listener)));
+        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
   }
 
   @Override
@@ -423,11 +436,13 @@ public class NewSearchEngineImpl implements SearchEngine {
 
   private Element createElement(DartFunction function) {
     // TODO Auto-generated method stub
+    DartCore.notYetImplemented();
     return null;
   }
 
   private Element createElement(DartFunctionTypeAlias alias) {
     // TODO Auto-generated method stub
+    DartCore.notYetImplemented();
     return null;
   }
 

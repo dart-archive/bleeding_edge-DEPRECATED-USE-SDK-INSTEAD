@@ -43,6 +43,21 @@ public interface SearchEngine {
       throws SearchException;
 
   /**
+   * Search for implementors of the given type within the given scope.
+   * 
+   * @param type the interface being implemented by the results
+   * @param scope the scope containing the type declarations to be searched
+   * @param listener the listener that will be notified when matches are found
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
+   *          , indicating that no progress should be reported and that the operation cannot be
+   *          canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchImplementors(Type type, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException;
+
+  /**
    * Search for references to the given function within the given scope.
    * 
    * @param function the function being referenced by the found matches

@@ -39,7 +39,22 @@ public enum MatchKind {
   FUNCTION_EXECUTION,
 
   /**
+   * A reference to a function type.
+   */
+  FUNCTION_TYPE_REFERENCE,
+
+  /**
+   * A reference to a class that is implementing a specified type.
+   */
+  INTERFACE_IMPLEMENTED,
+
+  /**
    * A reference to a method in which the method is being invoked.
    */
-  METHOD_INVOCATION;
+  METHOD_INVOCATION,
+
+  /**
+   * A reference to a type.
+   */
+  TYPE_REFERENCE;
 }
