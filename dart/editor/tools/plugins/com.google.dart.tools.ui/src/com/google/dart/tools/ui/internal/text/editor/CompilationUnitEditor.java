@@ -30,7 +30,7 @@ import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.IWorkingCopyManager;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.GenerateActionGroup;
-import com.google.dart.tools.ui.actions.IJavaEditorActionDefinitionIds;
+import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingContext;
@@ -1355,21 +1355,21 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "Comment.", this, ITextOperationTarget.PREFIX); //$NON-NLS-1$
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.COMMENT);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.COMMENT);
     setAction("Comment", action); //$NON-NLS-1$
     markAsStateDependentAction("Comment", true); //$NON-NLS-1$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action, DartHelpContextIds.COMMENT_ACTION);
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "Uncomment.", this, ITextOperationTarget.STRIP_PREFIX); //$NON-NLS-1$
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.UNCOMMENT);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.UNCOMMENT);
     setAction("Uncomment", action); //$NON-NLS-1$
     markAsStateDependentAction("Uncomment", true); //$NON-NLS-1$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action, DartHelpContextIds.UNCOMMENT_ACTION);
 
     action = new ToggleCommentAction(DartEditorMessages.getBundleForConstructedKeys(),
         "ToggleComment.", this); //$NON-NLS-1$
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.TOGGLE_COMMENT);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.TOGGLE_COMMENT);
     setAction("ToggleComment", action); //$NON-NLS-1$
     markAsStateDependentAction("ToggleComment", true); //$NON-NLS-1$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
@@ -1378,7 +1378,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "Format.", this, ISourceViewer.FORMAT); //$NON-NLS-1$
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.FORMAT);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.FORMAT);
     setAction("Format", action); //$NON-NLS-1$
     markAsStateDependentAction("Format", true); //$NON-NLS-1$
     markAsSelectionDependentAction("Format", true); //$NON-NLS-1$

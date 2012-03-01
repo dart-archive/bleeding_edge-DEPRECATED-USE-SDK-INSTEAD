@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.actions;
@@ -151,7 +149,7 @@ public class GenerateActionGroup extends ActionGroup {
 
     DartX.todo();
 //    fSortMembers = new MultiSortMembersAction(editor);
-//    fSortMembers.setActionDefinitionId(IJavaEditorActionDefinitionIds.SORT_MEMBERS);
+//    fSortMembers.setActionDefinitionId(DartEditorActionDefinitionIds.SORT_MEMBERS);
 //    editor.setAction("SortMembers", fSortMembers); //$NON-NLS-1$
 
 //		IAction pastAction= editor.getAction(ITextEditorActionConstants.PASTE);//IWorkbenchActionDefinitionIds.PASTE);
@@ -161,43 +159,43 @@ public class GenerateActionGroup extends ActionGroup {
 
 //    if (IUIConstants.SUPPORT_REFACTORING) {
 //      fOverrideMethods = new OverrideMethodsAction(editor);
-//      fOverrideMethods.setActionDefinitionId(IJavaEditorActionDefinitionIds.OVERRIDE_METHODS);
+//      fOverrideMethods.setActionDefinitionId(DartEditorActionDefinitionIds.OVERRIDE_METHODS);
 //      editor.setAction("OverrideMethods", fOverrideMethods); //$NON-NLS-1$
 //
 //      fAddGetterSetter = new AddGetterSetterAction(editor);
-//      fAddGetterSetter.setActionDefinitionId(IJavaEditorActionDefinitionIds.CREATE_GETTER_SETTER);
+//      fAddGetterSetter.setActionDefinitionId(DartEditorActionDefinitionIds.CREATE_GETTER_SETTER);
 //      editor.setAction("AddGetterSetter", fAddGetterSetter); //$NON-NLS-1$
 //
 //      fAddDelegateMethods = new AddDelegateMethodsAction(editor);
-//      fAddDelegateMethods.setActionDefinitionId(IJavaEditorActionDefinitionIds.CREATE_DELEGATE_METHODS);
+//      fAddDelegateMethods.setActionDefinitionId(DartEditorActionDefinitionIds.CREATE_DELEGATE_METHODS);
 //      editor.setAction("AddDelegateMethods", fAddDelegateMethods); //$NON-NLS-1$
 //
 ////		fAddUnimplementedConstructors= new AddUnimplementedConstructorsAction(editor);
-////		fAddUnimplementedConstructors.setActionDefinitionId(IJavaEditorActionDefinitionIds.ADD_UNIMPLEMENTED_CONTRUCTORS);
+////		fAddUnimplementedConstructors.setActionDefinitionId(DartEditorActionDefinitionIds.ADD_UNIMPLEMENTED_CONTRUCTORS);
 ////		editor.setAction("AddUnimplementedConstructors", fAddUnimplementedConstructors); //$NON-NLS-1$		
 //
 //      fGenerateConstructorUsingFields = new GenerateNewConstructorUsingFieldsAction(
 //          editor);
-//      fGenerateConstructorUsingFields.setActionDefinitionId(IJavaEditorActionDefinitionIds.GENERATE_CONSTRUCTOR_USING_FIELDS);
+//      fGenerateConstructorUsingFields.setActionDefinitionId(DartEditorActionDefinitionIds.GENERATE_CONSTRUCTOR_USING_FIELDS);
 //      editor.setAction(
 //          "GenerateConstructorUsingFields", fGenerateConstructorUsingFields); //$NON-NLS-1$		
 //    }
 
 //		fHashCodeEquals= new GenerateHashCodeEqualsAction(editor);
-//		fHashCodeEquals.setActionDefinitionId(IJavaEditorActionDefinitionIds.GENERATE_HASHCODE_EQUALS);
+//		fHashCodeEquals.setActionDefinitionId(DartEditorActionDefinitionIds.GENERATE_HASHCODE_EQUALS);
 //		editor.setAction("GenerateHashCodeEquals", fHashCodeEquals); //$NON-NLS-1$
 
 //    fAddJavaDocStub = new AddJavaDocStubAction(editor);
-//    fAddJavaDocStub.setActionDefinitionId(IJavaEditorActionDefinitionIds.ADD_JAVADOC_COMMENT);
+//    fAddJavaDocStub.setActionDefinitionId(DartEditorActionDefinitionIds.ADD_JAVADOC_COMMENT);
 //    editor.setAction("AddJavadocComment", fAddJavaDocStub); //$NON-NLS-1$
 
 //    fCleanUp = new AllCleanUpsAction(editor);
-//    fCleanUp.setActionDefinitionId(IJavaEditorActionDefinitionIds.CLEAN_UP);
+//    fCleanUp.setActionDefinitionId(DartEditorActionDefinitionIds.CLEAN_UP);
 //    editor.setAction("CleanUp", fCleanUp); //$NON-NLS-1$
 
 //    if (IUIConstants.SUPPORT_REFACTORING) {
 //      fExternalizeStrings = new ExternalizeStringsAction(editor);
-//      fExternalizeStrings.setActionDefinitionId(IJavaEditorActionDefinitionIds.EXTERNALIZE_STRINGS);
+//      fExternalizeStrings.setActionDefinitionId(DartEditorActionDefinitionIds.EXTERNALIZE_STRINGS);
 //      editor.setAction("ExternalizeStrings", fExternalizeStrings); //$NON-NLS-1$	
 //    }
 
@@ -234,17 +232,17 @@ public class GenerateActionGroup extends ActionGroup {
 
 //    if (IUIConstants.SUPPORT_REFACTORING) {
 //      fOverrideMethods = new OverrideMethodsAction(site);
-//      fOverrideMethods.setActionDefinitionId(IJavaEditorActionDefinitionIds.OVERRIDE_METHODS);
+//      fOverrideMethods.setActionDefinitionId(DartEditorActionDefinitionIds.OVERRIDE_METHODS);
 //      fAddGetterSetter = new AddGetterSetterAction(site);
-//      fAddGetterSetter.setActionDefinitionId(IJavaEditorActionDefinitionIds.CREATE_GETTER_SETTER);
+//      fAddGetterSetter.setActionDefinitionId(DartEditorActionDefinitionIds.CREATE_GETTER_SETTER);
 //      fAddDelegateMethods = new AddDelegateMethodsAction(site);
-//      fAddDelegateMethods.setActionDefinitionId(IJavaEditorActionDefinitionIds.CREATE_DELEGATE_METHODS);
+//      fAddDelegateMethods.setActionDefinitionId(DartEditorActionDefinitionIds.CREATE_DELEGATE_METHODS);
 //      fGenerateConstructorUsingFields = new GenerateNewConstructorUsingFieldsAction(
 //          site);
-//      fGenerateConstructorUsingFields.setActionDefinitionId(IJavaEditorActionDefinitionIds.GENERATE_CONSTRUCTOR_USING_FIELDS);
+//      fGenerateConstructorUsingFields.setActionDefinitionId(DartEditorActionDefinitionIds.GENERATE_CONSTRUCTOR_USING_FIELDS);
 //    }
 //    fAddJavaDocStub = new AddJavaDocStubAction(site);
-//    fAddJavaDocStub.setActionDefinitionId(IJavaEditorActionDefinitionIds.ADD_JAVADOC_COMMENT);
+//    fAddJavaDocStub.setActionDefinitionId(DartEditorActionDefinitionIds.ADD_JAVADOC_COMMENT);
 
     fAddBookmark = new AddBookmarkAction(site.getShell());
     fAddBookmark.setActionDefinitionId(IWorkbenchActionDefinitionIds.ADD_BOOKMARK);
@@ -256,18 +254,18 @@ public class GenerateActionGroup extends ActionGroup {
 
 //    if (IUIConstants.SUPPORT_REFACTORING) {
 //      fExternalizeStrings = new ExternalizeStringsAction(site);
-//      fExternalizeStrings.setActionDefinitionId(IJavaEditorActionDefinitionIds.EXTERNALIZE_STRINGS);
+//      fExternalizeStrings.setActionDefinitionId(DartEditorActionDefinitionIds.EXTERNALIZE_STRINGS);
 //      fFindNLSProblems = new FindBrokenNLSKeysAction(site);
 //      fFindNLSProblems.setActionDefinitionId(FindBrokenNLSKeysAction.FIND_BROKEN_NLS_KEYS_ACTION_ID);
 //    }
 //    fSortMembers = new MultiSortMembersAction(site);
-//    fSortMembers.setActionDefinitionId(IJavaEditorActionDefinitionIds.SORT_MEMBERS);
+//    fSortMembers.setActionDefinitionId(DartEditorActionDefinitionIds.SORT_MEMBERS);
 
     fFormatAll = new FormatAllAction(site);
-    fFormatAll.setActionDefinitionId(IJavaEditorActionDefinitionIds.FORMAT);
+    fFormatAll.setActionDefinitionId(DartEditorActionDefinitionIds.FORMAT);
 
 //    fCleanUp = new AllCleanUpsAction(site);
-//    fCleanUp.setActionDefinitionId(IJavaEditorActionDefinitionIds.CLEAN_UP);
+//    fCleanUp.setActionDefinitionId(DartEditorActionDefinitionIds.CLEAN_UP);
 
 //    fAddJavaDocStub.update(selection);
 //    if (IUIConstants.SUPPORT_REFACTORING) {

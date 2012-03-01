@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.ActionMessages;
-import com.google.dart.tools.ui.actions.IJavaEditorActionDefinitionIds;
+import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
 import com.google.dart.tools.ui.internal.text.editor.selectionactions.GoToNextPreviousMemberAction;
 import com.google.dart.tools.ui.internal.text.editor.selectionactions.StructureSelectionAction;
@@ -82,40 +82,40 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
     fToggleMarkOccurrencesAction = new ToggleMarkOccurrencesAction();
 
     fGotoMatchingBracket = new RetargetTextEditorAction(b, "GotoMatchingBracket."); //$NON-NLS-1$
-    fGotoMatchingBracket.setActionDefinitionId(IJavaEditorActionDefinitionIds.GOTO_MATCHING_BRACKET);
+    fGotoMatchingBracket.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_MATCHING_BRACKET);
 
     fShowOutline = new RetargetTextEditorAction(DartEditorMessages.getBundleForConstructedKeys(),
         "ShowOutline."); //$NON-NLS-1$
-    fShowOutline.setActionDefinitionId(IJavaEditorActionDefinitionIds.SHOW_OUTLINE);
+    fShowOutline.setActionDefinitionId(DartEditorActionDefinitionIds.SHOW_OUTLINE);
 
     fOpenDeclaration = new RetargetTextEditorAction(ActionMessages.getBundle(), "OpenAction_"); //$NON-NLS-1$
-    fOpenDeclaration.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_EDITOR);
+    fOpenDeclaration.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
 
     fOpenHierarchy = new RetargetTextEditorAction(DartEditorMessages.getBundleForConstructedKeys(),
         "OpenHierarchy."); //$NON-NLS-1$
-    fOpenHierarchy.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_HIERARCHY);
+    fOpenHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
 
     fOpenStructure = new RetargetTextEditorAction(DartEditorMessages.getBundleForConstructedKeys(),
         "OpenStructure."); //$NON-NLS-1$
-    fOpenStructure.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_STRUCTURE);
+    fOpenStructure.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_STRUCTURE);
 
     fStructureSelectEnclosingAction = new RetargetTextEditorAction(b, "StructureSelectEnclosing."); //$NON-NLS-1$
-    fStructureSelectEnclosingAction.setActionDefinitionId(IJavaEditorActionDefinitionIds.SELECT_ENCLOSING);
+    fStructureSelectEnclosingAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_ENCLOSING);
     fStructureSelectNextAction = new RetargetTextEditorAction(b, "StructureSelectNext."); //$NON-NLS-1$
-    fStructureSelectNextAction.setActionDefinitionId(IJavaEditorActionDefinitionIds.SELECT_NEXT);
+    fStructureSelectNextAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_NEXT);
     fStructureSelectPreviousAction = new RetargetTextEditorAction(b, "StructureSelectPrevious."); //$NON-NLS-1$
-    fStructureSelectPreviousAction.setActionDefinitionId(IJavaEditorActionDefinitionIds.SELECT_PREVIOUS);
+    fStructureSelectPreviousAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_PREVIOUS);
     fStructureSelectHistoryAction = new RetargetTextEditorAction(b, "StructureSelectHistory."); //$NON-NLS-1$
-    fStructureSelectHistoryAction.setActionDefinitionId(IJavaEditorActionDefinitionIds.SELECT_LAST);
+    fStructureSelectHistoryAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_LAST);
 
     fGotoNextMemberAction = new RetargetTextEditorAction(b, "GotoNextMember."); //$NON-NLS-1$
-    fGotoNextMemberAction.setActionDefinitionId(IJavaEditorActionDefinitionIds.GOTO_NEXT_MEMBER);
+    fGotoNextMemberAction.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_NEXT_MEMBER);
     fGotoPreviousMemberAction = new RetargetTextEditorAction(b, "GotoPreviousMember."); //$NON-NLS-1$
-    fGotoPreviousMemberAction.setActionDefinitionId(IJavaEditorActionDefinitionIds.GOTO_PREVIOUS_MEMBER);
+    fGotoPreviousMemberAction.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_PREVIOUS_MEMBER);
 
     fRemoveOccurrenceAnnotationsAction = new RetargetTextEditorAction(b,
         "RemoveOccurrenceAnnotations."); //$NON-NLS-1$
-    fRemoveOccurrenceAnnotationsAction.setActionDefinitionId(IJavaEditorActionDefinitionIds.REMOVE_OCCURRENCE_ANNOTATIONS);
+    fRemoveOccurrenceAnnotationsAction.setActionDefinitionId(DartEditorActionDefinitionIds.REMOVE_OCCURRENCE_ANNOTATIONS);
   }
 
   /*
@@ -188,7 +188,7 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
 
     bars.setGlobalActionHandler(ITextEditorActionDefinitionIds.TOGGLE_SHOW_SELECTED_ELEMENT_ONLY,
         fTogglePresentation);
-    bars.setGlobalActionHandler(IJavaEditorActionDefinitionIds.TOGGLE_MARK_OCCURRENCES,
+    bars.setGlobalActionHandler(DartEditorActionDefinitionIds.TOGGLE_MARK_OCCURRENCES,
         fToggleMarkOccurrencesAction);
 
   }
@@ -211,9 +211,9 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
 
     fGotoMatchingBracket.setAction(getAction(textEditor,
         GotoMatchingBracketAction.GOTO_MATCHING_BRACKET));
-    fShowOutline.setAction(getAction(textEditor, IJavaEditorActionDefinitionIds.SHOW_OUTLINE));
-    fOpenHierarchy.setAction(getAction(textEditor, IJavaEditorActionDefinitionIds.OPEN_HIERARCHY));
-    fOpenStructure.setAction(getAction(textEditor, IJavaEditorActionDefinitionIds.OPEN_STRUCTURE));
+    fShowOutline.setAction(getAction(textEditor, DartEditorActionDefinitionIds.SHOW_OUTLINE));
+    fOpenHierarchy.setAction(getAction(textEditor, DartEditorActionDefinitionIds.OPEN_HIERARCHY));
+    fOpenStructure.setAction(getAction(textEditor, DartEditorActionDefinitionIds.OPEN_STRUCTURE));
 
     fOpenDeclaration.setAction(getAction(textEditor, "OpenEditor"));
 

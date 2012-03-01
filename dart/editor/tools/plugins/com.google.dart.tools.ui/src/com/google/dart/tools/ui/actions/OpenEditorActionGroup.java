@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.actions;
@@ -59,7 +57,7 @@ public class OpenEditorActionGroup extends ActionGroup {
   public OpenEditorActionGroup(DartEditor editor) {
     fIsEditorOwner = true;
     fOpen = new OpenAction(editor);
-    fOpen.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_EDITOR);
+    fOpen.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     editor.setAction("OpenEditor", fOpen); //$NON-NLS-1$
     fSite = editor.getEditorSite();
     fSelectionProvider = fSite.getSelectionProvider();
@@ -88,7 +86,7 @@ public class OpenEditorActionGroup extends ActionGroup {
   public OpenEditorActionGroup(IWorkbenchPartSite site, ISelectionProvider specialSelectionProvider) {
     fSite = site;
     fOpen = new OpenAction(fSite);
-    fOpen.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_EDITOR);
+    fOpen.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     fSelectionProvider = specialSelectionProvider == null ? fSite.getSelectionProvider()
         : specialSelectionProvider;
     initialize();

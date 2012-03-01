@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,7 +17,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
-import com.google.dart.tools.ui.actions.IJavaEditorActionDefinitionIds;
+import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingStrategy;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistProcessor;
 import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy;
@@ -523,10 +523,10 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     InformationPresenter presenter;
     if (doCodeResolve) {
       presenter = new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer,
-          IJavaEditorActionDefinitionIds.OPEN_STRUCTURE));
+          DartEditorActionDefinitionIds.OPEN_STRUCTURE));
     } else {
       presenter = new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer,
-          IJavaEditorActionDefinitionIds.SHOW_OUTLINE));
+          DartEditorActionDefinitionIds.SHOW_OUTLINE));
     }
     presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
     presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
