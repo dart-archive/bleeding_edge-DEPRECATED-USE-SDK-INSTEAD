@@ -1302,7 +1302,16 @@ class SsaBuilder implements Visitor {
         new HStatic(interceptors.getPrefixOperatorInterceptor(op));
     add(target);
     switch (op.source.stringValue) {
-      case "-": push(new HNegate(target, operand)); break;
+      case "-":
+        // TODO(kasperl): Avoid calling visit(node.receiver) above.
+        if ((operand is HLiteral) && (operand.value is double)) {
+          stack.add(graph.addNewLiteralDouble(-operand.value));
+        } else if ((operand is HLiteral) && (operand.value is int)) {
+          stack.add(graph.addNewLiteralInt(-operand.value));
+        } else {
+          push(new HNegate(target, operand));
+        }
+        break;
       case "~": push(new HBitNot(target, operand)); break;
       default: unreachable();
     }

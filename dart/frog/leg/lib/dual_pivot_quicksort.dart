@@ -154,7 +154,8 @@ class DualPivotQuicksort {
           // Note that in the latter case invariant 2 will be violated for a
           // short amount of time. The invariant will be restored when the
           // pivots are put into their final positions.
-          while (true) {
+          bool done = false;
+          while (!done) {
             comp = compare(a[great], pivot);
             if (comp > 0) {
               great--;
@@ -166,14 +167,14 @@ class DualPivotQuicksort {
               a[k] = a[less];
               a[less++] = a[great];
               a[great--] = ak;
-              break;
+              done = true;
             } else {
               // comp == 0;
               a[k] = a[great];
               a[great--] = ak;
               // Note: if great < k then we will exit the outer loop and fix
               // invariant 2 (which we just violated).
-              break;
+              done = true;
             }
           }
         }
@@ -208,11 +209,12 @@ class DualPivotQuicksort {
         } else {
           int comp_pivot2 = compare(ak, pivot2);
           if (comp_pivot2 > 0) {
-            while (true) {
+            bool done = false;
+            while (!done) {
               int comp = compare(a[great], pivot2);
               if (comp > 0) {
                 great--;
-                if (great < k) break;
+                if (great < k) done = true;
                 // This is the only location inside the loop where a new
                 // iteration is started.
                 // continue;
@@ -229,7 +231,7 @@ class DualPivotQuicksort {
                   a[k] = a[great];
                   a[great--] = ak;
                 }
-                break;
+                done = true;
               }
             }
           }
@@ -298,11 +300,12 @@ class DualPivotQuicksort {
         } else {
           int comp_pivot2 = compare(ak, pivot2);
           if (comp_pivot2 == 0) {
-            while (true) {
+            bool done = false;
+            while (!done) {
               int comp = compare(a[great], pivot2);
               if (comp == 0) {
                 great--;
-                if (great < k) break;
+                if (great < k) done = true;
                 // This is the only location inside the loop where a new
                 // iteration is started.
                 // continue;
@@ -319,7 +322,7 @@ class DualPivotQuicksort {
                   a[k] = a[great];
                   a[great--] = ak;
                 }
-                break;
+                done = true;
               }
             }
           }
