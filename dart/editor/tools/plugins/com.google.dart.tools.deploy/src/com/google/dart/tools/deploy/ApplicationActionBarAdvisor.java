@@ -49,13 +49,17 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.util.Util;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.SameShellProvider;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPageListener;
+import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
@@ -815,15 +819,28 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
       Action newProjectAction = new OpenNewProjectWizardAction();
       newProjectAction.setText("New Project...");
-      Action newFileAction = new CreateFileAction(new SameShellProvider(getWindow().getShell()));
+      final CreateFileAction newFileAction = new CreateFileAction(new SameShellProvider(
+          getWindow().getShell()));
       newFileAction.setText("New File...");
       menu.add(newProjectAction);
       menu.add(newFileAction);
-      CreateFolderAction newFolderAction = new CreateFolderAction(new SameShellProvider(
+      final CreateFolderAction newFolderAction = new CreateFolderAction(new SameShellProvider(
           getWindow().getShell()));
       newFolderAction.setText("New Folder...");
       menu.add(newFolderAction);
       menu.add(new Separator());
+
+      ISelectionListener selectionListener = new ISelectionListener() {
+        @Override
+        public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+          if (selection instanceof IStructuredSelection) {
+            newFileAction.selectionChanged((IStructuredSelection) selection);
+            newFolderAction.selectionChanged((IStructuredSelection) selection);
+          }
+        }
+      };
+
+      getWindow().getSelectionService().addSelectionListener(selectionListener);
 
     } else {
 

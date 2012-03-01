@@ -147,6 +147,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private RenameResourceAction renameAction;
   private DeleteAction deleteAction;
   private OpenNewFileWizardAction createFileAction;
+  private CreateFolderAction createFolderAction;
 
   private CopyFilePathAction copyFilePathAction;
 
@@ -191,6 +192,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     createFileAction = new OpenNewFileWizardAction(getShell());
     treeViewer.addSelectionChangedListener(createFileAction);
+    createFolderAction = new CreateFolderAction(getShell());
+    treeViewer.addSelectionChangedListener(createFolderAction);
     renameAction = new RenameResourceAction(getShell(), treeViewer.getTree());
     treeViewer.addSelectionChangedListener(renameAction);
     moveAction = new MoveResourceAction(getShell());
@@ -263,11 +266,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     // New File/ New Folder/ New Project
 
     manager.add(createFileAction);
-
-    //manager.add(new OpenNewFileWizardAction(getViewSite().getWorkbenchWindow()));
-    //manager.add(new OpenNewApplicationWizardAction());
-    // TODO (jwren) replace New Folder Action with a custom version
-    manager.add(new CreateFolderAction(getShell()));
+    manager.add(createFolderAction);
     manager.add(new OpenNewProjectWizardAction());
 
     // Rename... / Move..., iff single element and is an IResource
