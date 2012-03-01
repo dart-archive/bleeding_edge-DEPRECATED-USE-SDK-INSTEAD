@@ -1,5 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
+<head>
     <style>
         body {
           font-family: 'Open Sans', sans-serif;
@@ -16,17 +17,31 @@
           font-weight: bold;
           height: 32px;
           margin-bottom: 10px;
-          font-size: 2em;
+        }
+        h3 {
+          color: #15C;
+          font-size: 18px;
+          font-style: normal;
+          font-variant: normal;
+          font-weight: bold;
+          display: inline;
         }
     </style>
-    <body>
-      <h2>Welcome to Dart Editor</h2>
-      <p>Dart is a new class-based programming language for creating structured web
-            applications. Developed with the goals of simplicity, efficiency, and scalability, the
-            Dart language combines powerful new language features with familiar language constructs
-            into a clear, readable syntax. See <a href="http://www.dartlang.org">dartlang.org</a>
-            for more information.</p><hr/><h2>Samples: (click to load)</h2>
-        ${samples}
-        <hr/> You can read also <a href="http://www.dartlang.org/support/faq.html">FAQ</a> and <a
-            href="http://www.dartlang.org/articles/index.html">articles</a>.</body>
+<head>
+<body>
+  <h2>Welcome to Dart Editor</h2>
+    <p>Dart is a new class-based programming language for creating structured web
+        applications. Developed with the goals of simplicity, efficiency, and scalability, the
+        Dart language combines powerful new language features with familiar language constructs
+        into a clear, readable syntax. See <a href="http://www.dartlang.org">dartlang.org</a>
+        for more information.
+  </p>
+  <h3>Samples</h3><br/>
+  Click on a sample to open it.<br/>
+  
+  ${samples}
+  <hr/>
+  You can also read the <a href="http://www.dartlang.org/support/faq.html">FAQ</a> or various 
+  articles on <a href="http://www.dartlang.org/articles/index.html">Dart programming</a>.
+</body>
 </html>
