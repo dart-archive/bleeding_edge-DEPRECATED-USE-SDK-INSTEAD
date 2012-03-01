@@ -64,16 +64,16 @@ class ChatTestClient extends Isolate {
       leaveRequest["request"] = "leave";
       leaveRequest["sessionId"] = sessionId;
       HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/leave");
-      conn.requestHandler = (HttpClientRequest request) {
+      conn.onRequest = (HttpClientRequest request) {
         request.writeString(JSON.stringify(leaveRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HttpClientResponse r) {
+      conn.onResponse = (HttpClientResponse r) {
         response = r;
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
-        stream.dataHandler = () => body.add(stream.read());
-        stream.closeHandler = () => leaveResponseHandler(body.toString());
+        stream.onData = () => body.add(stream.read());
+        stream.onClosed = () => leaveResponseHandler(body.toString());
       };
     }
 
@@ -125,16 +125,16 @@ class ChatTestClient extends Isolate {
       receiveRequest["nextMessage"] = receiveMessageNumber;
       HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/receive");
-      conn.requestHandler = (HttpClientRequest request) {
+      conn.onRequest = (HttpClientRequest request) {
         request.writeString(JSON.stringify(receiveRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HttpClientResponse r) {
+      conn.onResponse = (HttpClientResponse r) {
         response = r;
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
-        stream.dataHandler = () => body.add(stream.read());
-        stream.closeHandler = () => receiveResponseHandler(body.toString());
+        stream.onData = () => body.add(stream.read());
+        stream.onClosed = () => receiveResponseHandler(body.toString());
       };
     }
 
@@ -160,16 +160,16 @@ class ChatTestClient extends Isolate {
       messageRequest["message"] = "message " + sendMessageNumber;
       HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/message");
-      conn.requestHandler = (HttpClientRequest request) {
+      conn.onRequest = (HttpClientRequest request) {
         request.writeString(JSON.stringify(messageRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HttpClientResponse r) {
+      conn.onResponse = (HttpClientResponse r) {
         response = r;
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
-        stream.dataHandler = () => body.add(stream.read());
-        stream.closeHandler = () => sendResponseHandler(body.toString());
+        stream.onData = () => body.add(stream.read());
+        stream.onClosed = () => sendResponseHandler(body.toString());
       };
     }
 
@@ -195,16 +195,16 @@ class ChatTestClient extends Isolate {
       joinRequest["request"] = "join";
       joinRequest["handle"] = "test1";
       HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/join");
-      conn.requestHandler = (HttpClientRequest request) {
+      conn.onRequest = (HttpClientRequest request) {
         request.writeString(JSON.stringify(joinRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HttpClientResponse r) {
+      conn.onResponse = (HttpClientResponse r) {
         response = r;
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
-        stream.dataHandler = () => body.add(stream.read());
-        stream.closeHandler = () => joinResponseHandler(body.toString());
+        stream.onData = () => body.add(stream.read());
+        stream.onClosed = () => joinResponseHandler(body.toString());
       };
     }
 

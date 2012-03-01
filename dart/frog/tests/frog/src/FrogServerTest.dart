@@ -26,7 +26,7 @@ main() {
   final testId = 'abc' + new Date.now().value;
 
   var bytes = new List<int>();
-  testSocket.dataHandler = () {
+  testSocket.onData = () {
     var pos = bytes.length;
     var len = testSocket.available();
     bytes.insertRange(pos, len);
