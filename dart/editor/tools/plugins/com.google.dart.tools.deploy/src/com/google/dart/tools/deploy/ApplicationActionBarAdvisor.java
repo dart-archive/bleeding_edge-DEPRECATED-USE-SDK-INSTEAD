@@ -49,7 +49,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.util.Util;
-import org.eclipse.jface.window.IShellProvider;
+import org.eclipse.jface.window.SameShellProvider;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPageListener;
@@ -61,6 +61,7 @@ import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 import org.eclipse.ui.actions.ContributionItemFactory;
 import org.eclipse.ui.actions.CreateFileAction;
+import org.eclipse.ui.actions.CreateFolderAction;
 import org.eclipse.ui.actions.NewWizardMenu;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
@@ -814,15 +815,14 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
       Action newProjectAction = new OpenNewProjectWizardAction();
       newProjectAction.setText("New Project...");
-      Action newFileAction = new CreateFileAction(new IShellProvider() {
-        @Override
-        public Shell getShell() {
-          return getWindow().getShell();
-        }
-      });
+      Action newFileAction = new CreateFileAction(new SameShellProvider(getWindow().getShell()));
       newFileAction.setText("New File...");
       menu.add(newProjectAction);
       menu.add(newFileAction);
+      CreateFolderAction newFolderAction = new CreateFolderAction(new SameShellProvider(
+          getWindow().getShell()));
+      newFolderAction.setText("New Folder...");
+      menu.add(newFolderAction);
       menu.add(new Separator());
 
     } else {
