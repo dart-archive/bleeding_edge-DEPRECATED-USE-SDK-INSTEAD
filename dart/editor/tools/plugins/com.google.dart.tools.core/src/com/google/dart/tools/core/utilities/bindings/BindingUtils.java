@@ -323,20 +323,15 @@ public class BindingUtils {
       return null;
     }
     String typeName = element.getName();
-    try {
-      LibraryElement declaringLibraryElement = element.getLibrary();
-      if (declaringLibraryElement == null) {
-        DartCore.logError("Could not access declaring library for type " + typeName,
-            new Throwable());
-        return null;
-      }
-      DartLibrary declaringLibrary = getDartElement(library, declaringLibraryElement);
-      List<Type> matchingTypes = getImmediateTypes(declaringLibrary, typeName);
-      if (matchingTypes.size() == 1) {
-        return matchingTypes.get(0);
-      }
-    } catch (DartModelException exception) {
-      DartCore.logError(exception);
+    LibraryElement declaringLibraryElement = element.getLibrary();
+    if (declaringLibraryElement == null) {
+      DartCore.logError("Could not access declaring library for type " + typeName, new Throwable());
+      return null;
+    }
+    DartLibrary declaringLibrary = getDartElement(library, declaringLibraryElement);
+    List<Type> matchingTypes = getImmediateTypes(declaringLibrary, typeName);
+    if (matchingTypes.size() == 1) {
+      return matchingTypes.get(0);
     }
     return null;
   }
@@ -569,16 +564,7 @@ public class BindingUtils {
       if (method == null) {
         return null;
       }
-      try {
-        for (DartElement child : method.getChildren()) {
-          if (child instanceof com.google.dart.tools.core.model.DartFunction
-              && methodName.equals(child.getElementName())) {
-            return (com.google.dart.tools.core.model.DartFunction) child;
-          }
-        }
-      } catch (DartModelException exception) {
-        DartCore.logError("Could not get children of method " + method.getElementName(), exception);
-      }
+      return getFunction(method, methodName);
     }
     com.google.dart.compiler.type.Type enclosingType = enclosingElement.getType();
     if (!(enclosingType instanceof InterfaceType)) {
@@ -993,16 +979,25 @@ public class BindingUtils {
    * @param matchingTypes the list to which matching types are to be added
    * @param library the library containing the types to be returned
    * @param typeName the name of the types to be returned
-   * @throws DartModelException if some portion of the workspace cannot be traversed
    */
   private static void addImmediateTypesUncached(List<Type> matchingTypes, DartLibrary library,
-      String typeName) throws DartModelException {
-    for (CompilationUnit unit : library.getCompilationUnits()) {
-      for (Type type : unit.getTypes()) {
-        if (type.getElementName().equals(typeName)) {
-          matchingTypes.add(type);
+      String typeName) {
+    try {
+      for (CompilationUnit unit : library.getCompilationUnits()) {
+        try {
+          for (Type type : unit.getTypes()) {
+            if (type.getElementName().equals(typeName)) {
+              matchingTypes.add(type);
+            }
+          }
+        } catch (DartModelException exception) {
+          DartCore.logInformation("Could not get types defined in " + unit.getElementName(),
+              exception);
         }
       }
+    } catch (DartModelException exception) {
+      DartCore.logInformation(
+          "Could not get compilation units defined in " + library.getElementName(), exception);
     }
   }
 
@@ -1155,6 +1150,36 @@ public class BindingUtils {
   }
 
   /**
+   * Return the function within the given function with the given name, or <code>null</code> if
+   * there is no such function.
+   * 
+   * @param parent the function within which to search
+   * @param functionName the name of the function to be returned
+   * @return the function within the given function with the given name
+   */
+  private static com.google.dart.tools.core.model.DartFunction getFunction(
+      com.google.dart.tools.core.model.DartFunction parent, String functionName) {
+    try {
+      for (DartElement child : parent.getChildren()) {
+        if (child instanceof com.google.dart.tools.core.model.DartFunction) {
+          if (functionName.equals(child.getElementName())) {
+            return (com.google.dart.tools.core.model.DartFunction) child;
+          } else if (child.getElementName().length() == 0) {
+            com.google.dart.tools.core.model.DartFunction grandchild = getFunction(
+                (com.google.dart.tools.core.model.DartFunction) child, functionName);
+            if (grandchild != null) {
+              return grandchild;
+            }
+          }
+        }
+      }
+    } catch (DartModelException exception) {
+      DartCore.logError("Could not get children of method " + parent.getElementName(), exception);
+    }
+    return null;
+  }
+
+  /**
    * Traverse the entire workspace looking for all of the function type aliases with the given name.
    * 
    * @param matchingTypes the list to which matching types are to be added
@@ -1233,10 +1258,8 @@ public class BindingUtils {
    * @param matchingTypes the list to which matching types are to be added
    * @param library the library containing the type in which the method is declared
    * @param typeName the name of the types to be returned
-   * @throws DartModelException if some portion of the workspace cannot be traversed
    */
-  private static List<Type> getImmediateTypes(DartLibrary library, String typeName)
-      throws DartModelException {
+  private static List<Type> getImmediateTypes(DartLibrary library, String typeName) {
     if (library == null) {
       return new ArrayList<Type>();
     }
