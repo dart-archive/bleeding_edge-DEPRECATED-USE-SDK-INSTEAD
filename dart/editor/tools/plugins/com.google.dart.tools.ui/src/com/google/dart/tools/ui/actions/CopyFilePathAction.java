@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.ui.internal.view.files.FilesView;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -26,8 +27,6 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchSite;
-
-import java.io.File;
 
 /**
  * An action for the Files view which allows users to copy the path of a {@link java.io.File} to
@@ -55,8 +54,8 @@ public class CopyFilePathAction extends SelectionDispatchAction {
   @Override
   public void run(IStructuredSelection selection) {
     if (isEnabled()) {
-      File selectedFile = (File) (selection.toArray()[0]);
-      String path = selectedFile.getAbsolutePath();
+      IResource selectedResource = (IResource) (selection.toArray()[0]);
+      String path = selectedResource.getLocation().toOSString();
       copyToClipboard(path, getSite().getShell());
     }
   }
@@ -74,7 +73,7 @@ public class CopyFilePathAction extends SelectionDispatchAction {
       if (selection.size() == 1) {
         Object firstElt = selection.getFirstElement();
         // if that element is a java.io.File element
-        if (firstElt instanceof File) {
+        if (firstElt instanceof IResource) {
           setEnabled(true);
           return;
         }

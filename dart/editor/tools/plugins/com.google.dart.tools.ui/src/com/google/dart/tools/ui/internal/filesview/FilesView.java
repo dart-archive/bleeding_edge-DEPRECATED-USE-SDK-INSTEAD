@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
+import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.libraryview.DeleteAction;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
@@ -126,6 +127,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private RenameResourceAction renameAction;
   private DeleteAction deleteAction;
   private OpenNewFileWizardAction createFileAction;
+  private CopyFilePathAction copyFilePathAction;
 
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
@@ -176,6 +178,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         ISharedImages.IMG_TOOL_DELETE));
     treeViewer.addSelectionChangedListener(deleteAction);
 
+    copyFilePathAction = new CopyFilePathAction(getSite());
+    treeViewer.addSelectionChangedListener(copyFilePathAction);
+
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
     updateTreeFont();
   }
@@ -185,6 +190,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     if (linkWithEditorAction != null) {
       linkWithEditorAction.dispose();
     }
+
+    treeViewer.removeSelectionChangedListener(copyFilePathAction);
 
     super.dispose();
   }
@@ -262,6 +269,11 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       manager.add(new Separator());
       manager.add(deleteAction);
     }
+
+    // Copy File Path
+
+    manager.add(new Separator());
+    manager.add(copyFilePathAction);
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {
