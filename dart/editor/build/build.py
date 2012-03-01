@@ -390,14 +390,26 @@ def main():
     if status:
       return status
 
-    #return on any builder but dart-editor
+    #process the os specific builds
     if buildos:
       found_zips = _FindRcpZipFiles(buildout)
       if not found_zips:
         _PrintError('could not find any zipped up RCP files.'
                     '  The Ant build must have failed')
         return 1
-      _DeployToStaging(buildos, staging_bucket, found_zips, revision, gsu)
+      (status, gs_objects) = _DeployToStaging(buildos, staging_bucket,
+                                              found_zips, revision, gsu)
+      #Temporary code to copy the dart-editor-* to DartBuild-*. 
+      # This will be removed
+      # once everything is switched to use dart-editor-*
+      for gs_object_old in gs_objects:
+        pos_name = gs_object_old.rfind('dart-editor-')
+        gs_object_new = (gs_object_old[:pos_name] + 'DartBuild' +
+                         gs_object_old[pos_name + 11:])
+        gsu.Copy(gs_object_old, gs_object_new)
+        _SetAcl(gs_object_new, gsu)
+      #end temporary code
+
       _WriteTagFile(buildos, staging_bucket, revision, gsu)
       if _ShouldMoveStagingToContinuous(staging_bucket, revision, gsu):
         _MoveStagingToContinuous(staging_bucket, to_bucket, revision, gsu)
@@ -516,17 +528,19 @@ def _DeployToStaging(build_os, to_bucket, zip_files, svnid, gsu):
   """
   print '_DeployRcpsToTest({0}, {1}, {2}, gsu)'.format(to_bucket, zip_files,
                                                        build_os)
+  gs_objects = []
   for element in zip_files:
     base_name = os.path.basename(element)
     svnid_object = '{0}/staging/{1}/{2}/{3}'.format(to_bucket, build_os,
                                                     svnid, base_name)
     status = gsu.Copy(element, svnid_object)
+    gs_objects.append(svnid_object)
     if status:
       _PrintError('failed to copy {0} to {1}'.format(element, svnid_object))
       return status
     _SetAcl(svnid_object, gsu)
 
-  return status
+  return (status, gs_objects)
 
 
 def _WriteTagFile(build_os, to_bucket, svnid, gsu):
@@ -766,7 +780,7 @@ def _FindRcpZipFiles(out_dir):
   rcp_out_dir = os.listdir(out_dir)
   found_zips = []
   for element in rcp_out_dir:
-    if element.startswith('DartBuild') and element.endswith('.zip'):
+    if element.startswith('dart-editor') and element.endswith('.zip'):
       found_zips.append(os.path.join(out_dir, element))
   return found_zips
 
@@ -788,18 +802,17 @@ def _InstallSdk(buildroot, buildout, buildos, sdk):
     os.makedirs(unzip_dir)
   sdk_zip = ziputils.ZipUtil(sdk, buildos)
   sdk_zip.UnZip(unzip_dir)
-  files = os.listdir(buildout)
+  files = _FindRcpZipFiles(buildout)
   for f in files:
-    if f.startswith('DartBuild') and f.endswith('.zip'):
-      dart_zip_path = os.path.join(buildout, f)
-      print ('_installSdk: before '
-             '{0} is {1}'.format(dart_zip_path,
-                                 os.path.getsize(dart_zip_path)))
-      dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
-      dart_zip.AddDirectoryTree(unzip_dir, 'dart')
-      print ('_installSdk: after  '
-             '{0} is {1}'.format(dart_zip_path,
-                                 os.path.getsize(dart_zip_path)))
+    dart_zip_path = os.path.join(buildout, f)
+    print ('_installSdk: before '
+           '{0} is {1}'.format(dart_zip_path,
+                               os.path.getsize(dart_zip_path)))
+    dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
+    dart_zip.AddDirectoryTree(unzip_dir, 'dart')
+    print ('_installSdk: after  '
+           '{0} is {1}'.format(dart_zip_path,
+                               os.path.getsize(dart_zip_path)))
 
 
 def _InstallDartium(buildroot, buildout, buildos, gsu):
@@ -871,29 +884,28 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
           zip_rel_path = 'dart/dart-sdk/Chromium.app'
 
     if tmp_zip_name is not None and add_path is not None:
-      files = os.listdir(buildout)
+      files = _FindRcpZipFiles(buildout)
       for f in files:
-        if f.startswith('DartBuild') and f.endswith('.zip'):
-          dart_zip_path = os.path.join(buildout, f)
-          print ('_installDartium: before '
-                 '{0} is {1}'.format(dart_zip_path,
-                                     os.path.getsize(dart_zip_path)))
-          dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
-          dart_zip.AddDirectoryTree(add_path, zip_rel_path)
-          revision_properties = None
-          try:
-            revision_properties_path = os.path.join(tmp_dir,
-                                                    'chromium.properties')
-            revision_properties = open(revision_properties_path, 'w')
-            revision_properties.write('chromium.version = {0}{1}'.
-                                      format(dartum_version, os.linesep))
-          finally:
-            revision_properties.close()
-          dart_zip.AddFile(revision_properties_path,
-                           'dart/dart-sdk/chromium.properties')
-          print ('_installDartium: after  '
-                 '{0} is {1}'.format(dart_zip_path,
-                                     os.path.getsize(dart_zip_path)))
+        dart_zip_path = os.path.join(buildout, f)
+        print ('_installDartium: before '
+               '{0} is {1}'.format(dart_zip_path,
+                                   os.path.getsize(dart_zip_path)))
+        dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
+        dart_zip.AddDirectoryTree(add_path, zip_rel_path)
+        revision_properties = None
+        try:
+          revision_properties_path = os.path.join(tmp_dir,
+                                                  'chromium.properties')
+          revision_properties = open(revision_properties_path, 'w')
+          revision_properties.write('chromium.version = {0}{1}'.
+                                    format(dartum_version, os.linesep))
+        finally:
+          revision_properties.close()
+        dart_zip.AddFile(revision_properties_path,
+                         'dart/dart-sdk/chromium.properties')
+        print ('_installDartium: after  '
+               '{0} is {1}'.format(dart_zip_path,
+                                   os.path.getsize(dart_zip_path)))
     else:
       msg = 'no Dartium files found'
       _PrintError(msg)
