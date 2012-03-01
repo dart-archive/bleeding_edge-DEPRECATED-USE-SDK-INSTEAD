@@ -84,7 +84,21 @@ class WorldCompiler extends Compiler {
     cancel(message.toString(), node);
   }
 
+  Uri getUriFor(String fileName) {
+    Uri cwd = new Uri(scheme: 'file', path: currentDirectory);
+    return cwd.resolve(fileName);
+  }
+
   Script readScript(Uri uri, [ScriptTag node]) {
+    String uriName = uri.toString();
+    // TODO(ahe): Clean this up.
+    if (uriName == 'dart:dom') {
+      uri = getUriFor(io.join([legDirectory, '..', '..',
+          'client', 'dom', 'frog', 'dom_frog.dart']));
+    } else if (uriName == 'dart:html') {
+      uri = getUriFor(io.join([legDirectory, '..', '..',
+          'client', 'html', 'frog', 'html_frog.dart']));
+    }
     if (uri.scheme != 'file') cancel('cannot read $uri', node: node);
     String text = "";
     try {

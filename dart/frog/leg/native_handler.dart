@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('native');
+#import('../../lib/uri/uri.dart');
 #import('leg.dart');
 #import('elements/elements.dart');
 #import('scanner/scannerlib.dart');
@@ -30,8 +31,13 @@ void processNativeClasses(Compiler compiler,
   }
 }
 
-void checkNativeSupport(Compiler compiler, LibraryElement library) {
-  if (library.script.name.contains('dart/frog/tests/native/src')) {
+void checkNativeSupport(Compiler compiler,
+                        LibraryElement library,
+                        Uri uri) {
+  String libraryName = uri.toString();
+  if (library.script.name.contains('dart/frog/tests/native/src')
+      || libraryName == 'dart:dom'
+      || libraryName == 'dart:html') {
     library.define(new ForeignElement(
         const SourceString('native'), library), compiler);
   }
