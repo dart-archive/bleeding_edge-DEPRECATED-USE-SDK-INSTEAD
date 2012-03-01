@@ -1232,6 +1232,8 @@ class SsaBuilder implements Visitor {
       open(joinBlock);
       if (joinBlock.predecessors.length == 2) {
         localsHandler.mergeWith(thenLocals, joinBlock);
+      } else if (thenBlock !== null) {
+        localsHandler = thenLocals;
       }
     }
   }
@@ -2196,6 +2198,7 @@ class SsaBuilder implements Visitor {
       visit(body);
       return;
     }
+    LocalsHandler beforeLocals = new LocalsHandler.from(localsHandler);
     assert(targetElement.isBreakTarget);
     BreakHandler handler = new BreakHandler(this, targetElement);
     // Introduce a new basic block.
@@ -2219,6 +2222,7 @@ class SsaBuilder implements Visitor {
       goto(current, joinBlock);
       breakLocals.add(localsHandler);
     }
+    open(joinBlock);
     localsHandler = beforeLocals.mergeMultiple(breakLocals, joinBlock);
 
     if (hasBreak) {
