@@ -409,8 +409,8 @@ class IsolatedServer extends Isolate {
   void _joinHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     StringInputStream input = new StringInputStream(request.inputStream);
-    input.onData = () => body.add(input.read());
-    input.onClosed = () {
+    input.dataHandler = () => body.add(input.read());
+    input.closeHandler = () {
       String data = body.toString();
       if (data != null) {
         var requestData = JSON.parse(data);
@@ -443,8 +443,8 @@ class IsolatedServer extends Isolate {
   void _leaveHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     StringInputStream input = new StringInputStream(request.inputStream);
-    input.onData = () => body.add(input.read());
-    input.onClosed = () {
+    input.dataHandler = () => body.add(input.read());
+    input.closeHandler = () {
       String data = body.toString();
       var requestData = JSON.parse(data);
       if (requestData["request"] == "leave") {
@@ -473,8 +473,8 @@ class IsolatedServer extends Isolate {
   void _messageHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     StringInputStream input = new StringInputStream(request.inputStream);
-    input.onData = () => body.add(input.read());
-    input.onClosed = () {
+    input.dataHandler = () => body.add(input.read());
+    input.closeHandler = () {
       String data = body.toString();
       _messageCount++;
       _messageRate.record(1);
@@ -510,8 +510,8 @@ class IsolatedServer extends Isolate {
   void _receiveHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     StringInputStream input = new StringInputStream(request.inputStream);
-    input.onData = () => body.add(input.read());
-    input.onClosed = () {
+    input.dataHandler = () => body.add(input.read());
+    input.closeHandler = () {
       String data = body.toString();
       var requestData = JSON.parse(data);
       if (requestData["request"] == "receive") {
@@ -587,7 +587,7 @@ class IsolatedServer extends Isolate {
         _server = new HttpServer();
         try {
           _server.listen(_host, _port, backlog: message.backlog);
-          _server.onRequest = (HttpRequest req, HttpResponse rsp) =>
+          _server.requestHandler = (HttpRequest req, HttpResponse rsp) =>
               _requestReceivedHandler(req, rsp);
           replyTo.send(new ChatServerStatus.started(_server.port), null);
           _loggingTimer = new Timer.repeating(_handleLogging, 1000);

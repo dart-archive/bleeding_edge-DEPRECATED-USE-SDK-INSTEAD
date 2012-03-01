@@ -153,13 +153,13 @@ void forEachLine(InputStream input,
                  void lineHandler(String line),
                  void closeHandler()) {
   StringInputStream stringStream = new StringInputStream(input);
-  stringStream.onLine = () {
+  stringStream.lineHandler = () {
     String line;
     while ((line = stringStream.readLine()) !== null) {
       lineHandler(line);
     }
   };
-  stringStream.onClosed = closeHandler;
+  stringStream.closeHandler = closeHandler;
 }
 
 List<int> read(String filename) {
