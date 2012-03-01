@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("pond_ui");
+#library('pond_ui');
 
-#import("dart:html", prefix:'html');
-#import("editors.dart");
-#import("../../frog/lang.dart");
-#import("html_file_system.dart");
+#import('dart:html', prefix:'html');
+#import('dart:isolate', prefix: 'isolate');
+#import('editors.dart');
 
 class PondUI {
   Editor dartEditor;
@@ -16,8 +15,11 @@ class PondUI {
   Editor warningEditor;
   Editor jsEditor;
   Editor htmlEditor;
+  isolate.SendPort compilerIsolate;
 
-  PondUI() : markers = [] {}
+  PondUI() : markers = [] {
+    compilerIsolate = isolate.spawnUri("compiler.dart.js");
+  }
 
   void clearOutput() {
     warningEditor.setText('');
@@ -61,63 +63,60 @@ class PondUI {
     });
 
     html.document.query('#runButton').on.click.add((e) {
-      int millis0 = new Date.now().value;
+      final totalWatch = new Stopwatch.start();
       clearOutput();
-      String warnings = '';
-      HtmlFileSystem fs = new HtmlFileSystem();
-      parseOptions('../../frog', ['dummyArg1', 'dummyArg2', 'user.dart'], fs);
       // TODO(sigmund): cleanup using 'await' as follows:
       // String userCode = await dartEditor.getText();
       dartEditor.getText().then((userCode) {
-        fs.writeString("user.dart", userCode);
-        options.useColors = false;
-        options.warningsAsErrors =
-          html.document.query('#warningCheckbox').dynamic.checked;
-
-        int millis1 = new Date.now().value;
-        initializeWorld(fs);
-        world.messageHandler = (String prefix, String msg, SourceSpan span) {
-          warnings += prefix + msg;
-          if (span != null) {
-            warnings += ' [' + span.locationText + '] \n';
-            if (span.file.filename == 'user.dart') {
-              final start = new Position(span.line, span.column);
-              final end = new Position(span.endLine, span.endColumn);
-              int kind = Marks.NONE;
-              if (prefix.startsWith('error') || prefix.startsWith('fatal')) {
-                kind = Marks.ERROR;
-              } else if (prefix.startsWith('warning')) {
-                kind = Marks.WARNING;
-              }
-              // TODO(sigmund): cleanup using 'await' as follows:
-              // markers.add(await dartEditor.mark(start, end, kind));
-              dartEditor.mark(start, end, kind).then(
+        final compileWatch = new Stopwatch.start();
+        compilerIsolate.call({
+            'code': userCode,
+            'warningsAsErrors':
+                 html.document.query('#warningCheckbox').dynamic.checked
+          }).receive((reply, _) {
+            String warnings = '';
+            for (final warning in reply['warnings']) {
+              warnings = '${warnings}${warning["prefix"]} ${warning["msg"]}';
+              warnings = '${warnings}[${warning["locationText"]}]\n';
+              if (warning['filename'] == 'user.dart') {
+                final start = new Position(warning['line'], warning['column']);
+                final end = new Position(
+                    warning['endLine'], warning['endColumn']);
+                int kind = Marks.NONE;
+                String prefix = warning['prefix'];
+                if (prefix.startsWith('error') || prefix.startsWith('fatal')) {
+                  kind = Marks.ERROR;
+                } else if (prefix.startsWith('warning')) {
+                  kind = Marks.WARNING;
+                }
+                dartEditor.mark(start, end, kind).then(
                   (Marker m) { markers.add(m); });
+              }
             }
-          } else {
-            warnings += '\n';
-          }
-        };
-        bool success = world.compile();
-        if (success) {
-          String code = world.getGeneratedCode();
-          jsEditor.setText(code);
-          // TODO(sigmund): cleanup using 'await' as follows:
-          // String htmlTxt = await htmlEditor.getText();
-          htmlEditor.getText().then((htmlText) {
-            var start = htmlText.indexOf("{{DART}}");
-            htmlText = htmlText.substring(0, start) + code
-              + htmlText.substring(start + "{{DART}}".length);
-            htmlText = htmlText.replaceAll(
-                "application/dart", "text/javascript");
-            html.document.query("#resultFrame").attributes["src"] =
-              _toDataURL(htmlText);
+
+            if (reply['success']) {
+              String code = reply['code'];
+              jsEditor.setText(code);
+              htmlEditor.getText().then((htmlText) {
+                var start = htmlText.indexOf("{{DART}}");
+                htmlText = htmlText.substring(0, start) + code
+                  + htmlText.substring(start + "{{DART}}".length);
+                htmlText = htmlText.replaceAll(
+                  "application/dart", "text/javascript");
+                html.document.query("#resultFrame").attributes["src"] =
+                _toDataURL(htmlText);
+              });
+            }
+            compileWatch.stop();
+            totalWatch.stop();
+            int time = reply["time"];
+            warnings = '$warnings\ncompile time: ${time}ms\n';
+            time = compileWatch.elapsedInMs();
+            warnings = '$warnings\ncompile + isolate time: ${time}ms\n';
+            time = totalWatch.elapsedInMs();
+            warnings = '${warnings}total time: ${time}ms\n';
+            warningEditor.setText(warnings);
           });
-        }
-        int millis2 = new Date.now().value;
-        warnings += '\ncompile time: ${millis2 - millis1}ms\n';
-        warnings += '\ntotal time: ${millis2 - millis0}ms\n';
-        warningEditor.setText(warnings);
       });
     });
   }

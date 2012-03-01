@@ -21,8 +21,9 @@ function frog_build {
   fi
 }
 
-# Rebuild pond using minfrog
+# Rebuild pond and the compiler isolate using minfrog
 frog_build pond.dart
+frog_build compiler.dart
 
 # Build the editors module
 cat codemirror/lib/codemirror.js \
