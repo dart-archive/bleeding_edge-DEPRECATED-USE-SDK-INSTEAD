@@ -14,16 +14,20 @@
 package com.google.dart.tools.core.generator;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.util.StatusUtil;
 import com.google.dart.tools.core.model.DartLibrary;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
@@ -49,6 +53,8 @@ public class ApplicationGenerator extends AbstractGenerator {
   private boolean isWebApplication;
 
   private IFile iApplicationFile = null;
+
+  private IProject project;
 
   /**
    * Construct a new instance.
@@ -79,17 +85,22 @@ public class ApplicationGenerator extends AbstractGenerator {
       applicationFile = generateCommandLineApp(monitor, applicationFileName);
     }
 
-    DartLibrary library = DartCore.openLibrary(applicationFile, monitor);
-    if (library != null) {
-      library.setTopLevel(true);
-    }
-    IFile[] files = ResourceUtil.getResources(applicationFile);
-    iApplicationFile = files[0];
+    if (!DartCoreDebug.PROJECTS_VIEW) {
+      DartLibrary library = DartCore.openLibrary(applicationFile, monitor);
+      if (library != null) {
+        library.setTopLevel(true);
+      }
+      IFile[] files = ResourceUtil.getResources(applicationFile);
+      iApplicationFile = files[0];
+    } else {
+      // The generator creates resources using java.io.File APIs.
+      project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 
+      iApplicationFile = ResourceUtil.getResource(applicationFile);
+    }
   }
 
   public IFile getFile() {
-
     return iApplicationFile;
   }
 
@@ -121,6 +132,10 @@ public class ApplicationGenerator extends AbstractGenerator {
     this.applicationName = applicationName;
   }
 
+  public void setProject(IProject project) {
+    this.project = project;
+  }
+
   public void setWebApplication(boolean isWebApplication) {
     this.isWebApplication = isWebApplication;
   }
@@ -144,7 +159,10 @@ public class ApplicationGenerator extends AbstractGenerator {
     SubMonitor subMonitor = SubMonitor.convert(monitor,
         GeneratorMessages.ApplicationGenerator_message, 100);
 
+    String className = applicationFileName.substring(0, applicationFileName.indexOf('.'));
+
     final HashMap<String, String> substitutions = new HashMap<String, String>();
+    substitutions.put("className", className); //$NON-NLS-1$
 
     File applicationFile = getSystemFile(applicationFileName);
     execute("generated-dart-server.txt", applicationFile, substitutions, monitor); //$NON-NLS-1$

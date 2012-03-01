@@ -22,7 +22,7 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
 /**
- * 
+ * Open a wizard to create a new project or import an existing project.
  */
 public class OpenNewProjectWizardAction extends AbstractOpenWizardAction implements
     IWorkbenchAction {

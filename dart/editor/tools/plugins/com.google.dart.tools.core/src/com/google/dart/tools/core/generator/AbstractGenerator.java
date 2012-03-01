@@ -82,7 +82,12 @@ public abstract class AbstractGenerator {
               "Failed to generate source", e));
         }
         try {
-          FileUtilities.createDirectory(file.getParentFile());
+          File parentFile = file.getParentFile();
+
+          if (!parentFile.exists()) {
+            FileUtilities.createDirectory(parentFile);
+          }
+
           FileUtilities.setContents(file, source);
         } catch (IOException e) {
           DartCore.logError(e);

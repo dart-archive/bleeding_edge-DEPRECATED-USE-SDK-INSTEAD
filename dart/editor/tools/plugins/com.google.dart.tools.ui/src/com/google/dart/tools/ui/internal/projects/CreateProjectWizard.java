@@ -15,9 +15,14 @@
 package com.google.dart.tools.ui.internal.projects;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.generator.ApplicationGenerator;
+import com.google.dart.tools.core.generator.DartIdentifierUtil;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.projects.NewProjectCreationPage.ProjectType;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.ICommand;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResourceStatus;
@@ -26,9 +31,12 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.ide.undo.CreateProjectOperation;
 import org.eclipse.ui.ide.undo.WorkspaceUndoUtil;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
@@ -49,11 +57,11 @@ import java.net.URI;
 public class CreateProjectWizard extends BasicNewResourceWizard {
 
   private NewProjectCreationPage page;
+  private IFile createdFile;
   private IProject newProject;
 
   @Override
   public void addPages() {
-    super.addPages();
     addPage(page = new NewProjectCreationPage());
   }
 
@@ -65,7 +73,17 @@ public class CreateProjectWizard extends BasicNewResourceWizard {
       return false;
     }
 
-    selectAndReveal(newProject);
+    if (createdFile != null) {
+      selectAndReveal(createdFile);
+
+      try {
+        IDE.openEditor(getWorkbench().getActiveWorkbenchWindow().getActivePage(), createdFile);
+      } catch (PartInitException e) {
+        DartToolsPlugin.log(e);
+      }
+    } else {
+      selectAndReveal(newProject);
+    }
 
     return true;
   }
@@ -92,6 +110,7 @@ public class CreateProjectWizard extends BasicNewResourceWizard {
 
     // get a project handle
     final IProject newProjectHandle = page.getProjectHandle();
+    final ProjectType projectType = page.getProjectType();
 
     // get a project descriptor
     URI location = page.getLocationURI();
@@ -100,14 +119,19 @@ public class CreateProjectWizard extends BasicNewResourceWizard {
 
     // create the new project operation
     IRunnableWithProgress op = new IRunnableWithProgress() {
-
       @Override
       public void run(IProgressMonitor monitor) throws InvocationTargetException {
         CreateProjectOperation op = new CreateProjectOperation(description,
             ResourceMessages.NewProject_windowTitle);
         try {
-          op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
+          IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
+
+          if (status.isOK() && projectType != ProjectType.NONE) {
+            createdFile = createProjectContent(newProjectHandle, projectType);
+          }
         } catch (ExecutionException e) {
+          throw new InvocationTargetException(e);
+        } catch (CoreException e) {
           throw new InvocationTargetException(e);
         }
       }
@@ -148,6 +172,27 @@ public class CreateProjectWizard extends BasicNewResourceWizard {
     newProject = newProjectHandle;
 
     return newProject;
+  }
+
+  /**
+   * Create a ProjectType.WEB project or a ProjectType.SERVER project.
+   * 
+   * @param project
+   * @param projectType
+   * @throws CoreException
+   */
+  private IFile createProjectContent(IProject project, ProjectType projectType)
+      throws CoreException {
+    ApplicationGenerator generator = new ApplicationGenerator();
+
+    generator.setProject(project);
+    generator.setApplicationLocation(project.getLocation().toOSString());
+    generator.setApplicationName(DartIdentifierUtil.createValidIdentifier(project.getName()));
+    generator.setWebApplication(projectType == ProjectType.WEB);
+
+    generator.execute(new NullProgressMonitor());
+
+    return generator.getFile();
   }
 
   private IProjectDescription createProjectDescription(IProject project, URI location) {

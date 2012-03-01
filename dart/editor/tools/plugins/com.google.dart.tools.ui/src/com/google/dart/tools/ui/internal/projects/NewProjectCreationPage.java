@@ -24,6 +24,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
@@ -38,6 +40,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
@@ -50,9 +53,15 @@ import java.net.URI;
  */
 public class NewProjectCreationPage extends WizardPage {
 
+  public static enum ProjectType {
+    NONE, SERVER, WEB
+  }
+
   private Text projectNameField;
   private Text projectLocationField;
   private String defaultLocation;
+  private Button serverButton;
+  private Button webButton;
 
   /**
    * Creates a new project creation wizard page.
@@ -71,10 +80,9 @@ public class NewProjectCreationPage extends WizardPage {
   public void createControl(Composite parent) {
     Composite container = new Composite(parent, SWT.NULL);
     setControl(container);
-    container.setLayout(new GridLayout(1, false));
 
-    GridData gd_composite_1 = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
-    container.setLayoutData(gd_composite_1);
+    GridData gridData = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
+    container.setLayoutData(gridData);
     container.setLayout(new GridLayout(3, false));
 
     Label nameLabel = new Label(container, SWT.NONE);
@@ -125,6 +133,20 @@ public class NewProjectCreationPage extends WizardPage {
     });
 
     projectNameField.setFocus();
+
+    Group contentGroup = new Group(container, SWT.NONE);
+    contentGroup.setText("Create sample content");
+    GridDataFactory.fillDefaults().span(3, 1).grab(true, false).indent(0, 10).applyTo(contentGroup);
+    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(contentGroup);
+
+    webButton = new Button(contentGroup, SWT.RADIO);
+    webButton.setText("Web application");
+
+    serverButton = new Button(contentGroup, SWT.RADIO);
+    serverButton.setText("Server application");
+
+    webButton.setSelection(true);
+
     setPageComplete(false);
   }
 
@@ -163,6 +185,26 @@ public class NewProjectCreationPage extends WizardPage {
     return getProjectNameFieldValue();
   }
 
+  /**
+   * @return the sample project content to create
+   * @see ProjectType
+   */
+  public ProjectType getProjectType() {
+    if (doesProjectExist()) {
+      return ProjectType.NONE;
+    }
+
+    if (serverButton.getSelection()) {
+      return ProjectType.SERVER;
+    }
+
+    if (webButton.getSelection()) {
+      return ProjectType.WEB;
+    }
+
+    return ProjectType.NONE;
+  }
+
   protected String getDefaultFolder() {
     String defaultLocation = System.getProperty("user.home"); //$NON-NLS-1$
     return defaultLocation + File.separator + "dart" + File.separator; //$NON-NLS-1$
@@ -195,22 +237,41 @@ public class NewProjectCreationPage extends WizardPage {
   }
 
   private String calculateStatusMessage() {
+    String projectString = "\'" + getLocationPath().lastSegment() + "\'"; //$NON-NLS-1$ //$NON-NLS-2$
+
+    if (doesProjectExist()) {
+      if (doesProjectHaveMetaData()) {
+        return NLS.bind(ProjectMessages.NewApplicationWizardPage_open_existing, projectString);
+      } else {
+        return NLS.bind(ProjectMessages.NewApplicationWizardPage_create_metadata, projectString);
+      }
+    } else {
+      return NLS.bind(ProjectMessages.NewApplicationWizardPage_create_new, projectString);
+    }
+  }
+
+  private boolean doesProjectExist() {
     IPath path = getLocationPath();
     File file = path.toFile();
-    String projectString = "\'" + path.lastSegment() + "\'"; //$NON-NLS-1$ //$NON-NLS-2$
-    if (file.exists()) {
+
+    return file.exists();
+  }
+
+  private boolean doesProjectHaveMetaData() {
+    if (doesProjectExist()) {
+      File file = getLocationPath().toFile();
+
       String[] projectFile = file.list(new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
           return name.equals(".project"); //$NON-NLS-1$
         }
       });
-      if (projectFile.length == 0) {
-        return NLS.bind(ProjectMessages.NewApplicationWizardPage_create_metadata, projectString);
-      }
-      return NLS.bind(ProjectMessages.NewApplicationWizardPage_open_existing, projectString);
+
+      return projectFile.length > 0;
+    } else {
+      return false;
     }
-    return NLS.bind(ProjectMessages.NewApplicationWizardPage_create_new, projectString);
   }
 
   private IPath getLocationPath() {
@@ -231,12 +292,18 @@ public class NewProjectCreationPage extends WizardPage {
   }
 
   private void update() {
+    serverButton.setEnabled(!doesProjectExist());
+    webButton.setEnabled(!doesProjectExist());
+
     if (getProjectNameFieldValue().isEmpty()) {
       setMessage(ProjectMessages.NewProjectCreationPage_create_msg);
       return;
     }
-    IStatus status = validate();
+
     setMessage(calculateStatusMessage());
+
+    IStatus status = validate();
+
     if (status.isOK()) {
       setPageComplete(true);
       setErrorMessage(null);

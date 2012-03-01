@@ -27,6 +27,44 @@ import org.eclipse.core.runtime.Status;
  */
 public class DartIdentifierUtil {
 
+  /**
+   * Given a string, return an equivalent string that is a valid Dart identifier.
+   * 
+   * @param str
+   * @return
+   */
+  public static String createValidIdentifier(String str) {
+    if (str.length() == 0) {
+      return str;
+    }
+
+    StringBuilder builder = new StringBuilder();
+    boolean nextIsCaps = false;
+
+    if (Character.isJavaIdentifierStart(str.charAt(0))) {
+      builder.append(str.charAt(0));
+    }
+
+    str = str.substring(1);
+
+    for (char c : str.toCharArray()) {
+      if (Character.isJavaIdentifierPart(c)) {
+        if (nextIsCaps) {
+          builder.append(Character.toUpperCase(c));
+        } else {
+          builder.append(c);
+        }
+        nextIsCaps = false;
+      } else if (c == '-' || c == '_') {
+        nextIsCaps = true;
+      } else {
+        nextIsCaps = false;
+      }
+    }
+
+    return builder.toString();
+  }
+
   public static IStatus validateIdentifier(final String str) {
     // TODO extract the strings in this method
     // return error status if str is null or empty

@@ -239,7 +239,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   @Override
   public void selectReveal(ISelection selection) {
-    treeViewer.setSelection(selection);
+    treeViewer.setSelection(selection, true);
   }
 
   @Override
