@@ -16,6 +16,7 @@ package com.google.dart.tools.core.model;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
@@ -172,6 +173,13 @@ public interface DartProject extends ParentElement, OpenableElement {
    */
   public IPath getOutputLocation() throws DartModelException;
 
+  /**
+   * Return the project corresponding to this Dart project.
+   * 
+   * @return the project corresponding to this Dart project
+   */
+  public IProject getProject();
+
   // /**
   // * Create and return a new evaluation context.
   // *
@@ -180,19 +188,19 @@ public interface DartProject extends ParentElement, OpenableElement {
   // public EvaluationContext newEvaluationContext();
 
   /**
-   * Return the project corresponding to this Dart project.
-   * 
-   * @return the project corresponding to this Dart project
-   */
-  public IProject getProject();
-
-  /**
    * Return <code>true</code> if this project has been built at least once and thus has a build
    * state.
    * 
    * @return <code>true</code> if this project has been built at least once
    */
   public boolean hasBuildState();
+
+  /**
+   * Removes the new {@link IFile} as a top-level library in this project.
+   * 
+   * @param file the new library file
+   */
+  public boolean removeLibraryFile(IFile file);
 
   /**
    * Helper method for setting one option value only.

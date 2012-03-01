@@ -150,6 +150,14 @@ public class DeltaProcessor {
   private boolean isFiring = true;
 
   /**
+   * For each call to {@link #resourceChanged(IResourceChangeEvent)}, each project should call
+   * {@link DartProjectImpl#recomputeLibrarySet()} only once. This is a set of the project names for
+   * which such a call was made, and thus is used to determine if the call shouldn't be made a
+   * second time.
+   */
+  private Set<String> projectHasRecomputedLibrarySet;
+
+  /**
    * Used to update the DartModel for <code>DartElementDelta</code>s.
    */
   private final ModelUpdater modelUpdater = new ModelUpdater();
@@ -262,6 +270,9 @@ public class DeltaProcessor {
     int eventType = overridenEventType == -1 ? event.getType() : overridenEventType;
     IResource resource = event.getResource();
     IResourceDelta delta = event.getDelta();
+
+    // reset the contents projectHasRecomputedLibrarySet set
+    projectHasRecomputedLibrarySet = new HashSet<String>(1);
 
     switch (eventType) {
       case IResourceChangeEvent.PRE_CLOSE:
@@ -474,7 +485,14 @@ public class DeltaProcessor {
             removeFromParentInfo(openableDartElement);
             currentDelta().changed(library, DartElementDelta.CHANGED);
             currentDelta().removed(openableDartElement);
-            // TODO(jwren) unlink the resource
+            // Next, update the project structure by updating the library set, unless the call has
+            // already been made for the project, in this call to the DeltaProcessor
+            DartProjectImpl dartProject = (DartProjectImpl) library.getDartProject();
+            if (directiveType == DirectiveType.SRC
+                && !projectHasRecomputedLibrarySet.contains(dartProject.getElementName())) {
+              dartProject.recomputeLibrarySet();
+              projectHasRecomputedLibrarySet.add(dartProject.getElementName());
+            }
           }
           if (DEBUG) {
             System.out.println("DeltaProcessor.contentChanged_fileDirectives() REMOVE: "
@@ -507,7 +525,14 @@ public class DeltaProcessor {
             addToParentInfo(openableDartElement);
             currentDelta().changed(library, DartElementDelta.CHANGED);
             currentDelta().added(openableDartElement);
-            // TODO(jwren) link the new resource, if needed
+            // Call the project to have the newly imported source file removed from the list of
+            // top-level library files- unless recomputeLibrarySet has already been called.
+            DartProjectImpl dartProject = (DartProjectImpl) library.getDartProject();
+            if (directiveType == DirectiveType.SRC
+                && !projectHasRecomputedLibrarySet.contains(dartProject.getElementName())) {
+              IFile iFile = (IFile) openableDartElement.getResource();
+              dartProject.removeLibraryFile(iFile);
+            }
           }
           if (DEBUG) {
             System.out.println("DeltaProcessor.contentChanged_fileDirectives() ADD: " + newPathElt);
@@ -680,13 +705,20 @@ public class DeltaProcessor {
       case DartElement.COMPILATION_UNIT:
         // Note: this element could be a compilation unit or library (if it is a defining compilation unit)
         element = DartCore.create(resource);
-        if (element instanceof DartLibrary) {
+        if (element != null && element instanceof DartLibrary) {
           try {
             element = ((DartLibrary) element).getDefiningCompilationUnit();
           } catch (DartModelException exception) {
             element = null;
           }
         }
+
+        // if the element is null, then this must be a new dart file, create a new DartLibrary
+        if (element == null && resource instanceof IFile) {
+          DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(resource.getProject());
+          element = new DartLibraryImpl(dartProject, (IFile) resource);
+        }
+
         break;
       case DartElement.HTML_FILE:
         element = DartCore.create(resource);
@@ -1271,7 +1303,7 @@ public class DeltaProcessor {
       IResourceDelta[] deltas = changes.getAffectedChildren(IResourceDelta.ADDED
           | IResourceDelta.REMOVED | IResourceDelta.CHANGED, IContainer.INCLUDE_HIDDEN);
 
-      // traverse delta
+      // traverse each delta
       for (int i = 0; i < deltas.length; i++) {
         traverseDelta(deltas[i], DartElement.DART_PROJECT);
       }
@@ -1405,29 +1437,33 @@ public class DeltaProcessor {
         if (element == null) {
           return true;
         }
-        elementAdded(element, delta);
-        // if this element is a CompilationUnit that defines a library, make sure that we specify that the
-        // DartLibrary is being added
-        if (elementType == DartElement.COMPILATION_UNIT) {
-          // if the element is a LibraryConfigurationFile, then we need to post an add of it's parent
-          if (((CompilationUnit) element).definesLibrary()) {
-            elementAdded((DartLibraryImpl) element.getParent(), delta);
-          }
-        }
+        DartProjectImpl dartProjectImpl = (DartProjectImpl) element.getDartProject();
+        dartProjectImpl.recomputeLibrarySet();
+//        elementAdded(element, delta);
+//        // if this element is a CompilationUnit that defines a library, make sure that we specify that the
+//        // DartLibrary is being added
+//        if (elementType == DartElement.COMPILATION_UNIT) {
+//          // if the element is a LibraryConfigurationFile, then we need to post an add of it's parent
+//          if (((CompilationUnit) element).definesLibrary()) {
+//            elementAdded((DartLibraryImpl) element.getParent(), delta);
+//          }
+//        }
         return false;
       case IResourceDelta.REMOVED:
         element = createElement(deltaRes, elementType);
         if (element == null) {
           return true;
         }
-        elementRemoved(element, delta);
-        // if this element is a CompilationUnit that defines a library, make sure that we specify that the
-        // DartLibrary is being removed
-        if (elementType == DartElement.COMPILATION_UNIT) {
-          if (((CompilationUnit) element).definesLibrary()) {
-            elementRemoved((DartLibraryImpl) element.getParent(), delta);
-          }
-        }
+        dartProjectImpl = (DartProjectImpl) element.getDartProject();
+        dartProjectImpl.recomputeLibrarySet();
+//        elementRemoved(element, delta);
+//        // if this element is a CompilationUnit that defines a library, make sure that we specify that the
+//        // DartLibrary is being removed
+//        if (elementType == DartElement.COMPILATION_UNIT) {
+//          if (((CompilationUnit) element).definesLibrary()) {
+//            elementRemoved((DartLibraryImpl) element.getParent(), delta);
+//          }
+//        }
         // Note: the JDT has a special case for projects, we may need some special case as well
         // later on, the DartModelManager currently doesn't have the equivalent methods
         //if (deltaRes.getType() == IResource.PROJECT) {

@@ -499,6 +499,75 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     return project.hashCode();
   }
 
+  /**
+   * Recompute the set of libraries that are part of this Dart project.
+   */
+  public void recomputeLibrarySet() {
+    try {
+      DartProjectInfo projectInfo = (DartProjectInfo) getElementInfo();
+      if (project == null || !project.exists() || !project.isOpen()) {
+        projectInfo.setChildren(DartElement.EMPTY_ARRAY);
+        return;
+      }
+      List<String> childPaths = getChildPaths(projectInfo, true);
+      projectInfo.setChildPaths(childPaths);
+      setChildPaths(projectInfo, childPaths);
+
+      if (childPaths.size() > 0) {
+        IProject project = getProject();
+        ArrayList<DartElementImpl> children = new ArrayList<DartElementImpl>();
+        for (String path : childPaths) {
+          IFile resource = project.getFile(new Path(path));
+          if (resource != null) {
+            children.add(new DartLibraryImpl(DartProjectImpl.this, resource));
+          }
+        }
+        projectInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
+        return;
+      }
+    } catch (DartModelException e) {
+      Util.log(e, "Failed to recompute the set of top-level libraries in the project:"
+          + getElementName());
+    }
+  }
+
+  @Override
+  public boolean removeLibraryFile(IFile file) {
+    boolean foundAndRemoved = false;
+    try {
+      // Get the element info
+      DartProjectInfo projectInfo = (DartProjectInfo) getElementInfo();
+
+      // Read the set of child paths from the .children file for the project
+      List<String> childPaths = getChildPaths(projectInfo, false);
+
+      // Remove the new file path from the list
+      foundAndRemoved = childPaths.remove(file.getProjectRelativePath().toPortableString());
+
+      // Only update the .children file if the specified was in the .children file to be removed,
+      // or if the children file doesn't exist yet.
+      if (foundAndRemoved || !getChildrenFile().exists()) {
+        // Write out the new contents to the .children file
+        setChildPaths(projectInfo, childPaths);
+
+        // Update the project info object to include the new file as a DartLibraryImpl
+        IProject project = file.getProject();
+        ArrayList<DartElementImpl> children = new ArrayList<DartElementImpl>();
+        for (String path : childPaths) {
+          IFile resource = project.getFile(new Path(path));
+          if (resource != null) {
+            children.add(new DartLibraryImpl(DartProjectImpl.this, resource));
+          }
+        }
+        projectInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
+      }
+    } catch (DartModelException e) {
+      Util.log(e, "Failed to add the new libray file " + file.getName() + " to the project "
+          + getElementName());
+    }
+    return foundAndRemoved;
+  }
+
   public void resetCaches() {
     clearLibraryInfo();
     DartProjectInfo info = (DartProjectInfo) DartModelManager.getInstance().peekAtInfo(this);
@@ -606,7 +675,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
       projectInfo.setChildren(DartElement.EMPTY_ARRAY);
       return true;
     }
-    List<String> childPaths = getChildPaths(projectInfo);
+    List<String> childPaths = getChildPaths(projectInfo, false);
     projectInfo.setChildPaths(childPaths);
     if (childPaths.size() > 0) {
       IProject project = getProject();
@@ -655,16 +724,18 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   /**
    * Return a list containing the project-relative paths to all children in the project.
    * 
+   * @param recomputeLibrarySet if <code>true</code>, recompute the set of libraries, even if a set
+   *          is cached in the .children file
    * @return the project-relative paths of the project's children
    */
-  protected List<String> getChildPaths(DartProjectInfo info) {
+  protected List<String> getChildPaths(DartProjectInfo info, boolean recomputeLibrarySet) {
     List<String> childPaths = info.getChildPaths();
-    if (childPaths != null) {
+    if (childPaths != null && !recomputeLibrarySet) {
       return childPaths;
     }
     childPaths = new ArrayList<String>();
     File file = getChildrenFile();
-    if (!file.exists()) {
+    if (recomputeLibrarySet || !file.exists()) {
       computeChildPaths(childPaths);
       return childPaths;
     }
