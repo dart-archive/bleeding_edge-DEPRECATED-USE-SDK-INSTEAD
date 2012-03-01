@@ -5,10 +5,9 @@
 #library("pond_ui");
 
 #import("dart:html", prefix:'html');
+#import("editors.dart");
 #import("../../frog/lang.dart");
 #import("html_file_system.dart");
-#import("util.dart");
-#import("editors.dart");
 
 class PondUI {
   Editor dartEditor;
@@ -66,7 +65,7 @@ class PondUI {
       clearOutput();
       String warnings = '';
       HtmlFileSystem fs = new HtmlFileSystem();
-      parseOptions('frogroot', ['dummyArg1', 'dummyArg2', 'user.dart'], fs);
+      parseOptions('../../frog', ['dummyArg1', 'dummyArg2', 'user.dart'], fs);
       // TODO(sigmund): cleanup using 'await' as follows:
       // String userCode = await dartEditor.getText();
       dartEditor.getText().then((userCode) {
@@ -82,10 +81,8 @@ class PondUI {
           if (span != null) {
             warnings += ' [' + span.locationText + '] \n';
             if (span.file.filename == 'user.dart') {
-              final start = new Position(
-                  SpanHelper.startLine(span), SpanHelper.startCol(span));
-              final end = new Position(
-                  SpanHelper.endLine(span), SpanHelper.endCol(span));
+              final start = new Position(span.line, span.column);
+              final end = new Position(span.endLine, span.endColumn);
               int kind = Marks.NONE;
               if (prefix.startsWith('error') || prefix.startsWith('fatal')) {
                 kind = Marks.ERROR;
