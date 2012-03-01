@@ -23,6 +23,7 @@ import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewApplicationWizardAction;
+import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewProjectWizardAction;
@@ -64,7 +65,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 import org.eclipse.ui.actions.ContributionItemFactory;
-import org.eclipse.ui.actions.CreateFileAction;
 import org.eclipse.ui.actions.CreateFolderAction;
 import org.eclipse.ui.actions.NewWizardMenu;
 import org.eclipse.ui.application.ActionBarAdvisor;
@@ -819,8 +819,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
       Action newProjectAction = new OpenNewProjectWizardAction();
       newProjectAction.setText("New Project...");
-      final CreateFileAction newFileAction = new CreateFileAction(new SameShellProvider(
-          getWindow().getShell()));
+      OpenNewFileWizardAction newFileAction = new OpenNewFileWizardAction(getWindow());
       newFileAction.setText("New File...");
       menu.add(newProjectAction);
       menu.add(newFileAction);
@@ -834,7 +833,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         @Override
         public void selectionChanged(IWorkbenchPart part, ISelection selection) {
           if (selection instanceof IStructuredSelection) {
-            newFileAction.selectionChanged((IStructuredSelection) selection);
             newFolderAction.selectionChanged((IStructuredSelection) selection);
           }
         }
