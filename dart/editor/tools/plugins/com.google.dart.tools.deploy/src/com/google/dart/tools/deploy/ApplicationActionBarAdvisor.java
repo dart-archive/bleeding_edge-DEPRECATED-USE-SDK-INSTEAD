@@ -744,6 +744,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_PROBLEMS);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
+    if (DartCoreDebug.ENABLE_CALL_GRAPH) {
+      viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_CALL_HIERARCHY);
+      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+    }
+
   }
 
   /**

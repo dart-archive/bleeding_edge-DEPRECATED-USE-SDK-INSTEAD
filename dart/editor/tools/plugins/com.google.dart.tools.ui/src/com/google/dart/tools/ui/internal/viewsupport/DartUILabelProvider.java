@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.viewsupport;
@@ -23,16 +21,20 @@ import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jface.util.SafeRunnable;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
+import org.eclipse.jface.viewers.StyledCellLabelProvider;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 
 import java.util.ArrayList;
 
-public class DartUILabelProvider implements IColorProvider, IRichLabelProvider {
+public class DartUILabelProvider implements IColorProvider, IRichLabelProvider,
+    IStyledLabelProvider {
 
   public static ILabelDecorator[] getDecorators(boolean errortick, ILabelDecorator extra) {
     if (errortick) {
@@ -90,11 +92,6 @@ public class DartUILabelProvider implements IColorProvider, IRichLabelProvider {
     fLabelDecorators.add(decorator);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see IBaseLabelProvider#addListener(ILabelProviderListener)
-   */
   @Override
   public void addListener(ILabelProviderListener listener) {
     if (fLabelDecorators != null) {
@@ -106,11 +103,6 @@ public class DartUILabelProvider implements IColorProvider, IRichLabelProvider {
     fListeners.add(listener);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see IBaseLabelProvider#dispose
-   */
   @Override
   public void dispose() {
     if (fLabelDecorators != null) {
@@ -124,31 +116,16 @@ public class DartUILabelProvider implements IColorProvider, IRichLabelProvider {
     fImageLabelProvider.dispose();
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.jface.viewers.IColorProvider#getBackground(java.lang.Object)
-   */
   @Override
   public Color getBackground(Object element) {
     return null;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.jface.viewers.IColorProvider#getForeground(java.lang.Object)
-   */
   @Override
   public Color getForeground(Object element) {
     return null;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see ILabelProvider#getImage
-   */
   @Override
   public Image getImage(Object element) {
     Image result = fImageLabelProvider.getImageLabel(element, evaluateImageFlags(element));
@@ -183,11 +160,21 @@ public class DartUILabelProvider implements IColorProvider, IRichLabelProvider {
     return string;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see ILabelProvider#getText
-   */
+  @Override
+  public StyledString getStyledText(Object element) {
+    StyledString string = DartElementLabels.getStyledTextLabel(element,
+        (evaluateTextFlags(element) | DartElementLabels.COLORIZE));
+    if (string.length() == 0 && (element instanceof IStorage)) {
+      string = new StyledString(fStorageLabelProvider.getText(element));
+    }
+    String decorated = decorateText(string.getString(), element);
+    if (decorated != null) {
+      return StyledCellLabelProvider.styleDecoratedString(decorated,
+          StyledString.DECORATIONS_STYLER, string);
+    }
+    return string;
+  }
+
   @Override
   public String getText(Object element) {
     String result = DartElementLabels.getTextLabel(element, evaluateTextFlags(element));
@@ -214,21 +201,11 @@ public class DartUILabelProvider implements IColorProvider, IRichLabelProvider {
     return fTextFlags;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see IBaseLabelProvider#isLabelProperty(Object, String)
-   */
   @Override
   public boolean isLabelProperty(Object element, String property) {
     return true;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see IBaseLabelProvider#removeListener(ILabelProviderListener)
-   */
   @Override
   public void removeListener(ILabelProviderListener listener) {
     if (fLabelDecorators != null) {

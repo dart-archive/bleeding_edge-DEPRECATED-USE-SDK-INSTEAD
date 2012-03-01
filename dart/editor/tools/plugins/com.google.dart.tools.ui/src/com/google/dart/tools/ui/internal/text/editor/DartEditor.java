@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -33,8 +33,9 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.PreferenceConstants;
-import com.google.dart.tools.ui.actions.IJavaEditorActionDefinitionIds;
+import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
+import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -1776,6 +1777,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private boolean isEditableStateKnown;
   private boolean isEditable;
 
+  private OpenCallHierarchyAction openCallHierarchy;
+
   /**
    * Default constructor.
    */
@@ -1900,7 +1903,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     fOpenEditorActionGroup.setContext(null);
 
     // Quick Outline
-    IAction action = getAction(IJavaEditorActionDefinitionIds.SHOW_OUTLINE);
+    IAction action = getAction(DartEditorActionDefinitionIds.SHOW_OUTLINE);
     menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
 
     // Cut/Copy/Paste actions..
@@ -2396,65 +2399,69 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     fFoldingGroup = new FoldingActionGroup(this, getViewer());
 
     Action action = new GotoMatchingBracketAction(this);
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.GOTO_MATCHING_BRACKET);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_MATCHING_BRACKET);
     setAction(GotoMatchingBracketAction.GOTO_MATCHING_BRACKET, action);
+
+    openCallHierarchy = new OpenCallHierarchyAction(this);
+    openCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_CALL_HIERARCHY);
+    setAction("OpenCallHierarchy", openCallHierarchy); //$NON-NLS-1$
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "ShowOutline.", this, DartSourceViewer.SHOW_OUTLINE, true); //$NON-NLS-1$
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.SHOW_OUTLINE);
-    setAction(IJavaEditorActionDefinitionIds.SHOW_OUTLINE, action);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.SHOW_OUTLINE);
+    setAction(DartEditorActionDefinitionIds.SHOW_OUTLINE, action);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
         DartHelpContextIds.SHOW_OUTLINE_ACTION);
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "OpenStructure.", this, DartSourceViewer.OPEN_STRUCTURE, true); //$NON-NLS-1$
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_STRUCTURE);
-    setAction(IJavaEditorActionDefinitionIds.OPEN_STRUCTURE, action);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_STRUCTURE);
+    setAction(DartEditorActionDefinitionIds.OPEN_STRUCTURE, action);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
         DartHelpContextIds.OPEN_STRUCTURE_ACTION);
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "OpenHierarchy.", this, DartSourceViewer.SHOW_HIERARCHY, true); //$NON-NLS-1$
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.OPEN_HIERARCHY);
-    setAction(IJavaEditorActionDefinitionIds.OPEN_HIERARCHY, action);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
+    setAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY, action);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
         DartHelpContextIds.OPEN_HIERARCHY_ACTION);
 
     fSelectionHistory = new SelectionHistory(this);
 
     action = new StructureSelectEnclosingAction(this, fSelectionHistory);
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.SELECT_ENCLOSING);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_ENCLOSING);
     setAction(StructureSelectionAction.ENCLOSING, action);
 
     action = new StructureSelectNextAction(this, fSelectionHistory);
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.SELECT_NEXT);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_NEXT);
     setAction(StructureSelectionAction.NEXT, action);
 
     action = new StructureSelectPreviousAction(this, fSelectionHistory);
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.SELECT_PREVIOUS);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_PREVIOUS);
     setAction(StructureSelectionAction.PREVIOUS, action);
 
     StructureSelectHistoryAction historyAction = new StructureSelectHistoryAction(this,
         fSelectionHistory);
-    historyAction.setActionDefinitionId(IJavaEditorActionDefinitionIds.SELECT_LAST);
+    historyAction.setActionDefinitionId(DartEditorActionDefinitionIds.SELECT_LAST);
     setAction(StructureSelectionAction.HISTORY, historyAction);
     fSelectionHistory.setHistoryAction(historyAction);
 
     action = GoToNextPreviousMemberAction.newGoToNextMemberAction(this);
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.GOTO_NEXT_MEMBER);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_NEXT_MEMBER);
     setAction(GoToNextPreviousMemberAction.NEXT_MEMBER, action);
 
     action = GoToNextPreviousMemberAction.newGoToPreviousMemberAction(this);
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.GOTO_PREVIOUS_MEMBER);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.GOTO_PREVIOUS_MEMBER);
     setAction(GoToNextPreviousMemberAction.PREVIOUS_MEMBER, action);
 
     action = new FormatElementAction();
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.QUICK_FORMAT);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.QUICK_FORMAT);
     setAction("QuickFormat", action); //$NON-NLS-1$
     markAsStateDependentAction("QuickFormat", true); //$NON-NLS-1$
 
     action = new RemoveOccurrenceAnnotations(this);
-    action.setActionDefinitionId(IJavaEditorActionDefinitionIds.REMOVE_OCCURRENCE_ANNOTATIONS);
+    action.setActionDefinitionId(DartEditorActionDefinitionIds.REMOVE_OCCURRENCE_ANNOTATIONS);
     setAction("RemoveOccurrenceAnnotations", action); //$NON-NLS-1$
 
     // add annotation actions for roll-over expand hover

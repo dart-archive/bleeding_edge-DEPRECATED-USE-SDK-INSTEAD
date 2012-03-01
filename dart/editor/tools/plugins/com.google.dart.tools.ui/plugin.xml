@@ -445,6 +445,15 @@
             name="Files"
             restorable="true">
       </view>
+
+      <view
+            name="%callHierarchyViewName"
+            icon="$nl$/icons/full/eview16/call_hierarchy.gif"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.callhierarchy.CallHierarchyViewPart"
+            allowMultiple="true"
+            id="com.google.dart.tools.ui.callhierarchy.view">
+      </view>
    </extension>
 
    <extension
@@ -1068,7 +1077,7 @@
             visible="false"
             id="org.eclipse.wst.jsdt.ui.A_OpenActionSet">
          <action
-               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.open.call.hierarchy"
+               definitionId="com.google.dart.tools.ui.edit.text.open.call.hierarchy"
                label="%OpenCallHierarchyAction.label"
                retarget="true"
                menubarPath="navigate/open.ext"
@@ -2064,14 +2073,14 @@
             categoryId="org.eclipse.ui.category.views"
             id="org.eclipse.wst.jsdt.ui.JavadocView">
       </command>
-      
+<!--
       <command
             name="%ViewCommand.callHierarchy.name"
             description="%ViewCommand.callHierarchy.description"
             categoryId="org.eclipse.ui.category.views"
-            id="org.eclipse.wst.jsdt.callhierarchy.view">
+            id="com.google.dart.tools.ui.edit.text.open.call.hierarchy">
       </command>
-
+-->
 <!-- refactoring -->
       <command
             name="%ActionDefinition.refactorQuickMenu.name"
@@ -2306,7 +2315,7 @@
             name="%ActionDefinition.openCallHierarchy.name"
             description="%ActionDefinition.openCallHierarchy.description"
             categoryId="org.eclipse.ui.category.navigate"
-            id="org.eclipse.wst.jsdt.ui.edit.text.java.open.call.hierarchy">
+            id="com.google.dart.tools.ui.edit.text.open.call.hierarchy">
       </command>
       
       <command
@@ -3559,7 +3568,13 @@
             contextId="org.eclipse.ui.textEditorScope"
             commandId="org.eclipse.ui.edit.text.toggleBlockSelectionMode"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
-            
+
+      <key
+            sequence="CTRL+ALT+H"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            commandId="com.google.dart.tools.ui.edit.text.open.call.hierarchy"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+
       <key
             commandId="org.eclipse.ui.edit.text.hippieCompletion"
             contextId="org.eclipse.ui.textEditorScope"

@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text;
@@ -546,7 +544,7 @@ public interface DartHelpContextIds {
   public static final String CALL_HIERARCHY_TOGGLE_CALL_MODE_ACTION = PREFIX
       + "call_hierarchy_toggle_call_mode_action_context"; //$NON-NLS-1$
   public static final String CALL_HIERARCHY_TOGGLE_JAVA_LABEL_FORMAT_ACTION = PREFIX
-      + "call_hierarchy_toggle_java_label_format_action_context"; //$NON-NLS-1$
+      + "call_hierarchy_toggle_dart_label_format_action_context"; //$NON-NLS-1$
   public static final String CALL_HIERARCHY_TOGGLE_ORIENTATION_ACTION = PREFIX
       + "call_hierarchy_toggle_call_mode_action_context"; //$NON-NLS-1$
   public static final String CALL_HIERARCHY_COPY_ACTION = PREFIX
@@ -557,10 +555,21 @@ public interface DartHelpContextIds {
       + "call_hierarchy_open_action_context"; //$NON-NLS-1$
   public static final String CALL_HIERARCHY_CANCEL_SEARCH_ACTION = PREFIX
       + "call_hierarchy_cancel_search_action_context"; //$NON-NLS-1$
+  public static final String CALL_HIERARCHY_REFRESH_VIEW_ACTION = PREFIX
+      + "call_hierarchy_refresh_action_context"; //$NON-NLS-1$
+  public static final String CALL_HIERARCHY_EXPAND_WITH_CONSTRUCTORS_ACTION = PREFIX
+      + "call_hierarchy_expand_with_constructors_action_context"; //$NON-NLS-1$
+  public static final String CALL_HIERARCHY_EXPAND_WITH_CONSTRUCTORS_DIALOG = PREFIX
+      + "call_hierarchy_expand_with_constructors_dialog_context"; //$NON-NLS-1$
+  public static final String CALL_HIERARCHY_REMOVE_FROM_VIEW_ACTION = PREFIX
+      + "call_hierarchy_remove_from_view_action_context"; //$NON-NLS-1$
+  public static final String CALL_HIERARCHY_REFRESH_SINGLE_ELEMENT_ACTION = PREFIX
+      + "call_hierarchy_refresh_single_element_action_context"; //$NON-NLS-1$
+  public static final String CALL_HIERARCHY_SEARCH_IN_DIALOG = PREFIX
+      + "call_hierarchy_search_in_dialog_context"; //$NON-NLS-1$
+  public static final String CALL_HIERARCHY_PIN_VIEW_ACTION = PREFIX
+      + "call_hierarchy_pin_view_action_context"; //$NON-NLS-1$
 
-  /**
-     * 
-     */
   // User library preference page
   public static final String CP_EDIT_USER_LIBRARY = PREFIX + "cp_edit_user_library"; //$NON-NLS-1$
   public static final String CP_EXPORT_USER_LIBRARY = PREFIX + "cp_export_user_library"; //$NON-NLS-1$

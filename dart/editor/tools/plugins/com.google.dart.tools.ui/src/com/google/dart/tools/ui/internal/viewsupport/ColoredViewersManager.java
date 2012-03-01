@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.viewsupport;
@@ -18,6 +16,7 @@ package com.google.dart.tools.ui.internal.viewsupport;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.preferences.AppearancePreferencePage;
 
+import org.eclipse.jface.preference.JFacePreferences;
 import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -33,10 +32,14 @@ import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.IWorkbenchPreferenceConstants;
+import org.eclipse.ui.PlatformUI;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("deprecation")
 public class ColoredViewersManager implements IPropertyChangeListener {
@@ -68,12 +71,6 @@ public class ColoredViewersManager implements IPropertyChangeListener {
       }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.swt.events.DisposeListener#widgetDisposed(org.eclipse.swt
-     * .events.DisposeEvent)
-     */
     @Override
     public void widgetDisposed(DisposeEvent e) {
       uninstallColoredLabels(fViewer);
@@ -82,8 +79,7 @@ public class ColoredViewersManager implements IPropertyChangeListener {
     protected void installOwnerDraw() {
       if (fOwnerDrawSupport == null) {
         // not yet installed
-        fOwnerDrawSupport = new OwnerDrawSupport(fViewer.getControl()) { // will
-// install itself as listeners
+        fOwnerDrawSupport = new OwnerDrawSupport(fViewer.getControl()) { // will install itself as listeners
           @Override
           public Color getColor(String foregroundColorName, Display display) {
             return getColorForName(foregroundColorName);
@@ -121,8 +117,7 @@ public class ColoredViewersManager implements IPropertyChangeListener {
         newLabel = ((IRichLabelProvider) labelProvider).getRichTextLabel(item.getData());
       }
       if (newLabel == null) {
-        newLabel = new ColoredString(itemText); // fallback. Should never
-// happen.
+        newLabel = new ColoredString(itemText); // fallback. Should never happen.
       } else if (!newLabel.getString().equals(itemText)) {
         // the decorator manager has already queued an new update
         newLabel = ColoredDartElementLabels.decorateColoredString(newLabel, itemText,
@@ -161,10 +156,15 @@ public class ColoredViewersManager implements IPropertyChangeListener {
   public static final String QUALIFIER_COLOR_NAME = "com.google.dart.tools.ui.ColoredLabels.qualifier"; //$NON-NLS-1$
   public static final String DECORATIONS_COLOR_NAME = "com.google.dart.tools.ui.ColoredLabels.decorations"; //$NON-NLS-1$
   public static final String COUNTER_COLOR_NAME = "com.google.dart.tools.ui.ColoredLabels.counter"; //$NON-NLS-1$
-
   public static final String INHERITED_COLOR_NAME = "com.google.dart.tools.ui.ColoredLabels.inherited"; //$NON-NLS-1$
+  public static final String HIGHLIGHT_BG_COLOR_NAME = "com.google.dart.tools.ui.ColoredLabels.match_highlight"; //$NON-NLS-1$
+  public static final String HIGHLIGHT_WRITE_BG_COLOR_NAME = "com.google.dart.tools.ui.ColoredLabels.writeaccess_highlight"; //$NON-NLS-1$
 
   private static ColoredViewersManager fgInstance = new ColoredViewersManager();
+
+  public static void install(ColoringLabelProvider labelProvider) {
+    fgInstance.installColoredLabels(labelProvider);
+  }
 
   public static void install(StructuredViewer viewer) {
     fgInstance.installColoredLabels(viewer);
@@ -176,17 +176,35 @@ public class ColoredViewersManager implements IPropertyChangeListener {
     return preference != null && Boolean.valueOf(preference).booleanValue();
   }
 
-  private final Map<StructuredViewer, ManagedViewer> fManagedViewers;
+  public static void uninstall(ColoringLabelProvider labelProvider) {
+    fgInstance.uninstallColoredLabels(labelProvider);
+  }
 
+  private final Map<StructuredViewer, ManagedViewer> fManagedViewers;
+  private Set<ColoringLabelProvider> fManagedLabelProviders;
   private final ColorRegistry fColorRegisty;
 
   public ColoredViewersManager() {
     fManagedViewers = new HashMap<StructuredViewer, ManagedViewer>();
+    fManagedLabelProviders = new HashSet<ColoringLabelProvider>();
     fColorRegisty = JFaceResources.getColorRegistry();
   }
 
   public Color getColorForName(String symbolicName) {
     return fColorRegisty.get(symbolicName);
+  }
+
+  public void installColoredLabels(ColoringLabelProvider labelProvider) {
+    if (fManagedLabelProviders.contains(labelProvider)) {
+      return;
+    }
+
+    if (fManagedLabelProviders.isEmpty()) {
+      // first lp installed
+      PlatformUI.getPreferenceStore().addPropertyChangeListener(this);
+      JFaceResources.getColorRegistry().addListener(this);
+    }
+    fManagedLabelProviders.add(labelProvider);
   }
 
   public void installColoredLabels(StructuredViewer viewer) {
@@ -206,13 +224,31 @@ public class ColoredViewersManager implements IPropertyChangeListener {
     String property = event.getProperty();
     if (property.equals(QUALIFIER_COLOR_NAME) || property.equals(COUNTER_COLOR_NAME)
         || property.equals(DECORATIONS_COLOR_NAME)
-        || property.equals(AppearancePreferencePage.PREF_COLORED_LABELS)) {
+        || property.equals(AppearancePreferencePage.PREF_COLORED_LABELS)
+        || property.equals(JFacePreferences.QUALIFIER_COLOR)
+        || property.equals(JFacePreferences.COUNTER_COLOR)
+        || property.equals(JFacePreferences.DECORATIONS_COLOR)
+        || property.equals(HIGHLIGHT_BG_COLOR_NAME)
+        || property.equals(HIGHLIGHT_WRITE_BG_COLOR_NAME) || property.equals(INHERITED_COLOR_NAME)
+        || property.equals(IWorkbenchPreferenceConstants.USE_COLORED_LABELS)) {
       Display.getDefault().asyncExec(new Runnable() {
         @Override
         public void run() {
           refreshAllViewers();
         }
       });
+    }
+  }
+
+  public void uninstallColoredLabels(ColoringLabelProvider labelProvider) {
+    if (!fManagedLabelProviders.remove(labelProvider)) {
+      return; // not installed
+    }
+
+    if (fManagedLabelProviders.isEmpty()) {
+      PlatformUI.getPreferenceStore().removePropertyChangeListener(this);
+      JFaceResources.getColorRegistry().removeListener(this);
+      // last viewer uninstalled
     }
   }
 
@@ -233,6 +269,10 @@ public class ColoredViewersManager implements IPropertyChangeListener {
     for (Iterator<ManagedViewer> iterator = fManagedViewers.values().iterator(); iterator.hasNext();) {
       ManagedViewer viewer = iterator.next();
       viewer.refresh();
+    }
+    for (Iterator<ColoringLabelProvider> iterator = fManagedLabelProviders.iterator(); iterator.hasNext();) {
+      ColoringLabelProvider lp = iterator.next();
+      lp.update();
     }
   }
 

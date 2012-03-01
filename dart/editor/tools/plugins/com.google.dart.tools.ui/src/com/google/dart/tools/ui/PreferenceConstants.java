@@ -95,6 +95,16 @@ public class PreferenceConstants {
       APPEARANCE_COMPRESS_PACKAGE_NAMES = "com.google.dart.tools.ui.compresspackagenames";//$NON-NLS-1$
 
   /**
+   * A named preference that holds the methods or types whose methods are by default expanded with
+   * constructors in the Call Hierarchy.
+   * <p>
+   * Value is of type <code>String</code>: semicolon separated list of fully qualified type names
+   * appended with ".*" or "." + method name.
+   * </p>
+   */
+  public static final String PREF_DEFAULT_EXPAND_WITH_CONSTRUCTORS_MEMBERS = "CallHierarchy.defaultExpandWithConstructorsMembers"; //$NON-NLS-1$
+
+  /**
    * A named preference that defines how member elements are ordered by the JavaScript views using
    * the <code>DartElementSorter</code>.
    * <p>
@@ -3530,6 +3540,8 @@ public class PreferenceConstants {
         registry, IJavaThemeConstants.PROPERTIES_FILE_COLORING_COMMENT, new RGB(63, 127, 95)));
     store.setDefault(PreferenceConstants.PROPERTIES_FILE_COLORING_COMMENT_BOLD, false);
     store.setDefault(PreferenceConstants.PROPERTIES_FILE_COLORING_COMMENT_ITALIC, false);
+
+    store.setDefault(PreferenceConstants.PREF_DEFAULT_EXPAND_WITH_CONSTRUCTORS_MEMBERS, ""); //$NON-NLS-1$
 
     // semantic highlighting
     DartX.todo();

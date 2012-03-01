@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -144,6 +144,12 @@ public final class DartUI {
    * <code>"com.google.dart.tools.ui.ProblemsView"</code>).
    */
   public static final String ID_PROBLEMS = "com.google.dart.tools.ui.ProblemsView"; //$NON-NLS-1$
+
+  /**
+   * The view part id of the Call Hierarchy view (value
+   * <code>"com.google.dart.tools.ui.callhierarchy.view"</code>).
+   */
+  public static final String ID_CALL_HIERARCHY = "com.google.dart.tools.ui.callhierarchy.view"; //$NON-NLS-1$
 
   /**
    * The view part id of the type hierarchy part (value

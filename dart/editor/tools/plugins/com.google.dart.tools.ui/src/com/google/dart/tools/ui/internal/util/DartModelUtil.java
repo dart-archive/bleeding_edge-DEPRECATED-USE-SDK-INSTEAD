@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.util;
@@ -59,7 +57,9 @@ import org.eclipse.jface.text.RewriteSessionEditProcessor;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Utility methods for the Dart Model.
@@ -449,6 +449,17 @@ public final class DartModelUtil {
 //    return null;
 //  }
 
+  public static Method[] getConstructorsOfType(Type type) throws DartModelException {
+    Method[] methods = type.getMethods();
+    List<Method> constList = new ArrayList<Method>();
+    for (Method method : methods) {
+      if (method.isConstructor()) {
+        constList.add(method);
+      }
+    }
+    return constList.toArray(new Method[constList.size()]);
+  }
+
   /**
    * Returns the fully qualified name of the given type using '.' as separators. This is a replace
    * for Type.getFullyQualifiedTypeName which uses '$' as separators. As '$' is also a valid
@@ -475,6 +486,19 @@ public final class DartModelUtil {
       return newMainName;
     }
   }
+
+//  /**
+//   * Returns the fully qualified name of a type's container. (package name or
+//   * enclosing type name)
+//   */
+//  public static String getTypeContainerName(Type type) {
+//    Type outerType = type.getDeclaringType();
+//    if (outerType != null) {
+//      return getFullyQualifiedName(outerType);
+//    } else {
+//      return type.getPackageFragment().getElementName();
+//    }
+//  }
 
   /**
    * Resolves a type name in the context of the declaring type.
@@ -510,29 +534,6 @@ public final class DartModelUtil {
 //    }
   }
 
-//  /**
-//   * Returns the fully qualified name of a type's container. (package name or
-//   * enclosing type name)
-//   */
-//  public static String getTypeContainerName(Type type) {
-//    Type outerType = type.getDeclaringType();
-//    if (outerType != null) {
-//      return getFullyQualifiedName(outerType);
-//    } else {
-//      return type.getPackageFragment().getElementName();
-//    }
-//  }
-
-  /**
-   * Returns the qualified type name of the given type using '.' as separators. This is a replace
-   * for Type.getTypeQualifiedName() which uses '$' as separators. As '$' is also a valid character
-   * in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
-   */
-  @SuppressWarnings("deprecation")
-  public static String getTypeQualifiedName(Type type) {
-    return type.getTypeQualifiedName('.');
-  }
-
 //  public static boolean is50OrHigher(DartProject project) {
 //    return is50OrHigher(project.getOption(JavaScriptCore.COMPILER_COMPLIANCE,
 //        true));
@@ -554,6 +555,16 @@ public final class DartModelUtil {
 //    return compliance.startsWith(JavaScriptCore.VERSION_1_5)
 //        || compliance.startsWith(JavaScriptCore.VERSION_1_6);
 //  }
+
+  /**
+   * Returns the qualified type name of the given type using '.' as separators. This is a replace
+   * for Type.getTypeQualifiedName() which uses '$' as separators. As '$' is also a valid character
+   * in an id this is ambiguous. JavaScriptCore PR: 1GCFUNT
+   */
+  @SuppressWarnings("deprecation")
+  public static String getTypeQualifiedName(Type type) {
+    return type.getTypeQualifiedName('.');
+  }
 
   /**
    * Checks if the field is boolean.

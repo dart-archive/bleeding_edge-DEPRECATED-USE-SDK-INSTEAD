@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -25,7 +25,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.actions.ActionGroup;
-import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
 /**
  * Action group that adds the search for references actions to a context menu and the global menu
@@ -53,7 +52,7 @@ public class ReferencesSearchGroup extends ActionGroup {
     Assert.isNotNull(editor);
     site = editor.getSite();
     findReferencesAction = new FindReferencesAction(editor);
-    findReferencesAction.setActionDefinitionId(IJavaEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
+    findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     editor.setAction("SearchReferencesInWorkspace", findReferencesAction); //$NON-NLS-1$
   }
 
@@ -80,7 +79,7 @@ public class ReferencesSearchGroup extends ActionGroup {
     this.site = site;
 
     findReferencesAction = new FindReferencesAction(site);
-    findReferencesAction.setActionDefinitionId(IJavaEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
+    findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
 
     // register the actions as selection listeners
     ISelectionProvider provider = specialSelectionProvider == null ? site.getSelectionProvider()
@@ -114,7 +113,8 @@ public class ReferencesSearchGroup extends ActionGroup {
 
   private void appendToGroup(IMenuManager menu, IAction action) {
     if (action.isEnabled()) {
-      menu.appendToGroup(ITextEditorActionConstants.GROUP_FIND, action);
+//      menu.appendToGroup(ITextEditorActionConstants.GROUP_FIND, action);
+      menu.add(action);
     }
   }
 
