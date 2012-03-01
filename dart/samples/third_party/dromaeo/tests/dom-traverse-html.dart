@@ -1,4 +1,4 @@
-#library("dom_traverse.dart");
+#library("dom_traverse_html");
 #import("dart:html");
 #import('../common/common.dart');
 #source("Common.dart");

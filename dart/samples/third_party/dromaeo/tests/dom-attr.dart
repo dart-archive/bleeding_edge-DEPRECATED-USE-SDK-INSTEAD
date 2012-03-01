@@ -1,4 +1,4 @@
-#library("dom-attr.dart");
+#library("dom_attr");
 #import("dart:dom");
 #import('runner.dart');
 

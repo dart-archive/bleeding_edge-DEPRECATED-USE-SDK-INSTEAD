@@ -117,8 +117,7 @@ class Suite {
     if (data != null) {
       payload['data'] = data;
     }
-    // TODO(antonm): Remove dynamic below.
-    _window.top.dynamic.postMessage(JSON.stringify(payload), '*');
+    _window.top.postMessage(JSON.stringify(payload), '*');
   }
 
   // Implementation.

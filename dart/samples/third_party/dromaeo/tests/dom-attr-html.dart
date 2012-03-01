@@ -1,4 +1,4 @@
-#library("dom_attr.dart");
+#library("dom_attr_html");
 #import("dart:html");
 #import("dart:json");
 #source("Common.dart");

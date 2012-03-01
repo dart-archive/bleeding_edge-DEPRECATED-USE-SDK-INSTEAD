@@ -27,85 +27,75 @@ class Suites {
     'js': 'DOM Core Tests (JavaScript)',
   };
 
-  static final SUITE_DESCRIPTIONS = const [
-      // Original JS.
+  static final _CORE_SUITE_DESCRIPTIONS = const [
       const SuiteDescription(
           'dom-attr.html',
           'DOM Attributes',
           JOHN_RESIG,
           'Setting and getting DOM node attributes',
-          const ['js', 'attributes']),
+          const ['attributes']),
       const SuiteDescription(
           'dom-modify.html',
           'DOM Modification',
           JOHN_RESIG,
           'Creating and injecting DOM nodes into a document',
-          const ['js', 'modify']),
+          const ['modify']),
       const SuiteDescription(
           'dom-query.html',
           'DOM Query',
           JOHN_RESIG,
           'Querying DOM elements in a document',
-          const ['js', 'query']),
+          const ['query']),
       const SuiteDescription(
           'dom-traverse.html',
           'DOM Traversal',
           JOHN_RESIG,
           'Traversing a DOM structure',
-          const ['js', 'traverse']),
-
-      // dart:dom.
-      const SuiteDescription(
-          'dom-attr-dom.html',
-          'DOM Attributes (dart:dom)',
-          JOHN_RESIG,
-          'Setting and getting DOM node attributes',
-          const ['dart', 'dom', 'attributes']),
-      const SuiteDescription(
-          'dom-modify-dom.html',
-          'DOM Modification (dart:dom)',
-          JOHN_RESIG,
-          'Creating and injecting DOM nodes into a document',
-          const ['dart', 'dom', 'modify']),
-      const SuiteDescription(
-          'dom-query-dom.html',
-          'DOM Query (dart:dom)',
-          JOHN_RESIG,
-          'Querying DOM elements in a document',
-          const ['dart', 'dom', 'query']),
-      const SuiteDescription(
-          'dom-traverse-dom.html',
-          'DOM Traversal (dart:dom)',
-          JOHN_RESIG,
-          'Traversing a DOM structure',
-          const ['dart', 'dom', 'traverse']),
-
-      // dart:html.
-      const SuiteDescription(
-          'dom-attr-html.html',
-          'DOM Attributes (dart:html)',
-          JOHN_RESIG,
-          'Setting and getting DOM node attributes',
-          const ['dart', 'html', 'attributes']),
-      const SuiteDescription(
-          'dom-modify-html.html',
-          'DOM Modification (dart:html)',
-          JOHN_RESIG,
-          'Creating and injecting DOM nodes into a document',
-          const ['dart', 'html', 'modify']),
-      const SuiteDescription(
-          'dom-query-html.html',
-          'DOM Query (dart:html)',
-          JOHN_RESIG,
-          'Querying DOM elements in a document',
-          const ['dart', 'html', 'query']),
-      const SuiteDescription(
-          'dom-traverse-html.html',
-          'DOM Traversal (dart:html)',
-          JOHN_RESIG,
-          'Traversing a DOM structure',
-          const ['dart', 'html', 'traverse']),
+          const ['traverse']),
   ];
+
+  static getVariants(List<SuiteDescription> suites, variant, mapper, tags) {
+    getVariant(suite) {
+      final combined = new List.from(suite.tags);
+      combined.addAll(tags);
+      final name = null === variant ? suite.name : '${suite.name} ($variant)';
+      return new SuiteDescription(
+          mapper(suite.file),
+          name,
+          suite.origin,
+          suite.description,
+          combined);
+    }
+    return suites.map(getVariant);
+  }
+
+  // Mappings from original path to Dart-specific variants.
+  static _jsPath(path) => path;
+  static _domPath(path) => path.replaceFirst('.html', '-dom.html');
+  static _htmlPath(path) => path.replaceFirst('.html', '-html.html');
+  static _frogDomPath(path) =>
+      'frog/${path.replaceFirst(".html", "-dom-js.html")}';
+  static _frogHtmlPath(path) =>
+      'frog/${path.replaceFirst(".html", "-html-js.html")}';
+
+  static var _SUITE_DESCRIPTIONS;
+
+  static List<SuiteDescription> get SUITE_DESCRIPTIONS() {
+    if (null !== _SUITE_DESCRIPTIONS) {
+      return _SUITE_DESCRIPTIONS;
+    }
+    _SUITE_DESCRIPTIONS = <SuiteDescription>[];
+    add(variant, mapper, tags) {
+      _SUITE_DESCRIPTIONS.addAll(
+          getVariants(_CORE_SUITE_DESCRIPTIONS, variant, mapper, tags));
+    }
+    add('js', _jsPath, ['js']);
+    add('dart:dom', _domPath, ['dart', 'dom']);
+    add('dart:html', _htmlPath, ['dart', 'html']);
+    add('frog dart:dom', _frogDomPath, ['frog', 'dom']);
+    add('frog dart:html', _frogHtmlPath, ['frog', 'html']);
+    return _SUITE_DESCRIPTIONS;
+  }
 
   static List<SuiteDescription> getSuites(List<String> tags) {
     final suites = <SuiteDescription>[];

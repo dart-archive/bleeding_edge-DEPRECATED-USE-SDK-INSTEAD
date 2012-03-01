@@ -1,4 +1,4 @@
-#library("dom-modify.dart");
+#library("dom_modify");
 #import("dart:dom");
 #import('runner.dart');
 

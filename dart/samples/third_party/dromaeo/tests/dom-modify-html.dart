@@ -1,4 +1,4 @@
-#library("dom_modify.dart");
+#library("dom_modify_html");
 #import("dart:html");
 #import("dart:json");
 #source("Common.dart");

@@ -22,7 +22,7 @@ class SuiteController {
   }
 
   start() {
-    _suiteIframe.contentWindow.dynamic.postMessage('start', '*');
+    _suiteIframe.contentWindow.postMessage('start', '*');
   }
 
   update(String testName, num mean, num error, double percent) {

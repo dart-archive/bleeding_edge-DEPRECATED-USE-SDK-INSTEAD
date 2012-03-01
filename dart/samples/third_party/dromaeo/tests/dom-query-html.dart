@@ -1,4 +1,4 @@
-#library("dom_query.dart");
+#library("dom_query_html");
 #import("dart:html");
 #import('../common/common.dart');
 #source("Common.dart");
