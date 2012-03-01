@@ -76,9 +76,22 @@ public class DirectorySetManager {
     if (str != null && str.length() > 0) {
       File f = new File(str);
       if (f.exists() && !f.isHidden()) {
-        result = pathSet.add(str);
-        prefs.put(DIR_SET, toString());
-        fire();
+        ArrayList<String> pathsToRemove = new ArrayList<String>();
+        for (String path : pathSet) {
+          if (str.equals(path) || str.startsWith(path + '/')) {
+            // The new path is the same as or a descendant of a directory that is already in the set
+            // so there is no need to add it.
+            return false;
+          } else if (path.startsWith(str + '/')) {
+            // The new path is an ancestor of a directory that is already in the set so the old path
+            // should be removed and the new path added.
+            pathsToRemove.add(path);
+          }
+        }
+        result = pathSet.removeAll(pathsToRemove) | pathSet.add(str);
+        if (result) {
+          saveAndFire();
+        }
       }
     }
     return result;
@@ -123,8 +136,7 @@ public class DirectorySetManager {
       result = pathSet.remove(str);
       // if the path was removed, then update the preference
       if (result) {
-        prefs.put(DIR_SET, toString());
-        fire();
+        saveAndFire();
       }
     }
     return result;
@@ -173,6 +185,11 @@ public class DirectorySetManager {
 //    }
 //    return result;
     return "";
+  }
+
+  private void saveAndFire() {
+    prefs.put(DIR_SET, toString());
+    fire();
   }
 
 }
