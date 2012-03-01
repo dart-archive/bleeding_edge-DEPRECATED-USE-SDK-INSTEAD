@@ -352,6 +352,9 @@ function $dynamic(name) {
       }
     }
     method = method || methods.Object;
+    if (!method) {
+      $throw(new NoSuchMethodException(obj, name, arguments));
+    }
     var proto = Object.getPrototypeOf(obj);
     if (!proto.hasOwnProperty(name)) {
       $defProp(proto, name, method);

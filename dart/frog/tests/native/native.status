@@ -8,7 +8,6 @@ prefix frog_native
 NativePropertyFrogTest: Fail
 NativeMissingMethod1FrogTest: Fail # Issue 1912
 NativeWindow1FrogTest: Fail # Issue 1915
-NativeWindow2FrogTest: Fail # Issue 1915
 
 [ $component == leg ]
 NativeWindow1FrogTest: Fail # Leg does not recognize the global native marker yet
