@@ -21,11 +21,13 @@ import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.libraryview.DeleteAction;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.projects.CreateFileWizard;
+import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewProjectWizardAction;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.action.IMenuListener;
@@ -113,21 +115,42 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
   }
 
+  private static boolean allElementsAreProjects(IStructuredSelection selection) {
+    for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
+      Object selectedElement = iterator.next();
+      if (!(selectedElement instanceof IProject)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean allElementsAreResources(IStructuredSelection selection) {
+    for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
+      Object selectedElement = iterator.next();
+      if (!(selectedElement instanceof IResource)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private TreeViewer treeViewer;
 
   private IMemento memento;
-
   /**
    * A final static String for the Link with Editor momento.
    */
   private static final String LINK_WITH_EDITOR_ID = "linkWithEditor";
-
   private LinkWithEditorAction linkWithEditorAction;
   private MoveResourceAction moveAction;
   private RenameResourceAction renameAction;
   private DeleteAction deleteAction;
   private OpenNewFileWizardAction createFileAction;
+
   private CopyFilePathAction copyFilePathAction;
+
+  private HideProjectAction hideContainerAction;
 
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
@@ -177,6 +200,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(
         ISharedImages.IMG_TOOL_DELETE));
     treeViewer.addSelectionChangedListener(deleteAction);
+
+    hideContainerAction = new HideProjectAction(getSite());
+    treeViewer.addSelectionChangedListener(hideContainerAction);
 
     copyFilePathAction = new CopyFilePathAction(getSite());
     treeViewer.addSelectionChangedListener(copyFilePathAction);
@@ -232,7 +258,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     getSite().registerContextMenu(menuMgr, treeViewer);
   }
 
-  @SuppressWarnings("rawtypes")
   protected void fillContextMenu(IMenuManager manager) {
 
     // New File/ New Folder/ New Project
@@ -257,16 +282,11 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     // Delete, iff non-empty selection, all elements are IResources
 
-    boolean allEltsAreIResources = true;
-    for (Iterator iterator = selection.iterator(); iterator.hasNext();) {
-      Object selectedElement = iterator.next();
-      if (!(selectedElement instanceof IResource)) {
-        allEltsAreIResources = false;
-        break;
-      }
-    }
-    if (!selection.isEmpty() && allEltsAreIResources) {
+    if (!selection.isEmpty() && allElementsAreResources(selection)) {
       manager.add(new Separator());
+      if (allElementsAreProjects(selection)) {
+        manager.add(hideContainerAction);
+      }
       manager.add(deleteAction);
     }
 

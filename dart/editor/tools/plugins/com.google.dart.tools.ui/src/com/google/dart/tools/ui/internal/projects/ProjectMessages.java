@@ -21,6 +21,11 @@ import org.eclipse.osgi.util.NLS;
  */
 public class ProjectMessages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.ui.internal.projects.ProjectMessages"; //$NON-NLS-1$
+  public static String HideProjectAction_operation_msg;
+  public static String HideProjectAction_problems_msg;
+  public static String HideProjectAction_problems_title;
+  public static String HideProjectAction_text;
+  public static String HideProjectAction_tooltip;
   public static String NewApplicationWizardPage_browse_label;
   public static String NewApplicationWizardPage_directory_label;
   public static String NewApplicationWizardPage_project_name_label;
