@@ -9,11 +9,10 @@
 
 /** File system implementation using the vm api's. */
 class VMFileSystem implements FileSystem {
-  void writeString(String outfile, String text) {
-    var f = new File(outfile);
-    var stream = f.openOutputStream();
-    stream.write(text.charCodes());
-    stream.close();
+  void writeString(String path, String text) {
+    var file = new File(path).openSync(FileMode.WRITE);
+    file.writeStringSync(text);
+    file.closeSync();
   }
 
   String readAll(String filename) {
