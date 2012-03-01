@@ -213,7 +213,12 @@ function(inputTable) {
 
     assert(classElement.backendMembers.isEmpty());
     String nativeName = classElement.nativeName.slowToString();
-    nativeName = nativeName.substring(2, nativeName.length - 1);
+    if (nativeName[1] === '@') {
+      // Global object, just be like the other types for now.
+      nativeName = nativeName.substring(3, nativeName.length - 1);
+    } else {
+      nativeName = nativeName.substring(2, nativeName.length - 1);
+    }
     bool hasUsedSelectors = false;
 
     String attachTo(name) => "$dynamicName('$name').$nativeName";
