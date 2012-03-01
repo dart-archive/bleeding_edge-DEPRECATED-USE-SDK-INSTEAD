@@ -204,6 +204,7 @@ class NativeFieldWrapperClass4 { }
 #library('io');
 
 #import('dart:coreimpl');
+#import("dart:isolate");
 #import('dart:nativewrappers');
 
 #source('buffer_list.dart');
@@ -235,7 +236,7 @@ class NativeFieldWrapperClass4 { }
 // This is a hack to work-around the wrong version of coreimpl being
 // used for the VM configuration.
 class ObjectArray<T> { }
-        ]]></echo>
+]]></echo>
 
         <makeReadonly directoryName="${libraries.out.dir}"/>
     </target>
@@ -285,10 +286,17 @@ class ObjectArray<T> { }
         <!-- copy dart.js to Total -->
         <copy todir="${samples.out.dir}/Total/client" file="${build.source.root}/client/dart.js"/>
 
+        <!-- copy uri to ui_lib -->
+        <copy todir="${samples.out.dir}/ui_lib">
+            <fileset dir="${build.source.root}/lib">
+              <include name="uri/*.dart"/>
+            </fileset>
+        </copy>
+
         <!-- fix a uri reference -->
         <replace dir="${samples.out.dir}/ui_lib"
           token="../../../lib/uri/uri.dart"
-          value="dart:uri">
+          value="../uri/uri.dart">
             <include name="**/*.dart"/>
         </replace>
 
