@@ -55,15 +55,15 @@ class ChatStressClient {
       leaveRequest["request"] = "leave";
       leaveRequest["sessionId"] = sessionId;
       HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/leave");
-      conn.requestHandler = (HttpClientRequest request) {
+      conn.onRequest = (HttpClientRequest request) {
         request.writeString(JSON.stringify(leaveRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HttpClientResponse response) {
+      conn.onResponse = (HttpClientResponse response) {
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
-        stream.dataHandler = () => body.add(stream.read());
-        stream.closeHandler = () {
+        stream.onData = () => body.add(stream.read());
+        stream.onClosed = () {
           leaveResponseHandler(response, body.toString());
         };
       };
@@ -85,15 +85,15 @@ class ChatStressClient {
       messageRequest["nextMessage"] = receiveMessageCount;
       messageRequest["maxMessages"] = 100;
       HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/receive");
-      conn.requestHandler = (HttpClientRequest request) {
+      conn.onRequest = (HttpClientRequest request) {
         request.writeString(JSON.stringify(messageRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HttpClientResponse response) {
+      conn.onResponse = (HttpClientResponse response) {
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
-        stream.dataHandler = () => body.add(stream.read());
-        stream.closeHandler = () {
+        stream.onData = () => body.add(stream.read());
+        stream.onClosed = () {
           receiveResponseHandler(response, body.toString());
         };
       };
@@ -122,15 +122,15 @@ class ChatStressClient {
       messageRequest["sessionId"] = sessionId;
       messageRequest["message"] = "message " + sendMessageCount;
       HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/message");
-      conn.requestHandler = (HttpClientRequest request) {
+      conn.onRequest = (HttpClientRequest request) {
         request.writeString(JSON.stringify(messageRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HttpClientResponse response) {
+      conn.onResponse = (HttpClientResponse response) {
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
-        stream.dataHandler = () => body.add(stream.read());
-        stream.closeHandler = () {
+        stream.onData = () => body.add(stream.read());
+        stream.onClosed = () {
           sendResponseHandler(response, body.toString());
         };
       };
@@ -152,15 +152,15 @@ class ChatStressClient {
       joinRequest["request"] = "join";
       joinRequest["handle"] = "test1";
       HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/join");
-      conn.requestHandler = (HttpClientRequest request) {
+      conn.onRequest = (HttpClientRequest request) {
         request.writeString(JSON.stringify(joinRequest));
         request.outputStream.close();
       };
-      conn.responseHandler = (HttpClientResponse response) {
+      conn.onResponse = (HttpClientResponse response) {
         StringInputStream stream = new StringInputStream(response.inputStream);
         StringBuffer body = new StringBuffer();
-        stream.dataHandler = () => body.add(stream.read());
-        stream.closeHandler = () {
+        stream.onData = () => body.add(stream.read());
+        stream.onClosed = () {
           joinResponseHandler(response, body.toString());
         };
       };

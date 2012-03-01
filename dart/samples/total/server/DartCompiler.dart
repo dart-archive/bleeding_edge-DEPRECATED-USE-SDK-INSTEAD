@@ -59,13 +59,13 @@ class DartCompiler {
 
     Process compiler = new Process.start(_frogExecPath, args);
     StringBuffer messages = new StringBuffer();
-    compiler.exitHandler = (int status) {
+    compiler.onExit = (int status) {
       compiler.close();
       callback(status, messages.toString());
     };
 
-    compiler.stdout.dataHandler = () => _readAll(compiler.stdout, messages);
-    compiler.stderr.dataHandler = () => _readAll(compiler.stderr, messages);
+    compiler.stdout.onData = () => _readAll(compiler.stdout, messages);
+    compiler.stderr.onData = () => _readAll(compiler.stderr, messages);
   }
 }
 

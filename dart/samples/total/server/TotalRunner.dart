@@ -56,13 +56,13 @@ class ServerRunner {
     }
     Process dart = new Process.start(foundExec, [_serverMain]);
 
-    dart.exitHandler = (int status) {
+    dart.onExit = (int status) {
       dart.close();
       exitCallback(status, this);
     };
 
-    dart.stdout.dataHandler = () => readMore(dart.stdout, new StringBuffer());
-    dart.stderr.dataHandler = () => readMore(dart.stderr, new StringBuffer());
+    dart.stdout.onData = () => readMore(dart.stdout, new StringBuffer());
+    dart.stderr.onData = () => readMore(dart.stderr, new StringBuffer());
   }
 
   void readMore(InputStream i, StringBuffer readSoFar) {

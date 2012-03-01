@@ -131,15 +131,15 @@ handleRequest(List<int> bytes, Socket socket) {
 /// Accepts an incoming socket connection
 onConnect(Socket socket) {
   var bytes = new List<int>();
-  socket.dataHandler = () {
+  socket.onData = () {
     var pos = bytes.length;
     var len = socket.available();
     bytes.insertRange(pos, len);
     socket.readList(bytes, pos, len);
     handleRequest(bytes, socket);
   };
-  socket.errorHandler = () => socket.close();
-  socket.closeHandler = () => socket.close();
+  socket.onError = () => socket.close();
+  socket.onClosed = () => socket.close();
 
   // Close the serverSocket - we only ever service one client.
   serverSocket.close();
@@ -154,7 +154,7 @@ ServerSocket startServer(String homedir, String host, int port) {
   // Initialize the compiler. Only need to happen once.
   initializeCompiler(homedir);
   serverSocket = new ServerSocket(host, port, 50);
-  serverSocket.connectionHandler = onConnect;
+  serverSocket.onConnection = onConnect;
   print('$STARTUP_TOKEN on $host:${serverSocket.port}');
   return serverSocket;
 }
