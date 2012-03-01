@@ -120,7 +120,7 @@ public abstract class AbstractGenerator {
    *          be substituted.
    * @return the file content after substitution has been performed
    */
-  private String readExpectedContent(String fileName, Map<String, String> substitutions)
+  protected String readExpectedContent(String fileName, Map<String, String> substitutions)
       throws IOException {
 
     // Read content from the specified file

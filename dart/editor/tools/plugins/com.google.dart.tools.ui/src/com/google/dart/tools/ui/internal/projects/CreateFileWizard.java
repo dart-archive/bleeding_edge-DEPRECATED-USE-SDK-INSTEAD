@@ -14,11 +14,8 @@
 package com.google.dart.tools.ui.internal.projects;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -54,25 +51,7 @@ public class CreateFileWizard extends BasicNewResourceWizard {
   public void addPages() {
     super.addPages();
 
-    mainPage = new WizardNewFileCreationPage("newFilePage1", getSelection()) {//$NON-NLS-1$
-      @Override
-      protected void createAdvancedControls(Composite parent) {
-        //no-op to ensure we don't get silly resource linking options
-      }
-
-      @Override
-      protected void createLinkTarget() {
-        //no-op since we're not supporting linked resources
-      }
-
-      @Override
-      protected IStatus validateLinkedResource() {
-        //no-op since we're not supporting linked resources
-        return Status.OK_STATUS;
-      }
-
-    };
-
+    mainPage = new CreateFileWizardPage("newFilePage1", getSelection());
     mainPage.setTitle(ResourceMessages.FileResource_pageTitle);
     mainPage.setDescription(ResourceMessages.FileResource_description);
     addPage(mainPage);
