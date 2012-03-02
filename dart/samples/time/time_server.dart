@@ -14,7 +14,7 @@ final LOG_REQUESTS = true;
 void main() {
   HttpServer server = new HttpServer();
   
-  server.requestHandler = (HttpRequest req, HttpResponse rsp) {
+  server.onRequest = (HttpRequest req, HttpResponse rsp) {
     requestReceivedHandler(req, rsp);
   };
   server.listen(HOST, PORT);
