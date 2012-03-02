@@ -46,11 +46,12 @@ main() {
   // Works with multiline strings too.
   var ms2 = """abc
   def"""
-  """ghi
+  """
+  ghi
   jkl
   """;
-  Expect.isTrue("abc\n  defghi\n  jkl\n  " === ms2);
+  Expect.isTrue("abc\n  def  ghi\n  jkl\n  " === ms2, "Multiline: $ms2");
 
   // Binds stronger than property access (it's considered one literal).
-  Expect.equals(5, "ab" "cde".length);
+  Expect.equals(5, "ab" "cde".length, "Associativity");
 }

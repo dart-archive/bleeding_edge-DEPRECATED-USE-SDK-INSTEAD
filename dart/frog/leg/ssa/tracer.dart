@@ -20,7 +20,7 @@ class HTracer extends HGraphVisitor {
       : output = new File(path).openSync(FileMode.WRITE);
 
   void close() {
-    output.close();
+    output.closeSync();
   }
 
   void traceCompilation(String methodName) {
