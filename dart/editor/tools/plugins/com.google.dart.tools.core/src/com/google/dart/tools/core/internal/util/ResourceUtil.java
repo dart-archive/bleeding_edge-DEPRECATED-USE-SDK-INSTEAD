@@ -44,7 +44,7 @@ public class ResourceUtil {
   /**
    * A cached table mapping the URI's of file resources to the resource associated with the URI.
    */
-  private static HashMap<URI, IFile> resourceMap = null;
+  private static HashMap<URI, IResource> resourceMap = null;
 
   /**
    * The listener used to maintain the resource map when the list of resources has changed.
@@ -62,6 +62,20 @@ public class ResourceUtil {
       }
     }
   };
+
+  /**
+   * Return the file resource associated with the given file, or <code>null</code> if the file does
+   * not correspond to an existing file resource.
+   * 
+   * @param file the file representing the file resource to be returned
+   * @return the file resource associated with the given file
+   */
+  public static IFile getFile(File file) {
+    if (file == null) {
+      return null;
+    }
+    return getFile(file.getAbsoluteFile().toURI());
+  }
 
   /**
    * Return the file corresponding to the specified Dart source, or <code>null</code> if there is no
@@ -94,16 +108,38 @@ public class ResourceUtil {
   }
 
   /**
+   * Return the file associated with the given URI, or <code>null</code> if the URI does not
+   * correspond to an existing file.
+   * 
+   * @param uri the URI representing the file to be returned
+   * @return the file associated with the given URI
+   */
+  public static IFile getFile(URI uri) {
+    IResource[] resources = ResourceUtil.getResources(uri);
+    if (resources != null) {
+      for (IResource resource : resources) {
+        if (resource instanceof IFile && resource.exists()) {
+          return (IFile) resource;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Answer the Eclipse resource associated with the specified file or <code>null</code> if none
    */
-  public static IFile getResource(File file) {
+  public static IResource getResource(File file) {
+    if (file == null) {
+      return null;
+    }
     return getResource(file.getAbsoluteFile().toURI());
   }
 
   /**
    * Answer the Eclipse resource associated with the specified source or <code>null</code> if none
    */
-  public static IFile getResource(Source source) {
+  public static IResource getResource(Source source) {
     return getResource(getFile(source));
   }
 
@@ -114,12 +150,12 @@ public class ResourceUtil {
    * @param uri the URI representing the resource to be returned
    * @return the resource associated with the given URI
    */
-  public static IFile getResource(URI uri) {
-    IFile[] resourceFiles = ResourceUtil.getResources(uri);
-    if (resourceFiles != null) {
-      for (IFile iFile : resourceFiles) {
-        if (iFile.exists()) {
-          return iFile;
+  public static IResource getResource(URI uri) {
+    IResource[] resources = ResourceUtil.getResources(uri);
+    if (resources != null) {
+      for (IResource resource : resources) {
+        if (resource.exists()) {
+          return resource;
         }
       }
     }
@@ -129,7 +165,7 @@ public class ResourceUtil {
   /**
    * Answer the Eclipse resources associated with the specified file or <code>null</code> if none
    */
-  public static IFile[] getResources(File file) {
+  public static IResource[] getResources(File file) {
     if (file == null) {
       return null;
     }
@@ -139,24 +175,26 @@ public class ResourceUtil {
   /**
    * Answer the Eclipse resources associated with the Dart source or <code>null</code> if none
    */
-  public static IFile[] getResources(Source source) {
+  public static IResource[] getResources(Source source) {
     return getResources(getFile(source));
   }
 
   /**
    * Answer the Eclipse resources associated with the specified URI or <code>null</code> if none
    */
-  public static IFile[] getResources(URI uri) {
-    if (SystemLibraryManager.isDartUri(uri)) {
+  public static IResource[] getResources(URI uri) {
+    if (uri == null) {
+      return null;
+    } else if (SystemLibraryManager.isDartUri(uri)) {
       return null;
     } else if (!uri.isAbsolute()) {
       DartCore.logError("Cannot get resource associated with non-absolute URI: " + uri,
           new Exception());
       return null;
     }
-    IFile file = getResourceMap().get(uri);
-    if (file != null) {
-      return new IFile[] {file};
+    IResource resource = getResourceMap().get(uri);
+    if (resource != null) {
+      return new IResource[] {resource};
     }
     return root.findFilesForLocationURI(uri);
   }
@@ -180,17 +218,19 @@ public class ResourceUtil {
    * 
    * @return a table mapping the URI's of file resources to the resource associated with the URI
    */
-  private static HashMap<URI, IFile> getResourceMap() {
+  private static HashMap<URI, IResource> getResourceMap() {
     synchronized (ResourceUtil.class) {
+      //resourceMap = null;
       if (resourceMap == null) {
-        resourceMap = new HashMap<URI, IFile>();
+        resourceMap = new HashMap<URI, IResource>();
         try {
           root.accept(new IResourceProxyVisitor() {
             @Override
             public boolean visit(IResourceProxy proxy) {
-              if (proxy.getType() == IResource.FILE) {
-                IFile file = (IFile) proxy.requestResource();
-                resourceMap.put(file.getLocationURI(), file);
+              int type = proxy.getType();
+              if (type == IResource.FILE || type == IResource.FOLDER || type == IResource.PROJECT) {
+                IResource resource = proxy.requestResource();
+                resourceMap.put(resource.getLocationURI(), resource);
               }
               return true;
             }

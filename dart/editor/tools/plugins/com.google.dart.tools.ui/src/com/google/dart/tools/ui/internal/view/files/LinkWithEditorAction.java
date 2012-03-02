@@ -22,6 +22,7 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -146,7 +147,7 @@ public class LinkWithEditorAction extends PartEventAction implements ISelectionC
       return;
     }
     if (element instanceof File) {
-      IFile[] resources = ResourceUtil.getResources((File) element);
+      IResource[] resources = ResourceUtil.getResources((File) element);
       if (resources != null && resources.length == 1) {
         element = resources[0];
       }

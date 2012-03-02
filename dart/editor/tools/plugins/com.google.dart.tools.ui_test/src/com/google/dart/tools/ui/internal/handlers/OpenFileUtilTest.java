@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -22,7 +22,7 @@ import com.google.dart.tools.core.internal.util.ResourceUtil;
 
 import junit.framework.TestCase;
 
-import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import java.io.File;
@@ -142,7 +142,7 @@ public class OpenFileUtilTest extends TestCase {
     DartModelImpl model = DartModelManager.getInstance().getDartModel();
     int originalCount = model.getDartProjects().length;
 
-    IFile res = ResourceUtil.getResource(file);
+    IResource res = ResourceUtil.getResource(file);
     assertNull(res);
     res = OpenFileUtil.getOrCreateResource(file, new NullProgressMonitor());
     assertNotNull(res);
@@ -158,7 +158,7 @@ public class OpenFileUtilTest extends TestCase {
     DartModelImpl model = DartModelManager.getInstance().getDartModel();
     int originalCount = model.getDartProjects().length;
 
-    IFile res1 = ResourceUtil.getResource(file1);
+    IResource res1 = ResourceUtil.getResource(file1);
     assertNull(res1);
     res1 = OpenFileUtil.getOrCreateResource(file1, new NullProgressMonitor());
     assertNotNull(res1);
@@ -167,7 +167,7 @@ public class OpenFileUtilTest extends TestCase {
 
     assertEquals(originalCount + 1, model.getDartProjects().length);
 
-    IFile res2 = ResourceUtil.getResource(file2);
+    IResource res2 = ResourceUtil.getResource(file2);
     assertNotNull(res2);
     assertTrue(res2.exists());
     assertEquals(file2.getAbsolutePath(), res2.getLocation().toOSString());
@@ -188,7 +188,7 @@ public class OpenFileUtilTest extends TestCase {
     DartModelImpl model = DartModelManager.getInstance().getDartModel();
     int originalCount = model.getDartProjects().length;
 
-    IFile res1 = ResourceUtil.getResource(file1);
+    IResource res1 = ResourceUtil.getResource(file1);
     assertNull(res1);
     res1 = OpenFileUtil.getOrCreateResource(file1, new NullProgressMonitor());
     assertNotNull(res1);
@@ -197,7 +197,7 @@ public class OpenFileUtilTest extends TestCase {
 
     assertEquals(originalCount + 1, model.getDartProjects().length);
 
-    IFile res2 = ResourceUtil.getResource(file2);
+    IResource res2 = ResourceUtil.getResource(file2);
     assertNull(res2);
     res2 = OpenFileUtil.getOrCreateResource(file2, new NullProgressMonitor());
     assertNotNull(res2);
@@ -221,7 +221,7 @@ public class OpenFileUtilTest extends TestCase {
     DartModelImpl model = DartModelManager.getInstance().getDartModel();
     int originalCount = model.getDartProjects().length;
 
-    IFile res1 = ResourceUtil.getResource(file1);
+    IResource res1 = ResourceUtil.getResource(file1);
     assertNull(res1);
     res1 = OpenFileUtil.getOrCreateResource(file1, new NullProgressMonitor());
     assertNotNull(res1);
@@ -230,7 +230,7 @@ public class OpenFileUtilTest extends TestCase {
 
     assertEquals(originalCount + 1, model.getDartProjects().length);
 
-    IFile res2 = ResourceUtil.getResource(file2);
+    IResource res2 = ResourceUtil.getResource(file2);
     assertNull(res2);
     res2 = OpenFileUtil.getOrCreateResource(file2, new NullProgressMonitor());
     assertNotNull(res2);
@@ -242,7 +242,7 @@ public class OpenFileUtilTest extends TestCase {
 
     assertEquals(originalCount + 2, model.getDartProjects().length);
 
-    IFile res3 = ResourceUtil.getResource(file3);
+    IResource res3 = ResourceUtil.getResource(file3);
     assertNull(res3);
     res3 = OpenFileUtil.getOrCreateResource(file3, new NullProgressMonitor());
     assertNotNull(res3);

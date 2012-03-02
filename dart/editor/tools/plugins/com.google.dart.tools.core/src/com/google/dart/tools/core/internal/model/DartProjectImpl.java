@@ -883,7 +883,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
             if (relativePath != null && relativePath.length() > 0) {
               DartSource source = librarySource.getSourceFor(relativePath);
               if (source != null) {
-                IFile[] compilationUnitFiles = ResourceUtil.getResources(source);
+                IResource[] compilationUnitFiles = ResourceUtil.getResources(source);
                 if (compilationUnitFiles != null && compilationUnitFiles.length == 1) {
                   libraryFiles.remove(compilationUnitFiles[0]);
                 }
@@ -905,11 +905,11 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
    * @return the file that was found, or <code>null</code> if no file could be found
    */
   private IFile findFileForUri(URI uri) {
-    IFile[] files = ResourceUtil.getResources(uri);
-    if (files != null) {
-      for (IFile file : files) {
-        if (file.getProject().equals(project)) {
-          return file;
+    IResource[] resources = ResourceUtil.getResources(uri);
+    if (resources != null) {
+      for (IResource resource : resources) {
+        if (resource instanceof IFile && resource.getProject().equals(project)) {
+          return (IFile) resource;
         }
       }
     }

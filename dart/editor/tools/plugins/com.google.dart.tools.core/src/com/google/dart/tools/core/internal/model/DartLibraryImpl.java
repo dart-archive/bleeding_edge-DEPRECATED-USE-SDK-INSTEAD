@@ -516,8 +516,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     }
 
     // Check for external reference to file in open project
-    IFile res = ResourceUtil.getResource(sourceFile);
-    return res != null && res.getProject().isOpen();
+    IResource resource = ResourceUtil.getResource(sourceFile);
+    return resource != null && resource.getProject().isOpen();
   }
 
   /**
@@ -665,9 +665,9 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         }
 
         // Find a resource in the workspace corresponding to the imported library.
-        IFile[] libraryFiles = ResourceUtil.getResources(lib);
-        if (libraryFiles != null && libraryFiles.length == 1) {
-          IFile libFile = libraryFiles[0];
+        IResource[] libraryFiles = ResourceUtil.getResources(lib);
+        if (libraryFiles != null && libraryFiles.length == 1 && libraryFiles[0] instanceof IFile) {
+          IFile libFile = (IFile) libraryFiles[0];
           DartProjectImpl dartProject = modelManager.create(libFile.getProject());
           importedLibraries.add(new DartLibraryImpl(dartProject, libFile, lib));
           return null;
@@ -732,9 +732,10 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         if (source == null) {
           return null;
         }
-        IFile[] compilationUnitFiles = ResourceUtil.getResources(source);
-        if (compilationUnitFiles != null && compilationUnitFiles.length == 1) {
-          IFile unitFile = compilationUnitFiles[0];
+        IResource[] compilationUnitFiles = ResourceUtil.getResources(source);
+        if (compilationUnitFiles != null && compilationUnitFiles.length == 1
+            && compilationUnitFiles[0] instanceof IFile) {
+          IFile unitFile = (IFile) compilationUnitFiles[0];
           if (unitFile.isAccessible()) {
             children.add(new CompilationUnitImpl(DartLibraryImpl.this, unitFile,
                 DefaultWorkingCopyOwner.getInstance()));

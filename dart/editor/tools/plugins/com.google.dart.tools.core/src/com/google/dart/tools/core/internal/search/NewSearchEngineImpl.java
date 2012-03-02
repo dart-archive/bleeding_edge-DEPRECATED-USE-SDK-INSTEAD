@@ -275,7 +275,13 @@ public class NewSearchEngineImpl implements SearchEngine {
 
     private IFile[] getFilesForUri(String uri) {
       try {
-        return ResourceUtil.getResources(new URI(uri));
+        ArrayList<IFile> files = new ArrayList<IFile>();
+        for (IResource resource : ResourceUtil.getResources(new URI(uri))) {
+          if (resource instanceof IFile) {
+            files.add((IFile) resource);
+          }
+        }
+        return files.toArray(new IFile[files.size()]);
       } catch (URISyntaxException exception) {
         DartCore.logError("Invalid URI stored in resource id " + uri, exception);
       }

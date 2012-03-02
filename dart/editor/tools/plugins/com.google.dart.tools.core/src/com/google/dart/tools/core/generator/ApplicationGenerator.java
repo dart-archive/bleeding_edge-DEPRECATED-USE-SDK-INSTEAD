@@ -90,13 +90,13 @@ public class ApplicationGenerator extends AbstractGenerator {
       if (library != null) {
         library.setTopLevel(true);
       }
-      IFile[] files = ResourceUtil.getResources(applicationFile);
-      iApplicationFile = files[0];
+      IResource[] files = ResourceUtil.getResources(applicationFile);
+      iApplicationFile = (IFile) files[0];
     } else {
       // The generator creates resources using java.io.File APIs.
       project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 
-      iApplicationFile = ResourceUtil.getResource(applicationFile);
+      iApplicationFile = (IFile) ResourceUtil.getResource(applicationFile);
     }
   }
 

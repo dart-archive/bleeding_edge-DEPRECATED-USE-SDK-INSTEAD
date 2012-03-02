@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -812,6 +812,21 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     return typeNames.toArray(new char[typeNames.size()][]);
   }
 
+  /**
+   * Return the file associated with the given URI.
+   * 
+   * @param uri the uri of the file represented by the compilation unit
+   * @return the file associated with the given URI
+   */
+  private static IFile getFile(URI uri) {
+    IFile file = ResourceUtil.getFile(uri);
+    if (file == null) {
+      throw new IllegalArgumentException("The URI \"" + uri
+          + "\" does not map to an existing resource.");
+    }
+    return file;
+  }
+
   private static char[] getParameterTypes(char[] typeName, List<DartParameter> parameters) {
     StringBuilder builder = new StringBuilder(16);
     builder.append(typeName);
@@ -859,11 +874,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
    * @param owner the working copy owner
    */
   public CompilationUnitImpl(CompilationUnitContainer container, URI uri, WorkingCopyOwner owner) {
-    super(container, ResourceUtil.getResource(uri), owner);
-    if (getFile() == null) {
-      throw new IllegalArgumentException("The URI \"" + uri
-          + "\" does not map to an existing resource.");
-    }
+    super(container, getFile(uri), owner);
   }
 
   @Override

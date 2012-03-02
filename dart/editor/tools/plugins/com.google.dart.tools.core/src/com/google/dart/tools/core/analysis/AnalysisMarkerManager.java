@@ -20,7 +20,6 @@ import com.google.dart.compiler.SubSystem;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -68,7 +67,7 @@ public class AnalysisMarkerManager implements AnalysisListener {
     if (source == null) {
       return;
     }
-    IFile res = ResourceUtil.getResource(source.getUri());
+    IResource res = ResourceUtil.getResource(source.getUri());
     if (res == null || !res.exists()) {
       return;
     }
@@ -113,7 +112,7 @@ public class AnalysisMarkerManager implements AnalysisListener {
    * Clear all error markers from the specified file a
    */
   private void deleteMarkers(File file) {
-    IFile res = ResourceUtil.getResource(file);
+    IResource res = ResourceUtil.getResource(file);
     if (res == null || !res.isAccessible()) {
       return;
     }

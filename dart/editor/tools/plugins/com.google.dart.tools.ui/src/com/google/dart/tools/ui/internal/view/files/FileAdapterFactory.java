@@ -63,7 +63,7 @@ public class FileAdapterFactory implements IAdapterFactory {
                 ISharedImages.IMG_OBJ_FOLDER);
           }
 
-          IFile resource = ResourceUtil.getResource(file);
+          IFile resource = ResourceUtil.getFile(file);
           if (resource != null) {
             return dartElementImageProvider.getBaseImageDescriptor(DartCore.create(resource),
                 DartElementImageProvider.OVERLAY_ICONS);

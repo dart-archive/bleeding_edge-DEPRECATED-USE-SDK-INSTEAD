@@ -52,7 +52,6 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.net.URIUtilities;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
 import java.net.URI;
@@ -696,7 +695,7 @@ public class BindingUtils {
       return new DartLibraryImpl(librarySource);
     }
     String targetUri = uri.toString();
-    IFile file = com.google.dart.tools.core.internal.util.ResourceUtil.getResource(uri);
+    IResource file = com.google.dart.tools.core.internal.util.ResourceUtil.getResource(uri);
     if (file != null) {
       return findLibrary(DartCore.create(file.getProject()), targetUri);
     }
@@ -991,13 +990,13 @@ public class BindingUtils {
             }
           }
         } catch (DartModelException exception) {
-          DartCore.logInformation("Could not get types defined in " + unit.getElementName(),
-              exception);
+//          DartCore.logInformation("Could not get types defined in " + unit.getElementName(),
+//              exception);
         }
       }
     } catch (DartModelException exception) {
-      DartCore.logInformation(
-          "Could not get compilation units defined in " + library.getElementName(), exception);
+//      DartCore.logInformation(
+//          "Could not get compilation units defined in " + library.getElementName(), exception);
     }
   }
 

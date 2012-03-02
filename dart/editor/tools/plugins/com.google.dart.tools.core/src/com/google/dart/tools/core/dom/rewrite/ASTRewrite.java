@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -37,6 +37,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.text.edits.MultiTextEdit;
@@ -774,11 +775,11 @@ public class ASTRewrite {
    * @return the compilation unit from which the given AST structure was created
    */
   private CompilationUnit getTypeRoot(DartUnit astRoot) {
-    IFile[] files = ResourceUtil.getResources(astRoot.getSource().getUri());
-    if (files != null) {
-      for (IFile file : files) {
-        if (file.exists()) {
-          DartElement element = DartCore.create(file);
+    IResource[] resources = ResourceUtil.getResources(astRoot.getSource().getUri());
+    if (resources != null) {
+      for (IResource resource : resources) {
+        if (resource instanceof IFile && resource.exists()) {
+          DartElement element = DartCore.create(resource);
           if (element instanceof CompilationUnit) {
             return (CompilationUnit) element;
           }

@@ -33,6 +33,7 @@ import com.google.dart.tools.ui.internal.text.editor.SimpleTextEditor;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -47,7 +48,6 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
@@ -86,7 +86,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget, Director
       }
     }
   }
-
 
   private TreeViewer treeViewer;
 
@@ -290,18 +289,20 @@ public class FilesView extends ViewPart implements ISetSelectionTarget, Director
     if (element instanceof File) {
       File file = (File) element;
       // if there is already an IResource for this file, open it
-      IFile[] resources = ResourceUtil.getResources(file);
+      IResource[] resources = ResourceUtil.getResources(file);
       IFile iFile = null;
       // If already in the model, just open the IFile
-      if (resources.length == 1) {
-        iFile = resources[0];
+      if (resources.length == 1 && resources[0] instanceof IFile) {
+        iFile = (IFile) resources[0];
       }
 
       if (DartCore.isDartLikeFileName(file.getName())) {
+        // TODO(brianwilkerson) What is the point of computing the resources a second time? The
+        // result won't have changed from what we got on line 294 above.
         resources = ResourceUtil.getResources(file);
         // If already in the model, just open the IFile
-        if (resources.length == 1) {
-          iFile = resources[0];
+        if (resources.length == 1 && resources[0] instanceof IFile) {
+          iFile = (IFile) resources[0];
         } else {
           // otherwise create call openLibrary to create the IFile
           try {
@@ -309,12 +310,13 @@ public class FilesView extends ViewPart implements ISetSelectionTarget, Director
             resources = ResourceUtil.getResources(file);
             if (resources.length == 0) {
               iFile = null;
-            } else if (resources.length == 1) {
-              iFile = resources[0];
+            } else if (resources.length == 1 && resources[0] instanceof IFile) {
+              iFile = (IFile) resources[0];
             } else if (dartLibrary != null) {
-              for (IFile f : resources) {
-                if (f.getProject().equals(dartLibrary.getDartProject().getProject())) {
-                  iFile = f;
+              for (IResource resource : resources) {
+                if (resource instanceof IFile
+                    && resource.getProject().equals(dartLibrary.getDartProject().getProject())) {
+                  iFile = (IFile) resource;
                 }
               }
             }

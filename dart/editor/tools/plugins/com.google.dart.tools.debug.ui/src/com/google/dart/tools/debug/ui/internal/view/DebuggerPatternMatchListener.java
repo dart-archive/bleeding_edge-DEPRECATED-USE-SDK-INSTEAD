@@ -73,7 +73,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
 
       IPath path = new Path(filePath);
 
-      return ResourceUtil.getResource(path.toFile());
+      return ResourceUtil.getFile(path.toFile());
     }
 
     public int getLine() {
@@ -142,7 +142,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
   private IFile getIFileForAbsolutePath(String pathStr) {
     IPath path = new Path(pathStr);
 
-    return ResourceUtil.getResource(path.toFile());
+    return ResourceUtil.getFile(path.toFile());
   }
 
   private Location parseMatch(String match) {

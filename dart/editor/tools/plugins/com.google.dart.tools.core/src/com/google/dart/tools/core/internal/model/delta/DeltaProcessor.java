@@ -558,7 +558,7 @@ public class DeltaProcessor {
           URI uri = new URI(oldPathElt);
           DartLibraryInfo libraryInfo = (DartLibraryInfo) library.getElementInfo();
           if (URIUtil.isFileURI(uri)) {
-            IFile libraryIFile = ResourceUtil.getResource(uri);
+            IFile libraryIFile = ResourceUtil.getFile(uri);
             if (libraryIFile != null && libraryIFile.exists() && libraryIFile.isLinked()) {
               DartProjectImpl project = (DartProjectImpl) DartCore.create(libraryIFile.getProject());
               DartLibrary dartLibrary = new DartLibraryImpl(project, libraryIFile,
@@ -602,7 +602,7 @@ public class DeltaProcessor {
           URI uri = new URI(newPathElt);
           DartLibraryInfo libraryInfo = (DartLibraryInfo) library.getElementInfo();
           if (URIUtil.isFileURI(uri)) {
-            IFile libraryIFile = ResourceUtil.getResource(uri);
+            IFile libraryIFile = ResourceUtil.getFile(uri);
             if (libraryIFile != null && libraryIFile.exists() && libraryIFile.isLinked()) {
               DartProjectImpl project = (DartProjectImpl) DartCore.create(libraryIFile.getProject());
               DartLibrary dartLibrary = new DartLibraryImpl(project, libraryIFile,

@@ -579,7 +579,7 @@ public class DartModelManager {
         DartUnit libraryUnit = parseLibraryFile(child);
         if (libraryUnit != null) {
           // found a library file, return it if it is loaded into the workspace
-          IFile[] children = ResourceUtil.getResources(child);
+          IResource[] children = ResourceUtil.getResources(child);
           if (children.length > 0) {
             DartElement element = DartCore.create(children[0]);
             if (element instanceof CompilationUnit && ((CompilationUnit) element).definesLibrary()) {
@@ -955,9 +955,9 @@ public class DartModelManager {
     //
     // Check whether the library that contains the file is already open, and if so return it.
     //
-    IFile[] files = ResourceUtil.getResources(libraryFile);
-    if (files != null && files.length > 0) {
-      DartProject project = DartCore.create(files[0].getProject());
+    IResource[] resources = ResourceUtil.getResources(libraryFile);
+    if (resources != null && resources.length > 0) {
+      DartProject project = DartCore.create(resources[0].getProject());
       if (project != null) {
         DartLibrary[] libraries = project.getDartLibraries();
         if (libraries != null && libraries.length > 0) {
@@ -1237,12 +1237,12 @@ public class DartModelManager {
       // the library associated with the project.
       //
       List<String> paths = new ArrayList<String>(1);
-      IFile[] files = ResourceUtil.getResources(libraryFile);
-      if (files == null || files.length != 1) {
+      IResource[] resources = ResourceUtil.getResources(libraryFile);
+      if (resources == null || resources.length != 1) {
         throw new DartModelException(new DartModelStatusImpl(IStatus.OK,
             "Too many files representing the library file " + libraryFile.getAbsolutePath()));
       }
-      paths.add(files[0].getProjectRelativePath().toPortableString());
+      paths.add(resources[0].getProjectRelativePath().toPortableString());
       DartProjectImpl newDartProject = create(newProject);
       // TODO(brianwilkerson) Re-work this so that the info object can be saved in order to avoid
       // having to read the list from disk just after writing it.

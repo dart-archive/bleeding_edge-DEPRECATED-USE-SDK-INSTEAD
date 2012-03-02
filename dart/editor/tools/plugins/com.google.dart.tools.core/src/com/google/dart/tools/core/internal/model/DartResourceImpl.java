@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -38,10 +38,10 @@ import java.util.Map;
  */
 public class DartResourceImpl extends OpenableElementImpl implements DartResource {
   /**
-   * The file represented by this element, or <code>null</code> if the resource is included in a
+   * The resource represented by this element, or <code>null</code> if the resource is included in a
    * library that is not open.
    */
-  private IFile file;
+  private IResource resource;
 
   /**
    * The URI of the resource represented by this element.
@@ -52,12 +52,12 @@ public class DartResourceImpl extends OpenableElementImpl implements DartResourc
    * Initialize a newly created resource element to be a child of the given library.
    * 
    * @param library the library containing the element
-   * @param file the file represented by the element
+   * @param resource the resource represented by the element
    */
-  protected DartResourceImpl(DartLibraryImpl library, IFile file) {
+  protected DartResourceImpl(DartLibraryImpl library, IFile resource) {
     super(library);
-    this.file = file;
-    this.uri = file.getLocationURI();
+    this.resource = resource;
+    this.uri = resource.getLocationURI();
   }
 
   /**
@@ -68,16 +68,16 @@ public class DartResourceImpl extends OpenableElementImpl implements DartResourc
    */
   protected DartResourceImpl(DartLibraryImpl library, URI uri) {
     super(library);
-    this.file = ResourceUtil.getResource(uri);
+    this.resource = ResourceUtil.getResource(uri);
     this.uri = uri;
   }
 
   @Override
   public String getElementName() {
-    if (file == null) {
+    if (resource == null) {
       return new Path(uri.getPath()).lastSegment();
     }
-    return file.getName();
+    return resource.getName();
   }
 
   @Override
@@ -87,7 +87,7 @@ public class DartResourceImpl extends OpenableElementImpl implements DartResourc
 
   @Override
   public IResource getUnderlyingResource() throws DartModelException {
-    return file;
+    return resource;
   }
 
   @Override
@@ -97,7 +97,7 @@ public class DartResourceImpl extends OpenableElementImpl implements DartResourc
 
   @Override
   public IResource resource() {
-    return file;
+    return resource;
   }
 
   @Override

@@ -28,7 +28,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 
-import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 
 import java.io.File;
 import java.util.HashMap;
@@ -59,7 +59,7 @@ public class AnalysisIndexManager implements AnalysisListener {
   public void resolved(AnalysisEvent event) {
     File libraryFile = event.getLibraryFile();
     HashMap<File, DartUnit> units = event.getUnits();
-    IFile[] resources = ResourceUtil.getResources(libraryFile);
+    IResource[] resources = ResourceUtil.getResources(libraryFile);
     if (resources == null || resources.length != 1) {
       DartCore.logError("Could not find compilation unit corresponding to " + libraryFile + " ("
           + (resources == null ? "no" : resources.length) + " files found)");

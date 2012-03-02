@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -26,6 +26,7 @@ import com.google.dart.tools.core.utilities.general.SourceUtilities;
 import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -211,9 +212,9 @@ public class FileGenerator extends AbstractGenerator {
     //
     // Find and reference the IFile so that getFile() will return the correct resource
     //
-    IFile[] files = ResourceUtil.getResources(systemFile);
-    if (files.length > 0) {
-      iFile = files[0];
+    IResource[] files = ResourceUtil.getResources(systemFile);
+    if (files.length > 0 && files[0] instanceof IFile) {
+      iFile = (IFile) files[0];
     }
     subMonitor.newChild(40);
 

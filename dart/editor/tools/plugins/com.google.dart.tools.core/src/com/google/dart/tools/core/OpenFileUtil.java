@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -72,9 +72,9 @@ public class OpenFileUtil {
    */
   @Deprecated
   public static IFile getOrCreateResource(File file, IProgressMonitor monitor) throws CoreException {
-    IFile res = ResourceUtil.getResource(file);
-    if (res != null) {
-      return res;
+    IResource resource = ResourceUtil.getResource(file);
+    if (resource instanceof IFile) {
+      return (IFile) resource;
     }
 
     IProject newProj = newProject(monitor);
@@ -84,8 +84,8 @@ public class OpenFileUtil {
       file.getParentFile().mkdirs();
     }
     newFolder.createLink(new Path(file.getParentFile().getAbsolutePath()), 0, monitor);
-    res = ResourceUtil.getResource(file);
-    if (res == null) {
+    resource = ResourceUtil.getResource(file);
+    if (!(resource instanceof IFile)) {
       throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, IStatus.ERROR,
           "Failed to create resource for " + file, null));
     }
@@ -111,7 +111,7 @@ public class OpenFileUtil {
       }
     }
 
-    return res;
+    return (IFile) resource;
   }
 
   /**

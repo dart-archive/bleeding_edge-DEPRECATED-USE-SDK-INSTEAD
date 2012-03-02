@@ -29,8 +29,8 @@ import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -892,7 +892,7 @@ public class DartLibraryImplTest extends TestCase {
   private DartLibraryImpl getOrCreateDartLib(String libName, DartLibrary[] importLibs,
       String className, String fileContent) throws IOException, DartModelException {
     File libFile = getOrCreateLibFile(libName, importLibs, className, fileContent);
-    IFile libRes = ResourceUtil.getResource(libFile);
+    IResource libRes = ResourceUtil.getResource(libFile);
     if (libRes != null) {
       DartElement elem = DartCore.create(libRes);
       if (elem instanceof CompilationUnitImpl) {

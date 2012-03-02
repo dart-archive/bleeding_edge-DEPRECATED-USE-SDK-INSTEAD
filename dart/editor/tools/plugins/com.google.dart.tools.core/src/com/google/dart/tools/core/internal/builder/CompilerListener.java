@@ -39,7 +39,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import static com.google.dart.tools.core.internal.builder.BuilderUtil.createErrorMarker;
 import static com.google.dart.tools.core.internal.builder.BuilderUtil.createWarningMarker;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 
@@ -96,9 +95,9 @@ class CompilerListener implements DartCompilerListener {
       return;
     }
 
-    IFile file = ResourceUtil.getResource(source);
+    IResource resource = ResourceUtil.getResource(source);
 
-    if (file == null && source != null) {
+    if (resource == null && source != null) {
       // Don't report issues removing markers for dart: based source files.
       if (DartCoreDebug.VERBOSE && !"dart".equals(source.getUri().getScheme())) {
         DartCore.logInformation("Unable to remove markers for source \""
@@ -107,7 +106,7 @@ class CompilerListener implements DartCompilerListener {
       return;
     }
 
-    BuilderUtil.clearErrorMarkers(file);
+    BuilderUtil.clearErrorMarkers(resource);
   }
 
   @Override
@@ -117,7 +116,7 @@ class CompilerListener implements DartCompilerListener {
     }
     DartSource source = unit.getSource();
     if (source != null) {
-      IFile[] resources = ResourceUtil.getResources(source);
+      IResource[] resources = ResourceUtil.getResources(source);
       if (resources == null || resources.length != 1) {
         URI sourceUri = source.getUri();
         if (!SystemLibraryManager.isDartUri(sourceUri)) {

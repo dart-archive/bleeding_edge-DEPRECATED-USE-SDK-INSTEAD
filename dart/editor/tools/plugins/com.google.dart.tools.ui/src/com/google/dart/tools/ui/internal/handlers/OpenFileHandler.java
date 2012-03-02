@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -29,6 +29,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -77,15 +78,16 @@ public class OpenFileHandler extends AbstractHandler {
                 library[0].setTopLevel(true);
               }
               monitor.worked(1);
-              IFile[] resources = ResourceUtil.getResources(file);
+              IResource[] resources = ResourceUtil.getResources(file);
               if (resources.length == 0) {
                 resource[0] = null;
-              } else if (resources.length == 1) {
-                resource[0] = resources[0];
+              } else if (resources.length == 1 && resources[0] instanceof IFile) {
+                resource[0] = (IFile) resources[0];
               } else if (library[0] != null) {
-                for (IFile file : resources) {
-                  if (file.getProject().equals(library[0].getDartProject().getProject())) {
-                    resource[0] = file;
+                for (IResource r : resources) {
+                  if (r instanceof IFile
+                      && r.getProject().equals(library[0].getDartProject().getProject())) {
+                    resource[0] = (IFile) r;
                   }
                 }
               }
