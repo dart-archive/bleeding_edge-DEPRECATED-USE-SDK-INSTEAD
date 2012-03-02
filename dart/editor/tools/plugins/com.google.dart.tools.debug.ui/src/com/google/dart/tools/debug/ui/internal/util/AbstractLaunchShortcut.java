@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.ui.internal.util;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -270,6 +271,12 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       return null;
     }
 
+    if (elem instanceof DartProjectImpl) {
+      DartLibrary[] libraries = ((DartProjectImpl) elem).getDartLibraries();
+      if (libraries.length > 0) {
+        return getHtmlFileFor(libraries[0]);
+      }
+    }
     DartLibrary parentLibrary = elem.getAncestor(DartLibrary.class);
     return getHtmlFileFor(parentLibrary);
   }

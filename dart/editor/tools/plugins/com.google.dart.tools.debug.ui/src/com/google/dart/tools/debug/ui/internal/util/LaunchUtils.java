@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.ui.internal.util;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -183,9 +184,19 @@ public class LaunchUtils {
       }
 
       return null;
-    } else {
-      return null;
+    } else if (element instanceof DartProjectImpl) {
+      DartLibrary[] libraries = null;
+      try {
+        libraries = ((DartProjectImpl) element).getDartLibraries();
+      } catch (DartModelException e) {
+
+      }
+      if (libraries.length > 0) {
+        return libraries[0];
+      }
     }
+    return null;
+
   }
 
   /**
