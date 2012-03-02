@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -26,7 +26,7 @@ class LibraryReader {
     } else if (options.config == 'sdk') {
       _specialLibs = {
         'dart:core': joinPaths(options.libDir, 'core/core_frog.dart'),
-        'dart:coreimpl': joinPaths(options.libDir, 
+        'dart:coreimpl': joinPaths(options.libDir,
           'coreimpl/coreimpl_frog.dart'),
         'dart:html': joinPaths(options.libDir, 'html/html.dart'),
         'dart:htmlimpl': joinPaths(options.libDir, 'htmlimpl/htmlimpl.dart'),

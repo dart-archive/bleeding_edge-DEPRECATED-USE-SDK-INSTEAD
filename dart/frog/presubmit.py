@@ -145,9 +145,13 @@ def main():
       #   than pain.
       # Run frogsh on most of the tests.
       cmd = test_cmd + ['--component=frogsh', 'language', 'corelib',
-                        'isolate', 'peg', 'frog', 'css', 'dartdoc',
-                        'frog_native']
+                        'isolate', 'peg', 'frog', 'css', 'frog_native']
       RunCommand(*cmd, verbose=True)
+
+    # Run the "utils" tests which includes dartdoc. Frog/leg changes often
+    # break dartdoc and this tries to catch those.
+    cmd = test_cmd + ['--component=vm', 'utils']
+    RunCommand(*cmd, verbose=True)
 
     # Run leg unit tests.
     cmd = test_cmd + ['--component=vm', 'leg']
