@@ -18,7 +18,7 @@ def HtmlConvert(infile):
   else:
     raise 'Illegal input: ' + infile
 
-  cmd = ['python', htmlconverter, tail, '-o', outdir, '--frog']
+  cmd = ['python', htmlconverter, tail, '-o', outdir]
   print 'Executing: ' + ' '.join(cmd)
   subprocess.call(cmd)
   if head == 'tests':
