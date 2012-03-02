@@ -29,6 +29,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 
@@ -74,7 +75,7 @@ public class ResourceUtil {
     if (file == null) {
       return null;
     }
-    return getFile(file.getAbsoluteFile().toURI());
+    return getFile(getCanonicalUri(file));
   }
 
   /**
@@ -133,7 +134,7 @@ public class ResourceUtil {
     if (file == null) {
       return null;
     }
-    return getResource(file.getAbsoluteFile().toURI());
+    return getResource(getCanonicalUri(file));
   }
 
   /**
@@ -169,7 +170,7 @@ public class ResourceUtil {
     if (file == null) {
       return null;
     }
-    return getResources(file.getAbsoluteFile().toURI());
+    return getResources(getCanonicalUri(file));
   }
 
   /**
@@ -180,7 +181,10 @@ public class ResourceUtil {
   }
 
   /**
-   * Answer the Eclipse resources associated with the specified URI or <code>null</code> if none
+   * Return the Eclipse resources associated with the given URI, or <code>null</code> if there is no
+   * associated resource. The URI must be a canonical URI (a file: URI built from a canonical path).
+   * 
+   * @return the Eclipse resources associated with the given URI
    */
   public static IResource[] getResources(URI uri) {
     if (uri == null) {
@@ -193,6 +197,9 @@ public class ResourceUtil {
       return null;
     }
     IResource resource = getResourceMap().get(uri);
+    if (resource == null) {
+      resource = getResourceMap().get(getCanonicalUri(uri));
+    }
     if (resource != null) {
       return new IResource[] {resource};
     }
@@ -213,6 +220,26 @@ public class ResourceUtil {
     ResourcesPlugin.getWorkspace().addResourceChangeListener(listener);
   }
 
+  private static URI getCanonicalUri(File file) {
+    try {
+      return file.getAbsoluteFile().getCanonicalFile().toURI();
+    } catch (IOException exception) {
+      return file.getAbsoluteFile().toURI();
+    }
+  }
+
+  private static URI getCanonicalUri(IResource resource) {
+    return getCanonicalUri(resource.getLocationURI());
+  }
+
+  private static URI getCanonicalUri(URI uri) {
+    try {
+      return new File(uri).getCanonicalFile().toURI();
+    } catch (IOException exception) {
+    }
+    return uri;
+  }
+
   /**
    * Return a table mapping the URI's of file resources to the resource associated with the URI.
    * 
@@ -230,7 +257,7 @@ public class ResourceUtil {
               int type = proxy.getType();
               if (type == IResource.FILE || type == IResource.FOLDER || type == IResource.PROJECT) {
                 IResource resource = proxy.requestResource();
-                resourceMap.put(resource.getLocationURI(), resource);
+                resourceMap.put(getCanonicalUri(resource), resource);
               }
               return true;
             }

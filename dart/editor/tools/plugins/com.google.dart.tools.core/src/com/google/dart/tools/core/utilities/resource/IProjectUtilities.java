@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,17 +14,27 @@
 package com.google.dart.tools.core.utilities.resource;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartProjectNature;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 
+import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubProgressMonitor;
 
 import java.io.File;
+import java.net.URI;
 
 /**
  * The class <code>IProjectUtilities</code> defines utility methods used to work with projects.
@@ -50,6 +60,66 @@ public final class IProjectUtilities {
           null));
     }
     return newFile;
+  }
+
+  /**
+   * Create or open the project in the given directory (or the directory containing the given file
+   * if the file is not a directory).
+   * 
+   * @param file the file or directory indicating which directory should be the root of the project
+   * @param monitor the progress monitor used to provide feedback to the user, or <code>null</code>
+   *          if no feedback is desired
+   * @return the resource associated with the file that was passed in
+   * @throws CoreException if the project cannot be opened or created
+   */
+  public static IResource createOrOpenProject(File file, IProgressMonitor monitor)
+      throws CoreException {
+    IResource[] existingResources = ResourceUtil.getResources(file);
+    if (existingResources.length == 1) {
+      return existingResources[0];
+    } else if (existingResources.length > 1) {
+      throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+          "Too many files representing " + file.getAbsolutePath()));
+    }
+    final File projectDirectory;
+    if (file.isDirectory()) {
+      projectDirectory = file;
+    } else {
+      projectDirectory = file.getParentFile();
+    }
+    final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+    workspace.run(new IWorkspaceRunnable() {
+      @Override
+      public void run(IProgressMonitor monitor) throws CoreException {
+        String projectName = projectDirectory.getName();
+        IProject project = getProject(workspace, projectName);
+        IProjectDescription description = createProjectDescription(project,
+            projectDirectory.toURI());
+
+        monitor.beginTask("Create project " + projectName, 300); //$NON-NLS-1$
+        project.create(description, new SubProgressMonitor(monitor, 100));
+        if (monitor.isCanceled()) {
+          throw new OperationCanceledException();
+        }
+        project.open(IResource.NONE, new SubProgressMonitor(monitor, 100));
+        if (monitor.isCanceled()) {
+          throw new OperationCanceledException();
+        }
+        DartProjectNature nature = new DartProjectNature();
+        nature.setProject(project);
+        nature.configure();
+        monitor.done();
+      }
+    }, monitor);
+    IResource[] newResources = ResourceUtil.getResources(file);
+    if (newResources.length == 1) {
+      return newResources[0];
+    } else if (newResources.length == 0) {
+      throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+          "No files representing " + file.getAbsolutePath()));
+    }
+    throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+        "Too many files representing " + file.getAbsolutePath()));
   }
 
   /**
@@ -80,6 +150,36 @@ public final class IProjectUtilities {
       newFile = project.getFile(baseName + index++ + extension);
     }
     return newFile;
+  }
+
+  /**
+   * Return a project description for the
+   * 
+   * @param project
+   * @param location
+   * @return
+   */
+  private static IProjectDescription createProjectDescription(IProject project, URI location) {
+    IWorkspace workspace = ResourcesPlugin.getWorkspace();
+    IProjectDescription description = workspace.newProjectDescription(project.getName());
+    description.setLocationURI(location);
+    description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
+    ICommand command = description.newCommand();
+    command.setBuilderName(DartCore.DART_BUILDER_ID);
+    description.setBuildSpec(new ICommand[] {command});
+    return description;
+  }
+
+  /**
+   * Return the project being created, or <code>null</code> if the name is not a valid project name.
+   * 
+   * @return the project being created
+   */
+  private static IProject getProject(IWorkspace workspace, String name) {
+    if (!workspace.validateName(name, IResource.PROJECT).isOK()) {
+      return null;
+    }
+    return workspace.getRoot().getProject(name);
   }
 
   /**
