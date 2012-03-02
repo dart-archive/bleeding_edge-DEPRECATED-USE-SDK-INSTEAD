@@ -379,6 +379,11 @@ def main():
         _PrintErrorLog(properties['build.runtime'])
       return status
 
+    #For the dart-editor build, return at this point.
+    #We don't need to install the sdk+dartium, run tests, or copy to google storage.
+    if not buildos:
+      return 0
+    
     sys.stdout.flush()
     #This is an override to for local testing
     force_run_install = os.environ.get('FORCE_RUN_INSTALL')
