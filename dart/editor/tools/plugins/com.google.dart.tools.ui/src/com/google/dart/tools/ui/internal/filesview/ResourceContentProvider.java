@@ -200,7 +200,8 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
   private Object[] getProjectChildren(IProject project) throws CoreException {
     List<Object> children = new ArrayList<Object>();
 
-    for (IResource resource : filteredMembers(project)) {
+    List<IResource> resources = filteredMembers(project);
+    for (IResource resource : resources) {
       children.add(resource);
     }
 
