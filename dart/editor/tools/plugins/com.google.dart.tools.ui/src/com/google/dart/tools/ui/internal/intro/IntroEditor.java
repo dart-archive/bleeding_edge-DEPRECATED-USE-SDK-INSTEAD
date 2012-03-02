@@ -16,9 +16,14 @@ package com.google.dart.tools.ui.internal.intro;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.ui.internal.handlers.OpenFileHandler;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
+import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -194,9 +199,26 @@ public class IntroEditor extends EditorPart {
     return composite;
   }
 
+  private File getDirectory(File file) {
+    IPath path = new Path(file.getAbsolutePath());
+    String[] segments = path.segments();
+    int i;
+    for (i = 0; i < segments.length; i++) {
+      if (segments[i].equals("samples")) {
+        break;
+      }
+    }
+    // get directory to depth samples + 1
+    Path p = (Path) path.removeLastSegments((segments.length - i) - 2);
+    return new File(p.toString());
+  }
+
   private void openSample(File file) {
     try {
-      OpenFileHandler.openFile(getEditorSite().getShell(), file);
+      File dir = getDirectory(file);
+      // TODO(keertip): pass in a real progress monitor
+      IProjectUtilities.createOrOpenProject(dir, new NullProgressMonitor());
+      EditorUtility.openInEditor(ResourceUtil.getFile(file));
     } catch (Throwable e) {
       DartCore.logError(e);
     }
