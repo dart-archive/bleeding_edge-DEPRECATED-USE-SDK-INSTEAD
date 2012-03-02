@@ -1225,6 +1225,7 @@ class Parser {
       named = true;
       token = parseIdentifier(token.next);
     }
+    expect('(', token);
     token = parseArguments(token);
     listener.handleConstExpression(constKeyword, named);
     return token;
