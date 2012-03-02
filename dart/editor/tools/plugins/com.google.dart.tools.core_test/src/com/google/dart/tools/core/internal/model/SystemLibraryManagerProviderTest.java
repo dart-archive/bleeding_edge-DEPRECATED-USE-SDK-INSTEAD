@@ -59,7 +59,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertNotNull(fullUri1);
     assertEquals("dart", fullUri1.getScheme());
     assertEquals(shortLibName, fullUri1.getHost());
-    assertTrue(fullUri1.getPath().endsWith("/" + libFileName));
+    assertTrue(fullUri1.getPath(), fullUri1.getPath().endsWith("/" + libFileName));
     URI fullUri2 = getLibraryManager().expandRelativeDartUri(fullUri1);
     assertEquals(fullUri1, fullUri2);
     URI shortUri2 = getLibraryManager().getShortUri(fullUri1);

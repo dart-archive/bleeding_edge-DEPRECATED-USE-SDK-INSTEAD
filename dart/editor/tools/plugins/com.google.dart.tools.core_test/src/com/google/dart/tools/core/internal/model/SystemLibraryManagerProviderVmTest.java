@@ -13,10 +13,6 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import org.eclipse.core.runtime.Platform;
-
-import java.io.File;
-
 public class SystemLibraryManagerProviderVmTest extends SystemLibraryManagerProviderTest {
 
   public void test_SystemLibraryManagerProvider_builtin() throws Exception {
@@ -32,7 +28,8 @@ public class SystemLibraryManagerProviderVmTest extends SystemLibraryManagerProv
   }
 
   public void test_SystemLibraryManagerProvider_dom() throws Exception {
-    testLibrary("dom", "dom.dart");
+    // We are analyzing against the Frog dom until Dartium dom lib src is available
+    testLibrary("dom", "dom_frog.dart");
   }
 
   public void test_SystemLibraryManagerProvider_html() throws Exception {
@@ -46,27 +43,5 @@ public class SystemLibraryManagerProviderVmTest extends SystemLibraryManagerProv
   @Override
   protected EditorLibraryManager getLibraryManager() {
     return SystemLibraryManagerProvider.getVmLibraryManager();
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    getLibDir().renameTo(getUnusedLibDir());
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    getUnusedLibDir().renameTo(getLibDir());
-  }
-
-  private File getInstallDir() {
-    return new File(Platform.getInstallLocation().getURL().getFile());
-  }
-
-  private File getLibDir() {
-    return new File(getInstallDir(), "libraries");
-  }
-
-  private File getUnusedLibDir() {
-    return new File(getInstallDir(), "libraries-unused");
   }
 }

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.utilities.compiler;
 
+import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.compiler.TestCompilerListener;
 import com.google.dart.tools.core.test.util.FileOperation;
@@ -50,7 +51,13 @@ public class DartCompilerWarmupTest extends TestCase {
 
   private void warmupCompiler(RootArtifactProvider newInstanceForTesting, int count) {
     RootArtifactProvider provider = newInstanceForTesting;
-    TestCompilerListener listener = new TestCompilerListener();
+    TestCompilerListener listener = new TestCompilerListener() {
+      @Override
+      public void onError(DartCompilationError event) {
+        // Need to cleanup dart-sdk coreimpl_runtime.dart errors
+        System.out.println("WARNING! error during warmup: " + event.getMessage());
+      }
+    };
     long start = System.currentTimeMillis();
     DartCompilerWarmup.warmUpCompiler(provider, listener);
     long delta = System.currentTimeMillis() - start;

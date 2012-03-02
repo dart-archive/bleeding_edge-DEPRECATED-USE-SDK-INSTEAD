@@ -15,11 +15,6 @@ package com.google.dart.tools.core.internal.model;
 
 public class SystemLibraryManagerProviderDartCTest extends SystemLibraryManagerProviderTest {
 
-  @Override
-  protected EditorLibraryManager getLibraryManager() {
-    return SystemLibraryManagerProvider.getDartCLibraryManager();
-  }
-
   public void test_SystemLibraryManagerProvider_expandCore() throws Exception {
     testLibrary("core", "corelib.dart");
   }
@@ -38,5 +33,10 @@ public class SystemLibraryManagerProviderDartCTest extends SystemLibraryManagerP
 
   public void test_SystemLibraryManagerProvider_expandHtmlImpl() throws Exception {
     testLibrary("htmlimpl", "htmlimpl.dart");
+  }
+
+  @Override
+  protected EditorLibraryManager getLibraryManager() {
+    return SystemLibraryManagerProvider.getVmLibraryManager();
   }
 }

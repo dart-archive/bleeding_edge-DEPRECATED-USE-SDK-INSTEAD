@@ -21,12 +21,11 @@ import com.google.dart.tools.core.analysis.AnalysisMarkerManager;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.ResourceChangeListener;
 import com.google.dart.tools.core.analysis.Target;
-
-import org.eclipse.core.runtime.Platform;
+import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * The class <code>SystemLibraryManagerProvider</code> manages the {@link SystemLibraryManager
@@ -34,7 +33,6 @@ import java.util.HashMap;
  */
 public class SystemLibraryManagerProvider {
   private static final Object lock = new Object();
-  private static EditorLibraryManager DARTC_LIBRARY_MANAGER;
   private static EditorLibraryManager VM_LIBRARY_MANAGER;
 
   private static Target defaultTarget;
@@ -42,59 +40,7 @@ public class SystemLibraryManagerProvider {
   private static ResourceChangeListener defaultAnalysisChangeListener;
 
   /**
-   * Return the manager for DartC libraries
-   */
-  public static EditorLibraryManager getDartCLibraryManager() {
-    synchronized (lock) {
-      if (DARTC_LIBRARY_MANAGER == null) {
-        DARTC_LIBRARY_MANAGER = new EditorLibraryManager() {
-
-          @Override
-          protected String getPlatformName() {
-            return DartCoreDebug.getPlatformName();
-          }
-
-          /**
-           * Return the "libraries" directory containing DartC libraries
-           */
-          @Override
-          File getLibrariesDir() {
-            File installDir = new File(Platform.getInstallLocation().getURL().getFile());
-            String libPath = DartCoreDebug.getLibrariesPath();
-            File libDir;
-            if (libPath.startsWith(File.separator)) {
-              libDir = new File(libPath);
-            } else {
-              libDir = new File(installDir, libPath);
-            }
-            try {
-              libDir = libDir.getCanonicalFile();
-            } catch (IOException e) {
-              DartCore.logError("Failed to get canonical path for libraries directory " + libDir);
-              // Fall through to check existence
-            }
-            if (!libDir.exists()) {
-              File defaultLibDir = new File(installDir, "libraries");
-              DartCore.logError("Specified libraries directory does not exist: " + libDir
-                  + "\n  using default libraries directory instead: " + defaultLibDir);
-              libDir = defaultLibDir;
-            }
-            if (!libDir.exists()) {
-              DartCore.logError("Missing libraries directory: " + libDir);
-            }
-            if (DartCoreDebug.DARTLIB) {
-              DartCore.logInformation("Reading bundled libraries from " + libDir);
-            }
-            return libDir;
-          }
-        };
-      }
-    }
-    return DARTC_LIBRARY_MANAGER;
-  }
-
-  /**
-   * Answer the server used to analyze source against the "libraries" directory
+   * Answer the server used to analyze source against the "dart-sdk/lib" directory
    */
   public static AnalysisServer getDefaultAnalysisServer() {
     synchronized (lock) {
@@ -109,41 +55,25 @@ public class SystemLibraryManagerProvider {
   }
 
   /**
-   * Answer the default target, mapping "dart:<libname>" to files in the "libraries" directory
+   * Answer the default target, mapping "dart:<libname>" to files in the "dart-sdk/lib" directory
    */
   // TODO (danrubel): map "dart:<libname>" to files in "dart-sdk" directory
   public static Target getDefaultTarget() {
     synchronized (lock) {
       if (defaultTarget == null) {
-        File installDir = new File(Platform.getInstallLocation().getURL().getFile());
-        File librariesDir = new File(installDir, "libraries");
-        final HashMap<String, File> dartLibraries = new HashMap<String, File>();
-        for (String libName : librariesDir.list()) {
-          File libDir = new File(librariesDir, libName);
-          if (!libDir.isDirectory()) {
-            continue;
-          }
-          File libFile = new File(libDir, libName + ".dart");
-          if (!libFile.isFile()) {
-
-            // Handle odd cases
-            if (libName.equals("core")) {
-              libFile = new File(libDir, "corelib.dart");
-            } else if (libName.equals("coreimpl")) {
-              libFile = new File(libDir, "corelib_impl.dart");
-            }
-
-            if (!libFile.isFile()) {
-              continue;
-            }
-          }
-          dartLibraries.put("dart:" + libName, libFile);
-        }
         defaultTarget = new Target() {
 
           @Override
           public File resolveImport(String relPath) {
-            return dartLibraries.get(relPath);
+            URI relativeUri;
+            try {
+              relativeUri = new URI(relPath);
+            } catch (URISyntaxException e) {
+              DartCore.logError("Failed to create URI: " + relPath, e);
+              return null;
+            }
+            URI resolveUri = getVmLibraryManager().resolveDartUri(relativeUri);
+            return new File(resolveUri.getPath());
           }
         };
       }
@@ -176,15 +106,19 @@ public class SystemLibraryManagerProvider {
            */
           @Override
           File getLibrariesDir() {
-            File installDir = new File(Platform.getInstallLocation().getURL().getFile());
-            File libDir = new File(new File(installDir, "dart-sdk"), "lib");
+            DartSdk sdk = DartSdk.getInstance();
+            if (sdk == null) {
+              DartCore.logError("Missing SDK");
+            }
+            File libDir = sdk.getLibraryDirectory();
             if (!libDir.exists()) {
               DartCore.logError("Missing libraries directory: " + libDir);
             }
+            File librariesDir = libDir;
             if (DartCoreDebug.DARTLIB) {
-              DartCore.logInformation("Reading bundled libraries from " + libDir);
+              DartCore.logInformation("Reading bundled libraries from " + librariesDir);
             }
-            return libDir;
+            return librariesDir;
           }
         };
       }

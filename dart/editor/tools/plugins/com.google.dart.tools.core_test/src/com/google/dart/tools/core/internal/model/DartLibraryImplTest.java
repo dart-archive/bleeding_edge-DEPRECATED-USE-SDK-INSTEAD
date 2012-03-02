@@ -238,7 +238,7 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getChildren_libCore() throws Exception {
     DartElement[] children = getDartLibCore().getChildren();
-    assertContainsCompUnit(children, "corelib.dart", false, false);
+    assertContainsCompUnit(children, "core_runtime.dart", false, false);
     assertContainsCompUnit(children, "object.dart", false, false);
     assertContainsCompUnit(children, "list.dart", false, false);
     assertTrue(children.length > 20);
@@ -246,7 +246,7 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getChildren_libCoreImpl() throws Exception {
     DartElement[] children = getDartLibCoreImpl().getChildren();
-    assertContainsCompUnit(children, "corelib_impl.dart", false, false);
+    assertContainsCompUnit(children, "coreimpl_runtime.dart", false, false);
     assertContainsCompUnit(children, "regexp.dart", false, false);
     assertContainsCompUnit(children, "array.dart", false, false);
     assertTrue(children.length > 10);
@@ -254,9 +254,8 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getChildren_libDom() throws Exception {
     DartElement[] children = getDartLibDom().getChildren();
-    assertContainsCompUnit(children, "dom.dart", false, false);
-    assertContainsCompUnit(children, "Document.dart", false, false);
-    assertTrue(children.length > 20);
+    assertContainsCompUnit(children, "dom_frog.dart", false, false);
+    assertTrue(children.length > 0);
   }
 
   public void test_DartLibraryImpl_getChildren_libEmpty() throws Exception {
@@ -275,13 +274,12 @@ public class DartLibraryImplTest extends TestCase {
   public void test_DartLibraryImpl_getChildren_libHtml() throws Exception {
     DartElement[] children = getDartLibHtml().getChildren();
     assertContainsCompUnit(children, "html.dart", false, false);
-    assertContainsCompUnit(children, "Text.dart", false, false);
-    assertTrue(children.length > 20);
+    assertTrue(children.length > 0);
   }
 
   public void test_DartLibraryImpl_getChildren_libHtmlImpl() throws Exception {
     DartElement[] children = getDartLibHtmlImpl().getChildren();
-    assertTrue(children.length > 20);
+    assertTrue(children.length > 0);
   }
 
   public void test_DartLibraryImpl_getChildren_libJson() throws Exception {
@@ -298,7 +296,7 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   public void test_DartLibraryImpl_getCompilationUnits_libDom() throws Exception {
-    assertTrue(getDartLibDom().getCompilationUnits().length > 20);
+    assertTrue(getDartLibDom().getCompilationUnits().length > 0);
   }
 
   public void test_DartLibraryImpl_getCompilationUnits_libEmpty() throws Exception {
@@ -310,7 +308,7 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   public void test_DartLibraryImpl_getCompilationUnits_libHtml() throws Exception {
-    assertTrue(getDartLibHtml().getCompilationUnits().length > 20);
+    assertTrue(getDartLibHtml().getCompilationUnits().length > 0);
   }
 
   public void test_DartLibraryImpl_getCorrespondingResource() {

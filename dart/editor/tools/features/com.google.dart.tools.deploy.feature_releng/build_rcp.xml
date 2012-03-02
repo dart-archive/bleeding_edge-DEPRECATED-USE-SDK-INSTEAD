@@ -141,107 +141,6 @@ build system.  The PDE build system has to run under Eclipse.
     </target>
 
     <!-- - - - - - - - - - - - - - - - - - 
-          target: buildLibraries
-         - - - - - - - - - - - - - - - - - -->
-    <target name="buildLibraries" depends="init">
-        <property name="libraries.out.name" value="libraries"/>
-        <property name="libraries.out.dir" location="${build.stage.include.dir}/${libraries.out.name}" />
-        <delete dir="${libraries.out.dir}"/>
-        
-        <!-- dart:core and dart:coreimpl 
-            copy "core" source directorys into a single temp directory before building libraries
-            and copy dart:coreimpl into its own directory to match sdk
-        -->
-        <mkdir dir="${build.tmp}/lib/core-dartc"/>
-        <copy todir="${build.tmp}/lib/core-dartc">
-            <fileset dir="${build.source.root}/corelib"/>
-            <fileset dir="${build.source.root}/compiler/lib"/>
-        </copy>
-        <replace file="${build.tmp}/lib/core-dartc/corelib.dart" token="corelib_impl.dart" value="dart:coreimpl"/>
-        <copyDartLib name="core" dir="${build.tmp}/lib/core-dartc" libfile="corelib.dart"/>
-        <copyDartLib name="coreimpl" dir="${build.tmp}/lib/core-dartc" libfile="corelib_impl.dart"/>
-        
-        <!-- dart:dom -->
-        <copyDartLib name="dom" dir="${build.source.root}/client/dom"/>
-        
-        <!-- dart:html -->
-        <copyDartLib name="html" dir="${build.source.root}/client/html"/>
-        <copyDartLib name="htmlimpl" dir="${build.source.root}/client/html"/>
-
-        <!-- dart:json, dart:uri, dart:utf8 -->
-        <copy todir="${libraries.out.dir}">
-            <fileset dir="${build.source.root}/lib" includes="**/*.dart"/>
-        </copy>
-
-        <!-- dart:builtin -->
-        <copy todir="${libraries.out.dir}/builtin">
-            <fileset dir="${build.source.root}/runtime/bin" includes="builtin.dart"/>
-        </copy>
-        
-        <!-- dart:nativewrappers -->
-        <mkdir dir="${libraries.out.dir}/nativewrappers"/>
-        <echo file="${libraries.out.dir}/nativewrappers/nativewrappers.dart">
-#library("nativewrappers");
-
-class NativeFieldWrapperClass1 { }
-
-class NativeFieldWrapperClass2 { }
-
-class NativeFieldWrapperClass3 { }
-
-class NativeFieldWrapperClass4 { }
-        </echo>
-
-        <!-- dart:io -->
-        <copy todir="${libraries.out.dir}/io">
-            <fileset dir="${build.source.root}/runtime/bin" includes="**/*.dart">
-                <exclude name="builtin.dart" />
-                <exclude name="io.dart" />
-            </fileset>
-        </copy>
-    	  <!-- TODO(devoncarew): we really need to create this list dynamically -->
-        <echo file="${libraries.out.dir}/io/io.dart"><![CDATA[
-#library('io');
-
-#import('dart:coreimpl');
-#import("dart:isolate");
-#import('dart:nativewrappers');
-
-#source('buffer_list.dart');
-#source('chunked_stream.dart');
-#source('directory.dart');
-#source('directory_impl.dart');
-#source('file.dart');
-#source('file_impl.dart');
-#source('http_impl.dart');
-#source('http.dart');
-#source('input_stream.dart');
-#source('list_stream.dart');
-#source('list_stream_impl.dart');
-#source('output_stream.dart');
-#source('platform.dart');
-#source('platform_impl.dart');
-#source('process.dart');
-#source('process_impl.dart');
-#source('socket.dart');
-#source('socket_impl.dart');
-#source('socket_stream.dart');
-#source('socket_stream_impl.dart');
-#source('stdio.dart');
-#source('stream_util.dart');
-#source('string_stream.dart');
-#source('timer.dart');
-#source('timer_impl.dart');
-
-// This is a hack to work-around the wrong version of coreimpl being
-// used for the VM configuration.
-class ObjectArray<T> { }
-]]></echo>
-
-        <makeReadonly directoryName="${libraries.out.dir}"/>
-    </target>
-    
-    <!-- - - - - - - - - - - - - - - - - - 
           target: buildSamples
           Copy sample Dart libraries from the SVN tree into a new "samples" directory
 
@@ -350,7 +249,7 @@ class ObjectArray<T> { }
           target: setupDevWorkspace
          - - - - - - - - - - - - - - - - - -->
     <target name="setupDevWorkspace" 
-            depends="initDevWorkspace, buildSamples, buildLibraries, installSdk">
+            depends="initDevWorkspace, buildSamples, installSdk">
         <fail>
             <condition>
                 <not>
@@ -423,7 +322,7 @@ class ObjectArray<T> { }
     <!--
     copy the code from the svn structure to the PDE structure and get rid of the linked resources
     -->
-    <target name="setupBuild" depends="init, buildLibraries, installSdk, setupRuntimeEclipse, buildSamples" >
+    <target name="setupBuild" depends="init, installSdk, setupRuntimeEclipse, buildSamples" >
         <setupTargetEclipse location="${build.target}" eclipse="${build.target.eclipse.version}"
                             arch="${build.eclipse.arch}" />
         <!-- installDirIntoTargetEclipse updatesite="${build.source.root}/third_party/chromesdk/0.3.0"

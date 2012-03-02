@@ -49,7 +49,7 @@ public class DartCoreDebug {
   // Experimental functionality options.
 
   public static final boolean ANALYSIS_SERVER = isOptionTrue("experimental/analysis/server");
-  
+
   public static final boolean FILES_VIEW = isOptionTrue("experimental/filesview");
 
   public static final boolean NEW_INDEXER = isOptionTrue("experimental/newIndexer");
@@ -67,10 +67,6 @@ public class DartCoreDebug {
       }
     }
     return result;
-  }
-
-  public static String getLibrariesPath() {
-    return getOptionValue("libraries/path", "libraries");
   }
 
   public static String getPlatformName() {

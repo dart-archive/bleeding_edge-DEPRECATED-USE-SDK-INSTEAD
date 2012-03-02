@@ -110,16 +110,16 @@ public abstract class EditorLibraryManager extends SystemLibraryManager {
   }
 
   /**
-   * Answer the directory containing the library folders. Typically this would be the "libraries" or
-   * "sdk/lib" directory.
+   * Answer the directory containing the library folders. Typically this would be the "dart-sdk/lib"
+   * directory.
    * 
    * <pre>
    * install-directory/
-   *    sdk/
+   *    dart-sdk/
    *       lib/
    *          core/
    *             core_runtime.dart
-   *             core_compiler.dart
+   *             core_frog.dart
    *             ... other core files ...
    *          coreimpl/
    *             coreimpl_runtime.dart

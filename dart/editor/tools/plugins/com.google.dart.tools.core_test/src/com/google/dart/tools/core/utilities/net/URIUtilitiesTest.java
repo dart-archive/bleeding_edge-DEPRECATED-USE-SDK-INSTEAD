@@ -56,7 +56,7 @@ public class URIUtilitiesTest extends TestCase {
   }
 
   public void test_URIUtilities_safelyResolveDartUri_invalidDart() throws Exception {
-    String path = "core/corelib_impl.dart/corelib_impl.dart";
+    String path = "core/core_impl.dart/core_impl.dart";
     URI uri = new URI("dart", path, null);
     URI result = URIUtilities.safelyResolveDartUri(uri);
     assertNotNull(result);

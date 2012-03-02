@@ -31,8 +31,8 @@ public class TestAll {
     suite.addTestSuite(DartProjectNatureTest.class);
     suite.addTestSuite(DartTypeImplTest.class);
     suite.addTestSuite(HTMLFileImplTest.class);
-    suite.addTestSuite(SystemLibraryManagerProviderDartCTest.class);
-//    suite.addTestSuite(SystemLibraryManagerProviderVmTest.class);
+//    suite.addTestSuite(SystemLibraryManagerProviderDartCTest.class);
+    suite.addTestSuite(SystemLibraryManagerProviderVmTest.class);
 
     suite.addTest(com.google.dart.tools.core.internal.model.delta.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.model.info.TestAll.suite());
