@@ -93,12 +93,12 @@ public abstract class EditorLibraryManager extends SystemLibraryManager {
           continue;
         }
 
-        // Hack for core library because it does not follow the naming convention
+        // Hack for some libraries because they do not follow the naming convention
 
-        if ("core".equals(name) && addLib(name, name, dir, "corelib.dart")) {
+        if ("dom".equals(name) && addLib(name, name, dir, "dom_frog.dart")) {
           continue;
         }
-        if ("coreimpl".equals(name) && addLib(name, name, dir, "corelib_impl.dart")) {
+        if ("isolate".equals(name) && addLib(name, name, dir, "isolate_compiler.dart")) {
           continue;
         }
 

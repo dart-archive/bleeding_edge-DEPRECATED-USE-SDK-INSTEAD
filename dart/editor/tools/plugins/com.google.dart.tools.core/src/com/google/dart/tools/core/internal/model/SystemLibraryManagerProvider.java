@@ -155,7 +155,7 @@ public class SystemLibraryManagerProvider {
    * Return the default library manager.
    */
   public static EditorLibraryManager getSystemLibraryManager() {
-    return getDartCLibraryManager();
+    return getVmLibraryManager();
   }
 
   /**
@@ -177,7 +177,7 @@ public class SystemLibraryManagerProvider {
           @Override
           File getLibrariesDir() {
             File installDir = new File(Platform.getInstallLocation().getURL().getFile());
-            File libDir = new File(new File(installDir, "sdk"), "lib");
+            File libDir = new File(new File(installDir, "dart-sdk"), "lib");
             if (!libDir.exists()) {
               DartCore.logError("Missing libraries directory: " + libDir);
             }
