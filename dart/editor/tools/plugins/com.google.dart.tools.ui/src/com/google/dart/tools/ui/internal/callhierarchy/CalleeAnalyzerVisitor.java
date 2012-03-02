@@ -13,9 +13,17 @@
  */
 package com.google.dart.tools.ui.internal.callhierarchy;
 
+import com.google.dart.compiler.ast.DartFunctionObjectInvocation;
+import com.google.dart.compiler.ast.DartInvocation;
+import com.google.dart.compiler.ast.DartMethodInvocation;
+import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
-import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
+import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
+import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElement;
@@ -23,8 +31,9 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
-import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchScope;
+import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -34,35 +43,16 @@ import java.util.Map;
 
 public class CalleeAnalyzerVisitor extends DartNodeTraverser<Void> {
 
-  private static Method findIncludingSupertypes(MethodElement method, Type type, IProgressMonitor pm)
-      throws DartModelException {
-//    Method inThisType = Bindings.findMethod(method, type);
-//    if (inThisType != null) {
-//      return inThisType;
-//    }
-//    Type[] superTypes = DartModelUtil.getAllSuperTypes(type, pm);
-//    for (int i = 0; i < superTypes.length; i++) {
-//      Method m = Bindings.findMethod(method, superTypes[i]);
-//      if (m != null) {
-//        return m;
-//      }
-//    }
-    return null;
-  }
-
   private final CallSearchResultCollector fSearchResults;
   private final DartElement fMember;
-  private final DartUnit fCompilationUnit;
   private final IProgressMonitor fProgressMonitor;
   private int fMethodEndPosition;
 
   private int fMethodStartPosition;
 
-  CalleeAnalyzerVisitor(DartElement member, DartUnit compilationUnit,
-      IProgressMonitor progressMonitor) {
+  CalleeAnalyzerVisitor(DartElement member, IProgressMonitor progressMonitor) {
     fSearchResults = new CallSearchResultCollector();
     this.fMember = member;
-    this.fCompilationUnit = compilationUnit;
     this.fProgressMonitor = progressMonitor;
 
     try {
@@ -79,6 +69,47 @@ public class CalleeAnalyzerVisitor extends DartNodeTraverser<Void> {
    */
   public Map<String, MethodCall> getCallees() {
     return fSearchResults.getCallers();
+  }
+
+  @Override
+  public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
+    return visitInvocation(node);
+  }
+
+  @Override
+  public Void visitInvocation(DartInvocation node) {
+    progressMonitorWorked(1);
+    if (isFurtherTraversalNecessary(node)) {
+      if (isNodeWithinMethod(node)) {
+        addMethodCall(node.getReferencedElement(), node);
+      }
+    }
+    return visitExpression(node);
+  }
+
+  @Override
+  public Void visitMethodInvocation(DartMethodInvocation node) {
+    return visitInvocation(node);
+  }
+
+  @Override
+  public Void visitNewExpression(DartNewExpression node) {
+    return visitInvocation(node);
+  }
+
+  @Override
+  public Void visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
+    return visitInvocation(node);
+  }
+
+  @Override
+  public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation node) {
+    return visitInvocation(node);
+  }
+
+  @Override
+  public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
+    return visitInvocation(node);
   }
 
 //  @Override
@@ -228,42 +259,28 @@ public class CalleeAnalyzerVisitor extends DartNodeTraverser<Void> {
    * @param calledMethodBinding
    * @param node
    */
-  protected void addMethodCall(MethodElement calledMethodBinding, DartNode node) {
-//    try {
-//      if (calledMethodBinding != null) {
-//        fProgressMonitor.worked(1);
-//
-//        ClassElement calledTypeBinding = calledMethodBinding.getDeclaringClass();
-//        Type calledType = null;
-//
-//        calledType = (Type) calledTypeBinding.getType();
-//
-//        Method calledMethod = findIncludingSupertypes(calledMethodBinding, calledType,
-//            fProgressMonitor);
-//
-//        TypeMember referencedMember = null;
-//        if (calledMethod == null) {
-//          if (calledMethodBinding.isConstructor()
-//              && calledMethodBinding.getParameters().size() == 0) {
-//            referencedMember = calledType;
-//          }
-//        } else {
-//          if (calledType.isInterface()) {
-//            calledMethod = findImplementingMethods(calledMethod);
-//          }
-//
-//          if (!isIgnoredBySearchScope(calledMethod)) {
-//            referencedMember = calledMethod;
-//          }
-//        }
-//        final int position = node.getStartPosition();
-//        final int number = fCompilationUnit.getLineNumber(position);
-//        fSearchResults.addMember(fMember, referencedMember, position, position + node.getLength(),
-//            number < 1 ? 1 : number);
-//      }
-//    } catch (DartModelException jme) {
-//      DartToolsPlugin.log(jme);
-//    }
+  protected void addMethodCall(Element calledMethodBinding, DartNode node) {
+    if (calledMethodBinding == null) {
+      return;
+    }
+    if (calledMethodBinding instanceof MethodElement) {
+      fProgressMonitor.worked(1);
+      MethodElement calledElement = (MethodElement) calledMethodBinding;
+      ClassElement classElement = (ClassElement) calledElement.getEnclosingElement();
+      Method calledMethod = (Method) BindingUtils.getDartElement(calledElement);
+      TypeMember referencedMember = null;
+      if (classElement.isInterface()) {
+        calledMethod = findImplementingMethods(calledMethod);
+      }
+
+      if (!isIgnoredBySearchScope(calledMethod)) {
+        referencedMember = calledMethod;
+      }
+      final int position = node.getSourceStart();
+      final int number = node.getSourceLine();
+      fSearchResults.addMember(fMember, referencedMember, position,
+          position + node.getSourceLength(), number < 1 ? 1 : number);
+    }
   }
 
   private Method findImplementingMethods(Method calledMethod) {
