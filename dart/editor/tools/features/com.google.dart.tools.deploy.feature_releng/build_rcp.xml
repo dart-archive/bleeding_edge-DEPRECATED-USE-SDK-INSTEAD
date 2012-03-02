@@ -250,15 +250,6 @@ build system.  The PDE build system has to run under Eclipse.
          - - - - - - - - - - - - - - - - - -->
     <target name="setupDevWorkspace" 
             depends="initDevWorkspace, buildSamples, installSdk">
-        <fail>
-            <condition>
-                <not>
-                    <equals arg1="${libraries.out.dir}" 
-                            arg2="${eclipse.home}/${libraries.out.name}"/>
-                </not>
-            </condition>
-        </fail>
-        <makeReadonly directoryName="${libraries.out.dir}"/>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
