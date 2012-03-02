@@ -11,17 +11,18 @@
 #source('string_helper.dart');
 
 /**
-  * Returns true if both arguments are numbers.
-  * If only the first argument is a number, throws the given message as
-  * exception.
-  */
-bool checkNumbers(var a, var b, var message) {
+ * Returns true if both arguments are numbers.
+ *
+ * If only the first argument is a number, an
+ * [IllegalArgumentException] with the other argument is thrown.
+ */
+bool checkNumbers(var a, var b) {
   if (a is num) {
     if (b is num) {
       return true;
     } else {
       checkNull(b);
-      throw new IllegalArgumentException(message);
+      throw new IllegalArgumentException(b);
     }
   }
   return false;
@@ -34,7 +35,7 @@ bool isJsArray(var value) {
 
 
 add(var a, var b) {
-  if (checkNumbers(a, b, 'num+ expects a number as second operand.')) {
+  if (checkNumbers(a, b)) {
     return JS('num', @'$0 + $1', a, b);
   } else if (a is String) {
     b = b.toString();
@@ -49,7 +50,7 @@ add(var a, var b) {
 }
 
 div(var a, var b) {
-  if (checkNumbers(a, b, 'num/ expects a number as second operand.')) {
+  if (checkNumbers(a, b)) {
     return JS('num', @'$0 / $1', a, b);
   }
   checkNull(a);
@@ -57,7 +58,7 @@ div(var a, var b) {
 }
 
 mul(var a, var b) {
-  if (checkNumbers(a, b, 'num* expects a number as second operand.')) {
+  if (checkNumbers(a, b)) {
     return JS('num', @'$0 * $1', a, b);
   }
   checkNull(a);
@@ -65,7 +66,7 @@ mul(var a, var b) {
 }
 
 sub(var a, var b) {
-  if (checkNumbers(a, b, 'num- expects a number as second operand.')) {
+  if (checkNumbers(a, b)) {
     return JS('num', @'$0 - $1', a, b);
   }
   checkNull(a);
@@ -73,8 +74,7 @@ sub(var a, var b) {
 }
 
 mod(var a, var b) {
-  if (checkNumbers(a, b, 'int% expects an int as second operand.')) {
-    if (b === 0) throw new IntegerDivisionByZeroException();
+  if (checkNumbers(a, b)) {
     // Euclidean Modulo.
     int result = JS('num', @'$0 % $1', a, b);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
@@ -90,8 +90,7 @@ mod(var a, var b) {
 }
 
 tdiv(var a, var b) {
-  if (checkNumbers(a, b, 'num~/ expects a number as second operand.')) {
-    if (b === 0) throw new IntegerDivisionByZeroException();
+  if (checkNumbers(a, b)) {
     return (a / b).truncate();
   }
   checkNull(a);
@@ -127,7 +126,7 @@ eqNull(var a) {
 }
 
 gt(var a, var b) {
-  if (checkNumbers(a, b, 'num> expects a number as second operand.')) {
+  if (checkNumbers(a, b)) {
     return JS('bool', @'$0 > $1', a, b);
   }
   checkNull(a);
@@ -135,7 +134,7 @@ gt(var a, var b) {
 }
 
 ge(var a, var b) {
-  if (checkNumbers(a, b, 'num>= expects a number as second operand.')) {
+  if (checkNumbers(a, b)) {
     return JS('bool', @'$0 >= $1', a, b);
   }
   checkNull(a);
@@ -143,7 +142,7 @@ ge(var a, var b) {
 }
 
 lt(var a, var b) {
-  if (checkNumbers(a, b, 'num< expects a number as second operand.')) {
+  if (checkNumbers(a, b)) {
     return JS('bool', @'$0 < $1', a, b);
   }
   checkNull(a);
@@ -151,7 +150,7 @@ lt(var a, var b) {
 }
 
 le(var a, var b) {
-  if (checkNumbers(a, b, 'num<= expects a number as second operand.')) {
+  if (checkNumbers(a, b)) {
     return JS('bool', @'$0 <= $1', a, b);
   }
   checkNull(a);
@@ -160,7 +159,7 @@ le(var a, var b) {
 
 shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b, 'int<< expects an int as second operand.')) {
+  if (checkNumbers(a, b)) {
     if (b < 0) throw new IllegalArgumentException(b);
     return JS('num', @'$0 << $1', a, b);
   }
@@ -170,7 +169,7 @@ shl(var a, var b) {
 
 shr(var a, var b) {
   // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b, 'int>> expects an int as second operand.')) {
+  if (checkNumbers(a, b)) {
     if (b < 0) throw new IllegalArgumentException(b);
     return JS('num', @'$0 >> $1', a, b);
   }
@@ -180,7 +179,7 @@ shr(var a, var b) {
 
 and(var a, var b) {
   // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b, 'int& expects an int as second operand.')) {
+  if (checkNumbers(a, b)) {
     return JS('num', @'$0 & $1', a, b);
   }
   checkNull(a);
@@ -189,7 +188,7 @@ and(var a, var b) {
 
 or(var a, var b) {
   // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b, 'int| expects an int as second operand.')) {
+  if (checkNumbers(a, b)) {
     return JS('num', @'$0 | $1', a, b);
   }
   checkNull(a);
@@ -198,7 +197,7 @@ or(var a, var b) {
 
 xor(var a, var b) {
   // TODO(floitsch): inputs must be integers.
-  if (checkNumbers(a, b, 'int^ expects an int as second operand.')) {
+  if (checkNumbers(a, b)) {
     return JS('num', @'$0 ^ $1', a, b);
   }
   checkNull(a);
@@ -524,7 +523,7 @@ class Primitives {
 
 builtin$compareTo$1(a, b) {
   checkNull(a);
-  if (checkNumbers(a, b, 'illegal argument')) {
+  if (checkNumbers(a, b)) {
     if (a < b) {
       return -1;
     } else if (a > b) {
@@ -869,8 +868,7 @@ builtin$isNaN$0(receiver) {
 
 builtin$remainder$1(a, b) {
   checkNull(a);
-  if (checkNumbers(a, b, 'num.remainder expects a number as second operand.')) {
-    if (b === 0) throw new IntegerDivisionByZeroException();
+  if (checkNumbers(a, b)) {
     return JS('num', @'$0 % $1', a, b);
   } else {
     return UNINTERCEPTED(a.remainder(b));
@@ -929,7 +927,11 @@ builtin$round$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.round());
 
-  return JS('num', @'Math.round($0)', receiver);
+  if (JS('bool', @'$0 < 0', receiver)) {
+    return JS('num', @'-Math.round(-$0)', receiver);
+  } else {
+    return JS('num', @'Math.round($0)', receiver);
+  }
 }
 
 builtin$toDouble$0(receiver) {
