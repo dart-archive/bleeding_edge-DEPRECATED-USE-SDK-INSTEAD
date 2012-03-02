@@ -402,15 +402,13 @@ public class InMemoryIndex implements Index {
   private boolean indexUserLibraries() {
     boolean librariesIndexed = true;
     try {
-      ArrayList<DartUnit> contributedUnits = new ArrayList<DartUnit>();
       ArrayList<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
       HashSet<URI> initializedLibraries = new HashSet<URI>();
       DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
       for (DartProject project : model.getDartProjects()) {
         for (DartLibrary library : project.getDartLibraries()) {
-          LibrarySource librarySource = ((DartLibraryImpl) library).getLibrarySourceFile();
-          LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary(librarySource,
-              contributedUnits, parseErrors);
+          LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary((DartLibraryImpl) library,
+              true, parseErrors);
           indexUserLibrary(libraryUnit, initializedLibraries);
         }
       }
