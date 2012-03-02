@@ -6229,7 +6229,7 @@ PropertyMember.prototype.get$canSet = function() {
   return this.setter != null;
 }
 PropertyMember.prototype.get$needsFieldSyntax = function() {
-  return this._overriddenField != null && this._overriddenField.get$isNative();
+  return this._overriddenField != null && this._overriddenField.get$isNative() && !this._overriddenField.declaringType.get$isHiddenNativeType();
 }
 PropertyMember.prototype.get$isStatic = function() {
   return this.getter == null ? this.setter.isStatic : this.getter.isStatic;

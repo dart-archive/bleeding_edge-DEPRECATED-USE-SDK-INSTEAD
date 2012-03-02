@@ -596,11 +596,15 @@ class PropertyMember extends Member {
   // field syntax in the generated code.
   bool get requiresPropertySyntax() => declaringType.isClass;
 
-  // when overriding native fields, we still provide a field syntax to ensure
+  // When overriding native fields, we still provide a field syntax to ensure
   // that native functions will find the appropriate property implementation.
   // TODO(sigmund): should check for this transitively...
   bool get needsFieldSyntax() =>
-    _overriddenField != null && _overriddenField.isNative;
+      _overriddenField != null &&
+      _overriddenField.isNative &&
+      // Can't put property on hidden native class...
+      !_overriddenField.declaringType.isHiddenNativeType
+      ;
 
   // TODO(jimhug): Union of getter and setters sucks!
   bool get isStatic() => getter == null ? setter.isStatic : getter.isStatic;
