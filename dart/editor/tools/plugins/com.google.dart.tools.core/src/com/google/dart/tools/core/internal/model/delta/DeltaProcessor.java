@@ -1317,6 +1317,10 @@ public class DeltaProcessor {
     }
   }
 
+  private void recomputeLibrarySet(DartElement dartElement) {
+    ((DartProjectImpl) dartElement.getDartProject()).recomputeLibrarySet();
+  }
+
   /**
    * Removes the given element from its parents cache of children. If the element does not have a
    * parent, or the parent is not currently open, this has no effect.
@@ -1439,8 +1443,7 @@ public class DeltaProcessor {
         if (element == null) {
           return true;
         }
-        DartProjectImpl dartProjectImpl = (DartProjectImpl) element.getDartProject();
-        dartProjectImpl.recomputeLibrarySet();
+        recomputeLibrarySet(element);
 //        elementAdded(element, delta);
 //        // if this element is a CompilationUnit that defines a library, make sure that we specify that the
 //        // DartLibrary is being added
@@ -1461,8 +1464,7 @@ public class DeltaProcessor {
         if (element instanceof DartProject) {
           return false;
         }
-        dartProjectImpl = (DartProjectImpl) element.getDartProject();
-        dartProjectImpl.recomputeLibrarySet();
+        recomputeLibrarySet(element);
 //        elementRemoved(element, delta);
 //        // if this element is a CompilationUnit that defines a library, make sure that we specify that the
 //        // DartLibrary is being removed
@@ -1487,7 +1489,11 @@ public class DeltaProcessor {
           if (element == null) {
             return true;
           }
-          contentChanged(element, delta);
+          recomputeLibrarySet(element);
+          // This has been replaced by the call to recomputeLibrarySet, more a *hammer* approach to
+          // get the Libraries view working ASAP, this could be re-visited in the future to make the
+          // delta processing a faster process.
+          //contentChanged(element, delta);
         }
         // The following has all been commented out as DartProjects cannot be opened or closed in
         // the current UX (adding and removing libraries is different than closing a project).
