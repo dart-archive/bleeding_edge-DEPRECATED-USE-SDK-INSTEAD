@@ -2,45 +2,61 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface OptimizationPhase {
+  String get name();
+  void visitGraph(HGraph graph);
+}
+
 class SsaOptimizerTask extends CompilerTask {
   SsaOptimizerTask(Compiler compiler) : super(compiler);
   String get name() => 'SSA optimizer';
 
   void optimize(WorkItem work, HGraph graph) {
     measure(() {
-      if (!work.isBailoutVersion()) {
-        // TODO(ngeoffray): We should be more fine-grained and still
-        // allow type propagation of instructions we know the type.
-        if (work.allowSpeculativeOptimization) {
-          new SsaTypePropagator(compiler).visitGraph(graph);
-          new SsaTypeGuardBuilder(compiler).visitGraph(graph);
-          new SsaCheckInserter(compiler).visitGraph(graph);
-        }
-        new SsaConstantFolder(compiler, graph).visit();
-        new SsaRedundantPhiEliminator().visitGraph(graph);
-        new SsaDeadPhiEliminator().visitGraph(graph);
-        new SsaGlobalValueNumberer(compiler).visitGraph(graph);
-        new SsaCodeMotion().visitGraph(graph);
-        new SsaDeadCodeEliminator().visitGraph(graph);
+      List<OptimizationPhase> phases = <OptimizationPhase>[];
+      if (work.isBailoutVersion()) {
+        phases.add(new SsaBailoutBuilder(compiler, work.bailouts));
       } else {
-        new SsaBailoutBuilder(compiler, work.bailouts).visitGraph(graph);
+        if (work.allowSpeculativeOptimization) {
+          // TODO(ngeoffray): We should be more fine-grained and still
+          // allow type propagation of instructions we know the type.
+          phases.add(new SsaTypePropagator(compiler));
+          phases.add(new SsaTypeGuardBuilder(compiler));
+          phases.add(new SsaCheckInserter(compiler));
+        }
+        phases.add(new SsaConstantFolder(compiler));
+        phases.add(new SsaRedundantPhiEliminator());
+        phases.add(new SsaDeadPhiEliminator());
+        phases.add(new SsaGlobalValueNumberer(compiler));
+        phases.add(new SsaCodeMotion());
+        phases.add(new SsaDeadCodeEliminator());
+      }
+
+      for (OptimizationPhase phase in phases) {
+        phase.visitGraph(graph);
+        if (GENERATE_SSA_TRACE) {
+          new HTracer.singleton().traceGraph(phase.name, graph);
+        }
       }
     });
   }
 }
 
-
 /**
  * If both inputs to known operations are available execute the operation at
  * compile-time.
  */
-class SsaConstantFolder extends HBaseVisitor {
-  Compiler compiler;
+class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
+  final String name = "SsaConstantFolder";
+  final Compiler compiler;
   HGraph graph;
 
-  SsaConstantFolder(this.compiler, this.graph);
+  SsaConstantFolder(this.compiler);
 
-  visit() => visitDominatorTree(graph);
+  void visitGraph(HGraph graph) {
+    this.graph = graph;
+    visitDominatorTree(graph);
+  }
 
   visitBasicBlock(HBasicBlock block) {
     HInstruction instruction = block.first;
@@ -169,7 +185,8 @@ class SsaConstantFolder extends HBaseVisitor {
   }
 }
 
-class SsaCheckInserter extends HBaseVisitor {
+class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
+  final String name = "SsaCheckInserter";
   Element lengthInterceptor;
 
   SsaCheckInserter(Compiler compiler) {
@@ -240,7 +257,9 @@ class SsaCheckInserter extends HBaseVisitor {
   }
 }
 
-class SsaDeadCodeEliminator extends HGraphVisitor {
+class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
+  final String name = "SsaDeadCodeEliminator";
+
   static bool isDeadCode(HInstruction instruction) {
     // TODO(ngeoffray): the way we handle side effects is not right
     // (e.g. branching instructions have side effects).
@@ -264,7 +283,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor {
   }
 }
 
-class SsaDeadPhiEliminator {
+class SsaDeadPhiEliminator implements OptimizationPhase {
+  final String name = "SsaDeadPhiEliminator";
+
   void visitGraph(HGraph graph) {
     final List<HPhi> worklist = <HPhi>[];
     // A set to keep track of the live phis that we found.
@@ -316,7 +337,9 @@ class SsaDeadPhiEliminator {
   }
 }
 
-class SsaRedundantPhiEliminator {
+class SsaRedundantPhiEliminator implements OptimizationPhase {
+  final String name = "SsaRedundantPhiEliminator";
+
   void visitGraph(HGraph graph) {
     final List<HPhi> worklist = <HPhi>[];
 
@@ -361,7 +384,8 @@ class SsaRedundantPhiEliminator {
   }
 }
 
-class SsaGlobalValueNumberer {
+class SsaGlobalValueNumberer implements OptimizationPhase {
+  final String name = "SsaGlobalValueNumberer";
   final Compiler compiler;
   final Set<int> visited;
 
@@ -539,7 +563,9 @@ class SsaGlobalValueNumberer {
 // A basic block looks at its sucessors and finds the intersection of
 // these computed ValueSet. It moves all instructions of the
 // intersection into its own list of instructions.
-class SsaCodeMotion extends HBaseVisitor {
+class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
+  final String name = "SsaCodeMotion";
+
   List<ValueSet> values;
 
   void visitGraph(HGraph graph) {
