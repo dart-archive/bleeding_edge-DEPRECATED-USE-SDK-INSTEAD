@@ -1267,9 +1267,9 @@ public class DartModelManager {
       // structure on two different threads causes us to create the same project on two different
       // threads, resulting in errors.
       //
-      for (File file : getImportedLibraryFiles(libraryFile, libraryUnit)) {
-        openLibrary(file, monitor);
-      }
+//      for (File file : getImportedLibraryFiles(libraryFile, libraryUnit)) {
+//        openLibrary(file, monitor);
+//      }
       // 
       // After the resources have been created, start analyzing the library
       //

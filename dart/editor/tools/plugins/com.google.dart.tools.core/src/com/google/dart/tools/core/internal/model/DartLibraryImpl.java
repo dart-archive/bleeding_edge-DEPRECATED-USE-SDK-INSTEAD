@@ -676,19 +676,19 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         // Find an external library on disk.
         File libFile = ResourceUtil.getFile(lib);
         if (libFile != null) {
-          DartLibraryImpl library = null;
-          try {
-            library = (DartLibraryImpl) modelManager.openLibrary(libFile, monitor);
-          } catch (DartModelException exception) {
-            // I believe that this should not happen, but I'm leaving it in until I can confirm this.
-            DartCore.logInformation("Failed to open imported library " + relativePath + " in "
-                + sourceFile.getUri(), exception);
-          }
-          if (library == null) {
-            importedLibraries.add(new DartLibraryImpl(libFile));
-          } else {
-            importedLibraries.add(library);
-          }
+//          DartLibraryImpl library = null;
+//          try {
+//            library = (DartLibraryImpl) modelManager.openLibrary(libFile, monitor);
+//          } catch (DartModelException exception) {
+//            // I believe that this should not happen, but I'm leaving it in until I can confirm this.
+//            DartCore.logInformation("Failed to open imported library " + relativePath + " in "
+//                + sourceFile.getUri(), exception);
+//          }
+//          if (library == null) {
+          importedLibraries.add(new DartLibraryImpl(libFile));
+//          } else {
+//            importedLibraries.add(library);
+//          }
           return null;
         }
 
