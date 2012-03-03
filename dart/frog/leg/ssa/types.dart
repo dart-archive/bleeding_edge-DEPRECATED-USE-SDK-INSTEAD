@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class SsaTypePropagator extends HGraphVisitor {
+class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
 
   final Map<int, HInstruction> workmap;
   final List<int> worklist;
   final Compiler compiler;
+  final String name = 'type propagator';
 
   SsaTypePropagator(Compiler this.compiler)
       : workmap = new Map<int, HInstruction>(),

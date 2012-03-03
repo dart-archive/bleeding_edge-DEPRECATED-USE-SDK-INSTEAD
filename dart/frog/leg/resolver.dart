@@ -1054,7 +1054,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       label.setBreakTarget();
       mapping[node.target] = label;
     }
-    assert(mapping[node] === null || mapping[node] === target);
+    if (mapping[node] !== null && mapping[node] !== target) {
+      cancel(node, "internal error");
+    }
     mapping[node] = target;
   }
 

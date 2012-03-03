@@ -222,7 +222,9 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
  * Visits the graph and replaces guards with guards that capture the
  * environment.
  */
-class SsaTypeGuardBuilder extends SsaEnvironmentBuilder {
+class SsaTypeGuardBuilder extends SsaEnvironmentBuilder implements OptimizationPhase {
+
+  final String name = 'SsaTypeGuardBuilder';
 
   SsaTypeGuardBuilder(Compiler compiler) : super(compiler);
 
@@ -260,8 +262,9 @@ class SsaTypeGuardBuilder extends SsaEnvironmentBuilder {
  * Visits the graph and inserts [HBailoutTarget] instructions where
  * the optimized version had [HTypeGuard] instructions.
  */
-class SsaBailoutBuilder extends SsaEnvironmentBuilder {
+class SsaBailoutBuilder extends SsaEnvironmentBuilder implements OptimizationPhase {
   final Map<int, BailoutInfo> bailouts;
+  final String name = 'SsaBailoutBuilder';
 
   SsaBailoutBuilder(Compiler compiler, this.bailouts) : super(compiler);
 
