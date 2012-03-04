@@ -33,7 +33,6 @@ import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.cache.LRUCache;
@@ -799,12 +798,6 @@ public class DartCompilerUtilities {
       // Any calls to compiler involving artifact provider must be synchronized
       long start = System.currentTimeMillis();
       List<LibrarySource> embeddedLibraries = new ArrayList<LibrarySource>();
-      for (String spec : DartCoreDebug.getLibrariesEmbedded()) {
-        LibrarySource lib = config.getSystemLibraryFor(spec);
-        if (lib != null) {
-          embeddedLibraries.add(lib);
-        }
-      }
       DartCompiler.compileLib(libSource, embeddedLibraries, config, provider, listener);
       if (performanceListener != null) {
         performanceListener.compileComplete(start, libSource.getName());

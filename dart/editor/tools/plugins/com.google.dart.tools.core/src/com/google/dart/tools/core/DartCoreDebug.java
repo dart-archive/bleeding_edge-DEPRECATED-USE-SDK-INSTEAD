@@ -15,10 +15,6 @@ package com.google.dart.tools.core;
 
 import org.eclipse.core.runtime.Platform;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 /**
  * Debug/Tracing options for the {@link DartCore} plugin.
  */
@@ -55,34 +51,6 @@ public class DartCoreDebug {
   public static final boolean NEW_INDEXER = isOptionTrue("experimental/newIndexer");
 
   public static final boolean PROJECTS_VIEW = isOptionTrue("experimental/projectsview");
-
-  // Compilation options.
-
-  public static Collection<String> getLibrariesEmbedded() {
-    List<String> result = new ArrayList<String>();
-    for (String spec : getOptionValue("libraries/embedded", "").split(",")) {
-      spec = spec.trim();
-      if (spec.length() > 0) {
-        result.add(spec);
-      }
-    }
-    return result;
-  }
-
-  public static String getPlatformName() {
-    return getOptionValue("platform/name", "compiler");
-  }
-
-  private static String getOptionValue(String optionSuffix, String defaultValue) {
-    String value = Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix);
-    if (value != null) {
-      value = value.trim();
-      if (value.length() > 0) {
-        return value;
-      }
-    }
-    return defaultValue;
-  }
 
   private static boolean isOptionTrue(String optionSuffix) {
     return "true".equalsIgnoreCase(Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix));
