@@ -73,6 +73,9 @@ public class SystemLibraryManagerProvider {
               return null;
             }
             URI resolveUri = getVmLibraryManager().resolveDartUri(relativeUri);
+            if (resolveUri == null) {
+              return null;
+            }
             return new File(resolveUri.getPath());
           }
         };

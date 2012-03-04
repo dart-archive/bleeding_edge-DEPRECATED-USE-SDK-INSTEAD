@@ -35,7 +35,7 @@ class AnalyzeLibraryTask extends Task {
 
     // Determine if the library should still be analyzed
 
-    if (!server.shouldAnalyzeLibrary(libraryFile)) {
+    if (!server.shouldAnalyzeLibrary(libraryFile) || !libraryFile.exists()) {
       return;
     }
     if (start == 0) {
@@ -55,7 +55,7 @@ class AnalyzeLibraryTask extends Task {
 
     boolean found = false;
     for (File file : library.getImportedFiles()) {
-      if (context.getCachedLibrary(file) == null) {
+      if (context.getCachedLibrary(file) == null && file.exists()) {
         server.queueSubTask(new ParseLibraryTask(server, context, file));
         found = true;
       }

@@ -35,6 +35,9 @@ class ParseFileTask extends Task {
 
   @Override
   void perform() {
+    if (!file.exists()) {
+      return;
+    }
     DartUnit unit = parse(server, library.getFile(), library.getLibrarySource(), file);
     library.cacheUnit(file, unit);
   }

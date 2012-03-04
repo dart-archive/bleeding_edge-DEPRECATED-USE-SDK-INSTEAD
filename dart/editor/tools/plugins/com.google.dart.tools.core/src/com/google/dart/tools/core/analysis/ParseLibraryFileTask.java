@@ -45,6 +45,9 @@ class ParseLibraryFileTask extends Task {
 
   @Override
   void perform() {
+    if (!libraryFile.exists()) {
+      return;
+    }
     DartUnit unit = parse(server, libraryFile, librarySource, libraryFile);
 
     HashMap<String, File> imports = new HashMap<String, File>();

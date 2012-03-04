@@ -91,6 +91,8 @@ public class AnalysisServer {
       @Override
       public void run() {
         try {
+          // TODO (danrubel) last task should be to make sure everything has been analyzed
+
           while (analyze) {
 
             // Find the next analysis task
@@ -262,7 +264,7 @@ public class AnalysisServer {
     if (!result.isAbsolute()) {
       result = new File(base.resolve(relPath).getPath());
     }
-    return result.exists() ? result : null;
+    return result;
   }
 
   /**
