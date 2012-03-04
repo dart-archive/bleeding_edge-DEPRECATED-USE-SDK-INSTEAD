@@ -47,10 +47,11 @@ class FileChangedTask extends Task {
       return;
     }
 
-    // Queue a task to analyze the context starting with the changed library
-    server.queueSubTask(new AnalyzeContextTask(server, context, library.getFile()));
-
     // Discard the library and any downstream libraries
     discardLibrary(library);
+
+    // Queue tasks to analyze the library and any downstream libraries
+    server.queueSubTask(new AnalyzeLibraryTask(server, context, library.getFile()));
+    server.queueAnalyzeContext();
   }
 }

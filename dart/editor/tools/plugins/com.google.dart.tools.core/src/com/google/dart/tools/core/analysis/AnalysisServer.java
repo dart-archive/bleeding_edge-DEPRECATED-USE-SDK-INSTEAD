@@ -91,8 +91,6 @@ public class AnalysisServer {
       @Override
       public void run() {
         try {
-          // TODO (danrubel) last task should be to make sure everything has been analyzed
-
           while (analyze) {
 
             // Find the next analysis task
@@ -221,9 +219,43 @@ public class AnalysisServer {
     return analysisListeners;
   }
 
-  File[] getLibraryFiles() {
+  /**
+   * Answer the library files identified by {@link #analyzeLibrary(File)}
+   * 
+   * @return an array of files (not <code>null</code>, contains no <code>null</code>s)
+   */
+  File[] getSpecifiedLibraryFiles() {
     synchronized (queue) {
       return libraryFiles.toArray(new File[libraryFiles.size()]);
+    }
+  }
+
+  /**
+   * Answer <code>true</code> if the receiver's collection of library files identified by
+   * {@link #analyzeLibrary(File)} includes the specified file.
+   */
+  boolean isSpecifiedLibraryFile(File file) {
+    synchronized (queue) {
+      return libraryFiles.contains(file);
+    }
+  }
+
+  /**
+   * Ensure that all libraries have been analyzed by adding an instance of
+   * {@link AnalyzeContextTask} to the end of the queue if it has not already been added.
+   */
+  void queueAnalyzeContext() {
+    if (analyze) {
+      synchronized (queue) {
+        int index = queue.size() - 1;
+        if (index >= 0) {
+          Task lastTask = queue.get(index);
+          if (lastTask instanceof AnalyzeContextTask) {
+            return;
+          }
+        }
+        queue.add(queueIndex, new AnalyzeContextTask(this, savedContext));
+      }
     }
   }
 
@@ -278,15 +310,5 @@ public class AnalysisServer {
       return target.resolveImport(relPath);
     }
     return resolveFile(base, relPath);
-  }
-
-  /**
-   * Answer <code>true</code> if the receiver's collection of library files includes the specified
-   * file indicating that the specified library should be analyzed.
-   */
-  boolean shouldAnalyzeLibrary(File file) {
-    synchronized (queue) {
-      return libraryFiles.contains(file);
-    }
   }
 }

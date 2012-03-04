@@ -21,32 +21,19 @@ import java.io.File;
 class AnalyzeContextTask extends Task {
   private final AnalysisServer server;
   private final Context context;
-  private File activeFile;
 
-  AnalyzeContextTask(AnalysisServer server, Context context, File activeFile) {
+  AnalyzeContextTask(AnalysisServer server, Context context) {
     this.server = server;
     this.context = context;
-    this.activeFile = activeFile;
   }
 
   @Override
   void perform() {
 
-    // Analyze the currently active library first
-
-    if (activeFile != null) {
-      if (server.shouldAnalyzeLibrary(activeFile)) {
-        server.queueSubTask(new AnalyzeLibraryTask(server, context, activeFile));
-        server.queueSubTask(this);
-        activeFile = null;
-        return;
-      }
-    }
-
     // Parse library files
 
     boolean found = false;
-    for (File libFile : server.getLibraryFiles()) {
+    for (File libFile : server.getSpecifiedLibraryFiles()) {
       if (context.getCachedLibrary(libFile) == null) {
         server.queueSubTask(new ParseLibraryFileTask(server, context, libFile));
         found = true;
@@ -57,20 +44,9 @@ class AnalyzeContextTask extends Task {
       return;
     }
 
-    // Find the currently active library and analyze it first
-
-    if (activeFile != null) {
-      Library library = context.getLibraryContaining(activeFile);
-      if (library != null) {
-        server.queueSubTask(new AnalyzeLibraryTask(server, context, library.getFile()));
-        server.queueSubTask(this);
-        return;
-      }
-    }
-
     // Analyze all libraries
 
-    for (File libFile : server.getLibraryFiles()) {
+    for (File libFile : server.getSpecifiedLibraryFiles()) {
       server.queueSubTask(new AnalyzeLibraryTask(server, context, libFile));
     }
   }
