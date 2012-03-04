@@ -9,6 +9,18 @@ import sys
 import zipfile
 
 
+class DuplicateFile(Exception):
+  """Exception thrown when a duplicate file is found when adding a file."""
+  def __init__(self, zip_path, zip_name):
+    Exception.__init__(self)
+    self.zip_path = zip_path
+    self.zip_name = zip_name
+
+  def __str__(self):
+    return 'file {0} is already in {1}'.format(repr(self.zip_path),
+                                               repr(self.zip_name))
+
+
 class ZipUtil(object):
   """A class to use for altering zip files."""
   _zipfile_name = None
@@ -30,7 +42,8 @@ class ZipUtil(object):
     self._zipfile_name = os.path.abspath(zipfile_in)
     self._is_windows = buildos.find('win') >= 0
 
-  def AddFile(self, new_file, zip_name, zip_in=None, mode_in='a'):
+  def AddFile(self, new_file, zip_name, zip_in=None, mode_in='a',
+              fail_on_duplicate=True):
     """Add a file to a zip.
 
     new file is the path to the file to add and the zip_name is the name
@@ -40,6 +53,10 @@ class ZipUtil(object):
       zip_name: the path to write this file at in the zip file.
       zip_in: a ZipFile that is already open
       mode_in: the mode to open the zip file with
+      fail_on_duplicate: raise Exception if the file already exists in
+                         the zip file.
+    Raises:
+      DuplicateFile: if a duplicate file exists in the zip file.
     """
 
     localzip = None
@@ -51,19 +68,28 @@ class ZipUtil(object):
         localzip = zip_in
       zip_name = zip_name.replace('\\\\', '/')
       zip_name = zip_name.replace('\\', '/')
+      if fail_on_duplicate:
+        try:
+          localzip.getinfo(zip_name)
+          raise DuplicateFile(zip_name, self._zipfile_name)
+        except KeyError:
+          pass  # an exception should be thrown if a new entry does not exist
       localzip.write(new_file, zip_name, zipfile.ZIP_DEFLATED)
     finally:
       #only close the file if it was opened in this method
       if localzip is not None and zip_in is None:
         localzip.close()
 
-  def AddDirectoryTree(self, base_directory, write_path=None, mode_in='a'):
+  def AddDirectoryTree(self, base_directory, write_path=None, mode_in='a',
+                       fail_on_duplicate=True):
     """Add a Directory Tree to a Zip file.
 
     Args:
       base_directory: the directory to start the copy
       write_path: the path to replace in the zip entry
       mode_in: the mode to open the zip with
+      fail_on_duplicate: fail the insertion if there the file
+                          already exists.
     """
     localzip = None
     abs_dir = os.path.abspath(base_directory)
@@ -81,7 +107,8 @@ class ZipUtil(object):
           count += 1
           if not count % 100:
             print '{0} - '.format(count),
-          self.AddFile(full_file, rel_file, localzip, mode_in)
+          self.AddFile(full_file, rel_file, localzip, mode_in,
+                       fail_on_duplicate)
     finally:
       if localzip is not None:
         localzip.close()
@@ -208,7 +235,14 @@ def main():
   print '*' * 40
 
   myzip = ZipUtil(zip_file_name, testos)
+
   myzip.AddFile(test_file_2, os.path.join('me', 'you', test_file_2))
+  try:
+    myzip.AddFile(test_file_2, os.path.join('me', 'you', test_file_2),
+                  fail_on_duplicate=True)
+    raise Exception('should fail to add a duplicate')
+  except DuplicateFile:
+    pass
 
   print '*' * 40
   myzip.AddDirectoryTree(os.path.join('..', 'docs'),

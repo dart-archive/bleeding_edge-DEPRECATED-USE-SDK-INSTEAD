@@ -147,6 +147,7 @@
                     <jvmarg value="-Xmx1024m" />
                     <jvmarg value="-XX:MaxPermSize=256m" />
                     <jvmarg value="-ea" />
+                    <jvmarg value="-Dbuild.extra.artifacts=${build.extra.artifacts}" />
                     <arg value="-consolelog" />
                     <arg value="-debug" />
                     <arg line="-application ${build.eclipse.test_application}" />

@@ -232,6 +232,7 @@ build system.  The PDE build system has to run under Eclipse.
          - - - - - - - - - - - - - - - - - -->
     <target name="installSdkInNonWindows" if="installSdkNotWindows" depends="getSdk">
         <echo message="unzipping ${build.dart.sdk.zip} to ${build.stage.include.dir}"/>
+        <mkdir dir="${build.stage.include.dir}" />
         <exec executable="unzip" dir="${build.stage.include.dir}">
             <arg value="-q"/>
             <arg value="${build.dart.sdk.zip}"/>
@@ -379,7 +380,12 @@ build system.  The PDE build system has to run under Eclipse.
         
         <mkdir dir="${dart.compiler.js.dir}/third_party" />
         <copy todir="${dart.compiler.js.dir}/third_party">
-            <fileset dir="${build.source.root}/third_party" />
+            <fileset dir="${build.source.root}/third_party">
+                <include name="args4j/**" />
+                <include name="guava/**" />
+                <include name="hamcrest/**" />
+                <include name="json/**" />
+            </fileset>
         </copy>
     </target>
     

@@ -47,7 +47,8 @@ class AntWrapper(object):
 
   def RunAnt(self, build_dir, antfile, revision, name,
              buildroot, buildout, sourcepath, buildos,
-             extra_args=None, sdk_zip=None, running_on_bot=False):
+             extra_args=None, sdk_zip=None, running_on_bot=False,
+             extra_artifacts=None):
     """Run the given Ant script from the given directory.
 
     Args:
@@ -62,6 +63,7 @@ class AntWrapper(object):
       extra_args: any extra args to ant
       sdk_zip: the place to write the sdk zip file
       running_on_bot: True if running on buildbot False otherwise
+      extra_artifacts: the directory where extra artifacts will be deplsited
 
     Returns:
       returns the status of the ant call
@@ -115,6 +117,8 @@ class AntWrapper(object):
       args.append('-Dbuild.running.headless=true')
     if sdk_zip:
       args.append('-Dbuild.dart.sdk.zip={0}'.format(sdk_zip))
+    if extra_artifacts:
+      args.append('-Dbuild.extra.artifacts={0}'.format(extra_artifacts))
     if is_windows:
       args.append('-autoproxy')
       #add the JAVA_HOME to the environment for the windows builds
@@ -217,11 +221,11 @@ def main():
     sys.stdout.flush()
     p = subprocess.Popen(cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (out_stream, err_strteam) = p.communicate()
-    print 'gsutil tests:'
-    print 'stdout:'
-    print str(out_stream)
-    print '*' * 40
-    print 'stderr:'
+    if p.returncode:
+      print 'gsutil tests:'
+      print 'stdout:'
+      print str(out_stream)
+      print '*' * 40
     print str(err_strteam)
     print '*' * 40
 
@@ -230,6 +234,7 @@ def main():
                                                     prefix='AntProperties',
                                                     delete=False)
     ant_property_file.close()
+    extra_artifacts = tempfile.mkdtemp(prefix='ExtraArtifacts')
     ant = AntWrapper(ant_property_file.name, os.path.join(antpath, 'bin'),
                      bzip2libpath)
 
@@ -366,7 +371,9 @@ def main():
       os.makedirs(os.path.dirname(sdk_zip))
     status = ant.RunAnt('.', 'build_rcp.xml', revision, options.name,
                         buildroot, buildout, editorpath, buildos,
-                        sdk_zip=sdk_zip, running_on_bot=running_on_buildbot)
+                        sdk_zip=sdk_zip,
+                        running_on_bot=running_on_buildbot,
+                        extra_artifacts=extra_artifacts)
     #the ant script writes a property file in a known location so
     #we can read it.
     properties = _ReadPropertyFile(buildos, ant_property_file.name)
@@ -380,10 +387,11 @@ def main():
       return status
 
     #For the dart-editor build, return at this point.
-    #We don't need to install the sdk+dartium, run tests, or copy to google storage.
+    #We don't need to install the sdk+dartium, run tests, or copy to google
+    #storage.
     if not buildos:
       return 0
-    
+
     sys.stdout.flush()
     #This is an override to for local testing
     force_run_install = os.environ.get('FORCE_RUN_INSTALL')
@@ -402,9 +410,33 @@ def main():
         _PrintError('could not find any zipped up RCP files.'
                     '  The Ant build must have failed')
         return 1
-      (status, gs_objects) = _DeployToStaging(buildos, staging_bucket,
-                                              found_zips, revision, gsu)
-      #Temporary code to copy the dart-editor-* to DartBuild-*. 
+
+      _WriteTagFile(buildos, staging_bucket, revision, gsu)
+
+    sys.stdout.flush()
+
+    _PrintSeparator('Running the tests')
+    status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
+                        'buildTests.xml',
+                        revision, options.name, buildroot, buildout,
+                        editorpath, buildos,
+                        extra_artifacts=extra_artifacts)
+    properties = _ReadPropertyFile(buildos, ant_property_file.name)
+    if buildos:
+      _UploadTestHtml(buildout, to_bucket, revision, buildos, gsu)
+    if status:
+      if properties['build.runtime']:
+        #if there is a build.runtime and the status is not
+        #zero see if there are any *.log entries
+        _PrintErrorLog(properties['build.runtime'])
+    if buildos:
+      found_zips = _FindRcpZipFiles(buildout)
+      _InstallArtifacts(buildout, buildos, extra_artifacts)
+      (status, gs_objects) = _DeployToContinuous(buildos,
+                                                 staging_bucket,
+                                                 found_zips,
+                                                 revision, gsu)
+      #Temporary code to copy the dart-editor-* to DartBuild-*.
       # This will be removed
       # once everything is switched to use dart-editor-*
       for gs_object_old in gs_objects:
@@ -414,32 +446,17 @@ def main():
         gsu.Copy(gs_object_old, gs_object_new)
         _SetAcl(gs_object_new, gsu)
       #end temporary code
-
-      _WriteTagFile(buildos, staging_bucket, revision, gsu)
-      if _ShouldMoveStagingToContinuous(staging_bucket, revision, gsu):
-        _MoveStagingToContinuous(staging_bucket, to_bucket, revision, gsu)
+      if _ShouldMoveToLatest(staging_bucket, revision, gsu):
+        _MoveContinuousToLatest(staging_bucket, to_bucket, revision, gsu)
         _CleanupStaging(staging_bucket, revision, gsu)
-
-    sys.stdout.flush()
-
-    _PrintSeparator('Running the tests')
-    status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
-                        'buildTests.xml',
-                        revision, options.name, buildroot, buildout,
-                        editorpath, buildos)
-    properties = _ReadPropertyFile(buildos, ant_property_file.name)
-    if buildos:
-      _UploadTestHtml(buildout, to_bucket, revision, buildos, gsu)
-    if status:
-      if properties['build.runtime']:
-        #if there is a build.runtime and the status is not
-        #zero see if there are any *.log entries
-        _PrintErrorLog(properties['build.runtime'])
     return status
   finally:
     if ant_property_file is not None:
       print 'cleaning up temp file {0}'.format(ant_property_file.name)
       os.remove(ant_property_file.name)
+    if extra_artifacts:
+      print 'cleaning up temp dir {0}'.format(extra_artifacts)
+      shutil.rmtree(extra_artifacts)
     print 'cleaning up {0}'.format(buildroot)
     shutil.rmtree(buildroot, True)
     print 'Build Done'
@@ -519,8 +536,8 @@ def _PrintErrorLog(rootdir):
     print 'no log file was found in ' + configdir
 
 
-def _DeployToStaging(build_os, to_bucket, zip_files, svnid, gsu):
-  """Deploy the build RCP's to the test bucket.
+def _DeployToContinuous(build_os, to_bucket, zip_files, svnid, gsu):
+  """Deploy the build RCP's to continuous bucket.
 
   Args:
     build_os: the os for this build
@@ -536,8 +553,8 @@ def _DeployToStaging(build_os, to_bucket, zip_files, svnid, gsu):
   gs_objects = []
   for element in zip_files:
     base_name = os.path.basename(element)
-    svnid_object = '{0}/staging/{1}/{2}/{3}'.format(to_bucket, build_os,
-                                                    svnid, base_name)
+    svnid_object = '{0}/{1}/{2}'.format(to_bucket,
+                                        svnid, base_name)
     status = gsu.Copy(element, svnid_object)
     gs_objects.append(svnid_object)
     if status:
@@ -571,7 +588,7 @@ def _WriteTagFile(build_os, to_bucket, svnid, gsu):
       _SetAcl(gs_object, gsu)
 
 
-def _ShouldMoveStagingToContinuous(bucket, svnid, gsu):
+def _ShouldMoveToLatest(bucket, svnid, gsu):
   """Determin if all os specific builds are done for a SVN Revision.
 
   Args:
@@ -582,7 +599,7 @@ def _ShouldMoveStagingToContinuous(bucket, svnid, gsu):
   Returns:
     True if all OS Specific builds are done for this svnid False otherwise
   """
-  print ('_ShouldMoveStagingToContinuous({0}, {1}').format(bucket, svnid)
+  print ('_ShouldMoveToLatest({0}, {1}').format(bucket, svnid)
   gs_ls = '{0}/tags/done-{1}-*'.format(bucket, svnid)
   gs_objects = gsu.ReadBucket(gs_ls)
   os_build_done = {'linux': False, 'win32': False, 'macos': False}
@@ -597,7 +614,7 @@ def _ShouldMoveStagingToContinuous(bucket, svnid, gsu):
   return all_builds_done
 
 
-def _MoveStagingToContinuous(bucket_stage, bucket_continuous, svnid, gsu):
+def _MoveContinuousToLatest(bucket_stage, bucket_continuous, svnid, gsu):
   """Move the staged builds to continuous.
 
   Args:
@@ -606,31 +623,19 @@ def _MoveStagingToContinuous(bucket_stage, bucket_continuous, svnid, gsu):
     svnid: the revision id for this build
     gsu: the gsutil object
   """
-  print ('_MoveStagingToContinuous({0},'
+  print ('_MoveContinuousToLatest({0},'
          ' {1}, {2}, gsu)'.format(bucket_stage, bucket_continuous, svnid))
-  elements_to_copy = []
-  bucket_to_template = string.Template('$bucket/$revision/$file')
-  bucket_from_template = string.Template('$bucket/staging/'
-                                         '$buildos/$revision/$file')
-  data_from = {'bucket': bucket_stage, 'revision': svnid,
-               'buildos': '', 'file': '*'}
-  for buildos in ['win32', 'macos', 'linux']:
-    data_from ['buildos'] = buildos
-    elements = gsu.ReadBucket(bucket_from_template.substitute(data_from))
-    for element in elements:
-      elements_to_copy.append(element)
-  data_to = {'bucket': bucket_continuous}
-  for element in elements_to_copy:
+  bucket_to_template = string.Template('$bucket/$revision/latest')
+  bucket_from_template = string.Template('$bucket/$revision/$file')
+  data = {'bucket': bucket_continuous, 'revision': str(svnid),
+          'buildos': '', 'file': '*'}
+  elements = gsu.ReadBucket(bucket_from_template.substitute(data))
+  for element in elements:
     file_name = os.path.basename(element)
-    data_to['file'] = file_name
-    data_to['revision'] = str(svnid)
-    element_to = bucket_to_template.substitute(data_to)
-    data_to['revision'] = 'latest'
-    element_to_latest = bucket_to_template.substitute(data_to)
+    data['file'] = file_name
+    element_to = bucket_to_template.substitute(data)
     gsu.Copy(element, element_to)
-    gsu.Copy(element_to, element_to_latest)
     _SetAcl(element_to, gsu)
-    _SetAcl(element_to_latest, gsu)
 
 
 def _CleanupStaging(bucket_stage, svnid, gsu):
@@ -831,7 +836,8 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
   Raises:
     Exception: if no dartium files can be found
   """
-  print '_InstallDartium({0}, {1}, {2}, gsu)'.format(buildroot, buildout,
+  print '_InstallDartium({0}, {1}, {2}, gsu)'.format(buildroot,
+                                                     buildout,
                                                      buildos)
   # will need to add windows here once the windows builds are ready
   file_types = ['linlucful', 'macmacful']
@@ -919,6 +925,24 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
   finally:
     if tmp_zip_name is not None:
       os.remove(tmp_zip_name)
+
+
+def _InstallArtifacts(buildout, buildos, extra_artifacts):
+  """Install the SDk into the RCP zip files(s).
+
+  Args:
+    buildout: the location of the ant build output
+    buildos: the OS the build is running under
+    extra_artifacts: the directoryt he extra artifacts are in
+  """
+  print '_InstallSdk({0}, {1}, {2})'.format(buildout,
+                                            buildos,
+                                            extra_artifacts)
+  files = _FindRcpZipFiles(buildout)
+  for f in files:
+    dart_zip_path = os.path.join(buildout, f)
+    dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
+    dart_zip.AddDirectoryTree(extra_artifacts, 'dart')
 
 
 def _PrintSeparator(text):

@@ -439,6 +439,7 @@
               <fileset dir="${workspace-director-@{uniqueId}}" />
           </delete>
           <echo message="Launching Eclipse with ${eclipse.runtime.launcher.jar}" />
+          <echo message=" workspace: ${workspace-director-@{uniqueId}}" />
           <java jar="${eclipse.runtime.launcher.jar}" fork="true" 
                 failonerror="false"
                 errorproperty="eclipse-director-@{uniqueId}-rc">
@@ -507,10 +508,15 @@
         <sequential>
             <echo message="Launching Eclipse with ${eclipse.runtime.launcher.jar}" />
             <property name="eclipse.pde.build.out" location="${build.tmp}/pde.build.out" />
+            <property name="build.extra.artifacts" value="" />
+            <echo message=" workspace: ${build.stage}/workspace" />
+            <echo message=" output:    ${eclipse.pde.build.out}" />
+            <echo message=" build.extra.artifacts = ${build.extra.artifacts}" />
             <java jar="${eclipse.runtime.launcher.jar}" fork="true" 
                   failonerror="false"
                   errorproperty="build.eclipse.pde.build.error"
                   output="${eclipse.pde.build.out}">
+                <jvmarg value="-Dbuild.extra.artifacts=${build.extra.artifacts}" />
                 <arg value="-data" />
                 <arg value="${build.stage}/workspace" />
                 <arg value="-application" />
