@@ -69,8 +69,16 @@ public final class ActionMessages extends NLS {
   public static String CopyQualifiedNameAction_InfoDialogTitel;
   public static String CopyQualifiedNameAction_NoElementToQualify;
   public static String CopyQualifiedNameAction_ToolTipText;
-  public static String FindNLSProblemsAction_Description;
 
+  public static String DeleteResourceAction_titleProject1;
+  public static String DeleteResourceAction_titleProjectN;
+  public static String DeleteResourceAction_confirmProject1;
+  public static String DeleteResourceAction_confirmProjectN;
+  public static String DeleteResourceAction_deleteContents1;
+  public static String DeleteResourceAction_deleteContentsN;
+  public static String DeleteResourceAction_deleteContentsDetails;
+
+  public static String FindNLSProblemsAction_Description;
   public static String FindNLSProblemsAction_ErrorDialogTitle;
   public static String FindNLSProblemsAction_Name;
   public static String FindNLSProblemsAction_NoPropertieFilesFoundErrorDescription;

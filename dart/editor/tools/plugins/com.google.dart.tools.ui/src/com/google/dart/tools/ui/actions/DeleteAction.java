@@ -19,7 +19,6 @@ import com.google.dart.tools.ui.internal.libraryview.CCPMessages;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchSite;
-import org.eclipse.ui.actions.DeleteResourceAction;
 
 /**
  * Standard action for deleting the currently selected resources.
