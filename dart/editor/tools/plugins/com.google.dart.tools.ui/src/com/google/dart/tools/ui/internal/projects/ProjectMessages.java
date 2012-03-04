@@ -21,6 +21,9 @@ import org.eclipse.osgi.util.NLS;
  */
 public class ProjectMessages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.ui.internal.projects.ProjectMessages"; //$NON-NLS-1$
+  public static String HideProjectAction_always_yes_msg;
+  public static String HideProjectAction_confirm_msg;
+  public static String HideProjectAction_confirm_title;
   public static String HideProjectAction_operation_msg;
   public static String HideProjectAction_problems_msg;
   public static String HideProjectAction_problems_title;
