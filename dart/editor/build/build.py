@@ -416,7 +416,7 @@ def main():
     sys.stdout.flush()
 
     _PrintSeparator('Running the tests')
-    status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
+    ant_status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
                         'buildTests.xml',
                         revision, options.name, buildroot, buildout,
                         editorpath, buildos,
@@ -424,7 +424,7 @@ def main():
     properties = _ReadPropertyFile(buildos, ant_property_file.name)
     if buildos:
       _UploadTestHtml(buildout, to_bucket, revision, buildos, gsu)
-    if status:
+    if ant_status:
       if properties['build.runtime']:
         #if there is a build.runtime and the status is not
         #zero see if there are any *.log entries
@@ -433,7 +433,7 @@ def main():
       found_zips = _FindRcpZipFiles(buildout)
       _InstallArtifacts(buildout, buildos, extra_artifacts)
       (status, gs_objects) = _DeployToContinuous(buildos,
-                                                 staging_bucket,
+                                                 to_bucket,
                                                  found_zips,
                                                  revision, gsu)
       #Temporary code to copy the dart-editor-* to DartBuild-*.
@@ -449,7 +449,7 @@ def main():
       if _ShouldMoveToLatest(staging_bucket, revision, gsu):
         _MoveContinuousToLatest(staging_bucket, to_bucket, revision, gsu)
         _CleanupStaging(staging_bucket, revision, gsu)
-    return status
+    return ant_status
   finally:
     if ant_property_file is not None:
       print 'cleaning up temp file {0}'.format(ant_property_file.name)
@@ -548,7 +548,7 @@ def _DeployToContinuous(build_os, to_bucket, zip_files, svnid, gsu):
   Returns:
     the status of the copy to Google Storage
   """
-  print '_DeployRcpsToTest({0}, {1}, {2}, gsu)'.format(to_bucket, zip_files,
+  print '_DeployToContinuous({0}, {1}, {2}, gsu)'.format(to_bucket, zip_files,
                                                        build_os)
   gs_objects = []
   for element in zip_files:
