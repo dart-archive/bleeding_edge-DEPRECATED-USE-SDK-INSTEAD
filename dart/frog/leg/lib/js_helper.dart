@@ -1130,11 +1130,16 @@ class MathNatives {
   static int parseInt(str) {
     checkNull(str);
     if (str is !String) throw new IllegalArgumentException(str);
-    var trimmed = str.trim();
-    if (!JS('bool', @'/^(0[xX])?[+-]?[0-9]+$/.test($0)', trimmed)) {
+    if (!JS('bool', @'/^\s*[+-]?(0[xX])?\d+\s*$/.test($0)', str)) {
       throw new BadNumberFormatException(str);
     }
-    var ret = JS('num', @'parseInt($0, 10)', str);
+    var trimmed = str.trim();
+    var base = 10;;
+    if ((trimmed.length > 2 && (trimmed[1] == 'x' || trimmed[1] == 'X')) ||
+        (trimmed.length > 3 && (trimmed[2] == 'x' || trimmed[2] == 'X'))) {
+      base = 16;
+    }
+    var ret = JS('num', @'parseInt($0, $1)', trimmed, base);
     if (ret.isNaN()) throw new BadNumberFormatException(str);
     return ret;
   }

@@ -33,6 +33,7 @@ class DateImplementation implements Date {
         value = _valueFromDecomposed(years, month, day,
                                      hours, minutes, seconds, milliseconds,
                                      timeZone.isUtc) {
+    if (value === null) throw new IllegalArgumentException();
     _asJs();
   }
 
@@ -43,38 +44,66 @@ class DateImplementation implements Date {
   }
 
   factory DateImplementation.fromString(String formattedString) {
-    // JavaScript's parse function is not specified and there are differences
-    // between the different implementations. Make sure we can at least read in
-    // Dart's output: try to read in (a subset of) ISO 8601 first. If that fails
-    // fall back to JavaScript's implementation.
-    final RegExp re =
-        const RegExp(@'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d) (\d\d):(\d\d):(\d\d)(?:.(\d{1,3}))? ?([zZ]?)$');
+    // Read in (a subset of) ISO 8601.
+    // Examples:
+    //    - "2012-02-27 13:27:00"
+    //    - "2012-02-27 13:27:00.423z"
+    //    - "20120227 13:27:00"
+    //    - "20120227T132700"
+    //    - "20120227"
+    //    - "2012-02-27T14Z"
+    //    - "-123450101 00:00:00 Z"  // In the year -12345.
+    final RegExp re = const RegExp(
+        @'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)' +  // The day part.
+        @'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(?:.(\d{1,5}))?)?)? ?([zZ])?)?$');
     Match match = re.firstMatch(formattedString);
     if (match !== null) {
+      int parseIntOrZero(String matched) {
+        // TODO(floitsch): we should not need to test against the empty string.
+        if (matched === null || matched == "") return 0;
+        return Math.parseInt(matched);
+      }
+
       int years = Math.parseInt(match[1]);
       int month = Math.parseInt(match[2]);
       int day = Math.parseInt(match[3]);
-      int hours = Math.parseInt(match[4]);
-      int minutes = Math.parseInt(match[5]);
-      int seconds = Math.parseInt(match[6]);
-      int milliseconds = 0;
-      if (match[7] !== null) {
-        milliseconds = Math.parseInt(match[7]);
+      int hours = parseIntOrZero(match[4]);
+      int minutes = parseIntOrZero(match[5]);
+      int seconds = parseIntOrZero(match[6]);
+      bool addOneMillisecond = false;
+      int milliseconds = parseIntOrZero(match[7]);
+      if (milliseconds != 0) {
         if (match[7].length == 1) {
           milliseconds *= 100;
         } else if (match[7].length == 2) {
           milliseconds *= 10;
+        } else if (match[7].length == 3) {
+          // Do nothing.
+        } else if (match[7].length == 4) {
+          addOneMillisecond = ((milliseconds % 10) >= 5);
+          milliseconds ~/= 10;
         } else {
-          assert(match[7].length == 3);
+          assert(match[7].length == 5);
+          addOneMillisecond = ((milliseconds %100) >= 50);
+          milliseconds ~/= 100;
+        }
+        if (addOneMillisecond && milliseconds < 999) {
+          addOneMillisecond = false;
+          milliseconds++;
         }
       }
+      // TODO(floitsch): we should not need to test against the empty string.
       bool isUtc = (match[8] !== null) && (match[8] != "");
       TimeZone timezone = isUtc ? const TimeZone.utc() : new TimeZone.local();
-      return new DateImplementation.withTimeZone(
-          years, month, day, hours, minutes, seconds, milliseconds, timezone);
+      int epochValue = _valueFromDecomposed(
+          years, month, day, hours, minutes, seconds, milliseconds, isUtc);
+      if (epochValue === null) {
+        throw new IllegalArgumentException(formattedString);
+      }
+      if (addOneMillisecond) epochValue++;
+      return new DateImplementation.fromEpoch(epochValue, timezone);
     } else {
-      return new DateImplementation.fromEpoch(formattedString,
-                                              new TimeZone.local());
+      throw new IllegalArgumentException(formattedString);
     }
   }
 
@@ -160,6 +189,14 @@ class DateImplementation implements Date {
   }
 
   String toString() {
+    String fourDigits(int n) {
+      int absN = n.abs();
+      String sign = n < 0 ? "-" : "";
+      if (absN >= 1000) return "$n";
+      if (absN >= 100) return "${sign}0$absN";
+      if (absN >= 10) return "${sign}00$absN";
+      if (absN >= 1) return "${sign}000$absN";
+    }
     String threeDigits(int n) {
       if (n >= 100) return "${n}";
       if (n > 10) return "0${n}";
@@ -170,6 +207,7 @@ class DateImplementation implements Date {
       return "0${n}";
     }
 
+    String y = fourDigits(year);
     String m = twoDigits(month);
     String d = twoDigits(day);
     String h = twoDigits(hours);
@@ -177,9 +215,9 @@ class DateImplementation implements Date {
     String sec = twoDigits(seconds);
     String ms = threeDigits(milliseconds);
     if (timeZone.isUtc) {
-      return "$year-$m-$d $h:$min:$sec.${ms}Z";
+      return "$y-$m-$d $h:$min:$sec.${ms}Z";
     } else {
-      return "$year-$m-$d $h:$min:$sec.$ms";
+      return "$y-$m-$d $h:$min:$sec.$ms";
     }
   }
 
@@ -206,12 +244,16 @@ class DateImplementation implements Date {
                                   int hours, int minutes, int seconds,
                                   int milliseconds, bool isUtc) native
   '''var jsMonth = month - 1;
-  var value = isUtc ?
-    Date.UTC(years, jsMonth, day,
-             hours, minutes, seconds, milliseconds) :
-    new Date(years, jsMonth, day,
-             hours, minutes, seconds, milliseconds).valueOf();
-  if (isNaN(value)) throw Error("Invalid Date");
+  var date = new Date(0);
+  if (isUtc) {
+    date.setUTCFullYear(years, jsMonth, day);
+    date.setUTCHours(hours, minutes, seconds, milliseconds);
+  } else {
+    date.setFullYear(years, jsMonth, day);
+    date.setHours(hours, minutes, seconds, milliseconds);
+  }
+  var value = date.valueOf();
+  if (isNaN(value)) return (void 0);
   return value;''';
 
   static int _valueFromString(String str) native

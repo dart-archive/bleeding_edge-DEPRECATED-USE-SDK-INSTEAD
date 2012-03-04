@@ -609,6 +609,9 @@ class SsaCodeGenerator implements HVisitor {
       } else if (input is HParameterValue) {
         HParameterValue parameter = input;
         name = parameterNames[parameter.element];
+      } else if (input is HLoad) {
+        Hload load = input;
+        name = local(input.local);        
       } else {
         assert(!input.generateAtUseSite());
         name = temporary(input);

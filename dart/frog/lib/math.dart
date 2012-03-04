@@ -50,7 +50,10 @@ class Math native 'Math' {
    * an [int]. Throws a [BadNumberFormatException] if [str]
    * cannot be parsed as an [int].
    */
-  static int parseInt(String str) native '''var ret = parseInt(str);
+  static int parseInt(String str) native '''
+  var isHex = (str.length > 2) && str[0] == '0' &&
+              (str[1] == 'x' || str[1] == 'X');
+  var ret = parseInt(str, isHex ? 16 : 10);
   if (isNaN(ret)) \$throw(new BadNumberFormatException(str));
   return ret;''' { throw new BadNumberFormatException(""); }
 
