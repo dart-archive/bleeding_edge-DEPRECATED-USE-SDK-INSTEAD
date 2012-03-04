@@ -14,16 +14,6 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.compiler.SystemLibraryManager;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.DartProjectNature;
-import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.ui.DartToolsPlugin;
-
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
@@ -37,13 +27,8 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Display;
 
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Files view content provider.
@@ -52,7 +37,9 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
   private static final IResource[] NO_CHILDREN = new IResource[0];
 
   private Viewer viewer;
-  private Map<IFileStore, DartLibrary> fileStoreMap;
+
+// Synthetic libraries node support
+// private Map<IFileStore, DartLibrary> fileStoreMap;
 
   public ResourceContentProvider() {
     ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
@@ -74,9 +61,11 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
       } else if (element instanceof IFileStore) {
         IFileStore fileStore = (IFileStore) element;
         return fileStore.childStores(EFS.NONE, null);
-      } else if (element instanceof DartLibraryImpl) {
-        return getLibraryChildren((DartLibraryImpl) element);
       }
+// Synthetic libraries node support
+//      else if (element instanceof DartLibraryImpl) {
+//        return getLibraryChildren((DartLibraryImpl) element);
+//      }
     } catch (CoreException ce) {
       //fall through
     }
@@ -95,10 +84,10 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
     } else if (element instanceof IFileStore) {
       IFileStore fileStore = (IFileStore) element;
       IFileStore parent = fileStore.getParent();
-
-      if (getFileStoreMap().containsKey(parent)) {
-        return getFileStoreMap().get(parent);
-      }
+// Synthetic libraries node support
+//      if (getFileStoreMap().containsKey(parent)) {
+//        return getFileStoreMap().get(parent);
+//      }
 
       return parent;
     } else {
@@ -147,55 +136,56 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
     return children;
   }
 
-  private Map<IFileStore, DartLibrary> getFileStoreMap() {
-    if (fileStoreMap == null) {
-      fileStoreMap = new HashMap<IFileStore, DartLibrary>();
+// Synthetic libraries node support
+//  private Map<IFileStore, DartLibrary> getFileStoreMap() {
+//    if (fileStoreMap == null) {
+//      fileStoreMap = new HashMap<IFileStore, DartLibrary>();
+//
+//      try {
+//        for (DartLibrary lib : DartModelManager.getInstance().getDartModel().getBundledLibraries()) {
+//          if (lib instanceof DartLibraryImpl) {
+//            DartLibraryImpl library = (DartLibraryImpl) lib;
+//
+//            IFileStore libraryFileStore = getLibraryFileStore(library);
+//
+//            fileStoreMap.put(libraryFileStore, library);
+//          }
+//        }
+//      } catch (CoreException exception) {
+//        DartToolsPlugin.log(exception);
+//      }
+//    }
+//
+//    return fileStoreMap;
+//  }
 
-      try {
-        for (DartLibrary lib : DartModelManager.getInstance().getDartModel().getBundledLibraries()) {
-          if (lib instanceof DartLibraryImpl) {
-            DartLibraryImpl library = (DartLibraryImpl) lib;
+//  private Object[] getLibraryChildren(DartLibraryImpl library) throws CoreException {
+//    IFileStore libraryFileStore = getLibraryFileStore(library);
+//
+//    if (libraryFileStore != null) {
+//      return libraryFileStore.childStores(EFS.NONE, null);
+//    } else {
+//      return NO_CHILDREN;
+//    }
+//  }
 
-            IFileStore libraryFileStore = getLibraryFileStore(library);
-
-            fileStoreMap.put(libraryFileStore, library);
-          }
-        }
-      } catch (CoreException exception) {
-        DartToolsPlugin.log(exception);
-      }
-    }
-
-    return fileStoreMap;
-  }
-
-  private Object[] getLibraryChildren(DartLibraryImpl library) throws CoreException {
-    IFileStore libraryFileStore = getLibraryFileStore(library);
-
-    if (libraryFileStore != null) {
-      return libraryFileStore.childStores(EFS.NONE, null);
-    } else {
-      return NO_CHILDREN;
-    }
-  }
-
-  private IFileStore getLibraryFileStore(DartLibraryImpl library) throws CoreException {
-    URI uri = library.getLibrarySourceFile().getUri();
-
-    if (SystemLibraryManager.isDartUri(uri)) {
-      SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
-
-      uri = libraryManager.translateDartUri(uri);
-    }
-
-    if ("file".equals(uri.getScheme())) {
-      IFileStore fileStore = EFS.getStore(uri);
-
-      return fileStore.getParent();
-    } else {
-      return null;
-    }
-  }
+//  private IFileStore getLibraryFileStore(DartLibraryImpl library) throws CoreException {
+//    URI uri = library.getLibrarySourceFile().getUri();
+//
+//    if (SystemLibraryManager.isDartUri(uri)) {
+//      SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+//
+//      uri = libraryManager.translateDartUri(uri);
+//    }
+//
+//    if ("file".equals(uri.getScheme())) {
+//      IFileStore fileStore = EFS.getStore(uri);
+//
+//      return fileStore.getParent();
+//    } else {
+//      return null;
+//    }
+//  }
 
   private Object[] getProjectChildren(IProject project) throws CoreException {
     List<Object> children = new ArrayList<Object>();
@@ -204,35 +194,36 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
     for (IResource resource : resources) {
       children.add(resource);
     }
-
-    if (DartProjectNature.hasDartNature(project)) {
-      DartProject dartProject = DartCore.create(project);
-      for (DartLibrary library : getSystemLibraries(dartProject.getDartLibraries())) {
-        children.add(library);
-      }
-    }
+// Synthetic libraries node support
+//    if (DartProjectNature.hasDartNature(project)) {
+//      DartProject dartProject = DartCore.create(project);
+//      for (DartLibrary library : getSystemLibraries(dartProject.getDartLibraries())) {
+//        children.add(library);
+//      }
+//    }
 
     return children.toArray();
   }
 
-  private Set<DartLibrary> getSystemLibraries(DartLibrary[] libraries) throws CoreException {
-    Set<DartLibrary> results = new HashSet<DartLibrary>();
-
-    for (DartLibrary library : libraries) {
-      for (DartLibrary lib : library.getImportedLibraries()) {
-        if (!lib.isLocal()) {
-          results.add(lib);
-        }
-      }
-    }
-
-    // TODO(pquitslund): the model should handle this.
-    DartLibrary coreLibrary = DartModelManager.getInstance().getDartModel().getCoreLibrary();
-    if (!coreLibrary.isLocal()) {
-      results.add(coreLibrary);
-    }
-
-    return results;
-  }
+// Synthetic libraries node support
+//  private Set<DartLibrary> getSystemLibraries(DartLibrary[] libraries) throws CoreException {
+//    Set<DartLibrary> results = new HashSet<DartLibrary>();
+//
+//    for (DartLibrary library : libraries) {
+//      for (DartLibrary lib : library.getImportedLibraries()) {
+//        if (!lib.isLocal()) {
+//          results.add(lib);
+//        }
+//      }
+//    }
+//
+//    // TODO(pquitslund): the model should handle this.
+//    DartLibrary coreLibrary = DartModelManager.getInstance().getDartModel().getCoreLibrary();
+//    if (!coreLibrary.isLocal()) {
+//      results.add(coreLibrary);
+//    }
+//
+//    return results;
+//  }
 
 }
