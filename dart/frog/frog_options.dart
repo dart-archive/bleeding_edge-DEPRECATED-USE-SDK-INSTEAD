@@ -25,7 +25,6 @@ class FrogOptions {
   // TODO(dgrove): fix this. For now, either 'sdk' or 'dev'.
   final config = 'dev';
 
-
   // Options that modify behavior significantly
   bool legOnly = false;
   bool enableAsserts = false;
@@ -38,6 +37,7 @@ class FrogOptions {
   bool compileOnly = false;
   bool inferTypes = false;
   bool checkOnly = false;
+  bool ignoreUnrecognizedFlags = false;
 
   // Specifies non-compliant behavior where array bounds checks are
   // not implemented in generated code.
@@ -72,7 +72,6 @@ class FrogOptions {
       throw('Invalid configuration');
     }
 
-    bool ignoreUnrecognizedFlags = false;
     bool passedLibDir = false;
     childArgs = [];
 
@@ -80,105 +79,18 @@ class FrogOptions {
     // (node/python followed by frogsh/frog.py).
     loop: for (int i = 2; i < args.length; i++) {
       var arg = args[i];
-
-      switch (arg) {
-        case '--leg':
-        case '--enable_leg':
-        case '--leg_only':
-          legOnly = true;
-          break;
-
-        case '--enable_asserts':
-          enableAsserts = true;
-          break;
-
-        case '--enable_type_checks':
-          enableTypeChecks = true;
-          // This flag also enables asserts in VM
-          enableAsserts = true;
-          break;
-
-        case '--verify_implements':
-          verifyImplements = true;
-          break;
-
-        case '--compile_all':
-          compileAll = true;
-          break;
-
-        case '--check-only':
-          checkOnly = true;
-          break;
-
-        case '--diet-parse':
-          dietParse = true;
-          break;
-
-        case '--ignore-unrecognized-flags':
-          ignoreUnrecognizedFlags = true;
-          break;
-
-        case '--verbose':
-          showInfo = true;
-          break;
-
-        case '--suppress_warnings':
-          showWarnings = false;
-          break;
-
-        case '--warnings_as_errors':
-          warningsAsErrors = true;
-          break;
-
-        case '--throw_on_errors':
-          throwOnErrors = true;
-          break;
-
-        case '--throw_on_warnings':
-          throwOnWarnings = true;
-          break;
-
-        case '--compile-only':
-          // As opposed to compiling and running, the default behavior.
-          compileOnly = true;
-          break;
-
-        case '--Xforce_dynamic':
-          forceDynamic = true;
-          break;
-
-        case '--no_colors':
-          useColors = false;
-          break;
-
-        case '--Xinfer_types':
-          inferTypes = true;
-          break;
-
-        case '--checked':
-          enableTypeChecks = true;
-          enableAsserts = true;
-          break;
-
-        case '--unchecked':
-          disableBoundsChecks = true;
-          break;
-
-        default:
-          if (arg.endsWith('.dart')) {
-            dartScript = arg;
-            childArgs = args.getRange(i + 1, args.length - i - 1);
-            break loop;
-          } else if (arg.startsWith('--out=')) {
-            outfile = arg.substring('--out='.length);
-          } else if (arg.startsWith('--libdir=')) {
-            libDir = arg.substring('--libdir='.length);
-            passedLibDir = true;
-          } else {
-            if (!ignoreUnrecognizedFlags) {
-              print('unrecognized flag: "$arg"');
-            }
-          }
+      if (tryParseSimpleOption(arg)) continue;
+      if (arg.endsWith('.dart')) {
+        dartScript = arg;
+        childArgs = args.getRange(i + 1, args.length - i - 1);
+        break loop;
+      } else if (arg.startsWith('--out=')) {
+        outfile = arg.substring('--out='.length);
+      } else if (arg.startsWith('--libdir=')) {
+        libDir = arg.substring('--libdir='.length);
+        passedLibDir = true;
+      } else if (!ignoreUnrecognizedFlags) {
+        print('unrecognized flag: "$arg"');
       }
     }
 
@@ -192,5 +104,93 @@ class FrogOptions {
         libDir = 'lib';
       }
     }
+  }
+
+  bool tryParseSimpleOption(String option) {
+    if (!option.startsWith('--')) return false;
+    switch (option.replaceAll('_', '-')) {
+      case '--leg':
+      case '--enable-leg':
+      case '--leg-only':
+        legOnly = true;
+        return true;
+
+      case '--enable-asserts':
+        enableAsserts = true;
+        return true;
+
+      case '--enable-type-checks':
+        enableTypeChecks = true;
+        enableAsserts = true;  // TODO(kasperl): Remove once VM stops.
+        return true;
+
+      case '--verify-implements':
+        verifyImplements = true;
+        return true;
+
+      case '--compile-all':
+        compileAll = true;
+        return true;
+
+      case '--check-only':
+        checkOnly = true;
+        return true;
+
+      case '--diet-parse':
+        dietParse = true;
+        return true;
+
+      case '--ignore-unrecognized-flags':
+        ignoreUnrecognizedFlags = true;
+        return true;
+
+      case '--verbose':
+        showInfo = true;
+        return true;
+
+      case '--suppress-warnings':
+        showWarnings = false;
+        return true;
+
+      case '--warnings-as-errors':
+        warningsAsErrors = true;
+        return true;
+
+      case '--throw-on-errors':
+        throwOnErrors = true;
+        return true;
+
+      case '--throw-on-warnings':
+        throwOnWarnings = true;
+        return true;
+
+      case '--compile-only':
+        // As opposed to compiling and running, the default behavior.
+        compileOnly = true;
+        return true;
+
+      case '--Xforce-dynamic':
+        forceDynamic = true;
+        return true;
+
+      case '--no-colors':
+        useColors = false;
+        return true;
+
+      case '--Xinfer-types':
+        inferTypes = true;
+        return true;
+
+      case '--enable-checked-mode':
+      case '--checked':
+        enableTypeChecks = true;
+        enableAsserts = true;
+        return true;
+
+      case '--unchecked':
+        disableBoundsChecks = true;
+        return true;
+    }
+    return false;
   }
 }
