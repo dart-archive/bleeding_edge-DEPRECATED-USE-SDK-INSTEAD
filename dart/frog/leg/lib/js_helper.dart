@@ -1130,7 +1130,9 @@ class MathNatives {
   static int parseInt(str) {
     checkNull(str);
     if (str is !String) throw new IllegalArgumentException(str);
-    if (!JS('bool', @'/^\s*[+-]?(0[xX])?\d+\s*$/.test($0)', str)) {
+    if (!JS('bool',
+            @'/^\s*[+-]?(?:0[xX][abcdefABCDEF0-9]+|\d+)\s*$/.test($0)',
+            str)) {
       throw new BadNumberFormatException(str);
     }
     var trimmed = str.trim();

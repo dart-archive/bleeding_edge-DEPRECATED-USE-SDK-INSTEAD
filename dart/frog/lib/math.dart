@@ -51,8 +51,9 @@ class Math native 'Math' {
    * cannot be parsed as an [int].
    */
   static int parseInt(String str) native '''
-  var isHex = (str.length > 2) && str[0] == '0' &&
-              (str[1] == 'x' || str[1] == 'X');
+  var match = /^\\s*[+-]?(?:(0[xX][abcdefABCDEF0-9]+)|\\d+)\\s*\$/.exec(str);
+  if (!match) \$throw(new BadNumberFormatException(str));
+  var isHex = !!match[1];
   var ret = parseInt(str, isHex ? 16 : 10);
   if (isNaN(ret)) \$throw(new BadNumberFormatException(str));
   return ret;''' { throw new BadNumberFormatException(""); }
