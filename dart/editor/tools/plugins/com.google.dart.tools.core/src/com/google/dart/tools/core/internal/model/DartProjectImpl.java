@@ -510,7 +510,6 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
         return;
       }
       List<String> childPaths = getChildPaths(projectInfo, true);
-      projectInfo.setChildPaths(childPaths);
       setChildPaths(projectInfo, childPaths);
 
       if (childPaths.size() > 0) {
@@ -562,7 +561,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
         projectInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
       }
     } catch (DartModelException e) {
-      Util.log(e, "Failed to add the new libray file " + file.getName() + " to the project "
+      Util.log(e, "Failed to remove the new libray file " + file.getName() + " to the project "
           + getElementName());
     }
     return foundAndRemoved;
