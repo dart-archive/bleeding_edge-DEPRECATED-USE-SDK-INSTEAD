@@ -26,7 +26,7 @@ import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
-import com.google.dart.tools.ui.internal.projects.OpenNewProjectWizardAction;
+import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -463,7 +463,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     deployOptimizedAction = new GenerateJavascriptAction(window);
 
-    newApplicationWizardAction = new OpenNewProjectWizardAction();
+    newApplicationWizardAction = new OpenNewApplicationWizardAction();
 //TODO (pquitslund): deprecated libaries view support        
 //    newApplicationWizardAction = DartCoreDebug.PROJECTS_VIEW ? new OpenNewProjectWizardAction()
 //        : new OpenNewApplicationWizardAction();
@@ -810,11 +810,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         IWorkbenchActionConstants.M_FILE);
     menu.add(new GroupMarker(IWorkbenchActionConstants.FILE_START));
 
-    Action newProjectAction = new OpenNewProjectWizardAction();
-    newProjectAction.setText("New Project...");
+    Action newApplicationAction = new OpenNewApplicationWizardAction();
+    newApplicationAction.setText("New Application...");
     OpenNewFileWizardAction newFileAction = new OpenNewFileWizardAction(getWindow());
     newFileAction.setText("New File...");
-    menu.add(newProjectAction);
+    menu.add(newApplicationAction);
     menu.add(newFileAction);
     OpenNewFolderWizardAction newFolderAction = new OpenNewFolderWizardAction(getWindow());
     newFolderAction.setText("New Folder...");

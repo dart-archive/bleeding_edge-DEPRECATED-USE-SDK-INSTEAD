@@ -51,7 +51,7 @@ import java.net.URI;
 /**
  * New project creation page.
  */
-public class NewProjectCreationPage extends WizardPage {
+public class NewApplicationCreationPage extends WizardPage {
 
   public static enum ProjectType {
     NONE, SERVER, WEB
@@ -66,13 +66,13 @@ public class NewProjectCreationPage extends WizardPage {
   /**
    * Creates a new project creation wizard page.
    */
-  public NewProjectCreationPage() {
-    super("newProject"); //$NON-NLS-1$
+  public NewApplicationCreationPage() {
+    super("newApplication"); //$NON-NLS-1$
     setPageComplete(false);
     defaultLocation = getDefaultFolder();
 
-    setTitle(ProjectMessages.NewProjectCreationPage_NewProjectCreationPage_title);
-    setDescription(ProjectMessages.NewProjectCreationPage_description);
+    setTitle(ProjectMessages.OpenNewApplicationWizardAction_text);
+    setDescription(ProjectMessages.OpenNewApplicationWizardAction_desc);
     setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/wizban/newprj_wiz.png")); //$NON-NLS-1$
   }
 
@@ -296,7 +296,7 @@ public class NewProjectCreationPage extends WizardPage {
     webButton.setEnabled(!doesProjectExist());
 
     if (getProjectNameFieldValue().isEmpty()) {
-      setMessage(ProjectMessages.NewProjectCreationPage_create_msg);
+      setMessage(ProjectMessages.OpenNewApplicationWizardAction_desc);
       return;
     }
 

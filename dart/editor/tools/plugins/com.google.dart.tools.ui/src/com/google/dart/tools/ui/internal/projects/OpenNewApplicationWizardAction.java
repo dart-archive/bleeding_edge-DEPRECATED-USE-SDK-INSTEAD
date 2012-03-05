@@ -22,18 +22,18 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
 /**
- * Open a wizard to create a new project or import an existing project.
+ * Open a wizard to create a new application or import an existing application.
  */
-public class OpenNewProjectWizardAction extends AbstractOpenWizardAction implements
+public class OpenNewApplicationWizardAction extends AbstractOpenWizardAction implements
     IWorkbenchAction {
 
   private static final String ACTION_ID = "com.google.dart.tools.ui.project.new"; //$NON-NLS-1$
 
-  public OpenNewProjectWizardAction() {
-    setText(ProjectMessages.OpenNewProjectWizardAction_text);
-    setDescription(ProjectMessages.OpenNewProjectWizardAction_desc);
-    setToolTipText(ProjectMessages.OpenNewProjectWizardAction_tooltip);
-    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/newprj_wiz.gif")); //$NON-NLS-1$
+  public OpenNewApplicationWizardAction() {
+    setText(ProjectMessages.OpenNewApplicationWizardAction_text);
+    setDescription(ProjectMessages.OpenNewApplicationWizardAction_desc);
+    setToolTipText(ProjectMessages.OpenNewApplicationWizardAction_tooltip);
+    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/library_new.png")); //$NON-NLS-1$
     setId(ACTION_ID);
   }
 
@@ -44,7 +44,7 @@ public class OpenNewProjectWizardAction extends AbstractOpenWizardAction impleme
 
   @Override
   protected final INewWizard createWizard() throws CoreException {
-    return new CreateProjectWizard();
+    return new CreateApplicationWizard();
   }
 
 }

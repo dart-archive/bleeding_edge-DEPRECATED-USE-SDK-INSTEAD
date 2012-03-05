@@ -18,7 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.ApplicationGenerator;
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.projects.NewProjectCreationPage.ProjectType;
+import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.ICommand;
@@ -54,15 +54,15 @@ import java.net.URI;
  * Create project wizard.
  */
 @SuppressWarnings("restriction")
-public class CreateProjectWizard extends BasicNewResourceWizard {
+public class CreateApplicationWizard extends BasicNewResourceWizard {
 
-  private NewProjectCreationPage page;
+  private NewApplicationCreationPage page;
   private IFile createdFile;
   private IProject newProject;
 
   @Override
   public void addPages() {
-    addPage(page = new NewProjectCreationPage());
+    addPage(page = new NewApplicationCreationPage());
   }
 
   @Override

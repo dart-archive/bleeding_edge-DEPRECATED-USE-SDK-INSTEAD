@@ -23,7 +23,7 @@ import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.projects.CreateFileWizard;
 import com.google.dart.tools.ui.internal.projects.CreateFolderWizard;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
-import com.google.dart.tools.ui.internal.projects.OpenNewProjectWizardAction;
+import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.filesystem.IFileStore;
@@ -291,7 +291,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     manager.add(createFileAction);
     manager.add(createFolderAction);
-    manager.add(new OpenNewProjectWizardAction());
+    manager.add(new OpenNewApplicationWizardAction());
 
     // Rename... / Move..., iff single element and is an IResource
 

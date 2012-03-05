@@ -32,16 +32,14 @@ public class ProjectMessages extends NLS {
   public static String NewApplicationWizardPage_browse_label;
   public static String NewApplicationWizardPage_directory_label;
   public static String NewApplicationWizardPage_project_name_label;
-  public static String NewProjectCreationPage_create_msg;
-  public static String NewProjectCreationPage_description;
   public static String NewProjectCreationPage_invalid_loc;
   public static String NewProjectCreationPage_NewProjectCreationPage_title;
   public static String NewApplicationWizardPage_open_existing;
   public static String NewApplicationWizardPage_create_new;
   public static String NewApplicationWizardPage_create_metadata;
-  public static String OpenNewProjectWizardAction_desc;
-  public static String OpenNewProjectWizardAction_text;
-  public static String OpenNewProjectWizardAction_tooltip;
+  public static String OpenNewApplicationWizardAction_desc;
+  public static String OpenNewApplicationWizardAction_text;
+  public static String OpenNewApplicationWizardAction_tooltip;
   static {
     // initialize resource bundle
     NLS.initializeMessages(BUNDLE_NAME, ProjectMessages.class);
