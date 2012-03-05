@@ -34,10 +34,10 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
 class FiltersDialog extends StatusDialog {
-  private Label fNamesHelpText;
-  private Button fFilterOnNames;
-  private Text fNames;
-  private Text fMaxCallDepth;
+  private Label namesHelpText;
+  private Button filterOnNames;
+  private Text names;
+  private Text maxCallDepth;
 
   protected FiltersDialog(Shell parentShell) {
     super(parentShell);
@@ -76,9 +76,9 @@ class FiltersDialog extends StatusDialog {
   @Override
   protected void okPressed() {
     if (!isMaxCallDepthValid()) {
-      if (fMaxCallDepth.forceFocus()) {
-        fMaxCallDepth.setSelection(0, fMaxCallDepth.getCharCount());
-        fMaxCallDepth.showSelection();
+      if (maxCallDepth.forceFocus()) {
+        maxCallDepth.setSelection(0, maxCallDepth.getCharCount());
+        maxCallDepth.showSelection();
       }
     }
 
@@ -127,10 +127,10 @@ class FiltersDialog extends StatusDialog {
     label.setFont(composite.getFont());
     label.setText(CallHierarchyMessages.FiltersDialog_maxCallDepth);
 
-    fMaxCallDepth = new Text(composite, SWT.SINGLE | SWT.BORDER);
-    fMaxCallDepth.setFont(composite.getFont());
-    fMaxCallDepth.setTextLimit(6);
-    fMaxCallDepth.addModifyListener(new ModifyListener() {
+    maxCallDepth = new Text(composite, SWT.SINGLE | SWT.BORDER);
+    maxCallDepth.setFont(composite.getFont());
+    maxCallDepth.setTextLimit(6);
+    maxCallDepth.addModifyListener(new ModifyListener() {
       @Override
       public void modifyText(ModifyEvent e) {
         validateInput();
@@ -139,15 +139,15 @@ class FiltersDialog extends StatusDialog {
 
     GridData gridData = new GridData();
     gridData.widthHint = convertWidthInCharsToPixels(10);
-    fMaxCallDepth.setLayoutData(gridData);
+    maxCallDepth.setLayoutData(gridData);
   }
 
   private void createNamesArea(Composite parent) {
-    fFilterOnNames = createCheckbox(parent, CallHierarchyMessages.FiltersDialog_filterOnNames, true);
+    filterOnNames = createCheckbox(parent, CallHierarchyMessages.FiltersDialog_filterOnNames, true);
 
-    fNames = new Text(parent, SWT.SINGLE | SWT.BORDER);
-    fNames.setFont(parent.getFont());
-    fNames.addModifyListener(new ModifyListener() {
+    names = new Text(parent, SWT.SINGLE | SWT.BORDER);
+    names.setFont(parent.getFont());
+    names.addModifyListener(new ModifyListener() {
       @Override
       public void modifyText(ModifyEvent e) {
         validateInput();
@@ -156,15 +156,15 @@ class FiltersDialog extends StatusDialog {
 
     GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.GRAB_HORIZONTAL);
     gridData.widthHint = convertWidthInCharsToPixels(60);
-    fNames.setLayoutData(gridData);
+    names.setLayoutData(gridData);
 
-    fNamesHelpText = new Label(parent, SWT.LEFT);
-    fNamesHelpText.setFont(parent.getFont());
-    fNamesHelpText.setText(CallHierarchyMessages.FiltersDialog_filterOnNamesSubCaption);
+    namesHelpText = new Label(parent, SWT.LEFT);
+    namesHelpText.setFont(parent.getFont());
+    namesHelpText.setText(CallHierarchyMessages.FiltersDialog_filterOnNamesSubCaption);
   }
 
   private boolean isMaxCallDepthValid() {
-    String text = fMaxCallDepth.getText();
+    String text = maxCallDepth.getText();
     if (text.length() == 0) {
       return false;
     }
@@ -182,28 +182,28 @@ class FiltersDialog extends StatusDialog {
    * Updates the enabled state of the widgetry.
    */
   private void updateEnabledState() {
-    fNames.setEnabled(fFilterOnNames.getSelection());
-    fNamesHelpText.setEnabled(fFilterOnNames.getSelection());
+    names.setEnabled(filterOnNames.getSelection());
+    namesHelpText.setEnabled(filterOnNames.getSelection());
   }
 
   /**
    * Updates the given filter from the UI state.
    */
   private void updateFilterFromUI() {
-    int maxCallDepth = Integer.parseInt(this.fMaxCallDepth.getText());
+    int maxCallDepth = Integer.parseInt(this.maxCallDepth.getText());
 
     CallHierarchyUI.getDefault().setMaxCallDepth(maxCallDepth);
-    CallHierarchy.getDefault().setFilters(fNames.getText());
-    CallHierarchy.getDefault().setFilterEnabled(fFilterOnNames.getSelection());
+    CallHierarchy.getDefault().setFilters(names.getText());
+    CallHierarchy.getDefault().setFilterEnabled(filterOnNames.getSelection());
   }
 
   /**
    * Updates the UI state from the given filter.
    */
   private void updateUIFromFilter() {
-    fMaxCallDepth.setText(String.valueOf(CallHierarchyUI.getDefault().getMaxCallDepth()));
-    fNames.setText(CallHierarchy.getDefault().getFilters());
-    fFilterOnNames.setSelection(CallHierarchy.getDefault().isFilterEnabled());
+    maxCallDepth.setText(String.valueOf(CallHierarchyUI.getDefault().getMaxCallDepth()));
+    names.setText(CallHierarchy.getDefault().getFilters());
+    filterOnNames.setSelection(CallHierarchy.getDefault().isFilterEnabled());
     updateEnabledState();
   }
 

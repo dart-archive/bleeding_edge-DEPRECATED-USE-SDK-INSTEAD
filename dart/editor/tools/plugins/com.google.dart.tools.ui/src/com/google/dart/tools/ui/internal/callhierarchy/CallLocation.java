@@ -26,21 +26,20 @@ import org.eclipse.jface.text.Document;
 
 public class CallLocation implements IAdaptable {
   public static final int UNKNOWN_LINE_NUMBER = -1;
-  private CompilationUnitElement fMember;
-  private CompilationUnitElement fCalledMember;
-  private int fStart;
-  private int fEnd;
-
-  private String fCallText;
-  private int fLineNumber;
+  private CompilationUnitElement parentMember;
+  private CompilationUnitElement calledMember;
+  private int startPosition;
+  private int endPosition;
+  private String callText;
+  private int lineNumber;
 
   public CallLocation(CompilationUnitElement member, CompilationUnitElement calledMember,
       int start, int end, int lineNumber) {
-    this.fMember = member;
-    this.fCalledMember = calledMember;
-    this.fStart = start;
-    this.fEnd = end;
-    this.fLineNumber = lineNumber;
+    this.parentMember = member;
+    this.calledMember = calledMember;
+    this.startPosition = start;
+    this.endPosition = end;
+    this.lineNumber = lineNumber;
   }
 
   @Override
@@ -52,29 +51,29 @@ public class CallLocation implements IAdaptable {
   }
 
   public CompilationUnitElement getCalledMember() {
-    return fCalledMember;
+    return calledMember;
   }
 
   public String getCallText() {
     initCallTextAndLineNumber();
-    return fCallText;
+    return callText;
   }
 
-  public int getEnd() {
-    return fEnd;
+  public int getEndPosition() {
+    return endPosition;
   }
 
   public int getLineNumber() {
     initCallTextAndLineNumber();
-    return fLineNumber;
+    return lineNumber;
   }
 
   public DartElement getMember() {
-    return fMember;
+    return parentMember;
   }
 
-  public int getStart() {
-    return fStart;
+  public int getStartPosition() {
+    return startPosition;
   }
 
   @Override
@@ -90,8 +89,8 @@ public class CallLocation implements IAdaptable {
   private Buffer getBufferForMember() {
     Buffer buffer = null;
     try {
-      OpenableElement openable = fMember.getOpenable();
-      if (openable != null && fMember.exists()) {
+      OpenableElement openable = parentMember.getOpenable();
+      if (openable != null && parentMember.exists()) {
         buffer = openable.getBuffer();
       }
     } catch (DartModelException e) {
@@ -101,23 +100,23 @@ public class CallLocation implements IAdaptable {
   }
 
   private void initCallTextAndLineNumber() {
-    if (fCallText != null) {
+    if (callText != null) {
       return;
     }
 
     Buffer buffer = getBufferForMember();
-    if (buffer == null || buffer.getLength() < fEnd) { // buffer contents out of sync
-      fCallText = ""; //$NON-NLS-1$
-      fLineNumber = UNKNOWN_LINE_NUMBER;
+    if (buffer == null || buffer.getLength() < endPosition) { // buffer contents out of sync
+      callText = ""; //$NON-NLS-1$
+      lineNumber = UNKNOWN_LINE_NUMBER;
       return;
     }
 
-    fCallText = buffer.getText(fStart, (fEnd - fStart));
+    callText = buffer.getText(startPosition, (endPosition - startPosition));
 
-    if (fLineNumber == UNKNOWN_LINE_NUMBER) {
+    if (lineNumber == UNKNOWN_LINE_NUMBER) {
       Document document = new Document(buffer.getContents());
       try {
-        fLineNumber = document.getLineOfOffset(fStart) + 1;
+        lineNumber = document.getLineOfOffset(startPosition) + 1;
       } catch (BadLocationException e) {
         DartToolsPlugin.log(e);
       }

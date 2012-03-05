@@ -63,14 +63,13 @@ class HistoryAction extends Action {
     return DartElementLabels.getElementLabel(member, LABEL_FLAGS);
   }
 
-  private CallHierarchyViewPart fView;
-
-  private TypeMember[] fMembers;
+  private CallHierarchyViewPart chvPart;
+  private TypeMember[] members;
 
   public HistoryAction(CallHierarchyViewPart viewPart, TypeMember[] members) {
     super("", AS_RADIO_BUTTON); //$NON-NLS-1$
-    fView = viewPart;
-    fMembers = members;
+    chvPart = viewPart;
+    this.members = members;
 
     String elementName = getElementLabel(members);
     setText(elementName);
@@ -85,6 +84,6 @@ class HistoryAction extends Action {
 
   @Override
   public void run() {
-    fView.gotoHistoryEntry(fMembers);
+    chvPart.gotoHistoryEntry(members);
   }
 }

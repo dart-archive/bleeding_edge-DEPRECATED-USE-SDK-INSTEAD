@@ -21,9 +21,9 @@ import org.eclipse.jface.window.Window;
  * Action class to create and open the search in dialog.
  */
 public class ShowSearchInDialogAction extends Action {
-  private CallHierarchyViewPart fPart;
 
-  private SearchInDialog fSearchInDialog;
+  private CallHierarchyViewPart chvPart;
+  private SearchInDialog searchInDialog;
 
   /**
    * Action to show the <code>SearchInDialog</code>.
@@ -34,8 +34,8 @@ public class ShowSearchInDialogAction extends Action {
   public ShowSearchInDialogAction(CallHierarchyViewPart part, CallHierarchyViewer viewer) {
     Assert.isNotNull(part);
     Assert.isNotNull(viewer);
-    fPart = part;
-    fSearchInDialog = new SearchInDialog(fPart.getViewSite().getShell());
+    chvPart = part;
+    searchInDialog = new SearchInDialog(chvPart.getViewSite().getShell());
     setText(CallHierarchyMessages.ShowSearchInDialogAction_text);
   }
 
@@ -45,14 +45,14 @@ public class ShowSearchInDialogAction extends Action {
    * @return the <code>searchInDialog</code>
    */
   public SearchInDialog getSearchInDialog() {
-    return fSearchInDialog;
+    return searchInDialog;
   }
 
   @Override
   public void run() {
     SearchInDialog dialog = getSearchInDialog();
     if (dialog.open() == Window.OK && dialog.isIncludeMaskChanged()) {
-      fPart.setInputElements(fPart.getInputElements());
+      chvPart.setInputElements(chvPart.getInputElements());
     }
   }
 }

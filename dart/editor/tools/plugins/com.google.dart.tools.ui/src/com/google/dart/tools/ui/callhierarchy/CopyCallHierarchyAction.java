@@ -61,9 +61,9 @@ class CopyCallHierarchyAction extends Action {
     return stringWriter.toString();
   }
 
-  private CallHierarchyViewPart fView;
-  private CallHierarchyViewer fViewer;
-  private final Clipboard fClipboard;
+  private CallHierarchyViewPart view;
+  private CallHierarchyViewer viewer;
+  private final Clipboard clipboard;
 
   public CopyCallHierarchyAction(CallHierarchyViewPart view, Clipboard clipboard,
       CallHierarchyViewer viewer) {
@@ -71,9 +71,9 @@ class CopyCallHierarchyAction extends Action {
     Assert.isNotNull(clipboard);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
         DartHelpContextIds.CALL_HIERARCHY_COPY_ACTION);
-    fView = view;
-    fClipboard = clipboard;
-    fViewer = viewer;
+    this.view = view;
+    this.clipboard = clipboard;
+    this.viewer = viewer;
   }
 
   public boolean canActionBeAdded() {
@@ -84,17 +84,17 @@ class CopyCallHierarchyAction extends Action {
   @Override
   public void run() {
     StringBuffer buf = new StringBuffer();
-    addCalls(fViewer.getTree().getSelection()[0], 0, buf);
+    addCalls(viewer.getTree().getSelection()[0], 0, buf);
 
     TextTransfer plainTextTransfer = TextTransfer.getInstance();
     try {
-      fClipboard.setContents(new String[] {convertLineTerminators(buf.toString())},
+      clipboard.setContents(new String[] {convertLineTerminators(buf.toString())},
           new Transfer[] {plainTextTransfer});
     } catch (SWTError e) {
       if (e.code != DND.ERROR_CANNOT_SET_CLIPBOARD) {
         throw e;
       }
-      if (MessageDialog.openQuestion(fView.getViewSite().getShell(),
+      if (MessageDialog.openQuestion(view.getViewSite().getShell(),
           CallHierarchyMessages.CopyCallHierarchyAction_problem,
           CallHierarchyMessages.CopyCallHierarchyAction_clipboard_busy)) {
         run();
@@ -126,7 +126,7 @@ class CopyCallHierarchyAction extends Action {
   }
 
   private ISelection getSelection() {
-    ISelectionProvider provider = fView.getSite().getSelectionProvider();
+    ISelectionProvider provider = view.getSite().getSelectionProvider();
     if (provider != null) {
       return provider.getSelection();
     }

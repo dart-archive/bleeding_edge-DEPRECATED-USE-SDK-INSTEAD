@@ -55,7 +55,7 @@ public class CallHierarchyFiltersActionGroup extends ActionGroup {
     }
   }
 
-  private IViewPart fPart;
+  private IViewPart viewPart;
 
   /**
    * Creates a new <code>CustomFiltersActionGroup</code>.
@@ -66,7 +66,7 @@ public class CallHierarchyFiltersActionGroup extends ActionGroup {
   public CallHierarchyFiltersActionGroup(IViewPart part, StructuredViewer viewer) {
     Assert.isNotNull(part);
     Assert.isNotNull(viewer);
-    fPart = part;
+    viewPart = part;
   }
 
   @Override
@@ -86,12 +86,12 @@ public class CallHierarchyFiltersActionGroup extends ActionGroup {
   }
 
 //  private void openExpandWithConstructorsDialog() {
-//    Shell parentShell = fPart.getViewSite().getShell();
+//    Shell parentShell = viewPart.getViewSite().getShell();
 //    new ExpandWithConstructorsDialog(parentShell).open();
 //  }
 
   private void openFiltersDialog() {
-    FiltersDialog dialog = new FiltersDialog(fPart.getViewSite().getShell());
+    FiltersDialog dialog = new FiltersDialog(viewPart.getViewSite().getShell());
     dialog.open();
   }
 }

@@ -23,8 +23,8 @@ import org.eclipse.ui.PlatformUI;
  */
 public class SelectFieldModeAction extends Action {
 
-  private CallHierarchyViewPart fView;
-  private int fMode;
+  private CallHierarchyViewPart chvPart;
+  private int mode;
 
   public SelectFieldModeAction(CallHierarchyViewPart v, int mode) {
     super(null, AS_RADIO_BUTTON);
@@ -40,18 +40,18 @@ public class SelectFieldModeAction extends Action {
 //    } else {
 //      Assert.isTrue(false);
 //    }
-    fView = v;
-    fMode = mode;
+    this.chvPart = v;
+    this.mode = mode;
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
         DartHelpContextIds.CALL_HIERARCHY_TOGGLE_CALL_MODE_ACTION);
   }
 
   public int getMode() {
-    return fMode;
+    return mode;
   }
 
   @Override
   public void run() {
-    fView.setFieldMode(fMode); // will toggle the checked state
+    chvPart.setFieldMode(mode); // will toggle the checked state
   }
 }

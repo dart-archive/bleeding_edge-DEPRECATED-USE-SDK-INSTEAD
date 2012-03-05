@@ -18,11 +18,11 @@ import com.google.dart.tools.core.search.SearchScope;
 import org.eclipse.jface.action.Action;
 
 abstract class SearchScopeAction extends Action {
-  private final SearchScopeActionGroup fGroup;
+  private final SearchScopeActionGroup group;
 
   public SearchScopeAction(SearchScopeActionGroup group, String text) {
     super(text, AS_RADIO_BUTTON);
-    this.fGroup = group;
+    this.group = group;
   }
 
   /**
@@ -45,8 +45,8 @@ abstract class SearchScopeAction extends Action {
 
   @Override
   public void run() {
-    this.fGroup.setSelected(this, true);
-    CallHierarchyViewPart part = this.fGroup.getView();
+    this.group.setSelected(this, true);
+    CallHierarchyViewPart part = this.group.getView();
     part.setInputElements(part.getInputElements());
   }
 }

@@ -35,7 +35,7 @@ public class RefreshElementAction extends Action {
   /**
    * The call hierarchy viewer.
    */
-  private final CallHierarchyViewer fViewer;
+  private final CallHierarchyViewer viewer;
 
   /**
    * Creates the action to refresh a single element in the call hierarchy.
@@ -43,7 +43,7 @@ public class RefreshElementAction extends Action {
    * @param viewer the call hierarchy viewer
    */
   public RefreshElementAction(CallHierarchyViewer viewer) {
-    fViewer = viewer;
+    this.viewer = viewer;
     setText(CallHierarchyMessages.RefreshSingleElementAction_text);
     setToolTipText(CallHierarchyMessages.RefreshSingleElementAction_tooltip);
     setDescription(CallHierarchyMessages.RefreshSingleElementAction_description);
@@ -58,23 +58,23 @@ public class RefreshElementAction extends Action {
   public void run() {
     IStructuredSelection selection = (IStructuredSelection) getSelection();
     if (selection.isEmpty()) {
-      fViewer.getPart().refresh();
+      viewer.getPart().refresh();
       return;
     }
     List<MethodWrapper> toExpand = new ArrayList<MethodWrapper>();
     for (Iterator<?> iter = selection.iterator(); iter.hasNext();) {
       MethodWrapper element = (MethodWrapper) iter.next();
-      boolean isExpanded = fViewer.getExpandedState(element);
+      boolean isExpanded = viewer.getExpandedState(element);
       element.removeFromCache();
       if (isExpanded) {
-        fViewer.setExpandedState(element, false);
+        viewer.setExpandedState(element, false);
         toExpand.add(element);
       }
-      fViewer.refresh(element);
+      viewer.refresh(element);
     }
     for (Iterator<MethodWrapper> iter = toExpand.iterator(); iter.hasNext();) {
       MethodWrapper elem = iter.next();
-      fViewer.setExpandedState(elem, true);
+      viewer.setExpandedState(elem, true);
     }
   }
 
@@ -84,6 +84,6 @@ public class RefreshElementAction extends Action {
    * @return the current selection
    */
   private ISelection getSelection() {
-    return fViewer.getSelection();
+    return viewer.getSelection();
   }
 }

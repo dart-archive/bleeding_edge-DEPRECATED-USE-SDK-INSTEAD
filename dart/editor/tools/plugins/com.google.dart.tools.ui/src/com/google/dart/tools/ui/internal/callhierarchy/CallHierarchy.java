@@ -42,8 +42,8 @@ public class CallHierarchy {
   private static final String PREF_USE_FILTERS = "PREF_USE_FILTERS"; //$NON-NLS-1$
   private static final String PREF_FILTERS_LIST = "PREF_FILTERS_LIST"; //$NON-NLS-1$
 
-  private static final String DEFAULT_IGNORE_FILTERS = "java.*,javax.*"; //$NON-NLS-1$
-  private static CallHierarchy fgInstance;
+  private static final String DEFAULT_IGNORE_FILTERS = ""; //$NON-NLS-1$
+  private static CallHierarchy SINGLETON;
 
   public static boolean arePossibleInputElements(List<?> elements) {
     if (elements.size() < 1) {
@@ -75,11 +75,10 @@ public class CallHierarchy {
   }
 
   public static CallHierarchy getDefault() {
-    if (fgInstance == null) {
-      fgInstance = new CallHierarchy();
+    if (SINGLETON == null) {
+      SINGLETON = new CallHierarchy();
     }
-
-    return fgInstance;
+    return SINGLETON;
   }
 
   public static boolean isPossibleInputElement(Object element) {
@@ -120,9 +119,11 @@ public class CallHierarchy {
     return list.toArray(new StringMatcher[list.size()]);
   }
 
-  private SearchScope fSearchScope;
+  private SearchScope searchScope;
+  private StringMatcher[] filters;
 
-  private StringMatcher[] fFilters;
+  private CallHierarchy() {
+  }
 
   public MethodWrapper[] getCalleeRoots(DartElement[] members) {
     return getRoots(members, false);
@@ -170,11 +171,11 @@ public class CallHierarchy {
   }
 
   public SearchScope getSearchScope() {
-    if (fSearchScope == null) {
-      fSearchScope = SearchScopeFactory.createWorkspaceScope();
+    if (searchScope == null) {
+      searchScope = SearchScopeFactory.createWorkspaceScope();
     }
 
-    return fSearchScope;
+    return searchScope;
   }
 
   public boolean isFilterEnabled() {
@@ -214,14 +215,14 @@ public class CallHierarchy {
   }
 
   public void setFilters(String filters) {
-    fFilters = null;
+    this.filters = null;
 
     IPreferenceStore settings = DartToolsPlugin.getDefault().getPreferenceStore();
     settings.setValue(PREF_FILTERS_LIST, filters);
   }
 
   public void setSearchScope(SearchScope searchScope) {
-    this.fSearchScope = searchScope;
+    this.searchScope = searchScope;
   }
 
   public void setSearchUsingImplementorsEnabled(boolean enabled) {
@@ -247,7 +248,7 @@ public class CallHierarchy {
    * @return StringMatcher[]
    */
   private StringMatcher[] getIgnoreFilters() {
-    if (fFilters == null) {
+    if (filters == null) {
       String filterString = null;
 
       if (isFilterEnabled()) {
@@ -259,13 +260,13 @@ public class CallHierarchy {
       }
 
       if (filterString != null) {
-        fFilters = parseList(filterString);
+        filters = parseList(filterString);
       } else {
-        fFilters = null;
+        filters = null;
       }
     }
 
-    return fFilters;
+    return filters;
   }
 
   private MethodWrapper[] getRoots(DartElement[] members, boolean callers) {

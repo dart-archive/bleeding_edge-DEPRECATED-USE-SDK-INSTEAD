@@ -20,10 +20,10 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.ui.PlatformUI;
 
 class RefreshViewAction extends Action {
-  private CallHierarchyViewPart fPart;
+  private CallHierarchyViewPart chvPart;
 
   public RefreshViewAction(CallHierarchyViewPart part) {
-    fPart = part;
+    chvPart = part;
     setText(CallHierarchyMessages.RefreshViewAction_text);
     setToolTipText(CallHierarchyMessages.RefreshViewAction_tooltip);
     DartPluginImages.setLocalImageDescriptors(this, "refresh.gif");//$NON-NLS-1$
@@ -34,6 +34,6 @@ class RefreshViewAction extends Action {
 
   @Override
   public void run() {
-    fPart.refresh();
+    chvPart.refresh();
   }
 }

@@ -30,36 +30,38 @@ import java.util.Map;
  * This class represents the general parts of a method call (either to or from a method).
  */
 public abstract class MethodWrapper extends PlatformObject {
-  private Map<String, MethodCall> fElements = null;
 
-  /*
+  private Map<String, MethodCall> elements = null;
+
+  /**
    * A cache of previously found methods. This cache should be searched before adding a "new" method
    * object reference to the list of elements. This way previously found methods won't be searched
    * again.
    */
-  private Map<String, Map<String, MethodCall>> fMethodCache;
-  private final MethodCall fMethodCall;
-  private final MethodWrapper fParent;
-  private int fLevel;
+  private Map<String, Map<String, MethodCall>> methodCache;
+  private final MethodCall methodCall;
+  private final MethodWrapper parent;
+  private int level;
+
   /**
    * One of {@link IJavaSearchConstants#REFERENCES}, {@link IJavaSearchConstants#READ_ACCESSES}, or
    * {@link IJavaSearchConstants#WRITE_ACCESSES}, or 0 if not set. Only used for root wrappers.
    */
-  private int fFieldSearchMode;
+  private int fieldSearchMode;
 
   public MethodWrapper(MethodWrapper parent, MethodCall methodCall) {
     Assert.isNotNull(methodCall);
 
     if (parent == null) {
       setMethodCache(new HashMap<String, Map<String, MethodCall>>());
-      fLevel = 1;
+      level = 1;
     } else {
       setMethodCache(parent.getMethodCache());
-      fLevel = parent.getLevel() + 1;
+      level = parent.getLevel() + 1;
     }
 
-    this.fMethodCall = methodCall;
-    this.fParent = parent;
+    this.methodCall = methodCall;
+    this.parent = parent;
   }
 
   /**
@@ -88,12 +90,12 @@ public abstract class MethodWrapper extends PlatformObject {
 
     MethodWrapper other = (MethodWrapper) oth;
 
-    if (this.fParent == null) {
-      if (other.fParent != null) {
+    if (this.parent == null) {
+      if (other.parent != null) {
         return false;
       }
     } else {
-      if (!this.fParent.equals(other.fParent)) {
+      if (!this.parent.equals(other.parent)) {
         return false;
       }
     }
@@ -123,15 +125,15 @@ public abstract class MethodWrapper extends PlatformObject {
   }
 
   public MethodWrapper[] getCalls(IProgressMonitor progressMonitor) {
-    if (fElements == null) {
+    if (elements == null) {
       doFindChildren(progressMonitor);
     }
 
-    MethodWrapper[] result = new MethodWrapper[fElements.size()];
+    MethodWrapper[] result = new MethodWrapper[elements.size()];
     int i = 0;
 
-    for (Iterator<String> iter = fElements.keySet().iterator(); iter.hasNext();) {
-      MethodCall methodCall = getMethodCallFromMap(fElements, iter.next());
+    for (Iterator<String> iter = elements.keySet().iterator(); iter.hasNext();) {
+      MethodCall methodCall = getMethodCallFromMap(elements, iter.next());
       result[i++] = createMethodWrapper(methodCall);
     }
 
@@ -139,13 +141,13 @@ public abstract class MethodWrapper extends PlatformObject {
   }
 
   public int getFieldSearchMode() {
-    if (fFieldSearchMode != 0) {
-      return fFieldSearchMode;
+    if (fieldSearchMode != 0) {
+      return fieldSearchMode;
     }
     MethodWrapper parent = getParent();
     while (parent != null) {
-      if (parent.fFieldSearchMode != 0) {
-        return parent.fFieldSearchMode;
+      if (parent.fieldSearchMode != 0) {
+        return parent.fieldSearchMode;
       } else {
         parent = parent.getParent();
       }
@@ -154,7 +156,7 @@ public abstract class MethodWrapper extends PlatformObject {
   }
 
   public int getLevel() {
-    return fLevel;
+    return level;
   }
 
   public DartElement getMember() {
@@ -162,7 +164,7 @@ public abstract class MethodWrapper extends PlatformObject {
   }
 
   public MethodCall getMethodCall() {
-    return fMethodCall;
+    return methodCall;
   }
 
   public String getName() {
@@ -174,7 +176,7 @@ public abstract class MethodWrapper extends PlatformObject {
   }
 
   public MethodWrapper getParent() {
-    return fParent;
+    return parent;
   }
 
   @Override
@@ -182,8 +184,8 @@ public abstract class MethodWrapper extends PlatformObject {
     final int PRIME = 1000003;
     int result = 0;
 
-    if (fParent != null) {
-      result = (PRIME * result) + fParent.hashCode();
+    if (parent != null) {
+      result = (PRIME * result) + parent.hashCode();
     }
 
     if (getMethodCall() != null) {
@@ -200,7 +202,7 @@ public abstract class MethodWrapper extends PlatformObject {
    * @return True if the call is part of a recursion
    */
   public boolean isRecursive() {
-    if (fParent instanceof RealCallers) {
+    if (parent instanceof RealCallers) {
       return false;
     }
     MethodWrapper current = getParent();
@@ -220,12 +222,12 @@ public abstract class MethodWrapper extends PlatformObject {
    * Removes the given method call from the cache.
    */
   public void removeFromCache() {
-    fElements = null;
-    fMethodCache.remove(getMethodCall().getKey());
+    elements = null;
+    methodCache.remove(getMethodCall().getKey());
   }
 
   public void setFieldSearchMode(int fieldSearchMode) {
-    fFieldSearchMode = fieldSearchMode;
+    this.fieldSearchMode = fieldSearchMode;
   }
 
   /**
@@ -270,8 +272,8 @@ public abstract class MethodWrapper extends PlatformObject {
     Map<String, MethodCall> existingResults = lookupMethod(getMethodCall());
 
     if (existingResults != null && !existingResults.isEmpty()) {
-      fElements = new HashMap<String, MethodCall>();
-      fElements.putAll(existingResults);
+      elements = new HashMap<String, MethodCall>();
+      elements.putAll(existingResults);
     } else {
       initCalls();
 
@@ -282,7 +284,7 @@ public abstract class MethodWrapper extends PlatformObject {
       try {
         performSearch(progressMonitor);
       } catch (OperationCanceledException e) {
-        fElements = null;
+        elements = null;
         throw e;
       } finally {
         if (progressMonitor != null) {
@@ -293,7 +295,7 @@ public abstract class MethodWrapper extends PlatformObject {
   }
 
   private Map<String, Map<String, MethodCall>> getMethodCache() {
-    return fMethodCache;
+    return methodCache;
   }
 
   private MethodCall getMethodCallFromMap(Map<String, MethodCall> elements, String key) {
@@ -306,7 +308,7 @@ public abstract class MethodWrapper extends PlatformObject {
   }
 
   private void initCalls() {
-    this.fElements = new HashMap<String, MethodCall>();
+    this.elements = new HashMap<String, MethodCall>();
 
     initCacheForMethod();
   }
@@ -322,17 +324,17 @@ public abstract class MethodWrapper extends PlatformObject {
   }
 
   private void performSearch(IProgressMonitor progressMonitor) {
-    fElements = findChildren(progressMonitor);
+    elements = findChildren(progressMonitor);
 
-    for (Iterator<String> iter = fElements.keySet().iterator(); iter.hasNext();) {
+    for (Iterator<String> iter = elements.keySet().iterator(); iter.hasNext();) {
       checkCanceled(progressMonitor);
 
-      MethodCall methodCall = getMethodCallFromMap(fElements, iter.next());
+      MethodCall methodCall = getMethodCallFromMap(elements, iter.next());
       addCallToCache(methodCall);
     }
   }
 
   private void setMethodCache(Map<String, Map<String, MethodCall>> methodCache) {
-    fMethodCache = methodCache;
+    this.methodCache = methodCache;
   }
 }

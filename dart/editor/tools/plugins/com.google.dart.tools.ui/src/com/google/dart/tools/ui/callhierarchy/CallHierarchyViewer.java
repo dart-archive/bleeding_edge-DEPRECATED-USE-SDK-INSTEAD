@@ -33,12 +33,10 @@ import org.eclipse.ui.IWorkbenchPartSite;
 
 class CallHierarchyViewer extends TreeViewer {
 
-  private final CallHierarchyViewPart fPart;
-  private final CallHierarchyContentProvider fContentProvider;
-
-  private CallerMethodWrapper fConstructorToExpand;
-
-  private TreeRoot fDummyRoot;
+  private final CallHierarchyViewPart part;
+  private final CallHierarchyContentProvider contentProvider;
+  private CallerMethodWrapper constructorToExpand;
+  private TreeRoot dummyRoot;
 
   /**
    * @param parent the parent composite
@@ -46,16 +44,13 @@ class CallHierarchyViewer extends TreeViewer {
    */
   CallHierarchyViewer(Composite parent, CallHierarchyViewPart part) {
     super(new Tree(parent, SWT.MULTI));
-
-    fPart = part;
-
+    this.part = part;
     getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
     setUseHashlookup(true);
     setAutoExpandLevel(2);
-    fContentProvider = new CallHierarchyContentProvider(fPart);
-    setContentProvider(fContentProvider);
+    contentProvider = new CallHierarchyContentProvider(part);
+    setContentProvider(contentProvider);
     setLabelProvider(new ColoringLabelProvider(new CallHierarchyLabelProvider()));
-
     clearViewer();
   }
 
@@ -83,29 +78,29 @@ class CallHierarchyViewer extends TreeViewer {
   }
 
   void cancelJobs() {
-    if (fPart == null) {
+    if (part == null) {
       return;
     }
-    fContentProvider.cancelJobs(fPart.getCurrentMethodWrappers());
+    contentProvider.cancelJobs(part.getCurrentMethodWrappers());
   }
 
   void clearViewer() {
     setInput(TreeRoot.EMPTY_ROOT);
-    fDummyRoot = null;
+    dummyRoot = null;
   }
 
   /**
    * Expands the constructor node when in expand with constructors mode.
    */
   void expandConstructorNode() {
-    if (fConstructorToExpand != null) {
-      setExpandedState(fConstructorToExpand, true);
-      fConstructorToExpand = null;
+    if (constructorToExpand != null) {
+      setExpandedState(constructorToExpand, true);
+      constructorToExpand = null;
     }
   }
 
   CallHierarchyViewPart getPart() {
-    return fPart;
+    return part;
   }
 
   /**
@@ -117,12 +112,12 @@ class CallHierarchyViewer extends TreeViewer {
    * @return a new TreeRoot which is a dummy root above the specified root
    */
   TreeRoot getTreeRoot(MethodWrapper[] roots, boolean addRoots) {
-    if (fDummyRoot == null || !addRoots) {
-      fDummyRoot = new TreeRoot(roots);
+    if (dummyRoot == null || !addRoots) {
+      dummyRoot = new TreeRoot(roots);
     } else {
-      fDummyRoot.addRoots(roots);
+      dummyRoot.addRoots(roots);
     }
-    return fDummyRoot;
+    return dummyRoot;
   }
 
   /**
@@ -176,6 +171,6 @@ class CallHierarchyViewer extends TreeViewer {
    * @param wrapper the constructor caller method wrapper
    */
   private void setConstructorToExpand(CallerMethodWrapper wrapper) {
-    fConstructorToExpand = wrapper;
+    constructorToExpand = wrapper;
   }
 }

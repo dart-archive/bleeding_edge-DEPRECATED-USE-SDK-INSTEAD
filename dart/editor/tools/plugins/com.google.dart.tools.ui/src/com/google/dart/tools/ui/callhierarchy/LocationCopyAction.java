@@ -34,18 +34,18 @@ import java.util.Iterator;
  * Copies the selection from the location viewer.
  */
 class LocationCopyAction extends Action {
-  private final Clipboard fClipboard;
-  private final IViewSite fViewSite;
-  private final LocationViewer fLocationViewer;
+  private final Clipboard clipboard;
+  private final IViewSite viewSite;
+  private final LocationViewer locationViewer;
 
   LocationCopyAction(IViewSite viewSite, Clipboard clipboard, LocationViewer locationViewer) {
-    fClipboard = clipboard;
-    fViewSite = viewSite;
-    fLocationViewer = locationViewer;
+    this.clipboard = clipboard;
+    this.viewSite = viewSite;
+    this.locationViewer = locationViewer;
 
     setText(CallHierarchyMessages.LocationCopyAction_copy);
     setActionDefinitionId(IWorkbenchCommandConstants.EDIT_COPY);
-    setEnabled(!fLocationViewer.getSelection().isEmpty());
+    setEnabled(!locationViewer.getSelection().isEmpty());
 
     locationViewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
@@ -57,7 +57,7 @@ class LocationCopyAction extends Action {
 
   @Override
   public void run() {
-    IStructuredSelection selection = (IStructuredSelection) fLocationViewer.getSelection();
+    IStructuredSelection selection = (IStructuredSelection) locationViewer.getSelection();
     StringBuffer buf = new StringBuffer();
     for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
       CallLocation location = (CallLocation) iterator.next();
@@ -66,14 +66,14 @@ class LocationCopyAction extends Action {
     }
     TextTransfer plainTextTransfer = TextTransfer.getInstance();
     try {
-      fClipboard.setContents(
+      clipboard.setContents(
           new String[] {CopyCallHierarchyAction.convertLineTerminators(buf.toString())},
           new Transfer[] {plainTextTransfer});
     } catch (SWTError e) {
       if (e.code != DND.ERROR_CANNOT_SET_CLIPBOARD) {
         throw e;
       }
-      if (MessageDialog.openQuestion(fViewSite.getShell(),
+      if (MessageDialog.openQuestion(viewSite.getShell(),
           CallHierarchyMessages.CopyCallHierarchyAction_problem,
           CallHierarchyMessages.CopyCallHierarchyAction_clipboard_busy)) {
         run();

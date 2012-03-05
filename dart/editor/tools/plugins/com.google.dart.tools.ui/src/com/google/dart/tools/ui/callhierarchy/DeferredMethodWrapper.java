@@ -50,11 +50,11 @@ public class DeferredMethodWrapper extends MethodWrapperWorkbenchAdapter impleme
     }
   }
 
-  private final CallHierarchyContentProvider fProvider;
+  private final CallHierarchyContentProvider provider;
 
   DeferredMethodWrapper(CallHierarchyContentProvider provider, MethodWrapper methodWrapper) {
     super(methodWrapper);
-    this.fProvider = provider;
+    this.provider = provider;
   }
 
   @Override
@@ -62,7 +62,7 @@ public class DeferredMethodWrapper extends MethodWrapperWorkbenchAdapter impleme
       IProgressMonitor monitor) {
     final DeferredMethodWrapper deferredMethodWrapper = (DeferredMethodWrapper) object;
     try {
-      fProvider.startFetching();
+      provider.startFetching();
       collector.add((Object[]) deferredMethodWrapper.getCalls(monitor), monitor);
       collector.done();
     } catch (OperationCanceledException e) {
@@ -71,9 +71,9 @@ public class DeferredMethodWrapper extends MethodWrapperWorkbenchAdapter impleme
         Display.getDefault().asyncExec(new Runnable() {
           @Override
           public void run() {
-            CallHierarchyViewPart viewPart = fProvider.getViewPart();
+            CallHierarchyViewPart viewPart = provider.getViewPart();
             if (viewPart != null && !viewPart.getViewer().getControl().isDisposed()) {
-              fProvider.collapseAndRefresh(methodWrapper);
+              provider.collapseAndRefresh(methodWrapper);
             }
           }
         });
@@ -81,13 +81,13 @@ public class DeferredMethodWrapper extends MethodWrapperWorkbenchAdapter impleme
     } catch (Exception e) {
       DartToolsPlugin.log(e);
     } finally {
-      fProvider.doneFetching();
+      provider.doneFetching();
     }
   }
 
   @Override
   public Object[] getChildren(Object o) {
-    return this.fProvider.fetchChildren(((DeferredMethodWrapper) o).getMethodWrapper());
+    return this.provider.fetchChildren(((DeferredMethodWrapper) o).getMethodWrapper());
   }
 
   @Override

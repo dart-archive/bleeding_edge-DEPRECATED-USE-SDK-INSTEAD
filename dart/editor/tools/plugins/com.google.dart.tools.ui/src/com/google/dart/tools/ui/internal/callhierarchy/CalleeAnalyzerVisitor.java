@@ -43,22 +43,21 @@ import java.util.Map;
 
 public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
 
-  private final CallSearchResultCollector fSearchResults;
-  private final DartElement fMember;
-  private final IProgressMonitor fProgressMonitor;
-  private int fMethodEndPosition;
-
-  private int fMethodStartPosition;
+  private final CallSearchResultCollector searchResults;
+  private final DartElement memberToAnalyze;
+  private final IProgressMonitor progressMonitor;
+  private int methodEndPosition;
+  private int methodStartPosition;
 
   CalleeAnalyzerVisitor(DartElement member, IProgressMonitor progressMonitor) {
-    fSearchResults = new CallSearchResultCollector();
-    this.fMember = member;
-    this.fProgressMonitor = progressMonitor;
+    searchResults = new CallSearchResultCollector();
+    this.memberToAnalyze = member;
+    this.progressMonitor = progressMonitor;
 
     try {
       SourceRange sourceRange = ((SourceReference) member).getSourceRange();
-      this.fMethodStartPosition = sourceRange.getOffset();
-      this.fMethodEndPosition = fMethodStartPosition + sourceRange.getLength();
+      this.methodStartPosition = sourceRange.getOffset();
+      this.methodEndPosition = methodStartPosition + sourceRange.getLength();
     } catch (DartModelException jme) {
       DartCore.logError(jme);
     }
@@ -68,7 +67,7 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
    * @return a map from handle identifier ({@link String}) to {@link MethodCall}
    */
   public Map<String, MethodCall> getCallees() {
-    return fSearchResults.getCallers();
+    return searchResults.getCallers();
   }
 
   @Override
@@ -112,147 +111,6 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
     return visitInvocation(node);
   }
 
-//  @Override
-//  public boolean visit(AbstractTypeDeclaration node) {
-//    progressMonitorWorked(1);
-//    if (!isFurtherTraversalNecessary(node)) {
-//      return false;
-//    }
-//
-//    if (isNodeWithinMethod(node)) {
-//      List<BodyDeclaration> bodyDeclarations = node.bodyDeclarations();
-//      for (Iterator<BodyDeclaration> iter = bodyDeclarations.iterator(); iter.hasNext();) {
-//        BodyDeclaration bodyDeclaration = iter.next();
-//        if (bodyDeclaration instanceof MethodDeclaration) {
-//          MethodDeclaration child = (MethodDeclaration) bodyDeclaration;
-//          if (child.isConstructor()) {
-//            addMethodCall(child.resolveBinding(), child.getName());
-//          }
-//        }
-//      }
-//      return false;
-//    }
-//
-//    return true;
-//  }
-//
-//  /**
-//   * When an anonymous class declaration is reached, the traversal should not go further since it's
-//   * not supposed to consider calls inside the anonymous inner class as calls from the outer method.
-//   * 
-//   * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.AnonymousClassDeclaration)
-//   */
-//  @Override
-//  public boolean visit(AnonymousClassDeclaration node) {
-//    return isNodeEnclosingMethod(node);
-//  }
-//
-//  @Override
-//  public boolean visit(ClassInstanceCreation node) {
-//    progressMonitorWorked(1);
-//    if (!isFurtherTraversalNecessary(node)) {
-//      return false;
-//    }
-//
-//    if (isNodeWithinMethod(node)) {
-//      addMethodCall(node.resolveConstructorBinding(), node);
-//    }
-//
-//    return true;
-//  }
-//
-//  /**
-//   * Find all constructor invocations (<code>this(...)</code>) from the called method. Since we only
-//   * traverse into the AST on the wanted method declaration, this method should not hit on more
-//   * constructor invocations than those in the wanted method.
-//   * 
-//   * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.ConstructorInvocation)
-//   */
-//  @Override
-//  public boolean visit(ConstructorInvocation node) {
-//    progressMonitorWorked(1);
-//    if (!isFurtherTraversalNecessary(node)) {
-//      return false;
-//    }
-//
-//    if (isNodeWithinMethod(node)) {
-//      addMethodCall(node.resolveConstructorBinding(), node);
-//    }
-//
-//    return true;
-//  }
-//
-//  @Override
-//  public boolean visit(MethodDeclaration node) {
-//    progressMonitorWorked(1);
-//    return isFurtherTraversalNecessary(node);
-//  }
-//
-//  /**
-//   * Find all method invocations from the called method. Since we only traverse into the AST on the
-//   * wanted method declaration, this method should not hit on more method invocations than those in
-//   * the wanted method.
-//   * 
-//   * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.MethodInvocation)
-//   */
-//  @Override
-//  public boolean visit(MethodInvocation node) {
-//    progressMonitorWorked(1);
-//    if (!isFurtherTraversalNecessary(node)) {
-//      return false;
-//    }
-//
-//    if (isNodeWithinMethod(node)) {
-//      addMethodCall(node.resolveMethodBinding(), node);
-//    }
-//
-//    return true;
-//  }
-//
-//  /**
-//   * Find invocations of the supertype's constructor from the called method (=constructor). Since we
-//   * only traverse into the AST on the wanted method declaration, this method should not hit on more
-//   * method invocations than those in the wanted method.
-//   * 
-//   * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.SuperConstructorInvocation)
-//   */
-//  @Override
-//  public boolean visit(SuperConstructorInvocation node) {
-//    progressMonitorWorked(1);
-//    if (!isFurtherTraversalNecessary(node)) {
-//      return false;
-//    }
-//
-//    if (isNodeWithinMethod(node)) {
-//      addMethodCall(node.resolveConstructorBinding(), node);
-//    }
-//
-//    return true;
-//  }
-//
-//  /**
-//   * Find all method invocations from the called method. Since we only traverse into the AST on the
-//   * wanted method declaration, this method should not hit on more method invocations than those in
-//   * the wanted method.
-//   * 
-//   * @param node node to visit
-//   * @return whether children should be visited
-//   * @see org.eclipse.jdt.core.dom.ASTVisitor#visit(org.eclipse.jdt.core.dom.MethodInvocation)
-//   */
-//  @Override
-//  public boolean visit(SuperMethodInvocation node) {
-//    progressMonitorWorked(1);
-//    if (!isFurtherTraversalNecessary(node)) {
-//      return false;
-//    }
-//
-//    if (isNodeWithinMethod(node)) {
-//      addMethodCall(node.resolveMethodBinding(), node);
-//    }
-//
-//    return true;
-//  }
-
   /**
    * Adds the specified method binding to the search results.
    * 
@@ -264,7 +122,7 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
       return;
     }
     if (calledMethodBinding instanceof MethodElement) {
-      fProgressMonitor.worked(1);
+      progressMonitor.worked(1);
       MethodElement calledElement = (MethodElement) calledMethodBinding;
       ClassElement classElement = (ClassElement) calledElement.getEnclosingElement();
       Method calledMethod = (Method) BindingUtils.getDartElement(calledElement);
@@ -278,7 +136,7 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
       }
       final int position = node.getSourceStart();
       final int number = node.getSourceLine();
-      fSearchResults.addMember(fMember, referencedMember, position,
+      searchResults.addMember(memberToAnalyze, referencedMember, position,
           position + node.getSourceLength(), number < 1 ? 1 : number);
     }
   }
@@ -314,7 +172,7 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
     int nodeStartPosition = node.getSourceStart();
     int nodeEndPosition = nodeStartPosition + node.getSourceLength();
 
-    if (nodeStartPosition < fMethodStartPosition && nodeEndPosition > fMethodEndPosition) {
+    if (nodeStartPosition < methodStartPosition && nodeEndPosition > methodEndPosition) {
       // Is the method completely enclosed by the node?
       return true;
     }
@@ -325,11 +183,11 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
     int nodeStartPosition = node.getSourceStart();
     int nodeEndPosition = nodeStartPosition + node.getSourceLength();
 
-    if (nodeStartPosition < fMethodStartPosition) {
+    if (nodeStartPosition < methodStartPosition) {
       return false;
     }
 
-    if (nodeEndPosition > fMethodEndPosition) {
+    if (nodeEndPosition > methodEndPosition) {
       return false;
     }
 
@@ -337,9 +195,9 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
   }
 
   private void progressMonitorWorked(int work) {
-    if (fProgressMonitor != null) {
-      fProgressMonitor.worked(work);
-      if (fProgressMonitor.isCanceled()) {
+    if (progressMonitor != null) {
+      progressMonitor.worked(work);
+      if (progressMonitor.isCanceled()) {
         throw new OperationCanceledException();
       }
     }

@@ -46,9 +46,9 @@ public class HistoryListAction extends Action {
 
   private class HistoryListDialog extends StatusDialog {
 
-    private ListDialogField fHistoryList;
-    private IStatus fHistoryStatus;
-    private TypeMember[] fResult;
+    private ListDialogField historyList;
+    private IStatus historyStatus;
+    private TypeMember[] result;
 
     private HistoryListDialog(Shell shell, TypeMember[][] elements) {
       super(shell);
@@ -95,10 +95,10 @@ public class HistoryListAction extends Action {
         }
       };
 
-      fHistoryList = new ListDialogField(adapter, buttonLabels, new ColoringLabelProvider(
+      historyList = new ListDialogField(adapter, buttonLabels, new ColoringLabelProvider(
           labelProvider));
-      fHistoryList.setLabelText(CallHierarchyMessages.HistoryListDialog_label);
-      fHistoryList.setElements(Arrays.asList(elements));
+      historyList.setLabelText(CallHierarchyMessages.HistoryListDialog_label);
+      historyList.setElements(Arrays.asList(elements));
 
       ISelection sel;
       if (elements.length > 0) {
@@ -107,16 +107,16 @@ public class HistoryListAction extends Action {
         sel = new StructuredSelection();
       }
 
-      fHistoryList.selectElements(sel);
+      historyList.selectElements(sel);
     }
 
     public TypeMember[][] getRemaining() {
-      List<Object> elems = fHistoryList.getElements();
+      List<Object> elems = historyList.getElements();
       return elems.toArray(new TypeMember[elems.size()][]);
     }
 
     public TypeMember[] getResult() {
-      return fResult;
+      return result;
     }
 
     @Override
@@ -136,9 +136,9 @@ public class HistoryListAction extends Action {
       inner.setLayoutData(new GridData(GridData.FILL_BOTH));
       inner.setFont(composite.getFont());
 
-      LayoutUtil.doDefaultLayout(inner, new DialogField[] {fHistoryList}, true, 0, 0);
-      LayoutUtil.setHeightHint(fHistoryList.getListControl(null), convertHeightInCharsToPixels(12));
-      LayoutUtil.setHorizontalGrabbing(fHistoryList.getListControl(null));
+      LayoutUtil.doDefaultLayout(inner, new DialogField[] {historyList}, true, 0, 0);
+      LayoutUtil.setHeightHint(historyList.getListControl(null), convertHeightInCharsToPixels(12));
+      LayoutUtil.setHorizontalGrabbing(historyList.getListControl(null));
 
       applyDialogFont(composite);
       return composite;
@@ -153,26 +153,26 @@ public class HistoryListAction extends Action {
      * Method doCustomButtonPressed.
      */
     private void doCustomButtonPressed() {
-      fHistoryList.removeElements(fHistoryList.getSelectedElements());
+      historyList.removeElements(historyList.getSelectedElements());
     }
 
     private void doDoubleClicked() {
-      if (fHistoryStatus.isOK()) {
+      if (historyStatus.isOK()) {
         okPressed();
       }
     }
 
     private void doSelectionChanged() {
       StatusInfo status = new StatusInfo();
-      List<Object> selected = fHistoryList.getSelectedElements();
+      List<Object> selected = historyList.getSelectedElements();
       if (selected.size() != 1) {
         status.setError(""); //$NON-NLS-1$
-        fResult = null;
+        result = null;
       } else {
-        fResult = (TypeMember[]) selected.get(0);
+        result = (TypeMember[]) selected.get(0);
       }
-      fHistoryList.enableButton(0, fHistoryList.getSize() > selected.size() && selected.size() != 0);
-      fHistoryStatus = status;
+      historyList.enableButton(0, historyList.getSize() > selected.size() && selected.size() != 0);
+      historyStatus = status;
       updateStatus(status);
     }
 

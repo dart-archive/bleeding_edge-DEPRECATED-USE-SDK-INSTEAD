@@ -21,17 +21,17 @@ import org.eclipse.ui.model.IWorkbenchAdapter;
 
 public class MethodWrapperWorkbenchAdapter implements IWorkbenchAdapter {
 
-  private final MethodWrapper fMethodWrapper;
+  private final MethodWrapper methodWrapper;
 
   public MethodWrapperWorkbenchAdapter(MethodWrapper methodWrapper) {
     Assert.isNotNull(methodWrapper);
-    fMethodWrapper = methodWrapper;
+    this.methodWrapper = methodWrapper;
   }
 
   @Override
   public boolean equals(Object obj) {
     //Note: A MethodWrapperWorkbenchAdapter is equal to its MethodWrapper and vice versa (bug 101677).
-    return fMethodWrapper.equals(obj);
+    return methodWrapper.equals(obj);
   }
 
   @Override
@@ -46,21 +46,21 @@ public class MethodWrapperWorkbenchAdapter implements IWorkbenchAdapter {
 
   @Override
   public String getLabel(Object o) {
-    return fMethodWrapper.getMember().getElementName();
+    return methodWrapper.getMember().getElementName();
   }
 
   public MethodWrapper getMethodWrapper() {
-    return fMethodWrapper;
+    return methodWrapper;
   }
 
   @Override
   public Object getParent(Object o) {
-    return fMethodWrapper.getParent();
+    return methodWrapper.getParent();
   }
 
   @Override
   public int hashCode() {
     //Note: A MethodWrapperWorkbenchAdapter is equal to its MethodWrapper and vice versa (bug 101677).
-    return fMethodWrapper.hashCode();
+    return methodWrapper.hashCode();
   }
 }

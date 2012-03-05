@@ -34,10 +34,10 @@ import org.eclipse.ui.PlatformUI;
  */
 class SearchInDialog extends TrayDialog {
 
-  private Button[] fIncludeMasks;
-  private IDialogSettings fSettings;
-  private int fIncludeMask;
-  private boolean fIncludeMaskChanged = false;
+  private Button[] includeMasks;
+  private IDialogSettings settings;
+  private int includeMask;
+  private boolean includeMaskChanged = false;
 
   /**
    * Section ID for the SearchInDialog class.
@@ -52,16 +52,16 @@ class SearchInDialog extends TrayDialog {
 
   public SearchInDialog(Shell parentShell) {
     super(parentShell);
-    fSettings = DartToolsPlugin.getDefault().getDialogSettings().getSection(DIALOG_SETTINGS_SECTION);
-    if (fSettings == null) {
-      fSettings = DartToolsPlugin.getDefault().getDialogSettings().addNewSection(
+    settings = DartToolsPlugin.getDefault().getDialogSettings().getSection(DIALOG_SETTINGS_SECTION);
+    if (settings == null) {
+      settings = DartToolsPlugin.getDefault().getDialogSettings().addNewSection(
           DIALOG_SETTINGS_SECTION);
-      fSettings.put(SEARCH_IN_SOURCES, true);
-      fSettings.put(SEARCH_IN_PROJECTS, true);
-      fSettings.put(SEARCH_IN_JRE, true);
-      fSettings.put(SEARCH_IN_APPLIBS, true);
+      settings.put(SEARCH_IN_SOURCES, true);
+      settings.put(SEARCH_IN_PROJECTS, true);
+      settings.put(SEARCH_IN_JRE, true);
+      settings.put(SEARCH_IN_APPLIBS, true);
     }
-//    fIncludeMask = getInt(fKeys);
+//    includeMask = getInt(fKeys);
   }
 
   /**
@@ -71,7 +71,7 @@ class SearchInDialog extends TrayDialog {
    *         <code>false</code> otherwise
    */
   public boolean isIncludeMaskChanged() {
-    return fIncludeMaskChanged;
+    return includeMaskChanged;
   }
 
   @Override
@@ -100,14 +100,14 @@ class SearchInDialog extends TrayDialog {
   @Override
   protected void okPressed() {
     int mask = getIncludeMask();
-    if (mask != fIncludeMask) {
-      fIncludeMask = mask;
-      for (int i = 0; i < fIncludeMasks.length; i++) {
-        fSettings.put(fKeys[i], fIncludeMasks[i].getSelection());
+    if (mask != includeMask) {
+      includeMask = mask;
+      for (int i = 0; i < includeMasks.length; i++) {
+        settings.put(fKeys[i], includeMasks[i].getSelection());
       }
-      fIncludeMaskChanged = true;
+      includeMaskChanged = true;
     } else {
-      fIncludeMaskChanged = false;
+      includeMaskChanged = false;
     }
     super.okPressed();
   }
@@ -126,12 +126,12 @@ class SearchInDialog extends TrayDialog {
    * @return the include mask
    */
   int getIncludeMask() {
-    if (fIncludeMasks == null || fIncludeMasks[0].isDisposed()) {
-      return fIncludeMask;
+    if (includeMasks == null || includeMasks[0].isDisposed()) {
+      return includeMask;
     }
     int mask = 0;
-    for (int i = 0; i < fIncludeMasks.length; i++) {
-      Button button = fIncludeMasks[i];
+    for (int i = 0; i < includeMasks.length; i++) {
+      Button button = includeMasks[i];
       if (button.getSelection()) {
         mask |= getIntData(button);
       }
@@ -185,7 +185,7 @@ class SearchInDialog extends TrayDialog {
 //      }
 //    };
 //    for (int i = 0; i < fIncludeMasks.length; i++) {
-//      fIncludeMasks[i].addSelectionListener(listener);
+//      includeMasks[i].addSelectionListener(listener);
 //    }
 
     return result;
@@ -202,7 +202,7 @@ class SearchInDialog extends TrayDialog {
     int mask = 0;
     int val = 0;
     for (int i = 0; i < str.length; i++) {
-      value = fSettings.getBoolean(str[i]);
+      value = settings.getBoolean(str[i]);
       if (value) {
         switch (i) {
 //          case 0:

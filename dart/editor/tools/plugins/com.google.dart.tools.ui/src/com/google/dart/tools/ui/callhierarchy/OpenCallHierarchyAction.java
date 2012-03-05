@@ -45,7 +45,7 @@ import java.util.List;
  */
 public class OpenCallHierarchyAction extends SelectionDispatchAction {
 
-  private DartEditor fEditor;
+  private DartEditor editor;
 
   /**
    * Note: This constructor is for internal use only. Clients should not call this constructor.
@@ -54,8 +54,8 @@ public class OpenCallHierarchyAction extends SelectionDispatchAction {
    */
   public OpenCallHierarchyAction(DartEditor editor) {
     this(editor.getEditorSite());
-    fEditor = editor;
-    setEnabled(SelectionConverter.canOperateOn(fEditor));
+    this.editor = editor;
+    setEnabled(SelectionConverter.canOperateOn(editor));
   }
 
   /**
@@ -97,13 +97,13 @@ public class OpenCallHierarchyAction extends SelectionDispatchAction {
     if (!DartCoreDebug.ENABLE_CALL_GRAPH) {
       return;
     }
-    CompilationUnit input = SelectionConverter.getInputAsCompilationUnit(fEditor);
+    CompilationUnit input = SelectionConverter.getInputAsCompilationUnit(editor);
     if (!ActionUtil.isProcessable(getShell(), input)) {
       return;
     }
 
     try {
-      DartElement[] elements = SelectionConverter.codeResolveOrInputForked(fEditor);
+      DartElement[] elements = SelectionConverter.codeResolveOrInputForked(editor);
       if (elements == null) {
         return;
       }

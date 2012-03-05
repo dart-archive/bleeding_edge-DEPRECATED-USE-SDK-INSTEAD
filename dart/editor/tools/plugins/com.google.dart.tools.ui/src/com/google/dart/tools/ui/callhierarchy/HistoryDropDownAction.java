@@ -48,12 +48,12 @@ class HistoryDropDownAction extends Action implements IMenuCreator {
   }
 
   public static final int RESULTS_IN_DROP_DOWN = 10;
-  private CallHierarchyViewPart fView;
-  private Menu fMenu;
+  private CallHierarchyViewPart chvPart;
+  private Menu menu;
 
   public HistoryDropDownAction(CallHierarchyViewPart view) {
-    fView = view;
-    fMenu = null;
+    chvPart = view;
+    menu = null;
     setToolTipText(CallHierarchyMessages.HistoryDropDownAction_tooltip);
     DartPluginImages.setLocalImageDescriptors(this, "history_list.gif"); //$NON-NLS-1$
 
@@ -65,26 +65,26 @@ class HistoryDropDownAction extends Action implements IMenuCreator {
 
   @Override
   public void dispose() {
-    fView = null;
+    chvPart = null;
 
-    if (fMenu != null) {
-      fMenu.dispose();
-      fMenu = null;
+    if (menu != null) {
+      menu.dispose();
+      menu = null;
     }
   }
 
   @Override
   public Menu getMenu(Control parent) {
-    if (fMenu != null) {
-      fMenu.dispose();
+    if (menu != null) {
+      menu.dispose();
     }
-    fMenu = new Menu(parent);
-    TypeMember[][] elements = fView.getHistoryEntries();
-    addEntries(fMenu, elements);
-    new MenuItem(fMenu, SWT.SEPARATOR);
-    addActionToMenu(fMenu, new HistoryListAction(fView));
-    addActionToMenu(fMenu, new ClearHistoryAction(fView));
-    return fMenu;
+    menu = new Menu(parent);
+    TypeMember[][] elements = chvPart.getHistoryEntries();
+    addEntries(menu, elements);
+    new MenuItem(menu, SWT.SEPARATOR);
+    addActionToMenu(menu, new HistoryListAction(chvPart));
+    addActionToMenu(menu, new ClearHistoryAction(chvPart));
+    return menu;
   }
 
   @Override
@@ -94,7 +94,7 @@ class HistoryDropDownAction extends Action implements IMenuCreator {
 
   @Override
   public void run() {
-    new HistoryListAction(fView).run();
+    new HistoryListAction(chvPart).run();
   }
 
   protected void addActionToMenu(Menu parent, Action action) {
@@ -108,8 +108,8 @@ class HistoryDropDownAction extends Action implements IMenuCreator {
     int min = Math.min(elements.length, RESULTS_IN_DROP_DOWN);
 
     for (int i = 0; i < min; i++) {
-      HistoryAction action = new HistoryAction(fView, elements[i]);
-      action.setChecked(Arrays.equals(elements[i], fView.getInputElements()));
+      HistoryAction action = new HistoryAction(chvPart, elements[i]);
+      action.setChecked(Arrays.equals(elements[i], chvPart.getInputElements()));
       checked = checked || action.isChecked();
       addActionToMenu(menu, action);
     }

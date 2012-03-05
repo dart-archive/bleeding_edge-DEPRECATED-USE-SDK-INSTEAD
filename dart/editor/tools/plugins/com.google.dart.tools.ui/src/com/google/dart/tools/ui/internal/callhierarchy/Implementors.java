@@ -28,16 +28,19 @@ import java.util.Collection;
 
 public class Implementors {
   private static IImplementorFinder[] IMPLEMENTOR_FINDERS = new IImplementorFinder[] {new DartImplementorFinder()};
-  private static Implementors fgInstance;
+  private static Implementors SINGLETON;
 
   /**
    * Returns the shared instance.
    */
   public static Implementors getInstance() {
-    if (fgInstance == null) {
-      fgInstance = new Implementors();
+    if (SINGLETON == null) {
+      SINGLETON = new Implementors();
     }
-    return fgInstance;
+    return SINGLETON;
+  }
+
+  private Implementors() {
   }
 
   /**

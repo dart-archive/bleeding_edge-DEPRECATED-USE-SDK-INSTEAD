@@ -41,11 +41,11 @@ class CallHierarchyLabelProvider extends AppearanceAwareLabelProvider {
 
   private static final int IMAGEFLAGS = DEFAULT_IMAGEFLAGS | DartElementImageProvider.SMALL_ICONS;
 
-  private ILabelDecorator fDecorator;
+  private ILabelDecorator decorator;
 
   CallHierarchyLabelProvider() {
     super(TEXTFLAGS, IMAGEFLAGS);
-    fDecorator = new CallHierarchyLabelDecorator();
+    decorator = new CallHierarchyLabelDecorator();
   }
 
   @Override
@@ -59,7 +59,7 @@ class CallHierarchyLabelProvider extends AppearanceAwareLabelProvider {
       }
       DartElement member = methodWrapper.getMember();
       if (member != null) {
-        return fDecorator.decorateImage(super.getImage(member), methodWrapper);
+        return decorator.decorateImage(super.getImage(member), methodWrapper);
       } else {
         return null;
       }

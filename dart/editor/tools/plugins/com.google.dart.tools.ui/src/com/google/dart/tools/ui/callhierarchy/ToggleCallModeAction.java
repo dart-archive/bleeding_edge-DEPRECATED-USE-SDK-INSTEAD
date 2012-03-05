@@ -26,8 +26,8 @@ import org.eclipse.ui.PlatformUI;
  */
 class ToggleCallModeAction extends Action {
 
-  private CallHierarchyViewPart fView;
-  private int fMode;
+  private CallHierarchyViewPart chvPart;
+  private int mode;
 
   public ToggleCallModeAction(CallHierarchyViewPart v, int mode) {
     super("", AS_RADIO_BUTTON); //$NON-NLS-1$
@@ -44,18 +44,18 @@ class ToggleCallModeAction extends Action {
     } else {
       Assert.isTrue(false);
     }
-    fView = v;
-    fMode = mode;
+    this.chvPart = v;
+    this.mode = mode;
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
         DartHelpContextIds.CALL_HIERARCHY_TOGGLE_CALL_MODE_ACTION);
   }
 
   public int getMode() {
-    return fMode;
+    return mode;
   }
 
   @Override
   public void run() {
-    fView.setCallMode(fMode); // will toggle the checked state
+    chvPart.setCallMode(mode); // will toggle the checked state
   }
 }

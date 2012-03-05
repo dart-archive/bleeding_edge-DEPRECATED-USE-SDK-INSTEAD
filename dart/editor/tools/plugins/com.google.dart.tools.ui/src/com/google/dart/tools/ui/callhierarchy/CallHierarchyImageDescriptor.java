@@ -30,9 +30,9 @@ public class CallHierarchyImageDescriptor extends CompositeImageDescriptor {
   /** Flag to render the callee adornment */
   public final static int MAX_LEVEL = 0x002;
 
-  private ImageDescriptor fBaseImage;
-  private int fFlags;
-  private Point fSize;
+  private ImageDescriptor baseImage;
+  private int flags;
+  private Point size;
 
   /**
    * Creates a new CallHierarchyImageDescriptor.
@@ -44,12 +44,12 @@ public class CallHierarchyImageDescriptor extends CompositeImageDescriptor {
    * @see #setAdornments(int)
    */
   public CallHierarchyImageDescriptor(ImageDescriptor baseImage, int flags, Point size) {
-    fBaseImage = baseImage;
-    Assert.isNotNull(fBaseImage);
-    fFlags = flags;
-    Assert.isTrue(fFlags >= 0);
-    fSize = size;
-    Assert.isNotNull(fSize);
+    this.baseImage = baseImage;
+    Assert.isNotNull(baseImage);
+    this.flags = flags;
+    Assert.isTrue(flags >= 0);
+    this.size = size;
+    Assert.isNotNull(size);
   }
 
   @Override
@@ -59,7 +59,7 @@ public class CallHierarchyImageDescriptor extends CompositeImageDescriptor {
     }
 
     CallHierarchyImageDescriptor other = (CallHierarchyImageDescriptor) object;
-    return (fBaseImage.equals(other.fBaseImage) && fFlags == other.fFlags && fSize.equals(other.fSize));
+    return (baseImage.equals(other.baseImage) && flags == other.flags && size.equals(other.size));
   }
 
   /**
@@ -68,7 +68,7 @@ public class CallHierarchyImageDescriptor extends CompositeImageDescriptor {
    * @return the current adornments
    */
   public int getAdronments() {
-    return fFlags;
+    return flags;
   }
 
   /**
@@ -78,12 +78,12 @@ public class CallHierarchyImageDescriptor extends CompositeImageDescriptor {
    * @see ImageDescriptor#createImage()
    */
   public Point getImageSize() {
-    return new Point(fSize.x, fSize.y);
+    return new Point(size.x, size.y);
   }
 
   @Override
   public int hashCode() {
-    return fBaseImage.hashCode() | fFlags | fSize.hashCode();
+    return baseImage.hashCode() | flags | size.hashCode();
   }
 
   /**
@@ -94,7 +94,7 @@ public class CallHierarchyImageDescriptor extends CompositeImageDescriptor {
    */
   public void setAdornments(int adornments) {
     Assert.isTrue(adornments >= 0);
-    fFlags = adornments;
+    flags = adornments;
   }
 
   /**
@@ -106,12 +106,12 @@ public class CallHierarchyImageDescriptor extends CompositeImageDescriptor {
   public void setImageSize(Point size) {
     Assert.isNotNull(size);
     Assert.isTrue(size.x >= 0 && size.y >= 0);
-    fSize = size;
+    size = size;
   }
 
   @Override
   protected void drawCompositeImage(int width, int height) {
-    ImageData bg = getImageData(fBaseImage);
+    ImageData bg = getImageData(baseImage);
 
     drawImage(bg, 0, 0);
     drawBottomLeft();
@@ -119,19 +119,19 @@ public class CallHierarchyImageDescriptor extends CompositeImageDescriptor {
 
   @Override
   protected Point getSize() {
-    return fSize;
+    return size;
   }
 
   private void drawBottomLeft() {
     Point size = getSize();
     int x = 0;
     ImageData data = null;
-    if ((fFlags & RECURSIVE) != 0) {
+    if ((flags & RECURSIVE) != 0) {
       data = getImageData(DartPluginImages.DESC_OVR_RECURSIVE);
       drawImage(data, x, size.y - data.height);
       x += data.width;
     }
-    if ((fFlags & MAX_LEVEL) != 0) {
+    if ((flags & MAX_LEVEL) != 0) {
       data = getImageData(DartPluginImages.DESC_OVR_MAX_LEVEL);
       drawImage(data, x, size.y - data.height);
       x += data.width;

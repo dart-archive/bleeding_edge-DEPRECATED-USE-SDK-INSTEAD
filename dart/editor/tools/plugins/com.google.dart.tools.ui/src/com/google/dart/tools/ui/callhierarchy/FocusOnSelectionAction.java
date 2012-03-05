@@ -28,11 +28,11 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.PlatformUI;
 
 class FocusOnSelectionAction extends Action {
-  private CallHierarchyViewPart fPart;
+  private CallHierarchyViewPart chvPart;
 
   public FocusOnSelectionAction(CallHierarchyViewPart part) {
     super(CallHierarchyMessages.FocusOnSelectionAction_focusOnSelection_text);
-    fPart = part;
+    chvPart = part;
     setDescription(CallHierarchyMessages.FocusOnSelectionAction_focusOnSelection_description);
     setToolTipText(CallHierarchyMessages.FocusOnSelectionAction_focusOnSelection_tooltip);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
@@ -56,14 +56,11 @@ class FocusOnSelectionAction extends Action {
     }
   }
 
-  /*
-   * @see Action#run
-   */
   @Override
   public void run() {
     CompilationUnitElement[] members = getSelectedInputElements();
     if (members != null) {
-      fPart.setInputElements(members);
+      chvPart.setInputElements(members);
     }
   }
 
@@ -95,7 +92,7 @@ class FocusOnSelectionAction extends Action {
   }
 
   private ISelection getSelection() {
-    ISelectionProvider provider = fPart.getSite().getSelectionProvider();
+    ISelectionProvider provider = chvPart.getSite().getSelectionProvider();
 
     if (provider != null) {
       return provider.getSelection();

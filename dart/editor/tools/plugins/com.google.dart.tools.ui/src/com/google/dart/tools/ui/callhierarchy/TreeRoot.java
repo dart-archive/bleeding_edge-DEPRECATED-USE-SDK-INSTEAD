@@ -21,25 +21,25 @@ import java.util.List;
 
 public class TreeRoot {
   public static final Object EMPTY_ROOT = new Object();
-  private MethodWrapper[] fRoots;
+  private MethodWrapper[] roots;
 
   public TreeRoot(MethodWrapper[] roots) {
-    this.fRoots = roots;
+    this.roots = roots;
   }
 
   /**
    * Adds the new roots to the list.
    * 
-   * @param roots the roots to add
+   * @param moreRoots the roots to add
    */
-  void addRoots(MethodWrapper[] roots) {
+  void addRoots(MethodWrapper[] moreRoots) {
     List<MethodWrapper> newRoots = new ArrayList<MethodWrapper>();
-    newRoots.addAll(Arrays.asList(fRoots));
     newRoots.addAll(Arrays.asList(roots));
-    fRoots = newRoots.toArray(new MethodWrapper[newRoots.size()]);
+    newRoots.addAll(Arrays.asList(moreRoots));
+    roots = newRoots.toArray(new MethodWrapper[newRoots.size()]);
   }
 
   MethodWrapper[] getRoots() {
-    return fRoots;
+    return roots;
   }
 }

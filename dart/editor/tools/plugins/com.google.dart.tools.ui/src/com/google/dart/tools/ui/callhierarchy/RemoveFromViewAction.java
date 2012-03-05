@@ -39,12 +39,12 @@ class RemoveFromViewAction extends Action {
   /**
    * The Call Hierarchy view part.
    */
-  private CallHierarchyViewPart fPart;
+  private CallHierarchyViewPart chvPart;
 
   /**
    * The Call Hierarchy viewer.
    */
-  private CallHierarchyViewer fCallHierarchyViewer;
+  private CallHierarchyViewer callHierarchyViewer;
 
   /**
    * Creates the hide single node action.
@@ -53,8 +53,8 @@ class RemoveFromViewAction extends Action {
    * @param viewer the call hierarchy viewer
    */
   public RemoveFromViewAction(CallHierarchyViewPart part, CallHierarchyViewer viewer) {
-    fPart = part;
-    fCallHierarchyViewer = viewer;
+    chvPart = part;
+    callHierarchyViewer = viewer;
     setText(CallHierarchyMessages.RemoveFromViewAction_removeFromView_text);
     setDescription(CallHierarchyMessages.RemoveFromViewAction_removeFromView_description);
     setToolTipText(CallHierarchyMessages.RemoveFromViewAction_removeFromView_tooltip);
@@ -69,7 +69,7 @@ class RemoveFromViewAction extends Action {
 
   @Override
   public void run() {
-    DartElement[] inputElements = fPart.getInputElements();
+    DartElement[] inputElements = chvPart.getInputElements();
     List<DartElement> inputList = new ArrayList<DartElement>(Arrays.asList(inputElements));
     DartElement[] selection = getSelectedElements();
     for (int i = 0; i < selection.length; i++) {
@@ -78,10 +78,10 @@ class RemoveFromViewAction extends Action {
       }
     }
     if (inputList.size() > 0) {
-      fPart.updateInputHistoryAndDescription(inputElements,
+      chvPart.updateInputHistoryAndDescription(inputElements,
           inputList.toArray(new TypeMember[inputList.size()]));
     }
-    TreeItem[] items = fCallHierarchyViewer.getTree().getSelection();
+    TreeItem[] items = callHierarchyViewer.getTree().getSelection();
     for (int i = 0; i < items.length; i++) {
       items[i].dispose();
     }
@@ -106,7 +106,7 @@ class RemoveFromViewAction extends Action {
       }
     }
 
-    TreeItem[] items = fCallHierarchyViewer.getTree().getSelection();
+    TreeItem[] items = callHierarchyViewer.getTree().getSelection();
     for (int k = 0; k < items.length; k++) {
       if (!checkForChildren(items[k])) {
         return false;
@@ -166,6 +166,6 @@ class RemoveFromViewAction extends Action {
    * @return the current selection
    */
   private ISelection getSelection() {
-    return fPart.getSelection();
+    return chvPart.getSelection();
   }
 }

@@ -27,15 +27,15 @@ import org.eclipse.ui.IWorkbenchSite;
 import java.util.Iterator;
 
 class OpenLocationAction extends SelectionDispatchAction {
-  private CallHierarchyViewPart fPart;
+  private CallHierarchyViewPart chvPart;
 
   public OpenLocationAction(CallHierarchyViewPart part, IWorkbenchSite site) {
     super(site);
-    fPart = part;
-    LocationViewer viewer = fPart.getLocationViewer();
+    chvPart = part;
+    LocationViewer viewer = chvPart.getLocationViewer();
     setText(CallHierarchyMessages.OpenLocationAction_label);
     setToolTipText(CallHierarchyMessages.OpenLocationAction_tooltip);
-    setEnabled(!fPart.getSelection().isEmpty());
+    setEnabled(!chvPart.getSelection().isEmpty());
 
     viewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
@@ -47,7 +47,7 @@ class OpenLocationAction extends SelectionDispatchAction {
 
   @Override
   public ISelection getSelection() {
-    return fPart.getSelection();
+    return chvPart.getSelection();
   }
 
   @Override

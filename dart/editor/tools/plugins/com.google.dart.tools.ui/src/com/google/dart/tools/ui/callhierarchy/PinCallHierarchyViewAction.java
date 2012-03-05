@@ -24,7 +24,7 @@ import org.eclipse.ui.PlatformUI;
  * The action to pin the Call Hierarchy view.
  */
 class PinCallHierarchyViewAction extends Action {
-  private CallHierarchyViewPart fView = null;
+  private CallHierarchyViewPart chvPart = null;
 
   /**
    * Constructs a 'Pin Call Hierarchy view' action.
@@ -37,11 +37,11 @@ class PinCallHierarchyViewAction extends Action {
     DartPluginImages.setLocalImageDescriptors(this, "pin_view.gif"); //$NON-NLS-1$
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
         DartHelpContextIds.CALL_HIERARCHY_PIN_VIEW_ACTION);
-    fView = view;
+    chvPart = view;
   }
 
   @Override
   public void run() {
-    fView.setPinned(isChecked());
+    chvPart.setPinned(isChecked());
   }
 }

@@ -24,10 +24,10 @@ public interface IImplementorFinder {
   /**
    * Find implementors of the specified Type instance.
    */
-  public abstract Collection<Type> findImplementingTypes(Type type, IProgressMonitor progressMonitor);
+  Collection<Type> findImplementingTypes(Type type, IProgressMonitor progressMonitor);
 
   /**
    * Find interfaces which are implemented by the specified Type instance.
    */
-  public abstract Collection<Type> findInterfaces(Type type, IProgressMonitor progressMonitor);
+  Collection<Type> findInterfaces(Type type, IProgressMonitor progressMonitor);
 }

@@ -48,7 +48,7 @@ public class CallerMethodWrapper extends MethodWrapper {
   /**
    * Tells whether the expand with constructors mode has been set.
    */
-  private boolean fIsExpandWithConstructorsSet;
+  private boolean isExpandWithConstructorsSet;
 
   public CallerMethodWrapper(MethodWrapper parent, MethodCall methodCall) {
     super(parent, methodCall);
@@ -80,7 +80,7 @@ public class CallerMethodWrapper extends MethodWrapper {
    *         if not yet set
    */
   public boolean getExpandWithConstructors() {
-    return fIsExpandWithConstructorsSet && fExpandWithConstructors;
+    return isExpandWithConstructorsSet && fExpandWithConstructors;
   }
 
   /**
@@ -90,7 +90,7 @@ public class CallerMethodWrapper extends MethodWrapper {
    *         <code>false</code> otherwise
    */
   public boolean isExpandWithConstructorsSet() {
-    return fIsExpandWithConstructorsSet;
+    return isExpandWithConstructorsSet;
   }
 
   /**
@@ -101,7 +101,7 @@ public class CallerMethodWrapper extends MethodWrapper {
    */
   public void setExpandWithConstructors(boolean value) {
     fExpandWithConstructors = value;
-    fIsExpandWithConstructorsSet = true;
+    isExpandWithConstructorsSet = true;
 
   }
 

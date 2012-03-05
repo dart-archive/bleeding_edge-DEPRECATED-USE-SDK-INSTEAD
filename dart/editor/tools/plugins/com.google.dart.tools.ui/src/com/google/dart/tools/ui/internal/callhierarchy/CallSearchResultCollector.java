@@ -26,17 +26,17 @@ class CallSearchResultCollector {
   /**
    * A map from handle identifier ({@link String}) to {@link MethodCall}.
    */
-  private Map<String, MethodCall> fCalledMembers;
+  private Map<String, MethodCall> calledMembers;
 
   public CallSearchResultCollector() {
-    this.fCalledMembers = createCalledMethodsData();
+    this.calledMembers = createCalledMethodsData();
   }
 
   /**
    * @return a map from handle identifier ({@link String}) to {@link MethodCall}
    */
   public Map<String, MethodCall> getCallers() {
-    return fCalledMembers;
+    return calledMembers;
   }
 
   protected void addMember(DartElement member, DartElement calledMember, int start, int end) {
@@ -47,11 +47,11 @@ class CallSearchResultCollector {
       int lineNumber) {
     if ((member != null) && (calledMember != null)) {
       if (!isIgnored(calledMember)) {
-        MethodCall methodCall = fCalledMembers.get(calledMember.getHandleIdentifier());
+        MethodCall methodCall = calledMembers.get(calledMember.getHandleIdentifier());
 
         if (methodCall == null) {
           methodCall = new MethodCall(calledMember);
-          fCalledMembers.put(calledMember.getHandleIdentifier(), methodCall);
+          calledMembers.put(calledMember.getHandleIdentifier(), methodCall);
         }
 
         methodCall.addCallLocation(new CallLocation((CompilationUnitElement) member,

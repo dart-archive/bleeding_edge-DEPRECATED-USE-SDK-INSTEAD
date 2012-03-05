@@ -41,21 +41,21 @@ import java.lang.reflect.InvocationTargetException;
 public class CallHierarchyContentProvider implements ITreeContentProvider {
 
   private class MethodWrapperRunnable implements IRunnableWithProgress {
-    private MethodWrapper fMethodWrapper;
-    private MethodWrapper[] fCalls = null;
+    private MethodWrapper methodWrapper;
+    private MethodWrapper[] calls = null;
 
     MethodWrapperRunnable(MethodWrapper methodWrapper) {
-      fMethodWrapper = methodWrapper;
+      this.methodWrapper = methodWrapper;
     }
 
     @Override
     public void run(IProgressMonitor pm) {
-      fCalls = fMethodWrapper.getCalls(pm);
+      calls = methodWrapper.getCalls(pm);
     }
 
     MethodWrapper[] getCalls() {
-      if (fCalls != null) {
-        return fCalls;
+      if (calls != null) {
+        return calls;
       }
       return new MethodWrapper[0];
     }
@@ -224,13 +224,13 @@ public class CallHierarchyContentProvider implements ITreeContentProvider {
     return false;
   }
 
-  private DeferredTreeContentManager fManager;
+  private DeferredTreeContentManager treeContentManager;
 
-  private CallHierarchyViewPart fPart;
+  private CallHierarchyViewPart chvPart;
 
   public CallHierarchyContentProvider(CallHierarchyViewPart part) {
     super();
-    fPart = part;
+    chvPart = part;
   }
 
   @Override
@@ -239,8 +239,8 @@ public class CallHierarchyContentProvider implements ITreeContentProvider {
   }
 
   public void doneFetching() {
-    if (fPart != null) {
-      fPart.setCancelEnabled(false);
+    if (chvPart != null) {
+      chvPart.setCancelEnabled(false);
     }
   }
 
@@ -253,8 +253,8 @@ public class CallHierarchyContentProvider implements ITreeContentProvider {
     } else if (parentElement instanceof RealCallers) {
       MethodWrapper parentWrapper = ((RealCallers) parentElement).getParent();
       RealCallers element = ((RealCallers) parentElement);
-      if (fManager != null) {
-        Object[] children = fManager.getChildren(new DeferredMethodWrapper(this, element));
+      if (treeContentManager != null) {
+        Object[] children = treeContentManager.getChildren(new DeferredMethodWrapper(this, element));
         if (children != null) {
           return children;
         }
@@ -289,8 +289,8 @@ public class CallHierarchyContentProvider implements ITreeContentProvider {
 
           }
         }
-        if (fManager != null) {
-          Object[] children = fManager.getChildren(new DeferredMethodWrapper(this, methodWrapper));
+        if (treeContentManager != null) {
+          Object[] children = treeContentManager.getChildren(new DeferredMethodWrapper(this, methodWrapper));
           if (children != null) {
             return children;
           }
@@ -320,7 +320,7 @@ public class CallHierarchyContentProvider implements ITreeContentProvider {
    * @return the call hierarchy view part
    */
   public CallHierarchyViewPart getViewPart() {
-    return fPart;
+    return chvPart;
   }
 
   @Override
@@ -358,13 +358,13 @@ public class CallHierarchyContentProvider implements ITreeContentProvider {
       cancelJobs(roots);
     }
     if (viewer instanceof AbstractTreeViewer) {
-      fManager = new DeferredTreeContentManager((AbstractTreeViewer) viewer, fPart.getSite());
+      treeContentManager = new DeferredTreeContentManager((AbstractTreeViewer) viewer, chvPart.getSite());
     }
   }
 
   public void startFetching() {
-    if (fPart != null) {
-      fPart.setCancelEnabled(true);
+    if (chvPart != null) {
+      chvPart.setCancelEnabled(true);
     }
   }
 
@@ -374,7 +374,7 @@ public class CallHierarchyContentProvider implements ITreeContentProvider {
    * @param element the element on which search has been canceled and which has to be collapsed
    */
   protected void collapseAndRefresh(MethodWrapper element) {
-    CallHierarchyViewer viewer = fPart.getViewer();
+    CallHierarchyViewer viewer = chvPart.getViewer();
 
     /*
      * Problem case: The user expands the RealCallers node and then unchecks
@@ -431,13 +431,13 @@ public class CallHierarchyContentProvider implements ITreeContentProvider {
    * @param wrappers the parents to cancel jobs for
    */
   void cancelJobs(MethodWrapper[] wrappers) {
-    if (fManager != null && wrappers != null) {
+    if (treeContentManager != null && wrappers != null) {
       for (int i = 0; i < wrappers.length; i++) {
         MethodWrapper wrapper = wrappers[i];
-        fManager.cancel(wrapper);
+        treeContentManager.cancel(wrapper);
       }
-      if (fPart != null) {
-        fPart.setCancelEnabled(false);
+      if (chvPart != null) {
+        chvPart.setCancelEnabled(false);
       }
     }
   }

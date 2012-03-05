@@ -25,8 +25,8 @@ import org.eclipse.ui.PlatformUI;
  */
 class ToggleOrientationAction extends Action {
 
-  private CallHierarchyViewPart fView;
-  private int fActionOrientation;
+  private CallHierarchyViewPart chvPart;
+  private int actionOrientation;
 
   public ToggleOrientationAction(CallHierarchyViewPart v, int orientation) {
     super("", AS_RADIO_BUTTON); //$NON-NLS-1$
@@ -53,21 +53,21 @@ class ToggleOrientationAction extends Action {
     } else {
       Assert.isTrue(false);
     }
-    fView = v;
-    fActionOrientation = orientation;
+    this.chvPart = v;
+    this.actionOrientation = orientation;
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
         DartHelpContextIds.CALL_HIERARCHY_TOGGLE_ORIENTATION_ACTION);
   }
 
   public int getOrientation() {
-    return fActionOrientation;
+    return actionOrientation;
   }
 
   @Override
   public void run() {
     if (isChecked()) {
-      fView.fOrientation = fActionOrientation;
-      fView.computeOrientation();
+      chvPart.orientation = actionOrientation;
+      chvPart.computeOrientation();
     }
   }
 

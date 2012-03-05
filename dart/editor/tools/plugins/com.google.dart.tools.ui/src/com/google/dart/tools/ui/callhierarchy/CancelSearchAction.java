@@ -24,11 +24,11 @@ import org.eclipse.ui.PlatformUI;
  */
 public class CancelSearchAction extends Action {
 
-  private CallHierarchyViewPart fView;
+  private CallHierarchyViewPart view;
 
   public CancelSearchAction(CallHierarchyViewPart view) {
     super(CallHierarchyMessages.CancelSearchAction_label);
-    fView = view;
+    this.view = view;
     setToolTipText(CallHierarchyMessages.CancelSearchAction_tooltip);
     DartPluginImages.setLocalImageDescriptors(this, "ch_cancel.gif"); //$NON-NLS-1$
 
@@ -38,6 +38,6 @@ public class CancelSearchAction extends Action {
 
   @Override
   public void run() {
-    fView.cancelJobs();
+    view.cancelJobs();
   }
 }

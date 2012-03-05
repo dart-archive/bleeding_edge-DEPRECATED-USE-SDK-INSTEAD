@@ -34,18 +34,18 @@ class CalleeMethodWrapper extends MethodWrapper {
       CallLocation callLocation2 = m2.getMethodCall().getFirstCallLocation();
 
       if ((callLocation1 != null) && (callLocation2 != null)) {
-        if (callLocation1.getStart() == callLocation2.getStart()) {
-          return callLocation1.getEnd() - callLocation2.getEnd();
+        if (callLocation1.getStartPosition() == callLocation2.getStartPosition()) {
+          return callLocation1.getEndPosition() - callLocation2.getEndPosition();
         }
 
-        return callLocation1.getStart() - callLocation2.getStart();
+        return callLocation1.getStartPosition() - callLocation2.getStartPosition();
       }
 
       return 0;
     }
   }
 
-  private Comparator<MethodWrapper> fMethodWrapperComparator = new MethodWrapperComparator();
+  private Comparator<MethodWrapper> methodWrapperComparator = new MethodWrapperComparator();
 
   public CalleeMethodWrapper(MethodWrapper parent, MethodCall methodCall) {
     super(parent, methodCall);
@@ -62,7 +62,7 @@ class CalleeMethodWrapper extends MethodWrapper {
   @Override
   public MethodWrapper[] getCalls(IProgressMonitor progressMonitor) {
     MethodWrapper[] result = super.getCalls(progressMonitor);
-    Arrays.sort(result, fMethodWrapperComparator);
+    Arrays.sort(result, methodWrapperComparator);
 
     return result;
   }

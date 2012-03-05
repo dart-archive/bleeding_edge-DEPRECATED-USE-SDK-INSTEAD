@@ -21,27 +21,28 @@ import java.util.Collection;
 import java.util.List;
 
 public class MethodCall {
-  private DartElement fMember;
-  private List<CallLocation> fCallLocations;
+
+  private DartElement member;
+  private List<CallLocation> callLocations;
 
   public MethodCall(DartElement enclosingElement) {
-    this.fMember = enclosingElement;
+    this.member = enclosingElement;
   }
 
   public void addCallLocation(CallLocation location) {
-    if (fCallLocations == null) {
-      fCallLocations = new ArrayList<CallLocation>();
+    if (callLocations == null) {
+      callLocations = new ArrayList<CallLocation>();
     }
-    fCallLocations.add(location);
+    callLocations.add(location);
   }
 
   public Collection<CallLocation> getCallLocations() {
-    return fCallLocations;
+    return callLocations;
   }
 
   public CallLocation getFirstCallLocation() {
-    if ((fCallLocations != null) && !fCallLocations.isEmpty()) {
-      return fCallLocations.get(0);
+    if ((callLocations != null) && !callLocations.isEmpty()) {
+      return callLocations.get(0);
     } else {
       return null;
     }
@@ -52,10 +53,10 @@ public class MethodCall {
   }
 
   public DartElement getMember() {
-    return fMember;
+    return member;
   }
 
   public boolean hasCallLocations() {
-    return fCallLocations != null && fCallLocations.size() > 0;
+    return callLocations != null && callLocations.size() > 0;
   }
 }

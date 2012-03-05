@@ -55,13 +55,13 @@ public class CallHierarchyUI {
   private static final int DEFAULT_MAX_CALL_DEPTH = 10;
   private static final String PREF_MAX_CALL_DEPTH = "PREF_MAX_CALL_DEPTH"; //$NON-NLS-1$
 
-  private static CallHierarchyUI fgInstance;
+  private static CallHierarchyUI SINGLETON;
 
   public static CallHierarchyUI getDefault() {
-    if (fgInstance == null) {
-      fgInstance = new CallHierarchyUI();
+    if (SINGLETON == null) {
+      SINGLETON = new CallHierarchyUI();
     }
-    return fgInstance;
+    return SINGLETON;
   }
 
   public static IEditorPart isOpenInEditor(Object elem) {
@@ -82,8 +82,8 @@ public class CallHierarchyUI {
       IEditorPart methodEditor = DartUI.openInEditor(callLocation.getMember(), false, false);
       if (methodEditor instanceof ITextEditor) {
         ITextEditor editor = (ITextEditor) methodEditor;
-        editor.selectAndReveal(callLocation.getStart(),
-            (callLocation.getEnd() - callLocation.getStart()));
+        editor.selectAndReveal(callLocation.getStartPosition(),
+            (callLocation.getEndPosition() - callLocation.getStartPosition()));
       }
     } catch (DartModelException e) {
       DartToolsPlugin.log(e);
@@ -123,8 +123,8 @@ public class CallHierarchyUI {
 
       if (callLocation != null) {
         enclosingMember = callLocation.getMember();
-        selectionStart = callLocation.getStart();
-        selectionLength = callLocation.getEnd() - selectionStart;
+        selectionStart = callLocation.getStartPosition();
+        selectionLength = callLocation.getEndPosition() - selectionStart;
       } else if (element instanceof MethodWrapper) {
         enclosingMember = ((MethodWrapper) element).getMember();
         SourceRange selectionRange = ((SourceReference) enclosingMember).getNameRange();

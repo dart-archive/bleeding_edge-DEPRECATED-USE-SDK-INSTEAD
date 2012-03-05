@@ -25,6 +25,7 @@ import org.eclipse.ui.IWorkbenchSite;
  * This class is used for opening the declaration of an element from the call hierarchy view.
  */
 class OpenDeclarationAction extends OpenAction {
+
   public OpenDeclarationAction(IWorkbenchSite site) {
     super(site);
   }
