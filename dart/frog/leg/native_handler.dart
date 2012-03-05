@@ -115,6 +115,16 @@ SourceString checkForNativeClass(ElementListener listener) {
 }
 
 void handleSsaNative(SsaBuilder builder, Send node) {
+  // Register NoSuchMethodException and captureStackTrace in the compiler
+  // because the dynamic dispatch for native classes may use them.
+  Compiler compiler = builder.compiler;
+  ClassElement cls = compiler.coreLibrary.find(
+      Compiler.NO_SUCH_METHOD_EXCEPTION);
+  cls.resolve(compiler);
+  compiler.addToWorklist(cls.lookupConstructor(cls.name));
+  compiler.registerStaticUse(
+      compiler.findHelper(new SourceString('captureStackTrace')));
+
   if (node.arguments.isEmpty()) {
     List<String> arguments = <String>[];
     List<HInstruction> inputs = <HInstruction>[];

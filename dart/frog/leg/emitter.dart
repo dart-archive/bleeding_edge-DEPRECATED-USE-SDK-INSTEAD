@@ -299,7 +299,7 @@ function(child, parent) {
       buffer.add('${attachTo(namer.operatorIs(other))} = true;\n');
     });
 
-    if (superclass === null) {
+    if (superclass === null && compiler.enabledNoSuchMethod) {
       // Emit the noSuchMethods on the Object prototype now, so that
       // the code in the dynamicMethod can find them. Note that the
       // code in dynamicMethod is invoked before analyzing the full JS

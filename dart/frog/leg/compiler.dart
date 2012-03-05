@@ -50,6 +50,7 @@ class Compiler implements DiagnosticListener {
   LibraryElement coreImplLibrary;
   LibraryElement jsHelperLibrary;
   LibraryElement mainApp;
+  ClassElement objectClass;
 
   Element get currentElement() => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -77,6 +78,10 @@ class Compiler implements DiagnosticListener {
 
   static final SourceString MAIN = const SourceString('main');
   static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
+  static final SourceString NO_SUCH_METHOD_EXCEPTION =
+      const SourceString('NoSuchMethodException');
+  static final SourceString OBJECT = const SourceString('Object');
+  bool enabledNoSuchMethod = false;
 
   Compiler() : this.withCurrentDirectory(io.getCurrentDirectory());
 
@@ -143,6 +148,15 @@ class Compiler implements DiagnosticListener {
     return true;
   }
 
+  enableNoSuchMethod(Element element) {
+    if (enabledNoSuchMethod) return;
+    if (element.enclosingElement == objectClass) return;
+    enabledNoSuchMethod = true;
+    Set<Invocation> invocations = universe.invokedNames.putIfAbsent(
+        NO_SUCH_METHOD, () => new Set<Invocation>());
+    invocations.add(new Invocation(2));
+  }
+
   LibraryElement scanBuiltinLibrary(String filename) {
     String fileName = io.join([legDirectory, 'lib', filename]);
     Uri cwd = new Uri(scheme: 'file', path: currentDirectory);
@@ -155,6 +169,7 @@ class Compiler implements DiagnosticListener {
     coreImplLibrary = scanBuiltinLibrary('coreimpl.dart');
     jsHelperLibrary = scanBuiltinLibrary('js_helper.dart');
     coreLibrary = scanBuiltinLibrary('core.dart');
+    objectClass = coreLibrary.find(OBJECT);
     // Since coreLibrary import the libraries "coreimpl", and
     // "js_helper", coreLibrary is null when they are being built. So
     // we add the implicit import of coreLibrary now. This can be
@@ -164,9 +179,6 @@ class Compiler implements DiagnosticListener {
     scanner.importLibrary(coreImplLibrary, coreLibrary, null);
     scanner.importLibrary(jsHelperLibrary, coreLibrary, null);
     addForeignFunctions(jsHelperLibrary);
-    // TODO(ngeoffray): Lazily add this method.
-    universe.invokedNames[NO_SUCH_METHOD] =
-        new Set<Invocation>.from(<Invocation>[new Invocation(2)]);
 
     universe.libraries['dart:core'] = coreLibrary;
     universe.libraries['dart:coreimpl'] = coreImplLibrary;
@@ -196,6 +208,7 @@ class Compiler implements DiagnosticListener {
           if (universe.generatedCode[member] !== null) continue;
           if (!member.isInstanceMember()) continue;
           if (member.kind == ElementKind.FUNCTION) {
+            if (member.name == NO_SUCH_METHOD) enableNoSuchMethod(member);
             Set<Selector> selectors = universe.invokedNames[member.name];
             if (selectors != null) {
               for (Selector selector in selectors) {

@@ -79,7 +79,14 @@ function(obj, prop, value) {
    *   'this' with the found JS code, and invokes the JS code.
    *
    */
-  String buildDynamicFunctionCode() => '''
+  String buildDynamicFunctionCode() {
+    ClassElement noSuchMethodException =
+        compiler.coreLibrary.find(Compiler.NO_SUCH_METHOD_EXCEPTION);
+    Element helper = compiler.findHelper(new SourceString('captureStackTrace'));
+    String capture = compiler.namer.isolateAccess(helper);
+    String exception = compiler.namer.isolateAccess(noSuchMethodException);
+
+    return '''
 function(name) {
   var f = Object.prototype[name];
   if (f && f.methods) return f.methods;
@@ -105,6 +112,13 @@ function(name) {
       }
     }
     method = method || methods.Object;
+
+    if (method == null) {
+      method = function() {
+        throw $capture(new $exception(obj, name, arguments));
+      };
+    }
+
     var proto = Object.getPrototypeOf(obj);
     if (!proto.hasOwnProperty(name)) {
       $defPropName(proto, name, method);
@@ -116,6 +130,7 @@ function(name) {
   $defPropName(Object.prototype, name, dynamicBind);
   return methods;
 }''';
+}
 
   String buildDynamicMetadataCode() => '''
 if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];''';
