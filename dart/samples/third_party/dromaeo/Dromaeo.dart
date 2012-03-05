@@ -106,11 +106,11 @@ class Dromaeo {
   }
 
   run() {
-    // TODO(vsm): Initial page should not run.  For now, run the Dart
+    // TODO(vsm): Initial page should not run.  For now, run all
     // tests by default.
     final splitUrl = window.location.href.split('?');
-    final tags = splitUrl.length == 2 ? splitUrl[1].split('|')
-        : ['dart'];
+    final tags = splitUrl.length > 1 ? splitUrl[1]
+        : 'js|dart|frog';
 
     // TODO(antonm): create Re-run tests href.
     final HTMLElement suiteNameElement = _byId('overview').firstChild;

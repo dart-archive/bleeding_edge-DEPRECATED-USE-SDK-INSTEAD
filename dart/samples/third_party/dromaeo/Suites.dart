@@ -25,6 +25,8 @@ class Suites {
     'dom': 'DOM Core Tests (dart:dom)',
     'html': 'DOM Core Tests (dart:html)',
     'js': 'DOM Core Tests (JavaScript)',
+    'dart': 'DOM Core Tests (dart)',
+    'frog': 'DOM Core Tests (frog)',
   };
 
   static final _CORE_SUITE_DESCRIPTIONS = const [
@@ -97,25 +99,35 @@ class Suites {
     return _SUITE_DESCRIPTIONS;
   }
 
-  static List<SuiteDescription> getSuites(List<String> tags) {
-    final suites = <SuiteDescription>[];
-    hasTag(tag) => tags.indexOf(tag) >= 0;
+  static List<SuiteDescription> getSuites(String tags) {
+    // A disjunction of conjunctions (e.g.,
+    // 'js&modify|dart&dom&modify').
+    final taglist = tags.split('|').map((tag) => tag.split('&'));
 
-    for (final suite in SUITE_DESCRIPTIONS) {
-      if (suite.tags.some(hasTag)) {
-        suites.add(suite);
+    bool match(suite) {
+      // If any conjunction matches, return true.
+      for (final tagset in taglist) {
+        if (tagset.every((tag) => suite.tags.indexOf(tag) >= 0)) {
+          return true;
+        }
       }
+      return false;
     }
+    final suites = SUITE_DESCRIPTIONS.filter(match);
 
     suites.sort((s1, s2) => s1.name.compareTo(s2.name));
     return suites;
   }
 
-  static getCategory(List<String> tags) {
-    if (tags.length == 1 && CATEGORIES.containsKey(tags[0])) {
-      return CATEGORIES[tags[0]];
-    } else {
-      return null;
+  static getCategory(String tags) {
+    if (CATEGORIES.containsKey(tags)) {
+      return CATEGORIES[tags];
     }
+    for (final suite in _CORE_SUITE_DESCRIPTIONS) {
+      if (suite.tags[0] == tags) {
+        return suite.name;
+      }
+    }
+    return null;
   }
 }
