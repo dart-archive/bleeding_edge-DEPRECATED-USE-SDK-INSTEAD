@@ -1139,7 +1139,22 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    warning(node, MessageKind.GENERIC, ['switch statement is not implemented']);
+    node.expression.accept(this);
+    StatementElement element = getOrCreateStatementElement(node);
+    statementScope.enterLoop(element);
+    node.cases.accept(this);
+    statementScope.exitLoop();
+  }
+
+  visitSwitchCase(SwitchCase node) {
+    // TODO(ahe): What about the label?
+    node.expression.accept(this);
+    node.statements.accept(this);
+  }
+
+  visitDefaultCase(DefaultCase node) {
+    // TODO(ahe): What about the label?
+    node.statements.accept(this);
   }
 
   visitTryStatement(TryStatement node) {

@@ -1293,11 +1293,9 @@ class NodeListener extends ElementListener {
   }
 
   void endSwitchStatement(Token switchKeyword, Token endToken) {
-    popNode(); // Discard block.
+    NodeList cases = popNode();
     ParenthesizedExpression expression = popNode();
-    SwitchStatement node =
-      new SwitchStatement(expression, switchKeyword, endToken);
-    pushNode(node);
+    pushNode(new SwitchStatement(expression, cases, switchKeyword));
   }
 
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
@@ -1308,19 +1306,21 @@ class NodeListener extends ElementListener {
                         Token endToken) {
     NodeList statements = makeNodeList(statementCount, null, null, null);
     Expression expression = popNode();
+    Identifier label = null;
     if (colon !== null) {
-      popNode(); // Discard label.
+      label = popNode();
     }
-    pushNode(statements);
+    pushNode(new SwitchCase(label, expression, statements, caseKeyword));
   }
 
   void handleDefaultCase(Token colon, Token defaultKeyword, int statementCount,
                          Token endToken) {
     NodeList statements = makeNodeList(statementCount, null, null, null);
+    Identifier label = null;
     if (colon !== null) {
-      popNode(); // Discard label.
+      label = popNode();
     }
-    pushNode(statements);
+    pushNode(new DefaultCase(label, statements, defaultKeyword));
   }
 
   void handleBreakStatement(bool hasTarget,

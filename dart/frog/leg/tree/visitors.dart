@@ -11,6 +11,7 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitClassNode(ClassNode node) => visitNode(node);
   R visitConditional(Conditional node) => visitExpression(node);
   R visitContinueStatement(ContinueStatement node) => visitGotoStatement(node);
+  R visitDefaultCase(DefaultCase node) => visitNode(node);
   R visitDoWhile(DoWhile node) => visitLoop(node);
   R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
   R visitExpression(Expression node) => visitNode(node);
@@ -55,6 +56,7 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitStringInterpolationPart(StringInterpolationPart node) {
     return visitNode(node);
   }
+  R visitSwitchCase(SwitchCase node) => visitNode(node);
   R visitSwitchStatement(SwitchStatement node) => visitStatement(node);
   R visitThrow(Throw node) => visitStatement(node);
   R visitTryStatement(TryStatement node) => visitStatement(node);

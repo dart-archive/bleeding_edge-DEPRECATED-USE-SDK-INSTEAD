@@ -324,8 +324,30 @@ class Unparser implements Visitor {
     add(node.switchKeyword.value);
     sb.add(' ');
     visit(node.parenthesizedExpression);
-    sb.add(' { /* NOT IMPLEMENTED YET */ }');
-    // TODO(ahe): More to come...
+    sb.add(' ');
+    visit(node.cases);
+  }
+
+  visitSwitchCase(SwitchCase node) {
+    if (node.label !== null) {
+      visit(node.label);
+      sb.add(': ');
+    }
+    node.caseKeyword.value.printOn(sb);
+    sb.add(' ');
+    visit(node.expression);
+    sb.add(': ');
+    visit(node.statements);
+  }
+
+  visitDefaultCase(DefaultCase node) {
+    if (node.label !== null) {
+      visit(node.label);
+      sb.add(': ');
+    }
+    node.defaultKeyword.value.printOn(sb);
+    sb.add(': ');
+    visit(node.statements);
   }
 
   visitScriptTag(ScriptTag node) {

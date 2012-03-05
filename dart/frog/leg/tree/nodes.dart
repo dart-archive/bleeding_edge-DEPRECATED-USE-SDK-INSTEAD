@@ -9,6 +9,7 @@ interface Visitor<R> {
   R visitClassNode(ClassNode node);
   R visitConditional(Conditional node);
   R visitContinueStatement(ContinueStatement node);
+  R visitDefaultCase(DefaultCase node);
   R visitDoWhile(DoWhile node);
   R visitEmptyStatement(EmptyStatement node);
   R visitExpressionStatement(ExpressionStatement node);
@@ -40,6 +41,7 @@ interface Visitor<R> {
   R visitSendSet(SendSet node);
   R visitStringInterpolation(StringInterpolation node);
   R visitStringInterpolationPart(StringInterpolationPart node);
+  R visitSwitchCase(SwitchCase node);
   R visitSwitchStatement(SwitchStatement node);
   R visitThrow(Throw node);
   R visitTryStatement(TryStatement node);
@@ -102,6 +104,7 @@ class Node implements Hashable {
   ClassNode asClassNode() => null;
   Conditional asConditional() => null;
   ContinueStatement asContinueStatement() => null;
+  DefaultCase asDefaultCase() => null;
   DoWhile asDoWhile() => null;
   EmptyStatement asEmptyStatement() => null;
   Expression asExpression() => null;
@@ -133,6 +136,7 @@ class Node implements Hashable {
   Statement asStatement() => null;
   StringInterpolation asStringInterpolation() => null;
   StringInterpolationPart asStringInterpolationPart() => null;
+  SwitchCase asSwitchCase() => null;
   SwitchStatement asSwitchStatement() => null;
   Throw asThrow() => null;
   TryStatement asTryStatement() => null;
@@ -1374,13 +1378,12 @@ class NamedArgument extends Expression {
 
 class SwitchStatement extends Statement {
   final ParenthesizedExpression parenthesizedExpression;
+  final NodeList cases;
 
   final Token switchKeyword;
-  final Token endToken;
-  // TODO(ahe): More to come...
 
-  SwitchStatement(this.parenthesizedExpression,
-                  this.switchKeyword, this.endToken);
+  SwitchStatement(this.parenthesizedExpression, this.cases,
+                  this.switchKeyword);
 
   SwitchStatement asSwitchStatement() => this;
 
@@ -1390,12 +1393,64 @@ class SwitchStatement extends Statement {
 
   visitChildren(Visitor visitor) {
     parenthesizedExpression.accept(visitor);
-    // TODO(ahe): Add more stuff here.
+    cases.accept(visitor);
   }
 
   Token getBeginToken() => switchKeyword;
 
-  Token getEndToken() => endToken;
+  Token getEndToken() => cases.getEndToken();
+}
+
+class SwitchCase extends Node {
+  final Identifier label;
+  final Expression expression;
+  final NodeList statements;
+
+  final Token caseKeyword;
+
+  SwitchCase(this.label, this.expression, this.statements, this.caseKeyword);
+
+  SwitchCase asSwitchCase() => this;
+
+  accept(Visitor visitor) => visitor.visitSwitchCase(this);
+
+  visitChildren(Visitor visitor) {
+    if (label !== null) label.accept(visitor);
+    expression.accept(visitor);
+    statements.accept(visitor);
+  }
+
+  Token getBeginToken() {
+    if (label !== null) return label.getBeginToken();
+    return caseKeyword;
+  }
+
+  Token getEndToken() => statements.getEndToken();
+}
+
+class DefaultCase extends Node {
+  final Identifier label;
+  final NodeList statements;
+
+  final Token defaultKeyword;
+
+  DefaultCase(this.label, this.statements, this.defaultKeyword);
+
+  DefaultCase asDefaultCase() => this;
+
+  accept(Visitor visitor) => visitor.visitDefaultCase(this);
+
+  visitChildren(Visitor visitor) {
+    if (label !== null) label.accept(visitor);
+    statements.accept(visitor);
+  }
+
+  Token getBeginToken() {
+    if (label === null) return label.getBeginToken();
+    return defaultKeyword;
+  }
+
+  Token getEndToken() => statements.getEndToken();
 }
 
 class GotoStatement extends Statement {
