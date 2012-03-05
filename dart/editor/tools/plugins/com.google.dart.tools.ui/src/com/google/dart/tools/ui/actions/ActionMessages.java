@@ -413,6 +413,10 @@ public final class ActionMessages extends NLS {
   public static String OpenNewFileWizardAction_description;
   public static String OpenNewFileWizardAction_tooltip;
 
+  public static String OpenNewFolderWizardAction_text;
+  public static String OpenNewFolderWizardAction_description;
+  public static String OpenNewFolderWizardAction_tooltip;
+
   // public static String OpenNewAnnotationWizardAction_text;
   // public static String OpenNewAnnotationWizardAction_description;
   // public static String OpenNewAnnotationWizardAction_tooltip;

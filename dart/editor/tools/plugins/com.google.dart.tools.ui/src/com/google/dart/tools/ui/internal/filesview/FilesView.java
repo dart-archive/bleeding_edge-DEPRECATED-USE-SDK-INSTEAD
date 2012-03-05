@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.projects.CreateFileWizard;
+import com.google.dart.tools.ui.internal.projects.CreateFolderWizard;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewProjectWizardAction;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
@@ -115,6 +116,29 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
   }
 
+  private final class OpenNewFolderWizardAction extends CreateFolderAction {
+
+    public OpenNewFolderWizardAction(Shell shell) {
+      super(shell);
+    }
+
+    /**
+     * Override to use our custom CreateFolderWizard.
+     */
+    @Override
+    public void run() {
+      CreateFolderWizard wizard = new CreateFolderWizard();
+      wizard.init(PlatformUI.getWorkbench(), getStructuredSelection());
+      wizard.setNeedsProgressMonitor(true);
+      WizardDialog dialog = new WizardDialog(shellProvider.getShell(), wizard);
+      dialog.create();
+      dialog.getShell().setText("New");
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(dialog.getShell(), "New Folder");
+      dialog.open();
+    }
+
+  }
+
   private static boolean allElementsAreProjects(IStructuredSelection selection) {
     for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
       Object selectedElement = iterator.next();
@@ -192,7 +216,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     createFileAction = new OpenNewFileWizardAction(getShell());
     treeViewer.addSelectionChangedListener(createFileAction);
-    createFolderAction = new CreateFolderAction(getShell());
+    createFolderAction = new OpenNewFolderWizardAction(getShell());
     treeViewer.addSelectionChangedListener(createFolderAction);
     renameAction = new RenameResourceAction(getShell(), treeViewer.getTree());
     treeViewer.addSelectionChangedListener(renameAction);

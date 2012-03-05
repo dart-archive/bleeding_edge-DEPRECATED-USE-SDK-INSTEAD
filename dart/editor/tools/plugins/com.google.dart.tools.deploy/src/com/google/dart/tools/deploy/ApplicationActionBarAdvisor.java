@@ -23,6 +23,7 @@ import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
+import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewProjectWizardAction;
@@ -49,22 +50,16 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.util.Util;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.window.SameShellProvider;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPageListener;
-import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 import org.eclipse.ui.actions.ContributionItemFactory;
-import org.eclipse.ui.actions.CreateFolderAction;
 import org.eclipse.ui.actions.NewWizardMenu;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
@@ -821,22 +816,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     newFileAction.setText("New File...");
     menu.add(newProjectAction);
     menu.add(newFileAction);
-    final CreateFolderAction newFolderAction = new CreateFolderAction(new SameShellProvider(
-        getWindow().getShell()));
+    OpenNewFolderWizardAction newFolderAction = new OpenNewFolderWizardAction(getWindow());
     newFolderAction.setText("New Folder...");
     menu.add(newFolderAction);
     menu.add(new Separator());
-
-    ISelectionListener selectionListener = new ISelectionListener() {
-      @Override
-      public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        if (selection instanceof IStructuredSelection) {
-          newFolderAction.selectionChanged((IStructuredSelection) selection);
-        }
-      }
-    };
-
-    getWindow().getSelectionService().addSelectionListener(selectionListener);
 
     //TODO (pquitslund): deprecated libaries view support    
 //   {
