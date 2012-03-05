@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.ui;
 
-import com.google.dart.tools.core.DartCoreDebug;
-
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
@@ -52,13 +50,12 @@ public class DartPerspective implements IPerspectiveFactory {
     // Top left: Project Explorer view
     IFolderLayout topLeft = layout.createFolder(TL, IPageLayout.LEFT, 0.25f, editorArea);
 
-    if (DartCoreDebug.PROJECTS_VIEW) {
-      topLeft.addView(DartUI.ID_FILE_EXPLORER);
-    }
-    if (DartCoreDebug.FILES_VIEW) {
-      topLeft.addView(DartUI.ID_FILE_VIEW);
-    }
-    topLeft.addView(DartUI.ID_LIBRARIES);
+    topLeft.addView(DartUI.ID_FILE_EXPLORER);
+//TODO (pquitslund): deprecated libaries view support    
+//    {
+//      topLeft.addView(DartUI.ID_LIBRARIES);
+//    }
+
     // Prevent users from closing the Library Explorer View
     // layout.getViewLayout(DartUI.ID_LIBRARIES).setCloseable(false);
     topLeft.addPlaceholder(IPageLayout.ID_RES_NAV);

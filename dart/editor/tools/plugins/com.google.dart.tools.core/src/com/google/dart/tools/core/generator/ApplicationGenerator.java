@@ -14,11 +14,9 @@
 package com.google.dart.tools.core.generator;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.util.StatusUtil;
-import com.google.dart.tools.core.model.DartLibrary;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -85,14 +83,16 @@ public class ApplicationGenerator extends AbstractGenerator {
       applicationFile = generateCommandLineApp(monitor, applicationFileName);
     }
 
-    if (!DartCoreDebug.PROJECTS_VIEW) {
-      DartLibrary library = DartCore.openLibrary(applicationFile, monitor);
-      if (library != null) {
-        library.setTopLevel(true);
-      }
-      IResource[] files = ResourceUtil.getResources(applicationFile);
-      iApplicationFile = (IFile) files[0];
-    } else {
+//TODO (pquitslund): deprecated libaries view support    
+//    if (!DartCoreDebug.PROJECTS_VIEW) {
+//      DartLibrary library = DartCore.openLibrary(applicationFile, monitor);
+//      if (library != null) {
+//        library.setTopLevel(true);
+//      }
+//      IResource[] files = ResourceUtil.getResources(applicationFile);
+//      iApplicationFile = (IFile) files[0];
+//    } else 
+    {
       // The generator creates resources using java.io.File APIs.
       project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 

@@ -22,7 +22,6 @@ import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
-import com.google.dart.tools.ui.actions.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
@@ -469,8 +468,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     deployOptimizedAction = new GenerateJavascriptAction(window);
 
-    newApplicationWizardAction = DartCoreDebug.PROJECTS_VIEW ? new OpenNewProjectWizardAction()
-        : new OpenNewApplicationWizardAction();
+    newApplicationWizardAction = new OpenNewProjectWizardAction();
+//TODO (pquitslund): deprecated libaries view support        
+//    newApplicationWizardAction = DartCoreDebug.PROJECTS_VIEW ? new OpenNewProjectWizardAction()
+//        : new OpenNewApplicationWizardAction();
+
     register(newApplicationWizardAction);
 
     importResourcesAction = ActionFactory.IMPORT.create(window);
@@ -736,13 +738,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DebuggerView.ID);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
-    if (DartCoreDebug.PROJECTS_VIEW) {
-      viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_FILE_EXPLORER);
-      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
-    }
-
-    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_LIBRARIES);
+    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_FILE_EXPLORER);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+//TODO (pquitslund): deprecated libaries view support    
+//    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_LIBRARIES);
+//    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(IPageLayout.ID_OUTLINE);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
@@ -815,40 +815,38 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         IWorkbenchActionConstants.M_FILE);
     menu.add(new GroupMarker(IWorkbenchActionConstants.FILE_START));
 
-    //TODO (pquitslund): remove conditional logic when files view lands for real
-    if (DartCoreDebug.PROJECTS_VIEW) {
+    Action newProjectAction = new OpenNewProjectWizardAction();
+    newProjectAction.setText("New Project...");
+    OpenNewFileWizardAction newFileAction = new OpenNewFileWizardAction(getWindow());
+    newFileAction.setText("New File...");
+    menu.add(newProjectAction);
+    menu.add(newFileAction);
+    final CreateFolderAction newFolderAction = new CreateFolderAction(new SameShellProvider(
+        getWindow().getShell()));
+    newFolderAction.setText("New Folder...");
+    menu.add(newFolderAction);
+    menu.add(new Separator());
 
-      Action newProjectAction = new OpenNewProjectWizardAction();
-      newProjectAction.setText("New Project...");
-      OpenNewFileWizardAction newFileAction = new OpenNewFileWizardAction(getWindow());
-      newFileAction.setText("New File...");
-      menu.add(newProjectAction);
-      menu.add(newFileAction);
-      final CreateFolderAction newFolderAction = new CreateFolderAction(new SameShellProvider(
-          getWindow().getShell()));
-      newFolderAction.setText("New Folder...");
-      menu.add(newFolderAction);
-      menu.add(new Separator());
-
-      ISelectionListener selectionListener = new ISelectionListener() {
-        @Override
-        public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-          if (selection instanceof IStructuredSelection) {
-            newFolderAction.selectionChanged((IStructuredSelection) selection);
-          }
+    ISelectionListener selectionListener = new ISelectionListener() {
+      @Override
+      public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+        if (selection instanceof IStructuredSelection) {
+          newFolderAction.selectionChanged((IStructuredSelection) selection);
         }
-      };
+      }
+    };
 
-      getWindow().getSelectionService().addSelectionListener(selectionListener);
+    getWindow().getSelectionService().addSelectionListener(selectionListener);
 
-    } else {
-
-      /* New File and New Application are defined in plugin.xml */
-      menu.add(new GroupMarker(IWorkbenchActionConstants.NEW_EXT));
-      menu.add(new Separator());
-      /* Open is defined in plugin.xml */
-      menu.add(new GroupMarker(IWorkbenchActionConstants.OPEN_EXT));
-    }
+    //TODO (pquitslund): deprecated libaries view support    
+//   {
+//
+//      /* New File and New Application are defined in plugin.xml */
+//      menu.add(new GroupMarker(IWorkbenchActionConstants.NEW_EXT));
+//      menu.add(new Separator());
+//      /* Open is defined in plugin.xml */
+//      menu.add(new GroupMarker(IWorkbenchActionConstants.OPEN_EXT));
+//    }
 
     menu.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
 

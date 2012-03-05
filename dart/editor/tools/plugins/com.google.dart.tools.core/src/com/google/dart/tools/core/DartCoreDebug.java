@@ -46,11 +46,7 @@ public class DartCoreDebug {
 
   public static final boolean ANALYSIS_SERVER = isOptionTrue("experimental/analysis/server");
 
-  public static final boolean FILES_VIEW = isOptionTrue("experimental/filesview");
-
   public static final boolean NEW_INDEXER = isOptionTrue("experimental/newIndexer");
-
-  public static final boolean PROJECTS_VIEW = isOptionTrue("experimental/projectsview");
 
   private static boolean isOptionTrue(String optionSuffix) {
     return "true".equalsIgnoreCase(Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix));

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.feedback;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.util.PrintStringWriter;
 
@@ -70,10 +69,6 @@ public class FeedbackReport {
    */
   public String getOptionsText() {
     StringBuilder msg = new StringBuilder();
-
-    msg.append("experimental/projectsview = " + DartCoreDebug.PROJECTS_VIEW + "\n");
-
-    msg.append("experimental/filesview = " + DartCoreDebug.FILES_VIEW + "\n");
 
     msg.append("SDK installed = " + DartSdk.isInstalled() + "\n");
 

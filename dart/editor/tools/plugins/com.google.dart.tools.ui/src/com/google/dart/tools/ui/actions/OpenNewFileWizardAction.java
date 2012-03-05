@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartModelException;
@@ -79,11 +78,9 @@ public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements
 
   @Override
   protected final INewWizard createWizard() throws CoreException {
-    //TODO (pquitslund): remove conditional when files view lands for real
-    if (DartCoreDebug.PROJECTS_VIEW) {
-      return new CreateFileWizard();
-    }
-    return new NewFileWizard();
+    return new CreateFileWizard();
+//TODO (pquitslund): deprecated libaries view support    
+//    return new NewFileWizard();
   }
 
 }
