@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.internal.text;
 
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.IRegion;
@@ -30,7 +30,7 @@ import java.util.List;
  * this early stage to solicit feedback from pioneering adopters on the understanding that any code
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
-public class SelectionAnalyzer extends DartNodeTraverser<Void> {
+public class SelectionAnalyzer extends ASTVisitor<Void> {
 
   private Selection fSelection;
   private boolean fTraverseSelectedNode;

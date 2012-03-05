@@ -29,7 +29,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartStatement;
@@ -71,7 +71,7 @@ import java.util.ArrayList;
  * Instances of the class <code>IndexContributor</code> visit an AST structure to compute the data
  * and relationships to be contributed to an index.
  */
-public class IndexContributor extends DartNodeTraverser<Void> {
+public class IndexContributor extends ASTVisitor<Void> {
   /*
    * TODO(brianwilkerson) This class does not find or record implicit references, such as the
    * implicit invocation of toString() when an expression is embedded in a string interpolation

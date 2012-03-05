@@ -17,7 +17,7 @@ import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.tools.core.buffer.Buffer;
@@ -31,7 +31,7 @@ import com.google.dart.tools.core.model.SourceRange;
  * this early stage to solicit feedback from pioneering adopters on the understanding that any code
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
-public class NodeFinder extends DartNodeTraverser<Void> {
+public class NodeFinder extends ASTVisitor<Void> {
   public static NodeFinder find(DartNode root, int start, int length) {
     NodeFinder finder = new NodeFinder(start, length);
     root.accept(finder);

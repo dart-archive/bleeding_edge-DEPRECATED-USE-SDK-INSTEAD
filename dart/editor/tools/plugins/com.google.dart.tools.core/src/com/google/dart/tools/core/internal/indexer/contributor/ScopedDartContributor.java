@@ -38,7 +38,7 @@ import java.util.ArrayList;
  * The abstract class <code>ScopedDartContributor</code> defines the behavior common to contributors
  * whose target is based on the enclosing lexical scope.
  */
-public abstract class ScopedDartContributor extends AbstractDartContributor {
+public abstract class ScopedDartContributor extends DartContributor {
   /**
    * A stack whose top element (the element with the largest index) is the location of the
    * inner-most enclosing scope.

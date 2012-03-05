@@ -26,7 +26,7 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -551,7 +551,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
    * The abstract class <code>StructureBuilder</code> are used to build the structure corresponding
    * to a compilation unit by visiting the AST structure for the compilation unit.
    */
-  private static abstract class StructureBuilder extends DartNodeTraverser<Void> {
+  private static abstract class StructureBuilder extends ASTVisitor<Void> {
     /**
      * A table mapping newly created elements to the info objects that correspond to them.
      */

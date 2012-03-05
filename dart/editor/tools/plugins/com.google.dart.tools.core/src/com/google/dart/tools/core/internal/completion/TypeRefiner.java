@@ -9,7 +9,7 @@ import com.google.dart.compiler.ast.DartForStatement;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIfStatement;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartUnaryExpression;
@@ -41,9 +41,9 @@ import java.util.Set;
  * Analysis begins at the identifier whose type is to be refined and walks up the AST, ending at the
  * declaration of the element containing the identifier reference.
  */
-public class TypeRefiner extends DartNodeTraverser<Void> {
+public class TypeRefiner extends ASTVisitor<Void> {
 
-  private static class AssignmentFinder extends DartNodeTraverser<Void> {
+  private static class AssignmentFinder extends ASTVisitor<Void> {
     private DartExpression target;
     private Set<DartNode> visitedNodes = new HashSet<DartNode>();
     private int assignmentCount = 0;

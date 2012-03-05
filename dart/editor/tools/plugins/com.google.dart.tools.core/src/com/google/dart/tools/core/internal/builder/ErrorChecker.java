@@ -13,11 +13,11 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.compiler.ast.DartPlainVisitor;
+import com.google.dart.compiler.ast.ASTVisitor;
 
 /**
- * The interface <code>ErrorChecker</code> defines the behavior of objects that can be used to check
- * for error conditions not checked for by the compiler.
+ * Defines the behavior of objects that can be used to check for error conditions not checked for by
+ * the compiler.
  */
-public interface ErrorChecker extends DartPlainVisitor<Void> {
+public class ErrorChecker extends ASTVisitor<Void> {
 }

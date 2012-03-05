@@ -22,7 +22,7 @@ import com.google.dart.tools.core.internal.indexer.location.SyntheticLocation;
  * adds a reference from elements contained in a category to a synthetic location representing that
  * category.
  */
-public class ElementsByCategoryContributor extends AbstractDartContributor {
+public class ElementsByCategoryContributor extends DartContributor {
   @Override
   public Void visitClass(DartClass node) {
     if (node.isInterface()) {

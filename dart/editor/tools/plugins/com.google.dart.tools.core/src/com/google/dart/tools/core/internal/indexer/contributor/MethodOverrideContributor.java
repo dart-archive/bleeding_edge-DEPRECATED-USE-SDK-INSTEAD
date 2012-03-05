@@ -29,7 +29,7 @@ import com.google.dart.tools.core.model.Method;
  * Instances of the class <code>MethodOverrideContributor</code> implement a contributor that adds a
  * reference from a method to any methods that it directly overrides.
  */
-public class MethodOverrideContributor extends AbstractDartContributor {
+public class MethodOverrideContributor extends DartContributor {
   @Override
   public Void visitMethodDefinition(DartMethodDefinition node) {
     Symbol symbol = node.getSymbol();

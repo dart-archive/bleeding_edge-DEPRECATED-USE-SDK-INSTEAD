@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartMethodDefinition;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -155,7 +155,7 @@ class OverrideIndicatorManager implements IDartReconcilingListener {
 
     final Map<Annotation, Position> annotationMap = new HashMap<Annotation, Position>(50);
 
-    DartNodeTraverser<Void> visitor = new DartNodeTraverser<Void>() {
+    ASTVisitor<Void> visitor = new ASTVisitor<Void>() {
       /*
        * @see org.eclipse.wst.jsdt.core.dom.ASTVisitor#visit(org.eclipse.wst.jsdt
        * .core.dom.FunctionDeclaration)

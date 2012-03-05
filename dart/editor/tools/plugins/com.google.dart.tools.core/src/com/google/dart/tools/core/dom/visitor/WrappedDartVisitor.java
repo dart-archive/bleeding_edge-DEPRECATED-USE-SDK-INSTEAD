@@ -13,25 +13,27 @@
  */
 package com.google.dart.tools.core.dom.visitor;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartPlainVisitor;
 
 /**
- * The interface <code>WrappedDartVisitor</code> defines the behavior of a visitor that implements
- * {@link #preVisit(DartNode)} and {@link #postVisit(DartNode)} behavior.
+ * Defines the behavior of a visitor that implements {@link #preVisit(DartNode)} and
+ * {@link #postVisit(DartNode)} behavior.
  */
-public interface WrappedDartVisitor<R> extends DartPlainVisitor<R> {
+public class WrappedDartVisitor<R> extends ASTVisitor<R> {
   /**
    * The given node has just been visited.
    * 
    * @param node the node that was just visited
    */
-  public void postVisit(DartNode node);
+  public void postVisit(DartNode node) {
+  }
 
   /**
    * The given node is about to be visited.
    * 
    * @param node the node that is about to be visited
    */
-  public void preVisit(DartNode node);
+  public void preVisit(DartNode node) {
+  }
 }

@@ -13,15 +13,8 @@
  */
 package com.google.dart.tools.core.dom;
 
-import com.google.dart.compiler.ast.DartClassMember;
-import com.google.dart.compiler.ast.DartExpression;
-import com.google.dart.compiler.ast.DartGotoStatement;
-import com.google.dart.compiler.ast.DartInvocation;
-import com.google.dart.compiler.ast.DartLiteral;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartPlainVisitor;
-import com.google.dart.compiler.ast.DartStatement;
-import com.google.dart.compiler.ast.DartSwitchMember;
+import com.google.dart.compiler.ast.ASTVisitor;
 
 import java.util.List;
 
@@ -29,7 +22,7 @@ import java.util.List;
  * The abstract class <code>PropertyVisitor</code> implements behavior common to visitors that
  * traverse the type hierarchy in order to manipulate the properties of a node.
  */
-public abstract class PropertyVisitor implements DartPlainVisitor<Object> {
+public abstract class PropertyVisitor extends ASTVisitor<Object> {
   /**
    * The specification of the property being manipulated.
    */
@@ -52,22 +45,6 @@ public abstract class PropertyVisitor implements DartPlainVisitor<Object> {
       }
     }
   }
-
-  public abstract <N extends DartExpression> Object visitClassMember(DartClassMember<N> node);
-
-  public abstract Object visitExpression(DartExpression node);
-
-  public abstract Object visitGotoStatement(DartGotoStatement node);
-
-  public abstract Object visitInvocation(DartInvocation node);
-
-  public abstract Object visitLiteral(DartLiteral node);
-
-  public abstract Object visitNode(DartNode node);
-
-  public abstract Object visitStatement(DartStatement node);
-
-  public abstract Object visitSwitchMember(DartSwitchMember node);
 
   protected void noSuchProperty(String nodeClassName) {
     throw new RuntimeException("No property named " + property.getId()

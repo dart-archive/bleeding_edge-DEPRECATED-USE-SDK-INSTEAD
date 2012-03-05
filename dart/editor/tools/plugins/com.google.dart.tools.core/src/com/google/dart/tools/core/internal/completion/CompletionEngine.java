@@ -33,7 +33,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartReturnStatement;
@@ -172,7 +172,7 @@ public class CompletionEngine {
 
     @Override
     public void visitorNotImplementedYet(DartNode node, DartNode sourceNode,
-        Class<? extends DartNodeTraverser<Void>> astClass) {
+        Class<? extends ASTVisitor<Void>> astClass) {
       if (DEBUG) {
         System.out.print("Need visitor for node: " + node.getClass().getSimpleName());
         if (sourceNode != node) {
@@ -188,7 +188,7 @@ public class CompletionEngine {
    * The primary analyzer defers to this analyzer to propose completions based on the structure of
    * the parent of the identifier.
    */
-  private class IdentifierCompletionProposer extends DartNodeTraverser<Void> {
+  private class IdentifierCompletionProposer extends ASTVisitor<Void> {
     private DartIdentifier identifier;
 
     private IdentifierCompletionProposer(DartIdentifier node) {
@@ -492,7 +492,7 @@ public class CompletionEngine {
    * In most cases completion processing begins at an identifier. The identifier itself is not very
    * informative so most identifiers defer to their parent node for analysis.
    */
-  private class OuterCompletionProposer extends DartNodeTraverser<Void> {
+  private class OuterCompletionProposer extends ASTVisitor<Void> {
     private DartNode completionNode;
 
     private OuterCompletionProposer(DartNode node) {
@@ -1784,7 +1784,7 @@ public class CompletionEngine {
   }
 
   private void visitorNotImplementedYet(DartNode node, DartNode sourceNode,
-      Class<? extends DartNodeTraverser<Void>> astClass) {
+      Class<? extends ASTVisitor<Void>> astClass) {
     if (metrics != null) {
       metrics.visitorNotImplementedYet(node, sourceNode, astClass);
     }

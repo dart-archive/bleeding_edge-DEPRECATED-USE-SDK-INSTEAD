@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
@@ -26,7 +26,7 @@ import org.eclipse.ui.PlatformUI;
 
 public class StructureSelectPreviousAction extends StructureSelectionAction {
 
-  private static class PreviousNodeAnalyzer extends DartNodeTraverser<Void> {
+  private static class PreviousNodeAnalyzer extends ASTVisitor<Void> {
     public static DartNode perform(int offset, DartNode lastCoveringNode) {
       PreviousNodeAnalyzer analyzer = new PreviousNodeAnalyzer(offset);
       lastCoveringNode.accept(analyzer);

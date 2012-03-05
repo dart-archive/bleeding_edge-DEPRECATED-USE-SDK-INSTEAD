@@ -24,7 +24,7 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartSwitchMember;
@@ -44,7 +44,7 @@ import java.util.Map;
  * variable and parameter names visible to the initial child node. In case of name shadowing, the
  * first name seen is the most specific one so names are not redefined.
  */
-public class ScopedNameFinder extends DartNodeTraverser<Void> {
+public class ScopedNameFinder extends ASTVisitor<Void> {
 
   public abstract static class ScopedName {
 

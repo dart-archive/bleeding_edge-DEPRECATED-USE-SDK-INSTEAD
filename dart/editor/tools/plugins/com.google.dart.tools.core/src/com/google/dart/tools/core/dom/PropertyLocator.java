@@ -24,7 +24,6 @@ import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
-import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartConditional;
 import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDefault;
@@ -61,11 +60,11 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
-import com.google.dart.compiler.ast.DartPlainVisitor;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartResourceDirective;
@@ -100,7 +99,7 @@ import java.util.List;
  * Instances of the class <code>PropertyLocator</code> implement a visitor that returns a
  * description of the property whose value is (or contains) a given child node.
  */
-public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescriptor> {
+public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
   /**
    * The child node whose location is to be returned.
    */
@@ -238,8 +237,8 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
     }
   }
 
-  public <N extends DartExpression> StructuralPropertyDescriptor visitClassMember(
-      DartClassMember<N> node) {
+  @Override
+  public StructuralPropertyDescriptor visitClassMember(DartClassMember<?> node) {
     // if (childNode == node.getModifiers()) {
     // return PropertyDescriptorHelper.DART_CLASS_MEMBER_MODIFIERS;
     // } else
@@ -248,10 +247,6 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
     } else {
       return visitNode(node);
     }
-  }
-
-  public StructuralPropertyDescriptor visitComment(DartComment node) {
-    return visitNode(node);
   }
 
   @Override
@@ -277,6 +272,7 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
     return visitSwitchMember(node);
   }
 
+  @Override
   public StructuralPropertyDescriptor visitDirective(DartDirective node) {
     return visitNode(node);
   }
@@ -306,6 +302,7 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
     return visitStatement(node);
   }
 
+  @Override
   public StructuralPropertyDescriptor visitExpression(DartExpression node) {
     return visitNode(node);
   }
@@ -417,6 +414,7 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
     }
   }
 
+  @Override
   public StructuralPropertyDescriptor visitGotoStatement(DartGotoStatement node) {
     if (childNode == node.getLabel()) {
       return PropertyDescriptorHelper.DART_GOTO_STATEMENT_LABEL;
@@ -478,6 +476,7 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
     // }
   }
 
+  @Override
   public StructuralPropertyDescriptor visitInvocation(DartInvocation node) {
     if (childContainedIn(node.getArgs())) {
       return PropertyDescriptorHelper.DART_INVOCATION_ARGS;
@@ -506,6 +505,7 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
     }
   }
 
+  @Override
   public StructuralPropertyDescriptor visitLiteral(DartLiteral node) {
     return visitExpression(node);
   }
@@ -590,6 +590,7 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
     }
   }
 
+  @Override
   public StructuralPropertyDescriptor visitNode(DartNode node) {
     // noSuchProperty(node.getClass().getName());
     return null;
@@ -689,6 +690,7 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
     }
   }
 
+  @Override
   public StructuralPropertyDescriptor visitStatement(DartStatement node) {
     return visitNode(node);
   }
@@ -728,6 +730,7 @@ public class PropertyLocator implements DartPlainVisitor<StructuralPropertyDescr
     return visitExpression(node);
   }
 
+  @Override
   public StructuralPropertyDescriptor visitSwitchMember(DartSwitchMember node) {
     if (childNode == node.getLabel()) {
       return PropertyDescriptorHelper.DART_SWITCH_MEMBER_LABEL;

@@ -22,9 +22,8 @@ import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartMapLiteralEntry;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartPlainVisitor;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartVariable;
 
@@ -33,13 +32,13 @@ import com.google.dart.compiler.ast.DartVariable;
  * children of the node being visited by the <code>ChildVisitor</code>. Typically, that visitor will
  * then use the child visitor to visit all of the children of those nodes. This class is needed
  * because several nodes do not visit all of their children as part of the
- * {@link DartNode#visitChildren(DartPlainVisitor)} method.
+ * {@link DartNode#visitChildren(ASTVisitor)} method.
  */
-public class ChildVisitor<R> extends DartNodeTraverser<Void> {
+public class ChildVisitor<R> extends ASTVisitor<Void> {
   /**
    * The visitor used to visit the children of the node being visited by this visitor.
    */
-  private DartPlainVisitor<R> baseVisitor;
+  private ASTVisitor<R> baseVisitor;
 
   /**
    * Initialize a newly created visitor to use the given visitor to visit all of the children of
@@ -48,7 +47,7 @@ public class ChildVisitor<R> extends DartNodeTraverser<Void> {
    * @param baseVisitor the visitor used to visit the children of the node being visited by this
    *          visitor
    */
-  public ChildVisitor(DartPlainVisitor<R> baseVisitor) {
+  public ChildVisitor(ASTVisitor<R> baseVisitor) {
     this.baseVisitor = baseVisitor;
   }
 

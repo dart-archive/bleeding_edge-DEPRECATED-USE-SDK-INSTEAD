@@ -61,7 +61,7 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
@@ -116,7 +116,7 @@ import java.util.List;
  * accept(). It isn't certain they are equivalent.
  */
 @SuppressWarnings({"deprecation", "unused"})
-public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
+public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   static {
     // Remove @SuppressWarnings when finished
     DartCore.notYetImplemented();
@@ -2390,7 +2390,7 @@ public class CodeFormatterVisitor extends DartNodeTraverser<DartNode> {
   }
 
   private void format(DartFieldDefinition multiFieldDeclaration,
-      DartNodeTraverser<DartNode> visitor, boolean isChunkStart, boolean isFirstClassBodyDeclaration) {
+      ASTVisitor<DartNode> visitor, boolean isChunkStart, boolean isFirstClassBodyDeclaration) {
 
     if (isFirstClassBodyDeclaration) {
       int newLinesBeforeFirstClassBodyDeclaration = preferences.blank_lines_before_first_class_body_declaration;

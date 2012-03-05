@@ -55,11 +55,11 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
-import com.google.dart.compiler.ast.DartPlainVisitor;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartResourceDirective;
@@ -675,7 +675,7 @@ public final class ASTRewriteAnalyzer {
       }
     }
   }
-  private class RewriteVisitor implements WrappedDartVisitor<Object> {
+  private class RewriteVisitor extends WrappedDartVisitor<Object> {
     @Override
     public void postVisit(DartNode node) {
       TextEditGroup editGroup = eventStore.getTrackedNodeData(node);
@@ -1657,7 +1657,7 @@ public final class ASTRewriteAnalyzer {
 
   private RecoveryScannerData recoveryScannerData;
 
-  private DartPlainVisitor<Object> rewriteVisitor;
+  private ASTVisitor<Object> rewriteVisitor;
 
   /**
    * Constructor for ASTRewriteAnalyzer.
@@ -2083,7 +2083,7 @@ public final class ASTRewriteAnalyzer {
   private int doVisitList(List list, int offset) {
     int endPos = offset;
     for (Iterator iter = list.iterator(); iter.hasNext();) {
-      DartNode curr = ((DartNode) iter.next());
+      DartNode curr = (DartNode) iter.next();
       endPos = doVisit(curr);
     }
     return endPos;
@@ -2832,7 +2832,7 @@ public final class ASTRewriteAnalyzer {
 
   private void voidVisitList(List<DartNode> list) {
     for (Iterator<DartNode> iter = list.iterator(); iter.hasNext();) {
-      doVisit((iter.next()));
+      doVisit(iter.next());
     }
   }
 }

@@ -18,7 +18,7 @@ import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.Symbol;
 import com.google.dart.tools.core.internal.model.SourceReferenceImpl;
@@ -31,7 +31,7 @@ import com.google.dart.tools.core.model.SourceReference;
  * Instances of the class <code>DOMFinder</code> locate the {@link DartNode AST node} associated
  * with a {@link DartElement}.
  */
-public class DOMFinder extends DartNodeTraverser<Void> {
+public class DOMFinder extends ASTVisitor<Void> {
   /**
    * The compilation unit containing the node being searched for.
    */

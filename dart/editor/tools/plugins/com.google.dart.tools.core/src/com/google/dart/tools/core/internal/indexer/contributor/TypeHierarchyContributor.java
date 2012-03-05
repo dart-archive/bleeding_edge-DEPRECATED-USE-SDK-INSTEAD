@@ -24,7 +24,7 @@ import com.google.dart.tools.core.model.Type;
  * Instances of the class <code>TypeHierarchyContributor</code> implement a contributor that adds a
  * reference every time it finds a type that is a subtype of another type.
  */
-public class TypeHierarchyContributor extends AbstractDartContributor {
+public class TypeHierarchyContributor extends DartContributor {
   @Override
   public Void visitClass(DartClass node) {
     Symbol binding = node.getSymbol();

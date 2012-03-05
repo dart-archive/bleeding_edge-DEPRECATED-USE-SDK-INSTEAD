@@ -18,7 +18,7 @@ import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
@@ -41,7 +41,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import java.util.Collection;
 import java.util.Map;
 
-public class CalleeAnalyzerVisitor extends DartNodeTraverser<Void> {
+public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
 
   private final CallSearchResultCollector fSearchResults;
   private final DartElement fMember;

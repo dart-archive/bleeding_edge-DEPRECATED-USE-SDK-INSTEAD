@@ -19,7 +19,7 @@ import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -52,7 +52,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   /**
    * Collects positions from the AST.
    */
-  private class PositionCollector extends DartNodeTraverser<Void> {
+  private class PositionCollector extends ASTVisitor<Void> {
 
     /** The semantic token */
     private SemanticToken fToken = new SemanticToken();

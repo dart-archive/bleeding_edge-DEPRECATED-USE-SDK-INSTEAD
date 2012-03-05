@@ -26,7 +26,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -63,7 +63,7 @@ import java.net.URI;
  * Instances of the class <code>DartElementLocator</code> locate the {@link DartElement Dart
  * element(s)} associated with a source range, given the AST structure built from the source.
  */
-public class DartElementLocator extends DartNodeTraverser<Void> {
+public class DartElementLocator extends ASTVisitor<Void> {
   /**
    * Instances of the class <code>DartElementFoundException</code> are used to cancel visiting after
    * an element has been found.

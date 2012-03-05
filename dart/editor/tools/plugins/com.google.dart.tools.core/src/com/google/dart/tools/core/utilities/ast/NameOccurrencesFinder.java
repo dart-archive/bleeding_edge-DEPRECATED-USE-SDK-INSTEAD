@@ -4,7 +4,7 @@ import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.VariableElement;
@@ -12,7 +12,7 @@ import com.google.dart.compiler.resolver.VariableElement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NameOccurrencesFinder extends DartNodeTraverser<Void> {
+public class NameOccurrencesFinder extends ASTVisitor<Void> {
 
   private DartNode ast;
   private Element target;

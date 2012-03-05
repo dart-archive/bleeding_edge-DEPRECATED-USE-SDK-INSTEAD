@@ -219,7 +219,7 @@ public class PropertyGetter extends PropertyVisitor {
   }
 
   @Override
-  public <N extends DartExpression> Object visitClassMember(DartClassMember<N> node) {
+  public Object visitClassMember(DartClassMember<?> node) {
     if (property == PropertyDescriptorHelper.DART_CLASS_MEMBER_MODIFIERS) {
       return node.getModifiers();
     } else if (property == PropertyDescriptorHelper.DART_CLASS_MEMBER_NAME) {
@@ -229,6 +229,7 @@ public class PropertyGetter extends PropertyVisitor {
     }
   }
 
+  @Override
   public Object visitComment(DartComment node) {
     return visitNode(node);
   }
@@ -256,6 +257,7 @@ public class PropertyGetter extends PropertyVisitor {
     return visitSwitchMember(node);
   }
 
+  @Override
   public Object visitDirective(DartDirective node) {
     return visitNode(node);
   }

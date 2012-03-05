@@ -14,18 +14,17 @@
 package com.google.dart.tools.core.dom.visitor;
 
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
-import com.google.dart.compiler.ast.DartPlainVisitor;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.tools.core.DartCore;
 
 /**
- * Instances of the class <code>SafeDartNodeTraverser</code> implement a {@link DartPlainVisitor
- * Dart visitor} that will not throw an exception as a result of finding an incorrectly constructed
- * AST structure. In order to catch exceptions, any method that needs to visit the children of a
- * given node should use the method {@link #visitChildren(DartNode)} rather than asking the node to
- * visit its children directly.
+ * Instances of the class <code>SafeDartNodeTraverser</code> implement a {@link ASTVisitor}
+ * that will not throw an exception as a result of finding an incorrectly constructed AST structure.
+ * In order to catch exceptions, any method that needs to visit the children of a given node should
+ * use the method {@link #visitChildren(DartNode)} rather than asking the node to visit its children
+ * directly.
  */
-public class SafeDartNodeTraverser<R> extends DartNodeTraverser<R> {
+public class SafeDartNodeTraverser<R> extends ASTVisitor<R> {
   /*
    * Note that this implementation does not maximize the number of nodes that are visited, even
    * though doing so might be a desirable trait. In order to do so I believe that we would have to

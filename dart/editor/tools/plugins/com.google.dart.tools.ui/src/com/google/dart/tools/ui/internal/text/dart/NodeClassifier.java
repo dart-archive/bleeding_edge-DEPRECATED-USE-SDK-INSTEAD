@@ -50,7 +50,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNewExpression;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
@@ -77,7 +77,7 @@ import com.google.dart.compiler.ast.DartWhileStatement;
 /**
  * Base class that can be extended to visit a single AST node, calling a specific method on it.
  */
-public class NodeClassifier extends DartNodeTraverser<Void> {
+public class NodeClassifier extends ASTVisitor<Void> {
   @Override
   public Void visitArrayAccess(DartArrayAccess node) {
     return null;

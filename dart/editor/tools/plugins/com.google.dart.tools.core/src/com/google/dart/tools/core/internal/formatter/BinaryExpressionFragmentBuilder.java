@@ -17,7 +17,7 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartLiteral;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
@@ -26,7 +26,7 @@ import com.google.dart.compiler.parser.Token;
 import java.util.ArrayList;
 import java.util.List;
 
-class BinaryExpressionFragmentBuilder extends DartNodeTraverser<DartNode> {
+class BinaryExpressionFragmentBuilder extends ASTVisitor<DartNode> {
   private List<DartNode> fragmentsList = new ArrayList<DartNode>();
   private List<Token> operatorsList = new ArrayList<Token>();
   private int realFragmentsSize = 0;
