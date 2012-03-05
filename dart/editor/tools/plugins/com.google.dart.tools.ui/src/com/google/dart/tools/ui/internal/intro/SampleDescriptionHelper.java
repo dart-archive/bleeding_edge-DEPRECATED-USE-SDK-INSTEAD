@@ -15,14 +15,19 @@ package com.google.dart.tools.ui.internal.intro;
 
 import com.google.common.collect.Lists;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.ui.DartToolsPlugin;
 
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
@@ -45,22 +50,43 @@ public final class SampleDescriptionHelper {
   }
 
   /**
+   * Attempts to find sample description in the given directory, otherwise scans recursively.
+   */
+  static void scanFolder(List<SampleDescription> descriptions, File directory) throws Exception {
+    // ignore not directories
+    if (!directory.exists() || !directory.isDirectory()) {
+      return;
+    }
+
+    // attempt to add description
+    boolean added = addDescription(descriptions, directory);
+
+    if (added) {
+      return;
+    }
+
+    // scan children
+    for (File child : directory.listFiles()) {
+      scanFolder(descriptions, child);
+    }
+  }
+
+  /**
    * Attempts to add {@link SampleDescription} for given directory.
    * 
    * @return <code>true</code> if {@link SampleDescription} was added.
    */
   private static boolean addDescription(final List<SampleDescription> descriptions,
       final File directory) {
-    // attempt to find logo
-    final File logoFile = new File(directory, "logo.png");
-    if (!logoFile.exists() || !logoFile.isFile()) {
-      return false;
-    }
+    String sampleName = directory.getName();
+
     // attempt to find description
     final boolean descriptionAdded[] = {false};
-    File descriptionFile = new File(directory, "sample.xml");
-    if (descriptionFile.exists() && descriptionFile.isFile()) {
+
+    if (doesSampleResourceExist(sampleName + ".xml")) {
       try {
+        final File logoFile = createSampleImageFile(sampleName + ".png");
+
         SAXParserFactory factory = SAXParserFactory.newInstance();
         SAXParser saxParser = factory.newSAXParser();
         DefaultHandler handler = new DefaultHandler() {
@@ -68,7 +94,6 @@ public final class SampleDescriptionHelper {
           private String name;
           private String filePath;
           private String descriptionText;
-          private int order;
 
           @Override
           public void characters(char[] ch, int start, int length) throws SAXException {
@@ -83,7 +108,7 @@ public final class SampleDescriptionHelper {
             if (qName.equals("sample") && filePath != null && name != null
                 && descriptionText != null) {
               descriptions.add(new SampleDescription(directory, filePath, name, descriptionText,
-                  logoFile, order));
+                  logoFile));
               descriptionAdded[0] = true;
             }
           }
@@ -95,20 +120,12 @@ public final class SampleDescriptionHelper {
             if (qName.equals("sample")) {
               name = attributes.getValue("name");
               filePath = attributes.getValue("file");
-              {
-                order = Integer.MIN_VALUE;
-                String orderString = attributes.getValue("order");
-                if (orderString != null) {
-                  try {
-                    order = Integer.parseInt(orderString);
-                  } catch (NumberFormatException e) {
-                  }
-                }
-              }
             }
           }
         };
-        FileInputStream is = new FileInputStream(descriptionFile);
+
+        InputStream is = getSampleResourceUrl(sampleName + ".xml").openStream();
+
         try {
           saxParser.parse(is, handler);
         } finally {
@@ -118,8 +135,27 @@ public final class SampleDescriptionHelper {
         DartCore.logError(e);
       }
     }
+
     // may be added
     return descriptionAdded[0];
+  }
+
+  private static File createSampleImageFile(String resourceName) throws IOException {
+    try {
+      URL fileUrl = FileLocator.toFileURL(getSampleResourceUrl(resourceName));
+
+      return new File(fileUrl.toURI());
+    } catch (URISyntaxException exception) {
+      throw new IOException(exception);
+    }
+  }
+
+  private static boolean doesSampleResourceExist(String resourceName) {
+    return getSampleResourceUrl(resourceName) != null;
+  }
+
+  private static URL getSampleResourceUrl(String resourceName) {
+    return DartToolsPlugin.getDefault().getBundle().getEntry("/samples/" + resourceName);
   }
 
   /**
@@ -127,26 +163,8 @@ public final class SampleDescriptionHelper {
    */
   private static File getSamplesDirectory() throws Exception {
     File installDir = new File(Platform.getInstallLocation().getURL().getFile());
+
     return new File(installDir, "samples");
   }
 
-  /**
-   * Attempts to find sample description in the given directory, otherwise scans recursively.
-   */
-  private static void scanFolder(List<SampleDescription> descriptions, File directory)
-      throws Exception {
-    // ignore not directories
-    if (!directory.exists() || !directory.isDirectory()) {
-      return;
-    }
-    // attempt to add description
-    boolean added = addDescription(descriptions, directory);
-    if (added) {
-      return;
-    }
-    // scan children
-    for (File child : directory.listFiles()) {
-      scanFolder(descriptions, child);
-    }
-  }
 }
