@@ -9,7 +9,6 @@ Cleanup the Google Storage dart-editor-archive-continuous bucket.
 """
 
 import optparse
-import os
 import sys
 import gsutil
 
@@ -157,8 +156,8 @@ def main():
     #otherwise use the value passed as --gsbucketuri
     else:
       bucket = options.gsbucketuri
-    version_dirs = _ReadBucket(gsu, bucket)
-    _RemoveElements(gsu, version_dirs, options.keepcount)
+    version_dirs = _ReadBucket(gsu, '{0}/{1}'.format(bucket, '[0-9]*'))
+    _RemoveElements(gsu, bucket, version_dirs, options.keepcount)
   elif command == 'promote':
     _PromoteBuild(gsu, options.revision, bucket_from, bucket_to)
 
@@ -174,24 +173,29 @@ def _ReadBucket(gsu, bucket):
     a list of bucket entries excluding all entries starting with "latest"
   """
   _PrintSeparator('_ReadBucket({0}, {1})'.format(gsu, bucket))
-  elements = {}
+  elements = []
   items = gsu.ReadBucket(bucket)
   for item in items:
-    dirname = os.path.basename(os.path.dirname(item))
-    if dirname != 'latest':
-      dirnum = int(dirname)
-      if dirnum in elements:
-        elements[dirnum].append(item)
-      else:
-        elements[dirnum] = [item]
+    dirpaths = item.split('/')
+    if len(dirpaths) >= 3:
+      dirname = dirpaths[3]
+      if dirname != 'latest':
+        try:
+          dirnum = int(dirname)
+          if not dirnum in elements:
+            elements.append(dirnum)
+        except ValueError:
+          pass
+
   return elements
 
 
-def _RemoveElements(gsu, version_dirs, keepcount):
+def _RemoveElements(gsu, bucket, version_dirs, keepcount):
   """Remove the delected elements from Google Storage.
 
   Args:
     gsu: the gsutil program to run
+    bucket: the bucket to remove the dirs from
     version_dirs: the dictionary of elements to remove keyed by
                   svn version number
     keepcount: the number of elements to keep
@@ -202,14 +206,12 @@ def _RemoveElements(gsu, version_dirs, keepcount):
   delete_count = version_dirs_size - keepcount
   if delete_count > 0:
     count = 0
-    keys = version_dirs.keys()
-    keys.sort()
-    for key in keys:
+    version_dirs.sort()
+    for gs_dir in version_dirs:
       if count < delete_count:
-        for dirname in version_dirs[key]:
-          gsu.Remove(dirname)
+        gsu.Remove('{0}/{1}/*'.format(bucket, gs_dir))
       else:
-        print 'version {0} will be saved'.format(key)
+        print 'version {0}/{1} will be saved'.format(bucket, gs_dir)
       count += 1
   else:
     print ('nothing to delete because that are only {0} elemens in the list'
