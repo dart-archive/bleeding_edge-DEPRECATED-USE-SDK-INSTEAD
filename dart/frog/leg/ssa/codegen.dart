@@ -105,6 +105,8 @@ class SsaCodeGenerator implements HVisitor {
   HGraph currentGraph;
   HBasicBlock currentBlock;
 
+  SubGraph subGraph = const SubGraph.unrestricted();
+
   SsaCodeGenerator(this.compiler,
                    this.work,
                    this.buffer,
@@ -153,6 +155,13 @@ class SsaCodeGenerator implements HVisitor {
     beginGraph(graph);
     visitBasicBlock(graph.entry);
     endGraph(graph);
+  }
+
+  void visitSubGraph(SubGraph newSubGraph) {
+    SubGraph oldSubGraph = subGraph;
+    subGraph = newSubGraph;
+    visitBasicBlock(subGraph.start);
+    subGraph = oldSubGraph;
   }
 
   String temporary(HInstruction instruction) {
@@ -254,7 +263,10 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
+
   visitBasicBlock(HBasicBlock node) {
+    if (!subGraph.contains(node)) return;
+
     currentBlock = node;
 
     if (node.hasLabeledBlockInformation()) {
@@ -465,24 +477,32 @@ class SsaCodeGenerator implements HVisitor {
 
   visitIf(HIf node) {
     List<HBasicBlock> dominated = node.block.dominatedBlocks;
+    HBasicBlock joinBlock = node.joinBlock;
     startIf(node);
     assert(!node.generateAtUseSite());
     startThen(node);
     assert(node.thenBlock === dominated[0]);
-    visitBasicBlock(node.thenBlock);
+    visitSubGraph(subGraph.restrict(node.thenBlock, joinBlock));
     int preVisitedBlocks = 1;
     endThen(node);
     if (node.hasElse) {
       startElse(node);
       assert(node.elseBlock === dominated[1]);
-      visitBasicBlock(node.elseBlock);
+      visitSubGraph(subGraph.restrict(node.elseBlock, joinBlock));
       preVisitedBlocks = 2;
       endElse(node);
     }
     endIf(node);
+    if (joinBlock !== null && joinBlock.dominator !== node.block) {
+      // The join block is dominated by a block in one of the branches.
+      // We stopped the iteration from reaching it, so we visit it here
+      // instead.
+      visitBasicBlock(joinBlock);
+    }
 
     // Visit all the dominated blocks that are not part of the then or else
-    // branches. Depending on how the then/else branches terminate
+    // branches, and is not the join block.
+    // Depending on how the then/else branches terminate
     // (e.g., return/throw/break) there can be any number of these.
     int dominatedCount = dominated.length;
     for (int i = preVisitedBlocks; i < dominatedCount; i++) {
@@ -611,7 +631,7 @@ class SsaCodeGenerator implements HVisitor {
         name = parameterNames[parameter.element];
       } else if (input is HLoad) {
         HLoad load = input;
-        name = local(input.local);        
+        name = local(input.local);
       } else {
         assert(!input.generateAtUseSite());
         name = temporary(input);

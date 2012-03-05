@@ -1054,9 +1054,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       label.setBreakTarget();
       mapping[node.target] = label;
     }
-    if (mapping[node] !== null && mapping[node] !== target) {
-      cancel(node, "internal error");
-    }
     mapping[node] = target;
   }
 
@@ -1121,7 +1118,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       warning(node.label, MessageKind.UNUSED_LABEL, [labelName]);
     }
-    if (!statementElement.isBreakTarget) {
+    if (!statementElement.isBreakTarget && mapping[body] === statementElement) {
+      // If the body is itself a break or continue for another target, it
+      // might have updated its mapping to the label it actaully does target.
       mapping.map.remove(body);
     }
   }

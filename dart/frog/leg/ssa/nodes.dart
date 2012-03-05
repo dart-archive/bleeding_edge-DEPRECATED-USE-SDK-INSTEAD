@@ -380,6 +380,26 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIs(HIs node) => visitInstruction(node);
 }
 
+class SubGraph {
+  final HBasicBlock start;
+  // The first basic block after the end of the subgraph.
+  final HBasicBlock limit;
+
+  const SubGraph(this.start, this.limit);
+  const SubGraph.unrestricted() : start = null, limit = null;
+
+  SubGraph restrict(HBasicBlock start, HBasicBlock limit) {
+    if (start === null) start = this.start;
+    if (limit === null) limit = this.limit;
+    return new SubGraph(start, limit);
+  }
+
+  bool contains(HBasicBlock block) {
+    return (start === null || start.id <= block.id)
+        && (limit === null || limit.id > block.id);
+  }
+}
+
 class HInstructionList {
   HInstruction first = null;
   HInstruction last = null;
@@ -1773,6 +1793,7 @@ class HTry extends HControlFlow {
 
 class HIf extends HConditionalBranch {
   bool hasElse;
+  HBasicBlock joinBlock = null;
   HIf(HInstruction condition, this.hasElse) : super(<HInstruction>[condition]);
   toString() => 'if';
   accept(HVisitor visitor) => visitor.visitIf(this);
@@ -1789,16 +1810,6 @@ class HIf extends HConditionalBranch {
     } else {
       return null;
     }
-  }
-
-  HBasicBlock get joinBlock() {
-    List<HBasicBlock> dominated = block.dominatedBlocks;
-    if (hasElse) {
-      if (dominated.length > 2) return dominated[2];
-    } else {
-      if (dominated.length > 1) return dominated[1];
-    }
-    return null;
   }
 }
 

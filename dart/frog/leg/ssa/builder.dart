@@ -300,6 +300,20 @@ class LocalsHandler {
   }
 
   /**
+   * Removes all direct locals that were not present at the reference point.
+   * Use when leaving a scope that might have declared variables, unless
+   * another operation is performed that removes these (e.g., a merge).
+   */
+  void cleanUp(LocalsHandler referencePoint) {
+    if (this === referencePoint) return;
+    for (Element key in directLocals.getKeys()) {
+      if (!referencePoint.directLocals.containsKey(key)) {
+        directLocals.remove(key);
+      }
+    }
+  }
+
+  /**
    * Returns true if the local can be accessed directly. Boxed variables or
    * captured variables that are stored in the closure-field return [false].
    */
@@ -1191,7 +1205,8 @@ class SsaBuilder implements Visitor {
 
   void handleIf(void visitThen(), void visitElse()) {
     bool hasElse = visitElse != null;
-    HBasicBlock conditionBlock = close(new HIf(popBoolified(), hasElse));
+    HIf condition = new HIf(popBoolified(), hasElse);
+    HBasicBlock conditionBlock = close(condition);
 
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
@@ -1205,9 +1220,9 @@ class SsaBuilder implements Visitor {
     // Reset the locals state to the state after the condition and keep the
     // current state in [thenLocals].
     LocalsHandler thenLocals = localsHandler;
-    localsHandler = savedLocals;
 
     // Now the else part.
+    localsHandler = savedLocals;
     HBasicBlock elseBlock = null;
     if (hasElse) {
       elseBlock = addNewBlock();
@@ -1233,8 +1248,10 @@ class SsaBuilder implements Visitor {
       if (joinBlock.predecessors.length == 2) {
         localsHandler.mergeWith(thenLocals, joinBlock);
       } else if (thenBlock !== null) {
+        // The only predecessor is the then branch.
         localsHandler = thenLocals;
       }
+      condition.joinBlock = joinBlock;
     }
   }
 
@@ -1267,7 +1284,8 @@ class SsaBuilder implements Visitor {
       condition = new HNot(boolifiedLeft);
       add(condition);
     }
-    HBasicBlock leftBlock = close(new HIf(condition, false));
+    HIf branch = new HIf(condition, false);
+    HBasicBlock leftBlock = close(branch);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
     HBasicBlock rightBlock = addNewBlock();
@@ -1280,6 +1298,7 @@ class SsaBuilder implements Visitor {
     HBasicBlock joinBlock = addNewBlock();
     leftBlock.addSuccessor(joinBlock);
     rightBlock.addSuccessor(joinBlock);
+    branch.joinBlock = joinBlock;
     open(joinBlock);
 
     localsHandler.mergeWith(savedLocals, joinBlock);
@@ -2014,7 +2033,8 @@ class SsaBuilder implements Visitor {
 
   visitConditional(Conditional node) {
     visit(node.condition);
-    HBasicBlock conditionBlock = close(new HIf(popBoolified(), true));
+    HIf condition = new HIf(popBoolified(), true);
+    HBasicBlock conditionBlock = close(condition);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
     HBasicBlock thenBlock = addNewBlock();
@@ -2036,6 +2056,7 @@ class SsaBuilder implements Visitor {
     HBasicBlock joinBlock = addNewBlock();
     thenBlock.addSuccessor(joinBlock);
     elseBlock.addSuccessor(joinBlock);
+    condition.joinBlock = joinBlock;
     open(joinBlock);
 
     localsHandler.mergeWith(thenLocals, joinBlock);
@@ -2191,14 +2212,17 @@ class SsaBuilder implements Visitor {
   visitLabelledStatement(LabelledStatement node) {
     Statement body = node.getBody();
     if (body is Loop || body is SwitchStatement) {
-      // Loops handle their own labels.
+      // Loops and switches handle their own labels.
       visit(body);
       return;
     }
     // Non-loop statements can only be break targets, not continue targets.
     StatementElement targetElement = elements[body];
-    if (targetElement === null) {
+    if (targetElement === null || targetElement.statement !== body) {
       // Labeled statements with no element on the body have no breaks.
+      // A different target statement only happens if the body is itself
+      // a break or continue for a different target. In that case, this
+      // label is also always unused.
       visit(body);
       return;
     }

@@ -58,6 +58,7 @@ class Environment {
 class SsaEnvironmentBuilder extends HBaseVisitor {
   final Compiler compiler;
   Environment environment;
+  SubGraph subGraph = const SubGraph.unrestricted();
 
   SsaEnvironmentBuilder(Compiler this.compiler);
 
@@ -67,7 +68,15 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     assert(environment.isEmpty());
   }
 
+  void visitSubGraph(SubGraph newSubGraph) {
+    SubGraph oldSubGraph = subGraph;
+    subGraph = newSubGraph;
+    visitBasicBlock(subGraph.start);
+    subGraph = oldSubGraph;
+  }
+
   void visitBasicBlock(HBasicBlock block) {
+    if (!subGraph.contains(block)) return;
     block.last.accept(this);
 
     HInstruction instruction = block.last.previous;
@@ -149,7 +158,7 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     }
 
     environment = thenEnvironment;
-    visitBasicBlock(instruction.thenBlock);
+    visitSubGraph(subGraph.restrict(instruction.thenBlock, joinBlock));
 
     if (instruction.hasElse) {
       // Save the live instructions for the then block.
@@ -157,7 +166,7 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
       // Use the duplicated environment that was created before
       // visiting the then block.
       environment = elseEnvironment;
-      visitBasicBlock(instruction.elseBlock);
+      visitSubGraph(subGraph.restrict(instruction.elseBlock, joinBlock));
       // Add the instructions for the then block to the
       // current environment.
       environment.addAll(thenEnvironment);

@@ -81,18 +81,40 @@ break3(int x, int y, int ew, int ez) {
   Expect.equals(ez, z);
 }
 
+obscureBreaks(x) {
+  bool result = true;
+  bar: do {
+    if (x == 1) {
+      foo: break;
+    } else if (x == 2) {
+      foo: break bar;
+    } else if (x == 3) {
+      bar: break;
+    } else if (x == 4) {
+      break bar;
+    } else {
+      result = false;
+    }
+  } while (false);
+  return result;
+}
+
 main() {
   break1(2, 3, 2, 1);
   break1(2, 4, 3, 1);
   break1(3, 3, 4, 2);
   break1(3, 4, 5, 2);
-  // Reenable when if-with-aborting-branch-inside-loop works.
-  // break2(2, 3, 2, 1);
-  // break2(2, 4, 3, 1);
-  // break2(3, 3, 4, 2);
-  // break2(3, 4, 5, 2);
-  // break3(2, 3, 2, 1);
-  // break3(2, 4, 3, 1);
-  // break3(3, 3, 4, 2);
-  // break3(3, 4, 5, 2);
+  break2(2, 3, 2, 1);
+  break2(2, 4, 3, 1);
+  break2(3, 3, 4, 2);
+  break2(3, 4, 5, 2);
+  break3(2, 3, 2, 1);
+  break3(2, 4, 3, 1);
+  break3(3, 3, 4, 2);
+  break3(3, 4, 5, 2);
+  Expect.isTrue(obscureBreaks(1), "1");
+  Expect.isTrue(obscureBreaks(2), "2");
+  Expect.isTrue(obscureBreaks(3), "3");
+  Expect.isTrue(obscureBreaks(4), "4");
+  Expect.isFalse(obscureBreaks(5), "5");
 }
