@@ -217,8 +217,6 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Break: (B${target.id})";
   }
 
-  String visitConstant(HConstant constant) => "Constant ${constant.constant}";
-
   String visitDivide(HDivide node) => visitInvokeStatic(node);
 
   String visitEquals(HEquals node) => visitInvokeStatic(node);
@@ -328,6 +326,8 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitLess(HLess node) => visitInvokeStatic(node);
   String visitLessEqual(HLessEqual node) => visitInvokeStatic(node);
+
+  String visitLiteral(HLiteral literal) => "Literal ${literal.value}";
 
   String visitLiteralList(HLiteralList node) {
     StringBuffer elementsString = new StringBuffer();
