@@ -58,7 +58,7 @@ public class TypeRefiner extends DartNodeTraverser<Void> {
         visitedNodes.add(node);
         Token operator = node.getOperator();
         if (operator.isAssignmentOperator()) {
-          DartExpression lhs = node.getArg1().getNormalizedNode();
+          DartExpression lhs = node.getArg1();
           if (isAssignmentTo(lhs, target)) {
             assignmentCount += 1;
           }
@@ -85,7 +85,7 @@ public class TypeRefiner extends DartNodeTraverser<Void> {
         if (operator.isCountOperator()) {
           // For the purposes of type refinement we can probably ignore count operators since they
           // do not change the type. Something to consider...
-          DartExpression lhs = node.getArg().getNormalizedNode();
+          DartExpression lhs = node.getArg();
           if (isAssignmentTo(lhs, target)) {
             assignmentCount += 1;
           }
@@ -181,7 +181,7 @@ public class TypeRefiner extends DartNodeTraverser<Void> {
     DartExpression expr = node.getCondition();
     if (expr instanceof DartBinaryExpression) {
       DartBinaryExpression bexp = (DartBinaryExpression) expr;
-      DartExpression arg1 = bexp.getArg1().getNormalizedNode();
+      DartExpression arg1 = bexp.getArg1();
       if (isSameElement(arg1.getSymbol(), ident.getSymbol())) {
         DartExpression arg2 = bexp.getArg2();
         if (arg2 instanceof DartTypeExpression) {
