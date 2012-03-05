@@ -57,7 +57,8 @@ public class ApplicationGenerator extends AbstractGenerator {
   /**
    * Construct a new instance.
    */
-  public ApplicationGenerator() {
+  public ApplicationGenerator(IProject project) {
+    this.project = project;
   }
 
   /**
@@ -92,12 +93,11 @@ public class ApplicationGenerator extends AbstractGenerator {
 //      IResource[] files = ResourceUtil.getResources(applicationFile);
 //      iApplicationFile = (IFile) files[0];
 //    } else 
-    {
-      // The generator creates resources using java.io.File APIs.
-      project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 
-      iApplicationFile = (IFile) ResourceUtil.getResource(applicationFile);
-    }
+    // The generator creates resources using java.io.File APIs.
+    project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+
+    iApplicationFile = (IFile) ResourceUtil.getResource(applicationFile);
   }
 
   public IFile getFile() {
@@ -130,10 +130,6 @@ public class ApplicationGenerator extends AbstractGenerator {
 
   public void setApplicationName(String applicationName) {
     this.applicationName = applicationName;
-  }
-
-  public void setProject(IProject project) {
-    this.project = project;
   }
 
   public void setWebApplication(boolean isWebApplication) {

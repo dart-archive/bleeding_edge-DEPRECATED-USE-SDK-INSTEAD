@@ -39,7 +39,7 @@ public class NewApplicationWizard extends AbstractDartWizard implements INewWiza
 
   private static final String WEB_APPLICATION = "webApplication";
 
-  private final ApplicationGenerator appGenerator = new ApplicationGenerator();
+  private final ApplicationGenerator appGenerator = new ApplicationGenerator(null);
 
   private IWorkbench workbench;
 

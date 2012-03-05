@@ -183,9 +183,8 @@ public class CreateProjectWizard extends BasicNewResourceWizard {
    */
   private IFile createProjectContent(IProject project, ProjectType projectType)
       throws CoreException {
-    ApplicationGenerator generator = new ApplicationGenerator();
+    ApplicationGenerator generator = new ApplicationGenerator(project);
 
-    generator.setProject(project);
     generator.setApplicationLocation(project.getLocation().toOSString());
     generator.setApplicationName(DartIdentifierUtil.createValidIdentifier(project.getName()));
     generator.setWebApplication(projectType == ProjectType.WEB);
