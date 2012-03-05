@@ -40,6 +40,9 @@ public class ProjectMessages extends NLS {
   public static String OpenNewApplicationWizardAction_desc;
   public static String OpenNewApplicationWizardAction_text;
   public static String OpenNewApplicationWizardAction_tooltip;
+  public static String OpenExistingFolderWizardAction_nesting_title;
+  public static String OpenExistingFolderWizardAction_nesting_msg;
+
   static {
     // initialize resource bundle
     NLS.initializeMessages(BUNDLE_NAME, ProjectMessages.class);

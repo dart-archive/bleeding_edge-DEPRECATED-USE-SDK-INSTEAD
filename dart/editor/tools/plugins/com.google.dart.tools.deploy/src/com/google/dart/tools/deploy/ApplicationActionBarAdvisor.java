@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
+import com.google.dart.tools.ui.actions.OpenExternalFolderDialogAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
@@ -819,6 +820,12 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     OpenNewFolderWizardAction newFolderAction = new OpenNewFolderWizardAction(getWindow());
     newFolderAction.setText("New Folder...");
     menu.add(newFolderAction);
+
+    menu.add(new Separator());
+    OpenExternalFolderDialogAction openFolderAction = new OpenExternalFolderDialogAction(
+        getWindow());
+    menu.add(openFolderAction);
+
     menu.add(new Separator());
 
     //TODO (pquitslund): deprecated libaries view support    
