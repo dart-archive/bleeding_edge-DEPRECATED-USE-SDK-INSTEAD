@@ -50,13 +50,6 @@ import java.net.URI;
  */
 class CompilerListener implements DartCompilerListener {
   /**
-   * The number of times that we have logged a message about compilation errors that were reported
-   * for which we could not associate a source file and were forced to associate the marker with the
-   * top-level library.
-   */
-  private static int missingSourceCount = 0;
-
-  /**
    * The top-level library containing the code being compiled.
    */
   private DartLibrary library;
@@ -67,8 +60,6 @@ class CompilerListener implements DartCompilerListener {
   private final IProject project;
 
   private boolean createMarkers;
-
-  private static final int MISSING_SOURCE_REPORT_LIMIT = 5;
 
   CompilerListener(DartLibrary library, IProject project, boolean createMarkers) {
     this.project = project;
@@ -166,6 +157,8 @@ class CompilerListener implements DartCompilerListener {
   /**
    * @return the library's resource, or the project's resource if we get a model exception
    */
+  @SuppressWarnings("unused")
+  // This was used to associate errors in missing resources.
   private IResource getLibraryResource() {
     try {
       return library.getDefiningCompilationUnit().getCorrespondingResource();
@@ -186,9 +179,8 @@ class CompilerListener implements DartCompilerListener {
     Source source = error.getSource();
     IResource res = ResourceUtil.getResource(source);
     if (res == null) {
-      if (DartCoreDebug.VERBOSE || missingSourceCount <= MISSING_SOURCE_REPORT_LIMIT) {
+      if (DartCoreDebug.VERBOSE) {
         // Don't flood the log
-        missingSourceCount++;
         StringBuilder builder = new StringBuilder();
         if (source == null) {
           builder.append("No source associated with compilation error (");
@@ -197,12 +189,10 @@ class CompilerListener implements DartCompilerListener {
           builder.append(source.getUri().toString());
           builder.append("\" (");
         }
-        builder.append(missingSourceCount);
-        if (missingSourceCount == MISSING_SOURCE_REPORT_LIMIT) {
-          builder.append(", final warning): ");
-        } else {
-          builder.append("): ");
-        }
+        builder.append(error.getLineNumber());
+        builder.append(":");
+        builder.append(error.getColumnNumber());
+        builder.append("): ");
         builder.append(error.getMessage());
         DartCore.logInformation(builder.toString());
       }
@@ -223,8 +213,8 @@ class CompilerListener implements DartCompilerListener {
         createErrorMarker(res, error.getStartPosition(), error.getLength(), error.getLineNumber(),
             error.getMessage());
       }
-    } else {
-      createErrorMarker(getLibraryResource(), 0, 0, 1, error.getMessage());
+//    } else {
+//      createErrorMarker(getLibraryResource(), 0, 0, 1, error.getMessage());
     }
   }
 
@@ -241,8 +231,8 @@ class CompilerListener implements DartCompilerListener {
         createWarningMarker(res, error.getStartPosition(), error.getLength(),
             error.getLineNumber(), error.getMessage());
       }
-    } else {
-      createWarningMarker(getLibraryResource(), 0, 0, 1, error.getMessage());
+//    } else {
+//      createWarningMarker(getLibraryResource(), 0, 0, 1, error.getMessage());
     }
   }
 
