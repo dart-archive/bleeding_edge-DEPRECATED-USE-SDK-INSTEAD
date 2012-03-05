@@ -858,12 +858,9 @@ class SsaBuilder implements Visitor {
           if (localsHandler.hasValueForDirectLocal(member)) {
             value = localsHandler.readLocal(member);
           } else {
-            var fieldValue =
-                compiler.compileTimeConstantHandler.compileVariable(member);
-            // TODO(floitsch): this constant should be treated like all
-            // other constants and should be at the top of the graph.
-            value = new HLiteral.internal(fieldValue, HType.UNKNOWN);
-            add(value);
+            Constant fieldValue =
+                compiler.constantHandler.compileVariable(member);
+            value = graph.addConstant(fieldValue);
           }
           constructorArguments.add(value);
         }
@@ -1316,20 +1313,21 @@ class SsaBuilder implements Visitor {
     visit(node.receiver);
     assert(op.token.kind !== PLUS_TOKEN);
     HInstruction operand = pop();
+    // See if we can constant-fold right away. This avoids rewrites later on.
+    if (operand is HConstant) {
+      HConstant typedOperand = operand;
+      Constant constant = typedOperand.constant;
+      Constant folded = constant.unaryFold(op.source.stringValue);
+      if (folded !== null) {
+        stack.add(graph.addConstant(folded));
+        return;
+      }      
+    }
     HInstruction target =
         new HStatic(interceptors.getPrefixOperatorInterceptor(op));
     add(target);
     switch (op.source.stringValue) {
-      case "-":
-        // TODO(kasperl): Avoid calling visit(node.receiver) above.
-        if ((operand is HLiteral) && (operand.value is double)) {
-          stack.add(graph.addNewLiteralDouble(-operand.value));
-        } else if ((operand is HLiteral) && (operand.value is int)) {
-          stack.add(graph.addNewLiteralInt(-operand.value));
-        } else {
-          push(new HNegate(target, operand));
-        }
-        break;
+      case "-": push(new HNegate(target, operand)); break;
       case "~": push(new HBitNot(target, operand)); break;
       default: unreachable();
     }
@@ -1637,12 +1635,8 @@ class SsaBuilder implements Visitor {
         if (foundIndex != -1) {
           list.add(namedArguments[foundIndex]);
         } else {
-          // TODO(kasperl): This needs more work. Ideally these
-          // constants should be treated like any other constant and
-          // canonicalized by the graph methods.
-          var constant = compiler.compileVariable(parameter);
-          push(new HLiteral.internal(constant, HType.UNKNOWN));
-          list.add(pop());
+          Constant constant = compiler.compileVariable(parameter);
+          list.add(graph.addConstant(constant)); 
         }
       }
     }
@@ -1877,7 +1871,7 @@ class SsaBuilder implements Visitor {
             index = pop();
           } else {
             index = pop();
-            value = graph.addNewLiteralInt(1);
+            value = graph.addConstantInt(1);
           }
           HStatic indexMethod = new HStatic(interceptors.getIndexInterceptor());
           add(indexMethod);
@@ -1918,7 +1912,7 @@ class SsaBuilder implements Visitor {
         visit(node.argumentsNode);
         right = pop();
       } else {
-        right = graph.addNewLiteralInt(1);
+        right = graph.addConstantInt(1);
       }
       visitBinary(left, op, right);
       HInstruction operation = pop();
@@ -1932,19 +1926,19 @@ class SsaBuilder implements Visitor {
   }
 
   void visitLiteralInt(LiteralInt node) {
-    stack.add(graph.addNewLiteralInt(node.value));
+    stack.add(graph.addConstantInt(node.value));
   }
 
   void visitLiteralDouble(LiteralDouble node) {
-    stack.add(graph.addNewLiteralDouble(node.value));
+    stack.add(graph.addConstantDouble(node.value));
   }
 
   void visitLiteralBool(LiteralBool node) {
-    stack.add(graph.addNewLiteralBool(node.value));
+    stack.add(graph.addConstantBool(node.value));
   }
 
   void visitLiteralString(LiteralString node) {
-    stack.add(graph.addNewLiteralString(node.dartString));
+    stack.add(graph.addConstantString(node.dartString));
   }
 
   void visitLiteralStringJuxtaposition(LiteralStringJuxtaposition node) {
@@ -1952,7 +1946,7 @@ class SsaBuilder implements Visitor {
   }
 
   void visitLiteralNull(LiteralNull node) {
-    stack.add(graph.addNewLiteralNull());
+    stack.add(graph.addConstantNull());
   }
 
   visitNodeList(NodeList node) {
@@ -1973,7 +1967,7 @@ class SsaBuilder implements Visitor {
   visitReturn(Return node) {
     HInstruction value;
     if (node.expression === null) {
-      value = graph.addNewLiteralNull();
+      value = graph.addConstantNull();
     } else {
       visit(node.expression);
       value = pop();
@@ -1985,7 +1979,7 @@ class SsaBuilder implements Visitor {
     if (node.expression === null) {
       HInstruction exception = rethrowableException;
       if (exception === null) {
-        exception = graph.addNewLiteralNull();
+        exception = graph.addConstantNull();
         compiler.reportError(node,
                              'throw without expression outside catch block');
       }
@@ -2007,7 +2001,7 @@ class SsaBuilder implements Visitor {
          link = link.tail) {
       Node definition = link.head;
       if (definition is Identifier) {
-        HInstruction initialValue = graph.addNewLiteralNull();
+        HInstruction initialValue = graph.addConstantNull();
         localsHandler.updateLocal(elements[definition], initialValue);
       } else {
         assert(definition is SendSet);
@@ -2324,7 +2318,7 @@ class SsaBuilder implements Visitor {
         VariableDefinitions declaration = catchBlock.formals.nodes.head;
         HInstruction condition = null;
         if (declaration.type == null) {
-          condition = graph.addNewLiteralTrue();
+          condition = graph.addConstantBool(true);
           stack.add(condition);
         } else {
           Element typeElement = elements[declaration.type];
@@ -2394,7 +2388,7 @@ class SsaBuilder implements Visitor {
 
   generateUnimplemented(String reason, [bool isExpression = false]) {
     DartString string = new DartString.literal(reason);
-    HInstruction message = graph.addNewLiteralString(string);
+    HInstruction message = graph.addConstantString(string);
 
     // Normally, we would call [close] here. However, then we hit
     // another unimplemented feature: aborting loop body. Simply
@@ -2402,7 +2396,7 @@ class SsaBuilder implements Visitor {
     // isn't a control flow instruction. So we inline parts of [add].
     current.addAfter(current.last, new HThrow(message));
     if (isExpression) {
-      stack.add(graph.addNewLiteralNull());
+      stack.add(graph.addConstantNull());
     }
   }
 }

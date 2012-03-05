@@ -12,6 +12,7 @@ interface HVisitor<R> {
   R visitBoolify(HBoolify node);
   R visitBoundsCheck(HBoundsCheck node);
   R visitBreak(HBreak node);
+  R visitConstant(HConstant node);
   R visitDivide(HDivide node);
   R visitEquals(HEquals node);
   R visitExit(HExit node);
@@ -37,7 +38,6 @@ interface HVisitor<R> {
   R visitIs(HIs node);
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
-  R visitLiteral(HLiteral node);
   R visitLiteralList(HLiteralList node);
   R visitLoad(HLoad node);
   R visitLocal(HLocal node);
@@ -116,19 +116,13 @@ class HGraph {
   HBasicBlock exit;
   final List<HBasicBlock> blocks;
 
-  // We canonicalize all literals used within a graph so we do not
+  // We canonicalize all constants used within a graph so we do not
   // have to worry about them for global value numbering.
-  HLiteral nullLiteral;
-  HLiteral trueLiteral;
-  HLiteral falseLiteral;
-  HLiteral nanLiteral;
-  HLiteral negativeZeroLiteral;
-  Map<int, HLiteral> intLiterals;
-  Map<double, HLiteral> doubleLiterals;
-  Map<num, HLiteral> numLiterals;
-  Map<String, HLiteral> stringLiterals;
+  Map<Constant, HConstant> constants;
 
-  HGraph() : blocks = new List<HBasicBlock>() {
+  HGraph()
+      : blocks = new List<HBasicBlock>(),
+        constants = new Map<Constant, HConstant>() {
     entry = addNewBlock();
     // The exit block will be added later, so it has an id that is
     // after all others in the system.
@@ -154,106 +148,45 @@ class HGraph {
     return result;
   }
 
-  HLiteral addNewLiteralInt(int value) {
-    if (intLiterals === null) intLiterals = new Map<int, HLiteral>();
-    HLiteral result = intLiterals[value];
+  static HType mapConstantTypeToSsaType(Constant constant) {
+    if (constant.isNull()) return HType.UNKNOWN;
+    if (constant.isBool()) return HType.BOOLEAN;
+    if (constant.isInt()) return HType.INTEGER;
+    if (constant.isDouble()) return HType.DOUBLE;
+    if (constant.isString()) return HType.STRING;
+    if (constant.isList()) return HType.ARRAY;
+    return HType.UNKNOWN;
+  }
+
+  HConstant addConstant(Constant constant) {
+    HConstant result = constants[constant];
     if (result === null) {
-      result = new HLiteral.internal(value, HType.INTEGER);
+      HType type = mapConstantTypeToSsaType(constant);
+      result = new HConstant.internal(constant, type);
       entry.addAtExit(result);
-      intLiterals[value] = result;
+      constants[constant] = result;
     }
     return result;
   }
 
-  HLiteral addNewLiteralNaN() {
-    if (nanLiteral === null) {
-      nanLiteral = new HLiteral.internal(double.NAN, HType.DOUBLE);
-      entry.addAtExit(nanLiteral);
-    }
-    return nanLiteral;
+  HConstant addConstantInt(int i) {
+    return addConstant(new IntConstant(i));
   }
 
-  HLiteral addNewNegativeZeroLiteral() {
-    if (negativeZeroLiteral === null) {
-      negativeZeroLiteral = new HLiteral.internal(-0.0, HType.DOUBLE);
-      entry.addAtExit(negativeZeroLiteral);
-    }
-    return negativeZeroLiteral;
+  HConstant addConstantDouble(int d) {
+    return addConstant(new DoubleConstant(d));
   }
 
-  HLiteral addNewLiteralDouble(double value) {
-    if (value.isNaN()) return addNewLiteralNaN();  // Avoid hashing NaN.
-    if (value == 0 && value.isNegative()) {
-      // Avoid hashing -0.0 as it compares equal to 0.0.
-      return addNewNegativeZeroLiteral();
-    }
-    if (doubleLiterals === null) doubleLiterals = new Map<double, HLiteral>();
-    HLiteral result = doubleLiterals[value];
-    if (result === null) {
-      result = new HLiteral.internal(value, HType.DOUBLE);
-      entry.addAtExit(result);
-      doubleLiterals[value] = result;
-    }
-    return result;
+  HConstant addConstantString(DartString str) {
+    return addConstant(new StringConstant(str));
   }
 
-  HLiteral addNewLiteralNum(num value, HType type) {
-    // If we've propagated type information then the type must be a
-    // number or in conflict, but when we turn off speculative
-    // optimization the type may be unknown. In any case, we make it a
-    // number from this point forward.
-    assert(type.isUnknown() || type.isConflicting() || type.isNumber());
-    if (type.isInteger()) return addNewLiteralInt(value);
-    if (type.isDouble() || value.isNaN()) return addNewLiteralDouble(value);
-    // Probe our literals map and add a new number literal if necessary.
-    if (numLiterals === null) numLiterals = new Map<num, HLiteral>();
-    HLiteral result = numLiterals[value];
-    if (result === null) {
-      result = new HLiteral.internal(value, HType.NUMBER);
-      entry.addAtExit(result);
-      numLiterals[value] = result;
-     }
-    return result;
+  HConstant addConstantBool(bool value) {
+    return addConstant(new BoolConstant(value));
   }
 
-  HLiteral addNewLiteralTrue() {
-    if (trueLiteral === null) {
-      trueLiteral = new HLiteral.internal(true, HType.BOOLEAN);
-      entry.addAtExit(trueLiteral);
-    }
-    return trueLiteral;
-  }
-
-  HLiteral addNewLiteralFalse() {
-    if (falseLiteral === null) {
-      falseLiteral = new HLiteral.internal(false, HType.BOOLEAN);
-      entry.addAtExit(falseLiteral);
-    }
-    return falseLiteral;
-  }
-
-  HLiteral addNewLiteralBool(bool value) {
-    return value ? addNewLiteralTrue() : addNewLiteralFalse();
-  }
-
-  HLiteral addNewLiteralString(DartString value) {
-    if (stringLiterals === null) stringLiterals = new Map<String, HLiteral>();
-    String key = value.toString();  // We need something hashable.
-    HLiteral result = stringLiterals[key];
-    if (result === null) {
-      result = new HLiteral.internal(value, HType.STRING);
-      entry.addAtExit(result);
-      stringLiterals[key] = result;
-    }
-    return result;
-  }
-
-  HLiteral addNewLiteralNull() {
-    if (nullLiteral === null) {
-      nullLiteral = new HLiteral.internal(null, HType.UNKNOWN);
-      entry.addAtExit(nullLiteral);
-    }
-    return nullLiteral;
+  HConstant addConstantNull() {
+    return addConstant(const NullConstant());
   }
 
   void finalize() {
@@ -324,6 +257,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
   visitBreak(HBreak node) => visitGoto(node);
   visitCheck(HCheck node) => visitInstruction(node);
+  visitConstant(HConstant node) => visitInstruction(node);
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
   visitEquals(HEquals node) => visitRelational(node);
   visitExit(HExit node) => visitControlFlow(node);
@@ -356,7 +290,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLoad(HLoad node) => visitInstruction(node);
   visitLocal(HLocal node) => visitInstruction(node);
   visitLogicalOperator(HLogicalOperator node) => visitInstruction(node);
-  visitLiteral(HLiteral node) => visitInstruction(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitModulo(HModulo node) => visitBinaryArithmetic(node);
@@ -1017,9 +950,9 @@ class HInstruction implements Hashable {
     assert(isValid());
   }
 
-  bool isLiteralNull() => false;
-  bool isLiteralNumber() => false;
-  bool isLiteralString() => false;
+  bool isConstantNull() => false;
+  bool isConstantNumber() => false;
+  bool isConstantString() => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
@@ -1281,10 +1214,10 @@ class HInvokeInterceptor extends HInvokeStatic {
   bool hasExpectedType() => builtinJsName != null;
 
   HInstruction fold(HGraph graph) {
-    if (name == const SourceString('length') && inputs[1].isLiteralString()) {
-      HLiteral input = inputs[1];
-      DartString string = input.value;
-      return graph.addNewLiteralInt(string.length);
+    if (name == const SourceString('length') && inputs[1].isConstantString()) {
+      HConstant input = inputs[1];
+      DartString string = input.constant.value;
+      return graph.addConstantInt(string.length);
     }
     return this;
   }
@@ -1379,8 +1312,17 @@ class HInvokeBinary extends HInvokeStatic {
     return leftType.combine(rightType);
   }
 
-  abstract HInstruction fold(HGraph graph);
-  abstract evaluate(num a, num b);
+  HInstruction fold(HGraph graph) {
+    if (left is HConstant && right is HConstant) {
+      HConstant op1 = left;
+      HConstant op2 = right;
+      Constant folded =
+          op1.constant.binaryFold(operationAsString(), op2.constant);
+      if (folded !== null) return graph.addConstant(folded);
+    }
+    return this;
+  }
+  abstract String operationAsString();
 }
 
 class HBinaryArithmetic extends HInvokeBinary {
@@ -1397,15 +1339,6 @@ class HBinaryArithmetic extends HInvokeBinary {
     } else {
       setAllSideEffects();
     }
-  }
-
-  HInstruction fold(HGraph graph) {
-    if (left.isLiteralNumber() && right.isLiteralNumber()) {
-      HLiteral op1 = left;
-      HLiteral op2 = right;
-      return graph.addNewLiteralNum(evaluate(op1.value, op2.value), type);
-    }
-    return this;
   }
 
   HType computeType() {
@@ -1425,24 +1358,18 @@ class HBinaryArithmetic extends HInvokeBinary {
   }
 
   bool hasExpectedType() => builtin || type.isUnknown();
-
-  abstract num evaluate(num a, num b);
 }
 
 class HAdd extends HBinaryArithmetic {
   HAdd(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitAdd(this);
-  num evaluate(num a, num b) => a + b;
-  int typeCode() => 5;
-  bool typeEquals(other) => other is HAdd;
-  bool dataEquals(HInstruction other) => true;
 
   HType computeType() {
     HType type = computeInputsType();
     builtin = (type.isNumber() || type.isString());
     if (type.isConflicting() && left.isString()) {
-      builtin = right is HLiteral;
+      builtin = right is HConstant;
       return HType.STRING;
     }
     if (!type.isUnknown()) return type;
@@ -1464,24 +1391,30 @@ class HAdd extends HBinaryArithmetic {
   }
 
   HInstruction fold(HGraph graph) {
-    if (left.isLiteralString() && right is HLiteral) {
-      HLiteral op1 = left;
-      HLiteral op2 = right;
-      DartString leftString = op1.value;
+    // TODO(floitsch): move this code to the compile-time-constant handler.
+    if (left.isConstantString() && right is HConstant) {
+      HConstant op1 = left;
+      HConstant op2 = right;
+      DartString leftString = op1.constant.value;
       DartString otherString = null;
-      if (right.isLiteralString()) {
-        otherString = op2.value;
+      if (right.isConstantString()) {
+        otherString = op2.constant.value;
       } else {
-        assert(op2.isLiteralNumber() ||
-               op2.isLiteralBoolean() ||
-               op2.isLiteralNull());
-        otherString = new DartString.literal(op2.value.toString());
+        assert(op2.isConstantNumber() ||
+               op2.isConstantBoolean() ||
+               op2.isConstantNull());
+        otherString = new DartString.literal(op2.constant.value.toString());
       }
       DartString cons = new ConsDartString(leftString, otherString);
-      return graph.addNewLiteralString(cons);
+      return graph.addConstantString(cons);
     }
     return super.fold(graph);
   }
+
+  String operationAsString() => "+";
+  int typeCode() => 5;
+  bool typeEquals(other) => other is HAdd;
+  bool dataEquals(HInstruction other) => true;
 }
 
 class HDivide extends HBinaryArithmetic {
@@ -1496,7 +1429,7 @@ class HDivide extends HBinaryArithmetic {
     return HType.UNKNOWN;
   }
 
-  num evaluate(num a, num b) => a / b;
+  String operationAsString() => "/";
   int typeCode() => 6;
   bool typeEquals(other) => other is HDivide;
   bool dataEquals(HInstruction other) => true;
@@ -1506,7 +1439,8 @@ class HModulo extends HBinaryArithmetic {
   HModulo(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitModulo(this);
-  num evaluate(num a, num b) => a % b;
+
+  String operationAsString() => "%";
   int typeCode() => 7;
   bool typeEquals(other) => other is HModulo;
   bool dataEquals(HInstruction other) => true;
@@ -1516,7 +1450,8 @@ class HMultiply extends HBinaryArithmetic {
   HMultiply(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
-  num evaluate(num a, num b) => a * b;
+
+  String operationAsString() => "*";
   int typeCode() => 8;
   bool typeEquals(other) => other is HMultiply;
   bool dataEquals(HInstruction other) => true;
@@ -1526,7 +1461,8 @@ class HSubtract extends HBinaryArithmetic {
   HSubtract(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
-  num evaluate(num a, num b) => a - b;
+
+  String operationAsString() => "-";
   int typeCode() => 9;
   bool typeEquals(other) => other is HSubtract;
   bool dataEquals(HInstruction other) => true;
@@ -1537,15 +1473,7 @@ class HTruncatingDivide extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
-  HInstruction fold(HGraph graph) {
-    // Avoid a DivisionByZeroException.
-    if (right.isLiteralNumber() && right.dynamic.value == 0) {
-      return this;
-    }
-    return super.fold(graph);
-  }
-
-  num evaluate(num a, num b) => a ~/ b;
+  String operationAsString() => "~/";
   int typeCode() => 10;
   bool typeEquals(other) => other is HTruncatingDivide;
   bool dataEquals(HInstruction other) => true;
@@ -1572,19 +1500,6 @@ class HBinaryBitOp extends HBinaryArithmetic {
     return HType.INTEGER;
   }
 
-  HInstruction fold(HGraph graph) {
-    // Bit-operations are only defined on integers.
-    if (left.isLiteralNumber() && right.isLiteralNumber()) {
-      HLiteral op1 = left;
-      HLiteral op2 = right;
-      // Avoid exceptions.
-      if (op1.isInteger() && op2.isInteger()) {
-        return graph.addNewLiteralInt(evaluate(op1.value, op2.value));
-      }
-    }
-    return this;
-  }
-
   // TODO(floitsch): make class abstract instead of adding an abstract method.
   abstract accept(HVisitor visitor);
 }
@@ -1594,19 +1509,7 @@ class HShiftLeft extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
-  HInstruction fold(HGraph graph) {
-    if (right.isLiteralNumber()) {
-      // TODO(floitsch): find good max left-shift amount.
-      final int MAX_SHIFT_LEFT_AMOUNT = 50;
-      HLiteral op2 = right;
-      // Only positive shifting is allowed. Also guard against out-of-memory
-      // shifts.
-      if (op2.value < 0 || op2.value > MAX_SHIFT_LEFT_AMOUNT) return this;
-    }
-    return super.fold(graph);
-  }
-
-  int evaluate(int a, int b) => a << b;
+  String operationAsString() => "<<";
   int typeCode() => 11;
   bool typeEquals(other) => other is HShiftLeft;
   bool dataEquals(HInstruction other) => true;
@@ -1617,16 +1520,7 @@ class HShiftRight extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
-  HInstruction fold(HGraph graph) {
-    if (right.isLiteralNumber()) {
-      HLiteral op2 = right;
-      // Only positive shifting is allowed.
-      if (op2.value < 0) return this;
-    }
-    return super.fold(graph);
-  }
-
-  int evaluate(int a, int b) => a >> b;
+  String operationAsString() => ">>";
   int typeCode() => 12;
   bool typeEquals(other) => other is HShiftRight;
   bool dataEquals(HInstruction other) => true;
@@ -1637,7 +1531,7 @@ class HBitOr extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
-  int evaluate(int a, int b) => a | b;
+  String operationAsString() => "|";
   int typeCode() => 13;
   bool typeEquals(other) => other is HBitOr;
   bool dataEquals(HInstruction other) => true;
@@ -1648,7 +1542,7 @@ class HBitAnd extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
-  int evaluate(int a, int b) => a & b;
+  String operationAsString() => "&";
   int typeCode() => 14;
   bool typeEquals(other) => other is HBitAnd;
   bool dataEquals(HInstruction other) => true;
@@ -1659,7 +1553,7 @@ class HBitXor extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
-  int evaluate(int a, int b) => a ^ b;
+  String operationAsString() => "^";
   int typeCode() => 15;
   bool typeEquals(other) => other is HBitXor;
   bool dataEquals(HInstruction other) => true;
@@ -1699,24 +1593,23 @@ class HInvokeUnary extends HInvokeStatic {
 
   bool hasExpectedType() => builtin || (type.isUnknown());
 
-  abstract HInstruction fold(HGraph graph);
+  HInstruction fold(HGraph graph) {
+    if (operand is HConstant) {
+      HConstant op = operand;
+      Constant folded = op.constant.unaryFold(operationAsString());
+      if (folded !== null) return graph.addConstant(folded);
+    }
+    return this;
+  }
 
-  abstract num evaluate(num a);
+  abstract String operationAsString();
 }
 
 class HNegate extends HInvokeUnary {
   HNegate(HStatic target, HInstruction input) : super(target, input);
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
-  HInstruction fold(HGraph graph) {
-    if (operand.isLiteralNumber()) {
-      HLiteral input = operand;
-      return graph.addNewLiteralNum(evaluate(input.value), type);
-    }
-    return this;
-  }
-
-  num evaluate(num a) => -a;
+  String operationAsString() => "-";
   int typeCode() => 16;
   bool typeEquals(other) => other is HNegate;
   bool dataEquals(HInstruction other) => true;
@@ -1739,17 +1632,7 @@ class HBitNot extends HInvokeUnary {
     return HType.INTEGER;
   }
 
-  HInstruction fold(HGraph graph) {
-    if (operand.isLiteralNumber()) {
-      HLiteral input = operand;
-      if (input.isInteger()) {
-        return graph.addNewLiteralInt(evaluate(input.value));
-      }
-    }
-    return this;
-  }
-
-  int evaluate(int a) => ~a;
+  String operationAsString() => "~";
   int typeCode() => 17;
   bool typeEquals(other) => other is HBitNot;
   bool dataEquals(HInstruction other) => true;
@@ -1822,9 +1705,9 @@ class HLoopBranch extends HConditionalBranch {
   }
 }
 
-class HLiteral extends HInstruction {
-  final value;
-  HLiteral.internal(this.value, HType type) : super(<HInstruction>[]) {
+class HConstant extends HInstruction {
+  final Constant constant;
+  HConstant.internal(this.constant, HType type) : super(<HInstruction>[]) {
     this.type = type;
     tryGenerateAtUseSite();  // Maybe avoid this if the literal is big?
   }
@@ -1833,8 +1716,8 @@ class HLiteral extends HInstruction {
     assert(!hasSideEffects());
   }
 
-  toString() => 'literal: $value';
-  accept(HVisitor visitor) => visitor.visitLiteral(this);
+  toString() => 'literal: $constant';
+  accept(HVisitor visitor) => visitor.visitConstant(this);
   HType computeType() => type;
 
   // Literals have the type they have. It can't be changed.
@@ -1842,10 +1725,10 @@ class HLiteral extends HInstruction {
 
   bool hasExpectedType() => true;
 
-  bool isLiteralBoolean() => value is bool;
-  bool isLiteralNull() => value === null;
-  bool isLiteralNumber() => value is num;
-  bool isLiteralString() => value is DartString;
+  bool isConstantBoolean() => constant.isBool();
+  bool isConstantNull() => constant.isNull();
+  bool isConstantNumber() => constant.isNum();
+  bool isConstantString() => constant.isString();
 }
 
 class HNot extends HInstruction {
@@ -1984,15 +1867,6 @@ class HRelational extends HInvokeBinary {
     }
   }
 
-   HInstruction fold(HGraph graph) {
-    if (left.isLiteralNumber() && right.isLiteralNumber()) {
-      HLiteral op1 = left;
-      HLiteral op2 = right;
-      return graph.addNewLiteralBool(evaluate(op1.value, op2.value));
-    }
-    return this;
-  }
-
   HType computeType() {
     builtin = computeInputsType().isNumber();
     return HType.BOOLEAN;
@@ -2009,21 +1883,15 @@ class HRelational extends HInvokeBinary {
   // A HRelational goes through the builtin operator or the top level
   // element. Therefore, it always has the expected type.
   bool hasExpectedType() => true;
-
-  abstract bool evaluate(num a, num b);
 }
 
 class HEquals extends HRelational {
   HEquals(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
-  bool evaluate(num a, num b) => a == b;
   accept(HVisitor visitor) => visitor.visitEquals(this);
-  int typeCode() => 19;
-  bool typeEquals(other) => other is HEquals;
-  bool dataEquals(HInstruction other) => true;
 
   HType computeType() {
-    builtin = computeInputsType().isNumber() || (left is HLiteral);
+    builtin = computeInputsType().isNumber() || (left is HConstant);
     return HType.BOOLEAN;
   }
 
@@ -2033,16 +1901,17 @@ class HEquals extends HRelational {
     if (left.isNumber() || right.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
+
+  String operationAsString() => "==";
+  int typeCode() => 19;
+  bool typeEquals(other) => other is HEquals;
+  bool dataEquals(HInstruction other) => true;
 }
 
 class HIdentity extends HRelational {
   HIdentity(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
-  bool evaluate(num a, num b) => a === b;
   accept(HVisitor visitor) => visitor.visitIdentity(this);
-  int typeCode() => 20;
-  bool typeEquals(other) => other is HIdentity;
-  bool dataEquals(HInstruction other) => true;
 
   HType computeType() {
     builtin = true;
@@ -2052,13 +1921,19 @@ class HIdentity extends HRelational {
   bool hasExpectedType() => true;
 
   HType computeDesiredInputType(HInstruction input) => HType.UNKNOWN;
+
+  String operationAsString() => "===";
+  int typeCode() => 20;
+  bool typeEquals(other) => other is HIdentity;
+  bool dataEquals(HInstruction other) => true;
 }
 
 class HGreater extends HRelational {
   HGreater(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
-  bool evaluate(num a, num b) => a > b;
   accept(HVisitor visitor) => visitor.visitGreater(this);
+
+  String operationAsString() => ">";
   int typeCode() => 21;
   bool typeEquals(other) => other is HGreater;
   bool dataEquals(HInstruction other) => true;
@@ -2067,8 +1942,9 @@ class HGreater extends HRelational {
 class HGreaterEqual extends HRelational {
   HGreaterEqual(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
-  bool evaluate(num a, num b) => a >= b;
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
+
+  String operationAsString() => ">=";
   int typeCode() => 22;
   bool typeEquals(other) => other is HGreaterEqual;
   bool dataEquals(HInstruction other) => true;
@@ -2077,8 +1953,10 @@ class HGreaterEqual extends HRelational {
 class HLess extends HRelational {
   HLess(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
-  bool evaluate(num a, num b) => a < b;
   accept(HVisitor visitor) => visitor.visitLess(this);
+
+  String operationAsString() => "<";
+  int typeCode() => 23;
   bool typeEquals(other) => other is HLess;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2086,9 +1964,10 @@ class HLess extends HRelational {
 class HLessEqual extends HRelational {
   HLessEqual(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
-  bool evaluate(num a, num b) => a <= b;
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
-  int typeCode() => 23;
+
+  String operationAsString() => "<=";
+  int typeCode() => 24;
   bool typeEquals(other) => other is HLessEqual;
   bool dataEquals(HInstruction other) => true;
 }
@@ -2121,7 +2000,7 @@ class HStatic extends HInstruction {
   accept(HVisitor visitor) => visitor.visitStatic(this);
 
   int gvnHashCode() => super.gvnHashCode() ^ element.hashCode();
-  int typeCode() => 24;
+  int typeCode() => 25;
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
 }
@@ -2132,7 +2011,7 @@ class HStaticStore extends HInstruction {
   toString() => 'static store ${element.name}';
   accept(HVisitor visitor) => visitor.visitStaticStore(this);
 
-  int typeCode() => 25;
+  int typeCode() => 26;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
 }

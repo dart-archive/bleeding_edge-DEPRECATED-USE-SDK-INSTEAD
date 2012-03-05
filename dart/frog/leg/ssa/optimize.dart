@@ -90,7 +90,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = inputs[0];
     if (input.isBoolean()) return input;
     // All values !== true are boolified to false.
-    if (input.type.isKnown()) return graph.addNewLiteralFalse();
+    if (input.type.isKnown()) {
+      return graph.addConstantBool(false);
+    }
     return node;
   }
 
@@ -98,9 +100,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 1);
     HInstruction input = inputs[0];
-    if (input is HLiteral) {
-      HLiteral literal = input;
-      return graph.addNewLiteralBool(literal.value !== true);
+    if (input is HConstant) {
+      HConstant constant = input;
+      bool isTrue = constant.constant.isTrue();
+      return graph.addConstantBool(!isTrue);
     }
     return node;
   }
@@ -111,65 +114,51 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       => node.fold(graph);
 
   HInstruction visitAdd(HAdd node) {
+    // TODO(floitsch): move this code into the compile-time constant handler.
+
     // String + is defined for all literals. We don't need to know which
-    // literal type the right-hand side is.
+    // type the right-hand side is.
 
     if (node.left.isString()) {
       // First try to eliminate adding the empty string to a string.
-      if (node.right.isLiteralString()) {
-        HLiteral right = node.right;
-        DartString rightString = right.value;
+      if (node.right.isConstantString()) {
+        HConstant right = node.right;
+        Constant rightStringConstant = right.constant;
+        DartString rightString = rightStringConstant.value;
         if (rightString.isEmpty()) {
           // String has no content, i.e., it's the empty string.
           return node.left;
         }
       }
-      // Then, if both are literals, try to do the concatenation statically.
-      if (node.left.isLiteralString()) {
-        HLiteral left = node.left;
-        DartString leftString = left.value;
+      // Then, if both are constants, try to do the concatenation statically.
+      if (node.left.isConstantString()) {
+        HConstant left = node.left;
+        Constant leftStringConstant = left.constant;
+        DartString leftString = leftStringConstant.value;
         if (leftString.isEmpty()) {
           // Left is empty String.
           if (node.right.isString()) {
             // Right is already a String, just return that.
             return node.right;
           }
-          if (node.right is HLiteral) {
-            HLiteral right = node.right;
-            // Right is a literal, so we can statically convert it to String
+          if (node.right is HConstant) {
+            HConstant right = node.right;
+            // Right is a constant, so we can statically convert it to String
             // and return that.
             // Remaining literal types are represented by their Dart value.
-            assert(right.isLiteralBoolean() ||
-                   right.isLiteralNumber() ||
-                   right.isLiteralNull());
-            String str = right.value.toString();
-            return graph.addNewLiteralString(new DartString.literal(str));
+            if (right.isConstantBoolean() ||
+                right.isConstantNumber() ||
+                right.isConstantNull()) {
+              PrimitiveConstant rightConstant = right.constant;
+              String str = rightConstant.value.toString();
+              return graph.addConstantString(new DartString.literal(str));
+            }
           }
         }
         // TODO(lrn): Perform concatenation in Dart.
       }
     }
     return visitInvokeBinary(node);
-  }
-
-  HInstruction visitEquals(HEquals node) {
-    if (node.left is HLiteral && node.right is HLiteral) {
-      HLiteral op1 = node.left;
-      HLiteral op2 = node.right;
-      if (op1.isLiteralString()) {
-        if (op2.isLiteralString() && op1.value.definitelyEquals(op2.value)) {
-          return graph.addNewLiteralTrue();
-        }
-      } else {
-        return graph.addNewLiteralBool(op1.value == op2.value);
-      }
-    } else if (node.right.isLiteralNull()) {
-      HStatic target = new HStatic(
-          compiler.builder.interceptors.getEqualsNullInterceptor());
-      node.block.addBefore(node, target);
-      return new HEquals(target, node.left, node.right);
-    }
-    return node;
   }
 
   HInstruction visitTypeGuard(HTypeGuard node) {
