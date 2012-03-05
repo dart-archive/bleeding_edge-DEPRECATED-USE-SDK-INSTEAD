@@ -406,6 +406,9 @@ class TypeCheckerVisitor implements Visitor<Type> {
         if (receiverType === null) {
           fail(node.receiver, 'receivertype is null');
         }
+        if (receiverType.element.kind !== ElementKind.CLASS) {
+          fail(node.receiver, 'receivertype is not a class');
+        }
         ClassElement classElement = receiverType.element;
         // TODO(karlklose): substitute type arguments.
         Type memberType = lookupMethodType(node, classElement, selector.source);
