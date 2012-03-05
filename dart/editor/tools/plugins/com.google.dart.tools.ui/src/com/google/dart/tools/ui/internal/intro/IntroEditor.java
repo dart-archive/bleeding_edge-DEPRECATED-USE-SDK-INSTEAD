@@ -213,12 +213,27 @@ public class IntroEditor extends EditorPart {
     return new File(p.toString());
   }
 
+  private void openInEditor(final File file) {
+    //performed async to ensure that resource change events have been processed before the editor
+    //opens (needed for proper linking w/editor)
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          EditorUtility.openInEditor(ResourceUtil.getFile(file));
+        } catch (Throwable e) {
+          DartCore.logError(e);
+        }
+      }
+    });
+  }
+
   private void openSample(File file) {
     try {
       File dir = getDirectory(file);
       // TODO(keertip): pass in a real progress monitor
       IProjectUtilities.createOrOpenProject(dir, new NullProgressMonitor());
-      EditorUtility.openInEditor(ResourceUtil.getFile(file));
+      openInEditor(file);
     } catch (Throwable e) {
       DartCore.logError(e);
     }
