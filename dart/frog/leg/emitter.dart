@@ -137,9 +137,11 @@ function(child, parent) {
           if (value == null) {
             argumentsBuffer[count] = '(void 0)';
           } else {
-            // If we have an optional value, we need to pass it to the
-            // JS function.
-            indexOfLastOptionalArgumentInParameters = count;
+            if (!value.isNull()) {
+              // If the value is the null constant, we should not pass it
+              // down to the native method.
+              indexOfLastOptionalArgumentInParameters = count;
+            }
             argumentsBuffer[count] =
                 constants.writeJsCode(new StringBuffer(), value).toString();
           }
