@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartDeclaration;
@@ -26,7 +27,6 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -979,7 +979,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         unit = DartCompilerUtilities.resolveUnit(this);
       }
       if (unit != null) {
-        DartElementLocator locator = new DartElementLocator(this, offset, offset + length);
+        DartElementLocator locator = new DartElementLocator(this, offset, offset + length, false);
         DartElement element = locator.searchWithin(unit);
         if (element != null) {
           return new DartElement[] {element};
