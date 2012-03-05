@@ -9,14 +9,13 @@ args4j - in third_party/args4j
 bzip2 - in third_party/bzip2
 dromaeo - in samples/third_party/dromaeo
 Eclipse - in third_party/eclipse
-gsutil = in third_party/gsutil
+gsutil - in third_party/gsutil
 Guava - in third_party/guava
 hamcrest - in third_party/hamcrest
 Httplib2 - in samples/third_party/httplib2
 JSON - in third_party/json
 JUnit - in third_party/junit
 Oauth - in samples/third_party/oauth2client
-Rhino - in third_party/rhino
 weberknecht - in third_party/weberknecht
 
 The libraries may have their own licenses; we recommend you read them,
