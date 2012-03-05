@@ -23,9 +23,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 
   void preGenerateMethod(HGraph graph, WorkItem work) {
-    if (GENERATE_SSA_TRACE) {
-      new HTracer.singleton().traceGraph("codegen", graph);
-    }
+    compiler.tracer.traceGraph("codegen", graph);
     new SsaInstructionMerger().visitGraph(graph);
     // Replace the results of check instructions with the
     // original value, if the result is used. This is safe now,
@@ -33,9 +31,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     new SsaCheckInstructionUnuser().visitGraph(graph);
     new SsaConditionMerger().visitGraph(graph);
     new SsaPhiEliminator(work).visitGraph(graph);
-    if (GENERATE_SSA_TRACE) {
-      new HTracer.singleton().traceGraph("no-phi", graph);
-    }
+    compiler.tracer.traceGraph("no-phi", graph);
   }
 
   String generateMethod(Map<Element, String> parameterNames,

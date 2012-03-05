@@ -203,7 +203,14 @@ class AbstractScanner<T> implements Scanner {
     if (next < 0x1f) {
       throw new MalformedInputException("illegal character $next", charOffset);
     }
-    // Non-ascii identifier.
+
+    // The following are non-ASCII characters.
+
+    if (next === $NBSP) {
+      appendWhiteSpace(next);
+      return advance();
+    }
+
     return tokenizeIdentifier(next, byteOffset, true);
   }
 

@@ -108,6 +108,7 @@ final int $BAR = 124;
 final int $CLOSE_CURLY_BRACKET = 125;
 final int $TILDE = 126;
 final int $DEL = 127;
+final int $NBSP = 160;
 final int $LS = 0x2028;
 final int $PS = 0x2029;
 

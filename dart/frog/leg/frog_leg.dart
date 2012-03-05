@@ -10,6 +10,7 @@
 #import('io/io.dart', prefix: 'io');
 #import('leg.dart');
 #import('tree/tree.dart');
+#import('ssa/tracer.dart');
 
 bool compile(frog.World world) {
   final throwOnError = frog.options.throwOnErrors;
@@ -24,7 +25,9 @@ class WorldCompiler extends Compiler {
   final frog.World world;
   final bool throwOnError;
 
-  WorldCompiler(this.world, this.throwOnError) : super();
+  WorldCompiler(this.world, this.throwOnError)
+    : super.withCurrentDirectory(io.getCurrentDirectory(),
+                                 tracer: new HTracer());
 
   void log(message) {
     if (frog.options.showInfo) {
@@ -144,6 +147,14 @@ class WorldCompiler extends Compiler {
       throw new AbortLeg(reason);
     }
     super.cancel(reason, node, token, instruction);
+  }
+
+  LibraryElement scanBuiltinLibrary(String filename) {
+    String fileName = io.join([legDirectory, 'lib', filename]);
+    Uri cwd = new Uri(scheme: 'file', path: currentDirectory);
+    Uri uri = cwd.resolve(fileName);
+    LibraryElement library = scanner.loadLibrary(uri, null);
+    return library;
   }
 }
 

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file.
+-->
+<html>
+  <head>
+    <title>Leap Leg</title>
+  </head>
+  <body>
+    <h2 id="status">dart is not running</h2>
+    <script type="application/dart" src="leap.dart"></script>
+    <!-- <script src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script> -->
+    <div style="position: fixed; width: 250px; border: solid; padding: 5px;">
+      <h3>Outline</h3>
+      <section id="out" style="white-space: pre-wrap"></section>
+    </div>
+
+    <div style=" position: absolute; left: 280px; border: solid; padding: 5px;">
+      <h3>Code</h3>
+      <section id="code" contenteditable="true" style="white-space: pre;"
+               >void main() {
+  print('Hello, World');
+}</section>
+    </div>
+    <iframe id="isolate" style="display:none" src="isolate.html"></iframe>
+  </body>
+</html>

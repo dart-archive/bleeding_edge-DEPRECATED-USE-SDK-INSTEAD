@@ -6,14 +6,11 @@
 
 #import('../../lib/uri/uri.dart');
 
-#import('io/io.dart', prefix: 'io');
-
 #import('elements/elements.dart');
 #import('native_handler.dart', prefix: 'native');
 #import('scanner/scannerlib.dart');
 #import('scanner/scanner_implementation.dart');
 #import('ssa/ssa.dart');
-#import('ssa/tracer.dart');
 #import('string_validator.dart');
 #import('tree/tree.dart');
 #import('util/characters.dart');
@@ -31,8 +28,6 @@
 #source('typechecker.dart');
 #source('universe.dart');
 #source('warnings.dart');
-
-final bool GENERATE_SSA_TRACE = false;
 
 void unreachable() {
   throw const Exception("Internal Error (Leg): UNREACHABLE");

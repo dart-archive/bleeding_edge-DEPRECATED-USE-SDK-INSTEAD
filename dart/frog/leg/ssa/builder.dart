@@ -119,7 +119,7 @@ class SsaBuilderTask extends CompilerTask {
           break;
       }
       assert(graph.isValid());
-      if (GENERATE_SSA_TRACE) {
+      if (compiler.tracer.enabled) {
         String name;
         if (element.enclosingElement !== null &&
             element.enclosingElement.kind == ElementKind.CLASS) {
@@ -132,8 +132,8 @@ class SsaBuilderTask extends CompilerTask {
         } else {
           name = "${element.name.slowToString()}";
         }
-        new HTracer.singleton().traceCompilation(name);
-        new HTracer.singleton().traceGraph('builder', graph);
+        compiler.tracer.traceCompilation(name);
+        compiler.tracer.traceGraph('builder', graph);
       }
       return graph;
     });

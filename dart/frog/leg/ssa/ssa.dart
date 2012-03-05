@@ -4,7 +4,6 @@
 
 #library('ssa');
 
-#import('tracer.dart');
 #import('../leg.dart');
 #import('../native_handler.dart', prefix: 'native');
 #import('../elements/elements.dart');

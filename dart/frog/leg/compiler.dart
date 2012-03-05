@@ -44,6 +44,8 @@ class Compiler implements DiagnosticListener {
   Types types;
   final String currentDirectory;
 
+  final Tracer tracer;
+
   CompilerTask measuredTask;
   Element _currentElement;
   LibraryElement coreLibrary;
@@ -83,9 +85,8 @@ class Compiler implements DiagnosticListener {
   static final SourceString OBJECT = const SourceString('Object');
   bool enabledNoSuchMethod = false;
 
-  Compiler() : this.withCurrentDirectory(io.getCurrentDirectory());
-
-  Compiler.withCurrentDirectory(String this.currentDirectory)
+  Compiler.withCurrentDirectory(String this.currentDirectory,
+                                [this.tracer = const Tracer()])
       : types = new Types(),
         universe = new Universe(),
         worklist = new Queue<WorkItem>() {
@@ -143,7 +144,7 @@ class Compiler implements DiagnosticListener {
       log('compilation failed');
       return false;
     }
-    if (GENERATE_SSA_TRACE) new HTracer.singleton().close();
+    tracer.close();
     log('compilation succeeded');
     return true;
   }
@@ -157,13 +158,7 @@ class Compiler implements DiagnosticListener {
     invocations.add(new Invocation(2));
   }
 
-  LibraryElement scanBuiltinLibrary(String filename) {
-    String fileName = io.join([legDirectory, 'lib', filename]);
-    Uri cwd = new Uri(scheme: 'file', path: currentDirectory);
-    Uri uri = cwd.resolve(fileName);
-    LibraryElement library = scanner.loadLibrary(uri, null);
-    return library;
-  }
+  abstract LibraryElement scanBuiltinLibrary(String filename);
 
   void scanBuiltinLibraries() {
     coreImplLibrary = scanBuiltinLibrary('coreimpl.dart');
@@ -417,5 +412,22 @@ class CompilerCancelledException implements Exception {
   String toString() {
     String banner = 'compiler cancelled';
     return (reason !== null) ? '$banner: $reason' : '$banner';
+  }
+}
+
+interface Tracer default LTracer {
+  const Tracer();
+  final bool enabled;
+  void traceGraph(String name, var graph);
+  void close();
+}
+
+// TODO(ahe): Remove when the VM supports implicit interfaces.
+class LTracer implements Tracer {
+  const LTracer();
+  final bool enabled = false;
+  void traceGraph(String name, var graph) {
+  }
+  void close() {
   }
 }

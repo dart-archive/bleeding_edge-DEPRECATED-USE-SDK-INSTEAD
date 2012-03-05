@@ -6,21 +6,21 @@
 
 #import('dart:io');
 #import('ssa.dart');
+#import('../leg.dart');
 
-class HTracer extends HGraphVisitor {
+final bool GENERATE_SSA_TRACE = false;
+
+class HTracer extends HGraphVisitor implements Tracer {
   int indent = 0;
   final RandomAccessFile output;
+  final bool enabled = GENERATE_SSA_TRACE;
 
-  factory HTracer.singleton([String path = "dart.cfg"]) {
-    if (_singleton === null) _singleton = new HTracer._internal(path);
-    return _singleton;
-  }
-
-  HTracer._internal(String path)
-      : output = new File(path).openSync(FileMode.WRITE);
+  HTracer([String path = "dart.cfg"])
+      : output = GENERATE_SSA_TRACE ? new File(path).openSync(FileMode.WRITE)
+                                    : null;
 
   void close() {
-    output.closeSync();
+    if (enabled) output.closeSync();
   }
 
   void traceCompilation(String methodName) {
@@ -32,6 +32,7 @@ class HTracer extends HGraphVisitor {
   }
 
   void traceGraph(String name, HGraph graph) {
+    if (!enabled) return;
     tag("cfg", () {
       printProperty("name", name);
       visitDominatorTree(graph);
@@ -149,8 +150,6 @@ class HTracer extends HGraphVisitor {
       add("  ");
     }
   }
-
-  static HTracer _singleton = null;
 }
 
 class HInstructionStringifier implements HVisitor<String> {

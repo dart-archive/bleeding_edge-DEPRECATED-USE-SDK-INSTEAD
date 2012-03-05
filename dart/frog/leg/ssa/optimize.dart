@@ -34,9 +34,7 @@ class SsaOptimizerTask extends CompilerTask {
 
       for (OptimizationPhase phase in phases) {
         phase.visitGraph(graph);
-        if (GENERATE_SSA_TRACE) {
-          new HTracer.singleton().traceGraph(phase.name, graph);
-        }
+        compiler.tracer.traceGraph(phase.name, graph);
       }
     });
   }
