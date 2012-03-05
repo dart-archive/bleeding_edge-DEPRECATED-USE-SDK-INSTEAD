@@ -105,7 +105,7 @@ class SsaCodeGenerator implements HVisitor {
   HGraph currentGraph;
   HBasicBlock currentBlock;
 
-  SubGraph subGraph = const SubGraph.unrestricted();
+  SubGraph subGraph;
 
   SsaCodeGenerator(this.compiler,
                    this.work,
@@ -152,6 +152,7 @@ class SsaCodeGenerator implements HVisitor {
   visitGraph(HGraph graph) {
     currentGraph = graph;
     indent++;  // We are already inside a function.
+    subGraph = new SubGraph(graph.entry, graph.exit);
     beginGraph(graph);
     visitBasicBlock(graph.entry);
     endGraph(graph);
@@ -477,27 +478,27 @@ class SsaCodeGenerator implements HVisitor {
 
   visitIf(HIf node) {
     List<HBasicBlock> dominated = node.block.dominatedBlocks;
-    HBasicBlock joinBlock = node.joinBlock;
+    HIfBlockInformation info = node.blockInformation;
     startIf(node);
     assert(!node.generateAtUseSite());
     startThen(node);
     assert(node.thenBlock === dominated[0]);
-    visitSubGraph(subGraph.restrict(node.thenBlock, joinBlock));
+    visitSubGraph(info.thenGraph);
     int preVisitedBlocks = 1;
     endThen(node);
     if (node.hasElse) {
       startElse(node);
       assert(node.elseBlock === dominated[1]);
-      visitSubGraph(subGraph.restrict(node.elseBlock, joinBlock));
+      visitSubGraph(info.elseGraph);
       preVisitedBlocks = 2;
       endElse(node);
     }
     endIf(node);
-    if (joinBlock !== null && joinBlock.dominator !== node.block) {
+    if (info.joinBlock !== null && info.joinBlock.dominator !== node.block) {
       // The join block is dominated by a block in one of the branches.
-      // We stopped the iteration from reaching it, so we visit it here
+      // The subgraph traversal never reached it, so we visit it here
       // instead.
-      visitBasicBlock(joinBlock);
+      visitBasicBlock(info.joinBlock);
     }
 
     // Visit all the dominated blocks that are not part of the then or else

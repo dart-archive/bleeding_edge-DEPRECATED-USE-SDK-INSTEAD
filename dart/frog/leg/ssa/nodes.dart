@@ -381,22 +381,14 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
 }
 
 class SubGraph {
+  // The first and last block of the sub-graph.
   final HBasicBlock start;
-  // The first basic block after the end of the subgraph.
-  final HBasicBlock limit;
+  final HBasicBlock end;
 
-  const SubGraph(this.start, this.limit);
-  const SubGraph.unrestricted() : start = null, limit = null;
-
-  SubGraph restrict(HBasicBlock start, HBasicBlock limit) {
-    if (start === null) start = this.start;
-    if (limit === null) limit = this.limit;
-    return new SubGraph(start, limit);
-  }
+  const SubGraph(this.start, this.end);
 
   bool contains(HBasicBlock block) {
-    return (start === null || start.id <= block.id)
-        && (limit === null || limit.id > block.id);
+    return start.id <= block.id && block.id <= end.id;
   }
 }
 
@@ -1793,7 +1785,7 @@ class HTry extends HControlFlow {
 
 class HIf extends HConditionalBranch {
   bool hasElse;
-  HBasicBlock joinBlock = null;
+  HIfBlockInformation blockInformation = null;
   HIf(HInstruction condition, this.hasElse) : super(<HInstruction>[condition]);
   toString() => 'if';
   accept(HVisitor visitor) => visitor.visitIf(this);
@@ -1811,6 +1803,8 @@ class HIf extends HConditionalBranch {
       return null;
     }
   }
+
+  HBasicBlock get joinBlock() => blockInformation.joinBlock;
 }
 
 class HLoopBranch extends HConditionalBranch {
@@ -2283,4 +2277,15 @@ class HIs extends HInstruction {
   accept(HVisitor visitor) => visitor.visitIs(this);
 
   toString() => "$expression is $typeExpression";
+}
+
+class HIfBlockInformation {
+  final HIf branch;
+  final SubGraph thenGraph;
+  final SubGraph elseGraph;
+  final HBasicBlock joinBlock;
+  HIfBlockInformation(this.branch,
+                      this.thenGraph,
+                      this.elseGraph,
+                      this.joinBlock);
 }

@@ -16,6 +16,7 @@ class TreeElementMapping implements TreeElements {
 
   operator []=(Node node, Element element) => map[node] = element;
   operator [](Node node) => map[node];
+  void remove(Node node) { map.remove(node); }
 
   void setSelector(Send send, Selector selector) {
     selectors[send] = selector;
@@ -681,7 +682,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     visitIn(body, scope);
     statementScope.exitLoop();
     if (!element.isTarget) {
-      mapping.map.remove(loop);
+      mapping.remove(loop);
     }
   }
 
@@ -1121,7 +1122,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (!statementElement.isBreakTarget && mapping[body] === statementElement) {
       // If the body is itself a break or continue for another target, it
       // might have updated its mapping to the label it actaully does target.
-      mapping.map.remove(body);
+      mapping.remove(body);
     }
   }
 

@@ -58,11 +58,12 @@ class Environment {
 class SsaEnvironmentBuilder extends HBaseVisitor {
   final Compiler compiler;
   Environment environment;
-  SubGraph subGraph = const SubGraph.unrestricted();
+  SubGraph subGraph;
 
   SsaEnvironmentBuilder(Compiler this.compiler);
 
   void visitGraph(HGraph graph) {
+    subGraph = new SubGraph(graph.entry, graph.exit);
     environment = new Environment();
     visitBasicBlock(graph.entry);
     assert(environment.isEmpty());
@@ -113,7 +114,9 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
   }
 
   void visitIf(HIf instruction) {
-    HBasicBlock joinBlock = instruction.joinBlock;
+    HIfBlockInformation info = instruction.blockInformation;
+    HBasicBlock joinBlock = info.joinBlock;
+
     Environment thenEnvironment;
     Environment elseEnvironment;
     // If the if does not have an else, phisInput will contain the
@@ -158,7 +161,7 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     }
 
     environment = thenEnvironment;
-    visitSubGraph(subGraph.restrict(instruction.thenBlock, joinBlock));
+    visitSubGraph(info.thenGraph);
 
     if (instruction.hasElse) {
       // Save the live instructions for the then block.
@@ -166,7 +169,7 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
       // Use the duplicated environment that was created before
       // visiting the then block.
       environment = elseEnvironment;
-      visitSubGraph(subGraph.restrict(instruction.elseBlock, joinBlock));
+      visitSubGraph(info.elseGraph);
       // Add the instructions for the then block to the
       // current environment.
       environment.addAll(thenEnvironment);

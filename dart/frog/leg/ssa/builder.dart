@@ -300,20 +300,6 @@ class LocalsHandler {
   }
 
   /**
-   * Removes all direct locals that were not present at the reference point.
-   * Use when leaving a scope that might have declared variables, unless
-   * another operation is performed that removes these (e.g., a merge).
-   */
-  void cleanUp(LocalsHandler referencePoint) {
-    if (this === referencePoint) return;
-    for (Element key in directLocals.getKeys()) {
-      if (!referencePoint.directLocals.containsKey(key)) {
-        directLocals.remove(key);
-      }
-    }
-  }
-
-  /**
    * Returns true if the local can be accessed directly. Boxed variables or
    * captured variables that are stored in the closure-field return [false].
    */
@@ -696,6 +682,10 @@ class SsaBuilder implements Visitor {
   // The current block to add instructions to. Might be null, if we are
   // visiting dead code.
   HBasicBlock current;
+  // The most recently opened block. Has the same value as [current] while
+  // the block is open, but unlike [current], it isn't cleared when the current
+  // block is closed.
+  HBasicBlock lastOpenedBlock;
 
   // Linked list of active break-handlers. Will be removed in the order
   // they are added.
@@ -930,6 +920,7 @@ class SsaBuilder implements Visitor {
   void open(HBasicBlock block) {
     block.open();
     current = block;
+    lastOpenedBlock = block;
   }
 
   HBasicBlock close(HControlFlow end) {
@@ -1215,6 +1206,7 @@ class SsaBuilder implements Visitor {
     conditionBlock.addSuccessor(thenBlock);
     open(thenBlock);
     visitThen();
+    SubGraph thenGraph = new SubGraph(thenBlock, lastOpenedBlock);
     thenBlock = current;
 
     // Reset the locals state to the state after the condition and keep the
@@ -1224,18 +1216,19 @@ class SsaBuilder implements Visitor {
     // Now the else part.
     localsHandler = savedLocals;
     HBasicBlock elseBlock = null;
+    SubGraph elseGraph = null;
     if (hasElse) {
       elseBlock = addNewBlock();
       conditionBlock.addSuccessor(elseBlock);
       open(elseBlock);
       visitElse();
+      elseGraph = new SubGraph(elseBlock, lastOpenedBlock);
       elseBlock = current;
     }
 
-    if (thenBlock === null && elseBlock === null && hasElse) {
-      current = null;
-    } else {
-      HBasicBlock joinBlock = addNewBlock();
+    HBasicBlock joinBlock = null;
+    if (thenBlock !== null || elseBlock !== null || !hasElse) {
+      joinBlock = addNewBlock();
       if (thenBlock !== null) goto(thenBlock, joinBlock);
       if (elseBlock !== null) goto(elseBlock, joinBlock);
       else if (!hasElse) conditionBlock.addSuccessor(joinBlock);
@@ -1251,8 +1244,9 @@ class SsaBuilder implements Visitor {
         // The only predecessor is the then branch.
         localsHandler = thenLocals;
       }
-      condition.joinBlock = joinBlock;
     }
+    condition.blockInformation =
+        new HIfBlockInformation(condition, thenGraph, elseGraph, joinBlock);
   }
 
   SourceString unquote(LiteralString literal, int start) {
@@ -1293,13 +1287,16 @@ class SsaBuilder implements Visitor {
     open(rightBlock);
     visit(node.argumentsNode);
     HInstruction boolifiedRight = popBoolified();
+    SubGraph rightGraph = new SubGraph(rightBlock, current);
     rightBlock = close(new HGoto());
 
     HBasicBlock joinBlock = addNewBlock();
     leftBlock.addSuccessor(joinBlock);
     rightBlock.addSuccessor(joinBlock);
-    branch.joinBlock = joinBlock;
     open(joinBlock);
+
+    branch.blockInformation =
+        new HIfBlockInformation(branch, rightGraph, null, joinBlock);
 
     localsHandler.mergeWith(savedLocals, joinBlock);
     HPhi result = new HPhi.manyInputs(null, [boolifiedLeft, boolifiedRight]);
@@ -2042,6 +2039,7 @@ class SsaBuilder implements Visitor {
     open(thenBlock);
     visit(node.thenExpression);
     HInstruction thenInstruction = pop();
+    SubGraph thenGraph = new SubGraph(thenBlock, current);
     thenBlock = close(new HGoto());
     LocalsHandler thenLocals = localsHandler;
     localsHandler = savedLocals;
@@ -2051,12 +2049,14 @@ class SsaBuilder implements Visitor {
     open(elseBlock);
     visit(node.elseExpression);
     HInstruction elseInstruction = pop();
+    SubGraph elseGraph = new SubGraph(elseBlock, current);
     elseBlock = close(new HGoto());
 
     HBasicBlock joinBlock = addNewBlock();
     thenBlock.addSuccessor(joinBlock);
     elseBlock.addSuccessor(joinBlock);
-    condition.joinBlock = joinBlock;
+    condition.blockInformation =
+        new HIfBlockInformation(condition, thenGraph, elseGraph, joinBlock);
     open(joinBlock);
 
     localsHandler.mergeWith(thenLocals, joinBlock);
