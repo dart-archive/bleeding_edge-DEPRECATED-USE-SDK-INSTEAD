@@ -161,8 +161,16 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       builder.add(thenInstruction);
     }
 
-    if (!element.isInstanceMember()) {
-      // If the method is a non-instance method, we just generate a direct
+    bool isNativeLiteral = false;
+    if (element.enclosingElement.kind == ElementKind.CLASS) {
+      ClassElement classElement = element.enclosingElement;
+      String nativeName = classElement.nativeName.slowToString();
+      isNativeLiteral =
+          builder.compiler.emitter.nativeEmitter.isNativeLiteral(nativeName);
+    }
+    if (!element.isInstanceMember() || isNativeLiteral) {
+      // If the method is a non-instance method, or is a member of a native
+      // class that represents a literal, we just generate a direct
       // call to the native method.
       visitThen();
       builder.stack.add(thenInstruction);

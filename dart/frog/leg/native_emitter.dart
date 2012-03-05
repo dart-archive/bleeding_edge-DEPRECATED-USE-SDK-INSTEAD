@@ -207,13 +207,46 @@ function(inputTable) {
     buffer.add('\n');
   }
 
+  void generateNativeLiteral(ClassElement classElement, StringBuffer buffer) {
+    String quotedNative = classElement.nativeName.slowToString();
+    String nativeCode = quotedNative.substring(2, quotedNative.length - 1);
+    String className = compiler.namer.getName(classElement);
+    buffer.add(className);
+    buffer.add(' = ');
+    buffer.add(nativeCode);
+    buffer.add(';\n');
+
+    String attachTo(name) => "$className.$name";
+
+    for (Element member in classElement.members) {
+      if (member.isInstanceMember()) {
+        compiler.emitter.addInstanceMember(
+            member, attachTo, buffer, isNative: true);
+      }
+    }
+  }
+
+  bool isNativeLiteral(String nativeName) {
+    return nativeName[1] === '=';
+  }
+
+  bool isNativeGlobal(String nativeName) {
+    return nativeName[1] === '@';
+  }
 
   void generateNativeClass(ClassElement classElement, StringBuffer buffer) {
     nativeClasses.add(classElement);
 
     assert(classElement.backendMembers.isEmpty());
     String nativeName = classElement.nativeName.slowToString();
-    if (nativeName[1] === '@') {
+    if (isNativeLiteral(nativeName)) {
+      generateNativeLiteral(classElement, buffer);
+      // The native literal kind needs to be dealt with specially when
+      // generating code for it.
+      return;
+    }
+
+    if (isNativeGlobal(nativeName)) {
       // Global object, just be like the other types for now.
       nativeName = nativeName.substring(3, nativeName.length - 1);
     } else {
@@ -221,64 +254,16 @@ function(inputTable) {
     }
     bool hasUsedSelectors = false;
 
-    String attachTo(name) => "$dynamicName('$name').$nativeName";
+    String attachTo(String name) {
+      hasUsedSelectors = true;
+      addDynamicFunctionIfNecessary(buffer);
+      return "$dynamicName('$name').$nativeName";
+    }
 
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        String memberName = compiler.namer.getName(member);
-        if (member.kind === ElementKind.FUNCTION
-            || member.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY
-            || member.kind === ElementKind.GETTER
-            || member.kind === ElementKind.SETTER) {
-          String codeBlock = compiler.universe.generatedCode[member];
-          if (codeBlock == null) continue;
-          addDynamicFunctionIfNecessary(buffer);
-          hasUsedSelectors = true;
-          buffer.add(
-              "$dynamicName('$memberName').$nativeName = $codeBlock;\n");
-          codeBlock = compiler.universe.generatedBailoutCode[member];
-          if (codeBlock !== null) {
-            String name = compiler.namer.getBailoutName(member);
-            buffer.add("$dynamicName('$name').$nativeName = $codeBlock;\n");
-          }
-          FunctionElement function = member;
-          FunctionParameters parameters = function.computeParameters(compiler);
-          if (!parameters.optionalParameters.isEmpty()) {
-            compiler.emitter.addParameterStubs(
-                member, attachTo, buffer, isNative: true);
-          }
-        } else if (member.kind === ElementKind.FIELD) {
-          if (compiler.universe.invokedSetters.contains(member.name)) {
-            addDynamicFunctionIfNecessary(buffer);
-            hasUsedSelectors = true;
-            String setterName = compiler.namer.setterName(member.name);
-            buffer.add(
-              "$dynamicName('$setterName').$nativeName = function(v){\n" +
-              '  this.${member.name.slowToString()} = v;\n};\n');
-          }
-          if (compiler.universe.invokedGetters.contains(member.name)) {
-            addDynamicFunctionIfNecessary(buffer);
-            hasUsedSelectors = true;
-            String getterName = compiler.namer.getterName(member.name);
-            buffer.add(
-              "$dynamicName('$getterName').$nativeName = function(){\n" +
-              '  return this.${member.name.slowToString()};\n};\n');
-          }
-        } else {
-          compiler.internalError('unexpected kind: "${member.kind}"',
-                                 element: member);
-        }
-        if (member.kind == ElementKind.GETTER
-            || member.kind == ElementKind.FIELD) {
-          Set<Selector> selectors = compiler.universe.invokedNames[member.name];
-          if (selectors !== null && !selectors.isEmpty()) {
-            emitCallStubForGetter(buffer, attachTo, member, selectors);
-          }
-        } else if (member.kind == ElementKind.FUNCTION) {
-          if (compiler.universe.invokedGetters.contains(member.name)) {
-            emitDynamicFunctionGetter(buffer, attachTo, member);
-          }
-        }
+        compiler.emitter.addInstanceMember(
+            member, attachTo, buffer, isNative: true);
       }
     }
 
@@ -334,7 +319,17 @@ function(inputTable) {
     List<String> nativeArgumentsBuffer = argumentsBuffer.getRange(
         0, indexOfLastOptionalArgumentInParameters + 1);
 
+    ClassElement classElement = member.enclosingElement;
+    String nativeName = classElement.nativeName.slowToString();
     String nativeArguments = Strings.join(nativeArgumentsBuffer, ",");
+
+    if (isNativeLiteral(nativeName)) {
+      // If it's the native literal, we know there is no subclass, so
+      // we can call the method directly.
+      buffer.add('    return this.${member.name.slowToString()}');
+      buffer.add('($nativeArguments)');
+      return;
+    }
 
     buffer.add('  if (Object.getPrototypeOf(this).hasOwnProperty(');
     buffer.add("'$invocationName')) {\n");

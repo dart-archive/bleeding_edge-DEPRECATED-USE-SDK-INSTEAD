@@ -174,13 +174,12 @@ function(child, parent) {
   }
 
   void addInstanceMember(Element member,
-                         String prototype,
-                         StringBuffer buffer) {
+                         String attachTo(String name),
+                         StringBuffer buffer,
+                         [bool isNative = false]) {
     // TODO(floitsch): we don't need to deal with members of
     // uninstantiated classes, that have been overwritten by subclasses.
-    String attachTo(String name) => '$prototype.$name';
 
-    assert(member.isInstanceMember());
     if (member.kind === ElementKind.FUNCTION
         || member.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY
         || member.kind === ElementKind.GETTER
@@ -188,15 +187,16 @@ function(child, parent) {
       if (member.modifiers !== null && member.modifiers.isAbstract()) return;
       String codeBlock = compiler.universe.generatedCode[member];
       if (codeBlock == null) return;
-      buffer.add('$prototype.${namer.getName(member)} = $codeBlock;\n');
+      buffer.add('${attachTo(namer.getName(member))} = $codeBlock;\n');
       codeBlock = compiler.universe.generatedBailoutCode[member];
       if (codeBlock !== null) {
-        String name = namer.getBailoutName(member);
-        buffer.add('$prototype.$name = $codeBlock;\n');
+        String name = compiler.namer.getBailoutName(member);
+        buffer.add('${attachTo(name)} = $codeBlock;\n');
       }
       FunctionElement function = member;
-      if (!function.computeParameters(compiler).optionalParameters.isEmpty()) {
-        addParameterStubs(member, attachTo, buffer);
+      FunctionParameters parameters = function.computeParameters(compiler);
+      if (!parameters.optionalParameters.isEmpty()) {
+        addParameterStubs(member, attachTo, buffer, isNative: isNative);
       }
     } else if (member.kind === ElementKind.FIELD) {
       // TODO(ngeoffray): Have another class generate the code for the
@@ -204,29 +204,23 @@ function(child, parent) {
       if ((member.modifiers === null || !member.modifiers.isFinal()) &&
           compiler.universe.invokedSetters.contains(member.name)) {
         String setterName = namer.setterName(member.name);
-        buffer.add('$prototype.$setterName = function(v){\n' +
-          '  this.${namer.getName(member)} = v;\n};\n');
+        String name =
+            isNative ? member.name.slowToString() : namer.getName(member);
+        buffer.add('${attachTo(setterName)} = function(v){\n');
+        buffer.add('  this.$name = v;\n};\n');
       }
       if (compiler.universe.invokedGetters.contains(member.name)) {
         String getterName = namer.getterName(member.name);
-        buffer.add('$prototype.$getterName = function(){\n' +
-          '  return this.${namer.getName(member)};\n};\n');
+        String name =
+            isNative ? member.name.slowToString() : namer.getName(member);
+        buffer.add('${attachTo(getterName)} = function(){\n');
+        buffer.add('  return this.$name;\n};\n');
       }
     } else {
       compiler.internalError('unexpected kind: "${member.kind}"',
                              element: member);
     }
-
-    if (member.kind == ElementKind.GETTER || member.kind == ElementKind.FIELD) {
-      Set<Selector> selectors = compiler.universe.invokedNames[member.name];
-      if (selectors !== null && !selectors.isEmpty()) {
-        emitCallStubForGetter(buffer, attachTo, member, selectors);
-      }
-    } else if (member.kind == ElementKind.FUNCTION) {
-      if (compiler.universe.invokedGetters.contains(member.name)) {
-        emitDynamicFunctionGetter(buffer, attachTo, member);
-      }
-    }
+    emitExtraAccessors(member, attachTo, buffer);
   }
 
   bool generateFieldInits(ClassElement classElement,
@@ -289,20 +283,20 @@ function(child, parent) {
       String superName = namer.isolatePropertyAccess(superclass);
       buffer.add('${inheritsName}($className, $superName);\n');
     }
-    String prototype = '$className.prototype';
 
+    String attachTo(String name) => '$className.prototype.$name';
     for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
-        addInstanceMember(member, prototype, buffer);
+        addInstanceMember(member, attachTo, buffer);
       }
     }
     for (Element member in classElement.backendMembers) {
       if (member.isInstanceMember()) {
-        addInstanceMember(member, prototype, buffer);
+        addInstanceMember(member, attachTo, buffer);
       }
     }
     generateTypeTests(classElement, (Element other) {
-      buffer.add('$prototype.${namer.operatorIs(other)} = true;\n');
+      buffer.add('${attachTo(namer.operatorIs(other))} = true;\n');
     });
 
     if (superclass === null) {
@@ -525,6 +519,23 @@ function(child, parent) {
           constants.writeJsCodeForVariable(buffer, element);
         });
       buffer.add(';\n');
+    }
+  }
+
+  void emitExtraAccessors(Element member,
+                          String attachTo(String name),
+                          StringBuffer buffer) {
+    if (member.kind == ElementKind.GETTER || member.kind == ElementKind.FIELD) {
+      Set<Selector> selectors = compiler.universe.invokedNames[member.name];
+      if (selectors !== null && !selectors.isEmpty()) {
+        compiler.emitter.emitCallStubForGetter(
+            buffer, attachTo, member, selectors);
+      }
+    } else if (member.kind == ElementKind.FUNCTION) {
+      if (compiler.universe.invokedGetters.contains(member.name)) {
+        compiler.emitter.emitDynamicFunctionGetter(
+            buffer, attachTo, member);
+      }
     }
   }
 
