@@ -13,10 +13,8 @@ def main():
     parser.print_help()
     return 1
 
-  if str(options.revision) == 'None':
-    revision = 123
-  else:
-    revision = options.revision
+  revision = options.revision
+  src_rev = options.srcrev
 
   gsu = gsutil.GsUtil(running_on_buildbot=False)
   elements = ['DartBuild-linux.gtk.x86_64.zip',
@@ -24,22 +22,29 @@ def main():
               'DartBuild-macosx.cocoa.x86_64.zip',
               'DartBuild-macosx.cocoa.x86.zip',
               'DartBuild-win32.win32.x86_64.zip',
-              'DartBuild-win32.win32.x86.zip']
+              'DartBuild-win32.win32.x86.zip',
+              'dart-editor-linux.gtk.x86_64.zip',
+              'dart-editor-linux.gtk.x86.zip',
+              'dart-editor-macosx.cocoa.x86_64.zip',
+              'dart-editor-macosx.cocoa.x86.zip',
+              'dart-editor-win32.win32.x86_64.zip',
+              'dart-editor-win32.win32.x86.zip']
   os_names = []
-  re_filename = re.compile(r'^DartBuild-(\w.+)\.(\w.+)\.(\w+)\.zip')
+  re_filename = re.compile(r'^(dart-editor|DartBuild)-(\w.+)\.(\w.+)\.(\w+)\.zip')
   for element in elements:
     matcher = re_filename.match(element)
-    os_name = matcher.group(1)
+    os_name = matcher.group(2)
     if os_name in 'macosx':
       os_name = os_name[:-1]
     if os_name not in os_names:
       os_names.append(os_name)
     print os_name
-    gsu.Copy('gs://dart-editor-archive-continuous/latest/{0}'.format(element),
-             'gs://dart-editor-archive-testing/staging/'
-             '{0}/{1}/{2}'.format(os_name, revision, element))
+    gsu.Copy('gs://dart-editor-archive-continuous/{0}/{1}'.format(src_rev,
+                                                                  element),
+             'gs://dart-editor-archive-testing/'
+             '{0}/{1}'.format(revision, element))
     gsu.SetAclFromFile('gs://dart-editor-archive-testing/'
-                       'staging/{0}/{1}/{2}'.format(os_name, revision, element),
+                       '{0}/{1}'.format(revision, element),
                        'acl.xml')
     print 'copied {0}'.format(element)
 
@@ -48,7 +53,7 @@ def main():
     f = tempfile.NamedTemporaryFile(suffix='.txt', prefix='tag')
     for os_name in os_names:
       gsu.Copy(f.name,
-               'gs://dart-editor-archive-testing/tags'
+               'gs://dart-editor-archive-testing-staging/tags'
                '/done-{0}-{1}'.format(revision, os_name))
   finally:
     if f is not None:
@@ -57,8 +62,13 @@ def main():
 
 def _ParseOptions():
   result = optparse.OptionParser()
+  result.set_default('srcrev', 'latest')
+  result.set_default('revision', '123')
   result.add_option('-r', '--revision',
                     help='SVN Revision.',
+                    action='store')
+  result.add_option('-s', '--srcrev',
+                    help='source SVN Revision.',
                     action='store')
 
   return result

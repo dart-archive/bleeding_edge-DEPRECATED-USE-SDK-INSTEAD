@@ -315,7 +315,7 @@ def main():
     else:
       from_bucket = 'gs://dart-editor-archive-testing'
       to_bucket = 'gs://dart-editor-archive-testing'
-      staging_bucket = 'gs://dart-editor-archive-testing'
+      staging_bucket = 'gs://dart-editor-archive-testing-staging'
       run_sdk_build = False
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
@@ -417,10 +417,10 @@ def main():
 
     _PrintSeparator('Running the tests')
     ant_status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
-                        'buildTests.xml',
-                        revision, options.name, buildroot, buildout,
-                        editorpath, buildos,
-                        extra_artifacts=extra_artifacts)
+                            'buildTests.xml',
+                            revision, options.name, buildroot, buildout,
+                            editorpath, buildos,
+                            extra_artifacts=extra_artifacts)
     properties = _ReadPropertyFile(buildos, ant_property_file.name)
     if buildos:
       _UploadTestHtml(buildout, to_bucket, revision, buildos, gsu)
@@ -625,17 +625,18 @@ def _MoveContinuousToLatest(bucket_stage, bucket_continuous, svnid, gsu):
   """
   print ('_MoveContinuousToLatest({0},'
          ' {1}, {2}, gsu)'.format(bucket_stage, bucket_continuous, svnid))
-  bucket_to_template = string.Template('$bucket/$revision/latest')
+  bucket_to_template = string.Template('$bucket/latest/$file')
   bucket_from_template = string.Template('$bucket/$revision/$file')
   data = {'bucket': bucket_continuous, 'revision': str(svnid),
           'buildos': '', 'file': '*'}
   elements = gsu.ReadBucket(bucket_from_template.substitute(data))
   for element in elements:
-    file_name = os.path.basename(element)
-    data['file'] = file_name
-    element_to = bucket_to_template.substitute(data)
-    gsu.Copy(element, element_to)
-    _SetAcl(element_to, gsu)
+    if not '/tests/' in element:
+      file_name = os.path.basename(element)
+      data['file'] = file_name
+      element_to = bucket_to_template.substitute(data)
+      gsu.Copy(element, element_to)
+      _SetAcl(element_to, gsu)
 
 
 def _CleanupStaging(bucket_stage, svnid, gsu):
