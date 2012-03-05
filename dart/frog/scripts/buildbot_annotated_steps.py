@@ -160,6 +160,33 @@ def TestFrog(arch, mode, system, browser, flags):
 
   return 0
 
+def CleanUpTemporaryFiles(system, browser):
+  """For some browser (selenium) tests, the browser creates a temporary profile 
+  on each browser session start. On Windows, generally these files are 
+  automatically deleted when all python processes complete. However, since our 
+  buildbot slave script also runs on python, we never get the opportunity to 
+  clear out the temp files, so we do so explicitly here. Our batch browser
+  testing will make this problem occur much less frequently, but will still
+  happen eventually unless we do this.
+
+  This problem also occurs with batch tests in Firefox. For some reason selenium
+  automatically deletes the temporary profiles for Firefox for one browser,
+  but not multiple ones when we have many open batch tasks running. This
+  behavior has not been reproduced outside of the buildbots.
+  
+  Args:
+     - system: either 'linux', 'mac', or 'win7'
+     - browser: one of the browsers, see GetBuildInfo
+  """
+  if system == 'win7':
+    subprocess.Popen(['rmdir', '/S', '/Q',
+      'C:\\Users\\chrome-bot\\AppData\\Local\\Temp'], shell=True)
+  elif browser == 'ff':
+    # Note: the buildbots run as root, so we can do this without requiring a
+    # password. The command won't actually work on regular machines without
+    # root permissions.
+    p = subprocess.Popen('rm -rf /tmp/*', shell=True)
+    p = subprocess.Popen('rm -rf /var/tmp/*', shell=True)
 
 def main():
   print 'main'
@@ -188,6 +215,8 @@ def main():
   if status != 0:
     print '@@@STEP_FAILURE@@@'
 
+  if arch == 'frogium':
+    CleanUpTemporaryFiles(system, browser)
   return status
 
 
