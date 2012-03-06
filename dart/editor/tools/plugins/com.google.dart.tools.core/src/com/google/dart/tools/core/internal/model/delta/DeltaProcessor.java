@@ -893,10 +893,8 @@ public class DeltaProcessor {
       // TODO This case is not yet supported.
       // See the JDT code to get started on the various cases
     }
-    if (elementType == DartElement.DART_PROJECT) {
-      // remember that the project's cache must be reset
-      resetThisProjectCache((DartProjectImpl) element);
-    }
+    // remember that the project's cache must be reset
+    resetThisProjectCache((DartProjectImpl) element.getDartProject());
   }
 
   /**
@@ -1437,8 +1435,18 @@ public class DeltaProcessor {
   private boolean updateCurrentDelta(IResourceDelta delta, int elementType) {
     IResource deltaRes = delta.getResource();
     if (DEBUG) {
+      String kindStr;
+      if (delta.getKind() == IResourceDelta.ADDED) {
+        kindStr = "ADD";
+      } else if (delta.getKind() == IResourceDelta.REMOVED) {
+        kindStr = "REMOVE";
+      } else if (delta.getKind() == IResourceDelta.CHANGED) {
+        kindStr = "CHANGED";
+      } else {
+        kindStr = "OTHER delta.getKind() = " + Integer.toString(delta.getKind());
+      }
       System.out.println("DeltaProcessor.updateCurrentDelta() called for this resource: \""
-          + deltaRes.getFullPath().toOSString() + "\"");
+          + deltaRes.getFullPath().toOSString() + "\" - " + kindStr);
     }
     OpenableElementImpl element;
     switch (delta.getKind()) {
@@ -1447,8 +1455,8 @@ public class DeltaProcessor {
         if (element == null) {
           return true;
         }
-        recomputeLibrarySet(element);
         elementAdded(element, delta);
+        recomputeLibrarySet(element);
 //        // if this element is a CompilationUnit that defines a library, make sure that we specify that the
 //        // DartLibrary is being added
 //        if (elementType == DartElement.COMPILATION_UNIT) {
@@ -1468,8 +1476,8 @@ public class DeltaProcessor {
         if (element instanceof DartProject) {
           return false;
         }
-        recomputeLibrarySet(element);
         elementRemoved(element, delta);
+        recomputeLibrarySet(element);
 //        // if this element is a CompilationUnit that defines a library, make sure that we specify that the
 //        // DartLibrary is being removed
 //        if (elementType == DartElement.COMPILATION_UNIT) {
@@ -1494,10 +1502,11 @@ public class DeltaProcessor {
             return true;
           }
           recomputeLibrarySet(element);
+          resetThisProjectCache((DartProjectImpl) element.getDartProject());
           // This has been replaced by the call to recomputeLibrarySet, more a *hammer* approach to
           // get the Libraries view working ASAP, this could be re-visited in the future to make the
           // delta processing a faster process.
-          contentChanged(element, delta);
+          //contentChanged(element, delta);
         }
         // The following has all been commented out as DartProjects cannot be opened or closed in
         // the current UX (adding and removing libraries is different than closing a project).
