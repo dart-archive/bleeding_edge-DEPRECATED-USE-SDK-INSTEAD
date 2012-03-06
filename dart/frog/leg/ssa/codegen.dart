@@ -459,7 +459,6 @@ class SsaCodeGenerator implements HVisitor {
       parameterNames[node.exception.element] = name;
       buffer.add('} catch ($name) {\n');
       indent++;
-      addIndentation();
       visitBasicBlock(successors[1]);
       parameterNames.remove(node.exception.element);
       indent--;

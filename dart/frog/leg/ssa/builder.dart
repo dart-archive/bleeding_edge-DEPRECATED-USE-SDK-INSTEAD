@@ -93,6 +93,10 @@ class Interceptors {
   Element getExceptionUnwrapper() {
     return compiler.findHelper(const SourceString('unwrapException'));
   }
+
+  Element getTraceFromException() {
+    return compiler.findHelper(const SourceString('getTraceFromException'));
+  }
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -2368,10 +2372,23 @@ class SsaBuilder implements Visitor {
       push(new HStatic(interceptors.getExceptionUnwrapper()));
       List<HInstruction> inputs = <HInstruction>[pop(), exception];
       HInvokeStatic unwrappedException =
-        new HInvokeStatic(Selector.INVOCATION_1, inputs);
+          new HInvokeStatic(Selector.INVOCATION_1, inputs);
       add(unwrappedException);
 
       tryInstruction.exception = exception;
+
+      bool requiresTrace = false;
+      for (CatchBlock block in node.catchBlocks) {
+        if (block.trace != null) {
+          requiresTrace = true;
+          break;
+        }
+      }
+
+      HInstruction traceInstruction = null;
+      if (requiresTrace) {
+      }
+
       Link<Node> link = node.catchBlocks.nodes;
 
       void pushCondition(CatchBlock catchBlock) {
@@ -2393,9 +2410,16 @@ class SsaBuilder implements Visitor {
       void visitThen() {
         CatchBlock catchBlock = link.head;
         link = link.tail;
-        VariableDefinitions declaration = catchBlock.formals.nodes.head;
-        localsHandler.updateLocal(elements[declaration.definitions.nodes.head],
+        localsHandler.updateLocal(elements[catchBlock.exception],
                                   unwrappedException);
+        Node trace = catchBlock.trace;
+        if (trace != null) {
+          push(new HStatic(interceptors.getTraceFromException()));
+          HInstruction traceInstruction = new HInvokeStatic(
+              Selector.INVOCATION_1, <HInstruction>[pop(), exception]);
+          add(traceInstruction);
+          localsHandler.updateLocal(elements[trace], traceInstruction);
+        }
         visit(catchBlock);
       }
 

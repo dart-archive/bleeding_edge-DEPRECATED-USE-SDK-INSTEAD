@@ -1303,3 +1303,17 @@ unwrapException(ex) {
   }
   return ex;
 }
+
+class StackTrace {
+  var stack;
+  StackTrace(this.stack);
+  String toString() => stack != null ? stack : '';
+}
+
+/**
+ * Called by generated code to fetch the stack trace from an
+ * exception.
+ */
+StackTrace getTraceFromException(exception) {
+  return new StackTrace(JS("var", @"$0.stack", exception));
+}
