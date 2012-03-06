@@ -47,26 +47,26 @@ class NativeEmitter {
     return string.substring(8, string.length - 1);
   }
 
-  function chrome$typeNameOf() {
-    var name = this.constructor.name;
+  function chrome$typeNameOf(obj) {
+    var name = obj.constructor.name;
     if (name == 'Window') return 'DOMWindow';
     return name;
   }
 
-  function firefox$typeNameOf() {
-    var name = constructorNameWithFallback(this);
+  function firefox$typeNameOf(obj) {
+    var name = constructorNameWithFallback(obj);
     if (name == 'Window') return 'DOMWindow';
     if (name == 'Document') return 'HTMLDocument';
     if (name == 'XMLDocument') return 'Document';
     return name;
   }
 
-  function ie$typeNameOf() {
-    var name = constructorNameWithFallback(this);
+  function ie$typeNameOf(obj) {
+    var name = constructorNameWithFallback(obj);
     if (name == 'Window') return 'DOMWindow';
     // IE calls both HTML and XML documents 'Document', so we check for the
     // xmlVersion property, which is the empty string on HTML documents.
-    if (name == 'Document' && this.xmlVersion) return 'Document';
+    if (name == 'Document' && obj.xmlVersion) return 'Document';
     if (name == 'Document') return 'HTMLDocument';
     return name;
   }
@@ -78,7 +78,7 @@ class NativeEmitter {
   if (/Chrome/.test(userAgent)) return chrome$typeNameOf;
   if (/Firefox/.test(userAgent)) return firefox$typeNameOf;
   if (/MSIE/.test(userAgent)) return ie$typeNameOf;
-  return function() { return constructorNameWithFallback(this); };
+  return constructorNameWithFallback;
 })()""";
 
   /**
