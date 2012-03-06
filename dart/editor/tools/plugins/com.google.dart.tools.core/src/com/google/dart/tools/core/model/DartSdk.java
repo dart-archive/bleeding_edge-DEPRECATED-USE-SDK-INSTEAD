@@ -21,8 +21,10 @@ import org.eclipse.core.runtime.Platform;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Represents the Dart SDK...
@@ -104,6 +106,24 @@ public class DartSdk {
       }
     }
     return dartium;
+  }
+
+  /**
+   * @return the revision number of the SDK
+   */
+  public String getDartiumVersion() {
+    File versionFile = new File(getDirectory(), "chromium.properties");
+
+    try {
+      Properties props = new Properties();
+      props.load(new FileInputStream(versionFile));
+
+      return props.getProperty("chromium.version");
+    } catch (IOException ioe) {
+
+    }
+
+    return "0";
   }
 
   /**

@@ -29,6 +29,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 /**
  * Preference page for compiler preferences
  */
+@Deprecated
 public class CompilerPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
   public static final String PAGE_ID = "com.google.dart.tools.ui.compilerPreferencePage"; //$NON-NLS-1$

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.dialogs;
 
+import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 
@@ -73,11 +74,33 @@ public class AboutDartDialog extends Shell {
 
     Label versionLabel = newLabel(SWT.NONE);
     GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(versionLabel);
-    versionLabel.setText(DialogsMessages.AboutDartDialog_version_string_prefix + getVersion());
+    versionLabel.setText(DialogsMessages.AboutDartDialog_version_string_prefix + getVersion()
+        + ", " + "Build " + DartToolsPlugin.getBuildId());
 
-    Label revisionsLabel = newLabel(SWT.NONE);
-    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(revisionsLabel);
-    revisionsLabel.setText("Build " + DartToolsPlugin.getBuildId());
+    // Dart SDK + Dartium versions
+    Label sdkLabel = newLabel(SWT.NONE);
+    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(sdkLabel);
+    StringBuilder builder = new StringBuilder();
+
+    if (DartSdk.isInstalled()) {
+      builder.append("Dart SDK version " + DartSdk.getInstance().getSdkVersion());
+
+      builder.append(", ");
+
+      if (DartSdk.getInstance().isDartiumInstalled()) {
+        builder.append("Dartium version " + DartSdk.getInstance().getDartiumVersion());
+      } else {
+        builder.append("Dartium is not installed");
+      }
+
+    } else {
+      builder.append("Dart SDK is not installed");
+    }
+
+    sdkLabel.setText(builder.toString());
+
+    // spacer
+    newLabel(SWT.NONE);
 
     Label copyrightLabel = newLabel(SWT.NONE);
     GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(copyrightLabel);

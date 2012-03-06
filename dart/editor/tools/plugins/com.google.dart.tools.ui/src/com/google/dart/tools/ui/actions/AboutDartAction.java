@@ -56,7 +56,6 @@ public class AboutDartAction extends AbstractInstrumentedAction implements IWork
   }
 
   private void openDialog() {
-
     new AboutDartDialog(window.getShell()).open();
   }
 
