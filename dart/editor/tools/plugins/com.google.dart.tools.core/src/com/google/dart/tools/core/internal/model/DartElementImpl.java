@@ -738,6 +738,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
     if (info == null) {
       builder.append(" (not open)"); //$NON-NLS-1$
     }
+    toStringType(builder);
   }
 
   /**
@@ -745,6 +746,13 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    */
   protected void toStringName(StringBuilder builder) {
     builder.append(getElementName());
+  }
+
+  /**
+   * Debugging purposes
+   */
+  protected void toStringType(StringBuilder builder) {
+    builder.append(" [" + getClass().getSimpleName() + "]");
   }
 
   /**
