@@ -163,6 +163,9 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
 
             throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, errMsg));
           }
+        } else {
+          throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID,
+              "Unable to run " + resource.getName() + " - no Dart applications referenced."));
         }
       } catch (CoreException e) {
         DartDebugCorePlugin.logError(e);
