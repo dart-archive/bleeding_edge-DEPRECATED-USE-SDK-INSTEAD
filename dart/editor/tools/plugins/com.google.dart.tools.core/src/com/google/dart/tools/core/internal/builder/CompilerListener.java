@@ -189,6 +189,8 @@ class CompilerListener implements DartCompilerListener {
           builder.append(source.getUri().toString());
           builder.append("\" (");
         }
+        builder.append(error.getErrorCode().getErrorSeverity().getName());
+        builder.append(" ");
         builder.append(error.getLineNumber());
         builder.append(":");
         builder.append(error.getColumnNumber());
