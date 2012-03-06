@@ -1666,7 +1666,7 @@ class CatchBlock extends Node {
 
   Node get trace() {
     if (formals.nodes.isEmpty()) return null;
-    Link<VariableDefinitions> declarations = formals.nodes.tail;
+    Link<Node> declarations = formals.nodes.tail;
     return declarations.isEmpty()
         ? null
         : declarations.head.definitions.nodes.head;
