@@ -44,30 +44,24 @@ public final class SampleDescriptionHelper {
   public static List<SampleDescription> getDescriptions() throws Exception {
     List<SampleDescription> descriptions = Lists.newArrayList();
     File samplesDirectory = getSamplesDirectory();
-    scanFolder(descriptions, samplesDirectory);
+    scanSamples(descriptions, samplesDirectory);
     Collections.sort(descriptions);
     return descriptions;
   }
 
   /**
-   * Attempts to find sample description in the given directory, otherwise scans recursively.
+   * Scans "samples" directory and attempts to find descriptions for each "sample" child.
    */
-  static void scanFolder(List<SampleDescription> descriptions, File directory) throws Exception {
-    // ignore not directories
-    if (!directory.exists() || !directory.isDirectory()) {
+  static void scanSamples(List<SampleDescription> descriptions, File samplesDirectory)
+      throws Exception {
+    // ignore not directory
+    if (!samplesDirectory.exists() || !samplesDirectory.isDirectory()) {
       return;
     }
 
-    // attempt to add description
-    boolean added = addDescription(descriptions, directory);
-
-    if (added) {
-      return;
-    }
-
-    // scan children
-    for (File child : directory.listFiles()) {
-      scanFolder(descriptions, child);
+    // scan samples
+    for (File sampleDirectory : samplesDirectory.listFiles()) {
+      addDescription(descriptions, sampleDirectory);
     }
   }
 
@@ -76,12 +70,9 @@ public final class SampleDescriptionHelper {
    * 
    * @return <code>true</code> if {@link SampleDescription} was added.
    */
-  private static boolean addDescription(final List<SampleDescription> descriptions,
+  private static void addDescription(final List<SampleDescription> descriptions,
       final File directory) {
     String sampleName = directory.getName();
-
-    // attempt to find description
-    final boolean descriptionAdded[] = {false};
 
     if (doesSampleResourceExist(sampleName + ".xml")) {
       try {
@@ -109,7 +100,6 @@ public final class SampleDescriptionHelper {
                 && descriptionText != null) {
               descriptions.add(new SampleDescription(directory, filePath, name, descriptionText,
                   logoFile));
-              descriptionAdded[0] = true;
             }
           }
 
@@ -135,9 +125,6 @@ public final class SampleDescriptionHelper {
         DartCore.logError(e);
       }
     }
-
-    // may be added
-    return descriptionAdded[0];
   }
 
   private static File createSampleImageFile(String resourceName) throws IOException {
