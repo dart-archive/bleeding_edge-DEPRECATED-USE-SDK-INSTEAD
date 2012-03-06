@@ -2238,6 +2238,7 @@ class SsaBuilder implements Visitor {
     goto(current, entryBlock);
     open(entryBlock);
     visit(body);
+    SubGraph bodyGraph = new SubGraph(entryBlock, lastOpenedBlock);
     if (isAborted()) {
       compiler.unimplemented(
           "SsaBuilder for labeled statement with aborting body", node: node);
@@ -2260,15 +2261,9 @@ class SsaBuilder implements Visitor {
     if (hasBreak) {
       // There was at least one reachable break, so the label is needed.
       HLabeledBlockInformation blockInfo =
-          new HLabeledBlockInformation(entryBlock, current,
-                                       handler.labels());
+          new HLabeledBlockInformation(bodyGraph, joinBlock, handler.labels());
       handler.close();
-      // Mark both entry and exit with the information. You can
-      // tell which one is which by comparing with blockInfo.start/end.
-      // It doesn't matter which merge block we use, they won't be generating
-      // any code, so put the end-marker on the last join block.
       entryBlock.labeledBlockInformation = blockInfo;
-      current.labeledBlockInformation = blockInfo;
     }
   }
 

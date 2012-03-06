@@ -101,6 +101,11 @@ class SsaCodeGenerator implements HVisitor {
   HGraph currentGraph;
   HBasicBlock currentBlock;
 
+  // Records a block-information that is being handled specially.
+  // Used to break bad recursion.
+  HLabeledBlockInformation currentBlockInformation;
+  // The subgraph is used to delimit traversal for some constructions, e.g.,
+  // if branches.
   SubGraph subGraph;
 
   SsaCodeGenerator(this.compiler,
@@ -233,47 +238,48 @@ class SsaCodeGenerator implements HVisitor {
     this.expectedPrecedence = oldPrecedence;
   }
 
-  void handleLabeledBlock(HBasicBlock node) {
-    HLabeledBlockInformation labeledBlockInfo = node.labeledBlockInformation;
-    if (labeledBlockInfo.start === node) {
-      addIndentation();
-      for (SourceString label in labeledBlockInfo.labels) {
-        addLabel(label);
-        buffer.add(":");
-      }
-      buffer.add("{\n");
-      indent++;
-    } else {
-      assert(labeledBlockInfo.end === node);
-      assert((){
-        // Check that this block is (transitively) dominated by the start block.
-        HBasicBlock block = node;
-        while (block.dominator !== null) {
-          block = block.dominator;
-          if (block === labeledBlockInfo.start) return true;
-        }
-        return false;
-      });
-      indent--;
-      addIndentation();
-      buffer.add("}\n");
+  void handleLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
+    addIndentation();
+    for (SourceString label in labeledBlockInfo.labels) {
+      addLabel(label);
+      buffer.add(":");
     }
+    buffer.add("{\n");
+    indent++;
+
+    visitSubGraph(labeledBlockInfo.body);
+
+    indent--;
+    addIndentation();
+    buffer.add("}\n");
+
+    visitBasicBlock(labeledBlockInfo.joinBlock);
   }
 
 
   visitBasicBlock(HBasicBlock node) {
+    // Abort traversal if we are leaving the currently active sub-graph.
     if (!subGraph.contains(node)) return;
 
-    currentBlock = node;
+    // If this node has special behavior attached, handle it.
+    // If we reach here again while handling the attached information,
+    // e.g., because we call visitSubGraph on a subgraph starting here,
+    // don't handle it again.
+    if (node.hasLabeledBlockInformation() &&
+        node.labeledBlockInformation !== currentBlockInformation) {
+      HLabeledBlockInformation oldBlockInformation = currentBlockInformation;
+      currentBlockInformation = node.labeledBlockInformation;
+      handleLabeledBlock(currentBlockInformation);
+      currentBlockInformation = oldBlockInformation;
+      return;
+    }
 
-    if (node.hasLabeledBlockInformation()) {
-      handleLabeledBlock(node);
-    } else if (currentBlock.isLoopHeader()) {
+    currentBlock = node;
+    if (node.isLoopHeader()) {
       // While loop will be closed by the conditional loop-branch.
       // TODO(floitsch): HACK HACK HACK.
       beginLoop(node);
     }
-
     HInstruction instruction = node.first;
     while (instruction != null) {
       if (instruction is HGoto || instruction is HExit || instruction is HTry) {

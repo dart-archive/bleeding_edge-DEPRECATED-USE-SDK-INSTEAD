@@ -722,10 +722,10 @@ class HBlockInformation {
 }
 
 class HLabeledBlockInformation extends HBlockInformation {
-  final HBasicBlock start;
-  final HBasicBlock end;
+  final SubGraph body;
+  final HBasicBlock joinBlock;
   final List<SourceString> labels;
-  HLabeledBlockInformation(this.start, this.end, this.labels);
+  HLabeledBlockInformation(this.body, this.joinBlock, this.labels);
 }
 
 class HLoopInformation extends HBlockInformation {
