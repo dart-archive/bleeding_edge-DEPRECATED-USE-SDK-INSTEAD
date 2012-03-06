@@ -41,7 +41,7 @@ class Runner {
     return 'Scanned core libraries in ${sw.elapsedInMs()}ms';
   }
 
-  void update(String codeText) {
+  String update(String codeText) {
     StringBuffer sb = new StringBuffer();
 
     Stopwatch sw = new Stopwatch.start();
