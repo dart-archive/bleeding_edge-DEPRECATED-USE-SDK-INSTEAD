@@ -195,7 +195,7 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
 
   @Override
   public Void visitFunction(DartFunction node) {
-    for (DartParameter param : node.getParams()) {
+    for (DartParameter param : node.getParameters()) {
       addToScope(param);
     }
     return visitNode(node);

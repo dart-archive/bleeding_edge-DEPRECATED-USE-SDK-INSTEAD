@@ -606,7 +606,7 @@ public class CompletionEngine {
           }
         }
         // new parameter: bar(!) {} or bar(! int x) {} or bar(x, B !) {}
-        List<DartParameter> params = node.getParams();
+        List<DartParameter> params = node.getParameters();
         if (params.isEmpty()) {
           proposeTypesForNewParam();
         } else {
@@ -827,7 +827,7 @@ public class CompletionEngine {
           // assume a new param will be added to method def
           createCompletionsForLocalVariables(node, null, resolvedMember);
         } else {
-          List<DartExpression> args = node.getArgs();
+          List<DartExpression> args = node.getArguments();
           if (args.size() == 0) {
             createCompletionsForLocalVariables(node, null, resolvedMember);
           } else {

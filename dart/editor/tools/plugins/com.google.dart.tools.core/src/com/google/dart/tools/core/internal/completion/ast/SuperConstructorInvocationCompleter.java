@@ -27,7 +27,7 @@ public class SuperConstructorInvocationCompleter extends DartSuperConstructorInv
 
   public static SuperConstructorInvocationCompleter from(DartSuperConstructorInvocation superInv) {
     return CompletionUtil.init(
-        new SuperConstructorInvocationCompleter(superInv.getName(), superInv.getArgs()), superInv);
+        new SuperConstructorInvocationCompleter(superInv.getName(), superInv.getArguments()), superInv);
   }
 
   private Stack<Mark> stack;

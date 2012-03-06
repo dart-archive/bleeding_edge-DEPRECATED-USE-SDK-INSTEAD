@@ -26,7 +26,7 @@ public class MethodInvocationCompleter extends DartMethodInvocation implements C
 
   public static MethodInvocationCompleter from(DartMethodInvocation node) {
     return CompletionUtil.init(
-        new MethodInvocationCompleter(node.getTarget(), node.getFunctionName(), node.getArgs()),
+        new MethodInvocationCompleter(node.getTarget(), node.getFunctionName(), node.getArguments()),
         node);
   }
 

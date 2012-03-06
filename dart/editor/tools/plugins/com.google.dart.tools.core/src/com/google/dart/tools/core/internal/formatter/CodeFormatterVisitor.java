@@ -678,7 +678,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       scribe.printNextToken(Token.PERIOD);
       scribe.printNextToken(Token.IDENTIFIER);
     }
-    formatMethodArguments(node.getFunction().getParams(),
+    formatMethodArguments(node.getFunction().getParameters(),
         preferences.insert_space_before_opening_paren_in_constructor_declaration,
         preferences.insert_space_between_empty_parens_in_constructor_declaration,
         preferences.insert_space_before_closing_paren_in_constructor_declaration,
@@ -1016,7 +1016,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           node.getName().accept(this);
         }
         // Format arguments
-        formatMethodArguments(node.getFunction().getParams(),
+        formatMethodArguments(node.getFunction().getParameters(),
             preferences.insert_space_before_opening_paren_in_method_declaration,
             preferences.insert_space_between_empty_parens_in_method_declaration,
             preferences.insert_space_before_closing_paren_in_method_declaration,
@@ -1411,7 +1411,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           scribe.printNextToken(Token.IDENTIFIER, true);
         }
         // Format arguments
-        formatMethodArguments(node.getFunction().getParams(),
+        formatMethodArguments(node.getFunction().getParameters(),
             preferences.insert_space_before_opening_paren_in_method_declaration,
             preferences.insert_space_between_empty_parens_in_method_declaration,
             preferences.insert_space_before_closing_paren_in_method_declaration,
@@ -1565,7 +1565,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     scribe.printNextToken(Token.LPAREN,
         preferences.insert_space_before_opening_paren_in_method_invocation);
 
-    final List<DartExpression> arguments = allocationExpression.getArgs();
+    final List<DartExpression> arguments = allocationExpression.getArguments();
     if (arguments != null) {
       if (preferences.insert_space_after_opening_paren_in_method_invocation) {
         scribe.space();
@@ -1768,7 +1768,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       scribe.printNextToken(Token.PERIOD);
       scribe.printNextToken(Token.IDENTIFIER);
     }
-    formatMethodArguments(sup.getArgs(),
+    formatMethodArguments(sup.getArguments(),
         preferences.insert_space_before_opening_paren_in_constructor_declaration,
         preferences.insert_space_between_empty_parens_in_constructor_declaration,
         preferences.insert_space_before_closing_paren_in_constructor_declaration,
@@ -2581,7 +2581,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     } else {
       DartInvocation currentInvocation = fragments[1];
       final int numberOfParens = printOpenParens(currentInvocation);
-      List<DartExpression> arguments = currentInvocation.getArgs();
+      List<DartExpression> arguments = currentInvocation.getArguments();
       scribe.printNextToken(Token.IDENTIFIER); // selector
       scribe.printNextToken(Token.LPAREN,
           preferences.insert_space_before_opening_paren_in_method_invocation);
@@ -2649,7 +2649,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
         for (int i = startingPositionInCascade; i < size; i++) {
           DartInvocation currentInvocation = fragments[i];
           final int numberOfParens = printOpenParens(currentInvocation);
-          List<DartExpression> arguments = currentInvocation.getArgs();
+          List<DartExpression> arguments = currentInvocation.getArguments();
           if (currentInvocation instanceof DartMethodInvocation) {
             scribe.printNextToken(Token.IDENTIFIER); // selector
           }
@@ -2872,7 +2872,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     scribe.printNextToken(Token.LPAREN,
         preferences.insert_space_before_opening_paren_in_method_invocation);
 
-    final List<DartExpression> arguments = invocation.getArgs();
+    final List<DartExpression> arguments = invocation.getArguments();
     if (arguments != null && !arguments.isEmpty()) {
       if (preferences.insert_space_after_opening_paren_in_method_invocation) {
         scribe.space();

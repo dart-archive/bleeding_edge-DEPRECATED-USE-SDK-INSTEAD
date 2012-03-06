@@ -25,7 +25,7 @@ public class NewExpressionCompleter extends DartNewExpression implements Complet
   private static final long serialVersionUID = 1L;
 
   public static NewExpressionCompleter from(DartNewExpression node) {
-    return CompletionUtil.init(new NewExpressionCompleter(node.getConstructor(), node.getArgs(),
+    return CompletionUtil.init(new NewExpressionCompleter(node.getConstructor(), node.getArguments(),
         node.isConst()), node);
   }
 

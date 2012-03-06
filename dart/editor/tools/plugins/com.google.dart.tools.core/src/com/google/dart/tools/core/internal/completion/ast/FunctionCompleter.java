@@ -27,7 +27,7 @@ public class FunctionCompleter extends DartFunction implements CompletionNode {
 
   public static FunctionCompleter from(DartFunction p) {
     return CompletionUtil.init(
-        new FunctionCompleter(p.getParams(), p.getBody(), p.getReturnTypeNode()), p);
+        new FunctionCompleter(p.getParameters(), p.getBody(), p.getReturnTypeNode()), p);
   }
 
   private Stack<Mark> stack;

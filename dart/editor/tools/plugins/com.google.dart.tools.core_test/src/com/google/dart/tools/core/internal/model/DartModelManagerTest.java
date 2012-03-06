@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
@@ -39,6 +40,7 @@ import org.eclipse.core.runtime.Path;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Set;
 
 public class DartModelManagerTest extends TestCase {
@@ -62,7 +64,7 @@ public class DartModelManagerTest extends TestCase {
     String libraryName = "library";
     DartUnit unit = new DartUnit(
         new TestDartSource("test.dart", "#library('" + libraryName + "')"), false);
-    unit.addDirective(new DartLibraryDirective(DartStringLiteral.get(libraryName)));
+    unit.getDirectives().add(new DartLibraryDirective(DartStringLiteral.get(libraryName)));
     String result = getBaseLibraryName(unit);
     assertEquals(libraryName, result);
   }
@@ -99,10 +101,13 @@ public class DartModelManagerTest extends TestCase {
         String secondFileName = "source.dart";
         String thirdFileName = "unique.dart";
         DartUnit libraryUnit = new DartUnit(new TestDartSource(libraryFileName, ""), false);
-        libraryUnit.addDirective(new DartSourceDirective(DartStringLiteral.get(libraryFileName)));
-        libraryUnit.addDirective(new DartSourceDirective(DartStringLiteral.get(secondFileName)));
-        libraryUnit.addDirective(new DartSourceDirective(DartStringLiteral.get(secondFileName)));
-        libraryUnit.addDirective(new DartSourceDirective(DartStringLiteral.get(thirdFileName)));
+        {
+          List<DartDirective> libDirectives = libraryUnit.getDirectives();
+          libDirectives.add(new DartSourceDirective(DartStringLiteral.get(libraryFileName)));
+          libDirectives.add(new DartSourceDirective(DartStringLiteral.get(secondFileName)));
+          libDirectives.add(new DartSourceDirective(DartStringLiteral.get(secondFileName)));
+          libDirectives.add(new DartSourceDirective(DartStringLiteral.get(thirdFileName)));
+        }
         Set<File> fileSet = getFilesForLibrary(libraryFile, libraryUnit);
         assertNotNull(fileSet);
         assertEquals(3, fileSet.size());
@@ -121,7 +126,7 @@ public class DartModelManagerTest extends TestCase {
     String libraryName = "library";
     DartUnit unit = new DartUnit(
         new TestDartSource("test.dart", "#library('" + libraryName + "')"), false);
-    unit.addDirective(new DartLibraryDirective(DartStringLiteral.get(libraryName)));
+    unit.getDirectives().add(new DartLibraryDirective(DartStringLiteral.get(libraryName)));
     String result = getLibraryName(unit);
     assertEquals(libraryName, result);
   }

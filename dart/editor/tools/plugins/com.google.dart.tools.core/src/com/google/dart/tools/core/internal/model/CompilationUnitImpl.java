@@ -596,7 +596,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      * @return a list containing all of the parameters that were created
      */
     protected List<DartElementImpl> getParameters(DartElementImpl parent, DartFunction functionNode) {
-      return getParameters(parent, functionNode.getParams());
+      return getParameters(parent, functionNode.getParameters());
     }
 
     /**

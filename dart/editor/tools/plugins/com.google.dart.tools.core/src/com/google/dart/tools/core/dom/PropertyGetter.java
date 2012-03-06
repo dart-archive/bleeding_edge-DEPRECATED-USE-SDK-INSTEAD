@@ -354,7 +354,7 @@ public class PropertyGetter extends PropertyVisitor {
     if (property == PropertyDescriptorHelper.DART_FUNCTION_BODY) {
       return node.getBody();
     } else if (property == PropertyDescriptorHelper.DART_FUNCTION_PARAMETERS) {
-      return node.getParams();
+      return node.getParameters();
     } else if (property == PropertyDescriptorHelper.DART_FUNCTION_RETURN_TYPE) {
       return node.getReturnTypeNode();
     } else {
@@ -462,7 +462,7 @@ public class PropertyGetter extends PropertyVisitor {
   @Override
   public Object visitInvocation(DartInvocation node) {
     if (property == PropertyDescriptorHelper.DART_INVOCATION_ARGS) {
-      return node.getArgs();
+      return node.getArguments();
     } else {
       return visitExpression(node);
     }
@@ -565,7 +565,7 @@ public class PropertyGetter extends PropertyVisitor {
     if (property == PropertyDescriptorHelper.DART_NEW_EXPRESSION_CONSTRUCTOR_NAME) {
       return node.getConstructor();
     } else if (property == PropertyDescriptorHelper.DART_NEW_EXPRESSION_ARGUMENTS) {
-      return node.getArgs();
+      return node.getArguments();
     } else {
       return visitExpression(node);
     }

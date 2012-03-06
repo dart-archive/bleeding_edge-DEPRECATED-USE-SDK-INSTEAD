@@ -368,7 +368,7 @@ public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
   public StructuralPropertyDescriptor visitFunction(DartFunction node) {
     if (childNode == node.getBody()) {
       return PropertyDescriptorHelper.DART_FUNCTION_BODY;
-    } else if (childContainedIn(node.getParams())) {
+    } else if (childContainedIn(node.getParameters())) {
       return PropertyDescriptorHelper.DART_FUNCTION_PARAMETERS;
     } else if (childNode == node.getReturnTypeNode()) {
       return PropertyDescriptorHelper.DART_FUNCTION_RETURN_TYPE;
@@ -478,7 +478,7 @@ public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
 
   @Override
   public StructuralPropertyDescriptor visitInvocation(DartInvocation node) {
-    if (childContainedIn(node.getArgs())) {
+    if (childContainedIn(node.getArguments())) {
       return PropertyDescriptorHelper.DART_INVOCATION_ARGS;
     } else {
       return visitExpression(node);
@@ -583,7 +583,7 @@ public class PropertyLocator extends ASTVisitor<StructuralPropertyDescriptor> {
   public StructuralPropertyDescriptor visitNewExpression(DartNewExpression node) {
     if (childNode == node.getConstructor()) {
       return PropertyDescriptorHelper.DART_NEW_EXPRESSION_CONSTRUCTOR_NAME;
-    } else if (childContainedIn(node.getArgs())) {
+    } else if (childContainedIn(node.getArguments())) {
       return PropertyDescriptorHelper.DART_NEW_EXPRESSION_ARGUMENTS;
     } else {
       return visitExpression(node);
