@@ -28,29 +28,58 @@ class NativeEmitter {
   /**
    * Code for finding the type name of a JavaScript object.
    */
-  static final String TYPE_NAME_OF_FUNCTION = '''
-function(obj) {
-  var constructor = obj.constructor;
-  if (typeof(constructor) == 'function') {
-    // The constructor isn't null or undefined at this point. Try
-    // to grab hold of its name.
-    var name = constructor.name;
-    // If the name is a non-empty string, we use that as the type
-    // name of this object. On Firefox, we often get 'Object' as
-    // the constructor name even for more specialized objects so
-    // we have to fall through to the toString() based implementation
-    // below in that case.
-    if (name && typeof(name) == 'string' && name != 'Object') return name;
+  static final String TYPE_NAME_OF_FUNCTION = @"""
+(function() {
+  function constructorNameWithFallback(obj) {
+    var constructor = obj.constructor;
+    if (typeof(constructor) == 'function') {
+      // The constructor isn't null or undefined at this point. Try
+      // to grab hold of its name.
+      var name = constructor.name;
+      // If the name is a non-empty string, we use that as the type
+      // name of this object. On Firefox, we often get 'Object' as
+      // the constructor name even for more specialized objects so
+      // we have to fall through to the toString() based implementation
+      // below in that case.
+      if (typeof(name) == 'string' && name && name != 'Object') return name;
+    }
+    var string = Object.prototype.toString.call(obj);
+    return string.substring(8, string.length - 1);
   }
-  var string = Object.prototype.toString.call(obj);
-  var name = string.substring(8, string.length - 1);
-  if (name == 'Window') {
-    name = 'DOMWindow';
-  } else if (name == 'Document') {
-    name = 'HTMLDocument';
+
+  function chrome$typeNameOf() {
+    var name = this.constructor.name;
+    if (name == 'Window') return 'DOMWindow';
+    return name;
   }
-  return name;
-}''';
+
+  function firefox$typeNameOf() {
+    var name = constructorNameWithFallback(this);
+    if (name == 'Window') return 'DOMWindow';
+    if (name == 'Document') return 'HTMLDocument';
+    if (name == 'XMLDocument') return 'Document';
+    return name;
+  }
+
+  function ie$typeNameOf() {
+    var name = constructorNameWithFallback(this);
+    if (name == 'Window') return 'DOMWindow';
+    // IE calls both HTML and XML documents 'Document', so we check for the
+    // xmlVersion property, which is the empty string on HTML documents.
+    if (name == 'Document' && this.xmlVersion) return 'Document';
+    if (name == 'Document') return 'HTMLDocument';
+    return name;
+  }
+
+  // If we're not in the browser, we're almost certainly running on v8.
+  if (typeof(navigator) != 'object') return chrome$typeNameOf;
+
+  var userAgent = navigator.userAgent;
+  if (/Chrome/.test(userAgent)) return chrome$typeNameOf;
+  if (/Firefox/.test(userAgent)) return firefox$typeNameOf;
+  if (/MSIE/.test(userAgent)) return ie$typeNameOf;
+  return function() { return constructorNameWithFallback(this); };
+})()""";
 
   /**
    * Code for defining a property in a JavaScript object that will not

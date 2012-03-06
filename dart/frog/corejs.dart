@@ -408,7 +408,9 @@ $defProp(Object.prototype, '$typeNameOf', (function() {
   }
 
   function chrome$typeNameOf() {
-    return this.constructor.name;
+    var name = this.constructor.name;
+    if (name == 'Window') return 'DOMWindow';
+    return name;
   }
 
   function firefox$typeNameOf() {

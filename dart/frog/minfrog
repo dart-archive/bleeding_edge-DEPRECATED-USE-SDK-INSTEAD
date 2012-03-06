@@ -485,7 +485,10 @@ Function.prototype.call$2 = function($0, $1) {
 function to$call$2(f) { return f && f.to$call$2(); }
 // ********** Code for Math **************
 Math.parseInt = function(str) {
-  var ret = parseInt(str);
+    var match = /^\s*[+-]?(?:(0[xX][abcdefABCDEF0-9]+)|\d+)\s*$/.exec(str);
+    if (!match) $throw(new BadNumberFormatException(str));
+    var isHex = !!match[1];
+    var ret = parseInt(str, isHex ? 16 : 10);
     if (isNaN(ret)) $throw(new BadNumberFormatException(str));
     return ret;
 }
@@ -1893,7 +1896,9 @@ $defProp(Object.prototype, '$typeNameOf', (function() {
   }
 
   function chrome$typeNameOf() {
-    return this.constructor.name;
+    var name = this.constructor.name;
+    if (name == 'Window') return 'DOMWindow';
+    return name;
   }
 
   function firefox$typeNameOf() {
@@ -3107,7 +3112,7 @@ CoreJs.prototype.ensureTypeNameOf = function() {
   if (this._generatedTypeNameOf) return;
   this._generatedTypeNameOf = true;
   this.ensureDefProp();
-  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', (function() {\n  function constructorNameWithFallback(obj) {\n    var constructor = obj.constructor;\n    if (typeof(constructor) == 'function') {\n      // The constructor isn't null or undefined at this point. Try\n      // to grab hold of its name.\n      var name = constructor.name;\n      // If the name is a non-empty string, we use that as the type\n      // name of this object. On Firefox, we often get 'Object' as\n      // the constructor name even for more specialized objects so\n      // we have to fall through to the toString() based implementation\n      // below in that case.\n      if (typeof(name) == 'string' && name && name != 'Object') return name;\n    }\n    var string = Object.prototype.toString.call(obj);\n    return string.substring(8, string.length - 1);\n  }\n\n  function chrome$typeNameOf() {\n    return this.constructor.name;\n  }\n\n  function firefox$typeNameOf() {\n    var name = constructorNameWithFallback(this);\n    if (name == 'Window') return 'DOMWindow';\n    if (name == 'Document') return 'HTMLDocument';\n    if (name == 'XMLDocument') return 'Document';\n    return name;\n  }\n\n  function ie$typeNameOf() {\n    var name = constructorNameWithFallback(this);\n    if (name == 'Window') return 'DOMWindow';\n    // IE calls both HTML and XML documents 'Document', so we check for the\n    // xmlVersion property, which is the empty string on HTML documents.\n    if (name == 'Document' && this.xmlVersion) return 'Document';\n    if (name == 'Document') return 'HTMLDocument';\n    return name;\n  }\n\n  // If we're not in the browser, we're almost certainly running on v8.\n  if (typeof(navigator) != 'object') return chrome$typeNameOf;\n\n  var userAgent = navigator.userAgent;\n  if (/Chrome/.test(userAgent)) return chrome$typeNameOf;\n  if (/Firefox/.test(userAgent)) return firefox$typeNameOf;\n  if (/MSIE/.test(userAgent)) return ie$typeNameOf;\n  return function() { return constructorNameWithFallback(this); };\n})());");
+  this.writer.writeln("$defProp(Object.prototype, '$typeNameOf', (function() {\n  function constructorNameWithFallback(obj) {\n    var constructor = obj.constructor;\n    if (typeof(constructor) == 'function') {\n      // The constructor isn't null or undefined at this point. Try\n      // to grab hold of its name.\n      var name = constructor.name;\n      // If the name is a non-empty string, we use that as the type\n      // name of this object. On Firefox, we often get 'Object' as\n      // the constructor name even for more specialized objects so\n      // we have to fall through to the toString() based implementation\n      // below in that case.\n      if (typeof(name) == 'string' && name && name != 'Object') return name;\n    }\n    var string = Object.prototype.toString.call(obj);\n    return string.substring(8, string.length - 1);\n  }\n\n  function chrome$typeNameOf() {\n    var name = this.constructor.name;\n    if (name == 'Window') return 'DOMWindow';\n    return name;\n  }\n\n  function firefox$typeNameOf() {\n    var name = constructorNameWithFallback(this);\n    if (name == 'Window') return 'DOMWindow';\n    if (name == 'Document') return 'HTMLDocument';\n    if (name == 'XMLDocument') return 'Document';\n    return name;\n  }\n\n  function ie$typeNameOf() {\n    var name = constructorNameWithFallback(this);\n    if (name == 'Window') return 'DOMWindow';\n    // IE calls both HTML and XML documents 'Document', so we check for the\n    // xmlVersion property, which is the empty string on HTML documents.\n    if (name == 'Document' && this.xmlVersion) return 'Document';\n    if (name == 'Document') return 'HTMLDocument';\n    return name;\n  }\n\n  // If we're not in the browser, we're almost certainly running on v8.\n  if (typeof(navigator) != 'object') return chrome$typeNameOf;\n\n  var userAgent = navigator.userAgent;\n  if (/Chrome/.test(userAgent)) return chrome$typeNameOf;\n  if (/Firefox/.test(userAgent)) return firefox$typeNameOf;\n  if (/MSIE/.test(userAgent)) return ie$typeNameOf;\n  return function() { return constructorNameWithFallback(this); };\n})());");
 }
 CoreJs.prototype.ensureInheritsHelper = function() {
   if (this._generatedInherits) return;
@@ -14362,6 +14367,7 @@ World.prototype.withTiming = function(name, f) {
 // ********** Code for FrogOptions **************
 function FrogOptions(homedir, args, files) {
   this.legOnly = false;
+  this.ignoreUnrecognizedFlags = false;
   this.checkOnly = false;
   this.disableBoundsChecks = false;
   this.maxInferenceIterations = (4);
@@ -14391,133 +14397,27 @@ function FrogOptions(homedir, args, files) {
     $globals.world.error(("Invalid configuration " + this.config));
     $throw("Invalid configuration");
   }
-  var ignoreUnrecognizedFlags = false;
   var passedLibDir = false;
   this.childArgs = [];
   loop:
   for (var i = (2);
    i < args.get$length(); i++) {
     var arg = args.$index(i);
-    switch (arg) {
-      case "--leg":
-      case "--enable_leg":
-      case "--leg_only":
-
-        this.legOnly = true;
-        break;
-
-      case "--enable_asserts":
-
-        this.enableAsserts = true;
-        break;
-
-      case "--enable_type_checks":
-
-        this.enableTypeChecks = true;
-        this.enableAsserts = true;
-        break;
-
-      case "--verify_implements":
-
-        this.verifyImplements = true;
-        break;
-
-      case "--compile_all":
-
-        this.compileAll = true;
-        break;
-
-      case "--check-only":
-
-        this.checkOnly = true;
-        break;
-
-      case "--diet-parse":
-
-        this.dietParse = true;
-        break;
-
-      case "--ignore-unrecognized-flags":
-
-        ignoreUnrecognizedFlags = true;
-        break;
-
-      case "--verbose":
-
-        this.showInfo = true;
-        break;
-
-      case "--suppress_warnings":
-
-        this.showWarnings = false;
-        break;
-
-      case "--warnings_as_errors":
-
-        this.warningsAsErrors = true;
-        break;
-
-      case "--throw_on_errors":
-
-        this.throwOnErrors = true;
-        break;
-
-      case "--throw_on_warnings":
-
-        this.throwOnWarnings = true;
-        break;
-
-      case "--compile-only":
-
-        this.compileOnly = true;
-        break;
-
-      case "--Xforce_dynamic":
-
-        this.forceDynamic = true;
-        break;
-
-      case "--no_colors":
-
-        this.useColors = false;
-        break;
-
-      case "--Xinfer_types":
-
-        this.inferTypes = true;
-        break;
-
-      case "--checked":
-
-        this.enableTypeChecks = true;
-        this.enableAsserts = true;
-        break;
-
-      case "--unchecked":
-
-        this.disableBoundsChecks = true;
-        break;
-
-      default:
-
-        if (arg.endsWith(".dart")) {
-          this.dartScript = arg;
-          this.childArgs = args.getRange(i + (1), args.get$length() - i - (1));
-          break loop;
-        }
-        else if (arg.startsWith("--out=")) {
-          this.outfile = arg.substring$1("--out=".length);
-        }
-        else if (arg.startsWith("--libdir=")) {
-          this.libDir = arg.substring$1("--libdir=".length);
-          passedLibDir = true;
-        }
-        else {
-          if (!ignoreUnrecognizedFlags) {
-            print$(("unrecognized flag: \"" + arg + "\""));
-          }
-        }
-
+    if (this.tryParseSimpleOption(arg)) continue;
+    if (arg.endsWith(".dart")) {
+      this.dartScript = arg;
+      this.childArgs = args.getRange(i + (1), args.get$length() - i - (1));
+      break loop;
+    }
+    else if (arg.startsWith("--out=")) {
+      this.outfile = arg.substring$1("--out=".length);
+    }
+    else if (arg.startsWith("--libdir=")) {
+      this.libDir = arg.substring$1("--libdir=".length);
+      passedLibDir = true;
+    }
+    else if (!this.ignoreUnrecognizedFlags) {
+      print$(("unrecognized flag: \"" + arg + "\""));
     }
   }
   if (!passedLibDir && $eq$(this.config, "dev") && !files.fileExists(this.libDir)) {
@@ -14530,13 +14430,119 @@ function FrogOptions(homedir, args, files) {
     }
   }
 }
+FrogOptions.prototype.tryParseSimpleOption = function(option) {
+  if (!option.startsWith("--")) return false;
+  switch (option.replaceAll("_", "-")) {
+    case "--leg":
+    case "--enable-leg":
+    case "--leg-only":
+
+      this.legOnly = true;
+      return true;
+
+    case "--enable-asserts":
+
+      this.enableAsserts = true;
+      return true;
+
+    case "--enable-type-checks":
+
+      this.enableTypeChecks = true;
+      this.enableAsserts = true;
+      return true;
+
+    case "--verify-implements":
+
+      this.verifyImplements = true;
+      return true;
+
+    case "--compile-all":
+
+      this.compileAll = true;
+      return true;
+
+    case "--check-only":
+
+      this.checkOnly = true;
+      return true;
+
+    case "--diet-parse":
+
+      this.dietParse = true;
+      return true;
+
+    case "--ignore-unrecognized-flags":
+
+      this.ignoreUnrecognizedFlags = true;
+      return true;
+
+    case "--verbose":
+
+      this.showInfo = true;
+      return true;
+
+    case "--suppress-warnings":
+
+      this.showWarnings = false;
+      return true;
+
+    case "--warnings-as-errors":
+
+      this.warningsAsErrors = true;
+      return true;
+
+    case "--throw-on-errors":
+
+      this.throwOnErrors = true;
+      return true;
+
+    case "--throw-on-warnings":
+
+      this.throwOnWarnings = true;
+      return true;
+
+    case "--compile-only":
+
+      this.compileOnly = true;
+      return true;
+
+    case "--Xforce-dynamic":
+
+      this.forceDynamic = true;
+      return true;
+
+    case "--no-colors":
+
+      this.useColors = false;
+      return true;
+
+    case "--Xinfer-types":
+
+      this.inferTypes = true;
+      return true;
+
+    case "--enable-checked-mode":
+    case "--checked":
+
+      this.enableTypeChecks = true;
+      this.enableAsserts = true;
+      return true;
+
+    case "--unchecked":
+
+      this.disableBoundsChecks = true;
+      return true;
+
+  }
+  return false;
+}
 // ********** Code for LibraryReader **************
 function LibraryReader() {
   if ($eq$($globals.options.config, "dev")) {
     this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "corelib.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "corelib_impl.dart"), "dart:html", joinPaths($globals.options.libDir, "../../client/html/frog/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "../../client/dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "../../lib/json/json_frog.dart"), "dart:isolate", joinPaths($globals.options.libDir, "../../lib/isolate/isolate_frog.dart")]);
   }
   else if ($eq$($globals.options.config, "sdk")) {
-    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "core/core_frog.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "coreimpl/coreimpl_frog.dart"), "dart:html", joinPaths($globals.options.libDir, "html/frog/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "dom/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "json/json_frog.dart"), "dart:isolate", joinPaths($globals.options.libDir, "isolate/isolate_frog.dart")]);
+    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "core/core_frog.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "coreimpl/coreimpl_frog.dart"), "dart:html", joinPaths($globals.options.libDir, "html/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "dom/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "json/json_frog.dart"), "dart:isolate", joinPaths($globals.options.libDir, "isolate/isolate_frog.dart")]);
   }
   else {
     $globals.world.error(("Invalid configuration " + $globals.options.config));
