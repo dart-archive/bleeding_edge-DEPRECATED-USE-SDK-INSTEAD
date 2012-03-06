@@ -17,31 +17,28 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.tools.core.DartCore;
+
+import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 
 import java.io.File;
 import java.net.URI;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 
 class ErrorListener implements DartCompilerListener {
-  private final AnalysisEvent event;
-  private HashSet<URI> fileUris = null;
+  private final AnalysisServer server;
+  private final ArrayList<DartCompilationError> errors = new ArrayList<DartCompilationError>();
 
-  ErrorListener(AnalysisEvent event) {
-    this.event = event;
+  ErrorListener(AnalysisServer server) {
+    this.server = server;
   }
 
   @Override
   public void onError(DartCompilationError err) {
-    URI uri = err.getSource().getUri();
-    if (fileUris == null) {
-      fileUris = new HashSet<URI>();
-      for (File file : event.getFiles()) {
-        fileUris.add(file.toURI());
-      }
-    }
-    if (fileUris.contains(uri)) {
-      event.addError(err);
-    }
+    errors.add(err);
   }
 
   @Override
@@ -50,5 +47,47 @@ class ErrorListener implements DartCompilerListener {
 
   @Override
   public void unitCompiled(DartUnit unit) {
+  }
+
+  void notifyParsed(File libraryFile, File sourceFile, DartUnit dartUnit) {
+    AnalysisEvent event = new AnalysisEvent(libraryFile);
+    event.addFileAndDartUnit(sourceFile, dartUnit);
+    event.addErrors(errors);
+    for (AnalysisListener listener : server.getAnalysisListeners()) {
+      try {
+        listener.parsed(event);
+      } catch (Throwable e) {
+        DartCore.logError("Exception during parsed notification", e);
+      }
+    }
+  }
+
+  void notifyResolved(Map<URI, LibraryUnit> newLibs) {
+    for (LibraryUnit libUnit : newLibs.values()) {
+
+      File libFile = toFile(server, libUnit.getSource().getUri());
+      if (libFile == null) {
+        continue;
+      }
+
+      AnalysisEvent event = new AnalysisEvent(libFile);
+      Iterator<DartUnit> iter = libUnit.getUnits().iterator();
+      while (iter.hasNext()) {
+        DartUnit dartUnit = iter.next();
+        File dartFile = toFile(server, dartUnit.getSource().getUri());
+        if (dartFile != null) {
+          event.addFileAndDartUnit(dartFile, dartUnit);
+        }
+      }
+      event.addErrors(errors);
+
+      for (AnalysisListener listener : server.getAnalysisListeners()) {
+        try {
+          listener.resolved(event);
+        } catch (Throwable e) {
+          DartCore.logError("Exception during resolved notification", e);
+        }
+      }
+    }
   }
 }

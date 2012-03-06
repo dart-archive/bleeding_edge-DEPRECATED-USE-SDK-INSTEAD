@@ -17,34 +17,27 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.resolve;
+import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Resolve types and references in the specified library
  */
 class ResolveLibraryTask extends Task {
   private final AnalysisServer server;
+  private final Context context;
+
   private final Library library;
-  private HashMap<URI, DartUnit> parsedUnits;
-  private LibraryUnit unit;
 
   ResolveLibraryTask(AnalysisServer server, Context context, Library library) {
     this.server = server;
+    this.context = context;
     this.library = library;
-    this.parsedUnits = new HashMap<URI, DartUnit>();
-    // TODO (danrubel) revise DartCompiler API to pass in resolved imported library units
-//    for (File importedFile : library.getImportedFiles()) {
-//      Library importedLibrary = context.getCachedLibrary(importedFile);
-//      for (File sourceFile : importedLibrary.getSourceFiles()) {
-//        parsedUnits.put(sourceFile.toURI(), importedLibrary.getCachedUnit(sourceFile));
-//      }
-//    }
-    for (File sourceFile : library.getSourceFiles()) {
-      parsedUnits.put(sourceFile.toURI(), library.getCachedUnit(sourceFile));
-    }
   }
 
   @Override
@@ -52,7 +45,49 @@ class ResolveLibraryTask extends Task {
     if (library.getLibraryUnit() != null) {
       return;
     }
-    unit = resolve(server, library, parsedUnits);
-    library.cacheLibraryUnit(unit);
+
+    // Collect resolved libraries and parsed units
+
+    HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
+    HashMap<URI, DartUnit> parsedUnits = new HashMap<URI, DartUnit>();
+
+    ArrayList<Library> todo = new ArrayList<Library>();
+    todo.add(library);
+    for (int index = 0; index < todo.size(); index++) {
+      Library lib = todo.get(index);
+      LibraryUnit libUnit = lib.getLibraryUnit();
+      if (libUnit != null) {
+        resolvedLibs.put(libUnit.getSource().getUri(), libUnit);
+        continue;
+      }
+      for (DartUnit unit : lib.getCachedUnits().values()) {
+        parsedUnits.put(unit.getSource().getUri(), unit);
+      }
+      for (File file : lib.getImportedFiles()) {
+        Library importedLib = context.getCachedLibrary(file);
+        if (importedLib != null && !todo.contains(importedLib)) {
+          todo.add(importedLib);
+        }
+      }
+    }
+
+    // Resolve
+
+    Map<URI, LibraryUnit> newlyResolved = resolve(server, library, resolvedLibs, parsedUnits);
+
+    // Cache the resolved libraries
+
+    for (LibraryUnit libUnit : newlyResolved.values()) {
+      File libFile = toFile(server, libUnit.getSource().getUri());
+      if (libFile == null) {
+        continue;
+      }
+      Library lib = context.getCachedLibrary(libFile);
+      if (lib == null) {
+        lib = Library.fromDartUnit(server, libFile, libUnit.getSource(), libUnit.getSelfDartUnit());
+        context.cacheLibrary(lib);
+      }
+      lib.cacheLibraryUnit(server, libUnit);
+    }
   }
 }

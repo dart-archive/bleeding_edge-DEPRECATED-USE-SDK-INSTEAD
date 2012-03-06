@@ -64,7 +64,7 @@ public class SystemLibraryManagerProvider {
         defaultTarget = new Target() {
 
           @Override
-          public File resolveImport(String relPath) {
+          public File resolvePath(String relPath) {
             URI relativeUri;
             try {
               relativeUri = new URI(relPath);

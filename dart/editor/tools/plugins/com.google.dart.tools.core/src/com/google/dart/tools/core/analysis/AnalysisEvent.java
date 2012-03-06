@@ -17,9 +17,11 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartUnit;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Collected analysis information.
@@ -74,23 +76,23 @@ public class AnalysisEvent {
     return units;
   }
 
-  void addError(DartCompilationError error) {
-    errors.add(error);
+  /**
+   * Add errors reported on the analyzed files, discarding all other errors
+   */
+  void addErrors(Collection<DartCompilationError> newErrors) {
+    HashSet<URI> fileUris = new HashSet<URI>();
+    for (File file : files) {
+      fileUris.add(file.toURI());
+    }
+    for (DartCompilationError error : newErrors) {
+      if (fileUris.contains(error.getSource().getUri())) {
+        errors.add(error);
+      }
+    }
   }
 
-  void addFile(File file) {
+  void addFileAndDartUnit(File file, DartUnit unit) {
     files.add(file);
-  }
-
-  void addFiles(Collection<File> moreFiles) {
-    files.addAll(moreFiles);
-  }
-
-  void addUnit(File file, DartUnit unit) {
     units.put(file, unit);
-  }
-
-  void addUnits(HashMap<File, DartUnit> moreUnits) {
-    units.putAll(moreUnits);
   }
 }

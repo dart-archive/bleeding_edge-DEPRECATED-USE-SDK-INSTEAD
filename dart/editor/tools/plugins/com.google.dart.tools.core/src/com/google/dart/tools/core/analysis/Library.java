@@ -13,11 +13,17 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.UrlLibrarySource;
+import com.google.dart.compiler.LibrarySource;
+import com.google.dart.compiler.ast.DartDirective;
+import com.google.dart.compiler.ast.DartImportDirective;
+import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 
+import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
+
 import java.io.File;
+import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -25,14 +31,63 @@ import java.util.HashMap;
  * Cached information about a Dart library used internally by the {@link AnalysisServer}.
  */
 class Library {
+
+  /**
+   * Construct a new library from the unresolved dart unit that defines the library
+   */
+  static Library fromDartUnit(AnalysisServer server, File libFile, LibrarySource libSource,
+      DartUnit dartUnit) {
+    HashMap<String, File> imports = new HashMap<String, File>();
+    HashMap<String, File> sources = new HashMap<String, File>();
+    URI base = libFile.getParentFile().toURI();
+
+    // Resolve all #import and #source directives
+
+    for (DartDirective directive : dartUnit.getDirectives()) {
+      String relPath;
+      if (directive instanceof DartImportDirective) {
+        relPath = ((DartImportDirective) directive).getLibraryUri().getValue();
+        File file = server.resolvePath(base, relPath);
+        if (file == null) {
+          // Resolution errors reported by ResolveLibraryTask
+        } else {
+          imports.put(relPath, file);
+        }
+      } else if (directive instanceof DartSourceDirective) {
+        relPath = ((DartSourceDirective) directive).getSourceUri().getValue();
+        File file = server.resolvePath(base, relPath);
+        if (file == null) {
+          // Resolution errors reported by ResolveLibraryTask
+        } else {
+          sources.put(relPath, file);
+        }
+      }
+    }
+
+    // Import "dart:core" if it was not explicitly imported
+
+    if (imports.get("dart:core") == null) {
+      File file = server.resolvePath(base, "dart:core");
+      if (file == null) {
+        // Resolution errors reported by ResolveLibraryTask
+      } else {
+        imports.put("dart:core", file);
+      }
+    }
+
+    Library library = new Library(libFile, libSource, dartUnit, imports, sources);
+    return library;
+  }
+
   private final File libraryFile;
-  private final UrlLibrarySource librarySource;
+  private final LibrarySource librarySource;
   private final HashMap<String, File> imports;
   private final HashMap<String, File> sources;
   private final HashMap<File, DartUnit> unitCache;
+
   private LibraryUnit libraryUnit;
 
-  Library(File libraryFile, UrlLibrarySource librarySource, DartUnit libraryUnit,
+  private Library(File libraryFile, LibrarySource librarySource, DartUnit libraryUnit,
       HashMap<String, File> imports, HashMap<String, File> sources) {
     this.libraryFile = libraryFile;
     this.librarySource = librarySource;
@@ -42,8 +97,14 @@ class Library {
     this.unitCache.put(libraryFile, libraryUnit);
   }
 
-  void cacheLibraryUnit(LibraryUnit unit) {
-    this.libraryUnit = unit;
+  void cacheLibraryUnit(AnalysisServer server, LibraryUnit libUnit) {
+    this.libraryUnit = libUnit;
+    for (DartUnit dartUnit : libUnit.getUnits()) {
+      File file = toFile(server, dartUnit.getSource().getUri());
+      if (file != null) {
+        cacheUnit(file, dartUnit);
+      }
+    }
   }
 
   void cacheUnit(File file, DartUnit unit) {
@@ -66,7 +127,7 @@ class Library {
     return imports.values();
   }
 
-  UrlLibrarySource getLibrarySource() {
+  LibrarySource getLibrarySource() {
     return librarySource;
   }
 

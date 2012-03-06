@@ -20,9 +20,10 @@ import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
+import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlDartSource;
-import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
@@ -35,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Static utility methods
@@ -59,68 +61,94 @@ class AnalysisUtility {
   /**
    * Parse a single file and report the errors/warnings
    */
-  static DartUnit parse(AnalysisServer server, File libraryFile, UrlLibrarySource librarySource,
+  static DartUnit parse(AnalysisServer server, File libraryFile, LibrarySource librarySource,
       File sourceFile) {
-    AnalysisEvent event = new AnalysisEvent(libraryFile);
-    event.addFile(sourceFile);
+    ErrorListener errorListener = new ErrorListener(server);
     DartSource source = new UrlDartSource(sourceFile, librarySource);
 
     String sourceCode = null;
     try {
       sourceCode = FileUtilities.getContents(sourceFile);
     } catch (IOException e) {
-      event.addError(newIoError(source, e));
+      errorListener.onError(newIoError(source, e));
     }
 
-    DartUnit unit = null;
+    DartUnit dartUnit = null;
     if (sourceCode != null) {
       try {
-        ErrorListener errorListener = new ErrorListener(event);
         DartParser parser = new DartParser(source, sourceCode, errorListener);
-        unit = parser.parseUnit(source);
-        event.addUnit(sourceFile, unit);
+        dartUnit = parser.parseUnit(source);
       } catch (Throwable e) {
         DartCore.logError("Exception while parsing " + sourceFile.getPath(), e);
-        event.addError(newParseFailure(source, e));
+        errorListener.onError(newParseFailure(source, e));
       }
     }
 
-    for (AnalysisListener listener : server.getAnalysisListeners()) {
-      listener.parsed(event);
-    }
-    return unit != null ? unit : new DartUnit(source, false);
+    errorListener.notifyParsed(libraryFile, sourceFile, dartUnit);
+    return dartUnit != null ? dartUnit : new DartUnit(source, false);
   }
 
   /**
-   * Resolve references in the specified library
+   * Resolve the specified library and any imported libraries that have not already been resolved.
+   * 
+   * @return a map of newly resolved libraries
    */
-  static LibraryUnit resolve(AnalysisServer server, Library library, HashMap<URI, DartUnit> units) {
+  static Map<URI, LibraryUnit> resolve(AnalysisServer server, Library library,
+      Map<URI, LibraryUnit> resolvedLibs, Map<URI, DartUnit> parsedUnits) {
+    ErrorListener errorListener = new ErrorListener(server);
+
     File libraryFile = library.getFile();
-    UrlLibrarySource librarySource = library.getLibrarySource();
-    AnalysisEvent event = new AnalysisEvent(libraryFile);
-    event.addFile(libraryFile);
-    event.addFiles(library.getSourceFiles());
+    LibrarySource librarySource = library.getLibrarySource();
     provider.clearCachedArtifacts();
 
-    LibraryUnit libUnit = null;
+    Map<URI, LibraryUnit> newLibs = null;
     try {
-      ErrorListener errorListener = new ErrorListener(event);
-      libUnit = DartCompiler.analyzeLibrary(librarySource, units, config, provider, errorListener);
-      event.addUnits(library.getCachedUnits());
+      newLibs = DartCompiler.analyzeLibraries(librarySource, resolvedLibs, parsedUnits, config,
+          provider, errorListener);
     } catch (IOException e) {
-      event.addError(newIoError(librarySource, e));
+      errorListener.onError(newIoError(librarySource, e));
     } catch (Throwable e) {
       DartCore.logError("Exception while resolving " + libraryFile.getPath(), e);
       DartCompilationError error = new DartCompilationError(librarySource,
           AnalysisErrorCode.RESOLUTION_FAILURE, e.getMessage());
       error.setSource(librarySource);
-      event.addError(error);
+      errorListener.onError(error);
     }
 
-    for (AnalysisListener listener : server.getAnalysisListeners()) {
-      listener.resolved(event);
+    if (newLibs != null) {
+      errorListener.notifyResolved(newLibs);
+    } else {
+      newLibs = new HashMap<URI, LibraryUnit>();
+      newLibs.put(librarySource.getUri(), new LibraryUnit(librarySource));
     }
-    return libUnit != null ? libUnit : new LibraryUnit(librarySource);
+    return newLibs;
+  }
+
+  /**
+   * Answer the absolute file for the specified URI
+   * 
+   * @return the file or <code>null</code> if unknown
+   */
+  static File toFile(AnalysisServer server, URI uri) {
+    String scheme = uri.getScheme();
+    if (scheme == null || "file".equals(scheme)) {
+      File file = new File(uri.getPath());
+      if (file.isAbsolute()) {
+        return file;
+      }
+      DartCore.logError("Non absolute path: " + file);
+      return null;
+    }
+    if (SystemLibraryManager.isDartUri(uri)) {
+      File file = server.getTarget().resolvePath(uri.toString());
+      if (file != null) {
+        return file;
+      }
+      DartCore.logError("Failed to resolve: " + uri);
+      return null;
+    }
+    DartCore.logError("Unknown library scheme : " + uri);
+    return null;
   }
 
   private static DartCompilationError newIoError(Source source, IOException e) {

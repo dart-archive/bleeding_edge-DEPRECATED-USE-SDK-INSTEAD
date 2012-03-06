@@ -35,7 +35,7 @@ class AnalyzeLibraryTask extends Task {
 
     // Determine if the library should still be analyzed
 
-    if (!server.isSpecifiedLibraryFile(libraryFile) || !libraryFile.exists()) {
+    if (!server.isTrackedLibraryFile(libraryFile) || !libraryFile.exists()) {
       return;
     }
     if (start == 0) {

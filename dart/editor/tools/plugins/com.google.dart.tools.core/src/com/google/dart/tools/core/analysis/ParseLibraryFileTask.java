@@ -14,23 +14,16 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.UrlLibrarySource;
-import com.google.dart.compiler.ast.DartDirective;
-import com.google.dart.compiler.ast.DartImportDirective;
-import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartUnit;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.parse;
 
 import java.io.File;
-import java.net.URI;
-import java.util.HashMap;
 
 /**
  * Parse a library source file and create the associated {@link Library}
  */
 class ParseLibraryFileTask extends Task {
-  private static final String DART_CORE = "dart:core";
-
   private final AnalysisServer server;
   private final Context context;
   private final File libraryFile;
@@ -48,46 +41,12 @@ class ParseLibraryFileTask extends Task {
     if (!libraryFile.exists()) {
       return;
     }
+    Library library = context.getCachedLibrary(libraryFile);
+    if (library != null) {
+      return;
+    }
     DartUnit unit = parse(server, libraryFile, librarySource, libraryFile);
-
-    HashMap<String, File> imports = new HashMap<String, File>();
-    HashMap<String, File> sources = new HashMap<String, File>();
-    URI base = libraryFile.getParentFile().toURI();
-
-    // Resolve all #import and #source directives
-
-    for (DartDirective directive : unit.getDirectives()) {
-      String relPath;
-      if (directive instanceof DartImportDirective) {
-        relPath = ((DartImportDirective) directive).getLibraryUri().getValue();
-        File file = server.resolveImport(base, relPath);
-        if (file == null) {
-          // Resolution errors reported by ResolveLibraryTask
-        } else {
-          imports.put(relPath, file);
-        }
-      } else if (directive instanceof DartSourceDirective) {
-        relPath = ((DartSourceDirective) directive).getSourceUri().getValue();
-        File file = server.resolveFile(base, relPath);
-        if (file == null) {
-          // Resolution errors reported by ResolveLibraryTask
-        } else {
-          sources.put(relPath, file);
-        }
-      }
-    }
-
-    // Import "dart:core" if it was not explicitly imported
-
-    if (imports.get(DART_CORE) == null) {
-      File file = server.resolveImport(base, DART_CORE);
-      if (file == null) {
-        // Resolution errors reported by ResolveLibraryTask
-      } else {
-        imports.put(DART_CORE, file);
-      }
-    }
-
-    context.cacheLibrary(new Library(libraryFile, librarySource, unit, imports, sources));
+    library = Library.fromDartUnit(server, libraryFile, librarySource, unit);
+    context.cacheLibrary(library);
   }
 }

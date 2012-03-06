@@ -48,7 +48,7 @@ class ParseLibraryTask extends Task {
 
     for (File file : library.getSourceFiles()) {
       if (library.getCachedUnit(file) == null && file.exists()) {
-        server.queueSubTask(new ParseFileTask(server, library, file));
+        server.queueSubTask(new ParseFileTask(server, context, libraryFile, file));
       }
     }
   }

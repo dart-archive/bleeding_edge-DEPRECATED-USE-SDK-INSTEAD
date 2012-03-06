@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
@@ -173,6 +174,9 @@ public class AnalysisServer {
    * @param file the modified file (not <code>null</code>)
    */
   public void fileChanged(File file) {
+    if (!DartCore.isDartLikeFileName(file.getName())) {
+      return;
+    }
     queueNewTask(new FileChangedTask(this, savedContext, file));
   }
 
@@ -219,12 +223,16 @@ public class AnalysisServer {
     return analysisListeners;
   }
 
+  Target getTarget() {
+    return target;
+  }
+
   /**
    * Answer the library files identified by {@link #analyzeLibrary(File)}
    * 
    * @return an array of files (not <code>null</code>, contains no <code>null</code>s)
    */
-  File[] getSpecifiedLibraryFiles() {
+  File[] getTrackedLibraryFiles() {
     synchronized (queue) {
       return libraryFiles.toArray(new File[libraryFiles.size()]);
     }
@@ -234,7 +242,7 @@ public class AnalysisServer {
    * Answer <code>true</code> if the receiver's collection of library files identified by
    * {@link #analyzeLibrary(File)} includes the specified file.
    */
-  boolean isSpecifiedLibraryFile(File file) {
+  boolean isTrackedLibraryFile(File file) {
     synchronized (queue) {
       return libraryFiles.contains(file);
     }
@@ -291,24 +299,14 @@ public class AnalysisServer {
    * 
    * @return the file or <code>null</code> if it could not be resolved
    */
-  File resolveFile(URI base, String relPath) {
-    File result = new File(relPath);
-    if (!result.isAbsolute()) {
-      result = new File(base.resolve(relPath).getPath());
+  File resolvePath(URI base, String relPath) {
+    if (SystemLibraryManager.isDartSpec(relPath)) {
+      return target.resolvePath(relPath);
     }
-    return result;
-  }
-
-  /**
-   * Resolve the specified path to a library. This method resolves "dart:<libname>" where as
-   * {@link #resolveFile(URI, String)} does not.
-   * 
-   * @return the library or <code>null</code> if it could not be resolved
-   */
-  File resolveImport(URI base, String relPath) {
-    if (relPath.startsWith("dart:")) {
-      return target.resolveImport(relPath);
+    File file = new File(relPath);
+    if (file.isAbsolute()) {
+      return file;
     }
-    return resolveFile(base, relPath);
+    return new File(base.resolve(relPath).getPath());
   }
 }

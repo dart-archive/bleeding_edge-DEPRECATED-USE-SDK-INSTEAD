@@ -24,21 +24,31 @@ import java.io.File;
  */
 class ParseFileTask extends Task {
   private final AnalysisServer server;
-  private final Library library;
-  private final File file;
+  private final Context context;
+  private final File libraryFile;
+  private final File dartFile;
 
-  ParseFileTask(AnalysisServer server, Library library, File file) {
+  ParseFileTask(AnalysisServer server, Context context, File libraryFile, File dartFile) {
     this.server = server;
-    this.library = library;
-    this.file = file;
+    this.context = context;
+    this.libraryFile = libraryFile;
+    this.dartFile = dartFile;
   }
 
   @Override
   void perform() {
-    if (!file.exists()) {
+    if (!dartFile.exists()) {
       return;
     }
-    DartUnit unit = parse(server, library.getFile(), library.getLibrarySource(), file);
-    library.cacheUnit(file, unit);
+    Library library = context.getCachedLibrary(libraryFile);
+    if (library == null) {
+      return;
+    }
+    DartUnit dartUnit = library.getCachedUnit(dartFile);
+    if (dartUnit != null) {
+      return;
+    }
+    dartUnit = parse(server, library.getFile(), library.getLibrarySource(), dartFile);
+    library.cacheUnit(dartFile, dartUnit);
   }
 }

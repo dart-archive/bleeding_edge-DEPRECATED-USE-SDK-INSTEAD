@@ -33,7 +33,7 @@ class AnalyzeContextTask extends Task {
     // Parse library files
 
     boolean found = false;
-    for (File libFile : server.getSpecifiedLibraryFiles()) {
+    for (File libFile : server.getTrackedLibraryFiles()) {
       if (context.getCachedLibrary(libFile) == null) {
         server.queueSubTask(new ParseLibraryFileTask(server, context, libFile));
         found = true;
@@ -46,7 +46,7 @@ class AnalyzeContextTask extends Task {
 
     // Analyze all libraries
 
-    for (File libFile : server.getSpecifiedLibraryFiles()) {
+    for (File libFile : server.getTrackedLibraryFiles()) {
       server.queueSubTask(new AnalyzeLibraryTask(server, context, libFile));
     }
   }

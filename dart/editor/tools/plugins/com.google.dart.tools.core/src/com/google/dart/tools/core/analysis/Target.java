@@ -25,5 +25,5 @@ public abstract class Target {
    * 
    * @return the file or <code>null</code> if unresolved
    */
-  public abstract File resolveImport(String relPath);
+  public abstract File resolvePath(String relPath);
 }
