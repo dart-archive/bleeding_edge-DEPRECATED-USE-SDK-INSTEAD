@@ -97,6 +97,10 @@ class Interceptors {
   Element getTraceFromException() {
     return compiler.findHelper(const SourceString('getTraceFromException'));
   }
+
+  Element getEqualsInterceptor() {
+    return compiler.findHelper(const SourceString('eq'));
+  }
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -2281,7 +2285,7 @@ class SsaBuilder implements Visitor {
     work.allowSpeculativeOptimization = false;
     visit(node.expression);
     HInstruction expression = pop();
-    Link cases = node.cases.nodes;
+    Link<Node> cases = node.cases.nodes;
     int count = 0;
     handleThen() {
       if (cases.head.statements.nodes.isEmpty()) {
@@ -2292,7 +2296,7 @@ class SsaBuilder implements Visitor {
     }
     handleElse() {
       if (cases.isEmpty()) return;
-      if (cases.head is DefaultCase) {
+      if (cases.head.asDefaultCase() !== null) {
         stack.add(graph.addConstantBool(true));
         if (!cases.tail.isEmpty()) {
           compiler.unimplemented('default case not last', node: cases.head);
@@ -2301,7 +2305,7 @@ class SsaBuilder implements Visitor {
         SwitchCase switchCase = cases.head;
         visit(switchCase.expression);
         HInstruction caseExpression = pop();
-        Element equalsHelper = compiler.findHelper(const SourceString('eq'));
+        Element equalsHelper = interceptors.getEqualsInterceptor();
         HInstruction target = new HStatic(equalsHelper);
         add(target);
         push(new HEquals(target, caseExpression, expression));
