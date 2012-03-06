@@ -1448,7 +1448,7 @@ public class DeltaProcessor {
           return true;
         }
         recomputeLibrarySet(element);
-//        elementAdded(element, delta);
+        elementAdded(element, delta);
 //        // if this element is a CompilationUnit that defines a library, make sure that we specify that the
 //        // DartLibrary is being added
 //        if (elementType == DartElement.COMPILATION_UNIT) {
@@ -1469,7 +1469,7 @@ public class DeltaProcessor {
           return false;
         }
         recomputeLibrarySet(element);
-//        elementRemoved(element, delta);
+        elementRemoved(element, delta);
 //        // if this element is a CompilationUnit that defines a library, make sure that we specify that the
 //        // DartLibrary is being removed
 //        if (elementType == DartElement.COMPILATION_UNIT) {
@@ -1497,7 +1497,7 @@ public class DeltaProcessor {
           // This has been replaced by the call to recomputeLibrarySet, more a *hammer* approach to
           // get the Libraries view working ASAP, this could be re-visited in the future to make the
           // delta processing a faster process.
-          //contentChanged(element, delta);
+          contentChanged(element, delta);
         }
         // The following has all been commented out as DartProjects cannot be opened or closed in
         // the current UX (adding and removing libraries is different than closing a project).
