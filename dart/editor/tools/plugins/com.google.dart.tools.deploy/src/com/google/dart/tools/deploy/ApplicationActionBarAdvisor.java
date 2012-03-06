@@ -19,7 +19,6 @@ import com.google.dart.tools.debug.ui.launch.DartRunAction;
 import com.google.dart.tools.debug.ui.launch.ManageLaunchesAction;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
-import com.google.dart.tools.ui.actions.CloseLibraryAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
 import com.google.dart.tools.ui.actions.OpenExternalFolderDialogAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
@@ -98,8 +97,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private IWorkbenchAction closeAllAction;
 
   private IWorkbenchAction closeOthersAction;
-
-  private CloseLibraryAction closeLibraryAction;
 
   private IWorkbenchAction closeAllSavedAction;
 
@@ -272,7 +269,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     closeAllAction = null;
     closeAllSavedAction = null;
     closeOthersAction = null;
-    closeLibraryAction = null;
     saveAction = null;
     saveAllAction = null;
     newWindowAction = null;
@@ -511,8 +507,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     closeOthersAction = ActionFactory.CLOSE_OTHERS.create(window);
     register(closeOthersAction);
-
-    closeLibraryAction = new CloseLibraryAction(window);
 
     closeAllSavedAction = ActionFactory.CLOSE_ALL_SAVED.create(window);
     register(closeAllSavedAction);
@@ -844,7 +838,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(closeAction);
     menu.add(closeAllAction);
-    menu.add(closeLibraryAction);
 
     //		menu.add(closeAllSavedAction);
     menu.add(new GroupMarker(IWorkbenchActionConstants.CLOSE_EXT));
