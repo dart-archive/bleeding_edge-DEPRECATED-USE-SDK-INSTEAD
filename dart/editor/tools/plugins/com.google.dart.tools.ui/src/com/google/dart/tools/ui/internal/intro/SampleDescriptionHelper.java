@@ -26,7 +26,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -129,11 +129,13 @@ public final class SampleDescriptionHelper {
 
   private static File createSampleImageFile(String resourceName) throws IOException {
     try {
-      URL fileUrl = FileLocator.toFileURL(getSampleResourceUrl(resourceName));
-
-      return new File(fileUrl.toURI());
-    } catch (URISyntaxException exception) {
-      throw new IOException(exception);
+      URL entryUrl = getSampleResourceUrl(resourceName);
+      URL fileUrl = FileLocator.toFileURL(entryUrl);
+      String fileUrlString = fileUrl.toString().replace(" ", "%20");
+      URI fileUri = URI.create(fileUrlString);
+      return new File(fileUri);
+    } catch (Throwable e) {
+      throw new IOException(e);
     }
   }
 
@@ -150,7 +152,6 @@ public final class SampleDescriptionHelper {
    */
   private static File getSamplesDirectory() throws Exception {
     File installDir = new File(Platform.getInstallLocation().getURL().getFile());
-
     return new File(installDir, "samples");
   }
 
