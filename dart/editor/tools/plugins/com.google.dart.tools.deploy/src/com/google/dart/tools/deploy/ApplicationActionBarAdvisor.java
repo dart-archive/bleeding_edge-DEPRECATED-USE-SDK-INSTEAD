@@ -20,12 +20,12 @@ import com.google.dart.tools.debug.ui.launch.ManageLaunchesAction;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
-import com.google.dart.tools.ui.actions.OpenExternalFolderDialogAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
+import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -37,6 +37,7 @@ import org.eclipse.core.runtime.Preferences;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.GroupMarker;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.ICoolBarManager;
 import org.eclipse.jface.action.IMenuManager;
@@ -816,8 +817,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(newFolderAction);
 
     menu.add(new Separator());
-    OpenExternalFolderDialogAction openFolderAction = new OpenExternalFolderDialogAction(
-        getWindow());
+    IAction openFolderAction = OpenFolderHandler.createCommandAction(getWindow());
     menu.add(openFolderAction);
 
     menu.add(new Separator());

@@ -53,6 +53,7 @@ import java.lang.reflect.InvocationTargetException;
  * or library file is selected, then open that library or application otherwise find and open the
  * application or library containing the selected file.
  */
+@Deprecated
 public class OpenFileHandler extends AbstractHandler {
 
   public static final String COMMAND_ID = DartUI.class.getPackage().getName() + ".file.open"; //$NON-NLS-1$

@@ -1667,10 +1667,10 @@
 <!-- file -->
       <command
             categoryId="org.eclipse.ui.category.file"
-            defaultHandler="com.google.dart.tools.ui.internal.handlers.OpenFileHandler"
-            description="%Command.openFile.description"
-            id="com.google.dart.tools.ui.file.open"
-            name="%Command.openFile.name">
+            defaultHandler="com.google.dart.tools.ui.internal.handlers.OpenFolderHandler"
+            description="%Command.openFolder.description"
+            id="com.google.dart.tools.ui.folder.open"
+            name="%Command.openFolder.name">
       </command>
       <command
             categoryId="org.eclipse.ui.category.file"

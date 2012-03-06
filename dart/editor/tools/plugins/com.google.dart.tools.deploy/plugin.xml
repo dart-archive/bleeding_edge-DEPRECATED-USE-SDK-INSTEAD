@@ -44,7 +44,7 @@
             sequence="M1+M2+N">
       </key>
       <key
-            commandId="com.google.dart.tools.ui.file.open"
+            commandId="com.google.dart.tools.ui.folder.open"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+O">
