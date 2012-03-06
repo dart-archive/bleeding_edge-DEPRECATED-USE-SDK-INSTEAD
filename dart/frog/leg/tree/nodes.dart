@@ -729,8 +729,6 @@ class DartString implements Iterable<int> {
   DartString();
   abstract int get length();
   bool isEmpty() => length == 0;
-  // TODO(lrn): Is this test too expensive?
-  bool definitelyEquals(DartString other) => toString() == other.toString();
   abstract Iterator<int> iterator();
   abstract String toString();
 

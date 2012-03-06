@@ -27,8 +27,8 @@ main() {
   Expect.isTrue(generated.contains("return a.length;"));
 
   generated = compile(TEST_TWO, 'foo');
-  Expect.isTrue(generated.contains("return 3;"));
+  Expect.isTrue(generated.contains("return (3);"));
 
   generated = compile(TEST_THREE, 'foo');
-  Expect.isTrue(generated.contains("return 3;"));
+  Expect.isTrue(generated.contains("return (3);"));
 }

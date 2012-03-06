@@ -71,7 +71,7 @@ function(child, parent) {
       assert(selector.namedArgumentCount == 0);
       return;
     }
-    CompileTimeConstantHandler constants = compiler.compileTimeConstantHandler;
+    ConstantHandler handler = compiler.constantHandler;
     List<SourceString> names = selector.getOrderedNamedArguments();
 
     String invocationName =
@@ -133,7 +133,7 @@ function(child, parent) {
           argumentsBuffer[count] = jsName;
           parametersBuffer[selector.positionalArgumentCount + index] = jsName;
         } else {
-          Constant value = constants.initialVariableValues[element];
+          Constant value = handler.initialVariableValues[element];
           if (value == null) {
             argumentsBuffer[count] = '(void 0)';
           } else {
@@ -143,7 +143,7 @@ function(child, parent) {
               indexOfLastOptionalArgumentInParameters = count;
             }
             argumentsBuffer[count] =
-                constants.writeJsCode(new StringBuffer(), value).toString();
+                handler.writeJsCode(new StringBuffer(), value).toString();
           }
         }
       }
@@ -475,7 +475,7 @@ function(child, parent) {
     //       this.staticNonFinal = Isolate.prototype.someVal;
     //       ...
     //    }
-    CompileTimeConstantHandler handler = compiler.compileTimeConstantHandler;
+    ConstantHandler handler = compiler.constantHandler;
     List<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
     if (!staticNonFinalFields.isEmpty()) buffer.add('\n');
@@ -489,7 +489,7 @@ function(child, parent) {
   }
 
   void emitCompileTimeConstants(StringBuffer buffer) {
-    CompileTimeConstantHandler handler = compiler.compileTimeConstantHandler;
+    ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission();
     String prototype = "${namer.ISOLATE}.prototype";
     emitMakeConstantList(prototype, buffer);
@@ -512,13 +512,13 @@ function(child, parent) {
   }
 
   void emitStaticFinalFieldInitializations(StringBuffer buffer) {
-    CompileTimeConstantHandler constants = compiler.compileTimeConstantHandler;
+    ConstantHandler handler = compiler.constantHandler;
     List<VariableElement> staticFinalFields =
-        constants.getStaticFinalFieldsForEmission();
+        handler.getStaticFinalFieldsForEmission();
     for (VariableElement element in staticFinalFields) {
       buffer.add('${namer.isolatePropertyAccess(element)} = ');
       compiler.withCurrentElement(element, () {
-          constants.writeJsCodeForVariable(buffer, element);
+          handler.writeJsCodeForVariable(buffer, element);
         });
       buffer.add(';\n');
     }

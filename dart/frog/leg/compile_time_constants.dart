@@ -20,6 +20,16 @@ class Constant implements Hashable {
 
   bool isNum() => isInt() || isDouble();
   bool isObject() => isList() || isMap() || isConstructedObject();
+  bool isTrue() {
+    if (!isBool()) return false;
+    BoolConstant boolConstant = this;
+    return boolConstant.value;
+  }
+  bool isFalse() {
+    if (!isBool()) return false;
+    BoolConstant boolConstant = this;
+    return !boolConstant.value;
+  }
 
   /**
    * Returns [:null:] if the operation is not supported on this constant.
@@ -39,14 +49,11 @@ class Constant implements Hashable {
     }
   }
 
-  abstract void writeJsCode(StringBuffer buffer,
-                            CompileTimeConstantHandler handler);
+  abstract void writeJsCode(StringBuffer buffer, ConstantHandler handler);
 }
 
 class PrimitiveConstant extends Constant {
-  // TODO(floitsch): this should be an abstract getter, but there is a bug in
-  // the VM.
-  get value() => null;
+  abstract get value();
   const PrimitiveConstant();
 
   bool operator ==(var other) {
@@ -55,6 +62,8 @@ class PrimitiveConstant extends Constant {
     // We use == instead of === so that DartStrings compare correctly. 
     return value == otherPrimitive.value;
   }
+
+  String toString() => value.toString();
 }
 
 class NullConstant extends PrimitiveConstant {
@@ -62,7 +71,7 @@ class NullConstant extends PrimitiveConstant {
   bool isNull() => true;
   get value() => null;
 
-  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+  void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     buffer.add("(void 0)");
   }
 
@@ -76,7 +85,7 @@ class IntConstant extends PrimitiveConstant {
   const IntConstant(this.value);
   bool isInt() => true;
 
-  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+  void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     buffer.add("($value)");
   }
 
@@ -114,8 +123,8 @@ class IntConstant extends PrimitiveConstant {
           case "<<":
             // TODO(floitsch): find a better way to guard against shifts to the
             // left.
-            if (right > 100) null;
-            if (right < 0) null;
+            if (right > 100) return null;
+            if (right < 0) return null;
             return new IntConstant(value << right);
           case ">>":
             if (right < 0) return null;
@@ -154,7 +163,7 @@ class DoubleConstant extends PrimitiveConstant {
   const DoubleConstant(this.value);
   bool isDouble() => true;
 
-  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+  void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     if (value.isNaN()) {
       buffer.add("(0/0)");
     } else if (value == double.INFINITY) {
@@ -217,7 +226,7 @@ class BoolConstant extends PrimitiveConstant {
   const BoolConstant(this.value);
   bool isBool() => true;
 
-  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+  void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     buffer.add(value ? "true" : "false");
   }
 
@@ -248,9 +257,9 @@ class StringConstant extends PrimitiveConstant {
   }
   bool isString() => true;
 
-  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+  void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     buffer.add("'");
-    CompileTimeConstantHandler.writeEscapedString(value, buffer, (reason) {
+    ConstantHandler.writeEscapedString(value, buffer, (reason) {
       throw new CompilerCancelledException(reason);
     });
     buffer.add("'");
@@ -293,17 +302,18 @@ class ListConstant extends ObjectConstant {
   }
   bool isList() => true;
 
-  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+  void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     // TODO(floitsch): we should not need to go through the compiler to make
     // the list constant.
-    buffer.add(handler.compiler.namer.ISOLATE);
-    buffer.add(".prototype.makeConstantList");
+    String isolatePrototype = "${handler.compiler.namer.ISOLATE}.prototype";
+    buffer.add("$isolatePrototype.makeConstantList");
     buffer.add("([");
     for (int i = 0; i < entries.length; i++) {
       if (i != 0) buffer.add(", ");
       Constant entry = entries[i];
       if (entry.isObject()) {
-        handler.getNameForConstant(entry);
+        String name = handler.getNameForConstant(entry);
+        buffer.add("$isolatePrototype.$name");
       } else {
         entry.writeJsCode(buffer, handler);
       }
@@ -342,7 +352,7 @@ class ConstructedConstant extends ObjectConstant {
   }
   bool isConstructedObject() => true;
 
-  void writeJsCode(StringBuffer buffer, CompileTimeConstantHandler handler) {
+  void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     buffer.add("new ");
     buffer.add(handler.getJsConstructor(type.element));
     buffer.add("(");
@@ -376,11 +386,11 @@ class ConstructedConstant extends ObjectConstant {
 }
 
 /**
- * The [CompileTimeConstantHandler] keeps track of compile-time constants,
+ * The [ConstantHandler] keeps track of compile-time constants,
  * initializations of global and static fields, and default values of
  * optional parameters.
  */
-class CompileTimeConstantHandler extends CompilerTask {
+class ConstantHandler extends CompilerTask {
   // Contains the initial value of fields. Must contain all static and global
   // initializations of used fields. May contain caches for instance fields.
   final Map<VariableElement, Dynamic> initialVariableValues;
@@ -388,11 +398,11 @@ class CompileTimeConstantHandler extends CompilerTask {
   // Map from compile-time constants to their JS name.
   final Map<Constant, String> compiledConstants;
 
-  CompileTimeConstantHandler(Compiler compiler)
+  ConstantHandler(Compiler compiler)
       : initialVariableValues = new Map<VariableElement, Dynamic>(),
         compiledConstants = new Map<Constant, String>(),
         super(compiler);
-  String get name() => 'CompileTimeConstantHandler';
+  String get name() => 'ConstantHandler';
 
   void registerCompileTimeConstant(Constant constant) {
     Function ifAbsentThunk = (() => compiler.namer.getFreshGlobalName("CTC"));
@@ -418,18 +428,12 @@ class CompileTimeConstantHandler extends CompilerTask {
   compileVariable(VariableElement element) {
     if (initialVariableValues.containsKey(element)) {
       Constant result = initialVariableValues[element];
-      // TODO(floitsch): remove the following line once the rest of the
-      // compiler has been adapted.
-      if (!result.isObject()) return result.dynamic.value;
       return result;
     }
     // TODO(floitsch): keep track of currently compiling elements so that we
     // don't end up in an infinite loop: final x = y; final y = x;
     TreeElements definitions = compiler.analyzeElement(element);
     Constant constant =  compileVariableWithDefinitions(element, definitions);
-    // TODO(floitsch): remove the following line once the rest of the
-    // compiler has been adapted.
-    if (!constant.isObject()) return constant.dynamic.value;
     return constant;
   }
 
@@ -458,19 +462,16 @@ class CompileTimeConstantHandler extends CompilerTask {
                                                 Type type,
                                                 List arguments) {
     if (!arguments.isEmpty()) {
-      compiler.unimplemented("CompileTimeConstantHandler with arguments",
-                             node: node);
+      compiler.unimplemented("ConstantHandler with arguments", node: node);
     }
     ClassElement classElement = type.element;
     for (Element member in classElement.members) {
       if (Elements.isInstanceField(member)) {
-        compiler.unimplemented("CompileTimeConstantHandler with fields",
-                               node: node);
+        compiler.unimplemented("ConstantHandler with fields", node: node);
       }
     }
     if (classElement.superclass != compiler.coreLibrary.find(Types.OBJECT)) {
-      compiler.unimplemented("CompileTimeConstantHandler with super",
-                             node: node);
+      compiler.unimplemented("ConstantHandler with super", node: node);
     }
     compiler.registerInstantiatedClass(classElement);
     Constant constant = new ConstructedConstant(type, arguments);
@@ -607,7 +608,7 @@ class CompileTimeConstantHandler extends CompilerTask {
 }
 
 class CompileTimeConstantEvaluator extends AbstractVisitor {
-  final CompileTimeConstantHandler constantHandler;
+  final ConstantHandler constantHandler;
   final TreeElements definitions;
   final Compiler compiler;
 
@@ -670,12 +671,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           !element.modifiers.isFinal()) {
         error(send);
       }
-      // TODO(floitsch): compileVariable temporarily returns primitives, so
-      // that the rest of the compiler can be adapted incrementally. Therefore
-      // we have to get the constant from the hashtable instead of using the
-      // returned result directly.
-      constantHandler.compileVariable(element);
-      return constantHandler.initialVariableValues[element];
+      return constantHandler.compileVariable(element);
     } else if (send.isPrefix) {
       assert(send.isOperator);
       Constant receiverConstant = evaluate(send.receiver);

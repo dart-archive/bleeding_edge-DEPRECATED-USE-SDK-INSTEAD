@@ -659,35 +659,19 @@ class SsaCodeGenerator implements HVisitor {
     endExpression(JSPrecedence.MEMBER_PRECEDENCE);
   }
 
-  visitLiteral(HLiteral node) {
-    if (node.isLiteralNull()) {
-      beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
-      buffer.add("void 0");
-      endExpression(JSPrecedence.PREFIX_PRECEDENCE);
-    } else if (node.value is num) {
-      int precedence = JSPrecedence.PRIMARY_PRECEDENCE;
-      if (node.value < 0 ||
-          expectedPrecedence == JSPrecedence.MEMBER_PRECEDENCE) {
-        // Negative constants are really unary minus operator expressions.
-        // If the constant appear as a MemberExpression, it might be subject
-        // to the '.' operator, which shouldn't be put next to a number
-        // literal. It might be mistaken for a decimal point. Setting
-        // precedence to PREFIX_PRECEDENCE forces parentheses in this case.
-        precedence = JSPrecedence.PREFIX_PRECEDENCE;
-      }
-      beginExpression(precedence);
-      buffer.add(node.value);
-      endExpression(precedence);
-    } else if (node.isLiteralString()) {
-      DartString string = node.value;
-      buffer.add("'");
-      CompileTimeConstantHandler.writeEscapedString(string, buffer,
-                                                    (String reason) {
-        compiler.cancel(reason, instruction: node);
-      });
-      buffer.add("'");
+  visitConstant(HConstant node) {
+    // TODO(floitsch): the compile-time constant handler and the codegen
+    // need to work together to avoid the parenthesis. See r4928 for an
+    // implementation that still dealt with precedence.
+    ConstantHandler handler = compiler.constantHandler;
+    String name = handler.getNameForConstant(node.constant);
+    if (name === null) {
+      assert(!node.constant.isObject());
+      node.constant.writeJsCode(buffer, handler);
     } else {
-      buffer.add(node.value);
+      buffer.add(compiler.namer.CURRENT_ISOLATE);
+      buffer.add(".");
+      buffer.add(name);      
     }
   }
 
@@ -728,7 +712,7 @@ class SsaCodeGenerator implements HVisitor {
   visitReturn(HReturn node) {
     assert(node.inputs.length == 1);
     HInstruction input = node.inputs[0];
-    if (input.isLiteralNull()) {
+    if (input.isConstantNull()) {
       buffer.add('return;\n');
     } else {
       buffer.add('return ');

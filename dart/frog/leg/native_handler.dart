@@ -214,7 +214,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
         builder.add(elseInstruction);
       }
 
-      HLiteral literal = builder.graph.addNewLiteralString(
+      HLiteral literal = builder.graph.addConstantString(
           new DartString.literal('$dartMethodName'));
       SourceString jsCode = new SourceString(
           'Object.getPrototypeOf(\$0).hasOwnProperty(\$1)');

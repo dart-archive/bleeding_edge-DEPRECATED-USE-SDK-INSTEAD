@@ -76,7 +76,7 @@ class Compiler implements DiagnosticListener {
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
-  CompileTimeConstantHandler compileTimeConstantHandler;
+  ConstantHandler constantHandler;
 
   static final SourceString MAIN = const SourceString('main');
   static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
@@ -91,7 +91,7 @@ class Compiler implements DiagnosticListener {
         universe = new Universe(),
         worklist = new Queue<WorkItem>() {
     namer = new Namer(this);
-    compileTimeConstantHandler = new CompileTimeConstantHandler(this);
+    constantHandler = new ConstantHandler(this);
     scanner = new ScannerTask(this);
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
@@ -104,7 +104,7 @@ class Compiler implements DiagnosticListener {
     emitter = new CodeEmitterTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
              builder, optimizer, generator,
-             emitter, compileTimeConstantHandler];
+             emitter, constantHandler];
   }
 
   void ensure(bool condition) {
@@ -296,7 +296,7 @@ class Compiler implements DiagnosticListener {
     String code;
     if (work.element.kind == ElementKind.FIELD
         || work.element.kind == ElementKind.PARAMETER) {
-      compileTimeConstantHandler.compileWorkItem(work);
+      constantHandler.compileWorkItem(work);
       return null;
     } else {
       HGraph graph = builder.build(work);
@@ -364,7 +364,7 @@ class Compiler implements DiagnosticListener {
   Object compileVariable(VariableElement element) {
     return withCurrentElement(element, () {
         compile(new WorkItem.toCompile(element));
-        return compileTimeConstantHandler.compileVariable(element);
+        return constantHandler.compileVariable(element);
       });
   }
 
