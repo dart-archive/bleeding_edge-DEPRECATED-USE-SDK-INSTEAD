@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitPropertyDescriptor;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
@@ -111,7 +112,9 @@ class VariableCollector {
   }
 
   private void collect(WebkitResult<WebkitPropertyDescriptor[]> results) {
-    if (!results.isError()) {
+    if (results.isError()) {
+      DartDebugCorePlugin.logError("Error retrieving webkit properties: " + results);
+    } else {
       for (WebkitPropertyDescriptor descriptor : results.getResult()) {
         if (descriptor.isEnumerable()) {
           DartiumDebugVariable variable = new DartiumDebugVariable(target, descriptor);

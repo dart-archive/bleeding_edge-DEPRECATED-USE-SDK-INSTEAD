@@ -35,9 +35,12 @@ public final class IFileUtilities {
   public static String getContents(IFile file) throws CoreException, IOException {
     InputStream input = null;
     try {
+      String fileEncoding = file.getCharset();
+
       input = file.getContents(true);
       StringBuilder contents = new StringBuilder();
-      InputStreamReader reader = new InputStreamReader(input);
+      InputStreamReader reader = fileEncoding == null ? new InputStreamReader(input)
+          : new InputStreamReader(input, fileEncoding);
       int nextChar = reader.read();
       while (nextChar >= 0) {
         contents.append((char) nextChar);

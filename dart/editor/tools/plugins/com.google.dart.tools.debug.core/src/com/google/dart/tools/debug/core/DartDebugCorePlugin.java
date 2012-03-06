@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core;
 
 import com.google.dart.tools.debug.core.util.BrowserConfigManager;
 import com.google.dart.tools.debug.core.util.BrowserManager;
+import com.google.dart.tools.debug.core.util.ResourceChangeManager;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
 
 import org.eclipse.core.runtime.IStatus;
@@ -64,6 +65,12 @@ public class DartDebugCorePlugin extends Plugin {
 
   // TODO(devoncarew): remove this when the debugger supports value modification
   public static boolean VM_SUPPORTS_VALUE_MODIFICATION = false;
+
+  public static boolean SEND_MODIFIED_CSS = false;
+
+  // TODO(devoncarew): the vm/webkit protocol claims to support source modification, but it does
+  // not yet do anything
+  public static boolean SEND_MODIFIED_DART = false;
 
   public static final String BROWSER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.browserLaunchConfig";
 
@@ -282,6 +289,7 @@ public class DartDebugCorePlugin extends Plugin {
 
   @Override
   public void stop(BundleContext context) throws Exception {
+    ResourceChangeManager.shutdown();
     ResourceServerManager.shutdown();
 
     BrowserManager.getManager().dispose();

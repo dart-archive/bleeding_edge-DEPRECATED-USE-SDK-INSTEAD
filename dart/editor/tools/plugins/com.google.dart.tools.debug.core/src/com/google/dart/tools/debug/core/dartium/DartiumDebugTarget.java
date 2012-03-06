@@ -14,14 +14,18 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.NotYetImplementedException;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitBreakpoint;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
+import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.WebkitConnectionListener;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.DebuggerListenerAdapter;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
+import com.google.dart.tools.debug.core.webkit.WebkitPage;
+import com.google.dart.tools.debug.core.webkit.WebkitResult;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.debug.core.DebugException;
@@ -48,6 +52,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   private DartiumDebugThread debugThread;
   private DartiumStreamMonitor outputStreamMonitor;
   private BreakpointManager breakpointManager;
+  private CssScriptManager cssScriptManager;
+  private DartCodeManager dartCodeManager;
+  private boolean canSetScriptSource;
 
   /**
    * @param target
@@ -64,6 +71,14 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     process = new DartiumProcess(this, javaProcess);
     outputStreamMonitor = new DartiumStreamMonitor();
     breakpointManager = new BreakpointManager(this, resourceResolver);
+
+    if (DartDebugCorePlugin.SEND_MODIFIED_CSS) {
+      cssScriptManager = new CssScriptManager(this, resourceResolver);
+    }
+
+    if (DartDebugCorePlugin.SEND_MODIFIED_DART) {
+      dartCodeManager = new DartCodeManager(this, resourceResolver);
+    }
   }
 
   @Override
@@ -109,6 +124,14 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   @Override
   public void fireTerminateEvent() {
     breakpointManager.dispose();
+
+    if (cssScriptManager != null) {
+      cssScriptManager.dispose();
+    }
+
+    if (dartCodeManager != null) {
+      dartCodeManager.dispose();
+    }
 
     debugThread = null;
 
@@ -185,8 +208,16 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     connection.getConsole().addConsoleListener(outputStreamMonitor);
     connection.getConsole().enable();
 
-    // TODO(devoncarew): testing css support
-    //connection.getPage().enable();
+    connection.getPage().addPageListener(new WebkitPage.PageListenerAdapter() {
+      @Override
+      public void loadEventFired(int timestamp) {
+        if (cssScriptManager != null) {
+          cssScriptManager.handleLoadEventFired();
+        }
+      }
+    });
+    connection.getPage().enable();
+
     connection.getCSS().enable();
 
     connection.getDebugger().addDebuggerListener(new DebuggerListenerAdapter() {
@@ -212,10 +243,19 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     });
     connection.getDebugger().enable();
 
+    connection.getDebugger().canSetScriptSource(new WebkitCallback<Boolean>() {
+      @Override
+      public void handleResult(WebkitResult<Boolean> result) {
+        if (!result.isError() && result.getResult() != null) {
+          canSetScriptSource = result.getResult().booleanValue();
+        }
+      }
+    });
+
     fireCreationEvent();
     process.fireCreationEvent();
 
-    // Set our existing breakpoints, and start listening for new breakpoints.
+    // Set our existing breakpoints and start listening for new breakpoints.
     breakpointManager.connect();
 
     // TODO(devoncarew): the VM does not yet support this, and we'd want a way to expose this in
@@ -233,6 +273,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   @Override
   public boolean supportsBreakpoint(IBreakpoint breakpoint) {
     return breakpoint instanceof DartBreakpoint;
+  }
+
+  public boolean supportsSetScriptSource() {
+    return canSetScriptSource;
   }
 
   @Override
