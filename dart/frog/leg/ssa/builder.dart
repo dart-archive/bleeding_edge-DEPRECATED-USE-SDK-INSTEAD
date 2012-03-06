@@ -2126,7 +2126,7 @@ class SsaBuilder implements Visitor {
     generateUnimplemented('continue not implemented');
   }
 
-  BreakHandler getLoopBreakHandler(Loop node) {
+  BreakHandler getLoopBreakHandler(Node node) {
     StatementElement element = elements[node];
     BreakHandler handler;
     if (loopBreakHandler === null) {
