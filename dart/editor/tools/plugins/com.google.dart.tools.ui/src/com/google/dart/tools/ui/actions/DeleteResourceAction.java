@@ -28,17 +28,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.SelectionListenerAction;
@@ -84,28 +73,10 @@ public class DeleteResourceAction extends SelectionListenerAction {
       return ActionMessages.DeleteResourceAction_titleProjectN;
     }
 
-    private IResource[] projects;
-
-    private boolean deleteContent = false;
-
-    private Button radio1;
-    private Button radio2;
-
-    private SelectionListener selectionListener = new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        Button button = (Button) e.widget;
-        if (button.getSelection()) {
-          deleteContent = (button == radio1);
-        }
-      }
-    };
-
     DeleteProjectDialog(Shell parentShell, IResource[] projects) {
       super(parentShell, getTitle(projects), null, /* default window icon */
       getMessage(projects), MessageDialog.QUESTION, new String[] {
-          IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL}, 0 /* yes is default */);
-      this.projects = projects;
+          IDialogConstants.YES_LABEL, IDialogConstants.NO_LABEL}, 1 /* no is default */);
       setShellStyle(getShellStyle() | SWT.SHEET);
     }
 
@@ -114,67 +85,6 @@ public class DeleteResourceAction extends SelectionListenerAction {
       super.configureShell(newShell);
       PlatformUI.getWorkbench().getHelpSystem().setHelp(newShell,
           IIDEHelpContextIds.DELETE_PROJECT_DIALOG);
-    }
-
-    @Override
-    protected Control createCustomArea(Composite parent) {
-      Composite composite = new Composite(parent, SWT.NONE);
-      composite.setLayout(new GridLayout());
-      radio1 = new Button(composite, SWT.RADIO);
-      radio1.addSelectionListener(selectionListener);
-      String text1;
-      if (projects.length == 1) {
-        IProject project = (IProject) projects[0];
-        if (project == null || project.getLocation() == null) {
-          text1 = ActionMessages.DeleteResourceAction_deleteContentsN;
-        } else {
-          text1 = ActionMessages.DeleteResourceAction_deleteContents1;
-        }
-      } else {
-        text1 = ActionMessages.DeleteResourceAction_deleteContentsN;
-      }
-      radio1.setText(text1);
-      radio1.setFont(parent.getFont());
-
-      // Add explanatory label that the action cannot be undone.
-      // We can't put multi-line formatted text in a radio button,
-      // so we have to create a separate label.
-      Label detailsLabel = new Label(composite, SWT.LEFT);
-      detailsLabel.setText(ActionMessages.DeleteResourceAction_deleteContentsDetails);
-      detailsLabel.setFont(parent.getFont());
-      // indent the explanatory label
-      GridData data = new GridData();
-      data.horizontalIndent = IDialogConstants.INDENT;
-      detailsLabel.setLayoutData(data);
-      // add a listener so that clicking on the label selects the
-      // corresponding radio button.
-      // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=172574
-      detailsLabel.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseUp(MouseEvent e) {
-          deleteContent = true;
-          radio1.setSelection(deleteContent);
-          radio2.setSelection(!deleteContent);
-        }
-      });
-      // Add a spacer label
-      new Label(composite, SWT.LEFT);
-
-      radio2 = new Button(composite, SWT.RADIO);
-      radio2.addSelectionListener(selectionListener);
-      String text2 = IDEWorkbenchMessages.DeleteResourceAction_doNotDeleteContents;
-      radio2.setText(text2);
-      radio2.setFont(parent.getFont());
-
-      // set initial state
-      radio1.setSelection(deleteContent);
-      radio2.setSelection(!deleteContent);
-
-      return composite;
-    }
-
-    boolean getDeleteContent() {
-      return deleteContent;
     }
 
   }
@@ -360,8 +270,8 @@ public class DeleteResourceAction extends SelectionListenerAction {
   private boolean confirmDeleteProjects(IResource[] resources) {
     DeleteProjectDialog dialog = new DeleteProjectDialog(shellProvider.getShell(), resources);
     int code = dialog.open();
-    deleteContent = dialog.getDeleteContent();
-    return code == 0; // YES
+    deleteContent = code == 0 /* YES */;
+    return deleteContent;
   }
 
   /**
