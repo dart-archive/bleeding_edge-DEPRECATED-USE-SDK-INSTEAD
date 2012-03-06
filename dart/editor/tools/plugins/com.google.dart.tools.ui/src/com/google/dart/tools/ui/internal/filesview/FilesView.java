@@ -19,6 +19,7 @@ import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
+import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.projects.CreateFileWizard;
 import com.google.dart.tools.ui.internal.projects.CreateFolderWizard;
@@ -291,30 +292,43 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     manager.add(createFileAction);
     manager.add(createFolderAction);
 
-    // Rename... / Move..., iff single element and is an IResource
+    // OPEN GROUP
+
+    manager.add(new Separator());
+    manager.add(OpenFolderHandler.createCommandAction(getSite().getWorkbenchWindow()));
 
     IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
-    Object element = selection.getFirstElement();
-    if (selection.size() == 1 && element instanceof IResource) {
-      manager.add(new Separator());
-      manager.add(renameAction);
-      manager.add(moveAction);
-    }
 
-    // Delete, iff non-empty selection, all elements are IResources
+    // REFACTOR GROUP
+
+    // Refactor iff all elements are IResources
 
     if (!selection.isEmpty() && allElementsAreResources(selection)) {
       manager.add(new Separator());
-      if (allElementsAreProjects(selection)) {
-        manager.add(hideContainerAction);
+      if (selection.size() == 1) {
+        manager.add(renameAction);
+        manager.add(moveAction);
       }
       manager.add(deleteAction);
     }
 
-    // Copy File Path
+    // Remove, iff non-empty selection, all elements are IResources
 
-    manager.add(new Separator());
-    manager.add(copyFilePathAction);
+    if (!selection.isEmpty() && allElementsAreResources(selection)) {
+
+      // Copy File Path iff single element and is an IResource
+
+      if (selection.size() == 1) {
+        manager.add(new Separator());
+        manager.add(copyFilePathAction);
+      }
+
+      manager.add(new Separator());
+      if (allElementsAreProjects(selection)) {
+        manager.add(hideContainerAction);
+      }
+    }
+
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {

@@ -30,7 +30,7 @@
       <menuContribution
             locationURI="menu:file?after=open.ext">
          <command 
-               commandId="com.google.dart.tools.ui.file.open"
+               commandId="com.google.dart.tools.ui.folder.open"
                style="push">
          </command>
       </menuContribution>
