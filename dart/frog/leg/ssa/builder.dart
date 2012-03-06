@@ -2385,7 +2385,7 @@ class SsaBuilder implements Visitor {
           if (typeElement == null) {
             compiler.cancel('Catch with unresolved type', node: catchBlock);
           }
-          condition = new HIs(typeElement, unwrappedException);
+          condition = new HIs(typeElement, unwrappedException, nullOk: true);
           push(condition);
         }
       }

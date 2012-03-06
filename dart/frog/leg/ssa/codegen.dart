@@ -955,6 +955,10 @@ class SsaCodeGenerator implements HVisitor {
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = coreLibrary.find(const SourceString('Object'));
     HInstruction input = node.expression;
+    if (node.nullOk) {
+      use(input, JSPrecedence.EQUALITY_PRECEDENCE);
+      buffer.add(' === (void 0) || (');
+    }
     if (element == objectClass) {
       // TODO(ahe): This probably belongs in the constant folder.
       buffer.add('true');
@@ -1019,6 +1023,9 @@ class SsaCodeGenerator implements HVisitor {
       endExpression(precedence);
       if (endParen) buffer.add(')');
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+    }
+    if (node.nullOk) {
+      buffer.add(')');
     }
   }
 
