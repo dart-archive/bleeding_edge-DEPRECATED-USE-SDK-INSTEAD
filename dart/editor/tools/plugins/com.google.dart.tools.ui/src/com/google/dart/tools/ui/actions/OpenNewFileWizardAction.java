@@ -25,6 +25,8 @@ import com.google.dart.tools.ui.wizard.NewFileWizardPage;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
@@ -39,7 +41,7 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
  * @see NewFileWizardPage
  */
 public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements IWorkbenchAction,
-    ISelectionListener {
+    ISelectionListener, ISelectionChangedListener {
 
   private static final String ACTION_ID = "com.google.dart.tools.ui.file.new";
 
@@ -63,6 +65,21 @@ public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements
 
   @Override
   public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+    updateEnablement();
+  }
+
+  @Override
+  public void selectionChanged(SelectionChangedEvent event) {
+    updateEnablement();
+
+  }
+
+  @Override
+  protected final INewWizard createWizard() throws CoreException {
+    return new CreateFileWizard();
+  }
+
+  private void updateEnablement() {
     DartModelImpl dartModel = DartModelManager.getInstance().getDartModel();
     try {
       if (dartModel.getDartLibraries().isEmpty()) {
@@ -74,13 +91,6 @@ public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements
     }
 
     setEnabled(true);
-  }
-
-  @Override
-  protected final INewWizard createWizard() throws CoreException {
-    return new CreateFileWizard();
-//TODO (pquitslund): deprecated libaries view support    
-//    return new NewFileWizard();
   }
 
 }

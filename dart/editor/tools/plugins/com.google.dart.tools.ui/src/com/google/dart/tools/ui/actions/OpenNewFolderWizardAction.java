@@ -20,7 +20,9 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
@@ -32,7 +34,7 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
  * Action that opens the New Folder Wizard
  */
 public class OpenNewFolderWizardAction extends AbstractOpenWizardAction implements
-    IWorkbenchAction, ISelectionListener {
+    IWorkbenchAction, ISelectionListener, ISelectionChangedListener {
 
   private static final String ACTION_ID = "com.google.dart.tools.ui.folder.new";
 
@@ -54,6 +56,21 @@ public class OpenNewFolderWizardAction extends AbstractOpenWizardAction implemen
 
   @Override
   public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+    updateEnablement(selection);
+  }
+
+  @Override
+  public void selectionChanged(SelectionChangedEvent event) {
+    ISelection selection = event.getSelection();
+    updateEnablement(selection);
+  }
+
+  @Override
+  protected INewWizard createWizard() throws CoreException {
+    return new CreateFolderWizard();
+  }
+
+  private void updateEnablement(ISelection selection) {
     if (selection instanceof IStructuredSelection) {
       IStructuredSelection structuredSelection = (IStructuredSelection) selection;
       if (structuredSelection.size() == 1) {
@@ -67,11 +84,6 @@ public class OpenNewFolderWizardAction extends AbstractOpenWizardAction implemen
       }
     }
     setEnabled(false);
-  }
-
-  @Override
-  protected INewWizard createWizard() throws CoreException {
-    return new CreateFolderWizard();
   }
 
 }

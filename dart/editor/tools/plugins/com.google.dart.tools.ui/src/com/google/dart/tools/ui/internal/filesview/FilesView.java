@@ -18,11 +18,11 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.actions.DeleteAction;
+import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
+import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
-import com.google.dart.tools.ui.internal.projects.CreateFileWizard;
-import com.google.dart.tools.ui.internal.projects.CreateFolderWizard;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
@@ -45,7 +45,6 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
@@ -55,8 +54,6 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.actions.CreateFileAction;
-import org.eclipse.ui.actions.CreateFolderAction;
 import org.eclipse.ui.actions.MoveResourceAction;
 import org.eclipse.ui.actions.RenameResourceAction;
 import org.eclipse.ui.ide.IDE;
@@ -94,51 +91,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
   }
 
-  private final class OpenNewFileWizardAction extends CreateFileAction {
-
-    private OpenNewFileWizardAction(Shell shell) {
-      super(shell);
-    }
-
-    /**
-     * Override to use our custom CreateFileWizard.
-     */
-    @Override
-    public void run() {
-      CreateFileWizard wizard = new CreateFileWizard();
-      wizard.init(PlatformUI.getWorkbench(), getStructuredSelection());
-      wizard.setNeedsProgressMonitor(true);
-      WizardDialog dialog = new WizardDialog(shellProvider.getShell(), wizard);
-      dialog.create();
-      dialog.getShell().setText("New");
-      PlatformUI.getWorkbench().getHelpSystem().setHelp(dialog.getShell(), "New File");
-      dialog.open();
-    }
-  }
-
-  private final class OpenNewFolderWizardAction extends CreateFolderAction {
-
-    public OpenNewFolderWizardAction(Shell shell) {
-      super(shell);
-    }
-
-    /**
-     * Override to use our custom CreateFolderWizard.
-     */
-    @Override
-    public void run() {
-      CreateFolderWizard wizard = new CreateFolderWizard();
-      wizard.init(PlatformUI.getWorkbench(), getStructuredSelection());
-      wizard.setNeedsProgressMonitor(true);
-      WizardDialog dialog = new WizardDialog(shellProvider.getShell(), wizard);
-      dialog.create();
-      dialog.getShell().setText("New");
-      PlatformUI.getWorkbench().getHelpSystem().setHelp(dialog.getShell(), "New Folder");
-      dialog.open();
-    }
-
-  }
-
   private static boolean allElementsAreProjects(IStructuredSelection selection) {
     for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
       Object selectedElement = iterator.next();
@@ -171,7 +123,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private RenameResourceAction renameAction;
   private DeleteAction deleteAction;
   private OpenNewFileWizardAction createFileAction;
-  private CreateFolderAction createFolderAction;
+  private OpenNewFolderWizardAction createFolderAction;
 
   private CopyFilePathAction copyFilePathAction;
 
@@ -214,9 +166,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     });
 
-    createFileAction = new OpenNewFileWizardAction(getShell());
+    createFileAction = new OpenNewFileWizardAction(getSite().getWorkbenchWindow());
     treeViewer.addSelectionChangedListener(createFileAction);
-    createFolderAction = new OpenNewFolderWizardAction(getShell());
+    createFolderAction = new OpenNewFolderWizardAction(getSite().getWorkbenchWindow());
     treeViewer.addSelectionChangedListener(createFolderAction);
     renameAction = new RenameResourceAction(getShell(), treeViewer.getTree());
     treeViewer.addSelectionChangedListener(renameAction);
