@@ -277,11 +277,6 @@ public class DartLibraryImplTest extends TestCase {
     assertTrue(children.length > 0);
   }
 
-  public void test_DartLibraryImpl_getChildren_libHtmlImpl() throws Exception {
-    DartElement[] children = getDartLibHtmlImpl().getChildren();
-    assertTrue(children.length > 0);
-  }
-
   public void test_DartLibraryImpl_getChildren_libJson() throws Exception {
     DartElement[] children = getDartLibJson().getChildren();
     assertContainsCompUnit(children, "json.dart", false, false);
@@ -362,10 +357,6 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getElementName_libHtml() throws Exception {
     assertEquals("dart:html", getDartLibHtml().getElementName());
-  }
-
-  public void test_DartLibraryImpl_getElementName_libHtmlImpl() throws Exception {
-    assertEquals("dart:htmlimpl", getDartLibHtmlImpl().getElementName());
   }
 
   public void test_DartLibraryImpl_getHandleMemento_lib1() throws Exception {
@@ -875,10 +866,6 @@ public class DartLibraryImplTest extends TestCase {
 
   private DartLibraryImpl getDartLibHtml() throws Exception {
     return getBundledLib("dart:html");
-  }
-
-  private DartLibraryImpl getDartLibHtmlImpl() throws Exception {
-    return getBundledLib("dart:htmlimpl");
   }
 
   private DartLibraryImpl getDartLibJson() throws Exception {

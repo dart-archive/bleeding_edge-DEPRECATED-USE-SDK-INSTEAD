@@ -7,7 +7,7 @@
 
 #import('dart:html');
 #import('dart:isolate');
-#import('../../../../../client/testing/unittest/unittest.dart');
+#import('../../../../../client/testing/unittest/unittest_html.dart');
 #import('../../../../dartcombat/dartcombatlib.dart');
 
 ReceivePort testPort;

@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('Index');
+#import('dart:html');
 #import('../../../../client/base/base.dart');
-#import('../../../../client/html/html.dart');
 #import('../../bcap/bcap.dart');
 #import('../../bcap/bcap_client.dart');
 

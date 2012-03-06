@@ -36,10 +36,6 @@ public class SystemLibraryManagerProviderVmTest extends SystemLibraryManagerProv
     testLibrary("html", "html.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_htmlImpl() throws Exception {
-    testLibrary("htmlimpl", "htmlimpl.dart");
-  }
-
   @Override
   protected EditorLibraryManager getLibraryManager() {
     return SystemLibraryManagerProvider.getVmLibraryManager();

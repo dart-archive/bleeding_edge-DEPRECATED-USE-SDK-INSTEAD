@@ -4,7 +4,7 @@
 
 #library('Buzzer');
 #import('../../../../client/base/base.dart');
-#import('../../../../client/html/html.dart');
+#import('html:dart');
 #import('../../bcap/bcap.dart');
 #import('../../bcap/bcap_client.dart');
 

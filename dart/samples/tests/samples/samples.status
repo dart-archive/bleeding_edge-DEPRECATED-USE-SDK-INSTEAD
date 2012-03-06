@@ -54,6 +54,7 @@ PromiseBasedTest: Skip
 dartcombat/DartCombatTest: Skip
 DartCombatTest: Skip
 SwarmTest: Skip
+total/TotalTest: Skip
 swarm/SwarmTest: Skip
 lib/layout/LayoutTest: Skip
 lib/touch/TouchTest: Skip

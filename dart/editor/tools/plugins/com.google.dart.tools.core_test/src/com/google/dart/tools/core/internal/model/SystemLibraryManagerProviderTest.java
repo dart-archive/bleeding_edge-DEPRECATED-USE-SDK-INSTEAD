@@ -34,7 +34,6 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertTrue(specs.contains("dart:coreimpl"));
     assertTrue(specs.contains("dart:dom"));
     assertTrue(specs.contains("dart:html"));
-    assertTrue(specs.contains("dart:htmlimpl"));
   }
 
   public void test_SystemLibraryManagerProvider_translateDoesNotExist() throws Exception {

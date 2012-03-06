@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(nweiz): move this to the same place as unittest.dart and
+// TODO(nweiz): move this to the same place as unittest_html.dart and
 // unittest_vm.dart. Currently, that leads to import conflicts relating to the
 // node library.
 #library("unittest");

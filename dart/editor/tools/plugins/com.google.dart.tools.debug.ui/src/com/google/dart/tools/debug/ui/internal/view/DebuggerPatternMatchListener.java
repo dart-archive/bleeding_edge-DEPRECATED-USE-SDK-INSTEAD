@@ -43,7 +43,7 @@ import java.net.URISyntaxException;
 // Stack Trace: 0. Function: '::handleClick' url: 'http://0.0.0.0:3030/webapp/webapp.dart' line:32
 // col:3
 // 1. Function: 'webapp.function' url: 'http://0.0.0.0:3030/webapp/webapp.dart' line:22 col:18
-// 2. Function: 'EventListenerListImplementation.function' url: 'dart:htmlimpl' line:23126 col:35
+// 2. Function: 'EventListenerListImplementation.function' url: 'dart:html' line:23126 col:35
 
 /**
  * A console pattern match listener that creates hyperlinks in the console for VM and Dartium

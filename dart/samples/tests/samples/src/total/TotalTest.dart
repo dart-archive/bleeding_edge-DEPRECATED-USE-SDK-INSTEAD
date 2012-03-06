@@ -5,13 +5,11 @@
 #library('total_tests');
 
 #import('dart:html');
-#import('../../../../base/base.dart');
-#import('../../../../samples/total/src/TotalLib.dart');
-#import('../../../../testing/unittest/unittest.dart');
-#import('../../../../view/view.dart');
-#source('../../../../../samples/total/src/SYLKProducer.dart');
+#import('../../../../../samples/total/client/TotalLib.dart');
+#import('../../../../../client/testing/unittest/unittest_html.dart');
+#source('../../../../../samples/total/server/SYLKProducer.dart');
 #source('total_test_lib.dart');
 
-main() {
+void main() {
   totalTests();
 }

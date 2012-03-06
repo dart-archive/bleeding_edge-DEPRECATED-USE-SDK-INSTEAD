@@ -10,7 +10,7 @@
 // Bcaps with other Belay based apps (client and server side).
 
 #import('../../../client/base/base.dart');
-#import('../../../client/html/html.dart');
+#import('dart:html');
 #import('../../../client/util/utilslib.dart');
 #import('../../../lib/json/json.dart');
 #import('bcap.dart');

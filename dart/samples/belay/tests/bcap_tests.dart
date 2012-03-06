@@ -1,11 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #library('bcap_tests');
 
-#import('../../../client/html/html.dart');
-#import('../../../client/testing/unittest/unittest.dart');
+#import('dart:html');
+#import('../../../client/testing/unittest/unittest_html.dart');
 #import('../../../lib/json/json.dart');
 #import('../bcap/bcap.dart');
 

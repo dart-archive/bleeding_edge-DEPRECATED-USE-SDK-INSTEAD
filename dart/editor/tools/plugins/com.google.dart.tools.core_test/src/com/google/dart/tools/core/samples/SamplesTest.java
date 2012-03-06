@@ -75,7 +75,6 @@ public class SamplesTest extends TestCase {
     KNOWN_DART_LIBS.add("dart:coreimpl");
     KNOWN_DART_LIBS.add("dart:dom");
     KNOWN_DART_LIBS.add("dart:html");
-    KNOWN_DART_LIBS.add("dart:htmlimpl");
     KNOWN_DART_LIBS.add("dart:io");
     KNOWN_DART_LIBS.add("dart:isolate");
     KNOWN_DART_LIBS.add("dart:json");
