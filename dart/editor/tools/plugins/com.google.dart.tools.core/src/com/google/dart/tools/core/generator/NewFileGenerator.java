@@ -39,15 +39,17 @@ public class NewFileGenerator extends AbstractGenerator {
 
     stream = null;
     final HashMap<String, String> substitutions = new HashMap<String, String>();
-    String className = fileName.substring(0, fileName.indexOf('.'));
+
     String nameOfSrcTxt = "";
 
     if (DartCore.isDartLikeFileName(fileName)) {
+      String className = fileName.substring(0, fileName.indexOf('.'));
       className = DartIdentifierUtil.createValidIdentifier(className);
       substitutions.put("className", className); //$NON-NLS-1$
       nameOfSrcTxt = "generated-dart-class-empty.txt";
     }
     if (DartCore.isHTMLLikeFileName(fileName)) {
+      String className = fileName.substring(0, fileName.indexOf('.'));
       substitutions.put("title", className); //$NON-NLS-1$
       substitutions.put("dartSrcPath", className); //$NON-NLS-1$
       nameOfSrcTxt = "generated-html.txt";
