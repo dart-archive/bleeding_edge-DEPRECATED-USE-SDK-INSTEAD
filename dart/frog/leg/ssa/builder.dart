@@ -2374,20 +2374,7 @@ class SsaBuilder implements Visitor {
       HInvokeStatic unwrappedException =
           new HInvokeStatic(Selector.INVOCATION_1, inputs);
       add(unwrappedException);
-
       tryInstruction.exception = exception;
-
-      bool requiresTrace = false;
-      for (CatchBlock block in node.catchBlocks) {
-        if (block.trace != null) {
-          requiresTrace = true;
-          break;
-        }
-      }
-
-      HInstruction traceInstruction = null;
-      if (requiresTrace) {
-      }
 
       Link<Node> link = node.catchBlocks.nodes;
 
