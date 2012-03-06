@@ -326,7 +326,9 @@ class SsaDeadPhiEliminator implements OptimizationPhase {
       HPhi next = null;
       while (current != null) {
         next = current.next;
-        if (!livePhis.contains(current)) {
+        if (!livePhis.contains(current)
+            // TODO(ahe): Not sure the following is correct.
+            && current.usedBy.isEmpty()) {
           block.removePhi(current);
         }
         current = next;

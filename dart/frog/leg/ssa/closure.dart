@@ -415,8 +415,4 @@ class ClosureTranslator extends AbstractVisitor {
   visitLiteralMap(LiteralMap node) {
     // TODO(ahe): Remove this method.
   }
-
-  visitSwitchStatement(SwitchStatement node) {
-    // TODO(ahe): Remove this method.
-  }
 }

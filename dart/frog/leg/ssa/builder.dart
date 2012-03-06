@@ -452,7 +452,7 @@ class LocalsHandler {
    *    goto loop-entry;
    *  loop-exit:
    */
-  void startLoop(Loop node) {
+  void startLoop(Node node) {
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
     if (scopeData.hasBoxedLoopVariables()) {
@@ -1957,7 +1957,11 @@ class SsaBuilder implements Visitor {
 
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
-      visit(link.head);
+      if (isAborted()) {
+        compiler.reportWarning(link.head, 'dead code');
+      } else {
+        visit(link.head);
+      }
     }
   }
 
@@ -2281,7 +2285,62 @@ class SsaBuilder implements Visitor {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    generateUnimplemented('switch statement not implemented');
+    work.allowSpeculativeOptimization = false;
+    visit(node.expression);
+    HInstruction expression = pop();
+    Link cases = node.cases.nodes;
+    int count = 0;
+    handleThen() {
+      if (cases.head.statements.nodes.isEmpty()) {
+        compiler.unimplemented('fall-through', node: cases.head);
+      }
+      visit(cases.head.statements);
+      cases = cases.tail;
+    }
+    handleElse() {
+      if (cases.isEmpty()) return;
+      if (cases.head is DefaultCase) {
+        stack.add(graph.addNewLiteralBool(true));
+        if (!cases.tail.isEmpty()) {
+          compiler.unimplemented('default case not last', node: cases.head);
+        }
+      } else {
+        SwitchCase switchCase = cases.head;
+        visit(switchCase.expression);
+        HInstruction caseExpression = pop();
+        Element equalsHelper = compiler.findHelper(const SourceString('eq'));
+        HInstruction target = new HStatic(equalsHelper);
+        add(target);
+        push(new HEquals(target, caseExpression, expression));
+      }
+      handleIf(handleThen, handleElse);
+    }
+
+    localsHandler.startLoop(node);
+    BreakHandler breakHandler = beginLoopHeader(node);
+    HBasicBlock loopEntryBlock = current;
+    localsHandler.enterLoopBody(node);
+
+    handleElse();
+
+    if (isAborted()) {
+      compiler.unimplemented("SsaBuilder for loop with aborting body",
+                             node: node);
+    }
+
+    HBasicBlock bodyExitBlock = close(new HGoto());
+    HBasicBlock conditionBlock = addNewBlock();
+    bodyExitBlock.addSuccessor(conditionBlock);
+    open(conditionBlock);
+    stack.add(graph.addNewLiteralBool(false));
+
+    conditionBlock = close(new HLoopBranch(popBoolified(),
+                                           HLoopBranch.DO_WHILE_LOOP));
+
+    conditionBlock.addSuccessor(loopEntryBlock);  // The back-edge.
+    loopEntryBlock.postProcessLoopHeader();
+
+    endLoop(loopEntryBlock, conditionBlock, breakHandler);
   }
 
   visitTryStatement(TryStatement node) {

@@ -1425,7 +1425,14 @@ class SwitchCase extends Node {
     return caseKeyword;
   }
 
-  Token getEndToken() => statements.getEndToken();
+  Token getEndToken() {
+    if (statements.nodes.isEmpty()) {
+      // The colon after the expression.
+      return expression.getEndToken().next;
+    } else {
+      return statements.getEndToken();
+    }
+  }
 }
 
 class DefaultCase extends Node {
@@ -1446,11 +1453,18 @@ class DefaultCase extends Node {
   }
 
   Token getBeginToken() {
-    if (label === null) return label.getBeginToken();
+    if (label !== null) return label.getBeginToken();
     return defaultKeyword;
   }
 
-  Token getEndToken() => statements.getEndToken();
+  Token getEndToken() {
+    if (statements.nodes.isEmpty()) {
+      // The colon after default.
+      return defaultKeyword.next;
+    } else {
+      return statements.getEndToken();
+    }
+  }
 }
 
 class GotoStatement extends Statement {
