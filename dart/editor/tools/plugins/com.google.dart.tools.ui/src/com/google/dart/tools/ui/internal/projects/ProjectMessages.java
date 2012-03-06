@@ -37,6 +37,7 @@ public class ProjectMessages extends NLS {
   public static String NewApplicationWizardPage_open_existing;
   public static String NewApplicationWizardPage_create_new;
   public static String NewApplicationWizardPage_create_metadata;
+  public static String NewApplicationWizardPage_error_existing;
   public static String OpenNewApplicationWizardAction_desc;
   public static String OpenNewApplicationWizardAction_text;
   public static String OpenNewApplicationWizardAction_tooltip;

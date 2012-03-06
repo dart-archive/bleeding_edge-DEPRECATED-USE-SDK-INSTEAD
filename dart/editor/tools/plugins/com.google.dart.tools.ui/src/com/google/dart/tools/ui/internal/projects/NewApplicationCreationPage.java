@@ -45,7 +45,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.net.URI;
 
 /**
@@ -236,42 +235,11 @@ public class NewApplicationCreationPage extends WizardPage {
     update();
   }
 
-  private String calculateStatusMessage() {
-    String projectString = "\'" + getLocationPath().lastSegment() + "\'"; //$NON-NLS-1$ //$NON-NLS-2$
-
-    if (doesProjectExist()) {
-      if (doesProjectHaveMetaData()) {
-        return NLS.bind(ProjectMessages.NewApplicationWizardPage_open_existing, projectString);
-      } else {
-        return NLS.bind(ProjectMessages.NewApplicationWizardPage_create_metadata, projectString);
-      }
-    } else {
-      return NLS.bind(ProjectMessages.NewApplicationWizardPage_create_new, projectString);
-    }
-  }
-
   private boolean doesProjectExist() {
     IPath path = getLocationPath();
     File file = path.toFile();
 
     return file.exists();
-  }
-
-  private boolean doesProjectHaveMetaData() {
-    if (doesProjectExist()) {
-      File file = getLocationPath().toFile();
-
-      String[] projectFile = file.list(new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-          return name.equals(".project"); //$NON-NLS-1$
-        }
-      });
-
-      return projectFile.length > 0;
-    } else {
-      return false;
-    }
   }
 
   private IPath getLocationPath() {
@@ -297,16 +265,16 @@ public class NewApplicationCreationPage extends WizardPage {
 
     if (getProjectNameFieldValue().isEmpty()) {
       setMessage(ProjectMessages.OpenNewApplicationWizardAction_desc);
+      setPageComplete(false);
       return;
     }
-
-    setMessage(calculateStatusMessage());
 
     IStatus status = validate();
 
     if (status.isOK()) {
       setPageComplete(true);
       setErrorMessage(null);
+      setMessage(NLS.bind(ProjectMessages.NewApplicationWizardPage_create_new, getProjectName()));
     } else {
       setPageComplete(false);
       setErrorMessage(status.getMessage());
@@ -322,6 +290,10 @@ public class NewApplicationCreationPage extends WizardPage {
     if (!new Path(location).isValidPath(getProjectName())) {
       return new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID,
           ProjectMessages.NewProjectCreationPage_invalid_loc);
+    }
+    if (doesProjectExist()) {
+      return new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, NLS.bind(
+          ProjectMessages.NewApplicationWizardPage_error_existing, getProjectName()));
     }
     return Status.OK_STATUS;
   }
