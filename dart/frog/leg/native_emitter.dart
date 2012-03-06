@@ -241,32 +241,37 @@ function(inputTable) {
     }
   }
 
-  bool isNativeLiteral(String nativeName) {
-    return nativeName[1] === '=';
+  bool isNativeLiteral(String quotedName) {
+    return quotedName[1] === '=';
   }
 
-  bool isNativeGlobal(String nativeName) {
-    return nativeName[1] === '@';
+  bool isNativeGlobal(String quotedName) {
+    return quotedName[1] === '@';
+  }
+
+  String toNativeName(ClassElement cls) {
+    String quotedName = cls.nativeName.slowToString();
+    if (isNativeGlobal(quotedName)) {
+      // Global object, just be like the other types for now.
+      return quotedName.substring(3, quotedName.length - 1);
+    } else {
+      return quotedName.substring(2, quotedName.length - 1);
+    }
   }
 
   void generateNativeClass(ClassElement classElement, StringBuffer buffer) {
     nativeClasses.add(classElement);
 
     assert(classElement.backendMembers.isEmpty());
-    String nativeName = classElement.nativeName.slowToString();
-    if (isNativeLiteral(nativeName)) {
+    String quotedName = classElement.nativeName.slowToString();
+    if (isNativeLiteral(quotedName)) {
       generateNativeLiteral(classElement, buffer);
       // The native literal kind needs to be dealt with specially when
       // generating code for it.
       return;
     }
 
-    if (isNativeGlobal(nativeName)) {
-      // Global object, just be like the other types for now.
-      nativeName = nativeName.substring(3, nativeName.length - 1);
-    } else {
-      nativeName = nativeName.substring(2, nativeName.length - 1);
-    }
+    String nativeName = toNativeName(classElement);
     bool hasUsedSelectors = false;
 
     String attachTo(String name) {
@@ -421,19 +426,19 @@ function(inputTable) {
     // var -> expression
     Map<String, String> varDefns = <String>{};
     // tag -> expression (a string or a variable)
-    Map<String, String> tagDefns = <String>{};
+    Map<ClassElement, String> tagDefns = <String>{};
 
     String makeExpression(ClassElement cls) {
       // Expression fragments for this set of cls keys.
       List<String> expressions = <String>[];
       // TODO: Remove if cls is abstract.
-      List<String> subtags = [cls.name.slowToString()];
+      List<String> subtags = [toNativeName(cls)];
       void walk(ClassElement cls) {
         for (final ClassElement subclass in computeDirectSubclasses(cls)) {
-          String tag = subclass.name.slowToString();
+          ClassElement tag = subclass;
           String existing = tagDefns[tag];
           if (existing == null) {
-            subtags.add(tag);
+            subtags.add(toNativeName(tag));
             walk(subclass);
           } else {
             if (varDefns.containsKey(existing)) {
@@ -461,7 +466,7 @@ function(inputTable) {
     }
 
     for (final ClassElement cls in dispatchClasses) {
-      tagDefns[cls.name.slowToString()] = makeExpression(cls);
+      tagDefns[cls] = makeExpression(cls);
     }
 
     // Write out a thunk that builds the metadata.
@@ -484,8 +489,8 @@ function(inputTable) {
       bool needsComma = false;
       List<String> entries = <String>[];
       for (final ClassElement cls in dispatchClasses) {
-        String clsName = cls.name.slowToString();
-        entries.add("\n    ['$clsName', ${tagDefns[clsName]}]");
+        String clsName = toNativeName(cls);
+        entries.add("\n    ['$clsName', ${tagDefns[cls]}]");
       }
       buffer.add(Strings.join(entries, ','));
       buffer.add('];\n');
