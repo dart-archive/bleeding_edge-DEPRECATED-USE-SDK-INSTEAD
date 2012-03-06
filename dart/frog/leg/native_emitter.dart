@@ -455,7 +455,7 @@ function(inputTable) {
     // var -> expression
     Map<String, String> varDefns = <String>{};
     // tag -> expression (a string or a variable)
-    Map<ClassElement, String> tagDefns = <String>{};
+    Map<ClassElement, String> tagDefns = new Map<ClassElement, String>();
 
     String makeExpression(ClassElement cls) {
       // Expression fragments for this set of cls keys.
