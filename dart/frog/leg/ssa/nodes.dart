@@ -173,7 +173,7 @@ class HGraph {
     return addConstant(new IntConstant(i));
   }
 
-  HConstant addConstantDouble(int d) {
+  HConstant addConstantDouble(double d) {
     return addConstant(new DoubleConstant(d));
   }
 
