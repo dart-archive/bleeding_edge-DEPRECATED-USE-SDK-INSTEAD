@@ -476,7 +476,7 @@ class LocalsHandler {
     }
   }
 
-  void beginLoopHeader(Loop node, HBasicBlock loopEntry) {
+  void beginLoopHeader(Node node, HBasicBlock loopEntry) {
     // Create a copy because we modify the map while iterating over
     // it.
     Map<Element, HInstruction> saved =
@@ -495,7 +495,7 @@ class LocalsHandler {
     });
   }
 
-  void enterLoopBody(Loop node) {
+  void enterLoopBody(Node node) {
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
     // If there are no declared boxed loop variables then we did not create the
