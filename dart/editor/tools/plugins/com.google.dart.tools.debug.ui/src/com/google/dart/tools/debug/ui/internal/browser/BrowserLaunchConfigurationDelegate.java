@@ -156,7 +156,7 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
 
           if (result.getExitCode() != 0) {
             String errMsg = NLS.bind(
-                "Failure to launch - unable to generate Javascript for {0}.\n\n{1}",
+                "Failure to launch - unable to generate JavaScript for {0}.\n\n{1}",
                 resource.getName(), result.getAllOutput());
 
             errMsg = errMsg.trim();

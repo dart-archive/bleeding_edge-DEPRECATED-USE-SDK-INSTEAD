@@ -103,7 +103,7 @@ public class FrogCompiler {
     FrogCompiler compiler = new FrogCompiler();
 
     DartCore.getConsole().clear();
-    DartCore.getConsole().println("Generating Javascript...");
+    DartCore.getConsole().println("Generating JavaScript...");
 
     try {
       CompilationResult result = compiler.compile(library.getCorrespondingResource().getLocation(),
