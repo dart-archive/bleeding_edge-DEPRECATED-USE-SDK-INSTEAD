@@ -1127,11 +1127,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralMap(LiteralMap node) {
-    warning(node, MessageKind.GENERIC, ['map literals are not implemented']);
+    node.visitChildren(this);
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
-    unimplemented(node, 'map entry');
+    node.visitChildren(this);
   }
 
   visitNamedArgument(NamedArgument node) {

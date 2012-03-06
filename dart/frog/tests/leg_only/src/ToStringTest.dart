@@ -20,6 +20,6 @@ test(expected, x) {
 main() {
   test("Instance of 'Object'", new Object());
   test("Instance of 'A'", new A());
-  test("Instance of 'List'", []);
+  test("[]", []);
   test("1", 1);
 }

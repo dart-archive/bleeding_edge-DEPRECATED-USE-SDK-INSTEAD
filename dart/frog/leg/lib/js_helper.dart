@@ -314,9 +314,10 @@ checkGrowable(list, reason) {
 builtin$toString$0(var value) {
   if (JS('bool', @'typeof $0 == "object"', value)) {
     if (isJsArray(value)) {
-      return "Instance of 'List'";
+      return Collections.collectionToString(value);
+    } else {
+      return UNINTERCEPTED(value.toString());
     }
-    return UNINTERCEPTED(value.toString());
   }
   if (JS('bool', @'$0 === 0 && (1 / $0) < 0', value)) {
     return '-0.0';
@@ -1316,4 +1317,19 @@ class StackTrace {
  */
 StackTrace getTraceFromException(exception) {
   return new StackTrace(JS("var", @"$0.stack", exception));
+}
+
+/**
+ * Called by generated code to build a map literal. [keyValuePairs] is
+ * a list of key, value, key, value, ..., etc.
+ */
+makeLiteralMap(List keyValuePairs) {
+  Iterator iterator = keyValuePairs.iterator();
+  Map result = new LinkedHashMap();
+  while (iterator.hasNext()) {
+    String key = iterator.next();
+    var value = iterator.next();
+    result[key] = value;
+  }
+  return result;
 }

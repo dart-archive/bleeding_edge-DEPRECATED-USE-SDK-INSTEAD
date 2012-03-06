@@ -101,6 +101,10 @@ class Interceptors {
   Element getEqualsInterceptor() {
     return compiler.findHelper(const SourceString('eq'));
   }
+
+  Element getMapMaker() {
+    return compiler.findHelper(const SourceString('makeLiteralMap'));
+  }
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -2270,11 +2274,25 @@ class SsaBuilder implements Visitor {
   }
 
   visitLiteralMap(LiteralMap node) {
-    generateUnimplemented('literal map not implemented', isExpression: true);
+    List<HInstruction> inputs = <HInstruction>[];
+    for (Link<Node> link = node.entries.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      visit(link.head);
+      inputs.addLast(pop());
+      inputs.addLast(pop());
+    }
+    HLiteralList keyValuePairs = new HLiteralList(inputs, node.isConst());
+    HStatic mapMaker = new HStatic(interceptors.getMapMaker());
+    add(keyValuePairs);
+    add(mapMaker);
+    inputs = <HInstruction>[mapMaker, keyValuePairs];
+    push(new HInvokeStatic(Selector.INVOCATION_1, inputs));
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
-    compiler.unimplemented('SsaBuilder.visitLiteralMapEntry', node: node);
+    visit(node.value);
+    visit(node.key);
   }
 
   visitNamedArgument(NamedArgument node) {

@@ -1316,6 +1316,8 @@ class LiteralMap extends Expression {
 
   LiteralMap(this.typeArguments, this.entries);
 
+  bool isConst() => false; // TODO(ahe): Store constness.
+
   LiteralMap asLiteralMap() => this;
 
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
