@@ -98,6 +98,9 @@ public abstract class EditorLibraryManager extends SystemLibraryManager {
         if ("dom".equals(name) && addLib(name, name, dir, "dom_frog.dart")) {
           continue;
         }
+        if ("html".equals(name) && addLib(name, name, dir, "html_dartium.dart")) {
+          continue;
+        }
         if ("isolate".equals(name) && addLib(name, name, dir, "isolate_compiler.dart")) {
           continue;
         }

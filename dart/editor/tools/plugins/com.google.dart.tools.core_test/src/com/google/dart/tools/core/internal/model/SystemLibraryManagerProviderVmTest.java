@@ -33,7 +33,7 @@ public class SystemLibraryManagerProviderVmTest extends SystemLibraryManagerProv
   }
 
   public void test_SystemLibraryManagerProvider_html() throws Exception {
-    testLibrary("html", "html.dart");
+    testLibrary("html", "html_dartium.dart");
   }
 
   @Override

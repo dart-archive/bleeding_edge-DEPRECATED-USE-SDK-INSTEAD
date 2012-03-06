@@ -273,7 +273,7 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getChildren_libHtml() throws Exception {
     DartElement[] children = getDartLibHtml().getChildren();
-    assertContainsCompUnit(children, "html.dart", false, false);
+    assertContainsCompUnit(children, "html_dartium.dart", false, false);
     assertTrue(children.length > 0);
   }
 
@@ -466,7 +466,7 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getImportedLibraries_libHtml() throws Exception {
     DartLibrary[] importedLibraries = getDartLibHtml().getImportedLibraries();
-    assertEquals(2, importedLibraries.length);
+    assertEquals(1, importedLibraries.length);
     assertEquals("dart:dom", importedLibraries[0].getElementName());
   }
 
