@@ -40,5 +40,3 @@ class RegExpWrapper {
     }
   }
 }
-
-stringify(x) => x === null ? "" : x.toString();

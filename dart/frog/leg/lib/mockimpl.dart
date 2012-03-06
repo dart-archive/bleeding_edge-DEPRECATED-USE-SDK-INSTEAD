@@ -78,7 +78,7 @@ class MatchImplementation implements Match {
 
   int start() => _start;
   int end() => _end;
-  String group(int index) => stringify(_groups[index]);
+  String group(int index) => _groups[index];
   String operator [](int index) => group(index);
   int groupCount() => _groups.length - 1;
 
