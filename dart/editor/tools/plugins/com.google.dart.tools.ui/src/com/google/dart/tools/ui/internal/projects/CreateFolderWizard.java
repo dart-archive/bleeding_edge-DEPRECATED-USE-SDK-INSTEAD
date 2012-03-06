@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.projects;
 
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -57,7 +58,7 @@ public class CreateFolderWizard extends BasicNewFolderResourceWizard {
    */
   public static final String WIZARD_ID = "com.google.dart.tools.ui.new.folder"; //$NON-NLS-1$
 
-  private CreateFolderWizardPage mainPage;
+  private WizardNewFolderMainPage mainPage;
 
   @Override
   public void addPages() {
@@ -73,6 +74,16 @@ public class CreateFolderWizard extends BasicNewFolderResourceWizard {
     super.init(workbench, currentSelection);
     setWindowTitle(ResourceMessages.FileResource_shellTitle);
     setNeedsProgressMonitor(true);
+  }
+
+  @Override
+  public boolean performFinish() {
+    IFolder folder = mainPage.createNewFolder();
+    if (folder == null) {
+      return false;
+    }
+    selectAndReveal(folder);
+    return true;
   }
 
 }
