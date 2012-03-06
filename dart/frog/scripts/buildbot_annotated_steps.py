@@ -160,6 +160,13 @@ def TestFrog(arch, mode, system, browser, flags):
 
   return 0
 
+def _DeleteFirefoxProfiles(directory):
+  """Find all the firefox profiles in a particular directory and delete them."""
+  for f in os.listdir(directory):
+    item = os.path.join(directory, f)
+    if os.path.isdir(item) and f.startswith('tmp'):
+      subprocess.Popen('rm -rf %s' % item, shell=True)
+
 def CleanUpTemporaryFiles(system, browser):
   """For some browser (selenium) tests, the browser creates a temporary profile 
   on each browser session start. On Windows, generally these files are 
@@ -185,8 +192,8 @@ def CleanUpTemporaryFiles(system, browser):
     # Note: the buildbots run as root, so we can do this without requiring a
     # password. The command won't actually work on regular machines without
     # root permissions.
-    p = subprocess.Popen('rm -rf /tmp/*', shell=True)
-    p = subprocess.Popen('rm -rf /var/tmp/*', shell=True)
+    _DeleteFirefoxProfiles('/tmp')
+    _DeleteFirefoxProfiles('/var/tmp')
 
 def main():
   print 'main'
