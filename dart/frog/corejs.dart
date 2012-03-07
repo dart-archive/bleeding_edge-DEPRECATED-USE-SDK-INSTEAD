@@ -435,7 +435,7 @@ $defProp(Object.prototype, '$typeNameOf', (function() {
   if (typeof(navigator) != 'object') return chrome$typeNameOf;
 
   var userAgent = navigator.userAgent;
-  if (/Chrome/.test(userAgent)) return chrome$typeNameOf;
+  if (/Chrome|DumpRenderTree/.test(userAgent)) return chrome$typeNameOf;
   if (/Firefox/.test(userAgent)) return firefox$typeNameOf;
   if (/MSIE/.test(userAgent)) return ie$typeNameOf;
   return function() { return constructorNameWithFallback(this); };
