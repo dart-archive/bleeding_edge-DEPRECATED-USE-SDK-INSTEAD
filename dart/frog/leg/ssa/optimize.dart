@@ -113,54 +113,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitInvokeInterceptor(HInvokeInterceptor node)
       => node.fold(graph);
 
-  HInstruction visitAdd(HAdd node) {
-    // TODO(floitsch): move this code into the compile-time constant handler.
-
-    // String + is defined for all literals. We don't need to know which
-    // type the right-hand side is.
-
-    if (node.left.isString()) {
-      // First try to eliminate adding the empty string to a string.
-      if (node.right.isConstantString()) {
-        HConstant right = node.right;
-        Constant rightStringConstant = right.constant;
-        DartString rightString = rightStringConstant.value;
-        if (rightString.isEmpty()) {
-          // String has no content, i.e., it's the empty string.
-          return node.left;
-        }
-      }
-      // Then, if both are constants, try to do the concatenation statically.
-      if (node.left.isConstantString()) {
-        HConstant left = node.left;
-        Constant leftStringConstant = left.constant;
-        DartString leftString = leftStringConstant.value;
-        if (leftString.isEmpty()) {
-          // Left is empty String.
-          if (node.right.isString()) {
-            // Right is already a String, just return that.
-            return node.right;
-          }
-          if (node.right is HConstant) {
-            HConstant right = node.right;
-            // Right is a constant, so we can statically convert it to String
-            // and return that.
-            // Remaining literal types are represented by their Dart value.
-            if (right.isConstantBoolean() ||
-                right.isConstantNumber() ||
-                right.isConstantNull()) {
-              PrimitiveConstant rightConstant = right.constant;
-              String str = rightConstant.value.toString();
-              return graph.addConstantString(new DartString.literal(str));
-            }
-          }
-        }
-        // TODO(lrn): Perform concatenation in Dart.
-      }
-    }
-    return visitInvokeBinary(node);
-  }
-
   HInstruction visitEquals(HEquals node) {
     HInstruction left = node.left;
     HInstruction right = node.right;

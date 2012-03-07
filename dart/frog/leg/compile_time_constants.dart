@@ -64,6 +64,7 @@ class PrimitiveConstant extends Constant {
   }
 
   String toString() => value.toString();
+  abstract DartString toDartString();
 }
 
 class NullConstant extends PrimitiveConstant {
@@ -77,6 +78,7 @@ class NullConstant extends PrimitiveConstant {
 
   // The magic constant has no meaning. It is just a random value.
   int hashCode() => 785965825;
+  DartString toDartString() => const DartString.literal(null);
 }
 
 class IntConstant extends PrimitiveConstant {
@@ -156,6 +158,7 @@ class IntConstant extends PrimitiveConstant {
   }
 
   int hashCode() => value.hashCode();
+  DartString toDartString() => new DartString.literal(value.toString());
 }
 
 class DoubleConstant extends PrimitiveConstant {
@@ -219,6 +222,7 @@ class DoubleConstant extends PrimitiveConstant {
   }
 
   int hashCode() => value.hashCode();
+  DartString toDartString() => new DartString.literal(value.toString());
 }
 
 class BoolConstant extends PrimitiveConstant {
@@ -244,6 +248,9 @@ class BoolConstant extends PrimitiveConstant {
   // The magic constants are just random values. They don't have any
   // significance.
   int hashCode() => value ? 499 : 536555975;
+  DartString toDartString() {
+    return value ? const DartString(true) : const DartString(false);
+  }
 }
 
 class StringConstant extends PrimitiveConstant {
@@ -266,9 +273,12 @@ class StringConstant extends PrimitiveConstant {
   }
 
   Constant binaryFold(String op, Constant other) {
-    if (other.isString() && op == "+") {
-      StringConstant otherString = other;
-      DartString right = otherString.value;
+    if (op == "+" && !other.isObject())  {
+      if (value.isEmpty() && other.isString()) return other;
+      PrimitiveConstant otherPrimitive = other;
+      DartString right = otherPrimitive.toDartString();
+      if (right.isEmpty()) return this;
+      if (value.isEmpty()) return new StringConstant(right);
       return new StringConstant(new ConsDartString(value, right));
     }
     // Visit super in case the [op] was "==", "===", "!=" or "!===".
@@ -282,6 +292,7 @@ class StringConstant extends PrimitiveConstant {
   }
 
   int hashCode() => _hashCode;
+  DartString toDartString() => value;
 }
 
 class ObjectConstant extends Constant {
@@ -684,6 +695,11 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       Constant left = evaluate(send.receiver);
       Constant right = evaluate(send.argumentsNode.nodes.head);
       String op = send.selector.asOperator().source.stringValue;
+      if (left.isString() && op == "+" && !right.isString()) {
+        // At the moment only compile-time concatenation of two strings is
+        // allowed.
+        error(send);
+      }
       Constant folded = left.binaryFold(op, right);
       if (folded === null) error(send);
       return folded;
