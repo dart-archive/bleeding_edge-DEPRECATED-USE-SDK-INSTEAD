@@ -1246,7 +1246,9 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     } else if (!element.isClassOrInterfaceOrTypedef()) {
       error(node, MessageKind.NOT_A_TYPE, [node]);
     } else {
-      compiler.resolver.toResolve.add(element);
+      if (element.isClass()) {
+        compiler.resolver.toResolve.add(element);
+      }
       // TODO(ngeoffray): Use type variables.
       return element.computeType(compiler);
     }
