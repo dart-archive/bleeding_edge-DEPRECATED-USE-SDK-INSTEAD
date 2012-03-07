@@ -422,12 +422,14 @@ class ConstructedConstant extends ObjectConstant {
     buffer.add("new ");
     buffer.add(handler.getJsConstructor(type.element));
     buffer.add("(");
+    String isolatePrototype = "${handler.compiler.namer.ISOLATE}.prototype";
     for (int i = 0; i < fields.length; i++) {
       if (i != 0) buffer.add(", ");
       Constant field = fields[i];
       // TODO(floitsch): share this code with the ListConstant.
       if (field.isObject()) {
-        handler.getNameForConstant(field);
+        String name = handler.getNameForConstant(entry);
+        buffer.add("$isolatePrototype.$name");
       } else {
         field.writeJsCode(buffer, handler);
       }
