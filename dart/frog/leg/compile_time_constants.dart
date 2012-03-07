@@ -68,7 +68,8 @@ class PrimitiveConstant extends Constant {
 }
 
 class NullConstant extends PrimitiveConstant {
-  const NullConstant();
+  factory NullConstant() => const NullConstant._internal();
+  const NullConstant._internal();
   bool isNull() => true;
   get value() => null;
 
@@ -83,8 +84,25 @@ class NullConstant extends PrimitiveConstant {
 
 class IntConstant extends PrimitiveConstant {
   final int value;
-  // TODO(floitsch): cache the most common integer values.
-  const IntConstant(this.value);
+  factory IntConstant(int value) {
+    switch(value) {
+      case 0: return const IntConstant._internal(0);
+      case 1: return const IntConstant._internal(1);
+      case 2: return const IntConstant._internal(2);
+      case 3: return const IntConstant._internal(3);
+      case 4: return const IntConstant._internal(4);
+      case 5: return const IntConstant._internal(5);
+      case 6: return const IntConstant._internal(6);
+      case 7: return const IntConstant._internal(7);
+      case 8: return const IntConstant._internal(8);
+      case 9: return const IntConstant._internal(9);
+      case 10: return const IntConstant._internal(10);
+      case -1: return const IntConstant._internal(-1);
+      case -2: return const IntConstant._internal(-2);
+      default: return new IntConstant._internal(value);
+    }
+  }
+  const IntConstant._internal(this.value);
   bool isInt() => true;
 
   void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
@@ -163,7 +181,22 @@ class IntConstant extends PrimitiveConstant {
 
 class DoubleConstant extends PrimitiveConstant {
   final double value;
-  const DoubleConstant(this.value);
+  factory DoubleConstant(double value) {
+    if (value.isNaN()) {
+      return const DoubleConstant._internal(double.NAN);
+    } else if (value == double.INFINITY) {
+      return const DoubleConstant._internal(double.INFINITY);
+    } else if (value == -double.INFINITY) {
+      return const DoubleConstant._internal(-double.INFINITY);
+    } else if (value == 0.0 && !value.isNegative()) {
+      return const DoubleConstant._internal(0.0);
+    } else if (value == 1.0) {
+      return const DoubleConstant._internal(1.0);
+    } else {
+      return new DoubleConstant._internal(value);
+    }
+  }
+  const DoubleConstant._internal(this.value);
   bool isDouble() => true;
 
   void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
@@ -226,31 +259,52 @@ class DoubleConstant extends PrimitiveConstant {
 }
 
 class BoolConstant extends PrimitiveConstant {
-  final bool value;
-  const BoolConstant(this.value);
-  bool isBool() => true;
-
-  void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
-    buffer.add(value ? "true" : "false");
+  factory BoolConstant(value) {
+    return value ? new TrueConstant() : new FalseConstant();
   }
+  const BoolConstant._internal();
+  bool isBool() => true;
 
   BoolConstant unaryFold(String op) {
     if (op == "!") return new BoolConstant(!value);
     return null;
   }
+}
 
-  bool operator ==(var other) {
-    if (other is !BoolConstant) return false;
-    BoolConstant otherBool = other;
-    return value == otherBool.value;
+class TrueConstant extends BoolConstant {
+  final bool value = true;
+
+  factory TrueConstant() => const TrueConstant._internal();
+  const TrueConstant._internal() : super._internal();
+  bool isTrue() => true;
+
+  void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+    buffer.add("true");
   }
 
-  // The magic constants are just random values. They don't have any
+  bool operator ==(var other) => this === other;
+  // The magic constant is just a random value. It does not have any
   // significance.
-  int hashCode() => value ? 499 : 536555975;
-  DartString toDartString() {
-    return value ? const DartString(true) : const DartString(false);
+  int hashCode() => 499;
+  String toDartString() => const DartString("true");
+}
+
+class FalseConstant extends BoolConstant {
+  final bool value = false;
+
+  factory FalseConstant() => const FalseConstant._internal();
+  const FalseConstant._internal() : super._internal();
+  bool isFalse() => true;
+
+  void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+    buffer.add("false");
   }
+
+  bool operator ==(var other) => this === other;
+  // The magic constant is just a random value. It does not have any
+  // significance.
+  int hashCode() => 536555975;
+  String toDartString() => const DartString("false");
 }
 
 class StringConstant extends PrimitiveConstant {
@@ -258,6 +312,7 @@ class StringConstant extends PrimitiveConstant {
   int _hashCode;
 
   StringConstant(this.value) {
+    // TODO(floitsch): cache StringConstants.
     // TODO(floitsch): compute hashcode without calling toString() on the
     // DartString.
     _hashCode = value.slowToString().hashCode();
@@ -457,7 +512,7 @@ class ConstantHandler extends CompilerTask {
       var value;
       if (assignment === null) {
         // No initial value.
-        value = const NullConstant();
+        value = new NullConstant();
       } else {
         Node right = assignment.arguments.head;
         CompileTimeConstantEvaluator evaluator =
@@ -638,7 +693,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   Constant visitLiteralBool(LiteralBool node) {
     // TODO(floitsch): make BoolConstant a factory and cache the two values
     // there.
-    return node.value ? const BoolConstant(true) : const BoolConstant(false);
+    return new BoolConstant(node.value);
   }
 
   Constant visitLiteralDouble(LiteralDouble node) {
@@ -667,7 +722,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitLiteralNull(LiteralNull node) {
-    return const NullConstant();
+    return new NullConstant();
   }
 
   Constant visitLiteralString(LiteralString node) {

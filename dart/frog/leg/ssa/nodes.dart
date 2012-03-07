@@ -198,7 +198,7 @@ class HGraph {
   }
 
   HConstant addConstantNull() {
-    return addConstant(const NullConstant());
+    return addConstant(new NullConstant());
   }
 
   void finalize() {
