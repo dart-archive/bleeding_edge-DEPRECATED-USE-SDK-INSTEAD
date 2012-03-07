@@ -41,6 +41,7 @@ import org.eclipse.jface.util.Util;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
@@ -803,7 +804,15 @@ public class OmniBoxPopup extends BasePopupDialog {
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
-        refreshInternalContent(filter, perfectMatch, entries);
+        //a blanket try/catch to contain widget disposal errors
+        try {
+          refreshInternalContent(filter, perfectMatch, entries);
+        } catch (SWTException e) {
+          //if it's not a widget disposed error, re-throw
+          if (e.code != SWT.ERROR_WIDGET_DISPOSED) {
+            throw e;
+          }
+        }
       }
     });
   }
@@ -812,6 +821,10 @@ public class OmniBoxPopup extends BasePopupDialog {
       List<OmniEntry>[] entries) {
 
     int selectionIndex = refreshTable(perfectMatch, entries);
+
+    if (table.isDisposed()) {
+      return;
+    }
 
     if (table.getItemCount() > 0) {
       table.setSelection(selectionIndex);
@@ -849,6 +862,10 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   @SuppressWarnings("rawtypes")
   private int refreshTable(OmniElement perfectMatch, List<OmniEntry>[] entries) {
+
+    if (table.isDisposed()) {
+      return 0;
+    }
 
     //TODO (pquitslund): clearing to force a complete redraw; prime for future optimization
     //if (table.getItemCount() > entries.length && table.getItemCount() - entries.length > 20) {
