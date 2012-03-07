@@ -1013,21 +1013,21 @@ class SsaCodeGenerator implements HVisitor {
     }
   }
 
-  bool isStringSupertype(ClassElement cls) {
+  bool isStringSupertype(Element element) {
     LibraryElement coreLibrary = compiler.coreLibrary;
-    return (cls == coreLibrary.find(const SourceString('Comparable')))
-      || (cls == coreLibrary.find(const SourceString('Hashable')))
-      || (cls == coreLibrary.find(const SourceString('Pattern')));
+    return (element == coreLibrary.find(const SourceString('Comparable')))
+      || (element == coreLibrary.find(const SourceString('Hashable')))
+      || (element == coreLibrary.find(const SourceString('Pattern')));
   }
 
-  bool isListOrSupertype(ClassElement cls) {
+  bool isListOrSupertype(Element element) {
     LibraryElement coreLibrary = compiler.coreLibrary;
-    return (cls == coreLibrary.find(const SourceString('List')))
-      || (cls == coreLibrary.find(const SourceString('Collection')))
-      || (cls == coreLibrary.find(const SourceString('Iterable')));
+    return (element == coreLibrary.find(const SourceString('List')))
+      || (element == coreLibrary.find(const SourceString('Collection')))
+      || (element == coreLibrary.find(const SourceString('Iterable')));
   }
 
-  bool isSupertypeOfNativeClass(ClassElement cls) {
+  bool isSupertypeOfNativeClass(Element element) {
     // TODO(ngeoffray): Check all types that are super types of native
     // classes.
     return true;

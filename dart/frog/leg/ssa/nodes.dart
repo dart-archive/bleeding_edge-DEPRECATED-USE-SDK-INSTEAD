@@ -2157,8 +2157,8 @@ class HLogicalOperator extends HNonSsaInstruction {
 }
 
 class HIs extends HInstruction {
-  // TODO(ahe): This should be a Type, not ClassElement.
-  final ClassElement typeExpression;
+  // TODO(ahe): This should be a Type, not Element.
+  final Element typeExpression;
   final bool nullOk;
 
   HIs(this.typeExpression, HInstruction expression, [nullOk = false])
