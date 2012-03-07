@@ -149,9 +149,20 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       i++;
       inputs.add(builder.localsHandler.readThis());
     }
+    Compiler compiler = builder.compiler;
     parameters.forEachParameter((Element parameter) {
+      Type type = parameter.computeType(compiler);
+      HInstruction input = builder.localsHandler.readLocal(parameter);
+      if (type is FunctionType) {
+        // TODO(ngeoffray): by better analyzing the function type and
+        // its formal parameters, we could just pass, eg closure.$call$0.
+        builder.push(new HStatic(builder.interceptors.getClosureConverter()));
+        List<HInstruction> callInputs = <HInstruction>[builder.pop(), input];
+        input = new HInvokeStatic(Selector.INVOCATION_1, callInputs);
+        builder.add(input);
+      }
+      inputs.add(input);
       arguments.add('\$$i');
-      inputs.add(builder.localsHandler.readLocal(parameter));
       i++;
     });
     String foreignParameters = Strings.join(arguments, ',');

@@ -934,7 +934,7 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitIs(HIs node) {
-    ClassElement element = node.typeExpression;
+    Element element = node.typeExpression;
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = coreLibrary.find(const SourceString('Object'));
     HInstruction input = node.expression;
@@ -976,7 +976,8 @@ class SsaCodeGenerator implements HVisitor {
         checkArray(input, '===');
         buffer.add(' || ');
         precedence = JSPrecedence.LOGICAL_OR_PRECEDENCE;
-      } else if (element.isNative() || isSupertypeOfNativeClass(element)) {
+      } else if (element.isClass() && (element.dynamic.isNative()
+                                       || isSupertypeOfNativeClass(element))) {
         buffer.add("(");
         endParen = true;
       } else {

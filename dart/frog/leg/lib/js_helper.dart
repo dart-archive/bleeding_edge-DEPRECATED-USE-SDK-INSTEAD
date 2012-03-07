@@ -1305,12 +1305,6 @@ unwrapException(ex) {
   return ex;
 }
 
-class StackTrace {
-  var stack;
-  StackTrace(this.stack);
-  String toString() => stack != null ? stack : '';
-}
-
 /**
  * Called by generated code to fetch the stack trace from an
  * exception.
@@ -1332,4 +1326,38 @@ makeLiteralMap(List keyValuePairs) {
     result[key] = value;
   }
   return result;
+}
+
+/**
+ * Called by generated code to convert a Dart closure to a JS
+ * closure when the Dart closure is passed to the DOM.
+ */
+convertDartClosureToJS(closure) {
+  return JS("var", @"""function() {
+    var dartClosure = $0;
+    switch (arguments.length) {
+      case 0: return $1(dartClosure);
+      case 1: return $2(dartClosure, arguments[0]);
+      case 2: return $3(dartClosure, arguments[0], arguments[1]);
+      default:
+        throw new Error('Unsupported number of arguments for wrapped closure');
+    }
+  }""",
+  closure,
+  callClosure0,
+  callClosure1,
+  callClosure2);
+}
+
+/**
+ * Helper methods when converting a Dart closure to a JS closure.
+ */
+callClosure0(closure) => closure();
+callClosure1(closure, arg1) => closure(arg1);
+callClosure2(closure, arg1, arg2) => closure(arg1, arg2);
+
+class StackTrace {
+  var stack;
+  StackTrace(this.stack);
+  String toString() => stack != null ? stack : '';
 }

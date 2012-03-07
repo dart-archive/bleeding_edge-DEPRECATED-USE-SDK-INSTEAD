@@ -611,15 +611,18 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       } else {
         warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [className]);
       }
-    } else if (element.kind !== ElementKind.CLASS) {
+    } else if (!element.isClassOrInterfaceOrTypedef()) {
       if (typeRequired) {
         error(node, MessageKind.NOT_A_TYPE, [className]);
       } else {
         warning(node, MessageKind.NOT_A_TYPE, [className]);
       }
     } else {
-      ClassElement cls = element;
-      compiler.resolver.toResolve.add(element);
+      if (element.isClass()) {
+        // TODO(ngeoffray): Should we also resolve typedef?
+        ClassElement cls = element;
+        compiler.resolver.toResolve.add(element);
+      }
       // TODO(ahe): This should be a Type.
       useElement(node, element);
     }
@@ -1231,7 +1234,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     Element element = context.lookup(node.source);
     if (element === null) {
       error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node]);
-    } else if (element.kind !== ElementKind.CLASS) {
+    } else if (!element.isClassOrInterfaceOrTypedef()) {
       error(node, MessageKind.NOT_A_TYPE, [node]);
     } else {
       compiler.resolver.toResolve.add(element);

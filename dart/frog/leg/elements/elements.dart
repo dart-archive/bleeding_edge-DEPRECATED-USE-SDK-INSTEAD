@@ -33,6 +33,7 @@ class ElementKind {
   static final ElementKind ABSTRACT_FIELD = const ElementKind('abstract_field');
   static final ElementKind LIBRARY = const ElementKind('library');
   static final ElementKind PREFIX = const ElementKind('prefix');
+  static final ElementKind TYPEDEF = const ElementKind('typedef');
 
   static final ElementKind STATEMENT = const ElementKind('statement');
   static final ElementKind LABEL = const ElementKind('label');
@@ -64,9 +65,15 @@ class Element implements Hashable {
     return kind === ElementKind.COMPILATION_UNIT ||
            kind === ElementKind.LIBRARY;
   }
+  bool isClass() => kind == ElementKind.CLASS;
   bool isVariable() => kind === ElementKind.VARIABLE;
   bool isParameter() => kind === ElementKind.PARAMETER;
   bool isStatement() => kind === ElementKind.STATEMENT;
+  bool isTypedef() => kind === ElementKind.TYPEDEF;
+  // TODO(ahe): Remove this method.
+  bool isClassOrInterfaceOrTypedef() {
+    return kind == ElementKind.CLASS || kind == ElementKind.TYPEDEF;
+  }
 
   bool isAssignable() {
     if (modifiers != null && modifiers.isFinal()) return false;
@@ -198,6 +205,11 @@ class PrefixElement extends Element {
     }
 }
 
+class TypedefElement extends Element {
+  TypedefElement(SourceString name, Element enclosing)
+    : super(name, ElementKind.TYPEDEF, enclosing);
+}
+
 class VariableElement extends Element {
   final VariableListElement variables;
   Expression cachedNode; // The send or the identifier in the variables list.
@@ -324,11 +336,21 @@ Type getType(TypeAnnotation typeAnnotation,
     compiler.cancel('library prefixes not handled',
                     node: typeAnnotation.typeName);
   }
-  final SourceString name = identifier.source;
+  SourceString name = identifier.source;
   Element element = library.find(name);
-  if (element !== null && element.kind === ElementKind.CLASS) {
-    // TODO(karlklose): substitute type parameters.
-    return element.computeType(compiler);
+  if (element !== null) {
+    if (element.isTypedef()) {
+      // TODO(ngeoffray): This is a hack to help us get support for the
+      // DOM library.
+      // TODO(ngeoffray): The list of types for the argument is wrong.
+      return new FunctionType(compiler.types.dynamicType,
+                              const EmptyLink<Type>(),
+                              element);
+    }
+    if (element.isClass()) {
+      // TODO(karlklose): substitute type parameters.
+      return element.computeType(compiler);
+    }
   }
   Type type = compiler.types.lookup(name);
   if (type === null) {

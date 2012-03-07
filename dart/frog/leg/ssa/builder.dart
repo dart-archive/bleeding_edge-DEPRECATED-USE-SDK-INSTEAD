@@ -94,6 +94,10 @@ class Interceptors {
     return compiler.findHelper(const SourceString('unwrapException'));
   }
 
+  Element getClosureConverter() {
+    return compiler.findHelper(const SourceString('convertDartClosureToJS'));
+  }
+
   Element getTraceFromException() {
     return compiler.findHelper(const SourceString('getTraceFromException'));
   }

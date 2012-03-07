@@ -573,6 +573,7 @@ class ElementListener extends Listener {
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     Identifier name = popNode();
     TypeAnnotation returnType = popNode();
+    pushElement(new TypedefElement(name.source, compilationUnitElement));
   }
 
   void handleVoidKeyword(Token token) {
