@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
+import java.io.File;
 import java.net.URI;
 
 /**
@@ -67,9 +68,12 @@ public class OpenExternalFolderDialogAction extends AbstractInstrumentedAction i
     if (projectHandle.exists()) {
       ProjectUtils.selectAndReveal(projectHandle);
     } else if (!isNestedByAnExistingProject(path) && !nestsAnExistingProject(path)) {
-      URI location = URI.create(directory);
-      ProjectUtils.createNewProject(name, projectHandle, ProjectType.NONE, location, window,
-          getShell());
+      URI location = new File(directory).toURI();
+
+      IProject project = ProjectUtils.createNewProject(name, projectHandle, ProjectType.NONE,
+          location, window, getShell());
+
+      ProjectUtils.selectAndReveal(project);
     }
   }
 
@@ -104,4 +108,5 @@ public class OpenExternalFolderDialogAction extends AbstractInstrumentedAction i
     }
     return false;
   }
+
 }
