@@ -411,8 +411,4 @@ class ClosureTranslator extends AbstractVisitor {
     node.visitChildren(this);
     inTryCatchOrFinally = false;
   }
-
-  visitLiteralMap(LiteralMap node) {
-    // TODO(ahe): Remove this method.
-  }
 }
