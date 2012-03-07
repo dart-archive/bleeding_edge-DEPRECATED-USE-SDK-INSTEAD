@@ -8,7 +8,7 @@ vars = {
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_chromium_revision": "29",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
-  "dartium_webkit_revision": "227",
+  "dartium_webkit_revision": "228",
   "dartium_tools_revision": "225",
 
   # Use this googlecode_url variable only if there is an internal mirror for it.
