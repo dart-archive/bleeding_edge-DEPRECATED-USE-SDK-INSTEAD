@@ -979,7 +979,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         unit = DartCompilerUtilities.resolveUnit(this);
       }
       if (unit != null) {
-        DartElementLocator locator = new DartElementLocator(this, offset, offset + length, false);
+        DartElementLocator locator = new DartElementLocator(this, offset, offset + length, true);
         DartElement element = locator.searchWithin(unit);
         if (element != null) {
           return new DartElement[] {element};

@@ -16,6 +16,13 @@ package com.google.dart.tools.ui.internal.callhierarchy;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeHierarchy;
+import com.google.dart.tools.core.search.SearchEngine;
+import com.google.dart.tools.core.search.SearchEngineFactory;
+import com.google.dart.tools.core.search.SearchException;
+import com.google.dart.tools.core.search.SearchFilter;
+import com.google.dart.tools.core.search.SearchListener;
+import com.google.dart.tools.core.search.SearchMatch;
+import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -26,39 +33,41 @@ import java.util.HashSet;
 
 public class DartImplementorFinder implements IImplementorFinder {
 
+  private class ImplementorsSearchListener implements SearchListener {
+    Collection<Type> implementors = new HashSet<Type>();
+
+    @Override
+    public void matchFound(SearchMatch match) {
+      if (match.getElement() instanceof Type) {
+        implementors.add((Type) match.getElement());
+      }
+    }
+  }
+
   @Override
   public Collection<Type> findImplementingTypes(Type type, IProgressMonitor progressMonitor) {
-    TypeHierarchy typeHierarchy;
-
-//    try {
-//      typeHierarchy = type.newTypeHierarchy(progressMonitor);
-//
-//      Type[] implementingTypes = typeHierarchy.getAllClasses();
-//      HashSet<Type> result = new HashSet<Type>(Arrays.asList(implementingTypes));
-//
-//      return result;
-//    } catch (DartModelException e) {
-//      DartToolsPlugin.log(e);
-//    }
-
-    return null;
+    SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
+    SearchScope scope = CallHierarchy.getDefault().getSearchScope();
+    ImplementorsSearchListener listener = new ImplementorsSearchListener();
+    SearchFilter filter = null;
+    try {
+      searchEngine.searchImplementors(type, scope, filter, listener, progressMonitor);
+    } catch (SearchException ex) {
+      DartToolsPlugin.log(ex);
+    }
+    return listener.implementors;
   }
 
   @Override
   public Collection<Type> findInterfaces(Type type, IProgressMonitor progressMonitor) {
-    TypeHierarchy typeHierarchy;
-
     try {
-      typeHierarchy = type.newSupertypeHierarchy(progressMonitor);
-
+      TypeHierarchy typeHierarchy = type.newSupertypeHierarchy(progressMonitor);
       Type[] interfaces = typeHierarchy.getAllSuperInterfaces(type);
       HashSet<Type> result = new HashSet<Type>(Arrays.asList(interfaces));
-
       return result;
     } catch (DartModelException e) {
       DartToolsPlugin.log(e);
     }
-
     return null;
   }
 }
