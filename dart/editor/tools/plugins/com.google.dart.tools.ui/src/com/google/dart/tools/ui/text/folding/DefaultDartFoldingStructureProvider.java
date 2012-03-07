@@ -1468,6 +1468,12 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
       return;
     }
 
+    // TODO (danrubel) Skip folding until scanning is more performant
+    DartX.todo();
+    if (ctx != null) {
+      return;
+    }
+
     Map additions = new HashMap();
     List deletions = new ArrayList();
     List updates = new ArrayList();
