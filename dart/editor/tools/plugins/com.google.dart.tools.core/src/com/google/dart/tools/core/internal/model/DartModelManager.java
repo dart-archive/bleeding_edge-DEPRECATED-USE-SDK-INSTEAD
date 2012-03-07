@@ -1273,9 +1273,6 @@ public class DartModelManager {
       // 
       // After the resources have been created, start analyzing the library
       //
-      if (DartCoreDebug.ANALYSIS_SERVER) {
-        SystemLibraryManagerProvider.getDefaultAnalysisServer().analyzeLibrary(libraryFile);
-      }
       return libraries[0];
     } catch (CoreException exception) {
       throw new DartModelException(exception);

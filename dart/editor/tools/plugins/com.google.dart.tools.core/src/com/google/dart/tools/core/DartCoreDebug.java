@@ -40,12 +40,12 @@ public class DartCoreDebug {
 
   // Performance measurement and reporting options.
 
+  public static final boolean PERF_ANALYSIS_FILESCAN = isOptionTrue("perf/analysis/filescan");
   public static final boolean PERF_INDEX = isOptionTrue("perf/index");
 
   // Experimental functionality options.
 
   public static final boolean ANALYSIS_SERVER = isOptionTrue("experimental/analysis/server");
-
   public static final boolean NEW_INDEXER = isOptionTrue("experimental/newIndexer");
 
   private static boolean isOptionTrue(String optionSuffix) {
