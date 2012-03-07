@@ -958,10 +958,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
               ['const expressions are not implemented']);
     }
     Node selector = node.send.selector;
-    if (selector.asTypeAnnotation() === null) {
-      cancel(
-          node, 'named constructors with type arguments are not implemented');
-    }
 
     FunctionElement constructor = resolveConstructor(node);
     handleArguments(node.send);
@@ -977,41 +973,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   FunctionElement resolveConstructor(NewExpression node) {
-    SourceString constructorName;
-    Node selector = node.send.selector;
-    Node typeName = selector.asTypeAnnotation().typeName;
-    if (typeName.asSend() !== null) {
-      SourceString className = typeName.asSend().receiver.asIdentifier().source;
-      SourceString name = typeName.asSend().selector.asIdentifier().source;
-      constructorName = Elements.constructConstructorName(className, name);
-    } else {
-      constructorName = typeName.asIdentifier().source;
+    FunctionElement constructor =
+      node.accept(new ConstructorResolver(compiler, this));
+    if (constructor === null) {
+      error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
     }
-    Element elt = resolveTypeRequired(selector);
-    if (elt === null) {
-      error(selector, MessageKind.CANNOT_RESOLVE_TYPE, [selector]);
-      return null;
-    }
-    if (elt.isTypedef()) {
-      error(selector, MessageKind.CANNOT_INSTANTIATE_TYPEDEF, [cls.name]);
-      return null;
-    }
-    if (!elt.isClass()) {
-      error(selector, MessageKind.NOT_A_TYPE, [cls.name]);
-      return null;
-    }
-    ClassElement cls = elt;
-    cls.resolve(compiler);
-    if (cls.isInterface() && (cls.defaultClass === null)) {
-      error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
-    }
-    FunctionElement constructor = cls.lookupConstructor(constructorName);
-    if (constructor !== null) return constructor;
-    if (constructorName == cls.name && node.send.argumentsNode.isEmpty()) {
-      return cls.getSynthesizedConstructor();
-    }
-    error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
-    return null;
+    return constructor;
   }
 
   Element resolveTypeRequired(Node node) {
@@ -1435,6 +1402,83 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   ClassElement get currentClass() {
     return enclosingElement.isMember()
       ? enclosingElement.enclosingElement : null;
+  }
+}
+
+class ConstructorResolver extends CommonResolverVisitor<Element> {
+  final ResolverVisitor resolver;
+  ConstructorResolver(Compiler compiler, this.resolver) : super(compiler);
+
+  visitNode(Node node) {
+    throw 'not supported';
+  }
+
+  visitNewExpression(NewExpression node) {
+    Node selector = node.send.selector;
+    Element e = visit(selector);
+    if (e !== null && e.kind === ElementKind.CLASS) {
+      ClassElement cls = e;
+      cls.resolve(compiler);
+      compiler.resolver.toResolve.add(cls);
+      if (cls.isInterface() && (cls.defaultClass === null)) {
+        error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
+      }
+      FunctionElement constructor = cls.lookupConstructor(cls.name);
+      if (constructor === null && node.send.argumentsNode.isEmpty()) {
+        e = cls.getSynthesizedConstructor();
+      } else {
+        e = constructor;
+      }
+    }
+    return e;
+  }
+
+  visitTypeAnnotation(TypeAnnotation node) {
+    // TODO(ahe): Do not ignore type arguments.
+    return visit(node.typeName);
+  }
+
+  visitSend(Send node) {
+    Element e = visit(node.receiver);
+    if (e === null) return null; // TODO(ahe): Return erroneous element.
+
+    if (e.kind === ElementKind.CLASS) {
+      ClassElement cls = e;
+      cls.resolve(compiler);
+      compiler.resolver.toResolve.add(cls);
+      if (cls.isInterface() && (cls.defaultClass === null)) {
+        error(node.receiver, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
+              [cls.name]);
+      }
+      Identifier name = node.selector.asIdentifier();
+      if (name === null) {
+        internalError(node.selector, 'unexpected node');
+      }
+      SourceString constructorName =
+        Elements.constructConstructorName(cls.name, name.source);
+      FunctionElement constructor = cls.lookupConstructor(constructorName);
+      if (constructor === null) {
+        error(name, MessageKind.CANNOT_FIND_CONSTRUCTOR, [name]);
+      }
+      e = constructor;
+    } else {
+      internalError(node.resolve, 'unexpected element $e');
+    }
+    return e;
+  }
+
+  Element visitIdentifier(Identifier node) {
+    SourceString name = node.source;
+    Element e = resolver.lookup(node, name);
+    if (e === null) {
+      error(node, MessageKind.CANNOT_RESOLVE, [name]);
+      // TODO(ahe): Return erroneous element.
+    } else if (e.kind === ElementKind.TYPEDEF) {
+      error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF, [name]);
+    } else if (e.kind !== ElementKind.CLASS) {
+      error(node, MessageKind.NOT_A_TYPE, [name]);
+    }
+    return e;
   }
 }
 

@@ -106,7 +106,7 @@ class Element implements Hashable {
     return element;
   }
 
-  toString() => '$kind($name)';
+  toString() => '$kind(${name.slowToString()})';
 }
 
 class ContainerElement extends Element {

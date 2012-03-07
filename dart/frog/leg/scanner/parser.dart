@@ -297,8 +297,7 @@ class Parser {
     int identifierCount = 1;
     if (isIdentifier(token)) {
       token = parseIdentifier(token);
-      while (optional('.', token)) {
-        // TODO(ahe): Validate that there are at most two identifiers.
+      if (optional('.', token)) {
         token = parseIdentifier(token.next);
         ++identifierCount;
       }
