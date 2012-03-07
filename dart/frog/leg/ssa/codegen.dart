@@ -186,7 +186,7 @@ class SsaCodeGenerator implements HVisitor {
     if (name !== null) return name;
 
     String prefix;
-    if (element !== null) {
+    if (element !== null && !element.name.isEmpty()) {
       prefix = element.name.slowToString();
     } else {
       prefix = 'v';
@@ -671,7 +671,7 @@ class SsaCodeGenerator implements HVisitor {
     } else {
       buffer.add(compiler.namer.CURRENT_ISOLATE);
       buffer.add(".");
-      buffer.add(name);      
+      buffer.add(name);
     }
   }
 

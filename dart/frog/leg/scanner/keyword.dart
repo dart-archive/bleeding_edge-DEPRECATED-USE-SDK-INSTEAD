@@ -139,7 +139,7 @@ class Keyword implements SourceString {
   String slowToString() => syntax;
   String get stringValue() => syntax;
 
-  bool isEmtpy() => false;
+  bool isEmpty() => false;
 }
 
 /**
