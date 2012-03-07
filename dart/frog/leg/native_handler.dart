@@ -47,7 +47,7 @@ void maybeEnableNative(Compiler compiler,
 void checkAllowedLibrary(ElementListener listener, Token token) {
   LibraryElement currentLibrary = listener.compilationUnitElement.getLibrary();
   if (!currentLibrary.canUseNative) {
-    listener.recoverableError(token);
+    listener.recoverableError("Unexpected token", token: token);
   }
 }
 
