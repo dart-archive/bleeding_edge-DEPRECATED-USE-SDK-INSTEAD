@@ -987,11 +987,20 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       constructorName = typeName.asIdentifier().source;
     }
-    ClassElement cls = resolveTypeRequired(selector);
-    if (cls === null) {
+    Element elt = resolveTypeRequired(selector);
+    if (elt === null) {
       error(selector, MessageKind.CANNOT_RESOLVE_TYPE, [selector]);
       return null;
     }
+    if (elt.isTypedef()) {
+      error(selector, MessageKind.CANNOT_INSTANTIATE_TYPEDEF, [cls.name]);
+      return null;
+    }
+    if (!elt.isClass()) {
+      error(selector, MessageKind.NOT_A_TYPE, [cls.name]);
+      return null;
+    }
+    ClassElement cls = elt;
     cls.resolve(compiler);
     if (cls.isInterface() && (cls.defaultClass === null)) {
       error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
@@ -1005,12 +1014,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return null;
   }
 
-  ClassElement resolveTypeRequired(Node node) {
+  Element resolveTypeRequired(Node node) {
     bool old = typeRequired;
     typeRequired = true;
-    ClassElement cls = visit(node);
+    Element element = visit(node);
     typeRequired = old;
-    return cls;
+    return element;
   }
 
   visitModifiers(Modifiers node) {

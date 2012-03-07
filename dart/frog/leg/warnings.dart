@@ -124,6 +124,9 @@ class MessageKind {
   static final CANNOT_INSTANTIATE_INTERFACE = const MessageKind(
       "cannot instantiate interface '#{1}'");
 
+  static final CANNOT_INSTANTIATE_TYPEDEF = const MessageKind(
+      "cannot instantiate typedef '#{1}'");
+
   static final NO_DEFAULT_CLASS = const MessageKind(
       "no default class on enclosing interface '#{1}'");
 
