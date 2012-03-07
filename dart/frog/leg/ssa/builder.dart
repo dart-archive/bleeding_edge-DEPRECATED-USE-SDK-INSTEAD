@@ -617,7 +617,7 @@ class BreakHandlerEntry {
 
 interface BreakHandler default BreakHandlerImpl {
   BreakHandler(SsaBuilder builder, StatementElement target);
-  void addBreak(HBreak breakInstruction);
+  void addBreak(HBreak breakInstruction, LocalsHandler locals);
   void forEachBreak(Function action);
   void close();
   List<SourceString> labels();
@@ -628,7 +628,9 @@ interface BreakHandler default BreakHandlerImpl {
 // handler associated with it.
 class NullBreakHandler implements BreakHandler {
   const NullBreakHandler();
-  void addBreak(HBreak breakInstruction) { unreachable(); }
+  void addBreak(HBreak breakInstruction, LocalsHandler locals) {
+    unreachable();
+  }
   void forEachBreak(Function ignored) { }
   void close() { }
   List<SourceString> labels() => const <SourceString>[];
@@ -650,8 +652,7 @@ class BreakHandlerImpl implements BreakHandler {
     builder.breakTargets[target] = this;
   }
 
-  void addBreak(HBreak breakInstruction,
-                LocalsHandler locals) {
+  void addBreak(HBreak breakInstruction, LocalsHandler locals) {
     breaks.add(new BreakHandlerEntry(breakInstruction, locals));
   }
 

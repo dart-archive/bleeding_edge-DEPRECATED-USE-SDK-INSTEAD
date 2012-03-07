@@ -30,6 +30,15 @@ foo(a, b, c, d) {
 }
 """;
 
+final String STRING_FOLDING = """
+void main() {
+  print("foo" + 1);
+  print("geez" + (-1));
+  print("bar" + true);
+  print("toto" + false);
+  print("str" + "ingie");
+}
+""";
 
 void compileAndTest(String code, String entry, RegExp regexp) {
   String generated = compile(code, entry);
@@ -54,4 +63,11 @@ main() {
 
   regexp = const RegExp("'foo' === d");
   Expect.isTrue(regexp.hasMatch(generated));
+
+  generated = compile(STRING_FOLDING);
+  Expect.isTrue(const RegExp("'foo1'").hasMatch(generated));
+  Expect.isTrue(const RegExp("'geez-1'").hasMatch(generated));
+  Expect.isTrue(const RegExp("'bartrue'").hasMatch(generated));
+  Expect.isTrue(const RegExp("'totofalse'").hasMatch(generated));
+  Expect.isTrue(const RegExp("'stringie'").hasMatch(generated));
 }

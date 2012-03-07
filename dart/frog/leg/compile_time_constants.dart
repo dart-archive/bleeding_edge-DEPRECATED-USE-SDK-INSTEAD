@@ -79,7 +79,7 @@ class NullConstant extends PrimitiveConstant {
 
   // The magic constant has no meaning. It is just a random value.
   int hashCode() => 785965825;
-  DartString toDartString() => const DartString.literal(null);
+  DartString toDartString() => const LiteralDartString("null");
 }
 
 class IntConstant extends PrimitiveConstant {
@@ -286,7 +286,7 @@ class TrueConstant extends BoolConstant {
   // The magic constant is just a random value. It does not have any
   // significance.
   int hashCode() => 499;
-  String toDartString() => const DartString("true");
+  DartString toDartString() => const LiteralDartString("true");
 }
 
 class FalseConstant extends BoolConstant {
@@ -304,7 +304,7 @@ class FalseConstant extends BoolConstant {
   // The magic constant is just a random value. It does not have any
   // significance.
   int hashCode() => 536555975;
-  String toDartString() => const DartString("false");
+  DartString toDartString() => const LiteralDartString("false");
 }
 
 class StringConstant extends PrimitiveConstant {

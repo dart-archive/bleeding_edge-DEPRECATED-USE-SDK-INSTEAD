@@ -143,9 +143,9 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   Element lengthInterceptor;
 
   SsaCheckInserter(Compiler compiler) {
-    SourceString name = const SourceString('length');
+    SourceString lengthString = const SourceString('length');
     lengthInterceptor =
-        compiler.builder.interceptors.getStaticGetInterceptor(name);
+        compiler.builder.interceptors.getStaticGetInterceptor(lengthString);
   }
 
   void visitGraph(HGraph graph) {
