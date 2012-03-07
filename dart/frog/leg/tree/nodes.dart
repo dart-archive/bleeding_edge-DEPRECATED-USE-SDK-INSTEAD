@@ -552,10 +552,12 @@ class FunctionExpression extends Expression {
   accept(Visitor visitor) => visitor.visitFunctionExpression(this);
 
   visitChildren(Visitor visitor) {
+    if (modifiers !== null) modifiers.accept(visitor);
+    if (returnType !== null) returnType.accept(visitor);
     if (name !== null) name.accept(visitor);
     if (parameters !== null) parameters.accept(visitor);
+    if (initializers !== null) initializers.accept(visitor);
     if (body !== null) body.accept(visitor);
-    if (returnType !== null) returnType.accept(visitor);
   }
 
   bool hasBody() {

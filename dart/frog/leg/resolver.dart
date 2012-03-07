@@ -1442,6 +1442,9 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     Element e = visit(node.receiver);
     if (e === null) return null; // TODO(ahe): Return erroneous element.
 
+    Identifier name = node.selector.asIdentifier();
+    if (name === null) internalError(node.selector, 'unexpected node');
+
     if (e.kind === ElementKind.CLASS) {
       ClassElement cls = e;
       cls.resolve(compiler);
@@ -1450,10 +1453,6 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         error(node.receiver, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
               [cls.name]);
       }
-      Identifier name = node.selector.asIdentifier();
-      if (name === null) {
-        internalError(node.selector, 'unexpected node');
-      }
       SourceString constructorName =
         Elements.constructConstructorName(cls.name, name.source);
       FunctionElement constructor = cls.lookupConstructor(constructorName);
@@ -1461,8 +1460,17 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
         error(name, MessageKind.CANNOT_FIND_CONSTRUCTOR, [name]);
       }
       e = constructor;
+    } else if (e.kind === ElementKind.PREFIX) {
+      PrefixElement prefix = e;
+      e = prefix.library.lookupLocalMember(name.source);
+      if (e === null) {
+        error(name, MessageKind.CANNOT_RESOLVE, [name]);
+        // TODO(ahe): Return erroneous element.
+      } else if (e.kind !== ElementKind.CLASS) {
+        error(node, MessageKind.NOT_A_TYPE, [name]);
+      }
     } else {
-      internalError(node.resolve, 'unexpected element $e');
+      internalError(node.receiver, 'unexpected element $e');
     }
     return e;
   }
@@ -1475,7 +1483,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       // TODO(ahe): Return erroneous element.
     } else if (e.kind === ElementKind.TYPEDEF) {
       error(node, MessageKind.CANNOT_INSTANTIATE_TYPEDEF, [name]);
-    } else if (e.kind !== ElementKind.CLASS) {
+    } else if (e.kind !== ElementKind.CLASS && e.kind !== ElementKind.PREFIX) {
       error(node, MessageKind.NOT_A_TYPE, [name]);
     }
     return e;
