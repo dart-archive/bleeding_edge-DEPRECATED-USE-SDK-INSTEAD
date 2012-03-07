@@ -190,7 +190,7 @@ class Namer {
     return '${isolateAccess(element)}\$bailout';
   }
 
-  String operatorIs(ClassElement element) {
+  String operatorIs(Element element) {
     return 'is\$${getName(element)}';
   }
 }
