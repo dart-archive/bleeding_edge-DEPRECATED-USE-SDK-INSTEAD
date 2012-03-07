@@ -68,11 +68,11 @@ public class ResourceServer implements IResourceResolver {
     try {
       String path;
 
-      if (file.isLinked()) {
-        path = file.getRawLocation().toOSString();
-      } else {
-        path = file.getFullPath().toPortableString();
-      }
+//      if (file.isLinked()) {
+      path = file.getRawLocation().toOSString();
+//      } else {
+//        path = file.getFullPath().toPortableString();
+//      }
 
       URI uri = new URI("http", null, serverSocket.getInetAddress().getHostAddress(),
           serverSocket.getLocalPort(), path, null, null);

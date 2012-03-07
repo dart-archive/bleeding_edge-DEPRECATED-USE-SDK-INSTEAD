@@ -181,9 +181,21 @@ build system.  The PDE build system has to run under Eclipse.
                 <include name="ui_lib/**"/>
             </fileset>
         </copy>
-        
-        <!-- copy dart.js to Total -->
-        <copy todir="${samples.out.dir}/Total/client" file="${build.source.root}/client/dart.js"/>
+
+        <!-- copy the dart.js file into the individual samples' directories -->
+        <copy todir="${samples.out.dir}" file="${build.source.root}/client/dart.js"/>
+
+        <!-- adjust dart.js references -->
+        <replace dir="${samples.out.dir}"
+          token="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"
+          value="../dart.js">
+            <include name="**/*.html"/>
+        </replace>
+        <replace dir="${samples.out.dir}"
+          token='"dart.js"'
+          value='"../../dart.js"'>
+            <include name="**/*.html"/>
+        </replace>
 
         <!-- copy uri to ui_lib -->
         <copy todir="${samples.out.dir}/ui_lib">
