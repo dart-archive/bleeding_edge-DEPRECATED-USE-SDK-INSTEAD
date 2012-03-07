@@ -148,6 +148,7 @@ class LibraryElement extends CompilationUnitElement {
   Link<ScriptTag> tags = const EmptyLink<ScriptTag>();
   ScriptTag libraryTag;
   Map<SourceString, Element> elements;
+  bool canUseNative = false;
 
   LibraryElement(Script script)
       : elements = new Map<SourceString, Element>(),

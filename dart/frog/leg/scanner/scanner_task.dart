@@ -92,7 +92,7 @@ class ScannerTask extends CompilerTask {
           newLibrary = true;
           Script script = compiler.readScript(uri, node);
           LibraryElement element = new LibraryElement(script);
-          native.checkNativeSupport(compiler, element, uri);
+          native.maybeEnableNative(compiler, element, uri);
           return element;
         });
     if (newLibrary) {

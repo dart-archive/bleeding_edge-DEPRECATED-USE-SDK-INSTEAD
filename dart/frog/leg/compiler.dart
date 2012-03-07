@@ -259,7 +259,7 @@ class Compiler implements DiagnosticListener {
   void runCompiler(Script script) {
     scanBuiltinLibraries();
     mainApp = new LibraryElement(script);
-    native.checkNativeSupport(this, mainApp, null);
+    native.maybeEnableNative(this, mainApp, null);
 
     Element element;
     withCurrentElement(mainApp, () {

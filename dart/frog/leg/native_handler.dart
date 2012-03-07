@@ -31,7 +31,7 @@ void processNativeClasses(Compiler compiler,
   }
 }
 
-void checkNativeSupport(Compiler compiler,
+void maybeEnableNative(Compiler compiler,
                         LibraryElement library,
                         Uri uri) {
   String libraryName = uri.toString();
@@ -40,11 +40,20 @@ void checkNativeSupport(Compiler compiler,
       || libraryName == 'dart:html') {
     library.define(new ForeignElement(
         const SourceString('native'), library), compiler);
+    library.canUseNative = true;
+  }
+}
+
+void checkAllowedLibrary(ElementListener listener, Token token) {
+  LibraryElement currentLibrary = listener.compilationUnitElement.getLibrary();
+  if (!currentLibrary.canUseNative) {
+    listener.recoverableError(token);
   }
 }
 
 Token handleNativeBlockToSkip(Listener listener, Token token) {
- token = token.next;
+  checkAllowedLibrary(listener, token);
+  token = token.next;
   if (token.kind === STRING_TOKEN) {
     token = token.next;
   }
@@ -56,6 +65,7 @@ Token handleNativeBlockToSkip(Listener listener, Token token) {
 }
 
 Token handleNativeClassBodyToSkip(Listener listener, Token token) {
+  checkAllowedLibrary(listener, token);
   listener.handleIdentifier(token);
   token = token.next;
   if (token.kind !== STRING_TOKEN) {
@@ -71,6 +81,7 @@ Token handleNativeClassBodyToSkip(Listener listener, Token token) {
 }
 
 Token handleNativeClassBody(Listener listener, Token token) {
+  checkAllowedLibrary(listener, token);
   token = token.next;
   if (token.kind !== STRING_TOKEN) {
     listener.unexpected(token);
@@ -81,6 +92,7 @@ Token handleNativeClassBody(Listener listener, Token token) {
 }
 
 Token handleNativeFunctionBody(ElementListener listener, Token token) {
+  checkAllowedLibrary(listener, token);
   Token begin = token;
   listener.beginExpressionStatement(token);
   listener.handleIdentifier(token);

@@ -848,7 +848,8 @@ class ElementListener extends Listener {
 }
 
 class NodeListener extends ElementListener {
-  NodeListener(DiagnosticListener listener) : super(listener, null);
+  NodeListener(DiagnosticListener listener, CompilationUnitElement element)
+    : super(listener, element);
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,
@@ -1423,6 +1424,7 @@ class PartialFunctionElement extends FunctionElement {
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     cachedNode = parse(listener,
+                       getCompilationUnit(),
                        (p) => p.parseFunction(beginToken, getOrSet));
     return cachedNode;
   }
@@ -1442,16 +1444,19 @@ class PartialFieldListElement extends VariableListElement {
 
   VariableDefinitions parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    cachedNode =
-        parse(listener, (p) => p.parseVariablesDeclaration(beginToken));
+    cachedNode = parse(listener,
+                       getCompilationUnit(),
+                       (p) => p.parseVariablesDeclaration(beginToken));
     return cachedNode;
   }
 
   Token position() => beginToken;
 }
 
-Node parse(DiagnosticListener diagnosticListener, doParse(Parser parser)) {
-  NodeListener listener = new NodeListener(diagnosticListener);
+Node parse(DiagnosticListener diagnosticListener,
+           CompilationUnitElement element,
+           doParse(Parser parser)) {
+  NodeListener listener = new NodeListener(diagnosticListener, element);
   doParse(new Parser(listener));
   Node node = listener.popNode();
   assert(listener.nodes.isEmpty());

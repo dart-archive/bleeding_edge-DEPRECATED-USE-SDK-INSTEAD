@@ -39,8 +39,9 @@ class MemberListener extends NodeListener {
   final ClassElement enclosingElement;
 
   MemberListener(DiagnosticListener listener,
-                 [Element this.enclosingElement = null])
-    : super(listener);
+                 Element enclosingElement)
+    : this.enclosingElement = enclosingElement,
+      super(listener, enclosingElement.getCompilationUnit());
 
   bool isConstructorName(Node nameNode) {
     if (enclosingElement === null ||

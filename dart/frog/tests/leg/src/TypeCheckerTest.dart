@@ -371,7 +371,7 @@ analyze(String text, [expectedWarnings]) {
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler);
+  NodeListener listener = new NodeListener(compiler, null);
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
@@ -388,7 +388,7 @@ analyzeIn(ClassElement classElement, String text, [expectedWarnings]) {
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler);
+  NodeListener listener = new NodeListener(compiler, null);
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
