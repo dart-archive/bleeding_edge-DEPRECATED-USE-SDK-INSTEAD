@@ -11,7 +11,6 @@ import java.io.IOException;
 
 /**
  * @author mrrussell@google.com (Mark Russell)
- *
  */
 public class TestGererateArtifacts extends TestCase {
 
@@ -31,12 +30,10 @@ public class TestGererateArtifacts extends TestCase {
       stageFile.createNewFile();
       sampleFile.createNewFile();
       baseFile.createNewFile();
-      BufferedWriter w = null;
       createFile(baseFile, "name");
       createFile(sampleFile, "name");
       createFile(stageFile, "name");
-    }
-    else {
+    } else {
       System.out.println("extraDirName is zero length");
     }
   }
@@ -50,13 +47,11 @@ public class TestGererateArtifacts extends TestCase {
     try {
       w = new BufferedWriter(new FileWriter(baseFile));
       w.write("test string for " + name);
-    }
-    finally {
+    } finally {
       if (w != null) {
         try {
           w.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
           //intentionally ignored
         }
       }
