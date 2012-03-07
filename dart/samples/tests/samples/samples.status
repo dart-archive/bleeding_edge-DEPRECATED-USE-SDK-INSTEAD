@@ -71,3 +71,5 @@ lib/view/ViewTest: Skip
 [ $component == leg ]
 *: Skip
 
+[ $component == legium ]
+*: Skip
