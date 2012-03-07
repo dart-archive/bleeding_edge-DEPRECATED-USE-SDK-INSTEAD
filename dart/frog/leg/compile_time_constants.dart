@@ -6,30 +6,18 @@ class Constant implements Hashable {
   const Constant();
 
   bool isNull() => false;
-  /** [isInt] implies [isNum]. */
-  bool isInt() => false;
-  /** [isDouble] implies [isNum]. */
-  bool isDouble() => false;
   bool isBool() => false;
+  bool isTrue() => false;
+  bool isFalse() => false;
+  bool isInt() => false;
+  bool isDouble() => false;
+  bool isNum() => false;
   bool isString() => false;
-  /** [isList] implies [isObject]. */
   bool isList() => false;
-  /** [isMap] implies [isObject]. */
   bool isMap() => false;
   bool isConstructedObject() => false;
-
-  bool isNum() => isInt() || isDouble();
-  bool isObject() => isList() || isMap() || isConstructedObject();
-  bool isTrue() {
-    if (!isBool()) return false;
-    BoolConstant boolConstant = this;
-    return boolConstant.value;
-  }
-  bool isFalse() {
-    if (!isBool()) return false;
-    BoolConstant boolConstant = this;
-    return !boolConstant.value;
-  }
+  /** Returns true if the constant is a list, a map or a constructed object. */
+  bool isObject() => false;
 
   /**
    * Returns [:null:] if the operation is not supported on this constant.
@@ -82,7 +70,13 @@ class NullConstant extends PrimitiveConstant {
   DartString toDartString() => const LiteralDartString("null");
 }
 
-class IntConstant extends PrimitiveConstant {
+class NumConstant extends PrimitiveConstant {
+  abstract num get value();
+  const NumConstant();
+  bool isNum() => true;
+}
+
+class IntConstant extends NumConstant {
   final int value;
   factory IntConstant(int value) {
     switch(value) {
@@ -179,7 +173,7 @@ class IntConstant extends PrimitiveConstant {
   DartString toDartString() => new DartString.literal(value.toString());
 }
 
-class DoubleConstant extends PrimitiveConstant {
+class DoubleConstant extends NumConstant {
   final double value;
   factory DoubleConstant(double value) {
     if (value.isNaN()) {
@@ -354,6 +348,7 @@ class ObjectConstant extends Constant {
   final Type type;
 
   ObjectConstant(this.type);
+  bool isObject() => true;
 }
 
 class ListConstant extends ObjectConstant {
