@@ -59,7 +59,7 @@ class PrimitiveConstant extends Constant {
   bool operator ==(var other) {
     if (other is !PrimitiveConstant) return false;
     PrimitiveConstant otherPrimitive = other;
-    // We use == instead of === so that DartStrings compare correctly. 
+    // We use == instead of === so that DartStrings compare correctly.
     return value == otherPrimitive.value;
   }
 
@@ -121,7 +121,7 @@ class IntConstant extends PrimitiveConstant {
           case "~/": return new IntConstant(value ~/ right);
           case "|": return new IntConstant(value | right);
           case "&": return new IntConstant(value & right);
-          case "^": return new IntConstant(value ^ right);        
+          case "^": return new IntConstant(value ^ right);
           case "<<":
             // TODO(floitsch): find a better way to guard against shifts to the
             // left.
@@ -174,7 +174,7 @@ class DoubleConstant extends PrimitiveConstant {
     } else if (value == -double.INFINITY) {
       buffer.add("(-1/0)");
     } else {
-      buffer.add("($value)");        
+      buffer.add("($value)");
     }
   }
 
@@ -260,7 +260,7 @@ class StringConstant extends PrimitiveConstant {
   StringConstant(this.value) {
     // TODO(floitsch): compute hashcode without calling toString() on the
     // DartString.
-    _hashCode = value.toString().hashCode();
+    _hashCode = value.slowToString().hashCode();
   }
   bool isString() => true;
 
@@ -306,7 +306,7 @@ class ListConstant extends ObjectConstant {
   int _hashCode;
 
   ListConstant(Type type, this.entries) : super(type) {
-    // TODO(floitsch): create a better hash. 
+    // TODO(floitsch): create a better hash.
     int hash = 0;
     for (Constant input in entries) hash ^= input.hashCode();
     _hashCode = hash;
@@ -353,7 +353,7 @@ class ConstructedConstant extends ObjectConstant {
 
   ConstructedConstant(Type type, this.fields) : super(type) {
     assert(type !== null);
-    // TODO(floitsch): create a better hash. 
+    // TODO(floitsch): create a better hash.
     int hash = 0;
     for (Constant field in fields) {
       hash ^= field.hashCode();
@@ -534,7 +534,7 @@ class ConstantHandler extends CompilerTask {
 
   StringBuffer writeJsCode(StringBuffer buffer, Constant value) {
     value.writeJsCode(buffer, this);
-    return buffer;    
+    return buffer;
   }
 
   StringBuffer writeJsCodeForVariable(StringBuffer buffer,
@@ -554,7 +554,7 @@ class ConstantHandler extends CompilerTask {
       String name = compiledConstants[constant];
       buffer.add("${compiler.namer.ISOLATE}.prototype.$name");
     } else {
-      writeJsCode(buffer, constant);      
+      writeJsCode(buffer, constant);
     }
     return buffer;
   }
@@ -640,11 +640,11 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     // there.
     return node.value ? const BoolConstant(true) : const BoolConstant(false);
   }
-  
+
   Constant visitLiteralDouble(LiteralDouble node) {
     return new DoubleConstant(node.value);
   }
-  
+
   Constant visitLiteralInt(LiteralInt node) {
     return new IntConstant(node.value);
   }

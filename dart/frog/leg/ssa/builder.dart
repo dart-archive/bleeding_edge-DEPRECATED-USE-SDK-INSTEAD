@@ -203,8 +203,8 @@ class LocalsHandler {
   HInstruction createBox() {
     // TODO(floitsch): Clean up this hack. Should we create a box-object by
     // just creating an empty object literal?
-    HInstruction box = new HForeign(const SourceString("{}"),
-                                    const SourceString('Object'),
+    HInstruction box = new HForeign(const LiteralDartString("{}"),
+                                    const LiteralDartString('Object'),
                                     <HInstruction>[]);
     builder.add(box);
     return box;
@@ -1262,14 +1262,6 @@ class SsaBuilder implements Visitor {
         new HIfBlockInformation(condition, thenGraph, elseGraph, joinBlock);
   }
 
-  SourceString unquote(LiteralString literal, int start) {
-    String str = '${literal.value.slowToString()}';
-    int quotes = 1;
-    String quote = str[start];
-    while (str[quotes + start] === quote) quotes++;
-    return new SourceString(str.substring(quotes + start, str.length - quotes));
-  }
-
   void visitLogicalAndOr(Send node, Operator op) {
     // x && y is transformed into:
     //   t0 = boolify(x);
@@ -1753,8 +1745,7 @@ class SsaBuilder implements Visitor {
         LiteralString literal = node.arguments.tail.head;
         compiler.ensure(literal is LiteralString);
         compiler.ensure(type is LiteralString);
-        compiler.ensure(literal.value.slowToString()[0] == '@');
-        push(new HForeign(unquote(literal, 1), unquote(type, 0), inputs));
+        push(new HForeign(literal.dartString, type.dartString, inputs));
         break;
       case "UNINTERCEPTED":
         Link<Node> link = node.arguments;
@@ -1774,8 +1765,9 @@ class SsaBuilder implements Visitor {
         addGenericSendArgumentsToList(node.arguments, inputs);
         String name = compiler.namer.instanceMethodName(
             Namer.OPERATOR_EQUALS, 1);
-        push(new HForeign(
-            new SourceString('\$0.$name'), const SourceString('bool'), inputs));
+        push(new HForeign(new DartString.literal('\$0.$name'),
+                          const LiteralDartString('bool'),
+                          inputs));
         break;
       case "native":
         native.handleSsaNative(this, node);
@@ -2272,9 +2264,9 @@ class SsaBuilder implements Visitor {
       // There was at least one reachable break, so the label is needed.
       HLabeledBlockInformation blockInfo =
           new HLabeledBlockInformation(bodyGraph, joinBlock, handler.labels());
-      handler.close();
       entryBlock.labeledBlockInformation = blockInfo;
     }
+    handler.close();
   }
 
   visitLiteralMap(LiteralMap node) {

@@ -185,6 +185,18 @@ class HGraph {
     return addConstant(new BoolConstant(value));
   }
 
+  HLiteral addNewLiteralString(DartString value) {
+    if (stringLiterals === null) stringLiterals = new Map<String, HLiteral>();
+    String key = value.slowToString();  // We need something hashable.
+    HLiteral result = stringLiterals[key];
+    if (result === null) {
+      result = new HLiteral.internal(value, HType.STRING);
+      entry.addAtExit(result);
+      stringLiterals[key] = result;
+    }
+    return result;
+  }
+
   HConstant addConstantNull() {
     return addConstant(const NullConstant());
   }
@@ -1266,8 +1278,8 @@ class HFieldSet extends HInstruction {
 }
 
 class HForeign extends HInstruction {
-  final SourceString code;
-  final SourceString declaredType;
+  final DartString code;
+  final DartString declaredType;
   HForeign(this.code, this.declaredType, List<HInstruction> inputs)
       : super(inputs) {
     // Inputs for foreigns must not be generated at use site. In particular
@@ -1293,7 +1305,8 @@ class HForeign extends HInstruction {
 class HForeignNew extends HForeign {
   ClassElement element;
   HForeignNew(this.element, List<HInstruction> inputs)
-      : super(const SourceString("new"), const SourceString("Object"), inputs);
+      : super(const LiteralDartString("new"),
+              const LiteralDartString("Object"), inputs);
   accept(HVisitor visitor) => visitor.visitForeignNew(this);
 }
 

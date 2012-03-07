@@ -719,18 +719,19 @@ class StringQuoting {
   }
 }
 
-
 class DartString implements Iterable<int> {
+  // This is a convenience constructor. If you need a const literal DartString,
+  // use [const LiteralDartString(string)] directly.
   factory DartString.literal(String string) => new LiteralDartString(string);
   factory DartString.rawString(SourceString source, int length) =>
       new RawSourceDartString(source, length);
   factory DartString.escapedString(SourceString source, int length) =>
       new EscapedSourceDartString(source, length);
-  DartString();
+  const DartString();
   abstract int get length();
   bool isEmpty() => length == 0;
   abstract Iterator<int> iterator();
-  abstract String toString();
+  abstract String slowToString();
 
   bool operator ==(var other) {
     if (other is !DartString) return false;
@@ -743,15 +744,16 @@ class DartString implements Iterable<int> {
     }
     return true;
   }
+  String toString() => "DartString#${length()}:${slowToString()}";
   abstract SourceString get source();
 }
 
 class LiteralDartString extends DartString {
   final String string;
-  LiteralDartString(this.string);
+  const LiteralDartString(this.string);
   int get length() => string.length;
   Iterator<int> iterator() => new StringCodeIterator(string);
-  String toString() => string;
+  String slowToString() => string;
   SourceString get source() => new StringWrapper(string);
 }
 
@@ -766,7 +768,7 @@ class SourceBasedDartString extends DartString {
 class RawSourceDartString extends SourceBasedDartString {
   RawSourceDartString(source, length) : super(source, length);
   Iterator<int> iterator() => source.iterator();
-  String toString() {
+  String slowToString() {
     if (toStringCache !== null) return toStringCache;
     toStringCache  = source.slowToString();
     return toStringCache;
@@ -779,12 +781,12 @@ class EscapedSourceDartString extends SourceBasedDartString {
     if (toStringCache !== null) return new StringCodeIterator(toStringCache);
     return new StringEscapeIterator(source);
   }
-  String toString() {
+  String slowToString() {
     if (toStringCache !== null) return toStringCache;
     StringBuffer buffer = new StringBuffer();
     StringEscapeIterator it = new StringEscapeIterator(source);
     while (it.hasNext()) {
-      buffer.add(new String.fromCharCodes(<int>[it.next()]));
+      buffer.addCharCode(it.next());
     }
     toStringCache = buffer.toString();
     return toStringCache;
@@ -804,12 +806,12 @@ class ConsDartString extends DartString {
 
   Iterator<int> iterator() => new ConsDartStringIterator(this);
 
-  String toString() {
+  String slowToString() {
     if (toStringCache !== null) return toStringCache;
-    toStringCache = left.toString().concat(right.toString());
+    toStringCache = left.slowToString().concat(right.slowToString());
     return toStringCache;
   }
-  SourceString get source() => new StringWrapper(toString());
+  SourceString get source() => new StringWrapper(slowToString());
 }
 
 class ConsDartStringIterator implements Iterator<int> {

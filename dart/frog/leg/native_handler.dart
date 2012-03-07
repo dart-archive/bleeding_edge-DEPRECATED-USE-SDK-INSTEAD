@@ -188,9 +188,9 @@ void handleSsaNative(SsaBuilder builder, Send node) {
 
     HInstruction thenInstruction;
     void visitThen() {
-      SourceString jsCode = new SourceString(nativeMethodCall);
+      DartString jsCode = new DartString.literal(nativeMethodCall);
       thenInstruction =
-          new HForeign(jsCode, const SourceString('Object'), inputs);
+          new HForeign(jsCode, const LiteralDartString('Object'), inputs);
       builder.add(thenInstruction);
     }
 
@@ -223,26 +223,26 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       // method does not have subclasses.
       HInstruction elseInstruction;
       void visitElse() {
-        SourceString jsCode =
-            new SourceString('Object.prototype.$dartMethodName');
+        DartString jsCode =
+            new DartString.literal('Object.prototype.$dartMethodName');
         HInstruction instruction =
-            new HForeign(jsCode, const SourceString('Object'), []);
+            new HForeign(jsCode, const LiteralDartString('Object'), []);
         builder.add(instruction);
         List<HInstruction> elseInputs = new List<HInstruction>.from(inputs);
         elseInputs.add(instruction);
         String params = arguments.isEmpty() ? '' : ', $foreignParameters';
-        jsCode = new SourceString('\$${i}.call(\$0$params)');
+        jsCode = new DartString.literal('\$${i}.call(\$0$params)');
         elseInstruction =
-            new HForeign(jsCode, const SourceString('Object'), elseInputs);
+            new HForeign(jsCode, const LiteralDartString('Object'), elseInputs);
         builder.add(elseInstruction);
       }
 
       HLiteral literal = builder.graph.addConstantString(
           new DartString.literal('$dartMethodName'));
-      SourceString jsCode = new SourceString(
+      DartString jsCode = new DartString.literal(
           'Object.getPrototypeOf(\$0).hasOwnProperty(\$1)');
       builder.push(new HForeign(
-          jsCode, const SourceString('Object'),
+          jsCode, const LiteralDartString('Object'),
           <HInstruction>[builder.localsHandler.readThis(), literal]));
 
       builder.handleIf(visitThen, visitElse);
@@ -257,9 +257,8 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     builder.compiler.cancel('More than one argument to native');
   } else {
     LiteralString jsCode = node.arguments.head;
-    int start = jsCode.value.slowToString()[0] === '@' ? 1 : 0;
-    builder.push(new HForeign(builder.unquote(jsCode, start),
-                              const SourceString('Object'),
+    builder.push(new HForeign(jsCode.dartString,
+                              const LiteralDartString('Object'),
                               <HInstruction>[]));
   }
 }
