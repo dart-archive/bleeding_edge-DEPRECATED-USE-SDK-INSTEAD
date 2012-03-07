@@ -170,6 +170,10 @@ def main():
     cmd = test_cmd + ['--component=leg']
     RunCommand(*cmd, verbose=True)
 
+    # Run leg on client tests.
+    cmd = test_cmd + ['--component=legium', 'client']
+    RunCommand(*cmd, verbose=True)
+
 
 if __name__ == '__main__':
   try:
