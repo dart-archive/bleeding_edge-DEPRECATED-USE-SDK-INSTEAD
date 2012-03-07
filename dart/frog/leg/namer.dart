@@ -163,6 +163,7 @@ class Namer {
         case ElementKind.FIELD:
         case ElementKind.GETTER:
         case ElementKind.SETTER:
+        case ElementKind.TYPEDEF:
           String result = getFreshGlobalName(guess);
           globals[element] = result;
           return result;

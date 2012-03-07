@@ -65,7 +65,7 @@ class Element implements Hashable {
     return kind === ElementKind.COMPILATION_UNIT ||
            kind === ElementKind.LIBRARY;
   }
-  bool isClass() => kind == ElementKind.CLASS;
+  bool isClass() => kind === ElementKind.CLASS;
   bool isVariable() => kind === ElementKind.VARIABLE;
   bool isParameter() => kind === ElementKind.PARAMETER;
   bool isStatement() => kind === ElementKind.STATEMENT;

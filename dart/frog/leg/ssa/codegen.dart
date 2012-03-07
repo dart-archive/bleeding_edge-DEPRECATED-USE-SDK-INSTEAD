@@ -987,7 +987,8 @@ class SsaCodeGenerator implements HVisitor {
       use(input, JSPrecedence.MEMBER_PRECEDENCE);
       buffer.add('.');
       buffer.add(compiler.namer.operatorIs(node.typeExpression));
-      if (element.isNative() || isSupertypeOfNativeClass(element)) {
+      if (element.isClass() && (element.dynamic.isNative()
+                                || isSupertypeOfNativeClass(element))) {
         buffer.add(' || ');
         beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
         // First check if the object is not a Dart object. If the
