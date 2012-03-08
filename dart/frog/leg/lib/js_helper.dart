@@ -1335,6 +1335,7 @@ makeLiteralMap(List keyValuePairs) {
  * closure when the Dart closure is passed to the DOM.
  */
 convertDartClosureToJS(closure) {
+  if (closure === null) return null;
   var function = JS('var', @'$0.$identity', closure);
   if (JS('bool', @'!!$0', function)) return function;
   function = JS("var", @"""function() {
