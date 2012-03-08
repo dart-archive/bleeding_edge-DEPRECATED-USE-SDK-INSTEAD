@@ -19,24 +19,6 @@ class Constant implements Hashable {
   /** Returns true if the constant is a list, a map or a constructed object. */
   bool isObject() => false;
 
-  /**
-   * Returns [:null:] if the operation is not supported on this constant.
-   * The [op] operator is assumed to be a prefix operator.
-   */
-  Constant unaryFold(String op) => null;
-
-  /**
-   * Returns [:null:] if the operation is not supported on this constant, or
-   * if the operation would have thrown an exception.
-   */
-  Constant binaryFold(String op, Constant other) {
-    if (op == "==" || op == "===") {
-      return new BoolConstant(this == other);
-    } else if (op == "!=" || op == "!==") {
-      return new BoolConstant(this != other);
-    }
-  }
-
   abstract void writeJsCode(StringBuffer buffer, ConstantHandler handler);
 }
 
@@ -103,62 +85,6 @@ class IntConstant extends NumConstant {
     buffer.add("($value)");
   }
 
-  IntConstant unaryFold(String op) {
-    if (op == "-") return new IntConstant(-value);
-    if (op == "~") return new IntConstant(~value);
-    return null;
-  }
-
-  Constant binaryFold(String op, Constant other) {
-    if (other.isNum()) {
-      PrimitiveConstant otherPrimitive = other;
-      num rightNum = otherPrimitive.value;
-      switch (op) {
-        case "<": return new BoolConstant(value < rightNum);
-        case "<=": return new BoolConstant(value <= rightNum);
-        case ">": return new BoolConstant(value > rightNum);
-        case ">=": return new BoolConstant(value >= rightNum);
-        case "/": return new DoubleConstant(value / rightNum);
-        // We have to treat '==' and '!=' here in case rightNum is a double.
-        case "==": return new BoolConstant(value == rightNum);
-        case "!=": return new BoolConstant(value != rightNum);
-      }
-      if (other.isInt()) {
-        int right = rightNum;
-        switch (op) {
-          case "+": return new IntConstant(value + right);
-          case "-": return new IntConstant(value - right);
-          case "*": return new IntConstant(value * right);
-          case "%": return new IntConstant(value % right);
-          case "~/": return new IntConstant(value ~/ right);
-          case "|": return new IntConstant(value | right);
-          case "&": return new IntConstant(value & right);
-          case "^": return new IntConstant(value ^ right);
-          case "<<":
-            // TODO(floitsch): find a better way to guard against shifts to the
-            // left.
-            if (right > 100) return null;
-            if (right < 0) return null;
-            return new IntConstant(value << right);
-          case ">>":
-            if (right < 0) return null;
-            return new IntConstant(value >> right);
-        }
-      } else if (other.isDouble()) {
-        double right = rightNum;
-        switch (op) {
-          case "+": return new DoubleConstant(value + right);
-          case "-": return new DoubleConstant(value - right);
-          case "*": return new DoubleConstant(value * right);
-          case "~/": return new DoubleConstant(value ~/ right);
-          case "%": return new DoubleConstant(value % right);
-        }
-      }
-    }
-    // Visit super in case the [op] was "==", "===", "!=" or "!==".
-    return super.binaryFold(op, other);
-  }
-
   // We have to override the equality operator so that ints and doubles are
   // treated as separate constants.
   // The is [:!IntConstant:] check at the beginning of the function makes sure
@@ -205,36 +131,6 @@ class DoubleConstant extends NumConstant {
     }
   }
 
-  DoubleConstant unaryFold(String op) {
-    if (op == "-") return new DoubleConstant(-value);
-    return null;
-  }
-
-  Constant binaryFold(String op, Constant other) {
-    if (other.isNum()) {
-      PrimitiveConstant otherPrimitive = other;
-      num right = otherPrimitive.value;
-      switch (op) {
-        case "<": return new BoolConstant(value < right);
-        case "<=": return new BoolConstant(value <= right);
-        case ">": return new BoolConstant(value > right);
-        case ">=": return new BoolConstant(value >= right);
-        case "+": return new DoubleConstant(value + right);
-        case "-": return new DoubleConstant(value - right);
-        case "*": return new DoubleConstant(value * right);
-        case "~/": return new DoubleConstant(value ~/ right);
-        case "/": return new DoubleConstant(value / right);
-        case "%": return new DoubleConstant(value % right);
-        // We have to handle '==' and '!=' here in case right is an integer,
-        // or one of the operands is NaN, -0.0 or 0.0.
-        case "==": return new BoolConstant(value == right);
-        case "!=": return new BoolConstant(value != right);
-      }
-    }
-    // Visit super in case the [op] was "==", "===", "!=" or "!===".
-    return super.binaryFold(op, other);
-  }
-
   bool operator ==(var other) {
     if (other is !DoubleConstant) return false;
     DoubleConstant otherDouble = other;
@@ -263,6 +159,8 @@ class BoolConstant extends PrimitiveConstant {
     if (op == "!") return new BoolConstant(!value);
     return null;
   }
+
+  abstract BoolConstant negate();
 }
 
 class TrueConstant extends BoolConstant {
@@ -275,6 +173,8 @@ class TrueConstant extends BoolConstant {
   void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     buffer.add("true");
   }
+
+  FalseConstant negate() => new FalseConstant();
 
   bool operator ==(var other) => this === other;
   // The magic constant is just a random value. It does not have any
@@ -293,6 +193,8 @@ class FalseConstant extends BoolConstant {
   void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
     buffer.add("false");
   }
+
+  TrueConstant negate() => new TrueConstant();
 
   bool operator ==(var other) => this === other;
   // The magic constant is just a random value. It does not have any
@@ -319,19 +221,6 @@ class StringConstant extends PrimitiveConstant {
       throw new CompilerCancelledException(reason);
     });
     buffer.add("'");
-  }
-
-  Constant binaryFold(String op, Constant other) {
-    if (op == "+" && !other.isObject())  {
-      if (value.isEmpty() && other.isString()) return other;
-      PrimitiveConstant otherPrimitive = other;
-      DartString right = otherPrimitive.toDartString();
-      if (right.isEmpty()) return this;
-      if (value.isEmpty()) return new StringConstant(right);
-      return new StringConstant(new ConsDartString(value, right));
-    }
-    // Visit super in case the [op] was "==", "===", "!=" or "!===".
-    return super.binaryFold(op, other);
   }
 
   bool operator ==(var other) {
@@ -739,20 +628,107 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       assert(send.isOperator);
       Constant receiverConstant = evaluate(send.receiver);
       Operator op = send.selector;
-      Constant folded = receiverConstant.unaryFold(op.source.stringValue);
+      Constant folded;
+      switch (op.source.stringValue) {
+        case "!":
+          folded = const NotOperation().fold(receiverConstant);
+          break;
+        case "-":
+          folded = const NegateOperation().fold(receiverConstant);
+          break;
+        case "~":
+          folded = const BitNotOperation().fold(receiverConstant);
+          break;
+        default:
+          compiler.internalError("Unexpected operator.", node: op);
+          break;
+      }
       if (folded === null) error(send);
       return folded;
     } else if (send.isOperator && !send.isPostfix) {
       assert(send.argumentCount() == 1);
       Constant left = evaluate(send.receiver);
       Constant right = evaluate(send.argumentsNode.nodes.head);
-      String op = send.selector.asOperator().source.stringValue;
-      if (left.isString() && op == "+" && !right.isString()) {
-        // At the moment only compile-time concatenation of two strings is
-        // allowed.
-        error(send);
+      Operator op = send.selector.asOperator();
+      Constant folded;
+      switch (op.source.stringValue) {
+        case "+":
+          if (left.isString() && !right.isString()) {
+            // At the moment only compile-time concatenation of two strings is
+            // allowed.
+            error(send);
+          }
+          folded = const AddOperation().fold(left, right);
+          break;
+        case "-":
+          folded = const SubtractOperation().fold(left, right);
+          break;
+        case "*":
+          folded = const MultiplyOperation().fold(left, right);
+          break;
+        case "/":
+          folded = const DivideOperation().fold(left, right);
+          break;
+        case "%":
+          folded = const ModuloOperation().fold(left, right);
+          break;
+        case "~/":
+          folded = const TruncatingDivideOperation().fold(left, right);
+          break;
+        case "|":
+          folded = const BitOrOperation().fold(left, right);
+          break;
+        case "&":
+          folded = const BitAndOperation().fold(left, right);
+          break;
+        case "^":
+          folded = const BitXorOperation().fold(left, right);
+          break;
+        case "<<":
+          folded = const ShiftLeftOperation().fold(left, right);
+          break;
+        case ">>":
+          folded = const ShiftRightOperation().fold(left, right);
+          break;
+        case "<":
+          folded = const LessOperation().fold(left, right);
+          break;
+        case "<=":
+          folded = const LessEqualOperation().fold(left, right);
+          break;
+        case ">":
+          folded = const GreaterOperation().fold(left, right);
+          break;
+        case ">=":
+          folded = const GreaterEqualOperation().fold(left, right);
+          break;
+        case "==":
+          folded = const EqualsOperation().fold(left, right);
+          break;
+        case "===":
+          folded = const IdentityOperation().fold(left, right);
+          break;
+        case "!=":
+          BoolConstant areEquals = const EqualsOperation().fold(left, right);
+          if (areEquals === null) {
+            folded = null;
+          } else {
+            folded = areEquals.negate();
+          }
+          break;
+        case "!==":
+          BoolConstant areIdentical =
+              const IdentityOperation().fold(left, right);
+          if (areIdentical === null) {
+            folded = null;
+          } else {
+            folded = areIdentical.negate();
+          }
+          break;
+        default:
+          compiler.internalError("Unexpected operator.", node: op);
+          break;
       }
-      Constant folded = left.binaryFold(op, right);
       if (folded === null) error(send);
       return folded;
     }

@@ -108,10 +108,40 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
-  HInstruction visitInvokeBinary(HInvokeBinary node) => node.fold(graph);
-  HInstruction visitInvokeUnary(HInvokeUnary node) => node.fold(graph);
-  HInstruction visitInvokeInterceptor(HInvokeInterceptor node)
-      => node.fold(graph);
+  HInstruction visitInvokeUnary(HInvokeUnary node) {
+    HInstruction operand = node.operand;
+    if (operand is HConstant) {
+      UnaryOperation operation = node.operation;
+      HConstant receiver = operand;
+      Constant folded = operation.fold(receiver.constant);
+      if (folded !== null) return graph.addConstant(folded);
+    }
+    return node;
+  }
+
+  HInstruction visitInvokeInterceptor(HInvokeInterceptor node) {
+    if (node.name == const SourceString('length') &&
+        node.inputs[1].isConstantString()) {
+      HConstant input = node.inputs[1];
+      StringConstant constant = input.constant;
+      DartString string = constant.value;
+      return graph.addConstantInt(string.length);
+    }
+    return node;    
+  }
+
+  HInstruction visitInvokeBinary(HInvokeBinary node) {
+    HInstruction left = node.left;
+    HInstruction right = node.right;
+    if (left is HConstant && right is HConstant) {
+      BinaryOperation operation = node.operation;
+      HConstant op1 = left;
+      HConstant op2 = right;
+      Constant folded = operation.fold(op1.constant, op2.constant);
+      if (folded !== null) return graph.addConstant(folded);
+    }
+    return node;
+  }
 
   HInstruction visitEquals(HEquals node) {
     HInstruction left = node.left;

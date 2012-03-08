@@ -1322,24 +1322,25 @@ class SsaBuilder implements Visitor {
     visit(node.receiver);
     assert(op.token.kind !== PLUS_TOKEN);
     HInstruction operand = pop();
-    // See if we can constant-fold right away. This avoids rewrites later on.
-    if (operand is HConstant) {
-      HConstant typedOperand = operand;
-      Constant constant = typedOperand.constant;
-      Constant folded = constant.unaryFold(op.source.stringValue);
-      if (folded !== null) {
-        stack.add(graph.addConstant(folded));
-        return;
-      }      
-    }
     HInstruction target =
         new HStatic(interceptors.getPrefixOperatorInterceptor(op));
     add(target);
+    HInvokeUnary result;
     switch (op.source.stringValue) {
-      case "-": push(new HNegate(target, operand)); break;
-      case "~": push(new HBitNot(target, operand)); break;
+      case "-": result = new HNegate(target, operand); break;
+      case "~": result = new HBitNot(target, operand); break;
       default: unreachable();
     }
+    // See if we can constant-fold right away. This avoids rewrites later on.
+    if (operand is HConstant) {
+      HConstant constant = operand;
+      Constant folded = result.operation.fold(constant.constant);
+      if (folded !== null) {
+        stack.add(graph.addConstant(folded));
+        return;
+      }
+    }
+    push(result);
   }
 
   void visitBinary(HInstruction left, Operator op, HInstruction right) {

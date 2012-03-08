@@ -22,6 +22,7 @@
 #source('emitter.dart');
 #source('namer.dart');
 #source('native_emitter.dart');
+#source('operations.dart');
 #source('resolver.dart');
 #source('script.dart');
 #source('tree_validator.dart');

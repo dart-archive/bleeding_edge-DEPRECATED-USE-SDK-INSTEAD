@@ -185,18 +185,6 @@ class HGraph {
     return addConstant(new BoolConstant(value));
   }
 
-  HLiteral addNewLiteralString(DartString value) {
-    if (stringLiterals === null) stringLiterals = new Map<String, HLiteral>();
-    String key = value.slowToString();  // We need something hashable.
-    HLiteral result = stringLiterals[key];
-    if (result === null) {
-      result = new HLiteral.internal(value, HType.STRING);
-      entry.addAtExit(result);
-      stringLiterals[key] = result;
-    }
-    return result;
-  }
-
   HConstant addConstantNull() {
     return addConstant(new NullConstant());
   }
@@ -1226,15 +1214,6 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   bool hasExpectedType() => builtinJsName != null;
 
-  HInstruction fold(HGraph graph) {
-    if (name == const SourceString('length') && inputs[1].isConstantString()) {
-      HConstant input = inputs[1];
-      DartString string = input.constant.value;
-      return graph.addConstantInt(string.length);
-    }
-    return this;
-  }
-
   void prepareGvn() {
     if (builtinJsName == 'length') {
       assert(!hasSideEffects());
@@ -1326,17 +1305,7 @@ class HInvokeBinary extends HInvokeStatic {
     return leftType.combine(rightType);
   }
 
-  HInstruction fold(HGraph graph) {
-    if (left is HConstant && right is HConstant) {
-      HConstant op1 = left;
-      HConstant op2 = right;
-      Constant folded =
-          op1.constant.binaryFold(operationAsString(), op2.constant);
-      if (folded !== null) return graph.addConstant(folded);
-    }
-    return this;
-  }
-  abstract String operationAsString();
+  abstract BinaryOperation get operation();
 }
 
 class HBinaryArithmetic extends HInvokeBinary {
@@ -1380,13 +1349,13 @@ class HAdd extends HBinaryArithmetic {
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
   HType computeType() {
-    HType type = computeInputsType();
-    builtin = (type.isNumber() || type.isString());
-    if (type.isConflicting() && left.isString()) {
+    HType computedType = computeInputsType();
+    builtin = (computedType.isNumber() || computedType.isString());
+    if (computedType.isConflicting() && left.isString()) {
       builtin = right is HConstant;
       return HType.STRING;
     }
-    if (!type.isUnknown()) return type;
+    if (!computedType.isUnknown()) return computedType;
     if (left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
@@ -1404,28 +1373,7 @@ class HAdd extends HBinaryArithmetic {
     return HType.UNKNOWN;
   }
 
-  HInstruction fold(HGraph graph) {
-    // TODO(floitsch): move this code to the compile-time-constant handler.
-    if (left.isConstantString() && right is HConstant) {
-      HConstant op1 = left;
-      HConstant op2 = right;
-      DartString leftString = op1.constant.value;
-      DartString otherString = null;
-      if (right.isConstantString()) {
-        otherString = op2.constant.value;
-      } else {
-        assert(op2.isConstantNumber() ||
-               op2.isConstantBoolean() ||
-               op2.isConstantNull());
-        otherString = new DartString.literal(op2.constant.value.toString());
-      }
-      DartString cons = new ConsDartString(leftString, otherString);
-      return graph.addConstantString(cons);
-    }
-    return super.fold(graph);
-  }
-
-  String operationAsString() => "+";
+  AddOperation get operation() => const AddOperation();
   int typeCode() => 5;
   bool typeEquals(other) => other is HAdd;
   bool dataEquals(HInstruction other) => true;
@@ -1443,7 +1391,7 @@ class HDivide extends HBinaryArithmetic {
     return HType.UNKNOWN;
   }
 
-  String operationAsString() => "/";
+  DivideOperation get operation() => const DivideOperation();
   int typeCode() => 6;
   bool typeEquals(other) => other is HDivide;
   bool dataEquals(HInstruction other) => true;
@@ -1454,7 +1402,7 @@ class HModulo extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitModulo(this);
 
-  String operationAsString() => "%";
+  ModuloOperation get operation() => const ModuloOperation();
   int typeCode() => 7;
   bool typeEquals(other) => other is HModulo;
   bool dataEquals(HInstruction other) => true;
@@ -1465,7 +1413,7 @@ class HMultiply extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
-  String operationAsString() => "*";
+  MultiplyOperation get operation() => const MultiplyOperation();
   int typeCode() => 8;
   bool typeEquals(other) => other is HMultiply;
   bool dataEquals(HInstruction other) => true;
@@ -1476,7 +1424,7 @@ class HSubtract extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
-  String operationAsString() => "-";
+  SubtractOperation get operation() => const SubtractOperation();
   int typeCode() => 9;
   bool typeEquals(other) => other is HSubtract;
   bool dataEquals(HInstruction other) => true;
@@ -1487,7 +1435,8 @@ class HTruncatingDivide extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
-  String operationAsString() => "~/";
+  TruncatingDivideOperation get operation()
+      => const TruncatingDivideOperation();
   int typeCode() => 10;
   bool typeEquals(other) => other is HTruncatingDivide;
   bool dataEquals(HInstruction other) => true;
@@ -1523,7 +1472,7 @@ class HShiftLeft extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
-  String operationAsString() => "<<";
+  ShiftLeftOperation get operation() => const ShiftLeftOperation();
   int typeCode() => 11;
   bool typeEquals(other) => other is HShiftLeft;
   bool dataEquals(HInstruction other) => true;
@@ -1534,7 +1483,7 @@ class HShiftRight extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
-  String operationAsString() => ">>";
+  ShiftRightOperation get operation() => const ShiftRightOperation();
   int typeCode() => 12;
   bool typeEquals(other) => other is HShiftRight;
   bool dataEquals(HInstruction other) => true;
@@ -1545,7 +1494,7 @@ class HBitOr extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
-  String operationAsString() => "|";
+  BitOrOperation get operation() => const BitOrOperation();
   int typeCode() => 13;
   bool typeEquals(other) => other is HBitOr;
   bool dataEquals(HInstruction other) => true;
@@ -1556,7 +1505,7 @@ class HBitAnd extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
-  String operationAsString() => "&";
+  BitAndOperation get operation() => const BitAndOperation();
   int typeCode() => 14;
   bool typeEquals(other) => other is HBitAnd;
   bool dataEquals(HInstruction other) => true;
@@ -1567,7 +1516,7 @@ class HBitXor extends HBinaryBitOp {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
-  String operationAsString() => "^";
+  BitXorOperation get operation() => const BitXorOperation();
   int typeCode() => 15;
   bool typeEquals(other) => other is HBitXor;
   bool dataEquals(HInstruction other) => true;
@@ -1607,23 +1556,14 @@ class HInvokeUnary extends HInvokeStatic {
 
   bool hasExpectedType() => builtin || (type.isUnknown());
 
-  HInstruction fold(HGraph graph) {
-    if (operand is HConstant) {
-      HConstant op = operand;
-      Constant folded = op.constant.unaryFold(operationAsString());
-      if (folded !== null) return graph.addConstant(folded);
-    }
-    return this;
-  }
-
-  abstract String operationAsString();
+  abstract UnaryOperation get operation();
 }
 
 class HNegate extends HInvokeUnary {
   HNegate(HStatic target, HInstruction input) : super(target, input);
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
-  String operationAsString() => "-";
+  NegateOperation get operation() => const NegateOperation();
   int typeCode() => 16;
   bool typeEquals(other) => other is HNegate;
   bool dataEquals(HInstruction other) => true;
@@ -1646,7 +1586,7 @@ class HBitNot extends HInvokeUnary {
     return HType.INTEGER;
   }
 
-  String operationAsString() => "~";
+  BitNotOperation get operation() => const BitNotOperation();
   int typeCode() => 17;
   bool typeEquals(other) => other is HBitNot;
   bool dataEquals(HInstruction other) => true;
@@ -1917,7 +1857,7 @@ class HEquals extends HRelational {
     return HType.UNKNOWN;
   }
 
-  String operationAsString() => "==";
+  EqualsOperation get operation() => const EqualsOperation();
   int typeCode() => 19;
   bool typeEquals(other) => other is HEquals;
   bool dataEquals(HInstruction other) => true;
@@ -1937,7 +1877,7 @@ class HIdentity extends HRelational {
 
   HType computeDesiredInputType(HInstruction input) => HType.UNKNOWN;
 
-  String operationAsString() => "===";
+  IdentityOperation get operation() => const IdentityOperation();
   int typeCode() => 20;
   bool typeEquals(other) => other is HIdentity;
   bool dataEquals(HInstruction other) => true;
@@ -1948,7 +1888,7 @@ class HGreater extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitGreater(this);
 
-  String operationAsString() => ">";
+  GreaterOperation get operation() => const GreaterOperation();
   int typeCode() => 21;
   bool typeEquals(other) => other is HGreater;
   bool dataEquals(HInstruction other) => true;
@@ -1959,7 +1899,7 @@ class HGreaterEqual extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
 
-  String operationAsString() => ">=";
+  GreaterEqualOperation get operation() => const GreaterEqualOperation();
   int typeCode() => 22;
   bool typeEquals(other) => other is HGreaterEqual;
   bool dataEquals(HInstruction other) => true;
@@ -1970,7 +1910,7 @@ class HLess extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitLess(this);
 
-  String operationAsString() => "<";
+  LessOperation get operation() => const LessOperation();
   int typeCode() => 23;
   bool typeEquals(other) => other is HLess;
   bool dataEquals(HInstruction other) => true;
@@ -1981,7 +1921,7 @@ class HLessEqual extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
 
-  String operationAsString() => "<=";
+  LessEqualOperation get operation() => const LessEqualOperation();
   int typeCode() => 24;
   bool typeEquals(other) => other is HLessEqual;
   bool dataEquals(HInstruction other) => true;
