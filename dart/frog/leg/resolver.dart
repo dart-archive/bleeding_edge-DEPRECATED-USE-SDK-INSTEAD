@@ -1128,12 +1128,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   visitSwitchCase(SwitchCase node) {
     // TODO(ahe): What about the label?
     node.expression.accept(this);
-    node.statements.accept(this);
+    visitIn(node.statements, new BlockScope(context));
   }
 
   visitDefaultCase(DefaultCase node) {
     // TODO(ahe): What about the label?
-    node.statements.accept(this);
+    visitIn(node.statements, new BlockScope(context));
   }
 
   visitTryStatement(TryStatement node) {
