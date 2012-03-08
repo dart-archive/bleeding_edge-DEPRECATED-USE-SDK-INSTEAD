@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('leg_api');
-#import('dart:uri');
+
+#import('../../lib/uri/uri.dart');
+#import('apiimpl.dart');
 
 // Unless explicitly allowed, passing null for any argument to the
 // methods of library will result in a NullPointerException being
@@ -34,6 +36,14 @@ typedef void DiagnosticHandler(Uri uri, int begin, int end,
  * null is returned and [handler] will have been invoked at least once
  * with [:fatal == true:].
  */
-Future<String> compile(Uri script, Uri libraryRoot,
-                       ReadUriFromString provider, DiagnosticHandler handler);
-// TODO(ahe): Document libraryRoot argument.
+Future<String> compile(Uri script,
+                       Uri libraryRoot,
+                       ReadUriFromString provider,
+                       DiagnosticHandler handler) {
+  Compiler compiler = new Compiler(provider, handler, libraryRoot);
+  compiler.run(script);
+  String code = compiler.assembledCode;
+  Completer<String> completer = new Completer<String>();
+  completer.complete(code);
+  return completer.future;
+}

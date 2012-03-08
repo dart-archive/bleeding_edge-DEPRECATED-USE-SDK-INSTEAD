@@ -367,7 +367,8 @@ class Compiler implements DiagnosticListener {
   }
 
   reportWarning(Node node, var message) {}
-  reportError(Node node, var message) {}
+
+  reportError(Node node, var message) => cancel(message, node: node);
 
   Script readScript(Uri uri, [ScriptTag node]) {
     unimplemented('Compiler.readScript');
