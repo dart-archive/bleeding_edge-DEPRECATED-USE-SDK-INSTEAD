@@ -93,7 +93,13 @@ public class HTMLFileImpl extends OpenableElementImpl implements HTMLFile {
       List<DartLibrary> libraries = DartModelManager.getInstance().getDartModel().getDartLibraries();
       for (DartLibrary library : libraries) {
         if (library.getDartProject().getProject().equals(file.getProject())) {
-          referencedLibraries.add(library);
+          String elementName = library.getElementName();
+          for (String libraryName : libraryNames) {
+            if (elementName.equals(libraryName) || elementName.endsWith("/" + libraryName)) {
+              referencedLibraries.add(library);
+              break;
+            }
+          }
         }
       }
       fileInfo.setReferencedLibraries(referencedLibraries.toArray(new DartLibrary[referencedLibraries.size()]));

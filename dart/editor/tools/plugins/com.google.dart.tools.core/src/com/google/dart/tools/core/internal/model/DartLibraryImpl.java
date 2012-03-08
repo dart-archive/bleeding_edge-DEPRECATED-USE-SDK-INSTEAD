@@ -33,6 +33,7 @@ import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartLibraryInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.util.Extensions;
+import com.google.dart.tools.core.internal.util.LibraryReferenceFinder;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
@@ -66,6 +67,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -762,10 +764,22 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     try {
       if (getDartProject().exists()) { // will not look into ExternalDartProject
         IResource[] resources = getDartProject().getProject().members(IResource.FILE);
+        String elementName = getElementName();
         for (IResource resource : resources) {
           if (DartCore.isHTMLLikeFileName(resource.getName()) && !resourceList.contains(resource)) {
             if (resource.isAccessible()) {
-              children.add(new HTMLFileImpl(DartLibraryImpl.this, (IFile) resource));
+              try {
+                List<String> libraryNames = LibraryReferenceFinder.findInHTML(IFileUtilities.getContents((IFile) resource));
+                for (String libraryName : libraryNames) {
+                  if (elementName.equals(libraryName) || elementName.endsWith("/" + libraryName)) {
+                    children.add(new HTMLFileImpl(DartLibraryImpl.this, (IFile) resource));
+                    break;
+                  }
+                }
+              } catch (IOException exception) {
+                DartCore.logInformation("Could not get contents of " + resource.getLocation(),
+                    exception);
+              }
             }
           }
         }
