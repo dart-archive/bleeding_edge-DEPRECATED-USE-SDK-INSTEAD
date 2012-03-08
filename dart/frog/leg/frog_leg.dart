@@ -101,6 +101,9 @@ class WorldCompiler extends Compiler {
     } else if (uriName == 'dart:html') {
       uri = getUriFor(io.join([legDirectory, '..', '..',
           'client', 'html', 'frog', 'html_frog.dart']));
+    } else if (uriName == 'dart:json') {
+      uri = getUriFor(io.join([legDirectory, '..', '..',
+          'lib', 'json', 'json.dart']));
     }
     if (uri.scheme != 'file') cancel('cannot read $uri', node: node);
     String text = "";
