@@ -8,7 +8,7 @@
 #import('../../lib/json/json.dart');
 #import('../lang.dart');
 #import('../file_system_vm.dart');
-#source('utf8.dart');
+#import('../../lib/utf/utf.dart');
 
 /// The server socket used to listen for incoming connections.
 ServerSocket serverSocket;
