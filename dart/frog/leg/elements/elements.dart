@@ -70,6 +70,7 @@ class Element implements Hashable {
   bool isParameter() => kind === ElementKind.PARAMETER;
   bool isStatement() => kind === ElementKind.STATEMENT;
   bool isTypedef() => kind === ElementKind.TYPEDEF;
+  bool isGetter() => kind === ElementKind.GETTER;
   // TODO(ahe): Remove this method.
   bool isClassOrInterfaceOrTypedef() {
     return kind == ElementKind.CLASS || kind == ElementKind.TYPEDEF;

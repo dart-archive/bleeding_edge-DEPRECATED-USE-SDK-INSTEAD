@@ -144,10 +144,28 @@ void handleSsaNative(SsaBuilder builder, Send node) {
   compiler.registerStaticUse(
       compiler.findHelper(new SourceString('captureStackTrace')));
 
+  FunctionElement element = builder.work.element;
+  NativeEmitter nativeEmitter = compiler.emitter.nativeEmitter;
+  // If what we're compiling is a getter named 'typeName' and the native
+  // class is named 'DOMType', we generate a call to the typeNameOf
+  // function attached on the isolate.
+  // The DOM classes assume that their 'typeName' property, which is
+  // not a JS property on the DOM types, returns the type name.
+  if (element.name == const SourceString('typeName')
+      && element.isGetter()
+      && nativeEmitter.toNativeName(element.enclosingElement) == 'DOMType') {
+    DartString jsCode = new DartString.literal(
+        '${nativeEmitter.typeNameOfName}(\$0)');
+    List<HInstruction> inputs =
+        <HInstruction>[builder.localsHandler.readThis()];
+    builder.push(new HForeign(
+        jsCode, const LiteralDartString('String'), inputs));
+    return;
+  }
+
   if (node.arguments.isEmpty()) {
     List<String> arguments = <String>[];
     List<HInstruction> inputs = <HInstruction>[];
-    FunctionElement element = builder.work.element;
     FunctionParameters parameters = element.computeParameters(builder.compiler);
     int i = 0;
     String receiver = '';
