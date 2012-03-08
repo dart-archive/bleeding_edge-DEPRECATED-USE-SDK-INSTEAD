@@ -1782,6 +1782,11 @@ class SsaBuilder implements Visitor {
   visitSuperSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
+    if (element.kind.category != ElementCategory.FUNCTION) {
+      // Example:
+      // co19/Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04
+      compiler.unimplemented('super-send to non-function', node: node);
+    }
     HStatic target = new HStatic(element);
     HInstruction context = localsHandler.readThis();
     add(target);
@@ -2074,7 +2079,8 @@ class SsaBuilder implements Visitor {
   }
 
   visitStringInterpolation(StringInterpolation node) {
-    Operator op = new Operator.synthetic("+");
+    int offset = node.getBeginToken().charOffset;
+    Operator op = new Operator(new StringToken(PLUS_INFO, "+", offset));
     HInstruction target = new HStatic(interceptors.getOperatorInterceptor(op));
     add(target);
     visit(node.string);

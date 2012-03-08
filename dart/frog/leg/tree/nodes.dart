@@ -80,12 +80,14 @@ class Node implements Hashable {
 
   abstract visitChildren(Visitor visitor);
 
-  toString() => unparse();
+  toString() => unparse(false);
+
+  toDebugString() => unparse(true);
 
   String getObjectDescription() => super.toString();
 
-  String unparse() {
-    Unparser unparser = new Unparser();
+  String unparse(bool printDebugInfo) {
+    Unparser unparser = new Unparser(printDebugInfo);
     try {
       return unparser.unparse(this);
     } catch (var e, var trace) {
@@ -954,7 +956,6 @@ class Identifier extends Expression {
   SourceString get source() => token.value;
 
   Identifier(Token this.token);
-  Identifier.synthetic(String name) : token = new StringToken(null, name, null);
 
   bool isThis() => source.stringValue === 'this';
 
@@ -973,7 +974,6 @@ class Identifier extends Expression {
 
 class Operator extends Identifier {
   Operator(Token token) : super(token);
-  Operator.synthetic(String name) : super.synthetic(name);
 
   Operator asOperator() => this;
 

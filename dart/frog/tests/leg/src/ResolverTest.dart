@@ -173,7 +173,7 @@ testLocalsThree() {
   Expect.equals(null, element);
   BlockScope scope = visitor.context;
   Expect.equals(0, scope.elements.length);
-  Expect.equals(2, map(visitor).length);
+  Expect.equals(3, map(visitor).length);
   List<Element> elements = map(visitor).getValues();
   Expect.equals(elements[0], elements[1]);
 }
@@ -199,7 +199,7 @@ testLocalsFive() {
   Expect.equals(null, element);
   BlockScope scope = visitor.context;
   Expect.equals(0, scope.elements.length);
-  Expect.equals(4, map(visitor).length);
+  Expect.equals(6, map(visitor).length);
 
   Block thenPart = tree.thenPart;
   List statements1 = thenPart.statements.nodes.toList();
@@ -222,8 +222,7 @@ testParametersOne() {
   ResolverVisitor visitor = compiler.resolverVisitor();
   FunctionExpression tree =
       parseFunction("void foo(int a) { return a; }", compiler);
-  Element element = visitor.visit(tree);
-  Expect.equals(ElementKind.FUNCTION, element.kind);
+  visitor.visit(tree);
 
   // Check that an element has been created for the parameter.
   VariableDefinitions vardef = tree.parameters.nodes.head;
@@ -246,7 +245,7 @@ testFor() {
 
   BlockScope scope = visitor.context;
   Expect.equals(0, scope.elements.length);
-  Expect.equals(6, map(visitor).length);
+  Expect.equals(10, map(visitor).length);
 
   VariableDefinitions initializer = tree.initializer;
   Node iNode = initializer.definitions.nodes.head;
@@ -258,24 +257,62 @@ testFor() {
   List<Node> nodes = map(visitor).getKeys();
   List<Element> elements = map(visitor).getValues();
 
-  Expect.isTrue(nodes[0] is TypeAnnotation);  // int
 
-  Expect.isTrue(nodes[1] is SendSet);  // i = 0
-  Expect.equals(elements[1], iElement);
+  // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+  //      ^^^
+  Expect.isTrue(nodes[0] is TypeAnnotation);
 
-  Expect.isTrue(nodes[2] is Send);     // i (in i < 10)
-  Expect.isTrue(nodes[2] is !SendSet);
-  Expect.equals(elements[2], iElement);
+  // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+  //          ^^^^^
+  checkSendSet(iElement, nodes[1], elements[1]);
 
-  Expect.isTrue(nodes[3] is Send);     // i (in i + 1)
-  Expect.isTrue(nodes[3] is !SendSet);
-  Expect.equals(elements[3], iElement);
+  // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+  //                 ^
+  checkIdentifier(iElement, nodes[2], elements[2]);
 
-  Expect.isTrue(nodes[4] is SendSet);  // i = i + 1
-  Expect.equals(elements[4], iElement);
+  // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+  //                 ^
+  checkSend(iElement, nodes[3], elements[3]);
 
-  Expect.isTrue(nodes[5] is SendSet);  // i = 5
-  Expect.equals(elements[5], iElement);
+  // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+  //                         ^
+  checkIdentifier(iElement, nodes[4], elements[4]);
+
+  // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+  //                             ^
+  checkIdentifier(iElement, nodes[5], elements[5]);
+
+  // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+  //                             ^
+  checkSend(iElement, nodes[6], elements[6]);
+
+  // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+  //                         ^^^^^^^^^
+  checkSendSet(iElement, nodes[7], elements[7]);
+
+  // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+  //                                      ^
+  checkIdentifier(iElement, nodes[8], elements[8]);
+
+  // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+  //                                      ^^^^^
+  checkSendSet(iElement, nodes[9], elements[9]);
+}
+
+checkIdentifier(Element expected, Node node, Element actual) {
+  Expect.isTrue(node is Identifier, node.toDebugString());
+  Expect.equals(expected, actual);
+}
+
+checkSend(Element expected, Node node, Element actual) {
+  Expect.isTrue(node is Send, node.toDebugString());
+  Expect.isTrue(node is !SendSet, node.toDebugString());
+  Expect.equals(expected, actual);
+}
+
+checkSendSet(Element expected, Node node, Element actual) {
+  Expect.isTrue(node is SendSet, node.toDebugString());
+  Expect.equals(expected, actual);
 }
 
 testTypeAnnotation() {
@@ -542,7 +579,7 @@ testInitializers() {
                 int bar;
                 A() : this.foo = bar;
               }""";
-  resolveConstructor(script, "A a = new A();", "A", "A", 2,
+  resolveConstructor(script, "A a = new A();", "A", "A", 3,
                      [], [MessageKind.NO_INSTANCE_AVAILABLE]);
 
   script = """class A {

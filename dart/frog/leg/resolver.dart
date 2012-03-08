@@ -537,6 +537,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   ClassElement currentClass;
   bool typeRequired = false;
   StatementScope statementScope;
+  int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION;
 
   ResolverVisitor(Compiler compiler, Element element)
     : this.mapping  = new TreeElementMapping(),
@@ -578,7 +579,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     inStaticContext(() => visit(node));
   }
 
-  visitIdentifier(Identifier node) {
+  Element visitIdentifier(Identifier node) {
     if (node.isThis()) {
       if (!inInstanceContext) {
         error(node, MessageKind.NO_INSTANCE_AVAILABLE, [node]);
@@ -586,11 +587,19 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       return null;
     } else if (node.isSuper()) {
       if (!inInstanceContext) error(node, MessageKind.NO_SUPER_IN_STATIC);
+      if ((ElementCategory.SUPER & allowedCategory) == 0) {
+        error(node, MessageKind.INVALID_USE_OF_SUPER);
+      }
       return null;
     } else {
       Element element = lookup(node, node.source);
-      if (element == null) {
-        error(node, MessageKind.CANNOT_RESOLVE, [node]);
+      if (element === null) {
+        if (!inInstanceContext) error(node, MessageKind.CANNOT_RESOLVE, [node]);
+      } else {
+        if ((element.kind.category & allowedCategory) == 0) {
+          // TODO(ahe): Improve error message. Need UX input.
+          error(node, MessageKind.GENERIC, ["is not an expression $element"]);
+        }
       }
       return useElement(node, element);
     }
@@ -615,7 +624,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       } else {
         warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [className]);
       }
-    } else if (!element.isClassOrInterfaceOrTypedef()) {
+    } else if (!element.impliesType()) {
       if (typeRequired) {
         error(node, MessageKind.NOT_A_TYPE, [className]);
       } else {
@@ -746,7 +755,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     statementScope = oldScope;
 
     context = context.parent;
-    return enclosingElement;
   }
 
   visitIf(If node) {
@@ -761,53 +769,46 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   Element resolveSend(Send node) {
+    if (node.receiver === null || node.selector.isThis()) {
+      return node.selector.accept(this);
+    }
+    var oldCategory = allowedCategory;
+    allowedCategory |=
+      ElementCategory.CLASS | ElementCategory.PREFIX | ElementCategory.SUPER;
     Element resolvedReceiver = visit(node.receiver);
+    allowedCategory = oldCategory;
 
-    Element target = null;
-    if (node.selector.asIdentifier() === null) {
-      // We are calling a closure returned from an expression.
-      assert(node.selector.asExpression() !== null);
-      assert(resolvedReceiver === null);
-      visit(node.selector);
-    } else {
-      SourceString name = node.selector.asIdentifier().source;
-      if (node.receiver === null) {
-        target = lookup(node, name);
-        if (target === null && !inInstanceContext) {
-          error(node, MessageKind.CANNOT_RESOLVE, [name]);
-        }
-      } else if (node.isSuperCall) {
-        if (currentClass !== null) {
-          ClassElement superElement = currentClass.superclass;
-          if (superElement !== null) {
-            // TODO(ngeoffray): The lookup should continue on super
-            // classes.
-            target = superElement.lookupLocalMember(name);
-          }
-          if (target === null) {
-            error(node,
-                  MessageKind.METHOD_NOT_FOUND,
-                  [superElement.name, name]);
-          }
-        }
-      } else if (resolvedReceiver === null) {
+    Element target;
+    SourceString name = node.selector.asIdentifier().source;
+    if (node.isSuperCall) {
+      if (isUserDefinableOperator(name.stringValue)) {
+        name = Elements.constructOperatorName(const SourceString('operator'),
+                                              name);
+      }
+      if (!inInstanceContext) {
+        error(node.receiver, MessageKind.NO_INSTANCE_AVAILABLE, [name]);
         return null;
-      } else if (resolvedReceiver.kind === ElementKind.CLASS) {
-        ClassElement receiverClass = resolvedReceiver;
-        target = receiverClass.resolve(compiler).lookupLocalMember(name);
-        if (target === null) {
-          error(node, MessageKind.METHOD_NOT_FOUND, [receiverClass.name, name]);
-        } else if (target.isInstanceMember()) {
-          error(node, MessageKind.MEMBER_NOT_STATIC,
-                [receiverClass.name, name]);
-        }
-      } else if (resolvedReceiver.kind === ElementKind.PREFIX) {
-        PrefixElement prefix = resolvedReceiver;
-        target = prefix.library.lookupLocalMember(name);
-        if (target == null) {
-          error(node, MessageKind.NO_SUCH_LIBRARY_MEMBER,
-                [resolvedReceiver.name, name]);
-        }
+      }
+      target = currentClass.lookupSuperMember(name);
+      if (target === null) {
+        error(node.selector, MessageKind.METHOD_NOT_FOUND,
+              [currentClass.superclass.name, name]);
+      }
+    } else if (resolvedReceiver === null) {
+      return null;
+    } else if (resolvedReceiver.kind === ElementKind.CLASS) {
+      ClassElement receiverClass = resolvedReceiver;
+      target = receiverClass.resolve(compiler).lookupLocalMember(name);
+      if (target === null) {
+        error(node, MessageKind.METHOD_NOT_FOUND, [receiverClass.name, name]);
+      } else if (target.isInstanceMember()) {
+        error(node, MessageKind.MEMBER_NOT_STATIC, [receiverClass.name, name]);
+      }
+    } else if (resolvedReceiver.kind === ElementKind.PREFIX) {
+      PrefixElement prefix = resolvedReceiver;
+      target = prefix.lookupLocalMember(name);
+      if (target == null) {
+        error(node, MessageKind.NO_SUCH_LIBRARY_MEMBER, [prefix.name, name]);
       }
     }
     return target;
@@ -868,7 +869,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.
-    return useElement(node, target);
+    useElement(node, target);
+    if (node.isPropertyAccess) return target;
   }
 
   visitSendSet(SendSet node) {
@@ -1203,18 +1205,14 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
   }
 
   Type visitTypeAnnotation(TypeAnnotation node) {
-    Identifier name = node.typeName.asIdentifier();
-    if (name === null) {
-      unimplemented(node.typeName, "prefixes");
-    }
-    return visit(name);
+    return visit(node.typeName);
   }
 
   Type visitIdentifier(Identifier node) {
     Element element = context.lookup(node.source);
     if (element === null) {
       error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node]);
-    } else if (!element.isClassOrInterfaceOrTypedef()) {
+    } else if (!element.impliesType()) {
       error(node, MessageKind.NOT_A_TYPE, [node]);
     } else {
       if (element.isClass()) {
@@ -1224,6 +1222,25 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       return element.computeType(compiler);
     }
     return null;
+  }
+
+  Type visitSend(Send node) {
+    Identifier prefix = node.receiver.asIdentifier();
+    if (prefix === null) {
+      error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
+      return null;
+    }
+    Element element = context.lookup(prefix.source);
+    if (element === null || element.kind !== ElementKind.PREFIX) {
+      error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
+      return null;
+    }
+    var e = element.library.lookupLocalMember(node.selector.source);
+    if (e === null || !e.impliesType()) {
+      error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE, [node.selector]);
+      return null;
+    }
+    return e.computeType(compiler);
   }
 }
 

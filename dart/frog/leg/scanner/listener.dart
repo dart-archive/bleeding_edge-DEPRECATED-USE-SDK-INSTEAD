@@ -1222,7 +1222,9 @@ class NodeListener extends ElementListener {
     NodeList arguments =
         makeNodeList(1, openSquareBracket, closeSquareBracket, null);
     Node receiver = popNode();
-    Node selector = new Operator.synthetic('[]');
+    Token token =
+      new StringToken(INDEX_INFO, '[]', openSquareBracket.charOffset);
+    Node selector = new Operator(token);
     pushNode(new Send(receiver, selector, arguments));
   }
 

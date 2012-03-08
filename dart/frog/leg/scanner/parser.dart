@@ -657,7 +657,7 @@ class Parser {
 
   Token parseOperatorName(Token token) {
     assert(optional('operator', token));
-    if (isUserDefinableOperator(token.next)) {
+    if (isUserDefinableOperator(token.next.stringValue)) {
       Token operator = token;
       token = token.next;
       listener.handleOperatorName(operator, token);
@@ -665,32 +665,6 @@ class Parser {
     } else {
       return parseIdentifier(token);
     }
-  }
-
-  bool isUserDefinableOperator(Token token) {
-    String value = token.stringValue;
-    return
-      (value === '==') ||
-      (value === '~') ||
-      (value === 'negate') ||
-      (value === '[]') ||
-      (value === '[]=') ||
-      (value === '*') ||
-      (value === '/') ||
-      (value === '%') ||
-      (value === '~/') ||
-      (value === '+') ||
-      (value === '-') ||
-      (value === '<<') ||
-      (value === '>>>') ||
-      (value === '>>') ||
-      (value === '>=') ||
-      (value === '>') ||
-      (value === '<=') ||
-      (value === '<') ||
-      (value === '&') ||
-      (value === '^') ||
-      (value === '|');
   }
 
   Token parseFunction(Token token, Token getOrSet) {

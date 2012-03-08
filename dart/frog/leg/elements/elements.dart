@@ -9,34 +9,80 @@
 #import('../leg.dart');  // TODO(karlklose): we only need type.
 #import('../util/util.dart');
 
+class ElementCategory {
+  /**
+   * Represents things that we don't expect to find when looking in a
+   * scope.
+   */
+  static final int NONE = 0;
+
+  /** Field, parameter, or variable. */
+  static final int VARIABLE = 1;
+
+  /** Function, method, or foreign function. */
+  static final int FUNCTION = 2;
+
+  static final int CLASS = 4;
+
+  static final int PREFIX = 8;
+
+  /** Constructor or factory. */
+  static final int FACTORY = 16;
+
+  static final int ALIAS = 32;
+
+  static final int SUPER = 64;
+
+  static final int IMPLIES_TYPE = CLASS | ALIAS;
+}
+
 class ElementKind {
   final String id;
+  final int category;
 
-  const ElementKind(String this.id);
+  const ElementKind(String this.id, this.category);
 
-  static final ElementKind VARIABLE = const ElementKind('variable');
-  static final ElementKind PARAMETER = const ElementKind('parameter');
-  static final ElementKind FUNCTION = const ElementKind('function');
-  static final ElementKind CLASS = const ElementKind('class');
-  static final ElementKind FOREIGN = const ElementKind('foreign');
+  static final ElementKind VARIABLE =
+    const ElementKind('variable', ElementCategory.VARIABLE);
+  static final ElementKind PARAMETER =
+    const ElementKind('parameter', ElementCategory.VARIABLE);
+  static final ElementKind FUNCTION =
+    const ElementKind('function', ElementCategory.FUNCTION);
+  static final ElementKind CLASS =
+    const ElementKind('class', ElementCategory.CLASS);
+  static final ElementKind FOREIGN =
+    const ElementKind('foreign', ElementCategory.FUNCTION);
   static final ElementKind GENERATIVE_CONSTRUCTOR =
-      const ElementKind('generative_constructor');
-  static final ElementKind FIELD = const ElementKind('field');
-  static final ElementKind VARIABLE_LIST = const ElementKind('variable_list');
-  static final ElementKind FIELD_LIST = const ElementKind('field_list');
+      const ElementKind('generative_constructor', ElementCategory.FACTORY);
+  static final ElementKind FIELD =
+    const ElementKind('field', ElementCategory.VARIABLE);
+  static final ElementKind VARIABLE_LIST =
+    const ElementKind('variable_list', ElementCategory.NONE);
+  static final ElementKind FIELD_LIST =
+    const ElementKind('field_list', ElementCategory.NONE);
   static final ElementKind GENERATIVE_CONSTRUCTOR_BODY =
-      const ElementKind('generative_constructor_body');
+      const ElementKind('generative_constructor_body', ElementCategory.NONE);
   static final ElementKind COMPILATION_UNIT =
-      const ElementKind('compilation_unit');
-  static final ElementKind GETTER = const ElementKind('getter');
-  static final ElementKind SETTER = const ElementKind('setter');
-  static final ElementKind ABSTRACT_FIELD = const ElementKind('abstract_field');
-  static final ElementKind LIBRARY = const ElementKind('library');
-  static final ElementKind PREFIX = const ElementKind('prefix');
-  static final ElementKind TYPEDEF = const ElementKind('typedef');
+      const ElementKind('compilation_unit', ElementCategory.NONE);
+  static final ElementKind GETTER =
+    const ElementKind('getter',
+                      ElementCategory.VARIABLE); // TODO(ahe): Sb. NONE.
+  static final ElementKind SETTER =
+    const ElementKind('setter',
+                      ElementCategory.VARIABLE); // TODO(ahe): Sb. NONE.
+  static final ElementKind ABSTRACT_FIELD =
+    const ElementKind('abstract_field', ElementCategory.VARIABLE);
+  static final ElementKind LIBRARY =
+    const ElementKind('library', ElementCategory.NONE);
+  static final ElementKind PREFIX =
+    const ElementKind('prefix', ElementCategory.PREFIX);
+  static final ElementKind TYPEDEF =
+    const ElementKind('typedef', ElementCategory.ALIAS);
 
-  static final ElementKind STATEMENT = const ElementKind('statement');
-  static final ElementKind LABEL = const ElementKind('label');
+  static final ElementKind STATEMENT =
+    const ElementKind('statement', ElementCategory.NONE);
+  static final ElementKind LABEL =
+    const ElementKind('label', ElementCategory.NONE);
 
   toString() => id;
 }
@@ -71,10 +117,7 @@ class Element implements Hashable {
   bool isStatement() => kind === ElementKind.STATEMENT;
   bool isTypedef() => kind === ElementKind.TYPEDEF;
   bool isGetter() => kind === ElementKind.GETTER;
-  // TODO(ahe): Remove this method.
-  bool isClassOrInterfaceOrTypedef() {
-    return kind == ElementKind.CLASS || kind == ElementKind.TYPEDEF;
-  }
+  bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
 
   bool isAssignable() {
     if (modifiers != null && modifiers.isFinal()) return false;
@@ -202,8 +245,9 @@ class PrefixElement extends Element {
                 LibraryElement this.library,
                 Element enclosing)
     : this.prefix = prefix,
-      super(prefix.dartString.source, ElementKind.PREFIX, enclosing) {
-    }
+      super(prefix.dartString.source, ElementKind.PREFIX, enclosing);
+
+  lookupLocalMember(SourceString name) => library.lookupLocalMember(name);
 }
 
 class TypedefElement extends Element {
@@ -521,7 +565,7 @@ class SynthesizedConstructorElement extends FunctionElement {
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     cachedNode = new FunctionExpression(
-        new Identifier.synthetic(''),
+        new Identifier(enclosingElement.position()),
         new NodeList.empty(),
         new Block(new NodeList.empty()),
         null, null, null, null);
@@ -614,6 +658,14 @@ class ClassElement extends ContainerElement {
 
   Element lookupLocalMember(SourceString memberName) {
     return localMembers[memberName];
+  }
+
+  Element lookupSuperMember(SourceString name) {
+    for (ClassElement s = superclass; s != null; s = s.superclass) {
+      Element e = s.lookupLocalMember(name);
+      if (e !== null) return e;
+    }
+    return null;
   }
 
   Element lookupConstructor(SourceString className,

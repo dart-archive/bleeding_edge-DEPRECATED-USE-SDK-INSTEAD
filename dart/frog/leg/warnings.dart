@@ -46,6 +46,8 @@ class MessageKind {
       'duplicate definition of #{1}');
   static final NOT_A_TYPE = const MessageKind(
       '#{1} is not a type');
+  static final NOT_A_PREFIX = const MessageKind(
+      '#{1} is not a prefix');
   static final NO_SUPER_IN_OBJECT = const MessageKind(
       "'Object' does not have a superclass");
   static final CANNOT_FIND_CONSTRUCTOR = const MessageKind(
@@ -114,6 +116,8 @@ class MessageKind {
       'unused label #{1}');
   static final INVALID_CONTINUE = const MessageKind(
       'target of continue is not a loop or switch case');
+  static final INVALID_USE_OF_SUPER = const MessageKind(
+      'super not allowed here');
 
   static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       'not a compile-time constant');

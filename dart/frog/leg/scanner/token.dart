@@ -198,6 +198,31 @@ class BeginGroupToken extends StringToken {
     : super(info, value, charOffset);
 }
 
+bool isUserDefinableOperator(String value) {
+  return
+    (value === '==') ||
+    (value === '~') ||
+    (value === 'negate') ||
+    (value === '[]') ||
+    (value === '[]=') ||
+    (value === '*') ||
+    (value === '/') ||
+    (value === '%') ||
+    (value === '~/') ||
+    (value === '+') ||
+    (value === '-') ||
+    (value === '<<') ||
+    (value === '>>>') ||
+    (value === '>>') ||
+    (value === '>=') ||
+    (value === '>') ||
+    (value === '<=') ||
+    (value === '<') ||
+    (value === '&') ||
+    (value === '^') ||
+    (value === '|');
+}
+
 class PrecedenceInfo {
   final SourceString value;
   final int precedence;
