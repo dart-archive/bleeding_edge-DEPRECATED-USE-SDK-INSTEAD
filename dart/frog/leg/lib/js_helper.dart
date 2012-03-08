@@ -1273,6 +1273,8 @@ makeLiteralListConst(list) {
  * returned unmodified.
  */
 unwrapException(ex) {
+  // Note that we are checking if the object has the property. If it
+  // has, it could be set null if the thrown value is null.
   if (JS('bool', @'"dartException" in $0', ex)) {
     return JS('Object', @'$0.dartException', ex);
   } else if (JS('bool', @'$0 instanceof TypeError', ex)) {
@@ -1333,7 +1335,9 @@ makeLiteralMap(List keyValuePairs) {
  * closure when the Dart closure is passed to the DOM.
  */
 convertDartClosureToJS(closure) {
-  return JS("var", @"""function() {
+  var function = JS('var', @'$0.$identity', closure);
+  if (JS('bool', @'!!$0', function)) return function;
+  function = JS("var", @"""function() {
     var dartClosure = $0;
     switch (arguments.length) {
       case 0: return $1(dartClosure);
@@ -1347,6 +1351,8 @@ convertDartClosureToJS(closure) {
   callClosure0,
   callClosure1,
   callClosure2);
+  JS('void', @'$0.$identity = $1', closure, function);
+  return function;
 }
 
 /**
