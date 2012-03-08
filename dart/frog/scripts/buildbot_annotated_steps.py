@@ -90,10 +90,11 @@ def TestStep(name, mode, system, component, targets, flags):
   return exit_code
 
 
-def BuildFrog(arch, mode, system):
+def BuildFrog(component, mode, system):
   """ build frog.
    Args:
-     - arch: either 'leg', 'frog', 'frogsh' (frog self-hosted), or 'frogium'
+     - component: either 'leg', 'frog', 'frogsh' (frog self-hosted), 'frogium'
+       or 'legium'
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
   """
@@ -107,10 +108,11 @@ def BuildFrog(arch, mode, system):
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
-def TestFrog(arch, mode, system, browser, flags):
+def TestFrog(component, mode, system, browser, flags):
   """ test frog.
    Args:
-     - arch: either 'leg', 'frog', 'frogsh' (frog self-hosted), or 'frogium'
+     - component: either 'leg', 'frog', 'frogsh' (frog self-hosted), 'frogium',
+       or 'legium'
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
      - browser: one of the browsers, see GetBuildInfo
@@ -120,10 +122,10 @@ def TestFrog(arch, mode, system, browser, flags):
   # Make sure we are in the frog directory
   os.chdir(FROG_PATH)
 
-  if arch != 'frogium': # frog and frogsh
-    TestStep("frog", mode, system, arch, [], flags)
+  if component != 'frogium': # frog and frogsh
+    TestStep("frog", mode, system, component, [], flags)
     TestStep("frog_extra", mode, system,
-        arch, ['frog', 'frog_native', 'peg', 'css'], flags)
+        component, ['frog', 'frog_native', 'peg', 'css'], flags)
     TestStep("sdk", mode, system,
         'vm', ['dartdoc'], flags)
 
@@ -148,6 +150,7 @@ def TestFrog(arch, mode, system, browser, flags):
     # isolate tests, so we're switching to use Chrome in the short term.
     if browser == 'chrome' and system == 'linux':
       TestStep('browser', mode, system, 'frogium', tests, flags)
+      TestStep('browser', mode, system, 'legium', tests, flags)
     else:
       additional_flags = ['--browser=' + browser]
       if system.startswith('win') and browser == 'ie':
@@ -168,10 +171,10 @@ def _DeleteFirefoxProfiles(directory):
       subprocess.Popen('rm -rf %s' % item, shell=True)
 
 def CleanUpTemporaryFiles(system, browser):
-  """For some browser (selenium) tests, the browser creates a temporary profile 
-  on each browser session start. On Windows, generally these files are 
-  automatically deleted when all python processes complete. However, since our 
-  buildbot slave script also runs on python, we never get the opportunity to 
+  """For some browser (selenium) tests, the browser creates a temporary profile
+  on each browser session start. On Windows, generally these files are
+  automatically deleted when all python processes complete. However, since our
+  buildbot slave script also runs on python, we never get the opportunity to
   clear out the temp files, so we do so explicitly here. Our batch browser
   testing will make this problem occur much less frequently, but will still
   happen eventually unless we do this.
@@ -180,7 +183,7 @@ def CleanUpTemporaryFiles(system, browser):
   automatically deletes the temporary profiles for Firefox for one browser,
   but not multiple ones when we have many open batch tasks running. This
   behavior has not been reproduced outside of the buildbots.
-  
+
   Args:
      - system: either 'linux', 'mac', or 'win7'
      - browser: one of the browsers, see GetBuildInfo
@@ -201,28 +204,28 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
-  arch, mode, system, browser = GetBuildInfo()
-  print "arch: %s, mode: %s, system: %s, browser %s" % (arch, mode, system,
+  component, mode, system, browser = GetBuildInfo()
+  print "component: %s, mode: %s, system: %s, browser %s" % (component, mode, system,
       browser)
-  if arch is None:
+  if component is None:
     return 1
 
-  status = BuildFrog(arch, mode, system)
+  status = BuildFrog(component, mode, system)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
     return status
 
-  if arch != 'frogium':
-    status = TestFrog(arch, mode, system, browser, [])
+  if component != 'frogium':
+    status = TestFrog(component, mode, system, browser, [])
     if status != 0:
       print '@@@STEP_FAILURE@@@'
       return status
 
-  status = TestFrog(arch, mode, system, browser, ['--checked'])
+  status = TestFrog(component, mode, system, browser, ['--checked'])
   if status != 0:
     print '@@@STEP_FAILURE@@@'
 
-  if arch == 'frogium':
+  if component == 'frogium':
     CleanUpTemporaryFiles(system, browser)
   return status
 
