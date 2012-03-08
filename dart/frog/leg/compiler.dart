@@ -136,9 +136,9 @@ class Compiler implements DiagnosticListener {
     worklist.add(work);
   }
 
-  bool run(Script script) {
+  bool run(Uri uri) {
     try {
-      runCompiler(script);
+      runCompiler(uri);
     } catch (CompilerCancelledException exception) {
       log(exception.toString());
       log('compilation failed');
@@ -256,17 +256,15 @@ class Compiler implements DiagnosticListener {
     }
   }
 
-  void runCompiler(Script script) {
+  void runCompiler(Uri uri) {
     scanBuiltinLibraries();
-    mainApp = new LibraryElement(script);
-    native.maybeEnableNative(this, mainApp, null);
-
+    mainApp = scanner.loadLibrary(uri, null);
     Element element;
     withCurrentElement(mainApp, () {
-        scanner.scan(currentElement);
-        element = mainApp.find(MAIN);
-        if (element === null) cancel('Could not find $MAIN');
-      });
+      element = mainApp.find(MAIN);
+      if (element === null) cancel('Could not find $MAIN');
+    });
+    native.processNativeClasses(this, universe.libraries.getValues());
     worklist.add(new WorkItem.toCompile(element));
     do {
       while (!worklist.isEmpty()) {

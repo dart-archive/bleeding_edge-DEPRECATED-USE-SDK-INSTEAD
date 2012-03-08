@@ -12,8 +12,15 @@
 #import('util/util.dart');
 
 void processNativeClasses(Compiler compiler,
-                          CompilationUnitElement compilationUnit) {
-  for (Link<Element> link = compilationUnit.topLevelElements;
+                          Collection<LibraryElement> libraries) {
+  for (LibraryElement library in libraries) {
+    processNativeClassesInLibrary(compiler, library);
+  }
+}
+
+void processNativeClassesInLibrary(Compiler compiler,
+                                   LibraryElement library) {
+  for (Link<Element> link = library.topLevelElements;
        !link.isEmpty(); link = link.tail) {
     Element element = link.head;
     if (element.kind == ElementKind.CLASS) {

@@ -17,8 +17,7 @@ bool compile(frog.World world) {
   final compiler = new WorldCompiler(world, throwOnError);
   Uri cwd = new Uri(scheme: 'file', path: compiler.currentDirectory);
   Uri uri = cwd.resolve(frog.options.dartScript);
-  final script = compiler.readScript(uri);
-  return compiler.run(script);
+  return compiler.run(uri);
 }
 
 class WorldCompiler extends Compiler {
@@ -37,8 +36,8 @@ class WorldCompiler extends Compiler {
     }
   }
 
-  bool run(Script script) {
-    bool success = super.run(script);
+  bool run(Uri uri) {
+    bool success = super.run(uri);
     if (success) {
       var code = assembledCode;
       world.legCode = code;

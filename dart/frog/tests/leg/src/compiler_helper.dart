@@ -5,18 +5,12 @@
 
 #library("compiler_helper");
 
+#import('../../../../lib/uri/uri.dart');
 #import("../../../leg/leg.dart", prefix: "leg");
 #import("../../../leg/elements/elements.dart", prefix: "lego");
 #import("../../../leg/ssa/ssa.dart", prefix: "ssa");
 #import("parser_helper.dart");
 #import("mock_compiler.dart");
-
-class StringScript extends leg.Script {
-  final String code;
-  StringScript(this.code) : super(null, null);
-  String get text() => code;
-  String get name() => "mock script";
-}
 
 String compile(String code, [String entry = 'main']) {
   MockCompiler compiler = new MockCompiler();
@@ -29,7 +23,9 @@ String compile(String code, [String entry = 'main']) {
 
 String compileAll(String code) {
   leg.Compiler compiler = new MockCompiler();
-  compiler.runCompiler(new StringScript(code));
+  Uri uri = new Uri(scheme: 'source');
+  compiler.sources[uri.toString()] = code;
+  compiler.runCompiler(uri);
   return compiler.assembledCode;
 }
 

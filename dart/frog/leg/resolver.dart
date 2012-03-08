@@ -138,15 +138,12 @@ class ResolverTask extends CompilerTask {
       visitor.visit(tree.body);
 
       // Resolve the type annotations encountered in the method.
-      Link<ClassElement> newResolvedClasses = const EmptyLink<ClassElement>();
       while (!toResolve.isEmpty()) {
         ClassElement classElement = toResolve.removeFirst();
         if (!classElement.isResolved) {
           classElement.resolve(compiler);
         }
-        newResolvedClasses = newResolvedClasses.prepend(classElement);
       }
-      checkClassHierarchy(newResolvedClasses);
       if (isConstructor) {
         constructorElements[element] = visitor.mapping;
       }
@@ -212,11 +209,15 @@ class ResolverTask extends CompilerTask {
   }
 
   Type resolveType(ClassElement element) {
+    if (element.isResolved) return element.type;
     return measure(() {
       ClassNode tree = element.parseNode(compiler);
       ClassResolverVisitor visitor =
         new ClassResolverVisitor(compiler, element.getLibrary());
-      return visitor.visit(tree);
+      visitor.visit(tree);
+      element.isResolved = true;
+      calculateAllSupertypes(element, new Set<ClassElement>());
+      return element.type;
     });
   }
 
@@ -246,13 +247,16 @@ class ResolverTask extends CompilerTask {
     // TODO(karlklose): check if type arguments match, if a classelement occurs
     //                  more than once in the supertypes.
     if (classElement.allSupertypes !== null) return;
-    final Type supertype = classElement.supertype;
     if (seen.contains(classElement)) {
       error(classElement.parseNode(compiler),
             MessageKind.CYCLIC_CLASS_HIERARCHY,
             [classElement.name]);
       classElement.allSupertypes = const EmptyLink<Type>();
-    } else if (supertype != null) {
+      return;
+    }
+    classElement.resolve(compiler);
+    final Type supertype = classElement.supertype;
+    if (supertype != null) {
       seen.add(classElement);
       Link<Type> superSupertypes =
         getOrCalculateAllSupertypes(supertype.element, seen);

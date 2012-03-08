@@ -48,12 +48,14 @@ final String DEFAULT_CORELIB = @'''
 class MockCompiler extends Compiler {
   List<WarningMessage> warnings;
   List<WarningMessage> errors;
+  final Map<String, String> sources;
   Node parsedTree;
   WorkItem lastBailoutWork;
 
   MockCompiler([String coreSource = DEFAULT_CORELIB,
                 String helperSource = DEFAULT_HELPERLIB])
       : warnings = [], errors = [],
+        sources = new Map<String, String>(),
         super.withCurrentDirectory(io.getCurrentDirectory()) {
     Uri uri = new Uri(scheme: "source");
     var script = new Script(uri, new MockFile(coreSource));
@@ -125,6 +127,12 @@ class MockCompiler extends Compiler {
   void scanBuiltinLibraries() {
     // Do nothing. The mock core library is already handled in the constructor.
   }
+
+  Script readScript(Uri uri, [ScriptTag node]) {
+    String code = sources[uri.toString()];
+    if (code === null) throw new IllegalArgumentException(uri);
+    return new StringScript(code);
+  }
 }
 
 void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
@@ -163,4 +171,11 @@ LibraryElement mockLibrary(Compiler compiler, String source) {
   var library = new LibraryElement(new Script(uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
   return library;
+}
+
+class StringScript extends Script {
+  final String code;
+  StringScript(this.code) : super(null, null);
+  String get text() => code;
+  String get name() => "mock script";
 }

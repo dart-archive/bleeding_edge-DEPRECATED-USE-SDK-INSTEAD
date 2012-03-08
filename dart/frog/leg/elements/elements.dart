@@ -607,10 +607,7 @@ class ClassElement extends ContainerElement {
   }
 
   ClassElement resolve(Compiler compiler) {
-    if (!isResolved) {
-      compiler.resolveType(this);
-      isResolved = true;
-    }
+    compiler.resolveType(this);
     return this;
   }
 
