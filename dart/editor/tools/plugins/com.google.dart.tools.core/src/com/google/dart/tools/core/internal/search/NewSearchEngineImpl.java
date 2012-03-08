@@ -25,6 +25,7 @@ import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.search.listener.FilteredSearchListener;
+import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
 import com.google.dart.tools.core.internal.search.listener.NameMatchingSearchListener;
 import com.google.dart.tools.core.internal.search.listener.WrappedSearchListener;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
@@ -56,6 +57,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Instances of the class <code>NewSearchEngineImpl</code> implement a search engine that used the
@@ -132,6 +134,7 @@ public class NewSearchEngineImpl implements SearchEngine {
           listener.matchFound(new SearchMatch(MatchQuality.EXACT, matchKind, dartElement, range));
         }
       }
+      listener.searchComplete();
     }
 
     private DartElement findElement(CompilationUnit unit, Element element) {
@@ -290,6 +293,20 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   /**
+   * The interface <code>SearchRunner</code> defines the behavior of objects that can be used to
+   * perform an asynchronous search.
+   */
+  private interface SearchRunner {
+    /**
+     * Perform an asynchronous search, passing the results to the given listener.
+     * 
+     * @param listener the listener to which search results should be passed
+     * @throws SearchException if the results could not be computed
+     */
+    public void performSearch(SearchListener listener) throws SearchException;
+  }
+
+  /**
    * The index used to respond to the search requests.
    */
   private Index index;
@@ -387,6 +404,18 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchTypeDeclarations(final SearchScope scope,
+      final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
+      throws SearchException {
+    return gatherResults(3, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchTypeDeclarations(scope, pattern, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
   public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     if (listener == null) {
@@ -477,6 +506,24 @@ public class NewSearchEngineImpl implements SearchEngine {
 
   private Element createElement(Type type) throws SearchException {
     return new Element(getResource(type.getCompilationUnit()), type.getElementName());
+  }
+
+  /**
+   * Use the given runner to perform the given number of asynchronous searches, then wait until the
+   * search has completed and return the results that were produced.
+   * 
+   * @param runner the runner used to perform an asynchronous search
+   * @return the results that were produced
+   * @throws SearchException if the results of at least one of the searched could not be computed
+   */
+  private List<SearchMatch> gatherResults(int searchCount, SearchRunner runner)
+      throws SearchException {
+    GatheringSearchListener listener = new GatheringSearchListener();
+    runner.performSearch(listener);
+    while (listener.getCompletedCount() < searchCount) {
+      Thread.yield();
+    }
+    return listener.getMatches();
   }
 
   private Resource getResource(CompilationUnit compilationUnit) throws SearchException {

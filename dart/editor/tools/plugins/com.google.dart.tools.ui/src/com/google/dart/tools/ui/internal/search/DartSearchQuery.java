@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Google Inc.
+ * Copyright 2012 Google Inc.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -68,6 +68,11 @@ public class DartSearchQuery implements ISearchQuery {
       search.addMatch(new DartElementMatch(element, 0 /* match.getRule() */, range.getOffset(),
           range.getLength(), 0 /* accuracy */, false /* isReadAccess */, false /* isWriteAccess */,
           false, false));
+    }
+
+    @Override
+    public void searchComplete() {
+      // Ignored
     }
   }
 

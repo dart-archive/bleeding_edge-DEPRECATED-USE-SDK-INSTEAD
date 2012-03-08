@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,9 +19,14 @@ package com.google.dart.tools.core.search;
  */
 public interface SearchListener {
   /**
-   * Record the fact that the given match was just found.
+   * Record the fact that the given match was found.
    * 
    * @param match the match that was found
    */
   public void matchFound(SearchMatch match);
+
+  /**
+   * This method is invoked when the search is complete and no additional matches will be found.
+   */
+  public void searchComplete();
 }

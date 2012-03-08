@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -31,6 +31,7 @@ import com.google.dart.tools.core.internal.indexer.location.SyntheticLocation;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.search.listener.FilteredSearchListener;
+import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
 import com.google.dart.tools.core.internal.search.listener.WrappedSearchListener;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -288,6 +289,14 @@ public final class SearchEngineImpl implements SearchEngine {
   };
 
   @Override
+  public List<SearchMatch> searchTypeDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException {
+    GatheringSearchListener listener = new GatheringSearchListener();
+    searchTypeDeclarations(scope, pattern, filter, listener, monitor);
+    return listener.getMatches();
+  };
+
+  @Override
   public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     SearchHelper helper = new SearchHelper() {
@@ -309,7 +318,7 @@ public final class SearchEngineImpl implements SearchEngine {
       }
     };
     performSearch(helper, scope, pattern, applyFilter(filter, listener), monitor);
-  };
+  }
 
   @Override
   public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern,

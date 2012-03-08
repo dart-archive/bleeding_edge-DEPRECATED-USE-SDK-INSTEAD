@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.search;
 
+import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
 import com.google.dart.tools.core.internal.search.scope.WorkspaceSearchScope;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -27,35 +28,9 @@ import junit.framework.TestCase;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class SearchEngineTest extends TestCase {
-  /**
-   * Instances of the class <code>GatheringSearchListener</code> implement a search listener that
-   * gathers search matches for later inspection.
-   */
-  private class GatheringSearchListener implements SearchListener {
-    /**
-     * A list containing the matches that were found.
-     */
-    private final List<SearchMatch> matches = new ArrayList<SearchMatch>();
-
-    /**
-     * Return a list containing the matches that were found.
-     * 
-     * @return a list containing the matches that were found
-     */
-    public List<SearchMatch> getMatches() {
-      return matches;
-    }
-
-    @Override
-    public void matchFound(SearchMatch match) {
-      matches.add(match);
-    }
-  }
-
   public void test_SearchEngine_searchConstructorDeclarations() throws Exception {
     getMoneyProject();
     SearchEngine engine = SearchEngineFactory.createSearchEngine();

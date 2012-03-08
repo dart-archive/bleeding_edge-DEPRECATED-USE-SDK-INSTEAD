@@ -42,6 +42,11 @@ public class DartImplementorFinder implements IImplementorFinder {
         implementors.add((Type) match.getElement());
       }
     }
+
+    @Override
+    public void searchComplete() {
+      // Ignored
+    }
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,7 +18,7 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchException;
-import com.google.dart.tools.core.search.SearchListener;
+import com.google.dart.tools.core.search.SearchFilter;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.search.SearchPatternFactory;
 import com.google.dart.tools.core.search.SearchScope;
@@ -39,29 +39,6 @@ import java.util.List;
  * Provider for type elements.
  */
 public class TypeProvider extends OmniProposalProvider {
-
-  private class TypeCollector implements SearchListener {
-
-    private final List<OmniElement> matches = new ArrayList<OmniElement>();
-
-    public OmniElement[] getTypeArray() {
-      return getTypes().toArray(EMPTY_ARRAY);
-    }
-
-    public List<OmniElement> getTypes() {
-      return matches;
-    }
-
-    @Override
-    public void matchFound(SearchMatch match) {
-      DartElement element = match.getElement();
-      if (!(element instanceof Type)) {
-        return;
-      }
-      matches.add(new TypeElement(TypeProvider.this, (Type) element));
-    }
-  }
-
   private final IProgressMonitor progressMonitor;
   //TODO (pquitslund): support additional scopes
   private final SearchScope searchScope = SearchScopeFactory.createWorkspaceScope();
@@ -103,17 +80,22 @@ public class TypeProvider extends OmniProposalProvider {
         break;
     }
 
-    TypeCollector collector = new TypeCollector();
     try {
       SearchEngine engine = SearchEngineFactory.createSearchEngine((WorkingCopyOwner) null);
-      engine.searchTypeDeclarations(getSearchScope(), searchPattern, null, collector,
-          progressMonitor);
+      List<SearchMatch> matches = engine.searchTypeDeclarations(getSearchScope(), searchPattern,
+          (SearchFilter) null, progressMonitor);
+      List<OmniElement> results = new ArrayList<OmniElement>(matches.size());
+      for (SearchMatch match : matches) {
+        DartElement element = match.getElement();
+        if (element instanceof Type) {
+          results.add(new TypeElement(TypeProvider.this, (Type) element));
+        }
+      }
+      return results.toArray(new OmniElement[results.size()]);
     } catch (SearchException e) {
       DartToolsPlugin.log(e);
     }
-
-    return collector.getTypeArray();
-
+    return new OmniElement[0];
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -21,7 +21,24 @@ import java.util.Collections;
 import java.util.List;
 
 public class GatheringSearchListener implements SearchListener {
+  /**
+   * A list containing the matches that have been found so far.
+   */
   private final List<SearchMatch> matches = new ArrayList<SearchMatch>();
+
+  /**
+   * The number of times that this listener has been told that the search is complete.
+   */
+  private int completedCount = 0;
+
+  /**
+   * Return the number of times that this listener has been told that the search is complete.
+   * 
+   * @return the number of times that this listener has been told that the search is complete
+   */
+  public int getCompletedCount() {
+    return completedCount;
+  }
 
   public List<SearchMatch> getMatches() {
     Collections.sort(matches, SearchMatch.SORT_BY_ELEMENT_NAME);
@@ -31,5 +48,10 @@ public class GatheringSearchListener implements SearchListener {
   @Override
   public void matchFound(SearchMatch match) {
     matches.add(match);
+  }
+
+  @Override
+  public void searchComplete() {
+    completedCount++;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.completion;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
+import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
 import com.google.dart.tools.core.internal.search.scope.WorkspaceSearchScope;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.model.DartModelException;
@@ -25,45 +26,18 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchException;
-import com.google.dart.tools.core.search.SearchListener;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.search.SearchPatternFactory;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Instances of the class <code>InternalCompletionProposal</code> implement a completion proposal.
  */
 public class InternalCompletionProposal extends CompletionProposal {
-  /**
-   * Instances of the class <code>GatheringSearchListener</code> implement a search listener that
-   * gathers search matches for later inspection.
-   */
-  private class GatheringSearchListener implements SearchListener {
-    /**
-     * A list containing the matches that were found.
-     */
-    private List<SearchMatch> matches = new ArrayList<SearchMatch>();
-
-    /**
-     * Return a list containing the matches that were found.
-     * 
-     * @return a list containing the matches that were found
-     */
-    public List<SearchMatch> getMatches() {
-      return matches;
-    }
-
-    @Override
-    public void matchFound(SearchMatch match) {
-      matches.add(match);
-    }
-  }
-
   protected CompletionEngine completionEngine;
   protected char[] declarationTypeName;
   protected char[] typeName;

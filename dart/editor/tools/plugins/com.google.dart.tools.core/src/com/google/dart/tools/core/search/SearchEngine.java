@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -20,6 +20,8 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+
+import java.util.List;
 
 /**
  * The interface <code>SearchEngine</code> defines the behavior of objects that can be used to
@@ -133,8 +135,27 @@ public interface SearchEngine {
       SearchListener listener, IProgressMonitor monitor) throws SearchException;
 
   /**
-   * Search for all of the type declarations that are defined in the given scope, and match the
-   * given pattern.
+   * Synchronously search for all of the type declarations that are defined in the given scope and
+   * match the given pattern. Return the matches that were found.
+   * 
+   * @param scope the scope containing the type declarations to be searched
+   * @param pattern the pattern used to determine which type declarations are to be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
+   *          , indicating that no progress should be reported and that the operation cannot be
+   *          canceled.
+   * @return the matches that were found
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchTypeDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Search for all of the type declarations that are defined in the given scope and match the given
+   * pattern.
    * 
    * @param scope the scope containing the type declarations to be searched
    * @param pattern the pattern used to determine which type declarations are to be returned
