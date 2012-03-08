@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -320,7 +321,12 @@ public class DartCompilerUtilities {
 
     @Override
     public DartSource getSourceFor(String relPath) {
-      URI uri = wrappedSource.getUri().resolve(relPath);
+      URI uri;
+      try {
+        uri = wrappedSource.getUri().resolve(new URI(null, null, relPath, null));
+      } catch (URISyntaxException e) {
+        uri = null;
+      }
       if (uri != null) {
         for (URI key : suppliedSources.keySet()) {
           if (equalUris(libraryManager, key, uri)) {

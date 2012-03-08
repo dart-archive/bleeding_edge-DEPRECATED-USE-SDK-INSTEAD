@@ -39,7 +39,7 @@ class Library {
       DartUnit dartUnit) {
     HashMap<String, File> imports = new HashMap<String, File>();
     HashMap<String, File> sources = new HashMap<String, File>();
-    URI base = libFile.getParentFile().toURI();
+    URI base = libFile.toURI();
 
     // Resolve all #import and #source directives
 

@@ -18,6 +18,7 @@ import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -307,6 +308,10 @@ public class AnalysisServer {
     if (file.isAbsolute()) {
       return file;
     }
-    return new File(base.resolve(relPath).getPath());
+    try {
+      return new File(base.resolve(new URI(null, null, relPath, null)).normalize().getPath());
+    } catch (URISyntaxException e) {
+      return null;
+    }
   }
 }
