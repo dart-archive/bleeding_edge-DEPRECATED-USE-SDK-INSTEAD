@@ -69,4 +69,9 @@ public class GetRelationshipsOperation implements IndexOperation {
     }
     callback.hasRelationships(element, relationship, locations);
   }
+
+  @Override
+  public String toString() {
+    return "GetRelationships(" + element + ", " + relationship + ")";
+  }
 }

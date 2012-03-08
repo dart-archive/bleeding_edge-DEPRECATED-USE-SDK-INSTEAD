@@ -26,13 +26,15 @@ import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.AttributeCallback;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Index;
-import com.google.dart.tools.core.index.Location;
 import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.RelationshipCallback;
 import com.google.dart.tools.core.index.Resource;
-import com.google.dart.tools.core.internal.index.contributor.IndexContributor;
+import com.google.dart.tools.core.internal.index.operation.GetAttributeOperation;
+import com.google.dart.tools.core.internal.index.operation.GetRelationshipsOperation;
+import com.google.dart.tools.core.internal.index.operation.IndexResourceOperation;
 import com.google.dart.tools.core.internal.index.operation.OperationProcessor;
 import com.google.dart.tools.core.internal.index.operation.OperationQueue;
+import com.google.dart.tools.core.internal.index.operation.RemoveResourceOperation;
 import com.google.dart.tools.core.internal.index.persistance.IndexReader;
 import com.google.dart.tools.core.internal.index.persistance.IndexWriter;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
@@ -140,12 +142,7 @@ public class InMemoryIndex implements Index {
    */
   @Override
   public void getAttribute(Element element, Attribute attribute, AttributeCallback callback) {
-    String value;
-    synchronized (indexStore) {
-      value = indexStore.getAttribute(element, attribute);
-    }
-    callback.hasValue(element, attribute, value);
-    // queue.enqueue(new GetAttributeOperation(indexStore, element, attribute, callback));
+    queue.enqueue(new GetAttributeOperation(indexStore, element, attribute, callback));
   }
 
   /**
@@ -182,12 +179,7 @@ public class InMemoryIndex implements Index {
   @Override
   public void getRelationships(Element element, Relationship relationship,
       RelationshipCallback callback) {
-    Location[] locations;
-    synchronized (indexStore) {
-      locations = indexStore.getRelationships(element, relationship);
-    }
-    callback.hasRelationships(element, relationship, locations);
-    // queue.enqueue(new GetRelationshipsOperation(indexStore, element, relationship, callback));
+    queue.enqueue(new GetRelationshipsOperation(indexStore, element, relationship, callback));
   }
 
   /**
@@ -200,25 +192,8 @@ public class InMemoryIndex implements Index {
    */
   @Override
   public void indexResource(Resource resource, CompilationUnit compilationUnit, DartUnit unit) {
-    long indexStart = System.currentTimeMillis();
-    long bindingTime = 0L;
-    synchronized (indexStore) {
-      indexStore.regenerateResource(resource);
-      try {
-        IndexContributor contributor = new IndexContributor(indexStore, compilationUnit);
-        unit.accept(contributor);
-        bindingTime = contributor.getBindingTime();
-      } catch (DartModelException exception) {
-        DartCore.logError("Could not index " + compilationUnit.getResource().getLocation(),
-            exception);
-      }
-    }
-    if (performanceRecorder != null) {
-      long indexEnd = System.currentTimeMillis();
-      long indexTime = indexEnd - indexStart;
-      performanceRecorder.recordIndexingTime(indexTime, bindingTime);
-    }
-    // queue.enqueue(new IndexResourceOperation(indexStore, resource, compilationUnit, unit, performanceRecorder));
+    queue.enqueue(new IndexResourceOperation(indexStore, resource, compilationUnit, unit,
+        performanceRecorder));
   }
 
   /**
@@ -262,10 +237,7 @@ public class InMemoryIndex implements Index {
    */
   @Override
   public void removeResource(Resource resource) {
-    synchronized (indexStore) {
-      indexStore.removeResource(resource);
-    }
-    // queue.enqueue(new RemoveResourceOperation(indexStore, resource));
+    queue.enqueue(new RemoveResourceOperation(indexStore, resource));
   }
 
   /**

@@ -68,4 +68,9 @@ public class GetAttributeOperation implements IndexOperation {
     }
     callback.hasValue(element, attribute, value);
   }
+
+  @Override
+  public String toString() {
+    return "GetAttribute(" + element + ", " + attribute + ")";
+  }
 }

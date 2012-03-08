@@ -32,6 +32,7 @@ import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartTypeNode;
@@ -166,6 +167,12 @@ public class IndexContributor extends ASTVisitor<Void> {
   private int relationshipCount = 0;
 
   /**
+   * A writer used to produce tracing output. This is used so that all of the tracing output will
+   * appear together in a single entry in the log.
+   */
+  private PrintStringWriter traceWriter;
+
+  /**
    * The element id used for library elements.
    */
   private static final String LIBRARY_ELEMENT_ID = "#library";
@@ -192,6 +199,12 @@ public class IndexContributor extends ASTVisitor<Void> {
     libraryResource = getResource(library.getDefiningCompilationUnit());
     libraryElement = new Element(libraryResource, LIBRARY_ELEMENT_ID);
     compilationUnitResource = getResource(compilationUnit);
+    if (DartCoreDebug.TRACE_INDEX_CONTRIBUTOR) {
+      traceWriter = new PrintStringWriter();
+      traceWriter.print("Contributions from ");
+      traceWriter.println(compilationUnit.getElementName());
+      traceWriter.println();
+    }
   }
 
   public long getBindingTime() {
@@ -205,6 +218,15 @@ public class IndexContributor extends ASTVisitor<Void> {
    */
   public int getRelationshipCount() {
     return relationshipCount;
+  }
+
+  /**
+   * Write any accumulated tracing information to the log.
+   */
+  public void logTrace() {
+    if (traceWriter != null) {
+      DartCore.logInformation(traceWriter.toString());
+    }
   }
 
   @Override
@@ -426,6 +448,17 @@ public class IndexContributor extends ASTVisitor<Void> {
   public Void visitNode(DartNode node) {
     visitChildren(node);
     return null;
+  }
+
+  @Override
+  public Void visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element instanceof MethodElement) {
+      processMethodInvocation(node.getName(), (MethodElement) element);
+    } else {
+      notFound("redirect constructor invocation", node);
+    }
+    return super.visitRedirectConstructorInvocation(node);
   }
 
   @Override
@@ -1188,6 +1221,14 @@ public class IndexContributor extends ASTVisitor<Void> {
     if (element != null) {
       index.recordRelationship(compilationUnitResource, element, relationship, location);
       relationshipCount++;
+      if (traceWriter != null) {
+        traceWriter.print("   ");
+        traceWriter.print(element);
+        traceWriter.print(" ");
+        traceWriter.print(relationship);
+        traceWriter.print(" ");
+        traceWriter.print(location);
+      }
     }
   }
 

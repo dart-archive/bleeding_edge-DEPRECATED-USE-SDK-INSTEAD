@@ -19,6 +19,7 @@ import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.contributor.IndexContributor;
 import com.google.dart.tools.core.internal.index.impl.IndexPerformanceRecorder;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
+import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 
@@ -85,6 +86,9 @@ public class IndexResourceOperation implements IndexOperation {
         unit.accept(contributor);
         indexEnd = System.currentTimeMillis();
         bindingTime = contributor.getBindingTime();
+        if (!(compilationUnit instanceof ExternalCompilationUnitImpl)) {
+          contributor.logTrace();
+        }
       } catch (DartModelException exception) {
         DartCore.logError("Could not index " + compilationUnit.getResource().getLocation(),
             exception);
@@ -93,5 +97,10 @@ public class IndexResourceOperation implements IndexOperation {
     if (performanceRecorder != null && indexEnd > 0L) {
       performanceRecorder.recordIndexingTime(indexEnd - indexStart, bindingTime);
     }
+  }
+
+  @Override
+  public String toString() {
+    return "IndexResource(" + resource + ")";
   }
 }

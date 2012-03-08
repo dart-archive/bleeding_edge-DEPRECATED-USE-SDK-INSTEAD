@@ -20,6 +20,8 @@ com.google.dart.tools.core/experimental/analysis/server = false
 com.google.dart.tools.core/experimental/newIndexer = false
 
 com.google.dart.tools.core/trace/artifactProvider = false
+com.google.dart.tools.core/trace/index/contributor = false
+com.google.dart.tools.core/trace/index/processor = false
 
 com.google.dart.tools.core/perf/index = false
 

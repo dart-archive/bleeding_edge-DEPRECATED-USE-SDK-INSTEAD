@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.core.internal.index.operation;
 
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+
 /**
  * Instances of the class <code>OperationProcessor</code> process the operations on a single
  * {@link OperationQueue operation queue}. Each processor can be run one time on a single thread.
@@ -96,7 +99,13 @@ public class OperationProcessor {
           }
         }
         if (operation != null) {
+          if (DartCoreDebug.TRACE_INDEX_PROCESSOR) {
+            DartCore.logInformation("Operation Processor: beginning " + operation);
+          }
           operation.performOperation();
+          if (DartCoreDebug.TRACE_INDEX_PROCESSOR) {
+            DartCore.logInformation("Operation Processor: completed " + operation);
+          }
         }
       }
     } finally {

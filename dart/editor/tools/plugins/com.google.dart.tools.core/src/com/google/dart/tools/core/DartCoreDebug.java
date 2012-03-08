@@ -30,6 +30,8 @@ public class DartCoreDebug {
   public static final boolean VERBOSE = isOptionTrue("debug/verbose");
 
   public static final boolean TRACE_ARTIFACT_PROVIDER = isOptionTrue("trace/artifactProvider");
+  public static final boolean TRACE_INDEX_CONTRIBUTOR = isOptionTrue("trace/index/contributor");
+  public static final boolean TRACE_INDEX_PROCESSOR = isOptionTrue("trace/index/processor");
 
   public static final boolean FROG = isOptionTrue("debug/frog");
 
