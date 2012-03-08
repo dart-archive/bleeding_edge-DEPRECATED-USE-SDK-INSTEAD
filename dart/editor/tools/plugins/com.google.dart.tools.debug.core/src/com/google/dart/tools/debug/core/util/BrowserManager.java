@@ -374,10 +374,21 @@ public class BrowserManager {
     if (stdout.length() != 0) {
       msg.append("Dartium stdout: ").append(stdout).append("\n");
     }
+    boolean expired = false;
     if (stderr.length() != 0) {
-      msg.append("Dartium stderr: ").append(stderr);
+      if (stderr.indexOf("Dartium build has expired") != -1) {
+        expired = true;
+      }
+      if (expired) {
+        msg.append("\nThis build of Dartium has expired.\n\n");
+        msg.append("Please download a new Dart Editor or Dartium build from \n");
+        msg.append("http://www.dartlang.org/downloads.html.");
+      } else {
+        msg.append("Dartium stderr: ").append(stderr);
+      }
     }
-    if (DartCore.isLinux()) {
+
+    if (DartCore.isLinux() && !expired) {
       msg.append("\nFor information on how to setup your machine to run Dartium visit ");
       msg.append("http://code.google.com/p/dart/wiki/PreparingYourMachine#Linux");
     }
