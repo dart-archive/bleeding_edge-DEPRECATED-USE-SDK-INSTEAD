@@ -5,8 +5,9 @@
 class MemberSet {
   final String name;
   final List<Member> members;
-  final String jsname;
   final bool isVar;
+  String jsname;
+  bool jsnameUnique = false;
 
   bool _treatAsField;
   Type _returnTypeForGet;

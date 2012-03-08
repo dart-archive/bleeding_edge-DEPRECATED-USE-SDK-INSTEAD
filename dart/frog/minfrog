@@ -5573,27 +5573,42 @@ Library.prototype._addMember = function(member) {
       if (member.declaringType.get$isTop()) {
         $globals.world._addTopName(member);
       }
-      return;
-    }
-    var mset = this._privateMembers.$index(member.name);
-    if ($eq$(mset)) {
-      var $$list = $globals.world.libraries.getValues();
-      for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
-        var lib = $$i.next();
-        if (lib.get$_privateMembers().containsKey(member.get$jsname())) {
-          member._jsname = ("_" + this.get$jsname() + member.get$jsname());
-          break;
-        }
-      }
-      mset = new MemberSet(member, true);
-      this._privateMembers.$setindex(member.name, mset);
     }
     else {
-      mset.get$members().add(member);
+      var members = this._privateMembers.$index(member.name);
+      if ($eq$(members)) {
+        members = new MemberSet(member, true);
+        this._privateMembers.$setindex(member.name, members);
+      }
+      else {
+        members.add(member);
+      }
+      this._makePrivateMembersUnique(member, members);
     }
   }
   else {
     $globals.world._addMember(member);
+  }
+}
+Library.prototype._makePrivateMembersUnique = function(member, members) {
+  if (members.jsnameUnique) {
+    member._jsname = members.jsname;
+    return;
+  }
+  var name = members.name;
+  var $$list = $globals.world.libraries.getValues();
+  for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
+    var lib = $$i.next();
+    if ((null == lib ? null != (this) : lib !== this) && lib.get$_privateMembers().containsKey(name)) {
+      var uniqueName = ("_" + this.get$jsname() + members.jsname);
+      members.jsname = uniqueName;
+      members.jsnameUnique = true;
+      members.members.forEach((function (uniqueName, each) {
+        each.set$_jsname(uniqueName);
+      }).bind(null, uniqueName)
+      );
+      return;
+    }
   }
 }
 Library.prototype.getOrAddFunctionType = function(enclosingElement, name, func, data) {
@@ -6893,13 +6908,14 @@ function MemberSet(member, isVar) {
   this.jsname = member.get$jsname();
   this.name = member.name;
   this._preparedForSet = false;
+  this.jsnameUnique = false;
   this.isVar = isVar;
   this.members = [member];
 }
 MemberSet.prototype.get$name = function() { return this.name; };
 MemberSet.prototype.get$members = function() { return this.members; };
-MemberSet.prototype.get$jsname = function() { return this.jsname; };
 MemberSet.prototype.get$isVar = function() { return this.isVar; };
+MemberSet.prototype.get$jsname = function() { return this.jsname; };
 MemberSet.prototype.toString = function() {
   return ("" + this.name + ":" + this.members.get$length());
 }
@@ -14274,7 +14290,7 @@ World.prototype.generateCode = function(lib) {
   this.jsBytesWritten = this.frogCode.length;
   this.gen = null;
 }
-World.prototype._message = function(color, prefix, message, span, span1, span2, throwing) {
+World.prototype._lang_message = function(color, prefix, message, span, span1, span2, throwing) {
   if (this.messageHandler != null) {
     this.messageHandler(prefix, message, span);
     if (span1 != null) {
@@ -14304,7 +14320,7 @@ World.prototype._message = function(color, prefix, message, span, span1, span2, 
 }
 World.prototype.error = function(message, span, span1, span2) {
   this.errors++;
-  this._message($globals._RED_COLOR, "error: ", message, span, span1, span2, $globals.options.throwOnErrors);
+  this._lang_message($globals._RED_COLOR, "error: ", message, span, span1, span2, $globals.options.throwOnErrors);
 }
 World.prototype.warning = function(message, span, span1, span2) {
   if ($globals.options.warningsAsErrors) {
@@ -14313,20 +14329,20 @@ World.prototype.warning = function(message, span, span1, span2) {
   }
   this.warnings++;
   if ($globals.options.showWarnings) {
-    this._message($globals._MAGENTA_COLOR, "warning: ", message, span, span1, span2, $globals.options.throwOnWarnings);
+    this._lang_message($globals._MAGENTA_COLOR, "warning: ", message, span, span1, span2, $globals.options.throwOnWarnings);
   }
 }
 World.prototype.fatal = function(message, span, span1, span2) {
   this.errors++;
   this.seenFatal = true;
-  this._message($globals._RED_COLOR, "fatal: ", message, span, span1, span2, $globals.options.throwOnFatal || $globals.options.throwOnErrors);
+  this._lang_message($globals._RED_COLOR, "fatal: ", message, span, span1, span2, $globals.options.throwOnFatal || $globals.options.throwOnErrors);
 }
 World.prototype.internalError = function(message, span, span1, span2) {
-  this._message($globals._NO_COLOR, "We are sorry, but...", message, span, span1, span2, true);
+  this._lang_message($globals._NO_COLOR, "We are sorry, but...", message, span, span1, span2, true);
 }
 World.prototype.info = function(message, span, span1, span2) {
   if ($globals.options.showInfo) {
-    this._message($globals._GREEN_COLOR, "info: ", message, span, span1, span2, false);
+    this._lang_message($globals._GREEN_COLOR, "info: ", message, span, span1, span2, false);
   }
 }
 World.prototype.withoutForceDynamic = function(fn) {

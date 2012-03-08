@@ -94,26 +94,42 @@ class Library extends Element {
         if (member.declaringType.isTop) {
           world._addTopName(member);
         }
-        return;
-      }
-
-      var mset = _privateMembers[member.name];
-      if (mset == null) {
-        // TODO(jimhug): Make this lazier!
-        for (var lib in world.libraries.getValues()) {
-          if (lib._privateMembers.containsKey(member.jsname)) {
-            member._jsname = '_$jsname${member.jsname}';
-            break;
-          }
-        }
-
-        mset = new MemberSet(member, isVar:true);
-        _privateMembers[member.name] = mset;
       } else {
-        mset.members.add(member);
+        var members = _privateMembers[member.name];
+        if (members == null) {
+          members = new MemberSet(member, isVar: true);
+          _privateMembers[member.name] = members;
+        } else {
+          members.add(member);
+        }
+        _makePrivateMembersUnique(member, members);
       }
     } else {
       world._addMember(member);
+    }
+  }
+
+  void _makePrivateMembersUnique(Member member, MemberSet members) {
+    // If the JS name in the member set is already unique, we simply
+    // copy the name to the new member.
+    if (members.jsnameUnique) {
+      member._jsname = members.jsname;
+      return;
+    }
+
+    // Run through the other libraries in the world and check if any
+    // of them has a clashing private member. If so, we rewrite this
+    // one and all other members in the set.
+    String name = members.name;
+    for (var lib in world.libraries.getValues()) {
+      if (lib !== this && lib._privateMembers.containsKey(name)) {
+        String uniqueName = '_${this.jsname}${members.jsname}';
+        members.jsname = uniqueName;
+        members.jsnameUnique = true;
+        members.members.forEach((each) { each._jsname = uniqueName; });
+        assert(member.jsname == members.jsname);
+        return;
+      }
     }
   }
 
