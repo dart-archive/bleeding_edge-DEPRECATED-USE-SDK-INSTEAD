@@ -24,7 +24,7 @@ import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.indexer.location.MethodLocation;
@@ -41,85 +41,85 @@ import com.google.dart.tools.core.model.SourceRange;
 public class MethodInvocationContributor extends ScopedDartContributor {
   @Override
   public Void visitArrayAccess(DartArrayAccess node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
+    Element element = node.getElement();
+    if (element instanceof MethodElement) {
       // TODO(brianwilkerson) Find the source range associated with the operator.
-      processMethod(null, (MethodElement) symbol);
+      processMethod(null, (MethodElement) element);
     }
     return super.visitArrayAccess(node);
   }
 
   @Override
   public Void visitBinaryExpression(DartBinaryExpression node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
+    Element element = node.getElement();
+    if (element instanceof MethodElement) {
       // TODO(brianwilkerson) Find the source range associated with the operator.
-      processMethod(null, (MethodElement) symbol);
+      processMethod(null, (MethodElement) element);
     }
     return super.visitBinaryExpression(node);
   }
 
   @Override
   public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
-      processMethod(getRange(node.getTarget()), (MethodElement) symbol);
+    Element element = node.getElement();
+    if (element instanceof MethodElement) {
+      processMethod(getRange(node.getTarget()), (MethodElement) element);
     }
     return super.visitFunctionObjectInvocation(node);
   }
 
   @Override
   public Void visitMethodInvocation(DartMethodInvocation node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol == null) {
-      symbol = node.getTargetSymbol();
+    Element element = node.getElement();
+    if (element == null) {
+      element = node.getElement();
     }
-    if (symbol instanceof MethodElement) {
-      processMethod(getRange(node.getFunctionName()), (MethodElement) symbol);
+    if (element instanceof MethodElement) {
+      processMethod(getRange(node.getFunctionName()), (MethodElement) element);
     }
     return super.visitMethodInvocation(node);
   }
 
   @Override
   public Void visitNewExpression(DartNewExpression node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
+    Element element = node.getElement();
+    if (element instanceof MethodElement) {
       DartNode className = node.getConstructor();
       if (className instanceof DartPropertyAccess) {
         className = ((DartPropertyAccess) className).getName();
       } else if (className instanceof DartTypeNode) {
         className = ((DartTypeNode) className).getIdentifier();
       }
-      processMethod(getRange(className), (MethodElement) symbol);
+      processMethod(getRange(className), (MethodElement) element);
     }
     return super.visitNewExpression(node);
   }
 
   @Override
   public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
-      processMethod(getRange(node.getName()), (MethodElement) symbol);
+    Element element = node.getElement();
+    if (element instanceof MethodElement) {
+      processMethod(getRange(node.getName()), (MethodElement) element);
     }
     return super.visitSuperConstructorInvocation(node);
   }
 
   @Override
   public Void visitUnaryExpression(DartUnaryExpression node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
-      MethodElement element = (MethodElement) symbol;
+    Element element = node.getElement();
+    if (element instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) element;
       // TODO(brianwilkerson) Find the source range associated with the operator.
-      processMethod(null, element);
+      processMethod(null, methodElement);
     }
     return super.visitUnaryExpression(node);
   }
 
   @Override
   public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
-      processMethod(getRange(node.getTarget()), (MethodElement) symbol);
+    Element element = node.getElement();
+    if (element instanceof MethodElement) {
+      processMethod(getRange(node.getTarget()), (MethodElement) element);
     }
     return super.visitUnqualifiedInvocation(node);
   }

@@ -14,8 +14,8 @@
 package com.google.dart.tools.core.internal.indexer.contributor;
 
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.tools.core.internal.indexer.location.TypeLocation;
 import com.google.dart.tools.core.model.Type;
@@ -27,14 +27,14 @@ import com.google.dart.tools.core.model.Type;
 public class TypeHierarchyContributor extends DartContributor {
   @Override
   public Void visitClass(DartClass node) {
-    Symbol binding = node.getSymbol();
-    if (binding instanceof ClassElement) {
-      ClassElement typeSymbol = (ClassElement) binding;
-      InterfaceType superclass = typeSymbol.getSupertype();
+    Element element = node.getElement();
+    if (element instanceof ClassElement) {
+      ClassElement classElement = (ClassElement) element;
+      InterfaceType superclass = classElement.getSupertype();
       if (superclass != null) {
         processSupertype(node, superclass);
       }
-      for (InterfaceType type : typeSymbol.getInterfaces()) {
+      for (InterfaceType type : classElement.getInterfaces()) {
         processSupertype(node, type);
       }
     }

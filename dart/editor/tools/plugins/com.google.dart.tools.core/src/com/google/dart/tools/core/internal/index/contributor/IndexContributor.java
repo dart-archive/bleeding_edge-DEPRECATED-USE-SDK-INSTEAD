@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.index.contributor;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
@@ -29,7 +30,6 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartStatement;
@@ -37,7 +37,6 @@ import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
@@ -210,12 +209,12 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitArrayAccess(DartArrayAccess node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element instanceof MethodElement) {
       // TODO(brianwilkerson) Find the real source range associated with the operator.
       DartExpression index = node.getKey();
       processMethodInvocation(index.getSourceStart() - 1, index.getSourceLength() + 2,
-          (MethodElement) symbol);
+          (MethodElement) element);
     } else {
       notFound("array access", node);
     }
@@ -226,8 +225,8 @@ public class IndexContributor extends ASTVisitor<Void> {
   public Void visitBinaryExpression(DartBinaryExpression node) {
     Token operatorToken = node.getOperator();
     if (operatorToken.isUserDefinableOperator()) {
-      Symbol symbol = node.getReferencedElement();
-      if (symbol instanceof MethodElement) {
+      com.google.dart.compiler.resolver.Element element = node.getElement();
+      if (element instanceof MethodElement) {
         String operator = operatorToken.getSyntax();
         DartExpression leftOperand = node.getArg1();
         DartExpression rghtOperand = node.getArg2();
@@ -237,7 +236,7 @@ public class IndexContributor extends ASTVisitor<Void> {
         if (offset < 0) {
           // TODO(brianwilkerson) Handle a missing offset.
         }
-        processMethodInvocation(offset, operator.length(), (MethodElement) symbol);
+        processMethodInvocation(offset, operator.length(), (MethodElement) element);
       } else {
         notFound("binary expression: " + operatorToken.getSyntax(), node);
       }
@@ -261,7 +260,7 @@ public class IndexContributor extends ASTVisitor<Void> {
   public Void visitField(DartField node) {
     pushElement(getElement(node));
     try {
-      processField(node.getName(), node.getSymbol());
+      processField(node.getName(), node.getElement());
       super.visitField(node);
     } finally {
       popElement();
@@ -302,11 +301,11 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
-      processMethodInvocation(getIdentifier(node.getTarget()), (MethodElement) symbol);
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element instanceof MethodElement) {
+      processMethodInvocation(getIdentifier(node.getTarget()), (MethodElement) element);
     } else {
-      notFound("function invocation: [" + (symbol == null ? "null" : symbol.toString()) + "] "
+      notFound("function invocation: [" + (element == null ? "null" : element.toString()) + "] "
           + node.toString(), node);
     }
     return super.visitFunctionObjectInvocation(node);
@@ -326,18 +325,18 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitIdentifier(DartIdentifier node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol == null) {
-      symbol = node.getTargetSymbol();
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element == null) {
+      element = node.getElement();
     }
-    if (symbol == null) {
+    if (element == null) {
       DartNode parent = node.getParent();
       if (parent instanceof DartTypeNode) {
         DartNode grandparent = parent.getParent();
         if (grandparent instanceof DartNewExpression) {
-          symbol = ((DartNewExpression) grandparent).getReferencedElement();
+          element = ((DartNewExpression) grandparent).getElement();
         }
-        if (symbol == null) {
+        if (element == null) {
           Type type = ((DartTypeNode) parent).getType();
           if (type instanceof InterfaceType) {
             processTypeReference(node, (InterfaceType) type);
@@ -347,17 +346,17 @@ public class IndexContributor extends ASTVisitor<Void> {
       } else if (parent instanceof DartMethodInvocation) {
         DartMethodInvocation invocation = (DartMethodInvocation) parent;
         if (node == invocation.getFunctionName()) {
-          symbol = invocation.getReferencedElement();
+          element = invocation.getElement();
         }
       } else if (parent instanceof DartPropertyAccess) {
         DartPropertyAccess access = (DartPropertyAccess) parent;
         if (node == access.getName()) {
-          symbol = access.getReferencedElement();
+          element = access.getElement();
         }
       } else if (parent instanceof DartUnqualifiedInvocation) {
         DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation) parent;
         if (node == invocation.getTarget()) {
-          symbol = invocation.getReferencedElement();
+          element = invocation.getElement();
         }
       } else if (parent instanceof DartParameterizedTypeNode) {
         DartParameterizedTypeNode typeNode = (DartParameterizedTypeNode) parent;
@@ -365,21 +364,21 @@ public class IndexContributor extends ASTVisitor<Void> {
         if (grandparent instanceof DartClass) {
           DartClass classDef = (DartClass) grandparent;
           if (typeNode == classDef.getDefaultClass()) {
-            symbol = classDef.getSymbol().getDefaultClass().getElement();
+            element = classDef.getElement().getDefaultClass().getElement();
           }
         }
       }
     }
-    if (symbol instanceof ClassElement) {
-      processTypeReference(node, ((ClassElement) symbol).getType());
-    } else if (symbol instanceof FieldElement) {
+    if (element instanceof ClassElement) {
+      processTypeReference(node, ((ClassElement) element).getType());
+    } else if (element instanceof FieldElement) {
       boolean isAssignedTo = isAssignedTo(node);
-      Element element = getElement((FieldElement) symbol, !isAssignedTo, isAssignedTo);
+      Element indexElement = getElement((FieldElement) element, !isAssignedTo, isAssignedTo);
       Location location = getLocation(node);
       if (isAssignedTo) {
-        recordRelationship(element, IndexConstants.IS_MODIFIED_BY, location);
+        recordRelationship(indexElement, IndexConstants.IS_MODIFIED_BY, location);
       } else {
-        recordRelationship(element, IndexConstants.IS_ACCESSED_BY, location);
+        recordRelationship(indexElement, IndexConstants.IS_ACCESSED_BY, location);
       }
     }
     return super.visitIdentifier(node);
@@ -399,12 +398,12 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitMethodInvocation(DartMethodInvocation node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol == null) {
-      symbol = node.getTargetSymbol();
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element == null) {
+      element = node.getElement();
     }
-    if (symbol instanceof MethodElement) {
-      processMethodInvocation(node.getFunctionName(), (MethodElement) symbol);
+    if (element instanceof MethodElement) {
+      processMethodInvocation(node.getFunctionName(), (MethodElement) element);
     } else {
       notFound("method invocation: " + node.toString(), node);
     }
@@ -413,10 +412,10 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitNewExpression(DartNewExpression node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element instanceof MethodElement) {
       DartNode className = node.getConstructor();
-      processMethodInvocation(getIdentifier(className), (MethodElement) symbol);
+      processMethodInvocation(getIdentifier(className), (MethodElement) element);
     } else {
       notFound("new expression", node);
     }
@@ -431,11 +430,11 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element instanceof MethodElement) {
       // TODO(brianwilkerson) The name is always null, so we can't record references to the invoked
       // constructor.
-      processMethodInvocation(node.getName(), (MethodElement) symbol);
+      processMethodInvocation(node.getName(), (MethodElement) element);
     } else {
       notFound("super constructor invocation", node);
     }
@@ -444,8 +443,8 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitUnaryExpression(DartUnaryExpression node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element instanceof MethodElement) {
       String operator = node.getOperator().getSyntax();
       DartExpression operand = node.getArg();
       int offset;
@@ -458,7 +457,7 @@ public class IndexContributor extends ASTVisitor<Void> {
       if (offset < 0) {
         // TODO(brianwilkerson) Handle a missing offset.
       }
-      processMethodInvocation(offset, operator.length(), (MethodElement) symbol);
+      processMethodInvocation(offset, operator.length(), (MethodElement) element);
     } else {
       notFound("unary expression: " + node.getOperator().getSyntax(), node);
     }
@@ -467,13 +466,13 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol instanceof MethodElement) {
-      processMethodInvocation(node.getTarget(), (MethodElement) symbol);
-    } else if (symbol instanceof FieldElement) {
-      processField(node.getTarget(), (FieldElement) symbol);
-    } else if (symbol instanceof VariableElement) {
-      processVariable(node.getTarget(), (VariableElement) symbol);
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element instanceof MethodElement) {
+      processMethodInvocation(node.getTarget(), (MethodElement) element);
+    } else if (element instanceof FieldElement) {
+      processField(node.getTarget(), (FieldElement) element);
+    } else if (element instanceof VariableElement) {
+      processVariable(node.getTarget(), (VariableElement) element);
     } else {
       notFound("unqualified invocation", node);
     }
@@ -569,7 +568,7 @@ public class IndexContributor extends ASTVisitor<Void> {
     long start = System.currentTimeMillis();
     CompilationUnitElement dartType = BindingUtils.getDartElement(
         BindingUtils.getDartElement(libraryElement), element);
-    bindingTime += (System.currentTimeMillis() - start);
+    bindingTime += System.currentTimeMillis() - start;
     if (dartType == null) {
       return null;
     }
@@ -594,7 +593,7 @@ public class IndexContributor extends ASTVisitor<Void> {
    */
   private Element getElement(DartField node) {
     return new Element(compilationUnitResource, composeElementId(peekElement(),
-        node.getName().getTargetName()));
+        node.getName().getName()));
   }
 
   /**
@@ -625,7 +624,7 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given function type
    */
   private Element getElement(DartFunctionTypeAlias node) {
-    return new Element(compilationUnitResource, composeElementId(node.getName().getTargetName()));
+    return new Element(compilationUnitResource, composeElementId(node.getName().getName()));
   }
 
   /**
@@ -682,7 +681,7 @@ public class IndexContributor extends ASTVisitor<Void> {
     CompilationUnitElement field = BindingUtils.getDartElement(
         BindingUtils.getDartElement(BindingUtils.getLibrary(element)), element, allowGetter,
         allowSetter);
-    bindingTime += (System.currentTimeMillis() - start);
+    bindingTime += System.currentTimeMillis() - start;
     if (field == null) {
       DartCore.logInformation("Could not getElement for field " + pathTo(element));
       return null;
@@ -723,7 +722,7 @@ public class IndexContributor extends ASTVisitor<Void> {
     long start = System.currentTimeMillis();
     CompilationUnitElement method = BindingUtils.getDartElement(
         BindingUtils.getDartElement(BindingUtils.getLibrary(element)), element);
-    bindingTime += (System.currentTimeMillis() - start);
+    bindingTime += System.currentTimeMillis() - start;
     if (method == null) {
       DartCore.logInformation("Could not getElement for method " + pathTo(element));
       return null;
@@ -1046,14 +1045,14 @@ public class IndexContributor extends ASTVisitor<Void> {
     //
     // Record the class as being a subtype of it's supertypes.
     //
-    Symbol binding = node.getSymbol();
+    com.google.dart.compiler.resolver.Element binding = node.getElement();
     if (binding instanceof ClassElement) {
-      ClassElement typeSymbol = (ClassElement) binding;
-      InterfaceType superclass = typeSymbol.getSupertype();
+      ClassElement classElement = (ClassElement) binding;
+      InterfaceType superclass = classElement.getSupertype();
       if (superclass != null) {
         processSupertype(node, superclass);
       }
-      for (InterfaceType type : typeSymbol.getInterfaces()) {
+      for (InterfaceType type : classElement.getInterfaces()) {
         processSupertype(node, type);
       }
     } else {
@@ -1098,9 +1097,9 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @param node the node representing the definition of the method
    */
   private void processMethodDefinition(DartMethodDefinition node) {
-    Symbol symbol = node.getSymbol();
-    if (symbol instanceof MethodElement) {
-      MethodElement methodElement = (MethodElement) symbol;
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) element;
       MethodElement overridenMethodElement = findOverriddenMethod(methodElement);
       if (overridenMethodElement != null) {
         recordRelationship(getElement(overridenMethodElement), IndexConstants.IS_OVERRIDDEN_BY,
@@ -1201,7 +1200,7 @@ public class IndexContributor extends ASTVisitor<Void> {
    */
   private String toString(DartNode name) {
     if (name instanceof DartIdentifier) {
-      return ((DartIdentifier) name).getTargetName();
+      return ((DartIdentifier) name).getName();
     } else if (name instanceof DartPropertyAccess) {
       DartPropertyAccess access = (DartPropertyAccess) name;
       return toString(access.getQualifier()) + "." + access.getPropertyName();

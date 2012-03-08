@@ -23,7 +23,6 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.Element;
@@ -156,7 +155,7 @@ public class BindingUtils {
     if (node == null) {
       return null;
     }
-    String typeName = node.getName().getTargetName();
+    String typeName = node.getName().getName();
     try {
       for (com.google.dart.tools.core.model.DartFunctionTypeAlias alias : unit.getFunctionTypeAliases()) {
         if (alias.getElementName().equals(typeName)) {
@@ -190,11 +189,11 @@ public class BindingUtils {
     if (node == null) {
       return null;
     }
-    Symbol symbol = node.getSymbol();
-    if (symbol == null) {
+    Element binding = node.getElement();
+    if (binding == null) {
       return null;
     }
-    String fieldName = symbol.getOriginalSymbolName();
+    String fieldName = binding.getOriginalName();
     DartClass enclosingType = getEnclosingType(node);
     Type definingType = getDartElement(unit, enclosingType);
     if (definingType != null) {
@@ -266,11 +265,11 @@ public class BindingUtils {
     if (node == null) {
       return null;
     }
-    Symbol symbol = node.getSymbol();
-    if (symbol == null) {
+    Element binding = node.getElement();
+    if (binding == null) {
       return null;
     }
-    String methodName = symbol.getOriginalSymbolName();
+    String methodName = binding.getOriginalName();
     DartClass enclosingType = getEnclosingType(node);
     if (enclosingType == null) {
       try {
@@ -355,7 +354,7 @@ public class BindingUtils {
     } else if (element instanceof LibraryElement) {
       return getDartElement(library, (LibraryElement) element);
     } else if (element instanceof MethodElement) {
-      return getDartElement(library, ((MethodElement) element));
+      return getDartElement(library, (MethodElement) element);
     } else if (element instanceof TypeVariableElement) {
       return getDartElement(library, (TypeVariableElement) element);
     } else if (element instanceof VariableElement) {
@@ -433,7 +432,7 @@ public class BindingUtils {
       }
       for (Method method : declaringType.getMethods()) {
         if (fieldName.equals(method.getElementName())
-            && ((allowGetter && method.isGetter()) || (allowSetter && method.isSetter()))) {
+            && (allowGetter && method.isGetter() || allowSetter && method.isSetter())) {
           return method;
         }
       }
@@ -559,7 +558,7 @@ public class BindingUtils {
       return null;
     } else if (enclosingElement instanceof MethodElement) {
       com.google.dart.tools.core.model.DartFunction method = getDartElement(library,
-          ((MethodElement) enclosingElement));
+          (MethodElement) enclosingElement);
       if (method == null) {
         return null;
       }
@@ -646,7 +645,7 @@ public class BindingUtils {
       return null;
     }
     com.google.dart.tools.core.model.DartFunction functionElement = getDartElement(library,
-        (MethodElement) functionNode.getParent().getSymbol());
+        (MethodElement) functionNode.getParent().getElement());
     try {
       for (DartVariableDeclaration variable : functionElement.getLocalVariables()) {
         if (variable.getElementName().equals(variableName)) {
@@ -1036,14 +1035,14 @@ public class BindingUtils {
   private static com.google.dart.tools.core.model.DartFunction findFunction(DartFunction node,
       DartElement[] elements) {
     String targetName = null;
-    Symbol symbol = node.getSymbol();
-    if (symbol == null) {
+    Element binding = node.getElement();
+    if (binding == null) {
       DartNode parent = node.getParent();
       if (parent instanceof DartFunctionExpression) {
         targetName = ((DartFunctionExpression) parent).getFunctionName();
       }
     } else {
-      targetName = symbol.getOriginalSymbolName();
+      targetName = binding.getOriginalName();
     }
     if (targetName == null) {
       // We cannot locate unnamed functions

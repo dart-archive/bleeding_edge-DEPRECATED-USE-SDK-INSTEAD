@@ -35,7 +35,7 @@ public class NameOccurrencesFinder extends ASTVisitor<Void> {
 
   @Override
   public Void visitNode(DartNode node) {
-    if (node.getSymbol() == target) {
+    if (node.getElement() == target) {
       matches.add(node);
     }
     return super.visitNode(node);

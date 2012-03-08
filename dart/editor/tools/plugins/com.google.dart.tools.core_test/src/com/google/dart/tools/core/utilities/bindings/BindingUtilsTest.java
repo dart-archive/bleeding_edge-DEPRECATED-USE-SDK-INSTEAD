@@ -49,7 +49,7 @@ public class BindingUtilsTest extends TestCase {
     Type expectedType = getType(compilationUnit, "SimpleMoney");
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartClass classNode = getType(ast, expectedType.getElementName());
-    Type actualType = BindingUtils.getDartElement(classNode.getSymbol());
+    Type actualType = BindingUtils.getDartElement(classNode.getElement());
     assertEquals(expectedType, actualType);
   }
 
@@ -92,7 +92,7 @@ public class BindingUtilsTest extends TestCase {
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartClass classNode = getType(ast, expectedType.getElementName());
     Type actualType = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-        classNode.getSymbol());
+        classNode.getElement());
     assertEquals(expectedType, actualType);
   }
 
@@ -108,7 +108,7 @@ public class BindingUtilsTest extends TestCase {
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartField fieldNode = getGlobalVariable(ast, expectedField.getElementName());
     CompilationUnitElement actualField = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-        fieldNode.getSymbol());
+        fieldNode.getElement());
     assertEquals(expectedField, actualField);
   }
 
@@ -120,7 +120,7 @@ public class BindingUtilsTest extends TestCase {
     DartClass classNode = getType(ast, type.getElementName());
     DartField fieldNode = getField(classNode, expectedField.getElementName());
     CompilationUnitElement actualField = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-        fieldNode.getSymbol());
+        fieldNode.getElement());
     assertEquals(expectedField, actualField);
   }
 
@@ -139,7 +139,7 @@ public class BindingUtilsTest extends TestCase {
     DartClass classNode = getType(ast, type.getElementName());
     DartMethodDefinition methodNode = getMethod(classNode, expectedMethod.getElementName());
     com.google.dart.tools.core.model.DartFunction actualMethod = BindingUtils.getDartElement(
-        compilationUnit.getLibrary(), methodNode.getSymbol());
+        compilationUnit.getLibrary(), methodNode.getElement());
     assertEquals(expectedMethod, actualMethod);
   }
 
@@ -152,7 +152,7 @@ public class BindingUtilsTest extends TestCase {
     DartClass classNode = getType(ast, type.getElementName());
     DartMethodDefinition methodNode = getMethod(classNode, "factoryMethod");
     com.google.dart.tools.core.model.DartFunction actualMethod = BindingUtils.getDartElement(
-        compilationUnit.getLibrary(), methodNode.getSymbol());
+        compilationUnit.getLibrary(), methodNode.getElement());
     assertEquals(expectedMethod, actualMethod);
   }
 
@@ -165,7 +165,7 @@ public class BindingUtilsTest extends TestCase {
     DartClass classNode = getType(ast, type.getElementName());
     DartMethodDefinition methodNode = getMethod(classNode, expectedMethod.getElementName());
     com.google.dart.tools.core.model.DartFunction actualMethod = BindingUtils.getDartElement(
-        compilationUnit.getLibrary(), methodNode.getSymbol());
+        compilationUnit.getLibrary(), methodNode.getElement());
     assertEquals(expectedMethod, actualMethod);
   }
 
@@ -182,9 +182,9 @@ public class BindingUtilsTest extends TestCase {
     Method method = getMethod(type, "addComplexMoney");
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartClass classNode = getType(ast, type.getElementName());
-    ClassElement expectedType = classNode.getSymbol();
+    ClassElement expectedType = classNode.getElement();
     DartMethodDefinition methodNode = getMethod(classNode, method.getElementName());
-    ClassElement actualType = BindingUtils.getDeclaringType(methodNode.getSymbol());
+    ClassElement actualType = BindingUtils.getDeclaringType(methodNode.getElement());
     assertEquals(expectedType, actualType);
   }
 
@@ -223,7 +223,7 @@ public class BindingUtilsTest extends TestCase {
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartClass classNode = getType(ast, type.getElementName());
     DartMethodDefinition methodNode = getMethod(classNode, method.getElementName());
-    MethodElement[] result = BindingUtils.getOverriddenMethods(methodNode.getSymbol());
+    MethodElement[] result = BindingUtils.getOverriddenMethods(methodNode.getElement());
     assertNotNull(result);
     assertEquals(1, result.length);
   }
@@ -245,7 +245,7 @@ public class BindingUtilsTest extends TestCase {
     for (DartNode node : classNode.getMembers()) {
       if (node instanceof DartFieldDefinition) {
         for (DartField field : ((DartFieldDefinition) node).getFields()) {
-          if (field.getName().getTargetName().equals(fieldName)) {
+          if (field.getName().getName().equals(fieldName)) {
             return field;
           }
         }
@@ -277,7 +277,7 @@ public class BindingUtilsTest extends TestCase {
     for (DartNode node : unit.getTopLevelNodes()) {
       if (node instanceof DartFieldDefinition) {
         for (DartField field : ((DartFieldDefinition) node).getFields()) {
-          if (field.getName().getTargetName().equals(variableName)) {
+          if (field.getName().getName().equals(variableName)) {
             return field;
           }
         }
@@ -313,10 +313,10 @@ public class BindingUtilsTest extends TestCase {
         DartMethodDefinition method = (DartMethodDefinition) node;
         DartExpression name = method.getName();
         if (name instanceof DartIdentifier
-            && ((DartIdentifier) name).getTargetName().equals(methodName)) {
+            && ((DartIdentifier) name).getName().equals(methodName)) {
           return method;
         } else if (name instanceof DartPropertyAccess
-            && ((DartPropertyAccess) name).getName().getTargetName().equals(methodName)) {
+            && ((DartPropertyAccess) name).getName().getName().equals(methodName)) {
           return method;
         }
       }

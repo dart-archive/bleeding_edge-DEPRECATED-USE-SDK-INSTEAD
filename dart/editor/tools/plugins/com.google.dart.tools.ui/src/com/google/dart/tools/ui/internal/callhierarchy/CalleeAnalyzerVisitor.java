@@ -13,12 +13,12 @@
  */
 package com.google.dart.tools.ui.internal.callhierarchy;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartFunctionObjectInvocation;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
@@ -80,7 +80,7 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
     progressMonitorWorked(1);
     if (isFurtherTraversalNecessary(node)) {
       if (isNodeWithinMethod(node)) {
-        addMethodCall(node.getReferencedElement(), node);
+        addMethodCall(node.getElement(), node);
       }
     }
     return visitExpression(node);
@@ -145,7 +145,7 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
     Collection<DartElement> implementingMethods = CallHierarchy.getDefault().getImplementingMethods(
         calledMethod);
 
-    if ((implementingMethods.size() == 0) || (implementingMethods.size() > 1)) {
+    if (implementingMethods.size() == 0 || implementingMethods.size() > 1) {
       return calledMethod;
     } else {
       return (Method) implementingMethods.iterator().next();

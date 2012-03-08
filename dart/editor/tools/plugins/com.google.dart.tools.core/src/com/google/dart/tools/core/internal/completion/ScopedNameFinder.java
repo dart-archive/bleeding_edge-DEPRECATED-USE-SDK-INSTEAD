@@ -64,7 +64,7 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
 
     @Override
     public String getName() {
-      return field.getName().getTargetName();
+      return field.getName().getName();
     }
 
     @Override
@@ -74,7 +74,7 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
 
     @Override
     public FieldElement getSymbol() {
-      return field.getSymbol();
+      return field.getElement();
     }
 
   }
@@ -88,7 +88,7 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
 
     @Override
     public String getName() {
-      return method.getSymbol().getName();
+      return method.getElement().getName();
     }
 
     @Override
@@ -98,7 +98,7 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
 
     @Override
     public Element getSymbol() {
-      return method.getSymbol();
+      return method.getElement();
     }
 
   }
@@ -122,7 +122,7 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
 
     @Override
     public VariableElement getSymbol() {
-      return param.getSymbol();
+      return param.getElement();
     }
   }
 
@@ -145,7 +145,7 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
 
     @Override
     public Element getSymbol() {
-      return var.getSymbol();
+      return var.getElement();
     }
   }
 
@@ -253,7 +253,7 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
       if (!isInRange(name)) {
         continue;
       }
-      String nameString = name.getTargetName();
+      String nameString = name.getName();
       if (locals.get(nameString) != null) {
         return;
       }
@@ -265,7 +265,7 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
     if (!isInRange(method.getName())) {
       return;
     }
-    String name = method.getSymbol().getName();
+    String name = method.getElement().getName();
     if (locals.get(name) != null) {
       return;
     }

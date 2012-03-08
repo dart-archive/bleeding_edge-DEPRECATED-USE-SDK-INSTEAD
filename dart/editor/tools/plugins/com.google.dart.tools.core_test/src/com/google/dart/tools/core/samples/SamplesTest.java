@@ -219,7 +219,7 @@ public class SamplesTest extends TestCase {
             DartMethodDefinition mth = (DartMethodDefinition) node;
             DartExpression name = mth.getName();
             if (name instanceof DartIdentifier) {
-              if ("main".equals(((DartIdentifier) name).getTargetName())) {
+              if ("main".equals(((DartIdentifier) name).getName())) {
                 applicationFiles.add(sourceFile);
               }
             }

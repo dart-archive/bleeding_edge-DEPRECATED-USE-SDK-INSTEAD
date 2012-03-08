@@ -89,7 +89,7 @@ public class DartAstUtilities {
    * @return <code>true</code> if the given method is a constructor
    */
   public static boolean isConstructor(DartMethodDefinition method) {
-    MethodElement methodElement = method.getSymbol();
+    MethodElement methodElement = method.getElement();
     if (methodElement != null) {
       return methodElement.isConstructor();
     }
@@ -109,12 +109,12 @@ public class DartAstUtilities {
     }
     DartExpression name = method.getName();
     if (name instanceof DartIdentifier) {
-      return ((DartIdentifier) name).getTargetName().equals(className);
+      return ((DartIdentifier) name).getName().equals(className);
     } else if (name instanceof DartPropertyAccess) {
       DartPropertyAccess property = (DartPropertyAccess) name;
       DartNode qualifier = property.getQualifier();
       if (qualifier instanceof DartIdentifier) {
-        return ((DartIdentifier) qualifier).getTargetName().equals(className);
+        return ((DartIdentifier) qualifier).getName().equals(className);
       }
     }
     return false;

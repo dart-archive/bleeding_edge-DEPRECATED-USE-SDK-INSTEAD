@@ -108,6 +108,6 @@ public class CreateTypeOperation extends CreateTypeMemberOperation {
   }
 
   private String getASTNodeName() {
-    return ((DartClass) this.createdNode).getName().getTargetName();
+    return ((DartClass) this.createdNode).getName().getName();
   }
 }

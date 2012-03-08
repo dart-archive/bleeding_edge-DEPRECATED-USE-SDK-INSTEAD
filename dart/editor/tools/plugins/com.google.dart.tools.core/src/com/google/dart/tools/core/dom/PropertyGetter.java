@@ -409,7 +409,7 @@ public class PropertyGetter extends PropertyVisitor {
   @Override
   public Object visitIdentifier(DartIdentifier node) {
     if (property == PropertyDescriptorHelper.DART_IDENTIFIER_TARGET_NAME) {
-      return node.getTargetName();
+      return node.getName();
     } else {
       return visitExpression(node);
     }

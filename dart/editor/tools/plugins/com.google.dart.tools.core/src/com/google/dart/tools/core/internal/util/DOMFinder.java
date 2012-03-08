@@ -13,14 +13,14 @@
  */
 package com.google.dart.tools.core.internal.util;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.tools.core.internal.model.SourceReferenceImpl;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -43,8 +43,8 @@ public class DOMFinder extends ASTVisitor<Void> {
   private SourceReferenceImpl element;
 
   /**
-   * A flag indicating whether the compilation unit has been resolved and the symbol associated with
-   * the node should be computed.
+   * A flag indicating whether the compilation unit has been resolved and the element associated
+   * with the node should be computed.
    */
   private boolean resolveBinding;
 
@@ -67,7 +67,7 @@ public class DOMFinder extends ASTVisitor<Void> {
    * The binding information associated with the node that was found, or <code>null</code> if no
    * matching node was found.
    */
-  private Symbol foundBinding = null;
+  private Element foundBinding = null;
 
   /**
    * Initialize a newly created node finder to find the node within the given compilation unit that
@@ -76,7 +76,7 @@ public class DOMFinder extends ASTVisitor<Void> {
    * @param ast the compilation unit containing the node being searched for
    * @param element the element corresponding to the node being searched for
    * @param resolveBinding <code>true</code> if the compilation unit has been resolved and the
-   *          symbol associated with the node should be computed
+   *          element associated with the node should be computed
    */
   public DOMFinder(DartUnit ast, SourceReferenceImpl element, boolean resolveBinding) {
     this.ast = ast;
@@ -90,7 +90,7 @@ public class DOMFinder extends ASTVisitor<Void> {
    * 
    * @return the binding information associated with the node that was found
    */
-  public Symbol getFoundBinding() {
+  public Element getFoundBinding() {
     return foundBinding;
   }
 
@@ -152,7 +152,7 @@ public class DOMFinder extends ASTVisitor<Void> {
     if (name.getSourceStart() == rangeStart && name.getSourceLength() == rangeLength) {
       foundNode = node;
       if (resolveBinding) {
-        foundBinding = node.getSymbol();
+        foundBinding = node.getElement();
       }
       return true;
     }

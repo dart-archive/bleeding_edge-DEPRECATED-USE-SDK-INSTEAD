@@ -1,5 +1,6 @@
 package com.google.dart.tools.core.internal.completion;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartDeclaration;
@@ -9,16 +10,15 @@ import com.google.dart.compiler.ast.DartForStatement;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIfStatement;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.compiler.type.Types;
@@ -107,7 +107,7 @@ public class TypeRefiner extends ASTVisitor<Void> {
     }
 
     private boolean isAssignmentTo(DartExpression lhs, DartExpression ident) {
-      return isSameElement(lhs.getSymbol(), ident.getSymbol());
+      return isSameElement(lhs.getElement(), ident.getElement());
     }
   }
 
@@ -122,7 +122,7 @@ public class TypeRefiner extends ASTVisitor<Void> {
     return new TypeRefiner(ident, type, typeProvider).analyze();
   }
 
-  private static boolean isSameElement(Symbol e1, Symbol e2) {
+  private static boolean isSameElement(Element e1, Element e2) {
     if (e1 != null) {
       return e1.equals(e2);
     }
@@ -182,7 +182,7 @@ public class TypeRefiner extends ASTVisitor<Void> {
     if (expr instanceof DartBinaryExpression) {
       DartBinaryExpression bexp = (DartBinaryExpression) expr;
       DartExpression arg1 = bexp.getArg1();
-      if (isSameElement(arg1.getSymbol(), ident.getSymbol())) {
+      if (isSameElement(arg1.getElement(), ident.getElement())) {
         DartExpression arg2 = bexp.getArg2();
         if (arg2 instanceof DartTypeExpression) {
           DartTypeExpression texp = (DartTypeExpression) arg2;
@@ -214,7 +214,7 @@ public class TypeRefiner extends ASTVisitor<Void> {
     DartNode child = immediateChild;
     // Check each decl; if matches target then refine type
     for (DartVariable var : node.getVariables()) {
-      if (var.getName().getTargetName().equals(ident.getSymbol().getOriginalSymbolName())) {
+      if (var.getName().getName().equals(ident.getElement().getOriginalName())) {
         if (var.getValue() != null) {
           refinedType = var.getValue().getType();
         }

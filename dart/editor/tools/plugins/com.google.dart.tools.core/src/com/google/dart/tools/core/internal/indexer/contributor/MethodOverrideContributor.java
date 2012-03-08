@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.internal.indexer.contributor;
 
 import com.google.dart.compiler.ast.DartMethodDefinition;
-import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.Element;
@@ -32,9 +31,9 @@ import com.google.dart.tools.core.model.Method;
 public class MethodOverrideContributor extends DartContributor {
   @Override
   public Void visitMethodDefinition(DartMethodDefinition node) {
-    Symbol symbol = node.getSymbol();
-    if (symbol instanceof MethodElement) {
-      MethodElement methodElement = (MethodElement) symbol;
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) element;
       MethodElement overridenMethodElement = findOverriddenMethod(methodElement);
       DartFunction function = getDartElement(overridenMethodElement);
       if (function instanceof Method) {

@@ -22,14 +22,14 @@ public class IdentifierCompleter extends DartIdentifier implements CompletionNod
   private static final long serialVersionUID = 1L;
 
   public static IdentifierCompleter from(DartIdentifier ident) {
-    return CompletionUtil.init(new IdentifierCompleter(ident.getTargetName()), ident);
+    return CompletionUtil.init(new IdentifierCompleter(ident.getName()), ident);
   }
 
   private Stack<Mark> stack;
 
   public IdentifierCompleter(String targetName) {
     super(targetName == null ? "" : targetName);
-    setSymbol(getTargetSymbol());
+    setElement(getElement());
   }
 
   @Override

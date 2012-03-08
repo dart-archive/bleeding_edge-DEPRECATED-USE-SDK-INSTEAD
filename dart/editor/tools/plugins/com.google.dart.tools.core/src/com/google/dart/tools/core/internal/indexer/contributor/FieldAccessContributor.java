@@ -14,7 +14,7 @@
 package com.google.dart.tools.core.internal.indexer.contributor;
 
 import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.common.Symbol;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.tools.core.internal.indexer.location.FieldLocation;
@@ -32,12 +32,12 @@ import com.google.dart.tools.core.model.Field;
 public class FieldAccessContributor extends ScopedDartContributor {
   @Override
   public Void visitIdentifier(DartIdentifier node) {
-    Symbol symbol = node.getReferencedElement();
-    if (symbol == null) {
-      symbol = node.getTargetSymbol();
+    Element element = node.getElement();
+    if (element == null) {
+      element = node.getElement();
     }
-    if (symbol instanceof FieldElement) {
-      processVariable(node, (FieldElement) symbol);
+    if (element instanceof FieldElement) {
+      processVariable(node, (FieldElement) element);
     }
     return super.visitIdentifier(node);
   }

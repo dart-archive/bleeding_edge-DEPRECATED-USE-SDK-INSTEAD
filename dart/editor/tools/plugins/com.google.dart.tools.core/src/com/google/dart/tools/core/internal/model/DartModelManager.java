@@ -1615,7 +1615,7 @@ public class DartModelManager {
       for (DartNode node : topLevelNodes) {
         if (node instanceof DartMethodDefinition) {
           DartExpression functionName = ((DartMethodDefinition) node).getName();
-          if (((DartIdentifier) functionName).getTargetName().equals(DartFunction.MAIN)) {
+          if (((DartIdentifier) functionName).getName().equals(DartFunction.MAIN)) {
             return unit;
           }
         }

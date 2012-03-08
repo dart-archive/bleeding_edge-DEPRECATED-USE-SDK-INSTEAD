@@ -188,7 +188,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       if (!constructorFound && !isInterface) {
         DartIdentifier typeName = node.getName();
         if (typeName != null) {
-          DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, typeName.getTargetName());
+          DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, typeName.getName());
           DartMethodInfo methodInfo = new DartMethodInfo();
           methodInfo.setSourceRangeStart(typeName.getSourceStart());
           methodInfo.setSourceRangeEnd(typeName.getSourceStart() + typeName.getSourceLength());
@@ -196,7 +196,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
           methodInfo.setModifiers(Modifiers.NONE);
           methodInfo.setConstructor(true);
           methodInfo.setImplicit(true);
-          methodInfo.setReturnTypeName(typeName.getTargetName().toCharArray());
+          methodInfo.setReturnTypeName(typeName.getName().toCharArray());
           children.add(methodImpl);
           addNewElement(methodImpl, methodInfo);
         }
@@ -255,7 +255,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     @Override
     public Void visitFunctionTypeAlias(com.google.dart.compiler.ast.DartFunctionTypeAlias node) {
       DartFunctionTypeAliasImpl aliasImpl = new DartFunctionTypeAliasImpl(compilationUnit,
-          node.getName().getTargetName());
+          node.getName().getName());
       DartFunctionTypeAliasInfo aliasInfo = new DartFunctionTypeAliasInfo();
       int start = node.getSourceStart();
       aliasInfo.setSourceRangeStart(start);
@@ -345,12 +345,12 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       }
       DartExpression name = method.getName();
       if (name instanceof DartIdentifier) {
-        return ((DartIdentifier) name).getTargetName().equals(className);
+        return ((DartIdentifier) name).getName().equals(className);
       } else if (name instanceof DartPropertyAccess) {
         DartPropertyAccess property = (DartPropertyAccess) name;
         DartNode qualifier = property.getQualifier();
         if (qualifier instanceof DartIdentifier) {
-          return ((DartIdentifier) qualifier).getTargetName().equals(className);
+          return ((DartIdentifier) qualifier).getName().equals(className);
         }
       }
       return false;
@@ -666,10 +666,10 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
    */
   private static String extractName(DartNode identifier) {
     if (identifier instanceof DartIdentifier) {
-      return ((DartIdentifier) identifier).getTargetName();
+      return ((DartIdentifier) identifier).getName();
     } else if (identifier instanceof DartPropertyAccess) {
       DartPropertyAccess access = (DartPropertyAccess) identifier;
-      return extractName(access.getQualifier()) + access.getName().getTargetName();
+      return extractName(access.getQualifier()) + access.getName().getName();
     }
     throw new IllegalArgumentException();
   }
@@ -771,9 +771,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       DartPropertyAccess p = (DartPropertyAccess) id;
       DartIdentifier q = (DartIdentifier) p.getQualifier();
       DartIdentifier n = p.getName();
-      typeName = q.getTargetName() + "." + n.getTargetName();
+      typeName = q.getName() + "." + n.getName();
     } else {
-      typeName = ((DartIdentifier) id).getTargetName();
+      typeName = ((DartIdentifier) id).getName();
     }
     List<DartTypeNode> typeArgs = type.getTypeArguments();
     if (typeArgs != null && !typeArgs.isEmpty()) {

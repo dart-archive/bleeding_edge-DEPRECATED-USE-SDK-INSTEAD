@@ -252,7 +252,7 @@ public class CompletionEngine {
           if (TypeKind.of(type) == TypeKind.VOID) {
             DartExpression exp = completionNode.getTarget();
             if (exp instanceof DartIdentifier) {
-              Element element = ((DartIdentifier) exp).getTargetSymbol();
+              Element element = ((DartIdentifier) exp).getElement();
               type = element.getType();
             }
           }
@@ -262,7 +262,7 @@ public class CompletionEngine {
           // TODO Consider using proposeIdentifierPrefixCompletions() here
           proposeVariables(completionNode, identifier, resolvedMember);
           DartClass classDef = (DartClass) resolvedMember.getParent();
-          ClassElement elem = classDef.getSymbol();
+          ClassElement elem = classDef.getElement();
           Type type = elem.getType();
           createCompletionsForPropertyAccess(identifier, type, false, false);
         }
@@ -299,7 +299,7 @@ public class CompletionEngine {
           if (type.getKind() == TypeKind.DYNAMIC || type.getKind() == TypeKind.VOID) {
             // TODO Reconsider this code; it seems fragile. We want the type Array from "Array.f!"
             if (completionNode.getQualifier() instanceof DartIdentifier) {
-              Element element = ((DartIdentifier) completionNode.getQualifier()).getTargetSymbol();
+              Element element = ((DartIdentifier) completionNode.getQualifier()).getElement();
               if (ElementKind.of(element) == ElementKind.CLASS) {
                 type = element.getType();
                 if (type instanceof InterfaceType) {
@@ -351,7 +351,7 @@ public class CompletionEngine {
     @Override
     public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation node) {
       // { super.x!(); }
-      ConstructorElement cn = node.getSymbol();
+      ConstructorElement cn = node.getElement();
       if (cn != null) {
         ClassElement ce = cn.getConstructorType();
         if (ce != null) {
@@ -378,7 +378,7 @@ public class CompletionEngine {
           switch (m) {
             case FormalParameter:
               // bar(x,!) {} or bar(!, int x) {} or bar(B! x) {}
-              if (identifier.getTargetName().length() == 0) {
+              if (identifier.getName().length() == 0) {
                 proposeTypesForNewParam();
                 break;
               } else {
@@ -475,7 +475,7 @@ public class CompletionEngine {
       // TODO Determine if statics are being handled properly
       boolean isStatic = resolvedMember.getModifiers().isStatic();
       createCompletionsForLocalVariables(identifier, identifier, resolvedMember);
-      Element parentElement = resolvedMember.getSymbol().getEnclosingElement();
+      Element parentElement = resolvedMember.getElement().getEnclosingElement();
       if (parentElement instanceof ClassElement) {
         Type type = ((ClassElement) parentElement).getType();
         createCompletionsForPropertyAccess(identifier, type, false, isStatic);
@@ -508,7 +508,7 @@ public class CompletionEngine {
           // between statements: { ! } or { ! x; ! y; ! }
           boolean isStatic = resolvedMember.getModifiers().isStatic();
           createCompletionsForLocalVariables(block, null, resolvedMember);
-          Element parentElement = resolvedMember.getSymbol().getEnclosingElement();
+          Element parentElement = resolvedMember.getElement().getEnclosingElement();
           if (parentElement instanceof ClassElement) {
             Type type = ((ClassElement) parentElement).getType();
             createCompletionsForPropertyAccess(null, type, false, isStatic);
@@ -661,7 +661,7 @@ public class CompletionEngine {
           createCompletionsForLocalVariables(completionNode, null, resolvedMember);
           if (resolvedMember.getParent() instanceof DartClass) {
             DartClass classDef = (DartClass) resolvedMember.getParent();
-            ClassElement elem = classDef.getSymbol();
+            ClassElement elem = classDef.getElement();
             Type type = elem.getType();
             createCompletionsForPropertyAccess(null, type, false, false);
           } else {
@@ -692,7 +692,7 @@ public class CompletionEngine {
           SyntheticIdentifier synth = new SyntheticIdentifier(name, actualCompletionPosition
               - name.length() + 1, name.length());
           createCompletionsForLocalVariables(node, synth, resolvedMember);
-          Element parentElement = resolvedMember.getSymbol().getEnclosingElement();
+          Element parentElement = resolvedMember.getElement().getEnclosingElement();
           if (parentElement.getKind() == ElementKind.CLASS) {
             Type type = ((ClassElement) parentElement).getType();
             createCompletionsForPropertyAccess(synth, type, false, isStatic);
@@ -762,7 +762,7 @@ public class CompletionEngine {
         Type type = analyzeType(completionNode.getQualifier());
         if (TypeKind.of(type) == TypeKind.VOID) {
           DartIdentifier name = (DartIdentifier) completionNode.getQualifier();
-          Element element = name.getTargetSymbol();
+          Element element = name.getElement();
           type = element.getType();
         }
         createCompletionsForQualifiedMemberAccess(propertyName, type, false);
@@ -819,7 +819,7 @@ public class CompletionEngine {
     @Override
     public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
       // { bar( ! ); } or { bar(! x); } or { bar(x !); } or { bar(x,! y); }
-      Element baseElement = node.getTarget().getTargetSymbol();
+      Element baseElement = node.getTarget().getElement();
       if (ElementKind.of(baseElement) == ElementKind.METHOD) {
         MethodElement methodElement = (MethodElement) baseElement;
         List<VariableElement> paramDefs = methodElement.getParameters();
@@ -1140,14 +1140,14 @@ public class CompletionEngine {
 
     classElement = null;
     if (resolvedMember != null) {
-      EnclosingElement encElement = resolvedMember.getSymbol().getEnclosingElement();
+      EnclosingElement encElement = resolvedMember.getElement().getEnclosingElement();
       if (encElement instanceof ClassElement) {
         classElement = (ClassElement) encElement;
       }
     } else {
       DartClass resolvedClass = finder.getEnclosingClass();
       if (resolvedClass != null) {
-        classElement = resolvedClass.getSymbol();
+        classElement = resolvedClass.getElement();
       }
     }
     context.reset();
@@ -1157,7 +1157,7 @@ public class CompletionEngine {
     if (classElement != null) {
       resolutionContext = resolutionContext.extend(classElement);
     }
-    Element member = resolvedMember == null ? classElement : resolvedMember.getSymbol();
+    Element member = resolvedMember == null ? classElement : resolvedMember.getElement();
     try {
       resolver.resolveMember(classElement, member, resolutionContext);
     } catch (AssertionError ex) {
@@ -1208,7 +1208,7 @@ public class CompletionEngine {
     Type type = TypeAnalyzer.analyze(target, typeProvider, context, currentType);
     if (TypeKind.of(type) == TypeKind.VOID || TypeKind.of(type) == TypeKind.DYNAMIC) {
       if (target instanceof DartIdentifier) {
-        Element element = ((DartIdentifier) target).getTargetSymbol();
+        Element element = ((DartIdentifier) target).getElement();
         if (element != null) {
           // TODO Remove after verifying correct AST
           type = element.getType();
@@ -1414,7 +1414,7 @@ public class CompletionEngine {
   }
 
   private void createCompletionsForStaticVariables(DartIdentifier identifier, DartClass classDef) {
-    ClassElement elem = classDef.getSymbol();
+    ClassElement elem = classDef.getElement();
     Type type = elem.getType();
     createCompletionsForPropertyAccess(identifier, type, false, true);
   }
@@ -1743,7 +1743,7 @@ public class CompletionEngine {
       if (prefix == null || prefix.length() == 0) {
         createProposalsForLiterals(identifier, C_VOID);
       } else {
-        String id = identifier.getTargetName();
+        String id = identifier.getName();
         if (id.length() <= C_VOID.length() && C_VOID.startsWith(id)) {
           createProposalsForLiterals(identifier, C_VOID);
         }

@@ -15,6 +15,7 @@ package com.google.dart.tools.core.utilities.ast;
 
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
@@ -26,7 +27,6 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -251,8 +251,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
       if (start <= startOffset && endOffset <= end) {
         DartExpression target = node.getTarget();
         wordRegion = new Region(target.getSourceStart() + target.getSourceLength(), end);
-        Element targetSymbol = node.getReferencedElement();
-        findElementFor(targetSymbol);
+        Element targetElement = node.getElement();
+        findElementFor(targetElement);
         throw new DartElementFoundException();
       }
     }
@@ -271,8 +271,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
         wordRegion = computeOperatorRegion(
             leftOperand.getSourceStart() + leftOperand.getSourceLength(),
             rightOperand.getSourceStart() - 1);
-        Element targetSymbol = node.getReferencedElement();
-        findElementFor(targetSymbol);
+        Element targetElement = node.getElement();
+        findElementFor(targetElement);
         throw new DartElementFoundException();
       }
     }
@@ -287,34 +287,34 @@ public class DartElementLocator extends ASTVisitor<Void> {
       int end = start + length;
       if (start <= startOffset && endOffset <= end) {
         wordRegion = new Region(start, length);
-        Element targetSymbol = node.getReferencedElement();
-        if (targetSymbol == null) {
+        Element targetElement = node.getElement();
+        if (targetElement == null) {
           DartNode parent = node.getParent();
           if (parent instanceof DartTypeNode) {
             DartNode grandparent = parent.getParent();
             if (grandparent instanceof DartNewExpression) {
-              targetSymbol = ((DartNewExpression) grandparent).getReferencedElement();
+              targetElement = ((DartNewExpression) grandparent).getElement();
             }
-            if (targetSymbol == null) {
+            if (targetElement == null) {
               Type type = DartAstUtilities.getType((DartTypeNode) parent);
               if (type != null) {
-                targetSymbol = type.getElement();
+                targetElement = type.getElement();
               }
             }
           } else if (parent instanceof DartMethodInvocation) {
             DartMethodInvocation invocation = (DartMethodInvocation) parent;
             if (node == invocation.getFunctionName()) {
-              targetSymbol = invocation.getReferencedElement();
+              targetElement = invocation.getElement();
             }
           } else if (parent instanceof DartPropertyAccess) {
             DartPropertyAccess access = (DartPropertyAccess) parent;
             if (node == access.getName()) {
-              targetSymbol = access.getReferencedElement();
+              targetElement = access.getElement();
             }
           } else if (parent instanceof DartUnqualifiedInvocation) {
             DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation) parent;
             if (node == invocation.getTarget()) {
-              targetSymbol = invocation.getReferencedElement();
+              targetElement = invocation.getElement();
             }
           } else if (parent instanceof DartParameterizedTypeNode) {
             DartParameterizedTypeNode typeNode = (DartParameterizedTypeNode) parent;
@@ -322,7 +322,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
             if (grandparent instanceof DartClass) {
               DartClass classDef = (DartClass) grandparent;
               if (typeNode == classDef.getDefaultClass()) {
-                targetSymbol = classDef.getSymbol().getDefaultClass().getElement();
+                targetElement = classDef.getElement().getDefaultClass().getElement();
               }
             }
           } else if (includeDeclarations) {
@@ -334,42 +334,42 @@ public class DartElementLocator extends ASTVisitor<Void> {
             if (parent instanceof DartClass) {
               DartClass classDefinition = (DartClass) parent;
               if (nameNode == classDefinition.getName()) {
-                targetSymbol = classDefinition.getSymbol();
+                targetElement = classDefinition.getElement();
               }
             } else if (parent instanceof DartField) {
               DartField field = (DartField) parent;
               if (nameNode == field.getName()) {
-                targetSymbol = field.getSymbol();
+                targetElement = field.getElement();
               }
             } else if (parent instanceof DartMethodDefinition) {
               DartMethodDefinition method = (DartMethodDefinition) parent;
               if (nameNode == method.getName()) {
-                targetSymbol = method.getSymbol();
+                targetElement = method.getElement();
               }
             } else if (parent instanceof DartParameter) {
               DartParameter parameter = (DartParameter) parent;
               if (nameNode == parameter.getName()) {
-                targetSymbol = parameter.getSymbol();
+                targetElement = parameter.getElement();
               }
             } else if (parent instanceof DartVariable) {
               DartVariable variable = (DartVariable) parent;
               if (nameNode == variable.getName()) {
-                targetSymbol = variable.getSymbol();
+                targetElement = variable.getElement();
               }
             }
           }
-          if (targetSymbol == null) {
-            targetSymbol = node.getTargetSymbol();
+          if (targetElement == null) {
+            targetElement = node.getElement();
           }
         }
-        if (targetSymbol == null) {
+        if (targetElement == null) {
           foundElement = null;
         } else {
-          if (targetSymbol instanceof VariableElement) {
-            DartNode variableNode = ((VariableElement) targetSymbol).getNode();
+          if (targetElement instanceof VariableElement) {
+            DartNode variableNode = ((VariableElement) targetElement).getNode();
             if (variableNode instanceof DartParameter) {
               DartParameter parameter = (DartParameter) variableNode;
-              resolvedElement = targetSymbol;
+              resolvedElement = targetElement;
               DartMethodDefinition method = DartAstUtilities.getEnclosingNodeOfType(
                   DartMethodDefinition.class, parameter);
               if (method == null) {
@@ -377,7 +377,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
                 if (containingType != null) {
                   DartExpression parameterName = parameter.getName();
                   foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-                      containingType.getSymbol());
+                      containingType.getElement());
                   candidateRegion = new Region(parameterName.getSourceStart(),
                       parameterName.getSourceLength());
                 } else {
@@ -385,19 +385,19 @@ public class DartElementLocator extends ASTVisitor<Void> {
                 }
               } else {
                 foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-                    method.getSymbol());
+                    method.getElement());
                 DartExpression parameterName = parameter.getName();
                 candidateRegion = new Region(parameterName.getSourceStart(),
                     parameterName.getSourceLength());
               }
             } else if (variableNode instanceof DartVariable) {
               DartVariable variable = (DartVariable) variableNode;
-              resolvedElement = targetSymbol;
+              resolvedElement = targetElement;
               DartClass containingType = DartAstUtilities.getEnclosingDartClass(variableNode);
               if (containingType != null) {
                 DartIdentifier variableName = variable.getName();
                 foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-                    containingType.getSymbol());
+                    containingType.getElement());
                 candidateRegion = new Region(variableName.getSourceStart(),
                     variableName.getSourceLength());
               } else {
@@ -407,7 +407,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
               foundElement = null;
             }
           } else {
-            findElementFor(targetSymbol);
+            findElementFor(targetElement);
           }
         }
         throw new DartElementFoundException();
@@ -442,7 +442,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
         DartNode parent = node.getParent();
         if (parent instanceof DartImportDirective
             && ((DartImportDirective) parent).getLibraryUri() == node) {
-          resolvedElement = (Element) ((DartImportDirective) parent).getSymbol();
+          resolvedElement = (Element) ((DartImportDirective) parent).getElement();
           DartLibrary library = compilationUnit.getLibrary();
           String libraryName = node.getValue();
           if (libraryName.startsWith("dart:")) {
@@ -475,7 +475,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
           }
         } else if (parent instanceof DartSourceDirective
             && ((DartSourceDirective) parent).getSourceUri() == node) {
-          resolvedElement = (Element) ((DartSourceDirective) parent).getSymbol();
+          resolvedElement = (Element) ((DartSourceDirective) parent).getElement();
           DartLibrary library = compilationUnit.getLibrary();
           String fileName = getFileName(library, node.getValue());
           CompilationUnit sourcedUnit = library.getCompilationUnit(fileName);
@@ -484,7 +484,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
           }
         } else if (parent instanceof DartResourceDirective
             && ((DartResourceDirective) parent).getResourceUri() == node) {
-          resolvedElement = (Element) ((DartResourceDirective) parent).getSymbol();
+          resolvedElement = (Element) ((DartResourceDirective) parent).getElement();
           DartLibrary library = compilationUnit.getLibrary();
           try {
             DartSource unitSource = compilationUnit.getSourceRef();
@@ -520,7 +520,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
       if (start <= startOffset && endOffset <= end) {
         DartExpression operand = node.getArg();
         wordRegion = computeOperatorRegion(start, operand.getSourceStart() - 1);
-        Element targetSymbol = node.getReferencedElement();
+        Element targetSymbol = node.getElement();
         findElementFor(targetSymbol);
         throw new DartElementFoundException();
       }

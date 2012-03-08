@@ -84,7 +84,7 @@ public class NLSKeyHyperlinkDetector extends AbstractHyperlinkDetector {
     if (node instanceof DartStringLiteral) {
       keyName = ((DartStringLiteral) node).getValue();
     } else {
-      keyName = ((DartIdentifier) node).getTargetName();
+      keyName = ((DartIdentifier) node).getName();
     }
     if (keyName != null) {
       return new IHyperlink[] {new NLSKeyHyperlink(nlsKeyRegion, keyName, ref, textEditor)};

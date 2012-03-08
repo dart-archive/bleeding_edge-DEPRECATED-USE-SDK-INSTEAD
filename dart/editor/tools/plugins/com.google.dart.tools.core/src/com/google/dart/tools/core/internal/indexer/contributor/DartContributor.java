@@ -145,23 +145,23 @@ public class DartContributor extends ASTVisitor<Void> implements Contributor {
     return BindingUtils.getDartElement(library, variableBinding);
   }
 
-  protected SourceRange getSourceRange(SourceReference element, Element symbol) {
+  protected SourceRange getSourceRange(SourceReference sourceReference, Element element) {
     SourceRange range = null;
-    if (element != null) {
+    if (sourceReference != null) {
       try {
-        range = element.getNameRange();
+        range = sourceReference.getNameRange();
       } catch (DartModelException exception) {
       }
     }
-    if (range == null && symbol != null) {
-      DartNode typeNode = symbol.getNode();
+    if (range == null && element != null) {
+      DartNode typeNode = element.getNode();
       if (typeNode != null) {
         range = new SourceRangeImpl(typeNode);
       }
     }
-    if (range == null && element != null) {
+    if (range == null && sourceReference != null) {
       try {
-        range = element.getSourceRange();
+        range = sourceReference.getSourceRange();
       } catch (DartModelException exception) {
         // Fall through to create an empty range
       }

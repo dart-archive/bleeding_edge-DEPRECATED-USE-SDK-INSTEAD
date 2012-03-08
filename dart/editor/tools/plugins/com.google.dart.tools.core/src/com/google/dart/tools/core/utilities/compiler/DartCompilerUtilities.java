@@ -709,7 +709,7 @@ public class DartCompilerUtilities {
    * {@link DartParser} will be logged and a {@link DartModelException} thrown.
    * 
    * @param compilationUnit the compilation unit (not <code>null</code>)
-   * @param resolve <code>true</code> if symbols are to be resolved
+   * @param resolve <code>true</code> if elements are to be resolved
    * @return the parse result or <code>null</code> if there are any parse errors
    */
   public static DartUnit resolveUnit(CompilationUnit compilationUnit) throws DartModelException {
@@ -717,7 +717,7 @@ public class DartCompilerUtilities {
   }
 
   /**
-   * Parse the source for the specified compilation unit and resolve any symbols found in it. Any
+   * Parse the source for the specified compilation unit and resolve any elements found in it. Any
    * exceptions thrown by the {@link DartParser} will be added to the given collection.
    * 
    * @param compilationUnit the compilation unit (not <code>null</code>)
@@ -729,7 +729,7 @@ public class DartCompilerUtilities {
       Collection<DartCompilationError> parseErrors) throws DartModelException {
     DartLibraryImpl library = (DartLibraryImpl) compilationUnit.getLibrary();
     if (library == null) {
-      // If we cannot get the library, we cannot resolve any symbols so we
+      // If we cannot get the library, we cannot resolve any elements so we
       // revert to simply parsing the compilation unit.
       return parseUnit(compilationUnit, parseErrors);
     }
