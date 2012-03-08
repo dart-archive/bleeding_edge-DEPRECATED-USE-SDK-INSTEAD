@@ -4,7 +4,7 @@ vars = {
   "chromium_revision": "125150",
   # The Dart repository URL is pulled out here so that it can be easily
   # updated to "https" for committers.
-  "dart_url": "http://dart.googlecode.com/svn",
+  "dart_branch": "/branches/bleeding_edge",
   "multivm_url": "http://src.chromium.org/multivm/trunk",
   "dartium_chromium_revision": "29",
   "dartium_webkit_trunk": "http://src.chromium.org/multivm/trunk/webkit",
@@ -79,7 +79,7 @@ deps = {
     Var("chromium_url") + "/trunk/src@" + Var("chromium_revision"),
 
   "src/dart":
-    Var("dart_url") + "/branches/bleeding_edge/dart",
+    Var("dart_branch") + "/dart",
 
   "src/dartium_tools":
     Var("multivm_url") + "/tools@" + Var("dartium_tools_revision"),
