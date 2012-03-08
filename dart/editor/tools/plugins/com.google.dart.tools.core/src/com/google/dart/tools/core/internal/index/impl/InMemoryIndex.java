@@ -355,7 +355,7 @@ public class InMemoryIndex implements Index {
       DartSource unitSource = ast.getSource();
       URI unitUri = unitSource.getUri();
       Resource resource = new Resource(unitUri.toString());
-      String relativePath = unitSource.getName();
+      String relativePath = unitSource.getRelativePath();
       CompilationUnit compilationUnit = new ExternalCompilationUnitImpl(library, relativePath,
           librarySource.getSourceFor(relativePath));
       long startTime = System.currentTimeMillis();
