@@ -171,14 +171,20 @@ Import the existing projects in <DART_TRUNK>/editor
   including the "docs" project containing this README.txt file
 
 ====================================
-  Building Dart Libraries
+  Installing Dart SDK and Dartium
 ====================================
 
-For development, we require that the Eclipse installation directory have a "libraries" directory
-containing the bundled dart:<name> libraries (e.g. dart:core). To build this directory...
+For development, we require that the Eclipse installation directory have a "dart-sdk" directory
+containing the bundled dart:<name> libraries (e.g. dart:core).
 
-1) Setup and run the RCP build locally using the directions at dart/editor/build/README.txt.
-2) In Eclipse, right click on editor/build/build_rcp.xml
+1) In the dart/editor/tools/features/com.google.dart.tools.deploy.feature_releng/build-settings
+directory, copy the user.properties file to <username>.properties, where <username> is your
+login name. Adjust the two properties in that file to point to:
+
+  -the Dart Editor source directory (dart/editor)
+  -a build output directory
+
+2) In Eclipse, right click on build_rcp.xml in com.google.dart.tools.deploy.feature_releng
 3) Select "Run As > Ant Build..."
 4) Click the "Targets" tab and make sure only the "setupDevWorkspace" target is checked
 5) Click the "JRE" tab and select "Run in the same JRE as the workspace"
@@ -187,18 +193,32 @@ containing the bundled dart:<name> libraries (e.g. dart:core). To build this dir
 Alternately, you can run the Ant script outside Eclipse
 by defining the "eclipse.home" property to point to your Eclipse installation
 
-Finally, if you have any of the com.google.dart.library.* projects in your
-workspace (you may have these projects if you setup the workspace before
-libraries were built), remove or close them.
+Next, install Dartium (Chromium with an embedded Dart VM) into the "dart-sdk" directory.
+http://www.dartlang.org/dartium/index.html
+
+Linux:
+  <eclipse-install-dir>/dart-sdk/chromium/
+
+Mac:
+  <eclipse-install-dir>/dart-sdk/Chromium.app
+
+Windows
+  <eclipse-install-dir>/dart-sdk/chromium.exe
 
 ====================================
   Launching the Dart Editor
 ====================================
 
-Once your projects have been imported, go to the Package Explorer and open the 
-dart_feature.product file in the com.google.dart.tools.deploy project. Under the
-Testing section, click on the 'Launch an Eclipse Application' link. Another instance of
-Eclipse should launch, running the Dart Editor!
+Once your projects have been imported, pull down the "Run" menu and select "Run Configurations..."
+Click on "Eclipse Application" on the left hand side, 
+then click the "New Launch Configuration" button above that list.
+On the "Main" page, change "Run a product" to "com.google.dart.tools.deploy.product"
+On the "Plug-ins" page ...
+    Change "Launch with:" to "plug-ins selected below only".
+    Click "Deselect all"
+    Select "com.google.dart.tools.ui"
+    Click "Add Required Plug-ins".
+Click "Run" and another instance of Eclipse should launch, running the Dart Editor!
 
 ====================================
   Dart Editor Options
@@ -212,12 +232,7 @@ See dart/editor/tools/plugins/com.google.dart.tools.core/.options
   Building the Dart Editor
 ====================================
 
-In the dart/editor/tools/features/com.google.dart.tools.deploy.feature_releng/build-settings
-directory, copy the user.properties file to <username>.properties, where <username> is your
-login name. Adjust the two properties in that file to point to:
-
-  -the Dart Editor source directory (dart/editor)
-  -a build output directory
+Setup your <username>.properties file as described above in "Installing Dart SDK and Dartium"
 
 Run the build_rcp.xml ant script in the com.google.dart.tools.deploy.feature_releng project
 (ant -f build_rcp.xml). It will create Windows, Linux, and Mac builds in the 'out' directory
