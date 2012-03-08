@@ -7,6 +7,7 @@ NativePropertyFrogTest: Fail
 NativeMissingMethod1FrogTest: Fail # Issue 1912
 NativeWindow1FrogTest: Fail # Issue 1915
 NativeWindow2FrogTest: Fail # Issue 1915
+ForeignTest: Fail # Leg only test
 
 
 [ $checked ]

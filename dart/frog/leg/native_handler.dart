@@ -39,8 +39,8 @@ void processNativeClassesInLibrary(Compiler compiler,
 }
 
 void maybeEnableNative(Compiler compiler,
-                        LibraryElement library,
-                        Uri uri) {
+                       LibraryElement library,
+                       Uri uri) {
   String libraryName = uri.toString();
   if (library.script.name.contains('dart/frog/tests/native/src')
       || libraryName == 'dart:dom'
@@ -48,6 +48,11 @@ void maybeEnableNative(Compiler compiler,
     library.define(new ForeignElement(
         const SourceString('native'), library), compiler);
     library.canUseNative = true;
+  }
+
+  // Additionaly, if this is a test, we allow access to foreign functions.
+  if (library.script.name.contains('dart/frog/tests/native/src')) {
+    compiler.addForeignFunctions(library);
   }
 }
 

@@ -6,7 +6,6 @@
 ClassTest: Fail
 StatementsTest: Fail
 TypedLocalsTest: Fail
-ForeignTest: Fail # JS methods are only visible within core library.
 
 
 [ $mode == debug ]

@@ -623,7 +623,9 @@ class SsaCodeGenerator implements HVisitor {
   visitForeign(HForeign node) {
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
-    for (int i = 0; i < inputs.length; i++) {
+    // Go from length to 0 to avoid replacing $10 and $1 with the
+    // second input.
+    for (int i = inputs.length - 1; i >=0; i--) {
       HInstruction input = inputs[i];
       String name;
       if (input is HThis) {
@@ -933,14 +935,22 @@ class SsaCodeGenerator implements HVisitor {
     endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
   }
 
+  void checkNull(HInstruction input) {
+    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    use(input, JSPrecedence.EQUALITY_PRECEDENCE);
+    buffer.add(" === (void 0)");
+    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+  }
+
   void visitIs(HIs node) {
     Element element = node.typeExpression;
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = coreLibrary.find(const SourceString('Object'));
     HInstruction input = node.expression;
     if (node.nullOk) {
-      use(input, JSPrecedence.EQUALITY_PRECEDENCE);
-      buffer.add(' === (void 0) || (');
+      beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+      checkNull(input);
+      buffer.add(' || ');
     }
     if (element == objectClass) {
       // TODO(ahe): This probably belongs in the constant folder.
@@ -1010,7 +1020,7 @@ class SsaCodeGenerator implements HVisitor {
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
     }
     if (node.nullOk) {
-      buffer.add(')');
+      endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
     }
   }
 

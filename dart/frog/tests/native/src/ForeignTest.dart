@@ -6,13 +6,10 @@ foreign1(var a, var b) {
   return JS("num", @"$0 + $1", a, b);
 }
 
-// TODO(floitsch): don't do a JS side-effect once we have static variables.
-// Throws, if called twice.
+var called = false;
 callOnce() {
-  // We can't easily throw in a JS foreign. Simply access an undefined global in
-  // case of failure.
-  JS("bool", @"(typeof _FOREIGN_TEST_GLOBAL_ !== 'undefined') ? _FOREIGN_TEST_FAIL_ : 'ok'");
-  JS("void", @"_FOREIGN_TEST_GLOBAL_ = 'defined'");
+  Expect.isFalse(called);
+  called = true;
   return 499;
 }
 
@@ -21,7 +18,14 @@ foreign2() {
   return JS("num", @"$0 + $0", t);
 }
 
+foreign11(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) {
+  return JS("num", @"$0 + $1 + $2 + $3 + $4 + $5 + $6 + $7 + $8 + $9 + $10",
+      a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+}
+
 void main() {
   Expect.equals(9, foreign1(4, 5));
   Expect.equals(998, foreign2());
+  Expect.equals('1234567891011',
+      foreign11('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'));
 }
