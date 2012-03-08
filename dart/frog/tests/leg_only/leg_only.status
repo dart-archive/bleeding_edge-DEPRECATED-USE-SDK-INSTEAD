@@ -14,5 +14,5 @@ OperatorTest: Skip
 StringInterpolationTest: Skip
 
 
-[ $component == frog || $component == frogsh ]
+[ $component == frog || $component == frogsh || $component == legium ]
 *: Skip

@@ -5,7 +5,7 @@
 ConstantFoldingStringTest: Fail
 NoDuplicateConstructorBodyTest: Fail # Fails because of the bailout version.
 
-[ $component == dartc || $component == frog || $component == frogsh || $component == frogium || $component == webdriver ]
+[ $component == dartc || $component == frog || $component == frogsh || $component == frogium || $component == webdriver || $component == legium ]
 *: Skip # Leg uses #import('dart:io');
 
 [ $component == leg ]

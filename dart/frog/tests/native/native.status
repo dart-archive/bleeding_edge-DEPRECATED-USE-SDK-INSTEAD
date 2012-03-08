@@ -13,5 +13,5 @@ NativeWindow2FrogTest: Fail # Issue 1915
 NativeCheckedFieldsFrogTest: Fail
 
 
-[ $component == webdriver || $component == dartc || $component == chromium || $component == dartium || $component == frogium ]
+[ $component == webdriver || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == legium ]
 *: Skip
