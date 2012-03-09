@@ -28,11 +28,32 @@ import java.util.List;
  * search for various pieces of information.
  */
 public interface SearchEngine {
+
+  /**
+   * Synchronously search for all constructors matching the given pattern within the given scope.
+   * Return all matches that pass the optional filter.
+   * 
+   * @param scope the scope containing the constructor declarations to be searched
+   * @param pattern the pattern used to determine which constructor declarations are to be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchConstructorDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException;
+
   /**
    * Search for all constructors matching the given pattern within the given scope.
    * 
    * @param scope the scope containing the constructor declarations to be searched
    * @param pattern the pattern used to determine which constructor declarations are to be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
    * @param listener the listener that will be notified when matches are found
    * @param monitor the progress monitor to use for reporting progress to the user. It is the
    *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
@@ -45,10 +66,30 @@ public interface SearchEngine {
       throws SearchException;
 
   /**
+   * Synchronously search for implementors of the given type within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param type the interface being implemented by the results
+   * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchImplementors(Type type, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException;
+
+  /**
    * Search for implementors of the given type within the given scope.
    * 
    * @param type the interface being implemented by the results
    * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
    * @param listener the listener that will be notified when matches are found
    * @param monitor the progress monitor to use for reporting progress to the user. It is the
    *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
@@ -60,10 +101,30 @@ public interface SearchEngine {
       SearchListener listener, IProgressMonitor monitor) throws SearchException;
 
   /**
+   * Synchronously search for references to the given function within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param function the function being referenced by the found matches
+   * @param scope the scope containing the function declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(DartFunction function, SearchScope scope,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException;
+
+  /**
    * Search for references to the given function within the given scope.
    * 
    * @param function the function being referenced by the found matches
    * @param scope the scope containing the function declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
    * @param listener the listener that will be notified when matches are found
    * @param monitor the progress monitor to use for reporting progress to the user. It is the
    *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
@@ -75,10 +136,30 @@ public interface SearchEngine {
       SearchListener listener, IProgressMonitor monitor) throws SearchException;
 
   /**
+   * Synchronously search for references to the given function type alias within the given scope.
+   * Return all matches that pass the optional filter.
+   * 
+   * @param alias the function type alias being referenced by the found matches
+   * @param scope the scope containing the function type alias declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(DartFunctionTypeAlias alias, SearchScope scope,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException;
+
+  /**
    * Search for references to the given function type alias within the given scope.
    * 
    * @param alias the function type alias being referenced by the found matches
    * @param scope the scope containing the function type alias declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
    * @param listener the listener that will be notified when matches are found
    * @param monitor the progress monitor to use for reporting progress to the user. It is the
    *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
@@ -90,10 +171,30 @@ public interface SearchEngine {
       SearchListener listener, IProgressMonitor monitor) throws SearchException;
 
   /**
+   * Synchronously search for references to the given field within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param field the field being referenced by the found matches
+   * @param scope the scope containing the field declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(Field field, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException;
+
+  /**
    * Search for references to the given field within the given scope.
    * 
    * @param field the field being referenced by the found matches
    * @param scope the scope containing the field declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
    * @param listener the listener that will be notified when matches are found
    * @param monitor the progress monitor to use for reporting progress to the user. It is the
    *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
@@ -105,10 +206,30 @@ public interface SearchEngine {
       SearchListener listener, IProgressMonitor monitor) throws SearchException;
 
   /**
+   * Synchronously search for references to the given method within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param method the method being referenced by the found matches
+   * @param scope the scope containing the method declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(Method method, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException;
+
+  /**
    * Search for references to the given method within the given scope.
    * 
    * @param method the method being referenced by the found matches
    * @param scope the scope containing the method declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
    * @param listener the listener that will be notified when matches are found
    * @param monitor the progress monitor to use for reporting progress to the user. It is the
    *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
@@ -120,15 +241,35 @@ public interface SearchEngine {
       SearchListener listener, IProgressMonitor monitor) throws SearchException;
 
   /**
+   * Synchronously search for references to the given type within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param type the type being referenced by the found matches
+   * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(Type type, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException;
+
+  /**
    * Search for references to the given type within the given scope.
    * 
    * @param type the type being referenced by the found matches
    * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
    * @param listener the listener that will be notified when matches are found
    * @param monitor the progress monitor to use for reporting progress to the user. It is the
-   *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
-   *          , indicating that no progress should be reported and that the operation cannot be
-   *          canceled.
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
    * @throws SearchException if the results could not be computed
    */
   public void searchReferences(Type type, SearchScope scope, SearchFilter filter,
@@ -136,17 +277,16 @@ public interface SearchEngine {
 
   /**
    * Synchronously search for all of the type declarations that are defined in the given scope and
-   * match the given pattern. Return the matches that were found.
+   * match the given pattern. Return all matches that pass the optional filter.
    * 
    * @param scope the scope containing the type declarations to be searched
    * @param pattern the pattern used to determine which type declarations are to be returned
-   * @param filter the filter used to determine which matches should be passed to the listener
-   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-   *          passed to the listener
+   * @param filter the filter used to determine which matches should be passed to the listener, or
+   *          <code>null</code> if all of the matches should be passed to the listener
    * @param monitor the progress monitor to use for reporting progress to the user. It is the
-   *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
-   *          , indicating that no progress should be reported and that the operation cannot be
-   *          canceled.
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
    * @return the matches that were found
    * @throws SearchException if the results could not be computed
    */
@@ -164,9 +304,9 @@ public interface SearchEngine {
    *          passed to the listener
    * @param listener the listener that will be notified when matches are found
    * @param monitor the progress monitor to use for reporting progress to the user. It is the
-   *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
-   *          , indicating that no progress should be reported and that the operation cannot be
-   *          canceled.
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
    * @throws SearchException if the results could not be computed
    */
   public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern, SearchFilter filter,
@@ -180,9 +320,9 @@ public interface SearchEngine {
    * @param pattern the pattern used to determine which type declarations are to be returned
    * @param listener the listener that will be notified when matches are found
    * @param monitor the progress monitor to use for reporting progress to the user. It is the
-   *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
-   *          , indicating that no progress should be reported and that the operation cannot be
-   *          canceled.
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
    * @throws SearchException if the results could not be computed
    * @deprecated use searchTypeDeclarations(SearchScope, SearchPattern, SearchFilter,
    *             SearchListener, IProgressMonitor)

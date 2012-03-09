@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.indexer.exceptions.IndexTemporarilyNonOperational;
 import com.google.dart.indexer.locations.Location;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.core.indexer.DartIndexer;
 import com.google.dart.tools.core.indexer.DartIndexerResult;
 import com.google.dart.tools.core.internal.indexer.contributor.DartContributor;
@@ -138,6 +139,13 @@ public final class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchConstructorDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
   public void searchConstructorDeclarations(SearchScope scope, SearchPattern pattern,
       SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
       throws SearchException {
@@ -164,9 +172,23 @@ public final class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchImplementors(Type type, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
   public void searchImplementors(Type type, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     DartCore.notYetImplemented();
+  }
+
+  @Override
+  public List<SearchMatch> searchReferences(DartFunction function, SearchScope scope,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
   }
 
   @Override
@@ -190,6 +212,13 @@ public final class SearchEngineImpl implements SearchEngine {
       }
     };
     performSearch(helper, scope, null, applyFilter(filter, listener), monitor);
+  }
+
+  @Override
+  public List<SearchMatch> searchReferences(DartFunctionTypeAlias alias, SearchScope scope,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
   }
 
   @Override
@@ -217,6 +246,13 @@ public final class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchReferences(Field field, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
   public void searchReferences(final Field field, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     SearchHelper helper = new SearchHelper() {
@@ -240,6 +276,13 @@ public final class SearchEngineImpl implements SearchEngine {
 
   public void searchReferences(Method method, SearchListener listener, IProgressMonitor monitor) {
     DartCore.notYetImplemented();
+  }
+
+  @Override
+  public List<SearchMatch> searchReferences(Method method, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
   };
 
   @Override
@@ -264,6 +307,13 @@ public final class SearchEngineImpl implements SearchEngine {
     };
     performSearch(helper, scope, null, applyFilter(filter, listener), monitor);
   };
+
+  @Override
+  public List<SearchMatch> searchReferences(Type type, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
 
   @Override
   public void searchReferences(final Type type, SearchScope scope, SearchFilter filter,

@@ -60,7 +60,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Instances of the class <code>NewSearchEngineImpl</code> implement a search engine that used the
+ * Instances of the class <code>NewSearchEngineImpl</code> implement a search engine that use the
  * new index to obtain results.
  */
 public class NewSearchEngineImpl implements SearchEngine {
@@ -321,6 +321,18 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchConstructorDeclarations(final SearchScope scope,
+      final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
+      throws SearchException {
+    return gatherResults(1, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchConstructorDeclarations(scope, pattern, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
   public void searchConstructorDeclarations(SearchScope scope, SearchPattern pattern,
       SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
       throws SearchException {
@@ -336,6 +348,17 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchImplementors(final Type type, final SearchScope scope,
+      final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
+    return gatherResults(1, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchImplementors(type, scope, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
   public void searchImplementors(Type type, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     if (listener == null) {
@@ -348,6 +371,17 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchReferences(final DartFunction function, final SearchScope scope,
+      final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
+    return gatherResults(1, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchReferences(function, scope, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
   public void searchReferences(DartFunction function, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     if (listener == null) {
@@ -355,6 +389,18 @@ public class NewSearchEngineImpl implements SearchEngine {
     }
     index.getRelationships(createElement(function), IndexConstants.IS_REFERENCED_BY,
         new RelationshipCallbackImpl(MatchKind.FUNCTION_EXECUTION, applyFilter(filter, listener)));
+  }
+
+  @Override
+  public List<SearchMatch> searchReferences(final DartFunctionTypeAlias alias,
+      final SearchScope scope, final SearchFilter filter, final IProgressMonitor monitor)
+      throws SearchException {
+    return gatherResults(1, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchReferences(alias, scope, filter, listener, monitor);
+      }
+    });
   }
 
   @Override
@@ -371,6 +417,17 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchReferences(final Field field, final SearchScope scope,
+      final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
+    return gatherResults(2, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchReferences(field, scope, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
   public void searchReferences(Field field, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     if (listener == null) {
@@ -384,6 +441,17 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchReferences(final Method method, final SearchScope scope,
+      final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
+    return gatherResults(1, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchReferences(method, scope, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
   public void searchReferences(Method method, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     if (listener == null) {
@@ -391,6 +459,17 @@ public class NewSearchEngineImpl implements SearchEngine {
     }
     index.getRelationships(createElement(method), IndexConstants.IS_REFERENCED_BY,
         new RelationshipCallbackImpl(MatchKind.METHOD_INVOCATION, applyFilter(filter, listener)));
+  }
+
+  @Override
+  public List<SearchMatch> searchReferences(final Type type, final SearchScope scope,
+      final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
+    return gatherResults(1, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchReferences(type, scope, filter, listener, monitor);
+      }
+    });
   }
 
   @Override
