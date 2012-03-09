@@ -16,10 +16,16 @@ import frog
 # Runs frog.dart on the dart vm to compile frogpad.dart to frogpad.js
 def main(args):
   product_dir = args[1]
+  frogpad_js = os.path.join(product_dir, 'frog', 'bin', 'frogpad.js')
+
+  if platform.system() == "Windows":
+    with open(frogpad_js, 'w') as f:
+      f.write("frogpad is not supported on Windows")
+      return 0
+
   vm = os.path.join(product_dir, 'dart')
   frogpad_dart = os.path.join(
      DART_DIR, 'tools', 'testing', 'frogpad', 'frogpad.dart')
-  frogpad_js = os.path.join(product_dir, 'frog', 'bin', 'frogpad.js')
 
   if not os.path.exists(vm):
     raise Exception("cannot find dart vm '%s'" % vm)
