@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.ui.internal.view.files.FilesView;
+import com.google.dart.tools.ui.internal.filesview.FilesView;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.dialogs.MessageDialog;

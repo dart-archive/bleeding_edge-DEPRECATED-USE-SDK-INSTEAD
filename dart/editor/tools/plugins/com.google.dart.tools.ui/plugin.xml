@@ -123,12 +123,6 @@
             
             <adapter type="org.eclipse.ui.model.IWorkbenchAdapter"/>
       </factory>
-      <factory 
-            class="com.google.dart.tools.ui.internal.view.files.FileAdapterFactory" 
-            adaptableType="java.io.File">
-                       
-            <adapter type="org.eclipse.ui.model.IWorkbenchAdapter"/>
-      </factory>
    </extension>
 
    <!-- content assist processors - do not change their order -->  
@@ -432,16 +426,6 @@
             class="com.google.dart.tools.ui.internal.filesview.FilesView"
             icon="icons/full/obj16/file_folder.gif"
             id="com.google.dart.tools.ui.FileExplorer"
-            name="Files"
-            restorable="true">
-      </view>
-      
-      <view
-            allowMultiple="false"
-            category="com.google.dart.tools.ui.dart"
-            class="com.google.dart.tools.ui.internal.view.files.FilesView"
-            icon="icons/full/obj16/file_folder.gif"
-            id="com.google.dart.tools.ui.FilesView"
             name="Files"
             restorable="true">
       </view>

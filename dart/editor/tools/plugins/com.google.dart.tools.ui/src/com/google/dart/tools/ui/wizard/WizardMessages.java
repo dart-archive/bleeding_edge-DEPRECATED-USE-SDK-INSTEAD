@@ -39,17 +39,6 @@ public class WizardMessages extends NLS {
   public static String NewFileWizardPage_newEmptyFile;
   public static String NewFileWizardPage_status1;
   public static String NewFileWizardPage_status2;
-  public static String ShowDirectoryWizard_title;
-  public static String ShowDirectoryWizardPage_title;
-  public static String ShowDirectoryWizardPage_description;
-  public static String ShowDirectoryWizardPage_locationLabel;
-  public static String ShowDirectoryWizardPage_browseButton;
-  public static String ShowDirectoryWizardPage_message;
-  public static String NewDirectoryWizard_title;
-  public static String NewDirectoryWizardPage_title;
-  public static String NewDirectoryWizardPage_description;
-  public static String NewDirectoryWizardPage_locationLabel;
-  public static String NewDirectoryWizardPage_message;
   static {
     // initialize resource bundle
     NLS.initializeMessages(BUNDLE_NAME, WizardMessages.class);
