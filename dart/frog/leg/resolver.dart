@@ -1553,8 +1553,7 @@ class ClassScope extends Scope {
     if (element != null) return element;
     element = parent.lookup(name);
     if (element != null) return element;
-    // TODO(ngeoffray): Lookup in the super class.
-    return null;
+    return cls.lookupSuperMember(name);
   }
 
   Element add(Element element) {
