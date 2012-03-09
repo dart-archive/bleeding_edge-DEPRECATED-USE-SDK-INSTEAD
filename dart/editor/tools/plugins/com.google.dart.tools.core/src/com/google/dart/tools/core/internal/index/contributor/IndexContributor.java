@@ -43,7 +43,6 @@ import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
-import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
@@ -57,13 +56,11 @@ import com.google.dart.tools.core.index.Location;
 import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
+import com.google.dart.tools.core.internal.index.util.ElementFactory;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
-import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 
 import java.util.ArrayList;
 
@@ -77,34 +74,6 @@ public class IndexContributor extends ASTVisitor<Void> {
    * implicit invocation of toString() when an expression is embedded in a string interpolation
    * expression.
    */
-
-  /**
-   * Compose the element id of the given parent element and the name of a child element into an
-   * element id appropriate for the child element.
-   * 
-   * @param parentElement the element representing the parent of the child element
-   * @param childName the unescaped name of a child element
-   * @return the element id appropriate for the child element
-   */
-  public static String composeElementId(Element parentElement, String childName) {
-    StringBuilder builder = new StringBuilder();
-    if (parentElement != null) {
-      builder.append(parentElement.getElementId()); // This has already been escaped.
-      builder.append(ResourceFactory.SEPARATOR_CHAR);
-    }
-    ResourceFactory.escape(builder, childName);
-    return builder.toString();
-  }
-
-  /**
-   * Compose the name of a child element into an element id appropriate for the child element.
-   * 
-   * @param childName the unescaped name of a child element
-   * @return the element id appropriate for the child element
-   */
-  public static String composeElementId(String childName) {
-    return composeElementId(null, childName);
-  }
 
   /**
    * The index to which data and relationships will be contributed.
@@ -253,8 +222,7 @@ public class IndexContributor extends ASTVisitor<Void> {
         DartExpression leftOperand = node.getArg1();
         DartExpression rghtOperand = node.getArg2();
         int offset = findOffset(operator, leftOperand.getSourceInfo().getOffset()
-            + leftOperand.getSourceInfo().getLength(),
-            rghtOperand.getSourceInfo().getOffset() - 1);
+            + leftOperand.getSourceInfo().getLength(), rghtOperand.getSourceInfo().getOffset() - 1);
         if (offset < 0) {
           // TODO(brianwilkerson) Handle a missing offset.
         }
@@ -590,24 +558,19 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   /**
-   * Return an element representing the given type.
+   * Return an element representing the given type, or <code>null</code> if the given type cannot be
+   * represented as an element.
    * 
    * @param element the type element to be represented
    * @return an element representing the given type
    */
   private Element getElement(ClassElement element) {
-    if (element.isDynamic()) {
-      return null;
+    try {
+      return ElementFactory.getElement(element);
+    } catch (DartModelException exception) {
+      DartCore.logError("Could not getElement for class element " + element.getName(), exception);
     }
-    LibraryElement libraryElement = getLibraryElement(element);
-    long start = System.currentTimeMillis();
-    CompilationUnitElement dartType = BindingUtils.getDartElement(
-        BindingUtils.getDartElement(libraryElement), element);
-    bindingTime += System.currentTimeMillis() - start;
-    if (dartType == null) {
-      return null;
-    }
-    return new Element(getResource(dartType), composeElementId(element.getName()));
+    return null;
   }
 
   /**
@@ -617,7 +580,8 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given type
    */
   private Element getElement(DartClass node) {
-    return new Element(compilationUnitResource, composeElementId(node.getClassName()));
+    return new Element(compilationUnitResource,
+        ElementFactory.composeElementId(node.getClassName()));
   }
 
   /**
@@ -627,7 +591,7 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given field
    */
   private Element getElement(DartField node) {
-    return new Element(compilationUnitResource, composeElementId(peekElement(),
+    return new Element(compilationUnitResource, ElementFactory.composeElementId(peekElement(),
         node.getName().getName()));
   }
 
@@ -649,7 +613,8 @@ public class IndexContributor extends ASTVisitor<Void> {
       // TODO(brianwilkerson) Decide on the form of the element id for an unnamed function.
       functionName = "???";
     }
-    return new Element(compilationUnitResource, composeElementId(peekElement(), functionName));
+    return new Element(compilationUnitResource, ElementFactory.composeElementId(peekElement(),
+        functionName));
   }
 
   /**
@@ -659,7 +624,8 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given function type
    */
   private Element getElement(DartFunctionTypeAlias node) {
-    return new Element(compilationUnitResource, composeElementId(node.getName().getName()));
+    return new Element(compilationUnitResource,
+        ElementFactory.composeElementId(node.getName().getName()));
   }
 
   /**
@@ -669,7 +635,7 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given method
    */
   private Element getElement(DartMethodDefinition node) {
-    return new Element(compilationUnitResource, composeElementId(peekElement(),
+    return new Element(compilationUnitResource, ElementFactory.composeElementId(peekElement(),
         toString(node.getName())));
   }
 
@@ -679,29 +645,19 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @param element the element to be represented
    * @return an element representing the given element
    */
-  private Element getElement(EnclosingElement element) {
-    if (element instanceof ClassElement) {
-      return getElement((ClassElement) element);
-    } else if (element instanceof FieldElement) {
-      return getElement((FieldElement) element);
-    } else if (element instanceof LibraryElement) {
-      return getElement((LibraryElement) element);
-    } else if (element instanceof MethodElement) {
-      return getElement((MethodElement) element);
-    }
-    DartCore.logInformation("Could not getElement for " + element.getClass().getName());
-    return null;
-  }
-
-  /**
-   * Return an element representing the given field.
-   * 
-   * @param element the field element to be represented
-   * @return an element representing the given field
-   */
-  private Element getElement(FieldElement element) {
-    return getElement(element, false, false);
-  }
+//  private Element getElement(EnclosingElement element) {
+//    if (element instanceof ClassElement) {
+//      return getElement((ClassElement) element);
+//    } else if (element instanceof FieldElement) {
+//      return getElement((FieldElement) element);
+//    } else if (element instanceof LibraryElement) {
+//      return getElement((LibraryElement) element);
+//    } else if (element instanceof MethodElement) {
+//      return getElement((MethodElement) element);
+//    }
+//    DartCore.logInformation("Could not getElement for " + element.getClass().getName());
+//    return null;
+//  }
 
   /**
    * Return an element representing the given field.
@@ -712,21 +668,17 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given field
    */
   private Element getElement(FieldElement element, boolean allowGetter, boolean allowSetter) {
-    long start = System.currentTimeMillis();
-    CompilationUnitElement field = BindingUtils.getDartElement(
-        BindingUtils.getDartElement(BindingUtils.getLibrary(element)), element, allowGetter,
-        allowSetter);
-    bindingTime += System.currentTimeMillis() - start;
-    if (field == null) {
-      DartCore.logInformation("Could not getElement for field " + pathTo(element));
-      return null;
+    try {
+      return ElementFactory.getElement(element, allowGetter, allowSetter);
+    } catch (DartModelException exception) {
+      DartCore.logError("Could not getElement for field element " + element.getName(), exception);
     }
-    return new Element(getResource(field), composeElementId(
-        getElement(element.getEnclosingElement()), element.getName()));
+    return null;
   }
 
   /**
-   * Return an element representing the given type.
+   * Return an element representing the given type, or <code>null</code> if the given type cannot be
+   * represented as an element.
    * 
    * @param node the node representing the declaration of the type
    * @return an element representing the given type
@@ -736,38 +688,18 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   /**
-   * Return an element representing the given library.
-   * 
-   * @param element the library element to be represented
-   * @return an element representing the given library
-   */
-  private Element getElement(LibraryElement element) {
-    String libraryId = element.getLibraryUnit().getSource().getUri().toString();
-    return new Element(new Resource(ResourceFactory.composeResourceId(libraryId, libraryId)),
-        LIBRARY_ELEMENT_ID);
-  }
-
-  /**
    * Return an element representing the given method.
    * 
    * @param element the element representing the method
    * @return an element representing the given method
    */
   private Element getElement(MethodElement element) {
-    long start = System.currentTimeMillis();
-    CompilationUnitElement method = BindingUtils.getDartElement(
-        BindingUtils.getDartElement(BindingUtils.getLibrary(element)), element);
-    bindingTime += System.currentTimeMillis() - start;
-    if (method == null) {
-      DartCore.logInformation("Could not getElement for method " + pathTo(element));
-      return null;
+    try {
+      return ElementFactory.getElement(element);
+    } catch (DartModelException exception) {
+      DartCore.logError("Could not getElement for method element " + element.getName(), exception);
     }
-    String methodName = element.getName();
-    if (element instanceof ConstructorElement) {
-      methodName = element.getEnclosingElement().getName();
-    }
-    return new Element(getResource(method), composeElementId(
-        getElement(element.getEnclosingElement()), methodName));
+    return null;
   }
 
   /**
@@ -786,23 +718,6 @@ public class IndexContributor extends ASTVisitor<Void> {
       return getIdentifier(((DartTypeNode) node).getIdentifier());
     }
     DartCore.logInformation("Could not getIdentifier for " + node.getClass().getName());
-    return null;
-  }
-
-  /**
-   * Return the library element for the library that contains the given element, or
-   * <code>null</code> if the given element is not contained in a library.
-   * 
-   * @param element the element whose enclosing library is to be returned
-   * @return the library element for the library that contains the given element
-   */
-  private LibraryElement getLibraryElement(com.google.dart.compiler.resolver.Element element) {
-    EnclosingElement parentElement = element.getEnclosingElement();
-    while (parentElement != null) {
-      if (parentElement instanceof LibraryElement) {
-        return (LibraryElement) parentElement;
-      }
-    }
     return null;
   }
 
@@ -857,8 +772,7 @@ public class IndexContributor extends ASTVisitor<Void> {
     if (element == null) {
       element = libraryElement;
     }
-    return new Location(element, node.getSourceInfo().getOffset(),
-        node.getSourceInfo().getLength());
+    return new Location(element, node.getSourceInfo().getOffset(), node.getSourceInfo().getLength());
   }
 
   /**
@@ -901,22 +815,6 @@ public class IndexContributor extends ASTVisitor<Void> {
       }
     }
     return libraryResource;
-  }
-
-  /**
-   * Return a resource representing the compilation unit containing the given element.
-   * 
-   * @param element the element contained in the compilation unit to be returned
-   * @return a resource representing the compilation unit containing the given element
-   */
-  private Resource getResource(CompilationUnitElement element) {
-    CompilationUnitImpl unit = (CompilationUnitImpl) element.getCompilationUnit();
-    if (unit == null) {
-      // TODO(brianwilkerson) Figure out whether this can ever happen and whether there's anything
-      // we can do about it if it can.
-      return null;
-    }
-    return getResource(unit);
   }
 
   /**
@@ -1001,8 +899,7 @@ public class IndexContributor extends ASTVisitor<Void> {
     if (node == null) {
       notFound(string, -1, 0);
     } else {
-      notFound(string, node.getSourceInfo().getOffset(),
-          node.getSourceInfo().getLength());
+      notFound(string, node.getSourceInfo().getOffset(), node.getSourceInfo().getLength());
     }
   }
 
@@ -1029,14 +926,6 @@ public class IndexContributor extends ASTVisitor<Void> {
       }
       DartCore.logInformation(writer.toString());
     }
-  }
-
-  private String pathTo(com.google.dart.compiler.resolver.Element element) {
-    EnclosingElement parent = element.getEnclosingElement();
-    if (parent == null) {
-      return element.getName();
-    }
-    return pathTo(parent) + "/" + element.getName();
   }
 
   /**

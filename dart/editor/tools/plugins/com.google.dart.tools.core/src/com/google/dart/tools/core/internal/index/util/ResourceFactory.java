@@ -14,9 +14,11 @@
 package com.google.dart.tools.core.internal.index.util;
 
 import com.google.dart.tools.core.index.Resource;
+import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartModelStatusImpl;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatusConstants;
@@ -82,16 +84,35 @@ public final class ResourceFactory {
   public static Resource getResource(CompilationUnit compilationUnit) throws DartModelException {
     if (compilationUnit == null) {
       throw new DartModelException(new DartModelStatusImpl(
-          DartModelStatusConstants.INVALID_RESOURCE, "Compilation unit is null"));
+          DartModelStatusConstants.INVALID_RESOURCE, "Compilation unit is null")); //$NON-NLS-0$
     }
     DartLibrary library = compilationUnit.getLibrary();
     if (library == null) {
       throw new DartModelException(new DartModelStatusImpl(
           DartModelStatusConstants.INVALID_RESOURCE, compilationUnit,
-          "No library associated with compilation unit"));
+          "No library associated with compilation unit")); //$NON-NLS-0$
     }
     CompilationUnit libraryDefiningUnit = library.getDefiningCompilationUnit();
     return new Resource(composeResourceId(getUri(libraryDefiningUnit), getUri(compilationUnit)));
+  }
+
+  /**
+   * Return a resource representing the compilation unit containing the given element.
+   * 
+   * @param element the element contained in the compilation unit to be returned
+   * @return a resource representing the compilation unit containing the given element
+   * @throws DartModelException if a resource could not be created to represent the compilation unit
+   */
+  public static Resource getResource(CompilationUnitElement element) throws DartModelException {
+    CompilationUnitImpl unit = (CompilationUnitImpl) element.getCompilationUnit();
+    if (unit == null) {
+      // TODO(brianwilkerson) Figure out whether this can ever happen and whether there's anything
+      // we can do about it if it can.
+      throw new DartModelException(new DartModelStatusImpl(
+          DartModelStatusConstants.INVALID_RESOURCE,
+          "No compilation unit associated with " + element.getElementName())); //$NON-NLS-0$
+    }
+    return getResource(unit);
   }
 
   /**
@@ -115,5 +136,12 @@ public final class ResourceFactory {
     }
     throw new DartModelException(new DartModelStatusImpl(DartModelStatusConstants.INVALID_RESOURCE,
         compilationUnit));
+  }
+
+  /**
+   * Prevent the creation of instances of this class.
+   */
+  private ResourceFactory() {
+    super();
   }
 }
