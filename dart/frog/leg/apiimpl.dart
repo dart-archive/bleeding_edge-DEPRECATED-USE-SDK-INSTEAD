@@ -5,8 +5,12 @@
 #library('leg_apiimpl');
 
 #import('leg.dart', prefix: 'leg');
+#import('elements/elements.dart', prefix: 'leg');
+#import('tree/tree.dart', prefix: 'leg');
 #import('ssa/tracer.dart', prefix: 'ssa');
 #import('../lang.dart', prefix: 'frog');
+#import('api.dart');
+#import('../../lib/uri/uri.dart');
 
 class Compiler extends leg.Compiler {
   ReadUriFromString provider;
@@ -16,9 +20,9 @@ class Compiler extends leg.Compiler {
   Compiler(this.provider, this.handler, this.libraryRoot)
     : super.withCurrentDirectory(null, tracer: new ssa.HTracer());
 
-  LibraryElement scanBuiltinLibrary(String filename) {
+  leg.LibraryElement scanBuiltinLibrary(String filename) {
     Uri uri = libraryRoot.resolve(filename);
-    LibraryElement library = scanner.loadLibrary(uri, null);
+    leg.LibraryElement library = scanner.loadLibrary(uri, null);
     return library;
   }
 
@@ -26,7 +30,7 @@ class Compiler extends leg.Compiler {
     handler(null, null, null, message, false);
   }
 
-  Script readScript(Uri uri, [ScriptTag node]) {
+  leg.Script readScript(Uri uri, [leg.ScriptTag node]) {
     String uriName = uri.toString();
     // TODO(ahe): Clean this up.
     if (uriName == 'dart:dom') {
