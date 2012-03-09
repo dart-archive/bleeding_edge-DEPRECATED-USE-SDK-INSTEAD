@@ -5583,32 +5583,10 @@ Library.prototype._addMember = function(member) {
       else {
         members.add(member);
       }
-      this._makePrivateMembersUnique(member, members);
     }
   }
   else {
     $globals.world._addMember(member);
-  }
-}
-Library.prototype._makePrivateMembersUnique = function(member, members) {
-  if (members.jsnameUnique) {
-    member._jsname = members.jsname;
-    return;
-  }
-  var name = members.name;
-  var $$list = $globals.world.libraries.getValues();
-  for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
-    var lib = $$i.next();
-    if ((null == lib ? null != (this) : lib !== this) && lib.get$_privateMembers().containsKey(name)) {
-      var uniqueName = ("_" + this.get$jsname() + members.jsname);
-      members.jsname = uniqueName;
-      members.jsnameUnique = true;
-      members.members.forEach((function (uniqueName, each) {
-        each.set$_jsname(uniqueName);
-      }).bind(null, uniqueName)
-      );
-      return;
-    }
   }
 }
 Library.prototype.getOrAddFunctionType = function(enclosingElement, name, func, data) {
@@ -6908,7 +6886,6 @@ function MemberSet(member, isVar) {
   this.jsname = member.get$jsname();
   this.name = member.name;
   this._preparedForSet = false;
-  this.jsnameUnique = false;
   this.isVar = isVar;
   this.members = [member];
 }
@@ -6916,6 +6893,7 @@ MemberSet.prototype.get$name = function() { return this.name; };
 MemberSet.prototype.get$members = function() { return this.members; };
 MemberSet.prototype.get$isVar = function() { return this.isVar; };
 MemberSet.prototype.get$jsname = function() { return this.jsname; };
+MemberSet.prototype.set$jsname = function(value) { return this.jsname = value; };
 MemberSet.prototype.toString = function() {
   return ("" + this.name + ":" + this.members.get$length());
 }
@@ -14188,6 +14166,10 @@ World.prototype.runCompilationPhases = function() {
   })
   );
   this.withTiming("resolve top level", this.get$resolveAll());
+  this.withTiming("privatization", (function () {
+    $this.makePrivateMembersUnique(lib);
+  })
+  );
   if ($globals.experimentalAwaitPhase != null) {
     this.withTiming("await translation", to$call$0($globals.experimentalAwaitPhase));
   }
@@ -14272,6 +14254,40 @@ World.prototype.resolveAll = function() {
 }
 World.prototype.get$resolveAll = function() {
   return this.resolveAll.bind(this);
+}
+World.prototype.makePrivateMembersUnique = function(rootLib) {
+  var usedNames = new HashSetImplementation_dart_core_String();
+  function process(lib) {
+    var $$list = lib.get$_privateMembers().getKeys();
+    for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
+      var name = $$i.next();
+      if (usedNames.contains$1(name)) {
+        var members = lib.get$_privateMembers().$index(name);
+        var uniqueName = ("_" + lib.get$jsname() + members.get$jsname());
+        members.set$jsname(uniqueName);
+        var $list0 = members.get$members();
+        for (var $i0 = $list0.iterator(); $i0.hasNext(); ) {
+          var member = $i0.next();
+          member.set$_jsname(uniqueName);
+        }
+      }
+      else {
+        usedNames.add(name);
+      }
+    }
+  }
+  var visited = new HashSetImplementation_Library();
+  function visit(lib) {
+    if (visited.contains$1(lib)) return;
+    visited.add(lib);
+    process(lib);
+    var $$list = lib.get$imports();
+    for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
+      var import_ = $$i.next();
+      visit(import_.get$library());
+    }
+  }
+  visit(rootLib);
 }
 World.prototype.findMainMethod = function(lib) {
   var main = lib.lookup("main", lib.get$span());

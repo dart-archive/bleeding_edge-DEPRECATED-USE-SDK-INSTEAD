@@ -410,6 +410,7 @@ class World {
   void runCompilationPhases() {
     final lib = withTiming('first pass', () => processDartScript());
     withTiming('resolve top level', resolveAll);
+    withTiming('privatization', () { makePrivateMembersUnique(lib); });
     if (experimentalAwaitPhase != null) {
       withTiming('await translation', experimentalAwaitPhase);
     }
@@ -486,6 +487,36 @@ class World {
     for (var lib in libraries.getValues()) {
       lib.postResolveChecks();
     }
+  }
+
+  makePrivateMembersUnique(Library rootLib) {
+    var usedNames = new Set<String>();
+    process(lib) {
+      for (var name in lib._privateMembers.getKeys()) {
+        if (usedNames.contains(name)) {
+          var members = lib._privateMembers[name];
+          String uniqueName = '_${lib.jsname}${members.jsname}';
+          members.jsname = uniqueName;
+          for (var member in members.members) {
+            member._jsname = uniqueName;
+          }
+        } else {
+          usedNames.add(name);
+        }
+      }
+    }
+
+    // Visit libraries in pre-order of imports.
+    var visited = new Set<Library>();
+    visit(lib) {
+      if (visited.contains(lib)) return;
+      visited.add(lib);
+      process(lib);
+      for (var import in lib.imports) {
+        visit(import.library);
+      }
+    }
+    visit(rootLib);
   }
 
   findMainMethod(Library lib) {

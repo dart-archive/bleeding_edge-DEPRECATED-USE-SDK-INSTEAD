@@ -7,7 +7,6 @@ class MemberSet {
   final List<Member> members;
   final bool isVar;
   String jsname;
-  bool jsnameUnique = false;
 
   bool _treatAsField;
   Type _returnTypeForGet;

@@ -102,34 +102,9 @@ class Library extends Element {
         } else {
           members.add(member);
         }
-        _makePrivateMembersUnique(member, members);
       }
     } else {
       world._addMember(member);
-    }
-  }
-
-  void _makePrivateMembersUnique(Member member, MemberSet members) {
-    // If the JS name in the member set is already unique, we simply
-    // copy the name to the new member.
-    if (members.jsnameUnique) {
-      member._jsname = members.jsname;
-      return;
-    }
-
-    // Run through the other libraries in the world and check if any
-    // of them has a clashing private member. If so, we rewrite this
-    // one and all other members in the set.
-    String name = members.name;
-    for (var lib in world.libraries.getValues()) {
-      if (lib !== this && lib._privateMembers.containsKey(name)) {
-        String uniqueName = '_${this.jsname}${members.jsname}';
-        members.jsname = uniqueName;
-        members.jsnameUnique = true;
-        members.members.forEach((each) { each._jsname = uniqueName; });
-        assert(member.jsname == members.jsname);
-        return;
-      }
     }
   }
 
