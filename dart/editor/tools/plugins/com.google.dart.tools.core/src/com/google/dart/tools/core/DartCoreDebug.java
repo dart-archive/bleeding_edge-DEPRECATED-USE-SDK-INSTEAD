@@ -38,7 +38,6 @@ public class DartCoreDebug {
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
   public static final boolean ENABLE_TYPE_REFINEMENT = isOptionTrue("debug/RefineTypes");
   public static final boolean ENABLE_MARK_OCCURRENCES = isOptionTrue("debug/markOccurrences");
-  public static final boolean ENABLE_CALL_GRAPH = isOptionTrue("experimental/callHierarchy");
 
   // Performance measurement and reporting options.
 
@@ -49,6 +48,8 @@ public class DartCoreDebug {
 
   public static final boolean ANALYSIS_SERVER = isOptionTrue("experimental/analysis/server");
   public static final boolean NEW_INDEXER = isOptionTrue("experimental/newIndexer");
+  public static final boolean ENABLE_CALL_GRAPH = NEW_INDEXER
+      && isOptionTrue("experimental/callHierarchy");
 
   private static boolean isOptionTrue(String optionSuffix) {
     return "true".equalsIgnoreCase(Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix));
