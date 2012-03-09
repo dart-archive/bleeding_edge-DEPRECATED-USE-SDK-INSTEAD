@@ -6,19 +6,19 @@ import shutil
 import stat
 import sys
 
-HOME = os.path.dirname(os.path.realpath(__file__))
-HOME = os.path.join(HOME, os.pardir, os.pardir)
+DART_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    os.pardir, os.pardir, os.pardir)
+FROG_DIR = os.path.join(DART_DIR, "frog")
 
-sys.path.append(HOME)
+sys.path.append(FROG_DIR)
 import frog
 
 # Runs frog.dart on the dart vm to compile frogpad.dart to frogpad.js
 def main(args):
   product_dir = args[1]
-
   vm = os.path.join(product_dir, 'dart')
-  frogpad_dart = os.path.join(product_dir, '..', '..',
-      'tools', 'testing',  'frogpad', 'frogpad.dart')
+  frogpad_dart = os.path.join(
+     DART_DIR, 'tools', 'testing', 'frogpad', 'frogpad.dart')
   frogpad_js = os.path.join(product_dir, 'frog', 'bin', 'frogpad.js')
 
   if not os.path.exists(vm):
