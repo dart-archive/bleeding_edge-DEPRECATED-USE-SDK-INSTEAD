@@ -305,7 +305,7 @@ class ClosureTranslator extends AbstractVisitor {
     // TODO(karlklose): create function to get the resolved class object.
     ClassElement objectClass = compiler.coreLibrary.find(Types.OBJECT);
     globalizedElement.supertype = objectClass.computeType(compiler);
-    objectClass.resolve(compiler);
+    objectClass.ensureResolved(compiler);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     Element thisElement = closureData.thisElement;

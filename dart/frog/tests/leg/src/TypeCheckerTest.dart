@@ -159,19 +159,27 @@ void testMethodInvocationArgumentCount() {
 
 void testMethodInvocations() {
   compiler.parseScript(CLASS_WITH_METHODS);
-  final String header = "{ ClassWithMethods c; int i; int j; ";
+  final String header = "{ ClassWithMethods c; SubClass d; int i; int j; ";
 
   analyze(header + "int k = c.untypedNoArgumentMethod(); }");
   analyze(header + "ClassWithMethods x = c.untypedNoArgumentMethod(); }");
-
+  analyze(header + "ClassWithMethods x = d.untypedNoArgumentMethod(); }");
+  analyze(header + "int k = d.intMethod(); }");
   analyze(header + "int k = c.untypedOneArgumentMethod(c); }");
   analyze(header + "ClassWithMethods x = c.untypedOneArgumentMethod(1); }");
   analyze(header + "int k = c.untypedOneArgumentMethod('string'); }");
   analyze(header + "int k = c.untypedOneArgumentMethod(i); }");
+  analyze(header + "int k = d.untypedOneArgumentMethod(d); }");
+  analyze(header + "ClassWithMethods x = d.untypedOneArgumentMethod(1); }");
+  analyze(header + "int k = d.untypedOneArgumentMethod('string'); }");
+  analyze(header + "int k = d.untypedOneArgumentMethod(i); }");
 
   analyze(header + "int k = c.untypedTwoArgumentMethod(1, 'string'); }");
   analyze(header + "int k = c.untypedTwoArgumentMethod(i, j); }");
   analyze(header + "ClassWithMethods x = c.untypedTwoArgumentMethod(i, c); }");
+  analyze(header + "int k = d.untypedTwoArgumentMethod(1, 'string'); }");
+  analyze(header + "int k = d.untypedTwoArgumentMethod(i, j); }");
+  analyze(header + "ClassWithMethods x = d.untypedTwoArgumentMethod(i, d); }");
 
   analyze(header + "int k = c.intNoArgumentMethod(); }");
   analyze(header + "ClassWithMethods x = c.intNoArgumentMethod(); }",
@@ -316,7 +324,11 @@ class ClassWithMethods {
   Function functionField;
   var untypedField;
   int intField;
-}''';
+}
+interface I {
+  int intMethod();
+}
+class SubClass extends ClassWithMethods implements I {}''';
 
 Types types;
 MockCompiler compiler;

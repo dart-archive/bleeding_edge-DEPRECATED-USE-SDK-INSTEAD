@@ -97,7 +97,7 @@ class MockCompiler extends Compiler {
     visitor.context = new TopScope(element.getLibrary());
     // Resolve the type annotations encountered in the code.
     while (!resolver.toResolve.isEmpty()) {
-      resolver.toResolve.removeFirst().resolve(this);
+      resolver.toResolve.removeFirst().ensureResolved(this);
     }
     return visitor.mapping;
   }

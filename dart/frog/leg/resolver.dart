@@ -140,9 +140,7 @@ class ResolverTask extends CompilerTask {
       // Resolve the type annotations encountered in the method.
       while (!toResolve.isEmpty()) {
         ClassElement classElement = toResolve.removeFirst();
-        if (!classElement.isResolved) {
-          classElement.resolve(compiler);
-        }
+        classElement.ensureResolved(compiler);
       }
       if (isConstructor) {
         constructorElements[element] = visitor.mapping;
@@ -161,7 +159,7 @@ class ResolverTask extends CompilerTask {
       error(node, MessageKind.NO_DEFAULT_CLASS, [intrface.name]);
     }
     ClassElement defaultClass = defaultType.element;
-    defaultClass.resolve(compiler);
+    defaultClass.ensureResolved(compiler);
     if (defaultClass.isInterface()) {
       error(node, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
             [defaultClass.name]);
@@ -216,65 +214,12 @@ class ResolverTask extends CompilerTask {
         new ClassResolverVisitor(compiler, element.getLibrary());
       visitor.visit(tree);
       element.isResolved = true;
-      calculateAllSupertypes(element, new Set<ClassElement>());
       return element.type;
     });
   }
 
   FunctionParameters resolveSignature(FunctionElement element) {
     return measure(() => SignatureResolver.analyze(compiler, element));
-  }
-
-  void checkClassHierarchy(Link<ClassElement> classes) {
-    for(; !classes.isEmpty(); classes = classes.tail) {
-      ClassElement classElement = classes.head;
-      calculateAllSupertypes(classElement, new Set<ClassElement>());
-    }
-  }
-
-  Link<Type> getOrCalculateAllSupertypes(ClassElement classElement,
-                                         [Set<ClassElement> seen]) {
-    Link<Type> allSupertypes = classElement.allSupertypes;
-    if (allSupertypes !== null) return allSupertypes;
-    if (seen === null) seen = new Set<ClassElement>();
-    calculateAllSupertypes(classElement, seen);
-    return classElement.allSupertypes;
-  }
-
-  void calculateAllSupertypes(ClassElement classElement,
-                              Set<ClassElement> seen) {
-    // TODO(karlklose): substitute type variables.
-    // TODO(karlklose): check if type arguments match, if a classelement occurs
-    //                  more than once in the supertypes.
-    if (classElement.allSupertypes !== null) return;
-    if (seen.contains(classElement)) {
-      error(classElement.parseNode(compiler),
-            MessageKind.CYCLIC_CLASS_HIERARCHY,
-            [classElement.name]);
-      classElement.allSupertypes = const EmptyLink<Type>();
-      return;
-    }
-    classElement.resolve(compiler);
-    final Type supertype = classElement.supertype;
-    if (supertype != null) {
-      seen.add(classElement);
-      Link<Type> superSupertypes =
-        getOrCalculateAllSupertypes(supertype.element, seen);
-      Link<Type> supertypes = new Link<Type>(supertype, superSupertypes);
-      for (Link<Type> interfaces = classElement.interfaces;
-           !interfaces.isEmpty();
-           interfaces = interfaces.tail) {
-        Element element = interfaces.head.element;
-        Link<Type> interfaceSupertypes =
-            getOrCalculateAllSupertypes(element, seen);
-        supertypes = supertypes.reversePrependAll(interfaceSupertypes);
-        supertypes = supertypes.prepend(interfaces.head);
-      }
-      seen.remove(classElement);
-      classElement.allSupertypes = supertypes;
-    } else {
-      classElement.allSupertypes = const EmptyLink<Type>();
-    }
   }
 
   error(Node node, MessageKind kind, [arguments = const []]) {
@@ -798,7 +743,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       return null;
     } else if (resolvedReceiver.kind === ElementKind.CLASS) {
       ClassElement receiverClass = resolvedReceiver;
-      target = receiverClass.resolve(compiler).lookupLocalMember(name);
+      target = receiverClass.ensureResolved(compiler).lookupLocalMember(name);
       if (target === null) {
         error(node, MessageKind.METHOD_NOT_FOUND, [receiverClass.name, name]);
       } else if (target.isInstanceMember()) {
@@ -1201,6 +1146,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
          link = link.tail) {
       element.interfaces = element.interfaces.prepend(visit(link.head));
     }
+    calculateAllSupertypes(element, new Set<ClassElement>());
     return element.computeType(compiler);
   }
 
@@ -1242,6 +1188,59 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     }
     return e.computeType(compiler);
   }
+
+  Link<Type> getOrCalculateAllSupertypes(ClassElement classElement,
+                                         [Set<ClassElement> seen]) {
+    Link<Type> allSupertypes = classElement.allSupertypes;
+    if (allSupertypes !== null) return allSupertypes;
+    if (seen === null) {
+      seen = new Set<ClassElement>();
+    }
+    if (seen.contains(classElement)) {
+      error(classElement.parseNode(compiler),
+            MessageKind.CYCLIC_CLASS_HIERARCHY,
+            [classElement.name]);
+      classElement.allSupertypes = const EmptyLink<Type>();
+    } else {
+      classElement.ensureResolved(compiler);
+      calculateAllSupertypes(classElement, seen);
+    }
+    return classElement.allSupertypes;
+  }
+
+  void calculateAllSupertypes(ClassElement classElement,
+                              Set<ClassElement> seen) {
+    // TODO(karlklose): substitute type variables.
+    // TODO(karlklose): check if type arguments match, if a classelement occurs
+    //                  more than once in the supertypes.
+    if (classElement.allSupertypes !== null) return;
+    final Type supertype = classElement.supertype;
+    if (seen.contains(classElement)) {
+      error(classElement.parseNode(compiler),
+            MessageKind.CYCLIC_CLASS_HIERARCHY,
+            [classElement.name]);
+      classElement.allSupertypes = const EmptyLink<Type>();
+    } else if (supertype != null) {
+      seen.add(classElement);
+      Link<Type> superSupertypes =
+          getOrCalculateAllSupertypes(supertype.element, seen);
+      Link<Type> supertypes = new Link<Type>(supertype, superSupertypes);
+      for (Link<Type> interfaces = classElement.interfaces;
+           !interfaces.isEmpty();
+           interfaces = interfaces.tail) {
+        Element element = interfaces.head.element;
+        Link<Type> interfaceSupertypes =
+            getOrCalculateAllSupertypes(element, seen);
+        supertypes = supertypes.reversePrependAll(interfaceSupertypes);
+        supertypes = supertypes.prepend(interfaces.head);
+      }
+      seen.remove(classElement);
+      classElement.allSupertypes = supertypes;
+    } else {
+      classElement.allSupertypes = const EmptyLink<Type>();
+    }
+  }
+
 }
 
 class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
@@ -1439,7 +1438,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     Element e = visit(selector);
     if (e !== null && e.kind === ElementKind.CLASS) {
       ClassElement cls = e;
-      cls.resolve(compiler);
+      cls.ensureResolved(compiler);
       compiler.resolver.toResolve.add(cls);
       if (cls.isInterface() && (cls.defaultClass === null)) {
         error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
@@ -1468,7 +1467,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
 
     if (e.kind === ElementKind.CLASS) {
       ClassElement cls = e;
-      cls.resolve(compiler);
+      cls.ensureResolved(compiler);
       compiler.resolver.toResolve.add(cls);
       if (cls.isInterface() && (cls.defaultClass === null)) {
         error(node.receiver, MessageKind.CANNOT_INSTANTIATE_INTERFACE,

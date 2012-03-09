@@ -32,7 +32,7 @@ void processNativeClassesInLibrary(Compiler compiler,
         // one of its constructor.
         element.parseNode(compiler);
         // Resolve to setup the inheritance.
-        element.resolve(compiler);
+        element.ensureResolved(compiler);
       }
     }
   }
@@ -144,7 +144,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
   Compiler compiler = builder.compiler;
   ClassElement cls = compiler.coreLibrary.find(
       Compiler.NO_SUCH_METHOD_EXCEPTION);
-  cls.resolve(compiler);
+  cls.ensureResolved(compiler);
   compiler.addToWorklist(cls.lookupConstructor(cls.name));
   compiler.registerStaticUse(
       compiler.findHelper(new SourceString('captureStackTrace')));

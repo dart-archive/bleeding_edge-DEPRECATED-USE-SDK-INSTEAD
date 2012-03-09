@@ -332,6 +332,16 @@ class TypeCheckerVisitor implements Visitor<Type> {
   Type lookupMethodType(Node node, ClassElement classElement,
                         SourceString name) {
     Element member = classElement.lookupLocalMember(name);
+    if (member === null) {
+      classElement.ensureResolved(compiler);
+      for (Link<Type> supertypes = classElement.allSupertypes;
+           !supertypes.isEmpty();
+           supertypes = supertypes.tail) {
+        ClassElement lookupTarget = supertypes.head.element;
+        member = lookupTarget.lookupLocalMember(name);
+        if (member !== null) return computeType(member);
+      }
+    }
     if (member !== null && member.kind == ElementKind.FUNCTION) {
       return computeType(member);
     }

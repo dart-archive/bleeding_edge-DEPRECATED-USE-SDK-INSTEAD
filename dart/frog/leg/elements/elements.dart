@@ -584,6 +584,7 @@ class ClassElement extends ContainerElement {
   Map<SourceString, Element> constructors;
   Link<Type> interfaces = const EmptyLink<Type>();
   bool isResolved = false;
+  bool isBeingResolved = false;
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.
   Link<Element> backendMembers = const EmptyLink<Element>();
@@ -651,8 +652,13 @@ class ClassElement extends ContainerElement {
     return type;
   }
 
-  ClassElement resolve(Compiler compiler) {
-    compiler.resolveType(this);
+  ClassElement ensureResolved(Compiler compiler) {
+    if (!isResolved && !isBeingResolved) {
+      isBeingResolved = true;
+      compiler.resolveType(this);
+      isBeingResolved = false;
+      isResolved = true;
+    }
     return this;
   }
 
