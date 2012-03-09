@@ -605,8 +605,8 @@ public class CompletionParser extends DartParser {
       result = (T) makeCompletionNode((DartNode) result);
     } else if (result instanceof DartNode) {
       DartNode node = (DartNode) result;
-      int start = node.getSourceStart();
-      int end = start + node.getSourceLength();
+      int start = node.getSourceInfo().getOffset();
+      int end = start + node.getSourceInfo().getLength();
       if (start <= completionPosition && completionPosition <= end) {
         result = (T) makeCompletionNode(node);
       }

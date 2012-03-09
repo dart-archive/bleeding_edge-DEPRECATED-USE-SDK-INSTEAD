@@ -13,11 +13,11 @@
  */
 package com.google.dart.tools.core.dom;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.tools.core.buffer.Buffer;
@@ -88,8 +88,9 @@ public class NodeFinder extends ASTVisitor<Void> {
     if (result == null) {
       return null;
     }
-    int nodeStart = result.getSourceStart();
-    if (start <= nodeStart && ((nodeStart + result.getSourceLength()) <= (start + length))) {
+    int nodeStart = result.getSourceInfo().getOffset();
+    if (start <= nodeStart
+        && nodeStart + result.getSourceInfo().getLength() <= start + length) {
       Buffer buffer = source.getBuffer();
       if (buffer != null) {
         String src = buffer.getText(start, length);
@@ -97,8 +98,8 @@ public class NodeFinder extends ASTVisitor<Void> {
         Token token = scanner.next();
         if (token != Token.EOS) {
           int tStart = scanner.getTokenLocation().getBegin().getPos();
-          if (tStart == result.getSourceStart() - start) {
-            int idx = tStart + result.getSourceLength();
+          if (tStart == result.getSourceInfo().getOffset() - start) {
+            int idx = tStart + result.getSourceInfo().getLength();
             String nsrc = src.substring(idx, idx + length - 1);
             scanner = new DartScanner(nsrc);
             token = scanner.next();
@@ -163,8 +164,8 @@ public class NodeFinder extends ASTVisitor<Void> {
 
   public DartNode selectNode() {
     DartNode result = getCoveredNode();
-    if (result == null || result.getSourceStart() != fStart
-        || result.getSourceLength() != fEnd - fStart) {
+    if (result == null || result.getSourceInfo().getOffset() != fStart
+        || result.getSourceInfo().getLength() != fEnd - fStart) {
       return getCoveringNode();
     }
     return result;
@@ -196,8 +197,8 @@ public class NodeFinder extends ASTVisitor<Void> {
 
   @Override
   public Void visitNode(DartNode node) {
-    int nodeStart = node.getSourceStart();
-    int nodeEnd = nodeStart + node.getSourceLength();
+    int nodeStart = node.getSourceInfo().getOffset();
+    int nodeEnd = nodeStart + node.getSourceInfo().getLength();
     if (nodeEnd < fStart || fEnd < nodeStart) {
       if (nodeEnd == -2) {
         // TODO Remove this workaround for a parser bug: no source positions set

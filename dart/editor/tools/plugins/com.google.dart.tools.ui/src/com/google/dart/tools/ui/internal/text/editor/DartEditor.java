@@ -369,8 +369,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   protected class FormatElementAction extends Action implements IUpdate {
 
     /*
-		 *
-		 */
+     *
+     */
     FormatElementAction() {
       setEnabled(isEditorInputModifiable());
     }
@@ -2124,17 +2124,17 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     int anchor = fBracketMatcher.getAnchor();
     // http://dev.eclipse.org/bugs/show_bug.cgi?id=34195
-    int targetOffset = (ICharacterPairMatcher.RIGHT == anchor) ? offset + 1 : offset + length;
+    int targetOffset = ICharacterPairMatcher.RIGHT == anchor ? offset + 1 : offset + length;
 
     boolean visible = false;
     if (sourceViewer instanceof ITextViewerExtension5) {
       ITextViewerExtension5 extension = (ITextViewerExtension5) sourceViewer;
-      visible = (extension.modelOffset2WidgetOffset(targetOffset) > -1);
+      visible = extension.modelOffset2WidgetOffset(targetOffset) > -1;
     } else {
       IRegion visibleRegion = sourceViewer.getVisibleRegion();
       // http://dev.eclipse.org/bugs/show_bug.cgi?id=34195
-      visible = (targetOffset >= visibleRegion.getOffset() && targetOffset <= visibleRegion.getOffset()
-          + visibleRegion.getLength());
+      visible = targetOffset >= visibleRegion.getOffset()
+          && targetOffset <= visibleRegion.getOffset() + visibleRegion.getLength();
     }
 
     if (!visible) {
@@ -2800,7 +2800,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     Iterator e = new DartAnnotationIterator(model, true, true);
     while (e.hasNext()) {
       Annotation a = (Annotation) e.next();
-      if ((a instanceof IJavaAnnotation) && ((IJavaAnnotation) a).hasOverlay()
+      if (a instanceof IJavaAnnotation && ((IJavaAnnotation) a).hasOverlay()
           || !isNavigationTarget(a)) {
         continue;
       }
@@ -2813,9 +2813,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (forward && p.offset == offset || !forward && p.offset + p.getLength() == offset + length) {// ||
                                                                                                      // p.includes(offset))
                                                                                                      // {
-        if (containingAnnotation == null
-            || (forward && p.length >= containingAnnotationPosition.length || !forward
-                && p.length >= containingAnnotationPosition.length)) {
+        if (containingAnnotation == null || forward
+            && p.length >= containingAnnotationPosition.length || !forward
+            && p.length >= containingAnnotationPosition.length) {
           containingAnnotation = a;
           containingAnnotationPosition = p;
           currentAnnotation = p.length == length;
@@ -3465,7 +3465,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           DartX.notYet();
           // DartElement je = ((Variable) reference).getParent();
           // if (je instanceof SourceReference)
-          // range = ((SourceReference) je).getSourceRange();
+          // range = ((SourceReference) je).getSourceInfo().getSourceRange();
         } else {
           range = reference.getSourceRange();
         }
@@ -3720,7 +3720,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     int i = 0;
     for (Iterator<DartNode> each = matches.iterator(); each.hasNext();) {
       DartNode currentNode = each.next();
-      positions[i++] = new Position(currentNode.getSourceStart(), currentNode.getSourceLength());
+      positions[i++] = new Position(currentNode.getSourceInfo().getOffset(),
+          currentNode.getSourceInfo().getLength());
     }
 
 //    fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);

@@ -74,7 +74,7 @@ class ErrorListener implements DartCompilerListener {
       Iterator<DartUnit> iter = libUnit.getUnits().iterator();
       while (iter.hasNext()) {
         DartUnit dartUnit = iter.next();
-        File dartFile = toFile(server, dartUnit.getSource().getUri());
+        File dartFile = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
         if (dartFile != null) {
           event.addFileAndDartUnit(dartFile, dartUnit);
         }

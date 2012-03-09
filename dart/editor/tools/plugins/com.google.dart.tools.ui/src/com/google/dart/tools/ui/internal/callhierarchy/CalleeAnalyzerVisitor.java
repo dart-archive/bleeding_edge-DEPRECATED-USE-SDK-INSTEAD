@@ -134,10 +134,10 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
       if (!isIgnoredBySearchScope(calledMethod)) {
         referencedMember = calledMethod;
       }
-      final int position = node.getSourceStart();
-      final int number = node.getSourceLine();
-      searchResults.addMember(memberToAnalyze, referencedMember, position,
-          position + node.getSourceLength(), number < 1 ? 1 : number);
+      final int position = node.getSourceInfo().getOffset();
+      final int number = node.getSourceInfo().getLine();
+      searchResults.addMember(memberToAnalyze, referencedMember, position, position
+          + node.getSourceInfo().getLength(), number < 1 ? 1 : number);
     }
   }
 
@@ -169,8 +169,8 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
   }
 
   private boolean isNodeEnclosingMethod(DartNode node) {
-    int nodeStartPosition = node.getSourceStart();
-    int nodeEndPosition = nodeStartPosition + node.getSourceLength();
+    int nodeStartPosition = node.getSourceInfo().getOffset();
+    int nodeEndPosition = nodeStartPosition + node.getSourceInfo().getLength();
 
     if (nodeStartPosition < methodStartPosition && nodeEndPosition > methodEndPosition) {
       // Is the method completely enclosed by the node?
@@ -180,8 +180,8 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
   }
 
   private boolean isNodeWithinMethod(DartNode node) {
-    int nodeStartPosition = node.getSourceStart();
-    int nodeEndPosition = nodeStartPosition + node.getSourceLength();
+    int nodeStartPosition = node.getSourceInfo().getOffset();
+    int nodeEndPosition = nodeStartPosition + node.getSourceInfo().getLength();
 
     if (nodeStartPosition < methodStartPosition) {
       return false;

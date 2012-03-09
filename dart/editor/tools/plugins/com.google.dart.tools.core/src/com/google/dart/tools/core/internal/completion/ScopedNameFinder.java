@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.completion;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartField;
@@ -24,7 +25,6 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartSwitchMember;
@@ -319,7 +319,7 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
       // if source position is not set then all nodes are in range
       return true;
     }
-    int start = node.getSourceStart();
+    int start = node.getSourceInfo().getOffset();
     if (start < 0) {
       // assume nodes without source position are in range
       return true;

@@ -97,12 +97,12 @@ public class LibraryConfigurationFileImpl extends SourceFileElementImpl<LibraryC
       //this loop is to make sure we're inserting in alphabetical order
       isEmpty = false;
       LibraryNode node = itr.next();
-      pos = node.getSourceStart();
+      pos = node.getSourceInfo().getOffset();
       if (node.getText().compareTo(name) > 0) {
         isLast = false;
         break;
       }
-      pos += node.getSourceLength();
+      pos += node.getSourceInfo().getLength();
     }
     Buffer buffer = getBuffer();
     String whole = buffer.getContents();
@@ -142,12 +142,12 @@ public class LibraryConfigurationFileImpl extends SourceFileElementImpl<LibraryC
       //this loop is to make sure we're inserting in alphabetical order
       isEmpty = false;
       LibraryNode node = itr.next();
-      pos = node.getSourceStart();
+      pos = node.getSourceInfo().getOffset();
       if (node.getText().compareTo(name) > 0) {
         isLast = false;
         break;
       }
-      pos += node.getSourceLength();
+      pos += node.getSourceInfo().getLength();
     }
     Buffer buffer = getBuffer();
     String whole = buffer.getContents();

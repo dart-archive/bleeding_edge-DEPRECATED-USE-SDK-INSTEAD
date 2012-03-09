@@ -158,8 +158,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
             } else {
               DartFieldImpl fieldImpl = new DartFieldImpl(typeImpl, fieldNode.getName().toString());
               DartFieldInfo fieldInfo = new DartFieldInfo();
-              fieldInfo.setSourceRangeStart(fieldNode.getSourceStart());
-              fieldInfo.setSourceRangeEnd(fieldNode.getSourceStart() + fieldNode.getSourceLength());
+              fieldInfo.setSourceRangeStart(fieldNode.getSourceInfo().getOffset());
+              fieldInfo.setSourceRangeEnd(fieldNode.getSourceInfo().getOffset()
+                  + fieldNode.getSourceInfo().getLength());
               captureDartDoc(fieldNode, typeInfo);
               fieldInfo.setNameRange(new SourceRangeImpl(fieldNode.getName()));
               fieldInfo.setTypeName(extractTypeName(fieldListNode.getType(), false));
@@ -190,8 +191,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         if (typeName != null) {
           DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, typeName.getName());
           DartMethodInfo methodInfo = new DartMethodInfo();
-          methodInfo.setSourceRangeStart(typeName.getSourceStart());
-          methodInfo.setSourceRangeEnd(typeName.getSourceStart() + typeName.getSourceLength());
+          methodInfo.setSourceRangeStart(typeName.getSourceInfo().getOffset());
+          methodInfo.setSourceRangeEnd(typeName.getSourceInfo().getOffset()
+              + typeName.getSourceInfo().getLength());
           methodInfo.setNameRange(new SourceRangeImpl(typeName));
           methodInfo.setModifiers(Modifiers.NONE);
           methodInfo.setConstructor(true);
@@ -205,8 +207,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       typeInfo.setIsInterface(isInterface);
       typeInfo.setSuperclassName(extractTypeName(node.getSuperclass(), false));
       typeInfo.setInterfaceNames(extractTypeNames(node.getInterfaces(), false));
-      typeInfo.setSourceRangeStart(node.getSourceStart());
-      typeInfo.setSourceRangeEnd(node.getSourceStart() + node.getSourceLength());
+      typeInfo.setSourceRangeStart(node.getSourceInfo().getOffset());
+      typeInfo.setSourceRangeEnd(node.getSourceInfo().getOffset()
+          + node.getSourceInfo().getLength());
       captureDartDoc(node, typeInfo);
       typeInfo.setNameRange(new SourceRangeImpl(node.getName()));
       typeInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
@@ -228,8 +231,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
           DartVariableImpl variableImpl = new DartVariableImpl(compilationUnit,
               fieldNode.getName().toString());
           DartVariableInfo variableInfo = new DartVariableInfo();
-          variableInfo.setSourceRangeStart(fieldNode.getSourceStart());
-          variableInfo.setSourceRangeEnd(fieldNode.getSourceStart() + fieldNode.getSourceLength());
+          variableInfo.setSourceRangeStart(fieldNode.getSourceInfo().getOffset());
+          variableInfo.setSourceRangeEnd(fieldNode.getSourceInfo().getOffset()
+              + fieldNode.getSourceInfo().getLength());
           captureDartDoc(fieldNode, variableInfo);
           variableInfo.setNameRange(new SourceRangeImpl(fieldNode.getName()));
           variableInfo.setTypeName(extractTypeName(node.getType(), false));
@@ -257,9 +261,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       DartFunctionTypeAliasImpl aliasImpl = new DartFunctionTypeAliasImpl(compilationUnit,
           node.getName().getName());
       DartFunctionTypeAliasInfo aliasInfo = new DartFunctionTypeAliasInfo();
-      int start = node.getSourceStart();
+      int start = node.getSourceInfo().getOffset();
       aliasInfo.setSourceRangeStart(start);
-      aliasInfo.setSourceRangeEnd(start + node.getSourceLength() - 1);
+      aliasInfo.setSourceRangeEnd(start + node.getSourceInfo().getLength() - 1);
       captureDartDoc(node, aliasInfo);
       aliasInfo.setNameRange(new SourceRangeImpl(node.getName()));
       aliasInfo.setReturnTypeName(extractTypeName(node.getReturnTypeNode(), false));
@@ -292,9 +296,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       }
       DartFunctionImpl functionImpl = new DartFunctionImpl(compilationUnit, functionName);
       DartFunctionInfo functionInfo = new DartFunctionInfo();
-      int start = node.getSourceStart();
+      int start = node.getSourceInfo().getOffset();
       functionInfo.setSourceRangeStart(start);
-      functionInfo.setSourceRangeEnd(start + node.getSourceLength() - 1);
+      functionInfo.setSourceRangeEnd(start + node.getSourceInfo().getLength() - 1);
       captureDartDoc(node, functionInfo);
       functionInfo.setNameRange(functionNameNode == null ? null : new SourceRangeImpl(
           functionNameNode));
@@ -371,8 +375,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         String className, ArrayList<DartElementImpl> children) {
       DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, methodNode.getName().toString());
       DartMethodInfo methodInfo = new DartMethodInfo();
-      methodInfo.setSourceRangeStart(methodNode.getSourceStart());
-      methodInfo.setSourceRangeEnd(methodNode.getSourceStart() + methodNode.getSourceLength());
+      methodInfo.setSourceRangeStart(methodNode.getSourceInfo().getOffset());
+      methodInfo.setSourceRangeEnd(methodNode.getSourceInfo().getOffset()
+          + methodNode.getSourceInfo().getLength());
       captureDartDoc(methodNode, methodInfo);
       methodInfo.setNameRange(new SourceRangeImpl(methodNode.getName()));
       methodInfo.setModifiers(methodNode.getModifiers());
@@ -452,8 +457,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       DartFunctionImpl functionImpl = new DartFunctionImpl(parentElement, node.getFunctionName());
       functionImpl.occurrenceCount = functionCount++;
       DartFunctionInfo functionInfo = new DartFunctionInfo();
-      functionInfo.setSourceRangeStart(node.getSourceStart());
-      functionInfo.setSourceRangeEnd(node.getSourceStart() + node.getSourceLength());
+      functionInfo.setSourceRangeStart(node.getSourceInfo().getOffset());
+      functionInfo.setSourceRangeEnd(node.getSourceInfo().getOffset()
+          + node.getSourceInfo().getLength());
       // There is currently no way to get the DartDoc associated with the function because there is
       // no node that is a DartDeclaration with which the comment can be associated.
       // captureDartDoc(node, functionInfo);
@@ -523,12 +529,13 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
             variable.getVariableName().toCharArray()));
         DartVariableInfo variableInfo = new DartVariableInfo();
         DartExpression variableName = variable.getName();
-        int start = variable.getSourceStart();
+        int start = variable.getSourceInfo().getOffset();
         variableInfo.setSourceRangeStart(start);
-        variableInfo.setSourceRangeEnd(start + variable.getSourceLength() - 1);
+        variableInfo.setSourceRangeEnd(start + variable.getSourceInfo().getLength() - 1);
         captureDartDoc(variable, variableInfo);
-        variableInfo.setNameRange(new SourceRangeImpl(variableName.getSourceStart(),
-            variableName.getSourceLength()));
+        variableInfo.setNameRange(new SourceRangeImpl(
+            variableName.getSourceInfo().getOffset(),
+            variableName.getSourceInfo().getLength()));
         variableInfo.setParameter(false);
         char[] typeName = extractTypeName(variable.getType(), true);
         variableInfo.setTypeName(typeName == null ? CharOperation.NO_CHAR : typeName);
@@ -614,12 +621,13 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
             parameter.getParameterName().toCharArray()));
         DartVariableInfo variableInfo = new DartVariableInfo();
         DartExpression parameterName = parameter.getName();
-        int start = parameter.getSourceStart();
+        int start = parameter.getSourceInfo().getOffset();
         variableInfo.setSourceRangeStart(start);
-        variableInfo.setSourceRangeEnd(start + parameter.getSourceLength() - 1);
+        variableInfo.setSourceRangeEnd(start + parameter.getSourceInfo().getLength() - 1);
         captureDartDoc(parameter, variableInfo);
-        variableInfo.setNameRange(new SourceRangeImpl(parameterName.getSourceStart(),
-            parameterName.getSourceLength()));
+        variableInfo.setNameRange(new SourceRangeImpl(
+            parameterName.getSourceInfo().getOffset(),
+            parameterName.getSourceInfo().getLength()));
         variableInfo.setParameter(true);
         char[] typeName = extractTypeName(parameter.getTypeNode(), true);
         // If function parameters are defined, then append the parameters to the type name.

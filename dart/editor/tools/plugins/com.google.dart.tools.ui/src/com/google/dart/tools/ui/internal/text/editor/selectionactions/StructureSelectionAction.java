@@ -50,9 +50,10 @@ public abstract class StructureSelectionAction extends Action {
 
   protected static SourceRange getSelectedNodeSourceRange(SourceReference sr, DartNode nodeToSelect)
       throws DartModelException {
-    int offset = nodeToSelect.getSourceStart();
-    int end = Math.min(sr.getSourceRange().getLength(), nodeToSelect.getSourceStart()
-        + nodeToSelect.getSourceLength() - 1);
+    int offset = nodeToSelect.getSourceInfo().getOffset();
+    int end = Math.min(sr.getSourceRange().getLength(),
+        nodeToSelect.getSourceInfo().getOffset()
+            + nodeToSelect.getSourceInfo().getLength() - 1);
     return createSourceRange(offset, end);
   }
 

@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.text;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.IRegion;
@@ -69,8 +69,9 @@ public class SelectionAnalyzer extends ASTVisitor<Void> {
     }
     DartNode firstNode = fSelectedNodes.get(0);
     DartNode lastNode = fSelectedNodes.get(fSelectedNodes.size() - 1);
-    int start = firstNode.getSourceStart();
-    return new Region(start, lastNode.getSourceStart() + lastNode.getSourceLength() - start);
+    int start = firstNode.getSourceInfo().getOffset();
+    return new Region(start, lastNode.getSourceInfo().getOffset()
+        + lastNode.getSourceInfo().getLength() - start);
   }
 
   public DartNode[] getSelectedNodes() {

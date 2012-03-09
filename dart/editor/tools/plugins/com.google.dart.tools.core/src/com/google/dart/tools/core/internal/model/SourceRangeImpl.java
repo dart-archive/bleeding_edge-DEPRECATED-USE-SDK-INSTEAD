@@ -53,8 +53,8 @@ public class SourceRangeImpl implements SourceRange {
    * @param the node whose source position is to be used to initialize the source range
    */
   public SourceRangeImpl(DartNode node) {
-    this.offset = node.getSourceStart();
-    this.length = node.getSourceLength();
+    this.offset = node.getSourceInfo().getOffset();
+    this.length = node.getSourceInfo().getLength();
   }
 
   /**

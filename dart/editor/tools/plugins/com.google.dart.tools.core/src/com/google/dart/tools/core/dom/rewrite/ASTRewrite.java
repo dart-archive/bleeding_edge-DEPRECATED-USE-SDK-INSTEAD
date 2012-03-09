@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dom.AST;
 import com.google.dart.tools.core.dom.ChildListPropertyDescriptor;
@@ -734,9 +735,10 @@ public class ASTRewrite {
 
     for (Iterator<DartNode> iter = getRewriteEventStore().getChangeRootIterator(); iter.hasNext();) {
       DartNode curr = iter.next();
+      SourceInfo currSourceInfo = curr.getSourceInfo();
       if (!RewriteEventStore.isNewNode(curr)) {
-        int currStart = curr.getSourceStart();
-        int currEnd = currStart + curr.getSourceLength();
+        int currStart = currSourceInfo.getOffset();
+        int currEnd = currStart + currSourceInfo.getLength();
         if (node == null || currStart < start && currEnd > end) {
           start = currStart;
           end = currEnd;
@@ -749,18 +751,20 @@ public class ASTRewrite {
       }
     }
     if (node != null) {
-      int currStart = node.getSourceStart();
-      int currEnd = currStart + node.getSourceLength();
+      SourceInfo nodeSource = node.getSourceInfo();
+      int currStart = nodeSource.getOffset();
+      int currEnd = currStart + nodeSource.getLength();
       // go up until a node covers all
       while (start < currStart || end > currEnd) {
         node = node.getParent();
-        currStart = node.getSourceStart();
-        currEnd = currStart + node.getSourceLength();
+        currStart = nodeSource.getOffset();
+        currEnd = currStart + nodeSource.getLength();
       }
       // go up until a parent has different range
       DartNode parent = node.getParent();
-      while (parent != null && parent.getSourceStart() == node.getSourceStart()
-          && parent.getSourceLength() == node.getSourceLength()) {
+      SourceInfo parentSource = parent.getSourceInfo();
+      while (parent != null && parentSource.getOffset() == nodeSource.getOffset()
+          && parentSource.getLength() == nodeSource.getLength()) {
         node = parent;
         parent = node.getParent();
       }
@@ -775,7 +779,7 @@ public class ASTRewrite {
    * @return the compilation unit from which the given AST structure was created
    */
   private CompilationUnit getTypeRoot(DartUnit astRoot) {
-    IResource[] resources = ResourceUtil.getResources(astRoot.getSource().getUri());
+    IResource[] resources = ResourceUtil.getResources(astRoot.getSourceInfo().getSource().getUri());
     if (resources != null) {
       for (IResource resource : resources) {
         if (resource instanceof IFile && resource.exists()) {
@@ -814,7 +818,7 @@ public class ASTRewrite {
   }
 
   private void validateIsExistingNode(DartNode node) {
-    if (node.getSourceStart() == -1) {
+    if (node.getSourceInfo().getOffset() == -1) {
       throw new IllegalArgumentException("Node is not an existing node"); //$NON-NLS-1$
     }
   }

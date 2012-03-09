@@ -35,11 +35,11 @@ public class TrackedNodePositionImpl implements TrackedNodePosition {
   @Override
   public int getLength() {
     if (group.isEmpty()) {
-      return node.getSourceLength();
+      return node.getSourceInfo().getLength();
     }
     IRegion coverage = TextEdit.getCoverage(group.getTextEdits());
     if (coverage == null) {
-      return node.getSourceLength();
+      return node.getSourceInfo().getLength();
     }
     return coverage.getLength();
   }
@@ -47,11 +47,11 @@ public class TrackedNodePositionImpl implements TrackedNodePosition {
   @Override
   public int getStartPosition() {
     if (group.isEmpty()) {
-      return node.getSourceStart();
+      return node.getSourceInfo().getOffset();
     }
     IRegion coverage = TextEdit.getCoverage(group.getTextEdits());
     if (coverage == null) {
-      return node.getSourceStart();
+      return node.getSourceInfo().getOffset();
     }
     return coverage.getOffset();
   }

@@ -105,7 +105,7 @@ class CompilerListener implements DartCompilerListener {
     if (unit.isDiet()) {
       return;
     }
-    DartSource source = unit.getSource();
+    DartSource source = (DartSource) unit.getSourceInfo().getSource();
     if (source != null) {
       IResource[] resources = ResourceUtil.getResources(source);
       if (resources == null || resources.length != 1) {

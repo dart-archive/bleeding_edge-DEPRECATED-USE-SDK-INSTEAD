@@ -237,7 +237,8 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   }
 
   private static IRegion createRegion(DartNode node, int delta) {
-    return node == null ? null : new Region(node.getSourceStart() + delta, node.getSourceLength());
+    return node == null ? null : new Region(node.getSourceInfo().getOffset() + delta,
+        node.getSourceInfo().getLength());
   }
 
   /**
@@ -1029,8 +1030,8 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
     if (length == 0) {
       while (node != null
-          && (relativeOffset == node.getSourceStart() || relativeOffset == node.getSourceStart()
-              + node.getSourceLength())) {
+          && (relativeOffset == node.getSourceInfo().getOffset() || relativeOffset == node.getSourceInfo().getOffset()
+              + node.getSourceInfo().getLength())) {
         node = node.getParent();
       }
     }
@@ -1096,7 +1097,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     try {
-      int p = (c.offset == d.getLength() ? c.offset - 1 : c.offset);
+      int p = c.offset == d.getLength() ? c.offset - 1 : c.offset;
       int line = d.getLineOfOffset(p);
       int start = d.getLineOffset(line);
       int whiteend = findEndOfWhiteSpace(d, start, c.offset);
@@ -1143,7 +1144,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     try {
-      int p = (c.offset == docLength ? c.offset - 1 : c.offset);
+      int p = c.offset == docLength ? c.offset - 1 : c.offset;
       int line = d.getLineOfOffset(p);
 
       StringBuffer buf = new StringBuffer(c.text + indent);
@@ -1226,7 +1227,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
     DartHeuristicScanner scanner = new DartHeuristicScanner(d);
 
-    int p = (c.offset == d.getLength() ? c.offset - 1 : c.offset);
+    int p = c.offset == d.getLength() ? c.offset - 1 : c.offset;
 
     try {
       // current line

@@ -130,7 +130,7 @@ public abstract class CategorizedProblem implements Problem {
    * <code>IMarker#SEVERITY_WARNING</code> depending on {@link IProblem#isError()} or
    * {@link IProblem#isWarning()}</li>
    * <li> <code>DartModelMarker#ID</code> -&gt; {@link IProblem#getID()}</li>
-   * <li> <code>IMarker#CHAR_START</code> -&gt; {@link IProblem#getSourceStart()}</li>
+   * <li> <code>IMarker#CHAR_START</code> -&gt; {@link IProblem#getOffset()}</li>
    * <li> <code>IMarker#CHAR_END</code> -&gt; {@link IProblem#getSourceEnd()}</li>
    * <li> <code>IMarker#LINE_NUMBER</code> -&gt; {@link IProblem#getSourceLineNumber()}</li>
    * <li> <code>DartModelMarker#ARGUMENTS</code> -&gt; some <code>String[]</code> used to compute

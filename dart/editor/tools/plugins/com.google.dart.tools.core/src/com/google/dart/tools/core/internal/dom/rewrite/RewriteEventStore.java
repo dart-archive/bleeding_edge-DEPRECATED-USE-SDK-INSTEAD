@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.dom.rewrite;
 
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.dom.rewrite.TargetSourceRangeComputer;
@@ -52,7 +53,8 @@ public final class RewriteEventStore {
 
     @Override
     public int compareTo(CopySourceInfo r2) {
-      int startDiff = getNode().getSourceStart() - r2.getNode().getSourceStart();
+      int startDiff = getNode().getSourceInfo().getOffset()
+          - r2.getNode().getSourceInfo().getOffset();
       if (startDiff != 0) {
         return startDiff; // insert before if start node is first
       }
@@ -174,11 +176,13 @@ public final class RewriteEventStore {
 
     @Override
     public int compareTo(NodeRangeInfo r2) {
-      int startDiff = getStartNode().getSourceStart() - r2.getStartNode().getSourceStart();
+      int startDiff = getStartNode().getSourceInfo().getOffset()
+          - r2.getStartNode().getSourceInfo().getOffset();
       if (startDiff != 0) {
         return startDiff; // insert before if start node is first
       }
-      int endDiff = getEndNode().getSourceStart() - r2.getEndNode().getSourceStart();
+      int endDiff = getEndNode().getSourceInfo().getOffset()
+          - r2.getEndNode().getSourceInfo().getOffset();
       if (endDiff != 0) {
         return -endDiff; // insert before if length is longer
       }
@@ -228,7 +232,8 @@ public final class RewriteEventStore {
       int endPos = endRange.getStartPosition() + endRange.getLength();
 
       DartBlock internalPlaceholder = getInternalPlaceholder();
-      internalPlaceholder.setSourceRange(startPos, endPos - startPos);
+      internalPlaceholder.setSourceInfo(new SourceInfo(
+          internalPlaceholder.getSourceInfo().getSource(), startPos, endPos - startPos));
     }
 
   }
@@ -766,10 +771,10 @@ public final class RewriteEventStore {
   }
 
   private boolean isNodeInEvent(RewriteEvent event, Object value, int kind) {
-    if (((kind & NEW) != 0) && event.getNewValue() == value) {
+    if ((kind & NEW) != 0 && event.getNewValue() == value) {
       return true;
     }
-    if (((kind & ORIGINAL) != 0) && event.getOriginalValue() == value) {
+    if ((kind & ORIGINAL) != 0 && event.getOriginalValue() == value) {
       return true;
     }
     return false;

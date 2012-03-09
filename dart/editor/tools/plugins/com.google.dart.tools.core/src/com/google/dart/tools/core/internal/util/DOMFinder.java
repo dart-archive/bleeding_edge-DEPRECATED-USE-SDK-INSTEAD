@@ -149,7 +149,8 @@ public class DOMFinder extends ASTVisitor<Void> {
   }
 
   private boolean found(DartNode node, DartNode name) {
-    if (name.getSourceStart() == rangeStart && name.getSourceLength() == rangeLength) {
+    if (name.getSourceInfo().getOffset() == rangeStart
+        && name.getSourceInfo().getLength() == rangeLength) {
       foundNode = node;
       if (resolveBinding) {
         foundBinding = node.getElement();

@@ -240,8 +240,9 @@ public class DartCompilerUtilities {
         @Override
         public Source getSourceBefore() {
           for (DartUnit u : enclosingLibrary.getLibraryUnit().getUnits()) {
-            if (u.getSource().getUri().equals(unitUri)) {
-              return u.getSource();
+            Source unitSource = u.getSourceInfo().getSource();
+            if (unitSource.getUri().equals(unitUri)) {
+              return unitSource;
             }
           }
           return null;
@@ -449,7 +450,7 @@ public class DartCompilerUtilities {
       libraryResult = secureAnalyzeLibrary(librarySource, parsedUnits, config, provider, this);
       if (libraryResult != null && unitUri != null) {
         for (DartUnit unit : libraryResult.getUnits()) {
-          DartSource source = unit.getSource();
+          DartSource source = (DartSource) unit.getSourceInfo().getSource();
           if (source != null) {
             if (equalUris(libraryManager, unitUri, source.getUri())) {
               unitResult = unit;
@@ -485,7 +486,7 @@ public class DartCompilerUtilities {
       }
       return completionNode;
     }
-    DartSource src = suppliedUnit.getSource();
+    DartSource src = (DartSource) suppliedUnit.getSourceInfo().getSource();
     URI unitUri = src.getUri();
     Map<URI, String> suppliedSources = new HashMap<URI, String>();
     suppliedSources.put(unitUri, sourceString);
@@ -821,7 +822,7 @@ public class DartCompilerUtilities {
     }
     Map<URI, DartUnit> parsedUnits = new HashMap<URI, DartUnit>(suppliedUnits.size());
     for (DartUnit unit : suppliedUnits) {
-      DartSource src = unit.getSource();
+      DartSource src = (DartSource) unit.getSourceInfo().getSource();
       URI uri = src.getUri();
       parsedUnits.put(uri, unit);
     }

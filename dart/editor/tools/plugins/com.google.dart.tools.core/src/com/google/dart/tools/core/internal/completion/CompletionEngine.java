@@ -18,6 +18,7 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.UrlDartSource;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartClass;
@@ -33,7 +34,6 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartReturnStatement;
@@ -452,7 +452,7 @@ public class CompletionEngine {
     public Void visitVariableStatement(DartVariableStatement completionNode) {
       if (completionNode instanceof DartVariableStatement) {
 //      DartIdentifier propertyName = completionNode.getName();
-//      if (propertyName.getSourceStart() > actualCompletionPosition) {
+//      if (propertyName.getSourceInfo().getSourceStart() > actualCompletionPosition) {
 //        propertyName = null;
 //      }
 //      Type type = analyzeType(completionNode.getQualifier());
@@ -531,8 +531,9 @@ public class CompletionEngine {
 
     @Override
     public Void visitClass(DartClass node) {
-      String classSrc = source.substring(node.getSourceStart(), actualCompletionPosition + 1);
-      int completionPos = actualCompletionPosition + 1 - node.getSourceStart();
+      String classSrc = source.substring(node.getSourceInfo().getOffset(),
+          actualCompletionPosition + 1);
+      int completionPos = actualCompletionPosition + 1 - node.getSourceInfo().getOffset();
       boolean beforeBrace = classSrc.indexOf('{') < 0;
       if (beforeBrace) {
         int extendsLoc = classSrc.indexOf(C_EXTENDS);
@@ -550,7 +551,8 @@ public class CompletionEngine {
           if (sc == null) {
             isClassDef = false; // parsing an interface
           } else {
-            if (actualCompletionPosition >= sc.getSourceStart() && implementsLoc < 0) {
+            if (actualCompletionPosition >= sc.getSourceInfo().getOffset()
+                && implementsLoc < 0) {
               return null;
             }
             if (implementsLoc < completionPos || implementsLoc < 0) {
@@ -584,8 +586,8 @@ public class CompletionEngine {
     public Void visitField(DartField node) {
       // { int f = Ma! }
       DartIdentifier name = node.getName();
-      int begin = name.getSourceStart();
-      int len = name.getSourceLength();
+      int begin = name.getSourceInfo().getOffset();
+      int len = name.getSourceInfo().getLength();
       if (begin <= actualCompletionPosition + 1 && actualCompletionPosition < begin + len) {
         // bug in visitor does not visit name
         return node.accept(new IdentifierCompletionProposer(name));
@@ -599,7 +601,7 @@ public class CompletionEngine {
         if (node.getParent() instanceof DartMethodDefinition) {
           DartMethodDefinition methodDef = (DartMethodDefinition) node.getParent();
           DartExpression methodName = methodDef.getName();
-          if ((methodName instanceof DartIdentifier) && isCompletionNode(methodName)) {
+          if (methodName instanceof DartIdentifier && isCompletionNode(methodName)) {
             // { const B!ara(); }
             methodDef.accept(new IdentifierCompletionProposer((DartIdentifier) methodName));
             return null;
@@ -611,7 +613,7 @@ public class CompletionEngine {
           proposeTypesForNewParam();
         } else {
           DartParameter param = params.get(0);
-          boolean beforeFirstParam = actualCompletionPosition < param.getSourceStart();
+          boolean beforeFirstParam = actualCompletionPosition < param.getSourceInfo().getOffset();
           if (beforeFirstParam) {
             if (node.getParent() instanceof DartMethodDefinition) {
               DartMethodDefinition methodDef = (DartMethodDefinition) node.getParent();
@@ -629,7 +631,8 @@ public class CompletionEngine {
             }
           } else {
             param = params.get(params.size() - 1);
-            int end = param.getSourceStart() + param.getSourceLength();
+            int end = param.getSourceInfo().getOffset()
+                + param.getSourceInfo().getLength();
             boolean afterLastParam = actualCompletionPosition >= end;
             if (afterLastParam) {
               proposeTypesForNewParam();
@@ -655,8 +658,8 @@ public class CompletionEngine {
     public Void visitMethodInvocation(DartMethodInvocation completionNode) {
       if (completionNode instanceof MethodInvocationCompleter) {
         DartIdentifier functionName = completionNode.getFunctionName();
-        int nameStart = functionName.getSourceStart();
-        if (actualCompletionPosition >= nameStart + functionName.getSourceLength()) {
+        int nameStart = functionName.getSourceInfo().getOffset();
+        if (actualCompletionPosition >= nameStart + functionName.getSourceInfo().getLength()) {
           // TODO Determine purpose of this branch; it may be historical and obsolete
           createCompletionsForLocalVariables(completionNode, null, resolvedMember);
           if (resolvedMember.getParent() instanceof DartClass) {
@@ -726,8 +729,9 @@ public class CompletionEngine {
         ParameterCompleter param = (ParameterCompleter) node;
         // when completion is requested on the first word of a param decl we assume it is a type
         DartExpression typeName = param.getName();
-        if (typeName.getSourceStart() <= actualCompletionPosition
-            && typeName.getSourceStart() + typeName.getSourceLength() >= actualCompletionPosition) {
+        if (typeName.getSourceInfo().getOffset() <= actualCompletionPosition
+            && typeName.getSourceInfo().getOffset()
+                + typeName.getSourceInfo().getLength() >= actualCompletionPosition) {
           if (typeName instanceof DartIdentifier) {
             DartIdentifier typeId = (DartIdentifier) typeName;
             List<SearchMatch> matches = findTypesWithPrefix(typeId);
@@ -741,7 +745,7 @@ public class CompletionEngine {
           } else if (typeName instanceof DartPropertyAccess) {
             DartPropertyAccess prop = (DartPropertyAccess) typeName;
             if (isCompletionAfterDot
-                || actualCompletionPosition + 1 >= prop.getName().getSourceStart()) {
+                || actualCompletionPosition + 1 >= prop.getName().getSourceInfo().getOffset()) {
               // { class X { X(this.!c) : super() {}}
               typeName.accept(this);
             }
@@ -755,7 +759,7 @@ public class CompletionEngine {
     public Void visitPropertyAccess(DartPropertyAccess completionNode) {
       if (completionNode instanceof PropertyAccessCompleter) {
         DartIdentifier propertyName = completionNode.getName();
-        if (propertyName.getSourceStart() > actualCompletionPosition) {
+        if (propertyName.getSourceInfo().getOffset() > actualCompletionPosition) {
           propertyName = null;
         }
         // { foo.! } or { class X { X(this.!c) : super() {}}
@@ -798,12 +802,12 @@ public class CompletionEngine {
       if (node instanceof TypeParameterCompleter) {
         if (node.getBound() != null) {
           DartNode name = node.getBound().getIdentifier();
-          int start = node.getSourceStart();
-          String src = source.substring(start, start + node.getSourceLength());
+          int start = node.getSourceInfo().getOffset();
+          String src = source.substring(start, start + node.getSourceInfo().getLength());
           int n = src.indexOf(C_EXTENDS);
           if (actualCompletionPosition - start >= n + C_EXTENDS.length()) {
             if (name instanceof DartIdentifier) {
-              proposeTypeNamesForPrefix(((DartIdentifier) name));
+              proposeTypeNamesForPrefix((DartIdentifier) name);
             }
           }
         }
@@ -854,7 +858,7 @@ public class CompletionEngine {
         List<DartVariable> vars = completionNode.getVariables();
         if (vars.size() > 0) {
           DartVariable var = vars.get(vars.size() - 1);
-          if (var.getSourceStart() + var.getSourceLength() <= actualCompletionPosition) {
+          if (var.getSourceInfo().getOffset() + var.getSourceInfo().getLength() <= actualCompletionPosition) {
             // { num theta = i * ! }
             proposeVariables(completionNode, null, resolvedMember);
             proposeTypesForNewParam();
@@ -874,16 +878,6 @@ public class CompletionEngine {
       super(name);
       this.srcStart = srcStart;
       this.srcLen = srcLen;
-    }
-
-    @Override
-    public int getSourceLength() {
-      return srcLen;
-    }
-
-    @Override
-    public int getSourceStart() {
-      return srcStart;
     }
   }
 
@@ -1280,7 +1274,7 @@ public class CompletionEngine {
       boolean isMethod = element.getKind() == ElementKind.METHOD;
       String typeName = isMethod ? ((MethodElement) element).getReturnType().getElement().getName()
           : element.getType().toString();
-      int kind = isMethod ? CompletionProposal.METHOD_REF : (isGetter || isSetter)
+      int kind = isMethod ? CompletionProposal.METHOD_REF : isGetter || isSetter
           ? CompletionProposal.FIELD_REF : CompletionProposal.LOCAL_VARIABLE_REF;
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
           kind, actualCompletionPosition - offset);
@@ -1315,8 +1309,8 @@ public class CompletionEngine {
       }
       MethodElement method = (MethodElement) elem;
       boolean candidateMethodIsStatic = elem.getModifiers().isStatic();
-      if (isMethodStatic && !candidateMethodIsStatic
-          || (isQualifiedByThis && candidateMethodIsStatic)) {
+      if (isMethodStatic && !candidateMethodIsStatic || isQualifiedByThis
+          && candidateMethodIsStatic) {
         continue;
       }
       String name = method.getName();
@@ -1333,7 +1327,7 @@ public class CompletionEngine {
       }
       boolean isSetter = method.getModifiers().isSetter();
       boolean isGetter = method.getModifiers().isGetter();
-      int kind = (isGetter || isSetter) ? CompletionProposal.FIELD_REF
+      int kind = isGetter || isSetter ? CompletionProposal.FIELD_REF
           : CompletionProposal.METHOD_REF;
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
           kind, actualCompletionPosition - offset);
@@ -1599,12 +1593,12 @@ public class CompletionEngine {
     if (node == null || isCompletionAfterDot) {
       return null;
     }
-    int begin = node.getSourceStart();
+    int begin = node.getSourceInfo().getOffset();
     int dot = actualCompletionPosition + 1;
     if (dot < begin) {
       return null;
     }
-    String name = source.substring(begin, begin + node.getSourceLength());
+    String name = source.substring(begin, begin + node.getSourceInfo().getLength());
     String prefix = name.substring(0, Math.min(name.length(), dot - begin));
     return prefix.length() == 0 ? null : prefix;
   }
@@ -1675,8 +1669,8 @@ public class CompletionEngine {
 
   private boolean isCompletionNode(DartNode node) {
     int completionPos = actualCompletionPosition + 1;
-    int nodeStart = node.getSourceStart();
-    int nodeEnd = node.getSourceLength() + nodeStart;
+    int nodeStart = node.getSourceInfo().getOffset();
+    int nodeEnd = node.getSourceInfo().getLength() + nodeStart;
     return nodeStart <= completionPos && completionPos <= nodeEnd;
   }
 
@@ -1777,8 +1771,9 @@ public class CompletionEngine {
     if (prefix == null) {
       name = null;
     }
-    int sourceLoc = (name == null) ? actualCompletionPosition + 1 : name.getSourceStart();
-    int length = (name == null) ? 0 : name.getSourceLength();
+    int sourceLoc = name == null ? actualCompletionPosition + 1
+        : name.getSourceInfo().getOffset();
+    int length = name == null ? 0 : name.getSourceInfo().getLength();
     proposal.setReplaceRange(sourceLoc - offset, length + sourceLoc - offset);
     proposal.setTokenRange(sourceLoc - offset, length + sourceLoc - offset);
   }

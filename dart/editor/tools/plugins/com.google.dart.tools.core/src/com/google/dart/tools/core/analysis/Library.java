@@ -100,7 +100,7 @@ class Library {
   void cacheLibraryUnit(AnalysisServer server, LibraryUnit libUnit) {
     this.libraryUnit = libUnit;
     for (DartUnit dartUnit : libUnit.getUnits()) {
-      File file = toFile(server, dartUnit.getSource().getUri());
+      File file = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
       if (file != null) {
         cacheUnit(file, dartUnit);
       }

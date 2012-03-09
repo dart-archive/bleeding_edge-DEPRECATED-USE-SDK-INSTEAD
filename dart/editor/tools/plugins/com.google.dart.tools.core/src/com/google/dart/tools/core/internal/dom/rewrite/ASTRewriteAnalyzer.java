@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.dom.rewrite;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartAssertion;
@@ -55,7 +56,6 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
@@ -373,12 +373,12 @@ public final class ASTRewriteAnalyzer {
         for (int i = nodeIndex - 1; i >= 0; i--) {
           DartNode curr = getOriginalNode(i);
           if (curr != null) {
-            return getIndent(curr.getSourceStart());
+            return getIndent(curr.getSourceInfo().getOffset());
           }
         }
         return getInitialIndent();
       }
-      return getIndent(node.getSourceStart());
+      return getIndent(node.getSourceInfo().getOffset());
     }
 
     protected final DartNode getOriginalNode(int index) {
@@ -488,7 +488,8 @@ public final class ASTRewriteAnalyzer {
         int prevKind = prevEvent.getChangeKind();
         if (prevKind == RewriteEvent.UNCHANGED || prevKind == RewriteEvent.REPLACED) {
           DartNode prevNode = (DartNode) list[previousNonRemovedNodeIndex].getOriginalValue();
-          int prevEndPosition = prevNode.getSourceStart() + prevNode.getSourceLength();
+          int prevEndPosition = prevNode.getSourceInfo().getOffset()
+              + prevNode.getSourceInfo().getLength();
           int prevLine = lineInformation.getLineOfOffset(prevEndPosition);
           int line = lineInformation.getLineOfOffset(originalOffset);
 
@@ -498,7 +499,7 @@ public final class ASTRewriteAnalyzer {
 
             if (nextKind == RewriteEvent.UNCHANGED || prevKind == RewriteEvent.REPLACED) {
               DartNode nextNode = (DartNode) nextEvent.getOriginalValue();
-              int nextStartPosition = nextNode.getSourceStart();
+              int nextStartPosition = nextNode.getSourceInfo().getOffset();
               int nextLine = lineInformation.getLineOfOffset(nextStartPosition);
 
               return nextLine == line;
@@ -645,7 +646,8 @@ public final class ASTRewriteAnalyzer {
         int prevKind = prevEvent.getChangeKind();
         if (prevKind == RewriteEvent.UNCHANGED || prevKind == RewriteEvent.REPLACED) {
           DartNode prevNode = (DartNode) list[previousNonRemovedNodeIndex].getOriginalValue();
-          int prevEndPosition = prevNode.getSourceStart() + prevNode.getSourceLength();
+          int prevEndPosition = prevNode.getSourceInfo().getOffset()
+              + prevNode.getSourceInfo().getLength();
           int prevLine = lineInformation.getLineOfOffset(prevEndPosition);
           int line = lineInformation.getLineOfOffset(originalOffset);
 
@@ -731,7 +733,7 @@ public final class ASTRewriteAnalyzer {
       if (!hasChildrenChanges(node)) {
         return doVisitUnchangedChildren(node);
       }
-      int startPos = getPosAfterLeftBrace(node.getSourceStart());
+      int startPos = getPosAfterLeftBrace(node.getSourceInfo().getOffset());
       rewriteNodeList(node, PropertyDescriptorHelper.DART_ARRAY_LITERAL_EXPRESSIONS, startPos,
           "", ", "); //$NON-NLS-1$ //$NON-NLS-2$
       return null;
@@ -740,7 +742,8 @@ public final class ASTRewriteAnalyzer {
     @Override
     public Object visitAssertion(DartAssertion node) {
       try {
-        beforeRequiredSpaceIndex = getScanner().getNextEndOffset(node.getSourceStart(), true);
+        beforeRequiredSpaceIndex = getScanner().getNextEndOffset(
+            node.getSourceInfo().getOffset(), true);
         if (!hasChildrenChanges(node)) {
           return doVisitUnchangedChildren(node);
         }
@@ -786,11 +789,11 @@ public final class ASTRewriteAnalyzer {
       }
       int startPos;
       if (isCollapsed(node)) {
-        startPos = node.getSourceStart();
+        startPos = node.getSourceInfo().getOffset();
       } else {
-        startPos = getPosAfterLeftBrace(node.getSourceStart());
+        startPos = getPosAfterLeftBrace(node.getSourceInfo().getOffset());
       }
-      int startIndent = getIndent(node.getSourceStart()) + 1;
+      int startIndent = getIndent(node.getSourceInfo().getOffset()) + 1;
       rewriteParagraphList(node, PropertyDescriptorHelper.DART_BLOCK_STATEMENTS, startPos,
           startIndent, 0, 1);
       return null;
@@ -804,7 +807,8 @@ public final class ASTRewriteAnalyzer {
       Boolean newLiteral = (Boolean) getNewValue(node,
           PropertyDescriptorHelper.DART_BOOLEAN_LITERAL_VALUE);
       TextEditGroup group = getEditGroup(node, PropertyDescriptorHelper.DART_BOOLEAN_LITERAL_VALUE);
-      doTextReplace(node.getSourceStart(), node.getSourceLength(), newLiteral.toString(), group);
+      doTextReplace(node.getSourceInfo().getOffset(), node.getSourceInfo().getLength(),
+          newLiteral.toString(), group);
       return null;
     }
 
@@ -816,7 +820,7 @@ public final class ASTRewriteAnalyzer {
       // try {
       DartCore.notYetImplemented();
       int offset = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNamebreak,
-                      // node.getSourceStart());
+                      // node.getSourceInfo().getSourceStart());
       rewriteNode(node, PropertyDescriptorHelper.DART_GOTO_STATEMENT_LABEL, offset,
           ASTRewriteFormatter.SPACE); // space between break and label
       // } catch (CoreException e) {
@@ -875,7 +879,7 @@ public final class ASTRewriteAnalyzer {
       // try {
       DartCore.notYetImplemented();
       int offset = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNamecontinue,
-                      // node.getSourceStart());
+                      // node.getSourceInfo().getSourceStart());
       rewriteNode(node, PropertyDescriptorHelper.DART_GOTO_STATEMENT_LABEL, offset,
           ASTRewriteFormatter.SPACE); // space between continue and
                                       // label
@@ -902,7 +906,8 @@ public final class ASTRewriteAnalyzer {
       String newLiteral = (String) getNewValue(node,
           PropertyDescriptorHelper.DART_DOUBLE_LITERAL_VALUE);
       TextEditGroup group = getEditGroup(node, PropertyDescriptorHelper.DART_DOUBLE_LITERAL_VALUE);
-      doTextReplace(node.getSourceStart(), node.getSourceLength(), newLiteral, group);
+      doTextReplace(node.getSourceInfo().getOffset(), node.getSourceInfo().getLength(),
+          newLiteral, group);
       return null;
     }
 
@@ -911,7 +916,7 @@ public final class ASTRewriteAnalyzer {
       if (!hasChildrenChanges(node)) {
         return doVisitUnchangedChildren(node);
       }
-      int pos = node.getSourceStart();
+      int pos = node.getSourceInfo().getOffset();
       // try {
       RewriteEvent event = getEvent(node, PropertyDescriptorHelper.DART_DO_WHILE_STATEMENT_BODY);
       if (event != null && event.getChangeKind() == RewriteEvent.REPLACED) {
@@ -919,12 +924,13 @@ public final class ASTRewriteAnalyzer {
         int startOffset = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNamedo,
                              // pos);
         DartNode body = (DartNode) event.getOriginalValue();
-        int bodyEnd = body.getSourceStart() + body.getSourceLength();
+        int bodyEnd = body.getSourceInfo().getOffset()
+            + body.getSourceInfo().getLength();
         DartCore.notYetImplemented();
         int endPos = 0; // getScanner().getTokenStartOffset(TerminalTokens.TokenNamewhile,
                         // bodyEnd);
         rewriteBodyNode(node, PropertyDescriptorHelper.DART_DO_WHILE_STATEMENT_BODY, startOffset,
-            endPos, getIndent(node.getSourceStart()), formatter.DO_BLOCK); // body
+            endPos, getIndent(node.getSourceInfo().getOffset()), formatter.DO_BLOCK); // body
       } else {
         voidVisit(node, PropertyDescriptorHelper.DART_DO_WHILE_STATEMENT_BODY);
       }
@@ -990,7 +996,7 @@ public final class ASTRewriteAnalyzer {
         return doVisitUnchangedChildren(node);
       }
       // try {
-      int pos = node.getSourceStart();
+      int pos = node.getSourceInfo().getOffset();
       if (isChanged(node, PropertyDescriptorHelper.DART_FOR_STATEMENT_INIT)) {
         // position after opening parent
         DartCore.notYetImplemented();
@@ -1022,7 +1028,7 @@ public final class ASTRewriteAnalyzer {
         int startOffset = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNameRPAREN,
                              // pos);
         rewriteBodyNode(node, PropertyDescriptorHelper.DART_FOR_STATEMENT_BODY, startOffset, -1,
-            getIndent(node.getSourceStart()), formatter.FOR_BLOCK); // body
+            getIndent(node.getSourceInfo().getOffset()), formatter.FOR_BLOCK); // body
       } else {
         voidVisit(node, PropertyDescriptorHelper.DART_FOR_STATEMENT_BODY);
       }
@@ -1076,7 +1082,8 @@ public final class ASTRewriteAnalyzer {
       String newString = (String) getNewValue(node,
           PropertyDescriptorHelper.DART_IDENTIFIER_TARGET_NAME);
       TextEditGroup group = getEditGroup(node, PropertyDescriptorHelper.DART_IDENTIFIER_TARGET_NAME);
-      doTextReplace(node.getSourceStart(), node.getSourceLength(), newString, group);
+      doTextReplace(node.getSourceInfo().getOffset(), node.getSourceInfo().getLength(),
+          newString, group);
       return null;
     }
 
@@ -1099,7 +1106,7 @@ public final class ASTRewriteAnalyzer {
         // ? getScanner().getCurrentEndOffset()
         // : getScanner().getCurrentStartOffset();
 
-        int indent = getIndent(node.getSourceStart());
+        int indent = getIndent(node.getSourceInfo().getOffset());
 
         int endPos = -1;
         Object elseStatement = getOriginalValue(node,
@@ -1109,8 +1116,8 @@ public final class ASTRewriteAnalyzer {
           DartCore.notYetImplemented();
           // else keyword
           endPos = 0; // getScanner().getTokenStartOffset(TerminalTokens.TokenNameelse,
-                      // thenStatement.getSourceStart() +
-                      // thenStatement.getSourceLength());
+                      // thenStatement.getSourceInfo().getSourceStart() +
+                      // thenStatement.getSourceInfo().getSourceLength());
         }
         if (elseStatement == null || elseChange != RewriteEvent.UNCHANGED) {
           pos = rewriteBodyNode(node, PropertyDescriptorHelper.DART_IF_STATEMENT_THEN, pos, endPos,
@@ -1127,7 +1134,7 @@ public final class ASTRewriteAnalyzer {
       }
 
       if (elseChange != RewriteEvent.UNCHANGED) {
-        int indent = getIndent(node.getSourceStart());
+        int indent = getIndent(node.getSourceInfo().getOffset());
         Object newThen = getNewValue(node, PropertyDescriptorHelper.DART_IF_STATEMENT_THEN);
         if (newThen instanceof DartBlock) {
           rewriteBodyNode(node, PropertyDescriptorHelper.DART_IF_STATEMENT_ELSE, pos, -1, indent,
@@ -1172,7 +1179,8 @@ public final class ASTRewriteAnalyzer {
       String newLiteral = (String) getNewValue(node,
           PropertyDescriptorHelper.DART_INTEGER_LITERAL_VALUE);
       TextEditGroup group = getEditGroup(node, PropertyDescriptorHelper.DART_INTEGER_LITERAL_VALUE);
-      doTextReplace(node.getSourceStart(), node.getSourceLength(), newLiteral, group);
+      doTextReplace(node.getSourceInfo().getOffset(), node.getSourceInfo().getLength(),
+          newLiteral, group);
       return null;
     }
 
@@ -1228,7 +1236,8 @@ public final class ASTRewriteAnalyzer {
         return doVisitUnchangedChildren(node);
       }
       int pos = rewriteOptionalQualifier(node,
-          PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET, node.getSourceStart());
+          PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET,
+          node.getSourceInfo().getOffset());
       pos = rewriteRequiredNode(node, PropertyDescriptorHelper.DART_METHOD_INVOCATION_FUNCTION_NAME);
 
       if (isChanged(node, PropertyDescriptorHelper.DART_INVOCATION_ARGS)) {
@@ -1353,7 +1362,7 @@ public final class ASTRewriteAnalyzer {
       // try {
       DartCore.notYetImplemented();
       beforeRequiredSpaceIndex = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNamereturn,
-                                    // node.getSourceStart());
+                                    // node.getSourceInfo().getSourceStart());
       if (!hasChildrenChanges(node)) {
         return doVisitUnchangedChildren(node);
       }
@@ -1392,7 +1401,8 @@ public final class ASTRewriteAnalyzer {
       String escapedSeq = (String) getNewValue(node,
           PropertyDescriptorHelper.DART_STRING_LITERAL_VALUE);
       TextEditGroup group = getEditGroup(node, PropertyDescriptorHelper.DART_STRING_LITERAL_VALUE);
-      doTextReplace(node.getSourceStart(), node.getSourceLength(), escapedSeq, group);
+      doTextReplace(node.getSourceInfo().getOffset(), node.getSourceInfo().getLength(),
+          escapedSeq, group);
       return null;
     }
 
@@ -1441,7 +1451,7 @@ public final class ASTRewriteAnalyzer {
         DartCore.notYetImplemented();
         pos = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNameLBRACE,
                  // pos);
-        int insertIndent = getIndent(node.getSourceStart());
+        int insertIndent = getIndent(node.getSourceInfo().getOffset());
         if (DefaultCodeFormatterConstants.TRUE.equals(options.get(DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_SWITCH))) {
           insertIndent++;
         }
@@ -1469,7 +1479,8 @@ public final class ASTRewriteAnalyzer {
           PropertyDescriptorHelper.DART_SYNTHETIC_ERROR_EXPRESSION_TOKEN_STRING);
       TextEditGroup group = getEditGroup(node,
           PropertyDescriptorHelper.DART_SYNTHETIC_ERROR_EXPRESSION_TOKEN_STRING);
-      doTextReplace(node.getSourceStart(), node.getSourceLength(), newString, group);
+      doTextReplace(node.getSourceInfo().getOffset(), node.getSourceInfo().getLength(),
+          newString, group);
       return null;
     }
 
@@ -1482,7 +1493,8 @@ public final class ASTRewriteAnalyzer {
           PropertyDescriptorHelper.DART_SYNTHETIC_ERROR_STATEMENT_TOKEN_STRING);
       TextEditGroup group = getEditGroup(node,
           PropertyDescriptorHelper.DART_SYNTHETIC_ERROR_STATEMENT_TOKEN_STRING);
-      doTextReplace(node.getSourceStart(), node.getSourceLength(), newString, group);
+      doTextReplace(node.getSourceInfo().getOffset(), node.getSourceInfo().getLength(),
+          newString, group);
       return null;
     }
 
@@ -1500,7 +1512,7 @@ public final class ASTRewriteAnalyzer {
       // try {
       DartCore.notYetImplemented();
       beforeRequiredSpaceIndex = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNamethrow,
-                                    // node.getSourceStart());
+                                    // node.getSourceInfo().getSourceStart());
       if (!hasChildrenChanges(node)) {
         return doVisitUnchangedChildren(node);
       }
@@ -1519,7 +1531,7 @@ public final class ASTRewriteAnalyzer {
       }
       int pos = rewriteRequiredNode(node, PropertyDescriptorHelper.DART_TRY_STATEMENT_TRY_BLOCK);
       if (isChanged(node, PropertyDescriptorHelper.DART_TRY_STATEMENT_CATCH_BLOCKS)) {
-        int indent = getIndent(node.getSourceStart());
+        int indent = getIndent(node.getSourceInfo().getOffset());
         String prefix = formatter.CATCH_BLOCK.getPrefix(indent);
         pos = rewriteNodeList(node, PropertyDescriptorHelper.DART_TRY_STATEMENT_CATCH_BLOCKS, pos,
             prefix, prefix);
@@ -1565,7 +1577,7 @@ public final class ASTRewriteAnalyzer {
       }
       if (node.isPrefix()) {
         rewriteOperation(node, PropertyDescriptorHelper.DART_UNARY_EXPRESSION_OPERATOR,
-            node.getSourceStart());
+            node.getSourceInfo().getOffset());
         rewriteRequiredNode(node, PropertyDescriptorHelper.DART_UNARY_EXPRESSION_OPERAND);
       } else {
         int pos = rewriteRequiredNode(node, PropertyDescriptorHelper.DART_UNARY_EXPRESSION_OPERAND);
@@ -1623,7 +1635,7 @@ public final class ASTRewriteAnalyzer {
         int startOffset = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNameRPAREN,
                              // pos);
         rewriteBodyNode(node, PropertyDescriptorHelper.DART_WHILE_STATEMENT_BODY, startOffset, -1,
-            getIndent(node.getSourceStart()), formatter.WHILE_BLOCK);
+            getIndent(node.getSourceInfo().getOffset()), formatter.WHILE_BLOCK);
       } else {
         voidVisit(node, PropertyDescriptorHelper.DART_WHILE_STATEMENT_BODY);
       }
@@ -1834,7 +1846,7 @@ public final class ASTRewriteAnalyzer {
     // if (data instanceof CopyPlaceholderData) { // replace with a copy/move
     // target
     // CopySourceInfo copySource = ((CopyPlaceholderData) data).copySource;
-    // int srcIndentLevel = getIndent(copySource.getNode().getSourceStart());
+    // int srcIndentLevel = getIndent(copySource.getNode().getSourceInfo().getSourceStart());
     // TextEdit sourceEdit = getCopySourceEdit(copySource);
     // doTextCopy(sourceEdit, insertOffset, srcIndentLevel,
     // destIndentString, editGroup);
@@ -1961,7 +1973,8 @@ public final class ASTRewriteAnalyzer {
    */
   final SourceRange getExtendedRange(DartNode node) {
     if (eventStore.isRangeCopyPlaceholder(node)) {
-      return new SourceRange(node.getSourceStart(), node.getSourceLength());
+      return new SourceRange(node.getSourceInfo().getOffset(),
+          node.getSourceInfo().getLength());
     }
     return extendedSourceRangeComputer.computeSourceRange(node);
   }
@@ -2276,7 +2289,8 @@ public final class ASTRewriteAnalyzer {
           DartNode node = (DartNode) event.getOriginalValue();
           boolean insertNewLine = false;
           if (endPos == -1) {
-            int previousEnd = node.getSourceStart() + node.getSourceLength();
+            int previousEnd = node.getSourceInfo().getOffset()
+                + node.getSourceInfo().getLength();
             endPos = getExtendedEnd(node);
             if (endPos != previousEnd) {
               // check if the end is a comment
@@ -2364,7 +2378,8 @@ public final class ASTRewriteAnalyzer {
   }
 
   private int rewriteJavadoc(DartNode node, StructuralPropertyDescriptor property) {
-    int pos = rewriteNode(node, property, node.getSourceStart(), ASTRewriteFormatter.NONE);
+    int pos = rewriteNode(node, property, node.getSourceInfo().getOffset(),
+        ASTRewriteFormatter.NONE);
     int changeKind = getChangeKind(node, property);
     if (changeKind == RewriteEvent.INSERTED) {
       String indent = getLineDelimiter() + getIndentAtOffset(pos);
@@ -2390,11 +2405,12 @@ public final class ASTRewriteAnalyzer {
     if (event != null) {
       switch (event.getChangeKind()) {
         case RewriteEvent.INSERTED: {
-          int endPos = parent.getSourceStart() + parent.getSourceLength();
+          int endPos = parent.getSourceInfo().getOffset()
+              + parent.getSourceInfo().getLength();
           TextEditGroup editGroup = getEditGroup(event);
           DartNode body = (DartNode) event.getNewValue();
           doTextRemove(startPos, endPos - startPos, editGroup);
-          int indent = getIndent(parent.getSourceStart());
+          int indent = getIndent(parent.getSourceInfo().getOffset());
           String prefix = formatter.METHOD_BODY.getPrefix(indent);
           doTextInsert(startPos, prefix, editGroup);
           doTextInsert(startPos, body, indent, true, editGroup);
@@ -2403,7 +2419,8 @@ public final class ASTRewriteAnalyzer {
         case RewriteEvent.REMOVED: {
           TextEditGroup editGroup = getEditGroup(event);
           DartNode body = (DartNode) event.getOriginalValue();
-          int endPos = parent.getSourceStart() + parent.getSourceLength();
+          int endPos = parent.getSourceInfo().getOffset()
+              + parent.getSourceInfo().getLength();
           doTextRemoveAndVisit(startPos, endPos - startPos, body, editGroup);
           doTextInsert(startPos, ";", editGroup); //$NON-NLS-1$
           return;
@@ -2411,9 +2428,10 @@ public final class ASTRewriteAnalyzer {
         case RewriteEvent.REPLACED: {
           TextEditGroup editGroup = getEditGroup(event);
           DartNode body = (DartNode) event.getOriginalValue();
-          doTextRemoveAndVisit(body.getSourceStart(), body.getSourceLength(), body, editGroup);
-          doTextInsert(body.getSourceStart(), (DartNode) event.getNewValue(),
-              getIndent(body.getSourceStart()), true, editGroup);
+          doTextRemoveAndVisit(body.getSourceInfo().getOffset(),
+              body.getSourceInfo().getLength(), body, editGroup);
+          doTextInsert(body.getSourceInfo().getOffset(), (DartNode) event.getNewValue(),
+              getIndent(body.getSourceInfo().getOffset()), true, editGroup);
           return;
         }
       }
@@ -2654,7 +2672,7 @@ public final class ASTRewriteAnalyzer {
           TextEditGroup editGroup = getEditGroup(event);
           DartCore.notYetImplemented();
           int dotEnd = 0; // getScanner().getTokenEndOffset(TerminalTokens.TokenNameDOT,
-                          // node.getSourceStart() + node.getSourceLength());
+                          // node.getSourceInfo().getSourceStart() + node.getSourceInfo().getSourceLength());
           doTextRemoveAndVisit(startPos, dotEnd - startPos, node, editGroup);
           return dotEnd;
           // } catch (CoreException e) {
@@ -2795,7 +2813,7 @@ public final class ASTRewriteAnalyzer {
     // weakness in the AST: return type can exist, even if missing in source
     DartNode originalReturnType = (DartNode) getOriginalValue(node, property);
     boolean returnTypeExists = originalReturnType != null
-        && originalReturnType.getSourceStart() != -1;
+        && originalReturnType.getSourceInfo().getOffset() != -1;
     if (!isConstructorChange && returnTypeExists) {
       rewriteRequiredNode(node, property);
       ensureSpaceAfterReplace(node, property);
@@ -2809,7 +2827,7 @@ public final class ASTRewriteAnalyzer {
       DartNode originalMethodName = (DartNode) getOriginalValue(node,
           PropertyDescriptorHelper.DART_CLASS_MEMBER_NAME); // DartMethodDefinition.NAME_PROPERTY);
       // see bug 84049: can't use extended offset
-      int nextStart = originalMethodName.getSourceStart();
+      int nextStart = originalMethodName.getSourceInfo().getOffset();
       TextEditGroup editGroup = getEditGroup(node, property);
       if (isConstructor || !returnTypeExists) { // insert
         doTextInsert(nextStart, newReturnType, getIndent(nextStart), true, editGroup);

@@ -75,7 +75,8 @@ public class NLSKeyHyperlinkDetector extends AbstractHyperlinkDetector {
 //    if (node.getLocationInParent() == QualifiedName.QUALIFIER_PROPERTY)
 //      return null;
 
-    IRegion nlsKeyRegion = new Region(node.getStartPosition(), node.getLength());
+    IRegion nlsKeyRegion = new Region(node.getSourceInfo().getOffset(),
+        node.getSourceInfo().getLength());
     AccessorClassReference ref = NLSHintHelper.getAccessorClassReference(ast, nlsKeyRegion);
     if (ref == null) {
       return null;

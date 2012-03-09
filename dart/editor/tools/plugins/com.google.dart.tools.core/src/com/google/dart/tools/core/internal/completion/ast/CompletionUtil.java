@@ -14,12 +14,14 @@
 package com.google.dart.tools.core.internal.completion.ast;
 
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.common.SourceInfo;
 
 class CompletionUtil {
 
   static <T extends DartNode> T init(T newNode, DartNode oldNode) {
-    newNode.setSourceLocation(oldNode.getSource(), oldNode.getSourceLine(),
-        oldNode.getSourceColumn(), oldNode.getSourceStart(), oldNode.getSourceLength());
+    SourceInfo oldSourceInfo = oldNode.getSourceInfo();
+    newNode.setSourceInfo(new SourceInfo(oldSourceInfo.getSource(), oldSourceInfo.getOffset(),
+        oldSourceInfo.getLength()));
     return newNode;
   }
 }

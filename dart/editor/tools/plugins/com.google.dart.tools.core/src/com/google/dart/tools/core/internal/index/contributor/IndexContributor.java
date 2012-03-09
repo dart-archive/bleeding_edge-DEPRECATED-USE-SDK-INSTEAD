@@ -235,8 +235,8 @@ public class IndexContributor extends ASTVisitor<Void> {
     if (element instanceof MethodElement) {
       // TODO(brianwilkerson) Find the real source range associated with the operator.
       DartExpression index = node.getKey();
-      processMethodInvocation(index.getSourceStart() - 1, index.getSourceLength() + 2,
-          (MethodElement) element);
+      processMethodInvocation(index.getSourceInfo().getOffset() - 1,
+          index.getSourceInfo().getLength() + 2, (MethodElement) element);
     } else {
       notFound("array access", node);
     }
@@ -252,9 +252,9 @@ public class IndexContributor extends ASTVisitor<Void> {
         String operator = operatorToken.getSyntax();
         DartExpression leftOperand = node.getArg1();
         DartExpression rghtOperand = node.getArg2();
-        int offset = findOffset(operator,
-            leftOperand.getSourceStart() + leftOperand.getSourceLength(),
-            rghtOperand.getSourceStart() - 1);
+        int offset = findOffset(operator, leftOperand.getSourceInfo().getOffset()
+            + leftOperand.getSourceInfo().getLength(),
+            rghtOperand.getSourceInfo().getOffset() - 1);
         if (offset < 0) {
           // TODO(brianwilkerson) Handle a missing offset.
         }
@@ -482,10 +482,12 @@ public class IndexContributor extends ASTVisitor<Void> {
       DartExpression operand = node.getArg();
       int offset;
       if (node.isPrefix()) {
-        offset = findOffset(operator, node.getSourceStart(), operand.getSourceStart() - 1);
+        offset = findOffset(operator, node.getSourceInfo().getOffset(),
+            operand.getSourceInfo().getOffset() - 1);
       } else {
-        offset = findOffset(operator, operand.getSourceStart() + operand.getSourceLength(),
-            node.getSourceStart() + node.getSourceLength() - 1);
+        offset = findOffset(operator, operand.getSourceInfo().getOffset()
+            + operand.getSourceInfo().getLength(), node.getSourceInfo().getOffset()
+            + node.getSourceInfo().getLength() - 1);
       }
       if (offset < 0) {
         // TODO(brianwilkerson) Handle a missing offset.
@@ -855,7 +857,8 @@ public class IndexContributor extends ASTVisitor<Void> {
     if (element == null) {
       element = libraryElement;
     }
-    return new Location(element, node.getSourceStart(), node.getSourceLength());
+    return new Location(element, node.getSourceInfo().getOffset(),
+        node.getSourceInfo().getLength());
   }
 
   /**
@@ -998,7 +1001,8 @@ public class IndexContributor extends ASTVisitor<Void> {
     if (node == null) {
       notFound(string, -1, 0);
     } else {
-      notFound(string, node.getSourceStart(), node.getSourceLength());
+      notFound(string, node.getSourceInfo().getOffset(),
+          node.getSourceInfo().getLength());
     }
   }
 

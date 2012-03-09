@@ -74,7 +74,8 @@ public class LineCommentEndOffsets {
         for (int i = 0, k = 0; i < nComments; i++) {
           DartComment comment = commentList.get(i);
           if (comment.isEndOfLine()) {
-            offsets[k++] = comment.getSourceStart() + comment.getSourceLength();
+            offsets[k++] = comment.getSourceInfo().getOffset()
+                + comment.getSourceInfo().getLength();
           }
         }
       } else {

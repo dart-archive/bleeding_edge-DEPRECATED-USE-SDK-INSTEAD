@@ -61,7 +61,7 @@ class ResolveLibraryTask extends Task {
         continue;
       }
       for (DartUnit unit : lib.getCachedUnits().values()) {
-        parsedUnits.put(unit.getSource().getUri(), unit);
+        parsedUnits.put(unit.getSourceInfo().getSource().getUri(), unit);
       }
       for (File file : lib.getImportedFiles()) {
         Library importedLib = context.getCachedLibrary(file);

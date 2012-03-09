@@ -116,6 +116,7 @@ public class TargetSourceRangeComputer {
     // return new SourceRange(cu.getExtendedStartPosition(node),
     // cu.getExtendedLength(node));
     // }
-    return new SourceRange(node.getSourceStart(), node.getSourceLength());
+    return new SourceRange(node.getSourceInfo().getOffset(),
+        node.getSourceInfo().getLength());
   }
 }

@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.editor.selectionactions;
 
-import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
@@ -44,8 +44,8 @@ public class StructureSelectPreviousAction extends StructureSelectionAction {
 
     @Override
     public Void visitNode(DartNode node) {
-      int start = node.getSourceStart();
-      int end = start + node.getSourceLength();
+      int start = node.getSourceInfo().getOffset();
+      int end = start + node.getSourceInfo().getLength();
       if (end == fOffset) {
         fPreviousNode = node;
         node.visitChildren(this);
@@ -117,7 +117,7 @@ public class StructureSelectPreviousAction extends StructureSelectionAction {
       return getSelectedNodeSourceRange(sr, parent);
     }
 
-    int offset = previousNode.getSourceStart();
+    int offset = previousNode.getSourceInfo().getOffset();
     int end = oldSourceRange.getOffset() + oldSourceRange.getLength() - 1;
     return StructureSelectionAction.createSourceRange(offset, end);
   }

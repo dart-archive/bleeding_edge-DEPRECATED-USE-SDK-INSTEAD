@@ -352,7 +352,7 @@ public class InMemoryIndex implements Index {
     initializedLibraries.add(libraryUri);
     DartLibraryImpl library = new DartLibraryImpl(librarySource);
     for (DartUnit ast : libraryUnit.getUnits()) {
-      DartSource unitSource = ast.getSource();
+      DartSource unitSource = (DartSource) ast.getSourceInfo().getSource();
       URI unitUri = unitSource.getUri();
       Resource resource = new Resource(unitUri.toString());
       String relativePath = unitSource.getRelativePath();
@@ -361,7 +361,7 @@ public class InMemoryIndex implements Index {
       long startTime = System.currentTimeMillis();
       indexResource(resource, compilationUnit, ast);
       long endTime = System.currentTimeMillis();
-      initIndexingTime += (endTime - startTime);
+      initIndexingTime += endTime - startTime;
     }
     for (LibraryUnit importedLibrary : libraryUnit.getImports()) {
       indexBundledLibrary(importedLibrary, initializedLibraries);
@@ -407,7 +407,7 @@ public class InMemoryIndex implements Index {
     initializedLibraries.add(libraryUri);
     DartLibraryImpl library = new DartLibraryImpl(librarySource);
     for (DartUnit ast : libraryUnit.getUnits()) {
-      DartSource unitSource = ast.getSource();
+      DartSource unitSource = (DartSource) ast.getSourceInfo().getSource();
       URI unitUri = unitSource.getUri();
       Resource resource = new Resource(unitUri.toString());
       CompilationUnit compilationUnit = new CompilationUnitImpl(library, unitUri,
@@ -416,7 +416,7 @@ public class InMemoryIndex implements Index {
       long startTime = System.currentTimeMillis();
       indexResource(resource, compilationUnit, ast);
       long endTime = System.currentTimeMillis();
-      initIndexingTime += (endTime - startTime);
+      initIndexingTime += endTime - startTime;
     }
     for (LibraryUnit importedLibrary : libraryUnit.getImports()) {
       // library.getImportedLibrary(importedLibrary.getSource().getUri());

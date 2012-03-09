@@ -13,13 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -76,8 +76,8 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
       for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
         SemanticHighlighting semanticHighlighting = fJobSemanticHighlightings[i];
         if (fJobHighlightings[i].isEnabled() && semanticHighlighting.consumes(fToken)) {
-          int offset = node.getSourceStart();
-          int length = node.getSourceLength();
+          int offset = node.getSourceInfo().getOffset();
+          int length = node.getSourceInfo().getLength();
           if (offset > -1 && length > 0) {
             addPosition(offset, length, fJobHighlightings[i]);
           }
@@ -154,8 +154,8 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
       for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
         SemanticHighlighting semanticHighlighting = fJobSemanticHighlightings[i];
         if (fJobHighlightings[i].isEnabled() && semanticHighlighting.consumesLiteral(fToken)) {
-          int offset = node.getSourceStart();
-          int length = node.getSourceLength();
+          int offset = node.getSourceInfo().getOffset();
+          int length = node.getSourceInfo().getLength();
           if (offset > -1 && length > 0) {
             addPosition(offset, length, fJobHighlightings[i]);
           }

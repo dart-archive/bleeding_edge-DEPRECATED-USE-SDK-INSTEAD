@@ -246,11 +246,12 @@ public class DartElementLocator extends ASTVisitor<Void> {
   public Void visitArrayAccess(DartArrayAccess node) {
     super.visitArrayAccess(node);
     if (foundElement == null) {
-      int start = node.getSourceStart();
-      int end = start + node.getSourceLength();
+      int start = node.getSourceInfo().getOffset();
+      int end = start + node.getSourceInfo().getLength();
       if (start <= startOffset && endOffset <= end) {
         DartExpression target = node.getTarget();
-        wordRegion = new Region(target.getSourceStart() + target.getSourceLength(), end);
+        wordRegion = new Region(target.getSourceInfo().getOffset()
+            + target.getSourceInfo().getLength(), end);
         Element targetElement = node.getElement();
         findElementFor(targetElement);
         throw new DartElementFoundException();
@@ -263,14 +264,14 @@ public class DartElementLocator extends ASTVisitor<Void> {
   public Void visitBinaryExpression(DartBinaryExpression node) {
     super.visitBinaryExpression(node);
     if (foundElement == null) {
-      int start = node.getSourceStart();
-      int end = start + node.getSourceLength();
+      int start = node.getSourceInfo().getOffset();
+      int end = start + node.getSourceInfo().getLength();
       if (start <= startOffset && endOffset <= end) {
         DartExpression leftOperand = node.getArg1();
         DartExpression rightOperand = node.getArg2();
-        wordRegion = computeOperatorRegion(
-            leftOperand.getSourceStart() + leftOperand.getSourceLength(),
-            rightOperand.getSourceStart() - 1);
+        wordRegion = computeOperatorRegion(leftOperand.getSourceInfo().getOffset()
+            + leftOperand.getSourceInfo().getLength(),
+            rightOperand.getSourceInfo().getOffset() - 1);
         Element targetElement = node.getElement();
         findElementFor(targetElement);
         throw new DartElementFoundException();
@@ -282,8 +283,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
   @Override
   public Void visitIdentifier(DartIdentifier node) {
     if (foundElement == null) {
-      int start = node.getSourceStart();
-      int length = node.getSourceLength();
+      int start = node.getSourceInfo().getOffset();
+      int length = node.getSourceInfo().getLength();
       int end = start + length;
       if (start <= startOffset && endOffset <= end) {
         wordRegion = new Region(start, length);
@@ -378,8 +379,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
                   DartExpression parameterName = parameter.getName();
                   foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
                       containingType.getElement());
-                  candidateRegion = new Region(parameterName.getSourceStart(),
-                      parameterName.getSourceLength());
+                  candidateRegion = new Region(parameterName.getSourceInfo().getOffset(),
+                      parameterName.getSourceInfo().getLength());
                 } else {
                   foundElement = null;
                 }
@@ -387,8 +388,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
                 foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
                     method.getElement());
                 DartExpression parameterName = parameter.getName();
-                candidateRegion = new Region(parameterName.getSourceStart(),
-                    parameterName.getSourceLength());
+                candidateRegion = new Region(parameterName.getSourceInfo().getOffset(),
+                    parameterName.getSourceInfo().getLength());
               }
             } else if (variableNode instanceof DartVariable) {
               DartVariable variable = (DartVariable) variableNode;
@@ -398,8 +399,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
                 DartIdentifier variableName = variable.getName();
                 foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
                     containingType.getElement());
-                candidateRegion = new Region(variableName.getSourceStart(),
-                    variableName.getSourceLength());
+                candidateRegion = new Region(variableName.getSourceInfo().getOffset(),
+                    variableName.getSourceInfo().getLength());
               } else {
                 foundElement = null;
               }
@@ -434,15 +435,15 @@ public class DartElementLocator extends ASTVisitor<Void> {
   @Override
   public Void visitStringLiteral(DartStringLiteral node) {
     if (foundElement == null) {
-      int start = node.getSourceStart();
-      int length = node.getSourceLength();
+      int start = node.getSourceInfo().getOffset();
+      int length = node.getSourceInfo().getLength();
       int end = start + length;
       if (start <= startOffset && end >= endOffset) {
         wordRegion = computeInternalStringRegion(start, length);
         DartNode parent = node.getParent();
         if (parent instanceof DartImportDirective
             && ((DartImportDirective) parent).getLibraryUri() == node) {
-          resolvedElement = (Element) ((DartImportDirective) parent).getElement();
+          resolvedElement = ((DartImportDirective) parent).getElement();
           DartLibrary library = compilationUnit.getLibrary();
           String libraryName = node.getValue();
           if (libraryName.startsWith("dart:")) {
@@ -475,7 +476,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
           }
         } else if (parent instanceof DartSourceDirective
             && ((DartSourceDirective) parent).getSourceUri() == node) {
-          resolvedElement = (Element) ((DartSourceDirective) parent).getElement();
+          resolvedElement = ((DartSourceDirective) parent).getElement();
           DartLibrary library = compilationUnit.getLibrary();
           String fileName = getFileName(library, node.getValue());
           CompilationUnit sourcedUnit = library.getCompilationUnit(fileName);
@@ -484,7 +485,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
           }
         } else if (parent instanceof DartResourceDirective
             && ((DartResourceDirective) parent).getResourceUri() == node) {
-          resolvedElement = (Element) ((DartResourceDirective) parent).getElement();
+          resolvedElement = ((DartResourceDirective) parent).getElement();
           DartLibrary library = compilationUnit.getLibrary();
           try {
             DartSource unitSource = compilationUnit.getSourceRef();
@@ -515,11 +516,11 @@ public class DartElementLocator extends ASTVisitor<Void> {
   public Void visitUnaryExpression(DartUnaryExpression node) {
     super.visitUnaryExpression(node);
     if (foundElement == null) {
-      int start = node.getSourceStart();
-      int end = start + node.getSourceLength();
+      int start = node.getSourceInfo().getOffset();
+      int end = start + node.getSourceInfo().getLength();
       if (start <= startOffset && endOffset <= end) {
         DartExpression operand = node.getArg();
-        wordRegion = computeOperatorRegion(start, operand.getSourceStart() - 1);
+        wordRegion = computeOperatorRegion(start, operand.getSourceInfo().getOffset() - 1);
         Element targetSymbol = node.getElement();
         findElementFor(targetSymbol);
         throw new DartElementFoundException();

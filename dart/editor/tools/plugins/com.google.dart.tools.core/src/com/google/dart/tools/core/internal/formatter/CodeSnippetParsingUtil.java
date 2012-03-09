@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.formatter;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartMethodDefinition;
@@ -217,8 +216,8 @@ public class CodeSnippetParsingUtil {
     int[][] locs = new int[n][2];
     for (int i = 0; i < locs.length; i++) {
       DartComment comment = comments.get(i);
-      int start = comment.getSourceStart();
-      int stop = start + comment.getSourceLength();
+      int start = comment.getSourceInfo().getOffset();
+      int stop = start + comment.getSourceInfo().getLength();
       locs[i][0] = start;
       locs[i][1] = stop;
     }
@@ -236,7 +235,7 @@ public class CodeSnippetParsingUtil {
           problems = compilationResultProblems;
         } else {
           System.arraycopy(compilationResultProblems, 0,
-              (problems = new CategorizedProblem[problemsCount]), 0, problemsCount);
+              problems = new CategorizedProblem[problemsCount], 0, problemsCount);
         }
       }
     }

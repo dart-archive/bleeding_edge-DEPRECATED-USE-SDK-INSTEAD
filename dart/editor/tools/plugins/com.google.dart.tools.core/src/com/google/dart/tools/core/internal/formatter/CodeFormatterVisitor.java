@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.formatter;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartAssertion;
@@ -61,7 +62,6 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
@@ -129,16 +129,15 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
 
   final static long EXPRESSIONS_POS_MASK = EXPRESSIONS_POS_BETWEEN_TWO;
 
-  private static final Token[] CLOSING_GENERICS_EXPECTEDTOKENS = new Token[] {
-      Token.SAR, Token.GT};
+  private static final Token[] CLOSING_GENERICS_EXPECTEDTOKENS = new Token[] {Token.SAR, Token.GT};
   private static final Token[] BOOLEAN_LITERAL_EXPECTEDTOKENS = new Token[] {
       Token.TRUE_LITERAL, Token.FALSE_LITERAL};
   // IDENTIFIER is included to make "negate" legal
   // NE, EQ_STRICT, and NE_STRICT are not legal but why should the formatter
   // disallow them?
   private static final Token[] DEFINABLE_OPERATOR_EXPECTEDTOKENS = new Token[] {
-      Token.BIT_OR, Token.BIT_XOR, Token.BIT_AND, Token.SHL, Token.SAR, Token.ADD,
-      Token.SUB, Token.MUL, Token.DIV, Token.TRUNC, Token.MOD, Token.EQ, Token.NE, Token.EQ_STRICT,
+      Token.BIT_OR, Token.BIT_XOR, Token.BIT_AND, Token.SHL, Token.SAR, Token.ADD, Token.SUB,
+      Token.MUL, Token.DIV, Token.TRUNC, Token.MOD, Token.EQ, Token.NE, Token.EQ_STRICT,
       Token.NE_STRICT, Token.LT, Token.GT, Token.LTE, Token.GTE, Token.BIT_NOT, Token.INDEX,
       Token.ASSIGN_INDEX, Token.IDENTIFIER};
 
@@ -1692,8 +1691,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   }
 
   @Override
-  public DartNode
-    visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
+  public DartNode visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
 
     return null;
   }
@@ -1838,15 +1836,13 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   }
 
   @Override
-  public DartNode
-    visitSyntheticErrorExpression(DartSyntheticErrorExpression node) {
+  public DartNode visitSyntheticErrorExpression(DartSyntheticErrorExpression node) {
 
     return null;
   }
 
   @Override
-  public DartNode
-    visitSyntheticErrorStatement(DartSyntheticErrorStatement node) {
+  public DartNode visitSyntheticErrorStatement(DartSyntheticErrorStatement node) {
 
     return null;
   }
@@ -1974,12 +1970,12 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     scribe.lastNumberOfNewLines = 1;
 
     // Set header end position
-    final List<DartDirective> directives =
-        compilationUnitDeclaration.getDirectives();
+    final List<DartDirective> directives = compilationUnitDeclaration.getDirectives();
     final List<DartNode> types = compilationUnitDeclaration.getTopLevelNodes();
     int headerEndPosition = types == null || types.isEmpty()
-        ? compilationUnitDeclaration.getSourceStart()
-            + compilationUnitDeclaration.getSourceLength() : types.get(0).getSourceStart();
+        ? compilationUnitDeclaration.getSourceInfo().getOffset()
+            + compilationUnitDeclaration.getSourceInfo().getLength()
+        : types.get(0).getSourceInfo().getOffset();
     scribe.setHeaderComment(headerEndPosition);
     scribe.printComment();
 
@@ -2389,8 +2385,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     return null;
   }
 
-  private void format(DartFieldDefinition multiFieldDeclaration,
-      ASTVisitor<DartNode> visitor, boolean isChunkStart, boolean isFirstClassBodyDeclaration) {
+  private void format(DartFieldDefinition multiFieldDeclaration, ASTVisitor<DartNode> visitor,
+      boolean isChunkStart, boolean isFirstClassBodyDeclaration) {
 
     if (isFirstClassBodyDeclaration) {
       int newLinesBeforeFirstClassBodyDeclaration = preferences.blank_lines_before_first_class_body_declaration;
@@ -3119,7 +3115,7 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
            */
           if (statements.get(i + 1) instanceof DartVariableStatement) {
             DartVariableStatement nextLocal = (DartVariableStatement) statements.get(i + 1);
-            if (currentLocal.getSourceStart() != nextLocal.getSourceStart()) {
+            if (currentLocal.getSourceInfo().getOffset() != nextLocal.getSourceInfo().getOffset()) {
               scribe.printNextToken(Token.SEMICOLON, preferences.insert_space_before_semicolon);
               scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
               if (i != statementsLength - 1) {
@@ -3320,8 +3316,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   }
 
   private boolean isGuardClause(DartBlock block) {
-    return !commentStartsBlock(block.getSourceStart(),
-        block.getSourceLength() + block.getSourceStart())
+    return !commentStartsBlock(block.getSourceInfo().getOffset(),
+        block.getSourceInfo().getLength() + block.getSourceInfo().getOffset())
         && block.getStatements() != null
         && block.getStatements().size() == 1
         && (block.getStatements().get(0) instanceof DartReturnStatement || block.getStatements().get(
@@ -3329,10 +3325,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   }
 
   private boolean isMultipleLocalDeclaration(DartVariableStatement localDeclaration) {
-    if (localDeclaration.getSourceStart() == lastLocalDeclarationSourceStart) {
+    if (localDeclaration.getSourceInfo().getOffset() == lastLocalDeclarationSourceStart) {
       return true;
     }
-    lastLocalDeclarationSourceStart = localDeclaration.getSourceStart();
+    lastLocalDeclarationSourceStart = localDeclaration.getSourceInfo().getOffset();
     return false;
   }
 

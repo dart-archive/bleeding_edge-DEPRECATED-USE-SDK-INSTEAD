@@ -80,8 +80,9 @@ public class Selection {
   }
 
   public boolean coveredBy(DartNode node) {
-    int nodeStart = node.getSourceStart();
-    return nodeStart <= fStart && fExclusiveEnd <= nodeStart + node.getSourceLength();
+    int nodeStart = node.getSourceInfo().getOffset();
+    return nodeStart <= fStart
+        && fExclusiveEnd <= nodeStart + node.getSourceInfo().getLength();
   }
 
   public boolean coveredBy(IRegion region) {
@@ -90,8 +91,9 @@ public class Selection {
   }
 
   public boolean covers(DartNode node) {
-    int nodeStart = node.getSourceStart();
-    return fStart <= nodeStart && nodeStart + node.getSourceLength() <= fExclusiveEnd;
+    int nodeStart = node.getSourceInfo().getOffset();
+    return fStart <= nodeStart
+        && nodeStart + node.getSourceInfo().getLength() <= fExclusiveEnd;
   }
 
   public boolean covers(int position) {
@@ -99,13 +101,14 @@ public class Selection {
   }
 
   public boolean endsIn(DartNode node) {
-    int nodeStart = node.getSourceStart();
-    return nodeStart < fExclusiveEnd && fExclusiveEnd < nodeStart + node.getSourceLength();
+    int nodeStart = node.getSourceInfo().getOffset();
+    return nodeStart < fExclusiveEnd
+        && fExclusiveEnd < nodeStart + node.getSourceInfo().getLength();
   }
 
   public int getEndVisitSelectionMode(DartNode node) {
-    int nodeStart = node.getSourceStart();
-    int nodeEnd = nodeStart + node.getSourceLength();
+    int nodeStart = node.getSourceInfo().getOffset();
+    int nodeEnd = nodeStart + node.getSourceInfo().getLength();
     if (nodeEnd <= fStart) {
       return BEFORE;
     } else if (covers(node)) {
@@ -146,8 +149,8 @@ public class Selection {
    * @see #AFTER
    */
   public int getVisitSelectionMode(DartNode node) {
-    int nodeStart = node.getSourceStart();
-    int nodeEnd = nodeStart + node.getSourceLength();
+    int nodeStart = node.getSourceInfo().getOffset();
+    int nodeEnd = nodeStart + node.getSourceInfo().getLength();
     if (nodeEnd <= fStart) {
       return BEFORE;
     } else if (covers(node)) {
@@ -159,8 +162,8 @@ public class Selection {
   }
 
   public boolean liesOutside(DartNode node) {
-    int nodeStart = node.getSourceStart();
-    int nodeEnd = nodeStart + node.getSourceLength();
+    int nodeStart = node.getSourceInfo().getOffset();
+    int nodeEnd = nodeStart + node.getSourceInfo().getLength();
     boolean nodeBeforeSelection = nodeEnd < fStart;
     boolean selectionBeforeNode = fExclusiveEnd < nodeStart;
     return nodeBeforeSelection || selectionBeforeNode;
