@@ -1053,9 +1053,9 @@ class SsaBuilder implements Visitor {
     //    <updates>
     //    goto loop-entry;
     //  loop-exit:
-    if (condition === null || body === null) {
+    if (body === null) {
       compiler.unimplemented(
-          'SsaBuilder.visitLoop with empty condition or body',
+          'SsaBuilder.visitLoop with empty body',
           node: loop);
     }
 
@@ -1072,9 +1072,17 @@ class SsaBuilder implements Visitor {
     BreakHandler breakHandler = beginLoopHeader(loop);
     HBasicBlock conditionBlock = current;
 
-    // The condition.
-    visit(condition);
-    HBasicBlock conditionExitBlock = close(new HLoopBranch(popBoolified()));
+    HInstruction conditionInstruction;
+    if (condition != null) {
+      visit(condition);
+      conditionInstruction = popBoolified();
+    } else {
+      // TODO(ngeoffray): Once our loop recognition does not require a
+      // HLoopBranch, we could just generate a HGoto.
+      conditionInstruction = graph.addConstantBool(true);
+    }
+    HBasicBlock conditionExitBlock =
+        close(new HLoopBranch(conditionInstruction));
 
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
@@ -1119,9 +1127,6 @@ class SsaBuilder implements Visitor {
   }
 
   visitFor(For node) {
-    if (node.condition === null) {
-      compiler.unimplemented("SsaBuilder for loop without condition");
-    }
     assert(node.body !== null);
     visitLoop(node, node.initializer, node.condition, node.update, node.body);
   }
