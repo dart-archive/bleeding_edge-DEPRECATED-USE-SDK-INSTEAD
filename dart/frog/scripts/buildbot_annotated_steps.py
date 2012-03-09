@@ -63,13 +63,13 @@ def GetBuildInfo():
   return (name, mode, system, browser)
 
 
-def IsWebComponent(component):
-  return component in ['frogium', 'webdriver', 'legium']
+def ComponentsNeedsXterm(component):
+  return component in ['frogsh', 'frogium', 'legium', 'webdriver']
 
 def TestStep(name, mode, system, component, targets, flags):
   print '@@@BUILD_STEP %s tests: %s %s@@@' % (name, component, ' '.join(flags))
   sys.stdout.flush()
-  if IsWebComponent(component) and system == 'linux':
+  if ComponentsNeedsXterm(component) and system == 'linux':
     cmd = ['xvfb-run', '-a']
   else:
     cmd = []
