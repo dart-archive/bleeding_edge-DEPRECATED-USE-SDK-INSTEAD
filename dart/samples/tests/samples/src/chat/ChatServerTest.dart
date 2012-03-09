@@ -65,7 +65,7 @@ class ChatTestClient extends Isolate {
       leaveRequest["sessionId"] = sessionId;
       HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/leave");
       conn.onRequest = (HttpClientRequest request) {
-        request.writeString(JSON.stringify(leaveRequest));
+        request.outputStream.writeString(JSON.stringify(leaveRequest));
         request.outputStream.close();
       };
       conn.onResponse = (HttpClientResponse r) {
@@ -126,7 +126,7 @@ class ChatTestClient extends Isolate {
       HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/receive");
       conn.onRequest = (HttpClientRequest request) {
-        request.writeString(JSON.stringify(receiveRequest));
+        request.outputStream.writeString(JSON.stringify(receiveRequest));
         request.outputStream.close();
       };
       conn.onResponse = (HttpClientResponse r) {
@@ -161,7 +161,7 @@ class ChatTestClient extends Isolate {
       HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/message");
       conn.onRequest = (HttpClientRequest request) {
-        request.writeString(JSON.stringify(messageRequest));
+        request.outputStream.writeString(JSON.stringify(messageRequest));
         request.outputStream.close();
       };
       conn.onResponse = (HttpClientResponse r) {
@@ -196,7 +196,7 @@ class ChatTestClient extends Isolate {
       joinRequest["handle"] = "test1";
       HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/join");
       conn.onRequest = (HttpClientRequest request) {
-        request.writeString(JSON.stringify(joinRequest));
+        request.outputStream.writeString(JSON.stringify(joinRequest));
         request.outputStream.close();
       };
       conn.onResponse = (HttpClientResponse r) {

@@ -331,7 +331,7 @@ class IsolatedServer extends Isolate {
 
   void _sendJSONResponse(HttpResponse response, Map responseData) {
     response.setHeader("Content-Type", "application/json; charset=UTF-8");
-    response.writeString(JSON.stringify(responseData));
+    response.outputStream.writeString(JSON.stringify(responseData));
     response.outputStream.close();
   }
 
