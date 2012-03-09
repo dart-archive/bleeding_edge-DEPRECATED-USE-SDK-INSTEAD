@@ -65,11 +65,9 @@ class ElementKind {
   static final ElementKind COMPILATION_UNIT =
       const ElementKind('compilation_unit', ElementCategory.NONE);
   static final ElementKind GETTER =
-    const ElementKind('getter',
-                      ElementCategory.VARIABLE); // TODO(ahe): Sb. NONE.
+    const ElementKind('getter', ElementCategory.NONE);
   static final ElementKind SETTER =
-    const ElementKind('setter',
-                      ElementCategory.VARIABLE); // TODO(ahe): Sb. NONE.
+    const ElementKind('setter', ElementCategory.NONE);
   static final ElementKind ABSTRACT_FIELD =
     const ElementKind('abstract_field', ElementCategory.VARIABLE);
   static final ElementKind LIBRARY =
@@ -158,6 +156,43 @@ class ContainerElement extends Element {
     super(name, kind, enclosingElement);
 
   abstract void addMember(Element element, DiagnosticListener listener);
+
+  void addGetterOrSetter(Element element,
+                         Element existing,
+                         DiagnosticListener listener) {
+    void reportError(Element other) {
+      listener.cancel('duplicate definition of ${element.name.slowToString()}',
+                      element: element);
+      listener.cancel('existing definition', element: other);
+    }
+
+    if (existing != null) {
+      if (existing.kind !== ElementKind.ABSTRACT_FIELD) {
+        reportError(existing);
+      } else {
+        AbstractFieldElement field = existing;
+        if (element.kind == ElementKind.GETTER) {
+          if (field.getter != null && field.getter != element) {
+            reportError(field.getter);
+          }
+          field.getter = element;
+        } else {
+          if (field.setter != null && field.setter != element) {
+            reportError(field.setter);
+          }
+          field.setter = element;
+        }
+      }
+    } else {
+      AbstractFieldElement field = new AbstractFieldElement(element.name, this);
+      addMember(field, listener);
+      if (element.kind == ElementKind.GETTER) {
+        field.getter = element;
+      } else {
+        field.setter = element;
+      }
+    }
+  }
 }
 
 class CompilationUnitElement extends ContainerElement {
@@ -219,10 +254,15 @@ class LibraryElement extends CompilationUnitElement {
   }
 
   void define(Element element, DiagnosticListener listener) {
-    Element existing = elements.putIfAbsent(element.name, () => element);
-    if (existing !== element) {
-      listener.cancel('duplicate definition', token: element.position());
-      listener.cancel('existing definition', token: existing.position());
+    if (element.kind == ElementKind.GETTER
+        || element.kind == ElementKind.SETTER) {
+      addGetterOrSetter(element, elements[element.name], listener);
+    } else {
+      Element existing = elements.putIfAbsent(element.name, () => element);
+      if (existing !== element) {
+        listener.cancel('duplicate definition', token: element.position());
+        listener.cancel('existing definition', token: existing.position());
+      }
     }
   }
 
@@ -354,8 +394,11 @@ class ForeignElement extends Element {
 class AbstractFieldElement extends Element {
   FunctionElement getter;
   FunctionElement setter;
+  Modifiers modifiers;
+
   AbstractFieldElement(SourceString name, Element enclosing)
-      : super(name, ElementKind.ABSTRACT_FIELD, enclosing);
+      : super(name, ElementKind.ABSTRACT_FIELD, enclosing),
+        modifiers = new Modifiers.empty();
 
   Type computeType(Compiler compiler) {
     throw "internal error: AbstractFieldElement has no type";
@@ -604,42 +647,7 @@ class ClassElement extends ContainerElement {
       constructors[element.name] = element;
     } else if (element.kind == ElementKind.GETTER
                || element.kind == ElementKind.SETTER) {
-      Element existing = localMembers[element.name];
-      if (existing != null) {
-        if (existing.kind !== ElementKind.ABSTRACT_FIELD) {
-          listener.cancel('duplicate definition of ${name.slowToString()}',
-                          element: element);
-          listener.cancel('existing definition', element: existing);
-        } else {
-          AbstractFieldElement field = existing;
-          if (element.kind == ElementKind.GETTER) {
-            if (field.getter != null) {
-              listener.cancel('duplicate definition of getter ${element.name}',
-                              element: element);
-              listener.cancel('existing definition', element: field.getter);
-            } else {
-              field.getter = element;
-            }
-          } else {
-            if (field.setter != null) {
-              listener.cancel('duplicate definition of setter ${element.name}',
-                              element: element);
-              listener.cancel('existing definition', element: field.setter);
-            } else {
-              field.setter = element;
-            }
-          }
-        }
-      } else {
-        AbstractFieldElement field =
-            new AbstractFieldElement(element.name, this);
-        localMembers[element.name] = field;
-        if (element.kind == ElementKind.GETTER) {
-          field.getter = element;
-        } else {
-          field.setter = element;
-        }
-      }
+      addGetterOrSetter(element, localMembers[element.name], listener);
     } else {
       localMembers[element.name] = element;
     }
