@@ -774,6 +774,11 @@ class MethodAnalyzer implements TreeVisitor {
     return new PureStaticValue(node.value.type, node.span, true);
   }
 
+  Value visitStringConcatExpression(StringConcatExpression node) {
+    node.strings.forEach(visitValue);
+    return _frame._makeValue(world.stringType, node);
+  }
+
   Value visitStringInterpExpression(StringInterpExpression node) {
     node.pieces.forEach(visitValue);
     return _frame._makeValue(world.stringType, node);

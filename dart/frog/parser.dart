@@ -1115,11 +1115,8 @@ class Parser {
           Value.fromDouble(Math.parseDouble(t.text), t.span));
 
       case TokenKind.STRING:
-      var t = _next();
-      return _makeLiteral(Value.fromString(t.value, t.span));
-
       case TokenKind.STRING_PART:
-        return stringInterpolation();
+        return adjacentStrings();
 
       case TokenKind.LT:
         return finishTypedLiteral(start, false);
@@ -1135,6 +1132,27 @@ class Parser {
           _errorExpected('expression');
         }
         return new VarExpression(identifier(), _makeSpan(start));
+    }
+  }
+
+  adjacentStrings() {
+    int start = _peekToken.start;
+    List<Expression> strings = [];
+    while (_peek() == TokenKind.STRING || _peek() == TokenKind.STRING_PART) {
+      Expression part = null;
+      if (_peek() == TokenKind.STRING) {
+        var t = _next();
+        part = _makeLiteral(Value.fromString(t.value, t.span));
+      } else {
+        part = stringInterpolation();
+      }
+      strings.add(part);
+    }
+    if (strings.length == 1) {
+      return strings[0];
+    } else {
+      assert(!strings.isEmpty());
+      return new StringConcatExpression(strings, _makeSpan(start));
     }
   }
 

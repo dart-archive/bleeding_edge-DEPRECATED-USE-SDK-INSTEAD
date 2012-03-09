@@ -369,6 +369,14 @@ class LiteralExpression extends Expression {
   visit(TreeVisitor visitor) => visitor.visitLiteralExpression(this);
 }
 
+class StringConcatExpression extends Expression {
+  List<Expression> strings;
+
+  StringConcatExpression(this.strings, SourceSpan span): super(span) {}
+
+  visit(TreeVisitor visitor) => visitor.visitStringConcatExpression(this);
+}
+
 class StringInterpExpression extends Expression {
   List<Expression> pieces;
 
@@ -573,6 +581,8 @@ interface TreeVisitor {
   visitSuperExpression(SuperExpression node);
 
   visitLiteralExpression(LiteralExpression node);
+
+  visitStringConcatExpression(StringConcatExpression node);
 
   visitStringInterpExpression(StringInterpExpression node);
 
@@ -845,6 +855,11 @@ class TreePrinter implements TreeVisitor {
 
   void visitLiteralExpression(LiteralExpression node) {
     output.heading('LiteralExpression(' + output.toValue(node.value) + ")", node.span);
+  }
+
+  void visitStringConcatExpression(StringConcatExpression node) {
+    output.heading('StringConcatExpression', node.span);
+    output.writeNodeList('strings', node.strings);
   }
 
   void visitStringInterpExpression(StringInterpExpression node) {

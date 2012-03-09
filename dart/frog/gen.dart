@@ -2296,6 +2296,17 @@ class MethodGenerator implements TreeVisitor, CallingContext {
     }
   }
 
+  visitStringConcatExpression(StringConcatExpression node) {
+    var items = [];
+    for (var item in node.strings) {
+      Value val = visitValue(item);
+      assert(val.type.isString);
+      items.add(val.code);
+    }
+    return new Value(world.stringType, '(${Strings.join(items, " + ")})',
+                     node.span);
+  }
+
   visitStringInterpExpression(StringInterpExpression node) {
     var items = [];
     for (var item in node.pieces) {

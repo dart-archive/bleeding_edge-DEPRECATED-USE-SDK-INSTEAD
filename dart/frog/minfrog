@@ -2651,6 +2651,10 @@ MethodAnalyzer.prototype.visitSuperExpression = function(node) {
 MethodAnalyzer.prototype.visitLiteralExpression = function(node) {
   return new PureStaticValue(node.value.get$type(), node.span, true, false);
 }
+MethodAnalyzer.prototype.visitStringConcatExpression = function(node) {
+  node.strings.forEach(this.get$visitValue());
+  return this._frame._makeValue($globals.world.stringType, node);
+}
 MethodAnalyzer.prototype.visitStringInterpExpression = function(node) {
   node.pieces.forEach(this.get$visitValue());
   return this._frame._makeValue($globals.world.stringType, node);
@@ -5135,6 +5139,16 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
   else {
     return false;
   }
+}
+MethodGenerator.prototype.visitStringConcatExpression = function(node) {
+  var items = [];
+  var $$list = node.strings;
+  for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
+    var item = $$i.next();
+    var val = this.visitValue(item);
+    items.add(val.get$code());
+  }
+  return new Value($globals.world.stringType, ("(" + Strings.join(items, " + ") + ")"), node.span);
 }
 MethodGenerator.prototype.visitStringInterpExpression = function(node) {
   var items = [];
@@ -10172,13 +10186,9 @@ Parser.prototype.primary = function() {
       return this._makeLiteral(Value.fromDouble(Math.parseDouble(t.get$text()), t.get$span()));
 
     case (58):
-
-      var t = this._lang_next();
-      return this._makeLiteral(Value.fromString(t.get$value(), t.get$span()));
-
     case (59):
 
-      return this.stringInterpolation();
+      return this.adjacentStrings();
 
     case (52):
 
@@ -10197,6 +10207,27 @@ Parser.prototype.primary = function() {
       }
       return new VarExpression(this.identifier(), this._makeSpan(start));
 
+  }
+}
+Parser.prototype.adjacentStrings = function() {
+  var start = this._peekToken.start;
+  var strings = [];
+  while (this._peek() == (58) || this._peek() == (59)) {
+    var part = null;
+    if (this._peek() == (58)) {
+      var t = this._lang_next();
+      part = this._makeLiteral(Value.fromString(t.get$value(), t.get$span()));
+    }
+    else {
+      part = this.stringInterpolation();
+    }
+    strings.add(part);
+  }
+  if (strings.get$length() == (1)) {
+    return strings.$index((0));
+  }
+  else {
+    return new StringConcatExpression(strings, this._makeSpan(start));
   }
 }
 Parser.prototype.stringInterpolation = function() {
@@ -11244,6 +11275,15 @@ LiteralExpression.prototype.get$value = function() { return this.value; };
 LiteralExpression.prototype.set$value = function(value) { return this.value = value; };
 LiteralExpression.prototype.visit = function(visitor) {
   return visitor.visitLiteralExpression(this);
+}
+// ********** Code for StringConcatExpression **************
+$inherits(StringConcatExpression, Expression);
+function StringConcatExpression(strings, span) {
+  this.strings = strings;
+  Expression.call(this, span);
+}
+StringConcatExpression.prototype.visit = function(visitor) {
+  return visitor.visitStringConcatExpression(this);
 }
 // ********** Code for StringInterpExpression **************
 $inherits(StringInterpExpression, Expression);
