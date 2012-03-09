@@ -60,7 +60,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Instances of the class <code>NewSearchEngineImpl</code> implement a search engine that use the
+ * Instances of the class <code>NewSearchEngineImpl</code> implement a search engine that uses the
  * new index to obtain results.
  */
 public class NewSearchEngineImpl implements SearchEngine {
