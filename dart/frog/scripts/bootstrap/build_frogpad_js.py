@@ -14,12 +14,7 @@ import frog
 
 # Runs frog.dart on the dart vm to compile frogpad.dart to frogpad.js
 def main(args):
-  if len(args) >= 2:
-    product_dir = args[1]
-  else:
-    product_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),
-        '..', '..', '..', 'out/Release_ia32'))
-    print product_dir
+  product_dir = args[1]
 
   vm = os.path.join(product_dir, 'dart')
   frogpad_dart = os.path.join(product_dir, '..', '..',
