@@ -20,11 +20,13 @@ import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchException;
 import com.google.dart.tools.core.search.SearchFilter;
+import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.search.SearchPattern;
 import com.google.dart.tools.core.search.SearchPatternFactory;
 import com.google.dart.tools.core.search.SearchScope;
@@ -35,7 +37,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CallerMethodWrapper extends MethodWrapper {
@@ -126,27 +130,40 @@ public class CallerMethodWrapper extends MethodWrapper {
 
       SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
       SearchScope defaultSearchScope = getSearchScope();
-      MethodReferencesSearchListener listener = new MethodReferencesSearchListener();
       boolean isWorkspaceScope = SearchScopeFactory.createWorkspaceScope().equals(
           defaultSearchScope);
       SearchScope scope = isWorkspaceScope ? getAccurateSearchScope(defaultSearchScope,
           (CompilationUnitElement) member) : defaultSearchScope;
       SearchFilter f = null;
+      List<SearchMatch> matches;
       switch (member.getElementType()) {
         case DartElement.METHOD:
-          searchEngine.searchReferences((Method) member, scope, f, listener, monitor);
+          matches = searchEngine.searchReferences((Method) member, scope, f, monitor);
           break;
         case DartElement.FIELD:
-          searchEngine.searchReferences((Field) member, scope, f, listener, monitor);
+          matches = searchEngine.searchReferences((Field) member, scope, f, monitor);
           break;
         case DartElement.FUNCTION:
-          searchEngine.searchReferences((DartFunction) member, scope, f, listener, monitor);
+          matches = searchEngine.searchReferences((DartFunction) member, scope, f, monitor);
           break;
         case DartElement.FUNCTION_TYPE_ALIAS:
-          searchEngine.searchReferences((DartFunctionTypeAlias) member, scope, f, listener, monitor);
+          matches = searchEngine.searchReferences((DartFunctionTypeAlias) member, scope, f, monitor);
           break;
+        default:
+          matches = new ArrayList<SearchMatch>();
       }
-      return listener.getCallers();
+
+      checkCanceled(progressMonitor);
+      CallSearchResultCollector searchResults = new CallSearchResultCollector();
+      for (SearchMatch match : matches) {
+        DartElement element = match.getElement();
+        SourceRange range = match.getSourceRange();
+        searchResults.addMember(element, element, range.getOffset(),
+            range.getOffset() + range.getLength());
+      }
+
+      monitor.done();
+      return searchResults.getCallers();
 
     } catch (CoreException e) {
       DartToolsPlugin.log(e);

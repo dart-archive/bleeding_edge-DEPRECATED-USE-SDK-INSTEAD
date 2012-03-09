@@ -270,8 +270,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
         DartExpression leftOperand = node.getArg1();
         DartExpression rightOperand = node.getArg2();
         wordRegion = computeOperatorRegion(leftOperand.getSourceInfo().getOffset()
-            + leftOperand.getSourceInfo().getLength(),
-            rightOperand.getSourceInfo().getOffset() - 1);
+            + leftOperand.getSourceInfo().getLength(), rightOperand.getSourceInfo().getOffset() - 1);
         Element targetElement = node.getElement();
         findElementFor(targetElement);
         throw new DartElementFoundException();
@@ -438,6 +437,9 @@ public class DartElementLocator extends ASTVisitor<Void> {
       int start = node.getSourceInfo().getOffset();
       int length = node.getSourceInfo().getLength();
       int end = start + length;
+      if (end == 0) {
+        return null;
+      }
       if (start <= startOffset && end >= endOffset) {
         wordRegion = computeInternalStringRegion(start, length);
         DartNode parent = node.getParent();
