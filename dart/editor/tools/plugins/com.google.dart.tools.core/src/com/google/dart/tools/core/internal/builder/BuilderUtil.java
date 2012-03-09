@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.util.Util;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -41,7 +40,7 @@ class BuilderUtil {
     try {
       res.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_INFINITE);
     } catch (CoreException e) {
-      Util.log(e, "Failed to clear markers for " + res);
+      DartCore.logError("Failed to clear markers for " + res, e); //$NON-NLS-1$
     }
   }
 
@@ -83,8 +82,9 @@ class BuilderUtil {
       marker.setAttribute(IMarker.CHAR_END, offset + length);
       marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
     } catch (CoreException e) {
-      Util.log(e, "Failed to create marker for " + res + "\n   at " + offset + " message: "
-          + errMsg);
+      DartCore.logError("Failed to create marker for " + res //$NON-NLS-1$
+          + "\n   at " + offset //$NON-NLS-1$
+          + " message: " + errMsg, e); //$NON-NLS-1$
     }
   }
 

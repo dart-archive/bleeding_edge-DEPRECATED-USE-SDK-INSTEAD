@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -32,7 +32,6 @@ import com.google.dart.tools.core.internal.model.info.DartTypeInfo;
 import com.google.dart.tools.core.internal.model.info.DartVariableInfo;
 import com.google.dart.tools.core.internal.model.info.HTMLFileInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
-import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.OpenableElement;
 
@@ -409,7 +408,8 @@ public class DartModelCache {
         return Double.parseDouble(property);
       } catch (NumberFormatException exception) {
         // ignore
-        Util.log(exception, "Could not parse value for " + RATIO_PROPERTY + ": " + property); //$NON-NLS-1$ //$NON-NLS-2$
+        DartCore.logError(
+            "Could not parse value for " + RATIO_PROPERTY + ": " + property, exception); //$NON-NLS-1$ //$NON-NLS-2$
       }
     }
     return 1.0;

@@ -50,7 +50,6 @@ import com.google.dart.tools.core.internal.model.info.DartProjectInfo;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.LibraryReferenceFinder;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -1045,7 +1044,7 @@ public class DartModelManager {
         try {
           removeInfoAndChildren(element);
         } catch (DartModelException e) {
-          Util.log(e, "Failed to close library: " + element.getElementName());
+          DartCore.logError("Failed to close library: " + element.getElementName(), e); //$NON-NLS-1$
           continue;
         }
       }
@@ -1637,7 +1636,7 @@ public class DartModelManager {
     try {
       preferences.flush();
     } catch (BackingStoreException e) {
-      Util.log(e, "Could not save DartCore preferences"); //$NON-NLS-1$
+      DartCore.logError("Could not save DartCore preferences", e); //$NON-NLS-1$
     }
     IWorkspace workspace = ResourcesPlugin.getWorkspace();
     workspace.removeResourceChangeListener(deltaState);

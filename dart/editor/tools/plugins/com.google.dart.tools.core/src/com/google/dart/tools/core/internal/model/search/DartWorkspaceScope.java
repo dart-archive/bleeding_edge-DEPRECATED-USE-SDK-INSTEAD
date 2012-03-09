@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.core.internal.model.search;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
-import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
 import com.google.dart.tools.core.model.DartModelException;
@@ -97,7 +97,8 @@ public class DartWorkspaceScope extends AbstractSearchScope {
       paths.toArray(result);
       return this.enclosingPaths = result;
     } catch (DartModelException e) {
-      Util.log(e, "Exception while computing workspace scope's enclosing projects and jars"); //$NON-NLS-1$
+      DartCore.logError(
+          "Exception while computing workspace scope's enclosing projects and jars", e); //$NON-NLS-1$
       return new IPath[0];
       // } finally {
       // if (BasicSearchEngine.VERBOSE) {

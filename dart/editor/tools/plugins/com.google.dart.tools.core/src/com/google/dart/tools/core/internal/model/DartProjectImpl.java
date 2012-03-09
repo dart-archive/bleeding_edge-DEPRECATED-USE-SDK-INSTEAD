@@ -29,7 +29,6 @@ import com.google.dart.tools.core.internal.model.info.DartProjectInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -114,9 +113,9 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     IResource[] members;
     try {
       members = project.members();
-    } catch (CoreException e) {
+    } catch (CoreException exception) {
       if (project.isOpen()) {
-        Util.log(e, "Failed to get project members: " + project);
+        DartCore.logError("Failed to get project members: " + project, exception); //$NON-NLS-1$
       }
       return;
     }
@@ -524,9 +523,9 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
         projectInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
         return;
       }
-    } catch (DartModelException e) {
-      Util.log(e, "Failed to recompute the set of top-level libraries in the project:"
-          + getElementName());
+    } catch (DartModelException exception) {
+      DartCore.logError("Failed to recompute the set of top-level libraries in the project:" //$NON-NLS-1$
+          + getElementName(), exception);
     }
   }
 
@@ -560,9 +559,9 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
         }
         projectInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
       }
-    } catch (DartModelException e) {
-      Util.log(e, "Failed to remove the new libray file " + file.getName() + " to the project "
-          + getElementName());
+    } catch (DartModelException exception) {
+      DartCore.logError("Failed to remove the new libray file " + file.getName() //$NON-NLS-1$
+          + " to the project " + getElementName()); //$NON-NLS-1$
     }
     return foundAndRemoved;
   }
@@ -922,6 +921,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
    * @return the file that contains the paths to the project's children
    */
   private File getChildrenFile() {
+    // new File(DartCore.getPlugin().getStateLocation().append(getProject().getName()).append(CHILDREN_FILE_NAME).toOSString());
     return new File(getProject().getLocation().append(CHILDREN_FILE_NAME).toOSString());
   }
 

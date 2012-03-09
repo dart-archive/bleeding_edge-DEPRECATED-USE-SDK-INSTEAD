@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -443,8 +443,8 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
       SafeRunner.run(new ISafeRunnable() {
         @Override
         public void handleException(Throwable exception) {
-          Util.log(exception,
-              "Exception occurred in listener of Type hierarchy change notification"); //$NON-NLS-1$
+          DartCore.logError(
+              "Exception occurred in listener of Type hierarchy change notification", exception); //$NON-NLS-1$
         }
 
         @Override
@@ -1638,7 +1638,7 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
         processSubtypes(subtype);
       }
     } catch (IndexTemporarilyNonOperational exception) {
-      Util.log(exception, "Could not access subtypes of " + type.getElementName());
+      DartCore.logError("Could not access subtypes of " + type.getElementName(), exception); //$NON-NLS-1$
     }
   }
 
@@ -1669,7 +1669,7 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
         cacheSuperInterfaces(type, interfaceList.toArray(new Type[interfaceList.size()]));
       }
     } catch (IndexTemporarilyNonOperational exception) {
-      Util.log(exception, "Could not access supertypes of " + type.getElementName());
+      DartCore.logError("Could not access supertypes of " + type.getElementName(), exception); //$NON-NLS-1$
     }
   }
 
