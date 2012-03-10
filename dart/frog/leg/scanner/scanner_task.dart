@@ -105,12 +105,11 @@ class ScannerTask extends CompilerTask {
     if (prefix !== null) {
       library.define(new PrefixElement(prefix, imported, library), compiler);
     } else {
-      for (Link<Element> link = imported.topLevelElements; !link.isEmpty();
-           link = link.tail) {
-        compiler.withCurrentElement(link.head, () {
-            library.define(link.head, compiler);
-          });
-      }
+      imported.forEachExport((Element element) {
+        compiler.withCurrentElement(element, () {
+          library.define(element, compiler);
+        });
+      });
     }
   }
 }

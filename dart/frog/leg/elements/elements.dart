@@ -275,6 +275,16 @@ class LibraryElement extends CompilationUnitElement {
     if (element === null) return null;
     return (this === element.getLibrary()) ? element : null;
   }
+
+  void forEachExport(f(Element element)) {
+    elements.forEach((SourceString _, Element e) {
+      if (this === e.getLibrary()
+          && e.kind !== ElementKind.PREFIX
+          && e.kind !== ElementKind.FOREIGN) {
+        f(e);
+      }
+    });
+  }
 }
 
 class PrefixElement extends Element {
