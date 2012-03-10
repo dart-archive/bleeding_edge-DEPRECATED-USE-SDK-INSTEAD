@@ -35,8 +35,8 @@ bool compile(frog.World world) {
       world.info('[leg] $message');
       return;
     }
-    print(message);
-    if (fatal && throwOnError) new AbortLeg(message);
+    print('$uri:$begin:$end: $message');
+    if (fatal && throwOnError) throw new AbortLeg(message);
   }
 
   // TODO(ahe): We expect the future to be complete and call value

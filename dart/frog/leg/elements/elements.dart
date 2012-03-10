@@ -598,24 +598,7 @@ class SynthesizedConstructorElement extends FunctionElement {
     : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
             null, enclosing);
 
-  FunctionType computeType(Compiler compiler) {
-    if (type != null) return type;
-    Type returnType = compiler.types.voidType;
-    type = new FunctionType(returnType, const EmptyLink<Type>(), this);
-    return type;
-  }
-
-  Node parseNode(DiagnosticListener listener) {
-    if (cachedNode != null) return cachedNode;
-    cachedNode = new FunctionExpression(
-        new Identifier(enclosingElement.position()),
-        new NodeList.empty(),
-        new Block(new NodeList.empty()),
-        null, null, null, null);
-    return cachedNode;
-  }
-
-  Token position() => null;
+  Token position() => enclosing.position();
 }
 
 class ClassElement extends ContainerElement {
@@ -631,7 +614,6 @@ class ClassElement extends ContainerElement {
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.
   Link<Element> backendMembers = const EmptyLink<Element>();
-  SynthesizedConstructorElement synthesizedConstructor;
 
   Link<Type> allSupertypes;
 
@@ -700,18 +682,6 @@ class ClassElement extends ContainerElement {
       result = noMatch(lookupLocalMember(constructorName));
     }
     return result;
-  }
-
-  bool canHaveDefaultConstructor() => constructors.length == 0;
-
-  SynthesizedConstructorElement getSynthesizedConstructor() {
-    // TODO(ahe): Get rid of this method. Add the
-    // SynthesizedConstructorElement to [constructors] if empty when
-    // [resolve] is called.
-    if (synthesizedConstructor === null && canHaveDefaultConstructor()) {
-      synthesizedConstructor = new SynthesizedConstructorElement(this);
-    }
-    return synthesizedConstructor;
   }
 
   /**

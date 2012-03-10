@@ -125,11 +125,22 @@ class Compiler implements DiagnosticListener {
 
   void cancel([String reason, Node node, Token token,
                HInstruction instruction, Element element]) {
+    SourceSpan span = const SourceSpan(null, null, null);
+    if (node !== null) {
+      span = spanFromNode(node);
+    } else if (token !== null) {
+      span = spanFromTokens(token, token);
+    } else if (instruction !== null) {
+      span = spanFromElement(currentElement);
+    } else if (element !== null) {
+      span = spanFromElement(element);
+    }
+    reportDiagnostic(span, reason, true);
     throw new CompilerCancelledException(reason);
   }
 
   void log(message) {
-    // Do nothing.
+    reportDiagnostic(null, message, false);
   }
 
   void enqueue(WorkItem work) {
@@ -366,9 +377,58 @@ class Compiler implements DiagnosticListener {
       });
   }
 
-  reportWarning(Node node, var message) {}
+  reportWarning(Node node, var message) {
+    SourceSpan span = spanFromNode(node);
+    reportDiagnostic(span, message.toString(), false);
+  }
 
-  reportError(Node node, var message) => cancel(message.toString(), node: node);
+  reportError(Node node, var message) {
+    SourceSpan span = spanFromNode(node);
+    reportDiagnostic(span, message.toString(), true);
+    throw new CompilerCancelledException(message.toString());
+  }
+
+  abstract void reportDiagnostic(SourceSpan span, String message, bool fatal);
+
+  SourceSpan spanFromTokens(Token begin, Token end) {
+    if (begin === null || end === null) {
+      // TODO(ahe): We can almost always do better. Often it is only
+      // end that is null. Otherwise, we probably know the current
+      // URI.
+      throw 'cannot find tokens to produce error message';
+    }
+    final startOffset = begin.charOffset;
+    // TODO(ahe): Compute proper end offset.
+    final endOffset =
+      (end.next !== null) ? end.next.charOffset - 1 : startOffset + 1;
+    Uri uri = currentElement.getCompilationUnit().script.uri;
+    return new SourceSpan(uri, startOffset, endOffset);
+  }
+
+  SourceSpan spanFromNode(Node node) {
+    return spanFromTokens(node.getBeginToken(), node.getEndToken());
+  }
+
+  SourceSpan spanFromElement(Element element) {
+    if (element.position() === null) {
+      // Sometimes, the backend fakes up elements that have no
+      // position. So we use the enclosing element instead. It is
+      // not a good error location, but cancel really is "internal
+      // error" or "not implemented yet", so the vicinity is good
+      // enough for now.
+      element = element.enclosingElement;
+      // TODO(ahe): I plan to overhaul this infrastructure anyways.
+    }
+    if (element === null) {
+      element = currentElement;
+    }
+    Token position = element.position();
+    if (position === null) {
+      // TODO(ahe): Find the enclosing library.
+      return const SourceSpan(null, null, null);
+    }
+    return spanFromTokens(position, position);
+  }
 
   Script readScript(Uri uri, [ScriptTag node]) {
     unimplemented('Compiler.readScript');
@@ -429,4 +489,12 @@ class LTracer implements Tracer {
   }
   void close() {
   }
+}
+
+class SourceSpan {
+  final Uri uri;
+  final int begin;
+  final int end;
+
+  const SourceSpan(this.uri, this.begin, this.end);
 }

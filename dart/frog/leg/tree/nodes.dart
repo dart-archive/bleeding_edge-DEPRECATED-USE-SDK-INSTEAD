@@ -262,7 +262,9 @@ class Send extends Expression {
       if (selector !== null) return selector.getEndToken();
       return null;
     }
-    if (argumentsNode !== null) return argumentsNode.getEndToken();
+    if (!isPostfix && argumentsNode !== null) {
+      return argumentsNode.getEndToken();
+    }
     if (selector !== null) return selector.getEndToken();
     return receiver.getBeginToken();
   }
@@ -578,7 +580,9 @@ class FunctionExpression extends Expression {
   }
 
   Token getEndToken() {
-    return (body === null) ? parameters.getEndToken() : body.getEndToken();
+    Token token = (body === null) ? null : body.getEndToken();
+    token = (token === null) ? parameters.getEndToken() : token;
+    return (token === null) ? name.getEndToken() : token;
   }
 }
 
@@ -1648,7 +1652,8 @@ class TryStatement extends Statement {
 
   Token getEndToken() {
     if (finallyBlock !== null) return finallyBlock.getEndToken();
-    return catchBlocks.getEndToken();
+    if (!catchBlocks.isEmpty()) return catchBlocks.getEndToken();
+    return tryBlock.getEndToken();
   }
 }
 

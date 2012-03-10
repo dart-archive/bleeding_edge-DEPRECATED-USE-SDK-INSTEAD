@@ -75,6 +75,10 @@ class MockCompiler extends Compiler {
     errors.add(new WarningMessage(node, message.message));
   }
 
+  void reportDiagnostic(SourceSpan span, String message, bool fatal) {
+    print(message);
+  }
+
   void clearWarnings() {
     warnings = [];
   }

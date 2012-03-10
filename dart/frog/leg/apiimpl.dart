@@ -59,4 +59,12 @@ class Compiler extends leg.Compiler {
     }
     return success;
   }
+
+  void reportDiagnostic(leg.SourceSpan span, String message, bool fatal) {
+    if (span === null) {
+      handler(null, null, null, message, fatal);
+    } else {
+      handler(span.uri, span.begin, span.end, message, fatal);
+    }
+  }
 }

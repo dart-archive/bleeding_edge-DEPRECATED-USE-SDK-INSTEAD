@@ -70,13 +70,9 @@ class ResolverTask extends CompilerTask {
                                     [noConstructor(Element)]) {
     final SourceString constructorName = getConstructorName(send);
     final SourceString className = classElement.name;
-    FunctionElement result = classElement.lookupConstructor(className,
-                                                            constructorName,
-                                                            noConstructor);
-    if (result === null && send.arguments.isEmpty()) {
-      result = classElement.getSynthesizedConstructor();
-    }
-    return result;
+    return classElement.lookupConstructor(className,
+                                          constructorName,
+                                          noConstructor);
   }
 
   FunctionElement resolveConstructorRedirection(FunctionElement constructor) {
@@ -179,13 +175,6 @@ class ResolverTask extends CompilerTask {
               intrface.name.slowToString(),
               defaultClass.name.slowToString()));
       constructor.defaultImplementation = defaultClass.lookupConstructor(name);
-
-      if (constructor.defaultImplementation === null
-          && name == defaultClass.name
-          && constructor.computeParameters(compiler).parameterCount === 0) {
-        constructor.defaultImplementation =
-            defaultClass.getSynthesizedConstructor();
-      }
 
       if (constructor.defaultImplementation === null) {
         // We failed find a constrcutor named either
@@ -1147,6 +1136,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       element.interfaces = element.interfaces.prepend(visit(link.head));
     }
     calculateAllSupertypes(element, new Set<ClassElement>());
+    addDefaultConstructorIfNeeded(element);
     return element.computeType(compiler);
   }
 
@@ -1241,6 +1231,24 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     }
   }
 
+  /**
+   * Add a synthetic nullary constructor if there are no other
+   * constructors.
+   */
+  void addDefaultConstructorIfNeeded(ClassElement element) {
+    if (element.constructors.length != 0) return;
+    SynthesizedConstructorElement constructor =
+      new SynthesizedConstructorElement(element);
+    element.constructors[element.name] = constructor;
+    Type returnType = compiler.types.voidType;
+    constructor.type = new FunctionType(returnType, const EmptyLink<Type>(),
+                                        constructor);
+    constructor.cachedNode =
+      new FunctionExpression(new Identifier(element.position()),
+                             new NodeList.empty(),
+                             new Block(new NodeList.empty()),
+                             null, null, null, null);
+  }
 }
 
 class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
@@ -1443,12 +1451,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       if (cls.isInterface() && (cls.defaultClass === null)) {
         error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
       }
-      FunctionElement constructor = cls.lookupConstructor(cls.name);
-      if (constructor === null && node.send.argumentsNode.isEmpty()) {
-        e = cls.getSynthesizedConstructor();
-      } else {
-        e = constructor;
-      }
+      e = cls.lookupConstructor(cls.name);
     }
     return e;
   }

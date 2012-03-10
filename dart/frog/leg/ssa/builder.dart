@@ -854,10 +854,7 @@ class SsaBuilder implements Visitor {
           assert(superClass !== null);
           assert(superClass.isResolved);
           nextConstructor = superClass.lookupConstructor(superClass.name);
-          if (nextConstructor === null &&
-              superClass.canHaveDefaultConstructor()) {
-            nextConstructor = superClass.getSynthesizedConstructor();
-          } else if (nextConstructor === null) {
+          if (nextConstructor === null) {
             compiler.internalError("no default constructor available");
           }
         }
