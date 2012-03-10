@@ -401,7 +401,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
                 candidateRegion = new Region(variableName.getSourceInfo().getOffset(),
                     variableName.getSourceInfo().getLength());
               } else {
-                foundElement = BindingUtils.getDartElement(null, (VariableElement) targetElement);
+                foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
+                    (VariableElement) targetElement);
               }
             } else {
               foundElement = null;

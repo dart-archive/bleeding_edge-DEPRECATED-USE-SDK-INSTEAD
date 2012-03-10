@@ -18,6 +18,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -76,6 +77,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -3724,11 +3726,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           currentNode.getSourceInfo().getLength());
     }
 
-//    fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);
-//    fOccurrencesFinderJob.setPriority(Job.DECORATE);
-//    fOccurrencesFinderJob.setSystem(true);
-//    fOccurrencesFinderJob.schedule();
-//    fOccurrencesFinderJob.run(new NullProgressMonitor());
+    if (DartCoreDebug.ENABLE_MARK_OCCURRENCES) {
+      fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);
+      fOccurrencesFinderJob.setPriority(Job.DECORATE);
+      fOccurrencesFinderJob.setSystem(true);
+      fOccurrencesFinderJob.schedule();
+      fOccurrencesFinderJob.run(new NullProgressMonitor());
+    }
   }
 
   /*
