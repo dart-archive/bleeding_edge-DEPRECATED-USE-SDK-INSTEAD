@@ -11,6 +11,7 @@ Runs tests for the frog compiler (running on the vm or the self-hosting version)
 
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -192,8 +193,8 @@ def CleanUpTemporaryFiles(system, browser):
      - browser: one of the browsers, see GetBuildInfo
   """
   if system == 'win7':
-    subprocess.Popen(['rmdir', '/S', '/Q',
-      'C:\\Users\\chrome-bot\\AppData\\Local\\Temp'], shell=True)
+    shutil.rmtree('C:\\Users\\chrome-bot\\AppData\\Local\\Temp',
+        ignore_errors=True)
   elif browser == 'ff':
     # Note: the buildbots run as root, so we can do this without requiring a
     # password. The command won't actually work on regular machines without
@@ -218,7 +219,7 @@ def main():
     print '@@@STEP_FAILURE@@@'
     return status
 
-  if component != 'frogium':
+  if component != 'frogium' or (system == 'linux' and browser == 'chrome'):
     status = TestFrog(component, mode, system, browser, [])
     if status != 0:
       print '@@@STEP_FAILURE@@@'
