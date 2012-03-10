@@ -117,7 +117,8 @@ class ArithmeticNumOperation implements BinaryOperation {
       } else {
         foldedValue = foldNums(leftNum.value, rightNum.value);
       }
-      assert(foldedValue != null);
+      // A division by 0 means that we might not have a folded value.
+      if (foldedValue === null) return null;
       if (left.isInt() && right.isInt() && !isDivide()) {
         assert(foldedValue is int);
         return new IntConstant(foldedValue);
