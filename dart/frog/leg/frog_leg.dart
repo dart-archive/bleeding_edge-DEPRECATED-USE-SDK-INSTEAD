@@ -9,6 +9,36 @@
 #import('api.dart', prefix: 'api');
 #import('io/io.dart', prefix: 'io');
 
+String relativize(Uri base, Uri uri) {
+  if (base.scheme == 'file' &&
+      base.scheme == uri.scheme &&
+      base.userInfo == uri.userInfo &&
+      base.domain == uri.domain &&
+      base.port == uri.port &&
+      uri.query == "" && uri.fragment == "") {
+    if (uri.path.startsWith(base.path)) {
+      return uri.path.substring(base.path.length);
+    }
+    List<String> uriParts = uri.path.split('/');
+    List<String> baseParts = base.path.split('/');
+    int common = 0;
+    int length = Math.min(uriParts.length, baseParts.length);
+    while (common < length && uriParts[common] == baseParts[common]) {
+      common++;
+    }
+    StringBuffer sb = new StringBuffer();
+    for (int i = common + 1; i < baseParts.length; i++) {
+      sb.add('../');
+    }
+    for (int i = common; i < uriParts.length - 1; i++) {
+      sb.add('${uriParts[i]}/');
+    }
+    sb.add('${uriParts.last()}');
+    return sb.toString();
+  }
+  return uri.toString();
+}
+
 bool compile(frog.World world) {
   final throwOnError = frog.options.throwOnErrors;
   // final compiler = new WorldCompiler(world, throwOnError);
@@ -18,6 +48,7 @@ bool compile(frog.World world) {
   if (!frogLibDir.endsWith("/")) frogLibDir = "$frogLibDir/";
   Uri frogLib = new Uri(scheme: 'file', path: frogLibDir);
   Uri libraryRoot = frogLib.resolve('../leg/lib/');
+  Map<String, frog.SourceFile> sourceFiles = <frog.SourceFile>{};
 
   Future<String> provider(Uri uri) {
     if (uri.scheme != 'file') {
@@ -25,6 +56,8 @@ bool compile(frog.World world) {
     }
     String source = world.files.readAll(uri.path);
     world.dartBytesRead += source.length;
+    sourceFiles[uri.toString()] =
+      new frog.SourceFile(relativize(cwd, uri), source);
     Completer<String> completer = new Completer<String>();
     completer.complete(source);
     return completer.future;
@@ -35,7 +68,12 @@ bool compile(frog.World world) {
       world.info('[leg] $message');
       return;
     }
-    print('$uri:$begin:$end: $message');
+    if (uri === null) {
+      print(message);
+    } else {
+      frog.SourceFile file = sourceFiles[uri.toString()];
+      print(file.getLocationMessage(message, begin, end, true));
+    }
     if (fatal && throwOnError) throw new AbortLeg(message);
   }
 

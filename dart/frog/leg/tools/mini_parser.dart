@@ -202,8 +202,8 @@ class MyListener extends Listener {
   }
 }
 
-void formatError(String message, Token beginToken, Token endToken,
-                 SourceFile file) {
+String formatError(String message, Token beginToken, Token endToken,
+                   SourceFile file) {
   ++errorCount;
   if (beginToken === null) return '${file.filename}: $message';
   String tokenString = endToken.toString();

@@ -85,6 +85,11 @@ class Compiler implements DiagnosticListener {
   static final SourceString OBJECT = const SourceString('Object');
   bool enabledNoSuchMethod = false;
 
+  static final String GREEN_COLOR = '\u001b[32m';
+  static final String RED_COLOR = '\u001b[31m';
+  static final String MAGENTA_COLOR = '\u001b[35m';
+  static final String NO_COLOR = '\u001b[0m';
+
   Compiler.withCurrentDirectory(String this.currentDirectory,
                                 [this.tracer = const Tracer()])
       : types = new Types(),
@@ -107,6 +112,10 @@ class Compiler implements DiagnosticListener {
              emitter, constantHandler];
   }
 
+  green(String string) => "${GREEN_COLOR}$string${NO_COLOR}";
+  red(String string) => "${RED_COLOR}$string${NO_COLOR}";
+  magenta(String string) => "${MAGENTA_COLOR}$string${NO_COLOR}";
+
   void ensure(bool condition) {
     if (!condition) cancel('failed assertion in leg');
   }
@@ -114,13 +123,15 @@ class Compiler implements DiagnosticListener {
   void unimplemented(String methodName,
                      [Node node, Token token, HInstruction instruction,
                       Element element]) {
-    cancel("$methodName not implemented", node, token, instruction, element);
+    internalError("$methodName not implemented",
+                  node, token, instruction, element);
   }
 
   void internalError(String message,
                      [Node node, Token token, HInstruction instruction,
                       Element element]) {
-    cancel("Internal Error: $message", node, token, instruction, element);
+    cancel("${red('internal error:')} $message",
+           node, token, instruction, element);
   }
 
   void cancel([String reason, Node node, Token token,
@@ -135,7 +146,7 @@ class Compiler implements DiagnosticListener {
     } else if (element !== null) {
       span = spanFromElement(element);
     }
-    reportDiagnostic(span, reason, true);
+    reportDiagnostic(span, red(reason), true);
     throw new CompilerCancelledException(reason);
   }
 
@@ -378,13 +389,17 @@ class Compiler implements DiagnosticListener {
   }
 
   reportWarning(Node node, var message) {
+    // TODO(ahe): Don't supress this warning when we support type variables.
+    if (message is ResolutionWarning) {
+      if (message.message.kind === MessageKind.CANNOT_RESOLVE_TYPE) return;
+    }
     SourceSpan span = spanFromNode(node);
-    reportDiagnostic(span, message.toString(), false);
+    reportDiagnostic(span, "${magenta('warning:')} $message", true);
   }
 
   reportError(Node node, var message) {
     SourceSpan span = spanFromNode(node);
-    reportDiagnostic(span, message.toString(), true);
+    reportDiagnostic(span, "${red('error:')} $message", true);
     throw new CompilerCancelledException(message.toString());
   }
 
@@ -400,7 +415,7 @@ class Compiler implements DiagnosticListener {
     final startOffset = begin.charOffset;
     // TODO(ahe): Compute proper end offset.
     final endOffset =
-      (end.next !== null) ? end.next.charOffset - 1 : startOffset + 1;
+      (end.next !== null) ? end.next.charOffset : startOffset + 1;
     Uri uri = currentElement.getCompilationUnit().script.uri;
     return new SourceSpan(uri, startOffset, endOffset);
   }

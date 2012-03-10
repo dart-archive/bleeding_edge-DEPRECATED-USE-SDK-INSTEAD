@@ -893,10 +893,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitNewExpression(NewExpression node) {
-    if (node.isConst()) {
-      warning(node, MessageKind.GENERIC,
-              ['const expressions are not implemented']);
-    }
     Node selector = node.send.selector;
 
     FunctionElement constructor = resolveConstructor(node);
@@ -935,10 +931,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralList(LiteralList node) {
-    if (node.isConst()) {
-      warning(node, MessageKind.GENERIC,
-              ['const literal lists are not implemented']);
-    }
     visit(node.elements);
   }
 

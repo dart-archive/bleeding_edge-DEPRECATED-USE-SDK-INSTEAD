@@ -421,7 +421,8 @@ class TypeCheckerVisitor implements Visitor<Type> {
         }
         ClassElement classElement = receiverType.element;
         // TODO(karlklose): substitute type arguments.
-        Type memberType = lookupMethodType(node, classElement, selector.source);
+        Type memberType =
+          lookupMethodType(selector, classElement, selector.source);
         if (memberType === types.dynamicType) return types.dynamicType;
         if (memberType is !FunctionType) {
           fail(node, 'can only handle function types');
