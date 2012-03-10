@@ -6,6 +6,7 @@
 
 #import('coreimpl.dart');
 
+#source('constant_map.dart');
 #source('date_helper.dart');
 #source('regexp_helper.dart');
 #source('string_helper.dart');
@@ -1367,4 +1368,12 @@ class StackTrace {
   var stack;
   StackTrace(this.stack);
   String toString() => stack != null ? stack : '';
+}
+
+bool jsHasOwnProperty(var jsObject, String property) {
+  return JS('bool', @'$0.hasOwnProperty($1)', jsObject, property);
+}
+
+jsPropertyAccess(var jsObject, String property) {
+  return JS('var', @'$0[$1]', jsObject, property);
 }

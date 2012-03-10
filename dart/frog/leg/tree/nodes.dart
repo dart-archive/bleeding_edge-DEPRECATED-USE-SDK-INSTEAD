@@ -752,7 +752,7 @@ class DartString implements Iterable<int> {
     }
     return true;
   }
-  String toString() => "DartString#${length()}:${slowToString()}";
+  String toString() => "DartString#${length}:${slowToString()}";
   abstract SourceString get source();
 }
 

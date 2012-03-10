@@ -122,6 +122,9 @@ class MessageKind {
   static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       'not a compile-time constant');
 
+  static final KEY_NOT_A_STRING_LITERAL = const MessageKind(
+      'map-literal key not a string literal');
+
   static final NO_SUCH_LIBRARY_MEMBER = const MessageKind(
       '#{1} has no member named #{2}');
 

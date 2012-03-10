@@ -20,6 +20,7 @@ class Constant implements Hashable {
   bool isObject() => false;
 
   abstract void writeJsCode(StringBuffer buffer, ConstantHandler handler);
+  abstract List<Constant> getDependencies();
 }
 
 class PrimitiveConstant extends Constant {
@@ -34,6 +35,8 @@ class PrimitiveConstant extends Constant {
   }
 
   String toString() => value.toString();
+  // Primitive constants don't have dependencies.
+  List<Constant> getDependencies() => const <Constant>[];
   abstract DartString toDartString();
 }
 
@@ -275,7 +278,7 @@ class ListConstant extends ObjectConstant {
     if (other is !ListConstant) return false;
     ListConstant otherList = other;
     if (hashCode() != otherList.hashCode()) return false;
-    // TODO(floitsch): verify that the types are the same.
+    // TODO(floitsch): verify that the generic types are the same.
     if (entries.length != otherList.entries.length) return false;
     for (int i = 0; i < entries.length; i++) {
       if (entries[i] != otherList.entries[i]) return false;
@@ -284,6 +287,110 @@ class ListConstant extends ObjectConstant {
   }
 
   int hashCode() => _hashCode;
+
+  List<Constant> getDependencies() => entries;
+}
+
+class MapConstant extends ObjectConstant {
+  /** The dart class implementing constant map literals. */
+  static final SourceString DART_CLASS = const SourceString("ConstantMap");
+  static final SourceString LENGTH_NAME = const SourceString("length");
+  static final SourceString JS_OBJECT_NAME = const SourceString("_jsObject");
+  static final SourceString KEYS_NAME = const SourceString("_keys");
+
+  final ListConstant keys;
+  final List<Constant> values;
+  int _hashCode;
+
+  MapConstant(Type type, this.keys, this.values) : super(type) {
+    // TODO(floitsch): create a better hash.
+    int hash = 0;
+    for (Constant value in values) hash ^= value.hashCode();
+    _hashCode = hash;
+  }
+  bool isMap() => true;
+
+  void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+    String isolatePrototype = "${handler.compiler.namer.ISOLATE}.prototype";
+
+    void writeJsMap() {
+      buffer.add("{");
+      for (int i = 0; i < keys.entries.length; i++) {
+        if (i != 0) buffer.add(", ");
+
+        StringConstant key = keys.entries[i];
+        key.writeJsCode(buffer, handler);
+        buffer.add(": ");
+        Constant value = values[i];
+        // TODO(floitsch): share this code with the ListConstant and
+        // ConstructedConstant.
+        if (value.isObject()) {
+          String name = handler.getNameForConstant(value);
+          buffer.add("$isolatePrototype.$name");
+        } else {
+          value.writeJsCode(buffer, handler);
+        }      
+      }
+      buffer.add("}");      
+    }
+
+    void badFieldCountError() {
+      handler.compiler.internalError(
+          "Compiler and ConstantMap disagree on number of fields.");
+    }
+
+    ClassElement classElement = type.element;
+    buffer.add("new ");
+    buffer.add(handler.getJsConstructor(classElement));
+    buffer.add("(");
+    // The arguments of the JavaScript constructor for any given Dart class
+    // are in the same order as the members of the class element.
+    int emittedArgumentCount = 0;
+    for (Element element in classElement.members) {
+      if (element.name == LENGTH_NAME) {
+        buffer.add(keys.entries.length);
+      } else if (element.name == JS_OBJECT_NAME) {
+        writeJsMap();
+      } else if (element.name == KEYS_NAME) {
+        // TODO(floitsch): share this code with the ListConstant and
+        // ConstructedConstant.
+        String name = handler.getNameForConstant(keys);
+        buffer.add("$isolatePrototype.$name");
+      } else {
+        // Skip methods.
+        if (element.kind == ElementKind.FIELD) badFieldCountError();
+        continue;
+      }
+      emittedArgumentCount++;
+      if (emittedArgumentCount == 3) {
+        break;  // All arguments have been emitted.
+      } else {
+        buffer.add(", ");
+      }
+    }
+    if (emittedArgumentCount != 3) badFieldCountError();
+    buffer.add(")");
+  }
+
+  bool operator ==(var other) {
+    if (other is !MapConstant) return false;
+    MapConstant otherMap = other;
+    if (hashCode() != otherMap.hashCode()) return false;
+    // TODO(floitsch): verify that the generic types are the same.
+    if (keys != otherMap.keys) return false;
+    for (int i = 0; i < values.length; i++) {
+      if (values[i] != otherMap.values[i]) return false;
+    }
+    return true;
+  }
+
+  int hashCode() => _hashCode;
+
+  List<Constant> getDependencies() {
+    List<Constant> result = <Constant>[keys];
+    result.addAll(values);
+    return result;
+  }
 }
 
 class ConstructedConstant extends ObjectConstant {
@@ -312,7 +419,7 @@ class ConstructedConstant extends ObjectConstant {
       Constant field = fields[i];
       // TODO(floitsch): share this code with the ListConstant.
       if (field.isObject()) {
-        String name = handler.getNameForConstant(entry);
+        String name = handler.getNameForConstant(field);
         buffer.add("$isolatePrototype.$name");
       } else {
         field.writeJsCode(buffer, handler);
@@ -335,6 +442,7 @@ class ConstructedConstant extends ObjectConstant {
   }
 
   int hashCode() => _hashCode;
+  List<Constant> getDependencies() => fields;
 }
 
 /**
@@ -466,7 +574,21 @@ class ConstantHandler extends CompilerTask {
   }
 
   List<Constant> getConstantsForEmission() {
-    return compiledConstants.getKeys();
+    // We must emit dependencies before their uses.
+    Set<Constant> seenConstants = new Set<Constant>();
+    List<Constant> result = new List<Constant>();
+
+    void addConstant(Constant constant) {
+      if (!seenConstants.contains(constant)) {
+        constant.getDependencies().forEach(addConstant);
+        assert(!seenConstants.contains(constant));
+        result.add(constant);
+        seenConstants.add(constant);
+      }
+    }
+
+    compiledConstants.forEach((Constant key, ignored) => addConstant(key));
+    return result;
   }
 
   String getNameForConstant(Constant constant) {
@@ -586,7 +708,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
 
   Constant visitLiteralList(LiteralList node) {
     if (!node.isConst()) error(node);
-    List arguments = [];
+    List<Constant> arguments = <Constant>[];
     for (Link<Node> link = node.elements.nodes;
          !link.isEmpty();
          link = link.tail) {
@@ -598,7 +720,45 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitLiteralMap(LiteralMap node) {
-    compiler.unimplemented("CompileTimeConstantEvaluator map", node: node);
+    // TODO(floitsch): check for isConst, once the parser adds it into the node.
+    // if (!node.isConst()) error(node);
+    List<StringConstant> keys = <StringConstant>[];
+    List<Constant> values = <Constant>[];
+    bool hasProtoKey = false;
+    for (Link<Node> link = node.entries.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      LiteralMapEntry entry = link.head;
+      Constant key = evaluate(entry.key);
+      if (!key.isString() || entry.key.asLiteralString() === null) {
+        MessageKind kind = MessageKind.KEY_NOT_A_STRING_LITERAL;
+        compiler.reportError(entry.key, new ResolutionError(kind, const []));
+      }
+      // TODO(floitsch): make this faster.
+      StringConstant keyConstant = key;
+      if (keyConstant.value == new LiteralDartString("__proto__")) {
+        hasProtoKey = true;
+      }
+      keys.add(key);
+      values.add(evaluate(entry.value));
+    }
+    if (hasProtoKey) {
+      compiler.unimplemented("visitLiteralMap with __proto__ key",
+                             node: node);
+    }
+    // TODO(floitsch): this should be a List<String> type.
+    Type keysType = null;
+    ListConstant keysList = new ListConstant(keysType, keys);
+    constantHandler.registerCompileTimeConstant(keysList);
+    ClassElement classElement =
+        compiler.jsHelperLibrary.find(MapConstant.DART_CLASS);
+    classElement.ensureResolved(compiler);
+    // TODO(floitsch): copy over the generic type.
+    Type type = new SimpleType(classElement.name, classElement);
+    compiler.registerInstantiatedClass(classElement);
+    Constant constant = new MapConstant(type, keysList, values);
+    constantHandler.registerCompileTimeConstant(constant);
+    return constant;
   }
 
   Constant visitLiteralNull(LiteralNull node) {
