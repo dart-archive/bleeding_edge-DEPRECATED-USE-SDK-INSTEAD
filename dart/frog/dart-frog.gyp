@@ -86,19 +86,19 @@
           'action_name': 'generate_frogsh',
           'inputs': [
             '<!@(["python", "scripts/list_frog_files.py"])',
-            'scripts/bootstrap/build_frogpad_js.py',
-            '../tools/testing/frogpad/frogpad.dart',
+            'scripts/bootstrap/frogsh_bootstrap_wrapper.py',
+            'minfrog.dart',
             '<(PRODUCT_DIR)/dart',
           ],
           'outputs': [
-            '<(PRODUCT_DIR)/frog/bin/frogpad.js',
+            '<(PRODUCT_DIR)/frog/bin/frogsh',
           ],
           'action': [
             'python',
-            'scripts/bootstrap/build_frogpad_js.py',
+            'scripts/bootstrap/frogsh_bootstrap_wrapper.py',
             '<(PRODUCT_DIR)',
           ],
-          'message': 'Generating frogpad.js file'
+          'message': 'Generating frogsh file'
         },
       ],
     },
