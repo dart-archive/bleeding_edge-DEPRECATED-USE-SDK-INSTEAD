@@ -21,7 +21,7 @@ final g6 = x
   + false   /// 05: compile-time error
 ;
 final g7 = "foo"
-  + x[0];   /// 06: compile-time error
+  + x[0]   /// 06: compile-time error
 ;
 final g8 = 1
   + x.length  /// 07: compile-time error
