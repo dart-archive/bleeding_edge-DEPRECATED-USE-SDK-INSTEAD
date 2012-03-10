@@ -312,15 +312,20 @@ function(child, parent) {
 
   void generateTypeTests(ClassElement cls,
                          void generateTypeTest(ClassElement element)) {
-    generateTypeTest(cls);
+    if (compiler.universe.isChecks.contains(cls)) {
+      generateTypeTest(cls);
+    }
     generateInterfacesIsTests(cls, generateTypeTest);
   }
 
   void generateInterfacesIsTests(ClassElement cls,
                                  void generateTypeTest(ClassElement element)) {
     for (Type interfaceType in cls.interfaces) {
-      generateTypeTest(interfaceType.element);
-      generateInterfacesIsTests(interfaceType.element, generateTypeTest);
+      Element element = interfaceType.element;
+      if (compiler.universe.isChecks.contains(element)) {
+        generateTypeTest(element);
+      }
+      generateInterfacesIsTests(element, generateTypeTest);
     }
   }
 

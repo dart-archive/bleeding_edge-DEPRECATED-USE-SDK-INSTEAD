@@ -372,6 +372,11 @@ class Compiler implements DiagnosticListener {
     universe.instantiatedClasses.add(element);
   }
 
+  // TODO(ngeoffray): This should get a type.
+  void registerIsCheck(Element element) {
+    universe.isChecks.add(element);
+  }
+
   Type resolveType(ClassElement element) {
     return withCurrentElement(element, () => resolver.resolveType(element));
   }

@@ -944,6 +944,7 @@ class SsaCodeGenerator implements HVisitor {
 
   void visitIs(HIs node) {
     Element element = node.typeExpression;
+    compiler.registerIsCheck(element);
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = coreLibrary.find(const SourceString('Object'));
     HInstruction input = node.expression;
@@ -1004,6 +1005,7 @@ class SsaCodeGenerator implements HVisitor {
         // First check if the object is not a Dart object. If the
         // object is a Dart object, we know the property check was
         // sufficient.
+        compiler.registerIsCheck(objectClass);
         buffer.add('!');
         use(input, JSPrecedence.MEMBER_PRECEDENCE);
         buffer.add('.');
