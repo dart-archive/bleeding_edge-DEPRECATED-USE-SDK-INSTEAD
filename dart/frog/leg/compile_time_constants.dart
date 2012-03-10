@@ -481,14 +481,8 @@ class ConstantHandler extends CompilerTask {
   StringBuffer writeJsCodeForVariable(StringBuffer buffer,
                                       VariableElement element) {
     if (!initialVariableValues.containsKey(element)) {
-      buffer.add("(void 0)");
-      return buffer;
-      // TODO(floitsch): reenable the following lines, once we fixed the rest
-      // of the compiler.
-      /*
       compiler.internalError("No initial value for given element",
                              element: element);
-      */
     }
     Constant constant = initialVariableValues[element];
     if (constant.isObject()) {
