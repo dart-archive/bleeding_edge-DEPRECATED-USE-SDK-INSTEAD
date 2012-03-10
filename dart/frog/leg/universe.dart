@@ -12,7 +12,7 @@ class Universe {
   final Set<SourceString> invokedSetters;
   final Map<String, LibraryElement> libraries;
   // TODO(ngeoffray): This should be a Set<Type>.
-  final Set<ClassElement> isChecks;
+  final Set<Element> isChecks;
 
   Universe() : generatedCode = new Map<Element, String>(),
                generatedBailoutCode = new Map<Element, String>(),
@@ -22,7 +22,7 @@ class Universe {
                invokedNames = new Map<SourceString, Set<Invocation>>(),
                invokedGetters = new Set<SourceString>(),
                invokedSetters = new Set<SourceString>(),
-               isChecks = new Set<ClassElement>();
+               isChecks = new Set<Element>();
 
   void addGeneratedCode(WorkItem work, String code) {
     if (work.isBailoutVersion()) {
