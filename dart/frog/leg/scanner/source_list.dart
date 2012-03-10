@@ -6,7 +6,6 @@ final List<String> argv = const <String>[
 '../client/dom/common/implementation.dart',
 '../client/dom/common/public.dart',
 '../client/dom/dom.dart',
-'../client/dom/dom_dummy.dart',
 '../client/dom/generated/src/interface/AbstractWorker.dart',
 '../client/dom/generated/src/interface/ArrayBuffer.dart',
 '../client/dom/generated/src/interface/ArrayBufferView.dart',
