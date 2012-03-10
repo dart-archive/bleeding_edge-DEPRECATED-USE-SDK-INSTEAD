@@ -267,13 +267,13 @@ void handleSsaNative(SsaBuilder builder, Send node) {
         builder.add(elseInstruction);
       }
 
-      HLiteral literal = builder.graph.addConstantString(
+      HConstant constant = builder.graph.addConstantString(
           new DartString.literal('$dartMethodName'));
       DartString jsCode = new DartString.literal(
           'Object.getPrototypeOf(\$0).hasOwnProperty(\$1)');
       builder.push(new HForeign(
           jsCode, const LiteralDartString('Object'),
-          <HInstruction>[builder.localsHandler.readThis(), literal]));
+          <HInstruction>[builder.localsHandler.readThis(), constant]));
 
       builder.handleIf(visitThen, visitElse);
 
