@@ -31,14 +31,8 @@ class Compiler extends leg.Compiler {
   }
 
   leg.Script readScript(Uri uri, [leg.ScriptTag node]) {
-    String uriName = uri.toString();
-    // TODO(ahe): Clean this up.
-    if (uriName == 'dart:dom') {
-      uri = libraryRoot.resolve('../../../client/dom/frog/dom_frog.dart');
-    } else if (uriName == 'dart:html') {
-      uri = libraryRoot.resolve('../../../client/html/frog/html_frog.dart');
-    } else if (uriName == 'dart:json') {
-      uri = libraryRoot.resolve('../../../lib/json/json.dart');
+    if (uri.scheme == 'dart') {
+      uri = translateDartUri(uri, node);
     }
     String text = "";
     try {
@@ -46,10 +40,31 @@ class Compiler extends leg.Compiler {
       // directly. In effect, we don't support truly asynchronous API.
       text = provider(uri).value;
     } catch (var exception) {
-      cancel("${uri.path}: $exception", node: node);
+      cancel("${uri}: $exception", node: node);
     }
     frog.SourceFile sourceFile = new frog.SourceFile(uri.toString(), text);
     return new leg.Script(uri, sourceFile);
+  }
+
+  translateDartUri(Uri uri, leg.ScriptTag node) {
+    String uriName = uri.toString();
+    // TODO(ahe): Clean this up.
+    if (uriName == 'dart:dom') {
+      return libraryRoot.resolve('../../../client/dom/frog/dom_frog.dart');
+    } else if (uriName == 'dart:html') {
+      return libraryRoot.resolve('../../../client/html/frog/html_frog.dart');
+    } else if (uriName == 'dart:json') {
+      return libraryRoot.resolve('../../../lib/json/json.dart');
+    } else if (uriName == 'dart:isolate') {
+      return libraryRoot.resolve('../../../lib/isolate/isolate_compiler.dart');
+    } else if (uriName == 'dart:io') {
+      return libraryRoot.resolve('io.dart');
+    } else if (uriName == 'dart:utf') {
+      return libraryRoot.resolve('../../../lib/utf/utf.dart');
+    } else if (uriName == 'dart:uri') {
+      return libraryRoot.resolve('../../../lib/uri/uri.dart');
+    }
+    reportError(node, "library not found $uriName");
   }
 
   bool run(Uri uri) {
