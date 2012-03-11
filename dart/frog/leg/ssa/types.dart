@@ -23,7 +23,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
     if (block.isLoopHeader()) {
       block.forEachPhi((HPhi phi) {
         phi.setInitialTypeForLoopPhi();
-        addToWorklist(phi);
+        addToWorkList(phi);
       });
     } else {
       block.forEachPhi((HPhi phi) {
@@ -50,14 +50,14 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
 
   void addUsersAndInputsToWorklist(HInstruction instruction) {
     for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
-      addToWorklist(instruction.usedBy[i]);
+      addToWorkList(instruction.usedBy[i]);
     }
     for (int i = 0, length = instruction.inputs.length; i < length; i++) {
-      addToWorklist(instruction.inputs[i]);
+      addToWorkList(instruction.inputs[i]);
     }
   }
 
-  void addToWorklist(HInstruction instruction) {
+  void addToWorkList(HInstruction instruction) {
     final int id = instruction.id;
     if (!workmap.containsKey(id)) {
       worklist.add(id);

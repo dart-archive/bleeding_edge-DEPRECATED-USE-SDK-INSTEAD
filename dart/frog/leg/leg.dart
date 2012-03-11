@@ -16,10 +16,11 @@
 #import('util/characters.dart');
 #import('util/util.dart');
 
-#source('compiler.dart');
 #source('compile_time_constants.dart');
+#source('compiler.dart');
 #source('diagnostic_listener.dart');
 #source('emitter.dart');
+#source('enqueue.dart');
 #source('namer.dart');
 #source('native_emitter.dart');
 #source('operations.dart');

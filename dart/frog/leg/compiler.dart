@@ -77,6 +77,7 @@ class Compiler implements DiagnosticListener {
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
   ConstantHandler constantHandler;
+  EnqueueTask enqueuer;
 
   static final SourceString MAIN = const SourceString('main');
   static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
@@ -107,9 +108,10 @@ class Compiler implements DiagnosticListener {
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
     emitter = new CodeEmitterTask(this);
+    enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
              builder, optimizer, generator,
-             emitter, constantHandler];
+             emitter, constantHandler, enqueuer];
   }
 
   green(String string) => "${GREEN_COLOR}$string${NO_COLOR}";
@@ -211,73 +213,6 @@ class Compiler implements DiagnosticListener {
         const SourceString('JS_HAS_EQUALS'), library), this);
   }
 
-  void enqueueInvokedInstanceMethods() {
-    // TODO(floitsch): find a more efficient way of doing this.
-
-    // Run through the classes and see if we need to compile methods.
-    for (ClassElement classElement in universe.instantiatedClasses) {
-      for (ClassElement currentClass = classElement;
-           currentClass !== null;
-           currentClass = currentClass.superclass) {
-        // TODO(floitsch): we don't need to add members that have been
-        // overwritten by subclasses.
-        for (Element member in currentClass.members) {
-          if (universe.generatedCode[member] !== null) continue;
-          if (!member.isInstanceMember()) continue;
-          if (member.kind == ElementKind.FUNCTION) {
-            if (member.name == NO_SUCH_METHOD) enableNoSuchMethod(member);
-            Set<Selector> selectors = universe.invokedNames[member.name];
-            if (selectors != null) {
-              for (Selector selector in selectors) {
-                if (selector.applies(this, member)) {
-                  addToWorklist(member);
-                  break;
-                }
-              }
-            }
-            // If there is a property access with the same name as a method we
-            // need to emit the method.
-            if (universe.invokedGetters.contains(member.name)) {
-              addToWorklist(member);
-            }
-          } else if (member.kind == ElementKind.GETTER) {
-            if (universe.invokedGetters.contains(member.name)) {
-              addToWorklist(member);
-            }
-            // A method invocation like in o.foo(x, y) might actually be an
-            // invocation of the getter foo followed by an invocation of the
-            // returned closure.
-            Set<Selector> invokedSelectors = universe.invokedNames[member.name];
-            // We don't know what selectors the returned closure accepts. If
-            // the set contains any selector we have to assume that it matches.
-            if (invokedSelectors !== null && !invokedSelectors.isEmpty()) {
-              addToWorklist(member);
-            }
-          } else if (member.kind === ElementKind.SETTER) {
-             if (universe.invokedSetters.contains(member.name)) {
-              addToWorklist(member);
-            }
-          }
-
-          // Make sure that the closure understands a call with the given
-          // selector. For a method-invocation of the form o.foo(a: 499), we
-          // need to make sure that closures can handle the optional argument if
-          // there exists a field or getter 'foo'.
-          if (member.kind === ElementKind.GETTER ||
-              member.kind === ElementKind.FIELD) {
-            Set<Selector> invokedSelectors = universe.invokedNames[member.name];
-            if (invokedSelectors != null) {
-              for (Selector selector in invokedSelectors) {
-                registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME,
-                                          selector);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
   void runCompiler(Uri uri) {
     scanBuiltinLibraries();
     mainApp = scanner.loadLibrary(uri, null);
@@ -293,8 +228,9 @@ class Compiler implements DiagnosticListener {
         WorkItem work = worklist.removeLast();
         withCurrentElement(work.element, () => (work.run)(this));
       }
-      enqueueInvokedInstanceMethods();
+      enqueuer.enqueueInvokedInstanceMethods();
     } while (!worklist.isEmpty());
+    enqueuer.registerFieldClosureInvocations();
     emitter.assembleProgram();
   }
 
@@ -334,7 +270,7 @@ class Compiler implements DiagnosticListener {
     return codegen(work);
   }
 
-  void addToWorklist(Element element) {
+  void addToWorkList(Element element) {
     if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
       registerInstantiatedClass(element.enclosingElement);
     }
@@ -342,7 +278,7 @@ class Compiler implements DiagnosticListener {
   }
 
   void registerStaticUse(Element element) {
-    addToWorklist(element);
+    addToWorkList(element);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
@@ -369,7 +305,10 @@ class Compiler implements DiagnosticListener {
   }
 
   void registerInstantiatedClass(ClassElement element) {
-    universe.instantiatedClasses.add(element);
+    if (!universe.instantiatedClasses.contains(element)) {
+      universe.instantiatedClasses.add(element);
+      enqueuer.processUnseenInstantiatedClass(element);
+    }
   }
 
   // TODO(ngeoffray): This should get a type.
@@ -399,7 +338,7 @@ class Compiler implements DiagnosticListener {
       if (message.message.kind === MessageKind.CANNOT_RESOLVE_TYPE) return;
     }
     SourceSpan span = spanFromNode(node);
-    reportDiagnostic(span, "${magenta('warning:')} $message", true);
+    reportDiagnostic(span, "${magenta('warning:')} $message", false);
   }
 
   reportError(Node node, var message) {

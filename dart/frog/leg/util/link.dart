@@ -16,6 +16,8 @@ interface Link<T> extends Iterable<T> default LinkFactory<T> {
   Link<T> reversePrependAll(Link<T> from);
 
   void printOn(StringBuffer buffer, [separatedBy]);
+
+  void forEach(void f(E element));
 }
 
 interface EmptyLink<T> extends Link<T> default LinkTail<T> {

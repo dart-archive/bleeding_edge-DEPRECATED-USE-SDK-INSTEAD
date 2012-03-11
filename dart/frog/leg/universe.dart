@@ -6,6 +6,7 @@ class Universe {
   Map<Element, String> generatedCode;
   Map<Element, String> generatedBailoutCode;
   final Set<ClassElement> instantiatedClasses;
+  final Set<SourceString> instantiatedClassInstanceFields;
   final Set<FunctionElement> staticFunctionsNeedingGetter;
   final Map<SourceString, Set<Selector>> invokedNames;
   final Set<SourceString> invokedGetters;
@@ -18,6 +19,7 @@ class Universe {
                generatedBailoutCode = new Map<Element, String>(),
                libraries = new Map<String, LibraryElement>(),
                instantiatedClasses = new Set<ClassElement>(),
+               instantiatedClassInstanceFields = new Set<SourceString>(),
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
                invokedNames = new Map<SourceString, Set<Invocation>>(),
                invokedGetters = new Set<SourceString>(),
@@ -42,6 +44,8 @@ class SelectorKind {
   static final SelectorKind INVOCATION = const SelectorKind('invocation');
   static final SelectorKind OPERATOR = const SelectorKind('operator');
   static final SelectorKind INDEX = const SelectorKind('index');
+
+  toString() => name;
 }
 
 class Selector implements Hashable {
@@ -113,19 +117,21 @@ class Selector implements Hashable {
 
   static bool sameNames(List<SourceString> first, List<SourceString> second) {
     for (int i = 0; i < first.length; i++) {
-      return first[i] == second[i];
+      if (first[i] != second[i]) return false;
     }
     return true;
   }
 
   bool operator ==(other) {
-    if (other is !Invocation) return false;
+    if (other is !Selector) return false;
     return argumentCount == other.argumentCount
            && namedArguments.length == other.namedArguments.length
            && sameNames(namedArguments, other.namedArguments);
   }
 
   List<SourceString> getOrderedNamedArguments() => namedArguments;
+
+  toString() => '$kind $argumentCount';
 }
 
 class Invocation extends Selector {

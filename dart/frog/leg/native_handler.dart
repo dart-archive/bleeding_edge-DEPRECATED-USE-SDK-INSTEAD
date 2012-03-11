@@ -145,7 +145,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
   ClassElement cls = compiler.coreLibrary.find(
       Compiler.NO_SUCH_METHOD_EXCEPTION);
   cls.ensureResolved(compiler);
-  compiler.addToWorklist(cls.lookupConstructor(cls.name));
+  compiler.addToWorkList(cls.lookupConstructor(cls.name));
   compiler.registerStaticUse(
       compiler.findHelper(new SourceString('captureStackTrace')));
 

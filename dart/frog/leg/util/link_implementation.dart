@@ -68,6 +68,8 @@ class LinkTail<T> implements EmptyLink<T> {
   List toList() => const [];
 
   bool isEmpty() => true;
+
+  void forEach(void f(T element)) {}
 }
 
 class LinkEntry<T> implements Link<T> {
@@ -125,6 +127,12 @@ class LinkEntry<T> implements Link<T> {
       list.addLast(link.head);
     }
     return list;
+  }
+
+  void forEach(void f(T element)) {
+    for (Link<T> link = this; !link.isEmpty(); link = link.tail) {
+      f(link.head);
+    }
   }
 }
 
