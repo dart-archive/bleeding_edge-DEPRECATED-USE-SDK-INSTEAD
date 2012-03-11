@@ -1432,7 +1432,7 @@ class PartialFunctionElement extends FunctionElement {
     return cachedNode;
   }
 
-  Token position() => beginToken;
+  Token position() => findMyName(beginToken);
 }
 
 class PartialFieldListElement extends VariableListElement {
@@ -1453,7 +1453,7 @@ class PartialFieldListElement extends VariableListElement {
     return cachedNode;
   }
 
-  Token position() => beginToken;
+  Token position() => beginToken; // findMyName doesn't work. I'm nameless.
 }
 
 Node parse(DiagnosticListener diagnosticListener,

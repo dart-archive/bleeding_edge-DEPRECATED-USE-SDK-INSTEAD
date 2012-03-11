@@ -1163,7 +1163,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
       return null;
     }
-    var e = element.library.lookupLocalMember(node.selector.source);
+    var e = element.lookupLocalMember(node.selector.source);
     if (e === null || !e.impliesType()) {
       error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE, [node.selector]);
       return null;
@@ -1477,7 +1477,7 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
       e = constructor;
     } else if (e.kind === ElementKind.PREFIX) {
       PrefixElement prefix = e;
-      e = prefix.library.lookupLocalMember(name.source);
+      e = prefix.lookupLocalMember(name.source);
       if (e === null) {
         error(name, MessageKind.CANNOT_RESOLVE, [name]);
         // TODO(ahe): Return erroneous element.

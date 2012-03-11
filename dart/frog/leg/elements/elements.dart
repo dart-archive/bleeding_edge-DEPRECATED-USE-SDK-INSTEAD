@@ -92,11 +92,11 @@ class Element implements Hashable {
   Modifiers get modifiers() => null;
 
   Node parseNode(DiagnosticListener listener) {
-    listener.cancel("Internal Error: Element.parseNode");
+    listener.cancel("Internal Error: $this.parseNode", token: position());
   }
 
   Type computeType(Compiler compiler) {
-    compiler.internalError("Element.computeType.");
+    compiler.internalError("$this.computeType.", token: position());
   }
 
   bool isFunction() => kind === ElementKind.FUNCTION;
@@ -124,6 +124,13 @@ class Element implements Hashable {
   }
 
   Token position() => null;
+
+  Token findMyName(Token token) {
+    for (Token t = token; t !== EOF_TOKEN; t = t.next) {
+      if (t.value == name) return t;
+    }
+    return token;
+  }
 
   const Element(this.name, this.kind, this.enclosingElement);
 
@@ -270,12 +277,6 @@ class LibraryElement extends CompilationUnitElement {
     return elements[name];
   }
 
-  Element lookupLocalMember(SourceString name) {
-    Element element = find(name);
-    if (element === null) return null;
-    return (this === element.getLibrary()) ? element : null;
-  }
-
   void forEachExport(f(Element element)) {
     elements.forEach((SourceString _, Element e) {
       if (this === e.getLibrary()
@@ -288,16 +289,15 @@ class LibraryElement extends CompilationUnitElement {
 }
 
 class PrefixElement extends Element {
-  final LiteralString prefix;
-  final LibraryElement library;
+  Map<SourceString, Element> imported;
 
-  PrefixElement(LiteralString prefix,
-                LibraryElement this.library,
-                Element enclosing)
-    : this.prefix = prefix,
-      super(prefix.dartString.source, ElementKind.PREFIX, enclosing);
+  PrefixElement(SourceString prefix, Element enclosing)
+    : imported = new Map<SourceString, Element>(),
+      super(prefix, ElementKind.PREFIX, enclosing);
 
-  lookupLocalMember(SourceString name) => library.lookupLocalMember(name);
+  lookupLocalMember(SourceString name) => imported[name];
+
+  Type computeType(Compiler compiler) => compiler.types.dynamicType;
 }
 
 class TypedefElement extends Element {
@@ -346,12 +346,9 @@ class VariableElement extends Element {
     return isMember() && !modifiers.isStatic();
   }
 
-  Token position() {
-    // TODO(ahe): Record the token corresponding to name instead of
-    // returning different values at different points in time.
-    return (cachedNode !== null)
-        ? cachedNode.getBeginToken() : variables.position();
-  }
+  // Note: cachedNode.getBeginToken() will not be correct in all
+  // cases, for example, for function typed parameters.
+  Token position() => findMyName(variables.position());
 }
 
 // This element represents a list of variable or field declaration.
@@ -417,6 +414,21 @@ class AbstractFieldElement extends Element {
   Node parseNode(DiagnosticListener listener) {
     throw "internal error: AbstractFieldElement has no node";
   }
+
+  position() {
+    // The getter and setter may be defined in two different
+    // compilation units.  However, we know that one of them is
+    // non-null and defined in the same compilation unit as the
+    // abstract element.
+    //
+    // We need to make sure that the position returned is relative to
+    // the compilation unit of the abstract element.
+    if (getter !== null && getter.enclosingElement === enclosingElement) {
+      return getter.position();
+    } else {
+      return setter.position();
+    }
+  }
 }
 
 /** DEPRECATED. */
@@ -431,8 +443,9 @@ Type getType(TypeAnnotation typeAnnotation,
   }
   Identifier identifier = typeAnnotation.typeName.asIdentifier();
   if (identifier === null) {
-    compiler.cancel('library prefixes not handled',
-                    node: typeAnnotation.typeName);
+    compiler.reportWarning(typeAnnotation.typeName,
+                           'library prefixes not handled');
+    return compiler.types.dynamicType;
   }
   SourceString name = identifier.source;
   Element element = library.find(name);

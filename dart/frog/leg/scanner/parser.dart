@@ -1378,7 +1378,7 @@ class Parser {
     }
     Token identifier = peekIdentifierAfterType(token);
     if (identifier !== null) {
-      assert(identifier.kind === IDENTIFIER_TOKEN);
+      assert(isIdentifier(identifier));
       Token afterId = identifier.next;
       int afterIdKind = afterId.kind;
       if (afterIdKind === EQ_TOKEN || afterIdKind === SEMICOLON_TOKEN ||

@@ -58,7 +58,7 @@ class ScannerTask extends CompilerTask {
       if (resolved.toString() == "dart:core") {
         implicitlyImportCoreLibrary = false;
       }
-      importLibrary(library, loadLibrary(resolved, tag), tag.prefix);
+      importLibrary(library, loadLibrary(resolved, tag), tag);
     }
     if (implicitlyImportCoreLibrary) {
       importLibrary(library, compiler.coreLibrary, null);
@@ -101,9 +101,34 @@ class ScannerTask extends CompilerTask {
   }
 
   void importLibrary(LibraryElement library, LibraryElement imported,
-                     LiteralString prefix) {
-    if (prefix !== null) {
-      library.define(new PrefixElement(prefix, imported, library), compiler);
+                     ScriptTag tag) {
+    if (tag !== null && tag.prefix !== null) {
+      SourceString prefix = tag.prefix.dartString.source;
+      Element e = library.find(prefix);
+      if (e === null) {
+        e = new PrefixElement(prefix, library);
+        library.define(e, compiler);
+      }
+      if (e.kind !== ElementKind.PREFIX) {
+        compiler.withCurrentElement(e, () {
+          compiler.reportWarning(new Identifier(e.position()),
+                                 'duplicated definition');
+        });
+        compiler.reportError(tag.prefix, 'duplicate defintion');
+      }
+      imported.forEachExport((Element element) {
+        Element existing = e.imported.putIfAbsent(element.name, () => element);
+        if (existing !== element) {
+          compiler.withCurrentElement(existing, () {
+            compiler.reportWarning(new Identifier(existing.position()),
+                                   'duplicated import');
+          });
+          compiler.withCurrentElement(element, () {
+            compiler.reportError(new Identifier(element.position()),
+                                 'duplicated import');
+          });
+        }
+      });
     } else {
       imported.forEachExport((Element element) {
         compiler.withCurrentElement(element, () {
