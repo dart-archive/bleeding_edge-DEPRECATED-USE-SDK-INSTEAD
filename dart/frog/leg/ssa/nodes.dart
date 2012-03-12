@@ -1943,8 +1943,11 @@ class HThrow extends HControlFlow {
 class HStatic extends HInstruction {
   Element element;
   HStatic(this.element) : super(<HInstruction>[]) {
-    tryGenerateAtUseSite();
+    if (!element.isAssignable()) {
+      tryGenerateAtUseSite();
+    }
   }
+
   void prepareGvn() {
     assert(!hasSideEffects());
     if (!element.isAssignable()) {
