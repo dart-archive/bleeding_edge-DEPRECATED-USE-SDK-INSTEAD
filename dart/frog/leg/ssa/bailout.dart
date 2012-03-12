@@ -14,9 +14,16 @@ class BailoutInfo {
  */
 class Environment {
   final Set<HInstruction> lives;
-  Environment() : lives = new Set<HInstruction>();
+  final Set<HBasicBlock> loopMarkers;
+  Environment() : lives = new Set<HInstruction>(),
+                  loopMarkers = new Set<HBasicBlock>();
   Environment.from(Environment other)
-    : lives = new Set<HInstruction>.from(other.lives);
+    : lives = new Set<HInstruction>.from(other.lives),
+      loopMarkers = new Set<HBasicBlock>.from(other.loopMarkers);
+
+  Environment.forLoopBody(Environment other)
+    : lives = new Set<HInstruction>(),
+      loopMarkers = new Set<HBasicBlock>.from(other.loopMarkers);
 
   void remove(HInstruction instruction) {
     lives.remove(instruction);
@@ -32,8 +39,17 @@ class Environment {
     }
   }
 
+  void addLoopMarker(HBasicBlock block) {
+    loopMarkers.add(block);
+  }
+
+  void removeLoopMarker(HBasicBlock block) {
+    loopMarkers.remove(block);
+  }
+
   void addAll(Environment other) {
     lives.addAll(other.lives);
+    loopMarkers.addAll(other.loopMarkers);
   }
 
   List<HInstruction> buildAndSetLast(HInstruction instruction) {
@@ -46,6 +62,7 @@ class Environment {
 
   bool isEmpty() => lives.isEmpty();
   bool contains(HInstruction instruction) => lives.contains(instruction);
+  bool containsLoopMarker(HBasicBlock block) => loopMarkers.contains(block);
   void clear() => lives.clear();
 }
 
@@ -60,7 +77,10 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
   Environment environment;
   SubGraph subGraph;
 
-  SsaEnvironmentBuilder(Compiler this.compiler);
+  final Map<HInstruction, Environment> capturedEnvironments;
+
+  SsaEnvironmentBuilder(Compiler this.compiler)
+    : capturedEnvironments = new Map<HInstruction, Environment>();
 
   void visitGraph(HGraph graph) {
     subGraph = new SubGraph(graph.entry, graph.exit);
@@ -69,6 +89,16 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     if (!environment.isEmpty()) {
       compiler.internalError('Bailout environment computation',
           node: compiler.currentElement.parseNode(compiler));
+    }
+    insertCapturedEnvironments();
+  }
+
+  abstract void insertCapturedEnvironments();
+  abstract bool shouldCaptureEnvironment(HInstruction instruction);
+
+  void maybeCaptureEnvironment(HInstruction instruction) {
+    if (shouldCaptureEnvironment(instruction)) {
+      capturedEnvironments[instruction] = new Environment.from(environment);
     }
   }
 
@@ -93,9 +123,33 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     for (HPhi phi = block.phis.first; phi != null; phi = phi.next) {
       phi.accept(this);
     }
+
+    if (block.isLoopHeader()) {
+      // If the block is a loop header, we need to change every uses
+      // of its loop marker to the current set of live instructions.
+      // For example with the following loop (read the example in
+      // reverse):
+      //
+      // while (true) { <-- (4) update the marker with the environment
+      //   use(x);      <-- (3) environment = {x}
+      //   bailout;     <-- (2) has the marker when computed
+      // }              <-- (1) create a loop marker
+      //
+      // The bailout instruction first captures the marker, but it
+      // will be replaced by the live environment at the loop entry,
+      // in this case {x}.
+      environment.removeLoopMarker(block);
+      capturedEnvironments.forEach((instruction, env) {
+        if (env.containsLoopMarker(block)) {
+          env.removeLoopMarker(block);
+          env.addAll(environment);
+        }
+      });
+    }
   }
 
   void visitPhi(HPhi phi) {
+    maybeCaptureEnvironment(phi);
     environment.remove(phi);
     // If the block is a loop header, we insert the incoming values of
     // the phis, and remove the loop values.
@@ -110,6 +164,7 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
   }
 
   void visitInstruction(HInstruction instruction) {
+    maybeCaptureEnvironment(instruction);
     environment.remove(instruction);
     for (int i = 0, len = instruction.inputs.length; i < len; i++) {
       environment.add(instruction.inputs[i]);
@@ -165,21 +220,36 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
 
     // Visit the code after the loop.
     visitBasicBlock(block.successors[1]);
-    // TODO(ngeoffray): Remove the instructions of the loop-exit from
-    // the environment.
 
-    HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
+    Environment joinEnvironment = environment;
+
+    // When visiting the loop body, we don't require the live
+    // instructions after the loop body to be in the environment. They
+    // will be either recomputed in the loop header, or inserted
+    // with the loop marker. We still need to transfer existing loop
+    // markers from the current environment, because they must be live
+    // for this loop body.
+    environment = new Environment.forLoopBody(environment);
+
     // Put the loop phis in the environment.
+    HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
     for (HPhi phi = header.phis.first; phi != null; phi = phi.next) {
       for (int i = 1, len = phi.inputs.length; i < len; i++) {
         environment.add(phi.inputs[i]);
       }
     }
 
+    // Add the loop marker
+    environment.addLoopMarker(header);
+
     if (!branch.isDoWhile()) {
       assert(block.successors[0] == block.dominatedBlocks[0]);
       visitBasicBlock(block.successors[0]);
     }
+
+    // We merge the environment required by the code after the loop,
+    // and the code inside the loop.
+    environment.addAll(joinEnvironment);
   }
 
   // Deal with all kinds of control flow instructions. In case we add
@@ -212,33 +282,24 @@ class SsaTypeGuardBuilder extends SsaEnvironmentBuilder implements OptimizationP
 
   SsaTypeGuardBuilder(Compiler compiler) : super(compiler);
 
-  void tryInsertTypeGuard(HInstruction instruction,
-                          HInstruction insertionPoint) {
-    // If we found a type for the instruction, but the instruction
-    // does not know if it produces that type, add a type guard.
-    if (instruction.type.isKnown() && !instruction.hasExpectedType()) {
-      // The type guard expects the guarded instruction to be at the
-      // end of the inputs.
-      List<HInstruction> inputs = environment.buildAndSetLast(instruction);
+  bool shouldCaptureEnvironment(HInstruction instruction) {
+    return instruction.type.isKnown() && !instruction.hasExpectedType();
+  }
+
+  void insertCapturedEnvironments() {
+    capturedEnvironments.forEach((HInstruction instruction, Environment env) {
+      List<HInstruction> inputs = env.buildAndSetLast(instruction);
       HTypeGuard guard =
           new HTypeGuard(instruction.type, inputs, instruction.id);
       // Remove the instruction's type, the guard is now holding that
       // type.
       instruction.type = HType.UNKNOWN;
       instruction.block.rewrite(instruction, guard);
+      HInstruction insertionPoint = (instruction is HPhi)
+          ? phi.block.first
+          : instruction.next;
       insertionPoint.block.addBefore(insertionPoint, guard);
-    }
-  }
-
-
-  void visitInstruction(HInstruction instruction) {
-    tryInsertTypeGuard(instruction, instruction.next);
-    super.visitInstruction(instruction);
-  }
-
-  void visitPhi(HPhi phi) {
-    tryInsertTypeGuard(phi, phi.block.first);
-    super.visitPhi(phi);
+    });
   }
 }
 
@@ -252,23 +313,20 @@ class SsaBailoutBuilder extends SsaEnvironmentBuilder implements OptimizationPha
 
   SsaBailoutBuilder(Compiler compiler, this.bailouts) : super(compiler);
 
-  void checkBailout(HInstruction instruction, HInstruction insertionPoint) {
-    BailoutInfo info = bailouts[instruction.id];
-    if (info != null) {
-      List<HInstruction> inputs = environment.buildAndSetLast(instruction);
+  bool shouldCaptureEnvironment(HInstruction instruction) {
+    return bailouts[instruction.id] != null;
+  }
+
+  void insertCapturedEnvironments() {
+    capturedEnvironments.forEach((HInstruction instruction, Environment env) {
+      BailoutInfo info = bailouts[instruction.id];
+      List<HInstruction> inputs = env.buildAndSetLast(instruction);
       HBailoutTarget bailout = new HBailoutTarget(info.bailoutId, inputs);
+      HInstruction insertionPoint = (instruction is HPhi)
+          ? phi.block.first
+          : instruction.next;
       instruction.block.addBefore(insertionPoint, bailout);
-    }
-  }
-
-  void visitInstruction(HInstruction instruction) {
-    checkBailout(instruction, instruction.next);
-    super.visitInstruction(instruction);
-  }
-
-  void visitPhi(HPhi phi) {
-    checkBailout(phi, phi.block.first);
-    super.visitPhi(phi);
+    });
   }
 }
 

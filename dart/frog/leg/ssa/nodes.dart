@@ -398,7 +398,7 @@ class HInstructionList {
   }
 }
 
-class HBasicBlock extends HInstructionList {
+class HBasicBlock extends HInstructionList implements Hashable {
   // The [id] must be such that any successor's id is greater than
   // this [id]. The exception are back-edges.
   int id;
@@ -431,6 +431,8 @@ class HBasicBlock extends HInstructionList {
         successors = const <HBasicBlock>[],
         dominatedBlocks = <HBasicBlock>[],
         bailouts = <HBailoutTarget>[];
+
+  int hashCode() => id;
 
   bool isNew() => status == STATUS_NEW;
   bool isOpen() => status == STATUS_OPEN;

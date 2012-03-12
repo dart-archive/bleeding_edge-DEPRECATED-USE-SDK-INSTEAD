@@ -42,6 +42,17 @@ void forBailout() {
   return res;
 }
 
+void forInBailout() {
+  var n = myString.length;
+  var res = '';
+  for (int i in myString.charCodes()) {
+    var o = myString;
+    if (false) o[1] = 2;
+    res += new String.fromCharCodes([i]);
+  }
+  return res;
+}
+
 void innerForBailout() {
   var n = myString.length;
   var res = '';
@@ -192,6 +203,7 @@ main() {
 
   myString = '1234';
   Expect.equals('1234', forBailout());
+  Expect.equals('1234', forInBailout());
   Expect.equals('12341234', innerForBailout());
 
   Expect.equals('1234', whileBailout());

@@ -550,9 +550,6 @@ function(child, parent) {
     // Do not generate no such method calls if there is no class.
     if (compiler.universe.instantiatedClasses.isEmpty()) return;
 
-    // TODO(ngeoffray): We don't need to generate these methods if
-    // nobody overwrites noSuchMethod.
-
     ClassElement objectClass =
         compiler.coreLibrary.find(const SourceString('Object'));
     String className = namer.isolatePropertyAccess(objectClass);
