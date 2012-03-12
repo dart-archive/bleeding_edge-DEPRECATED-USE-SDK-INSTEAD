@@ -453,14 +453,18 @@ class ConstructedConstant extends ObjectConstant {
 class ConstantHandler extends CompilerTask {
   // Contains the initial value of fields. Must contain all static and global
   // initializations of used fields. May contain caches for instance fields.
-  final Map<VariableElement, Dynamic> initialVariableValues;
+  final Map<VariableElement, Constant> initialVariableValues;
 
   // Map from compile-time constants to their JS name.
   final Map<Constant, String> compiledConstants;
 
+  // The set of variable elements that are in the process of being computed.
+  final Set<VariableElement> pendingVariables;
+
   ConstantHandler(Compiler compiler)
       : initialVariableValues = new Map<VariableElement, Dynamic>(),
         compiledConstants = new Map<Constant, String>(),
+        pendingVariables = new Set<Constant>(),
         super(compiler);
   String get name() => 'ConstantHandler';
 
@@ -483,6 +487,7 @@ class ConstantHandler extends CompilerTask {
     // Shortcut if it has already been compiled.
     if (initialVariableValues.containsKey(element)) return;
     compileVariableWithDefinitions(element, work.resolutionTree);
+    assert(pendingVariables.isEmpty());
   }
 
   compileVariable(VariableElement element) {
@@ -508,10 +513,19 @@ class ConstantHandler extends CompilerTask {
         // No initial value.
         value = new NullConstant();
       } else {
+        if (pendingVariables.contains(element)) {
+          MessageKind kind = MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS;
+          compiler.reportError(node,
+                               new CompileTimeConstantError(kind, const []));
+        }
+        pendingVariables.add(element);
+
         Node right = assignment.arguments.head;
         CompileTimeConstantEvaluator evaluator =
             new CompileTimeConstantEvaluator(this, definitions, compiler);
         value = evaluator.evaluate(right);
+
+        pendingVariables.remove(element);
       }
       initialVariableValues[element] = value;
       return value;

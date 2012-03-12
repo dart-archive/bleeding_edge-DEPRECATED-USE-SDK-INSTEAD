@@ -121,6 +121,8 @@ class MessageKind {
 
   static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       'not a compile-time constant');
+  static final CYCLIC_COMPILE_TIME_CONSTANTS = const MessageKind(
+      'cycle in the compile-time constant computation');
 
   static final KEY_NOT_A_STRING_LITERAL = const MessageKind(
       'map-literal key not a string literal');
