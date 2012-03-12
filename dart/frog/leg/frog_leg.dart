@@ -41,6 +41,7 @@ String relativize(Uri base, Uri uri) {
 
 bool compile(frog.World world) {
   final throwOnError = frog.options.throwOnErrors;
+  final showWarnings = frog.options.showWarnings;
   // final compiler = new WorldCompiler(world, throwOnError);
   Uri cwd = new Uri(scheme: 'file', path: io.getCurrentDirectory());
   Uri uri = cwd.resolve(frog.options.dartScript);
@@ -69,8 +70,9 @@ bool compile(frog.World world) {
       return;
     }
     if (uri === null) {
+      assert(fatal);
       print(message);
-    } else {
+    } else if (fatal || showWarnings) {
       frog.SourceFile file = sourceFiles[uri.toString()];
       print(file.getLocationMessage(message, begin, end, true));
     }
