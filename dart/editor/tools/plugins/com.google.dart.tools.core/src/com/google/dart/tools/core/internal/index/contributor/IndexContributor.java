@@ -37,6 +37,7 @@ import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
@@ -60,6 +61,7 @@ import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.utilities.collections.IntStack;
 
 import java.util.ArrayList;
 
@@ -151,6 +153,14 @@ public class IndexContributor extends ASTVisitor<Void> {
   private static String MISSING_SOURCE = "";
 
   /**
+   * A stack containing one value for each name scope that has been entered, where the values are a
+   * count of the number of unnamed functions that have been found within that scope. These counts
+   * are used to synthesize a name for those functions. The innermost scope is at the top of the
+   * stack.
+   */
+  private IntStack unnamedFunctionCount = new IntStack();
+
+  /**
    * Initialize a newly created contributor to contribute data and relationships to the given index
    * while processing the AST structure associated with the given compilation unit.
    * 
@@ -235,24 +245,24 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitClass(DartClass node) {
-    pushElement(getElement(node));
+    enterScope(getElement(node));
     try {
       processClass(node);
       super.visitClass(node);
     } finally {
-      popElement();
+      exitScope();
     }
     return null;
   }
 
   @Override
   public Void visitField(DartField node) {
-    pushElement(getElement(node));
+    enterScope(getElement(node));
     try {
       processField(node.getName(), node.getElement());
       super.visitField(node);
     } finally {
-      popElement();
+      exitScope();
     }
     return null;
   }
@@ -278,12 +288,12 @@ public class IndexContributor extends ASTVisitor<Void> {
       super.visitFunction(node);
       return null;
     }
-    pushElement(getElement(node));
+    enterScope(getElement(node));
     try {
       processFunction(node);
       super.visitFunction(node);
     } finally {
-      popElement();
+      exitScope();
     }
     return null;
   }
@@ -302,12 +312,12 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
-    pushElement(getElement(node));
+    enterScope(getElement(node));
     try {
       processFunctionTypeAlias(node);
       super.visitFunctionTypeAlias(node);
     } finally {
-      popElement();
+      exitScope();
     }
     return null;
   }
@@ -375,12 +385,12 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitMethodDefinition(DartMethodDefinition node) {
-    pushElement(getElement(node));
+    enterScope(getElement(node));
     try {
       processMethodDefinition(node);
       super.visitMethodDefinition(node);
     } finally {
-      popElement();
+      exitScope();
     }
     return null;
   }
@@ -467,6 +477,22 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitUnit(DartUnit node) {
+    unnamedFunctionCount.push(0);
+    try {
+      super.visitUnit(node);
+    } finally {
+      unnamedFunctionCount.pop();
+      if (!unnamedFunctionCount.isEmpty()) {
+        DartCore.logError(unnamedFunctionCount.size()
+            + " scopes entered but not exited while visiting " + compilationUnit.getElementName());
+        unnamedFunctionCount.clear();
+      }
+    }
+    return null;
+  }
+
+  @Override
   public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
     com.google.dart.compiler.resolver.Element element = node.getElement();
     if (element instanceof MethodElement) {
@@ -479,6 +505,24 @@ public class IndexContributor extends ASTVisitor<Void> {
       notFound("unqualified invocation", node);
     }
     return super.visitUnqualifiedInvocation(node);
+  }
+
+  /**
+   * Enter a new scope represented by the given element.
+   * 
+   * @param element the element of the scope being entered
+   */
+  private void enterScope(Element element) {
+    elementStack.add(element);
+    unnamedFunctionCount.push(0);
+  }
+
+  /**
+   * Exit the current scope.
+   */
+  private void exitScope() {
+    elementStack.remove(elementStack.size() - 1);
+    unnamedFunctionCount.pop();
   }
 
   /**
@@ -605,12 +649,10 @@ public class IndexContributor extends ASTVisitor<Void> {
     DartNode parent = node.getParent();
     if (parent instanceof DartFunctionExpression) {
       functionName = ((DartFunctionExpression) parent).getFunctionName();
-    } else {
-      DartCore.logInformation("Could not get name of function in " + parent.getClass().getName());
     }
     if (functionName == null) {
-      // TODO(brianwilkerson) Decide on the form of the element id for an unnamed function.
-      functionName = "???";
+      functionName = Integer.toString(unnamedFunctionCount.peek());
+      unnamedFunctionCount.increment(1);
     }
     return new Element(compilationUnitResource, ElementFactory.composeElementId(peekElement(),
         functionName));
@@ -636,16 +678,6 @@ public class IndexContributor extends ASTVisitor<Void> {
   private Element getElement(DartMethodDefinition node) {
     return new Element(compilationUnitResource, ElementFactory.composeElementId(peekElement(),
         toString(node.getName())));
-  }
-
-  /**
-   * Return an element representing the given field.
-   * 
-   * @param element the field element to be represented
-   * @return an element representing the given field
-   */
-  private Element getElement(FieldElement element) {
-    return getElement(element, false, false);
   }
 
   /**
@@ -934,13 +966,6 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   /**
-   * Exit the current scope.
-   */
-  private void popElement() {
-    elementStack.remove(elementStack.size() - 1);
-  }
-
-  /**
    * Record any information implied by the given class definition.
    * 
    * @param node the node representing the definition of the class
@@ -1081,15 +1106,6 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @param element the element describing the variable
    */
   private void processVariable(DartIdentifier node, VariableElement element) {
-  }
-
-  /**
-   * Enter a new scope represented by the given element.
-   * 
-   * @param element the element of the scope being entered
-   */
-  private void pushElement(Element element) {
-    elementStack.add(element);
   }
 
   /**

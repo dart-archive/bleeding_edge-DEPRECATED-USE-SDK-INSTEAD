@@ -159,13 +159,36 @@ public class NewSearchEngineImpl implements SearchEngine {
 
     private DartElement findElement(DartElement parentElement, String component) {
       if (!(parentElement instanceof ParentElement)) {
-        DartCore.logError("Cannot find " + component + " as a child of " + parentElement);
+        DartCore.logError("Cannot find " + component + " as a child of " + parentElement
+            + " because it has no children");
+        return null;
+      } else if (component.length() == 0) {
+        DartCore.logError("Cannot find a child of " + parentElement + " without a name");
         return null;
       }
       try {
-        for (DartElement childElement : ((ParentElement) parentElement).getChildren()) {
-          if (childElement.getElementName().equals(component)) {
-            return childElement;
+        if (Character.isDigit(component.charAt(0))) {
+          try {
+            int target = Integer.parseInt(component);
+            int count = 0;
+            for (DartElement childElement : ((ParentElement) parentElement).getChildren()) {
+              if (childElement.getElementName().isEmpty()) {
+                if (count == target) {
+                  return childElement;
+                }
+                count++;
+              }
+            }
+          } catch (NumberFormatException exception) {
+            DartCore.logError("Cannot find " + component + " as a child of " + parentElement
+                + " because it is an invalid name");
+            return null;
+          }
+        } else {
+          for (DartElement childElement : ((ParentElement) parentElement).getChildren()) {
+            if (childElement.getElementName().equals(component)) {
+              return childElement;
+            }
           }
         }
       } catch (DartModelException exception) {
