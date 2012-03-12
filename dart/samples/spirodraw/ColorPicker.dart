@@ -13,7 +13,7 @@ class ColorPicker {
   static final BW = 10;
   static final BP = 1;
   final List<PickerListener> _listeners;
-  HTMLCanvasElement canvasElement;
+  CanvasElement canvasElement;
   String _selectedColor = 'red';
   final height = 160;
   final width = 180;
@@ -64,8 +64,8 @@ class ColorPicker {
   }
 
   void addHandlers() {
-    canvasElement.addEventListener('mousemove', (e) => onMouseMove(e), true);
-    canvasElement.addEventListener('mousedown', (e) => onMouseDown(e), true);
+    canvasElement.on.mouseMove.add((e) => onMouseMove(e), true);
+    canvasElement.on.mouseDown.add((e) => onMouseDown(e), true);
   }
 
    void drawPalette() {

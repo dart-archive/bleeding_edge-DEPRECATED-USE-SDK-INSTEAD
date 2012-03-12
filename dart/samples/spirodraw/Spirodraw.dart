@@ -4,7 +4,7 @@
 
 #library('spirodraw');
 
-#import('dart:dom');
+#import('dart:html');
 #source("ColorPicker.dart");
 // TODO(732): Reenable when this works in the VM.
 // #resource("spirodraw.css");
@@ -21,17 +21,17 @@ class Spirodraw {
   int RUnits, rUnits, dUnits;
   // Fixed radius, wheel radius, pen distance in pixels
   double R, r, d; 
-  HTMLInputElement fixedRadiusSlider, wheelRadiusSlider, 
+  InputElement fixedRadiusSlider, wheelRadiusSlider, 
     penRadiusSlider, penWidthSlider, speedSlider;
-  HTMLSelectElement inOrOut;
-  HTMLLabelElement numTurns;
-  HTMLDivElement mainDiv;
+  SelectElement inOrOut;
+  LabelElement numTurns;
+  DivElement mainDiv;
   num lastX, lastY;
   int height, width, xc, yc;
   int maxTurns;
-  HTMLCanvasElement frontCanvas, backCanvas;
+  CanvasElement frontCanvas, backCanvas;
   CanvasRenderingContext2D front, back;
-  HTMLCanvasElement paletteElement; 
+  CanvasElement paletteElement; 
   ColorPicker colorPicker;
   String penColor = "red";
   int penWidth;
@@ -44,20 +44,20 @@ class Spirodraw {
   
   Spirodraw() {
     doc = window.document;
-    inOrOut = doc.getElementById("in_out");
-    fixedRadiusSlider = doc.getElementById("fixed_radius");
-    wheelRadiusSlider = doc.getElementById("wheel_radius");
-    penRadiusSlider = doc.getElementById("pen_radius");
-    penWidthSlider = doc.getElementById("pen_width");
-    speedSlider = doc.getElementById("speed");
-    numTurns = doc.getElementById("num_turns");
-    mainDiv = doc.getElementById("main");
-    frontCanvas = doc.getElementById("canvas");
+    inOrOut = doc.query("#in_out");
+    fixedRadiusSlider = doc.query("#fixed_radius");
+    wheelRadiusSlider = doc.query("#wheel_radius");
+    penRadiusSlider = doc.query("#pen_radius");
+    penWidthSlider = doc.query("#pen_width");
+    speedSlider = doc.query("#speed");
+    numTurns = doc.query("#num_turns");
+    mainDiv = doc.query("#main");
+    frontCanvas = doc.query("#canvas");
     front = frontCanvas.getContext("2d");
-    backCanvas = doc.createElement("canvas");
+    backCanvas = new Element.tag("canvas");
     back = backCanvas.getContext("2d");
-    paletteElement = doc.getElementById("palette");
-    window.addEventListener('resize', (event) => onResize(), true);
+    paletteElement = doc.query("#palette");
+    window.on.resize.add((event) => onResize(), true);
     initControlPanel();
   }
 
@@ -78,18 +78,18 @@ class Spirodraw {
   }
   
   void initControlPanel() {
-    inOrOut.addEventListener('change', (event) => refresh(), true);
-    fixedRadiusSlider.addEventListener('change', (event) => refresh(), true);
-    wheelRadiusSlider.addEventListener('change', (event) => refresh(), true);
-    speedSlider.addEventListener('change', (event) => onSpeedChange(), true);
-    penRadiusSlider.addEventListener('change', (event) => refresh(), true);
-    penWidthSlider.addEventListener('change', (event) => onPenWidthChange(), true);
+    inOrOut.on.change.add((event) => refresh(), true);
+    fixedRadiusSlider.on.change.add((event) => refresh(), true);
+    wheelRadiusSlider.on.change.add((event) => refresh(), true);
+    speedSlider.on.change.add((event) => onSpeedChange(), true);
+    penRadiusSlider.on.change.add((event) => refresh(), true);
+    penWidthSlider.on.change.add((event) => onPenWidthChange(), true);
     colorPicker = new ColorPicker(paletteElement);
     colorPicker.addListener((String color) => onColorChange(color));
-    doc.getElementById("start").addEventListener('click', (event) => start(), true);
-    doc.getElementById("stop").addEventListener('click', (event) => stop(), true);
-    doc.getElementById("clear").addEventListener('click', (event) => clear(), true);
-    doc.getElementById("lucky").addEventListener('click', (event) => lucky(), true);
+    doc.query("#start").on.click.add((event) => start(), true);
+    doc.query("#stop").on.click.add((event) => stop(), true);
+    doc.query("#clear").on.click.add((event) => clear(), true);
+    doc.query("#lucky").on.click.add((event) => lucky(), true);
   }
   
   void onColorChange(String color) {
@@ -125,7 +125,7 @@ class Spirodraw {
     numPoints = calcNumPoints();
     maxTurns = calcTurns();
     onSpeedChange();
-    numTurns.innerText = "0" + "/" + maxTurns;
+    numTurns.text = "0" + "/" + maxTurns;
     penWidth = penWidthSlider.valueAsNumber;
     drawFrame(0.0);
   }
@@ -163,7 +163,7 @@ class Spirodraw {
       rad+=stepSize;
       drawFrame(rad);
       int nTurns = (rad / PI2).toInt();
-      numTurns.innerText = '${nTurns}/$maxTurns';
+      numTurns.text = '${nTurns}/$maxTurns';
       window.webkitRequestAnimationFrame(animate, frontCanvas);
     } else {
       stop();
