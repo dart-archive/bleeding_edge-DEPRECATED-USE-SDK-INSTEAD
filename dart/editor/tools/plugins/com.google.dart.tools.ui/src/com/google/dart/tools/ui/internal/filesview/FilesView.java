@@ -27,6 +27,7 @@ import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -44,6 +45,7 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
@@ -61,7 +63,9 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.ViewPart;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * File-oriented view for navigating Dart projects.
@@ -131,6 +135,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
+  //persistence tags
+  private static final String TAG_ELEMENT = "element"; //$NON-NLS-1$
+  private static final String TAG_EXPANDED = "expanded"; //$NON-NLS-1$
+  private static final String TAG_PATH = "path"; //$NON-NLS-1$
+  private static final String TAG_SELECTION = "selection"; //$NON-NLS-1$
+
   public FilesView() {
   }
 
@@ -188,6 +198,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
     updateTreeFont();
+
+    restoreState();
   }
 
   @Override
@@ -211,6 +223,31 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   @Override
   public void saveState(IMemento memento) {
     memento.putBoolean(LINK_WITH_EDITOR_ID, linkWithEditorAction.getLinkWithEditor());
+
+    //save expanded elements
+    Object expandedElements[] = treeViewer.getVisibleExpandedElements();
+    if (expandedElements.length > 0) {
+      IMemento expandedMem = memento.createChild(TAG_EXPANDED);
+      for (Object element : expandedElements) {
+        if (element instanceof IResource) {
+          IMemento elementMem = expandedMem.createChild(TAG_ELEMENT);
+          elementMem.putString(TAG_PATH, ((IResource) element).getFullPath().toString());
+        }
+      }
+    }
+
+    //save selection
+    Object elements[] = ((IStructuredSelection) treeViewer.getSelection()).toArray();
+    if (elements.length > 0) {
+      IMemento selectionMem = memento.createChild(TAG_SELECTION);
+      for (Object element : elements) {
+        if (element instanceof IResource) {
+          IMemento elementMem = selectionMem.createChild(TAG_ELEMENT);
+          elementMem.putString(TAG_PATH, ((IResource) element).getFullPath().toString());
+        }
+      }
+    }
+
   }
 
   @Override
@@ -321,6 +358,38 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       } catch (PartInitException e) {
         DartToolsPlugin.log(e);
       }
+    }
+  }
+
+  protected void restoreState() {
+    if (memento == null) {
+      return;
+    }
+
+    IContainer container = ResourcesPlugin.getWorkspace().getRoot();
+    //restore expansion
+    IMemento childMem = memento.getChild(TAG_EXPANDED);
+    if (childMem != null) {
+      List<Object> elements = new ArrayList<Object>();
+      for (IMemento mem : childMem.getChildren(TAG_ELEMENT)) {
+        Object element = container.findMember(mem.getString(TAG_PATH));
+        if (element != null) {
+          elements.add(element);
+        }
+      }
+      treeViewer.setExpandedElements(elements.toArray());
+    }
+    //restore selection
+    childMem = memento.getChild(TAG_SELECTION);
+    if (childMem != null) {
+      ArrayList<Object> list = new ArrayList<Object>();
+      for (IMemento mem : childMem.getChildren(TAG_ELEMENT)) {
+        Object element = container.findMember(mem.getString(TAG_PATH));
+        if (element != null) {
+          list.add(element);
+        }
+      }
+      treeViewer.setSelection(new StructuredSelection(list));
     }
   }
 
