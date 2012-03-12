@@ -603,6 +603,37 @@ function(child, parent) {
                      Selector.SETTER);
     });
   }
+  
+  String buildIsolateSetup(Element appMain, Element isolateMain) {
+    String mainAccess = "${namer.isolateAccess(appMain)}";
+    String currentIsolate = "${namer.CURRENT_ISOLATE}";
+    String mainEnsureGetter = '';
+    // Since we pass the closurized version of the main method to
+    // the isolate method, we must make sure that it exists.
+    if (!compiler.universe.staticFunctionsNeedingGetter.contains(appMain)) {
+      String invocationName =
+          "${namer.closureInvocationName(Selector.INVOCATION_0)}";
+      mainEnsureGetter = "$mainAccess.$invocationName = $mainAccess";
+    }
+
+  // TODO(ngeoffray): These globals are currently required by the isolate
+  // library, but since leg already generates code on an Isolate object, they
+  // are not really needed. We should remove them once Leg replaces Frog.
+    return """
+var \$globalThis = $currentIsolate;
+var \$globalState = $currentIsolate;
+var \$globals = $currentIsolate;
+function \$static_init(){};
+
+function \$initGlobals(context) {
+  context.isolateStatics = new ${namer.ISOLATE}();
+}
+function \$setGlobals(context) {
+  \$globals = context.isolateStatics;
+}
+$mainEnsureGetter
+${namer.isolateAccess(isolateMain)}($mainAccess);""";
+  }
 
   String assembleProgram() {
     measure(() {
@@ -618,7 +649,13 @@ function(child, parent) {
       nativeEmitter.emitDynamicDispatchMetadata(buffer);
       buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
       Element main = compiler.mainApp.find(Compiler.MAIN);
-      buffer.add('${namer.isolateAccess(main)}();\n');
+      if (compiler.isolateLibrary != null) {
+        Element isolateMain =
+            compiler.isolateLibrary.find(Compiler.START_ROOT_ISOLATE);
+        buffer.add(buildIsolateSetup(main, isolateMain));
+      } else {
+        buffer.add('${namer.isolateAccess(main)}();\n');
+      }
       compiler.assembledCode = buffer.toString();
     });
     return compiler.assembledCode;

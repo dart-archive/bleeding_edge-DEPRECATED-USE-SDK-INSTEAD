@@ -44,6 +44,7 @@ void maybeEnableNative(Compiler compiler,
   String libraryName = uri.toString();
   if (library.script.name.contains('dart/frog/tests/native/src')
       || libraryName == 'dart:dom'
+      || libraryName == 'dart:isolate'
       || libraryName == 'dart:html') {
     library.define(new ForeignElement(
         const SourceString('native'), library), compiler);

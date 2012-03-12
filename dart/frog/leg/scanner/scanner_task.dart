@@ -96,6 +96,7 @@ class ScannerTask extends CompilerTask {
         });
     if (newLibrary) {
       compiler.withCurrentElement(library, () => scan(library));
+      compiler.onLibraryLoaded(library, uri);
     }
     return library;
   }

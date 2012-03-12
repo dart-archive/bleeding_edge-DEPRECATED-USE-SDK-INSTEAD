@@ -56,7 +56,7 @@ class Compiler extends leg.Compiler {
     } else if (uriName == 'dart:json') {
       return libraryRoot.resolve('../../../lib/json/json.dart');
     } else if (uriName == 'dart:isolate') {
-      return libraryRoot.resolve('../../../lib/isolate/isolate_compiler.dart');
+      return libraryRoot.resolve('../../../lib/isolate/isolate_leg.dart');
     } else if (uriName == 'dart:io') {
       return libraryRoot.resolve('io.dart');
     } else if (uriName == 'dart:utf') {

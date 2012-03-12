@@ -50,6 +50,7 @@ class Compiler implements DiagnosticListener {
   Element _currentElement;
   LibraryElement coreLibrary;
   LibraryElement coreImplLibrary;
+  LibraryElement isolateLibrary;
   LibraryElement jsHelperLibrary;
   LibraryElement mainApp;
   ClassElement objectClass;
@@ -85,6 +86,8 @@ class Compiler implements DiagnosticListener {
   static final SourceString NO_SUCH_METHOD_EXCEPTION =
       const SourceString('NoSuchMethodException');
   static final SourceString OBJECT = const SourceString('Object');
+  static final SourceString START_ROOT_ISOLATE =
+      const SourceString('startRootIsolate');
   static final SourceString CLOSURE = const SourceString('Closure');
   bool enabledNoSuchMethod = false;
 
@@ -175,13 +178,24 @@ class Compiler implements DiagnosticListener {
     return true;
   }
 
-  enableNoSuchMethod(Element element) {
+  void enableNoSuchMethod(Element element) {
     if (enabledNoSuchMethod) return;
     if (element.enclosingElement == objectClass) return;
     enabledNoSuchMethod = true;
     Set<Invocation> invocations = universe.invokedNames.putIfAbsent(
         NO_SUCH_METHOD, () => new Set<Invocation>());
     invocations.add(new Invocation(2));
+  }
+
+  void enableIsolateSupport(LibraryElement element) {
+    isolateLibrary = element;
+    addToWorkList(element.find(START_ROOT_ISOLATE)); 
+  }
+
+  void onLibraryLoaded(LibraryElement library, Uri uri) {
+    if (uri.toString() == 'dart:isolate') {
+      enableIsolateSupport(library);
+    }
   }
 
   abstract LibraryElement scanBuiltinLibrary(String filename);
