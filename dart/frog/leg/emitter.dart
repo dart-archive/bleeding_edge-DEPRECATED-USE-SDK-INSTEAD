@@ -36,10 +36,12 @@ function(child, parent) {
   bool addedInheritFunction = false;
   final Namer namer;
   final NativeEmitter nativeEmitter;
+  Set<ClassElement> generatedClasses;
 
   CodeEmitterTask(Compiler compiler)
       : namer = compiler.namer,
         nativeEmitter = new NativeEmitter(compiler),
+        generatedClasses = new Set<ClassElement>(),
         super(compiler);
 
   String get name() => 'CodeEmitter';
@@ -254,15 +256,25 @@ function(child, parent) {
     } while(classElement !== null);
   }
 
-  void generateClass(ClassElement classElement,
-                     StringBuffer buffer,
-                     Set<ClassElement> seenClasses) {
-    if (seenClasses.contains(classElement)) return;
-    seenClasses.add(classElement);
-    ClassElement superclass = classElement.superclass;
+  void emitInherits(ClassElement cls, StringBuffer buffer) {
+    ClassElement superclass = cls.superclass;
     if (superclass !== null) {
-      generateClass(classElement.superclass, buffer, seenClasses);
+      addInheritFunctionIfNecessary(buffer);
+      String className = namer.isolatePropertyAccess(cls);
+      String superName = namer.isolatePropertyAccess(superclass);
+      buffer.add('${inheritsName}($className, $superName);\n');
     }
+  }
+
+  void ensureGenerated(ClassElement classElement, StringBuffer buffer) {
+    if (classElement == null) return;
+    if (generatedClasses.contains(classElement)) return;
+    generatedClasses.add(classElement);
+    generateClass(classElement, buffer);
+  }
+
+  void generateClass(ClassElement classElement, StringBuffer buffer) {
+    ensureGenerated(classElement.superclass, buffer);
 
     if (classElement.isNative()) {
       nativeEmitter.generateNativeClass(classElement, buffer);
@@ -280,11 +292,8 @@ function(child, parent) {
     buffer.add(') {\n');
     buffer.add(bodyBuffer);
     buffer.add('};\n');
-    if (superclass !== null) {
-      addInheritFunctionIfNecessary(buffer);
-      String superName = namer.isolatePropertyAccess(superclass);
-      buffer.add('${inheritsName}($className, $superName);\n');
-    }
+
+    emitInherits(classElement, buffer);
 
     String attachTo(String name) => '$className.prototype.$name';
     for (Element member in classElement.members) {
@@ -301,7 +310,7 @@ function(child, parent) {
       buffer.add('${attachTo(namer.operatorIs(other))} = true;\n');
     });
 
-    if (superclass === null && compiler.enabledNoSuchMethod) {
+    if (classElement === compiler.objectClass && compiler.enabledNoSuchMethod) {
       // Emit the noSuchMethods on the Object prototype now, so that
       // the code in the dynamicMethod can find them. Note that the
       // code in dynamicMethod is invoked before analyzing the full JS
@@ -330,9 +339,8 @@ function(child, parent) {
   }
 
   void emitClasses(StringBuffer buffer) {
-    Set seenClasses = new Set<ClassElement>();
     for (ClassElement element in compiler.universe.instantiatedClasses) {
-      generateClass(element, buffer, seenClasses);
+      ensureGenerated(element, buffer);
     }
   }
 
@@ -388,7 +396,7 @@ function(child, parent) {
     //    foo(x, y, z) { ... } // Original function.
     //    get foo() { return new BoundClosure499(this); }
     // }
-    // class BoundClosure499 {
+    // class BoundClosure499 extends Closure {
     //   var self;
     //   BoundClosure499(this.self);
     //   $call3(x, y, z) { return self.foo(x, y, z); }
@@ -399,21 +407,16 @@ function(child, parent) {
 
     // The closure class.
     SourceString name = const SourceString("BoundClosure");
-    CompilationUnitElement compilationUnit = member.getCompilationUnit();
-    ClassElement closureClassElement = new ClassElement(name, compilationUnit);
+    ClassElement closureClassElement =
+        new ClosureClassElement(compiler, member.getCompilationUnit());
     String isolateAccess = namer.isolatePropertyAccess(closureClassElement);
+    ensureGenerated(closureClassElement.superclass, buffer);
 
     // Define the constructor with a name so that Object.toString can
     // find the class name of the closure class.
     buffer.add("$isolateAccess = function $name(self) ");
     buffer.add("{ this.self = self; };\n");
-
-    // Make the closure class extend Object.
-    addInheritFunctionIfNecessary(buffer);
-    ClassElement objectClass =
-        compiler.coreLibrary.find(const SourceString('Object'));
-    String superName = namer.isolatePropertyAccess(objectClass);
-    buffer.add('${inheritsName}($isolateAccess, $superName);\n');
+    emitInherits(closureClassElement, buffer);
 
     String prototype = "$isolateAccess.prototype";
 

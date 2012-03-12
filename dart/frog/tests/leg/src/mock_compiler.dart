@@ -35,7 +35,8 @@ final String DEFAULT_HELPERLIB = @'''
   builtin$filter$1(receiver, predicate) {}
   builtin$removeLast$0(receiver) {}
   index(a, index) {}
-  indexSet(a, index, value) {}''';
+  indexSet(a, index, value) {}
+  class Closure {} ''';
 
 final String DEFAULT_CORELIB = @'''
   print(var obj) {}
@@ -64,7 +65,10 @@ class MockCompiler extends Compiler {
     script = new Script(uri, new MockFile(helperSource));
     jsHelperLibrary = new LibraryElement(script);
     parseScript(helperSource, jsHelperLibrary);
+    scanner.importLibrary(jsHelperLibrary, coreLibrary, null);
     mainApp = mockLibrary(this, "");
+    objectClass = coreLibrary.find(Compiler.OBJECT);
+    closureClass = jsHelperLibrary.find(Compiler.CLOSURE);
   }
 
   void reportWarning(Node node, var message) {

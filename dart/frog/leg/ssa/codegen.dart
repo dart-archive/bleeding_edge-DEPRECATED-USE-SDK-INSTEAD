@@ -942,6 +942,29 @@ class SsaCodeGenerator implements HVisitor {
     endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
   }
 
+  void checkFunction(HInstruction input, Element element) {
+    beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    buffer.add('typeof ');
+    use(input, JSPrecedence.PREFIX_PRECEDENCE);
+    buffer.add(" === 'function'");
+    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    buffer.add(" || ");
+    beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+    checkObject(input, '===');
+    buffer.add(" && ");
+    checkType(input, element);
+    endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+    endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+  }
+
+  void checkType(HInstruction input, Element element) {
+    buffer.add('!!');
+    use(input, JSPrecedence.MEMBER_PRECEDENCE);
+    buffer.add('.');
+    buffer.add(compiler.namer.operatorIs(element));
+  }
+
   void visitIs(HIs node) {
     Element element = node.typeExpression;
     compiler.registerIsCheck(element);
@@ -964,6 +987,8 @@ class SsaCodeGenerator implements HVisitor {
       checkNum(input, '===');
     } else if (element == coreLibrary.find(const SourceString('bool'))) {
       checkBool(input, '===');
+    } else if (element == coreLibrary.find(const SourceString('Function'))) {
+      checkFunction(input, element);
     } else if (element == coreLibrary.find(const SourceString('int'))) {
       beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
       checkNum(input, '===');
@@ -994,10 +1019,7 @@ class SsaCodeGenerator implements HVisitor {
       } else {
         beginExpression(precedence);
       }
-      buffer.add('!!');
-      use(input, JSPrecedence.MEMBER_PRECEDENCE);
-      buffer.add('.');
-      buffer.add(compiler.namer.operatorIs(node.typeExpression));
+      checkType(input, node.typeExpression);
       if (element.isClass() && (element.dynamic.isNative()
                                 || isSupertypeOfNativeClass(element))) {
         buffer.add(' || ');

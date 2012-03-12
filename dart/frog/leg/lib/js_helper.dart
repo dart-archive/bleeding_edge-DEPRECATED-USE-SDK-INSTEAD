@@ -1316,6 +1316,13 @@ StackTrace getTraceFromException(exception) {
   return new StackTrace(JS("var", @"$0.stack", exception));
 }
 
+class StackTrace {
+  var stack;
+  StackTrace(this.stack);
+  String toString() => stack != null ? stack : '';
+}
+
+
 /**
  * Called by generated code to build a map literal. [keyValuePairs] is
  * a list of key, value, key, value, ..., etc.
@@ -1364,10 +1371,11 @@ callClosure0(closure) => closure();
 callClosure1(closure, arg1) => closure(arg1);
 callClosure2(closure, arg1, arg2) => closure(arg1, arg2);
 
-class StackTrace {
-  var stack;
-  StackTrace(this.stack);
-  String toString() => stack != null ? stack : '';
+/**
+ * Super class for Dart closures.
+ */
+class Closure implements Function {
+  String toString() => "Closure";
 }
 
 bool jsHasOwnProperty(var jsObject, String property) {

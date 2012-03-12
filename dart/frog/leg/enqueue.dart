@@ -63,6 +63,10 @@ class EnqueueTask extends CompilerTask {
       // If there is a property access with the same name as a method we
       // need to emit the method.
       if (compiler.universe.invokedGetters.contains(member.name)) {
+        // We will emit a closure, so make sure the closure class is
+        // generated.
+        compiler.closureClass.ensureResolved(compiler);
+        compiler.registerInstantiatedClass(compiler.closureClass);
         return compiler.addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {

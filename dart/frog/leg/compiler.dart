@@ -53,6 +53,7 @@ class Compiler implements DiagnosticListener {
   LibraryElement jsHelperLibrary;
   LibraryElement mainApp;
   ClassElement objectClass;
+  ClassElement closureClass;
 
   Element get currentElement() => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -84,6 +85,7 @@ class Compiler implements DiagnosticListener {
   static final SourceString NO_SUCH_METHOD_EXCEPTION =
       const SourceString('NoSuchMethodException');
   static final SourceString OBJECT = const SourceString('Object');
+  static final SourceString CLOSURE = const SourceString('Closure');
   bool enabledNoSuchMethod = false;
 
   static final String GREEN_COLOR = '\u001b[32m';
@@ -189,6 +191,7 @@ class Compiler implements DiagnosticListener {
     jsHelperLibrary = scanBuiltinLibrary('js_helper.dart');
     coreLibrary = scanBuiltinLibrary('core.dart');
     objectClass = coreLibrary.find(OBJECT);
+    closureClass = jsHelperLibrary.find(CLOSURE);
     // Since coreLibrary import the libraries "coreimpl", and
     // "js_helper", coreLibrary is null when they are being built. So
     // we add the implicit import of coreLibrary now. This can be

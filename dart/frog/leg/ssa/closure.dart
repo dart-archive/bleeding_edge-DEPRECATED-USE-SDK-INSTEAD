@@ -12,6 +12,15 @@ class ClosureFieldElement extends Element {
   String toString() => "ClosureFieldElement($name)";
 }
 
+class ClosureClassElement extends ClassElement {
+  ClosureClassElement(Compiler compiler, Element enclosingElement)
+      : super(Compiler.CLOSURE, enclosingElement) {
+    isResolved = true;
+    compiler.closureClass.ensureResolved(compiler);
+    supertype = compiler.closureClass.computeType(compiler);
+  }
+}
+
 // The box-element for a scope, and the captured variables that need to be
 // stored in the box.
 class ClosureScope {
@@ -292,20 +301,14 @@ class ClosureTranslator extends AbstractVisitor {
 
   ClosureData globalizeClosure(FunctionExpression node) {
     FunctionElement element = elements[node];
-    SourceString name = const SourceString("Closure");
-    CompilationUnitElement compilationUnit = element.getCompilationUnit();
-    ClassElement globalizedElement = new ClassElement(name, compilationUnit);
+    ClassElement globalizedElement =
+        new ClosureClassElement(compiler, element.getCompilationUnit());
     FunctionElement callElement =
         new FunctionElement.from(Namer.CLOSURE_INVOCATION_NAME,
                                  element,
                                  globalizedElement);
     globalizedElement.backendMembers =
         const EmptyLink<Element>().prepend(callElement);
-    globalizedElement.isResolved = true;
-    // TODO(karlklose): create function to get the resolved class object.
-    ClassElement objectClass = compiler.coreLibrary.find(Types.OBJECT);
-    globalizedElement.supertype = objectClass.computeType(compiler);
-    objectClass.ensureResolved(compiler);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     Element thisElement = closureData.thisElement;
