@@ -23,6 +23,8 @@ import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationListener;
@@ -90,12 +92,37 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
   private IAction createAction;
   private IAction deleteAction;
 
+  private ILaunchConfiguration launchConfig;
+
   public ManageLaunchesDialog(IWorkbenchWindow window) {
     super(window.getShell());
 
     this.window = window;
 
     setShellStyle(getShellStyle() | SWT.RESIZE);
+  }
+
+  public boolean canLaunch() {
+
+    if (workingCopy == null) {
+      return false;
+    }
+    try {
+      verifyName();
+    } catch (CoreException e) {
+      return false;
+    }
+
+    ILaunchConfigurationTab[] tabs = getTabs();
+    if (tabs == null) {
+      return false;
+    }
+    for (int i = 0; i < tabs.length; i++) {
+      if (!tabs[i].isValid(workingCopy)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
@@ -220,7 +247,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     if (getButton(IDialogConstants.OK_ID) != null) {
       // Run button
       getButton(IDialogConstants.OK_ID).setEnabled(
-          activeTab != null && activeTab.getErrorMessage() == null);
+          activeTab != null && activeTab.getErrorMessage() == null && canLaunch());
 
       // Delete action
       getDeleteAction().setEnabled(selectedConfig != null);
@@ -229,6 +256,14 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
   @Override
   public void updateMessage() {
+
+    try {
+      verifyName();
+    } catch (CoreException ce) {
+      setErrorMessage(ce.getStatus().getMessage());
+      return;
+    }
+
     if (activeTab != null) {
       String errorMessage = activeTab.getErrorMessage();
 
@@ -475,6 +510,10 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     launchesViewer.refresh();
   }
 
+//  private boolean isDirty() {
+//    return workingCopy == null ? false : workingCopy.isDirty();
+//  }
+
   private void saveConfig() {
     if (currentTabGroup != null) {
       currentTabGroup.performApply(workingCopy);
@@ -490,10 +529,6 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     updateButtons();
     updateMessage();
   }
-
-//  private boolean isDirty() {
-//    return workingCopy == null ? false : workingCopy.isDirty();
-//  }
 
   private void selectFirstLaunchConfig() {
     final ILaunchConfiguration launchConfig = (ILaunchConfiguration) launchesViewer.getElementAt(0);
@@ -524,7 +559,8 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
   private void show(ILaunchConfiguration config) {
     try {
-      workingCopy = config.getWorkingCopy();
+      launchConfig = config;
+      workingCopy = launchConfig.getWorkingCopy();
       configNameText.setText(workingCopy.getName());
 
       currentTabGroup = LaunchConfigurationPresentationManager.getDefault().getTabGroup(
@@ -541,6 +577,36 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     } catch (CoreException ce) {
       DebugErrorHandler.errorDialog(getShell(), "Error Displaying Launch",
           "Unable to display launch settings: " + ce.toString(), ce);
+    }
+  }
+
+  /**
+   * Verify that the launch configuration name is valid.
+   */
+  private void verifyName() throws CoreException {
+    if (configNameText.isVisible()) {
+      ILaunchManager mgr = getLaunchManager();
+      String currentName = configNameText.getText().trim();
+
+      // If there is no name, complain
+      if (currentName.length() < 1) {
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, 0,
+            Messages.ManageLaunchesDialog_Name_required_for_launch_configuration, null));
+      }
+      try {
+        mgr.isValidLaunchConfigurationName(currentName);
+      } catch (IllegalArgumentException iae) {
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, 0,
+            iae.getMessage(), null));
+      }
+      // Otherwise, if there's already a config with the same name, complain
+      if (!launchConfig.getName().equals(currentName)) {
+        if (mgr.isExistingLaunchConfigurationName(currentName)) {
+          throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, 0,
+              Messages.ManageLaunchesDialog_Launch_configuration_already_exists_with_this_name,
+              null));
+        }
+      }
     }
   }
 

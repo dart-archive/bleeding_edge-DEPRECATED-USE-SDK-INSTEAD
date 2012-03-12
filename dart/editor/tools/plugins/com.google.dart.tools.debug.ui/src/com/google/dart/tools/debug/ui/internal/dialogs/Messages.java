@@ -22,6 +22,8 @@ public class Messages extends NLS {
   public static String ManageLaunchesDialog_createLaunch;
   public static String ManageLaunchesDialog_manageLaunches;
   public static String ManageLaunchesDialog_launchRun;
+  public static String ManageLaunchesDialog_Name_required_for_launch_configuration;
+  public static String ManageLaunchesDialog_Launch_configuration_already_exists_with_this_name;
 
   static {
     // initialize resource bundle
