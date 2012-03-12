@@ -464,7 +464,7 @@ class ConstantHandler extends CompilerTask {
   ConstantHandler(Compiler compiler)
       : initialVariableValues = new Map<VariableElement, Dynamic>(),
         compiledConstants = new Map<Constant, String>(),
-        pendingVariables = new Set<Constant>(),
+        pendingVariables = new Set<VariableElement>(),
         super(compiler);
   String get name() => 'ConstantHandler';
 
