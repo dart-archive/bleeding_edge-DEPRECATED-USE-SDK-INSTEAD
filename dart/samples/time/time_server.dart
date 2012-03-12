@@ -30,7 +30,7 @@ void requestReceivedHandler(HttpRequest request, HttpResponse response) {
   String htmlResponse = createHtmlResponse();
   
   response.setHeader("Content-Type", "text/html; charset=UTF-8");
-  response.writeString(htmlResponse);
+  response.outputStream.writeString(htmlResponse);
   response.outputStream.close();
 }
 
