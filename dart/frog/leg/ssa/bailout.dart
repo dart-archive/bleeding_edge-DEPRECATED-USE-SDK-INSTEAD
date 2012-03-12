@@ -66,7 +66,10 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     subGraph = new SubGraph(graph.entry, graph.exit);
     environment = new Environment();
     visitBasicBlock(graph.entry);
-    assert(environment.isEmpty());
+    if (!environment.isEmpty()) {
+      compiler.internalError('Bailout environment computation',
+          node: compiler.currentElement.parseNode(compiler));
+    }
   }
 
   void visitSubGraph(SubGraph newSubGraph) {
@@ -117,65 +120,34 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     HIfBlockInformation info = instruction.blockInformation;
     HBasicBlock joinBlock = info.joinBlock;
 
-    Environment thenEnvironment;
-    Environment elseEnvironment;
-    // If the if does not have an else, phisInput will contain the
-    // instructions coming from this block to the join block. These
-    // instructions are inputs of the phis of the join block.
-    Environment phisInput;
     if (joinBlock != null) {
       visitBasicBlock(joinBlock);
     }
-
-    thenEnvironment = environment;
-    if (instruction.hasElse) {
-      // We duplicate the environment for visiting the else block. The
-      // then block will be visited with the current environment.
-      elseEnvironment = new Environment.from(environment);
-    } else {
-      // If the instruction does not have a 'then', the join block
-      // contains phis from the current block. We create an
-      // environment for these phis that will be added to the
-      // environment for visiting the current block.
-      phisInput = new Environment();
-    }
+    Environment thenEnvironment = new Environment.from(environment);
+    Environment elseEnvironment = environment;
 
     if (joinBlock != null) {
       for (HPhi phi = joinBlock.phis.first; phi != null; phi = phi.next) {
         if (joinBlock.predecessors[0] == instruction.block) {
           // We're dealing with an 'if' without an else branch.
-          phisInput.add(phi.inputs[0]);
           thenEnvironment.add(phi.inputs[1]);
-        } else if (joinBlock.predecessors[1] == instruction.block) {
-          // The original source code contained a '&&' or '||' as the
-          // condition.
-          phisInput.add(phi.inputs[1]);
-          thenEnvironment.add(phi.inputs[0]);
+          elseEnvironment.add(phi.inputs[0]);
         } else {
-          // A regular if with an else.
-          assert(instruction.hasElse);
           thenEnvironment.add(phi.inputs[0]);
           elseEnvironment.add(phi.inputs[1]);
         }
       }
     }
 
-    environment = thenEnvironment;
-    visitSubGraph(info.thenGraph);
-
     if (instruction.hasElse) {
-      // Save the live instructions for the then block.
-      thenEnvironment = environment;
-      // Use the duplicated environment that was created before
-      // visiting the then block.
       environment = elseEnvironment;
       visitSubGraph(info.elseGraph);
-      // Add the instructions for the then block to the
-      // current environment.
-      environment.addAll(thenEnvironment);
-    } else {
-      environment.addAll(phisInput);
+      elseEnvironment = environment;
     }
+
+    environment = thenEnvironment;
+    visitSubGraph(info.thenGraph);
+    environment.addAll(elseEnvironment);
   }
 
   void visitGoto(HGoto goto) {
