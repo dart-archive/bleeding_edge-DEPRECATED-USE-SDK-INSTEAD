@@ -272,9 +272,9 @@ public class DartLaunchConfigWrapper {
   public String[] getVmArgumentsAsArray() {
     List<String> args = new ArrayList<String>();
 
+    // use --enable-checked-mode instead of --enable-asserts and --enable-type-checks
     if (getCheckedMode()) {
-      args.add("--enable_asserts");
-      args.add("--enable-type-checks");
+      args.add("--enable-checked-mode");
     }
 
     try {
