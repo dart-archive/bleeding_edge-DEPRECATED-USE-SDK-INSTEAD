@@ -141,10 +141,6 @@ class ReceivePortFactory {
   factory ReceivePort() {
     throw 'factory ReceivePort is not implemented';
   }
-
-  factory ReceivePort.singleShot() {
-    throw 'factory ReceivePort.singleShot is not implemented';
-  }
 }
 
 class StringBase {

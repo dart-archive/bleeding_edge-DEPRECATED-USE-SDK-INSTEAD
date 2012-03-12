@@ -171,8 +171,9 @@ class Dispatcher<T> {
 
 class PromiseProxy<T> extends PromiseImpl<T> {
   PromiseProxy(Promise<SendPort> sendCompleter) {
-    ReceivePort completer = new ReceivePort.singleShot();
-    completer.receive((var msg, SendPort _) {
+    ReceivePort completer = new ReceivePort();
+    completer.receive((var msg, _) {
+      completer.close();
       complete(msg[0]);
     });
     sendCompleter.addCompleteHandler((SendPort port) {
@@ -497,8 +498,7 @@ class ProxyBase extends PromiseImpl<bool> {
       // The promise queue implementation guarantees that promise is
       // resolved at this point.
       SendPort outgoing = _promise.value;
-      ReceivePort incoming  = outgoing.call(marshalled);
-      incoming.receive((List receiveMessage, replyTo) {
+      outgoing.call(marshalled).then((List receiveMessage) {
         result.complete(receiveMessage[0]);
       });
       return result;
@@ -527,10 +527,11 @@ class ProxyBase extends PromiseImpl<bool> {
           // This port will receive a SendPort that can be used to
           // signal completion of this promise to the corresponding
           // promise that the other end has created.
-          ReceivePort receiveCompleter = new ReceivePort.singleShot();
+          ReceivePort receiveCompleter = new ReceivePort();
           marshalled[i] = receiveCompleter.toSendPort();
           Promise<SendPort> completer = new Promise<SendPort>();
           receiveCompleter.receive((var msg, SendPort replyPort) {
+            receiveCompleter.close();
             completer.complete(msg[0]);
           });
           entry.addCompleteHandler((value) {

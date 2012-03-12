@@ -14,13 +14,13 @@ compilerIsolate(port) {
 main() {
   dom.document.getElementById('status').innerHTML = 'Initializing compiler';
   final iframe = dom.document.getElementById('isolate');
-  setOutline(msg, _) {
+  setOutline(msg) {
     dom.document.getElementById('out').innerHTML = msg;
   }
   dom.spawnDomIsolate(iframe.contentWindow, 'compilerIsolate').then((sendPort) {
     update(_) {
       String text = dom.document.getElementById('code').innerText;
-      sendPort.call(text).receive(setOutline);
+      sendPort.call(text).then(setOutline);
       dom.document.getElementById('status').innerHTML = 'Ready';
     }
     update(null);

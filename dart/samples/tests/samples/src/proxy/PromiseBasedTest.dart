@@ -59,8 +59,9 @@ void expandedTest(TestExpectation expect) {
   proxy.send([42]);  // Seed the isolate.
   Promise<SendPort> sendCompleter = proxy.call([87]);
   Promise<int> result = new Promise<int>();
-  ReceivePort receivePort = new ReceivePort.singleShot();
+  ReceivePort receivePort = new ReceivePort();
   receivePort.receive((var msg, SendPort _) {
+    receivePort.close();
     //print("test completer");
     result.complete(msg[0]);
   });

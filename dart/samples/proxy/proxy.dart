@@ -35,9 +35,7 @@ class RpcProxy {
     Completer completer = new Completer();
     futurePort.then((SendPort port) {
         args = _filterArgs(args);
-        port.call({"command" : command, "args" : args}).receive(
-            (value, ignoreReplyTo) {
-          assert(ignoreReplyTo === null);
+        port.call({"command" : command, "args" : args}).then((value) {
           value = _filterException(value);
           if (adjustReply != null) {
             // give derived proxy class a chance to transate SendPort to

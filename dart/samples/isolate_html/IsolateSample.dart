@@ -71,9 +71,8 @@ class IsolateSample  {
         String isolateName = buttonText[buttonText.length - 1];
         String greeting = document.query("#greetingText").dynamic.value;
         var message = { "id": MessageId.GREETING, "args" : [ greeting ] };
-        ports[isolateName].call(message).receive(
-            (var msg, SendPort replyTo) {
-              replyElement.text = msg;
+        ports[isolateName].call(message).then((var msg) {
+          replyElement.text = msg;
         });
       });
     }
