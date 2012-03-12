@@ -436,6 +436,7 @@ class CompilerCancelledException implements Exception {
 interface Tracer default LTracer {
   const Tracer();
   final bool enabled;
+  void traceCompilation(String methodName);
   void traceGraph(String name, var graph);
   void close();
 }
@@ -444,6 +445,8 @@ interface Tracer default LTracer {
 class LTracer implements Tracer {
   const LTracer();
   final bool enabled = false;
+  void traceCompilation(String methodName) {
+  }
   void traceGraph(String name, var graph) {
   }
   void close() {
