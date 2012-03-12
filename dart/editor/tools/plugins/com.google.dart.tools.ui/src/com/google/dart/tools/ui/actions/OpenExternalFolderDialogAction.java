@@ -13,25 +13,9 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
-import com.google.dart.tools.ui.internal.projects.ProjectMessages;
-import com.google.dart.tools.ui.internal.projects.ProjectUtils;
-
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
-
-import java.io.File;
-import java.net.URI;
 
 /**
  * Opens the "Open..." dialog.
@@ -56,57 +40,11 @@ public class OpenExternalFolderDialogAction extends AbstractInstrumentedAction i
 
   @Override
   public void run() {
-    String directory = new DirectoryDialog(getShell()).open();
+    String directory = new DirectoryDialog(window.getShell()).open();
     if (directory == null) {
       return;
     }
 
-    Path path = new Path(directory);
-    String name = path.lastSegment();
-
-    IProject projectHandle = ResourcesPlugin.getWorkspace().getRoot().getProject(name);
-    if (projectHandle.exists()) {
-      ProjectUtils.selectAndReveal(projectHandle);
-    } else if (!isNestedByAnExistingProject(path) && !nestsAnExistingProject(path)) {
-      URI location = new File(directory).toURI();
-
-      IProject project = ProjectUtils.createNewProject(name, projectHandle, ProjectType.NONE,
-          location, window, getShell());
-
-      ProjectUtils.selectAndReveal(project);
-    }
+    new CreateAndRevealProjectAction(window, directory).run();
   }
-
-  private Shell getShell() {
-    return window.getShell();
-  }
-
-  private boolean isNestedByAnExistingProject(IPath path) {
-    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-      IPath location = project.getLocation();
-      if (location.isPrefixOf(path)) {
-        IResource resource = ResourceUtil.getResource(path.toFile());
-        ProjectUtils.selectAndReveal(resource);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private boolean nestsAnExistingProject(IPath path) {
-    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-      IPath location = project.getLocation();
-      if (path.isPrefixOf(location)) {
-        String folderName = path.lastSegment();
-        String projectName = project.getName();
-        MessageDialog.openError(getShell(),
-            ProjectMessages.OpenExistingFolderWizardAction_nesting_title,
-            NLS.bind(ProjectMessages.OpenExistingFolderWizardAction_nesting_msg, folderName,
-                projectName));
-        return true;
-      }
-    }
-    return false;
-  }
-
 }

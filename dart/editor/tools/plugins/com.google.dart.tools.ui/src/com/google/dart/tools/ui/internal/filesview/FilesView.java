@@ -47,6 +47,9 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
@@ -61,7 +64,10 @@ import org.eclipse.ui.actions.RenameResourceAction;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.part.ISetSelectionTarget;
+import org.eclipse.ui.part.PluginTransfer;
+import org.eclipse.ui.part.ResourceTransfer;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.views.navigator.LocalSelectionTransfer;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -161,6 +167,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     });
     treeViewer.setInput(ResourcesPlugin.getWorkspace().getRoot());
+
+    initDragAndDrop();
 
     getSite().setSelectionProvider(treeViewer);
 
@@ -402,6 +410,17 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private Shell getShell() {
     return getSite().getShell();
+  }
+
+  private void initDragAndDrop() {
+    int ops = DND.DROP_COPY | DND.DROP_MOVE;// | DND.DROP_LINK;
+    Transfer[] transfers = new Transfer[] {
+        LocalSelectionTransfer.getInstance(), ResourceTransfer.getInstance(),
+        FileTransfer.getInstance(), PluginTransfer.getInstance()};
+    treeViewer.addDragSupport(ops, transfers, new FilesViewDragAdapter(treeViewer));
+    FilesViewDropAdapter adapter = new FilesViewDropAdapter(treeViewer);
+    adapter.setFeedbackEnabled(true);
+    treeViewer.addDropSupport(ops | DND.DROP_DEFAULT, transfers, adapter);
   }
 
 }
