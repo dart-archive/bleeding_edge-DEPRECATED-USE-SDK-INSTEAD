@@ -41,7 +41,6 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
-import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
@@ -541,7 +540,7 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return the method that the given method overrides
    */
   private MethodElement findOverriddenMethod(MethodElement method) {
-    EnclosingElement enclosingElement = method.getEnclosingElement();
+    com.google.dart.compiler.resolver.Element enclosingElement = method.getEnclosingElement();
     if (!(enclosingElement instanceof ClassElement)) {
       // The element represents a function, and functions cannot override other functions.
       return null;
@@ -640,24 +639,14 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   /**
-   * Return an element representing the given element.
+   * Return an element representing the given field.
    * 
-   * @param element the element to be represented
-   * @return an element representing the given element
+   * @param element the field element to be represented
+   * @return an element representing the given field
    */
-//  private Element getElement(EnclosingElement element) {
-//    if (element instanceof ClassElement) {
-//      return getElement((ClassElement) element);
-//    } else if (element instanceof FieldElement) {
-//      return getElement((FieldElement) element);
-//    } else if (element instanceof LibraryElement) {
-//      return getElement((LibraryElement) element);
-//    } else if (element instanceof MethodElement) {
-//      return getElement((MethodElement) element);
-//    }
-//    DartCore.logInformation("Could not getElement for " + element.getClass().getName());
-//    return null;
-//  }
+  private Element getElement(FieldElement element) {
+    return getElement(element, false, false);
+  }
 
   /**
    * Return an element representing the given field.

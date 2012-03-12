@@ -13,12 +13,12 @@
  */
 package com.google.dart.tools.core.internal.indexer.contributor;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.FieldElement;
@@ -154,10 +154,7 @@ public class DartContributor extends ASTVisitor<Void> implements Contributor {
       }
     }
     if (range == null && element != null) {
-      DartNode typeNode = element.getNode();
-      if (typeNode != null) {
-        range = new SourceRangeImpl(typeNode);
-      }
+      range = new SourceRangeImpl(element);
     }
     if (range == null && sourceReference != null) {
       try {
@@ -184,10 +181,7 @@ public class DartContributor extends ASTVisitor<Void> implements Contributor {
     if (range == null && type != null) {
       ClassElement classElement = type.getElement();
       if (classElement != null) {
-        DartNode typeNode = classElement.getNode();
-        if (typeNode != null) {
-          range = new SourceRangeImpl(typeNode);
-        }
+        range = new SourceRangeImpl(classElement);
       }
     }
     if (range == null && element != null) {

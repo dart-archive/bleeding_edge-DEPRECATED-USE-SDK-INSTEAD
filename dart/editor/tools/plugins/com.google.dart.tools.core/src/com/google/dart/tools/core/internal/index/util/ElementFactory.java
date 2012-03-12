@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.index.util;
 
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
-import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
@@ -96,7 +95,8 @@ public final class ElementFactory {
    * @throws DartModelException if a resource could not be created to represent the compilation unit
    *           containing the element
    */
-  public static Element getElement(EnclosingElement element) throws DartModelException {
+  public static Element getElement(com.google.dart.compiler.resolver.Element element)
+      throws DartModelException {
     if (element instanceof ClassElement) {
       return getElement((ClassElement) element);
     } else if (element instanceof FieldElement) {
@@ -205,7 +205,7 @@ public final class ElementFactory {
    * @return the library element for the library that contains the given element
    */
   private static LibraryElement getLibraryElement(com.google.dart.compiler.resolver.Element element) {
-    EnclosingElement parentElement = element.getEnclosingElement();
+    com.google.dart.compiler.resolver.Element parentElement = element.getEnclosingElement();
     while (parentElement != null) {
       if (parentElement instanceof LibraryElement) {
         return (LibraryElement) parentElement;
@@ -236,7 +236,7 @@ public final class ElementFactory {
    */
   private static void pathTo(StringBuilder builder,
       com.google.dart.compiler.resolver.Element element) {
-    EnclosingElement parent = element.getEnclosingElement();
+    com.google.dart.compiler.resolver.Element parent = element.getEnclosingElement();
     if (parent == null) {
       builder.append(element.getName());
     } else {

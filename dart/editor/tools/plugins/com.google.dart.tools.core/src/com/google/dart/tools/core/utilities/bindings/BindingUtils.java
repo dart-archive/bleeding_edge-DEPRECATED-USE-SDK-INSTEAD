@@ -26,7 +26,6 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.FunctionAliasElement;
 import com.google.dart.compiler.resolver.LabelElement;
@@ -130,7 +129,7 @@ public class BindingUtils {
     if (element == null) {
       return null;
     }
-    EnclosingElement parent = element.getEnclosingElement();
+    Element parent = element.getEnclosingElement();
     if (parent instanceof LibraryElement) {
       DartLibrary library = getDartElement((LibraryElement) parent);
       if (library != null) {
@@ -388,7 +387,7 @@ public class BindingUtils {
     if (library == null || fieldBinding == null) {
       return null;
     }
-    EnclosingElement parent = fieldBinding.getEnclosingElement();
+    Element parent = fieldBinding.getEnclosingElement();
     if (parent instanceof LibraryElement) {
       String fieldName = fieldBinding.getName();
       try {
@@ -539,7 +538,7 @@ public class BindingUtils {
       return null;
     }
     String methodName = methodBinding.getName();
-    EnclosingElement enclosingElement = methodBinding.getEnclosingElement();
+    Element enclosingElement = methodBinding.getEnclosingElement();
     if (enclosingElement == null) {
       // We don't have enough information to find the method or function.
       return null;
@@ -741,7 +740,7 @@ public class BindingUtils {
    * @return the type in which the given method is declared
    */
   public static ClassElement getDeclaringType(MethodElement method) {
-    EnclosingElement element = method.getEnclosingElement();
+    Element element = method.getEnclosingElement();
     if (element instanceof ClassElement) {
       return (ClassElement) element;
     }
@@ -825,7 +824,7 @@ public class BindingUtils {
   public static MethodElement[] getOverriddenMethods(MethodElement methodElement) {
     List<MethodElement> overriddenMethods = new ArrayList<MethodElement>();
     String methodName = methodElement.getName();
-    EnclosingElement enclosingElement = methodElement.getEnclosingElement();
+    Element enclosingElement = methodElement.getEnclosingElement();
     if (enclosingElement instanceof ClassElement) {
       Set<ClassElement> visitedTypes = new HashSet<ClassElement>();
       List<ClassElement> targetTypes = new ArrayList<ClassElement>();

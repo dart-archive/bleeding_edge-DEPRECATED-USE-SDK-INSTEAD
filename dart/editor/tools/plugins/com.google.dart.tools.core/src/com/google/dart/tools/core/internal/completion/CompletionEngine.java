@@ -54,7 +54,6 @@ import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
-import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.ResolutionContext;
@@ -551,8 +550,7 @@ public class CompletionEngine {
           if (sc == null) {
             isClassDef = false; // parsing an interface
           } else {
-            if (actualCompletionPosition >= sc.getSourceInfo().getOffset()
-                && implementsLoc < 0) {
+            if (actualCompletionPosition >= sc.getSourceInfo().getOffset() && implementsLoc < 0) {
               return null;
             }
             if (implementsLoc < completionPos || implementsLoc < 0) {
@@ -631,8 +629,7 @@ public class CompletionEngine {
             }
           } else {
             param = params.get(params.size() - 1);
-            int end = param.getSourceInfo().getOffset()
-                + param.getSourceInfo().getLength();
+            int end = param.getSourceInfo().getOffset() + param.getSourceInfo().getLength();
             boolean afterLastParam = actualCompletionPosition >= end;
             if (afterLastParam) {
               proposeTypesForNewParam();
@@ -730,8 +727,7 @@ public class CompletionEngine {
         // when completion is requested on the first word of a param decl we assume it is a type
         DartExpression typeName = param.getName();
         if (typeName.getSourceInfo().getOffset() <= actualCompletionPosition
-            && typeName.getSourceInfo().getOffset()
-                + typeName.getSourceInfo().getLength() >= actualCompletionPosition) {
+            && typeName.getSourceInfo().getOffset() + typeName.getSourceInfo().getLength() >= actualCompletionPosition) {
           if (typeName instanceof DartIdentifier) {
             DartIdentifier typeId = (DartIdentifier) typeName;
             List<SearchMatch> matches = findTypesWithPrefix(typeId);
@@ -1134,7 +1130,7 @@ public class CompletionEngine {
 
     classElement = null;
     if (resolvedMember != null) {
-      EnclosingElement encElement = resolvedMember.getElement().getEnclosingElement();
+      Element encElement = resolvedMember.getElement().getEnclosingElement();
       if (encElement instanceof ClassElement) {
         classElement = (ClassElement) encElement;
       }
@@ -1771,8 +1767,7 @@ public class CompletionEngine {
     if (prefix == null) {
       name = null;
     }
-    int sourceLoc = name == null ? actualCompletionPosition + 1
-        : name.getSourceInfo().getOffset();
+    int sourceLoc = name == null ? actualCompletionPosition + 1 : name.getSourceInfo().getOffset();
     int length = name == null ? 0 : name.getSourceInfo().getLength();
     proposal.setReplaceRange(sourceLoc - offset, length + sourceLoc - offset);
     proposal.setTokenRange(sourceLoc - offset, length + sourceLoc - offset);

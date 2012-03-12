@@ -17,7 +17,6 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.tools.core.internal.indexer.location.MethodLocation;
@@ -80,7 +79,7 @@ public class MethodOverrideContributor extends DartContributor {
    * @return the method that the given method overrides
    */
   private MethodElement findOverriddenMethod(MethodElement method) {
-    EnclosingElement enclosingElement = method.getEnclosingElement();
+    Element enclosingElement = method.getEnclosingElement();
     if (!(enclosingElement instanceof ClassElement)) {
       // The element represents a function, and functions cannot override other functions.
       return null;

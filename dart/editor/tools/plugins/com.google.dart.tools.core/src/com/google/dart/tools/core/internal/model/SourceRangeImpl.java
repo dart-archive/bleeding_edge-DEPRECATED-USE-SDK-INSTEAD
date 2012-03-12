@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.tools.core.model.SourceRange;
 
 /**
@@ -52,7 +52,7 @@ public class SourceRangeImpl implements SourceRange {
    * 
    * @param the node whose source position is to be used to initialize the source range
    */
-  public SourceRangeImpl(DartNode node) {
+  public SourceRangeImpl(HasSourceInfo node) {
     this.offset = node.getSourceInfo().getOffset();
     this.length = node.getSourceInfo().getLength();
   }
