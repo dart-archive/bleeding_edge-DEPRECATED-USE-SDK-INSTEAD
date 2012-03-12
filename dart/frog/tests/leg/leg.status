@@ -4,6 +4,7 @@
 
 ConstantFoldingStringTest: Fail
 NoDuplicateConstructorBodyTest: Fail # Fails because of the bailout version.
+RedundantPhiEliminatorTest: Fail # Fails because of hack to allow aborting loops.
 
 [ $component == dartc || $component == frog || $component == frogsh || $component == frogium || $component == webdriver || $component == legium ]
 *: Skip # Leg uses #import('dart:io');

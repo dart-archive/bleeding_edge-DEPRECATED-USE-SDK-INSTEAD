@@ -1089,11 +1089,7 @@ class SsaBuilder implements Visitor {
     open(bodyBlock);
 
     localsHandler.enterLoopBody(loop);
-    visit(body);
-    if (isAborted()) {
-      compiler.unimplemented("SsaBuilder for loop with aborting body",
-                             node: body);
-    }
+    hackAroundPossiblyAbortingBody(body);
     bodyBlock = close(new HGoto());
 
     // Update.
@@ -1138,10 +1134,7 @@ class SsaBuilder implements Visitor {
     HBasicBlock loopEntryBlock = current;
 
     localsHandler.enterLoopBody(node);
-    visit(node.body);
-    if (isAborted()) {
-      compiler.unimplemented("SsaBuilder for loop with aborting body");
-    }
+    hackAroundPossiblyAbortingBody(node.body);
 
     // If there are no continues we could avoid the creation of the condition
     // block. This could also lead to a block having multiple entries and exits.
@@ -2201,11 +2194,7 @@ class SsaBuilder implements Visitor {
     }
     localsHandler.updateLocal(variable, pop());
 
-    visit(node.body);
-    if (isAborted()) {
-      compiler.unimplemented("SsaBuilder for loop with aborting body",
-                             node: node);
-    }
+    hackAroundPossiblyAbortingBody(node.body);
     bodyBlock = close(new HGoto());
 
     // Update.
@@ -2249,12 +2238,8 @@ class SsaBuilder implements Visitor {
     HBasicBlock entryBlock = graph.addNewBlock();
     goto(current, entryBlock);
     open(entryBlock);
-    visit(body);
+    hackAroundPossiblyAbortingBody(body);
     SubGraph bodyGraph = new SubGraph(entryBlock, lastOpenedBlock);
-    if (isAborted()) {
-      compiler.unimplemented(
-          "SsaBuilder for labeled statement with aborting body", node: node);
-    }
 
     HBasicBlock joinBlock = graph.addNewBlock();
     List<LocalsHandler> breakLocals = <LocalsHandler>[];
@@ -2491,5 +2476,18 @@ class SsaBuilder implements Visitor {
     if (isExpression) {
       stack.add(graph.addConstantNull());
     }
+  }
+
+  /** HACK HACK HACK */
+  void hackAroundPossiblyAbortingBody(Node body) {
+    stack.add(graph.addConstantBool(true));
+    buildBody() {
+      // TODO(lrn): Make sure to take continue into account.
+      visit(body);
+      if (isAborted()) {
+        compiler.reportWarning(body, "aborting loop body");
+      }
+    }
+    handleIf(buildBody, null);
   }
 }
