@@ -26,6 +26,7 @@ import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
+import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -63,6 +64,7 @@ import org.eclipse.ui.actions.MoveResourceAction;
 import org.eclipse.ui.actions.RenameResourceAction;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
+import org.eclipse.ui.operations.UndoRedoActionGroup;
 import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.PluginTransfer;
 import org.eclipse.ui.part.ResourceTransfer;
@@ -139,6 +141,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private HideProjectAction hideContainerAction;
 
+  private UndoRedoActionGroup undoRedoActionGroup;
+
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
   //persistence tags
@@ -173,6 +177,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     getSite().setSelectionProvider(treeViewer);
 
     fillInToolbar(getViewSite().getActionBars().getToolBarManager());
+    fillInActionBars();
 
     // Create the TreeViewer's context menu.
     createContextMenu();
@@ -215,7 +220,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     if (linkWithEditorAction != null) {
       linkWithEditorAction.dispose();
     }
-
+    if (undoRedoActionGroup != null) {
+      undoRedoActionGroup.dispose();
+    }
     treeViewer.removeSelectionChangedListener(copyFilePathAction);
 
     super.dispose();
@@ -406,6 +413,13 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     Font oldFont = treeViewer.getTree().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     treeViewer.getTree().setFont(font);
+  }
+
+  private void fillInActionBars() {
+    IUndoContext workspaceContext = (IUndoContext) ResourcesPlugin.getWorkspace().getAdapter(
+        IUndoContext.class);
+    undoRedoActionGroup = new UndoRedoActionGroup(getViewSite(), workspaceContext, true);
+    undoRedoActionGroup.fillActionBars(getViewSite().getActionBars());
   }
 
   private Shell getShell() {
