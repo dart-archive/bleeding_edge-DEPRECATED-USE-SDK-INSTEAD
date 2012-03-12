@@ -5,13 +5,13 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "109784",
+  "webkit_revision": "110406",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "7946",
+  "nacl_revision": "7983",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
-  "nacl_tools_revision": "7139",  # native_client/DEPS: tools_rev
+  "nacl_tools_revision": "7955",  # native_client/DEPS: tools_rev
 
   # These hashes need to be updated when nacl_toolchain_revision is changed.
   # After changing nacl_toolchain_revision, run 'gclient runhooks' to get the
@@ -41,16 +41,16 @@ vars = {
 
   "libjingle_revision": "119",
   "libphonenumber_revision": "425",
-  "libvpx_revision": "123809",
+  "libvpx_revision": "125647",
   "lss_revision": "9",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "125083",
-  "ffmpeg_hash": "4e37a64923324198527aad38da497385deaf9184",
+  "ffmpeg_revision": "125946",
+  "ffmpeg_hash": "d70dcd6cce182fe5fe1ce47561e17890a1bae2b9",
 
   "sfntly_revision": "128",
-  "skia_revision": "3312",
+  "skia_revision": "3350",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -58,7 +58,7 @@ vars = {
   "webrtc_revision": "1538",
   "jsoncpp_revision": "248",
   "nss_revision": "123841",
-  "rlz_revision": "66",
+  "rlz_revision": "71",
 }
 
 deps = {
@@ -110,16 +110,16 @@ deps = {
     "/trunk/src/google@185",
 
   "src/third_party/leveldatabase/src":
-    (Var("googlecode_url") % "leveldb") + "/trunk@58",
+    (Var("googlecode_url") % "leveldb") + "/trunk@61",
 
   "src/third_party/snappy/src":
     (Var("googlecode_url") % "snappy") + "/trunk@37",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@16",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@17",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1233",
+    (Var("googlecode_url") % "gyp") + "/trunk@1242",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -190,7 +190,7 @@ deps = {
 
   # We should use the same software_rendering_list.json for all branches.
   "src/chrome/browser/resources/software_rendering_list":
-    "/trunk/deps/gpu/software_rendering_list@122802",
+    "/trunk/deps/gpu/software_rendering_list@125644",
 
   # We run these layout tests as UI tests. Since many of the buildbots that
   # run layout tests do NOT have access to the LayoutTest directory, we need
@@ -273,7 +273,7 @@ deps = {
     "/trunk/deps/third_party/speex@111570",
 
   "src/third_party/yasm/source/patched-yasm":
-    "/trunk/deps/third_party/yasm/patched-yasm@124750",
+    "/trunk/deps/third_party/yasm/patched-yasm@126079",
 
   "src/third_party/libjpeg_turbo":
     "/trunk/deps/third_party/libjpeg_turbo@124297",
@@ -423,7 +423,7 @@ deps_os = {
        Var("lss_revision")),
 
     "src/third_party/openssl":
-      "/trunk/deps/third_party/openssl@118977",
+      "/trunk/deps/third_party/openssl@125658",
 
     "src/third_party/WebKit/Tools/gdb":
       Var("webkit_trunk") + "/Tools/gdb@" + Var("webkit_revision"),
