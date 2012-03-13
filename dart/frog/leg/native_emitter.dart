@@ -331,7 +331,7 @@ function(inputTable) {
 
     ClassElement objectClass =
         compiler.coreLibrary.find(const SourceString('Object'));
-    Element element = classElement;
+    ClassElement element = classElement;
     // We need to put the super class is checks too, since a check on
     // the subclass can happen before a check on the super class
     // (which does the patching on the prototype).

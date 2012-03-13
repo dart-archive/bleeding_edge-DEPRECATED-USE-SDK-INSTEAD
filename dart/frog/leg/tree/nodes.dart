@@ -356,11 +356,11 @@ class NodeList extends Node implements Iterable<Node> {
   NodeList asNodeList() => this;
 
   int length() {
-    int length = 0;
+    int result = 0;
     for (Link<Node> cursor = nodes; !cursor.isEmpty(); cursor = cursor.tail) {
-      length++;
+      result++;
     }
-    return length;
+    return result;
   }
 
   accept(Visitor visitor) => visitor.visitNodeList(this);
@@ -1290,11 +1290,11 @@ class LiteralStringJuxtaposition extends LiteralString {
     }
   }
 
-  Token getBeginToken() => literals.head.beginToken();
+  Token getBeginToken() => literals.head.getBeginToken();
 
   Token getEndToken() {
     Link<Expression> current = literals;
-    Expression lastExpresion = null;
+    Expression lastExpression = null;
     while (!current.isEmpty()) {
       lastExpression = current.head;
       current = current.tail;
@@ -1563,7 +1563,8 @@ class LabelledStatement extends Statement {
 
   Node getBody() {
     if (statement is! LabelledStatement) return statement;
-    return statement.getBody();
+    LabelledStatement labelled = statement;
+    return labelled.getBody();
   }
 }
 
@@ -1678,9 +1679,9 @@ class CatchBlock extends Node {
   Node get trace() {
     if (formals.nodes.isEmpty()) return null;
     Link<Node> declarations = formals.nodes.tail;
-    return declarations.isEmpty()
-        ? null
-        : declarations.head.definitions.nodes.head;
+    if (declarations.isEmpty()) return null;
+    VariableDefinitions head = declarations.head;
+    return head.definitions.nodes.head;
   }
 
   visitChildren(Visitor visitor) {

@@ -123,7 +123,7 @@ class Unparser implements Visitor {
     for (Link<Expression> literals = node.literals;
          !literals.isEmpty();
          literals = literals.tail) {
-      visit(iterals.head);
+      visit(literals.head);
       if (!literals.tail.isEmpty()) {
         sb.add(" ");
       }

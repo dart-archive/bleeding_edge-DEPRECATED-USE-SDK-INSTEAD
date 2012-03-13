@@ -46,9 +46,9 @@ class Namer {
     // TODO(floitsch): mangle, while preserving uniqueness.
     StringBuffer buffer = new StringBuffer();
     List<SourceString> names = selector.getOrderedNamedArguments();
-    for (SourceString name in names) {
+    for (SourceString argumentName in names) {
       buffer.add(@'$');
-      name.printOn(buffer);
+      argumentName.printOn(buffer);
     }
     return '${name.slowToString()}\$${selector.argumentCount}$buffer';
   }

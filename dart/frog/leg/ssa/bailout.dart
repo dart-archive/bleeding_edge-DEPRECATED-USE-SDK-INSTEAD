@@ -212,7 +212,7 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
   }
 
   void visitBreak(HBreak breakInstruction) {
-    unimplemented();
+    compiler.unimplemented("SsaEnvironmentBuilder.visitBreak");
   }
 
   void visitLoopBranch(HLoopBranch branch) {
@@ -296,7 +296,7 @@ class SsaTypeGuardBuilder extends SsaEnvironmentBuilder implements OptimizationP
       instruction.type = HType.UNKNOWN;
       instruction.block.rewrite(instruction, guard);
       HInstruction insertionPoint = (instruction is HPhi)
-          ? phi.block.first
+          ? instruction.block.first
           : instruction.next;
       insertionPoint.block.addBefore(insertionPoint, guard);
     });
@@ -307,7 +307,8 @@ class SsaTypeGuardBuilder extends SsaEnvironmentBuilder implements OptimizationP
  * Visits the graph and inserts [HBailoutTarget] instructions where
  * the optimized version had [HTypeGuard] instructions.
  */
-class SsaBailoutBuilder extends SsaEnvironmentBuilder implements OptimizationPhase {
+class SsaBailoutBuilder
+    extends SsaEnvironmentBuilder implements OptimizationPhase {
   final Map<int, BailoutInfo> bailouts;
   final String name = 'SsaBailoutBuilder';
 
@@ -323,7 +324,7 @@ class SsaBailoutBuilder extends SsaEnvironmentBuilder implements OptimizationPha
       List<HInstruction> inputs = env.buildAndSetLast(instruction);
       HBailoutTarget bailout = new HBailoutTarget(info.bailoutId, inputs);
       HInstruction insertionPoint = (instruction is HPhi)
-          ? phi.block.first
+          ? instruction.block.first
           : instruction.next;
       instruction.block.addBefore(insertionPoint, bailout);
     });

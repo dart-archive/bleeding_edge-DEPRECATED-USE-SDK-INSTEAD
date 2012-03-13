@@ -273,8 +273,8 @@ class LibraryElement extends CompilationUnitElement {
     }
   }
 
-  Element find(SourceString name) {
-    return elements[name];
+  Element find(SourceString elementName) {
+    return elements[elementName];
   }
 
   void forEachExport(f(Element element)) {
@@ -295,7 +295,7 @@ class PrefixElement extends Element {
     : imported = new Map<SourceString, Element>(),
       super(prefix, ElementKind.PREFIX, enclosing);
 
-  lookupLocalMember(SourceString name) => imported[name];
+  lookupLocalMember(SourceString memberName) => imported[memberName];
 
   Type computeType(Compiler compiler) => compiler.types.dynamicType;
 }
@@ -621,7 +621,7 @@ class SynthesizedConstructorElement extends FunctionElement {
     : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
             null, enclosing);
 
-  Token position() => enclosing.position();
+  Token position() => enclosingElement.position();
 }
 
 class ClassElement extends ContainerElement {
@@ -679,9 +679,9 @@ class ClassElement extends ContainerElement {
     return localMembers[memberName];
   }
 
-  Element lookupSuperMember(SourceString name) {
+  Element lookupSuperMember(SourceString memberName) {
     for (ClassElement s = superclass; s != null; s = s.superclass) {
-      Element e = s.lookupLocalMember(name);
+      Element e = s.lookupLocalMember(memberName);
       if (e !== null) return e;
     }
     return null;
@@ -855,7 +855,8 @@ class LabelElement extends Element {
 // Represents a reference to a statement, either a label or the
 // default target of a break or continue.
 class TargetElement extends Element {
-  final Statement statement;
+  // TODO(lrn): StatementElement is not just referencing statements anymore.
+  final Node statement;
   final int nestingLevel;
   Link<LabelElement> labels = const EmptyLink<LabelElement>();
   bool isBreakTarget = false;

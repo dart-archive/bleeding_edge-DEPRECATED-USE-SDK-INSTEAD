@@ -717,11 +717,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       name = node.name.asIdentifier().source;
     }
-    FunctionElement enclosingElement = new FunctionElement.node(
+    FunctionElement enclosing = new FunctionElement.node(
         name, node, ElementKind.FUNCTION, new Modifiers.empty(),
         context.element);
-    setupFunction(node, enclosingElement);
-    defineElement(node, enclosingElement, doAddToScope: node.name !== null);
+    setupFunction(node, enclosing);
+    defineElement(node, enclosing, doAddToScope: node.name !== null);
 
     // Run the body in a fresh statement scope.
     StatementScope oldScope = statementScope;
@@ -744,7 +744,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   Element resolveSend(Send node) {
-    if (node.receiver === null || node.selector.isThis()) {
+    if (node.receiver === null || (node.selector.asIdentifier() !== null &&
+                                   node.selector.asIdentifier().isThis())) {
       return node.selector.accept(this);
     }
     var oldCategory = allowedCategory;
@@ -1257,7 +1258,9 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
       return null;
     }
-    var e = element.lookupLocalMember(node.selector.source);
+    PrefixElement prefixElement = element;
+    Identifier selector = node.selector.asIdentifier();
+    var e = prefixElement.lookupLocalMember(selector.source);
     if (e === null || !e.impliesType()) {
       error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE, [node.selector]);
       return null;
@@ -1637,10 +1640,10 @@ class ClassScope extends Scope {
 
   Element lookup(SourceString name) {
     ClassElement cls = element;
-    Element element = cls.lookupLocalMember(name);
-    if (element != null) return element;
-    element = parent.lookup(name);
-    if (element != null) return element;
+    Element memberElement = cls.lookupLocalMember(name);
+    if (memberElement != null) return memberElement;
+    memberElement = parent.lookup(name);
+    if (memberElement != null) return memberElement;
     return cls.lookupSuperMember(name);
   }
 

@@ -176,12 +176,12 @@ class SsaCodeGenerator implements HVisitor {
     return newName(id, '${prefix}${prefixes[prefix]++}');
   }
 
-  String local(HLocal local) {
-    Element element = local.element;
+  String local(HLocal localNode) {
+    Element element = localNode.element;
     if (element != null && element.kind == ElementKind.PARAMETER) {
       return parameterNames[element];
     }
-    int id = local.id;
+    int id = localNode.id;
     String name = names[id];
     if (name !== null) return name;
 
@@ -649,7 +649,7 @@ class SsaCodeGenerator implements HVisitor {
         name = parameterNames[parameter.element];
       } else if (input is HLoad) {
         HLoad load = input;
-        name = local(input.local);
+        name = local(load.local);
       } else {
         assert(!input.generateAtUseSite());
         name = temporary(input);
@@ -1119,7 +1119,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       // location, so that multiple bailout calls put the variable at
       // the same parameter index.
       for (int i = 0; i < guard.inputs.length; i++) {
-        HInstruction input = guard.inputs[i];
         buffer.add(', ');
         use(guard.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
       }

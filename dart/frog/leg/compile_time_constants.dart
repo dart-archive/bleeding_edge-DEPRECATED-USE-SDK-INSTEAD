@@ -241,6 +241,10 @@ class ObjectConstant extends Constant {
 
   ObjectConstant(this.type);
   bool isObject() => true;
+
+  // TODO(1603): The class should be marked as abstract, but the VM doesn't
+  // currently allow this.
+  abstract int hashCode();
 }
 
 class ListConstant extends ObjectConstant {

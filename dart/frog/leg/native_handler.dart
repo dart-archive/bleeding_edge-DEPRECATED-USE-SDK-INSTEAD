@@ -30,9 +30,9 @@ void processNativeClassesInLibrary(Compiler compiler,
         // Also parse the node to know all its methods because
         // otherwise it will only be parsed if there is a call to
         // one of its constructor.
-        element.parseNode(compiler);
+        classElement.parseNode(compiler);
         // Resolve to setup the inheritance.
-        element.ensureResolved(compiler);
+        classElement.ensureResolved(compiler);
         // Add the information that this class is a direct subclass of
         // its superclass. The code emitter and the ssa builder use that
         // information.
@@ -200,7 +200,6 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       i++;
       inputs.add(builder.localsHandler.readThis());
     }
-    Compiler compiler = builder.compiler;
     parameters.forEachParameter((Element parameter) {
       Type type = parameter.computeType(compiler);
       HInstruction input = builder.localsHandler.readLocal(parameter);

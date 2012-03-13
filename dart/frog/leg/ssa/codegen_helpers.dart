@@ -295,8 +295,6 @@ class JSPrecedence {
   static final Map<String, JSBinaryOperatorPrecedence> binary = const {
     "||" : const JSBinaryOperatorPrecedence(LOGICAL_OR_PRECEDENCE,
                                             LOGICAL_AND_PRECEDENCE),
-    "||" : const JSBinaryOperatorPrecedence(LOGICAL_OR_PRECEDENCE,
-                                            LOGICAL_AND_PRECEDENCE),
     "&&" : const JSBinaryOperatorPrecedence(LOGICAL_AND_PRECEDENCE,
                                             BITWISE_OR_PRECEDENCE),
     "|" : const JSBinaryOperatorPrecedence(BITWISE_OR_PRECEDENCE,

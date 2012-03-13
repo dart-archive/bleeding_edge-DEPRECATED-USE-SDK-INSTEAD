@@ -439,7 +439,9 @@ function(child, parent) {
     buffer.add("$prototype.$invocationName = function($joinedArgs) {\n");
     buffer.add("  return this.self.$targetName($joinedArgs);\n");
     buffer.add("};\n");
-    addParameterStubs(callElement, (name) => '$prototype.$name', buffer);
+    addParameterStubs(callElement,
+                      (invocationName) => '$prototype.$invocationName',
+                      buffer);
 
     // And finally the getter.
     String getterName = namer.getterName(member.name);

@@ -459,8 +459,9 @@ class HBasicBlock extends HInstructionList implements Hashable {
   void printToCompiler(Compiler compiler) {
     HInstruction instruction = first;
     while (instruction != null) {
-      var id = instruction.id;
-      compiler.log('$id: $instruction ${instruction.inputsToString()}');
+      int instructionId = instruction.id;
+      String inputsAsString = instruction.inputsToString();
+      compiler.log('$instructionId: $instruction $inputsAsString');
       instruction = instruction.next;
     }
   }
@@ -833,11 +834,11 @@ class HInstruction implements Hashable {
   HType computeDesiredType() {
     HType candidateType = HType.UNKNOWN;
     for (final user in usedBy) {
-      HType type = user.computeDesiredInputType(this);
+      HType desiredType = user.computeDesiredInputType(this);
       if (candidateType.isUnknown()) {
-        candidateType = type;
-      } else if (!type.isUnknown() && candidateType != type) {
-        candidateType = candidateType.combine(type);
+        candidateType = desiredType;
+      } else if (!type.isUnknown() && candidateType != desiredType) {
+        candidateType = candidateType.combine(desiredType);
         if (!candidateType.isKnown()) {
           candidateType = HType.UNKNOWN;
           break;
@@ -1335,9 +1336,9 @@ class HBinaryArithmetic extends HInvokeBinary {
   }
 
   HType computeType() {
-    HType type = computeInputsType();
-    builtin = type.isNumber();
-    if (!type.isUnknown()) return type;
+    HType inputsType = computeInputsType();
+    builtin = inputsType.isNumber();
+    if (!inputsType.isUnknown()) return inputsType;
     if (left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
   }
@@ -1351,6 +1352,8 @@ class HBinaryArithmetic extends HInvokeBinary {
   }
 
   bool hasExpectedType() => builtin || type.isUnknown();
+  // TODO(1603): The class should be marked as abstract.
+  abstract BinaryOperation get operation();
 }
 
 class HAdd extends HBinaryArithmetic {
@@ -1395,8 +1398,8 @@ class HDivide extends HBinaryArithmetic {
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
   HType computeType() {
-    HType type = computeInputsType();
-    builtin = type.isNumber();
+    HType inputsType = computeInputsType();
+    builtin = inputsType.isNumber();
     if (left.isNumber()) return HType.DOUBLE;
     return HType.UNKNOWN;
   }
@@ -1460,9 +1463,9 @@ class HBinaryBitOp extends HBinaryArithmetic {
       : super(target, left, right);
 
   HType computeType() {
-    HType type = computeInputsType();
-    builtin = type.isInteger();
-    if (!type.isUnknown()) return type;
+    HType inputsType = computeInputsType();
+    builtin = inputsType.isInteger();
+    if (!inputsType.isUnknown()) return inputsType;
     if (left.isInteger()) return HType.INTEGER;
     return HType.UNKNOWN;
   }
@@ -1551,9 +1554,9 @@ class HInvokeUnary extends HInvokeStatic {
   }
 
   HType computeType() {
-    HType type = operand.type;
-    builtin = type.isNumber();
-    if (!type.isUnknown()) return type;
+    HType operandType = operand.type;
+    builtin = operandType.isNumber();
+    if (!operandType.isUnknown()) return operandType;
     return HType.UNKNOWN;
   }
 
@@ -1584,9 +1587,9 @@ class HBitNot extends HInvokeUnary {
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
   HType computeType() {
-    HType type = operand.type;
-    builtin = type.isInteger();
-    if (!type.isUnknown()) return type;
+    HType operandType = operand.type;
+    builtin = operandType.isInteger();
+    if (!operandType.isUnknown()) return operandType;
     return HType.UNKNOWN;
   }
 
@@ -1780,8 +1783,8 @@ class HPhi extends HInstruction {
   }
 
   HType computeType() {
-    HType type = computeInputsType();
-    if (!type.isUnknown()) return type;
+    HType inputsType = computeInputsType();
+    if (!inputsType.isUnknown()) return inputsType;
     return super.computeType();
   }
 
@@ -1851,6 +1854,8 @@ class HRelational extends HInvokeBinary {
   // A HRelational goes through the builtin operator or the top level
   // element. Therefore, it always has the expected type.
   bool hasExpectedType() => true;
+  // TODO(1603): the class should be marked as abstract.
+  abstract BinaryOperation get operation();
 }
 
 class HEquals extends HRelational {

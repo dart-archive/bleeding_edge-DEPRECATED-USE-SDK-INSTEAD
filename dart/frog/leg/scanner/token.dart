@@ -139,6 +139,7 @@ interface SourceString extends Hashable, Iterable<int> default StringWrapper {
 
   String get stringValue();
 
+  String slowToString();
   bool isEmpty();
 }
 
