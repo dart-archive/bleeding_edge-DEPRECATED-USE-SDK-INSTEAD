@@ -33,6 +33,14 @@ void processNativeClassesInLibrary(Compiler compiler,
         element.parseNode(compiler);
         // Resolve to setup the inheritance.
         element.ensureResolved(compiler);
+        // Add the information that this class is a direct subclass of
+        // its superclass. The code emitter and the ssa builder use that
+        // information.
+        NativeEmitter emitter = compiler.emitter.nativeEmitter;
+        List<Element> subclasses = emitter.subclasses.putIfAbsent(
+            classElement.superclass,
+            () => <ClassElement>[]);
+        subclasses.add(classElement);
       }
     }
   }
@@ -139,6 +147,18 @@ SourceString checkForNativeClass(ElementListener listener) {
   return nativeName;
 }
 
+bool isOverriddenMethod(FunctionElement element,
+                        ClassElement cls,
+                        NativeEmitter nativeEmitter) {
+  List<ClassElement> subclasses = nativeEmitter.subclasses[cls];
+  if (subclasses == null) return false;
+  for (ClassElement subclass in subclasses) {
+    if (subclass.lookupLocalMember(element.name) != null) return true;
+    if (isOverriddenMethod(element, subclass, nativeEmitter)) return true;
+  }
+  return false;
+}
+
 void handleSsaNative(SsaBuilder builder, Send node) {
   // Register NoSuchMethodException and captureStackTrace in the compiler
   // because the dynamic dispatch for native classes may use them.
@@ -226,20 +246,26 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     }
 
     bool isNativeLiteral = false;
+    bool isOverridden = false;
+    NativeEmitter nativeEmitter = builder.compiler.emitter.nativeEmitter;
     if (element.enclosingElement.kind == ElementKind.CLASS) {
       ClassElement classElement = element.enclosingElement;
       String nativeName = classElement.nativeName.slowToString();
-      isNativeLiteral =
-          builder.compiler.emitter.nativeEmitter.isNativeLiteral(nativeName);
+      isNativeLiteral = nativeEmitter.isNativeLiteral(nativeName);
+      isOverridden = isOverriddenMethod(element, classElement, nativeEmitter);
     }
-    if (!element.isInstanceMember() || isNativeLiteral) {
-      // If the method is a non-instance method, or is a member of a native
-      // class that represents a literal, we just generate a direct
-      // call to the native method.
+    if (!element.isInstanceMember() || isNativeLiteral || !isOverridden) {
+      // We generate a direct call to the native method.
       visitThen();
       builder.stack.add(thenInstruction);
     } else {
-      // If the method is an instance method, we generate the following code:
+      // Record that this method is overridden. In case of optional
+      // arguments, the emitter will generate stubs to handle them,
+      // and needs to know if the method is overridden.
+      nativeEmitter.overriddenMethods.add(element);
+
+      // If the method is an instance method that is overridden, we
+      // generate the following code:
       // function(params) {
       //   return Object.getPrototypeOf(this).hasOwnProperty(dartMethodName))
       //      ? this.methodName(params)
@@ -249,9 +275,6 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       // The property check at the beginning is to make sure we won't
       // call the method from the super class, in case the prototype of
       // 'this' does not have the method yet.
-      //
-      // TODO(ngeoffray): We can avoid this if we know the class of this
-      // method does not have subclasses.
       HInstruction elseInstruction;
       void visitElse() {
         DartString jsCode =

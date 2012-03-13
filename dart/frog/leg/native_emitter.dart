@@ -17,13 +17,20 @@ class NativeEmitter {
   // Native classes found in the application.
   Set<ClassElement> nativeClasses;
 
-  // Caches the direct subclasses of a class.
+  // Caches the direct native subclasses of a native class.
   Map<ClassElement, List<ClassElement>> subclasses;
+
+  // Caches the native methods that are overridden by a native class.
+  // Note that the method that overrides does not have to be native:
+  // it's the overridden method that must make sure it will dispatch
+  // to its subclass if it sees an instance whose class is a subclass.
+  Set<FunctionElement> overriddenMethods;
 
   NativeEmitter(this.compiler)
       : classesWithDynamicDispatch = new Set<ClassElement>(),
         nativeClasses = new Set<ClassElement>(),
-        subclasses = new Map<ClassElement, List<ClassElement>>();
+        subclasses = new Map<ClassElement, List<ClassElement>>(),
+        overriddenMethods = new Set<FunctionElement>();
 
   /**
    * Code for finding the type name of a JavaScript object.
@@ -341,21 +348,18 @@ function(inputTable) {
     if (hasUsedSelectors) classesWithDynamicDispatch.add(classElement);
   }
 
+  List<ClassElement> getDirectSubclasses(ClassElement cls) {
+    List<ClassElement> result = subclasses[cls];
+    if (result === null) result = const<ClassElement>[];
+    return result;
+  }
+
   void emitParameterStub(Element member,
                          String invocationName,
                          String stubParameters,
                          List<String> argumentsBuffer,
                          int indexOfLastOptionalArgumentInParameters,
                          StringBuffer buffer) {
-    // If the method is native, we must check if the prototype of
-    // 'this' has the method available. Otherwise, we may end up
-    // calling the method from the super class. If the method is not
-    // available, we make a direct call to
-    // Object.prototype.$invocationName. This method will patch the
-    // prototype of 'this' to the real method.
-    // TODO(ngeoffray): We can avoid this if we know the class of this
-    // method does not have subclasses.
-
     // The target JS function may check arguments.length so we need to
     // make sure not to pass any unspecified optional arguments to it.
     // For example, for the following Dart method:
@@ -372,13 +376,19 @@ function(inputTable) {
     String nativeName = classElement.nativeName.slowToString();
     String nativeArguments = Strings.join(nativeArgumentsBuffer, ",");
 
-    if (isNativeLiteral(nativeName)) {
-      // If it's the native literal, we know there is no subclass, so
-      // we can call the method directly.
+    if (isNativeLiteral(nativeName) || !overriddenMethods.contains(member)) {
+      // Call the method directly.
       buffer.add('    return this.${member.name.slowToString()}');
       buffer.add('($nativeArguments)');
       return;
     }
+
+    // If the method is overridden, we must check if the prototype of
+    // 'this' has the method available. Otherwise, we may end up
+    // calling the method from the super class. If the method is not
+    // available, we make a direct call to
+    // Object.prototype.$invocationName. This method will patch the
+    // prototype of 'this' to the real method.
 
     buffer.add('  if (Object.getPrototypeOf(this).hasOwnProperty(');
     buffer.add("'$invocationName')) {\n");
@@ -388,19 +398,6 @@ function(inputTable) {
     buffer.add('  return Object.prototype.$invocationName.call(this');
     buffer.add(stubParameters == '' ? '' : ', $stubParameters');
     buffer.add(');');
-  }
-
-  // TODO(ngeoffray): Temporary solution to find all subclasses until
-  // it is done in leg.
-  Collection<ClassElement> computeDirectSubclasses(ClassElement element) {
-    return subclasses.putIfAbsent(element, () {
-        List<ClassElement> result = <ClassElement>[];
-        for (ClassElement other in nativeClasses) {
-          if (other.superclass == element) result.add(other);
-        }
-        return result;
-      }
-    );
   }
 
   void emitDynamicDispatchMetadata(StringBuffer buffer) {
@@ -419,7 +416,7 @@ function(inputTable) {
     void visit(ClassElement cls) {
       if (seen.contains(cls)) return;
       seen.add(cls);
-      for (final ClassElement subclass in computeDirectSubclasses(cls)) {
+      for (final ClassElement subclass in getDirectSubclasses(cls)) {
         visit(subclass);
       }
       classes.add(cls);
@@ -429,12 +426,12 @@ function(inputTable) {
     }
 
     Collection<ClassElement> dispatchClasses = classes.filter(
-        (cls) => !computeDirectSubclasses(cls).isEmpty() &&
+        (cls) => !getDirectSubclasses(cls).isEmpty() &&
                   classesWithDynamicDispatch.contains(cls));
 
     buffer.add('// ${classes.length} classes\n');
     Collection<ClassElement> classesThatHaveSubclasses = classes.filter(
-        (ClassElement t) => !computeDirectSubclasses(t).isEmpty());
+        (ClassElement t) => !getDirectSubclasses(t).isEmpty());
     buffer.add('// ${classesThatHaveSubclasses.length} !leaf\n');
 
     // Generate code that builds the map from cls tags used in dynamic dispatch
@@ -463,7 +460,7 @@ function(inputTable) {
       // TODO: Remove if cls is abstract.
       List<String> subtags = [toNativeName(cls)];
       void walk(ClassElement cls) {
-        for (final ClassElement subclass in computeDirectSubclasses(cls)) {
+        for (final ClassElement subclass in getDirectSubclasses(cls)) {
           ClassElement tag = subclass;
           String existing = tagDefns[tag];
           if (existing == null) {
