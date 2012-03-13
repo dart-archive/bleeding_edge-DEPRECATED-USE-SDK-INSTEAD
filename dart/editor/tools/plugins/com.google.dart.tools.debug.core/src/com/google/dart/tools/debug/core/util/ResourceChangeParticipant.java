@@ -17,7 +17,9 @@ package com.google.dart.tools.debug.core.util;
 import org.eclipse.core.resources.IFile;
 
 /**
- * TODO:
+ * A listener to resource change events.
+ * 
+ * @see ResourceChangeManager
  */
 public interface ResourceChangeParticipant {
 

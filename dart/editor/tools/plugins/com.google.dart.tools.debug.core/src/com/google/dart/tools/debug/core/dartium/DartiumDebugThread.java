@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
 
@@ -39,6 +40,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
   private static final IStackFrame[] EMPTY_FRAMES = new IStackFrame[0];
 
   private int expectedSuspendReason = DebugEvent.UNSPECIFIED;
+  private int expectedResumeReason = DebugEvent.UNSPECIFIED;
 
   private boolean suspended;
   private IStackFrame[] suspendedFrames = EMPTY_FRAMES;
@@ -58,18 +60,18 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public boolean canStepInto() {
-    return DartDebugCorePlugin.VM_SUPPORTS_STEPPING && isSuspended();
+    return isSuspended();
   }
 
   @Override
   public boolean canStepOver() {
-    return DartDebugCorePlugin.VM_SUPPORTS_STEPPING && isSuspended();
+    return isSuspended();
   }
 
   @Override
   public boolean canStepReturn() {
     // aka stepOut
-    return DartDebugCorePlugin.VM_SUPPORTS_STEPPING && isSuspended();
+    return isSuspended();
   }
 
   @Override
@@ -116,9 +118,10 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public boolean isStepping() {
-    return expectedSuspendReason == DebugEvent.STEP_INTO
-        || expectedSuspendReason == DebugEvent.STEP_OVER
-        || expectedSuspendReason == DebugEvent.STEP_RETURN;
+    return expectedResumeReason == DebugEvent.STEP_INTO
+        || expectedResumeReason == DebugEvent.STEP_OVER
+        || expectedResumeReason == DebugEvent.STEP_RETURN
+        || expectedSuspendReason == DebugEvent.STEP_END;
   }
 
   @Override
@@ -134,22 +137,23 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
   @Override
   public void resume() throws DebugException {
     try {
+      expectedResumeReason = DebugEvent.UNSPECIFIED;
+
       getConnection().getDebugger().resume();
     } catch (IOException exception) {
-      // TODO(devoncarew): expected resume reason?
-      //expectedSuspendReason = DebugEvent.UNSPECIFIED;
-
       throw createDebugException(exception);
     }
   }
 
   @Override
   public void stepInto() throws DebugException {
-    expectedSuspendReason = DebugEvent.STEP_END;
+    expectedResumeReason = DebugEvent.STEP_END;
+    expectedSuspendReason = DebugEvent.STEP_INTO;
 
     try {
       getConnection().getDebugger().stepInto();
     } catch (IOException exception) {
+      expectedResumeReason = DebugEvent.UNSPECIFIED;
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
 
       throw createDebugException(exception);
@@ -158,11 +162,13 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public void stepOver() throws DebugException {
-    expectedSuspendReason = DebugEvent.STEP_END;
+    expectedResumeReason = DebugEvent.STEP_END;
+    expectedSuspendReason = DebugEvent.STEP_OVER;
 
     try {
       getConnection().getDebugger().stepOver();
     } catch (IOException exception) {
+      expectedResumeReason = DebugEvent.UNSPECIFIED;
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
 
       throw createDebugException(exception);
@@ -171,12 +177,13 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public void stepReturn() throws DebugException {
-    // aka stepOut
-    expectedSuspendReason = DebugEvent.STEP_END;
+    expectedResumeReason = DebugEvent.STEP_END;
+    expectedSuspendReason = DebugEvent.STEP_RETURN;
 
     try {
       getConnection().getDebugger().stepOut();
     } catch (IOException exception) {
+      expectedResumeReason = DebugEvent.UNSPECIFIED;
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
 
       throw createDebugException(exception);
@@ -209,20 +216,27 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     getDebugTarget().terminate();
   }
 
-  protected void handleDebuggerSuspended(PausedReasonType reason, List<WebkitCallFrame> webkitFrames) {
-    int suspendReason = DebugEvent.BREAKPOINT;
+  protected void handleDebuggerSuspended(PausedReasonType pausedReason,
+      List<WebkitCallFrame> webkitFrames) {
+    int reason = DebugEvent.BREAKPOINT;
 
     if (expectedSuspendReason != DebugEvent.UNSPECIFIED) {
-      suspendReason = expectedSuspendReason;
+      reason = expectedSuspendReason;
+      expectedSuspendReason = DebugEvent.UNSPECIFIED;
+    } else {
+      DartBreakpoint breakpoint = getBreakpointFor(webkitFrames);
+
+      if (breakpoint != null) {
+        suspendedBreakpoints = new IBreakpoint[] {breakpoint};
+        reason = DebugEvent.BREAKPOINT;
+      }
     }
 
     suspended = true;
 
-    // TODO(devoncarew): can we fill in the suspendedBreakpoints list?
-
     suspendedFrames = createFrames(webkitFrames);
 
-    fireSuspendEvent(suspendReason);
+    fireSuspendEvent(reason);
   }
 
   void handleDebuggerResumed() {
@@ -232,8 +246,10 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     suspendedBreakpoints = EMPTY_BREAKPOINTS;
 
     // send event
-    // TODO(devoncarew): step events
-    fireResumeEvent(DebugEvent.UNSPECIFIED);
+    int reason = expectedResumeReason;
+    expectedResumeReason = DebugEvent.UNSPECIFIED;
+
+    fireResumeEvent(reason);
   }
 
   private DebugException createDebugException(IOException exception) {
@@ -251,6 +267,18 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     }
 
     return frames.toArray(new IStackFrame[frames.size()]);
+  }
+
+  private DartBreakpoint getBreakpointFor(List<WebkitCallFrame> frames) {
+    if (frames.size() > 0) {
+      return getBreakpointFor(frames.get(0));
+    } else {
+      return null;
+    }
+  }
+
+  private DartBreakpoint getBreakpointFor(WebkitCallFrame frame) {
+    return getTarget().getBreakpointManager().getBreakpointFor(frame.getLocation());
   }
 
   private boolean isDisconnected() {

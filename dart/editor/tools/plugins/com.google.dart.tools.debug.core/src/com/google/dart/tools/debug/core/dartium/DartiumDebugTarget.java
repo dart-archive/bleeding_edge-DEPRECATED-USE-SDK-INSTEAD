@@ -294,6 +294,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     process.terminate();
   }
 
+  protected BreakpointManager getBreakpointManager() {
+    return breakpointManager;
+  }
+
   protected WebkitConnection getWebkitConnection() {
     return connection;
   }

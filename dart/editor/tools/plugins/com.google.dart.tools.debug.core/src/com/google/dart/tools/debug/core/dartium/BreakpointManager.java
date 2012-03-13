@@ -105,6 +105,32 @@ class BreakpointManager implements IBreakpointListener {
     }
   }
 
+  public DartBreakpoint getBreakpointFor(WebkitLocation location) {
+    IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
+        DartDebugCorePlugin.DEBUG_MODEL_ID);
+
+    WebkitScript script = debugTarget.getWebkitConnection().getDebugger().getScript(
+        location.getScriptId());
+    String url = script.getUrl();
+    int line = WebkitLocation.webkitToElipseLine(location.getLineNumber());
+
+    for (IBreakpoint bp : breakpoints) {
+      if (debugTarget.supportsBreakpoint(bp)) {
+        DartBreakpoint breakpoint = (DartBreakpoint) bp;
+
+        if (breakpoint.getLine() == line) {
+          String bpUrl = resourceResolver.getUrlForResource(breakpoint.getFile());
+
+          if (bpUrl.equals(url)) {
+            return breakpoint;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   void handleBreakpointResolved(WebkitBreakpoint webkitBreakpoint) {
     webkitBreakpoints.add(webkitBreakpoint);
   }
