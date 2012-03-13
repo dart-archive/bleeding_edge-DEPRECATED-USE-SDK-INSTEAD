@@ -21,14 +21,13 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
-import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.search.MatchKind;
+import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchException;
 import com.google.dart.tools.core.search.SearchFilter;
 import com.google.dart.tools.core.search.SearchMatch;
-import com.google.dart.tools.core.search.SearchPattern;
-import com.google.dart.tools.core.search.SearchPatternFactory;
 import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.core.search.SearchScopeFactory;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -61,15 +60,16 @@ public class CallerMethodWrapper extends MethodWrapper {
   @Override
   public boolean canHaveChildren() {
     DartElement member = getMember();
-    if (member instanceof Field) {
-      if (getLevel() == 1) {
+    switch (member.getElementType()) {
+      case DartElement.FIELD:
+      case DartElement.FUNCTION:
+      case DartElement.FUNCTION_TYPE_ALIAS:
+      case DartElement.METHOD:
+      case DartElement.TYPE:
         return true;
-      }
-//      int mode = getFieldSearchMode();
-//      return mode == IJavaSearchConstants.REFERENCES || mode == IJavaSearchConstants.READ_ACCESSES;
-      return true;
+      default:
+        return false;
     }
-    return member instanceof Method || member instanceof Type;
   }
 
   @Override
@@ -122,12 +122,6 @@ public class CallerMethodWrapper extends MethodWrapper {
       checkCanceled(progressMonitor);
 
       DartElement member = getMember();
-      SearchPattern pattern = null;
-      pattern = SearchPatternFactory.createExactPattern(member.getElementName(), true);
-      if (pattern == null) { // e.g. for initializers
-        return new HashMap<String, MethodCall>(0);
-      }
-
       SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
       SearchScope defaultSearchScope = getSearchScope();
       boolean isWorkspaceScope = SearchScopeFactory.createWorkspaceScope().equals(
@@ -144,7 +138,14 @@ public class CallerMethodWrapper extends MethodWrapper {
           matches = searchEngine.searchReferences((Field) member, scope, f, monitor);
           break;
         case DartElement.FUNCTION:
-          matches = searchEngine.searchReferences((DartFunction) member, scope, f, monitor);
+          if (member.getElementName().isEmpty()) {
+            DartFunction func = (DartFunction) member;
+            matches = new ArrayList<SearchMatch>();
+            matches.add(new SearchMatch(MatchQuality.EXACT, MatchKind.FUNCTION_EXECUTION,
+                member.getParent(), func.getSourceRange()));
+          } else {
+            matches = searchEngine.searchReferences((DartFunction) member, scope, f, monitor);
+          }
           break;
         case DartElement.FUNCTION_TYPE_ALIAS:
           matches = searchEngine.searchReferences((DartFunctionTypeAlias) member, scope, f, monitor);

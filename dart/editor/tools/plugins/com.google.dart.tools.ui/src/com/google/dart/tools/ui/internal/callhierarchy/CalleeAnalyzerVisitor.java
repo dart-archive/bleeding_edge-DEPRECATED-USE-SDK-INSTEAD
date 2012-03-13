@@ -14,11 +14,13 @@
 package com.google.dart.tools.ui.internal.callhierarchy;
 
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartBinaryExpression;
+import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartFunctionObjectInvocation;
-import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
@@ -64,70 +66,68 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
   }
 
   /**
-   * @return a map from handle identifier ({@link String}) to {@link MethodCall}
+   * Return the result of analyzing a method.
+   * 
+   * @return a map from handle identifier ({@link String}) to call site {@link MethodCall}
    */
   public Map<String, MethodCall> getCallees() {
     return searchResults.getCallers();
   }
 
   @Override
-  public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
-    return visitInvocation(node);
+  public Void visitBinaryExpression(DartBinaryExpression node) {
+    return visitInvocationExpression(node);
   }
 
   @Override
-  public Void visitInvocation(DartInvocation node) {
-    progressMonitorWorked(1);
-    if (isFurtherTraversalNecessary(node)) {
-      if (isNodeWithinMethod(node)) {
-        addMethodCall(node.getElement(), node);
-      }
-    }
-    return visitExpression(node);
+  public Void visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
+    return visitInvocationExpression(node);
   }
 
   @Override
   public Void visitMethodInvocation(DartMethodInvocation node) {
-    return visitInvocation(node);
+    return visitInvocationExpression(node);
   }
 
   @Override
   public Void visitNewExpression(DartNewExpression node) {
-    return visitInvocation(node);
+    return visitInvocationExpression(node);
+  }
+
+  @Override
+  public Void visitPropertyAccess(DartPropertyAccess node) {
+    return visitInvocationExpression(node);
   }
 
   @Override
   public Void visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
-    return visitInvocation(node);
+    return visitInvocationExpression(node);
   }
 
   @Override
   public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation node) {
-    return visitInvocation(node);
+    return visitInvocationExpression(node);
   }
 
   @Override
   public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
-    return visitInvocation(node);
+    return visitInvocationExpression(node);
   }
 
   /**
-   * Adds the specified method binding to the search results.
-   * 
-   * @param calledMethodBinding
-   * @param node
+   * Adds the specified method element to the search results.
    */
-  protected void addMethodCall(Element calledMethodBinding, DartNode node) {
+  private void addMethodCall(Element calledMethodBinding, DartNode node) {
     if (calledMethodBinding == null) {
       return;
     }
     if (calledMethodBinding instanceof MethodElement) {
       progressMonitor.worked(1);
       MethodElement calledElement = (MethodElement) calledMethodBinding;
-      ClassElement classElement = (ClassElement) calledElement.getEnclosingElement();
+      Element classElement = calledElement.getEnclosingElement();
       Method calledMethod = (Method) BindingUtils.getDartElement(calledElement);
       TypeMember referencedMember = null;
-      if (classElement.isInterface()) {
+      if ((classElement instanceof ClassElement) && ((ClassElement) classElement).isInterface()) {
         calledMethod = findImplementingMethods(calledMethod);
       }
 
@@ -144,7 +144,6 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
   private Method findImplementingMethods(Method calledMethod) {
     Collection<DartElement> implementingMethods = CallHierarchy.getDefault().getImplementingMethods(
         calledMethod);
-
     if (implementingMethods.size() == 0 || implementingMethods.size() > 1) {
       return calledMethod;
     } else {
@@ -201,5 +200,15 @@ public class CalleeAnalyzerVisitor extends ASTVisitor<Void> {
         throw new OperationCanceledException();
       }
     }
+  }
+
+  private Void visitInvocationExpression(DartExpression node) {
+    progressMonitorWorked(1);
+    if (isFurtherTraversalNecessary(node)) {
+      if (isNodeWithinMethod(node)) {
+        addMethodCall(node.getElement(), node);
+      }
+    }
+    return visitExpression(node);
   }
 }
