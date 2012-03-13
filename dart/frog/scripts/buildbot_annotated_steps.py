@@ -17,7 +17,8 @@ import sys
 
 BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 
-FROG_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DART_PATH = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 FROG_BUILDER = r'(frog|frogsh)-(linux|mac|windows)-(debug|release)'
 WEB_BUILDER = r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(\d+))?'
@@ -75,19 +76,19 @@ def TestStep(name, mode, system, component, targets, flags):
   else:
     cmd = []
 
-  cmd = (cmd
-      + [sys.executable,
-          os.path.join('..', 'tools', 'test.py'),
-          '--mode=' + mode,
-          '--component=' + component,
-          '--time',
-          '--report',
-          '--progress=buildbot',
-          '-v']
-      + targets)
+  cmd.extend([sys.executable,
+              os.path.join(os.curdir, 'tools', 'test.py'),
+              '--mode=' + mode,
+              '--component=' + component,
+              '--time',
+              '--report',
+              '--progress=buildbot',
+              '-v'])
   if flags:
     cmd.extend(flags)
+  cmd.extend(targets)
 
+  print 'running %s' % (' '.join(cmd))
   exit_code = subprocess.call(cmd, env=NO_COLOR_ENV)
   if exit_code != 0:
     print '@@@STEP_FAILURE@@@'
@@ -103,12 +104,11 @@ def BuildFrog(component, mode, system):
      - system: either 'linux', 'mac', or 'win7'
   """
 
-  # Make sure we are in the frog directory
-  os.chdir(FROG_PATH)
+  os.chdir(DART_PATH)
 
   print '@@@BUILD_STEP build frog@@@'
 
-  args = [sys.executable, '../tools/build.py', '--mode=' + mode]
+  args = [sys.executable, './tools/build.py', '--mode=' + mode]
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
@@ -124,9 +124,11 @@ def TestFrog(component, mode, system, browser, flags):
   """
 
   # Make sure we are in the frog directory
-  os.chdir(FROG_PATH)
+  os.chdir(DART_PATH)
 
   if component != 'frogium': # frog and frogsh
+    if (component == 'frog' and mode == 'release'):
+      flags.append('--timeout=240')
     TestStep("frog", mode, system, component, [], flags)
     TestStep("frog_extra", mode, system,
         component, ['frog', 'frog_native', 'peg', 'css'], flags)
