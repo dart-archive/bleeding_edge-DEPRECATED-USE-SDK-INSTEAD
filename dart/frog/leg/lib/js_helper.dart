@@ -958,7 +958,9 @@ builtin$toStringAsFixed$1(receiver, fractionDigits) {
   }
   checkNum(fractionDigits);
 
-  return JS('String', @'$0.toFixed($1)', receiver, fractionDigits);
+  String result = JS('String', @'$0.toFixed($1)', receiver, fractionDigits);
+  if (receiver == 0 && receiver.isNegative()) return "-$result";
+  return result;
 }
 
 builtin$toStringAsExponential$1(receiver, fractionDigits) {
@@ -968,7 +970,10 @@ builtin$toStringAsExponential$1(receiver, fractionDigits) {
   }
   checkNum(fractionDigits);
 
-  return JS('String', @'$0.toExponential($1)', receiver, fractionDigits);
+  String result = JS('String', @'$0.toExponential($1)',
+                     receiver, fractionDigits);
+  if (receiver == 0 && receiver.isNegative()) return "-$result";
+  return result;
 }
 
 builtin$toStringAsPrecision$1(receiver, fractionDigits) {
@@ -978,7 +983,10 @@ builtin$toStringAsPrecision$1(receiver, fractionDigits) {
   }
   checkNum(fractionDigits);
 
-  return JS('String', @'$0.toPrecision($1)', receiver, fractionDigits);
+  String result = JS('String', @'$0.toPrecision($1)',
+                     receiver, fractionDigits);
+  if (receiver == 0 && receiver.isNegative()) return "-$result";
+  return result;  
 }
 
 builtin$toRadixString$1(receiver, radix) {
