@@ -4,15 +4,11 @@
 
 
 [ $component == leg ]
-chat/ChatServerTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-dartcombat/DartCombatTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+chat/ChatServerTest: Crash # leg/ssa/closure.dart Failed assertion: line 399 pos 14
+dartcombat/DartCombatTest: Crash # Internal error: NullPointerException
 lib/layout/LayoutTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
 lib/view/ViewTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-proxy/MintMakerFullyIsolated_generatedTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-proxy/MintMakerPromiseTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-proxy/MintMakerPromiseWithStubs_generatedTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
 proxy/MintMakerRpcTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-proxy/PromiseBasedTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
 swarm/SwarmTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
 total/TotalTest: Fail # compiler cancelled: internal error: fall-through not implemented
 
