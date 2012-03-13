@@ -156,6 +156,11 @@ public class DartCompilerWarmup {
     }
 
     @Override
+    public String getUniqueIdentifier() {
+      return dartSrc.getUniqueIdentifier();
+    }
+
+    @Override
     public URI getUri() {
       return dartSrc.getUri();
     }
@@ -188,8 +193,8 @@ public class DartCompilerWarmup {
   /**
    * @see #warmUpCompiler()
    */
-  public static void warmUpCompiler(CachingArtifactProvider rootProvider,
-      DartCompilerListener listener) {
+  public static void warmUpCompiler(
+      CachingArtifactProvider rootProvider, DartCompilerListener listener) {
     EditorLibraryManager sysLibMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
 
     String warmupSrcCode = "main() {print('success');}";
@@ -202,7 +207,7 @@ public class DartCompilerWarmup {
 
     try {
       CompilerConfiguration config = new DefaultCompilerConfiguration(options, sysLibMgr) {
-        @Override
+          @Override
         public CompilerMetrics getCompilerMetrics() {
           return metrics;
         }

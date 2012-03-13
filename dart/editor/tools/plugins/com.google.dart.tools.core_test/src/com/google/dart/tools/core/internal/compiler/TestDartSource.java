@@ -74,6 +74,11 @@ public class TestDartSource implements DartSource {
   }
 
   @Override
+  public String getUniqueIdentifier() {
+    return URI.create(getName()).normalize().toString();
+  }
+
+  @Override
   public URI getUri() {
     return URI.create(getName()).normalize();
   }

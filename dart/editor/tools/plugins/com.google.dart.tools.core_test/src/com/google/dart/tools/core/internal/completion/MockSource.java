@@ -43,6 +43,11 @@ public abstract class MockSource implements Source {
   }
 
   @Override
+  public String getUniqueIdentifier() {
+    return uri.toString();
+  }
+
+  @Override
   public URI getUri() {
     return uri;
   }

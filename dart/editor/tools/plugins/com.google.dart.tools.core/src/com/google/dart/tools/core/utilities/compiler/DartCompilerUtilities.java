@@ -63,8 +63,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The class <code>DartCompilerUtilities</code> defines utility methods for parsing, resolving, and
- * compiling Dart source, including compilation units, libraries, and applications.
+ * The class <code>DartCompilerUtilities</code> defines utility methods for parsing, resolving, and compiling Dart
+ * source, including compilation units, libraries, and applications.
  */
 public class DartCompilerUtilities {
 
@@ -76,8 +76,8 @@ public class DartCompilerUtilities {
   }
 
   /**
-   * The abstract class <code>CompilerRunner</code> defines behavior common to classes used to
-   * safely invoke the parser, record compilation errors, and capture any parser exception.
+   * The abstract class <code>CompilerRunner</code> defines behavior common to classes used to safely invoke the
+   * parser, record compilation errors, and capture any parser exception.
    */
   private static abstract class CompilerRunner implements DartCompilerListener {
     private final Collection<DartCompilationError> parseErrors;
@@ -177,15 +177,20 @@ public class DartCompilerUtilities {
     }
 
     @Override
+    public String getUniqueIdentifier() {
+      return uri.toString();
+    }
+
+    @Override
     public URI getUri() {
       return uri;
     }
   }
 
   /**
-   * Internal class for safely calling
-   * {@link DartCompiler#analyzeDelta(SourceDelta, LibraryElement, LibraryElement, DartNode, int, int, CompilerConfiguration, DartCompilerListener)}
-   * , recording compilation errors, and capturing any parser exception.
+   * Internal class for safely calling {@link DartCompiler#analyzeDelta(SourceDelta, LibraryElement,
+   * LibraryElement, DartNode, int, int, CompilerConfiguration, DartCompilerListener)} , recording
+   * compilation errors, and capturing any parser exception.
    * <p>
    * TODO Unify with ResolverRunnable - compilerConfig could be shared
    */
@@ -219,8 +224,10 @@ public class DartCompilerUtilities {
 
     @Override
     public void run() throws Exception {
-      final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
-      final LibraryElement enclosingLibrary = cachedLibraries.get(librarySource.wrappedSource).getElement();
+      final SystemLibraryManager libraryManager = SystemLibraryManagerProvider
+        .getSystemLibraryManager();
+      final LibraryElement enclosingLibrary = cachedLibraries.get(librarySource.wrappedSource)
+          .getElement();
 
       // Try to find the core library in the enclosing set of libraries, otherwise the typeAnalyzer
       // will be void of core types.
@@ -232,12 +239,12 @@ public class DartCompilerUtilities {
 
       SourceDelta delta = new SourceDelta() {
 
-        @Override
+          @Override
         public DartSource getSourceAfter() {
           return source;
         }
 
-        @Override
+          @Override
         public Source getSourceBefore() {
           for (DartUnit u : enclosingLibrary.getLibraryUnit().getUnits()) {
             Source unitSource = u.getSourceInfo().getSource();
@@ -248,36 +255,36 @@ public class DartCompilerUtilities {
           return null;
         }
 
-        @Override
+          @Override
         public DartUnit getUnitAfter() {
           return parsedUnit;
         }
       };
-      final CompilerConfiguration config = new DefaultCompilerConfiguration(new CompilerOptions(),
-          libraryManager) {
+      final CompilerConfiguration config = new DefaultCompilerConfiguration(
+          new CompilerOptions(), libraryManager) {
 
-        @Override
+          @Override
         public boolean incremental() {
           return true;
         }
 
-        @Override
+          @Override
         public boolean resolveDespiteParseErrors() {
           return true;
         }
 
-        @Override
+          @Override
         public boolean typeErrorsAreFatal() {
           return false;
         }
 
-        @Override
+          @Override
         public boolean warningsAreFatal() {
           return false;
         }
       };
-      analyzedNode = DartCompiler.analyzeDelta(delta, enclosingLibrary, coreLibrary,
-          completionNode, completionLocation, 0, config, this);
+      analyzedNode = DartCompiler.analyzeDelta(delta, enclosingLibrary, coreLibrary, completionNode,
+          completionLocation, 0, config, this);
     }
   }
 
@@ -287,10 +294,12 @@ public class DartCompilerUtilities {
    */
   private static class LibraryWithSuppliedSources implements LibrarySource {
     private final LibrarySource wrappedSource;
-    private final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+    private final SystemLibraryManager
+        libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
     private final Map<URI, String> suppliedSources;
 
-    private LibraryWithSuppliedSources(LibrarySource wrappedSource, Map<URI, String> suppliedSources) {
+    private LibraryWithSuppliedSources(
+        LibrarySource wrappedSource, Map<URI, String> suppliedSources) {
       this.wrappedSource = wrappedSource;
       this.suppliedSources = suppliedSources;
     }
@@ -345,6 +354,11 @@ public class DartCompilerUtilities {
     }
 
     @Override
+    public String getUniqueIdentifier() {
+      return wrappedSource.getUniqueIdentifier();
+    }
+
+    @Override
     public URI getUri() {
       return wrappedSource.getUri();
     }
@@ -374,8 +388,8 @@ public class DartCompilerUtilities {
 
     private DartParser createParser() {
       if (preserveComments) {
-        return new CommentPreservingParser(CommentPreservingParser.createContext(sourceRef, source,
-            this), false);
+        return new CommentPreservingParser(CommentPreservingParser.createContext(
+            sourceRef, source, this), false);
       } else {
         return new DartParser(sourceRef, source, this);
       }
@@ -383,9 +397,9 @@ public class DartCompilerUtilities {
   }
 
   /**
-   * Internal class for safely calling the
-   * {@link DartCompiler#analyzeLibrary(LibrarySource, Map, CompilerConfiguration, DartArtifactProvider, DartCompilerListener)}
-   * , recording compilation errors, and capturing any parser exception.
+   * Internal class for safely calling the {@link DartCompiler#analyzeLibrary(LibrarySource, Map,
+   * CompilerConfiguration, DartArtifactProvider, DartCompilerListener)} , recording compilation
+   * errors, and capturing any parser exception.
    */
   private static final class ResolverRunnable extends CompilerRunner {
     private LibrarySource librarySource;
@@ -421,22 +435,24 @@ public class DartCompilerUtilities {
 
     @Override
     public void run() throws Exception {
-      final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
-      final CompilerConfiguration config = new DefaultCompilerConfiguration(new CompilerOptions(),
-          libraryManager) {
+      final SystemLibraryManager libraryManager = SystemLibraryManagerProvider
+        .getSystemLibraryManager();
+      final CompilerConfiguration config = new DefaultCompilerConfiguration(
+          new CompilerOptions(), libraryManager) {
 
-        @Override
+          @Override
         public boolean incremental() {
           return true;
         }
 
-        @Override
+          @Override
         public boolean resolveDespiteParseErrors() {
           return true;
         }
       };
-      DartArtifactProvider provider = new LocalArtifactProvider(RootArtifactProvider.getInstance()) {
-        @Override
+      DartArtifactProvider provider = new LocalArtifactProvider(
+          RootArtifactProvider.getInstance()) {
+          @Override
         protected boolean isOutOfDateInParent(Source source, Source base, String extension) {
           if (forceFullAST || equalUris(libraryManager, unitUri, source.getUri())) {
             return true;
@@ -467,8 +483,8 @@ public class DartCompilerUtilities {
    */
   private static final Object compilerLock = new Object();
 
-  private static LRUCache<LibrarySource, LibraryUnit> cachedLibraries = new LRUCache<LibrarySource, LibraryUnit>(
-      10);
+  private static LRUCache<LibrarySource, LibraryUnit>
+      cachedLibraries = new LRUCache<LibrarySource, LibraryUnit>(10);
   private static PerformanceListener performanceListener = null;
 
   public static DartNode analyzeDelta(LibrarySource library, String sourceString,
@@ -507,8 +523,8 @@ public class DartCompilerUtilities {
    * @param sourceRef the Dart source being parsed
    * @param source the source to be parsed (not <code>null</code>)
    * @param preserveComments <code>true</code> if comments are to be preserved
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if parse
+   *          errors should be ignored
    * @return the parse result
    */
   public static DartUnit parseSource(DartSource sourceRef, String source, boolean preserveComments,
@@ -528,12 +544,13 @@ public class DartCompilerUtilities {
    * 
    * @param sourceRef the Dart source being parsed
    * @param source the source to be parsed (not <code>null</code>)
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if parse
+   *          errors should be ignored
    * @return the parse result
    */
-  public static DartUnit parseSource(DartSource sourceRef, String source,
-      Collection<DartCompilationError> parseErrors) throws DartModelException {
+  public static DartUnit parseSource(
+      DartSource sourceRef, String source, Collection<DartCompilationError> parseErrors)
+      throws DartModelException {
     return parseSource(sourceRef, source, false, parseErrors);
   }
 
@@ -561,8 +578,8 @@ public class DartCompilerUtilities {
    * @param name a name for the source being parsed
    * @param source the source to be parsed (not <code>null</code>)
    * @param preserveComments <code>true</code> if comments are to be preserved
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if parse
+   *          errors should be ignored
    * @return the parse result
    */
   public static DartUnit parseSource(String name, String source, boolean preserveComments,
@@ -577,12 +594,13 @@ public class DartCompilerUtilities {
    * 
    * @param name a name for the source being parsed
    * @param source the source to be parsed (not <code>null</code>)
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if parse
+   *          errors should be ignored
    * @return the parse result
    */
-  public static DartUnit parseSource(String name, String source,
-      final Collection<DartCompilationError> parseErrors) throws DartModelException {
+  public static DartUnit parseSource(
+      String name, String source, final Collection<DartCompilationError> parseErrors)
+      throws DartModelException {
     DartSource sourceRef = new DartSourceString(name, source);
     return parseSource(sourceRef, source, parseErrors);
   }
@@ -608,12 +626,13 @@ public class DartCompilerUtilities {
    * {@link DartParser} will be logged and a {@link DartModelException} thrown.
    * 
    * @param compilationUnit the compilation unit (not <code>null</code>)
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if parse
+   *          errors should be ignored
    * @return the parse result
    */
-  public static DartUnit parseUnit(CompilationUnit compilationUnit,
-      Collection<DartCompilationError> parseErrors) throws DartModelException {
+  public static DartUnit parseUnit(
+      CompilationUnit compilationUnit, Collection<DartCompilationError> parseErrors)
+      throws DartModelException {
     String name = compilationUnit.getElementName();
     String source = compilationUnit.getSource();
     return parseSource(name, source, parseErrors);
@@ -634,15 +653,15 @@ public class DartCompilerUtilities {
    * 
    * @param library the library to be parsed (not <code>null</code>)
    * @param forceFullAST <code>true</code> if full ASTs should be built for all compilation units
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if parse
+   *          errors should be ignored
    * @return the parse result
    * @throws DartModelException if the library could not be parsed
    */
   public static LibraryUnit resolveLibrary(DartLibraryImpl library, boolean forceFullAST,
       final Collection<DartCompilationError> parseErrors) throws DartModelException {
-    ResolverRunnable runnable = new ResolverRunnable(library.getLibrarySourceFile(), null, null,
-        forceFullAST, parseErrors);
+    ResolverRunnable runnable = new ResolverRunnable(
+        library.getLibrarySourceFile(), null, null, forceFullAST, parseErrors);
     runnable.runSafe();
     if (runnable.exception != null) {
       throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
@@ -656,13 +675,14 @@ public class DartCompilerUtilities {
    * {@link DartParser} will be logged and a {@link DartModelException} thrown.
    * 
    * @param library the library to be parsed (not <code>null</code>)
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if parse
+   *          errors should be ignored
    * @return the parse result
    * @throws DartModelException if the library could not be parsed
    */
-  public static LibraryUnit resolveLibrary(DartLibraryImpl library,
-      final Collection<DartCompilationError> parseErrors) throws DartModelException {
+  public static LibraryUnit resolveLibrary(
+      DartLibraryImpl library, final Collection<DartCompilationError> parseErrors)
+      throws DartModelException {
     return resolveLibrary(library, false, parseErrors);
   }
 
@@ -671,8 +691,8 @@ public class DartCompilerUtilities {
    * {@link DartParser} will be logged and a {@link DartModelException} thrown.
    * 
    * @param library the library to be parsed (not <code>null</code>)
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if parse
+   *          errors should be ignored
    * @return the parse result
    * @throws DartModelException if the library could not be parsed
    */
@@ -687,16 +707,16 @@ public class DartCompilerUtilities {
    * {@link DartParser} will be logged and a {@link DartModelException} thrown.
    * 
    * @param library the library to be parsed (not <code>null</code>)
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if parse
+   *          errors should be ignored
    * @return the parse result
    * @throws DartModelException if the library could not be parsed
    */
   public static LibraryUnit resolveLibrary(LibrarySource library,
       Collection<DartUnit> suppliedUnits, final Collection<DartCompilationError> parseErrors)
       throws DartModelException {
-    ResolverRunnable runnable = new ResolverRunnable(library, createMap(suppliedUnits), false,
-        parseErrors);
+    ResolverRunnable runnable = new ResolverRunnable(
+        library, createMap(suppliedUnits), false, parseErrors);
     runnable.runSafe();
     if (runnable.exception != null) {
       throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
@@ -726,8 +746,9 @@ public class DartCompilerUtilities {
    *          errors should be ignored
    * @return the parse result
    */
-  public static DartUnit resolveUnit(CompilationUnit compilationUnit,
-      Collection<DartCompilationError> parseErrors) throws DartModelException {
+  public static DartUnit resolveUnit(
+      CompilationUnit compilationUnit, Collection<DartCompilationError> parseErrors)
+      throws DartModelException {
     DartLibraryImpl library = (DartLibraryImpl) compilationUnit.getLibrary();
     if (library == null) {
       // If we cannot get the library, we cannot resolve any elements so we
@@ -759,15 +780,15 @@ public class DartCompilerUtilities {
    * 
    * @param librarySource the source for the library containing the compilation unit being parsed
    * @param unitUri the URI of the compilation unit being parsed
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
+   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if parse
+   *          errors should be ignored
    * @return the parse result
    */
   public static DartUnit resolveUnit(LibrarySource librarySource, URI unitUri,
       Map<URI, String> suppliedSources, final Collection<DartCompilationError> parseErrors)
       throws DartModelException {
-    ResolverRunnable runnable = new ResolverRunnable(librarySource, unitUri, suppliedSources,
-        false, parseErrors);
+    ResolverRunnable runnable = new ResolverRunnable(
+        librarySource, unitUri, suppliedSources, false, parseErrors);
     runnable.runSafe();
     if (runnable.exception != null) {
       throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
@@ -777,8 +798,8 @@ public class DartCompilerUtilities {
   }
 
   /**
-   * A synchronized call to
-   * {@link DartCompiler#analyzeLibrary(LibrarySource, Map, CompilerConfiguration, DartArtifactProvider, DartCompilerListener)}
+   * A synchronized call to {@link DartCompiler#analyzeLibrary(LibrarySource, Map,
+   * CompilerConfiguration, DartArtifactProvider, DartCompilerListener)}
    */
   public static LibraryUnit secureAnalyzeLibrary(LibrarySource librarySource,
       Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
@@ -786,8 +807,8 @@ public class DartCompilerUtilities {
     synchronized (compilerLock) {
       // Any calls to compiler involving artifact provider must be synchronized
       long start = System.currentTimeMillis();
-      LibraryUnit unit = DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider,
-          listener);
+      LibraryUnit unit = DartCompiler.analyzeLibrary(
+          librarySource, parsedUnits, config, provider, listener);
       if (performanceListener != null) {
         performanceListener.analysisComplete(start, librarySource.getName());
       }
@@ -796,8 +817,8 @@ public class DartCompilerUtilities {
   }
 
   /**
-   * A synchronized call to
-   * {@link DartCompiler#compileLib(LibrarySource, CompilerConfiguration, DartArtifactProvider, DartCompilerListener)}
+   * A synchronized call to {@link DartCompiler#compileLib(LibrarySource, CompilerConfiguration,
+   * DartArtifactProvider, DartCompilerListener)}
    */
   public static void secureCompileLib(LibrarySource libSource, CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
@@ -871,8 +892,8 @@ public class DartCompilerUtilities {
       return false;
     } else if (SystemLibraryManager.isDartUri(firstUri)
         || SystemLibraryManager.isDartUri(secondUri)) {
-      return URIUtilities.safelyResolveDartUri(firstUri).equals(
-          URIUtilities.safelyResolveDartUri(secondUri));
+      return URIUtilities.safelyResolveDartUri(firstUri)
+          .equals(URIUtilities.safelyResolveDartUri(secondUri));
     }
     return URIUtil.toPath(firstUri).equals(URIUtil.toPath(secondUri));
   }

@@ -95,6 +95,11 @@ public class TestLibrarySource implements LibrarySource {
   }
 
   @Override
+  public String getUniqueIdentifier() {
+    return getName();
+  }
+
+  @Override
   public URI getUri() {
     try {
       return new URI(getName());
