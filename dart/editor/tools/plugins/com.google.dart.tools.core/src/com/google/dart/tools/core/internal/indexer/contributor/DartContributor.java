@@ -118,7 +118,7 @@ public class DartContributor extends ASTVisitor<Void> implements Contributor {
    * @param typeBinding the resolved type used to locate the model element
    * @return the Dart model element corresponding to the resolved type
    */
-  protected Type getDartElement(InterfaceType typeBinding) {
+  protected CompilationUnitElement getDartElement(InterfaceType typeBinding) {
     DartLibrary library = compilationUnit.getAncestor(DartLibrary.class);
     return BindingUtils.getDartElement(library, typeBinding);
   }

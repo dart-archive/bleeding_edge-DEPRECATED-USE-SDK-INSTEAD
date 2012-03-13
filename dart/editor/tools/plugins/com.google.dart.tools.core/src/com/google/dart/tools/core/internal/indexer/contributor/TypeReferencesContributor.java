@@ -22,6 +22,7 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.indexer.location.TypeLocation;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
+import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
 
@@ -58,8 +59,9 @@ public class TypeReferencesContributor extends ScopedDartContributor {
   }
 
   private void processType(DartIdentifier node, InterfaceType binding) {
-    Type type = getDartElement(binding.asRawType());
-    if (type != null) {
+    CompilationUnitElement element = getDartElement(binding.asRawType());
+    if (element instanceof Type) {
+      Type type = (Type) element;
       try {
         recordRelationship(peekTarget(new SourceRangeImpl(node)),
             new TypeLocation(type, type.getNameRange()));

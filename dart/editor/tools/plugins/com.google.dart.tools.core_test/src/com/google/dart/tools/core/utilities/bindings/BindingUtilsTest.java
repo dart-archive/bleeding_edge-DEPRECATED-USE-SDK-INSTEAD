@@ -49,12 +49,12 @@ public class BindingUtilsTest extends TestCase {
     Type expectedType = getType(compilationUnit, "SimpleMoney");
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartClass classNode = getType(ast, expectedType.getElementName());
-    Type actualType = BindingUtils.getDartElement(classNode.getElement());
+    CompilationUnitElement actualType = BindingUtils.getDartElement(classNode.getElement());
     assertEquals(expectedType, actualType);
   }
 
   public void test_BindingUtils_getDartElement_classElement_null() throws Exception {
-    Type actualType = BindingUtils.getDartElement((ClassElement) null);
+    CompilationUnitElement actualType = BindingUtils.getDartElement((ClassElement) null);
     assertNull(actualType);
   }
 
@@ -91,14 +91,15 @@ public class BindingUtilsTest extends TestCase {
     Type expectedType = getType(compilationUnit, "SimpleMoney");
     DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
     DartClass classNode = getType(ast, expectedType.getElementName());
-    Type actualType = BindingUtils.getDartElement(compilationUnit.getLibrary(),
+    CompilationUnitElement actualType = BindingUtils.getDartElement(compilationUnit.getLibrary(),
         classNode.getElement());
     assertEquals(expectedType, actualType);
   }
 
   public void test_BindingUtils_getDartElement_library_classElement_notNull_null() throws Exception {
     CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
-    Type actualType = BindingUtils.getDartElement(compilationUnit.getLibrary(), (ClassElement) null);
+    CompilationUnitElement actualType = BindingUtils.getDartElement(compilationUnit.getLibrary(),
+        (ClassElement) null);
     assertNull(actualType);
   }
 
@@ -312,8 +313,7 @@ public class BindingUtilsTest extends TestCase {
       if (node instanceof DartMethodDefinition) {
         DartMethodDefinition method = (DartMethodDefinition) node;
         DartExpression name = method.getName();
-        if (name instanceof DartIdentifier
-            && ((DartIdentifier) name).getName().equals(methodName)) {
+        if (name instanceof DartIdentifier && ((DartIdentifier) name).getName().equals(methodName)) {
           return method;
         } else if (name instanceof DartPropertyAccess
             && ((DartPropertyAccess) name).getName().getName().equals(methodName)) {

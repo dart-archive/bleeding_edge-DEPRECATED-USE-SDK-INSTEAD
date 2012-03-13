@@ -18,6 +18,7 @@ import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.tools.core.internal.indexer.location.TypeLocation;
+import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.Type;
 
 /**
@@ -42,8 +43,9 @@ public class TypeHierarchyContributor extends DartContributor {
   }
 
   private void processSupertype(DartClass node, InterfaceType binding) {
-    Type type = getDartElement(binding);
-    if (type != null) {
+    CompilationUnitElement element = getDartElement(binding);
+    if (element instanceof Type) {
+      Type type = (Type) element;
       recordRelationship(node, new TypeLocation(type, getSourceRange(type, binding)));
     }
   }

@@ -125,7 +125,7 @@ public class BindingUtils {
    * @param element the type element used to locate the model element
    * @return the Dart model element corresponding to the resolved type
    */
-  public static Type getDartElement(ClassElement element) {
+  public static CompilationUnitElement getDartElement(ClassElement element) {
     if (element == null) {
       return null;
     }
@@ -310,7 +310,7 @@ public class BindingUtils {
    * @param element the type element used to locate the model element
    * @return the Dart model element corresponding to the resolved type
    */
-  public static Type getDartElement(DartLibrary library, ClassElement element) {
+  public static CompilationUnitElement getDartElement(DartLibrary library, ClassElement element) {
     if (element == null) {
       return null;
     } else if (library == null) {
@@ -329,6 +329,10 @@ public class BindingUtils {
     List<Type> matchingTypes = getImmediateTypes(declaringLibrary, typeName);
     if (matchingTypes.size() == 1) {
       return matchingTypes.get(0);
+    }
+    List<DartFunctionTypeAlias> matchingAliases = getFunctionTypeAliases(declaringLibrary, typeName);
+    if (matchingAliases.size() == 1) {
+      return matchingAliases.get(0);
     }
     return null;
   }
@@ -415,10 +419,11 @@ public class BindingUtils {
     if (!(enclosingType instanceof InterfaceType)) {
       return null;
     }
-    Type declaringType = getDartElement(library, (InterfaceType) enclosingType);
-    if (declaringType == null) {
+    CompilationUnitElement member = getDartElement(library, (InterfaceType) enclosingType);
+    if (!(member instanceof Type)) {
       return null;
     }
+    Type declaringType = (Type) member;
     String fieldName = fieldBinding.getName();
     if (fieldName == null) {
       return null;
@@ -458,20 +463,15 @@ public class BindingUtils {
     }
     FunctionAliasElement element = aliasBinding.getType().getElement();
     String typeName = element.getName();
-    try {
-      LibraryElement declaringLibraryElement = element.getLibrary();
-      if (declaringLibraryElement == null) {
-        DartCore.logError("Could not access declaring library for type " + typeName,
-            new Throwable());
-        return null;
-      }
-      DartLibrary declaringLibrary = getDartElement(library, declaringLibraryElement);
-      List<DartFunctionTypeAlias> matchingTypes = getFunctionTypeAliases(declaringLibrary, typeName);
-      if (matchingTypes.size() == 1) {
-        return matchingTypes.get(0);
-      }
-    } catch (DartModelException exception) {
-      DartCore.logError(exception);
+    LibraryElement declaringLibraryElement = element.getLibrary();
+    if (declaringLibraryElement == null) {
+      DartCore.logError("Could not access declaring library for type " + typeName, new Throwable());
+      return null;
+    }
+    DartLibrary declaringLibrary = getDartElement(library, declaringLibraryElement);
+    List<DartFunctionTypeAlias> matchingTypes = getFunctionTypeAliases(declaringLibrary, typeName);
+    if (matchingTypes.size() == 1) {
+      return matchingTypes.get(0);
     }
     return null;
   }
@@ -483,7 +483,7 @@ public class BindingUtils {
    * @param typeBinding the resolved type used to locate the model element
    * @return the Dart model element corresponding to the resolved type
    */
-  public static Type getDartElement(DartLibrary library, InterfaceType typeBinding) {
+  public static CompilationUnitElement getDartElement(DartLibrary library, InterfaceType typeBinding) {
     if (typeBinding == null) {
       return null;
     } else if (library == null) {
@@ -567,10 +567,11 @@ public class BindingUtils {
     if (!(enclosingType instanceof InterfaceType)) {
       return null;
     }
-    Type declaringType = getDartElement(library, (InterfaceType) enclosingType);
-    if (declaringType == null) {
+    CompilationUnitElement member = getDartElement(library, (InterfaceType) enclosingType);
+    if (!(member instanceof Type)) {
       return null;
     }
+    Type declaringType = (Type) member;
     if (methodName == null) {
       return null;
     } else if (methodBinding.isConstructor()) {
@@ -663,7 +664,7 @@ public class BindingUtils {
    * @param typeBinding the resolved type used to locate the model element
    * @return the Dart model element corresponding to the resolved type
    */
-  public static Type getDartElement(InterfaceType typeBinding) {
+  public static CompilationUnitElement getDartElement(InterfaceType typeBinding) {
     if (typeBinding == null) {
       return null;
     }
@@ -926,17 +927,25 @@ public class BindingUtils {
    * @param matchingAliases the list to which matching function type aliases are to be added
    * @param library the library containing the function type aliases to be returned
    * @param typeName the name of the function type aliases to be returned
-   * @throws DartModelException if some portion of the workspace cannot be traversed
    */
   private static void addImmediateFunctionTypeAliasesUncached(
-      List<DartFunctionTypeAlias> matchingAliases, DartLibrary library, String typeName)
-      throws DartModelException {
-    for (CompilationUnit unit : library.getCompilationUnits()) {
-      for (DartFunctionTypeAlias type : unit.getFunctionTypeAliases()) {
-        if (type.getElementName().equals(typeName)) {
-          matchingAliases.add(type);
+      List<DartFunctionTypeAlias> matchingAliases, DartLibrary library, String typeName) {
+    try {
+      for (CompilationUnit unit : library.getCompilationUnits()) {
+        try {
+          for (DartFunctionTypeAlias type : unit.getFunctionTypeAliases()) {
+            if (type.getElementName().equals(typeName)) {
+              matchingAliases.add(type);
+            }
+          }
+        } catch (DartModelException exception) {
+//        DartCore.logInformation("Could not get function type aliases defined in " + unit.getElementName(),
+//          exception);
         }
       }
+    } catch (DartModelException exception) {
+//    DartCore.logInformation(
+//        "Could not get compilation units defined in " + library.getElementName(), exception);
     }
   }
 
@@ -1182,10 +1191,9 @@ public class BindingUtils {
    * @param matchingTypes the list to which matching types are to be added
    * @param library the library containing the type in which the method is declared
    * @param typeName the name of the types to be returned
-   * @throws DartModelException if some portion of the workspace cannot be traversed
    */
   private static List<DartFunctionTypeAlias> getFunctionTypeAliases(DartLibrary library,
-      String typeName) throws DartModelException {
+      String typeName) {
     if (library == null) {
       return new ArrayList<DartFunctionTypeAlias>();
     }
