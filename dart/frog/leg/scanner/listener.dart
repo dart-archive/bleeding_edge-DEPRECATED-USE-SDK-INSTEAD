@@ -326,10 +326,6 @@ class Listener {
                                Token continueKeyword, Token endToken) {
   }
 
-  void handleDefaultCase(Token colon, Token defaultKeyword, int statementCount,
-                         Token endToken) {
-  }
-
   void handleEmptyStatement(Token token) {
   }
 
@@ -1324,16 +1320,6 @@ class NodeListener extends ElementListener {
     }
     pushNode(new SwitchCase(label, expressions, defaultKeyword, statements,
                             firstToken));
-  }
-
-  void handleDefaultCase(Token colon, Token defaultKeyword, int statementCount,
-                         Token endToken) {
-    NodeList statements = makeNodeList(statementCount, null, null, null);
-    Identifier label = null;
-    if (colon !== null) {
-      label = popNode();
-    }
-    pushNode(new DefaultCase(label, statements, defaultKeyword));
   }
 
   void handleBreakStatement(bool hasTarget,

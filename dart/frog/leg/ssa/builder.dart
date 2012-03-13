@@ -616,7 +616,7 @@ class BreakHandlerEntry {
 }
 
 interface BreakHandler default BreakHandlerImpl {
-  BreakHandler(SsaBuilder builder, StatementElement target);
+  BreakHandler(SsaBuilder builder, TargetElement target);
   void addBreak(HBreak breakInstruction, LocalsHandler locals);
   void forEachBreak(Function action);
   void close();
@@ -641,7 +641,7 @@ class NullBreakHandler implements BreakHandler {
 class BreakHandlerImpl implements BreakHandler {
   final BreakHandler previous;
   final SsaBuilder builder;
-  final StatementElement target;
+  final TargetElement target;
   final List<BreakHandlerEntry> breaks;
   BreakHandlerImpl(SsaBuilder builder, this.target)
       : this.builder = builder,
@@ -664,7 +664,7 @@ class BreakHandlerImpl implements BreakHandler {
 
   void close() {
     assert(builder.currentBreakHandler === this);
-    // The mapping from StatementElement to BreakHandler is no longer needed.
+    // The mapping from TargetElement to BreakHandler is no longer needed.
     builder.breakTargets.remove(target);
     builder.currentBreakHandler = previous;
   }
@@ -691,7 +691,7 @@ class SsaBuilder implements Visitor {
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
 
-  Map<StatementElement, BreakHandler> breakTargets;
+  Map<TargetElement, BreakHandler> breakTargets;
 
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
@@ -716,7 +716,7 @@ class SsaBuilder implements Visitor {
       elements = work.resolutionTree,
       graph = new HGraph(),
       stack = new List<HInstruction>(),
-      breakTargets = new Map<StatementElement, BreakHandler>() {
+      breakTargets = new Map<TargetElement, BreakHandler>() {
     localsHandler = new LocalsHandler(this);
   }
 
@@ -2118,7 +2118,7 @@ class SsaBuilder implements Visitor {
   visitBreakStatement(BreakStatement node) {
     work.allowSpeculativeOptimization = false;
     assert(!isAborted());
-    StatementElement target = elements[node];
+    TargetElement target = elements[node];
     assert(target !== null);
     BreakHandler handler = breakTargets[target];
     assert(handler !== null);
@@ -2141,7 +2141,7 @@ class SsaBuilder implements Visitor {
   }
 
   BreakHandler getBreakHandler(Node node) {
-    StatementElement element = elements[node];
+    TargetElement element = elements[node];
     if (element === null) return const NullBreakHandler();
     return new BreakHandler(this, element);
   }
@@ -2227,7 +2227,7 @@ class SsaBuilder implements Visitor {
       return;
     }
     // Non-loop statements can only be break targets, not continue targets.
-    StatementElement targetElement = elements[body];
+    TargetElement targetElement = elements[body];
     if (targetElement === null || targetElement.statement !== body) {
       // Labeled statements with no element on the body have no breaks.
       // A different target statement only happens if the body is itself
@@ -2371,7 +2371,8 @@ class SsaBuilder implements Visitor {
     if (expressions.isEmpty()) {
       // Default case with no expressions.
       if (!node.isDefaultCase) {
-        compiler.internalError("Case with no expression and not default");
+        compiler.internalError("Case with no expression and not default",
+                               node: node);
       }
       visit(node.statements);
       // This must be the final case (otherwise "default" would be invalid),

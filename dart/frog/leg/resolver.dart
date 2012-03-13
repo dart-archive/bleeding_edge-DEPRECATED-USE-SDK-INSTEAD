@@ -425,7 +425,9 @@ class LabeledStatementLabelScope implements LabelScope {
 class SwitchLabelScope implements LabelScope {
   final LabelScope outer;
   final Map<String, LabelElement> caseLabels;
+
   SwitchLabelScope(this.outer, this.caseLabels);
+
   LabelElement lookup(String labelName) {
     LabelElement result = caseLabels[labelName];
     if (result !== null) return result;
@@ -443,22 +445,24 @@ class EmptyLabelScope implements LabelScope {
 
 class StatementScope {
   LabelScope labels;
-  Link<StatementElement> breakTargetStack;
-  Link<StatementElement> continueTargetStack;
+  Link<TargetElement> breakTargetStack;
+  Link<TargetElement> continueTargetStack;
+  // Used to provide different numbers to statements if one is inside the other.
+  // Can be used to make otherwise duplicate labels unique.
   int nestingLevel = 0;
 
   StatementScope()
       : labels = const EmptyLabelScope(),
-        breakTargetStack = const EmptyLink<StatementElement>(),
-        continueTargetStack = const EmptyLink<StatementElement>();
+        breakTargetStack = const EmptyLink<TargetElement>(),
+        continueTargetStack = const EmptyLink<TargetElement>();
 
   LabelElement lookupLabel(String label) =>
       labels.lookup(label);
 
-  StatementElement currentBreakTarget() =>
+  TargetElement currentBreakTarget() =>
     breakTargetStack.isEmpty() ? null : breakTargetStack.head;
 
-  StatementElement currentContinueTarget() =>
+  TargetElement currentContinueTarget() =>
     continueTargetStack.isEmpty() ? null : continueTargetStack.head;
 
   void enterLabelScope(LabelElement element) {
@@ -471,7 +475,7 @@ class StatementScope {
     labels = labels.outer;
   }
 
-  void enterLoop(StatementElement element) {
+  void enterLoop(TargetElement element) {
     breakTargetStack = breakTargetStack.prepend(element);
     continueTargetStack = continueTargetStack.prepend(element);
     nestingLevel++;
@@ -483,7 +487,7 @@ class StatementScope {
     continueTargetStack = continueTargetStack.tail;
   }
 
-  void enterSwitch(StatementElement breakElement,
+  void enterSwitch(TargetElement breakElement,
                    Map<String, LabelElement> continueElements) {
     breakTargetStack = breakTargetStack.prepend(breakElement);
     labels = new SwitchLabelScope(labels, continueElements);
@@ -528,10 +532,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   // Create, or reuse an already created, statement element for a statement.
-  StatementElement getOrCreateStatementElement(Node statement) {
-    StatementElement element = mapping[statement];
+  TargetElement getOrCreateTargetElement(Node statement) {
+    TargetElement element = mapping[statement];
     if (element === null) {
-      element = new StatementElement(statement,
+      element = new TargetElement(statement,
                                      statementScope.nestingLevel,
                                      enclosingElement);
       mapping[statement] = element;
@@ -664,7 +668,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
    * before visiting the body of the loop
    */
   visitLoopBodyIn(Node loop, Node body, Scope scope) {
-    StatementElement element = getOrCreateStatementElement(loop);
+    TargetElement element = getOrCreateTargetElement(loop);
     statementScope.enterLoop(element);
     visitIn(body, scope);
     statementScope.exitLoop();
@@ -987,7 +991,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitBreakStatement(BreakStatement node) {
-    StatementElement target;
+    TargetElement target;
     if (node.target === null) {
       target = statementScope.currentBreakTarget();
       if (target === null) {
@@ -1014,7 +1018,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitContinueStatement(ContinueStatement node) {
-    StatementElement target;
+    TargetElement target;
     if (node.target === null) {
       target = statementScope.currentContinueTarget();
       if (target === null) {
@@ -1063,9 +1067,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       warning(existingElement.label, MessageKind.EXISTING_LABEL, [labelName]);
     }
     Node body = node.getBody();
-    StatementElement statementElement = getOrCreateStatementElement(body);
+    TargetElement TargetElement = getOrCreateTargetElement(body);
 
-    LabelElement element = statementElement.addLabel(node.label, labelName);
+    LabelElement element = TargetElement.addLabel(node.label, labelName);
     statementScope.enterLabelScope(element);
     visit(node.statement);
     statementScope.exitLabelScope();
@@ -1074,7 +1078,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       warning(node.label, MessageKind.UNUSED_LABEL, [labelName]);
     }
-    if (!statementElement.isBreakTarget && mapping[body] === statementElement) {
+    if (!TargetElement.isBreakTarget && mapping[body] === TargetElement) {
       // If the body is itself a break or continue for another target, it
       // might have updated its mapping to the label it actaully does target.
       mapping.remove(body);
@@ -1096,7 +1100,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   visitSwitchStatement(SwitchStatement node) {
     node.expression.accept(this);
 
-    StatementElement breakElement = getOrCreateStatementElement(node);
+    TargetElement breakElement = getOrCreateTargetElement(node);
     Map<String, LabelElement> continueLabels = <LabelElement>{};
     Link<SwitchCase> cases = node.cases.nodes;
     while (!cases.isEmpty()) {
@@ -1120,15 +1124,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           }
         }
 
-        StatementElement statementElement =
-            new StatementElement(switchCase,
+        TargetElement TargetElement =
+            new TargetElement(switchCase,
                                  statementScope.nestingLevel,
                                  enclosingElement);
-        mapping[switchCase] = statementElement;
+        mapping[switchCase] = TargetElement;
 
         LabelElement label =
             new LabelElement(labelIdentifier, labelName,
-                             statementElement, enclosingElement);
+                             TargetElement, enclosingElement);
         mapping[labelIdentifier] = label;
         continueLabels[labelName] = label;
       }
@@ -1143,8 +1147,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
     // Clean-up unused labels
     continueLabels.forEach((String key, LabelElement label) {
-      StatementElement statementElement = label.target;
-      SwitchCase switchCase = statementElement.statement;
+      TargetElement TargetElement = label.target;
+      SwitchCase switchCase = TargetElement.statement;
       if (!label.isContinueTarget) {
         mapping.remove(switchCase);
         mapping.remove(label.label);

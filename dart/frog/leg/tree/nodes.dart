@@ -9,7 +9,6 @@ interface Visitor<R> {
   R visitClassNode(ClassNode node);
   R visitConditional(Conditional node);
   R visitContinueStatement(ContinueStatement node);
-  R visitDefaultCase(DefaultCase node);
   R visitDoWhile(DoWhile node);
   R visitEmptyStatement(EmptyStatement node);
   R visitExpressionStatement(ExpressionStatement node);
@@ -106,7 +105,6 @@ class Node implements Hashable {
   ClassNode asClassNode() => null;
   Conditional asConditional() => null;
   ContinueStatement asContinueStatement() => null;
-  DefaultCase asDefaultCase() => null;
   DoWhile asDoWhile() => null;
   EmptyStatement asEmptyStatement() => null;
   Expression asExpression() => null;
@@ -1413,6 +1411,12 @@ class SwitchStatement extends Statement {
 }
 
 class SwitchCase extends Node {
+  // Represents the grammar:
+  //   label? ('case' expression ':')* ('default' ':')? statement*
+  // Each expression is collected in [expressions].
+  // The 'case' keywords can be obtained using [caseKeywords()].
+  // Any actual switch case must have at least one 'case' or 'default'
+  // clause.
   final Identifier label;
   final NodeList expressions;
   final Token defaultKeyword;
@@ -1453,19 +1457,21 @@ class SwitchCase extends Node {
     }
   }
 
-  List<Token> caseKeywords() {
-    Token token = begin;
+  Link<Token> caseKeywords() {
+    Token token = startToken;
     if (label !== null) {
-      // Skip past <Identifier> ':'.
+      // Skip past the label: <Identifier> ':'.
       token = token.next.next;
     }
-    List<Token> result = <Token>[];
-    while (token.stringValue === "case") {
-      result.add(token);
-      // Skip past 'case' <Expression> ':'.
-      token = token.next.next.next;
+    Link<Token> recursiveGetCases(Token token, Link<Expression> expressions) {
+      if (token.stringValue === 'case') {
+        Token colon = expressions.head.getEndToken().next;
+        return new Link<Token>(token,
+                               recursiveGetCases(colon.next, expressions.tail));
+      }
+      return const EmptyLink<Token>();
     }
-    return result;
+    return recursiveGetCases(token, expressions);
   }
 }
 

@@ -986,7 +986,7 @@ builtin$toStringAsPrecision$1(receiver, fractionDigits) {
   String result = JS('String', @'$0.toPrecision($1)',
                      receiver, fractionDigits);
   if (receiver == 0 && receiver.isNegative()) return "-$result";
-  return result;  
+  return result;
 }
 
 builtin$toRadixString$1(receiver, radix) {
@@ -1394,14 +1394,8 @@ jsPropertyAccess(var jsObject, String property) {
   return JS('var', @'$0[$1]', jsObject, property);
 }
 
-
-// Called at the end of unaborted switch cases to get the (unique)
-// FallThroughError exception that will be thrown.
-FallThroughError fallThroughErrorInstance = null;
-getFallThroughError() {
-  // TODO(lrn): Redo when we support "const FallThroughError()".
-  if (fallThroughErrorInstance === null) {
-    fallThroughErrorInstance = new FallThroughError();
-  }
-  return fallThroughErrorInstance;
-}
+/**
+ * Called at the end of unaborted switch cases to get the singleton
+ * FallThroughError exception that will be thrown.
+ */
+getFallThroughError() => const FallThroughError();

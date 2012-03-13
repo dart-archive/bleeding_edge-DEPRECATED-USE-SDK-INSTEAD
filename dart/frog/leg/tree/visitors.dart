@@ -11,7 +11,6 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitClassNode(ClassNode node) => visitNode(node);
   R visitConditional(Conditional node) => visitExpression(node);
   R visitContinueStatement(ContinueStatement node) => visitGotoStatement(node);
-  R visitDefaultCase(DefaultCase node) => visitNode(node);
   R visitDoWhile(DoWhile node) => visitLoop(node);
   R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
   R visitExpression(Expression node) => visitNode(node);

@@ -660,7 +660,7 @@ class HLabeledBlockInformation extends HBlockInformation {
   final SubGraph body;
   final HBasicBlock joinBlock;
   final List<LabelElement> labels;
-  final StatementElement target;
+  final TargetElement target;
 
   HLabeledBlockInformation(this.body, this.joinBlock,
                            List<LabelElement> labels) :
@@ -669,8 +669,6 @@ class HLabeledBlockInformation extends HBlockInformation {
   // For creating block information when there are no explicit labels.
   HLabeledBlockInformation.implicit(this.body, this.joinBlock, this.target) :
       this.labels = const<LabelElement>[];
-
-  bool get isSwitch() => target is SwitchStatementElement;
 }
 
 class HLoopInformation extends HBlockInformation {
@@ -1617,8 +1615,8 @@ class HGoto extends HControlFlow {
 }
 
 class HBreak extends HGoto {
-  // Target is either a LabelElement or a StatementElement.
-  final StatementElement target;
+  // Target is either a LabelElement or a TargetElement.
+  final TargetElement target;
   final LabelElement label;
   HBreak(this.target) : label = null;
   HBreak.toLabel(LabelElement label) : label = label, target = label.target;

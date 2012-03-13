@@ -244,10 +244,9 @@ class SsaCodeGenerator implements HVisitor {
       addLabel(label);
       buffer.add(':');
     }
-    String implicitLabel = labeledBlockInfo.target.implicitLabel();
-    if (implicitLabel !== null) {
-      buffer.add(@'$');
-      buffer.add(implicitLabel);
+    TargetElement target = labeledBlockInfo.target;
+    if (target.isSwitch) {
+      addImplicitLabel(target);
       buffer.add(@':');
     }
     buffer.add('{\n');
@@ -435,6 +434,10 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(label.labelName);
   }
 
+  void addImplicitLabel(TargetElement target) {
+    buffer.add('\$${target.nestingLevel}');
+  }
+
   visitBreak(HBreak node) {
     assert(currentBlock.successors.length == 1);
     addIndentation();
@@ -443,11 +446,10 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add(" ");
       addLabel(node.label);
     } else {
-      StatementElement target = node.target;
-      String implicitLabel = target.implicitLabel();
-      if (implicitLabel !== null) {
-        buffer.add(@' $');
-        buffer.add(implicitLabel);
+      TargetElement target = node.target;
+      if (target.isSwitch) {
+        buffer.add(@' ');
+        addImplicitLabel(target);
       }
     }
     buffer.add(";\n");

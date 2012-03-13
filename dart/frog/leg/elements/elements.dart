@@ -828,7 +828,7 @@ class Elements {
 class LabelElement extends Element {
   final Identifier label;
   final String labelName;
-  final StatementElement target;
+  final TargetElement target;
   bool isBreakTarget = false;
   bool isContinueTarget = false;
   LabelElement(Identifier label, this.labelName, this.target,
@@ -854,14 +854,14 @@ class LabelElement extends Element {
 
 // Represents a reference to a statement, either a label or the
 // default target of a break or continue.
-class StatementElement extends Element {
+class TargetElement extends Element {
   final Statement statement;
   final int nestingLevel;
   Link<LabelElement> labels = const EmptyLink<LabelElement>();
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
-  StatementElement(this.statement, this.nestingLevel, Element enclosingElement)
+  TargetElement(this.statement, this.nestingLevel, Element enclosingElement)
       : super(const SourceString(""), ElementKind.STATEMENT, enclosingElement);
   bool get isTarget() => isBreakTarget || isContinueTarget;
 
@@ -874,8 +874,7 @@ class StatementElement extends Element {
 
   Node parseNode(DiagnosticListener l) => statement;
 
-  String implicitLabel() =>
-      (statement is SwitchStatement) ? '\$$nestingLevel' : null;
+  bool get isSwitch() => statement is SwitchStatement;
 
   Token position() => statement.getBeginToken();
   String toString() => statement.toString();
