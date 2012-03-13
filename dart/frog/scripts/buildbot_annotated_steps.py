@@ -108,10 +108,13 @@ def BuildFrog(component, mode, system):
 
   print '@@@BUILD_STEP build frog@@@'
 
-  args = [sys.executable, './tools/build.py', '--mode=' + mode,
-          'frog', 'frogsh']
+  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'frog']
   print 'running %s' % (' '.join(args))
-  return subprocess.call(args, env=NO_COLOR_ENV)
+  exit_code = subprocess.call(args, env=NO_COLOR_ENV)
+
+  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'frogsh']
+  print 'running %s' % (' '.join(args))
+  return subprocess.call(args, env=NO_COLOR_ENV) | exit_code
 
 
 def TestFrog(component, mode, system, browser, flags):
