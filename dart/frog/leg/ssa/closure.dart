@@ -396,8 +396,10 @@ class ClosureTranslator extends AbstractVisitor {
         savedClosureData.freeVariableMapping.getKeys();
     assert(freeVariables.isEmpty() || savedInsideClosure);
     for (Element freeElement in freeVariables) {
-      assert(capturedVariableMapping[freeElement] == null ||
-             capturedVariableMapping[freeElement] == freeElement);
+      if (capturedVariableMapping[freeElement] != null &&
+          capturedVariableMapping[freeElement] != freeElement) {
+        compiler.internalError('In closure analyzer', node: node);
+      }
       capturedVariableMapping[freeElement] = freeElement;
       useLocal(freeElement);
     }

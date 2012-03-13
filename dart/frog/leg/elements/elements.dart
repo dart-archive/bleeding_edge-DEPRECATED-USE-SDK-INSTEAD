@@ -425,7 +425,8 @@ class AbstractFieldElement extends Element {
     // the compilation unit of the abstract element.
     if (getter !== null && getter.enclosingElement === enclosingElement) {
       return getter.position();
-    } else {
+    } else if (setter != null) {
+      // TODO(ahe): checking for null should not be necessary.
       return setter.position();
     }
   }

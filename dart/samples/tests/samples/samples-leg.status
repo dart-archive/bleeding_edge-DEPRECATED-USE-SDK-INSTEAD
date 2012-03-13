@@ -4,8 +4,8 @@
 
 
 [ $component == leg ]
-chat/ChatServerTest: Crash # leg/ssa/closure.dart Failed assertion: line 399 pos 14
-dartcombat/DartCombatTest: Crash # Internal error: NullPointerException
+chat/ChatServerTest: Fail # Failed invariant in closure analyzer.
+dartcombat/DartCombatTest: Fail # Duplicate definition of an abstract element.
 lib/layout/LayoutTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
 lib/view/ViewTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
 proxy/MintMakerRpcTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
