@@ -723,11 +723,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         error(node.receiver, MessageKind.NO_INSTANCE_AVAILABLE, [name]);
         return null;
       }
-      target = currentClass.lookupSuperMember(name);
-      if (target === null) {
-        error(node.selector, MessageKind.METHOD_NOT_FOUND,
-              [currentClass.superclass.name, name]);
+      if (currentClass.supertype === null) {
+        // This is just to guard against internal errors, so no need
+        // for a real error message.
+        error(node.receiver, MessageKind.GENERIC, "Object has no superclass");
       }
+      target = currentClass.lookupSuperMember(name);
+      // [target] may be null which means invoking noSuchMethod on
+      // super.
     } else if (resolvedReceiver === null) {
       return null;
     } else if (resolvedReceiver.kind === ElementKind.CLASS) {

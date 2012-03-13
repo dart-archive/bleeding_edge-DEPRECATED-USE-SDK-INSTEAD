@@ -374,9 +374,15 @@ class Compiler implements DiagnosticListener {
       throw 'cannot find tokens to produce error message';
     }
     final startOffset = begin.charOffset;
-    // TODO(ahe): Compute proper end offset.
+    // TODO(ahe): Compute proper end offset in token. Right now we use
+    // the position of the next token. We want to preserve the
+    // invariant that endOffset > startOffset, but for EOF the
+    // charoffset of the next token may be [startOffset]. This can
+    // also happen for synthetized tokens that are produced during
+    // error handling.
     final endOffset =
-      (end.next !== null) ? end.next.charOffset : startOffset + 1;
+      Math.max((end.next !== null) ? end.next.charOffset : 0, startOffset + 1);
+    assert(endOffset > startOffset);
     Uri uri = currentElement.getCompilationUnit().script.uri;
     return new SourceSpan(uri, startOffset, endOffset);
   }

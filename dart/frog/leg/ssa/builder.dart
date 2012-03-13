@@ -1777,6 +1777,10 @@ class SsaBuilder implements Visitor {
   visitSuperSend(Send node) {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
+    if (element === null) {
+      // Example: co19/Language/10_Expressions/25_Unary_Expressions_A06_t01
+      compiler.unimplemented('unresolved super-send', node: node);
+    }
     if (element.kind.category != ElementCategory.FUNCTION) {
       // Example:
       // co19/Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04
@@ -1818,14 +1822,17 @@ class SsaBuilder implements Visitor {
   }
 
   visitSend(Send node) {
-    if (node.selector is Operator && methodInterceptionEnabled) {
+    if (node.isSuperCall) {
+      if (node.isPropertyAccess) {
+        compiler.unimplemented('super property read', node: node);
+      }
+      visitSuperSend(node);
+    } else if (node.selector is Operator && methodInterceptionEnabled) {
       visitOperatorSend(node);
     } else if (node.isPropertyAccess) {
       generateGetter(node, elements[node]);
     } else if (Elements.isClosureSend(node, elements)) {
       visitClosureSend(node);
-    } else if (node.isSuperCall) {
-      visitSuperSend(node);
     } else {
       Element element = elements[node];
       if (element === null) {
@@ -1854,7 +1861,9 @@ class SsaBuilder implements Visitor {
 
   visitSendSet(SendSet node) {
     Operator op = node.assignmentOperator;
-    if (node.isIndex) {
+    if (node.isSuperCall) {
+      compiler.unimplemented('super property store', node: node);
+    } else if (node.isIndex) {
       if (!methodInterceptionEnabled) {
         assert(op.source.stringValue === '=');
         visitDynamicSend(node);
