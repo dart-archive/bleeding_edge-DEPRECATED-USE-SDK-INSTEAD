@@ -1509,25 +1509,14 @@ class Parser {
   Token parseSwitchBlock(Token token) {
     Token begin = token;
     listener.beginSwitchBlock(begin);
-    int caseCount = 0;
     token = expect('{', token);
+    int caseCount = 0;
     while (token.kind !== EOF_TOKEN) {
-      String value;
-      if (isIdentifier(token) && optional(':', token.next)) {
-        // Skip label.
-        value = token.next.next.stringValue;
-      } else {
-        value = token.stringValue;
-      }
-      if (value === 'case') {
-        token = parseSwitchCase(token);
-        ++caseCount;
-      } else if (value === 'default') {
-        token = parseDefaultCase(token);
-        ++caseCount;
-      } else {
+      if (optional('}', token)) {
         break;
       }
+      token = parseSwitchCase(token);
+      ++caseCount;
     }
     listener.endSwitchBlock(caseCount, begin, token);
     expect('}', token);
@@ -1536,16 +1525,31 @@ class Parser {
 
   Token parseSwitchCase(Token token) {
     Token begin = token;
-    Token colon;
+    Token defaultKeyword = null;
+    Token label = null;
+    // First an optional label.
     if (isIdentifier(token)) {
+      label = token;
       token = parseIdentifier(token);
-      colon = token;
       token = expect(':', token);
     }
-    Token caseKeyword = token;
-    token = expect('case', token);
-    token = parseExpression(token);
-    token = expect(':', token);
+    // Then one or more case expressions, the last of which may be
+    // 'default' instead.
+    int expressionCount = 0;
+    String value = token.stringValue;
+    do {
+      if (value === 'default') {
+        defaultKeyword = token;
+        token = expect(':', token.next);
+        break;
+      }
+      token = expect('case', token);
+      token = parseExpression(token);
+      token = expect(':', token);
+      expressionCount++;
+      value = token.stringValue;
+    } while (value === 'case' || value === 'default');
+    // Finally zero or more statements.
     int statementCount = 0;
     while (token.kind !== EOF_TOKEN) {
       String value;
@@ -1562,42 +1566,8 @@ class Parser {
         ++statementCount;
       }
     }
-    listener.handleSwitchCase(colon, caseKeyword, statementCount, token);
-    return token;
-  }
-
-  Token parseDefaultCase(Token token) {
-    Token begin = token;
-    Token colon;
-    if (isIdentifier(token)) {
-      token = parseIdentifier(token);
-      colon = token;
-      token = expect(':', token);
-    }
-    Token defaultKeyword = token;
-    token = expect('default', token);
-    token = expect(':', token);
-    int statementCount = 0;
-    while (token.kind !== EOF_TOKEN) {
-      String value;
-      if (isIdentifier(token) && optional(':', token.next)) {
-        // Skip label.
-        value = token.next.next.stringValue;
-      } else {
-        value = token.stringValue;
-      }
-      if (value === '}') {
-        break;
-      } else if (value === 'case' || value === 'default') {
-        // The default case should be the last case in a switch.
-        listener.recoverableError("expected '}'", token: token);
-        break;
-      } else {
-        token = parseStatement(token);
-        ++statementCount;
-      }
-    }
-    listener.handleDefaultCase(colon, defaultKeyword, statementCount, token);
+    listener.handleSwitchCase(label, expressionCount, defaultKeyword,
+                              statementCount, begin, token);
     return token;
   }
 

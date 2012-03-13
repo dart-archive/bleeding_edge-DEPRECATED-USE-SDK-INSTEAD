@@ -142,7 +142,7 @@ class HGraph {
     return result;
   }
 
-  HBasicBlock addNewLoopHeaderBlock(List<SourceString> labels) {
+  HBasicBlock addNewLoopHeaderBlock(List<LabelElement> labels) {
     HBasicBlock result = addNewBlock();
     result.loopInformation = new HLoopInformation(result, labels);
     return result;
@@ -321,6 +321,9 @@ class SubGraph {
   const SubGraph(this.start, this.end);
 
   bool contains(HBasicBlock block) {
+    assert(start !== null);
+    assert(end !== null);
+    assert(block !== null);
     return start.id <= block.id && block.id <= end.id;
   }
 }
@@ -420,9 +423,6 @@ class HBasicBlock extends HInstructionList implements Hashable {
 
   HBasicBlock dominator = null;
   final List<HBasicBlock> dominatedBlocks;
-
-  // For recognizing labeled statements.
-  List<SourceString> labels;
 
   HBasicBlock() : this.withId(null);
   HBasicBlock.withId(this.id)
@@ -659,15 +659,25 @@ class HBlockInformation {
 class HLabeledBlockInformation extends HBlockInformation {
   final SubGraph body;
   final HBasicBlock joinBlock;
-  final List<SourceString> labels;
-  HLabeledBlockInformation(this.body, this.joinBlock, this.labels);
+  final List<LabelElement> labels;
+  final StatementElement target;
+
+  HLabeledBlockInformation(this.body, this.joinBlock,
+                           List<LabelElement> labels) :
+      this.labels = labels, this.target = labels[0].target;
+
+  // For creating block information when there are no explicit labels.
+  HLabeledBlockInformation.implicit(this.body, this.joinBlock, this.target) :
+      this.labels = const<LabelElement>[];
+
+  bool get isSwitch() => target is SwitchStatementElement;
 }
 
 class HLoopInformation extends HBlockInformation {
   final HBasicBlock header;
   final List<HBasicBlock> blocks;
   final List<HBasicBlock> backEdges;
-  final List<SourceString> labels;
+  final List<LabelElement> labels;
 
   HLoopInformation(this.header, this.labels)
       : blocks = new List<HBasicBlock>(),
@@ -1607,9 +1617,12 @@ class HGoto extends HControlFlow {
 }
 
 class HBreak extends HGoto {
-  final SourceString label;
-  HBreak([this.label]);
-  toString() => 'break';
+  // Target is either a LabelElement or a StatementElement.
+  final StatementElement target;
+  final LabelElement label;
+  HBreak(this.target) : label = null;
+  HBreak.toLabel(LabelElement label) : label = label, target = label.target;
+  toString() => (target is LabelElement) ? 'break ${label.labelName}' : 'break';
   accept(HVisitor visitor) => visitor.visitBreak(this);
 }
 

@@ -146,6 +146,9 @@ class Node implements Hashable {
   Typedef asTypedef() => null;
   VariableDefinitions asVariableDefinitions() => null;
   While asWhile() => null;
+
+  bool isValidBreakTarget() => false;
+  bool isValidContinueTarget() => false;
 }
 
 class ClassNode extends Node {
@@ -200,7 +203,7 @@ class Statement extends Node {
   // TODO(ahe): make class abstract instead of adding an abstract method.
   abstract accept(Visitor visitor);
 
-  bool isValidContinueTarget() => false;
+  bool isValidBreakTarget() => true;
 }
 
 /**
@@ -1411,67 +1414,58 @@ class SwitchStatement extends Statement {
 
 class SwitchCase extends Node {
   final Identifier label;
-  final Expression expression;
+  final NodeList expressions;
+  final Token defaultKeyword;
   final NodeList statements;
 
-  final Token caseKeyword;
+  final Token startToken;
 
-  SwitchCase(this.label, this.expression, this.statements, this.caseKeyword);
+  SwitchCase(this.label, this.expressions, this.defaultKeyword,
+             this.statements, this.startToken);
 
   SwitchCase asSwitchCase() => this;
+
+  bool get isDefaultCase() => defaultKeyword !== null;
 
   accept(Visitor visitor) => visitor.visitSwitchCase(this);
 
   visitChildren(Visitor visitor) {
     if (label !== null) label.accept(visitor);
-    expression.accept(visitor);
+    expressions.accept(visitor);
     statements.accept(visitor);
   }
 
   Token getBeginToken() {
-    if (label !== null) return label.getBeginToken();
-    return caseKeyword;
+    return startToken;
   }
 
   Token getEndToken() {
     if (statements.nodes.isEmpty()) {
+      // All cases must have at least one expression or be the default.
+      if (defaultKeyword !== null) {
+        // The colon after 'default'.
+        return defaultKeyword.next;
+      }
       // The colon after the expression.
-      return expression.getEndToken().next;
+      return expressions.getEndToken().next;
     } else {
       return statements.getEndToken();
     }
   }
-}
 
-class DefaultCase extends Node {
-  final Identifier label;
-  final NodeList statements;
-
-  final Token defaultKeyword;
-
-  DefaultCase(this.label, this.statements, this.defaultKeyword);
-
-  DefaultCase asDefaultCase() => this;
-
-  accept(Visitor visitor) => visitor.visitDefaultCase(this);
-
-  visitChildren(Visitor visitor) {
-    if (label !== null) label.accept(visitor);
-    statements.accept(visitor);
-  }
-
-  Token getBeginToken() {
-    if (label !== null) return label.getBeginToken();
-    return defaultKeyword;
-  }
-
-  Token getEndToken() {
-    if (statements.nodes.isEmpty()) {
-      // The colon after default.
-      return defaultKeyword.next;
-    } else {
-      return statements.getEndToken();
+  List<Token> caseKeywords() {
+    Token token = begin;
+    if (label !== null) {
+      // Skip past <Identifier> ':'.
+      token = token.next.next;
     }
+    List<Token> result = <Token>[];
+    while (token.stringValue === "case") {
+      result.add(token);
+      // Skip past 'case' <Expression> ':'.
+      token = token.next.next.next;
+    }
+    return result;
   }
 }
 

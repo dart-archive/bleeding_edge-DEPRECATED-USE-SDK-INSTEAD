@@ -215,7 +215,7 @@ class SsaCodeGenerator implements HVisitor {
       if (i != HInvoke.ARGUMENTS_OFFSET) buffer.add(', ');
       use(inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
     }
-    buffer.add(")");
+    buffer.add(')');
   }
 
   void define(HInstruction instruction) {
@@ -240,20 +240,28 @@ class SsaCodeGenerator implements HVisitor {
 
   void handleLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
     addIndentation();
-    for (SourceString label in labeledBlockInfo.labels) {
+    for (LabelElement label in labeledBlockInfo.labels) {
       addLabel(label);
-      buffer.add(":");
+      buffer.add(':');
     }
-    buffer.add("{\n");
+    String implicitLabel = labeledBlockInfo.target.implicitLabel();
+    if (implicitLabel !== null) {
+      buffer.add(@'$');
+      buffer.add(implicitLabel);
+      buffer.add(@':');
+    }
+    buffer.add('{\n');
     indent++;
 
     visitSubGraph(labeledBlockInfo.body);
 
     indent--;
     addIndentation();
-    buffer.add("}\n");
+    buffer.add('}\n');
 
-    visitBasicBlock(labeledBlockInfo.joinBlock);
+    if (labeledBlockInfo.joinBlock !== null) {
+      visitBasicBlock(labeledBlockInfo.joinBlock);
+    }
   }
 
 
@@ -422,26 +430,30 @@ class SsaCodeGenerator implements HVisitor {
   // Used to write the name of labels.
   // The default implementation uses the unmodified Dart label name.
   // Specializations might change this.
-  void addLabel(SourceString label) {
-    buffer.add(label.slowToString());
+  void addLabel(LabelElement label) {
+    buffer.add(@'$');
+    buffer.add(label.labelName);
   }
 
   visitBreak(HBreak node) {
     assert(currentBlock.successors.length == 1);
-    // No block finishing with a 'break' can have more than
-    // one dominated block (since it has only one successor).
-    // If the successor is dominated by another block, then the other block
-    // is responsible for visiting the successor.
-    List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
-    assert(dominated.isEmpty());
-    // Otherwise we would have bailed out in the builder.
     addIndentation();
     buffer.add("break");
     if (node.label !== null) {
       buffer.add(" ");
       addLabel(node.label);
+    } else {
+      StatementElement target = node.target;
+      String implicitLabel = target.implicitLabel();
+      if (implicitLabel !== null) {
+        buffer.add(@' $');
+        buffer.add(implicitLabel);
+      }
     }
     buffer.add(";\n");
+    // We never follow the break to its target, even if it dominates the
+    // break target block. That block is always handled by the structure
+    // that introduced the break.
   }
 
   visitTry(HTry node) {
@@ -1162,8 +1174,9 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void beginLoop(HBasicBlock block) {
     addIndentation();
-    for (SourceString label in block.loopInformation.labels) {
-      buffer.add("${label.slowToString()}:");
+    for (LabelElement label in block.loopInformation.labels) {
+      addLabel(label);
+      buffer.add(":");
     }
     buffer.add('while (true) {\n');
     indent++;
@@ -1329,8 +1342,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   // Adds a "$" in front of names of labels from the original source.
   // This avoids conflicts with labels introduced by bailouts, which
   // starts with a non-"$" character.
-  void addLabel(SourceString label) {
-    buffer.add("\$$label");
+  void addLabel(LabelElement label) {
+    buffer.add("\$${label.labelName}");
   }
 
   void beginLoop(HBasicBlock block) {
@@ -1341,7 +1354,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     }
 
     addIndentation();
-    for (SourceString label in block.loopInformation.labels) {
+    for (LabelElement label in block.loopInformation.labels) {
       addLabel(label);
       buffer.add(":");
     }

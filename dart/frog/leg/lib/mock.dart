@@ -8,7 +8,11 @@
 
 class AssertionError {}
 class TypeError extends AssertionError {}
-class FallThroughError {}
+
+class FallThroughError {
+  const FallThroughError();
+  String toString() => "Switch case fall-through.";
+}
 
 // TODO(ahe): VM specfic exception?
 class InternalError {

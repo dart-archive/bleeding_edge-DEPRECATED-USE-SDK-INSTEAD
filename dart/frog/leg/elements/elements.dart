@@ -847,17 +847,21 @@ class LabelElement extends Element {
 
   bool get isTarget() => isBreakTarget || isContinueTarget;
   Node parseNode(DiagnosticListener l) => label;
+
+  Token position() => label.token;
+  String toString() => "${labelName}:";
 }
 
 // Represents a reference to a statement, either a label or the
 // default target of a break or continue.
 class StatementElement extends Element {
   final Statement statement;
+  final int nestingLevel;
   Link<LabelElement> labels = const EmptyLink<LabelElement>();
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
-  StatementElement(this.statement, Element enclosingElement)
+  StatementElement(this.statement, this.nestingLevel, Element enclosingElement)
       : super(const SourceString(""), ElementKind.STATEMENT, enclosingElement);
   bool get isTarget() => isBreakTarget || isContinueTarget;
 
@@ -869,4 +873,10 @@ class StatementElement extends Element {
   }
 
   Node parseNode(DiagnosticListener l) => statement;
+
+  String implicitLabel() =>
+      (statement is SwitchStatement) ? '\$$nestingLevel' : null;
+
+  Token position() => statement.getBeginToken();
+  String toString() => statement.toString();
 }

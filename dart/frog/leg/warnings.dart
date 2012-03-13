@@ -116,8 +116,12 @@ class MessageKind {
       'unused label #{1}');
   static final INVALID_CONTINUE = const MessageKind(
       'target of continue is not a loop or switch case');
+  static final INVALID_BREAK = const MessageKind(
+      'target of break is not a statement');
   static final INVALID_USE_OF_SUPER = const MessageKind(
       'super not allowed here');
+  static final INVALID_CASE_DEFAULT = const MessageKind(
+      'default only allowed on last case of a switch');
 
   static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       'not a compile-time constant');

@@ -395,8 +395,9 @@ class Listener {
   void handleSuperExpression(Token token) {
   }
 
-  void handleSwitchCase(Token colon, Token caseKeyword, int statementCount,
-                        Token endToken) {
+  void handleSwitchCase(Token labelToken, int expressionCount,
+                        Token defaultKeyword, int statementCount,
+                        Token firstToken, Token endToken) {
   }
 
   void handleThisExpression(Token token) {
@@ -1303,18 +1304,26 @@ class NodeListener extends ElementListener {
   }
 
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
-    pushNode(makeNodeList(caseCount, beginToken, endToken, null));
+    Link<Node> nodes = const EmptyLink<Node>();
+    while (caseCount > 0) {
+      SwitchCase switchCase = popNode();
+      nodes = nodes.prepend(switchCase);
+      caseCount--;
+    }
+    pushNode(new NodeList(beginToken, nodes, endToken, null));
   }
 
-  void handleSwitchCase(Token colon, Token caseKeyword, int statementCount,
-                        Token endToken) {
+  void handleSwitchCase(Token labelToken, int expressionCount,
+                        Token defaultKeyword, int statementCount,
+                        Token firstToken, Token endToken) {
     NodeList statements = makeNodeList(statementCount, null, null, null);
-    Expression expression = popNode();
+    NodeList expressions = makeNodeList(expressionCount, null, null, null);
     Identifier label = null;
-    if (colon !== null) {
+    if (labelToken !== null) {
       label = popNode();
     }
-    pushNode(new SwitchCase(label, expression, statements, caseKeyword));
+    pushNode(new SwitchCase(label, expressions, defaultKeyword, statements,
+                            firstToken));
   }
 
   void handleDefaultCase(Token colon, Token defaultKeyword, int statementCount,

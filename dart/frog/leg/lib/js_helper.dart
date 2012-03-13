@@ -1393,3 +1393,15 @@ bool jsHasOwnProperty(var jsObject, String property) {
 jsPropertyAccess(var jsObject, String property) {
   return JS('var', @'$0[$1]', jsObject, property);
 }
+
+
+// Called at the end of unaborted switch cases to get the (unique)
+// FallThroughError exception that will be thrown.
+FallThroughError fallThroughErrorInstance = null;
+getFallThroughError() {
+  // TODO(lrn): Redo when we support "const FallThroughError()".
+  if (fallThroughErrorInstance === null) {
+    fallThroughErrorInstance = new FallThroughError();
+  }
+  return fallThroughErrorInstance;
+}

@@ -620,7 +620,7 @@ interface BreakHandler default BreakHandlerImpl {
   void addBreak(HBreak breakInstruction, LocalsHandler locals);
   void forEachBreak(Function action);
   void close();
-  List<SourceString> labels();
+  List<LabelElement> labels();
 }
 
 // Inert break handler used to avoid null checks when a loop isn't
@@ -633,7 +633,7 @@ class NullBreakHandler implements BreakHandler {
   }
   void forEachBreak(Function ignored) { }
   void close() { }
-  List<SourceString> labels() => const <SourceString>[];
+  List<LabelElement> labels() => const <LabelElement>[];
 }
 
 // Records breaks until a target block is available.
@@ -669,15 +669,15 @@ class BreakHandlerImpl implements BreakHandler {
     builder.currentBreakHandler = previous;
   }
 
-  List<SourceString> labels() {
-    List<SourceString> result = null;
+  List<LabelElement> labels() {
+    List<LabelElement> result = null;
     for (LabelElement element in target.labels) {
       if (element.isBreakTarget) {
-        if (result === null) result = <SourceString>[];
-        result.add(element.label.source);
+        if (result === null) result = <LabelElement>[];
+        result.add(element);
       }
     }
-    return (result === null) ? const <SourceString>[] : result;
+    return (result === null) ? const <LabelElement>[] : result;
   }
 }
 
@@ -707,9 +707,6 @@ class SsaBuilder implements Visitor {
   // Linked list of active break-handlers. Will be removed in the order
   // they are added.
   BreakHandler currentBreakHandler = const NullBreakHandler();
-  // The break handler to use for an upcoming loop statement (temporarily set
-  // if a labeled statement is labeling a loop).
-  BreakHandler loopBreakHandler = null;
 
   SsaBuilder(Compiler compiler, WorkItem work)
     : this.compiler = compiler,
@@ -1005,7 +1002,7 @@ class SsaBuilder implements Visitor {
   BreakHandler beginLoopHeader(Node node) {
     assert(!isAborted());
     HBasicBlock previousBlock = close(new HGoto());
-    BreakHandler breakHandler = getLoopBreakHandler(node);
+    BreakHandler breakHandler = getBreakHandler(node);
     HBasicBlock loopEntry = graph.addNewLoopHeaderBlock(breakHandler.labels());
     previousBlock.addSuccessor(loopEntry);
     open(loopEntry);
@@ -1259,6 +1256,13 @@ class SsaBuilder implements Visitor {
   }
 
   void visitLogicalAndOr(Send node, Operator op) {
+    handleLogicalAndOr(() { visit(node.receiver); },
+                       () { visit(node.argumentsNode); },
+                       isAnd: (const SourceString("&&") == op.source));
+  }
+
+
+  void handleLogicalAndOr(void left(), void right(), [bool isAnd = true]) {
     // x && y is transformed into:
     //   t0 = boolify(x);
     //   if (t0) t1 = boolify(y);
@@ -1268,9 +1272,7 @@ class SsaBuilder implements Visitor {
     //   t0 = boolify(x);
     //   if (not(t0)) t1 = boolify(y);
     //   result = phi(t0, t1);
-    bool isAnd = (const SourceString("&&") == op.source);
-
-    visit(node.receiver);
+    left();
     HInstruction boolifiedLeft = popBoolified();
     HInstruction condition;
     if (isAnd) {
@@ -1286,7 +1288,8 @@ class SsaBuilder implements Visitor {
     HBasicBlock rightBlock = addNewBlock();
     leftBlock.addSuccessor(rightBlock);
     open(rightBlock);
-    visit(node.argumentsNode);
+
+    right();
     HInstruction boolifiedRight = popBoolified();
     SubGraph rightGraph = new SubGraph(rightBlock, current);
     rightBlock = close(new HGoto());
@@ -1641,7 +1644,7 @@ class SsaBuilder implements Visitor {
           list.add(namedArguments[foundIndex]);
         } else {
           Constant constant = compiler.compileVariable(parameter);
-          list.add(graph.addConstant(constant)); 
+          list.add(graph.addConstant(constant));
         }
       }
     }
@@ -2122,9 +2125,10 @@ class SsaBuilder implements Visitor {
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     HBreak breakInstruction;
     if (node.target === null) {
-      breakInstruction = new HBreak();
-    }  else {
-      breakInstruction = new HBreak(node.target.source);
+      breakInstruction = new HBreak(target);
+    } else {
+      LabelElement label = elements[node.target];
+      breakInstruction = new HBreak.toLabel(label);
     }
     close(breakInstruction);
     handler.addBreak(breakInstruction, savedLocals);
@@ -2136,18 +2140,10 @@ class SsaBuilder implements Visitor {
     generateUnimplemented('continue not implemented');
   }
 
-  BreakHandler getLoopBreakHandler(Node node) {
+  BreakHandler getBreakHandler(Node node) {
     StatementElement element = elements[node];
-    BreakHandler handler;
-    if (loopBreakHandler === null) {
-      if (element === null) return const NullBreakHandler();
-      handler = new BreakHandler(this, element);
-    } else {
-      handler = loopBreakHandler;
-      loopBreakHandler = null;
-      if (element === null) return handler;
-    }
-    return handler;
+    if (element === null) return const NullBreakHandler();
+    return new BreakHandler(this, element);
   }
 
   visitForInStatement(ForInStatement node) {
@@ -2301,61 +2297,132 @@ class SsaBuilder implements Visitor {
 
   visitSwitchStatement(SwitchStatement node) {
     work.allowSpeculativeOptimization = false;
+    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
+    HBasicBlock startBlock = graph.addNewBlock();
+    goto(current, startBlock);
+    open(startBlock);
     visit(node.expression);
     HInstruction expression = pop();
-    Link<Node> cases = node.cases.nodes;
-    int count = 0;
-    handleThen() {
-      if (cases.head.statements.nodes.isEmpty()) {
-        compiler.unimplemented('fall-through', node: cases.head);
-      }
-      visit(cases.head.statements);
-      cases = cases.tail;
+    if (node.cases.isEmpty()) {
+      return;
     }
-    handleElse() {
-      if (cases.isEmpty()) return;
-      if (cases.head.asDefaultCase() !== null) {
-        stack.add(graph.addConstantBool(true));
-        if (!cases.tail.isEmpty()) {
-          compiler.unimplemented('default case not last', node: cases.head);
-        }
+    Link<Node> cases = node.cases.nodes;
+
+    BreakHandler breakHandler = getBreakHandler(node);
+
+    buildSwitchCases(cases, expression);
+
+    HBasicBlock lastBlock = lastOpenedBlock;
+
+    // Create merge block for break targets.
+    HBasicBlock joinBlock = new HBasicBlock();
+    List<LocalsHandler> caseLocals = <LocalsHandler>[];
+    breakHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
+      instruction.block.addSuccessor(joinBlock);
+      caseLocals.add(locals);
+    });
+    if (!isAborted()) {
+      // The current flow is only aborted if the switch has a default that
+      // aborts (all previous cases must abort, and if there is no default,
+      // it's possible to miss all the cases).
+      caseLocals.add(localsHandler);
+      goto(current, joinBlock);
+    }
+    if (caseLocals.length != 0) {
+      graph.addBlock(joinBlock);
+      open(joinBlock);
+      if (caseLocals.length == 1) {
+        localsHandler = caseLocals[0];
       } else {
-        SwitchCase switchCase = cases.head;
-        visit(switchCase.expression);
-        HInstruction caseExpression = pop();
+        localsHandler = savedLocals.mergeMultiple(caseLocals, joinBlock);
+      }
+    } else {
+      // The joinblock is not used.
+      joinBlock = null;
+    }
+    startBlock.labeledBlockInformation = new HLabeledBlockInformation.implicit(
+        new SubGraph(startBlock, lastBlock),
+        joinBlock,
+        elements[node]);
+  }
+
+
+  // Recursively build an if/else structure to match the cases.
+  buildSwitchCases(Link<Node> cases, HInstruction expression) {
+    SwitchCase node = cases.head;
+
+    // Called for the statements on all but the last case block.
+    // Ensures that a user expecting a fallthrough gets an error.
+    void visitStatementsAndAbort() {
+      visit(node.statements);
+      if (!isAborted()) {
+        compiler.reportWarning(node, 'Missing break at end of switch case');
+        Element element =
+            compiler.findHelper(const SourceString("getFallThroughError"));
+        push(new HStatic(element));
+        HInstruction error = new HInvokeStatic(
+             Selector.INVOCATION_0, <HInstruction>[pop()]);
+        add(error);
+        close(new HThrow(error));
+      }
+    }
+
+    Link<Node> expressions = node.expressions.nodes;
+    if (expressions.isEmpty()) {
+      // Default case with no expressions.
+      if (!node.isDefaultCase) {
+        compiler.internalError("Case with no expression and not default");
+      }
+      visit(node.statements);
+      // This must be the final case (otherwise "default" would be invalid),
+      // so we don't need to check for fallthrough.
+      return;
+    }
+
+    // Recursively build the test conditions. Leaves the result on the
+    // expression stack.
+    void buildTests(Link<Node> expressions) {
+      // Build comparison for one case expression.
+      void left() {
         Element equalsHelper = interceptors.getEqualsInterceptor();
         HInstruction target = new HStatic(equalsHelper);
         add(target);
-        push(new HEquals(target, caseExpression, expression));
+        visit(expressions.head);
+        push(new HEquals(target, pop(), expression));
       }
-      handleIf(handleThen, handleElse);
+
+      // If this is the last expression, just return it.
+      if (expressions.tail.isEmpty()) {
+        left();
+        return;
+      }
+
+      void right() {
+        buildTests(expressions.tail);
+      }
+      handleLogicalAndOr(left, right, isAnd: false);
     }
 
-    localsHandler.startLoop(node);
-    BreakHandler breakHandler = beginLoopHeader(node);
-    HBasicBlock loopEntryBlock = current;
-    localsHandler.enterLoopBody(node);
+    buildTests(expressions);
+    HInstruction result = popBoolified();
 
-    handleElse();
-
-    if (isAborted()) {
-      compiler.unimplemented("SsaBuilder for loop with aborting body",
-                             node: node);
+    if (node.isDefaultCase) {
+      // Don't actually use the condition result.
+      // This must be final case, so don't check for abort.
+      visit(node.statements);
+    } else {
+      stack.add(result);
+      if (cases.tail.isEmpty()) {
+        handleIf(() { visit(node.statements); }, null);
+      } else {
+        handleIf(() { visitStatementsAndAbort(); },
+                 () { buildSwitchCases(cases.tail, expression); });
+      }
     }
+  }
 
-    HBasicBlock bodyExitBlock = close(new HGoto());
-    HBasicBlock conditionBlock = addNewBlock();
-    bodyExitBlock.addSuccessor(conditionBlock);
-    open(conditionBlock);
-    stack.add(graph.addConstantBool(false));
-
-    conditionBlock = close(new HLoopBranch(popBoolified(),
-                                           HLoopBranch.DO_WHILE_LOOP));
-
-    conditionBlock.addSuccessor(loopEntryBlock);  // The back-edge.
-    loopEntryBlock.postProcessLoopHeader();
-
-    endLoop(loopEntryBlock, conditionBlock, breakHandler);
+  visitSwitchCase(SwitchCase node) {
+    unreachable();
   }
 
   visitTryStatement(TryStatement node) {

@@ -422,6 +422,17 @@ class LabeledStatementLabelScope implements LabelScope {
   }
 }
 
+class SwitchLabelScope implements LabelScope {
+  final LabelScope outer;
+  final Map<String, LabelElement> caseLabels;
+  SwitchLabelScope(this.outer, this.caseLabels);
+  LabelElement lookup(String labelName) {
+    LabelElement result = caseLabels[labelName];
+    if (result !== null) return result;
+    return outer.lookup(labelName);
+  }
+}
+
 class EmptyLabelScope implements LabelScope {
   const EmptyLabelScope();
   LabelElement lookup(String label) => null;
@@ -434,34 +445,57 @@ class StatementScope {
   LabelScope labels;
   Link<StatementElement> breakTargetStack;
   Link<StatementElement> continueTargetStack;
+  int nestingLevel = 0;
 
   StatementScope()
       : labels = const EmptyLabelScope(),
         breakTargetStack = const EmptyLink<StatementElement>(),
         continueTargetStack = const EmptyLink<StatementElement>();
 
-  LabelElement lookupLabel(String label) => labels.lookup(label);
+  LabelElement lookupLabel(String label) =>
+      labels.lookup(label);
+
   StatementElement currentBreakTarget() =>
     breakTargetStack.isEmpty() ? null : breakTargetStack.head;
+
   StatementElement currentContinueTarget() =>
     continueTargetStack.isEmpty() ? null : continueTargetStack.head;
 
   void enterLabelScope(LabelElement element) {
     labels = new LabeledStatementLabelScope(labels, element);
+    nestingLevel++;
   }
+
   void exitLabelScope() {
+    nestingLevel--;
     labels = labels.outer;
   }
+
   void enterLoop(StatementElement element) {
     breakTargetStack = breakTargetStack.prepend(element);
     continueTargetStack = continueTargetStack.prepend(element);
+    nestingLevel++;
   }
+
   void exitLoop() {
+    nestingLevel--;
     breakTargetStack = breakTargetStack.tail;
     continueTargetStack = continueTargetStack.tail;
   }
-}
 
+  void enterSwitch(StatementElement breakElement,
+                   Map<String, LabelElement> continueElements) {
+    breakTargetStack = breakTargetStack.prepend(breakElement);
+    labels = new SwitchLabelScope(labels, continueElements);
+    nestingLevel++;
+  }
+
+  void exitSwitch() {
+    nestingLevel--;
+    breakTargetStack = breakTargetStack.tail;
+    labels = labels.outer;
+  }
+}
 
 class ResolverVisitor extends CommonResolverVisitor<Element> {
   final TreeElementMapping mapping;
@@ -496,9 +530,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   // Create, or reuse an already created, statement element for a statement.
   StatementElement getOrCreateStatementElement(Node statement) {
     StatementElement element = mapping[statement];
-    if (element !== null) return element;
-    element = new StatementElement(statement, enclosingElement);
-    mapping[statement] = element;
+    if (element === null) {
+      element = new StatementElement(statement,
+                                     statementScope.nestingLevel,
+                                     enclosingElement);
+      mapping[statement] = element;
+    }
     return element;
   }
 
@@ -966,6 +1003,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         return;
       }
       target = label.target;
+      if (!target.statement.isValidBreakTarget()) {
+        error(node.target, MessageKind.INVALID_BREAK, [labelName]);
+        return;
+      }
       label.setBreakTarget();
       mapping[node.target] = label;
     }
@@ -1054,20 +1095,66 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitSwitchStatement(SwitchStatement node) {
     node.expression.accept(this);
-    StatementElement element = getOrCreateStatementElement(node);
-    statementScope.enterLoop(element);
+
+    StatementElement breakElement = getOrCreateStatementElement(node);
+    Map<String, LabelElement> continueLabels = <LabelElement>{};
+    Link<SwitchCase> cases = node.cases.nodes;
+    while (!cases.isEmpty()) {
+      SwitchCase switchCase = cases.head;
+      if (switchCase.label !== null) {
+        Identifier labelIdentifier = switchCase.label;
+        String labelName = labelIdentifier.source.slowToString();
+
+        LabelElement existingElement = continueLabels[labelName];
+        if (existingElement !== null) {
+          // It's an error if the same label occurs twice in the same switch.
+          warning(labelIdentifier, MessageKind.DUPLICATE_LABEL, [labelName]);
+          error(existingElement.label, MessageKind.EXISTING_LABEL, [labelName]);
+        } else {
+          // It's only a warning if it shadows another label.
+          existingElement = statementScope.lookupLabel(labelName);
+          if (existingElement !== null) {
+            warning(labelIdentifier, MessageKind.DUPLICATE_LABEL, [labelName]);
+            warning(existingElement.label,
+                    MessageKind.EXISTING_LABEL, [labelName]);
+          }
+        }
+
+        StatementElement statementElement =
+            new StatementElement(switchCase,
+                                 statementScope.nestingLevel,
+                                 enclosingElement);
+        mapping[switchCase] = statementElement;
+
+        LabelElement label =
+            new LabelElement(labelIdentifier, labelName,
+                             statementElement, enclosingElement);
+        mapping[labelIdentifier] = label;
+        continueLabels[labelName] = label;
+      }
+      cases = cases.tail;
+      if (switchCase.defaultKeyword !== null && !cases.isEmpty()) {
+        error(switchCase, MessageKind.INVALID_CASE_DEFAULT);
+      }
+    }
+    statementScope.enterSwitch(breakElement, continueLabels);
     node.cases.accept(this);
-    statementScope.exitLoop();
+    statementScope.exitSwitch();
+
+    // Clean-up unused labels
+    continueLabels.forEach((String key, LabelElement label) {
+      StatementElement statementElement = label.target;
+      SwitchCase switchCase = statementElement.statement;
+      if (!label.isContinueTarget) {
+        mapping.remove(switchCase);
+        mapping.remove(label.label);
+      }
+    });
   }
 
   visitSwitchCase(SwitchCase node) {
-    // TODO(ahe): What about the label?
-    node.expression.accept(this);
-    visitIn(node.statements, new BlockScope(context));
-  }
-
-  visitDefaultCase(DefaultCase node) {
-    // TODO(ahe): What about the label?
+    // The label was handled in [visitSwitchStatement(SwitchStatement)].
+    node.expressions.accept(this);
     visitIn(node.statements, new BlockScope(context));
   }
 

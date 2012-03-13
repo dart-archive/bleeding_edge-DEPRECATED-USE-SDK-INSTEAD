@@ -333,20 +333,14 @@ class Unparser implements Visitor {
       visit(node.label);
       sb.add(': ');
     }
-    node.caseKeyword.value.printOn(sb);
-    sb.add(' ');
-    visit(node.expression);
-    sb.add(': ');
-    visit(node.statements);
-  }
-
-  visitDefaultCase(DefaultCase node) {
-    if (node.label !== null) {
-      visit(node.label);
+    for (Expression expression in node.expressions) {
+      sb.add('case ');
+      visit(expression);
       sb.add(': ');
     }
-    node.defaultKeyword.value.printOn(sb);
-    sb.add(': ');
+    if (node.isDefaultCase) {
+      sb.add('default:');
+    }
     visit(node.statements);
   }
 
