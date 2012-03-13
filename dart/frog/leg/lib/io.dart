@@ -56,3 +56,53 @@ class _File implements File {
     throw new UnsupportedOperationException('new File($arg)');
   }
 }
+
+class _Platform implements Platform {
+  factory Platform() {
+    throw new UnsupportedOperationException('new Platform()');
+  }
+}
+
+class _Directory implements Directory {
+  factory Directory(arg) {
+    throw new UnsupportedOperationException('new Directory($arg)');
+  }
+}
+
+class _Process implements Process {
+  factory Process.start(String executable,
+                        List<String> arguments,
+                        [String workingDirectory]) {
+    var msg = 'new Process.start($executable, $arguments, $workingDirectory';
+    throw new UnsupportedOperationException(msg);
+  }
+}
+
+class _Socket implements Socket {
+  factory Socket(String host, int port) {
+    throw new UnsupportedOperationException('new Socket($host, $int)');
+  }
+}
+
+class _EventHandler {
+  factory _EventHandler() {
+    throw new UnsupportedOperationException('new _EventHandler()');
+  }
+
+  static void _start() {
+    throw new UnsupportedOperationException('_EventHandler._start()');
+  }
+
+  static _sendData(int id, ReceivePort receivePort, int data) {
+    var msg = '_EventHandler._sendData($id, $receivePort, $data)';
+    throw new UnsupportedOperationException(msg);
+  }
+
+  static _EventHandler get _eventHandler() {
+    throw new UnsupportedOperationException('_EventHandler._eventhandler');
+  }
+
+  static void set _eventHandler(_EventHandler e) {
+    throw new UnsupportedOperationException('_EventHandler._eventhandler = $e');
+  }
+}
