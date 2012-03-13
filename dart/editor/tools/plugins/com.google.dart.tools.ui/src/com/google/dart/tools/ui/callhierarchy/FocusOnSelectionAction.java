@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.callhierarchy;
 
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.callhierarchy.CallHierarchy;
 import com.google.dart.tools.ui.internal.callhierarchy.MethodWrapper;
@@ -68,11 +67,11 @@ class FocusOnSelectionAction extends Action {
     ISelection selection = getSelection();
     if (selection instanceof IStructuredSelection) {
       Object[] elements = ((IStructuredSelection) selection).toArray();
-      CompilationUnitElement[] members = new TypeMember[elements.length];
+      CompilationUnitElement[] members = new CompilationUnitElement[elements.length];
       for (int i = 0; i < elements.length; i++) {
         Object element = elements[i];
         if (CallHierarchy.isPossibleInputElement(element)) {
-          members[i] = (TypeMember) element;
+          members[i] = (CompilationUnitElement) element;
         } else if (element instanceof MethodWrapper) {
           DartElement wrapped = ((MethodWrapper) element).getMember();
           if (CallHierarchy.isPossibleInputElement(wrapped)) {

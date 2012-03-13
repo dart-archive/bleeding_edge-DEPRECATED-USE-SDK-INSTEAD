@@ -21,6 +21,7 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
@@ -355,6 +356,11 @@ public class DartElementLocator extends ASTVisitor<Void> {
               DartVariable variable = (DartVariable) parent;
               if (nameNode == variable.getName()) {
                 targetElement = variable.getElement();
+              }
+            } else if (parent instanceof DartFunctionTypeAlias) {
+              DartFunctionTypeAlias alias = (DartFunctionTypeAlias) parent;
+              if (nameNode == alias.getName()) {
+                targetElement = alias.getElement();
               }
             }
           }
