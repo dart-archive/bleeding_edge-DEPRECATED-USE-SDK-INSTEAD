@@ -1103,7 +1103,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
     TargetElement breakElement = getOrCreateTargetElement(node);
     Map<String, LabelElement> continueLabels = <LabelElement>{};
-    Link<SwitchCase> cases = node.cases.nodes;
+    Link<Node> cases = node.cases.nodes;
     while (!cases.isEmpty()) {
       SwitchCase switchCase = cases.head;
       if (switchCase.label !== null) {
