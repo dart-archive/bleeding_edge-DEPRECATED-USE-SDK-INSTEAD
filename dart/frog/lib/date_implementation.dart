@@ -264,7 +264,7 @@ class DateImplementation implements Date {
   static int _now() native "return new Date().valueOf();";
 
   // Lazily keep a JS Date stored in the dart object.
-  var _asJs() native '''
+  _asJs() native '''
   if (!this.date) {
     this.date = new Date(this.value);
   }
