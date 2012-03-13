@@ -968,7 +968,7 @@ builtin$toStringAsExponential$1(receiver, fractionDigits) {
   if (receiver is !num) {
     return UNINTERCEPTED(receiver.toStringAsExponential(fractionDigits));
   }
-  checkNum(fractionDigits);
+  if (fractionDigits !== null) checkNum(fractionDigits);
 
   String result = JS('String', @'$0.toExponential($1)',
                      receiver, fractionDigits);
