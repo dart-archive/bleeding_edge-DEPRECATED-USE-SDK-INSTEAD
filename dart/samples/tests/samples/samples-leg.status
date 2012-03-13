@@ -1,0 +1,22 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+
+[ $component == leg ]
+chat/ChatServerTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+dartcombat/DartCombatTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+lib/layout/LayoutTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+lib/view/ViewTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+proxy/MintMakerFullyIsolated_generatedTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+proxy/MintMakerPromiseTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+proxy/MintMakerPromiseWithStubs_generatedTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+proxy/MintMakerRpcTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+proxy/PromiseBasedTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+swarm/SwarmTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
+total/TotalTest: Fail # compiler cancelled: internal error: fall-through not implemented
+
+
+lib/observable/ObservableTest: Fail, OK # ReferenceError: window is not defined
+lib/touch/TouchTest: Fail, OK # ReferenceError: window is not defined
+lib/util/UtilTest: Fail, OK # ReferenceError: window is not defined
