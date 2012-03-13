@@ -1060,7 +1060,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
   }
 
-  visitLabelledStatement(LabelledStatement node) {
+  visitLabeledStatement(LabeledStatement node) {
     String labelName = node.label.source.slowToString();
     LabelElement existingElement = statementScope.lookupLabel(labelName);
     if (existingElement !== null) {

@@ -18,7 +18,7 @@ interface Visitor<R> {
   R visitFunctionExpression(FunctionExpression node);
   R visitIdentifier(Identifier node);
   R visitIf(If node);
-  R visitLabelledStatement(LabelledStatement node);
+  R visitLabeledStatement(LabeledStatement node);
   R visitLiteralBool(LiteralBool node);
   R visitLiteralDouble(LiteralDouble node);
   R visitLiteralInt(LiteralInt node);
@@ -115,7 +115,7 @@ class Node implements Hashable {
   FunctionExpression asFunctionExpression() => null;
   Identifier asIdentifier() => null;
   If asIf() => null;
-  LabelledStatement asLabelledStatement() => null;
+  LabeledStatement asLabeledStatement() => null;
   LiteralBool asLiteralBool() => null;
   LiteralDouble asLiteralDouble() => null;
   LiteralInt asLiteralInt() => null;
@@ -1539,16 +1539,16 @@ class ForInStatement extends Loop {
   Token getEndToken() => body.getEndToken();
 }
 
-class LabelledStatement extends Statement {
+class LabeledStatement extends Statement {
   final Identifier label;
   final Token colonToken;
   final Statement statement;
 
-  LabelledStatement(this.label, this.colonToken, this.statement);
+  LabeledStatement(this.label, this.colonToken, this.statement);
 
-  LabelledStatement asLabelledStatement() => this;
+  LabeledStatement asLabeledStatement() => this;
 
-  accept(Visitor visitor) => visitor.visitLabelledStatement(this);
+  accept(Visitor visitor) => visitor.visitLabeledStatement(this);
 
   visitChildren(Visitor visitor) {
     label.accept(visitor);
@@ -1562,9 +1562,9 @@ class LabelledStatement extends Statement {
   bool isValidContinueTarget() => statement.isValidContinueTarget();
 
   Node getBody() {
-    if (statement is! LabelledStatement) return statement;
-    LabelledStatement labelled = statement;
-    return labelled.getBody();
+    if (statement is! LabeledStatement) return statement;
+    LabeledStatement labeled = statement;
+    return labeled.getBody();
   }
 }
 

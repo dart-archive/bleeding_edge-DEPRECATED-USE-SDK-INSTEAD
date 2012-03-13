@@ -2219,7 +2219,7 @@ class SsaBuilder implements Visitor {
     breakHandler.close();
   }
 
-  visitLabelledStatement(LabelledStatement node) {
+  visitLabeledStatement(LabeledStatement node) {
     Statement body = node.getBody();
     if (body is Loop || body is SwitchStatement) {
       // Loops and switches handle their own labels.

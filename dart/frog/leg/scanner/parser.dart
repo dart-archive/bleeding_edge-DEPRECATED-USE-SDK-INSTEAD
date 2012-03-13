@@ -838,7 +838,7 @@ class Parser {
       // Fall-through to expression statement.
     } else {
       if (optional(':', token.next)) {
-        return parseLabelledStatement(token);
+        return parseLabeledStatement(token);
       } else if (optional('(', token.next)) {
         BeginGroupToken begin = token.next;
         String afterParens = begin.endGroup.next.stringValue;
@@ -850,13 +850,13 @@ class Parser {
     return parseExpressionStatement(token);
   }
 
-  Token parseLabelledStatement(Token token) {
-    listener.beginLabelledStatement(token);
+  Token parseLabeledStatement(Token token) {
+    listener.beginLabeledStatement(token);
     token = parseIdentifier(token);
     Token colon = token;
     token = expect(':', token);
     token = parseStatement(token);
-    listener.endLabelledStatement(colon);
+    listener.endLabeledStatement(colon);
     return token;
   }
 

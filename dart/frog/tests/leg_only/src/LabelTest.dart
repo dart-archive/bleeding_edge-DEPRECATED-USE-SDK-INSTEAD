@@ -21,7 +21,7 @@ undeclaredContinueLabel() {
   foo: for (;;) { continue bar; break foo; }  /// 04: compile-time error
 }
 
-// An unlabelled continue must be inside a loop.
+// An unlabeled continue must be inside a loop.
 noContinueTarget() {
   foo: if (true) continue; else break foo;  /// 05: compile-time error
 }
