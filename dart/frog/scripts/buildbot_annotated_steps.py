@@ -244,6 +244,9 @@ def main():
 
   if component == 'dart2js':
     status = TestFrog(component, mode, system, browser, option, [])
+    if status != 0:
+      print '@@@STEP_FAILURE@@@'
+    return status # Return unconditionally for dart2js.
 
   if component != 'frogium' or (system == 'linux' and browser == 'chrome'):
     status = TestFrog(component, mode, system, browser, None, [])
