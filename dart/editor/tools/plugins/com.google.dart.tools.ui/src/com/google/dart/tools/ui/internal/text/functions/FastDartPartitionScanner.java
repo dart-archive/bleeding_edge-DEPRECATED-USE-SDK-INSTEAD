@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -26,6 +26,10 @@ import org.eclipse.jface.text.rules.Token;
  * multi-line strings, in addition to the default.
  */
 public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPartitions {
+  /**
+   * Values of the enumeration <code>ScannerState</code> represent the states that the scanner can
+   * be in. The scanner is essentially a state machine with these states.
+   */
   private enum ScannerState {
     //
     // Final states corresponding to partitions.
@@ -115,6 +119,64 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     }
   }
 
+  /**
+   * Instances of the class <code>TokenData</code> represent a single token that was scanned. The
+   * scanner scans all of the tokens, creating a linked list of tokens to be returned by
+   * {@link FastDartPartitionScanner#nextToken()}.
+   */
+  private static class TokenData {
+    /**
+     * Create a new token that comes after the given token in the linked list with the given
+     * information.
+     * 
+     * @param previous the token before the new token in the linked list
+     * @param token the token being added to the list
+     * @param tokenOffset the offset of the token in the source
+     * @param tokenLength the length of the token
+     * @return the token that was created
+     */
+    public static TokenData following(TokenData previous, IToken token, int tokenOffset,
+        int tokenLength) {
+      TokenData data = new TokenData(token, tokenOffset, tokenLength);
+      previous.next = data;
+      return data;
+    }
+
+    /**
+     * The token value being represented.
+     */
+    private IToken token;
+
+    /**
+     * The offset of the token in the source.
+     */
+    private int tokenOffset;
+
+    /**
+     * The length of the token.
+     */
+    private int tokenLength;
+
+    /**
+     * The data for the token following this token.
+     */
+    private TokenData next;
+
+    /**
+     * Initialize a newly created node in the linked list of token data to store the information
+     * associated with the given token.
+     * 
+     * @param token the token being represented by this node
+     * @param tokenOffset the offset of the token in the source
+     * @param tokenLength the length of the token
+     */
+    public TokenData(IToken token, int tokenOffset, int tokenLength) {
+      this.token = token;
+      this.tokenOffset = tokenOffset;
+      this.tokenLength = tokenLength;
+    }
+  }
+
   private static IToken CODE_TOKEN = new Token(null);
   private static IToken SINGLE_LINE_COMMENT_TOKEN = new Token(DART_SINGLE_LINE_COMMENT);
   private static IToken MULTI_LINE_COMMENT_TOKEN = new Token(DART_MULTI_LINE_COMMENT);
@@ -183,30 +245,161 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
    */
   private int commentDepth = 0;
 
+  /**
+   * The head of the linked list, which always points to the data for the token that was last
+   * returned.
+   */
+  private TokenData currentToken;
+
+  /**
+   * A flag used to determine whether debugging output should be produced.
+   */
+  private static final boolean DEBUG = false;
+
+  /**
+   * Initialize a newly created scanner.
+   */
   public FastDartPartitionScanner() {
-    // create the scanner
+    super();
   }
 
   @Override
   public int getTokenLength() {
-    return tokenLength;
+    return currentToken.tokenLength;
   }
 
   @Override
   public int getTokenOffset() {
-    return tokenOffset;
+    return currentToken.tokenOffset;
   }
 
   @Override
   public IToken nextToken() {
-    // Uncomment the code below for debugging output.
-//    IToken result = nextToken_internal();
-//    System.out.println(tokenOffset + " - " + (tokenOffset + tokenLength - 1) + " (" + tokenLength
-//        + ") : " + result.getData());
-//    return result;
-//  }
-//
-//  public IToken nextToken_internal() {
+    currentToken = currentToken.next;
+    if (DEBUG) {
+      System.out.println("  " + currentToken.tokenOffset + " - "
+          + (currentToken.tokenOffset + currentToken.tokenLength - 1) + " ("
+          + currentToken.tokenLength + ") : " + currentToken.token.getData());
+    }
+    return currentToken.token;
+  }
+
+  @Override
+  public void setPartialRange(IDocument document, int offset, int length, String contentType,
+      int partitionOffset) {
+    if (DEBUG) {
+      System.out.println("setPartialRange(?, " + offset + ", " + length + ", " + contentType + ", "
+          + partitionOffset + ")");
+    }
+    // Scan a multi-line string from the beginning, so that the active string delimiter gets set.
+    if (contentType != null && contentType.equals(DART_MULTI_LINE_STRING)) {
+      length += offset - partitionOffset;
+      offset = partitionOffset;
+    }
+    setRange(document, offset, length);
+  }
+
+  @Override
+  public void setRange(IDocument document, int offset, int length) {
+    commentDepth = 0;
+    scanner.setRange(document, 0, document.getLength());
+    tokenOffset = 0;
+    tokenLength = 0;
+    prefixLength = 0;
+    scannerState = ScannerState.CODE;
+    stringState = null;
+    currentToken = buildData();
+    trimTokenData(offset, length);
+  }
+
+  /**
+   * Advance to the next character in the input.
+   */
+  private void advance() {
+    tokenLength++;
+    scanner.read();
+  }
+
+  /**
+   * Build the linked list of tokens representing the content of the entire document.
+   * 
+   * @return a fake token that is logically the last token returned before any tokens have actually
+   *         been returned
+   */
+  private TokenData buildData() {
+    if (DEBUG) {
+      System.out.println("  buildData()");
+    }
+    //
+    // Create a fake token so that the first invocation of nextToken() will return the real first
+    // token.
+    //
+    TokenData head = new TokenData(Token.UNDEFINED, 0, 0);
+    TokenData current = head;
+    while (current.token != Token.EOF) {
+      current = TokenData.following(current, parseToken(), tokenOffset, tokenLength);
+    }
+    current.next = current;
+    return head;
+  }
+
+  /**
+   * Return the code-like scanner state to which the scanner should return at the end of the current
+   * state. This can either be {@link ScannerState#CODE} or {@link ScannerState#BLOCK_INTERPOLATION}
+   * , depending on whether the scanner is currently within a multi-line string.
+   * 
+   * @return the code-like scanner state to which the scanner should return
+   */
+  private ScannerState getCodeLikeState() {
+    if (stringState == null) {
+      return ScannerState.CODE;
+    } else {
+      return ScannerState.BLOCK_INTERPOLATION;
+    }
+  }
+
+  /**
+   * Return <code>true</code> if the given character is an end-of-line character.
+   * 
+   * @param character the character being tested
+   * @return <code>true</code> if the given character is an end-of-line character
+   */
+  private boolean isEol(int character) {
+    return character == '\r' || character == '\n' || character == '\u2028' || character == '\u2029';
+  }
+
+  /**
+   * Return <code>true</code> if the given character is a valid character within an identifier.
+   * 
+   * @param character the character being tested
+   * @return <code>true</code> if the given character is a valid character within an identifier
+   */
+  private boolean isIdentifierChar(int character) {
+    return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z')
+        || (character >= '0' && character <= '9') || character == '_';
+  }
+
+  /**
+   * Parse a single token from the input.
+   * 
+   * @return the token that was parsed
+   */
+  private IToken parseToken() {
+    IToken result = parseToken_internal();
+    if (DEBUG) {
+      System.out.println("    " + tokenOffset + " - " + (tokenOffset + tokenLength - 1) + " ("
+          + tokenLength + ") : " + result.getData());
+    }
+    return result;
+  }
+
+  /**
+   * Parse a single token from the input. This helper method exists so that debugging output can be
+   * produced in a single location.
+   * 
+   * @return the token that was parsed
+   */
+  private IToken parseToken_internal() {
     tokenOffset += tokenLength;
     tokenLength = prefixLength;
     prefixLength = 0;
@@ -297,7 +490,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
             stringState = stringState.previous;
             scannerState = getCodeLikeState();
             return ScannerState.STRING.token;
-          } else if (currentChar == '\\') {
+          } else if (!stringState.raw && currentChar == '\\') {
             advance();
             advance();
           } else if (!stringState.raw && currentChar == '$') {
@@ -451,70 +644,46 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     return Token.EOF;
   }
 
-  @Override
-  public void setPartialRange(IDocument document, int offset, int length, String contentType,
-      int partitionOffset) {
-    // Scan a multi-line string from the beginning, so that the active string delimiter gets set.
-    if (contentType != null && contentType.equals(DART_MULTI_LINE_STRING)) {
-      length += offset - partitionOffset;
-      offset = partitionOffset;
-    }
-    commentDepth = 0;
-    scanner.setRange(document, offset, length);
-    tokenOffset = partitionOffset;
-    tokenLength = 0;
-    prefixLength = offset - partitionOffset;
-
-    if (offset == partitionOffset) {
-      // restart at beginning of partition
-      scannerState = ScannerState.CODE;
-    } else {
-      scannerState = getState(contentType);
-      if (scannerState == ScannerState.MULTI_LINE_COMMENT
-          || scannerState == ScannerState.DOC_COMMENT) {
-        commentDepth++;
-      }
-    }
-    stringState = null;
-  }
-
-  @Override
-  public void setRange(IDocument document, int offset, int length) {
-    commentDepth = 0;
-    scanner.setRange(document, offset, length);
-    tokenOffset = offset;
-    tokenLength = 0;
-    prefixLength = 0;
-    scannerState = ScannerState.CODE;
-    stringState = null;
-  }
-
-  private void advance() {
-    tokenLength++;
-    scanner.read();
-  }
-
   /**
-   * Return the code-like scanner state to which the scanner should return at the end of the current
-   * state. This can either be {@link ScannerState#CODE} or {@link ScannerState#BLOCK_INTERPOLATION}
-   * , depending on whether the scanner is currently within a multi-line string.
+   * Adjust the linked list of tokens so that only those that encompass the given range of
+   * characters will be returned.
    * 
-   * @return the code-like scanner state to which the scanner should return
+   * @param offset the offset of the first character to be included in a token
+   * @param length the number of characters to be included in tokens
    */
-  private ScannerState getCodeLikeState() {
-    if (stringState == null) {
-      return ScannerState.CODE;
-    } else {
-      return ScannerState.BLOCK_INTERPOLATION;
+  private void trimTokenData(int offset, int length) {
+    //
+    // Skip over any tokens that should not be returned. currentToken is assumed to be the fake
+    // token created before the first real token.
+    //
+    TokenData nextToken = currentToken.next;
+    while (nextToken != nextToken.next && nextToken.next.tokenOffset <= offset) {
+      nextToken = nextToken.next;
     }
-  }
-
-  private boolean isEol(int character) {
-    return character == '\r' || character == '\n' || character == '\u2028' || character == '\u2029';
-  }
-
-  private boolean isIdentifierChar(int character) {
-    return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z')
-        || (character >= '0' && character <= '9') || character == '_';
+    currentToken.next = nextToken;
+    //
+    // Fix the token offset of the first token to match the requested offset.
+    //
+    TokenData firstToken = currentToken.next;
+    if (firstToken.tokenOffset < offset) {
+      firstToken.tokenLength = firstToken.tokenLength - (offset - firstToken.tokenOffset);
+      firstToken.tokenOffset = offset;
+    }
+    //
+    // Trim the tail of the list to cover only the requested length.
+    //
+    int totalLength = nextToken.tokenLength;
+    while (nextToken != nextToken.next && totalLength < length) {
+      nextToken = nextToken.next;
+      totalLength += nextToken.tokenLength;
+    }
+    if (totalLength > length) {
+      nextToken.tokenLength = nextToken.tokenLength - (tokenLength - length);
+      TokenData lastToken = nextToken.next;
+      while (lastToken != lastToken.next) {
+        lastToken = lastToken.next;
+      }
+      nextToken.next = lastToken;
+    }
   }
 }

@@ -19,6 +19,7 @@ import com.google.dart.tools.ui.text.DartTextTools;
 
 import junit.framework.TestCase;
 
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.ITypedRegion;
@@ -76,6 +77,21 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
     );
   }
 
+  public void test_FastDartPartitionScanner_defaultType() {
+    // class X {}
+    assertPartitions( //
+        "class X {}", DEFAULT_TYPE //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_defaultType_insertion() {
+    // class X {}
+    assertPartitionsAfter( //
+        "class X {}", //
+        "class X {\n  }", DEFAULT_TYPE //
+    );
+  }
+
   public void test_FastDartPartitionScanner_docComment() {
     // class X { /** comment */ var s=null; } 
     assertPartitions( //
@@ -120,6 +136,19 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
         "class X {\nvar s=", DEFAULT_TYPE, //
         "\"\"\"test\"\"\"", DART_MULTI_LINE_STRING, //
         ";\n}\n", DEFAULT_TYPE //
+    );
+  }
+
+  public void test_FastDartPartitionScanner_multilineString_insertion() {
+    assertPartitionsAfter(
+        "void main() {\n  var s = '''<tr>\n    <td><div class=\"${getBox(message.selected)}\"></div></td>\n    <td><div class=\"${getBox(message.starred)}\"></div></td>\n  </tr>'''\n}", //
+        "void main() {\n  var s = ", DEFAULT_TYPE, //
+        "'''<tr>\n    <td><div class=\"", DART_MULTI_LINE_STRING, //
+        "${getBox(message.selected)}", DEFAULT_TYPE, //
+        "\"></div></td>\n\n    <td><div class=\"", DART_MULTI_LINE_STRING, //
+        "${getBox(message.starred)}", DEFAULT_TYPE, //
+        "\"></div></td>\n  </tr>'''", DART_MULTI_LINE_STRING, //
+        "\n}", DEFAULT_TYPE //
     );
   }
 
@@ -259,6 +288,16 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
     );
   }
 
+  public void test_FastDartPartitionScanner_rawString_withEscape() {
+    // final str = @'\'; // comment
+    assertPartitions( //
+        "final str = ", DEFAULT_TYPE, //
+        "@'\\'", DART_STRING, //
+        "; ", DEFAULT_TYPE, //
+        "// comment", DART_SINGLE_LINE_COMMENT //
+    );
+  }
+
   /**
    * Assert that the given array of regions contains the expected number of elements.
    * 
@@ -317,10 +356,10 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
   private void assertPartitionsAfter(String previousContent, String... strings) {
     Document doc = new Document(previousContent);
     DartTextTools tools = DartToolsPlugin.getDefault().getJavaTextTools();
-    IDocumentPartitioner part = tools.createDocumentPartitioner();
-    doc.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, part);
-    part.connect(doc);
-    part.computePartitioning(0, previousContent.length());
+    IDocumentPartitioner partitioner = tools.createDocumentPartitioner();
+    doc.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, partitioner);
+    partitioner.connect(doc);
+    partitioner.computePartitioning(0, previousContent.length());
 
     int stringCount = strings.length;
     assertTrue(stringCount % 2 == 0);
@@ -330,13 +369,41 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
       builder.append(strings[i * 2]);
     }
     String source = builder.toString();
-    doc.set(source);
-    ITypedRegion[] regions = part.computePartitioning(0, source.length());
-    assertCount(expectedCount, regions);
+
+    int[] range = findInsertionRange(previousContent, source);
+    ITypedRegion[] regions;
+    int firstRegionIndex = 0;
     int start = 0;
-    for (int i = 0; i < expectedCount; i++) {
+    if (range == null) {
+      doc.set(source);
+      regions = partitioner.computePartitioning(0, source.length());
+    } else {
+      try {
+        doc.replace(range[0], 0, source.substring(range[0], range[1]));
+      } catch (BadLocationException exception) {
+        doc.set(source);
+      }
+      regions = partitioner.computePartitioning(range[0], source.length() - range[0]);
+      int nextStart = start + strings[firstRegionIndex * 2].length();
+      while (nextStart < range[0]) {
+        start = nextStart;
+        firstRegionIndex++;
+        nextStart = start + strings[firstRegionIndex * 2].length();
+      }
+    }
+    //doc.set(source);
+    //ITypedRegion[] regions = part.computePartitioning(0, source.length());
+    assertCount(expectedCount - firstRegionIndex, regions);
+    int nextRegionIndex = firstRegionIndex;
+    if (range != null) {
+      int length = strings[firstRegionIndex * 2].length() - range[0] + start;
+      assertRegion(regions[0], strings[(firstRegionIndex * 2) + 1], range[0], length);
+      start = range[0] + length;
+      nextRegionIndex++;
+    }
+    for (int i = nextRegionIndex; i < expectedCount; i++) {
       int length = strings[i * 2].length();
-      assertRegion(regions[i], strings[(i * 2) + 1], start, length);
+      assertRegion(regions[i - firstRegionIndex], strings[(i * 2) + 1], start, length);
       start += length;
     }
   }
@@ -353,11 +420,39 @@ public class FastDartPartitionScannerTest extends TestCase implements DartPartit
   private void assertRegion(ITypedRegion region, String type, int offset, int length) {
     assertEquals("wrong type:", type, region.getType());
     if (offset >= 0) {
+      if (offset != region.getOffset()) {
+        System.out.print("");
+      }
       assertEquals("wrong offset:", offset, region.getOffset());
     }
     if (length >= 0) {
       assertEquals("wrong length:", length, region.getLength());
     }
+  }
+
+  /**
+   * Return the range of characters that were inserted to convert from the previous source to the
+   * current source, or <code>null</code> if there is not a single substring that was inserted to
+   * get from the previous to current source.
+   * 
+   * @param previousSource the previous source to which characters have been inserted
+   * @param currentSource the current source after the characters have been inserted
+   * @return the range of characters that were inserted
+   */
+  private int[] findInsertionRange(String previousSource, String currentSource) {
+    int length = previousSource.length();
+    if (length >= currentSource.length()) {
+      return null;
+    }
+    int index = 0;
+    while (index < length && previousSource.charAt(index) == currentSource.charAt(index)) {
+      index++;
+    }
+    String suffix = previousSource.substring(index);
+    if (currentSource.endsWith(suffix)) {
+      return new int[] {index, currentSource.length() - suffix.length()};
+    }
+    return null;
   }
 
   /**
