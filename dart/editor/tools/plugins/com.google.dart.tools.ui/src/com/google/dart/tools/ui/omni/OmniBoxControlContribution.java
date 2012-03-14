@@ -106,7 +106,8 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
     final String spacer = "                                                                ";//$NON-NLS-1$
 
     if (Util.isMac()) {
-      WATERMARK_TEXT = spacer + MOD_KEY + "3 ";//$NON-NLS-1$
+      //extra trailing space to mitigate OSX dimming at the edge of the text box
+      WATERMARK_TEXT = MOD_KEY + " 3   " + spacer;//$NON-NLS-1$
     } else {
       WATERMARK_TEXT = spacer + MOD_KEY + "-3 ";//$NON-NLS-1$
     }
@@ -115,7 +116,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   private static final String CONTRIB_ID = "omnibox.control";//$NON-NLS-1$
 
   /*
-   * Pixel offest for popup.
+   * Pixel offset for popup.
    */
   private static final int POPUP_PIXEL_HORIZ_NUDGE = 4;
   private static final int POPUP_PIXEL_VERT_NUDGE = 3;
