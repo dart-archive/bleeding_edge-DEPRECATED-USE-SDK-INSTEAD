@@ -775,25 +775,19 @@ class MethodAnalyzer implements TreeVisitor {
   }
 
   Value visitStringConcatExpression(StringConcatExpression node) {
-    node.strings.forEach(visitValue);
-    return _frame._makeValue(world.stringType, node);
+    bool isConst = true;
+    node.strings.forEach((each) {
+      if (!visitValue(each).isConst) isConst = false;
+    });
+    return new PureStaticValue(world.stringType, node.span, isConst);
   }
 
   Value visitStringInterpExpression(StringInterpExpression node) {
-    node.pieces.forEach(visitValue);
-    return _frame._makeValue(world.stringType, node);
-
-    // TODO(jimhug): Do we need this more elaborate analysis?
-    /*
-    var ret = Value.fromString('', node.span);
-
-    for (var item in node.pieces) {
-      var val = visitValue(item);
-      var sval = val.invoke(_frame, 'toString', item, Arguments.EMPTY);
-      ret = ret.binop(TokenKind.ADD, sval, _frame, item);
-    }
-    return _frame._makeValue(world.stringType, node); //???ret;
-    */
+    bool isConst = true;
+    node.pieces.forEach((each) {
+      if (!visitValue(each).isConst) isConst = false;
+    });
+    return new PureStaticValue(world.stringType, node.span, isConst);
   }
 }
 

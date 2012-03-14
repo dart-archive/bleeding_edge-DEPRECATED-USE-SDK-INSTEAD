@@ -904,6 +904,11 @@ class EvaluatedValue extends Value implements Hashable {
       span);
   }
 
+  get actualValue() {
+    world.internalError('Should not be getting actual value '
+                        'from raw EvaluatedValue', span);
+  }
+
   bool get needsTemp() => false;
 
   EvaluatedValue get constValue() => this;
@@ -1247,7 +1252,6 @@ class StringValue extends EvaluatedValue {
     return buf.toString();
   }
 }
-
 
 class ListValue extends EvaluatedValue {
   final List<Value> values;

@@ -2140,9 +2140,6 @@ MethodAnalyzer.prototype.visitValue = function(node) {
   value.checkFirstClass(node.span);
   return value;
 }
-MethodAnalyzer.prototype.get$visitValue = function() {
-  return this.visitValue.bind(this);
-}
 MethodAnalyzer.prototype.visitTypedValue = function(node, expectedType) {
   var val = this.visitValue(node);
   return null == val ? null : val.convertTo(this._frame, expectedType);
@@ -2652,12 +2649,22 @@ MethodAnalyzer.prototype.visitLiteralExpression = function(node) {
   return new PureStaticValue(node.value.get$type(), node.span, true, false);
 }
 MethodAnalyzer.prototype.visitStringConcatExpression = function(node) {
-  node.strings.forEach(this.get$visitValue());
-  return this._frame._makeValue($globals.world.stringType, node);
+  var $this = this; // closure support
+  var isConst = true;
+  node.strings.forEach((function (each) {
+    if (!$this.visitValue(each).get$isConst()) isConst = false;
+  })
+  );
+  return new PureStaticValue($globals.world.stringType, node.span, isConst, false);
 }
 MethodAnalyzer.prototype.visitStringInterpExpression = function(node) {
-  node.pieces.forEach(this.get$visitValue());
-  return this._frame._makeValue($globals.world.stringType, node);
+  var $this = this; // closure support
+  var isConst = true;
+  node.pieces.forEach((function (each) {
+    if (!$this.visitValue(each).get$isConst()) isConst = false;
+  })
+  );
+  return new PureStaticValue($globals.world.stringType, node.span, isConst, false);
 }
 MethodAnalyzer.prototype._pushBlock$1 = MethodAnalyzer.prototype._pushBlock;
 MethodAnalyzer.prototype.analyze$1 = MethodAnalyzer.prototype.analyze;
@@ -5140,32 +5147,59 @@ MethodGenerator.prototype._isUnaryIncrement = function(item) {
     return false;
   }
 }
+MethodGenerator.prototype.foldStrings = function(strings) {
+  var buffer = new StringBufferImpl("");
+  for (var $$i = strings.iterator(); $$i.hasNext(); ) {
+    var part = $$i.next();
+    buffer.add(part.get$constValue().get$actualValue());
+  }
+  return buffer.toString();
+}
 MethodGenerator.prototype.visitStringConcatExpression = function(node) {
   var items = [];
+  var itemsConst = [];
   var $$list = node.strings;
   for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
     var item = $$i.next();
     var val = this.visitValue(item);
+    if (val.get$isConst()) itemsConst.add(val);
     items.add(val.get$code());
   }
-  return new Value($globals.world.stringType, ("(" + Strings.join(items, " + ") + ")"), node.span);
+  if (items.get$length() == itemsConst.get$length()) {
+    return new StringValue(this.foldStrings(itemsConst), true, node.span);
+  }
+  else {
+    var code = ("(" + Strings.join(items, " + ") + ")");
+    return new Value($globals.world.stringType, code, node.span);
+  }
 }
 MethodGenerator.prototype.visitStringInterpExpression = function(node) {
   var items = [];
+  var itemsConst = [];
   var $$list = node.pieces;
   for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
     var item = $$i.next();
     var val = this.visitValue(item);
-    val.invoke(this, "toString", item, Arguments.get$EMPTY());
+    var isConst = val.get$isConst() && val.get$type().get$isString();
+    if (!isConst) {
+      val.invoke(this, "toString", item, Arguments.get$EMPTY());
+    }
     var code = val.get$code();
     if (this._expressionNeedsParens(item)) {
       code = ("(" + code + ")");
     }
     if (items.get$length() == (0) || ($ne$(code, "''") && $ne$(code, "\"\""))) {
       items.add(code);
+      if (isConst) itemsConst.add(val);
     }
   }
-  return new Value($globals.world.stringType, ("(" + Strings.join(items, " + ") + ")"), node.span);
+  if (items.get$length() == itemsConst.get$length()) {
+    return new StringValue(this.foldStrings(itemsConst), true, node.span);
+  }
+  else {
+    var code = ("(" + Strings.join(items, " + ") + ")");
+    return new Value($globals.world.stringType, code, node.span);
+  }
 }
 MethodGenerator.prototype._pushBlock$1 = function($0) {
   return this._pushBlock($0, false);
@@ -12542,6 +12576,9 @@ Value.prototype.get$needsTemp = function() {
 Value.prototype.get$staticType = function() {
   return this.get$type();
 }
+Value.prototype.get$constValue = function() {
+  return null;
+}
 Value.comma = function(x, y) {
   return new Value(y.get$type(), ("(" + x.get$code() + ", " + y.get$code() + ")"), null);
 }
@@ -13152,8 +13189,14 @@ EvaluatedValue.prototype.get$isConst = function() { return this.isConst; };
 EvaluatedValue.prototype.get$code = function() {
   $globals.world.internalError("Should not be getting code from raw EvaluatedValue", this.span);
 }
+EvaluatedValue.prototype.get$actualValue = function() {
+  $globals.world.internalError("Should not be getting actual value from raw EvaluatedValue", this.span);
+}
 EvaluatedValue.prototype.get$needsTemp = function() {
   return false;
+}
+EvaluatedValue.prototype.get$constValue = function() {
+  return this;
 }
 EvaluatedValue.prototype.hashCode = function() {
   return this.get$code().hashCode();
@@ -13828,6 +13871,9 @@ GlobalValue.prototype.get$exp = function() { return this.exp; };
 GlobalValue.prototype.get$isConst = function() { return this.isConst; };
 GlobalValue.prototype.get$actualValue = function() {
   return this.exp.get$dynamic().get$actualValue();
+}
+GlobalValue.prototype.get$constValue = function() {
+  return this.isConst ? this.exp.get$constValue() : null;
 }
 GlobalValue.prototype.get$dependencies = function() { return this.dependencies; };
 GlobalValue.prototype.get$needsTemp = function() {

@@ -2296,22 +2296,38 @@ class MethodGenerator implements TreeVisitor, CallingContext {
     }
   }
 
+  String foldStrings(List<StringValue> strings) {
+    StringBuffer buffer = new StringBuffer();
+    for (var part in strings) buffer.add(part.constValue.actualValue);
+    return buffer.toString();
+  }
+
   visitStringConcatExpression(StringConcatExpression node) {
     var items = [];
+    var itemsConst = [];
     for (var item in node.strings) {
       Value val = visitValue(item);
       assert(val.type.isString);
+      if (val.isConst) itemsConst.add(val);
       items.add(val.code);
     }
-    return new Value(world.stringType, '(${Strings.join(items, " + ")})',
-                     node.span);
+    if (items.length == itemsConst.length) {
+      return new StringValue(foldStrings(itemsConst), true, node.span);
+    } else {
+      String code = '(${Strings.join(items, " + ")})';
+      return new Value(world.stringType, code, node.span);
+    }
   }
 
   visitStringInterpExpression(StringInterpExpression node) {
     var items = [];
+    var itemsConst = [];
     for (var item in node.pieces) {
       var val = visitValue(item);
-      val.invoke(this, 'toString', item, Arguments.EMPTY);
+      bool isConst = val.isConst && val.type.isString;
+      if (!isConst) {
+        val.invoke(this, 'toString', item, Arguments.EMPTY);
+      }
       // TODO(jimhug): Ensure this solves all precedence problems.
       // TODO(jmesserly): We could be smarter about prefix/postfix, but we'd
       // need to know if it will compile to a ++ or to some sort of += form.
@@ -2322,10 +2338,15 @@ class MethodGenerator implements TreeVisitor, CallingContext {
       // No need to concat empty strings except the first.
       if (items.length == 0 || (code != "''" && code != '""')) {
         items.add(code);
+        if (isConst) itemsConst.add(val);
       }
     }
-    return new Value(world.stringType, '(${Strings.join(items, " + ")})',
-      node.span);
+    if (items.length == itemsConst.length) {
+      return new StringValue(foldStrings(itemsConst), true, node.span);
+    } else {
+      String code = '(${Strings.join(items, " + ")})';
+      return new Value(world.stringType, code, node.span);
+    }
   }
 }
 
