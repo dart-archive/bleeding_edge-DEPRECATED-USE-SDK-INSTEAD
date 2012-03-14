@@ -28,7 +28,8 @@ main() {
                 // testNewExpression,
                 testConditionalExpression,
                 testIfStatement,
-                testThis];
+                testThis,
+                testFunctionSubtyping];
   for (Function test in tests) {
     setup();
     test();
@@ -309,6 +310,23 @@ testThis() {
   analyzeIn(foo, "{ int i = this; }", MessageKind.NOT_ASSIGNABLE);
   analyzeIn(foo, "{ Object o = this; }");
   analyzeIn(foo, "{ Foo f = this; }");
+}
+
+testFunctionSubtyping() {
+  // Checks that the type (in1 -> out1) is a subtype of (in2 -> out2).
+  bool isSubtype(List<Type> in1, Type out1, List<Type> in2, Type out2) {
+    return compiler.types.isSubtype(
+        new FunctionType(out1, new Link<Type>.fromList(in1), null),
+        new FunctionType(out2, new Link<Type>.fromList(in2), null));
+  }
+  Expect.isTrue(isSubtype([], intType, [], intType));
+  Expect.isTrue(isSubtype([], intType, [], objectType));
+  Expect.isFalse(isSubtype([], intType, [], doubleType));
+  Expect.isTrue(isSubtype([intType], intType, [intType], intType));
+  Expect.isTrue(isSubtype([objectType], intType, [intType], objectType));
+  Expect.isFalse(isSubtype([intType], intType, [doubleType], intType));
+  Expect.isFalse(isSubtype([intType], intType, [intType, intType], intType));
+  Expect.isFalse(isSubtype([intType, intType], intType, [intType], intType));
 }
 
 final CLASS_WITH_METHODS = '''

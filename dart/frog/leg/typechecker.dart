@@ -130,8 +130,10 @@ class Types {
       Link<Type> sps = sf.parameterTypes;
       while (!tps.isEmpty() && !sps.isEmpty()) {
         if (!isAssignable(tps.head, sps.head)) return false;
+        tps = tps.tail;
+        sps = sps.tail;
       }
-      if (tps.isEmpty() || sps.isEmpty()) return false;
+      if (!tps.isEmpty() || !sps.isEmpty()) return false;
       if (!isAssignable(sf.returnType, tf.returnType)) return false;
       return true;
     } else {
