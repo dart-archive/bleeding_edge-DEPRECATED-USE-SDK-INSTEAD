@@ -24,7 +24,6 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,21 +35,72 @@ import java.util.ArrayList;
 /**
  * Listens for resource changes and forwards them to the {@link AnalysisServer}
  */
-public class ResourceChangeListener implements IResourceChangeListener, IResourceDeltaVisitor {
+public class ResourceChangeListener {
 
+  private class Listener implements IResourceChangeListener, IResourceDeltaVisitor {
+
+    @Override
+    public void resourceChanged(IResourceChangeEvent event) {
+      try {
+        event.getDelta().accept(this);
+      } catch (Exception e) {
+        DartCore.logError("Failed to process resource changes for " + event.getResource(), e);
+      }
+    }
+
+    @Override
+    public boolean visit(IResourceDelta delta) throws CoreException {
+      File file;
+      switch (delta.getKind()) {
+
+        case IResourceDelta.ADDED:
+          file = delta.getResource().getLocation().toFile();
+          server.changed(file);
+          addFileToScan(file);
+          return false;
+
+        case IResourceDelta.CHANGED:
+          IResource resource = delta.getResource();
+          if (resource.getType() != IResource.FILE) {
+            return true;
+          }
+          int flags = delta.getFlags();
+          if ((flags & DELTA_MASK) == 0) {
+            return false;
+          }
+          file = resource.getLocation().toFile();
+          server.changed(file);
+          return false;
+
+        case IResourceDelta.REMOVED:
+          file = delta.getResource().getLocation().toFile();
+          server.changed(file);
+          server.discard(file);
+          return false;
+
+        default:
+          return false;
+      }
+    }
+  }
+
+  private static final int EVENT_MASK = IResourceChangeEvent.POST_CHANGE;
   private static final int DELTA_MASK = IResourceDelta.CONTENT | IResourceDelta.REPLACED;
 
   private final AnalysisServer server;
 
   /**
-   * A collection of files and directories to be scanned
+   * A collection of files and directories to be scanned. Synchronize against this field before
+   * accessing it.
    */
   private final ArrayList<File> filesToScan;
 
   /**
-   * A flag indicating that the background thread should continue to scan
+   * The background thread currently scanning files or <code>null</code> if it has not been started
+   * or has already finished. Synchronize against {@link #filesToScan} field before accessing this
+   * field.
    */
-  private boolean scan;
+  private Thread scanThread;
 
   /**
    * Performance measurement - scan start time
@@ -68,38 +118,74 @@ public class ResourceChangeListener implements IResourceChangeListener, IResourc
   private final byte[] buffer;
 
   /**
+   * The resource change listener or <code>null</code> if the receiver is not currently listening
+   * for resource changes. Use {@link #start()} to start listening for resource changes and
+   * {@link #stop()} to stop. Synchronize against {@link #filesToScan} field before accessing this
+   * field.
+   */
+  private Listener listener;
+
+  /**
    * Construct a new instance that listens for resource changes and forwards that information on to
    * the specified {@link AnalysisServer}
    */
   public ResourceChangeListener(AnalysisServer server) {
     this.server = server;
-    this.scan = true;
     this.filesToScan = new ArrayList<File>();
     this.buffer = new byte[1024];
+  }
 
-    // Background thread to scan new files and directories
-    new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        scanFiles();
+  /**
+   * Add multiple files and/or directories to the list of files to be scanned and wakeup the
+   * background scanning thread
+   * 
+   * @param files the files to add (not <code>null</code>, contains no <code>null</code>s)
+   */
+  public void addFilesToScan(File[] files) {
+    synchronized (filesToScan) {
+      for (File file : files) {
+        filesToScan.add(file);
       }
-    }, ResourceChangeListener.class.getSimpleName()).start();
+      startBackgroundScan();
+    }
+  }
 
-    // Scan all projects
-    ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
+  /**
+   * Add a file or directory to the list of files to be scanned and wakeup the background scanning
+   * thread
+   * 
+   * @param file the file (not <code>null</code>)
+   */
+  public void addFileToScan(File file) {
+    synchronized (filesToScan) {
+      filesToScan.add(file);
+      startBackgroundScan();
+    }
+  }
+
+  /**
+   * Add projects in the workspace to the list of files to be scanned and wakeup the background
+   * scanning thread
+   */
+  public void addWorkspaceToScan() {
     for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
       File file = project.getLocation().toFile();
       addFileToScan(file);
     }
   }
 
-  @Override
-  public void resourceChanged(IResourceChangeEvent event) {
-    try {
-      event.getDelta().accept(this);
-    } catch (Exception e) {
-      DartCore.logError("Failed to process resource changes for " + event.getResource(), e);
+  /**
+   * Add the receiver as a workspace resource change listener to update the the associated analysis
+   * server when changes occur
+   */
+  // TODO (danrubel) merge with delta processor or remove resource change listener
+  public void start() {
+    synchronized (filesToScan) {
+      if (listener != null) {
+        return;
+      }
+      listener = new Listener();
+      ResourcesPlugin.getWorkspace().addResourceChangeListener(listener, EVENT_MASK);
     }
   }
 
@@ -107,40 +193,12 @@ public class ResourceChangeListener implements IResourceChangeListener, IResourc
    * Stop listening for resource changes
    */
   public void stop() {
-    ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
-    scan = false;
-  }
-
-  @Override
-  public boolean visit(IResourceDelta delta) throws CoreException {
-    switch (delta.getKind()) {
-
-      case IResourceDelta.ADDED:
-        File file = delta.getResource().getLocation().toFile();
-        addFileToScan(file);
-        return false;
-
-      case IResourceDelta.CHANGED:
-        IResource resource = delta.getResource();
-        if (resource.getType() != IResource.FILE) {
-          return true;
-        }
-        int flags = delta.getFlags();
-        if ((flags & DELTA_MASK) == 0) {
-          return false;
-        }
-        IPath path = resource.getLocation();
-        if (path != null) {
-          server.fileChanged(path.toFile());
-        }
-        return false;
-
-      case IResourceDelta.REMOVED:
-        // TODO (danrubel): stop analyzing removed libraries
-        return false;
-
-      default:
-        return false;
+    synchronized (filesToScan) {
+      if (listener == null) {
+        return;
+      }
+      ResourcesPlugin.getWorkspace().removeResourceChangeListener(listener);
+      listener = null;
     }
   }
 
@@ -245,36 +303,12 @@ public class ResourceChangeListener implements IResourceChangeListener, IResourc
   }
 
   /**
-   * Add multiple files to the list of files to be scanned and wakeup the background scanning thread
+   * Remove a file from the list of files to be scanned. If the receiver is listening for resource
+   * changes (see {@link #listener}) then this method will block until there is a file to be
+   * scanned. Otherwise this method will clear the {@link #scanThread} field and return
+   * <code>null</code> if there are no files to be scanned.
    * 
-   * @param files the files to add (not <code>null</code>, contains no <code>null</code>s)
-   */
-  private void addFilesToScan(File[] files) {
-    synchronized (filesToScan) {
-      for (File file : files) {
-        filesToScan.add(file);
-      }
-      filesToScan.notifyAll();
-    }
-  }
-
-  /**
-   * Add a file to the list of files to be scanned and wakeup the background scanning thread
-   * 
-   * @param file the file (not <code>null</code>)
-   */
-  private void addFileToScan(File file) {
-    synchronized (filesToScan) {
-      filesToScan.add(file);
-      filesToScan.notifyAll();
-    }
-  }
-
-  /**
-   * Remove a file from the list of files to be scanned. This method will block until there is a
-   * file to be scanned
-   * 
-   * @return a file to scan (not <code>null</code>)
+   * @return a file to scan or <code>null</code> if the background scan is complete
    */
   private File getFileToScan() {
     synchronized (filesToScan) {
@@ -288,6 +322,10 @@ public class ResourceChangeListener implements IResourceChangeListener, IResourc
           }
           scanStart = 0;
           scanCount = 0;
+        }
+        if (listener == null) {
+          scanThread = null;
+          return null;
         }
         try {
           filesToScan.wait();
@@ -341,13 +379,33 @@ public class ResourceChangeListener implements IResourceChangeListener, IResourc
    */
   private void scanFiles() {
     // TODO (danrubel) revisit this if/when we decide to cache the element model
-    while (scan) {
+    while (true) {
       File file = getFileToScan();
+      if (file == null) {
+        return;
+      }
       if (file.isDirectory()) {
         addFilesToScan(file.listFiles());
       } else {
         scanFile(file);
       }
+    }
+  }
+
+  private void startBackgroundScan() {
+    synchronized (filesToScan) {
+      if (scanThread != null) {
+        filesToScan.notifyAll();
+        return;
+      }
+      scanThread = new Thread(new Runnable() {
+
+        @Override
+        public void run() {
+          scanFiles();
+        }
+      }, ResourceChangeListener.class.getSimpleName());
+      scanThread.start();
     }
   }
 }

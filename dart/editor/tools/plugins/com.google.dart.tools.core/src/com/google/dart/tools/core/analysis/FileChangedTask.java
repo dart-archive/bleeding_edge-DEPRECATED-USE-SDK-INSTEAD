@@ -42,16 +42,15 @@ class FileChangedTask extends Task {
 
   @Override
   void perform() {
-    Library library = context.getLibraryContaining(file);
-    if (library == null) {
-      return;
+    Library[] libraries = context.getLibrariesContaining(file);
+    for (Library library : libraries) {
+
+      // Discard the library and any downstream libraries
+      discardLibrary(library);
+
+      // Queue tasks to analyze the library and any downstream libraries
+      server.queueSubTask(new AnalyzeLibraryTask(server, context, library.getFile()));
+      server.queueAnalyzeContext();
     }
-
-    // Discard the library and any downstream libraries
-    discardLibrary(library);
-
-    // Queue tasks to analyze the library and any downstream libraries
-    server.queueSubTask(new AnalyzeLibraryTask(server, context, library.getFile()));
-    server.queueAnalyzeContext();
   }
 }

@@ -241,7 +241,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       if (libraryFile != null) {
         IPath location = libraryFile.getLocation();
         if (location != null) {
-          SystemLibraryManagerProvider.getDefaultAnalysisServer().discardLibrary(location.toFile());
+          SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(location.toFile());
         }
       }
     }

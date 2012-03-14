@@ -19,7 +19,6 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisIndexManager;
 import com.google.dart.tools.core.analysis.AnalysisMarkerManager;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.ResourceChangeListener;
 import com.google.dart.tools.core.analysis.Target;
 import com.google.dart.tools.core.model.DartSdk;
 
@@ -37,7 +36,8 @@ public class SystemLibraryManagerProvider {
 
   private static Target defaultTarget;
   private static AnalysisServer defaultAnalysisServer;
-  private static ResourceChangeListener defaultAnalysisChangeListener;
+
+  //private static ResourceChangeListener defaultAnalysisChangeListener;
 
   /**
    * Answer the server used to analyze source against the "dart-sdk/lib" directory
@@ -48,7 +48,10 @@ public class SystemLibraryManagerProvider {
         defaultAnalysisServer = new AnalysisServer(getDefaultTarget());
         defaultAnalysisServer.addAnalysisListener(new AnalysisMarkerManager());
         defaultAnalysisServer.addAnalysisListener(new AnalysisIndexManager());
-        defaultAnalysisChangeListener = new ResourceChangeListener(defaultAnalysisServer);
+        // TODO (danrubel) merge ResourceChangeListener with delta processor
+        DartCore.notYetImplemented();
+        //defaultAnalysisChangeListener = new ResourceChangeListener(defaultAnalysisServer);
+        //defaultAnalysisChangeListener.start();
       }
     }
     return defaultAnalysisServer;
@@ -135,8 +138,8 @@ public class SystemLibraryManagerProvider {
   public static void stop() {
     synchronized (lock) {
       if (defaultAnalysisServer != null) {
-        defaultAnalysisChangeListener.stop();
-        defaultAnalysisChangeListener = null;
+        //defaultAnalysisChangeListener.stop();
+        //defaultAnalysisChangeListener = null;
         defaultAnalysisServer.stop();
         defaultAnalysisServer = null;
       }

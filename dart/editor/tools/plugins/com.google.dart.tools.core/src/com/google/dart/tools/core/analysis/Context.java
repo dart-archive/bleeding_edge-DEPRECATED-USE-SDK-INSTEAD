@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.tools.core.DartCore;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +23,8 @@ import java.util.HashMap;
  * The context (saved on disk, editor buffer, refactoring) in which analysis occurs.
  */
 class Context {
+
+  private static final Library[] NO_LIBRARIES = new Library[] {};
 
   private final AnalysisServer server;
 
@@ -51,6 +55,47 @@ class Context {
   }
 
   /**
+   * Answer the libraries containing the specified file or contain files in the specified directory
+   * tree
+   * 
+   * @return an array of libraries (not <code>null</code>, contains no <code>null</code>s)
+   */
+  Library[] getLibrariesContaining(File file) {
+
+    // Quick check if the file is a library
+
+    Library library = libraryCache.get(file);
+    if (library != null) {
+      return new Library[] {library};
+    }
+    Library[] result = NO_LIBRARIES;
+
+    // If this is a file, then return the libraries that source the file
+
+    if (file.isFile() || (!file.exists() && DartCore.isDartLikeFileName(file.getName()))) {
+      for (Library cachedLibrary : libraryCache.values()) {
+        if (cachedLibrary.getSourceFiles().contains(file)) {
+          result = append(result, cachedLibrary);
+        }
+      }
+      return result;
+    }
+
+    // Otherwise return the libraries containing files in the specified directory tree
+
+    String prefix = file.getAbsolutePath() + File.separator;
+    for (Library cachedLibrary : libraryCache.values()) {
+      for (File sourceFile : cachedLibrary.getSourceFiles()) {
+        if (sourceFile.getPath().startsWith(prefix)) {
+          result = append(result, cachedLibrary);
+          break;
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
    * Answer the libraries importing the specified file
    */
   ArrayList<Library> getLibrariesImporting(File file) {
@@ -63,19 +108,14 @@ class Context {
     return result;
   }
 
-  /**
-   * Answer the library containing the specified file or <code>null</code> if unknown
-   */
-  Library getLibraryContaining(File file) {
-    Library library = libraryCache.get(file);
-    if (library != null) {
-      return library;
+  private Library[] append(Library[] oldArray, Library library) {
+    if (oldArray.length == 0) {
+      return new Library[] {library};
     }
-    for (Library cachedLibrary : libraryCache.values()) {
-      if (cachedLibrary.getSourceFiles().contains(file)) {
-        return cachedLibrary;
-      }
-    }
-    return null;
+    int oldLen = oldArray.length;
+    Library[] newArray = new Library[oldLen + 1];
+    System.arraycopy(oldArray, 0, newArray, 0, oldLen);
+    newArray[oldLen] = library;
+    return newArray;
   }
 }

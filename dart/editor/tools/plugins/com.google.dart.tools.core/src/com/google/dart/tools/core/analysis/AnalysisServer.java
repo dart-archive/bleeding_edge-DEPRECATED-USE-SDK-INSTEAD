@@ -20,6 +20,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -156,29 +157,45 @@ public class AnalysisServer {
   }
 
   /**
-   * Stop analyzing the specified library.
+   * Called when a file or directory has been added or removed or file content has been modified.
+   * Use {@link #discard(File)} if the file or directory content should no longer be analyzed.
    * 
-   * @param file the library file (not <code>null</code>)
+   * @param file the file or directory (not <code>null</code>)
    */
-  public void discardLibrary(File file) {
-    synchronized (queue) {
-      if (libraryFiles.contains(file)) {
-        libraryFiles.remove(file);
-        // TODO (danrubel) cleanup cached libraries
-      }
-    }
+  public void changed(File file) {
+    queueNewTask(new FileChangedTask(this, savedContext, file));
   }
 
   /**
-   * Called when a file has been modified
+   * Stop analyzing the specified library or all libraries in the specified directory tree.
    * 
-   * @param file the modified file (not <code>null</code>)
+   * @param file the library file (not <code>null</code>)
    */
-  public void fileChanged(File file) {
-    if (!DartCore.isDartLikeFileName(file.getName())) {
+  public void discard(File file) {
+
+    // If this is a dart file, then discard the library
+
+    if (file.isFile() || (!file.exists() && DartCore.isDartLikeFileName(file.getName()))) {
+      synchronized (queue) {
+        libraryFiles.remove(file);
+      }
+      // TODO (danrubel) cleanup cached libraries
       return;
     }
-    queueNewTask(new FileChangedTask(this, savedContext, file));
+
+    // Otherwise, discard all libraries in the specified directory tree
+
+    String prefix = file.getAbsolutePath() + File.separator;
+    synchronized (queue) {
+      Iterator<File> iter = libraryFiles.iterator();
+      while (iter.hasNext()) {
+        File libraryFile = iter.next();
+        if (libraryFile.getPath().startsWith(prefix)) {
+          iter.remove();
+          // TODO (danrubel) cleanup cached libraries
+        }
+      }
+    }
   }
 
   /**

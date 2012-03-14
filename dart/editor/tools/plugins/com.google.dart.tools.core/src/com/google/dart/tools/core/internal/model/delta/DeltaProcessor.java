@@ -28,6 +28,9 @@ import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.indexer.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.ResourceChangeListener;
 import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -299,6 +302,10 @@ public class DeltaProcessor {
         try {
           if (resource.getType() == IResource.PROJECT) {
             IProject project = (IProject) resource;
+            if (DartCoreDebug.ANALYSIS_SERVER) {
+              File projDir = project.getLocation().toFile();
+              SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(projDir);
+            }
             if (project.hasNature(DartCore.DART_PROJECT_NATURE)) {
               DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
               dartProject.close();
@@ -1451,6 +1458,12 @@ public class DeltaProcessor {
     OpenableElementImpl element;
     switch (delta.getKind()) {
       case IResourceDelta.ADDED:
+        if (DartCoreDebug.ANALYSIS_SERVER) {
+          File file = deltaRes.getLocation().toFile();
+          AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+          server.changed(file);
+          new ResourceChangeListener(server).addFileToScan(file);
+        }
         element = createElement(deltaRes, elementType);
         if (element == null) {
           return true;
@@ -1467,6 +1480,12 @@ public class DeltaProcessor {
 //        }
         return false;
       case IResourceDelta.REMOVED:
+        if (DartCoreDebug.ANALYSIS_SERVER) {
+          File file = deltaRes.getLocation().toFile();
+          AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+          server.changed(file);
+          server.discard(file);
+        }
         element = createElement(deltaRes, elementType);
         if (element == null) {
           return true;
@@ -1496,6 +1515,10 @@ public class DeltaProcessor {
       case IResourceDelta.CHANGED:
         int flags = delta.getFlags();
         if ((flags & IResourceDelta.CONTENT) != 0 || (flags & IResourceDelta.ENCODING) != 0) {
+          if (DartCoreDebug.ANALYSIS_SERVER) {
+            AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+            server.changed(deltaRes.getLocation().toFile());
+          }
           // content or encoding has changed
           element = createElement(delta.getResource(), elementType);
           if (element == null) {
