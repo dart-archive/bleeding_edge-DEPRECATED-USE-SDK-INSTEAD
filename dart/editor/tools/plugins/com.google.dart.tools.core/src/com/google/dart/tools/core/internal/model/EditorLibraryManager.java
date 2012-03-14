@@ -52,6 +52,29 @@ public abstract class EditorLibraryManager extends SystemLibraryManager {
   }
 
   /**
+   * Answer the directory containing the library folders. Typically this would be the "dart-sdk/lib"
+   * directory.
+   * 
+   * <pre>
+   * install-directory/
+   *    dart-sdk/
+   *       lib/
+   *          core/
+   *             core_runtime.dart
+   *             core_frog.dart
+   *             ... other core files ...
+   *          coreimpl/
+   *             coreimpl_runtime.dart
+   *             ... other coreimpl files ...
+   *          dom/
+   *             dom.dart
+   *             ... other dom files ...
+   *          ... other library directories ...
+   * </pre>
+   */
+  public abstract File getLibrariesDir();
+
+  /**
    * Answer the original "dart:<libname>" URI for the specified resolved URI or <code>null</code> if
    * it does not map to a short URI.
    */
@@ -111,29 +134,6 @@ public abstract class EditorLibraryManager extends SystemLibraryManager {
     }
     return libraries.toArray(new SystemLibrary[libraries.size()]);
   }
-
-  /**
-   * Answer the directory containing the library folders. Typically this would be the "dart-sdk/lib"
-   * directory.
-   * 
-   * <pre>
-   * install-directory/
-   *    dart-sdk/
-   *       lib/
-   *          core/
-   *             core_runtime.dart
-   *             core_frog.dart
-   *             ... other core files ...
-   *          coreimpl/
-   *             coreimpl_runtime.dart
-   *             ... other coreimpl files ...
-   *          dom/
-   *             dom.dart
-   *             ... other dom files ...
-   *          ... other library directories ...
-   * </pre>
-   */
-  abstract File getLibrariesDir();
 
   /**
    * Answer the platform name (DartC = "compiler", VM = "runtime") used when locating platform

@@ -77,17 +77,6 @@ import java.util.List;
 
 /**
  * File-oriented view for navigating Dart projects.
- * <p>
- * This view will replace the current "Libraries" view once a few tasks are completed:
- * <p>
- * TODO Remove the deprecated CreateFileAction and CreateFolderActions with new Dart Editor specific
- * versions
- * <p>
- * TODO modify the builder to ensure that the correct libraries are built when the user makes
- * changes to Dart code
- * <p>
- * TODO re-visit the DeltaProcessor and ensure that all user actions result in a correct update of
- * the model in the viewer
  */
 @SuppressWarnings("deprecation")
 public class FilesView extends ViewPart implements ISetSelectionTarget {
@@ -158,9 +147,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   public void createPartControl(Composite parent) {
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new ResourceContentProvider());
-    //TODO (pquitslund): replace with WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider() 
-    // when we have the linked resource story straightened out
-//    treeViewer.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
+    // TODO(pquitslund): replace with WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider()
+    //treeViewer.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
     treeViewer.setLabelProvider(new DecoratingLabelProvider(new WorkbenchLabelProvider(),
         new ProblemsLabelDecorator()));
     treeViewer.setComparator(new FilesViewerComparator());
@@ -262,7 +250,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         }
       }
     }
-
   }
 
   @Override
@@ -290,18 +277,22 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   }
 
   protected void fillContextMenu(IMenuManager manager) {
+    IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
 
     // New File/ New Folder 
 
-    manager.add(createFileAction);
-    manager.add(createFolderAction);
+    if (allElementsAreResources(selection)) {
+      manager.add(createFileAction);
+      manager.add(createFolderAction);
+    }
 
     // OPEN GROUP
 
-    manager.add(new Separator());
-    manager.add(OpenFolderHandler.createCommandAction(getSite().getWorkbenchWindow()));
+    if (manager.getItems().length > 0) {
+      manager.add(new Separator());
+    }
 
-    IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
+    manager.add(OpenFolderHandler.createCommandAction(getSite().getWorkbenchWindow()));
 
     // REFACTOR GROUP
 
@@ -332,11 +323,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         manager.add(hideContainerAction);
       }
     }
-
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {
-
     // Link with Editor
 
     linkWithEditorAction = new LinkWithEditorAction(getViewSite().getPage(), treeViewer);

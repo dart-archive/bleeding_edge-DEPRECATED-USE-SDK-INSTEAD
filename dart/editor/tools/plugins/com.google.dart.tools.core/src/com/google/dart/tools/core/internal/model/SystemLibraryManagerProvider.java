@@ -102,16 +102,11 @@ public class SystemLibraryManagerProvider {
       if (VM_LIBRARY_MANAGER == null) {
         VM_LIBRARY_MANAGER = new EditorLibraryManager() {
 
-          @Override
-          protected String getPlatformName() {
-            return "runtime";
-          }
-
           /**
            * Return the SDK "lib" directory
            */
           @Override
-          File getLibrariesDir() {
+          public File getLibrariesDir() {
             DartSdk sdk = DartSdk.getInstance();
             if (sdk == null) {
               DartCore.logError("Missing SDK");
@@ -125,6 +120,11 @@ public class SystemLibraryManagerProvider {
               DartCore.logInformation("Reading bundled libraries from " + librariesDir);
             }
             return librariesDir;
+          }
+
+          @Override
+          protected String getPlatformName() {
+            return "runtime";
           }
         };
       }

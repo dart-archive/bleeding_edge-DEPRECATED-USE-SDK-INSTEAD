@@ -14,9 +14,9 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.tools.core.model.DartLibrary;
-
 import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.ViewerComparator;
 
 import java.util.Comparator;
@@ -25,10 +25,10 @@ import java.util.Comparator;
  * Sorts files alphabetically.
  */
 public class FilesViewerComparator extends ViewerComparator {
-  private static final int DEFAULT_SORT = 0;
-  private static final int SYSTEM_LIBRARY = 1;
-  private static final int DIRECTORY_SORT = 2;
-  private static final int FILESTORE_SORT = 3;
+  private static final int DIRECTORY_SORT = 0;
+  private static final int RESOURCE_SORT = 1;
+  private static final int FILESTORE_SORT = 2;
+  private static final int DEFAULT_SORT = 3;
 
   public FilesViewerComparator() {
     super(new Comparator<String>() {
@@ -43,8 +43,10 @@ public class FilesViewerComparator extends ViewerComparator {
 
   @Override
   public int category(Object element) {
-    if (element instanceof DartLibrary) {
-      return SYSTEM_LIBRARY;
+    if (element instanceof IContainer) {
+      return DIRECTORY_SORT;
+    } else if (element instanceof IResource) {
+      return RESOURCE_SORT;
     } else if (element instanceof IFileStore) {
       IFileStore fileStore = (IFileStore) element;
       if (fileStore.fetchInfo().isDirectory()) {
