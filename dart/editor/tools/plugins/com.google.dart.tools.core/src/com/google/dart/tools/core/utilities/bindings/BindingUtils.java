@@ -835,7 +835,7 @@ public class BindingUtils {
         for (InterfaceType supertype : getImmediateSupertypes(targetType)) {
           if (supertype != null) {
             ClassElement supertypeElement = supertype.getElement();
-            Iterator<Element> members = supertypeElement.getMembers().iterator();
+            Iterator<? extends Element> members = supertypeElement.getMembers().iterator();
             if (members.hasNext()) {
               while (members.hasNext()) {
                 Element member = members.next();

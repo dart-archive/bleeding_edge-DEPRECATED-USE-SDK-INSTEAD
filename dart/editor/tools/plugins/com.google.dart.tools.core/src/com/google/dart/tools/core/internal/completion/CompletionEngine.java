@@ -904,7 +904,7 @@ public class CompletionEngine {
     List<InterfaceType> types = TypeUtil.allSupertypes((InterfaceType) type);
     for (InterfaceType itype : types) {
       ClassElement cls = itype.getElement();
-      Iterable<Element> members = cls.getMembers();
+      Iterable<? extends Element> members = cls.getMembers();
       for (Element elem : members) {
         String name = elem.getName();
         if (!map.containsKey(name)) {
