@@ -140,6 +140,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private static final String TAG_PATH = "path"; //$NON-NLS-1$
   private static final String TAG_SELECTION = "selection"; //$NON-NLS-1$
 
+  private RefreshAction refreshAction;
+
   public FilesView() {
   }
 
@@ -185,6 +187,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.addSelectionChangedListener(renameAction);
     moveAction = new MoveResourceAction(getShell());
     treeViewer.addSelectionChangedListener(moveAction);
+
+    refreshAction = new RefreshAction(this);
+    treeViewer.addSelectionChangedListener(refreshAction);
 
     deleteAction = new DeleteAction(getSite());
     deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(
@@ -305,6 +310,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         manager.add(moveAction);
       }
       manager.add(deleteAction);
+
+      manager.add(new Separator());
+      manager.add(refreshAction);
     }
 
     // Remove, iff non-empty selection, all elements are IResources
@@ -404,15 +412,19 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.getTree().setFont(font);
   }
 
+  Shell getShell() {
+    return getSite().getShell();
+  }
+
+  TreeViewer getViewer() {
+    return treeViewer;
+  }
+
   private void fillInActionBars() {
     IUndoContext workspaceContext = (IUndoContext) ResourcesPlugin.getWorkspace().getAdapter(
         IUndoContext.class);
     undoRedoActionGroup = new UndoRedoActionGroup(getViewSite(), workspaceContext, true);
     undoRedoActionGroup.fillActionBars(getViewSite().getActionBars());
-  }
-
-  private Shell getShell() {
-    return getSite().getShell();
   }
 
   private void initDragAndDrop() {
