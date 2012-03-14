@@ -80,13 +80,13 @@ stringReplaceAllUnchecked(receiver, from, to) {
     } else {
       var quoter =
         new RegExpWrapper(@'[-[\]{}()*+?.,\\^$|#\s]', false, false, true).re;
-      var quoted = JS('String', @'$0.replace($1, "\\$&")', from, quoter);
+      var quoted = JS('String', @'#.replace(#, "\\$&")', from, quoter);
       var re = new RegExpWrapper(quoted, false, false, true).re;
-      return JS('String', @'$0.replace($1, $2)', receiver, re, to);
+      return JS('String', @'#.replace(#, #)', receiver, re, to);
     }
   } else if (from is RegExp) {
     var re = new RegExpWrapper.fromRegExp(from, true).re;
-    return JS('String', @'$0.replace($1, $2)', receiver, re, to);
+    return JS('String', @'#.replace(#, #)', receiver, re, to);
   } else {
     // TODO(floitsch): implement generic String.replace (with patterns).
     throw "StringImplementation.replaceAll(Pattern) UNIMPLEMENTED";
@@ -95,10 +95,10 @@ stringReplaceAllUnchecked(receiver, from, to) {
 
 stringReplaceFirstUnchecked(receiver, from, to) {
   if (from is String) {
-    return JS('String', @'$0.replace($1, $2)', receiver, from, to);
+    return JS('String', @'#.replace(#, #)', receiver, from, to);
   } else if (from is RegExp) {
     var re = new RegExpWrapper.fromRegExp(from, false).re;
-    return JS('String', @'$0.replace($1, $2)', receiver, re, to);
+    return JS('String', @'#.replace(#, #)', receiver, re, to);
   } else {
     // TODO(floitsch): implement generic String.replace (with patterns).
     throw "StringImplementation.replace(Pattern) UNIMPLEMENTED";
@@ -107,10 +107,10 @@ stringReplaceFirstUnchecked(receiver, from, to) {
 
 stringSplitUnchecked(receiver, pattern) {
   if (pattern is String) {
-    return JS('List', @'$0.split($1)', receiver, pattern);
+    return JS('List', @'#.split(#)', receiver, pattern);
   } else if (pattern is RegExp) {
     var re = new RegExpWrapper.fromRegExp(pattern, false).re;
-    return JS('List', @'$0.split($1)', receiver, re);
+    return JS('List', @'#.split(#)', receiver, re);
   } else {
     throw "StringImplementation.split(Pattern) UNIMPLEMENTED";
   }

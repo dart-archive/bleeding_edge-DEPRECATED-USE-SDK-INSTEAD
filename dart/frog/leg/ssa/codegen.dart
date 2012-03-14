@@ -637,27 +637,17 @@ class SsaCodeGenerator implements HVisitor {
   visitForeign(HForeign node) {
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
-    // Go from length to 0 to avoid replacing $10 and $1 with the
-    // second input.
-    for (int i = inputs.length - 1; i >=0; i--) {
-      HInstruction input = inputs[i];
-      String name;
-      if (input is HThis) {
-        name = "this";
-      } else if (input is HParameterValue) {
-        HParameterValue parameter = input;
-        name = parameterNames[parameter.element];
-      } else if (input is HLoad) {
-        HLoad load = input;
-        name = local(load.local);
-      } else {
-        assert(!input.generateAtUseSite());
-        name = temporary(input);
-      }
-      code = code.replaceAll('\$$i', name);
+    List<String> parts = code.split('#');
+    if (parts.length != inputs.length + 1) {
+      compiler.internalError(
+          'Wrong number of arguments for JS', instruction: node);
     }
     beginExpression(JSPrecedence.EXPRESSION_PRECEDENCE);
-    buffer.add(code);
+    buffer.add(parts[0]);
+    for (int i = 0; i < inputs.length; i++) {
+      use(inputs[i], JSPrecedence.EXPRESSION_PRECEDENCE);
+      buffer.add(parts[i + 1]);
+    }
     endExpression(JSPrecedence.EXPRESSION_PRECEDENCE);
   }
 

@@ -31,17 +31,17 @@ bool checkNumbers(var a, var b) {
 
 
 bool isJsArray(var value) {
-  return value !== null && JS('bool', @'$0.constructor === Array', value);
+  return value !== null && JS('bool', @'#.constructor === Array', value);
 }
 
 
 add(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('num', @'$0 + $1', a, b);
+    return JS('num', @'# + #', a, b);
   } else if (a is String) {
     b = b.toString();
     if (b is String) {
-      return JS('String', @'$0 + $1', a, b);
+      return JS('String', @'# + #', a, b);
     }
     checkNull(b);
     throw new IllegalArgumentException(b);
@@ -52,7 +52,7 @@ add(var a, var b) {
 
 div(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('num', @'$0 / $1', a, b);
+    return JS('num', @'# / #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a / b);
@@ -60,7 +60,7 @@ div(var a, var b) {
 
 mul(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('num', @'$0 * $1', a, b);
+    return JS('num', @'# * #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a * b);
@@ -68,7 +68,7 @@ mul(var a, var b) {
 
 sub(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('num', @'$0 - $1', a, b);
+    return JS('num', @'# - #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a - b);
@@ -77,7 +77,7 @@ sub(var a, var b) {
 mod(var a, var b) {
   if (checkNumbers(a, b)) {
     // Euclidean Modulo.
-    int result = JS('num', @'$0 % $1', a, b);
+    int result = JS('num', @'# % #', a, b);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
     if (result > 0) return result;
     if (b < 0) {
@@ -99,36 +99,36 @@ tdiv(var a, var b) {
 }
 
 eq(var a, var b) {
-  if (JS('bool', @'typeof $0 === "object"', a)) {
+  if (JS('bool', @'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
       return UNINTERCEPTED(a == b) === true;
     } else {
-      return JS('bool', @'$0 === $1', a, b);
+      return JS('bool', @'# === #', a, b);
     }
   }
   // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
-  return JS('bool', @'$0 === $1', a, b);
+  return JS('bool', @'# === #', a, b);
 }
 
 eqq(var a, var b) {
-  return JS('bool', @'$0 === $1', a, b);
+  return JS('bool', @'# === #', a, b);
 }
 
 eqNull(var a) {
-  if (JS('bool', @'typeof $0 === "object"', a)) {
+  if (JS('bool', @'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
       return UNINTERCEPTED(a == null) === true;
     } else {
       return false;
     }
   } else {
-    return JS('bool', @'typeof $0 === "undefined"', a);
+    return JS('bool', @'typeof # === "undefined"', a);
   }
 }
 
 gt(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('bool', @'$0 > $1', a, b);
+    return JS('bool', @'# > #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a > b);
@@ -136,7 +136,7 @@ gt(var a, var b) {
 
 ge(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('bool', @'$0 >= $1', a, b);
+    return JS('bool', @'# >= #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a >= b);
@@ -144,7 +144,7 @@ ge(var a, var b) {
 
 lt(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('bool', @'$0 < $1', a, b);
+    return JS('bool', @'# < #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a < b);
@@ -152,7 +152,7 @@ lt(var a, var b) {
 
 le(var a, var b) {
   if (checkNumbers(a, b)) {
-    return JS('bool', @'$0 <= $1', a, b);
+    return JS('bool', @'# <= #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a <= b);
@@ -162,7 +162,7 @@ shl(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
     if (b < 0) throw new IllegalArgumentException(b);
-    return JS('num', @'$0 << $1', a, b);
+    return JS('num', @'# << #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a << b);
@@ -172,7 +172,7 @@ shr(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
     if (b < 0) throw new IllegalArgumentException(b);
-    return JS('num', @'$0 >> $1', a, b);
+    return JS('num', @'# >> #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a >> b);
@@ -181,7 +181,7 @@ shr(var a, var b) {
 and(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    return JS('num', @'$0 & $1', a, b);
+    return JS('num', @'# & #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a & b);
@@ -190,7 +190,7 @@ and(var a, var b) {
 or(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    return JS('num', @'$0 | $1', a, b);
+    return JS('num', @'# | #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a | b);
@@ -199,20 +199,20 @@ or(var a, var b) {
 xor(var a, var b) {
   // TODO(floitsch): inputs must be integers.
   if (checkNumbers(a, b)) {
-    return JS('num', @'$0 ^ $1', a, b);
+    return JS('num', @'# ^ #', a, b);
   }
   checkNull(a);
   return UNINTERCEPTED(a ^ b);
 }
 
 not(var a) {
-  if (JS('bool', @'typeof $0 === "number"', a)) return JS('num', @'~$0', a);
+  if (JS('bool', @'typeof # === "number"', a)) return JS('num', @'~#', a);
   checkNull(a);
   return UNINTERCEPTED(~a);
 }
 
 neg(var a) {
-  if (JS('bool', @'typeof $0 === "number"', a)) return JS('num', @'-$0', a);
+  if (JS('bool', @'typeof # === "number"', a)) return JS('num', @'-#', a);
   checkNull(a);
   return UNINTERCEPTED(-a);
 }
@@ -227,7 +227,7 @@ index(var a, var index) {
     if (index < 0 || index >= a.length) {
       throw new IndexOutOfRangeException(index);
     }
-    return JS('Object', @'$0[$1]', a, index);
+    return JS('Object', @'#[#]', a, index);
   }
   checkNull(a);
   return UNINTERCEPTED(a[index]);
@@ -243,7 +243,7 @@ indexSet(var a, var index, var value) {
       throw new IndexOutOfRangeException(index);
     }
     checkMutable(a, 'indexed set');
-    return JS('Object', @'$0[$1] = $2', a, index, value);
+    return JS('Object', @'#[#] = #', a, index, value);
   }
   checkNull(a);
   UNINTERCEPTED(a[index] = value);
@@ -251,7 +251,7 @@ indexSet(var a, var index, var value) {
 }
 
 checkMutable(list, reason) {
-  if (JS('bool', @'!!($0.immutable$list)', list)) {
+  if (JS('bool', @'!!(#.immutable$list)', list)) {
     throw new UnsupportedOperationException(reason);
   }
 }
@@ -260,7 +260,7 @@ builtin$add$1(var receiver, var value) {
   checkNull(receiver);
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'add');
-    JS('Object', @'$0.push($1)', receiver, value);
+    JS('Object', @'#.push(#)', receiver, value);
     return;
   }
   return UNINTERCEPTED(receiver.add(value));
@@ -271,7 +271,7 @@ builtin$removeLast$0(var receiver) {
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'removeLast');
     if (receiver.length === 0) throw new IndexOutOfRangeException(-1);
-    return JS('Object', @'$0.pop()', receiver);
+    return JS('Object', @'#.pop()', receiver);
   }
   return UNINTERCEPTED(receiver.removeLast());
 }
@@ -287,7 +287,7 @@ builtin$filter$1(var receiver, var predicate) {
 builtin$get$length(var receiver) {
   checkNull(receiver);
   if (receiver is String || isJsArray(receiver)) {
-    return JS('num', @'$0.length', receiver);
+    return JS('num', @'#.length', receiver);
   }
   return UNINTERCEPTED(receiver.length);
 }
@@ -299,7 +299,7 @@ builtin$set$length(receiver, newLength) {
     if (newLength is !int) throw new IllegalArgumentException(newLength);
     if (newLength < 0) throw new IndexOutOfRangeException(newLength);
     checkGrowable(receiver, 'set length');
-    JS('void', @'$0.length = $1', receiver, newLength);
+    JS('void', @'#.length = #', receiver, newLength);
   } else {
     UNINTERCEPTED(receiver.length = newLength);
   }
@@ -307,27 +307,27 @@ builtin$set$length(receiver, newLength) {
 }
 
 checkGrowable(list, reason) {
-  if (JS('bool', @'!!($0.fixed$length)', list)) {
+  if (JS('bool', @'!!(#.fixed$length)', list)) {
     throw new UnsupportedOperationException(reason);
   }
 }
 
 builtin$toString$0(var value) {
-  if (JS('bool', @'typeof $0 == "object"', value)) {
+  if (JS('bool', @'typeof # == "object"', value)) {
     if (isJsArray(value)) {
       return Collections.collectionToString(value);
     } else {
       return UNINTERCEPTED(value.toString());
     }
   }
-  if (JS('bool', @'$0 === 0 && (1 / $0) < 0', value)) {
+  if (JS('bool', @'# === 0 && (1 / #) < 0', value, value)) {
     return '-0.0';
   }
   if (value === null) return 'null';
-  if (JS('bool', @'typeof $0 == "function"', value)) {
+  if (JS('bool', @'typeof # == "function"', value)) {
     return 'Closure';
   }
-  return JS('string', @'String($0)', value);
+  return JS('string', @'String(#)', value);
 }
 
 
@@ -343,10 +343,10 @@ class ListIterator<T> implements Iterator<T> {
   int i;
   List<T> list;
   ListIterator(List<T> this.list) : i = 0;
-  bool hasNext() => i < JS('int', @'$0.length', list);
+  bool hasNext() => i < JS('int', @'#.length', list);
   T next() {
     if (!hasNext()) throw new NoMoreElementsException();
-    var value = JS('Object', @'$0[$1]', list, i);
+    var value = JS('Object', @'#[#]', list, i);
     i += 1;
     return value;
   }
@@ -358,7 +358,7 @@ builtin$charCodeAt$1(var receiver, int index) {
     if (index is !num) throw new IllegalArgumentException(index);
     if (index < 0) throw new IndexOutOfRangeException(index);
     if (index >= receiver.length) throw new IndexOutOfRangeException(index);
-    return JS('int', @'$0.charCodeAt($1)', receiver, index);
+    return JS('int', @'#.charCodeAt(#)', receiver, index);
   } else {
     return UNINTERCEPTED(receiver.charCodeAt(index));
   }
@@ -367,7 +367,7 @@ builtin$charCodeAt$1(var receiver, int index) {
 builtin$isEmpty$0(receiver) {
   checkNull(receiver);
   if (receiver is String || isJsArray(receiver)) {
-    return JS('bool', @'$0.length === 0', receiver);
+    return JS('bool', @'#.length === 0', receiver);
   }
   return UNINTERCEPTED(receiver.isEmpty());
 }
@@ -376,18 +376,18 @@ class Primitives {
   static void printString(String string) {
     var hasConsole = JS('bool', @'typeof console == "object"');
     if (hasConsole) {
-      JS('void', @'console.log($0)', string);
+      JS('void', @'console.log(#)', string);
     } else {
-      JS('void', @'write($0)', string);
+      JS('void', @'write(#)', string);
       JS('void', @'write("\n")');
     }
   }
 
   static String objectToString(Object object) {
-    String name = JS('String', @'$0.constructor.name', object);
+    String name = JS('String', @'#.constructor.name', object);
     if (name === null) {
-      name = JS('String', @'$0.match(/^\s*function\s*(\S*)\s*\(/)[1]',
-                JS('String', @'$0.constructor.toString()', object));
+      name = JS('String', @'#.match(/^\s*function\s*(\S*)\s*\(/)[1]',
+                JS('String', @'#.constructor.toString()', object));
     }
     return "Instance of '$name'";
   }
@@ -397,8 +397,8 @@ class Primitives {
     if ((length is !int) || (length < 0)) {
       throw new IllegalArgumentException(length);
     }
-    var result = JS('Object', @'new Array($0)', length);
-    JS('void', @'$0.fixed$length = $1', result, true);
+    var result = JS('Object', @'new Array(#)', length);
+    JS('void', @'#.fixed$length = #', result, true);
     return result;
   }
 
@@ -408,7 +408,7 @@ class Primitives {
     for (var i in charCodes) {
       if (i is !int) throw new IllegalArgumentException(i);
     }
-    return JS('String', @'String.fromCharCode.apply($0, $1)', null, charCodes);
+    return JS('String', @'String.fromCharCode.apply(#, #)', null, charCodes);
   }
 
   static valueFromDecomposedDate(years, month, day, hours, minutes, seconds,
@@ -437,10 +437,10 @@ class Primitives {
     var jsMonth = month - 1;
     var value;
     if (isUtc) {
-      value = JS('num', @'Date.UTC($0, $1, $2, $3, $4, $5, $6)',
+      value = JS('num', @'Date.UTC(#, #, #, #, #, #, #)',
                  years, jsMonth, day, hours, minutes, seconds, milliseconds);
     } else {
-      value = JS('num', @'new Date($0, $1, $2, $3, $4, $5, $6).valueOf()',
+      value = JS('num', @'new Date(#, #, #, #, #, #, #).valueOf()',
                  years, jsMonth, day, hours, minutes, seconds, milliseconds);
     }
     if (value.isNaN()) throw new IllegalArgumentException('');
@@ -449,75 +449,75 @@ class Primitives {
   }
 
   static patchUpY2K(value, years, isUtc) {
-    var date = JS('Object', @'new Date($0)', value);
+    var date = JS('Object', @'new Date(#)', value);
     if (isUtc) {
-      JS('num', @'$0.setUTCFullYear($1)', date, years);
+      JS('num', @'#.setUTCFullYear(#)', date, years);
     } else {
-      JS('num', @'$0.setFullYear($1)', date, years);
+      JS('num', @'#.setFullYear(#)', date, years);
     }
-    return JS('num', @'$0.valueOf()', date);
+    return JS('num', @'#.valueOf()', date);
   }
 
   // Lazily keep a JS Date stored in the JS object.
   static lazyAsJsDate(receiver) {
-    if (JS('bool', @'$0.date === (void 0)', receiver)) {
-      JS('void', @'$0.date = new Date($1)', receiver, receiver.value);
+    if (JS('bool', @'#.date === (void 0)', receiver)) {
+      JS('void', @'#.date = new Date(#)', receiver, receiver.value);
     }
-    return JS('Date', @'$0.date', receiver);
+    return JS('Date', @'#.date', receiver);
   }
 
   static getYear(receiver) {
     return (receiver.timeZone.isUtc)
-      ? JS('int', @'$0.getUTCFullYear()', lazyAsJsDate(receiver))
-      : JS('int', @'$0.getFullYear()', lazyAsJsDate(receiver));
+      ? JS('int', @'#.getUTCFullYear()', lazyAsJsDate(receiver))
+      : JS('int', @'#.getFullYear()', lazyAsJsDate(receiver));
   }
 
   static getMonth(receiver) {
     return (receiver.timeZone.isUtc)
-      ? JS('int', @'$0.getUTCMonth()', lazyAsJsDate(receiver)) + 1
-      : JS('int', @'$0.getMonth()', lazyAsJsDate(receiver)) + 1;
+      ? JS('int', @'#.getUTCMonth()', lazyAsJsDate(receiver)) + 1
+      : JS('int', @'#.getMonth()', lazyAsJsDate(receiver)) + 1;
   }
 
   static getDay(receiver) {
     return (receiver.timeZone.isUtc)
-      ? JS('int', @'$0.getUTCDate()', lazyAsJsDate(receiver))
-      : JS('int', @'$0.getDate()', lazyAsJsDate(receiver));
+      ? JS('int', @'#.getUTCDate()', lazyAsJsDate(receiver))
+      : JS('int', @'#.getDate()', lazyAsJsDate(receiver));
   }
 
   static getHours(receiver) {
     return (receiver.timeZone.isUtc)
-      ? JS('int', @'$0.getUTCHours()', lazyAsJsDate(receiver))
-      : JS('int', @'$0.getHours()', lazyAsJsDate(receiver));
+      ? JS('int', @'#.getUTCHours()', lazyAsJsDate(receiver))
+      : JS('int', @'#.getHours()', lazyAsJsDate(receiver));
   }
 
   static getMinutes(receiver) {
     return (receiver.timeZone.isUtc)
-      ? JS('int', @'$0.getUTCMinutes()', lazyAsJsDate(receiver))
-      : JS('int', @'$0.getMinutes()', lazyAsJsDate(receiver));
+      ? JS('int', @'#.getUTCMinutes()', lazyAsJsDate(receiver))
+      : JS('int', @'#.getMinutes()', lazyAsJsDate(receiver));
   }
 
   static getSeconds(receiver) {
     return (receiver.timeZone.isUtc)
-      ? JS('int', @'$0.getUTCSeconds()', lazyAsJsDate(receiver))
-      : JS('int', @'$0.getSeconds()', lazyAsJsDate(receiver));
+      ? JS('int', @'#.getUTCSeconds()', lazyAsJsDate(receiver))
+      : JS('int', @'#.getSeconds()', lazyAsJsDate(receiver));
   }
 
   static getMilliseconds(receiver) {
     return (receiver.timeZone.isUtc)
-      ? JS('int', @'$0.getUTCMilliseconds()', lazyAsJsDate(receiver))
-      : JS('int', @'$0.getMilliseconds()', lazyAsJsDate(receiver));
+      ? JS('int', @'#.getUTCMilliseconds()', lazyAsJsDate(receiver))
+      : JS('int', @'#.getMilliseconds()', lazyAsJsDate(receiver));
   }
 
   static getWeekday(receiver) {
     return (receiver.timeZone.isUtc)
-      ? JS('int', @'$0.getUTCDay()', lazyAsJsDate(receiver))
-      : JS('int', @'$0.getDay()', lazyAsJsDate(receiver));
+      ? JS('int', @'#.getUTCDay()', lazyAsJsDate(receiver))
+      : JS('int', @'#.getDay()', lazyAsJsDate(receiver));
   }
 
   static valueFromDateString(str) {
     checkNull(str);
     if (str is !String) throw new IllegalArgumentException(str);
-    var value = JS('num', @'Date.parse($0)', str);
+    var value = JS('num', @'Date.parse(#)', str);
     if (value.isNaN()) throw new IllegalArgumentException(str);
     return value;
   }
@@ -549,8 +549,8 @@ builtin$compareTo$1(a, b) {
     }
   } else if (a is String) {
     if (b is !String) throw new IllegalArgumentException(b);
-    return JS('bool', @'$0 == $1', a, b) ? 0
-      : JS('bool', @'$0 < $1', a, b) ? -1 : 1;
+    return JS('bool', @'# == #', a, b) ? 0
+      : JS('bool', @'# < #', a, b) ? -1 : 1;
   } else {
     return UNINTERCEPTED(a.compareTo(b));
   }
@@ -590,7 +590,7 @@ builtin$addLast$1(receiver, value) {
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addLast(value));
 
   checkGrowable(receiver, 'addLast');
-  JS('Object', @'$0.push($1)', receiver, value);
+  JS('Object', @'#.push(#)', receiver, value);
 }
 
 builtin$clear$0(receiver) {
@@ -604,10 +604,10 @@ builtin$forEach$1(receiver, f) {
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.forEach(f));
 
 
-  var length = JS('num', @'$0.length', receiver);
+  var length = JS('num', @'#.length', receiver);
   if (length > 0 && f === null) throw new ObjectNotClosureException(); // Sigh.
   for (var i = 0; i < length; i++) {
-    f(JS('Object', @'$0[$1]', receiver, i));
+    f(JS('Object', @'#[#]', receiver, i));
   }
 }
 
@@ -628,7 +628,7 @@ builtin$getRange$2(receiver, start, length) {
     throw new IndexOutOfRangeException(length);
   }
   if (length < 0) throw new IllegalArgumentException(length);
-  return JS('Object', @'$0.slice($1, $2)', receiver, start, end);
+  return JS('Object', @'#.slice(#, #)', receiver, start, end);
 }
 
 builtin$indexOf$1(receiver, element) {
@@ -643,14 +643,14 @@ builtin$indexOf$2(receiver, element, start) {
   checkNull(receiver);
   if (isJsArray(receiver)) {
     if (start is !int) throw new IllegalArgumentException(start);
-    var length = JS('num', @'$0.length', receiver);
+    var length = JS('num', @'#.length', receiver);
     return Arrays.indexOf(receiver, element, start, length);
   } else if (receiver is String) {
     checkNull(element);
     if (start is !int) throw new IllegalArgumentException(start);
     if (element is !String) throw new IllegalArgumentException(element);
     if (start < 0) return -1; // TODO(ahe): Is this correct?
-    return JS('int', @'$0.indexOf($1, $2)', receiver, element, start);
+    return JS('int', @'#.indexOf(#, #)', receiver, element, start);
   }
   return UNINTERCEPTED(receiver.indexOf(element, start));
 }
@@ -681,7 +681,7 @@ listInsertRange(receiver, start, length, initialValue) {
   if (length < 0) throw new IllegalArgumentException(length);
   if (start is !int) throw new IllegalArgumentException(start);
 
-  var receiverLength = JS('num', @'$0.length', receiver);
+  var receiverLength = JS('num', @'#.length', receiver);
   if (start < 0 || start > receiverLength) {
     throw new IndexOutOfRangeException(start);
   }
@@ -710,12 +710,12 @@ builtin$last$0(receiver) {
 builtin$lastIndexOf$1(receiver, element) {
   checkNull(receiver);
   if (isJsArray(receiver)) {
-    var start = JS('num', @'$0.length', receiver);
+    var start = JS('num', @'#.length', receiver);
     return Arrays.lastIndexOf(receiver, element, start);
   } else if (receiver is String) {
     checkNull(element);
     if (element is !String) throw new IllegalArgumentException(element);
-    return JS('int', @'$0.lastIndexOf($1)', receiver, element);
+    return JS('int', @'#.lastIndexOf(#)', receiver, element);
   }
   return UNINTERCEPTED(receiver.lastIndexOf(element));
 }
@@ -738,7 +738,7 @@ builtin$lastIndexOf$2(receiver, element, start) {
 }
 
 stringLastIndexOfUnchecked(receiver, element, start)
-  => JS('int', @'$0.lastIndexOf($1, $2)', receiver, element, start);
+  => JS('int', @'#.lastIndexOf(#, #)', receiver, element, start);
 
 builtin$removeRange$2(receiver, start, length) {
   checkNull(receiver);
@@ -754,7 +754,7 @@ builtin$removeRange$2(receiver, start, length) {
   if (start is !int) throw new IllegalArgumentException(start);
   if (length is !int) throw new IllegalArgumentException(length);
   if (length < 0) throw new IllegalArgumentException(length);
-  var receiverLength = JS('num', @'$0.length', receiver);
+  var receiverLength = JS('num', @'#.length', receiver);
   if (start < 0 || start >= receiverLength) {
     throw new IndexOutOfRangeException(start);
   }
@@ -862,7 +862,7 @@ builtin$isNegative$0(receiver) {
 builtin$isNaN$0(receiver) {
   checkNull(receiver);
   if (receiver is num) {
-    return JS('bool', @'isNaN($0)', receiver);
+    return JS('bool', @'isNaN(#)', receiver);
   } else {
     return UNINTERCEPTED(receiver.isNegative());
   }
@@ -871,7 +871,7 @@ builtin$isNaN$0(receiver) {
 builtin$remainder$1(a, b) {
   checkNull(a);
   if (checkNumbers(a, b)) {
-    return JS('num', @'$0 % $1', a, b);
+    return JS('num', @'# % #', a, b);
   } else {
     return UNINTERCEPTED(a.remainder(b));
   }
@@ -881,7 +881,7 @@ builtin$abs$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.abs());
 
-  return JS('num', @'Math.abs($0)', receiver);
+  return JS('num', @'Math.abs(#)', receiver);
 }
 
 builtin$toInt$0(receiver) {
@@ -893,46 +893,46 @@ builtin$toInt$0(receiver) {
   if (receiver.isInfinite()) throw new BadNumberFormatException('Infinity');
 
   var truncated = receiver.truncate();
-  return JS('bool', @'$0 == -0.0', truncated) ? 0 : truncated;
+  return JS('bool', @'# == -0.0', truncated) ? 0 : truncated;
 }
 
 builtin$ceil$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.ceil());
 
-  return JS('num', @'Math.ceil($0)', receiver);
+  return JS('num', @'Math.ceil(#)', receiver);
 }
 
 builtin$floor$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.floor());
 
-  return JS('num', @'Math.floor($0)', receiver);
+  return JS('num', @'Math.floor(#)', receiver);
 }
 
 builtin$isInfinite$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.isInfinite());
 
-  return JS('bool', @'$0 == Infinity', receiver)
-    || JS('bool', @'$0 == -Infinity', receiver);
+  return JS('bool', @'# == Infinity', receiver)
+    || JS('bool', @'# == -Infinity', receiver);
 }
 
 builtin$negate$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.negate());
 
-  return JS('num', @'-$0', receiver);
+  return JS('num', @'-#', receiver);
 }
 
 builtin$round$0(receiver) {
   checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.round());
 
-  if (JS('bool', @'$0 < 0', receiver)) {
-    return JS('num', @'-Math.round(-$0)', receiver);
+  if (JS('bool', @'# < 0', receiver)) {
+    return JS('num', @'-Math.round(-#)', receiver);
   } else {
-    return JS('num', @'Math.round($0)', receiver);
+    return JS('num', @'Math.round(#)', receiver);
   }
 }
 
@@ -941,7 +941,7 @@ builtin$toDouble$0(receiver) {
   if (receiver is !num) return UNINTERCEPTED(receiver.toDouble());
 
   // TODO(ahe): Just return receiver?
-  return JS('double', @'$0 + 0', receiver);
+  return JS('double', @'# + 0', receiver);
 }
 
 builtin$truncate$0(receiver) {
@@ -958,7 +958,7 @@ builtin$toStringAsFixed$1(receiver, fractionDigits) {
   }
   checkNum(fractionDigits);
 
-  String result = JS('String', @'$0.toFixed($1)', receiver, fractionDigits);
+  String result = JS('String', @'#.toFixed(#)', receiver, fractionDigits);
   if (receiver == 0 && receiver.isNegative()) return "-$result";
   return result;
 }
@@ -970,7 +970,7 @@ builtin$toStringAsExponential$1(receiver, fractionDigits) {
   }
   if (fractionDigits !== null) checkNum(fractionDigits);
 
-  String result = JS('String', @'$0.toExponential($1)',
+  String result = JS('String', @'#.toExponential(#)',
                      receiver, fractionDigits);
   if (receiver == 0 && receiver.isNegative()) return "-$result";
   return result;
@@ -983,7 +983,7 @@ builtin$toStringAsPrecision$1(receiver, fractionDigits) {
   }
   checkNum(fractionDigits);
 
-  String result = JS('String', @'$0.toPrecision($1)',
+  String result = JS('String', @'#.toPrecision(#)',
                      receiver, fractionDigits);
   if (receiver == 0 && receiver.isNegative()) return "-$result";
   return result;
@@ -996,7 +996,7 @@ builtin$toRadixString$1(receiver, radix) {
   }
   checkNum(radix);
 
-  return JS('String', @'$0.toString($1)', receiver, radix);
+  return JS('String', @'#.toString(#)', receiver, radix);
 }
 
 builtin$allMatches$1(receiver, str) {
@@ -1011,7 +1011,7 @@ builtin$concat$1(receiver, other) {
   if (receiver is !String) return UNINTERCEPTED(receiver.concat(other));
 
   if (other is !String) throw new IllegalArgumentException(other);
-  return JS('String', @'$0.concat($1)', receiver, other);
+  return JS('String', @'#.concat(#)', receiver, other);
 }
 
 builtin$contains$1(receiver, other) {
@@ -1074,7 +1074,7 @@ builtin$splitChars$0(receiver) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.splitChars());
 
-  return JS('List', @'$0.split("")', receiver);
+  return JS('List', @'#.split("")', receiver);
 }
 
 builtin$startsWith$1(receiver, other) {
@@ -1085,8 +1085,8 @@ builtin$startsWith$1(receiver, other) {
 
   int length = other.length;
   if (length > receiver.length) return false;
-  return JS('bool', @'$0 == $1', other,
-            JS('String', @'$0.substring(0, $1)', receiver, length));
+  return JS('bool', @'# == #', other,
+            JS('String', @'#.substring(0, #)', receiver, length));
 }
 
 builtin$substring$1(receiver, startIndex) {
@@ -1112,28 +1112,28 @@ builtin$substring$2(receiver, startIndex, endIndex) {
 }
 
 substringUnchecked(receiver, startIndex, endIndex)
-  => JS('String', @'$0.substring($1, $2)', receiver, startIndex, endIndex);
+  => JS('String', @'#.substring(#, #)', receiver, startIndex, endIndex);
 
 
 builtin$toLowerCase$0(receiver) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.toLowerCase());
 
-  return JS('String', @'$0.toLowerCase()', receiver);
+  return JS('String', @'#.toLowerCase()', receiver);
 }
 
 builtin$toUpperCase$0(receiver) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.toUpperCase());
 
-  return JS('String', @'$0.toUpperCase()', receiver);
+  return JS('String', @'#.toUpperCase()', receiver);
 }
 
 builtin$trim$0(receiver) {
   checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.trim());
 
-  return JS('String', @'$0.trim()', receiver);
+  return JS('String', @'#.trim()', receiver);
 }
 
 class MathNatives {
@@ -1141,7 +1141,7 @@ class MathNatives {
     checkNull(str);
     if (str is !String) throw new IllegalArgumentException(str);
     if (!JS('bool',
-            @'/^\s*[+-]?(?:0[xX][abcdefABCDEF0-9]+|\d+)\s*$/.test($0)',
+            @'/^\s*[+-]?(?:0[xX][abcdefABCDEF0-9]+|\d+)\s*$/.test(#)',
             str)) {
       throw new BadNumberFormatException(str);
     }
@@ -1151,7 +1151,7 @@ class MathNatives {
         (trimmed.length > 3 && (trimmed[2] == 'x' || trimmed[2] == 'X'))) {
       base = 16;
     }
-    var ret = JS('num', @'parseInt($0, $1)', trimmed, base);
+    var ret = JS('num', @'parseInt(#, #)', trimmed, base);
     if (ret.isNaN()) throw new BadNumberFormatException(str);
     return ret;
   }
@@ -1159,10 +1159,10 @@ class MathNatives {
   static double parseDouble(String str) {
     checkNull(str);
     if (str is !String) throw new IllegalArgumentException();
-    var ret = JS('num', @'parseFloat($0)', str);
+    var ret = JS('num', @'parseFloat(#)', str);
     if (ret == 0 && (str.startsWith("0x") || str.startsWith("0X"))) {
       // TODO(ahe): This is unspecified, but tested by co19.
-      ret = JS('num', @'parseInt($0)', str);
+      ret = JS('num', @'parseInt(#)', str);
     }
     if (ret.isNaN() && str != 'NaN' && str != '-NaN') {
       throw new BadNumberFormatException(str);
@@ -1171,39 +1171,39 @@ class MathNatives {
   }
 
   static double sqrt(num value)
-    => JS('double', @'Math.sqrt($0)', checkNum(value));
+    => JS('double', @'Math.sqrt(#)', checkNum(value));
 
   static double sin(num value)
-    => JS('double', @'Math.sin($0)', checkNum(value));
+    => JS('double', @'Math.sin(#)', checkNum(value));
 
   static double cos(num value)
-    => JS('double', @'Math.cos($0)', checkNum(value));
+    => JS('double', @'Math.cos(#)', checkNum(value));
 
   static double tan(num value)
-    => JS('double', @'Math.tan($0)', checkNum(value));
+    => JS('double', @'Math.tan(#)', checkNum(value));
 
   static double acos(num value)
-    => JS('double', @'Math.acos($0)', checkNum(value));
+    => JS('double', @'Math.acos(#)', checkNum(value));
 
   static double asin(num value)
-    => JS('double', @'Math.asin($0)', checkNum(value));
+    => JS('double', @'Math.asin(#)', checkNum(value));
 
   static double atan(num value)
-    => JS('double', @'Math.atan($0)', checkNum(value));
+    => JS('double', @'Math.atan(#)', checkNum(value));
 
   static double atan2(num a, num b)
-    => JS('double', @'Math.atan2($0, $1)', checkNum(a), checkNum(b));
+    => JS('double', @'Math.atan2(#, #)', checkNum(a), checkNum(b));
 
   static double exp(num value)
-    => JS('double', @'Math.exp($0)', checkNum(value));
+    => JS('double', @'Math.exp(#)', checkNum(value));
 
   static double log(num value)
-    => JS('double', @'Math.log($0)', checkNum(value));
+    => JS('double', @'Math.log(#)', checkNum(value));
 
   static num pow(num value, num exponent) {
     checkNum(value);
     checkNum(exponent);
-    return JS('num', @'Math.pow($0, $1)', value, exponent);
+    return JS('num', @'Math.pow(#, #)', value, exponent);
   }
 
   static double random() => JS('double', @'Math.random()');
@@ -1219,18 +1219,18 @@ class MathNatives {
 builtin$hashCode$0(receiver) {
   // TODO(ahe): This method shouldn't have to use JS. Update when our
   // optimizations are smarter.
-  if (receiver is num) return JS('int', @'$0 & 0x1FFFFFFF', receiver);
+  if (receiver is num) return JS('int', @'# & 0x1FFFFFFF', receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.hashCode());
   int hash = 0;
-  int length = JS('int', @'$0.length', receiver);
+  int length = JS('int', @'#.length', receiver);
   for (int i = 0; i < length; i++) {
-    hash = 0x1fffffff & (hash + JS('int', @'$0.charCodeAt($1)', receiver, i));
-    hash = 0x1fffffff & (hash + JS('int', @'$0 << $1', 0x0007ffff & hash, 10));
+    hash = 0x1fffffff & (hash + JS('int', @'#.charCodeAt(#)', receiver, i));
+    hash = 0x1fffffff & (hash + JS('int', @'# << #', 0x0007ffff & hash, 10));
     hash ^= hash >> 6;
   }
-  hash = 0x1fffffff & (hash + JS('int', @'$0 << $1', 0x03ffffff & hash, 3));
+  hash = 0x1fffffff & (hash + JS('int', @'# << #', 0x03ffffff & hash, 3));
   hash ^= hash >> 11;
-  return 0x1fffffff & (hash + JS('int', @'$0 << $1', 0x00003fff & hash, 15));
+  return 0x1fffffff & (hash + JS('int', @'# << #', 0x00003fff & hash, 15));
 }
 
 // TODO(ahe): Dynamic may be overridden.
@@ -1242,8 +1242,8 @@ builtin$get$dynamic(receiver) => receiver;
  */
 captureStackTrace(ex) {
   var jsError = JS('Object', @'new Error()');
-  JS('void', @'$0.dartException = $1', jsError, ex);
-  JS('void', @'''$0.toString = $1''', jsError, toStringWrapper);
+  JS('void', @'#.dartException = #', jsError, ex);
+  JS('void', @'''#.toString = #''', jsError, toStringWrapper);
   return jsError;
 }
 
@@ -1267,8 +1267,8 @@ builtin$charCodes$0(receiver) {
 }
 
 makeLiteralListConst(list) {
-  JS('bool', @'$0.immutable$list = $1', list, true);
-  JS('bool', @'$0.fixed$length = $1', list, true);
+  JS('bool', @'#.immutable$list = #', list, true);
+  JS('bool', @'#.fixed$length = #', list, true);
   return list;
 }
 
@@ -1284,12 +1284,12 @@ makeLiteralListConst(list) {
 unwrapException(ex) {
   // Note that we are checking if the object has the property. If it
   // has, it could be set null if the thrown value is null.
-  if (JS('bool', @'"dartException" in $0', ex)) {
-    return JS('Object', @'$0.dartException', ex);
-  } else if (JS('bool', @'$0 instanceof TypeError', ex)) {
+  if (JS('bool', @'"dartException" in #', ex)) {
+    return JS('Object', @'#.dartException', ex);
+  } else if (JS('bool', @'# instanceof TypeError', ex)) {
     // TODO(ahe): ex.type is Chrome specific.
-    var type = JS('String', @'$0.type', ex);
-    var jsArguments = JS('Object', @'$0.arguments', ex);
+    var type = JS('String', @'#.type', ex);
+    var jsArguments = JS('Object', @'#.arguments', ex);
     var name = jsArguments[0];
     if (type == 'property_not_function' ||
         type == 'called_non_callable' ||
@@ -1307,8 +1307,8 @@ unwrapException(ex) {
         return new NoSuchMethodException('', name, []);
       }
     }
-  } else if (JS('bool', @'$0 instanceof RangeError', ex)) {
-    var message = JS('String', @'$0.message', ex);
+  } else if (JS('bool', @'# instanceof RangeError', ex)) {
+    var message = JS('String', @'#.message', ex);
     if (message.contains('call stack')) {
       return new StackOverflowException();
     }
@@ -1321,7 +1321,7 @@ unwrapException(ex) {
  * exception.
  */
 StackTrace getTraceFromException(exception) {
-  return new StackTrace(JS("var", @"$0.stack", exception));
+  return new StackTrace(JS("var", @"#.stack", exception));
 }
 
 class StackTrace {
@@ -1352,14 +1352,14 @@ makeLiteralMap(List keyValuePairs) {
  */
 convertDartClosureToJS(closure) {
   if (closure === null) return null;
-  var function = JS('var', @'$0.$identity', closure);
-  if (JS('bool', @'!!$0', function)) return function;
+  var function = JS('var', @'#.$identity', closure);
+  if (JS('bool', @'!!#', function)) return function;
   function = JS("var", @"""function() {
-    var dartClosure = $0;
+    var dartClosure = #;
     switch (arguments.length) {
-      case 0: return $1(dartClosure);
-      case 1: return $2(dartClosure, arguments[0]);
-      case 2: return $3(dartClosure, arguments[0], arguments[1]);
+      case 0: return #(dartClosure);
+      case 1: return #(dartClosure, arguments[0]);
+      case 2: return #(dartClosure, arguments[0], arguments[1]);
       default:
         throw new Error('Unsupported number of arguments for wrapped closure');
     }
@@ -1368,7 +1368,7 @@ convertDartClosureToJS(closure) {
   callClosure0,
   callClosure1,
   callClosure2);
-  JS('void', @'$0.$identity = $1', closure, function);
+  JS('void', @'#.$identity = #', closure, function);
   return function;
 }
 
@@ -1387,11 +1387,11 @@ class Closure implements Function {
 }
 
 bool jsHasOwnProperty(var jsObject, String property) {
-  return JS('bool', @'$0.hasOwnProperty($1)', jsObject, property);
+  return JS('bool', @'#.hasOwnProperty(#)', jsObject, property);
 }
 
 jsPropertyAccess(var jsObject, String property) {
-  return JS('var', @'$0[$1]', jsObject, property);
+  return JS('var', @'#[#]', jsObject, property);
 }
 
 /**

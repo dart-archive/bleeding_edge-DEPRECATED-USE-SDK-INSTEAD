@@ -97,7 +97,7 @@ Isolate.prototype.B = function B(B_z, B_y, A_x) {
 
 constructor1() {
   String generated = compileAll(TEST_FIVE);
-  Expect.isTrue(generated.contains("new \$.A(t0);"));
+  Expect.isTrue(generated.contains("new \$.A(x);"));
 }
 
 main() {

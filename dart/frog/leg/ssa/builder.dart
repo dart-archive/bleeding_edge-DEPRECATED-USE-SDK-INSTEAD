@@ -1724,7 +1724,7 @@ class SsaBuilder implements Visitor {
         addGenericSendArgumentsToList(node.arguments, inputs);
         String name = compiler.namer.instanceMethodName(
             Namer.OPERATOR_EQUALS, 1);
-        push(new HForeign(new DartString.literal('\$0.$name'),
+        push(new HForeign(new DartString.literal('#.$name'),
                           const LiteralDartString('bool'),
                           inputs));
         break;

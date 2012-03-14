@@ -21,22 +21,22 @@ class RegExpWrapper {
                                         global == true ? 'g' : ''}");
 
   exec(str) {
-    var result = JS('List', @'$0.exec($1)', re, checkString(str));
-    if (JS('bool', @'$0 === null', result)) return null;
+    var result = JS('List', @'#.exec(#)', re, checkString(str));
+    if (JS('bool', @'# === null', result)) return null;
     return result;
   }
 
-  test(str) => JS('bool', @'$0.test($1)', re, checkString(str));
+  test(str) => JS('bool', @'#.test(#)', re, checkString(str));
 
-  static matchStart(m) => JS('int', @'$0.index', m);
+  static matchStart(m) => JS('int', @'#.index', m);
 
   static makeRegExp(pattern, flags) {
     checkString(pattern);
     try {
-      return JS('Object', @'new RegExp($0, $1)', pattern, flags);
+      return JS('Object', @'new RegExp(#, #)', pattern, flags);
     } catch (var e) {
       throw new IllegalJSRegExpException(pattern,
-                                         JS('String', @'String($0)', e));
+                                         JS('String', @'String(#)', e));
     }
   }
 }

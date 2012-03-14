@@ -181,7 +181,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       && element.isGetter()
       && nativeEmitter.toNativeName(element.enclosingElement) == 'DOMType') {
     DartString jsCode = new DartString.literal(
-        '${nativeEmitter.typeNameOfName}(\$0)');
+        '${nativeEmitter.typeNameOfName}(#)');
     List<HInstruction> inputs =
         <HInstruction>[builder.localsHandler.readThis()];
     builder.push(new HForeign(
@@ -193,11 +193,9 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     List<String> arguments = <String>[];
     List<HInstruction> inputs = <HInstruction>[];
     FunctionParameters parameters = element.computeParameters(builder.compiler);
-    int i = 0;
     String receiver = '';
     if (element.isInstanceMember()) {
-      receiver = '\$$i.';
-      i++;
+      receiver = '#.';
       inputs.add(builder.localsHandler.readThis());
     }
     parameters.forEachParameter((Element parameter) {
@@ -212,8 +210,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
         builder.add(input);
       }
       inputs.add(input);
-      arguments.add('\$$i');
-      i++;
+      arguments.add('#');
     });
     String foreignParameters = Strings.join(arguments, ',');
 
@@ -276,24 +273,18 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       // 'this' does not have the method yet.
       HInstruction elseInstruction;
       void visitElse() {
-        DartString jsCode =
-            new DartString.literal('Object.prototype.$dartMethodName');
-        HInstruction instruction =
-            new HForeign(jsCode, const LiteralDartString('Object'), []);
-        builder.add(instruction);
-        List<HInstruction> elseInputs = new List<HInstruction>.from(inputs);
-        elseInputs.add(instruction);
         String params = arguments.isEmpty() ? '' : ', $foreignParameters';
-        jsCode = new DartString.literal('\$${i}.call(\$0$params)');
+        DartString jsCode = new DartString.literal(
+            'Object.prototype.$dartMethodName.call(#$params)');
         elseInstruction =
-            new HForeign(jsCode, const LiteralDartString('Object'), elseInputs);
+            new HForeign(jsCode, const LiteralDartString('Object'), inputs);
         builder.add(elseInstruction);
       }
 
       HConstant constant = builder.graph.addConstantString(
           new DartString.literal('$dartMethodName'));
       DartString jsCode = new DartString.literal(
-          'Object.getPrototypeOf(\$0).hasOwnProperty(\$1)');
+          'Object.getPrototypeOf(#).hasOwnProperty(#)');
       builder.push(new HForeign(
           jsCode, const LiteralDartString('Object'),
           <HInstruction>[builder.localsHandler.readThis(), constant]));
