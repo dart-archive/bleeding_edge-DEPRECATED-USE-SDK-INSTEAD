@@ -1587,66 +1587,25 @@ class SsaBuilder implements Visitor {
   void addStaticSendArgumentsToList(Send node,
                                     FunctionElement element,
                                     List<HInstruction> list) {
+    HInstruction compileArgument(Node argument) {
+      visit(argument);
+      return pop();
+    }
+
+    HInstruction compileConstant(Element constantElement) {
+      Constant constant = compiler.compileVariable(constantElement);
+      return graph.addConstant(constant);
+    }
+
     Selector selector = elements.getSelector(node);
-    FunctionParameters parameters = element.computeParameters(compiler);
-    if (!selector.applies(compiler, element)) {
+    bool succeeded = selector.addSendArgumentsToList(node, element, list,
+                                                     compiler,
+                                                     compileArgument,
+                                                     compileConstant);
+   if (!succeeded) {
       // TODO(ngeoffray): Match the VM behavior and throw an
       // exception at runtime.
       compiler.cancel('Unimplemented non-matching static call', node: node);
-    } else if (selector.positionalArgumentCount == parameters.parameterCount) {
-      addGenericSendArgumentsToList(node.arguments, list);
-    } else {
-      // If there are named arguments, provide them in the order
-      // expected by the called function, which is the source order.
-
-      // Visit positional arguments and add them to the list.
-      Link<Node> arguments = node.arguments;
-      int positionalArgumentCount = selector.positionalArgumentCount;
-      for (int i = 0;
-           i < positionalArgumentCount;
-           arguments = arguments.tail, i++) {
-        visit(arguments.head);
-        list.add(pop());
-      }
-
-      // Visit named arguments and add them into a temporary list.
-      List<HInstruction> namedArguments = <HInstruction>[];
-      for (; !arguments.isEmpty(); arguments = arguments.tail) {
-        visit(arguments.head);
-        namedArguments.add(pop());
-      }
-
-      Link<Element> remainingNamedParameters = parameters.optionalParameters;
-      // Skip the optional parameters that have been given in the
-      // positional arguments.
-      for (int i = parameters.requiredParameterCount;
-           i < positionalArgumentCount;
-           i++) {
-        remainingNamedParameters = remainingNamedParameters.tail;
-      }
-
-      // Loop over the remaining named parameters, and try to find
-      // their values: either in the temporary list or using the
-      // default value.
-      for (;
-           !remainingNamedParameters.isEmpty();
-           remainingNamedParameters = remainingNamedParameters.tail) {
-        Element parameter = remainingNamedParameters.head;
-        int foundIndex = -1;
-        for (int i = 0; i < selector.namedArguments.length; i++) {
-          SourceString name = selector.namedArguments[i];
-          if (name == parameter.name) {
-            foundIndex = i;
-            break;
-          }
-        }
-        if (foundIndex != -1) {
-          list.add(namedArguments[foundIndex]);
-        } else {
-          Constant constant = compiler.compileVariable(parameter);
-          list.add(graph.addConstant(constant));
-        }
-      }
     }
   }
 

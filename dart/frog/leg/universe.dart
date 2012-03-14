@@ -114,6 +114,79 @@ class Selector implements Hashable {
     }
   }
 
+  /**
+   * Returns [:true:] if the selector and the [element] match; [:false:]
+   * otherwise.
+   */
+  bool addSendArgumentsToList(Send send,
+                              FunctionElement element,
+                              List list,
+                              Compiler compiler,
+                              visitArgument(Node argument),
+                              visitConstant(Element element)) {
+    void addMatchingSendArgumentsToList(Link<Node> link) {
+      for (; !link.isEmpty(); link = link.tail) {
+        list.add(visitArgument(link.head));
+      }
+    }
+
+    FunctionParameters parameters = element.computeParameters(compiler);
+    if (!this.applies(compiler, element)) return false;
+    if (this.positionalArgumentCount == parameters.parameterCount) {
+      addMatchingSendArgumentsToList(send.arguments);
+      return true;
+    }
+
+    // If there are named arguments, provide them in the order
+    // expected by the called function, which is the source order.
+
+    // Visit positional arguments and add them to the list.
+    Link<Node> arguments = send.arguments;
+    int positionalArgumentCount = this.positionalArgumentCount;
+    for (int i = 0;
+         i < positionalArgumentCount;
+         arguments = arguments.tail, i++) {
+      list.add(visitArgument(arguments.head));
+    }
+
+    // Visit named arguments and add them into a temporary list.
+    List namedArguments = [];
+    for (; !arguments.isEmpty(); arguments = arguments.tail) {
+      namedArguments.add(visitArgument(arguments.head));
+    }
+
+    Link<Element> remainingNamedParameters = parameters.optionalParameters;
+    // Skip the optional parameters that have been given in the
+    // positional arguments.
+    for (int i = parameters.requiredParameterCount;
+         i < positionalArgumentCount;
+         i++) {
+      remainingNamedParameters = remainingNamedParameters.tail;
+    }
+
+    // Loop over the remaining named parameters, and try to find
+    // their values: either in the temporary list or using the
+    // default value.
+    for (;
+         !remainingNamedParameters.isEmpty();
+         remainingNamedParameters = remainingNamedParameters.tail) {
+      Element parameter = remainingNamedParameters.head;
+      int foundIndex = -1;
+      for (int i = 0; i < this.namedArguments.length; i++) {
+        SourceString name = this.namedArguments[i];
+        if (name == parameter.name) {
+          foundIndex = i;
+          break;
+        }
+      }
+      if (foundIndex != -1) {
+        list.add(namedArguments[foundIndex]);
+      } else {
+        list.add(visitConstant(parameter)); 
+      }
+    }
+    return true;
+  }
 
   static bool sameNames(List<SourceString> first, List<SourceString> second) {
     for (int i = 0; i < first.length; i++) {
