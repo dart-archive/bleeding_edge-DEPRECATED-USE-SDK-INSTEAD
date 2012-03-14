@@ -344,9 +344,8 @@ class Compiler implements DiagnosticListener {
 
   Object compileVariable(VariableElement element) {
     return withCurrentElement(element, () {
-        compile(new WorkItem.toCompile(element));
-        return constantHandler.compileVariable(element);
-      });
+      return constantHandler.compileVariable(element);
+    });
   }
 
   reportWarning(Node node, var message) {
