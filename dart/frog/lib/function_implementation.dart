@@ -6,7 +6,7 @@
 /// runtime. Overridden to provide a more informative error message.
 // TODO(jmesserly): should the base class support a message?
 class _ArgumentMismatchException extends ClosureArgumentMismatchException {
-  String _message;
+  final String _message;
   const _ArgumentMismatchException(this._message);
   String toString() => "Closure argument mismatch: $_message";
 }
