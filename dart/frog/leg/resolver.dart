@@ -324,8 +324,9 @@ class InitializerResolver {
       } else {
         final Compiler compiler = visitor.compiler;
         Selector selector = visitor.mapping.getSelector(call);
+        FunctionParameters parameters = result.computeParameters(compiler);
         // TODO(karlklose): support optional arguments.
-        if (!selector.applies(compiler, result)) {
+        if (!selector.applies(parameters)) {
           error(call, MessageKind.NO_MATCHING_CONSTRUCTOR);
         }
       }

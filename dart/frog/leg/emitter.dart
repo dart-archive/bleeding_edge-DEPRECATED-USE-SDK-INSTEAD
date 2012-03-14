@@ -171,8 +171,9 @@ function(child, parent) {
                          [bool isNative = false]) {
     Set<Selector> selectors = compiler.universe.invokedNames[member.name];
     if (selectors == null) return;
+    FunctionParameters parameters = member.computeParameters(compiler);
     for (Selector selector in selectors) {
-      if (!selector.applies(compiler, member)) continue;
+      if (!selector.applies(parameters)) continue;
       addParameterStub(member, attachTo, buffer, selector, isNative);
     }
   }

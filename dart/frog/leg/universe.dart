@@ -77,8 +77,7 @@ class Selector implements Hashable {
   static final Selector INVOCATION_1 =
       const Selector(SelectorKind.INVOCATION, 1);
 
-  bool applies(Compiler compiler, FunctionElement element) {
-    FunctionParameters parameters = element.computeParameters(compiler);
+  bool applies(FunctionParameters parameters) {
     if (argumentCount > parameters.parameterCount) return false;
     int requiredParameterCount = parameters.requiredParameterCount;
     int optionalParameterCount = parameters.optionalParameterCount;
@@ -119,9 +118,8 @@ class Selector implements Hashable {
    * otherwise.
    */
   bool addSendArgumentsToList(Send send,
-                              FunctionElement element,
                               List list,
-                              Compiler compiler,
+                              FunctionParameters parameters,
                               visitArgument(Node argument),
                               visitConstant(Element element)) {
     void addMatchingSendArgumentsToList(Link<Node> link) {
@@ -130,8 +128,7 @@ class Selector implements Hashable {
       }
     }
 
-    FunctionParameters parameters = element.computeParameters(compiler);
-    if (!this.applies(compiler, element)) return false;
+    if (!this.applies(parameters)) return false;
     if (this.positionalArgumentCount == parameters.parameterCount) {
       addMatchingSendArgumentsToList(send.arguments);
       return true;

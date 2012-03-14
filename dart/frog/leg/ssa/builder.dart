@@ -1598,8 +1598,8 @@ class SsaBuilder implements Visitor {
     }
 
     Selector selector = elements.getSelector(node);
-    bool succeeded = selector.addSendArgumentsToList(node, element, list,
-                                                     compiler,
+    FunctionParameters parameters = element.computeParameters(compiler);
+    bool succeeded = selector.addSendArgumentsToList(node, list, parameters,
                                                      compileArgument,
                                                      compileConstant);
    if (!succeeded) {
