@@ -14660,7 +14660,7 @@ function LibraryReader() {
     this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "corelib.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "corelib_impl.dart"), "dart:html", joinPaths($globals.options.libDir, "../../client/html/frog/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "../../client/dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "../../lib/json/json_frog.dart"), "dart:isolate", joinPaths($globals.options.libDir, "../../lib/isolate/isolate_frog.dart")]);
   }
   else if ($eq$($globals.options.config, "sdk")) {
-    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "core/core_frog.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "coreimpl/coreimpl_frog.dart"), "dart:html", joinPaths($globals.options.libDir, "html/frog/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "json/json_frog.dart"), "dart:isolate", joinPaths($globals.options.libDir, "isolate/isolate_frog.dart")]);
+    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "core/core_frog.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "coreimpl/coreimpl_frog.dart"), "dart:html", joinPaths($globals.options.libDir, "html/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "json/json_frog.dart"), "dart:isolate", joinPaths($globals.options.libDir, "isolate/isolate_frog.dart")]);
   }
   else {
     $globals.world.error(("Invalid configuration " + $globals.options.config));
