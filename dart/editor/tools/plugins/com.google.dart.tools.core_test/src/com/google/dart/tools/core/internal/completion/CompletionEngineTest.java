@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -200,6 +200,14 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCommentSnippets037() throws Exception {
     test("t3() {var x=new List.!1}", "1+from");
+  }
+
+  public void testCommentSnippets038() throws Exception {
+    test("int xa; String s = '$x!1'", "1+xa");
+  }
+
+  public void testCommentSnippets039() throws Exception {
+    test("int xa; String s = '$!1'", "1+xa");
   }
 
   public void testCompletion_alias_field() throws Exception {

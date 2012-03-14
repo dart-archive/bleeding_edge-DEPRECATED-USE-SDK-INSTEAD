@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -37,7 +37,10 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartReturnStatement;
+import com.google.dart.compiler.ast.DartStringInterpolation;
+import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
+import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -344,6 +347,13 @@ public class CompletionEngine {
     public Void visitReturnStatement(DartReturnStatement completionNode) {
       // { return v! }
       proposeIdentifierPrefixCompletions(completionNode);
+      return null;
+    }
+
+    @Override
+    public Void visitStringInterpolation(DartStringInterpolation node) {
+      // "$h!"
+      proposeIdentifierPrefixCompletions(identifier);
       return null;
     }
 
@@ -771,6 +781,38 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitStringLiteral(DartStringLiteral node) {
+      DartNode parent = node.getParent();
+      if (parent instanceof DartStringInterpolation) {
+        DartStringInterpolation interp = (DartStringInterpolation) parent;
+        List<DartStringLiteral> iStrings = interp.getStrings();
+        List<DartExpression> iExprs = interp.getExpressions();
+        // the source positions of string interpolation nodes are not recorded
+        // so we will check that we could have a variable interpolation but will not
+        // try to be too strict, since we cannot
+        if (iStrings.size() >= 1) {
+          for (int idxStrings = 1, idxExprs = 0; idxStrings < iStrings.size(); idxStrings++, idxExprs++) {
+            DartStringLiteral lit = iStrings.get(idxStrings);
+            DartExpression exp = iExprs.get(idxExprs);
+            if (lit.getValue().isEmpty() && exp instanceof DartSyntheticErrorExpression) {
+              // "$!"
+              createCompletionsForLocalVariables(node, null, resolvedMember);
+              Element parentElement = resolvedMember.getElement().getEnclosingElement();
+              if (parentElement instanceof ClassElement) {
+                Type type = ((ClassElement) parentElement).getType();
+                boolean isStatic = resolvedMember.getModifiers().isStatic();
+                createCompletionsForPropertyAccess(null, type, false, isStatic);
+                createCompletionsForMethodInvocation(null, type, false, isStatic);
+              }
+              break;
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    @Override
     public Void visitThisExpression(DartThisExpression node) {
       // { this! } the only legal continuation is punctuation, which we do not propose
       // you can't get here directly, this occurs when backspacing from {this.!}
@@ -866,6 +908,7 @@ public class CompletionEngine {
     }
   }
 
+  @SuppressWarnings("unused")
   private static class SyntheticIdentifier extends DartIdentifier {
     private static final long serialVersionUID = 1L;
     private int srcStart, srcLen;
