@@ -20,6 +20,7 @@ BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 DART_PATH = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+DART2JS_BUILDER = r'dart2js-(linux|mac|windows)-(debug|release)(-[a-z]+)?'
 FROG_BUILDER = r'(frog|frogsh)-(linux|mac|windows)-(debug|release)'
 WEB_BUILDER = r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(\d+))?'
 
@@ -27,24 +28,33 @@ NO_COLOR_ENV = dict(os.environ)
 NO_COLOR_ENV['TERM'] = 'nocolor'
 
 def GetBuildInfo():
-  """Returns a tuple (name, mode, system) where:
-    - name: 'frog', 'frogsh', 'frogium', or None when the builder has an
-      incorrect name
+  """Returns a tuple (name, mode, system, browser, option) where:
+    - name: 'dart2js', 'frog', 'frogsh', 'frogium', or None when the
+      builder has an incorrect name
     - mode: 'debug' or 'release'
     - system: 'linux', 'mac', or 'win7'
     - browser: 'ie', 'ff', 'safari', 'chrome'
+    - option: 'checked'
   """
   name = None
   mode = None
   system = None
   browser = None
   builder_name = os.environ.get(BUILDER_NAME)
+  option = None
   if builder_name:
 
+    dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
     frog_pattern = re.match(FROG_BUILDER, builder_name)
     web_pattern = re.match(WEB_BUILDER, builder_name)
 
-    if frog_pattern:
+    if dart2js_pattern:
+      name = 'dart2js'
+      system = dart2js_pattern.group(1)
+      mode = dart2js_pattern.group(2)
+      option = dart2js_pattern.group(3)
+
+    elif frog_pattern:
       name = frog_pattern.group(1)
       system = frog_pattern.group(2)
       mode = frog_pattern.group(3)
@@ -62,7 +72,7 @@ def GetBuildInfo():
   if system == 'windows':
     system = 'win7'
 
-  return (name, mode, system, browser)
+  return (name, mode, system, browser, option)
 
 
 def ComponentsNeedsXterm(component):
@@ -112,12 +122,15 @@ def BuildFrog(component, mode, system):
   print 'running %s' % (' '.join(args))
   exit_code = subprocess.call(args, env=NO_COLOR_ENV)
 
+  if component == 'dart2js':
+    return exit_code
+
   args = [sys.executable, './tools/build.py', '--mode=' + mode, 'frogsh']
   print 'running %s' % (' '.join(args))
   return subprocess.call(args, env=NO_COLOR_ENV) | exit_code
 
 
-def TestFrog(component, mode, system, browser, flags):
+def TestFrog(component, mode, system, browser, option, flags):
   """ test frog.
    Args:
      - component: either 'leg', 'frog', 'frogsh' (frog self-hosted), 'frogium',
@@ -125,27 +138,30 @@ def TestFrog(component, mode, system, browser, flags):
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
      - browser: one of the browsers, see GetBuildInfo
+     - option: 'checked'
      - flags: extra flags to pass to test.dart
   """
 
   # Make sure we are in the frog directory
   os.chdir(DART_PATH)
 
-  if component != 'frogium': # frog and frogsh
-    if (component == 'frog' and mode == 'release'):
+  if component == 'dart2js':
+    if (option == 'checked'):
       flags.append('--timeout=240')
+    # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
+    TestStep("leg_extra", mode, system, 'vm', ['leg'], flags)
+
+    extra_suites = ['leg_only', 'frog_native']
+    TestStep("leg_extra", mode, system, 'leg', extra_suites, flags)
+
+    TestStep("leg", mode, system, 'leg', [], flags)
+
+  elif component != 'frogium': # frog and frogsh
     TestStep("frog", mode, system, component, [], flags)
     TestStep("frog_extra", mode, system,
         component, ['frog', 'frog_native', 'peg', 'css'], flags)
     TestStep("sdk", mode, system,
         'vm', ['dartdoc'], flags)
-
-    if not '--checked' in flags:
-      TestStep("leg", mode, system, 'leg', [], flags)
-      TestStep("leg_extra", mode, system, 'leg',
-               ['leg_only', 'frog_native'], flags)
-      # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
-      TestStep("leg_extra", mode, system, 'vm', ['leg'], flags)
 
   else:
     tests = ['client', 'language', 'corelib', 'isolate', 'frog',
@@ -215,7 +231,7 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
-  component, mode, system, browser = GetBuildInfo()
+  component, mode, system, browser, option = GetBuildInfo()
   print "component: %s, mode: %s, system: %s, browser %s" % (component, mode, system,
       browser)
   if component is None:
@@ -226,13 +242,16 @@ def main():
     print '@@@STEP_FAILURE@@@'
     return status
 
+  if component == 'dart2js':
+    status = TestFrog(component, mode, system, browser, option, [])
+
   if component != 'frogium' or (system == 'linux' and browser == 'chrome'):
-    status = TestFrog(component, mode, system, browser, [])
+    status = TestFrog(component, mode, system, browser, None, [])
     if status != 0:
       print '@@@STEP_FAILURE@@@'
       return status
 
-  status = TestFrog(component, mode, system, browser, ['--checked'])
+  status = TestFrog(component, mode, system, browser, None, ['--checked'])
   if status != 0:
     print '@@@STEP_FAILURE@@@'
 

@@ -19,14 +19,19 @@ def main(args):
 
   frog_args = [ 'frog.py', '--vm=%s' % VM]
   js_cmd_flag = '--js_cmd=%s --crankshaft' % D8
+  vm_flags = None
   for arg in args:
     if arg.startswith('--js_cmd'):
       js_cmd_flag = arg
+    if arg.startswith('--vm_flags'):
+      vm_flags = arg
   if js_cmd_flag in args:
     args.remove(js_cmd_flag)
+  if vm_flags in args:
+    args.remove(vm_flags)
   frog_args.append(js_cmd_flag)
-  if VM_FLAGS:
-    frog_args.append(VM_FLAGS)
+  if vm_flags:
+    frog_args.append(vm_flags)
   frog_args.append('--')
   frog_args.extend(args[1:])
 
