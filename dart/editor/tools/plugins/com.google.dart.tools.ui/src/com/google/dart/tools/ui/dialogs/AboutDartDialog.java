@@ -24,6 +24,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.Geometry;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -39,6 +40,8 @@ public class AboutDartDialog extends Shell {
 
   private static final ImageDescriptor ABOUT_IMG_DESC = ImageDescriptor.createFromURL(Platform.getBundle(
       DartUI.ID_PLUGIN).getEntry(DialogsMessages.AboutDartDialog_about_image));
+
+  private static final String NEW_LINE = System.getProperty("line.separator");
 
   public AboutDartDialog(Shell shell) {
     super(shell, SWT.CLOSE | SWT.TITLE);
@@ -72,15 +75,18 @@ public class AboutDartDialog extends Shell {
     productNameLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
     productNameLabel.setText(DialogsMessages.AboutDartDialog_product_label);
 
-    Label versionLabel = newLabel(SWT.NONE);
-    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(versionLabel);
-    versionLabel.setText(DialogsMessages.AboutDartDialog_version_string_prefix + getVersion()
-        + ", " + "Build " + DartToolsPlugin.getBuildId());
+    StyledText buildDetailsText = new StyledText(this, SWT.NONE);
+    buildDetailsText.setLineSpacing(7);
+    buildDetailsText.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
+    buildDetailsText.setEditable(false);
+    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(buildDetailsText);
 
-    // Dart SDK + Dartium versions
-    Label sdkLabel = newLabel(SWT.NONE);
-    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(sdkLabel);
     StringBuilder builder = new StringBuilder();
+
+    builder.append(DialogsMessages.AboutDartDialog_version_string_prefix + getVersion() + ", "
+        + "Build " + DartToolsPlugin.getBuildId());
+
+    builder.append(NEW_LINE);
 
     if (DartSdk.isInstalled()) {
       builder.append("Dart SDK version " + DartSdk.getInstance().getSdkVersion());
@@ -97,7 +103,9 @@ public class AboutDartDialog extends Shell {
       builder.append("Dart SDK is not installed");
     }
 
-    sdkLabel.setText(builder.toString());
+    buildDetailsText.setText(builder.toString());
+
+    buildDetailsText.getCaret().setSize(0, 0); //nuke the caret
 
     // spacer
     newLabel(SWT.NONE);
