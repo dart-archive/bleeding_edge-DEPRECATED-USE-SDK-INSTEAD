@@ -606,7 +606,7 @@ function(child, parent) {
                      Selector.SETTER);
     });
   }
-  
+
   String buildIsolateSetup(Element appMain, Element isolateMain) {
     String mainAccess = "${namer.isolateAccess(appMain)}";
     String currentIsolate = "${namer.CURRENT_ISOLATE}";
@@ -624,15 +624,16 @@ function(child, parent) {
   // are not really needed. We should remove them once Leg replaces Frog.
     return """
 var \$globalThis = $currentIsolate;
-var \$globalState = $currentIsolate;
-var \$globals = $currentIsolate;
+var \$globalState;
+var \$globals;
 function \$static_init(){};
 
 function \$initGlobals(context) {
   context.isolateStatics = new ${namer.ISOLATE}();
 }
 function \$setGlobals(context) {
-  \$globals = context.isolateStatics;
+  $currentIsolate = context.isolateStatics;
+  \$globalThis = $currentIsolate;
 }
 $mainEnsureGetter
 ${namer.isolateAccess(isolateMain)}($mainAccess);""";
