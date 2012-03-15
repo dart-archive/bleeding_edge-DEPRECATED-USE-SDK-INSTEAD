@@ -67,17 +67,8 @@ lib/view/ViewTest: Skip
 *: Skip
 
 [ $component == legium ]
-total/TotalTest: Fail # Resolution error
+total/TotalTest: Skip # Timeout
+dartcombat/DartCombatTest: Fail # duplicate definition
 
-# Unimplemented map constants.
-swarm/SwarmTest: Fail # CompileTimeConstantEvaluator map not implemented
-lib/view/ViewTest: Fail # CompileTimeConstantEvaluator map not implemented
-
-# Unimplemented dart:isolate
-dartcombat/DartCombatTest: Fail # cannot read dart:isolate
-proxy/PromiseTest: Fail # cannot read dart:isolate
-proxy/MintMakerFullyIsolated_generatedTest: Fail # cannot read dart:isolate
-proxy/PromiseBasedTest: Fail # cannot read dart:isolate
-proxy/MintMakerRpcTest: Fail # cannot read dart:isolate
-proxy/MintMakerPromiseWithStubs_generatedTest: Fail # cannot read dart:isolate
-proxy/MintMakerPromiseTest: Fail # cannot read dart:isolate
+swarm/SwarmTest: Fail # ConstantHandler with optional arguments not implemented
+lib/view/ViewTest: Fail # ConstantHandler with optional arguments not implemented
