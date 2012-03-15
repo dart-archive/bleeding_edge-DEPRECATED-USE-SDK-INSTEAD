@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.index.persistance;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Location;
@@ -21,6 +20,7 @@ import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.store.ContributedLocation;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
+import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -73,11 +73,29 @@ public class IndexReader {
    */
   public boolean readIndex(ObjectInputStream input) throws IOException {
     int version = input.readInt(); // File version number.
-    if (version != 1) {
+    if (version == 1) {
+      // Version 1 was considered unreadable if the editor's build number had changed. Given that
+      // a change to the version number necessitates a new build, a file with this version can never
+      // be readable once a new version was introduced.
+      return false;
+    } else if (version == 2) {
+      return readIndexVersion2(input);
+    } else {
       throw new IOException("Invalid version number in index file: " + version);
     }
-    String buildId = input.readUTF();
-    if (!buildId.equals(DartCore.getBuildIdOrDate())) {
+  }
+
+  /**
+   * Read the contents of the index from the given input stream given that the version of the file
+   * format has been determined to be <code>2</code>.
+   * 
+   * @param input the stream from which the contents of the index are to be read
+   * @return <code>true</code> if the input stream is valid and could be read
+   * @throws IOException if the index could not be read
+   */
+  public boolean readIndexVersion2(ObjectInputStream input) throws IOException {
+    String sdkVersion = input.readUTF();
+    if (!sdkVersion.equals(DartSdk.getInstance().getSdkVersion())) {
       return false;
     }
     readStringTable(input);

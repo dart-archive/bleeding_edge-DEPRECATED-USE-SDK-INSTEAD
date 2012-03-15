@@ -13,13 +13,13 @@
  */
 package com.google.dart.tools.core.internal.index.persistance;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Location;
 import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.store.ContributedLocation;
+import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -60,7 +60,7 @@ public class IndexWriter {
   /**
    * The version number of the file format being generated.
    */
-  private static int FILE_VERSION_NUMBER = 1;
+  public static int FILE_VERSION_NUMBER = 2;
 
   /**
    * Initialize a newly created index writer to write the attributes and relationships in the given
@@ -87,7 +87,7 @@ public class IndexWriter {
     buildStringTable();
 
     writeFileVersionNumber(output);
-    writeBuildId(output);
+    writeSDKVersionNumber(output);
     writeStringTable(output);
     writeAttributeMap(output);
     writeRelationshipMap(output);
@@ -235,18 +235,6 @@ public class IndexWriter {
   }
 
   /**
-   * Write a unique token that can be used to determine whether the content of this index file is
-   * still valid based on whether the version of the editor (and hence possibly the version of the
-   * bundled libraries) is the same.
-   * 
-   * @param output the stream to which the unique token is to be written
-   * @throws IOException if the unique token could not be written
-   */
-  private void writeBuildId(ObjectOutputStream output) throws IOException {
-    output.writeUTF(DartCore.getBuildIdOrDate());
-  }
-
-  /**
    * Write the given contributed location to the given output stream.
    * 
    * @param output the stream to which the contributed location is to be written
@@ -336,6 +324,16 @@ public class IndexWriter {
    */
   private void writeResource(ObjectOutputStream output, Resource resource) throws IOException {
     writeString(output, resource.getResourceId());
+  }
+
+  /**
+   * Write the version number of the SDK that was indexed.
+   * 
+   * @param output the stream to which the SDK version is to be written
+   * @throws IOException if the SDK version could not be written
+   */
+  private void writeSDKVersionNumber(ObjectOutputStream output) throws IOException {
+    output.writeUTF(DartSdk.getInstance().getSdkVersion());
   }
 
   /**

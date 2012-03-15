@@ -75,6 +75,9 @@ public class IndexResourceOperation implements IndexOperation {
 
   @Override
   public void performOperation() {
+    if (!compilationUnit.exists()) {
+      return;
+    }
     long indexStart = 0L;
     long indexEnd = 0L;
     long bindingTime = 0L;
