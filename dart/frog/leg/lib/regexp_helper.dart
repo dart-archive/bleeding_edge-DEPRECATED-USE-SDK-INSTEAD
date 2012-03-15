@@ -3,22 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class RegExpWrapper {
-  final re;
+  final String pattern;
+  final bool multiLine;
+  final bool ignoreCase;
+  final bool global;
 
-  // TODO(ahe): This constructor is clearly not const. We need some
-  // better way to handle constant regular expressions. One might
-  // question if regular expressions are really constant as we have
-  // tests that expect an exception from the constructor.
-  const RegExpWrapper(pattern, multiLine, ignoreCase, global)
-    : re = makeRegExp(pattern, "${multiLine == true ? 'm' : ''}${
-                                  ignoreCase == true ? 'i' : ''}${
-                                  global == true ? 'g' : ''}");
+  const RegExpWrapper(this.pattern,
+                      this.multiLine, this.ignoreCase, this.global);
 
-  RegExpWrapper.fromRegExp(other, global)
-    // TODO(ahe): Use redirection.
-    : re = makeRegExp(other.pattern, "${other.multiLine == true ? 'm' : ''}${
-                                        other.ignoreCase == true ? 'i' : ''}${
-                                        global == true ? 'g' : ''}");
+  const RegExpWrapper.fromRegExp(other, global)
+    : this(other.pattern, other.multiLine, other.ignoreCase, global);
 
   exec(str) {
     var result = JS('List', @'#.exec(#)', re, checkString(str));
@@ -30,10 +24,22 @@ class RegExpWrapper {
 
   static matchStart(m) => JS('int', @'#.index', m);
 
-  static makeRegExp(pattern, flags) {
+  get re() {
+    var r = JS('var', @'#._re', this);
+    if (r === null) {
+      r = JS('var', @'#._re = #', this, makeRegExp());
+    }
+    return r;
+  }
+
+  makeRegExp() {
     checkString(pattern);
+    StringBuffer sb = new StringBuffer();
+    if (multiLine) sb.add('m');
+    if (ignoreCase) sb.add('i');
+    if (global) sb.add('g');
     try {
-      return JS('Object', @'new RegExp(#, #)', pattern, flags);
+      return JS('Object', @'new RegExp(#, #)', pattern, sb.toString());
     } catch (var e) {
       throw new IllegalJSRegExpException(pattern,
                                          JS('String', @'String(#)', e));
