@@ -15,6 +15,8 @@ package com.google.dart.tools.debug.ui.internal.view;
 
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.debug.ui.internal.hover.DartDebugHover;
+import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugEvent;
@@ -44,10 +46,14 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
 
   private static DebuggerViewManager manager;
 
+  private static DartDebugHover hoverHelper = new DartDebugHover();
+
   public static void dispose() {
     if (manager != null) {
       DebugPlugin.getDefault().removeDebugEventListener(manager);
       DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(manager);
+
+      DartTextHover.removeContributer(hoverHelper);
 
       manager = null;
     }
@@ -60,6 +66,8 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
       DebugPlugin.getDefault().getLaunchManager().addLaunchListener(
           DebuggerViewManager.getDefault());
       DebugPlugin.getDefault().addDebugEventListener(DebuggerViewManager.getDefault());
+      DartTextHover.addContributer(hoverHelper);
+
     }
 
     return manager;

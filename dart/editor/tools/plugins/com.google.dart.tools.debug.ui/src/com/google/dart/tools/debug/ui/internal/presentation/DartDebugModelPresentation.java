@@ -22,6 +22,7 @@ import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.ILineBreakpoint;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.sourcelookup.containers.LocalFileStorage;
@@ -119,6 +120,17 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
     return null;
   }
 
+  public String getFormattedValueText(DartiumDebugValue value) {
+    String valueString = "<unknown value>";
+    if (value != null) {
+      valueString = value.getDisplayString();
+      if (valueString == null) {
+        valueString = "<unknown value>";
+      }
+    }
+    return valueString;
+  }
+
   /**
    * This method allows us to customize images for Dart objects that are displayed in the debugger.
    */
@@ -144,6 +156,52 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
   @Override
   public String getText(Object element) {
     return null;
+  }
+
+  /**
+   * Build the text for an {@link DartiumDebugValue}.
+   */
+  public String getValueText(DartiumDebugValue value) throws DebugException {
+
+    String refTypeName = value.getReferenceTypeName();
+
+    boolean isPrimitive = value.isPrimitive();
+    boolean isArray = value.isList();
+
+    // Always show type name for objects & arrays (but not Strings)
+    if (!isPrimitive && (refTypeName.length() > 0)) {
+      //TODO(keertip): fill in for non primitives
+      if (isArray) {
+
+      }
+    } else {
+      return value.getDisplayString();
+
+    }
+    return null;
+  }
+
+  public String getVariableText(DartiumDebugVariable var) {
+
+    String varLabel = "<unknown name>";
+    varLabel = var.getName();
+
+    DartiumDebugValue value = null;
+    try {
+      value = (DartiumDebugValue) var.getValue();
+    } catch (DebugException e1) {
+    }
+
+    StringBuffer buff = new StringBuffer();
+    buff.append(varLabel);
+
+    String valueString = getFormattedValueText(value);
+
+    if (valueString.length() != 0) {
+      buff.append("= "); //$NON-NLS-1$
+      buff.append(valueString);
+    }
+    return buff.toString();
   }
 
   @Override

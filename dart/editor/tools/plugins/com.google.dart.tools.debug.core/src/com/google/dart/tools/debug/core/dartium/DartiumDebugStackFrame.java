@@ -81,6 +81,21 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return getThread().canTerminate();
   }
 
+  public DartiumDebugVariable findVariable(String varName) throws DebugException {
+
+    IVariable[] variables = getVariables();
+    for (int i = 0; i < variables.length; i++) {
+      DartiumDebugVariable var = (DartiumDebugVariable) variables[i];
+      if (var.getName().equals(varName)) {
+        return var;
+      }
+
+    }
+
+    return null;
+
+  }
+
   @Override
   public int getCharEnd() throws DebugException {
     return -1;
