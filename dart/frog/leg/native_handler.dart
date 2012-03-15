@@ -189,10 +189,21 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     return;
   }
 
+  HInstruction convertDartClosure(Element parameter) {
+    HInstruction local = builder.localsHandler.readLocal(parameter);
+    // TODO(ngeoffray): by better analyzing the function type and
+    // its formal parameters, we could just pass, eg closure.$call$0.
+    builder.push(new HStatic(builder.interceptors.getClosureConverter()));
+    List<HInstruction> callInputs = <HInstruction>[builder.pop(), local];
+    HInstruction closure = new HInvokeStatic(Selector.INVOCATION_1, callInputs);
+    builder.add(closure);
+    return closure;
+  }
+
+  FunctionParameters parameters = element.computeParameters(builder.compiler);
   if (node.arguments.isEmpty()) {
     List<String> arguments = <String>[];
     List<HInstruction> inputs = <HInstruction>[];
-    FunctionParameters parameters = element.computeParameters(builder.compiler);
     String receiver = '';
     if (element.isInstanceMember()) {
       receiver = '#.';
@@ -201,14 +212,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     parameters.forEachParameter((Element parameter) {
       Type type = parameter.computeType(compiler);
       HInstruction input = builder.localsHandler.readLocal(parameter);
-      if (type is FunctionType) {
-        // TODO(ngeoffray): by better analyzing the function type and
-        // its formal parameters, we could just pass, eg closure.$call$0.
-        builder.push(new HStatic(builder.interceptors.getClosureConverter()));
-        List<HInstruction> callInputs = <HInstruction>[builder.pop(), input];
-        input = new HInvokeStatic(Selector.INVOCATION_1, callInputs);
-        builder.add(input);
-      }
+      if (type is FunctionType) input = convertDartClosure(parameter);
       inputs.add(input);
       arguments.add('#');
     });
@@ -300,6 +304,24 @@ void handleSsaNative(SsaBuilder builder, Send node) {
   } else if (!node.arguments.tail.isEmpty()) {
     builder.compiler.cancel('More than one argument to native');
   } else {
+    // This is JS code written in a Dart file with the construct
+    // native """ ... """;. It does not work well with mangling,
+    // but there should currently be no clash between leg mangling
+    // and the library where this construct is being used. This
+    // mangling problem will go away once we switch these libraries
+    // to use Leg's 'JS' function.
+    parameters.forEachParameter((Element parameter) {
+      Type type = parameter.computeType(compiler);
+      if (type is FunctionType) {
+        HInstruction jsClosure = convertDartClosure(parameter);
+        // Because the JS code references the argument name directly,
+        // we must keep the name and assign the JS closure to it.
+        builder.add(new HForeign(
+            new DartString.literal('${parameter.name.slowToString()} = #'),
+            const LiteralDartString('void'),
+            <HInstruction>[jsClosure]));
+      }
+    });
     LiteralString jsCode = node.arguments.head;
     builder.push(new HForeign(jsCode.dartString,
                               const LiteralDartString('Object'),
