@@ -46,6 +46,10 @@ class ElementKind {
     const ElementKind('variable', ElementCategory.VARIABLE);
   static final ElementKind PARAMETER =
     const ElementKind('parameter', ElementCategory.VARIABLE);
+  // Parameters in constructors that directly initialize fields. For example:
+  // [:A(this.field):].
+  static final ElementKind FIELD_PARAMETER =
+    const ElementKind('field_parameter', ElementCategory.VARIABLE);
   static final ElementKind FUNCTION =
     const ElementKind('function', ElementCategory.FUNCTION);
   static final ElementKind CLASS =
@@ -349,6 +353,21 @@ class VariableElement extends Element {
   // Note: cachedNode.getBeginToken() will not be correct in all
   // cases, for example, for function typed parameters.
   Token position() => findMyName(variables.position());
+}
+
+/**
+ * Parameters in constructors that directly initialize fields. For example:
+ * [:A(this.field):].
+ */
+class FieldParameterElement extends VariableElement {
+  VariableElement fieldElement;
+
+  FieldParameterElement(SourceString name,
+                        this.fieldElement,
+                        VariableListElement variables,
+                        Element enclosing,
+                        Node node)
+      : super(name, variables, ElementKind.FIELD_PARAMETER, enclosing, node);
 }
 
 // This element represents a list of variable or field declaration.

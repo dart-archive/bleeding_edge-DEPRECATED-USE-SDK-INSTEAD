@@ -49,6 +49,7 @@ class ResolverTask extends CompilerTask {
 
         case ElementKind.FIELD:
         case ElementKind.PARAMETER:
+        case ElementKind.FIELD_PARAMETER:
           return resolveVariableElement(element);
 
         default:
@@ -648,7 +649,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         parameterNodes = nodes.nodes;
       }
       VariableDefinitions variableDefinitions = parameterNodes.head;
-      defineElement(variableDefinitions.definitions.nodes.head, element);
+      Node parameterNode = variableDefinitions.definitions.nodes.head;
+      // Field parameters (this.x) are not visible inside the constructor. The
+      // fields they reference are visible, but must be resolved independently.
+      if (element.kind == ElementKind.FIELD_PARAMETER) {
+        useElement(parameterNode, element);
+      } else {
+        defineElement(variableDefinitions.definitions.nodes.head, element);        
+      }
       parameterNodes = parameterNodes.tail;
     });
   }
@@ -1425,8 +1433,10 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
         ElementKind.PARAMETER, enclosingElement, node: node);
   }
 
-  Element visitSend(Send node) {
-    Element element;
+  // The only valid [Send] can be in constructors and must be of the form
+  // [:this.x:] (where [:x:] represents an instance field).
+  FieldParameterElement visitSend(Send node) {
+    FieldParameterElement element;
     if (node.receiver.asIdentifier() === null ||
         !node.receiver.asIdentifier().isThis()) {
       error(node, MessageKind.INVALID_PARAMETER, []);
@@ -1438,23 +1448,23 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                'internal error: unimplemented receiver on parameter send');
       }
       SourceString name = node.selector.asIdentifier().source;
-      element = currentClass.lookupLocalMember(name);
-      if (element.kind !== ElementKind.FIELD) {
+      Element fieldElement = currentClass.lookupLocalMember(name);
+      if (fieldElement === null || fieldElement.kind !== ElementKind.FIELD) {
         error(node, MessageKind.NOT_A_FIELD, [name]);
-      } else if (!element.isInstanceMember()) {
+      } else if (!fieldElement.isInstanceMember()) {
         error(node, MessageKind.NOT_INSTANCE_FIELD, [name]);
       }
+      Element variables = new VariableListElement.node(currentDefinitions,
+          ElementKind.VARIABLE_LIST, enclosingElement);
+      element = new FieldParameterElement(node.selector.asIdentifier().source,
+          fieldElement, variables, enclosingElement, node);      
     }
-    // TODO(ngeoffray): it's not right to put the field element in
-    // the parameters element. Create another element instead.
     return element;
   }
 
   Element visitSendSet(SendSet node) {
     Element element;
     if (node.receiver != null) {
-      // TODO(ngeoffray): it's not right to put the field element in
-      // the parameters element. Create another element instead.
       element = visitSend(node);
     } else if (node.selector.asIdentifier() != null) {
       Element variables = new VariableListElement.node(currentDefinitions,
@@ -1485,7 +1495,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
         // If parameter is null, the current node should be the last,
         // and a list of optional named parameters.
         if (!link.tail.isEmpty() || (link.head is !NodeList)) {
-          internalError(link.head, "expected expected optional parameters");
+          internalError(link.head, "expected optional parameters");
         }
       }
     }

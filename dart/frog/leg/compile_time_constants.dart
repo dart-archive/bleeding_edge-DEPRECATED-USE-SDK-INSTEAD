@@ -486,7 +486,8 @@ class ConstantHandler extends CompilerTask {
    */
   void compileWorkItem(WorkItem work) {
     assert(work.element.kind == ElementKind.FIELD
-           || work.element.kind == ElementKind.PARAMETER);
+           || work.element.kind == ElementKind.PARAMETER
+           || work.element.kind == ElementKind.FIELD_PARAMETER);
     VariableElement element = work.element;
     // Shortcut if it has already been compiled.
     if (initialVariableValues.containsKey(element)) return;
@@ -920,7 +921,8 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     void assignArgumentsToParameters(
         List<Constant> arguments,
         FunctionParameters parameters,
-        Map<Element, Constant> constructorDefinitions) {
+        Map<Element, Constant> constructorDefinitions,
+        Map<Element, Constant> fieldValues) {
       if (arguments.length != parameters.parameterCount) {
         if (arguments.length < parameters.parameterCount &&
             arguments.length >= parameters.requiredParameterCount) {
@@ -932,14 +934,20 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       }
       int index = 0;
       parameters.forEachParameter((Element parameter) {
-        constructorDefinitions[parameter] = arguments[index++];
+        Constant argument = arguments[index++];
+        constructorDefinitions[parameter] = argument;
+        if (parameter.kind == ElementKind.FIELD_PARAMETER) {
+          FieldParameterElement fieldParameterElement = parameter;
+          fieldValues[fieldParameterElement.fieldElement] = argument;
+        }
       });
     }
 
     void compileInitializers(Link<Node> initializers,
                              CompileTimeConstantEvaluator evaluator,
                              TreeElements constructorElements,
-                             Map<Element, Constant> constructorDefinitions) {
+                             Map<Element, Constant> constructorDefinitions,
+                             Map<Element, Constant> fieldValues) {
       for (Link<Node> link = initializers; !link.isEmpty(); link = link.tail) {
         assert(link.head is Send);
         if (link.head is !SendSet) {
@@ -955,29 +963,28 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           Link<Node> arguments = init.arguments;
           assert(!arguments.isEmpty() && arguments.tail.isEmpty());
           Constant fieldValue = evaluator.evaluate(arguments.head);
-          constructorDefinitions[constructorElements[init]] = fieldValue;
+          fieldValues[constructorElements[init]] = fieldValue;
         }
       }
     }
 
-    List<Constant> buildJsConstructorArguments(
-        ClassElement classElement,
-        Map<Element, Constant> constructorDefinitions) {
-      List<Constant> fieldValues = <Constant>[];
+    List<Constant> buildJsNewArguments(ClassElement classElement,
+                                       Map<Element, Constant> fieldValues) {
+      List<Constant> jsNewArguments = <Constant>[];
       for (Element member in classElement.members) {
         if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
-          Constant fieldValue = constructorDefinitions[member];
+          Constant fieldValue = fieldValues[member];
           if (fieldValue === null) {
             // Use the default value.
             fieldValue = constantHandler.compileVariable(member);
           }
-          fieldValues.add(fieldValue);
+          jsNewArguments.add(fieldValue);
         }
       }
       if (classElement.superclass != compiler.coreLibrary.find(Types.OBJECT)) {
         compiler.unimplemented("ConstantHandler with super", node: node);
       }
-      return fieldValues;
+      return jsNewArguments;
     }
 
     // TODO(floitsch): get the type from somewhere.
@@ -989,11 +996,13 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     NodeList initializerList = functionNode.initializers;
     FunctionParameters parameters = constructor.computeParameters(compiler);
 
+    Map<Element, Constant> fieldValues = new Map<Element, Constant>();
     Map<Element, Constant> constructorDefinitions =
         new Map<Element, Constant>();
 
     List<Constant> arguments = compileArguments();
-    assignArgumentsToParameters(arguments, parameters, constructorDefinitions);
+    assignArgumentsToParameters(arguments, parameters,
+                                constructorDefinitions, fieldValues);
     CompileTimeConstantEvaluator initializerEvaluator =
         new CompileTimeConstantEvaluator.insideConstructor(
             constantHandler, constructorElements, compiler,
@@ -1003,14 +1012,15 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       compileInitializers(initializers,
                           initializerEvaluator,
                           constructorElements,
-                          constructorDefinitions);
+                          constructorDefinitions,
+                          fieldValues);
     }
-    List<Constant> fieldValues =
-        buildJsConstructorArguments(classElement, constructorDefinitions);
+    List<Constant> jsNewArguments =
+        buildJsNewArguments(classElement, fieldValues);
 
     compiler.registerInstantiatedClass(classElement);
     Type type = new SimpleType(classElement.name, classElement);
-    Constant constant = new ConstructedConstant(type, fieldValues);
+    Constant constant = new ConstructedConstant(type, jsNewArguments);
     constantHandler.registerCompileTimeConstant(constant);
     return constant;
   }

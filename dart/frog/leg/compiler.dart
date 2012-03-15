@@ -268,7 +268,8 @@ class Compiler implements DiagnosticListener {
   String codegen(WorkItem work) {
     String code;
     if (work.element.kind == ElementKind.FIELD
-        || work.element.kind == ElementKind.PARAMETER) {
+        || work.element.kind == ElementKind.PARAMETER
+        || work.element.kind == ElementKind.FIELD_PARAMETER) {
       constantHandler.compileWorkItem(work);
       return null;
     } else {

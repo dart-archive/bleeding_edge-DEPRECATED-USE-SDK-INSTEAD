@@ -276,8 +276,6 @@ class LocalsHandler {
     params.forEachParameter((Element element) {
       HParameterValue parameter = new HParameterValue(element);
       builder.add(parameter);
-      // Note that for constructors [element] could be a field-element which we
-      // treat as if it was a local.
       directLocals[element] = parameter;
     });
     if (closureData.thisElement !== null) {
@@ -773,7 +771,8 @@ class SsaBuilder implements Visitor {
    * Run through the initializers and inline all field initializers. Returns the
    * next constructor to analyze.
    */
-  FunctionElement analyzeInitializers(Link<Node> initializers) {
+  FunctionElement analyzeInitializers(Link<Node> initializers,
+                                      Map<Element, HInstruction> fieldValues) {
     FunctionElement nextConstructor;
     for (Link<Node> link = initializers; !link.isEmpty(); link = link.tail) {
       assert(link.head is Send);
@@ -791,8 +790,15 @@ class SsaBuilder implements Visitor {
         int index = 0;
         FunctionParameters parameters =
             nextConstructor.computeParameters(compiler);
-        parameters.forEachParameter((parameter) {
-          localsHandler.updateLocal(parameter, arguments[index++]);
+        parameters.forEachParameter((Element parameter) {
+          HInstruction argument = arguments[index++];
+          localsHandler.updateLocal(parameter, argument);
+          // Don't forget to update the field, if the parameter is of the
+          // form [:this.x:].
+          if (parameter.kind == ElementKind.FIELD_PARAMETER) {
+            FieldParameterElement fieldParameterElement = parameter;
+            fieldValues[fieldParameterElement.fieldElement] = argument;
+          }
         });
       } else {
         // A field initializer.
@@ -800,10 +806,7 @@ class SsaBuilder implements Visitor {
         Link<Node> arguments = init.arguments;
         assert(!arguments.isEmpty() && arguments.tail.isEmpty());
         visit(arguments.head);
-        // We treat the init field-elements like locals. In the context of
-        // the factory this is correct, and simplifies dealing with
-        // parameter-initializers (like A(this.x)).
-        localsHandler.updateLocal(elements[init], pop());
+        fieldValues[elements[init]] = pop();
       }
     }
     return nextConstructor;
@@ -821,9 +824,25 @@ class SsaBuilder implements Visitor {
   HGraph buildFactory(ClassElement classElement,
                       FunctionElement functionElement) {
     FunctionExpression function = functionElement.parseNode(compiler);
+    // Note that constructors (like any other static function) do not need
+    // to deal with optional arguments. It is the callers job to provide all
+    // arguments as if they were positional.
+
     // The initializer list could contain closures.
     openFunction(functionElement, function);
 
+    Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
+    FunctionParameters parameters = functionElement.computeParameters(compiler);
+    parameters.forEachParameter((Element element) {
+      if (element.kind == ElementKind.FIELD_PARAMETER) {
+        // If the [element] is a field-parameter (such as [:this.x:] then
+        // initialize the field element with its value.
+        FieldParameterElement fieldParameterElement = element;
+        HInstruction parameterValue = localsHandler.readLocal(element);
+        fieldValues[fieldParameterElement.fieldElement] = parameterValue;
+      }
+    });
+    
     final Map<FunctionElement, TreeElements> constructorElements =
         compiler.resolver.constructorElements;
     List<FunctionElement> constructors = new List<FunctionElement>();
@@ -839,7 +858,8 @@ class SsaBuilder implements Visitor {
       FunctionExpression functionNode = constructor.parseNode(compiler);
       Link<Node> initializers = const EmptyLink<Node>();
       if (functionNode.initializers !== null) {
-        nextConstructor = analyzeInitializers(functionNode.initializers.nodes);
+        nextConstructor =
+            analyzeInitializers(functionNode.initializers.nodes, fieldValues);
       }
       if (nextConstructor === null) {
         // No super initializer found. Try to find the default constructor if
@@ -865,10 +885,10 @@ class SsaBuilder implements Visitor {
     while (element != null) {
       for (Element member in element.members) {
         if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
-          HInstruction value;
-          if (localsHandler.hasValueForDirectLocal(member)) {
-            value = localsHandler.readLocal(member);
-          } else {
+          HInstruction value = fieldValues[member];
+          if (value === null) {
+            // The field has no value in the initializer list. Initialize it
+            // with the declaration-site constant (if any).
             Constant fieldValue =
                 compiler.constantHandler.compileVariable(member);
             value = graph.addConstant(fieldValue);
