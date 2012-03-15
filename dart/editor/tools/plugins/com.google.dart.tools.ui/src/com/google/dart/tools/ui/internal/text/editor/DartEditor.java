@@ -36,6 +36,7 @@ import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
+import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
@@ -2384,17 +2385,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     super.createActions();
 
     DartX.todo("actions");
-    ActionGroup oeg, ovg, jsg;
-    fActionGroups = new CompositeActionGroup(new ActionGroup[] {oeg = new OpenEditorActionGroup(
-        this),
-//      ovg = new OpenViewActionGroup(this),
+    ActionGroup oeg, ovg;
+//    ActionGroup jsg;
+    fActionGroups = new CompositeActionGroup(new ActionGroup[] {
+        oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
 //      jsg = new DartSearchActionGroup(this)
         });
-    fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {
-//     ovg,
-    oeg,
+    fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg,
 //     jsg
-
         });
 
     // Registers the folding actions with the editor
@@ -2405,8 +2403,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     setAction(GotoMatchingBracketAction.GOTO_MATCHING_BRACKET, action);
 
     openCallHierarchy = new OpenCallHierarchyAction(this);
-    openCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_CALL_HIERARCHY);
-    setAction("OpenCallHierarchy", openCallHierarchy); //$NON-NLS-1$
+    openCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY);
+    setAction(DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY, openCallHierarchy); //$NON-NLS-1$
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
+        DartHelpContextIds.CALL_HIERARCHY_VIEW);
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "ShowOutline.", this, DartSourceViewer.SHOW_OUTLINE, true); //$NON-NLS-1$

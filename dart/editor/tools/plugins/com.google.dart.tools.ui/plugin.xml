@@ -2296,6 +2296,12 @@
             categoryId="org.eclipse.ui.category.navigate"
             id="com.google.dart.tools.ui.edit.text.open.call.hierarchy">
       </command>
+      <command
+            name="%ActionDefinition.openCallHierarchy.name"
+            description="%ActionDefinition.openCallHierarchy.description"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="com.google.dart.tools.ui.edit.text.analyze.call.hierarchy">
+      </command>
       
       <command
             name="%ActionDefinition.gotoPackage.name"
@@ -3551,7 +3557,7 @@
       <key
             sequence="CTRL+ALT+H"
             contextId="com.google.dart.tools.ui.dartEditorScope"
-            commandId="com.google.dart.tools.ui.edit.text.open.call.hierarchy"
+            commandId="com.google.dart.tools.ui.edit.text.analyze.call.hierarchy"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
 
       <key

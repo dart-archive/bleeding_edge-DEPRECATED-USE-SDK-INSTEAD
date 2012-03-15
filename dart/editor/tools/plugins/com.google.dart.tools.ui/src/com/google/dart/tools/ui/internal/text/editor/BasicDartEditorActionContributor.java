@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
@@ -67,6 +68,8 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
 
   private RetargetTextEditorAction fRemoveOccurrenceAnnotationsAction;
 
+  private RetargetTextEditorAction fOpenCallHierarchy;
+
   public BasicDartEditorActionContributor() {
     super();
 
@@ -94,6 +97,10 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
     fOpenHierarchy = new RetargetTextEditorAction(DartEditorMessages.getBundleForConstructedKeys(),
         "OpenHierarchy."); //$NON-NLS-1$
     fOpenHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
+
+    fOpenCallHierarchy = new RetargetTextEditorAction(
+        DartEditorMessages.getBundleForConstructedKeys(), "OpenCallHierarchy."); //$NON-NLS-1$
+    fOpenCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY);
 
     fOpenStructure = new RetargetTextEditorAction(DartEditorMessages.getBundleForConstructedKeys(),
         "OpenStructure."); //$NON-NLS-1$
@@ -145,6 +152,9 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
     IMenuManager navigateMenu = menu.findMenuUsingPath(IWorkbenchActionConstants.M_NAVIGATE);
     if (navigateMenu != null) {
       navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, fOpenDeclaration);
+      if (DartCoreDebug.ENABLE_CALL_GRAPH) {
+        navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, fOpenCallHierarchy);
+      }
       navigateMenu.appendToGroup(IWorkbenchActionConstants.SHOW_EXT, fShowOutline);
       //navigateMenu.appendToGroup(IWorkbenchActionConstants.SHOW_EXT, fOpenHierarchy);
     }
@@ -212,6 +222,8 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
     fGotoMatchingBracket.setAction(getAction(textEditor,
         GotoMatchingBracketAction.GOTO_MATCHING_BRACKET));
     fShowOutline.setAction(getAction(textEditor, DartEditorActionDefinitionIds.SHOW_OUTLINE));
+    fOpenCallHierarchy.setAction(getAction(textEditor,
+        DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY));
     fOpenHierarchy.setAction(getAction(textEditor, DartEditorActionDefinitionIds.OPEN_HIERARCHY));
     fOpenStructure.setAction(getAction(textEditor, DartEditorActionDefinitionIds.OPEN_STRUCTURE));
 

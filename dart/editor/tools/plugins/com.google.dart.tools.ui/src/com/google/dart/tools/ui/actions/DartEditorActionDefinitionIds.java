@@ -371,17 +371,21 @@ public interface DartEditorActionDefinitionIds extends ITextEditorActionDefiniti
 
   /**
    * Action definition ID of the navigate -> open type hierarchy action (value
-   * <code>"com.google.dart.tools.ui.edit.text.dart.com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"</code>
-   * ).
+   * <code>"com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"</code> ).
    */
   public static final String OPEN_TYPE_HIERARCHY = "com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"; //$NON-NLS-1$
 
   /**
    * Action definition ID of the navigate -> open call hierarchy action (value
-   * <code>"com.google.dart.tools.ui.edit.text.dart.com.google.dart.tools.ui.edit.text.open.call.hierarchy"</code>
-   * ).
+   * <code>"com.google.dart.tools.ui.edit.text.open.call.hierarchy"</code> ).
    */
   public static final String OPEN_CALL_HIERARCHY = "com.google.dart.tools.ui.edit.text.open.call.hierarchy"; //$NON-NLS-1$
+
+  /**
+   * Action definition ID of the navigate -> open call hierarchy action (value
+   * <code>"com.google.dart.tools.ui.edit.text.analyze.call.hierarchy"</code> ).
+   */
+  public static final String ANALYZE_CALL_HIERARCHY = "com.google.dart.tools.ui.edit.text.analyze.call.hierarchy"; //$NON-NLS-1$
 
   /**
    * Action definition ID of the navigate -> show in package explorer action (value
