@@ -62,7 +62,13 @@
       <key
             commandId="com.google.dart.tools.ui.generateJavascript"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
-            sequence="M1+SHIFT+G">
+            sequence="M1+M2+G">
+      </key>
+      <key
+            platform="win32"
+            commandId="com.google.dart.tools.ui.generateJavascript"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="M1+M2+K">
       </key>
       <key
             commandId="com.google.dart.tools.debug.ui.launchDialog"
