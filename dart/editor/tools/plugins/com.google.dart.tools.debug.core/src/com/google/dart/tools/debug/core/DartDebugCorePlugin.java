@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.core;
 
-import com.google.dart.tools.debug.core.util.BrowserConfigManager;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.ResourceChangeManager;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
@@ -28,8 +27,6 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IDebugEventSetListener;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
-
-import java.util.List;
 
 /**
  * The plugin activator for the com.google.dart.tools.debug.core plugin.
@@ -192,20 +189,6 @@ public class DartDebugCorePlugin extends Plugin {
   }
 
   /**
-   * @return the browser configuration given a name
-   */
-  public ChromeBrowserConfig getChromeBrowserConfig(String browserName) {
-    return BrowserConfigManager.getManager().getBrowserConfig(browserName);
-  }
-
-  /**
-   * @return the list of configured browsers
-   */
-  public List<ChromeBrowserConfig> getConfiguredBrowsers() {
-    return BrowserConfigManager.getManager().getConfiguredBrowsers();
-  }
-
-  /**
    * Returns the path to the Dart VM executable, if it has been set. Otherwise, this method returns
    * the empty string.
    * 
@@ -243,15 +226,6 @@ public class DartDebugCorePlugin extends Plugin {
   }
 
   /**
-   * Set the list of configured browsers.
-   * 
-   * @param browsers the list of configured browsers
-   */
-  public void setConfiguredBrowsers(List<ChromeBrowserConfig> browsers) {
-    BrowserConfigManager.getManager().setConfiguredBrowsers(browsers);
-  }
-
-  /**
    * Set the path to the Dart VM executable.
    * 
    * @param value the path to the Dart VM executable.
@@ -280,8 +254,6 @@ public class DartDebugCorePlugin extends Plugin {
       logDebuggerEvents();
     }
 
-    // Initialize the com.google.dart.tools.debug.ui plugin.
-    DebugUIHelperFactory.getDebugUIHelper();
   }
 
   @Override

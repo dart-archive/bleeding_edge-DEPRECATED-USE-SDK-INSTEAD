@@ -248,12 +248,6 @@
       </debugModelPresentation>
    </extension>
 
-   <!-- Debug UI factory -->
-
-   <extension point="com.google.dart.tools.debug.core.debugUIFactory">
-      <uiFactory class="com.google.dart.tools.debug.ui.internal.dartium.DebugUIHelperImpl"/>
-   </extension>
-
    <!-- debugger view -->
 
    <extension point="org.eclipse.ui.views">
