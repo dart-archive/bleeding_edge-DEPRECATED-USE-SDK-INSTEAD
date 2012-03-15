@@ -193,6 +193,8 @@ public class BrowserManager {
 
     timer.stopTask();
 
+    BrowserHelper.activateApplication(dartium);
+
     if (enableDebugging) {
       connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, runtimeProcess,
           resourceResolver, timer);
