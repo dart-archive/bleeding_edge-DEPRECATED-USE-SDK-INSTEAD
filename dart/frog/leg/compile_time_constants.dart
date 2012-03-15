@@ -901,21 +901,37 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitNewExpression(NewExpression node) {
+    List<Constant> compileArguments() {
+      if (!node.isConst()) error(node);
+      Send send = node.send;
+      List<Constant> arguments;
+      if (send.arguments.isEmpty()) {
+        arguments = const <Constant>[];
+      } else {
+        arguments = <Constant>[];
+        for (Link<Node> link = send.arguments;
+             !link.isEmpty();
+             link = link.tail) {
+          arguments.add(evaluate(link.head));
+        }
+      }
+      return arguments;
+    }
+
     void assignArgumentsToParameters(
+        List<Constant> arguments,
         FunctionParameters parameters,
         Map<Element, Constant> constructorDefinitions,
         Map<Element, Constant> fieldValues) {
-      Send send = node.send;
-      if (send.arguments.isEmpty() && parameters.parameterCount == 0) return;
-      List<Constant> arguments = <Constant>[];
-      Selector selector = elements.getSelector(send);
-
-      Function compileArgument = evaluate;
-      Function compileConstant = constantHandler.compileVariable;
-      bool succeeded = selector.addSendArgumentsToList(
-          send, arguments, parameters, compileArgument, compileConstant);
-      if (!succeeded) error(node);
-
+      if (arguments.length != parameters.parameterCount) {
+        if (arguments.length < parameters.parameterCount &&
+            arguments.length >= parameters.requiredParameterCount) {
+          compiler.unimplemented("ConstantHandler with optional arguments",
+                                 node: node);
+        } else {
+          error(node);
+        }
+      }
       int index = 0;
       parameters.forEachParameter((Element parameter) {
         Constant argument = arguments[index++];
@@ -971,8 +987,6 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       return jsNewArguments;
     }
 
-    if (!node.isConst()) error(node);
-
     // TODO(floitsch): get the type from somewhere.
     FunctionElement constructor = elements[node.send];
     ClassElement classElement = constructor.enclosingElement;
@@ -986,8 +1000,9 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     Map<Element, Constant> constructorDefinitions =
         new Map<Element, Constant>();
 
-    assignArgumentsToParameters(parameters, constructorDefinitions,
-                                fieldValues);
+    List<Constant> arguments = compileArguments();
+    assignArgumentsToParameters(arguments, parameters,
+                                constructorDefinitions, fieldValues);
     CompileTimeConstantEvaluator initializerEvaluator =
         new CompileTimeConstantEvaluator.insideConstructor(
             constantHandler, constructorElements, compiler,

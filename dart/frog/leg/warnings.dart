@@ -122,8 +122,6 @@ class MessageKind {
       'super not allowed here');
   static final INVALID_CASE_DEFAULT = const MessageKind(
       'default only allowed on last case of a switch');
-  static final INVALID_ARGUMENT_AFTER_NAMED = const MessageKind(
-      'non-named argument after named argument');
 
   static final NOT_A_COMPILE_TIME_CONSTANT = const MessageKind(
       'not a compile-time constant');
