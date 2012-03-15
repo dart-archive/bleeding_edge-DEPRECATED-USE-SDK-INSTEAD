@@ -18,8 +18,11 @@ class LibraryReader {
         'dart:dom': joinPaths(options.libDir,
             '../../client/dom/frog/dom_frog.dart'),
         'dart:json': joinPaths(options.libDir, '../../lib/json/json_frog.dart'),
+        'dart:io': joinPaths(options.libDir, '../leg/lib/io.dart'),
         'dart:isolate': joinPaths(options.libDir,
             '../../lib/isolate/isolate_frog.dart'),
+        'dart:uri': joinPaths(options.libDir, '../../lib/uri/uri.dart'),
+        'dart:utf': joinPaths(options.libDir, '../../lib/utf/utf.dart'),
       };
     } else if (options.config == 'sdk') {
       _specialLibs = {
@@ -28,8 +31,11 @@ class LibraryReader {
           'coreimpl/coreimpl_frog.dart'),
         'dart:html': joinPaths(options.libDir, 'html/html_frog.dart'),
         'dart:dom': joinPaths(options.libDir, 'dom/frog/dom_frog.dart'),
-        'dart:json': joinPaths(options.libDir, 'json/json_frog.dart'),
+        // TODO(rnystrom): How should we handle dart:io here?
         'dart:isolate': joinPaths(options.libDir, 'isolate/isolate_frog.dart'),
+        'dart:json': joinPaths(options.libDir, 'json/json_frog.dart'),
+        'dart:uri': joinPaths(options.libDir, 'uri/uri.dart'),
+        'dart:utf': joinPaths(options.libDir, 'utf/utf.dart'),
       };
     } else {
       world.error('Invalid configuration ${options.config}');

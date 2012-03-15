@@ -16,6 +16,7 @@
 // #import("dart:nativewrappers");
 #import("dart:uri");
 #source('../../../runtime/bin/buffer_list.dart');
+#source('../../../runtime/bin/common.dart');
 #source('../../../runtime/bin/chunked_stream.dart');
 #source('../../../runtime/bin/directory.dart');
 // Uses native keyword.
@@ -75,6 +76,13 @@ class _Process implements Process {
                         [String workingDirectory]) {
     var msg = 'new Process.start($executable, $arguments, $workingDirectory';
     throw new UnsupportedOperationException(msg);
+  }
+}
+
+class _ServerSocket implements ServerSocket {
+  factory _ServerSocket(String bindAddress, int port, int backlog) {
+    throw new UnsupportedOperationException(
+        'new ServerSocket($bindAddress, $port, $backlog)');
   }
 }
 
