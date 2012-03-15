@@ -20,7 +20,7 @@ BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 DART_PATH = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-DART2JS_BUILDER = r'dart2js-(linux|mac|windows)-(debug|release)(-[a-z]+)?'
+DART2JS_BUILDER = r'dart2js-(linux|mac|windows)-(debug|release)(-([a-z]+))?'
 FROG_BUILDER = r'(frog|frogsh)-(linux|mac|windows)-(debug|release)'
 WEB_BUILDER = r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(\d+))?'
 
@@ -52,7 +52,7 @@ def GetBuildInfo():
       name = 'dart2js'
       system = dart2js_pattern.group(1)
       mode = dart2js_pattern.group(2)
-      option = dart2js_pattern.group(3)
+      option = dart2js_pattern.group(4)
 
     elif frog_pattern:
       name = frog_pattern.group(1)
@@ -147,9 +147,9 @@ def TestFrog(component, mode, system, browser, option, flags):
 
   if component == 'dart2js':
     if (option == 'checked'):
-      flags.append('--timeout=240')
+      flags.append('--host-checked')
     # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
-    TestStep("leg_extra", mode, system, 'vm', ['leg'], flags)
+    TestStep("leg_extra", mode, system, 'vm', ['leg'], ['--checked'])
 
     extra_suites = ['leg_only', 'frog_native']
     TestStep("leg_extra", mode, system, 'leg', extra_suites, flags)
@@ -226,14 +226,13 @@ def CleanUpTemporaryFiles(system, browser):
     _DeleteFirefoxProfiles('/var/tmp')
 
 def main():
-  print 'main'
   if len(sys.argv) == 0:
     print 'Script pathname not known, giving up.'
     return 1
 
   component, mode, system, browser, option = GetBuildInfo()
-  print "component: %s, mode: %s, system: %s, browser %s" % (component, mode, system,
-      browser)
+  print "component: %s, mode: %s, system: %s, browser: %s, option: %s" % (
+      component, mode, system, browser, option)
   if component is None:
     return 1
 
