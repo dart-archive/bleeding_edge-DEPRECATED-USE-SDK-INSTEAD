@@ -1344,12 +1344,13 @@ class MapValue extends EvaluatedValue {
 
 class ObjectValue extends EvaluatedValue {
   final Map<FieldMember, Value> fields;
+  final List<FieldMember> fieldsInInitOrder;
   bool seenNativeInitializer = false;
 
   String _code;
 
   ObjectValue(bool isConst, Type type, SourceSpan span):
-    fields = {}, super(isConst, type, span);
+    fields = {}, fieldsInInitOrder = [], super(isConst, type, span);
 
   String get code() {
     if (_code === null) validateInitialized(null);
@@ -1360,7 +1361,7 @@ class ObjectValue extends EvaluatedValue {
     var allMembers = world.gen._orderValues(type.genericType.getAllMembers());
     for (var f in allMembers) {
       if (f.isField && !f.isStatic && f.declaringType.isClass) {
-        fields[f] = f.computeValue();
+        _replaceField(f, f.computeValue(), true);
       }
     }
   }
@@ -1376,7 +1377,7 @@ class ObjectValue extends EvaluatedValue {
     }
 
     if (currentValue === null) {
-      fields[field] = value;
+      _replaceField(field, value, duringInit);
       if (field.isFinal && !duringInit) {
         world.error('cannot initialize final fields outside of initializer',
           value.span);
@@ -1387,9 +1388,23 @@ class ObjectValue extends EvaluatedValue {
         world.error('reassignment of field not allowed', value.span,
           field.span);
       } else {
-        fields[field] = value; //currentValue.union(value);
+        _replaceField(field, value, duringInit);
       }
     }
+  }
+
+  _replaceField(Member field, Value value, bool duringInit) {
+    if (duringInit) {
+      for (int i = 0; i < fieldsInInitOrder.length; i++) {
+        if (fieldsInInitOrder[i] == field) {
+          fieldsInInitOrder[i] = null;
+          break;
+        }
+      }
+      // TODO(sra): What if the overridden value contains an effect?
+      fieldsInInitOrder.add(field);
+    }
+    fields[field] = value; //currentValue.union(value);
   }
 
   validateInitialized(SourceSpan span) {

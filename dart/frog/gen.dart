@@ -1066,10 +1066,12 @@ class MethodGenerator implements TreeVisitor, CallingContext {
 
     if (method.isConstructor && newObject is ObjectValue) {
       var fields = newObject.dynamic.fields;
-      for (var field in fields.getKeys()) {
-        var value = fields[field];
-        if (value !== null) {
-          writer.writeln('this.${field.jsname} = ${value.code};');
+      for (var field in newObject.dynamic.fieldsInInitOrder) {
+        if (field !== null) {
+          var value = fields[field];
+          if (value !== null) {
+            writer.writeln('this.${field.jsname} = ${value.code};');
+          }
         }
       }
     }
