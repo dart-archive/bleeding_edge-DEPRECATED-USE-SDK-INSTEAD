@@ -107,7 +107,7 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
 
     if (Util.isMac()) {
       //extra trailing space to mitigate OSX dimming at the edge of the text box
-      WATERMARK_TEXT = MOD_KEY + " 3   " + spacer;//$NON-NLS-1$
+      WATERMARK_TEXT = spacer + MOD_KEY + " 3   ";//$NON-NLS-1$
     } else {
       WATERMARK_TEXT = spacer + MOD_KEY + "-3 ";//$NON-NLS-1$
     }
