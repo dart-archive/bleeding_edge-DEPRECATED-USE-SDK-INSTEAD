@@ -41,7 +41,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.DecoratingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -66,7 +66,6 @@ import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.MoveResourceAction;
 import org.eclipse.ui.actions.RenameResourceAction;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.eclipse.ui.operations.UndoRedoActionGroup;
 import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.part.PluginTransfer;
@@ -160,8 +159,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.setContentProvider(new ResourceContentProvider());
     // TODO(pquitslund): replace with WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider()
     //treeViewer.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
-    treeViewer.setLabelProvider(new DecoratingLabelProvider(new WorkbenchLabelProvider(),
-        new ProblemsLabelDecorator()));
+    treeViewer.setLabelProvider(new DecoratingStyledCellLabelProvider(new ResourceLabelProvider(),
+        new ProblemsLabelDecorator(), null));
     treeViewer.setComparator(new FilesViewerComparator());
     treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
