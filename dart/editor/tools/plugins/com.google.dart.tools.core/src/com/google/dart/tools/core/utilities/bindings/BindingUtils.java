@@ -516,7 +516,11 @@ public class BindingUtils {
    * @return the Dart model element corresponding to the resolved library
    */
   public static DartLibrary getDartElement(DartLibrary library, LibraryElement libraryBinding) {
-    URI libraryUri = URIUtilities.safelyResolveDartUri(((DartLibraryImpl) library).getLibrarySourceFile().getUri());
+    LibrarySource librarySource = ((DartLibraryImpl) library).getLibrarySourceFile();
+    if (librarySource == null) {
+      return null;
+    }
+    URI libraryUri = URIUtilities.safelyResolveDartUri(librarySource.getUri());
     URI targetUri = URIUtilities.safelyResolveDartUri(libraryBinding.getLibraryUnit().getSource().getUri());
     HashSet<URI> visitedLibraries = new HashSet<URI>();
     return findLibrary(library, libraryUri, targetUri, visitedLibraries);
