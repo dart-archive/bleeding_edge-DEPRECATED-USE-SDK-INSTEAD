@@ -136,6 +136,10 @@ class MockCompiler extends Compiler {
     // Do nothing. The mock core library is already handled in the constructor.
   }
 
+  LibraryElement scanBuiltinLibrary(String name) {
+    // Do nothing. The mock core library is already handled in the constructor.
+  }
+
   Script readScript(Uri uri, [ScriptTag node]) {
     String code = sources[uri.toString()];
     if (code === null) throw new IllegalArgumentException(uri);

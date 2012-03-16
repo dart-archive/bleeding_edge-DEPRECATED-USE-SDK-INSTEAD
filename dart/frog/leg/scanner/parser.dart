@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -318,22 +318,6 @@ class Parser {
   }
 
   Token parseTypeVariablesOpt(Token token) {
-    if (optional('<', token)) {
-      BeginGroupToken beginGroupToken = token;
-      // TODO(ahe): Parse type variables.
-
-      // For now, skip to the matching '>' if it exists. Otherwise,
-      // don't advance and assume the caller will report some kind of
-      // error.
-      if (beginGroupToken.endGroup !== null) {
-        token = beginGroupToken.endGroup.next;
-      }
-    }
-    listener.handleNoTypeVariables(token);
-    return token;
-  }
-
-  Token parseTypeVariablesOptX(Token token) {
     return parseStuff(token,
                       (t) => listener.beginTypeVariables(t),
                       (t) => parseTypeVariable(t),

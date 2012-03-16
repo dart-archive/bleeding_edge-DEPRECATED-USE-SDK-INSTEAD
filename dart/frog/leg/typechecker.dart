@@ -29,6 +29,12 @@ interface Type {
   Element get element();
 }
 
+class TypeVariableType implements Type {
+  final SourceString name;
+  Element element;
+  TypeVariableType(this.name, [this.element]);
+}
+
 /**
  * A statement type tracks whether a statement returns or may return.
  */
@@ -588,6 +594,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
       return types.dynamicType;
     }
     return type;
+  }
+
+  visitTypeVariable(TypeVariable node) {
+    return types.dynamicType;
   }
 
   Type visitVariableDefinitions(VariableDefinitions node) {

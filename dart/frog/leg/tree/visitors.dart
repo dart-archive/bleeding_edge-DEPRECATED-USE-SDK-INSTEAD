@@ -61,6 +61,7 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitTryStatement(TryStatement node) => visitStatement(node);
   R visitTypeAnnotation(TypeAnnotation node) => visitNode(node);
   R visitTypedef(Typedef node) => visitNode(node);
+  R visitTypeVariable(TypeVariable node) => visitNode(node);
   R visitVariableDefinitions(VariableDefinitions node) => visitStatement(node);
   R visitWhile(While node) => visitLoop(node);
 }

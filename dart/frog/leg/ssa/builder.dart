@@ -2522,6 +2522,10 @@ class SsaBuilder implements Visitor {
     compiler.unimplemented('SsaBuilder.visitTypedef', node: node);
   }
 
+  visitTypeVariable(TypeVariable node) {
+    compiler.internalError('SsaBuilder.visitTypeVariable');
+  }
+
   generateUnimplemented(String reason, [bool isExpression = false]) {
     DartString string = new DartString.literal(reason);
     HInstruction message = graph.addConstantString(string);

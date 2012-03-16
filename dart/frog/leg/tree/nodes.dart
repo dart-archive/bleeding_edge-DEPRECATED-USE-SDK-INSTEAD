@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -46,6 +46,7 @@ interface Visitor<R> {
   R visitTryStatement(TryStatement node);
   R visitTypeAnnotation(TypeAnnotation node);
   R visitTypedef(Typedef node);
+  R visitTypeVariable(TypeVariable node);
   R visitVariableDefinitions(VariableDefinitions node);
   R visitWhile(While node);
 }
@@ -142,6 +143,7 @@ class Node implements Hashable {
   TryStatement asTryStatement() => null;
   TypeAnnotation asTypeAnnotation() => null;
   Typedef asTypedef() => null;
+  TypeVariable asTypeVariable() => null;
   VariableDefinitions asVariableDefinitions() => null;
   While asWhile() => null;
 
@@ -153,6 +155,7 @@ class ClassNode extends Node {
   final Identifier name;
   final TypeAnnotation superclass;
   final NodeList interfaces;
+  final NodeList typeParameters;
 
   // Using a NodeList to record the keyword "default".
   // TODO(ahe): Consider if there is a better way to represent this.
@@ -162,8 +165,9 @@ class ClassNode extends Node {
   final Token extendsKeyword;
   final Token endToken;
 
-  ClassNode(this.name, this.superclass, this.interfaces, this.defaultClause,
-            this.beginToken, this.extendsKeyword, this.endToken);
+  ClassNode(this.name, this.typeParameters, this.superclass, this.interfaces,
+            this.defaultClause, this.beginToken, this.extendsKeyword,
+            this.endToken);
 
   ClassNode asClassNode() => this;
 
@@ -1068,6 +1072,29 @@ class TypeAnnotation extends Node {
   Token getBeginToken() => typeName.getBeginToken();
 
   Token getEndToken() => typeName.getEndToken();
+}
+
+class TypeVariable extends Node {
+  final Identifier name;
+  final TypeAnnotation bound;
+  TypeVariable(Identifier this.name, TypeAnnotation this.bound);
+
+  accept(Visitor visitor) => visitor.visitTypeVariable(this);
+
+  visitChildren(Visitor visitor) {
+    name.accept(visitor);
+    if (bound !== null) {
+      bound.accept(visitor);
+    }
+  }
+
+  TypeVariable asTypeVariable() => this;
+
+  Token getBeginToken() => name.getBeginToken();
+
+  Token getEndToken() {
+    return (bound !== null) ? bound.getEndToken() : name.getEndToken();
+  }
 }
 
 class VariableDefinitions extends Statement {

@@ -971,6 +971,9 @@ class SsaCodeGenerator implements HVisitor {
 
   void visitIs(HIs node) {
     Element element = node.typeExpression;
+    if (node.typeExpression.kind === ElementKind.TYPE_VARIABLE) {
+      compiler.unimplemented("visitIs for type variables");
+    }
     compiler.registerIsCheck(element);
     LibraryElement coreLibrary = compiler.coreLibrary;
     ClassElement objectClass = coreLibrary.find(const SourceString('Object'));

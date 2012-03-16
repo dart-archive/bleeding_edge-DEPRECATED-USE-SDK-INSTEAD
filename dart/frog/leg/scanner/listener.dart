@@ -541,6 +541,7 @@ class ElementListener extends Listener {
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
     TypeAnnotation supertype = popNode();
+    NodeList typeParameters = popNode();
     Identifier name = popNode();
     ClassElement element = new PartialClassElement(
         name.source, beginToken, endToken, compilationUnitElement);
@@ -549,7 +550,9 @@ class ElementListener extends Listener {
   }
 
   void endDefaultClause(Token defaultKeyword) {
-    pushNode(makeNodeList(1, defaultKeyword, null, null));
+    NodeList typeParameters = popNode();
+    Node name = popNode();
+    pushNode(new TypeAnnotation(name, typeParameters));
   }
 
   void handleNoDefaultClause(Token token) {
@@ -562,12 +565,15 @@ class ElementListener extends Listener {
     Node defaultClause = popNode();
     NodeList supertypes =
         makeNodeList(supertypeCount, extendsKeyword, null, ",");
+    NodeList typeParameters = popNode();
     Identifier name = popNode();
-    pushElement(new PartialClassElement(
-        name.source, interfaceKeyword, endToken, compilationUnitElement));
+    pushElement(new PartialClassElement(name.source, interfaceKeyword,
+                                        endToken,
+                                        compilationUnitElement));
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
+    NodeList typeVariables = popNode(); // TOOD(karlklose): do not throw away.
     Identifier name = popNode();
     TypeAnnotation returnType = popNode();
     pushElement(new TypedefElement(name.source, compilationUnitElement));
@@ -644,6 +650,15 @@ class ElementListener extends Listener {
   void endTypeVariable(Token token) {
     TypeAnnotation bound = popNode();
     Identifier name = popNode();
+    pushNode(new TypeVariable(name, bound));
+  }
+
+  void endTypeVariables(int count, Token beginToken, Token endToken) {
+    pushNode(makeNodeList(count, beginToken, endToken, ','));
+  }
+
+  void handleNoTypeVariables(token) {
+    pushNode(null);
   }
 
   void endTypeArguments(int count, Token beginToken, Token endToken) {
@@ -856,9 +871,9 @@ class NodeListener extends ElementListener {
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
     TypeAnnotation supertype = popNode();
-    // TODO(ahe): Type variables.
+    NodeList typeParameters = popNode();
     Identifier name = popNode();
-    pushNode(new ClassNode(name, supertype, interfaces, null,
+    pushNode(new ClassNode(name, typeParameters, supertype, interfaces, null,
                            beginToken, extendsKeyword, endToken));
   }
 
@@ -877,13 +892,10 @@ class NodeListener extends ElementListener {
     NodeList defaultClause = popNode();
     NodeList supertypes = makeNodeList(supertypeCount, extendsKeyword,
                                        null, ',');
+    NodeList typeParameters = popNode();
     Identifier name = popNode();
-    pushNode(new ClassNode(name, null, supertypes, defaultClause,
-                           interfaceKeyword, null, endToken));
-  }
-
-  void endDefaultClause(Token defaultKeyword) {
-    pushNode(makeNodeList(1, defaultKeyword, null, null));
+    pushNode(new ClassNode(name, typeParameters, null, supertypes,
+                           defaultClause, interfaceKeyword, null, endToken));
   }
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
@@ -1348,6 +1360,7 @@ class NodeListener extends ElementListener {
                         Token endToken) {
     Statement body = popNode();
     NodeList formals = popNode();
+    NodeList typeParameters = popNode(); // TODO(karlklose): don't throw away.
     Node name = popNode();
     if (periodBeforeName !== null) {
       // A library prefix was handled in [handleQualified].

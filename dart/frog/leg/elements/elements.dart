@@ -33,6 +33,9 @@ class ElementCategory {
 
   static final int SUPER = 64;
 
+  /** Type variable */
+  static final int TYPE_VARIABLE = 128;
+
   static final int IMPLIES_TYPE = CLASS | ALIAS;
 }
 
@@ -72,6 +75,8 @@ class ElementKind {
     const ElementKind('getter', ElementCategory.NONE);
   static final ElementKind SETTER =
     const ElementKind('setter', ElementCategory.NONE);
+  static final ElementKind TYPE_VARIABLE =
+    const ElementKind('type_variable', ElementCategory.TYPE_VARIABLE);
   static final ElementKind ABSTRACT_FIELD =
     const ElementKind('abstract_field', ElementCategory.VARIABLE);
   static final ElementKind LIBRARY =
@@ -118,6 +123,7 @@ class Element implements Hashable {
   bool isParameter() => kind === ElementKind.PARAMETER;
   bool isStatement() => kind === ElementKind.STATEMENT;
   bool isTypedef() => kind === ElementKind.TYPEDEF;
+  bool isTypeVariable() => kind === ElementKind.TYPE_VARIABLE;
   bool isGetter() => kind === ElementKind.GETTER;
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
 
@@ -652,6 +658,7 @@ class ClassElement extends ContainerElement {
   Map<SourceString, Element> localMembers;
   Map<SourceString, Element> constructors;
   Link<Type> interfaces = const EmptyLink<Type>();
+  Map<SourceString, TypeVariableElement> typeParameters;
   bool isResolved = false;
   bool isBeingResolved = false;
   // backendMembers are members that have been added by the backend to simplify
@@ -663,6 +670,7 @@ class ClassElement extends ContainerElement {
   ClassElement(SourceString name, CompilationUnitElement enclosing)
     : localMembers = new Map<SourceString, Element>(),
       constructors = new Map<SourceString, Element>(),
+      typeParameters = new Map<SourceString, TypeVariableElement>(),
       super(name, ElementKind.CLASS, enclosing);
 
   void addMember(Element element, DiagnosticListener listener) {
@@ -693,6 +701,11 @@ class ClassElement extends ContainerElement {
       isResolved = true;
     }
     return this;
+  }
+
+  Element lookupTypeParameter(SourceString parameterName) {
+    Element result = typeParameters[parameterName];
+    return result;
   }
 
   Element lookupLocalMember(SourceString memberName) {
@@ -899,4 +912,16 @@ class TargetElement extends Element {
 
   Token position() => statement.getBeginToken();
   String toString() => statement.toString();
+}
+
+class TypeVariableElement extends Element {
+  final Node node;
+  Type bound;
+  Type type;
+  TypeVariableElement(name, Element enclosing, this.node, this.type,
+                      [this.bound])
+    : super(name, ElementKind.TYPE_VARIABLE, enclosing);
+  Type computeType(compiler) => type;
+  Node parseNode(compiler) => node;
+  toString() => "${enclosingElement.toString()}.${name.slowToString()}";
 }

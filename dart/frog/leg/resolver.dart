@@ -201,7 +201,7 @@ class ResolverTask extends CompilerTask {
     return measure(() {
       ClassNode tree = element.parseNode(compiler);
       ClassResolverVisitor visitor =
-        new ClassResolverVisitor(compiler, element.getLibrary());
+        new ClassResolverVisitor(compiler, element.getLibrary(), element);
       visitor.visit(tree);
       element.isResolved = true;
       return element.type;
@@ -458,9 +458,9 @@ class StatementScope {
         breakTargetStack = const EmptyLink<TargetElement>(),
         continueTargetStack = const EmptyLink<TargetElement>();
 
-  LabelElement lookupLabel(String label) =>
-      labels.lookup(label);
-
+  LabelElement lookupLabel(String label) {
+    return labels.lookup(label);
+  }
   TargetElement currentBreakTarget() =>
     breakTargetStack.isEmpty() ? null : breakTargetStack.head;
 
@@ -548,8 +548,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   inStaticContext(action()) {
     bool wasInstanceContext = inInstanceContext;
     inInstanceContext = false;
-    action();
+    var result = action();
     inInstanceContext = wasInstanceContext;
+    return result;
   }
 
   visitInStaticContext(Node node) {
@@ -968,9 +969,15 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   FunctionElement resolveConstructor(NewExpression node) {
     FunctionElement constructor =
-      node.accept(new ConstructorResolver(compiler, this));
+        node.accept(new ConstructorResolver(compiler, this));
     if (constructor === null) {
-      error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
+      Element resolved = resolveTypeRequired(node.send.selector);
+      if (resolved !== null && resolved.kind === ElementKind.TYPE_VARIABLE) {
+        error(node, WarningKind.TYPE_VARIABLE_AS_CONSTRUCTOR);
+        return null;
+      } else {
+        error(node.send, MessageKind.CANNOT_FIND_CONSTRUCTOR, [node.send]);
+      }
     }
     return constructor;
   }
@@ -1208,36 +1215,86 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
 class ClassResolverVisitor extends CommonResolverVisitor<Type> {
   Scope context;
+  ClassElement classElement;
 
-  ClassResolverVisitor(Compiler compiler, LibraryElement library)
+  ClassResolverVisitor(Compiler compiler, LibraryElement library,
+                       ClassElement this.classElement)
     : context = new TopScope(library),
       super(compiler);
 
   Type visitClassNode(ClassNode node) {
-    ClassElement element = context.lookup(node.name.source);
-    compiler.ensure(element !== null);
-    compiler.ensure(!element.isResolved);
-    element.supertype = visit(node.superclass);
-    if (element.name != Types.OBJECT && element.supertype === null) {
+    compiler.ensure(classElement !== null);
+    compiler.ensure(!classElement.isResolved);
+    final Link<TypeVariable> parameters =
+        node.typeParameters !== null ? node.typeParameters.nodes
+                                     : const EmptyLink<TypeVariable>();
+    // Create types and elements for type variable.
+    for (Link<TypeVariable> link = parameters;
+         !link.isEmpty();
+         link = link.tail) {
+      TypeVariable typeNode = link.head;
+      SourceString variableName = typeNode.name.source;
+      TypeVariableType variableType = new TypeVariableType(variableName);
+      TypeVariableElement variableElement =
+          new TypeVariableElement(variableName, classElement, node,
+                                  variableType);
+      variableType.element = variableElement;
+      classElement.typeParameters[variableName] = variableElement;
+      context = new TypeVariablesScope(context, classElement);
+    }
+    // Resolve the bounds of type variables.
+    for (Link<TypeVariable> link = parameters;
+         !link.isEmpty();
+         link = link.tail) {
+      TypeVariable typeNode = link.head;
+      SourceString variableName = typeNode.name.source;
+      TypeVariableElement variableElement =
+          classElement.typeParameters[variableName];
+      if (typeNode.bound !== null) {
+        Type boundType = visit(typeNode.bound);
+        if (boundType !== null && boundType.element == variableElement) {
+          warning(node, MessageKind.CYCLIC_TYPE_VARIABLE,
+                  [variableElement.name]);
+        } else if (boundType !== null) {
+          variableElement.bound = boundType;
+        } else {
+          variableElement.bound = compiler.objectClass.computeType(compiler);
+        }
+      }
+    }
+    // Find super type.
+    Type supertype = visit(node.superclass);
+    if (supertype !== null && supertype.element.impliesType()) {
+      classElement.supertype = supertype;
+    } else if (supertype !== null) {
+      error(node.superclass, MessageKind.TYPE_NAME_EXPECTED);
+    }
+    if (classElement.name != Types.OBJECT && classElement.supertype === null) {
       ClassElement objectElement = context.lookup(Types.OBJECT);
       if (objectElement !== null && !objectElement.isResolved) {
         compiler.resolver.toResolve.add(objectElement);
       } else if (objectElement === null){
         error(node, MessageKind.CANNOT_RESOLVE_TYPE, [Types.OBJECT]);
       }
-      element.supertype = new SimpleType(Types.OBJECT, objectElement);
+      classElement.supertype = new SimpleType(Types.OBJECT, objectElement);
     }
     if (node.defaultClause !== null) {
-      element.defaultClass = visit(node.defaultClause.nodes.head);
+      classElement.defaultClass = visit(node.defaultClause);
     }
     for (Link<Node> link = node.interfaces.nodes;
          !link.isEmpty();
          link = link.tail) {
-      element.interfaces = element.interfaces.prepend(visit(link.head));
+      Type interfaceType = visit(link.head);
+      if (interfaceType !== null && interfaceType.element.impliesType()) {
+        classElement.interfaces =
+            classElement.interfaces.prepend(interfaceType);
+      } else {
+        error(link.head, MessageKind.TYPE_NAME_EXPECTED);
+      }
     }
-    calculateAllSupertypes(element, new Set<ClassElement>());
-    addDefaultConstructorIfNeeded(element);
-    return element.computeType(compiler);
+    calculateAllSupertypes(classElement, new Set<ClassElement>());
+    addDefaultConstructorIfNeeded(classElement);
+    return classElement.computeType(compiler);
   }
 
   Type visitTypeAnnotation(TypeAnnotation node) {
@@ -1248,14 +1305,23 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     Element element = context.lookup(node.source);
     if (element === null) {
       error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node]);
-    } else if (!element.impliesType()) {
+      return null;
+    } else if (!element.impliesType() && !element.isTypeVariable()) {
       error(node, MessageKind.NOT_A_TYPE, [node]);
+      return null;
     } else {
       if (element.isClass()) {
         compiler.resolver.toResolve.add(element);
       }
-      // TODO(ngeoffray): Use type variables.
-      return element.computeType(compiler);
+      if (element.isTypeVariable()) {
+        TypeVariableElement variableElement = element;
+        return variableElement.type;
+      } else if (element.isTypedef()) {
+        compiler.unimplemented('visitIdentifier for typedefs');
+      } else {
+        // TODO(ngeoffray): Use type variables.
+        return element.computeType(compiler);
+      }
     }
     return null;
   }
@@ -1626,6 +1692,19 @@ class Scope {
   abstract Element lookup(SourceString name);
 }
 
+class TypeVariablesScope extends Scope {
+  TypeVariablesScope(parent, ClassElement element) : super(parent, element);
+  Element add(Element element) {
+    throw "Cannot add element to TypeVariableScope";
+  }
+  Element lookup(SourceString name) {
+    ClassElement cls = element;
+    Element result = cls.lookupTypeParameter(name);
+    if (result !== null) return result;
+    if (parent !== null) return parent.lookup(name);
+  }
+}
+
 class MethodScope extends Scope {
   final Map<SourceString, Element> elements;
 
@@ -1655,10 +1734,12 @@ class ClassScope extends Scope {
 
   Element lookup(SourceString name) {
     ClassElement cls = element;
-    Element memberElement = cls.lookupLocalMember(name);
-    if (memberElement != null) return memberElement;
-    memberElement = parent.lookup(name);
-    if (memberElement != null) return memberElement;
+    Element result = cls.lookupLocalMember(name);
+    if (result !== null) return result;
+    result = cls.lookupTypeParameter(name);
+    if (result !== null) return result;
+    result = parent.lookup(name);
+    if (result != null) return result;
     return cls.lookupSuperMember(name);
   }
 
@@ -1671,7 +1752,9 @@ class TopScope extends Scope {
   LibraryElement get library() => element;
 
   TopScope(LibraryElement library) : super(null, library);
-  Element lookup(SourceString name) => library.find(name);
+  Element lookup(SourceString name) {
+    return library.find(name);
+  }
 
   Element add(Element element) {
     throw "Cannot add an element in the top scope";
