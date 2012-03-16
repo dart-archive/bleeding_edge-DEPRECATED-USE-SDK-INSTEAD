@@ -44,8 +44,13 @@ public class AnalysisIndexManager implements AnalysisListener {
   private final WorkspaceIndexingDriver indexServer;
 
   public AnalysisIndexManager() {
-    index = InMemoryIndex.getInstance();
-    indexServer = StandardDriver.getInstance();
+    if (DartCoreDebug.NEW_INDEXER) {
+      index = InMemoryIndex.getInstance();
+      indexServer = null;
+    } else {
+      index = null;
+      indexServer = StandardDriver.getInstance();
+    }
   }
 
   @Override
@@ -80,16 +85,16 @@ public class AnalysisIndexManager implements AnalysisListener {
         File sourceFile = entry.getKey();
         CompilationUnit compilationUnit = library.getCompilationUnit(sourceFile.toURI());
         if (compilationUnit == null) {
-          DartCore.logError("Expected unit associated with \"" + sourceFile + "\" in \""
-              + libraryFile + "\"");
+          DartCore.logError(
+              "Expected unit associated with \"" + sourceFile + "\" in \"" + libraryFile + "\"");
         } else {
           DartUnit dartUnit = entry.getValue();
           try {
-            index.indexResource(ResourceFactory.getResource(compilationUnit), compilationUnit,
-                dartUnit);
+            index.indexResource(
+                ResourceFactory.getResource(compilationUnit), compilationUnit, dartUnit);
           } catch (Exception exception) {
-            DartCore.logError("Could not index \"" + sourceFile + "\" in \"" + libraryFile + "\"",
-                exception);
+            DartCore.logError(
+                "Could not index \"" + sourceFile + "\" in \"" + libraryFile + "\"", exception);
           }
         }
       }
@@ -100,7 +105,8 @@ public class AnalysisIndexManager implements AnalysisListener {
         File sourceFile = entry.getKey();
         CompilationUnit compilationUnit = library.getCompilationUnit(sourceFile.toURI());
         if (compilationUnit == null) {
-          DartCore.logError("Expected unit associated with " + sourceFile + "\n  in " + libraryFile);
+          DartCore.logError(
+              "Expected unit associated with " + sourceFile + "\n  in " + libraryFile);
           continue;
         }
         DartUnit dartUnit = entry.getValue();
