@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core;
 
+import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
@@ -28,6 +29,11 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 public class DartCoreTest extends TestCase {
   public void test_DartCore_create_file_notNull() {
@@ -97,6 +103,36 @@ public class DartCoreTest extends TestCase {
     assertEquals("dart", extensions[0]);
   }
 
+  public void test_DartCore_isAnalyzed_false() {
+    ArrayList<String> patterns = getExclusionPatterns();
+    ArrayList<String> savedPatterns = new ArrayList<String>(patterns);
+    try {
+      final String pattern = "/this/does/not";
+      patterns.clear();
+      patterns.add(pattern);
+      IFile file = new MockFile(new MockProject()) {
+        @Override
+        public IPath getLocation() {
+          return new Path(pattern + "/exist");
+        }
+      };
+      assertFalse(DartCore.isAnalyzed(file));
+    } finally {
+      patterns.clear();
+      patterns.addAll(savedPatterns);
+    }
+  }
+
+  public void test_DartCore_isAnalyzed_true() {
+    IFile file = new MockFile(new MockProject()) {
+      @Override
+      public IPath getLocation() {
+        return new Path("/this/does/not/exist");
+      }
+    };
+    assertTrue(DartCore.isAnalyzed(file));
+  }
+
   public void test_DartCore_isCSSLikeFileName() {
     assertTrue(DartCore.isCSSLikeFileName("name.css"));
     assertTrue(DartCore.isCSSLikeFileName("name.CSS"));
@@ -148,5 +184,17 @@ public class DartCoreTest extends TestCase {
     assertTrue(DartCore.isTXTLikeFileName("name.tXt"));
     assertFalse(DartCore.isTXTLikeFileName("name.tx"));
     assertFalse(DartCore.isTXTLikeFileName("nametxt"));
+  }
+
+  @SuppressWarnings("unchecked")
+  private ArrayList<String> getExclusionPatterns() {
+    Method method;
+    try {
+      method = DartModelManager.class.getDeclaredMethod("getExclusionPatterns");
+      method.setAccessible(true);
+      return (ArrayList<String>) method.invoke(DartModelManager.getInstance());
+    } catch (Exception exception) {
+      return new ArrayList<String>();
+    }
   }
 }

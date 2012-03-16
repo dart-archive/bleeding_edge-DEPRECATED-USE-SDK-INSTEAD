@@ -87,9 +87,11 @@ import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.service.prefs.BackingStoreException;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -286,6 +288,7 @@ public class DartModelManager {
    */
   private Map<WorkingCopyOwner, Map<CompilationUnit, PerWorkingCopyInfo>> perWorkingCopyInfos = new HashMap<WorkingCopyOwner, Map<CompilationUnit, PerWorkingCopyInfo>>(
       5);
+
   /**
    * Holds the state used for delta processing.
    */
@@ -294,7 +297,14 @@ public class DartModelManager {
   private HashSet<String> optionNames = new HashSet<String>(20);
 
   private HashMap<String, String> optionsCache;
+
   private final IEclipsePreferences[] preferencesLookup = new IEclipsePreferences[2];
+
+  /**
+   * A list of exclusion patterns that are to be applied to determine which files are not currently
+   * being analyzed.
+   */
+  private ArrayList<String> exclusionPatterns;
 
   private static final int PREF_INSTANCE = 0;
 
@@ -934,6 +944,31 @@ public class DartModelManager {
   }
 
   /**
+   * Return <code>true</code> if the given resource should be analyzed. All resources are to be
+   * analyzed unless they have been excluded.
+   * 
+   * @param resource the resource being tested
+   * @return <code>true</code> if the given resource should be analyzed
+   */
+  public boolean isAnalyzed(IResource resource) {
+    if (!resource.exists()) {
+      return false;
+    }
+    // TODO(brianwilkerson) Re-implement this once the real semantics have been decided on.
+    ArrayList<String> patterns = getExclusionPatterns();
+    if (patterns.size() > 0) {
+      String path = resource.getLocation().toPortableString();
+      for (String pattern : patterns) {
+        // TODO(brianwilkerson) Replace this with some form of pattern matching.
+        if (path.equals(pattern) || path.startsWith(pattern + "/")) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
    * If the given file defines a library, open the library and return it. If the library was already
    * open, then this method has no effect but returns the existing library. If the file does not
    * define a library, then look for a library in the same directory as the file or in a parent of
@@ -1459,6 +1494,37 @@ public class DartModelManager {
 
   private IScopeContext getDefaultScope() {
     return new DefaultScope();
+  }
+
+  /**
+   * Return a list of exclusion patterns that are to be applied to determine which files are not
+   * currently being analyzed.
+   * 
+   * @return the exclusion patterns used to determine which files are not currently being analyzed
+   */
+  private ArrayList<String> getExclusionPatterns() {
+    // TODO(brianwilkerson) Re-implement this once the real semantics have been decided on.
+    if (exclusionPatterns == null) {
+      exclusionPatterns = new ArrayList<String>();
+      File patternFile = ResourcesPlugin.getWorkspace().getRoot().getLocation().append(
+          ".dartignore").toFile();
+      if (patternFile.exists()) {
+        try {
+          BufferedReader reader = new BufferedReader(new StringReader(
+              FileUtilities.getContents(patternFile)));
+          String nextLine = reader.readLine();
+          while (nextLine != null) {
+            if (!nextLine.isEmpty()) {
+              exclusionPatterns.add(nextLine);
+            }
+            nextLine = reader.readLine();
+          }
+        } catch (IOException exception) {
+          DartCore.logInformation("Could not read ignore file from workspace", exception);
+        }
+      }
+    }
+    return exclusionPatterns;
   }
 
   private Set<File> getFilesForLibrary(File libraryFile, DartUnit libraryUnit) {

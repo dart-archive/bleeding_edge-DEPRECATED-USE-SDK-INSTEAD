@@ -466,6 +466,17 @@ public class DartCore extends Plugin {
   }
 
   /**
+   * Return <code>true</code> if the given resource should be analyzed. All resources are to be
+   * analyzed unless they have been excluded.
+   * 
+   * @param resource the resource being tested
+   * @return <code>true</code> if the given resource should be analyzed
+   */
+  public static boolean isAnalyzed(IResource resource) {
+    return DartModelManager.getInstance().isAnalyzed(resource);
+  }
+
+  /**
    * Return <code>true</code> if the given file name's extension is an CSS-like extension.
    * 
    * @param fileName the file name being tested

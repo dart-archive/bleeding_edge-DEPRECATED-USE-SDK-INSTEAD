@@ -211,7 +211,7 @@ class CompilerListener implements DartCompilerListener {
   private void processError(DartCompilationError error) {
     IResource res = getResource(error);
     if (res != null) {
-      if (res.exists() && res.getProject().equals(project)) {
+      if (res.exists() && res.getProject().equals(project) && DartCore.isAnalyzed(res)) {
         createErrorMarker(res, error.getStartPosition(), error.getLength(), error.getLineNumber(),
             error.getMessage());
       }
@@ -229,7 +229,7 @@ class CompilerListener implements DartCompilerListener {
     IResource res = getResource(error);
 
     if (res != null) {
-      if (res.exists() && res.getProject().equals(project)) {
+      if (res.exists() && res.getProject().equals(project) && DartCore.isAnalyzed(res)) {
         createWarningMarker(res, error.getStartPosition(), error.getLength(),
             error.getLineNumber(), error.getMessage());
       }

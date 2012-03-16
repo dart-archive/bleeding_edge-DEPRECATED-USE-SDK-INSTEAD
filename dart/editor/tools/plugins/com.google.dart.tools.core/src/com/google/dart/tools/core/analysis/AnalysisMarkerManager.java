@@ -68,7 +68,7 @@ public class AnalysisMarkerManager implements AnalysisListener {
       return;
     }
     IResource res = ResourceUtil.getResource(source.getUri());
-    if (res == null || !res.exists()) {
+    if (res == null || !res.exists() || !DartCore.isAnalyzed(res)) {
       return;
     }
 

@@ -333,15 +333,11 @@ public class DartcBuildHandler {
       }
       MetricsMessenger.getSingleton().fireUpdates(config,
           new Path(libSource.getName()).lastSegment());
-
-      // TODO(brianwilkerson) Figure out how to get the library units out of the compiler so that
-      // they can be used to drive the indexer.
-      // queueFilesForIndexer(...);
-
     } catch (Throwable exception) {
-      BuilderUtil.createErrorMarker(libResource, 0, 0, 0,
-          "Internal compiler error: " + exception.toString());
-
+      if (DartCore.isAnalyzed(libResource)) {
+        BuilderUtil.createErrorMarker(libResource, 0, 0, 0,
+            "Internal compiler error: " + exception.toString());
+      }
       DartCore.logError("Exception caught while building " + lib.getElementName(), exception);
     } finally {
       monitor.done();
