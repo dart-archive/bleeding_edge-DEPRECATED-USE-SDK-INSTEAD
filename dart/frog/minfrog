@@ -13833,11 +13833,11 @@ ObjectValue.prototype.validateInitialized = function(span) {
   for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
     var field = $$i.next();
     if (addComma) buf.add(", ");
-    buf.add(field.get$name());
+    buf.add(field.get$jsname());
     buf.add(": ");
     buf.add("{\"value\": ");
     if (null == this.fields.$index(field)) {
-      $globals.world.error(("Required field \"" + field.get$name() + "\" was not initialized"), span, field.get$span());
+      $globals.world.error(("Required field '" + field.get$name() + "' was not initialized"), span, field.get$span());
       buf.add("null");
     }
     else {

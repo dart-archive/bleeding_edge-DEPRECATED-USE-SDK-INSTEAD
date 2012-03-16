@@ -1416,11 +1416,11 @@ class ObjectValue extends EvaluatedValue {
     bool addComma = false;
     for (var field in fields.getKeys()) {
       if (addComma) buf.add(', ');
-      buf.add(field.name);
+      buf.add(field.jsname);
       buf.add(': ');
       buf.add('{"value": ');
       if (fields[field] === null) {
-        world.error('Required field "${field.name}" was not initialized',
+        world.error("Required field '${field.name}' was not initialized",
           span, field.span);
         buf.add('null');
       } else {
