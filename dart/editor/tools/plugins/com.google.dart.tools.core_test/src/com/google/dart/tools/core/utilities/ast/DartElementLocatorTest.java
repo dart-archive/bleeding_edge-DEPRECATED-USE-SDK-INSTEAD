@@ -34,10 +34,10 @@ public class DartElementLocatorTest extends TestCase {
   public void test_VariableElement_parameter_inClassMethod() throws Exception {
     testElementLocator(new String[]{
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "print(x) {}",
+        "process(x) {}",
         "class A {",
         "  foo(a, bb, ccc) {",
-        "    print(bb);",
+        "    process(bb);",
         "  }",
         "}"}, "bb);", "bb, ", 2);
   }
@@ -45,42 +45,42 @@ public class DartElementLocatorTest extends TestCase {
   public void test_VariableElement_parameter_inTopMethod() throws Exception {
     testElementLocator(new String[]{
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "print(x) {}",
+        "process(x) {}",
         "foo(a, bb, ccc) {",
-        "  print(bb);",
+        "  process(bb);",
         "}"}, "bb);", "bb, ", 2);
   }
 
   public void test_VariableElement_localVariable() throws Exception {
     testElementLocator(new String[]{
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "print(x) {}",
+        "process(x) {}",
         "foo() {",
         "  var aaa = 1;",
-        "  print(aaa);",
+        "  process(aaa);",
         "}"}, "aaa);", "aaa = 1", 3);
   }
 
   public void test_FieldElement_topLevel() throws Exception {
     testElementLocator(new String[]{
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "print(x) {}",
+        "process(x) {}",
         "var aaa = 1;",
         "foo() {",
-        "  print(aaa);",
+        "  process(aaa);",
         "}"}, "aaa);", "aaa = 1", 3);
   }
 
   public void test_FieldElement_classMember() throws Exception {
     testElementLocator(new String[]{
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "print(x) {}",
+        "process(x) {}",
         "class A {",
         "  var bbb = 1;",
         "}",
         "foo() {",
         "  A a = new A();",
-        "  print(a.bbb);",
+        "  process(a.bbb);",
         "}"}, "bbb);", "bbb = 1", 3);
   }
 
