@@ -157,9 +157,8 @@ class ClassNode extends Node {
   final NodeList interfaces;
   final NodeList typeParameters;
 
-  // Using a NodeList to record the keyword "default".
-  // TODO(ahe): Consider if there is a better way to represent this.
-  final NodeList defaultClause;
+  // TODO(ahe, karlklose): the default keyword is not recorded.
+  final TypeAnnotation defaultClause;
 
   final Token beginToken;
   final Token extendsKeyword;

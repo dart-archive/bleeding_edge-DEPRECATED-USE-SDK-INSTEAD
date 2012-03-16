@@ -889,7 +889,7 @@ class NodeListener extends ElementListener {
   void endInterface(int supertypeCount, Token interfaceKeyword,
                     Token extendsKeyword, Token endToken) {
     NodeList body = popNode();
-    NodeList defaultClause = popNode();
+    TypeAnnotation defaultClause = popNode();
     NodeList supertypes = makeNodeList(supertypeCount, extendsKeyword,
                                        null, ',');
     NodeList typeParameters = popNode();

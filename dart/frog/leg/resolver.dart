@@ -1225,13 +1225,11 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
   Type visitClassNode(ClassNode node) {
     compiler.ensure(classElement !== null);
     compiler.ensure(!classElement.isResolved);
-    final Link<TypeVariable> parameters =
+    final Link<Node> parameters =
         node.typeParameters !== null ? node.typeParameters.nodes
                                      : const EmptyLink<TypeVariable>();
     // Create types and elements for type variable.
-    for (Link<TypeVariable> link = parameters;
-         !link.isEmpty();
-         link = link.tail) {
+    for (Link<Node> link = parameters; !link.isEmpty(); link = link.tail) {
       TypeVariable typeNode = link.head;
       SourceString variableName = typeNode.name.source;
       TypeVariableType variableType = new TypeVariableType(variableName);
@@ -1243,9 +1241,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       context = new TypeVariablesScope(context, classElement);
     }
     // Resolve the bounds of type variables.
-    for (Link<TypeVariable> link = parameters;
-         !link.isEmpty();
-         link = link.tail) {
+    for (Link<Node> link = parameters; !link.isEmpty(); link = link.tail) {
       TypeVariable typeNode = link.head;
       SourceString variableName = typeNode.name.source;
       TypeVariableElement variableElement =
