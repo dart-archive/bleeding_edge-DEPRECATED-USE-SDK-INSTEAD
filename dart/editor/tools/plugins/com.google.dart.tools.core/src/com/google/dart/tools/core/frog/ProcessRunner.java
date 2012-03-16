@@ -36,8 +36,37 @@ public class ProcessRunner {
   private StringBuilder stdout = new StringBuilder();
   private StringBuilder stderr = new StringBuilder();
 
+  private Thread processThread;
+
   public ProcessRunner(ProcessBuilder processBuilder) {
     this.processBuilder = processBuilder;
+  }
+
+  /**
+   * Wait for process termination.
+   * 
+   * @param millis
+   * @throws IOException
+   */
+  public void await(IProgressMonitor monitor, int maxDelayMillis) throws IOException {
+    long exitTime = maxDelayMillis > 0 ? System.currentTimeMillis() + maxDelayMillis : 0;
+
+    try {
+      // Run the process; check periodically for user cancellation.
+      while (processThread.isAlive()) {
+        if (monitor != null && monitor.isCanceled()) {
+          return;
+        }
+
+        if (exitTime != 0 && System.currentTimeMillis() > exitTime) {
+          return;
+        }
+
+        processThread.join(100);
+      }
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    }
   }
 
   public int getExitCode() {
@@ -53,6 +82,54 @@ public class ProcessRunner {
   }
 
   /**
+   * Run the process asynchronously, returning immediately.
+   * 
+   * @param monitor
+   * @throws IOException
+   */
+  public void runAsync() throws IOException {
+    exitCode = 0;
+    stdout.setLength(0);
+    stderr.setLength(0);
+
+    final Process process = processBuilder.start();
+
+    // Read from stdout.
+    final Thread stdoutThread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        pipeOutput(process.getInputStream(), stdout);
+      }
+    });
+
+    // Read from stderr.
+    final Thread stderrThread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        pipeOutput(process.getErrorStream(), stderr);
+      }
+    });
+
+    processThread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          exitCode = process.waitFor();
+
+          stdoutThread.join();
+          stderrThread.join();
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+    });
+
+    processThread.start();
+    stdoutThread.start();
+    stderrThread.start();
+  }
+
+  /**
    * Execute the process created by the process builder; return the exit value. This call happens
    * synchronously. The monitor parameter is optional; if used, it is polled to see if the user
    * cancelled the operation.
@@ -62,14 +139,14 @@ public class ProcessRunner {
    * @throws IOException
    * @throws OperationCanceledException if the user cancelled the operation
    */
-  public int run(IProgressMonitor monitor) throws IOException {
+  public int runSync(IProgressMonitor monitor) throws IOException {
     exitCode = 0;
     stdout.setLength(0);
     stderr.setLength(0);
 
     final Process process = processBuilder.start();
 
-    Thread processThread = new Thread(new Runnable() {
+    processThread = new Thread(new Runnable() {
       @Override
       public void run() {
         try {

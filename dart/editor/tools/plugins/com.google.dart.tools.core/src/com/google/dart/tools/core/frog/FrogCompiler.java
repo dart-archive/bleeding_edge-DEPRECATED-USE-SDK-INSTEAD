@@ -171,7 +171,7 @@ public class FrogCompiler {
 
     ProcessRunner runner = new ProcessRunner(builder);
 
-    runner.run(monitor);
+    runner.runSync(monitor);
 
     return new CompilationResult(runner, outputPath);
   }

@@ -29,6 +29,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
@@ -180,7 +181,6 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
 
   private void launchInExternalBrowser(DartLaunchConfigWrapper launchConfig, final String url)
       throws CoreException {
-
     String browserName = launchConfig.getBrowserName();
     List<String> cmd = new ArrayList<String>();
 
@@ -195,8 +195,9 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     try {
       ProcessBuilder builder = new ProcessBuilder(cmd);
       ProcessRunner runner = new ProcessRunner(builder);
-      runner.run(null);
-      sleep(500);
+
+      runner.runAsync();
+      runner.await(new NullProgressMonitor(), 500);
 
       if (runner.getExitCode() != 0) {
         throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID,
@@ -207,7 +208,6 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
           Messages.BrowserLaunchConfigurationDelegate_BrowserNotFound, e));
     }
-
   }
 
   private void showConsole() {
@@ -222,13 +222,6 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
         }
       }
     });
-  }
-
-  private void sleep(int millis) {
-    try {
-      Thread.sleep(millis);
-    } catch (Exception exception) {
-    }
   }
 
 }
