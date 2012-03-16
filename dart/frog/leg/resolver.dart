@@ -813,6 +813,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   void handleArguments(Send node) {
     int count = 0;
     List<SourceString> namedArguments = <SourceString>[];
+    bool seenNamedArgument = false;
     for (Link<Node> link = node.argumentsNode.nodes;
          !link.isEmpty();
          link = link.tail) {
@@ -820,8 +821,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       Expression argument = link.head;
       visit(argument);
       if (argument.asNamedArgument() != null) {
+        seenNamedArgument = true;
         NamedArgument named = argument;
         namedArguments.add(named.name.source);
+      } else if (seenNamedArgument) {
+        error(argument, MessageKind.INVALID_ARGUMENT_AFTER_NAMED);
       }
     }
     mapping.setSelector(node, new Invocation(count, namedArguments));

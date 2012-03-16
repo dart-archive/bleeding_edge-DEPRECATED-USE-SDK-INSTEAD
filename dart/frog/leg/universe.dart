@@ -120,11 +120,11 @@ class Selector implements Hashable {
   bool addSendArgumentsToList(Send send,
                               List list,
                               FunctionParameters parameters,
-                              visitArgument(Node argument),
-                              visitConstant(Element element)) {
+                              compileArgument(Node argument),
+                              compileConstant(Element element)) {
     void addMatchingSendArgumentsToList(Link<Node> link) {
       for (; !link.isEmpty(); link = link.tail) {
-        list.add(visitArgument(link.head));
+        list.add(compileArgument(link.head));
       }
     }
 
@@ -143,13 +143,14 @@ class Selector implements Hashable {
     for (int i = 0;
          i < positionalArgumentCount;
          arguments = arguments.tail, i++) {
-      list.add(visitArgument(arguments.head));
+      list.add(compileArgument(arguments.head));
     }
 
     // Visit named arguments and add them into a temporary list.
     List namedArguments = [];
     for (; !arguments.isEmpty(); arguments = arguments.tail) {
-      namedArguments.add(visitArgument(arguments.head));
+      NamedArgument namedArgument = arguments.head;
+      namedArguments.add(compileArgument(namedArgument.expression));
     }
 
     Link<Element> remainingNamedParameters = parameters.optionalParameters;
@@ -179,7 +180,7 @@ class Selector implements Hashable {
       if (foundIndex != -1) {
         list.add(namedArguments[foundIndex]);
       } else {
-        list.add(visitConstant(parameter)); 
+        list.add(compileConstant(parameter)); 
       }
     }
     return true;
