@@ -1859,7 +1859,8 @@ class SsaBuilder implements Visitor {
         if (const SourceString("=") == op.source) {
           HInstruction value = pop();
           HInstruction index = pop();
-          push(new HIndexAssign(target, receiver, index, value));
+          add(new HIndexAssign(target, receiver, index, value));
+          stack.add(value);
         } else {
           HInstruction value;
           HInstruction index;
@@ -1880,11 +1881,12 @@ class SsaBuilder implements Visitor {
           add(left);
           Element opElement = elements[op];
           visitBinary(left, op, value);
+          value = pop();
           HInstruction assign = new HIndexAssign(
-              target, receiver, index, pop());
+              target, receiver, index, value);
           add(assign);
           if (isPrefix) {
-            stack.add(assign);
+            stack.add(value);
           } else {
             stack.add(left);
           }

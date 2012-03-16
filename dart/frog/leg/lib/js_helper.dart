@@ -233,7 +233,7 @@ index(var a, var index) {
   return UNINTERCEPTED(a[index]);
 }
 
-indexSet(var a, var index, var value) {
+void indexSet(var a, var index, var value) {
   checkNull(a);
   if (isJsArray(a)) {
     if (!(index is int)) {
@@ -247,7 +247,6 @@ indexSet(var a, var index, var value) {
   }
   checkNull(a);
   UNINTERCEPTED(a[index] = value);
-  return value;
 }
 
 checkMutable(list, reason) {
