@@ -48,6 +48,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -55,11 +56,13 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.MoveResourceAction;
 import org.eclipse.ui.actions.RenameResourceAction;
 import org.eclipse.ui.ide.IDE;
@@ -142,6 +145,12 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private RefreshAction refreshAction;
 
+  private CopyAction copyAction;
+
+  private PasteAction pasteAction;
+
+  private Clipboard clipboard;
+
   public FilesView() {
   }
 
@@ -166,6 +175,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     getSite().setSelectionProvider(treeViewer);
 
+    makeActions();
+
     fillInToolbar(getViewSite().getActionBars().getToolBarManager());
     fillInActionBars();
 
@@ -178,29 +189,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         linkWithEditorAction.syncSelectionToEditor();
       }
     });
-
-    createFileAction = new OpenNewFileWizardAction(getSite().getWorkbenchWindow());
-    treeViewer.addSelectionChangedListener(createFileAction);
-    createFolderAction = new OpenNewFolderWizardAction(getSite().getWorkbenchWindow());
-    treeViewer.addSelectionChangedListener(createFolderAction);
-    renameAction = new RenameResourceAction(getShell(), treeViewer.getTree());
-    treeViewer.addSelectionChangedListener(renameAction);
-    moveAction = new MoveResourceAction(getShell());
-    treeViewer.addSelectionChangedListener(moveAction);
-
-    refreshAction = new RefreshAction(this);
-    treeViewer.addSelectionChangedListener(refreshAction);
-
-    deleteAction = new DeleteAction(getSite());
-    deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(
-        ISharedImages.IMG_TOOL_DELETE));
-    treeViewer.addSelectionChangedListener(deleteAction);
-
-    hideContainerAction = new HideProjectAction(getSite());
-    treeViewer.addSelectionChangedListener(hideContainerAction);
-
-    copyFilePathAction = new CopyFilePathAction(getSite());
-    treeViewer.addSelectionChangedListener(copyFilePathAction);
 
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
     updateTreeFont();
@@ -217,6 +205,10 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       undoRedoActionGroup.dispose();
     }
     treeViewer.removeSelectionChangedListener(copyFilePathAction);
+
+    if (clipboard != null) {
+      clipboard.dispose();
+    }
 
     super.dispose();
   }
@@ -299,6 +291,25 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     manager.add(OpenFolderHandler.createCommandAction(getSite().getWorkbenchWindow()));
 
+    // EDIT GROUP
+
+    if (!selection.isEmpty() && allElementsAreResources(selection)) {
+
+      manager.add(new Separator());
+
+      manager.add(copyAction);
+
+      // Copy File Path iff single element and is an IResource
+
+      if (selection.size() == 1) {
+        manager.add(copyFilePathAction);
+      }
+
+      manager.add(pasteAction);
+      manager.add(new Separator());
+      manager.add(refreshAction);
+    }
+
     // REFACTOR GROUP
 
     // Refactor iff all elements are IResources
@@ -309,28 +320,22 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         manager.add(renameAction);
         manager.add(moveAction);
       }
-      manager.add(deleteAction);
 
       manager.add(new Separator());
-      manager.add(refreshAction);
-    }
+      manager.add(deleteAction);
 
-    // Remove, iff non-empty selection, all elements are IResources
+    }
 
     if (!selection.isEmpty() && allElementsAreResources(selection)) {
 
-      // Copy File Path iff single element and is an IResource
-
-      if (selection.size() == 1) {
-        manager.add(new Separator());
-        manager.add(copyFilePathAction);
-      }
+      // Remove, iff non-empty selection, all elements are IResources
 
       manager.add(new Separator());
       if (allElementsAreProjects(selection)) {
         manager.add(hideContainerAction);
       }
     }
+
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {
@@ -421,10 +426,16 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   }
 
   private void fillInActionBars() {
+
+    IActionBars actionBars = getViewSite().getActionBars();
     IUndoContext workspaceContext = (IUndoContext) ResourcesPlugin.getWorkspace().getAdapter(
         IUndoContext.class);
     undoRedoActionGroup = new UndoRedoActionGroup(getViewSite(), workspaceContext, true);
-    undoRedoActionGroup.fillActionBars(getViewSite().getActionBars());
+    undoRedoActionGroup.fillActionBars(actionBars);
+
+    actionBars.setGlobalActionHandler(ActionFactory.COPY.getId(), copyAction);
+    actionBars.setGlobalActionHandler(ActionFactory.PASTE.getId(), pasteAction);
+
   }
 
   private void initDragAndDrop() {
@@ -436,6 +447,39 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     FilesViewDropAdapter adapter = new FilesViewDropAdapter(treeViewer);
     adapter.setFeedbackEnabled(true);
     treeViewer.addDropSupport(ops | DND.DROP_DEFAULT, transfers, adapter);
+  }
+
+  private void makeActions() {
+    createFileAction = new OpenNewFileWizardAction(getSite().getWorkbenchWindow());
+    treeViewer.addSelectionChangedListener(createFileAction);
+    createFolderAction = new OpenNewFolderWizardAction(getSite().getWorkbenchWindow());
+    treeViewer.addSelectionChangedListener(createFolderAction);
+    renameAction = new RenameResourceAction(getShell(), treeViewer.getTree());
+    treeViewer.addSelectionChangedListener(renameAction);
+    moveAction = new MoveResourceAction(getShell());
+    treeViewer.addSelectionChangedListener(moveAction);
+
+    clipboard = new Clipboard(getShell().getDisplay());
+
+    pasteAction = new PasteAction(getShell(), clipboard);
+    treeViewer.addSelectionChangedListener(pasteAction);
+
+    copyAction = new CopyAction(getShell(), clipboard, pasteAction);
+    treeViewer.addSelectionChangedListener(copyAction);
+
+    refreshAction = new RefreshAction(this);
+    treeViewer.addSelectionChangedListener(refreshAction);
+
+    deleteAction = new DeleteAction(getSite());
+    deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(
+        ISharedImages.IMG_TOOL_DELETE));
+    treeViewer.addSelectionChangedListener(deleteAction);
+
+    hideContainerAction = new HideProjectAction(getSite());
+    treeViewer.addSelectionChangedListener(hideContainerAction);
+
+    copyFilePathAction = new CopyFilePathAction(getSite());
+    treeViewer.addSelectionChangedListener(copyFilePathAction);
   }
 
 }

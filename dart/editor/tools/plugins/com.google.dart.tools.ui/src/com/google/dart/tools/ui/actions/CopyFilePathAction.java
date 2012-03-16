@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.filesview.FilesView;
 
 import org.eclipse.core.resources.IResource;
@@ -46,7 +47,7 @@ public class CopyFilePathAction extends SelectionDispatchAction {
     setText(ActionMessages.CopyFilePathAction_text);
     setDescription(ActionMessages.CopyFilePathAction_description);
     setToolTipText(ActionMessages.CopyFilePathAction_tooltip);
-//    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/library_new.png"));
+    setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/elcl16/cpyqual_menu.gif"));
     setId(ACTION_ID);
     setEnabled(false);
   }

@@ -156,6 +156,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private IWorkbenchAction redoAction;
 
+  private IWorkbenchAction copyAction;
+
+  private IWorkbenchAction pasteAction;
+
   private IWorkbenchAction quitAction;
 
   private IWorkbenchAction goIntoAction;
@@ -494,6 +498,12 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     newEditorAction = ActionFactory.NEW_EDITOR.create(window);
     register(newEditorAction);
 
+    copyAction = ActionFactory.COPY.create(window);
+    register(copyAction);
+
+    pasteAction = ActionFactory.PASTE.create(window);
+    register(pasteAction);
+
     undoAction = ActionFactory.UNDO.create(window);
     register(undoAction);
 
@@ -777,8 +787,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new Separator());
 
     menu.add(actionFactory.getCutItem());
-    menu.add(actionFactory.getCopyItem());
-    menu.add(actionFactory.getPasteItem());
+    menu.add(copyAction);
+    menu.add(pasteAction);
+
     //menu.add(new GroupMarker(IWorkbenchActionConstants.CUT_EXT));
     menu.add(new Separator());
 
