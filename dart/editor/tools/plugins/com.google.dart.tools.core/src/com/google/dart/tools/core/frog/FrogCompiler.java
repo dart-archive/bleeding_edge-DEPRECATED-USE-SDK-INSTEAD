@@ -20,10 +20,13 @@ import com.google.dart.tools.core.internal.builder.DartBuilder;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartSdk;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
@@ -109,6 +112,8 @@ public class FrogCompiler {
       CompilationResult result = compiler.compile(library.getCorrespondingResource().getLocation(),
           outputPath, monitor);
 
+      refreshResources(library.getCorrespondingResource());
+
       if (!result.getStdOut().isEmpty()) {
         DartCore.getConsole().println(result.getStdOut().trim());
       }
@@ -137,6 +142,27 @@ public class FrogCompiler {
     } catch (IOException ioe) {
       throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, ioe.toString(), ioe));
     }
+  }
+
+  /**
+   * Frog creates java.io.Files; we need to tell the workspace about the new / changed resources.
+   * 
+   * @param correspondingResource
+   * @throws CoreException
+   */
+  private static void refreshResources(IResource resource) throws CoreException {
+    IContainer container;
+    if (resource == null) {
+      return;
+    }
+
+    if (resource instanceof IContainer) {
+      container = (IContainer) resource;
+    } else {
+      container = resource.getParent();
+    }
+
+    container.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
   }
 
   /**
