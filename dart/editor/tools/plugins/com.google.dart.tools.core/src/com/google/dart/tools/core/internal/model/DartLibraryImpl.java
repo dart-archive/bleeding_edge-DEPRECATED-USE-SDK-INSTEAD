@@ -58,6 +58,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceProxy;
+import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -763,26 +765,33 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     // find html files for library
     try {
       if (getDartProject().exists()) { // will not look into ExternalDartProject
-        IResource[] resources = getDartProject().getProject().members(IResource.FILE);
-        String elementName = getElementName();
-        for (IResource resource : resources) {
-          if (DartCore.isHTMLLikeFileName(resource.getName()) && !resourceList.contains(resource)) {
-            if (resource.isAccessible()) {
-              try {
-                List<String> libraryNames = LibraryReferenceFinder.findInHTML(IFileUtilities.getContents((IFile) resource));
-                for (String libraryName : libraryNames) {
-                  if (elementName.equals(libraryName) || elementName.endsWith("/" + libraryName)) {
-                    children.add(new HTMLFileImpl(DartLibraryImpl.this, (IFile) resource));
-                    break;
+        final String elementName = getElementName();
+        getDartProject().getProject().accept(new IResourceProxyVisitor() {
+          @Override
+          public boolean visit(IResourceProxy proxy) throws CoreException {
+            if (proxy.getType() != IResource.FILE || !DartCore.isHTMLLikeFileName(proxy.getName())) {
+              return true;
+            }
+            IResource resource = proxy.requestResource();
+            if (!resourceList.contains(resource)) {
+              if (resource.isAccessible()) {
+                try {
+                  List<String> libraryNames = LibraryReferenceFinder.findInHTML(IFileUtilities.getContents((IFile) resource));
+                  for (String libraryName : libraryNames) {
+                    if (elementName.equals(libraryName) || elementName.endsWith("/" + libraryName)) {
+                      children.add(new HTMLFileImpl(DartLibraryImpl.this, (IFile) resource));
+                      break;
+                    }
                   }
+                } catch (IOException exception) {
+                  DartCore.logInformation("Could not get contents of " + resource.getLocation(),
+                      exception);
                 }
-              } catch (IOException exception) {
-                DartCore.logInformation("Could not get contents of " + resource.getLocation(),
-                    exception);
               }
             }
+            return true;
           }
-        }
+        }, 0);
       }
     } catch (CoreException exception) {
       DartCore.logError(exception);
