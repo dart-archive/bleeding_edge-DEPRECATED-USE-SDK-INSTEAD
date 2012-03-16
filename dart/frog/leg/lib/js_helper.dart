@@ -243,7 +243,8 @@ void indexSet(var a, var index, var value) {
       throw new IndexOutOfRangeException(index);
     }
     checkMutable(a, 'indexed set');
-    return JS('Object', @'#[#] = #', a, index, value);
+    JS('Object', @'#[#] = #', a, index, value);
+    return;
   }
   checkNull(a);
   UNINTERCEPTED(a[index] = value);
