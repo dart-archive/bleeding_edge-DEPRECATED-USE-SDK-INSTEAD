@@ -109,8 +109,15 @@ class Dromaeo {
     // TODO(vsm): Initial page should not run.  For now, run all
     // tests by default.
     final splitUrl = window.location.href.split('?');
-    final tags = splitUrl.length > 1 ? splitUrl[1]
-        : 'js|dart|frog';
+    var tags;
+    if (splitUrl.length > 1) {
+      tags = splitUrl[1];
+    } else if (window.navigator.userAgent.contains('(Dart)')) {
+      // TODO(vsm): Update when we change Dart VM detection.
+      tags = 'js|dart|frog';
+    } else {
+      tags = 'js|frog';
+    }
 
     // TODO(antonm): create Re-run tests href.
     final HTMLElement suiteNameElement = _byId('overview').firstChild;
