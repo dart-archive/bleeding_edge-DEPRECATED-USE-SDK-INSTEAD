@@ -5,10 +5,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "110622",
+  "webkit_revision": "110800",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8008",
+  "nacl_revision": "8027",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "7955",  # native_client/DEPS: tools_rev
@@ -39,26 +39,26 @@ vars = {
   "nacl_toolchain_revision": "7898",
   "pnacl_toolchain_revision": "7898",
 
-  "libjingle_revision": "119",
+  "libjingle_revision": "124",
   "libphonenumber_revision": "425",
   "libvpx_revision": "125647",
   "lss_revision": "9",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "125946",
-  "ffmpeg_hash": "d70dcd6cce182fe5fe1ce47561e17890a1bae2b9",
+  "ffmpeg_revision": "126470",
+  "ffmpeg_hash": "ddcf259fa5fb83159d441bd71f54e617e2a4afd3",
 
   "sfntly_revision": "128",
-  "skia_revision": "3376",
+  "skia_revision": "3381",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_revision": "10875",
-  "webrtc_revision": "1538",
+  "webrtc_revision": "1888",
   "jsoncpp_revision": "248",
   "nss_revision": "126189",
-  "rlz_revision": "72",
+  "rlz_revision": "79",
 }
 
 deps = {
@@ -107,7 +107,7 @@ deps = {
 
   "src/third_party/cacheinvalidation/files/src/google":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src/google@185",
+    "/trunk/src/google@203",
 
   "src/third_party/leveldatabase/src":
     (Var("googlecode_url") % "leveldb") + "/trunk@61",
@@ -119,7 +119,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@17",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1242",
+    (Var("googlecode_url") % "gyp") + "/trunk@1246",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -303,7 +303,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@202",
+    (Var("googlecode_url") % "libyuv") + "/trunk@214",
 
   "src/third_party/mozc/session":
     (Var("googlecode_url") % "mozc") + "/trunk/src/session@83",
