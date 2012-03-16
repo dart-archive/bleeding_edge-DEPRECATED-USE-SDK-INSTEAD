@@ -25,6 +25,7 @@ import org.eclipse.debug.core.IDebugEventSetListener;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchListener;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.contexts.ISuspendTrigger;
@@ -84,6 +85,9 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
     for (DebugEvent event : events) {
       if (event.getKind() == DebugEvent.CREATE && event.getSource() instanceof IProcess) {
         attachConsoleListener((IProcess) event.getSource());
+      } else if (event.getKind() == DebugEvent.TERMINATE
+          && event.getSource() instanceof IDebugTarget) {
+        removeDebugTarget((IDebugTarget) event.getSource());
       }
     }
   }
@@ -131,7 +135,6 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
   @Override
   public void suspended(ILaunch launch, Object context) {
     Display.getDefault().asyncExec(new Runnable() {
-
       @Override
       public void run() {
         openDebuggerView();
@@ -144,7 +147,6 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
         window.getShell().forceActive();
         IViewReference viewReference = window.getActivePage().findViewReference(DebuggerView.ID);
         window.getActivePage().activate(viewReference.getPart(true));
-
       }
     });
   }
@@ -198,6 +200,10 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
     } catch (PartInitException e) {
       DartUtil.logError(e);
     }
+  }
+
+  private void removeDebugTarget(IDebugTarget target) {
+    target.getLaunch().removeDebugTarget(target);
   }
 
 }

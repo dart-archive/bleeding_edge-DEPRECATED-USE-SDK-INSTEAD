@@ -130,10 +130,14 @@ public class WebkitDebugger extends WebkitDomain {
   private static final String DEBUGGER_BREAKPOINT_RESOLVED = "Debugger.breakpointResolved";
   private static final String DEBUGGER_SCRIPT_PARSED = "Debugger.scriptParsed";
 
+  private static final String OBJECT_GROUP_KEY = "objectGroup";
+
   private List<DebuggerListener> listeners = new ArrayList<DebuggerListener>();
 
   private Map<String, WebkitScript> scriptMap = new HashMap<String, WebkitScript>();
   private Map<String, WebkitBreakpoint> breakpointMap = new HashMap<String, WebkitBreakpoint>();
+
+  private int remoteObjectCount;
 
   public WebkitDebugger(WebkitConnection connection) {
     super(connection);
@@ -191,6 +195,34 @@ public class WebkitDebugger extends WebkitDomain {
 
   public void enable() throws IOException {
     sendSimpleCommand("Debugger.enable");
+  }
+
+  public void evaluateOnCallFrame(String callFrameId, String expression,
+      final WebkitCallback<WebkitRemoteObject> callback) throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("callback is required");
+    }
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("method", "Debugger.evaluateOnCallFrame");
+      request.put(
+          "params",
+          new JSONObject().put("callFrameId", callFrameId).put("expression", expression).put(
+              "objectGroup", OBJECT_GROUP_KEY).put("returnByValue", true));
+
+      connection.sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          callback.handleResult(convertEvaluateOnCallFrameResult(result));
+        }
+      });
+
+      remoteObjectCount++;
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
   }
 
   public Collection<WebkitBreakpoint> getAllBreakpoints() {
@@ -441,6 +473,8 @@ public class WebkitDebugger extends WebkitDomain {
       for (DebuggerListener listener : listeners) {
         listener.debuggerResumed();
       }
+
+      clearRemoteObjects();
     } else if (method.equals(DEBUGGER_GLOBAL_OBJECT_CLEARED)) {
       clearGlobalObjects();
 
@@ -485,12 +519,44 @@ public class WebkitDebugger extends WebkitDomain {
     scriptMap.clear();
   }
 
+  private void clearRemoteObjects() {
+    if (remoteObjectCount > 0) {
+      remoteObjectCount = 0;
+
+      try {
+        getConnection().getRuntime().releaseObjectGroup(OBJECT_GROUP_KEY);
+      } catch (IOException e) {
+        // This is a best-effort call.
+
+      }
+    }
+  }
+
   private WebkitResult<Boolean> convertCanSetScriptSourceResult(JSONObject object)
       throws JSONException {
     WebkitResult<Boolean> result = WebkitResult.createFrom(object);
 
     if (object.has("result")) {
       result.setResult(Boolean.valueOf(object.getJSONObject("result").getBoolean("result")));
+    }
+
+    return result;
+  }
+
+  private WebkitResult<WebkitRemoteObject> convertEvaluateOnCallFrameResult(JSONObject object)
+      throws JSONException {
+    WebkitResult<WebkitRemoteObject> result = WebkitResult.createFrom(object);
+
+    if (object.has("result")) {
+      object = object.getJSONObject("result");
+
+      WebkitRemoteObject remoteObject = WebkitRemoteObject.createFrom(object.getJSONObject("result"));
+
+      if (object.has("wasThrown")) {
+        result.setError(remoteObject);
+      } else {
+        result.setResult(remoteObject);
+      }
     }
 
     return result;
