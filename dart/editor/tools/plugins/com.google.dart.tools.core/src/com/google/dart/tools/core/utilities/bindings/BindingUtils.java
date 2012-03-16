@@ -627,9 +627,7 @@ public class BindingUtils {
       return null;
     }
     String variableName = variableBinding.getName();
-    DartNode node = variableBinding.getNode();
-    DartFunction functionNode = getEnclosingFunction(node);
-    if (functionNode == null) {
+    if (variableBinding.getEnclosingElement() instanceof LibraryElement) {
       try {
         for (CompilationUnit unit : library.getCompilationUnits()) {
           for (DartVariableDeclaration variable : unit.getGlobalVariables()) {
@@ -644,16 +642,19 @@ public class BindingUtils {
       }
       return null;
     }
-    com.google.dart.tools.core.model.DartFunction functionElement = getDartElement(library,
-        (MethodElement) functionNode.getParent().getElement());
-    try {
-      for (DartVariableDeclaration variable : functionElement.getLocalVariables()) {
-        if (variable.getElementName().equals(variableName)) {
-          return variable;
+    if (variableBinding.getEnclosingElement() instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) variableBinding.getEnclosingElement();
+      com.google.dart.tools.core.model.DartFunction functionElement = getDartElement(library,
+          methodElement);
+      try {
+        for (DartVariableDeclaration variable : functionElement.getLocalVariables()) {
+          if (variable.getElementName().equals(variableName)) {
+            return variable;
+          }
         }
+      } catch (DartModelException exception) {
+        DartCore.logError("Cannot access local variables within function", exception);
       }
-    } catch (DartModelException exception) {
-      DartCore.logError("Cannot access local variables within function", exception);
     }
     return null;
   }

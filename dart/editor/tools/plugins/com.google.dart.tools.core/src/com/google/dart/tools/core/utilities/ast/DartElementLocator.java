@@ -39,7 +39,9 @@ import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.LibraryElement;
+import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.tools.core.DartCore;
@@ -288,9 +290,17 @@ public class DartElementLocator extends ASTVisitor<Void> {
       int end = start + length;
       if (start <= startOffset && endOffset <= end) {
         wordRegion = new Region(start, length);
+        DartNode parent = node.getParent();
         Element targetElement = node.getElement();
+        // target of "new X()" is not just type, it is constructor
+        if (parent instanceof DartTypeNode) {
+          DartNode grandparent = parent.getParent();
+          if (grandparent instanceof DartNewExpression) {
+            targetElement = ((DartNewExpression) grandparent).getElement();
+          }
+        }
+        // analyze "targetElement"
         if (targetElement == null) {
-          DartNode parent = node.getParent();
           if (parent instanceof DartTypeNode) {
             DartNode grandparent = parent.getParent();
             if (grandparent instanceof DartNewExpression) {
@@ -372,44 +382,24 @@ public class DartElementLocator extends ASTVisitor<Void> {
           foundElement = null;
         } else {
           if (targetElement instanceof VariableElement) {
-            DartNode variableNode = ((VariableElement) targetElement).getNode();
-            if (variableNode instanceof DartParameter) {
-              DartParameter parameter = (DartParameter) variableNode;
-              resolvedElement = targetElement;
-              DartMethodDefinition method = DartAstUtilities.getEnclosingNodeOfType(
-                  DartMethodDefinition.class, parameter);
-              if (method == null) {
-                DartClass containingType = DartAstUtilities.getEnclosingDartClass(variableNode);
-                if (containingType != null) {
-                  DartExpression parameterName = parameter.getName();
-                  foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-                      containingType.getElement());
-                  candidateRegion = new Region(parameterName.getSourceInfo().getOffset(),
-                      parameterName.getSourceInfo().getLength());
-                } else {
-                  foundElement = null;
-                }
+            VariableElement variableElement = (VariableElement) targetElement;
+            if (variableElement.getKind() == ElementKind.PARAMETER) {
+              resolvedElement = variableElement;
+              if (variableElement.getEnclosingElement() instanceof MethodElement) {
+                MethodElement methodElement = (MethodElement) variableElement.getEnclosingElement();
+                foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
+                    methodElement);
+                candidateRegion = new Region(variableElement.getNameLocation().getOffset(),
+                    variableElement.getNameLocation().getLength());
               } else {
-                foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-                    method.getElement());
-                DartExpression parameterName = parameter.getName();
-                candidateRegion = new Region(parameterName.getSourceInfo().getOffset(),
-                    parameterName.getSourceInfo().getLength());
+                foundElement = null;
               }
-            } else if (variableNode instanceof DartVariable) {
-              DartVariable variable = (DartVariable) variableNode;
-              resolvedElement = targetElement;
-              DartClass containingType = DartAstUtilities.getEnclosingDartClass(variableNode);
-              if (containingType != null) {
-                DartIdentifier variableName = variable.getName();
-                foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-                    (VariableElement) targetElement);
-                candidateRegion = new Region(variableName.getSourceInfo().getOffset(),
-                    variableName.getSourceInfo().getLength());
-              } else {
-                foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-                    (VariableElement) targetElement);
-              }
+            } else if (variableElement.getKind() == ElementKind.VARIABLE) {
+              resolvedElement = variableElement;
+              foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
+                  variableElement);
+              candidateRegion = new Region(variableElement.getNameLocation().getOffset(),
+                  variableElement.getNameLocation().getLength());
             } else {
               foundElement = null;
             }

@@ -52,6 +52,7 @@ import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.parser.ParserContext;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
@@ -59,6 +60,7 @@ import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolutionContext;
 import com.google.dart.compiler.resolver.Resolver;
 import com.google.dart.compiler.resolver.Scope;
@@ -1030,7 +1032,7 @@ public class CompletionEngine {
   private ErrorRecordingContext context = new ErrorRecordingContext();
   private DartClassMember<? extends DartExpression> resolvedMember;
   private CoreTypeProvider typeProvider;
-  private ClassElement classElement;
+  private ClassNodeElement classElement;
   private boolean isCompletionAfterDot;
   private DartUnit parsedUnit;
   private CompilationUnit currentCompilationUnit;
@@ -1174,8 +1176,8 @@ public class CompletionEngine {
     classElement = null;
     if (resolvedMember != null) {
       Element encElement = resolvedMember.getElement().getEnclosingElement();
-      if (encElement instanceof ClassElement) {
-        classElement = (ClassElement) encElement;
+      if (encElement instanceof ClassNodeElement) {
+        classElement = (ClassNodeElement) encElement;
       }
     } else {
       DartClass resolvedClass = finder.getEnclosingClass();
@@ -1190,7 +1192,7 @@ public class CompletionEngine {
     if (classElement != null) {
       resolutionContext = resolutionContext.extend(classElement);
     }
-    Element member = resolvedMember == null ? classElement : resolvedMember.getElement();
+    NodeElement member = resolvedMember == null ? classElement : resolvedMember.getElement();
     try {
       resolver.resolveMember(classElement, member, resolutionContext);
     } catch (AssertionError ex) {
@@ -1379,18 +1381,7 @@ public class CompletionEngine {
       proposal.setIsSetter(isSetter);
       proposal.setParameterNames(getParameterNames(method));
       proposal.setParameterTypeNames(getParameterTypeNames(method));
-      String returnTypeName;
-      if (method.getReturnType().getKind() == TypeKind.DYNAMIC) {
-        // TODO Remove this code when the element says it has void return type
-        DartMethodDefinition methodNode = (DartMethodDefinition) method.getNode();
-        try {
-          returnTypeName = methodNode.getFunction().getReturnTypeNode().toString();
-        } catch (NullPointerException ex) {
-          returnTypeName = method.getReturnType().getElement().getName();
-        }
-      } else {
-        returnTypeName = method.getReturnType().getElement().getName();
-      }
+      String returnTypeName = method.getReturnType().getElement().getName();
       proposal.setTypeName(returnTypeName.toCharArray());
       proposal.setDeclarationTypeName(method.getEnclosingElement().getName().toCharArray());
       setSourceLoc(proposal, node, prefix);
