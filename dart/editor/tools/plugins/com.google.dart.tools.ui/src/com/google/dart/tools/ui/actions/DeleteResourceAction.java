@@ -28,9 +28,11 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.SelectionListenerAction;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.ide.undo.DeleteResourcesOperation;
 import org.eclipse.ui.ide.undo.WorkspaceUndoUtil;
 import org.eclipse.ui.internal.ide.IDEWorkbenchMessages;
@@ -420,6 +422,15 @@ public class DeleteResourceAction extends SelectionListenerAction {
       }
 
     };
+
+
+    Display.getDefault().syncExec(new Runnable() {
+      @Override
+      public void run() {
+        IDE.saveAllEditors(resourcesToDelete, false);
+      }
+    });
+
     deleteJob.setUser(true);
     deleteJob.schedule();
   }
