@@ -754,8 +754,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   Element resolveSend(Send node) {
-    if (node.receiver === null || (node.selector.asIdentifier() !== null &&
-                                   node.selector.asIdentifier().isThis())) {
+    if (node.receiver === null) {
       return node.selector.accept(this);
     }
     var oldCategory = allowedCategory;
@@ -766,7 +765,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
     Element target;
     SourceString name = node.selector.asIdentifier().source;
-    if (node.isSuperCall) {
+    if (name.stringValue === 'this') {
+      error(node.selector, MessageKind.GENERIC, ["expected an identifier"]);
+    } else if (node.isSuperCall) {
       if (isUserDefinableOperator(name.stringValue)) {
         name = Elements.constructOperatorName(const SourceString('operator'),
                                               name);
@@ -778,7 +779,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (currentClass.supertype === null) {
         // This is just to guard against internal errors, so no need
         // for a real error message.
-        error(node.receiver, MessageKind.GENERIC, "Object has no superclass");
+        error(node.receiver, MessageKind.GENERIC, ["Object has no superclass"]);
       }
       target = currentClass.lookupSuperMember(name);
       // [target] may be null which means invoking noSuchMethod on
