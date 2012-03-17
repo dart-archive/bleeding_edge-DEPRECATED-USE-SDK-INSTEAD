@@ -32,7 +32,7 @@ public class BrowserHelper {
       // This is not necessary on Linux.
 
     } else if (DartCore.isWindows()) {
-      // TODO: is this necessary on Windows? investigate, and add code as necessary -
+      // This is not necessary on Windows.
 
     }
   }

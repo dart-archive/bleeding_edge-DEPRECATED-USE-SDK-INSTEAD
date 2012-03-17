@@ -227,7 +227,9 @@ public class DartSdk {
 
   private String getDartiumBinaryName() {
     if (DartCore.isWindows()) {
-      return "Chromium.exe";
+      // TODO(devoncarew): this will probably need to be adjusted once Dartium is
+      // shipped as part of the Windows editor build.
+      return "Chrome.exe";
     } else if (DartCore.isMac()) {
       return "Chromium.app/Contents/MacOS/Chromium";
     } else {

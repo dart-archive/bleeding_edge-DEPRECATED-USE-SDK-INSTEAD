@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.util;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import org.eclipse.core.resources.IFile;
@@ -66,17 +67,19 @@ public class ResourceServer implements IResourceResolver {
   @Override
   public String getUrlForResource(IFile file) {
     try {
-      String path;
+      URI fileUri = file.getLocation().toFile().toURI();
 
-//      if (file.isLinked()) {
-      path = file.getRawLocation().toOSString();
-//      } else {
-//        path = file.getFullPath().toPortableString();
-//      }
+      String pathSegment = fileUri.getPath();
 
-      URI uri = new URI("http", null, serverSocket.getInetAddress().getHostAddress(),
-          serverSocket.getLocalPort(), path, null, null);
-      return uri.toString();
+      if (DartCore.isWindows()) {
+        URI uri = new URI("http", null, "localhost", serverSocket.getLocalPort(), pathSegment,
+            null, null);
+        return uri.toString();
+      } else {
+        URI uri = new URI("http", null, serverSocket.getInetAddress().getHostAddress(),
+            serverSocket.getLocalPort(), pathSegment, null, null);
+        return uri.toString();
+      }
     } catch (URISyntaxException e) {
       DartDebugCorePlugin.logError(e);
 

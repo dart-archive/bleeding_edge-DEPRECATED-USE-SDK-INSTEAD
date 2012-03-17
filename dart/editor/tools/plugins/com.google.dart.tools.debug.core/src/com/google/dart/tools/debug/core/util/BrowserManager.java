@@ -114,6 +114,9 @@ public class BrowserManager {
       Process process = browserProcesses.get(browserName);
 
       if (!isProcessTerminated(process)) {
+        // TODO(devoncarew): try and us an OS mechanism to send it a graceful shutdown request?
+        // This could avoid the problem w/ Chrome displaying the crashed message on the next run.
+
         process.destroy();
 
         // The process needs time to exit.
@@ -228,12 +231,19 @@ public class BrowserManager {
       // avg: 46ms
       timer.startTask("open WIP connection");
 
-      if (tabs.size() == 0 || tabs.get(0).getWebSocketDebuggerUrl() == null) {
+      if (tabs.size() == 0) {
         throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
             "Unable to connect to Dartium"));
       }
 
-      WebkitConnection connection = new WebkitConnection(tabs.get(0).getWebSocketDebuggerUrl());
+      ChromiumTabInfo chromiumTab = findTargetTab(tabs);
+
+      if (chromiumTab == null || chromiumTab.getWebSocketDebuggerUrl() == null) {
+        throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+            "Unable to connect to Chromium"));
+      }
+
+      WebkitConnection connection = new WebkitConnection(chromiumTab.getWebSocketDebuggerUrl());
 
       DartiumDebugTarget debugTarget = new DartiumDebugTarget(browserName, connection, launch,
           runtimeProcess, resourceResolver);
@@ -296,12 +306,32 @@ public class BrowserManager {
 
     if (enableDebugging) {
       // Start up with a blank page.
-      arguments.add("--homepage=about:blank");
+      arguments.add("about:blank");
     } else {
       arguments.add(url);
     }
 
     return arguments;
+  }
+
+  private ChromiumTabInfo findTargetTab(List<ChromiumTabInfo> tabs) {
+    final String aboutBlank = "about:blank";
+
+    for (ChromiumTabInfo tab : tabs) {
+      if (tab.getTitle().contains(aboutBlank)) {
+        return tab;
+      }
+
+      if (tab.getUrl().contains(aboutBlank)) {
+        return tab;
+      }
+    }
+
+    if (tabs.size() == 0) {
+      return tabs.get(0);
+    }
+
+    return null;
   }
 
   private List<ChromiumTabInfo> getChromiumTabs(Process runtimeProcess) throws IOException,
