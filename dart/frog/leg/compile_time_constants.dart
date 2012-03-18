@@ -973,11 +973,16 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
 
     if (!node.isConst()) error(node);
 
-    // TODO(floitsch): get the type from somewhere.
     FunctionElement constructor = elements[node.send];
-    ClassElement classElement = constructor.enclosingElement;
     TreeElements constructorElements =
         compiler.resolver.resolveMethodElement(constructor);
+    if (constructor != constructor.defaultImplementation) {
+      constructor = constructor.defaultImplementation;
+      constructorElements =
+          compiler.resolver.resolveMethodElement(constructor);
+    }
+
+    ClassElement classElement = constructor.enclosingElement;
     FunctionExpression functionNode = constructor.parseNode(compiler);
     NodeList initializerList = functionNode.initializers;
     FunctionParameters parameters = constructor.computeParameters(compiler);
@@ -1004,7 +1009,8 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
         buildJsNewArguments(classElement, fieldValues);
 
     compiler.registerInstantiatedClass(classElement);
-    Type type = new SimpleType(classElement.name, classElement);
+    // TODO(floitsch): take generic types into account.
+    Type type = classElement.computeType(compiler);      
     Constant constant = new ConstructedConstant(type, jsNewArguments);
     constantHandler.registerCompileTimeConstant(constant);
     return constant;
