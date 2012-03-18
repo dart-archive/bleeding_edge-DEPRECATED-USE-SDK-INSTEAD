@@ -14,7 +14,6 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
         worklist = new List<int>();
 
   void visitGraph(HGraph graph) {
-    new TypeAnnotationReader(compiler).visitGraph(graph);
     visitDominatorTree(graph);
     processWorklist();
   }
@@ -63,29 +62,5 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
       worklist.add(id);
       workmap[id] = instruction;
     }
-  }
-}
-
-class TypeAnnotationReader extends HBaseVisitor {
-  final Compiler compiler;
-
-  TypeAnnotationReader(Compiler this.compiler);
-
-  visitParameterValue(HParameterValue parameter) {
-    // element is null for 'this'.
-    if (parameter.element === null) return;
-
-    Type type = parameter.element.computeType(compiler);
-    if (type == null) return;
-
-    if (type.toString() == 'int') {
-      parameter.type = HType.INTEGER;
-    } else if (type.toString() == 'String') {
-      parameter.type = HType.STRING;
-    }
-  }
-
-  void visitGraph(HGraph graph) {
-    visitDominatorTree(graph);
   }
 }
