@@ -142,7 +142,9 @@ class Element implements Hashable {
     return token;
   }
 
-  Element(this.name, this.kind, this.enclosingElement);
+  Element(this.name, this.kind, this.enclosingElement) {
+    assert(getLibrary() !== null);
+  }
 
   // TODO(kasperl): This is a very bad hash code for the element and
   // there's no reason why two elements with the same name should have
@@ -296,7 +298,7 @@ class LibraryElement extends CompilationUnitElement {
       if (this === e.getLibrary()
           && e.kind !== ElementKind.PREFIX
           && e.kind !== ElementKind.FOREIGN) {
-        f(e);
+        if (!e.name.isPrivate()) f(e);
       }
     });
   }
@@ -719,7 +721,11 @@ class ClassElement extends ContainerElement {
   Element lookupSuperMember(SourceString memberName) {
     for (ClassElement s = superclass; s != null; s = s.superclass) {
       Element e = s.lookupLocalMember(memberName);
-      if (e !== null) return e;
+      if (e !== null) {
+        if (!memberName.isPrivate() || getLibrary() === e.getLibrary()) {
+          return e;
+        }
+      }
     }
     return null;
   }

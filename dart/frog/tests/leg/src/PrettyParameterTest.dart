@@ -78,10 +78,10 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(PARAMETER_AND_TEMP, 'bar');
-  regexp = const RegExp(@"print\$1\(t0\)");
+  regexp = const RegExp(@"print\(t0\)");
   Expect.isTrue(regexp.hasMatch(generated));
   // Check that the second 't0' got another name.
-  regexp = const RegExp(@"print\$1\(t0_0\)");
+  regexp = const RegExp(@"print\(t0_0\)");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(NO_LOCAL, 'foo');

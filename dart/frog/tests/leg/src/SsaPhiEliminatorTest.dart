@@ -62,7 +62,7 @@ main() {
   regexp = const RegExp(@"a = \(3\)");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp(@"print\$1\(a\)");
+  regexp = const RegExp(@"print\(a\)");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, 'main');

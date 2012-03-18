@@ -142,6 +142,8 @@ interface SourceString extends Hashable, Iterable<int> default StringWrapper {
   String slowToString();
 
   bool isEmpty();
+
+  bool isPrivate();
 }
 
 class StringWrapper implements SourceString {
@@ -174,6 +176,8 @@ class StringWrapper implements SourceString {
   }
 
   bool isEmpty() => stringValue.isEmpty();
+
+  bool isPrivate() => !isEmpty() && stringValue.charCodeAt(0) === $_;
 }
 
 class StringCodeIterator implements Iterator<int> {

@@ -19,7 +19,7 @@ interface HVisitor<R> {
   R visitFieldGet(HFieldGet node);
   R visitFieldSet(HFieldSet node);
   R visitForeign(HForeign node);
-  R visitForeignNew(HForeignNew);
+  R visitForeignNew(HForeignNew node);
   R visitGoto(HGoto node);
   R visitGreater(HGreater node);
   R visitGreaterEqual(HGreaterEqual node);

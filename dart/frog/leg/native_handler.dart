@@ -225,13 +225,15 @@ void handleSsaNative(SsaBuilder builder, Send node) {
 
     if (element.kind == ElementKind.FUNCTION) {
       dartMethodName = builder.compiler.namer.instanceMethodName(
-          element.name, parameters.parameterCount);
+          element.getLibrary(), element.name, parameters.parameterCount);
       nativeMethodCall = '$receiver$nativeMethodName($foreignParameters)';
     } else if (element.kind == ElementKind.GETTER) {
-      dartMethodName = builder.compiler.namer.getterName(element.name);
+      dartMethodName = builder.compiler.namer.getterName(
+          element.getLibrary(), element.name);
       nativeMethodCall = '$receiver$nativeMethodName';
     } else if (element.kind == ElementKind.SETTER) {
-      dartMethodName = builder.compiler.namer.setterName(element.name);
+      dartMethodName = builder.compiler.namer.setterName(
+          element.getLibrary(), element.name);
       nativeMethodCall = '$receiver$nativeMethodName = $foreignParameters';
     } else {
       builder.compiler.internalError('unexpected kind: "${element.kind}"',

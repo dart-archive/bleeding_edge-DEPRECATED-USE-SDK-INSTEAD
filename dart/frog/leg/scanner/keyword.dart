@@ -140,6 +140,7 @@ class Keyword implements SourceString {
   String get stringValue() => syntax;
 
   bool isEmpty() => false;
+  bool isPrivate() => false;
 }
 
 /**

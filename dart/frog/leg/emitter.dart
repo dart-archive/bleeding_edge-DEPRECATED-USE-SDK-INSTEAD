@@ -9,7 +9,7 @@
 class ClosureInvocationElement extends FunctionElement {
   ClosureInvocationElement(SourceString name,
                            FunctionElement other)
-      : super.from(name, other, null);
+      : super.from(name, other, other.enclosingElement);
 
   isInstanceMember() => true;
 }
@@ -77,7 +77,8 @@ function(child, parent) {
     List<SourceString> names = selector.getOrderedNamedArguments();
 
     String invocationName =
-        namer.instanceMethodInvocationName(member.name, selector);
+        namer.instanceMethodInvocationName(member.getLibrary(), member.name,
+                                           selector);
     buffer.add('${attachTo(invocationName)} = function(');
 
     // The parameters that this stub takes.
@@ -208,14 +209,14 @@ function(child, parent) {
       // fields.
       if ((member.modifiers === null || !member.modifiers.isFinal()) &&
           compiler.universe.invokedSetters.contains(member.name)) {
-        String setterName = namer.setterName(member.name);
+        String setterName = namer.setterName(member.getLibrary(), member.name);
         String name =
             isNative ? member.name.slowToString() : namer.getName(member);
         buffer.add('${attachTo(setterName)} = function(v){\n');
         buffer.add('  this.$name = v;\n};\n');
       }
       if (compiler.universe.invokedGetters.contains(member.name)) {
-        String getterName = namer.getterName(member.name);
+        String getterName = namer.getterName(member.getLibrary(), member.name);
         String name =
             isNative ? member.name.slowToString() : namer.getName(member);
         buffer.add('${attachTo(getterName)} = function(){\n');
@@ -240,7 +241,8 @@ function(child, parent) {
         if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
           if (!isFirst) argumentsBuffer.add(', ');
           isFirst = false;
-          String memberName = namer.instanceFieldName(member.name);
+          String memberName = namer.instanceFieldName(member.getLibrary(),
+                                                      member.name);
           argumentsBuffer.add('${className}_$memberName');
           bodyBuffer.add('  this.$memberName = ${className}_$memberName;\n');
         }
@@ -379,7 +381,8 @@ function(child, parent) {
       String staticName = namer.isolatePropertyAccess(element);
       int parameterCount = element.parameterCount(compiler);
       String invocationName =
-          namer.instanceMethodName(callElement.name, parameterCount);
+          namer.instanceMethodName(element.getLibrary(), callElement.name,
+                                   parameterCount);
       buffer.add("$staticName.$invocationName = $staticName;\n");
       addParameterStubs(callElement, (name) => '$staticName.$name', buffer);
     }
@@ -430,8 +433,10 @@ function(child, parent) {
 
     int parameterCount = member.parameterCount(compiler);
     String invocationName =
-        namer.instanceMethodName(callElement.name, parameterCount);
-    String targetName = namer.instanceMethodName(member.name, parameterCount);
+        namer.instanceMethodName(member.getLibrary(),
+                                 callElement.name, parameterCount);
+    String targetName = namer.instanceMethodName(member.getLibrary(),
+                                                 member.name, parameterCount);
     List<String> arguments = new List<String>(parameterCount);
     for (int i = 0; i < parameterCount; i++) {
       arguments[i] = "arg$i";
@@ -445,7 +450,7 @@ function(child, parent) {
                       buffer);
 
     // And finally the getter.
-    String getterName = namer.getterName(member.name);
+    String getterName = namer.getterName(member.getLibrary(), member.name);
     String closureClass = namer.isolateAccess(closureClassElement);
     buffer.add("${attachTo(getterName)} = function() {\n");
     buffer.add("  return new $closureClass(this);\n");
@@ -458,16 +463,19 @@ function(child, parent) {
                              Set<Selector> selectors) {
     String getter;
     if (member.kind == ElementKind.GETTER) {
-      getter = "this.${namer.getterName(member.name)}()";
+      getter = "this.${namer.getterName(member.getLibrary(), member.name)}()";
     } else {
-      getter = "this.${namer.instanceFieldName(member.name)}";
+      getter =
+          "this.${namer.instanceFieldName(member.getLibrary(), member.name)}";
     }
     for (Selector selector in selectors) {
       String invocationName =
-          namer.instanceMethodInvocationName(member.name, selector);
+          namer.instanceMethodInvocationName(member.getLibrary(), member.name,
+                                             selector);
       SourceString callName = Namer.CLOSURE_INVOCATION_NAME;
       String closureCallName =
-          namer.instanceMethodInvocationName(callName, selector);
+          namer.instanceMethodInvocationName(member.getLibrary(), callName,
+                                             selector);
       List<String> arguments = <String>[];
       for (int i = 0; i < selector.argumentCount; i++) {
         arguments.add("arg$i");
@@ -561,7 +569,9 @@ function(child, parent) {
     String className = namer.isolatePropertyAccess(objectClass);
     String prototype = '$className.prototype';
     String noSuchMethodName =
-        namer.instanceMethodName(Compiler.NO_SUCH_METHOD, 2);
+        namer.instanceMethodName(null, Compiler.NO_SUCH_METHOD, 2);
+    Collection<LibraryElement> libraries =
+        compiler.universe.libraries.getValues();
 
     void generateMethod(String methodName, String jsName, Selector selector) {
       buffer.add('$prototype.$jsName = function');
@@ -587,23 +597,47 @@ function(child, parent) {
       if (objectClass.lookupLocalMember(methodName) === null
           && methodName != Namer.OPERATOR_EQUALS) {
         for (Selector selector in selectors) {
-          String jsName =
-              namer.instanceMethodInvocationName(methodName, selector);
-          generateMethod(methodName.slowToString(), jsName, selector);
+          if (methodName.isPrivate()) {
+            for (LibraryElement lib in libraries) {
+              String jsName =
+                namer.instanceMethodInvocationName(lib, methodName, selector);
+              generateMethod(methodName.slowToString(), jsName, selector);
+            }
+          } else {
+            String jsName =
+              namer.instanceMethodInvocationName(null, methodName, selector);
+            generateMethod(methodName.slowToString(), jsName, selector);
+          }
         }
       }
     });
 
     compiler.universe.invokedGetters.forEach((SourceString getterName) {
-      String jsName = namer.getterName(getterName);
-      generateMethod('get ${getterName.slowToString()}', jsName,
-                     Selector.GETTER);
+      if (getterName.isPrivate()) {
+        for (LibraryElement lib in libraries) {
+          String jsName = namer.getterName(lib, getterName);
+          generateMethod('get ${getterName.slowToString()}', jsName,
+                         Selector.GETTER);
+        }
+      } else {
+        String jsName = namer.getterName(null, getterName);
+        generateMethod('get ${getterName.slowToString()}', jsName,
+                       Selector.GETTER);
+      }
     });
 
     compiler.universe.invokedSetters.forEach((SourceString setterName) {
-      String jsName = namer.setterName(setterName);
-      generateMethod('set ${setterName.slowToString()}', jsName,
-                     Selector.SETTER);
+      if (setterName.isPrivate()) {
+        for (LibraryElement lib in libraries) {
+          String jsName = namer.setterName(lib, setterName);
+          generateMethod('set ${setterName.slowToString()}', jsName,
+                         Selector.SETTER);
+        }
+      } else {
+        String jsName = namer.setterName(null, setterName);
+        generateMethod('set ${setterName.slowToString()}', jsName,
+                       Selector.SETTER);
+      }
     });
   }
 

@@ -112,6 +112,8 @@ class SsaCodeGenerator implements HVisitor {
   // if branches.
   SubGraph subGraph;
 
+  LibraryElement get currentLibrary() => work.element.getLibrary();
+
   SsaCodeGenerator(this.compiler,
                    this.work,
                    this.buffer,
@@ -539,13 +541,17 @@ class SsaCodeGenerator implements HVisitor {
     // Avoid adding the generative constructor name to the list of
     // seen selectors.
     if (node.inputs[0] is HForeignNew) {
+      HForeignNew foreignNew = node.inputs[0];
       // Remove 'this' from the number of arguments.
       int argumentCount = node.inputs.length - 1;
-      buffer.add(compiler.namer.instanceMethodName(node.name, argumentCount));
+
+      // TODO(ahe): The constructor name was statically resolved in
+      // SsaBuilder.buildFactory. Is there a cleaner way to do this?
+      node.name.printOn(buffer);
       visitArguments(node.inputs);
     } else {
       buffer.add(compiler.namer.instanceMethodInvocationName(
-          node.name, node.selector));
+          currentLibrary, node.name, node.selector));
       visitArguments(node.inputs);
       compiler.registerDynamicInvocation(node.name, node.selector);
     }
@@ -556,7 +562,7 @@ class SsaCodeGenerator implements HVisitor {
     beginExpression(JSPrecedence.CALL_PRECEDENCE);
     use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
-    buffer.add(compiler.namer.setterName(node.name));
+    buffer.add(compiler.namer.setterName(currentLibrary, node.name));
     visitArguments(node.inputs);
     compiler.registerDynamicSetter(node.name);
     endExpression(JSPrecedence.CALL_PRECEDENCE);
@@ -566,7 +572,7 @@ class SsaCodeGenerator implements HVisitor {
     beginExpression(JSPrecedence.CALL_PRECEDENCE);
     use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
-    buffer.add(compiler.namer.getterName(node.name));
+    buffer.add(compiler.namer.getterName(currentLibrary, node.name));
     visitArguments(node.inputs);
     compiler.registerDynamicGetter(node.name);
     endExpression(JSPrecedence.CALL_PRECEDENCE);
@@ -599,7 +605,7 @@ class SsaCodeGenerator implements HVisitor {
     int argumentCount = node.inputs.length - 2;
     String className = compiler.namer.isolatePropertyAccess(superClass);
     String methodName = compiler.namer.instanceMethodName(
-        superMethod.name, argumentCount);
+        currentLibrary, superMethod.name, argumentCount);
     buffer.add('$className.prototype.$methodName.call');
     visitArguments(node.inputs);
     endExpression(JSPrecedence.CALL_PRECEDENCE);

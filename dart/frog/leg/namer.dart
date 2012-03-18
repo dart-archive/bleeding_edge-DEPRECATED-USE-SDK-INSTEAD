@@ -34,15 +34,24 @@ class Namer {
 
   String closureInvocationName(Selector selector) {
     // TODO(floitsch): mangle, while not conflicting with instance names.
-    return instanceMethodInvocationName(CLOSURE_INVOCATION_NAME, selector);
+    return instanceMethodInvocationName(null, CLOSURE_INVOCATION_NAME,
+                                        selector);
   }
 
-  String instanceMethodName(SourceString name, int arity) {
-    // TODO(floitsch): mangle, while preserving uniqueness.
-    return '${name.slowToString()}\$$arity';
+  String privateName(LibraryElement lib, SourceString name) {
+    if (name.isPrivate()) {
+      return '_${getName(lib)}${name.slowToString()}';
+    } else {
+      return '${name.slowToString()}';
+    }
   }
 
-  String instanceMethodInvocationName(SourceString name, Selector selector) {
+  String instanceMethodName(LibraryElement lib, SourceString name, int arity) {
+    return '${privateName(lib, name)}\$$arity';
+  }
+
+  String instanceMethodInvocationName(LibraryElement lib, SourceString name,
+                                      Selector selector) {
     // TODO(floitsch): mangle, while preserving uniqueness.
     StringBuffer buffer = new StringBuffer();
     List<SourceString> names = selector.getOrderedNamedArguments();
@@ -50,19 +59,19 @@ class Namer {
       buffer.add(@'$');
       argumentName.printOn(buffer);
     }
-    return '${name.slowToString()}\$${selector.argumentCount}$buffer';
+    return '${privateName(lib, name)}\$${selector.argumentCount}$buffer';
   }
 
-  String instanceFieldName(SourceString name) {
-    return name.slowToString();
+  String instanceFieldName(LibraryElement lib, SourceString name) {
+    return privateName(lib, name);
   }
 
-  String setterName(SourceString name) {
-    return 'set\$${name.slowToString()}';
+  String setterName(LibraryElement lib, SourceString name) {
+    return 'set\$${privateName(lib, name)}';
   }
 
-  String getterName(SourceString name) {
-    return 'get\$${name.slowToString()}';
+  String getterName(LibraryElement lib, SourceString name) {
+    return 'get\$${privateName(lib, name)}';
   }
 
   String getFreshGlobalName(String proposedName) {
@@ -89,23 +98,28 @@ class Namer {
    */
   String _computeGuess(Element element) {
     assert(!element.isInstanceMember());
+    LibraryElement lib = element.getLibrary();
     if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       FunctionElement functionElement = element;
-      return instanceMethodName(
-          element.name, functionElement.parameterCount(compiler));
+      return instanceMethodName(lib, element.name,
+                                functionElement.parameterCount(compiler));
     } else {
       // TODO(floitsch): deal with named constructors.
       String name;
-      if (element.kind == ElementKind.GETTER) {
-        name = getterName(element.name);
+      if (Elements.isStaticOrTopLevel(element)) {
+        name = element.name.slowToString();
+      } else if (element.kind == ElementKind.GETTER) {
+        name = getterName(lib, element.name);
       } else if (element.kind == ElementKind.SETTER) {
-        name = setterName(element.name);
+        name = setterName(lib, element.name);
       } else if (element.kind == ElementKind.FUNCTION) {
         FunctionElement functionElement = element;
         name = element.name.slowToString();
         name = '$name\$${functionElement.parameterCount(compiler)}';
+      } else if (element.kind === ElementKind.LIBRARY) {
+        name = 'lib';
       } else {
-        name = '${element.name.slowToString()}';
+        name = element.name.slowToString();
       }
       // Prefix the name with '$' if it is reserved.
       if (jsReserved.contains(name)) {
@@ -133,17 +147,19 @@ class Namer {
       if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
         ConstructorBodyElement bodyElement = element;
         SourceString name = bodyElement.constructor.name;
-        return instanceMethodName(name, bodyElement.parameterCount(compiler));
+        return instanceMethodName(element.getLibrary(),
+                                  name, bodyElement.parameterCount(compiler));
       } else if (element.kind == ElementKind.FUNCTION) {
         FunctionElement functionElement = element;
-        return instanceMethodName(
-            element.name, functionElement.parameterCount(compiler));
+        return instanceMethodName(element.getLibrary(),
+                                  element.name,
+                                  functionElement.parameterCount(compiler));
       } else if (element.kind == ElementKind.GETTER) {
-        return getterName(element.name);
+        return getterName(element.getLibrary(), element.name);
       } else if (element.kind == ElementKind.SETTER) {
-        return setterName(element.name);
+        return setterName(element.getLibrary(), element.name);
       } else {
-        return instanceFieldName(element.name);
+        return instanceFieldName(element.getLibrary(), element.name);
       }
     } else {
       // Dealing with a top-level or static element.
@@ -164,6 +180,7 @@ class Namer {
         case ElementKind.GETTER:
         case ElementKind.SETTER:
         case ElementKind.TYPEDEF:
+        case ElementKind.LIBRARY:
           String result = getFreshGlobalName(guess);
           globals[element] = result;
           return result;

@@ -706,6 +706,8 @@ class SsaBuilder implements Visitor {
   // they are added.
   BreakHandler currentBreakHandler = const NullBreakHandler();
 
+  LibraryElement get currentLibrary() => work.element.getLibrary();
+
   SsaBuilder(Compiler compiler, WorkItem work)
     : this.compiler = compiler,
       this.work = work,
@@ -918,7 +920,10 @@ class SsaBuilder implements Visitor {
       body.functionParameters.forEachParameter((parameter) {
         bodyCallInputs.add(localsHandler.readLocal(parameter));
       });
-      SourceString methodName = body.name;
+      // TODO(ahe): The constructor name is statically resolved. See
+      // SsaCodeGenerator.visitInvokeDynamicMethod. Is there a cleaner
+      // way to do this?
+      SourceString methodName = new SourceString(compiler.namer.getName(body));
       add(new HInvokeDynamicMethod(null, methodName, bodyCallInputs));
     }
     close(new HReturn(newObject)).addSuccessor(graph.exit);
@@ -1750,7 +1755,7 @@ class SsaBuilder implements Visitor {
         }
         addGenericSendArgumentsToList(node.arguments, inputs);
         String name = compiler.namer.instanceMethodName(
-            Namer.OPERATOR_EQUALS, 1);
+            currentLibrary, Namer.OPERATOR_EQUALS, 1);
         push(new HForeign(new DartString.literal('!!#.$name'),
                           const LiteralDartString('bool'),
                           inputs));
