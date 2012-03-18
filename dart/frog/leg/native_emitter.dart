@@ -156,11 +156,15 @@ function(name) {
     }
 
     var proto = Object.getPrototypeOf(obj);
+    var nullCheckMethod = function() {
+      var res = method.apply(this, Array.prototype.slice.call(arguments));
+      return res === null ? (void 0) : res;
+    }
     if (!proto.hasOwnProperty(name)) {
-      $defPropName(proto, name, method);
+      $defPropName(proto, name, nullCheckMethod);
     }
 
-    return method.apply(this, Array.prototype.slice.call(arguments));
+    return nullCheckMethod.apply(this, Array.prototype.slice.call(arguments));
   };
   dynamicBind.methods = methods;
   $defPropName(Object.prototype, name, dynamicBind);

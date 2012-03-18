@@ -69,5 +69,3 @@ lib/view/ViewTest: Skip
 [ $component == legium ]
 total/TotalTest: Skip # Timeout
 dartcombat/DartCombatTest: Fail # duplicate definition
-
-swarm/SwarmTest: Fail # ConstantHandler with optional arguments not implemented
