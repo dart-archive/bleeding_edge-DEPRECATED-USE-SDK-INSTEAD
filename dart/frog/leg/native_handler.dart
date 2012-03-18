@@ -171,6 +171,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
       compiler.findHelper(new SourceString('captureStackTrace')));
 
   FunctionElement element = builder.work.element;
+  element.setNative();
   NativeEmitter nativeEmitter = compiler.emitter.nativeEmitter;
   // If what we're compiling is a getter named 'typeName' and the native
   // class is named 'DOMType', we generate a call to the typeNameOf

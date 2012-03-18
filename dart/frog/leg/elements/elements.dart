@@ -142,7 +142,7 @@ class Element implements Hashable {
     return token;
   }
 
-  const Element(this.name, this.kind, this.enclosingElement);
+  Element(this.name, this.kind, this.enclosingElement);
 
   // TODO(kasperl): This is a very bad hash code for the element and
   // there's no reason why two elements with the same name should have
@@ -166,6 +166,10 @@ class Element implements Hashable {
   }
 
   toString() => '$kind(${name.slowToString()})';
+
+  bool _isNative = false;
+  void setNative() => _isNative = true;
+  bool isNative() => _isNative;
 }
 
 class ContainerElement extends Element {

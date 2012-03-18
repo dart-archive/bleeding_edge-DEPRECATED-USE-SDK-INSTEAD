@@ -12,9 +12,13 @@ class SsaCodeGeneratorTask extends CompilerTask {
       Map<Element, String> parameterNames =
           new LinkedHashMap<Element, String>();
 
+      // The dom/html libraries have inline JS code that reference
+      // parameter names directly. Long-term such code will be rejected.
+      // Now, just don't mangle the parameter name.
       function.computeParameters(compiler).forEachParameter((Element element) {
-        parameterNames[element] =
-            JsNames.getValid('${element.name.slowToString()}');
+        parameterNames[element] = function.isNative()
+            ? element.name.slowToString()
+            : JsNames.getValid('${element.name.slowToString()}');
       });
 
       String code = generateMethod(parameterNames, work, graph);
