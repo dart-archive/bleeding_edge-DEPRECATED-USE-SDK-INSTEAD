@@ -16,8 +16,9 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartUnit;
 
+import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
+
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -36,10 +37,14 @@ public class AnalysisEvent {
   private final ArrayList<DartCompilationError> errors;
 
   public AnalysisEvent(File libraryFile) {
+    this(libraryFile, new ArrayList<DartCompilationError>());
+  }
+
+  public AnalysisEvent(File libraryFile, ArrayList<DartCompilationError> errors) {
     this.libraryFile = libraryFile;
     this.files = new ArrayList<File>();
     this.units = new HashMap<File, DartUnit>();
-    this.errors = new ArrayList<DartCompilationError>();
+    this.errors = errors;
   }
 
   /**
@@ -79,13 +84,14 @@ public class AnalysisEvent {
   /**
    * Add errors reported on the analyzed files, discarding all other errors
    */
-  void addErrors(Collection<DartCompilationError> newErrors) {
-    HashSet<URI> fileUris = new HashSet<URI>();
-    for (File file : files) {
-      fileUris.add(file.toURI());
+  void addErrors(AnalysisServer server, Collection<DartCompilationError> newErrors) {
+    if (newErrors.size() == 0) {
+      return;
     }
+    HashSet<File> fileSet = new HashSet<File>(files);
     for (DartCompilationError error : newErrors) {
-      if (fileUris.contains(error.getSource().getUri())) {
+      File file = toFile(server, error.getSource().getUri());
+      if (fileSet.contains(file)) {
         errors.add(error);
       }
     }

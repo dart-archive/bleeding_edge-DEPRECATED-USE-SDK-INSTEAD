@@ -49,10 +49,7 @@ class ErrorListener implements DartCompilerListener {
   public void unitCompiled(DartUnit unit) {
   }
 
-  void notifyParsed(File libraryFile, File sourceFile, DartUnit dartUnit) {
-    AnalysisEvent event = new AnalysisEvent(libraryFile);
-    event.addFileAndDartUnit(sourceFile, dartUnit);
-    event.addErrors(errors);
+  void notifyParsed(AnalysisEvent event) {
     for (AnalysisListener listener : server.getAnalysisListeners()) {
       try {
         listener.parsed(event);
@@ -60,6 +57,12 @@ class ErrorListener implements DartCompilerListener {
         DartCore.logError("Exception during parsed notification", e);
       }
     }
+  }
+
+  void notifyParsed(File libraryFile, File sourceFile, DartUnit dartUnit) {
+    AnalysisEvent event = new AnalysisEvent(libraryFile, errors);
+    event.addFileAndDartUnit(sourceFile, dartUnit);
+    notifyParsed(event);
   }
 
   void notifyResolved(Map<URI, LibraryUnit> newLibs) {
@@ -79,7 +82,7 @@ class ErrorListener implements DartCompilerListener {
           event.addFileAndDartUnit(dartFile, dartUnit);
         }
       }
-      event.addErrors(errors);
+      event.addErrors(server, errors);
 
       for (AnalysisListener listener : server.getAnalysisListeners()) {
         try {

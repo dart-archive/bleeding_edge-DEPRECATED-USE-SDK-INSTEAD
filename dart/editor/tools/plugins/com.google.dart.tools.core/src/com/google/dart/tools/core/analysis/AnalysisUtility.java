@@ -35,7 +35,9 @@ import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -101,10 +103,10 @@ class AnalysisUtility {
     LibrarySource librarySource = library.getLibrarySource();
     provider.clearCachedArtifacts();
 
-    Map<URI, LibraryUnit> newLibs = null;
+    Map<URI, LibraryUnit> newlyResolved = null;
     try {
-      newLibs = DartCompiler.analyzeLibraries(librarySource, resolvedLibs, parsedUnits, config,
-          provider, errorListener);
+      newlyResolved = DartCompiler.analyzeLibraries(librarySource, resolvedLibs, parsedUnits,
+          config, provider, errorListener);
     } catch (IOException e) {
       errorListener.onError(newIoError(librarySource, e));
     } catch (Throwable e) {
@@ -115,13 +117,14 @@ class AnalysisUtility {
       errorListener.onError(error);
     }
 
-    if (newLibs != null) {
-      errorListener.notifyResolved(newLibs);
+    if (newlyResolved != null) {
+      notifyParsedDuringResolve(server, parsedUnits, newlyResolved.values(), errorListener);
+      errorListener.notifyResolved(newlyResolved);
     } else {
-      newLibs = new HashMap<URI, LibraryUnit>();
-      newLibs.put(librarySource.getUri(), new LibraryUnit(librarySource));
+      newlyResolved = new HashMap<URI, LibraryUnit>();
+      newlyResolved.put(libraryFile.toURI(), new LibraryUnit(librarySource));
     }
-    return newLibs;
+    return newlyResolved;
   }
 
   /**
@@ -163,5 +166,35 @@ class AnalysisUtility {
         e.getMessage());
     error.setSource(source);
     return error;
+  }
+
+  /**
+   * Notify listeners of source files that were parsed during resolution
+   * 
+   * @param parsedUnits the units that were parsed prior to the resolve (not <code>null</code>)
+   * @param newlyResolved the newly resolved library units (not <code>null</code>, contains no
+   *          <code>null</code>s)
+   * @param errorListener the error listener used during resolution (not <code>null</code>)
+   */
+  private static void notifyParsedDuringResolve(AnalysisServer server,
+      Map<URI, DartUnit> parsedUnits, Collection<LibraryUnit> newlyResolved,
+      ErrorListener errorListener) {
+    for (LibraryUnit libUnit : newlyResolved) {
+      AnalysisEvent event = null;
+      Iterator<DartUnit> iter = libUnit.getUnits().iterator();
+      while (iter.hasNext()) {
+        DartUnit dartUnit = iter.next();
+        File dartFile = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
+        if (parsedUnits.get(dartFile.toURI()) == null) {
+          if (event == null) {
+            event = new AnalysisEvent(toFile(server, libUnit.getSource().getUri()));
+          }
+          event.addFileAndDartUnit(dartFile, dartUnit);
+        }
+      }
+      if (event != null) {
+        errorListener.notifyParsed(event);
+      }
+    }
   }
 }

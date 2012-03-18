@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Resolve types and references in the specified library
@@ -57,11 +58,11 @@ class ResolveLibraryTask extends Task {
       Library lib = todo.get(index);
       LibraryUnit libUnit = lib.getLibraryUnit();
       if (libUnit != null) {
-        resolvedLibs.put(libUnit.getSource().getUri(), libUnit);
+        resolvedLibs.put(lib.getFile().toURI(), libUnit);
         continue;
       }
-      for (DartUnit unit : lib.getCachedUnits().values()) {
-        parsedUnits.put(unit.getSourceInfo().getSource().getUri(), unit);
+      for (Entry<File, DartUnit> entry : lib.getCachedUnits().entrySet()) {
+        parsedUnits.put(entry.getKey().toURI(), entry.getValue());
       }
       for (File file : lib.getImportedFiles()) {
         Library importedLib = context.getCachedLibrary(file);

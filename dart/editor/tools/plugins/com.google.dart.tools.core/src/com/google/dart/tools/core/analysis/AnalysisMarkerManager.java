@@ -20,6 +20,8 @@ import com.google.dart.compiler.SubSystem;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 
+import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -30,6 +32,12 @@ import java.io.File;
  * Updates problem markers based upon information from the {@link AnalysisServer}.
  */
 public class AnalysisMarkerManager implements AnalysisListener {
+
+  private final AnalysisServer server;
+
+  public AnalysisMarkerManager(AnalysisServer server) {
+    this.server = server;
+  }
 
   /**
    * Remove all existing problem markers for the specified files and create new problem markers for
@@ -67,7 +75,7 @@ public class AnalysisMarkerManager implements AnalysisListener {
     if (source == null) {
       return;
     }
-    IResource res = ResourceUtil.getResource(source.getUri());
+    IResource res = ResourceUtil.getResource(toFile(server, source.getUri()));
     if (res == null || !res.exists() || !DartCore.isAnalyzed(res)) {
       return;
     }

@@ -46,7 +46,7 @@ public class SystemLibraryManagerProvider {
     synchronized (lock) {
       if (defaultAnalysisServer == null) {
         defaultAnalysisServer = new AnalysisServer(getDefaultTarget());
-        defaultAnalysisServer.addAnalysisListener(new AnalysisMarkerManager());
+        defaultAnalysisServer.addAnalysisListener(new AnalysisMarkerManager(defaultAnalysisServer));
         defaultAnalysisServer.addAnalysisListener(new AnalysisIndexManager());
         // TODO (danrubel) merge ResourceChangeListener with delta processor
         DartCore.notYetImplemented();
