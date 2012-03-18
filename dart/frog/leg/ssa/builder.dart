@@ -1039,7 +1039,8 @@ class SsaBuilder implements Visitor {
    */
   void endLoop(HBasicBlock loopEntry,
                HBasicBlock branchBlock,
-               BreakHandler breakHandler) {
+               BreakHandler breakHandler,
+               LocalsHandler savedLocals) {
     HBasicBlock loopExitBlock = addNewBlock();
     assert(branchBlock.successors.length == 1);
     List<LocalsHandler> breakLocals = <LocalsHandler>[];
@@ -1051,8 +1052,10 @@ class SsaBuilder implements Visitor {
     open(loopExitBlock);
     localsHandler.endLoop(loopEntry);
     if (!breakLocals.isEmpty()) {
-      breakLocals.add(localsHandler);
+      breakLocals.add(savedLocals);
       localsHandler = localsHandler.mergeMultiple(breakLocals, loopExitBlock);
+    } else {
+      localsHandler = savedLocals;
     }
   }
 
@@ -1132,8 +1135,7 @@ class SsaBuilder implements Visitor {
     updateBlock.addSuccessor(conditionBlock);
     conditionBlock.postProcessLoopHeader();
 
-    endLoop(conditionBlock, conditionExitBlock, breakHandler);
-    localsHandler = savedLocals;
+    endLoop(conditionBlock, conditionExitBlock, breakHandler, savedLocals);
   }
 
   visitFor(For node) {
@@ -1167,7 +1169,7 @@ class SsaBuilder implements Visitor {
     conditionBlock.addSuccessor(loopEntryBlock);  // The back-edge.
     loopEntryBlock.postProcessLoopHeader();
 
-    endLoop(loopEntryBlock, conditionBlock, breakHandler);
+    endLoop(loopEntryBlock, conditionBlock, breakHandler, localsHandler);
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -2195,8 +2197,7 @@ class SsaBuilder implements Visitor {
     updateBlock.addSuccessor(conditionBlock);
     conditionBlock.postProcessLoopHeader();
 
-    endLoop(conditionBlock, conditionExitBlock, breakHandler);
-    localsHandler = savedLocals;
+    endLoop(conditionBlock, conditionExitBlock, breakHandler, savedLocals);
     breakHandler.close();
   }
 
