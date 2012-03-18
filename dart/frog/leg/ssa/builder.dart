@@ -768,48 +768,79 @@ class SsaBuilder implements Visitor {
   }
 
   /**
-   * Run through the initializers and inline all field initializers. Returns the
-   * next constructor to analyze.
+   * Run through the initializers and inline all field initializers. Recursively
+   * inlines super initializers.
+   *
+   * The constructors of the inlined initializers is added to [constructors]
+   * with sub constructors having a lower index than super constructors.
    */
-  FunctionElement analyzeInitializers(Link<Node> initializers,
-                                      Map<Element, HInstruction> fieldValues) {
-    FunctionElement nextConstructor;
-    for (Link<Node> link = initializers; !link.isEmpty(); link = link.tail) {
-      assert(link.head is Send);
-      if (link.head is !SendSet) {
-        // A super initializer or constructor redirection.
-        Send call = link.head;
-        assert(Initializers.isSuperConstructorCall(call) ||
-               Initializers.isConstructorRedirect(call));
-        assert(nextConstructor === null);
-        nextConstructor = elements[call];
-        // Visit arguments and map the corresponding parameter value to
-        // the resulting HInstruction value.
-        List<HInstruction> arguments = new List<HInstruction>();
-        addStaticSendArgumentsToList(call, nextConstructor, arguments);
-        int index = 0;
-        FunctionParameters parameters =
-            nextConstructor.computeParameters(compiler);
-        parameters.forEachParameter((Element parameter) {
-          HInstruction argument = arguments[index++];
-          localsHandler.updateLocal(parameter, argument);
-          // Don't forget to update the field, if the parameter is of the
-          // form [:this.x:].
-          if (parameter.kind == ElementKind.FIELD_PARAMETER) {
-            FieldParameterElement fieldParameterElement = parameter;
-            fieldValues[fieldParameterElement.fieldElement] = argument;
-          }
-        });
-      } else {
-        // A field initializer.
-        SendSet init = link.head;
-        Link<Node> arguments = init.arguments;
-        assert(!arguments.isEmpty() && arguments.tail.isEmpty());
-        visit(arguments.head);
-        fieldValues[elements[init]] = pop();
+  void inlineInitializers(FunctionElement constructor,
+                          List<FunctionElement> constructors,
+                          Map<Element, HInstruction> fieldValues) {
+    TreeElements oldElements = elements;
+    constructors.addLast(constructor);
+    bool initializedSuper = false;
+    elements = compiler.resolver.resolveMethodElement(constructor);
+    FunctionExpression functionNode = constructor.parseNode(compiler);
+
+    if (functionNode.initializers !== null) {
+      Link<Node> initializers = functionNode.initializers.nodes;
+      for (Link<Node> link = initializers; !link.isEmpty(); link = link.tail) {
+        assert(link.head is Send);
+        if (link.head is !SendSet) {
+          // A super initializer or constructor redirection.
+          Send call = link.head;
+          assert(Initializers.isSuperConstructorCall(call) ||
+                 Initializers.isConstructorRedirect(call));
+          FunctionElement nextConstructor = elements[call];
+          // Visit arguments and map the corresponding parameter value to
+          // the resulting HInstruction value.
+          List<HInstruction> arguments = new List<HInstruction>();
+          addStaticSendArgumentsToList(call, nextConstructor, arguments);
+          int index = 0;
+          FunctionParameters parameters =
+              nextConstructor.computeParameters(compiler);
+          parameters.forEachParameter((Element parameter) {
+            HInstruction argument = arguments[index++];
+            localsHandler.updateLocal(parameter, argument);
+            // Don't forget to update the field, if the parameter is of the
+            // form [:this.x:].
+            if (parameter.kind == ElementKind.FIELD_PARAMETER) {
+              FieldParameterElement fieldParameterElement = parameter;
+              fieldValues[fieldParameterElement.fieldElement] = argument;
+            }
+          });
+          inlineInitializers(nextConstructor, constructors, fieldValues);
+          initializedSuper = true;
+        } else {
+          // A field initializer.
+          SendSet init = link.head;
+          Link<Node> arguments = init.arguments;
+          assert(!arguments.isEmpty() && arguments.tail.isEmpty());
+          visit(arguments.head);
+          fieldValues[elements[init]] = pop();
+        }
       }
     }
-    return nextConstructor;
+
+    if (!initializedSuper) {
+      // No super initializer found. Try to find the default constructor if
+      // the class is not Object.
+      ClassElement enclosingClass = constructor.enclosingElement;
+      ClassElement superClass = enclosingClass.superclass;
+      if (enclosingClass != compiler.objectClass) {
+        assert(superClass !== null);
+        assert(superClass.isResolved);
+        FunctionElement nextConstructor =
+            superClass.lookupConstructor(superClass.name);
+        if (nextConstructor === null) {
+          compiler.internalError("no default constructor available");
+        }
+        inlineInitializers(nextConstructor, constructors, fieldValues);
+      }
+    }
+
+    elements = oldElements;
   }
 
   /**
@@ -849,34 +880,8 @@ class SsaBuilder implements Visitor {
 
     // Analyze the constructor and all referenced constructors and collect
     // initializers and constructor bodies.
-    FunctionElement nextConstructor = functionElement;
-    while (nextConstructor != null) {
-      FunctionElement constructor = nextConstructor;
-      constructors.addLast(constructor);
-      nextConstructor = null;
-      elements = compiler.resolver.resolveMethodElement(constructor);
-      FunctionExpression functionNode = constructor.parseNode(compiler);
-      Link<Node> initializers = const EmptyLink<Node>();
-      if (functionNode.initializers !== null) {
-        nextConstructor =
-            analyzeInitializers(functionNode.initializers.nodes, fieldValues);
-      }
-      if (nextConstructor === null) {
-        // No super initializer found. Try to find the default constructor if
-        // the class is not Object.
-        ClassElement enclosingClass = constructor.enclosingElement;
-        ClassElement superClass = enclosingClass.superclass;
-        ClassElement objectElement = compiler.coreLibrary.find(Types.OBJECT);
-        if (enclosingClass != objectElement) {
-          assert(superClass !== null);
-          assert(superClass.isResolved);
-          nextConstructor = superClass.lookupConstructor(superClass.name);
-          if (nextConstructor === null) {
-            compiler.internalError("no default constructor available");
-          }
-        }
-      }
-    }
+    inlineInitializers(functionElement, constructors, fieldValues);
+
     // Call the JavaScript constructor with the fields as argument.
     // TODO(floitsch,karlklose): move this code to ClassElement and share with
     //                           the emitter.
