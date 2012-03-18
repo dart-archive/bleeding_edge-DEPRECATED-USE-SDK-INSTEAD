@@ -71,4 +71,3 @@ total/TotalTest: Skip # Timeout
 dartcombat/DartCombatTest: Fail # duplicate definition
 
 swarm/SwarmTest: Fail # ConstantHandler with optional arguments not implemented
-lib/view/ViewTest: Fail # ConstantHandler with optional arguments not implemented

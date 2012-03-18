@@ -2056,7 +2056,9 @@ class HIndexAssign extends HInvokeStatic {
     return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => value.hasExpectedType();
+  // This instruction does not yield a new value, so it always
+  // has the expected type (void).
+  bool hasExpectedType() => true;
 }
 
 class HNonSsaInstruction extends HInstruction {

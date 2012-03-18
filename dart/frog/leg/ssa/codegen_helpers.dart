@@ -38,6 +38,10 @@ class SsaInstructionMerger extends HBaseVisitor {
   // set generate at use site.
   void visitIs(HIs instruction) {}
 
+  // A bailout target does not use its input like the other
+  // instructions. Its inputs must be emitted prior to visiting it.
+  void visitBailoutTarget(HBailoutTarget instruction) {}
+
   void visitBasicBlock(HBasicBlock block) {
     // Visit each instruction of the basic block in last-to-first order.
     // Keep a list of expected inputs of the current "expression" being
