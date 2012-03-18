@@ -26,7 +26,6 @@ foo() {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  print(generated);
   Expect.isTrue(generated.contains("return a.length;"));
 
   generated = compile(TEST_TWO, 'foo');
