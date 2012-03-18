@@ -91,11 +91,6 @@ class Compiler implements DiagnosticListener {
   static final SourceString CLOSURE = const SourceString('Closure');
   bool enabledNoSuchMethod = false;
 
-  static final String GREEN_COLOR = '\u001b[32m';
-  static final String RED_COLOR = '\u001b[31m';
-  static final String MAGENTA_COLOR = '\u001b[35m';
-  static final String NO_COLOR = '\u001b[0m';
-
   Compiler.withCurrentDirectory(String this.currentDirectory,
                                 [this.tracer = const Tracer()])
       : types = new Types(),
@@ -118,10 +113,6 @@ class Compiler implements DiagnosticListener {
              builder, optimizer, generator,
              emitter, constantHandler, enqueuer];
   }
-
-  green(String string) => "${GREEN_COLOR}$string${NO_COLOR}";
-  red(String string) => "${RED_COLOR}$string${NO_COLOR}";
-  magenta(String string) => "${MAGENTA_COLOR}$string${NO_COLOR}";
 
   void ensure(bool condition) {
     if (!condition) cancel('failed assertion in leg');

@@ -118,16 +118,9 @@ def BuildFrog(component, mode, system):
 
   print '@@@BUILD_STEP build frog@@@'
 
-  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'frog']
+  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'dart2js']
   print 'running %s' % (' '.join(args))
-  exit_code = subprocess.call(args, env=NO_COLOR_ENV)
-
-  if component == 'dart2js':
-    return exit_code
-
-  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'frogsh']
-  print 'running %s' % (' '.join(args))
-  return subprocess.call(args, env=NO_COLOR_ENV) | exit_code
+  return subprocess.call(args, env=NO_COLOR_ENV)
 
 
 def TestFrog(component, mode, system, browser, option, flags):

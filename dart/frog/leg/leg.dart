@@ -6,10 +6,11 @@
 
 #import('../../lib/uri/uri.dart');
 
+#import('colors.dart');
 #import('elements/elements.dart');
 #import('native_handler.dart', prefix: 'native');
-#import('scanner/scannerlib.dart');
 #import('scanner/scanner_implementation.dart');
+#import('scanner/scannerlib.dart');
 #import('ssa/ssa.dart');
 #import('string_validator.dart');
 #import('tree/tree.dart');

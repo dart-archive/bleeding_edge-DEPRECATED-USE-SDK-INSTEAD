@@ -77,47 +77,50 @@ def SelfHost():
   # VM Checked/CompileAll, produces checked
   print 'Started'
   start = time.time()
-  RunCommand('./frog.py',
+  RunCommand('./frog/frog.py',
              '--vm_flags=--compile_all --enable_type_checks --enable_asserts',
-             '--', '--compile_all', '--enable_type_checks', '--out=minfrog',
-             'minfrog.dart')
+             '--', '--compile_all', '--enable_type_checks',
+             '--out=frog/minfrog', 'frog/minfrog.dart')
   elapsed = time.time() - start
   mode = 'in checked mode + compile all'
   print 'Compiling minfrog on Dart VM took %s seconds %s' % (
       b('%.1f' % elapsed), b(mode))
-  os.chmod('./minfrog', EXECUTABLE)
+  os.chmod('./frog/minfrog', EXECUTABLE)
 
   # VM Production
   start = time.time()
-  RunCommand('./frog.py', '--', '--out=minfrog', 'minfrog.dart')
+  RunCommand('./frog/frog.py', '--', '--out=frog/minfrog', 'frog/minfrog.dart')
   elapsed = time.time() - start
   mode = 'in production mode'
   print 'Compiling minfrog on Dart VM took %s seconds %s' % (
       b('%.1f' % elapsed), b(mode))
-  os.chmod('./minfrog', EXECUTABLE)
+  os.chmod('./frog/minfrog', EXECUTABLE)
 
   # Selfhost Production
   start = time.time()
   # TODO(jmesserly): --warnings_as_errors disabled until corelib is moved to
   # new factory syntax.
-  RunCommand('./minfrog', '--out=minfrog', # '--warnings_as_errors',
-             'minfrog.dart', 'tests/hello.dart', verbose=True)
+  RunCommand('./frog/minfrog', '--out=frog/minfrog', # '--warnings_as_errors',
+             'frog/minfrog.dart', 'frog/tests/hello.dart', verbose=True)
   elapsed = time.time() - start
-  size = os.path.getsize('./minfrog') / 1024
+  size = os.path.getsize('./frog/minfrog') / 1024
   print 'Bootstrapping minfrog took %s seconds %s' % (b('%.1f' % elapsed),
                                               b('in production mode'))
   print 'Generated %s minfrog is %s kB' % (b('production'), b(size))
 
 
 def main():
+  dart_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+  os.chdir(dart_dir)
+
   (options, args) = BuildOptions().parse_args()
 
-  RunCommand('../tools/build.py', '--mode=release')
+  RunCommand('./tools/build.py', '--mode=release', 'dart2js')
 
   if not options.leg_only:
     SelfHost()
 
-  test_cmd = ['../tools/test.py', '--report', '--timeout=30',
+  test_cmd = ['./tools/test.py', '--report', '--timeout=30',
               '--progress=color', '--mode=release', '--checked']
 
   if options.notest: return
