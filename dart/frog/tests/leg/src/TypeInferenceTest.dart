@@ -26,6 +26,7 @@ foo(c) {
 
 final String TEST_FOUR = @"""
 foo(String c) {
+  print(c[0]); // Force a type guard.
   while (true) print(c.length);
 }
 """;
@@ -61,7 +62,7 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, 'foo');
-  regexp = new RegExp(getIntTypeCheck('param0'));
+  regexp = new RegExp(getNumberTypeCheck('param0'));
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp('-param0');

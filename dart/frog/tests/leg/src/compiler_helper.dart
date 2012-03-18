@@ -66,6 +66,10 @@ String getIntTypeCheck(String variable) {
   return "\\($variable !== \\($variable \\| 0\\)\\)";
 }
 
+String getNumberTypeCheck(String variable) {
+  return "\\(typeof $variable !== 'number'\\)";
+}
+
 bool checkNumberOfMatches(Iterator it, int nb) {
   for (int i = 0; i < nb; i++) {
     Expect.isTrue(it.hasNext());

@@ -25,7 +25,7 @@ foo(d) {
 
 final String TEST_THREE = @"""
 foo(int param1, int param2) {
-  return param1 + param2;
+  return 0 + param1 + param2;
 }
 """;
 
@@ -45,8 +45,8 @@ main() {
   checkNumberOfMatches(matches, 1);
 
   generated = compile(TEST_THREE, 'foo');
-  regexp = new RegExp(getIntTypeCheck('param1'));
+  regexp = new RegExp(getNumberTypeCheck('param1'));
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = new RegExp(getIntTypeCheck('param2'));
+  regexp = new RegExp(getNumberTypeCheck('param2'));
   Expect.isTrue(regexp.hasMatch(generated));
 }

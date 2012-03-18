@@ -6,6 +6,8 @@
 
 final String TEST_ONE = @"""
 foo(String a) {
+  // index into the parameter to make sure we'll get a type guard.
+  print(a[0]);
   return a.length;
 }
 """;
@@ -24,6 +26,7 @@ foo() {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
+  print(generated);
   Expect.isTrue(generated.contains("return a.length;"));
 
   generated = compile(TEST_TWO, 'foo');
