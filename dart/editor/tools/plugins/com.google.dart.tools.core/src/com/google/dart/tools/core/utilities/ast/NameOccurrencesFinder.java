@@ -54,8 +54,12 @@ public class NameOccurrencesFinder extends ASTVisitor<Void> {
 
   @Override
   public Void visitNode(DartNode node) {
-    if (node.getElement() == target) {
-      matches.add(node);
+    try {
+      if (node.getElement() == target) {
+        matches.add(node);
+      }
+    } catch (UnsupportedOperationException ex) {
+      return null; // apparently directives do not have elements
     }
     return super.visitNode(node);
   }
