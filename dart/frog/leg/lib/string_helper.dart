@@ -54,7 +54,7 @@ allMatchesInStringUnchecked(receiver, str) {
 stringContainsUnchecked(receiver, other, startIndex) {
   if (other is String) {
     return receiver.indexOf(other, startIndex) !== -1;
-  } else if (other is RegExp) {
+  } else if (other is JSSyntaxRegExp) {
     return other.hasMatch(receiver.substring(startIndex));
   } else {
     var substr = receiver.substring(startIndex);
@@ -78,14 +78,16 @@ stringReplaceAllUnchecked(receiver, from, to) {
         return result.toString();
       }
     } else {
-      var quoter =
-        new RegExpWrapper(@'[-[\]{}()*+?.,\\^$|#\s]', false, false, true).re;
+      RegExp quoteRegExp =
+          const JSSyntaxRegExp(@'[-[\]{}()*+?.,\\^$|#\s]', false, false);
+      var quoter = regExpMakeNative(quoteRegExp, global: true);
       var quoted = JS('String', @'#.replace(#, "\\$&")', from, quoter);
-      var re = new RegExpWrapper(quoted, false, false, true).re;
-      return JS('String', @'#.replace(#, #)', receiver, re, to);
+      RegExp replaceRegExp = new JSSyntaxRegExp(quoted, false, false);
+      var replacer = regExpMakeNative(replaceRegExp, global: true);    
+      return JS('String', @'#.replace(#, #)', receiver, replacer, to);
     }
-  } else if (from is RegExp) {
-    var re = new RegExpWrapper.fromRegExp(from, true).re;
+  } else if (from is JSSyntaxRegExp) {
+    var re = regExpMakeNative(from, global: true);
     return JS('String', @'#.replace(#, #)', receiver, re, to);
   } else {
     checkNull(from);
@@ -97,8 +99,8 @@ stringReplaceAllUnchecked(receiver, from, to) {
 stringReplaceFirstUnchecked(receiver, from, to) {
   if (from is String) {
     return JS('String', @'#.replace(#, #)', receiver, from, to);
-  } else if (from is RegExp) {
-    var re = new RegExpWrapper.fromRegExp(from, false).re;
+  } else if (from is JSSyntaxRegExp) {
+    var re = regExpGetNative(from);
     return JS('String', @'#.replace(#, #)', receiver, re, to);
   } else {
     checkNull(from);
@@ -110,8 +112,8 @@ stringReplaceFirstUnchecked(receiver, from, to) {
 stringSplitUnchecked(receiver, pattern) {
   if (pattern is String) {
     return JS('List', @'#.split(#)', receiver, pattern);
-  } else if (pattern is RegExp) {
-    var re = new RegExpWrapper.fromRegExp(pattern, false).re;
+  } else if (pattern is JSSyntaxRegExp) {
+    var re = regExpGetNative(pattern);
     return JS('List', @'#.split(#)', receiver, re);
   } else {
     throw "StringImplementation.split(Pattern) UNIMPLEMENTED";

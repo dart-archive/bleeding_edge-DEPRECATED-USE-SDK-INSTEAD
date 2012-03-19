@@ -10,33 +10,30 @@ class JSSyntaxRegExp implements RegExp {
   final String pattern;
   final bool multiLine;
   final bool ignoreCase;
-  final RegExpWrapper _re;
 
   const JSSyntaxRegExp(String pattern,
                        [bool multiLine = false, bool ignoreCase = false])
-    // TODO(ahe): Redirect to _internal when that is supported.
     : this.pattern = pattern,
       this.multiLine = multiLine,
-      this.ignoreCase = ignoreCase,
-      this._re = const RegExpWrapper(pattern, multiLine, ignoreCase, false);
+      this.ignoreCase = ignoreCase;
 
-  const JSSyntaxRegExp._internal(String pattern, bool multiLine,
-                                 bool ignoreCase, bool global)
-    : this.pattern = pattern,
-      this.multiLine = multiLine,
-      this.ignoreCase = ignoreCase,
-      this._re = const RegExpWrapper(pattern, multiLine, ignoreCase, global);
+  JSSyntaxRegExp._globalVersionOf(JSSyntaxRegExp other)
+      : this.pattern = other.pattern,
+        this.multiLine = other.multiLine,
+        this.ignoreCase = other.ignoreCase {
+    regExpAttachGlobalNative(this);
+  }
 
   Match firstMatch(String str) {
-    List<String> m = _re.exec(str);
+    List<String> m = regExpExec(this, checkString(str));
     if (m === null) return null;
-    var matchStart = RegExpWrapper.matchStart(m);
+    var matchStart = regExpMatchStart(m);
     // m.lastIndex only works with flag 'g'.
     var matchEnd = matchStart + m[0].length;
     return new MatchImplementation(pattern, str, matchStart, matchEnd, m);
   }
 
-  bool hasMatch(String str) => _re.test(str);
+  bool hasMatch(String str) => regExpTest(this, checkString(str));
 
   String stringMatch(String str) {
     var match = firstMatch(str);
@@ -48,18 +45,7 @@ class JSSyntaxRegExp implements RegExp {
     return new _AllMatchesIterable(this, str);
   }
 
-  /**
-   * Returns a new RegExp with the same pattern as this one and with the
-   * "global" flag set. This allows us to match this RegExp against a string
-   * multiple times, to support things like [allMatches] and
-   * [String.replaceAll].
-   *
-   * Note that the returned RegExp disobeys the normal API in that it maintains
-   * state about the location of the last match.
-   */
-  JSSyntaxRegExp get _global() {
-    return new JSSyntaxRegExp._internal(pattern, multiLine, ignoreCase, true);
-  }
+  _getNative() => regExpGetNative(this);
 }
 
 class MatchImplementation implements Match {
@@ -107,7 +93,7 @@ class _AllMatchesIterator implements Iterator<Match> {
   bool _done;
 
   _AllMatchesIterator(JSSyntaxRegExp re, String this._str)
-    : _done = false, _re = re._global;
+    : _done = false, _re = new JSSyntaxRegExp._globalVersionOf(re);
 
   Match next() {
     if (!hasNext()) {
