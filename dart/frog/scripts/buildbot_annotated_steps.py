@@ -144,6 +144,10 @@ def TestFrog(component, mode, system, browser, option, flags):
   # Make sure we are in the frog directory
   os.chdir(DART_PATH)
 
+  # TODO(jmesserly): temporary workaround until we remove nodejs from the bots
+  if system == 'win7':
+    os.environ['PATH'] += ';c:\\Program Files (x86)\\nodejs\\'
+
   if component == 'dart2js':
     if (option == 'checked'):
       flags.append('--host-checked')
