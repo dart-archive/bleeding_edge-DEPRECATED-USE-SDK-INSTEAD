@@ -88,6 +88,7 @@ stringReplaceAllUnchecked(receiver, from, to) {
     var re = new RegExpWrapper.fromRegExp(from, true).re;
     return JS('String', @'#.replace(#, #)', receiver, re, to);
   } else {
+    checkNull(from);
     // TODO(floitsch): implement generic String.replace (with patterns).
     throw "StringImplementation.replaceAll(Pattern) UNIMPLEMENTED";
   }
@@ -100,6 +101,7 @@ stringReplaceFirstUnchecked(receiver, from, to) {
     var re = new RegExpWrapper.fromRegExp(from, false).re;
     return JS('String', @'#.replace(#, #)', receiver, re, to);
   } else {
+    checkNull(from);
     // TODO(floitsch): implement generic String.replace (with patterns).
     throw "StringImplementation.replace(Pattern) UNIMPLEMENTED";
   }

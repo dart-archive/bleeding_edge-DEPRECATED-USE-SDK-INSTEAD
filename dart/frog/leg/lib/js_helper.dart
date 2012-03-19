@@ -47,7 +47,6 @@ add(var a, var b) {
     checkNull(b);
     throw new IllegalArgumentException(b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a + b);
 }
 
@@ -55,7 +54,6 @@ div(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# / #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a / b);
 }
 
@@ -63,7 +61,6 @@ mul(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# * #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a * b);
 }
 
@@ -71,7 +68,6 @@ sub(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# - #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a - b);
 }
 
@@ -87,7 +83,6 @@ mod(var a, var b) {
       return result + b;
     }
   }
-  checkNull(a);
   return UNINTERCEPTED(a % b);
 }
 
@@ -95,7 +90,6 @@ tdiv(var a, var b) {
   if (checkNumbers(a, b)) {
     return (a / b).truncate();
   }
-  checkNull(a);
   return UNINTERCEPTED(a ~/ b);
 }
 
@@ -131,7 +125,6 @@ gt(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# > #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a > b);
 }
 
@@ -139,7 +132,6 @@ ge(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# >= #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a >= b);
 }
 
@@ -147,7 +139,6 @@ lt(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# < #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a < b);
 }
 
@@ -155,7 +146,6 @@ le(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('bool', @'# <= #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a <= b);
 }
 
@@ -165,7 +155,6 @@ shl(var a, var b) {
     if (b < 0) throw new IllegalArgumentException(b);
     return JS('num', @'# << #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a << b);
 }
 
@@ -175,7 +164,6 @@ shr(var a, var b) {
     if (b < 0) throw new IllegalArgumentException(b);
     return JS('num', @'# >> #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a >> b);
 }
 
@@ -184,7 +172,6 @@ and(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# & #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a & b);
 }
 
@@ -193,7 +180,6 @@ or(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# | #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a | b);
 }
 
@@ -202,24 +188,20 @@ xor(var a, var b) {
   if (checkNumbers(a, b)) {
     return JS('num', @'# ^ #', a, b);
   }
-  checkNull(a);
   return UNINTERCEPTED(a ^ b);
 }
 
 not(var a) {
   if (JS('bool', @'typeof # === "number"', a)) return JS('num', @'~#', a);
-  checkNull(a);
   return UNINTERCEPTED(~a);
 }
 
 neg(var a) {
   if (JS('bool', @'typeof # === "number"', a)) return JS('num', @'-#', a);
-  checkNull(a);
   return UNINTERCEPTED(-a);
 }
 
 index(var a, var index) {
-  checkNull(a);
   if (a is String || isJsArray(a)) {
     if (index is !int) {
       if (index is !num) throw new IllegalArgumentException(index);
@@ -230,12 +212,10 @@ index(var a, var index) {
     }
     return JS('Object', @'#[#]', a, index);
   }
-  checkNull(a);
   return UNINTERCEPTED(a[index]);
 }
 
 void indexSet(var a, var index, var value) {
-  checkNull(a);
   if (isJsArray(a)) {
     if (!(index is int)) {
       throw new IllegalArgumentException(index);
@@ -247,7 +227,6 @@ void indexSet(var a, var index, var value) {
     JS('Object', @'#[#] = #', a, index, value);
     return;
   }
-  checkNull(a);
   UNINTERCEPTED(a[index] = value);
 }
 
@@ -258,7 +237,6 @@ checkMutable(list, reason) {
 }
 
 builtin$add$1(var receiver, var value) {
-  checkNull(receiver);
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'add');
     JS('Object', @'#.push(#)', receiver, value);
@@ -268,7 +246,6 @@ builtin$add$1(var receiver, var value) {
 }
 
 builtin$removeLast$0(var receiver) {
-  checkNull(receiver);
   if (isJsArray(receiver)) {
     checkGrowable(receiver, 'removeLast');
     if (receiver.length === 0) throw new IndexOutOfRangeException(-1);
@@ -278,23 +255,23 @@ builtin$removeLast$0(var receiver) {
 }
 
 builtin$filter$1(var receiver, var predicate) {
-  checkNull(receiver);
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.filter(predicate));
-
-  return Collections.filter(receiver, [], predicate);
+  if (!isJsArray(receiver)) {
+    return UNINTERCEPTED(receiver.filter(predicate));
+  } else {
+    return Collections.filter(receiver, [], predicate);
+  }
 }
 
 
 builtin$get$length(var receiver) {
-  checkNull(receiver);
   if (receiver is String || isJsArray(receiver)) {
     return JS('num', @'#.length', receiver);
+  } else {
+    return UNINTERCEPTED(receiver.length);
   }
-  return UNINTERCEPTED(receiver.length);
 }
 
 builtin$set$length(receiver, newLength) {
-  checkNull(receiver);
   if (isJsArray(receiver)) {
     checkNull(newLength); // TODO(ahe): This is not specified but co19 tests it.
     if (newLength is !int) throw new IllegalArgumentException(newLength);
@@ -333,7 +310,6 @@ builtin$toString$0(var value) {
 
 
 builtin$iterator$0(receiver) {
-  checkNull(receiver);
   if (isJsArray(receiver)) {
     return new ListIterator(receiver);
   }
@@ -354,7 +330,6 @@ class ListIterator<T> implements Iterator<T> {
 }
 
 builtin$charCodeAt$1(var receiver, int index) {
-  checkNull(receiver);
   if (receiver is String) {
     if (index is !num) throw new IllegalArgumentException(index);
     if (index < 0) throw new IndexOutOfRangeException(index);
@@ -366,7 +341,6 @@ builtin$charCodeAt$1(var receiver, int index) {
 }
 
 builtin$isEmpty$0(receiver) {
-  checkNull(receiver);
   if (receiver is String || isJsArray(receiver)) {
     return JS('bool', @'#.length === 0', receiver);
   }
@@ -525,7 +499,6 @@ class Primitives {
 }
 
 builtin$compareTo$1(a, b) {
-  checkNull(a);
   if (checkNumbers(a, b)) {
     if (a < b) {
       return -1;
@@ -576,7 +549,6 @@ ioore(index) {
 }
 
 builtin$addAll$1(receiver, collection) {
-  checkNull(receiver);
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addAll(collection));
 
   // TODO(ahe): Use for-in when it is implemented correctly.
@@ -587,7 +559,6 @@ builtin$addAll$1(receiver, collection) {
 }
 
 builtin$addLast$1(receiver, value) {
-  checkNull(receiver);
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.addLast(value));
 
   checkGrowable(receiver, 'addLast');
@@ -595,25 +566,27 @@ builtin$addLast$1(receiver, value) {
 }
 
 builtin$clear$0(receiver) {
-  checkNull(receiver);
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.clear());
   receiver.length = 0;
 }
 
 builtin$forEach$1(receiver, f) {
-  checkNull(receiver);
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.forEach(f));
+  if (!isJsArray(receiver)) {
+    return UNINTERCEPTED(receiver.forEach(f));
+  } else {
+    return Collections.forEach(receiver, f);
+  }
+}
 
-
-  var length = JS('num', @'#.length', receiver);
-  if (length > 0 && f === null) throw new ObjectNotClosureException(); // Sigh.
-  for (var i = 0; i < length; i++) {
-    f(JS('Object', @'#[#]', receiver, i));
+builtin$map$1(receiver, f) {
+  if (!isJsArray(receiver)) {
+    return UNINTERCEPTED(receiver.map(f));
+  } else {
+    return Collections.map(receiver, [], f);
   }
 }
 
 builtin$getRange$2(receiver, start, length) {
-  checkNull(receiver);
   if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.getRange(start, length));
   }
@@ -633,7 +606,6 @@ builtin$getRange$2(receiver, start, length) {
 }
 
 builtin$indexOf$1(receiver, element) {
-  checkNull(receiver);
   if (isJsArray(receiver) || receiver is String) {
     return builtin$indexOf$2(receiver, element, 0);
   }
@@ -641,7 +613,6 @@ builtin$indexOf$1(receiver, element) {
 }
 
 builtin$indexOf$2(receiver, element, start) {
-  checkNull(receiver);
   if (isJsArray(receiver)) {
     if (start is !int) throw new IllegalArgumentException(start);
     var length = JS('num', @'#.length', receiver);
@@ -657,7 +628,6 @@ builtin$indexOf$2(receiver, element, start) {
 }
 
 builtin$insertRange$2(receiver, start, length) {
-  checkNull(receiver);
   if (isJsArray(receiver)) {
     return builtin$insertRange$3(receiver, start, length, null);
   }
@@ -665,7 +635,6 @@ builtin$insertRange$2(receiver, start, length) {
 }
 
 builtin$insertRange$3(receiver, start, length, initialValue) {
-  checkNull(receiver);
   if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.insertRange(start, length, initialValue));
   }
@@ -701,7 +670,6 @@ listInsertRange(receiver, start, length, initialValue) {
 }
 
 builtin$last$0(receiver) {
-  checkNull(receiver);
   if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.last());
   }
@@ -709,7 +677,6 @@ builtin$last$0(receiver) {
 }
 
 builtin$lastIndexOf$1(receiver, element) {
-  checkNull(receiver);
   if (isJsArray(receiver)) {
     var start = JS('num', @'#.length', receiver);
     return Arrays.lastIndexOf(receiver, element, start);
@@ -722,7 +689,6 @@ builtin$lastIndexOf$1(receiver, element) {
 }
 
 builtin$lastIndexOf$2(receiver, element, start) {
-  checkNull(receiver);
   if (isJsArray(receiver)) {
     return Arrays.lastIndexOf(receiver, element, start);
   } else if (receiver is String) {
@@ -742,7 +708,6 @@ stringLastIndexOfUnchecked(receiver, element, start)
   => JS('int', @'#.lastIndexOf(#, #)', receiver, element, start);
 
 builtin$removeRange$2(receiver, start, length) {
-  checkNull(receiver);
   if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.removeRange(start, length));
   }
@@ -771,7 +736,6 @@ builtin$removeRange$2(receiver, start, length) {
 }
 
 builtin$setRange$3(receiver, start, length, from) {
-  checkNull(receiver);
   if (isJsArray(receiver)) {
     return builtin$setRange$4(receiver, start, length, from, 0);
   }
@@ -779,7 +743,6 @@ builtin$setRange$3(receiver, start, length, from) {
 }
 
 builtin$setRange$4(receiver, start, length, from, startFrom) {
-  checkNull(receiver);
   if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.setRange(start, length, from, startFrom));
   }
@@ -803,20 +766,22 @@ builtin$setRange$4(receiver, start, length, from, startFrom) {
 }
 
 builtin$some$1(receiver, f) {
-  checkNull(receiver);
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.some(f));
-
-  return Collections.some(receiver, f);
+  if (!isJsArray(receiver)) {
+    return UNINTERCEPTED(receiver.some(f));
+  } else {
+    return Collections.some(receiver, f);
+  }
 }
 
 builtin$every$1(receiver, f) {
-  if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.every(f));
-
-  return Collections.every(receiver, f);
+  if (!isJsArray(receiver)) {
+    return UNINTERCEPTED(receiver.every(f));
+  } else {
+    return Collections.every(receiver, f);
+  }
 }
 
 builtin$sort$1(receiver, compare) {
-  checkNull(receiver);
   if (!isJsArray(receiver)) return UNINTERCEPTED(receiver.sort(compare));
 
   DualPivotQuicksort.sort(receiver, compare);
@@ -828,31 +793,38 @@ checkNull(object) {
 }
 
 checkNum(value) {
-  checkNull(value);
-  if (value is !num) throw new IllegalArgumentException(value);
+  if (value is !num) {
+    checkNull(value);
+    throw new IllegalArgumentException(value);
+  }
   return value;
 }
 
 checkInt(value) {
-  checkNull(value);
-  if (value is !int) throw new IllegalArgumentException(value);
+  if (value is !int) {
+    checkNull(value);
+    throw new IllegalArgumentException(value);
+  }
   return value;
 }
 
 checkBool(value) {
-  checkNull(value);
-  if (value is !bool) throw new IllegalArgumentException(value);
+  if (value is !bool) {
+    checkNull(value);
+    throw new IllegalArgumentException(value);
+  }
   return value;
 }
 
 checkString(value) {
-  checkNull(value);
-  if (value is !String) throw new IllegalArgumentException(value);
+  if (value is !String) {
+    checkNull(value);
+    throw new IllegalArgumentException(value);
+  }
   return value;
 }
 
 builtin$isNegative$0(receiver) {
-  checkNull(receiver);
   if (receiver is num) {
     return (receiver === 0) ? (1 / receiver) < 0 : receiver < 0;
   } else {
@@ -861,7 +833,6 @@ builtin$isNegative$0(receiver) {
 }
 
 builtin$isNaN$0(receiver) {
-  checkNull(receiver);
   if (receiver is num) {
     return JS('bool', @'isNaN(#)', receiver);
   } else {
@@ -870,7 +841,6 @@ builtin$isNaN$0(receiver) {
 }
 
 builtin$remainder$1(a, b) {
-  checkNull(a);
   if (checkNumbers(a, b)) {
     return JS('num', @'# % #', a, b);
   } else {
@@ -879,14 +849,12 @@ builtin$remainder$1(a, b) {
 }
 
 builtin$abs$0(receiver) {
-  checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.abs());
 
   return JS('num', @'Math.abs(#)', receiver);
 }
 
 builtin$toInt$0(receiver) {
-  checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.toInt());
 
   if (receiver.isNaN()) throw new BadNumberFormatException('NaN');
@@ -898,21 +866,18 @@ builtin$toInt$0(receiver) {
 }
 
 builtin$ceil$0(receiver) {
-  checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.ceil());
 
   return JS('num', @'Math.ceil(#)', receiver);
 }
 
 builtin$floor$0(receiver) {
-  checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.floor());
 
   return JS('num', @'Math.floor(#)', receiver);
 }
 
 builtin$isInfinite$0(receiver) {
-  checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.isInfinite());
 
   return JS('bool', @'# == Infinity', receiver)
@@ -920,14 +885,12 @@ builtin$isInfinite$0(receiver) {
 }
 
 builtin$negate$0(receiver) {
-  checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.negate());
 
   return JS('num', @'-#', receiver);
 }
 
 builtin$round$0(receiver) {
-  checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.round());
 
   if (JS('bool', @'# < 0', receiver)) {
@@ -938,7 +901,6 @@ builtin$round$0(receiver) {
 }
 
 builtin$toDouble$0(receiver) {
-  checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.toDouble());
 
   // TODO(ahe): Just return receiver?
@@ -946,14 +908,12 @@ builtin$toDouble$0(receiver) {
 }
 
 builtin$truncate$0(receiver) {
-  checkNull(receiver);
   if (receiver is !num) return UNINTERCEPTED(receiver.truncate());
 
   return receiver < 0 ? receiver.ceil() : receiver.floor();
 }
 
 builtin$toStringAsFixed$1(receiver, fractionDigits) {
-  checkNull(receiver);
   if (receiver is !num) {
     return UNINTERCEPTED(receiver.toStringAsFixed(fractionDigits));
   }
@@ -965,7 +925,6 @@ builtin$toStringAsFixed$1(receiver, fractionDigits) {
 }
 
 builtin$toStringAsExponential$1(receiver, fractionDigits) {
-  checkNull(receiver);
   if (receiver is !num) {
     return UNINTERCEPTED(receiver.toStringAsExponential(fractionDigits));
   }
@@ -978,7 +937,6 @@ builtin$toStringAsExponential$1(receiver, fractionDigits) {
 }
 
 builtin$toStringAsPrecision$1(receiver, fractionDigits) {
-  checkNull(receiver);
   if (receiver is !num) {
     return UNINTERCEPTED(receiver.toStringAsPrecision(fractionDigits));
   }
@@ -991,7 +949,6 @@ builtin$toStringAsPrecision$1(receiver, fractionDigits) {
 }
 
 builtin$toRadixString$1(receiver, radix) {
-  checkNull(receiver);
   if (receiver is !num) {
     return UNINTERCEPTED(receiver.toRadixString(radix));
   }
@@ -1001,14 +958,12 @@ builtin$toRadixString$1(receiver, radix) {
 }
 
 builtin$allMatches$1(receiver, str) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.allMatches(str));
   checkString(str);
   return allMatchesInStringUnchecked(receiver, str);
 }
 
 builtin$concat$1(receiver, other) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.concat(other));
 
   if (other is !String) throw new IllegalArgumentException(other);
@@ -1017,14 +972,12 @@ builtin$concat$1(receiver, other) {
 
 builtin$contains$1(receiver, other) {
   if (receiver is !String) {
-    checkNull(receiver);
     return UNINTERCEPTED(receiver.contains(other));
   }
   return builtin$contains$2(receiver, other, 0);
 }
 
 builtin$contains$2(receiver, other, startIndex) {
-  checkNull(receiver);
   if (receiver is !String) {
     return UNINTERCEPTED(receiver.contains(other, startIndex));
   }
@@ -1033,12 +986,9 @@ builtin$contains$2(receiver, other, startIndex) {
 }
 
 builtin$endsWith$1(receiver, other) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.endsWith(other));
 
-  checkNull(other);
-  if (other is !String) throw new IllegalArgumentException(other);
-
+  checkString(other);
   int receiverLength = receiver.length;
   int otherLength = other.length;
   if (otherLength > receiverLength) return false;
@@ -1046,43 +996,35 @@ builtin$endsWith$1(receiver, other) {
 }
 
 builtin$replaceAll$2(receiver, from, to) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.replaceAll(from, to));
 
-  checkNull(from);
   checkString(to);
   return stringReplaceAllUnchecked(receiver, from, to);
 }
 
 builtin$replaceFirst$2(receiver, from, to) {
-  checkNull(receiver);
   if (receiver is !String) {
     return UNINTERCEPTED(receiver.replaceFirst(from, to));
   }
-  checkNull(from);
   checkString(to);
   return stringReplaceFirstUnchecked(receiver, from, to);
 }
 
 builtin$split$1(receiver, pattern) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.split(pattern));
   checkNull(pattern);
   return stringSplitUnchecked(receiver, pattern);
 }
 
 builtin$splitChars$0(receiver) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.splitChars());
 
   return JS('List', @'#.split("")', receiver);
 }
 
 builtin$startsWith$1(receiver, other) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.startsWith(other));
-  checkNull(other);
-  if (other is !String) throw new IllegalArgumentException(other);
+  checkString(other);
 
   int length = other.length;
   if (length > receiver.length) return false;
@@ -1091,14 +1033,12 @@ builtin$startsWith$1(receiver, other) {
 }
 
 builtin$substring$1(receiver, startIndex) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.substring(startIndex));
 
   return builtin$substring$2(receiver, startIndex, null);
 }
 
 builtin$substring$2(receiver, startIndex, endIndex) {
-  checkNull(receiver);
   if (receiver is !String) {
     return UNINTERCEPTED(receiver.substring(startIndex, endIndex));
   }
@@ -1117,21 +1057,18 @@ substringUnchecked(receiver, startIndex, endIndex)
 
 
 builtin$toLowerCase$0(receiver) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.toLowerCase());
 
   return JS('String', @'#.toLowerCase()', receiver);
 }
 
 builtin$toUpperCase$0(receiver) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.toUpperCase());
 
   return JS('String', @'#.toUpperCase()', receiver);
 }
 
 builtin$trim$0(receiver) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.trim());
 
   return JS('String', @'#.trim()', receiver);
@@ -1139,8 +1076,7 @@ builtin$trim$0(receiver) {
 
 class MathNatives {
   static int parseInt(str) {
-    checkNull(str);
-    if (str is !String) throw new IllegalArgumentException(str);
+    checkString(str);
     if (!JS('bool',
             @'/^\s*[+-]?(?:0[xX][abcdefABCDEF0-9]+|\d+)\s*$/.test(#)',
             str)) {
@@ -1158,8 +1094,7 @@ class MathNatives {
   }
 
   static double parseDouble(String str) {
-    checkNull(str);
-    if (str is !String) throw new IllegalArgumentException();
+    checkString(str);
     var ret = JS('num', @'parseFloat(#)', str);
     if (ret == 0 && (str.startsWith("0x") || str.startsWith("0X"))) {
       // TODO(ahe): This is unspecified, but tested by co19.
@@ -1257,7 +1192,6 @@ captureStackTrace(ex) {
 toStringWrapper() => JS('Object', @'this.dartException').toString();
 
 builtin$charCodes$0(receiver) {
-  checkNull(receiver);
   if (receiver is !String) return UNINTERCEPTED(receiver.charCodes());
   int len = receiver.length;
   List<int> result = new List<int>(len);
@@ -1404,3 +1338,13 @@ jsPropertyAccess(var jsObject, String property) {
  * FallThroughError exception that will be thrown.
  */
 getFallThroughError() => const FallThroughError();
+
+builtin$isEven$0(receiver) {
+  if (receiver is !int) return UNINTERCEPTED(receiver.isEven());
+  return (receiver & 1) === 0;
+}
+
+builtin$isOdd$0(receiver) {
+  if (receiver is !int) return UNINTERCEPTED(receiver.isOdd());
+  return (receiver & 1) === 1;
+}
