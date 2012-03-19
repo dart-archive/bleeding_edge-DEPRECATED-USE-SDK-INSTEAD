@@ -55,6 +55,14 @@ class Compiler implements DiagnosticListener {
   LibraryElement mainApp;
   ClassElement objectClass;
   ClassElement closureClass;
+  ClassElement dynamicClass;
+  ClassElement boolClass;
+  ClassElement numClass;
+  ClassElement intClass;
+  ClassElement doubleClass;
+  ClassElement stringClass;
+  ClassElement functionClass;
+  ClassElement nullClass;
 
   Element get currentElement() => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -85,10 +93,8 @@ class Compiler implements DiagnosticListener {
   static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
   static final SourceString NO_SUCH_METHOD_EXCEPTION =
       const SourceString('NoSuchMethodException');
-  static final SourceString OBJECT = const SourceString('Object');
   static final SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
-  static final SourceString CLOSURE = const SourceString('Closure');
   bool enabledNoSuchMethod = false;
 
   Compiler.withCurrentDirectory(String this.currentDirectory,
@@ -189,16 +195,36 @@ class Compiler implements DiagnosticListener {
     if (uri.toString() == 'dart:isolate') {
       enableIsolateSupport(library);
     }
+    if (dynamicClass !== null) {
+      // When loading the built-in libraries, dynamicClass is null. We
+      // take advantage of this as core and coreimpl import js_helper
+      // and see Dynamic this way.
+      withCurrentElement(dynamicClass, () {
+        library.define(dynamicClass, this);
+      });
+    }
   }
 
   abstract LibraryElement scanBuiltinLibrary(String filename);
+
+  void initializeSpecialClasses() {
+    objectClass = coreLibrary.find(const SourceString('Object'));
+    boolClass = coreLibrary.find(const SourceString('bool'));
+    numClass = coreLibrary.find(const SourceString('num'));
+    intClass = coreLibrary.find(const SourceString('int'));
+    doubleClass = coreLibrary.find(const SourceString('double'));
+    stringClass = coreLibrary.find(const SourceString('String'));
+    functionClass = coreLibrary.find(const SourceString('Function'));
+    closureClass = jsHelperLibrary.find(const SourceString('Closure'));
+    dynamicClass = jsHelperLibrary.find(const SourceString('Dynamic'));
+    nullClass = jsHelperLibrary.find(const SourceString('Null'));
+  }
 
   void scanBuiltinLibraries() {
     coreImplLibrary = scanBuiltinLibrary('coreimpl.dart');
     jsHelperLibrary = scanBuiltinLibrary('js_helper.dart');
     coreLibrary = scanBuiltinLibrary('core.dart');
-    objectClass = coreLibrary.find(OBJECT);
-    closureClass = jsHelperLibrary.find(CLOSURE);
+
     // Since coreLibrary import the libraries "coreimpl", and
     // "js_helper", coreLibrary is null when they are being built. So
     // we add the implicit import of coreLibrary now. This can be
@@ -211,6 +237,8 @@ class Compiler implements DiagnosticListener {
 
     universe.libraries['dart:core'] = coreLibrary;
     universe.libraries['dart:coreimpl'] = coreImplLibrary;
+
+    initializeSpecialClasses();
   }
 
   /** Define the JS helper functions in the given library. */

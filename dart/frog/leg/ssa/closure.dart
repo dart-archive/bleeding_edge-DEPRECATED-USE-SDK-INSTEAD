@@ -14,7 +14,7 @@ class ClosureFieldElement extends Element {
 
 class ClosureClassElement extends ClassElement {
   ClosureClassElement(Compiler compiler, Element enclosingElement)
-      : super(Compiler.CLOSURE, enclosingElement) {
+      : super(compiler.closureClass.name, enclosingElement) {
     isResolved = true;
     compiler.closureClass.ensureResolved(compiler);
     supertype = compiler.closureClass.computeType(compiler);

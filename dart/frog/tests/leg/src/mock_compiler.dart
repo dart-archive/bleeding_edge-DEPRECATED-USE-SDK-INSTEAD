@@ -67,8 +67,7 @@ class MockCompiler extends Compiler {
     parseScript(helperSource, jsHelperLibrary);
     scanner.importLibrary(jsHelperLibrary, coreLibrary, null);
     mainApp = mockLibrary(this, "");
-    objectClass = coreLibrary.find(Compiler.OBJECT);
-    closureClass = jsHelperLibrary.find(Compiler.CLOSURE);
+    initializeSpecialClasses();
   }
 
   void reportWarning(Node node, var message) {

@@ -1348,3 +1348,18 @@ builtin$isOdd$0(receiver) {
   if (receiver is !int) return UNINTERCEPTED(receiver.isOdd());
   return (receiver & 1) === 1;
 }
+
+/**
+ * Represents the type Dynamic. The compiler treats this specially.
+ */
+interface Dynamic {
+}
+
+/**
+ * Represents the type of Null. The compiler treats this specially.
+ */
+class Null {
+  factory Null() {
+    throw UnsupportedOperationException('new Null()');
+  }
+}

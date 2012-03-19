@@ -1263,6 +1263,9 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     Type supertype = visit(node.superclass);
     if (supertype !== null && supertype.element.isExtendable()) {
       classElement.supertype = supertype;
+      if (isBlackListed(supertype)) {
+        error(node.superclass, MessageKind.CANNOT_EXTEND, [supertype]);
+      }
     } else if (supertype !== null) {
       error(node.superclass, MessageKind.TYPE_NAME_EXPECTED);
     }
@@ -1285,6 +1288,9 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       if (interfaceType !== null && interfaceType.element.isExtendable()) {
         classElement.interfaces =
             classElement.interfaces.prepend(interfaceType);
+        if (isBlackListed(interfaceType)) {
+          error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);
+        }
       } else {
         error(link.head, MessageKind.TYPE_NAME_EXPECTED);
       }
@@ -1413,6 +1419,22 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
                              new NodeList.empty(),
                              new Block(new NodeList.empty()),
                              null, null, null, null);
+  }
+
+  isBlackListed(Type type) {
+    LibraryElement lib = classElement.getLibrary();
+    return
+      lib !== compiler.coreLibrary &&
+      lib !== compiler.coreImplLibrary &&
+      lib !== compiler.jsHelperLibrary &&
+      (type.element === compiler.dynamicClass ||
+       type.element === compiler.boolClass ||
+       type.element === compiler.numClass ||
+       type.element === compiler.intClass ||
+       type.element === compiler.doubleClass ||
+       type.element === compiler.stringClass ||
+       type.element === compiler.nullClass ||
+       type.element === compiler.functionClass);
   }
 }
 

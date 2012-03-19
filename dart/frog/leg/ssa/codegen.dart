@@ -1026,20 +1026,20 @@ class SsaCodeGenerator implements HVisitor {
       checkNull(input);
       buffer.add(' || ');
     }
-    if (element == objectClass) {
+    if (element === objectClass || element === compiler.dynamicClass) {
       // TODO(ahe): This probably belongs in the constant folder.
       buffer.add('true');
-    } else if (element == coreLibrary.find(const SourceString('String'))) {
+    } else if (element == compiler.stringClass) {
       checkString(input, '===');
-    } else if (element == coreLibrary.find(const SourceString('double'))) {
+    } else if (element == compiler.doubleClass) {
       checkDouble(input, '===');
-    } else if (element == coreLibrary.find(const SourceString('num'))) {
+    } else if (element == compiler.numClass) {
       checkNum(input, '===');
-    } else if (element == coreLibrary.find(const SourceString('bool'))) {
+    } else if (element == compiler.boolClass) {
       checkBool(input, '===');
-    } else if (element == coreLibrary.find(const SourceString('Function'))) {
+    } else if (element == compiler.functionClass) {
       checkFunction(input, element);
-    } else if (element == coreLibrary.find(const SourceString('int'))) {
+    } else if (element == compiler.intClass) {
       beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
       checkNum(input, '===');
       buffer.add(' && ');

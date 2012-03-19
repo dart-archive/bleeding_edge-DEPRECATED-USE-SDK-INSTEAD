@@ -151,6 +151,13 @@ class MessageKind {
       "cyclic reference to type variable #{1}");
   static final TYPE_NAME_EXPECTED = const MessageKind(
       "class or interface name exptected");
+
+  static final CANNOT_EXTEND = const MessageKind(
+      "#{1} cannot be extended");
+
+  static final CANNOT_IMPLEMENT = const MessageKind(
+      "#{1} cannot be implemented");
+
   toString() => template;
 }
 
