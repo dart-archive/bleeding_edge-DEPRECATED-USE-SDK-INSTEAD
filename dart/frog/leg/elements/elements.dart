@@ -36,7 +36,9 @@ class ElementCategory {
   /** Type variable */
   static final int TYPE_VARIABLE = 128;
 
-  static final int IMPLIES_TYPE = CLASS | ALIAS;
+  static final int IMPLIES_TYPE = CLASS | ALIAS | TYPE_VARIABLE;
+
+  static final int IS_EXTENDABLE = CLASS | ALIAS;
 }
 
 class ElementKind {
@@ -126,6 +128,7 @@ class Element implements Hashable {
   bool isTypeVariable() => kind === ElementKind.TYPE_VARIABLE;
   bool isGetter() => kind === ElementKind.GETTER;
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
+  bool isExtendable() => (kind.category & ElementCategory.IS_EXTENDABLE) != 0;
 
   bool isAssignable() {
     if (modifiers != null && modifiers.isFinal()) return false;

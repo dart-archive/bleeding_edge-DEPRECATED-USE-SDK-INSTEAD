@@ -1261,7 +1261,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
     }
     // Find super type.
     Type supertype = visit(node.superclass);
-    if (supertype !== null && supertype.element.impliesType()) {
+    if (supertype !== null && supertype.element.isExtendable()) {
       classElement.supertype = supertype;
     } else if (supertype !== null) {
       error(node.superclass, MessageKind.TYPE_NAME_EXPECTED);
@@ -1282,7 +1282,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
          !link.isEmpty();
          link = link.tail) {
       Type interfaceType = visit(link.head);
-      if (interfaceType !== null && interfaceType.element.impliesType()) {
+      if (interfaceType !== null && interfaceType.element.isExtendable()) {
         classElement.interfaces =
             classElement.interfaces.prepend(interfaceType);
       } else {

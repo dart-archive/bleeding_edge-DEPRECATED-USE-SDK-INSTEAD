@@ -341,9 +341,16 @@ class Compiler implements DiagnosticListener {
   }
 
   reportWarning(Node node, var message) {
-    // TODO(ahe): Don't supress this warning when we support type variables.
     if (message is ResolutionWarning) {
+      // TODO(ahe): Don't supress this warning when we support type variables.
       if (message.message.kind === MessageKind.CANNOT_RESOLVE_TYPE) return;
+    } else if (message is TypeWarning) {
+      // TODO(ahe): Don't supress these warning when the type checker
+      // is more complete.
+      if (message.message.kind === MessageKind.NOT_ASSIGNABLE) return;
+      if (message.message.kind === MessageKind.MISSING_RETURN) return;
+      if (message.message.kind === MessageKind.ADDITIONAL_ARGUMENT) return;
+      if (message.message.kind === MessageKind.METHOD_NOT_FOUND) return;
     }
     SourceSpan span = spanFromNode(node);
     reportDiagnostic(span, "${magenta('warning:')} $message", false);
