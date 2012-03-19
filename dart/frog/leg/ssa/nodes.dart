@@ -13,6 +13,7 @@ interface HVisitor<R> {
   R visitBoundsCheck(HBoundsCheck node);
   R visitBreak(HBreak node);
   R visitConstant(HConstant node);
+  R visitContinue(HContinue node);
   R visitDivide(HDivide node);
   R visitEquals(HEquals node);
   R visitExit(HExit node);
@@ -256,6 +257,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBoolify(HBoolify node) => visitInstruction(node);
   visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
   visitBreak(HBreak node) => visitGoto(node);
+  visitContinue(HContinue node) => visitGoto(node);
   visitCheck(HCheck node) => visitInstruction(node);
   visitConstant(HConstant node) => visitInstruction(node);
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
@@ -653,26 +655,26 @@ class HBasicBlock extends HInstructionList implements Hashable {
   }
 }
 
-class HBlockInformation {
-  // Just a marker class.
-}
-
-class HLabeledBlockInformation extends HBlockInformation {
+class HLabeledBlockInformation {
   final SubGraph body;
   final HBasicBlock joinBlock;
   final List<LabelElement> labels;
   final TargetElement target;
+  final bool isContinue;
 
   HLabeledBlockInformation(this.body, this.joinBlock,
-                           List<LabelElement> labels) :
+                           List<LabelElement> labels,
+                           [this.isContinue = false]) :
       this.labels = labels, this.target = labels[0].target;
 
-  // For creating block information when there are no explicit labels.
-  HLabeledBlockInformation.implicit(this.body, this.joinBlock, this.target) :
-      this.labels = const<LabelElement>[];
+  HLabeledBlockInformation.implicit(this.body,
+                                    this.joinBlock,
+                                    this.target,
+                                    [this.isContinue = false])
+      : this.labels = const<LabelElement>[];
 }
 
-class HLoopInformation extends HBlockInformation {
+class HLoopInformation {
   final HBasicBlock header;
   final List<HBasicBlock> blocks;
   final List<HBasicBlock> backEdges;
@@ -1611,13 +1613,21 @@ class HGoto extends HControlFlow {
 }
 
 class HBreak extends HGoto {
-  // Target is either a LabelElement or a TargetElement.
   final TargetElement target;
   final LabelElement label;
   HBreak(this.target) : label = null;
   HBreak.toLabel(LabelElement label) : label = label, target = label.target;
-  toString() => (target is LabelElement) ? 'break ${label.labelName}' : 'break';
+  toString() => (label !== null) ? 'break ${label.labelName}' : 'break';
   accept(HVisitor visitor) => visitor.visitBreak(this);
+}
+
+class HContinue extends HGoto {
+  final TargetElement target;
+  final LabelElement label;
+  HContinue(this.target) : label = null;
+  HContinue.toLabel(LabelElement label) : label = label, target = label.target;
+  toString() => (label !== null) ? 'continue ${label.labelName}' : 'continue';
+  accept(HVisitor visitor) => visitor.visitContinue(this);
 }
 
 class HTry extends HControlFlow {

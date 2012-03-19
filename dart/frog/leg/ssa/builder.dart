@@ -606,74 +606,101 @@ class LocalsHandler {
 }
 
 
-// Represents a single break instruction.
-class BreakHandlerEntry {
-  final HBreak breakInstruction;
+// Represents a single break/continue instruction.
+class JumpHandlerEntry {
+  final HGoto jumpInstruction;
   final LocalsHandler locals;
-  BreakHandlerEntry(this.breakInstruction, this.locals);
+  bool isBreak() => jumpInstruction is HBreak;
+  bool isContinue() => jumpInstruction is HContinue;
+  JumpHandlerEntry(this.jumpInstruction, this.locals);
 }
 
-interface BreakHandler default BreakHandlerImpl {
-  BreakHandler(SsaBuilder builder, TargetElement target);
-  void addBreak(HBreak breakInstruction, LocalsHandler locals);
-  void forEachBreak(Function action);
+
+interface JumpHandler default JumpHandlerImpl {
+  JumpHandler(SsaBuilder builder, TargetElement target);
+  void generateBreak([LabelElement label]);
+  void generateContinue([LabelElement label]);
+  void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
+  void forEachContinue(void action(HBreak instruction, LocalsHandler locals));
   void close();
   List<LabelElement> labels();
 }
 
-// Inert break handler used to avoid null checks when a loop isn't
+// Insert break handler used to avoid null checks when a target isn't
 // used as the target of a break, and therefore doesn't need a break
 // handler associated with it.
-class NullBreakHandler implements BreakHandler {
-  const NullBreakHandler();
-  void addBreak(HBreak breakInstruction, LocalsHandler locals) {
-    unreachable();
-  }
+class NullJumpHandler implements JumpHandler {
+  const NullJumpHandler();
+  void generateBreak([LabelElement label]) { unreachable(); }
+  void generateContinue([LabelElement label]) { unreachable(); }
   void forEachBreak(Function ignored) { }
+  void forEachContinue(Function ignored) { }
   void close() { }
   List<LabelElement> labels() => const <LabelElement>[];
 }
 
 // Records breaks until a target block is available.
 // Breaks are always forward jumps.
-class BreakHandlerImpl implements BreakHandler {
-  final BreakHandler previous;
+// Continues in loops are implemented as breaks of the body.
+// Continues in switches is currently not handled.
+class JumpHandlerImpl implements JumpHandler {
   final SsaBuilder builder;
   final TargetElement target;
-  final List<BreakHandlerEntry> breaks;
-  BreakHandlerImpl(SsaBuilder builder, this.target)
+  final List<JumpHandlerEntry> jumps;
+
+  JumpHandlerImpl(SsaBuilder builder, this.target)
       : this.builder = builder,
-        previous = builder.currentBreakHandler,
-        breaks = <BreakHandlerEntry>[] {
-    builder.currentBreakHandler = this;
-    assert(builder.breakTargets[target] === null);
-    builder.breakTargets[target] = this;
+        jumps = <JumpHandlerEntry>[] {
+    assert(builder.jumpTargets[target] === null);
+    builder.jumpTargets[target] = this;
   }
 
-  void addBreak(HBreak breakInstruction, LocalsHandler locals) {
-    breaks.add(new BreakHandlerEntry(breakInstruction, locals));
+  void generateBreak([LabelElement label]) {
+    HInstruction breakInstruction;
+    if (label === null) {
+      breakInstruction = new HBreak(target);
+    } else {
+      breakInstruction = new HBreak.toLabel(label);
+    }
+    LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
+    builder.close(breakInstruction);
+    jumps.add(new JumpHandlerEntry(breakInstruction, locals));
+  }
+
+  void generateContinue([LabelElement label]) {
+    HInstruction continueInstruction;
+    if (label === null) {
+      continueInstruction = new HContinue(target);
+    } else {
+      continueInstruction = new HContinue.toLabel(label);
+    }
+    LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
+    builder.close(continueInstruction);
+    jumps.add(new JumpHandlerEntry(continueInstruction, locals));
   }
 
   void forEachBreak(Function action) {
-    for (BreakHandlerEntry entry in breaks) {
-      action(entry.breakInstruction, entry.locals);
+    for (JumpHandlerEntry entry in jumps) {
+      if (entry.isBreak()) action(entry.jumpInstruction, entry.locals);
+    }
+  }
+
+  void forEachContinue(Function action) {
+    for (JumpHandlerEntry entry in jumps) {
+      if (entry.isContinue()) action(entry.jumpInstruction, entry.locals);
     }
   }
 
   void close() {
-    assert(builder.currentBreakHandler === this);
-    // The mapping from TargetElement to BreakHandler is no longer needed.
-    builder.breakTargets.remove(target);
-    builder.currentBreakHandler = previous;
+    // The mapping from TargetElement to JumpHandler is no longer needed.
+    builder.jumpTargets.remove(target);
   }
 
   List<LabelElement> labels() {
     List<LabelElement> result = null;
     for (LabelElement element in target.labels) {
-      if (element.isBreakTarget) {
-        if (result === null) result = <LabelElement>[];
-        result.add(element);
-      }
+      if (result === null) result = <LabelElement>[];
+      result.add(element);
     }
     return (result === null) ? const <LabelElement>[] : result;
   }
@@ -689,7 +716,7 @@ class SsaBuilder implements Visitor {
   LocalsHandler localsHandler;
   HInstruction rethrowableException;
 
-  Map<TargetElement, BreakHandler> breakTargets;
+  Map<TargetElement, JumpHandler> jumpTargets;
 
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
@@ -702,10 +729,6 @@ class SsaBuilder implements Visitor {
   // block is closed.
   HBasicBlock lastOpenedBlock;
 
-  // Linked list of active break-handlers. Will be removed in the order
-  // they are added.
-  BreakHandler currentBreakHandler = const NullBreakHandler();
-
   LibraryElement get currentLibrary() => work.element.getLibrary();
 
   SsaBuilder(Compiler compiler, WorkItem work)
@@ -716,7 +739,7 @@ class SsaBuilder implements Visitor {
       elements = work.resolutionTree,
       graph = new HGraph(),
       stack = new List<HInstruction>(),
-      breakTargets = new Map<TargetElement, BreakHandler>() {
+      jumpTargets = new Map<TargetElement, JumpHandler>() {
     localsHandler = new LocalsHandler(this);
   }
 
@@ -875,7 +898,7 @@ class SsaBuilder implements Visitor {
         fieldValues[fieldParameterElement.fieldElement] = parameterValue;
       }
     });
-    
+
     final Map<FunctionElement, TreeElements> constructorElements =
         compiler.resolver.constructorElements;
     List<FunctionElement> constructors = new List<FunctionElement>();
@@ -1029,16 +1052,17 @@ class SsaBuilder implements Visitor {
    * is closed with an [HGoto] and replaced by the newly created block.
    * Also notifies the locals handler that we're entering a loop.
    */
-  BreakHandler beginLoopHeader(Node node) {
+  JumpHandler beginLoopHeader(Node node) {
     assert(!isAborted());
     HBasicBlock previousBlock = close(new HGoto());
-    BreakHandler breakHandler = getBreakHandler(node);
-    HBasicBlock loopEntry = graph.addNewLoopHeaderBlock(breakHandler.labels());
+
+    JumpHandler jumpHandler = createJumpHandler(node);
+    HBasicBlock loopEntry = graph.addNewLoopHeaderBlock(jumpHandler.labels());
     previousBlock.addSuccessor(loopEntry);
     open(loopEntry);
 
     localsHandler.beginLoopHeader(node, loopEntry);
-    return breakHandler;
+    return jumpHandler;
   }
 
   /**
@@ -1049,12 +1073,12 @@ class SsaBuilder implements Visitor {
    */
   void endLoop(HBasicBlock loopEntry,
                HBasicBlock branchBlock,
-               BreakHandler breakHandler,
+               JumpHandler jumpHandler,
                LocalsHandler savedLocals) {
     HBasicBlock loopExitBlock = addNewBlock();
     assert(branchBlock.successors.length == 1);
     List<LocalsHandler> breakLocals = <LocalsHandler>[];
-    breakHandler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
+    jumpHandler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
       breakInstruction.block.addSuccessor(loopExitBlock);
       breakLocals.add(locals);
     });
@@ -1070,7 +1094,10 @@ class SsaBuilder implements Visitor {
   }
 
   // For while loops, initializer and update are null.
-  visitLoop(Node loop, Node initializer, Expression condition, NodeList updates,
+  visitLoop(Node loop,
+            Node initializer,
+            Expression condition,
+            NodeList updates,
             Node body) {
     // Generate:
     //  <initializer>
@@ -1096,7 +1123,7 @@ class SsaBuilder implements Visitor {
     }
     assert(!isAborted());
 
-    BreakHandler breakHandler = beginLoopHeader(loop);
+    JumpHandler jumpHandler = beginLoopHeader(loop);
     HBasicBlock conditionBlock = current;
 
     HInstruction conditionInstruction;
@@ -1114,23 +1141,44 @@ class SsaBuilder implements Visitor {
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
     // The body.
-    HBasicBlock bodyBlock = addNewBlock();
-    conditionExitBlock.addSuccessor(bodyBlock);
-    open(bodyBlock);
+    HBasicBlock beginBodyBlock = addNewBlock();
+    conditionExitBlock.addSuccessor(beginBodyBlock);
+    open(beginBodyBlock);
 
     localsHandler.enterLoopBody(loop);
+
     hackAroundPossiblyAbortingBody(body);
-    bodyBlock = close(new HGoto());
+    SubGraph bodyGraph = new SubGraph(beginBodyBlock, current);
+    HBasicBlock bodyBlock = close(new HGoto());
 
     // Update.
     // We create an update block, even when we are in a while loop. There the
     // update block is the jump-target for continue statements. We could avoid
     // the creation if there is no continue, but for now we always create it.
     HBasicBlock updateBlock = addNewBlock();
+
+    List<LocalsHandler> continueLocals = <LocalsHandler>[];
+    jumpHandler.forEachContinue((HContinue instruction, LocalsHandler locals) {
+      instruction.block.addSuccessor(updateBlock);
+      continueLocals.add(locals);
+    });
     bodyBlock.addSuccessor(updateBlock);
+    continueLocals.add(localsHandler);
+
     open(updateBlock);
 
+    localsHandler = localsHandler.mergeMultiple(continueLocals, updateBlock);
+
+    HLabeledBlockInformation labelInfo;
+    List<LabelElement> labels = jumpHandler.labels();
+    if (!labels.isEmpty()) {
+      beginBodyBlock.labeledBlockInformation =
+          new HLabeledBlockInformation(bodyGraph, updateBlock,
+                                       jumpHandler.labels(), isContinue: true);
+    }
+
     localsHandler.enterLoopUpdates(loop);
+
     if (updates !== null) {
       for (Expression expression in updates) {
         visit(expression);
@@ -1145,7 +1193,7 @@ class SsaBuilder implements Visitor {
     updateBlock.addSuccessor(conditionBlock);
     conditionBlock.postProcessLoopHeader();
 
-    endLoop(conditionBlock, conditionExitBlock, breakHandler, savedLocals);
+    endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
   }
 
   visitFor(For node) {
@@ -1159,7 +1207,7 @@ class SsaBuilder implements Visitor {
 
   visitDoWhile(DoWhile node) {
     localsHandler.startLoop(node);
-    BreakHandler breakHandler = beginLoopHeader(node);
+    JumpHandler jumpHandler = beginLoopHeader(node);
     HBasicBlock loopEntryBlock = current;
 
     localsHandler.enterLoopBody(node);
@@ -1170,6 +1218,10 @@ class SsaBuilder implements Visitor {
     HBasicBlock bodyExitBlock = close(new HGoto());
     HBasicBlock conditionBlock = addNewBlock();
     bodyExitBlock.addSuccessor(conditionBlock);
+    jumpHandler.forEachContinue((x,y) {
+      // TODO(lrn): Handle continue in do-while loops.
+      compiler.cancel("do-while with continue", node: node);
+    });
     open(conditionBlock);
     visit(node.condition);
     assert(!isAborted());
@@ -1179,7 +1231,8 @@ class SsaBuilder implements Visitor {
     conditionBlock.addSuccessor(loopEntryBlock);  // The back-edge.
     loopEntryBlock.postProcessLoopHeader();
 
-    endLoop(loopEntryBlock, conditionBlock, breakHandler, localsHandler);
+    endLoop(loopEntryBlock, conditionBlock, jumpHandler, localsHandler);
+    jumpHandler.close();
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -2184,30 +2237,42 @@ class SsaBuilder implements Visitor {
     assert(!isAborted());
     TargetElement target = elements[node];
     assert(target !== null);
-    BreakHandler handler = breakTargets[target];
+    JumpHandler handler = jumpTargets[target];
     assert(handler !== null);
-    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-    HBreak breakInstruction;
     if (node.target === null) {
-      breakInstruction = new HBreak(target);
+      handler.generateBreak();
     } else {
       LabelElement label = elements[node.target];
-      breakInstruction = new HBreak.toLabel(label);
+      handler.generateBreak(label);
     }
-    close(breakInstruction);
-    handler.addBreak(breakInstruction, savedLocals);
   }
 
   visitContinueStatement(ContinueStatement node) {
-    // TODO(lrn): Replace this with a real implementation of continue.
-    compiler.reportWarning(node, 'continue not implemented');
-    generateUnimplemented('continue not implemented');
+    work.allowSpeculativeOptimization = false;
+    TargetElement target = elements[node];
+    assert(target !== null);
+    JumpHandler handler = jumpTargets[target];
+    assert(handler !== null);
+    if (node.target === null) {
+      handler.generateContinue();
+    } else {
+      LabelElement label = elements[node.target];
+      handler.generateContinue(label);
+    }
   }
 
-  BreakHandler getBreakHandler(Node node) {
+  /**
+   * Creates a [JumpHandler] for a statement. The node must be a jump
+   * target. If there are no breaks or continues targeting the statement,
+   * a special "null handler" is returned.
+   */
+  JumpHandler createJumpHandler(Statement node) {
     TargetElement element = elements[node];
-    if (element === null) return const NullBreakHandler();
-    return new BreakHandler(this, element);
+    if (element === null || element.statement !== node) {
+      // No breaks or continues to this node.
+      return const NullJumpHandler();
+    }
+    return new JumpHandler(this, element);
   }
 
   visitForInStatement(ForInStatement node) {
@@ -2232,7 +2297,7 @@ class SsaBuilder implements Visitor {
         selector, iteratorName, false, inputs);
     add(iterator);
 
-    BreakHandler breakHandler = beginLoopHeader(node);
+    JumpHandler jumpHandler = beginLoopHeader(node);
     HBasicBlock conditionBlock = current;
 
     // The condition.
@@ -2266,11 +2331,18 @@ class SsaBuilder implements Visitor {
     hackAroundPossiblyAbortingBody(node.body);
     bodyBlock = close(new HGoto());
 
+    jumpHandler.forEachContinue((x,y) {
+      // TODO(lrn): Handle continue in for-in.
+      // TODO(lrn): Or, preferably, use an abstraction of visitLoop for for-in.
+      compiler.cancel('for-in with continue', node: node);
+    });
+
     // Update.
     // We create an update block, even if we are in a for-in loop. The
     // update block is the jump-target for continue statements. We could avoid
     // the creation if there is no continue, but for now we always create it.
     HBasicBlock updateBlock = addNewBlock();
+
     bodyBlock.addSuccessor(updateBlock);
     open(updateBlock);
     updateBlock = close(new HGoto());
@@ -2278,8 +2350,8 @@ class SsaBuilder implements Visitor {
     updateBlock.addSuccessor(conditionBlock);
     conditionBlock.postProcessLoopHeader();
 
-    endLoop(conditionBlock, conditionExitBlock, breakHandler, savedLocals);
-    breakHandler.close();
+    endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
+    jumpHandler.close();
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -2301,7 +2373,7 @@ class SsaBuilder implements Visitor {
     }
     LocalsHandler beforeLocals = new LocalsHandler.from(localsHandler);
     assert(targetElement.isBreakTarget);
-    BreakHandler handler = new BreakHandler(this, targetElement);
+    JumpHandler handler = new JumpHandler(this, targetElement);
     // Introduce a new basic block.
     HBasicBlock entryBlock = graph.addNewBlock();
     goto(current, entryBlock);
@@ -2371,7 +2443,7 @@ class SsaBuilder implements Visitor {
     }
     Link<Node> cases = node.cases.nodes;
 
-    BreakHandler breakHandler = getBreakHandler(node);
+    JumpHandler jumpHandler = createJumpHandler(node);
 
     buildSwitchCases(cases, expression);
 
@@ -2380,7 +2452,7 @@ class SsaBuilder implements Visitor {
     // Create merge block for break targets.
     HBasicBlock joinBlock = new HBasicBlock();
     List<LocalsHandler> caseLocals = <LocalsHandler>[];
-    breakHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
+    jumpHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
       instruction.block.addSuccessor(joinBlock);
       caseLocals.add(locals);
     });
@@ -2407,6 +2479,7 @@ class SsaBuilder implements Visitor {
         new SubGraph(startBlock, lastBlock),
         joinBlock,
         elements[node]);
+    jumpHandler.close();
   }
 
 

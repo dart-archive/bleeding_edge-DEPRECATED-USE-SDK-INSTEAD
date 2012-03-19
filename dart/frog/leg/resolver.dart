@@ -656,7 +656,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (element.kind == ElementKind.FIELD_PARAMETER) {
         useElement(parameterNode, element);
       } else {
-        defineElement(variableDefinitions.definitions.nodes.head, element);        
+        defineElement(variableDefinitions.definitions.nodes.head, element);
       }
       parameterNodes = parameterNodes.tail;
     });
@@ -1089,9 +1089,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       warning(existingElement.label, MessageKind.EXISTING_LABEL, [labelName]);
     }
     Node body = node.getBody();
-    TargetElement TargetElement = getOrCreateTargetElement(body);
+    TargetElement targetElement = getOrCreateTargetElement(body);
 
-    LabelElement element = TargetElement.addLabel(node.label, labelName);
+    LabelElement element = targetElement.addLabel(node.label, labelName);
     statementScope.enterLabelScope(element);
     visit(node.statement);
     statementScope.exitLabelScope();
@@ -1100,9 +1100,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else {
       warning(node.label, MessageKind.UNUSED_LABEL, [labelName]);
     }
-    if (!TargetElement.isBreakTarget && mapping[body] === TargetElement) {
+    if (!targetElement.isTarget && mapping[body] === targetElement) {
       // If the body is itself a break or continue for another target, it
-      // might have updated its mapping to the label it actaully does target.
+      // might have updated its mapping to the target it actually does target.
       mapping.remove(body);
     }
   }
@@ -1524,7 +1524,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       Element variables = new VariableListElement.node(currentDefinitions,
           ElementKind.VARIABLE_LIST, enclosingElement);
       element = new FieldParameterElement(node.selector.asIdentifier().source,
-          fieldElement, variables, enclosingElement, node);      
+          fieldElement, variables, enclosingElement, node);
     }
     return element;
   }

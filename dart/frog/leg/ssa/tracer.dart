@@ -219,6 +219,14 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitConstant(HConstant constant) => "Constant ${constant.constant}";
 
+  String visitContinue(HContinue node) {
+    HBasicBlock target = currentBlock.successors[0];
+    if (node.label !== null) {
+      return "Continue ${node.label.labelName}: (B${target.id})";
+    }
+    return "Continue: (B${target.id})";
+  }
+
   String visitDivide(HDivide node) => visitInvokeStatic(node);
 
   String visitEquals(HEquals node) => visitInvokeStatic(node);

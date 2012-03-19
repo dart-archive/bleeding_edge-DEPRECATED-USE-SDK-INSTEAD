@@ -247,13 +247,21 @@ class SsaCodeGenerator implements HVisitor {
   void handleLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
     addIndentation();
     for (LabelElement label in labeledBlockInfo.labels) {
-      addLabel(label);
+      if (labeledBlockInfo.isContinue) {
+        addContinueLabel(label);
+      } else {
+        addBreakLabel(label);
+      }
       buffer.add(':');
     }
     TargetElement target = labeledBlockInfo.target;
     if (target.isSwitch) {
-      addImplicitLabel(target);
+      addImplicitBreakLabel(target);
       buffer.add(@':');
+    }
+    if (labeledBlockInfo.isContinue) {
+      addImplicitContinueLabel(target);
+      buffer.add(':');
     }
     buffer.add('{\n');
     indent++;
@@ -433,15 +441,24 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   // Used to write the name of labels.
-  // The default implementation uses the unmodified Dart label name.
-  // Specializations might change this.
-  void addLabel(LabelElement label) {
+  void addBreakLabel(LabelElement label) {
     buffer.add(@'$');
     buffer.add(label.labelName);
   }
 
-  void addImplicitLabel(TargetElement target) {
-    buffer.add('\$${target.nestingLevel}');
+  void addContinueLabel(LabelElement label) {
+    buffer.add(@'c$');
+    buffer.add(label.labelName);
+  }
+
+  void addImplicitBreakLabel(TargetElement target) {
+    buffer.add(@'$');
+    buffer.add('${target.nestingLevel}');
+  }
+
+  void addImplicitContinueLabel(TargetElement target) {
+    buffer.add(@'c$');
+    buffer.add('${target.nestingLevel}');
   }
 
   visitBreak(HBreak node) {
@@ -450,18 +467,34 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add("break");
     if (node.label !== null) {
       buffer.add(" ");
-      addLabel(node.label);
+      addBreakLabel(node.label);
     } else {
       TargetElement target = node.target;
       if (target.isSwitch) {
+        // We are wrapping switches in a labeled block so that we can
+        // break from them even when they are implemented as if/else chains.
+        // For that reason, we need to use a labeled break targeting the
+        // "implicit" label we gave to the block.
         buffer.add(@' ');
-        addImplicitLabel(target);
+        addImplicitBreakLabel(target);
       }
     }
     buffer.add(";\n");
-    // We never follow the break to its target, even if it dominates the
-    // break target block. That block is always handled by the structure
-    // that introduced the break.
+  }
+
+  visitContinue(HContinue node) {
+    assert(currentBlock.successors.length == 1);
+    addIndentation();
+    // We currently implement "continue" in a loop as a break of a block
+    // containing the loop body. If we ever implement for-loops as such,
+    // we should use a real continue.
+    buffer.add("break ");
+    if (node.label !== null) {
+      addContinueLabel(node.label);
+    } else {
+      addImplicitContinueLabel(node.target);
+    }
+    buffer.add(";\n");
   }
 
   visitTry(HTry node) {
@@ -1179,7 +1212,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   void beginLoop(HBasicBlock block) {
     addIndentation();
     for (LabelElement label in block.loopInformation.labels) {
-      addLabel(label);
+      addBreakLabel(label);
       buffer.add(":");
     }
     buffer.add('while (true) {\n');
@@ -1343,12 +1376,6 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     buffer.add('}\n');  // Close 'switch'.
   }
 
-  // Adds a "$" in front of names of labels from the original source.
-  // This avoids conflicts with labels introduced by bailouts, which
-  // starts with a non-"$" character.
-  void addLabel(LabelElement label) {
-    buffer.add("\$${label.labelName}");
-  }
 
   void beginLoop(HBasicBlock block) {
     // TODO(ngeoffray): Don't put labels on loops that don't bailout.
@@ -1358,8 +1385,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     }
 
     addIndentation();
-    for (LabelElement label in block.loopInformation.labels) {
-      addLabel(label);
+    for (SourceString label in block.loopInformation.labels) {
+      addBreakLabel(label);
       buffer.add(":");
     }
     buffer.add('$newLabel: while (true) {\n');
