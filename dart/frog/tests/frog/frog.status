@@ -15,11 +15,11 @@ NodeProcessTest: Fail # Checked mode failure -- looked like it failed to find as
 NativeCheckedFieldsFrogTest: Fail
 
 
-[ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == frog || $component == leg]
+[ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == frog || $component == dart2js ]
 Node*Test: Skip
 
 
-[ $component == frog || $component == frogsh || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == leg ]
+[ $component == frog || $component == frogsh || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == dart2js ]
 FrogServerTest: Skip
 
 

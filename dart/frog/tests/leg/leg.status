@@ -8,5 +8,5 @@ RedundantPhiEliminatorTest: Fail # Fails because of hack to allow aborting loops
 [ $component == dartc || $component == frog || $component == frogsh || $component == frogium || $component == webdriver || $component == legium ]
 *: Skip # Leg uses #import('dart:io');
 
-[ $component == leg ]
+[ $component == dart2js ]
 *: Skip # Leg is not self-hosted (yet).

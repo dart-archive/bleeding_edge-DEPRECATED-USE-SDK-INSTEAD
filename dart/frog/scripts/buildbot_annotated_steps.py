@@ -86,14 +86,20 @@ def TestStep(name, mode, system, component, targets, flags):
   else:
     cmd = []
 
+  user_test = os.environ.get('USER_TEST', 'no')
+
   cmd.extend([sys.executable,
               os.path.join(os.curdir, 'tools', 'test.py'),
               '--mode=' + mode,
               '--component=' + component,
               '--time',
-              '--report',
-              '--progress=buildbot',
-              '-v'])
+              '--report'])
+
+  if user_test == 'yes':
+    cmd.append('--progress=color')
+  else:
+    cmd.extend(['--progress=buildbot', '-v'])
+
   if flags:
     cmd.extend(flags)
   cmd.extend(targets)
@@ -108,8 +114,8 @@ def TestStep(name, mode, system, component, targets, flags):
 def BuildFrog(component, mode, system):
   """ build frog.
    Args:
-     - component: either 'leg', 'frog', 'frogsh' (frog self-hosted), 'frogium'
-       or 'legium'
+     - component: either 'dart2js', 'frog', 'frogsh' (frog
+       self-hosted), 'frogium' or 'legium'
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
   """
@@ -126,8 +132,8 @@ def BuildFrog(component, mode, system):
 def TestFrog(component, mode, system, browser, option, flags):
   """ test frog.
    Args:
-     - component: either 'leg', 'frog', 'frogsh' (frog self-hosted), 'frogium',
-       or 'legium'
+     - component: either 'dart2js', 'frog', 'frogsh' (frog
+       self-hosted), 'frogium', or 'legium'
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
      - browser: one of the browsers, see GetBuildInfo
@@ -142,12 +148,12 @@ def TestFrog(component, mode, system, browser, option, flags):
     if (option == 'checked'):
       flags.append('--host-checked')
     # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
-    TestStep("leg_extra", mode, system, 'vm', ['leg'], ['--checked'])
+    TestStep("dart2js_unit", mode, system, 'vm', ['leg'], ['--checked'])
 
     extra_suites = ['leg_only', 'frog_native']
-    TestStep("leg_extra", mode, system, 'leg', extra_suites, flags)
+    TestStep("dart2js_extra", mode, system, 'dart2js', extra_suites, flags)
 
-    TestStep("leg", mode, system, 'leg', [], flags)
+    TestStep("dart2js", mode, system, 'dart2js', [], flags)
 
   elif component != 'frogium': # frog and frogsh
     TestStep("frog", mode, system, component, [], flags)

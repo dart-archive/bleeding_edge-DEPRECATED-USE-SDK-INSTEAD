@@ -127,9 +127,9 @@ def main():
 
   if args:
     if options.leg_only:
-      test_cmd.append('--component=leg')
+      test_cmd.append('--component=dart2js')
     else:
-      test_cmd.append('--component=frogsh,leg')
+      test_cmd.append('--component=frogsh,dart2js')
     test_cmd.extend(args)
     RunCommand(*test_cmd, verbose=True)
   else:
@@ -163,14 +163,11 @@ def main():
     # Leg does not implement checked mode yet.
     test_cmd.remove('--checked')
 
-    cmd = test_cmd + ['--component=leg', 'leg_only']
-    RunCommand(*cmd, verbose=True)
-
-    cmd = test_cmd + ['--component=leg', 'frog_native']
+    cmd = test_cmd + ['--component=dart2js', 'leg_only', 'frog_native']
     RunCommand(*cmd, verbose=True)
 
     # Run leg on "built-in" tests.
-    cmd = test_cmd + ['--component=leg']
+    cmd = test_cmd + ['--component=dart2js']
     RunCommand(*cmd, verbose=True)
 
     # Run leg on client tests.

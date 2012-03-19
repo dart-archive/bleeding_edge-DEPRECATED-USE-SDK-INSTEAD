@@ -15,5 +15,5 @@ WhileNormalizationTest: Skip    # normalization code is incorrect, currently
 *: Pass, Crash # Issue 1024.
 
 
-[ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == leg || $component == legium ]
+[ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == dart2js || $component == legium ]
 *: Skip
