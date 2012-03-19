@@ -5,14 +5,13 @@
 
 [ $component == dart2js ]
 chat/ChatServerTest: Fail # Failed invariant in closure analyzer.
-dartcombat/DartCombatTest: Fail # Duplicate definition of an abstract element.
-lib/layout/LayoutTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-lib/view/ViewTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-proxy/MintMakerRpcTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-swarm/SwarmTest: Fail # compiler cancelled: internal error: ConstantHandler with optional arguments not implemented
-total/TotalTest: Fail # compiler cancelled: internal error: fall-through not implemented
-
+proxy/MintMakerRpcTest: Fail # TypeError: Cannot call method 'toSendPort$0' of undefined
 
 lib/observable/ObservableTest: Fail, OK # ReferenceError: window is not defined
 lib/touch/TouchTest: Fail, OK # ReferenceError: window is not defined
 lib/util/UtilTest: Fail, OK # ReferenceError: window is not defined
+dartcombat/DartCombatTest: Fail, OK # ReferenceError: window is not defined
+lib/layout/LayoutTest: Fail, OK # ReferenceError: window is not defined
+lib/view/ViewTest: Fail, OK # ReferenceError: window is not defined
+swarm/SwarmTest: Fail, OK # ReferenceError: window is not defined
+total/TotalTest: Fail, OK # ReferenceError: window is not defined

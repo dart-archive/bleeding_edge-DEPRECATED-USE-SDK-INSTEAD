@@ -1346,6 +1346,23 @@ makeLiteralMap(List keyValuePairs) {
   return result;
 }
 
+invokeClosure(Function closure,
+              var isolate,
+              int numberOfArguments,
+              var arg1,
+              var arg2) {
+  if (numberOfArguments == 0) {
+    return JS_CALL_IN_ISOLATE(isolate, () => closure());
+  } else if (numberOfArguments == 1) {
+    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1));
+  } else if (numberOfArguments == 2) {
+    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2));
+  } else {
+    throw new Exception(
+        'Unsupported number of arguments for wrapped closure');
+  }
+}
+
 /**
  * Called by generated code to convert a Dart closure to a JS
  * closure when the Dart closure is passed to the DOM.
@@ -1354,30 +1371,17 @@ convertDartClosureToJS(closure) {
   if (closure === null) return null;
   var function = JS('var', @'#.$identity', closure);
   if (JS('bool', @'!!#', function)) return function;
+
   function = JS("var", @"""function() {
-    var dartClosure = #;
-    switch (arguments.length) {
-      case 0: return #(dartClosure);
-      case 1: return #(dartClosure, arguments[0]);
-      case 2: return #(dartClosure, arguments[0], arguments[1]);
-      default:
-        throw new Error('Unsupported number of arguments for wrapped closure');
-    }
+    return #(#, #, arguments.length, arguments[0], arguments[1]);
   }""",
+  invokeClosure,
   closure,
-  callClosure0,
-  callClosure1,
-  callClosure2);
+  JS_CURRENT_ISOLATE());
+
   JS('void', @'#.$identity = #', closure, function);
   return function;
 }
-
-/**
- * Helper methods when converting a Dart closure to a JS closure.
- */
-callClosure0(closure) => closure();
-callClosure1(closure, arg1) => closure(arg1);
-callClosure2(closure, arg1, arg2) => closure(arg1, arg2);
 
 /**
  * Super class for Dart closures.

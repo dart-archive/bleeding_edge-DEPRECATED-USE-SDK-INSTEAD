@@ -1721,50 +1721,121 @@ class SsaBuilder implements Visitor {
     push(new HInvokeClosure(selector, inputs));
   }
 
-  visitForeignSend(Send node) {
-    Identifier selector = node.selector;
-    switch (selector.source.slowToString()) {
-      case "JS":
-        Link<Node> link = node.arguments;
-        // If the invoke is on foreign code, don't visit the first
-        // argument, which is the type, and the second argument,
-        // which is the foreign code.
-        link = link.tail.tail;
-        List<HInstruction> inputs = <HInstruction>[];
-        addGenericSendArgumentsToList(link, inputs);
-        LiteralString type = node.arguments.head;
-        LiteralString literal = node.arguments.tail.head;
-        compiler.ensure(literal is LiteralString);
-        compiler.ensure(type is LiteralString);
-        push(new HForeign(literal.dartString, type.dartString, inputs));
-        break;
-      case "UNINTERCEPTED":
-        Link<Node> link = node.arguments;
-        if (!link.tail.isEmpty()) {
-          compiler.cancel('More than one expression in UNINTERCEPTED()');
-        }
-        Expression expression = link.head;
-        disableMethodInterception();
-        visit(expression);
-        enableMethodInterception();
-        break;
-      case "JS_HAS_EQUALS":
-        List<HInstruction> inputs = <HInstruction>[];
-        if (!node.arguments.tail.isEmpty()) {
-          compiler.cancel('More than one expression in JS_HAS_EQUALS()');
-        }
-        addGenericSendArgumentsToList(node.arguments, inputs);
-        String name = compiler.namer.instanceMethodName(
-            currentLibrary, Namer.OPERATOR_EQUALS, 1);
-        push(new HForeign(new DartString.literal('!!#.$name'),
-                          const LiteralDartString('bool'),
-                          inputs));
-        break;
-      case "native":
-        native.handleSsaNative(this, node);
-        break;
-      default:
-        throw "Unknown foreign: ${node.selector}";
+  void handleForeignJs(Send node) {
+    Link<Node> link = node.arguments;
+    // If the invoke is on foreign code, don't visit the first
+    // argument, which is the type, and the second argument,
+    // which is the foreign code.
+    link = link.tail.tail;
+    List<HInstruction> inputs = <HInstruction>[];
+    addGenericSendArgumentsToList(link, inputs);
+    LiteralString type = node.arguments.head;
+    LiteralString literal = node.arguments.tail.head;
+    compiler.ensure(literal is LiteralString);
+    compiler.ensure(type is LiteralString);
+    push(new HForeign(literal.dartString, type.dartString, inputs));
+  }
+
+  void handleForeignUnintercepted(Send node) {
+    Link<Node> link = node.arguments;
+    if (!link.tail.isEmpty()) {
+      compiler.cancel(
+          'More than one expression in UNINTERCEPTED()', node: node);
+    }
+    Expression expression = link.head;
+    disableMethodInterception();
+    visit(expression);
+    enableMethodInterception();
+  }
+
+  void handleForeignJsHasEquals(Send node) {
+    List<HInstruction> inputs = <HInstruction>[];
+    if (!node.arguments.tail.isEmpty()) {
+      compiler.cancel(
+          'More than one expression in JS_HAS_EQUALS()', node: node);
+    }
+    addGenericSendArgumentsToList(node.arguments, inputs);
+    String name = compiler.namer.instanceMethodName(
+        currentLibrary, Namer.OPERATOR_EQUALS, 1);
+    push(new HForeign(new DartString.literal('!!#.$name'),
+                      const LiteralDartString('bool'),
+                      inputs));
+  }
+
+  void handleForeignJsCurrentIsolate(Send node) {
+    if (!node.arguments.isEmpty()) {
+      compiler.cancel(
+          'Too many arguments to JS_CURRENT_ISOLATE', node: node);
+    }
+
+    if (!compiler.hasIsolateSupport()) {
+      // If the isolate library is not used, we just generate code
+      // to fetch the Leg's current isolate.
+      String name = compiler.namer.CURRENT_ISOLATE;
+      push(new HForeign(new DartString.literal(name),
+                        const LiteralDartString('var'),
+                        <HInstruction>[]));
+    } else {
+      // Call a helper method from the isolate library. The isolate
+      // library uses its own isolate structure, that encapsulates
+      // Leg's isolate.
+      Element element = compiler.isolateLibrary.find(
+          const SourceString('_currentIsolate'));
+      if (element === null) {
+        compiler.cancel(
+            'Isolate library and compiler mismatch', node: node);
+      }
+      HStatic target = new HStatic(element);
+      add(target);
+      push(new HInvokeStatic(Selector.INVOCATION_0,
+                             <HInstruction>[target]));
+    }
+  }
+
+  void handleForeignJsCallInIsolate(Send node) {
+    Link<Node> link = node.arguments;
+    if (!compiler.hasIsolateSupport()) {
+      // If the isolate library is not used, we just invoke the
+      // closure.
+      visit(link.tail.head);
+      push(new HInvokeClosure(Selector.INVOCATION_0,
+                              <HInstruction>[pop()]));
+    } else {
+      // Call a helper method from the isolate library.
+      Element element = compiler.isolateLibrary.find(
+          const SourceString('_callInIsolate'));
+      if (element === null) {
+        compiler.cancel(
+            'Isolate library and compiler mismatch', node: node);
+      }
+      HStatic target = new HStatic(element);
+      add(target);
+      List<HInstruction> inputs = <HInstruction>[target];
+      addGenericSendArgumentsToList(link, inputs);
+      push(new HInvokeStatic(Selector.INVOCATION_0, inputs));
+    }
+  }
+
+  handleForeignSend(Send node) {
+    Element element = elements[node];
+    if (element === compiler.findHelper(const SourceString('JS'))) {
+      handleForeignJs(node);
+    } else if (element === compiler.findHelper(
+          const SourceString('UNINTERCEPTED'))) {
+      handleForeignUnintercepted(node);
+    } else if (element === compiler.findHelper(
+          const SourceString('JS_HAS_EQUALS'))) {
+      handleForeignJsHasEquals(node);
+    } else if (element === compiler.findHelper(
+          const SourceString('JS_CURRENT_ISOLATE'))) {
+      handleForeignJsCurrentIsolate(node);
+    } else if (element === compiler.findHelper(
+          const SourceString('JS_CALL_IN_ISOLATE'))) {
+      handleForeignJsCallInIsolate(node);
+    } else if (element === currentLibrary.find(const SourceString('native'))) {
+      native.handleSsaNative(this, node);
+    } else {
+      throw "Unknown foreign: ${node.selector}";
     }
   }
 
@@ -1839,7 +1910,7 @@ class SsaBuilder implements Visitor {
         // Example: f() with 'f' bound to instance method.
         visitDynamicSend(node);
       } else if (element.kind === ElementKind.FOREIGN) {
-        visitForeignSend(node);
+        handleForeignSend(node);
       } else if (!element.isInstanceMember()) {
         // Example: A.f() or f() with 'f' bound to a static function.
         // Also includes new A() or new A.named() which is treated like a

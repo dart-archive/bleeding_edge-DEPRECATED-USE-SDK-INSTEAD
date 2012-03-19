@@ -180,8 +180,10 @@ class Compiler implements DiagnosticListener {
 
   void enableIsolateSupport(LibraryElement element) {
     isolateLibrary = element;
-    addToWorkList(element.find(START_ROOT_ISOLATE)); 
+    addToWorkList(element.find(START_ROOT_ISOLATE));
   }
+
+  bool hasIsolateSupport() => isolateLibrary !== null;
 
   void onLibraryLoaded(LibraryElement library, Uri uri) {
     if (uri.toString() == 'dart:isolate') {
@@ -219,6 +221,10 @@ class Compiler implements DiagnosticListener {
         const SourceString('UNINTERCEPTED'), library), this);
     library.define(new ForeignElement(
         const SourceString('JS_HAS_EQUALS'), library), this);
+    library.define(new ForeignElement(
+        const SourceString('JS_CURRENT_ISOLATE'), library), this);
+    library.define(new ForeignElement(
+        const SourceString('JS_CALL_IN_ISOLATE'), library), this);
   }
 
   void runCompiler(Uri uri) {

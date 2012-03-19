@@ -67,6 +67,4 @@ lib/view/ViewTest: Skip
 *: Skip
 
 [ $component == legium ]
-total/TotalTest: Skip # Timeout
-dartcombat/DartCombatTest: Fail # duplicate definition
-swarm/SwarmTest: Fail # Requires library privacy
+dartcombat/DartCombatTest: Fail # Uncaught TypeError: Object #<FutureImpl> has no method 'receive$1'
