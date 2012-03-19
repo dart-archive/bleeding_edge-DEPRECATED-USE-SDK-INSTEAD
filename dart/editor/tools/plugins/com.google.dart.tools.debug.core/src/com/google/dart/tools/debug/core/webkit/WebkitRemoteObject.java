@@ -111,6 +111,10 @@ public class WebkitRemoteObject {
     return "number".equals(type) || "string".equals(type) || "boolean".equals(type);
   }
 
+  public boolean isString() {
+    return "string".equals(type);
+  }
+
   @Override
   public String toString() {
     if (value == null) {

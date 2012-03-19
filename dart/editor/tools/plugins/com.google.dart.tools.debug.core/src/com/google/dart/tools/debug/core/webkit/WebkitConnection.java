@@ -233,21 +233,27 @@ public class WebkitConnection {
 
   protected void sendRequest(JSONObject request, Callback callback) throws IOException,
       JSONException {
-    int id = getNextRequestId();
-
-    //System.out.println("request: " + request.getString("method") + ", " + id);
-
-    request.put("id", id);
+    int id = 0;
 
     try {
-      if (callback != null) {
-        callbackMap.put(id, callback);
+      synchronized (this) {
+        id = getNextRequestId();
+
+        request.put("id", id);
+
+        if (callback != null) {
+          callbackMap.put(id, callback);
+        }
       }
+
+      //System.out.println("request: " + request.getString("method") + ", " + id);
 
       websocket.send(request.toString());
     } catch (WebSocketException exception) {
       if (callback != null) {
-        callbackMap.remove(id);
+        synchronized (this) {
+          callbackMap.remove(id);
+        }
       }
 
       throw new IOException(exception);
@@ -303,7 +309,11 @@ public class WebkitConnection {
 
       //System.out.println("response: " + id);
 
-      Callback callback = callbackMap.remove(id);
+      Callback callback;
+
+      synchronized (this) {
+        callback = callbackMap.remove(id);
+      }
 
       if (callback != null) {
         callback.handleResult(result);

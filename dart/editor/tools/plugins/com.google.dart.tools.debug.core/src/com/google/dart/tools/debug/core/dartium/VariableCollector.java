@@ -116,7 +116,7 @@ class VariableCollector {
       DartDebugCorePlugin.logError("Error retrieving webkit properties: " + results);
     } else {
       for (WebkitPropertyDescriptor descriptor : results.getResult()) {
-        if (descriptor.isEnumerable()) {
+        if (descriptor.isEnumerable() && !shouldFilter(descriptor)) {
           DartiumDebugVariable variable = new DartiumDebugVariable(target, descriptor);
 
           if (parentVariable != null) {
@@ -134,6 +134,39 @@ class VariableCollector {
   private void createThisVariable(WebkitRemoteObject thisObject) {
     variables.add(new DartiumDebugVariable(target,
         WebkitPropertyDescriptor.createThisObjectDescriptor(thisObject), true));
+  }
+
+  private boolean isListLength(WebkitPropertyDescriptor descriptor) {
+    if (parentVariable != null && parentVariable.isListValue()) {
+      if ("length".equals(descriptor.getName())) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Some specific property filters, to make up for the fact that the enumerable property is not
+   * always set correctly.
+   * 
+   * @param descriptor
+   * @return
+   */
+  private boolean shouldFilter(WebkitPropertyDescriptor descriptor) {
+    // array length
+    if (isListLength(descriptor)) {
+      return true;
+    }
+
+    // toString function
+    if (descriptor.getValue() != null && descriptor.getValue().isFunction()) {
+      if ("toString".equals(descriptor.getName())) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private void worked() {

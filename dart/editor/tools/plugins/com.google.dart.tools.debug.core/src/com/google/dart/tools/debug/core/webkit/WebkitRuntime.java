@@ -47,13 +47,11 @@ public class WebkitRuntime extends WebkitDomain {
     try {
       JSONObject request = new JSONObject();
 
-      // TODO(devoncarew): foo() { return this.toString(); } ?
-
       request.put("method", "Runtime.callFunctionOn");
       request.put(
           "params",
-          new JSONObject().put("objectId", objectId).put("functionDeclaration", "toString").put(
-              "returnByValue", true));
+          new JSONObject().put("objectId", objectId).put("functionDeclaration",
+              "function(){return this.toString();}").put("returnByValue", true));
 
       connection.sendRequest(request, new Callback() {
         @Override

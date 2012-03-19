@@ -51,6 +51,14 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
   }
 
   public void computeDetail(final ValueCallback callback) {
+    // If the value is a primitive type, just return the display string.
+    if (value.isPrimitive()) {
+      callback.detailComputed(getDisplayString());
+
+      return;
+    }
+
+    // Otherwise try and call the toString() method of the object.
     try {
       getConnection().getRuntime().callToString(value.getObjectId(), new WebkitCallback<String>() {
         @Override
@@ -71,12 +79,15 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
 
   /**
    * @return a user-consumable string for the value object
+   * @throws DebugException
    */
   public String getDisplayString() {
-    if (isPrimitive()) {
-      if ("string".equals(value.getType())) {
-        return "\"" + getValueString() + "\"";
-      }
+    if (isPrimitive() && value.isString()) {
+      return "\"" + getValueString() + "\"";
+    }
+
+    if (isList()) {
+      return "List[" + getListLength() + "]";
     }
 
     return getValueString();
@@ -89,11 +100,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
 
   @Override
   public String getValueString() {
-    if (value.isList()) {
-      return value.getDescription();
-    } else {
-      return value.getValue();
-    }
+    return value.getValue();
   }
 
   @Override
@@ -122,6 +129,27 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
 
   public boolean isPrimitive() {
     return value.isPrimitive();
+  }
+
+  private int getListLength() {
+    // value.getDescription() == "Array[x]"
+
+    String str = value.getDescription();
+
+    int startIndex = str.indexOf('[');
+    int endIndex = str.indexOf(']', startIndex);
+
+    if (startIndex != -1 && endIndex != -1) {
+      String val = str.substring(startIndex + 1, endIndex);
+
+      try {
+        return Integer.parseInt(val);
+      } catch (NumberFormatException nfe) {
+
+      }
+    }
+
+    return 0;
   }
 
   private void populate() {

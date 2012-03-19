@@ -59,8 +59,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
    * @return a user-consumable string for the variable name
    */
   public String getDisplayName() {
-    // TODO(devoncarew): remove the length check once the webkit length==enumerable bug is fixed
-    if (isListMember() && !"length".equals(getName())) {
+    if (isListMember()) {
       return "[" + getName() + "]";
     }
 

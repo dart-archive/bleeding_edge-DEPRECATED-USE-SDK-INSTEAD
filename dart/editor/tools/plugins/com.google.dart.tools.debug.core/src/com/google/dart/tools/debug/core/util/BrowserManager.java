@@ -351,7 +351,7 @@ public class BrowserManager {
       try {
         List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(PORT_NUMBER);
 
-        if (tabs.size() == 0) {
+        if (tabs.size() == 0 || findTargetTab(tabs) == null) {
           // Keep waiting - Dartium sometimes needs time to bring up the first tab.
           continue;
         } else {
