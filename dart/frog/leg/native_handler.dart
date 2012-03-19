@@ -61,7 +61,7 @@ void maybeEnableNative(Compiler compiler,
 
   // Additionaly, if this is a test, we allow access to foreign functions.
   if (library.script.name.contains('dart/frog/tests/native/src')) {
-    compiler.addForeignFunctions(library);
+    library.define(compiler.findHelper(const SourceString('JS')), compiler);
   }
 }
 
