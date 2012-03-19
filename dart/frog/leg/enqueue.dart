@@ -3,11 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class EnqueueTask extends CompilerTask {
-  EnqueueTask(Compiler compiler) : super(compiler);
+  final Map<String, Link<Element>> instanceMembersByName;
+  final Set<ClassElement> seenClasses;
+
   String get name() => 'Enqueue';
 
-  void enqueueInvokedInstanceMethods() {
-    // TODO(floitsch): find a more efficient way of doing this.
+  EnqueueTask(Compiler compiler)
+    : instanceMembersByName = new Map<String, Link<Element>>(),
+      seenClasses = new Set<ClassElement>(),
+      super(compiler);
+
+  bool checkNoEnqueuedInvokedInstanceMethods() {
     measure(() {
       // Run through the classes and see if we need to compile methods.
       for (ClassElement classElement in compiler.universe.instantiatedClasses) {
@@ -18,6 +24,7 @@ class EnqueueTask extends CompilerTask {
         }
       }
     });
+    return true;
   }
 
   void processInstantiatedClass(ClassElement cls) {
@@ -31,6 +38,7 @@ class EnqueueTask extends CompilerTask {
       // need to make sure that closures can handle the optional argument if
       // there exists a field or getter 'foo'.
       var names = compiler.universe.instantiatedClassInstanceFields;
+      // TODO(ahe): Might be enough to use invokedGetters.
       for (SourceString name in names) {
         Set<Selector> invokedSelectors = compiler.universe.invokedNames[name];
         if (invokedSelectors != null) {
@@ -47,6 +55,16 @@ class EnqueueTask extends CompilerTask {
     if (compiler.universe.generatedCode.containsKey(member)) return;
 
     if (!member.isInstanceMember()) return;
+
+    String memberName = member.name.slowToString();
+    Link<Element> members = instanceMembersByName.putIfAbsent(
+        memberName, () => const EmptyLink<Element>());
+    instanceMembersByName[memberName] = members.prepend(member);
+
+    if (member.kind === ElementKind.GETTER ||
+        member.kind === ElementKind.FIELD) {
+      compiler.universe.instantiatedClassInstanceFields.add(member.name);
+    }
 
     if (member.kind == ElementKind.FUNCTION) {
       if (member.name == Compiler.NO_SUCH_METHOD) {
@@ -93,14 +111,105 @@ class EnqueueTask extends CompilerTask {
     }
   }
 
-  void processUnseenInstantiatedClass(ClassElement cls) {
+  void onRegisterInstantiatedClass(ClassElement cls) => measure(() {
+    while (cls !== null) {
+      if (seenClasses.contains(cls)) return;
+      seenClasses.add(cls);
+      // TODO(ahe): Don't call resolveType, instead, call this method
+      // when resolveType is called.
+      compiler.resolveType(cls);
+      cls.members.forEach(processInstantiatedClassMember);
+      cls = cls.superclass;
+    }
+  });
+
+  void registerInvocation(SourceString methodName, Selector selector) {
     measure(() {
-      cls.members.forEach((member) {
-        if (member.kind === ElementKind.GETTER ||
-            member.kind === ElementKind.FIELD) {
-          compiler.universe.instantiatedClassInstanceFields.add(member.name);
-        }
-      });
+      Map<SourceString, Set<Selector>> invokedNames =
+        compiler.universe.invokedNames;
+      Set<Selector> selectors =
+        invokedNames.putIfAbsent(methodName, () => new Set<Selector>());
+      if (!selectors.contains(selector)) {
+        selectors.add(selector);
+        handleUnseenInvocation(methodName, selector);
+      }
     });
+  }
+
+  void registerGetter(SourceString methodName) {
+    measure(() {
+      if (!compiler.universe.invokedGetters.contains(methodName)) {
+        compiler.universe.invokedGetters.add(methodName);
+        handleUnseenGetter(methodName);
+      }
+    });
+  }
+
+  void registerSetter(SourceString methodName) {
+    measure(() {
+      if (!compiler.universe.invokedSetters.contains(methodName)) {
+        compiler.universe.invokedSetters.add(methodName);
+        handleUnseenSetter(methodName);
+      }
+    });
+  }
+
+  void handleUnseenInvocation(SourceString methodName, Selector selector) {
+    String memberName = methodName.slowToString();
+    Link<Element> members = instanceMembersByName[memberName];
+    if (members !== null) {
+      LinkBuilder<Element> remaining = new LinkBuilder<Element>();
+      for (; !members.isEmpty(); members = members.tail) {
+        Element member = members.head;
+        if (member.isGetter()) {
+          compiler.addToWorkList(member);
+          continue;
+        } else if (member.isFunction()) {
+          FunctionElement functionMember = member;
+          FunctionParameters parameters =
+            functionMember.computeParameters(compiler);
+          if (selector.applies(parameters)) {
+            compiler.addToWorkList(member);
+            continue;
+          }
+        }
+        remaining.addLast(member);
+      }
+      instanceMembersByName[memberName] = remaining.toLink();
+    }
+  }
+
+  void handleUnseenGetter(SourceString methodName) {
+    String memberName = methodName.slowToString();
+    Link<Element> members = instanceMembersByName[memberName];
+    if (members !== null) {
+      LinkBuilder<Element> remaining = new LinkBuilder<Element>();
+      for (; !members.isEmpty(); members = members.tail) {
+        Element member = members.head;
+        if (member.isGetter() || member.isFunction()) {
+          compiler.addToWorkList(member);
+        } else {
+          remaining.addLast(member);
+        }
+      }
+      instanceMembersByName[memberName] = remaining.toLink();
+    }
+  }
+
+  void handleUnseenSetter(SourceString methodName) {
+    String memberName = methodName.slowToString();
+    Link<Element> members = instanceMembersByName[memberName];
+    if (members !== null) {
+      LinkBuilder<Element> remaining = new LinkBuilder<Element>();
+      for (; !members.isEmpty(); members = members.tail) {
+        Element member = members.head;
+        if (member.isSetter()) {
+          compiler.addToWorkList(member);
+        } else {
+          remaining.addLast(member);
+        }
+      }
+      instanceMembersByName[memberName] = remaining.toLink();
+    }
   }
 }

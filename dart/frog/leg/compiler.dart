@@ -97,6 +97,8 @@ class Compiler implements DiagnosticListener {
       const SourceString('startRootIsolate');
   bool enabledNoSuchMethod = false;
 
+  bool workListIsClosed = false;
+
   Compiler.withCurrentDirectory(String this.currentDirectory,
                                 [this.tracer = const Tracer()])
       : types = new Types(),
@@ -138,6 +140,12 @@ class Compiler implements DiagnosticListener {
            node, token, instruction, element);
   }
 
+  void internalErrorOnElement(Element element, String message) {
+    withCurrentElement(element, () {
+      internalError(message, element: element);
+    });
+  }
+
   void cancel([String reason, Node node, Token token,
                HInstruction instruction, Element element]) {
     SourceSpan span = const SourceSpan(null, null, null);
@@ -159,6 +167,9 @@ class Compiler implements DiagnosticListener {
   }
 
   void enqueue(WorkItem work) {
+    if (workListIsClosed) {
+      internalErrorOnElement(work.element, "work list is closed");
+    }
     worklist.add(work);
   }
 
@@ -179,9 +190,7 @@ class Compiler implements DiagnosticListener {
     if (enabledNoSuchMethod) return;
     if (element.enclosingElement == objectClass) return;
     enabledNoSuchMethod = true;
-    Set<Invocation> invocations = universe.invokedNames.putIfAbsent(
-        NO_SUCH_METHOD, () => new Set<Invocation>());
-    invocations.add(new Invocation(2));
+    enqueuer.registerInvocation(NO_SUCH_METHOD, new Invocation(2));
   }
 
   void enableIsolateSupport(LibraryElement element) {
@@ -264,16 +273,19 @@ class Compiler implements DiagnosticListener {
       if (element === null) cancel('Could not find $MAIN');
     });
     native.processNativeClasses(this, universe.libraries.getValues());
-    worklist.add(new WorkItem.toCompile(element));
-    do {
-      while (!worklist.isEmpty()) {
-        WorkItem work = worklist.removeLast();
-        withCurrentElement(work.element, () => (work.run)(this));
-      }
-      enqueuer.enqueueInvokedInstanceMethods();
-    } while (!worklist.isEmpty());
+    enqueue(new WorkItem.toCompile(element));
+    while (!worklist.isEmpty()) {
+      WorkItem work = worklist.removeLast();
+      withCurrentElement(work.element, () => (work.run)(this));
+    }
+    workListIsClosed = true;
+    assert(enqueuer.checkNoEnqueuedInvokedInstanceMethods());
     enqueuer.registerFieldClosureInvocations();
     emitter.assembleProgram();
+    if (!worklist.isEmpty()) {
+      internalErrorOnElement(worklist.first().element,
+                             "work list is not empty");
+    }
   }
 
   TreeElements analyzeElement(Element element) {
@@ -314,6 +326,9 @@ class Compiler implements DiagnosticListener {
   }
 
   void addToWorkList(Element element) {
+    if (workListIsClosed) {
+      internalErrorOnElement(element, "work list is closed");
+    }
     if (element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
       registerInstantiatedClass(element.enclosingElement);
     }
@@ -331,27 +346,20 @@ class Compiler implements DiagnosticListener {
 
   void registerDynamicInvocation(SourceString methodName, Selector selector) {
     assert(selector !== null);
-    Set<Invocation> existing = universe.invokedNames[methodName];
-    if (existing == null) {
-      universe.invokedNames[methodName] = new Set.from(<Selector>[selector]);
-    } else {
-      existing.add(selector);
-    }
+    enqueuer.registerInvocation(methodName, selector);
   }
 
   void registerDynamicGetter(SourceString methodName) {
-    universe.invokedGetters.add(methodName);
+    enqueuer.registerGetter(methodName);
   }
 
   void registerDynamicSetter(SourceString methodName) {
-    universe.invokedSetters.add(methodName);
+    enqueuer.registerSetter(methodName);
   }
 
   void registerInstantiatedClass(ClassElement element) {
-    if (!universe.instantiatedClasses.contains(element)) {
-      universe.instantiatedClasses.add(element);
-      enqueuer.processUnseenInstantiatedClass(element);
-    }
+    universe.instantiatedClasses.add(element);
+    enqueuer.onRegisterInstantiatedClass(element);
   }
 
   // TODO(ngeoffray): This should get a type.

@@ -21,7 +21,7 @@ class Universe {
                instantiatedClasses = new Set<ClassElement>(),
                instantiatedClassInstanceFields = new Set<SourceString>(),
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
-               invokedNames = new Map<SourceString, Set<Invocation>>(),
+               invokedNames = new Map<SourceString, Set<Selector>>(),
                invokedGetters = new Set<SourceString>(),
                invokedSetters = new Set<SourceString>(),
                isChecks = new Set<Element>();
