@@ -1,13 +1,13 @@
 class A {
-  foo() => "A.foo" + baz();
+  foo() => "A.foo${baz()}";
   baz() => "A.baz";
-  hest(String s, int i) => s + i;
+  hest(String s, int i) => "$s$i";
 }
 
 class B extends A {
-  foo() => "B.foo" + super.foo();
+  foo() => "B.foo${super.foo()}";
   baz() => "B.baz";
-  hest(s, i) => "B.hest" + super.hest(s, i);
+  hest(s, i) => "B.hest${super.hest(s, i)}";
 }
 
 main() {

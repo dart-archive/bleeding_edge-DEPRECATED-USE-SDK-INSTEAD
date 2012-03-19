@@ -515,7 +515,7 @@ function(inputTable) {
       buffer.add('  var table = [\n');
       buffer.add(
           '    // [dynamic-dispatch-tag, '
-          + 'tags of classes implementing dynamic-dispatch-tag]');
+          'tags of classes implementing dynamic-dispatch-tag]');
       bool needsComma = false;
       List<String> entries = <String>[];
       for (final ClassElement cls in dispatchClasses) {

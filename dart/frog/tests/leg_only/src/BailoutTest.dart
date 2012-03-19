@@ -10,9 +10,9 @@ void ifBailout(test) {
     var o = myString;
     // Make sure the type inference wants an array.
     if (false) o[1] = 2;
-    return o[0] + ' bailout';
+    return '${o[0]} bailout';
   }
-  return myString[0] + ' no bailout';
+  return '${myString[0]} no bailout';
 }
 
 void ifElseBailout(test) {
@@ -21,13 +21,13 @@ void ifElseBailout(test) {
     var o = myString;
     // Make sure the type inference wants an array.
     if (false) o[1] = 2;
-    return o[0] + ' if bailout';
+    return '${o[0]} if bailout';
   } else {
     // Share the same variable for the type inference.
     var o = myString;
     // Make sure the type inference wants an array.
     if (false) o[1] = 2;
-    return o[0] + ' else bailout';
+    return '${o[0]} else bailout';
   }
 }
 

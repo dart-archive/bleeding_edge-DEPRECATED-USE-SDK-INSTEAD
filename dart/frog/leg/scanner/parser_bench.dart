@@ -31,11 +31,11 @@ class ParserBench extends BaseParserBench {
     BenchListener listener = parseAll(arguments);
     timer.stop();
     print("Parsing (${listener.libraryTagCount} tags, "
-          + "${listener.classCount} classes, "
-          + "${listener.interfaceCount} interfaces, "
-          + "${listener.aliasCount} typedefs, "
-          + "${listener.topLevelMemberCount} top-level members) "
-          + "took ${timer.elapsedInMs()}ms");
+          "${listener.classCount} classes, "
+          "${listener.interfaceCount} interfaces, "
+          "${listener.aliasCount} typedefs, "
+          "${listener.topLevelMemberCount} top-level members) "
+          "took ${timer.elapsedInMs()}ms");
   }
 
   BenchListener parseAll(List<String> arguments) {

@@ -103,7 +103,7 @@ testIdentityEscapes() {
 
 testQuotes() {
   // The string [ "' ].
-  String bothQuotes = ' "' + "' ";
+  String bothQuotes = ' "' "' ";
   Expect.equals(bothQuotes, " \"' ");
   Expect.equals(bothQuotes, ' "\' ');
   Expect.equals(bothQuotes, """ "' """);

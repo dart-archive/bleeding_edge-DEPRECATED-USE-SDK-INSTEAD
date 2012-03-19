@@ -8,5 +8,5 @@ void main() {
   var s = 0;
   s = world;
   hello = 'Greetings';
-  print(hello + ", " + world + "!");
+  print("$hello, $world!");
 }

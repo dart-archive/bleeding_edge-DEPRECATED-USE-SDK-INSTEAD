@@ -4,27 +4,29 @@
 
 final x = "foo";
 final y = "foo";
-final g1 = x + "bar";
+final g1 = x
+  + "bar"  // TODO(lrn) - see below: 01: compile-time error
+;
 final g2 = x
-  + null   /// 01: compile-time error
+  + null   /// 02: compile-time error
 ;
 final g3 = x
-  + 499   /// 02: compile-time error
+  + 499   /// 03: compile-time error
 ;
 final g4 = x
-  + 3.3   /// 03: compile-time error
+  + 3.3   /// 04: compile-time error
 ;
 final g5 = x
-  + true   /// 04: compile-time error
+  + true   /// 05: compile-time error
 ;
 final g6 = x
-  + false   /// 05: compile-time error
+  + false   /// 06: compile-time error
 ;
 final g7 = "foo"
-  + x[0]   /// 06: compile-time error
+  + x[0]   /// 07: compile-time error
 ;
 final g8 = 1
-  + x.length  /// 07: compile-time error
+  + x.length  /// 08: compile-time error
 ;
 final g9 = x == y;
 
@@ -33,6 +35,7 @@ use(x) => x;
 main() {
   Expect.equals("foobar", g1);
   Expect.isTrue(g9);
+  use(g1);  // TODO(lrn): Should fail when String.operator+ is removed.
   use(g2);
   use(g3);
   use(g4);

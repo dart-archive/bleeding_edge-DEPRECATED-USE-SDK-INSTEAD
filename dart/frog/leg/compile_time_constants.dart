@@ -333,9 +333,9 @@ class MapConstant extends ObjectConstant {
           buffer.add("$isolatePrototype.$name");
         } else {
           value.writeJsCode(buffer, handler);
-        }      
+        }
       }
-      buffer.add("}");      
+      buffer.add("}");
     }
 
     void badFieldCountError() {
@@ -633,7 +633,7 @@ class ConstantHandler extends CompilerTask {
         buffer.add(@'\\');
       } else {
         if (code > 0xffff) {
-          cancel("Unhandled non-BMP character: U+" + code.toRadixString(16));
+          cancel('Unhandled non-BMP character: U+${code.toRadixString(16)}');
         }
         // TODO(lrn): Consider whether all codes above 0x7f really need to
         // be escaped. We build a Dart string here, so it should be a literal

@@ -13,6 +13,6 @@ foo(check, listOrString) {
     listOrString[0] = 1;
     Expect.equals(1, listOrString[0]);
   } else {
-    Expect.equals("foobar", "foo" + listOrString);
+    Expect.equals("foobar", "foo${listOrString}");
   }
 }

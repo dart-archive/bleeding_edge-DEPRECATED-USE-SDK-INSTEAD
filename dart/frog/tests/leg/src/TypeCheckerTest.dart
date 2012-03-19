@@ -135,69 +135,69 @@ testOperators() {
 void testMethodInvocationArgumentCount() {
   compiler.parseScript(CLASS_WITH_METHODS);
   final String header = "{ ClassWithMethods c; ";
-  analyze(header + "c.untypedNoArgumentMethod(1); }",
+  analyze("${header}c.untypedNoArgumentMethod(1); }",
           MessageKind.ADDITIONAL_ARGUMENT);
-  analyze(header + "c.untypedOneArgumentMethod(); }",
+  analyze("${header}c.untypedOneArgumentMethod(); }",
           MessageKind.MISSING_ARGUMENT);
-  analyze(header + "c.untypedOneArgumentMethod(1, 1); }",
+  analyze("${header}c.untypedOneArgumentMethod(1, 1); }",
           MessageKind.ADDITIONAL_ARGUMENT);
-  analyze(header + "c.untypedTwoArgumentMethod(); }",
+  analyze("${header}c.untypedTwoArgumentMethod(); }",
           MessageKind.MISSING_ARGUMENT);
-  analyze(header + "c.untypedTwoArgumentMethod(1, 2, 3); }",
+  analyze("${header}c.untypedTwoArgumentMethod(1, 2, 3); }",
           MessageKind.ADDITIONAL_ARGUMENT);
-  analyze(header + "c.intNoArgumentMethod(1); }",
+  analyze("${header}c.intNoArgumentMethod(1); }",
           MessageKind.ADDITIONAL_ARGUMENT);
-  analyze(header + "c.intOneArgumentMethod(); }",
+  analyze("${header}c.intOneArgumentMethod(); }",
           MessageKind.MISSING_ARGUMENT);
-  analyze(header + "c.intOneArgumentMethod(1, 1); }",
+  analyze("${header}c.intOneArgumentMethod(1, 1); }",
           MessageKind.ADDITIONAL_ARGUMENT);
-  analyze(header + "c.intTwoArgumentMethod(); }",
+  analyze("${header}c.intTwoArgumentMethod(); }",
           MessageKind.MISSING_ARGUMENT);
-  analyze(header + "c.intTwoArgumentMethod(1, 2, 3); }",
+  analyze("${header}c.intTwoArgumentMethod(1, 2, 3); }",
           MessageKind.ADDITIONAL_ARGUMENT);
-  // analyze(header + "c.untypedField(); }");
+  // analyze("${header}c.untypedField(); }");
 }
 
 void testMethodInvocations() {
   compiler.parseScript(CLASS_WITH_METHODS);
   final String header = "{ ClassWithMethods c; SubClass d; int i; int j; ";
 
-  analyze(header + "int k = c.untypedNoArgumentMethod(); }");
-  analyze(header + "ClassWithMethods x = c.untypedNoArgumentMethod(); }");
-  analyze(header + "ClassWithMethods x = d.untypedNoArgumentMethod(); }");
-  analyze(header + "int k = d.intMethod(); }");
-  analyze(header + "int k = c.untypedOneArgumentMethod(c); }");
-  analyze(header + "ClassWithMethods x = c.untypedOneArgumentMethod(1); }");
-  analyze(header + "int k = c.untypedOneArgumentMethod('string'); }");
-  analyze(header + "int k = c.untypedOneArgumentMethod(i); }");
-  analyze(header + "int k = d.untypedOneArgumentMethod(d); }");
-  analyze(header + "ClassWithMethods x = d.untypedOneArgumentMethod(1); }");
-  analyze(header + "int k = d.untypedOneArgumentMethod('string'); }");
-  analyze(header + "int k = d.untypedOneArgumentMethod(i); }");
+  analyze("${header}int k = c.untypedNoArgumentMethod(); }");
+  analyze("${header}ClassWithMethods x = c.untypedNoArgumentMethod(); }");
+  analyze("${header}ClassWithMethods x = d.untypedNoArgumentMethod(); }");
+  analyze("${header}int k = d.intMethod(); }");
+  analyze("${header}int k = c.untypedOneArgumentMethod(c); }");
+  analyze("${header}ClassWithMethods x = c.untypedOneArgumentMethod(1); }");
+  analyze("${header}int k = c.untypedOneArgumentMethod('string'); }");
+  analyze("${header}int k = c.untypedOneArgumentMethod(i); }");
+  analyze("${header}int k = d.untypedOneArgumentMethod(d); }");
+  analyze("${header}ClassWithMethods x = d.untypedOneArgumentMethod(1); }");
+  analyze("${header}int k = d.untypedOneArgumentMethod('string'); }");
+  analyze("${header}int k = d.untypedOneArgumentMethod(i); }");
 
-  analyze(header + "int k = c.untypedTwoArgumentMethod(1, 'string'); }");
-  analyze(header + "int k = c.untypedTwoArgumentMethod(i, j); }");
-  analyze(header + "ClassWithMethods x = c.untypedTwoArgumentMethod(i, c); }");
-  analyze(header + "int k = d.untypedTwoArgumentMethod(1, 'string'); }");
-  analyze(header + "int k = d.untypedTwoArgumentMethod(i, j); }");
-  analyze(header + "ClassWithMethods x = d.untypedTwoArgumentMethod(i, d); }");
+  analyze("${header}int k = c.untypedTwoArgumentMethod(1, 'string'); }");
+  analyze("${header}int k = c.untypedTwoArgumentMethod(i, j); }");
+  analyze("${header}ClassWithMethods x = c.untypedTwoArgumentMethod(i, c); }");
+  analyze("${header}int k = d.untypedTwoArgumentMethod(1, 'string'); }");
+  analyze("${header}int k = d.untypedTwoArgumentMethod(i, j); }");
+  analyze("${header}ClassWithMethods x = d.untypedTwoArgumentMethod(i, d); }");
 
-  analyze(header + "int k = c.intNoArgumentMethod(); }");
-  analyze(header + "ClassWithMethods x = c.intNoArgumentMethod(); }",
+  analyze("${header}int k = c.intNoArgumentMethod(); }");
+  analyze("${header}ClassWithMethods x = c.intNoArgumentMethod(); }",
           MessageKind.NOT_ASSIGNABLE);
 
-  analyze(header + "int k = c.intOneArgumentMethod(c); }",
+  analyze("${header}int k = c.intOneArgumentMethod(c); }",
           MessageKind.NOT_ASSIGNABLE);
-  analyze(header + "ClassWithMethods x = c.intOneArgumentMethod(1); }",
+  analyze("${header}ClassWithMethods x = c.intOneArgumentMethod(1); }",
           MessageKind.NOT_ASSIGNABLE);
-  analyze(header + "int k = c.intOneArgumentMethod('string'); }",
+  analyze("${header}int k = c.intOneArgumentMethod('string'); }",
           MessageKind.NOT_ASSIGNABLE);
-  analyze(header + "int k = c.intOneArgumentMethod(i); }");
+  analyze("${header}int k = c.intOneArgumentMethod(i); }");
 
-  analyze(header + "int k = c.intTwoArgumentMethod(1, 'string'); }",
+  analyze("${header}int k = c.intTwoArgumentMethod(1, 'string'); }",
           MessageKind.NOT_ASSIGNABLE);
-  analyze(header + "int k = c.intTwoArgumentMethod(i, j); }");
-  analyze(header + "ClassWithMethods x = c.intTwoArgumentMethod(i, j); }",
+  analyze("${header}int k = c.intTwoArgumentMethod(i, j); }");
+  analyze("${header}ClassWithMethods x = c.intTwoArgumentMethod(i, j); }",
           MessageKind.NOT_ASSIGNABLE);
 }
 
