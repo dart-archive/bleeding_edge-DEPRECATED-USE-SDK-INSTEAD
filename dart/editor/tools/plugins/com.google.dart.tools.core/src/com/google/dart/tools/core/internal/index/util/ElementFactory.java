@@ -23,6 +23,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.model.CompilationUnitElement;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 
@@ -182,8 +183,12 @@ public final class ElementFactory {
    */
   public static Element getElement(MethodElement element) throws DartModelException {
 //    long start = System.currentTimeMillis();
-    CompilationUnitElement method = BindingUtils.getDartElement(
-        BindingUtils.getDartElement(BindingUtils.getLibrary(element)), element);
+    DartLibrary library = BindingUtils.getDartElement(BindingUtils.getLibrary(element));
+    if (library == null) {
+      DartCore.logInformation("Could not getElement for method " + pathTo(element));
+      return null;
+    }
+    CompilationUnitElement method = BindingUtils.getDartElement(library, element);
 //    bindingTime += (System.currentTimeMillis() - start);
     if (method == null) {
       DartCore.logInformation("Could not getElement for method " + pathTo(element));
