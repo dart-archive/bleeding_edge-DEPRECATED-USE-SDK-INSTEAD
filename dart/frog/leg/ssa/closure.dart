@@ -376,7 +376,10 @@ class ClosureTranslator extends AbstractVisitor {
     // TODO(ahe): This is problematic. The backend should not repeat
     // the work of the resolver. It is the resolver's job to create
     // parameters, etc. Other phases should only visit statements.
-    node.visitChildren(this);
+    // TODO(floitsch): we avoid visiting the initializers on purpose so that we
+    // get an error-message later in the builder.
+    if (node.parameters !== null) node.parameters.accept(this);
+    if (node.body !== null) node.body.accept(this);
 
     attachCapturedScopeVariables(node);
 

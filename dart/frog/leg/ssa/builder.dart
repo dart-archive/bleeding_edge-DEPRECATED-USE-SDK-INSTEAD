@@ -1239,6 +1239,11 @@ class SsaBuilder implements Visitor {
 
   visitFunctionExpression(FunctionExpression node) {
     ClosureData nestedClosureData = closureDataCache[node];
+    if (nestedClosureData === null) {
+      // TODO(floitsch): we can only assume that the reason for not having a
+      // closure data here is, because the function is inside an initializer.
+      compiler.unimplemented("Closures inside initializers", node: node);
+    }
     assert(nestedClosureData !== null);
     assert(nestedClosureData.closureClassElement !== null);
     ClassElement closureClassElement =
