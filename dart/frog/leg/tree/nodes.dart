@@ -27,7 +27,7 @@ interface Visitor<R> {
   R visitLiteralMapEntry(LiteralMapEntry node);
   R visitLiteralNull(LiteralNull node);
   R visitLiteralString(LiteralString node);
-  R visitLiteralStringJuxtaposition(LiteralStringJuxtaposition node);
+  R visitStringJuxtaposition(StringJuxtaposition node);
   R visitModifiers(Modifiers node);
   R visitNamedArgument(NamedArgument node);
   R visitNewExpression(NewExpression node);
@@ -55,6 +55,12 @@ Token firstBeginToken(Node first, Node second) {
   if (first !== null) return first.getBeginToken();
   if (second !== null) return second.getBeginToken();
   return null;
+}
+
+class NodeAssertionFailure implements Exception {
+  final Node node;
+  final String message;
+  NodeAssertionFailure(this.node, this.message);
 }
 
 /**
@@ -137,6 +143,7 @@ class Node implements Hashable {
   Statement asStatement() => null;
   StringInterpolation asStringInterpolation() => null;
   StringInterpolationPart asStringInterpolationPart() => null;
+  StringJuxtaposition asStringJuxtaposition() => null;
   SwitchCase asSwitchCase() => null;
   SwitchStatement asSwitchStatement() => null;
   Throw asThrow() => null;
@@ -731,193 +738,30 @@ class StringQuoting {
   }
 }
 
-class DartString implements Iterable<int> {
-  // This is a convenience constructor. If you need a const literal DartString,
-  // use [const LiteralDartString(string)] directly.
-  factory DartString.literal(String string) => new LiteralDartString(string);
-  factory DartString.rawString(SourceString source, int length) =>
-      new RawSourceDartString(source, length);
-  factory DartString.escapedString(SourceString source, int length) =>
-      new EscapedSourceDartString(source, length);
-  const DartString();
-  abstract int get length();
-  bool isEmpty() => length == 0;
-  abstract Iterator<int> iterator();
-  abstract String slowToString();
-
-  bool operator ==(var other) {
-    if (other is !DartString) return false;
-    DartString otherString = other;
-    if (length != otherString.length) return false;
-    Iterator it1 = iterator();
-    Iterator it2 = otherString.iterator();
-    while (it1.hasNext()) {
-      if (it1.next() != it2.next()) return false;
-    }
-    return true;
-  }
-  String toString() => "DartString#${length}:${slowToString()}";
-  abstract SourceString get source();
-}
-
-class LiteralDartString extends DartString {
-  final String string;
-  const LiteralDartString(this.string);
-  int get length() => string.length;
-  Iterator<int> iterator() => new StringCodeIterator(string);
-  String slowToString() => string;
-  SourceString get source() => new StringWrapper(string);
-}
-
-class SourceBasedDartString extends DartString {
-  String toStringCache = null;
-  final SourceString source;
-  final int length;
-  SourceBasedDartString(this.source, this.length);
-  abstract Iterator<int> iterator();
-}
-
-class RawSourceDartString extends SourceBasedDartString {
-  RawSourceDartString(source, length) : super(source, length);
-  Iterator<int> iterator() => source.iterator();
-  String slowToString() {
-    if (toStringCache !== null) return toStringCache;
-    toStringCache  = source.slowToString();
-    return toStringCache;
-  }
-}
-
-class EscapedSourceDartString extends SourceBasedDartString {
-  EscapedSourceDartString(source, length) : super(source, length);
-  Iterator<int> iterator() {
-    if (toStringCache !== null) return new StringCodeIterator(toStringCache);
-    return new StringEscapeIterator(source);
-  }
-  String slowToString() {
-    if (toStringCache !== null) return toStringCache;
-    StringBuffer buffer = new StringBuffer();
-    StringEscapeIterator it = new StringEscapeIterator(source);
-    while (it.hasNext()) {
-      buffer.addCharCode(it.next());
-    }
-    toStringCache = buffer.toString();
-    return toStringCache;
-  }
-}
-
-class ConsDartString extends DartString {
-  final DartString left;
-  final DartString right;
-  final int length;
-  int hashCache = null;
-  String toStringCache;
-  ConsDartString(DartString left, DartString right)
-      : this.left = left,
-        this.right = right,
-        length = left.length + right.length;
-
-  Iterator<int> iterator() => new ConsDartStringIterator(this);
-
-  String slowToString() {
-    if (toStringCache !== null) return toStringCache;
-    toStringCache = left.slowToString().concat(right.slowToString());
-    return toStringCache;
-  }
-  SourceString get source() => new StringWrapper(slowToString());
-}
-
-class ConsDartStringIterator implements Iterator<int> {
-  Iterator<int> current;
-  DartString right;
-  bool hasNextLookAhead;
-  ConsDartStringIterator(ConsDartString cons)
-      : current = cons.left.iterator(),
-        right = cons.right {
-    hasNextLookAhead = current.hasNext();
-    if (!hasNextLookAhead) {
-      nextPart();
-    }
-  }
-  bool hasNext() {
-    return hasNextLookAhead;
-  }
-  int next() {
-    assert(hasNextLookAhead);
-    int result = current.next();
-    hasNextLookAhead = current.hasNext();
-    if (!hasNextLookAhead) {
-      nextPart();
-    }
-    return result;
-  }
-  void nextPart() {
-    if (right !== null) {
-      current = right.iterator();
-      right = null;
-      hasNextLookAhead = current.hasNext();
-    }
-  }
-}
-
 /**
- *Iterator that returns the actual string contents of a string with escapes.
- */
-class StringEscapeIterator implements Iterator<int>{
-  final Iterator<int> source;
-  StringEscapeIterator(SourceString source) : this.source = source.iterator();
-  bool hasNext() => source.hasNext();
-  int next() {
-    int code = source.next();
-    if (code !== $BACKSLASH) {
-      return code;
-    }
-    code = source.next();
-    if (code === $n) return $LF;
-    if (code === $r) return $CR;
-    if (code === $t) return $TAB;
-    if (code === $b) return $BS;
-    if (code === $f) return $FF;
-    if (code === $v) return $VTAB;
-    if (code === $x) {
-      int value = hexDigitValue(source.next());
-      value = value * 16 + hexDigitValue(source.next());
-      return value;
-    }
-    if (code === $u) {
-      int value = 0;
-      code = source.next();
-      if (code === $OPEN_CURLY_BRACKET) {
-        for (code = source.next();
-             code != $CLOSE_CURLY_BRACKET;
-             code = source.next()) {
-           value = value * 16 + hexDigitValue(code);
-        }
-        return value;
-      }
-      // Four digit hex value.
-      value = hexDigitValue(code);
-      for (int i = 0; i < 3; i++) {
-        code = source.next();
-        value = value * 16 + hexDigitValue(code);
-      }
-      return value;
-    }
-    return code;
-  }
+  * Superclass for classes representing string literals.
+  */
+class StringNode extends Expression {
+  abstract DartString get dartString();
+  abstract bool get isInterpolation();
 }
 
+class LiteralString extends StringNode {
+  final Token token;
+  /** Non-null on validated string literals. */
+  final DartString dartString;
 
-class LiteralString extends Literal<SourceString> {
-  /** Set on validated string literals. */
-  final DartString dartString = null;
-
-  LiteralString(Token token, this.dartString) : super(token, null);
+  LiteralString(this.token, this.dartString);
 
   LiteralString asLiteralString() => this;
 
+  void visitChildren(Visitor visitor) {}
+
+  bool get isInterpolation() => false;
   bool isValidated() => dartString !== null;
 
-  SourceString get value() => token.value;
+  Token getBeginToken() => token;
+  Token getEndToken() => token;
 
   accept(Visitor visitor) => visitor.visitLiteralString(this);
 }
@@ -1248,13 +1092,16 @@ class Modifiers extends Node {
   bool isFactory() => (flags & FLAG_FACTORY) != 0;
 }
 
-class StringInterpolation extends Expression {
+class StringInterpolation extends StringNode {
   final LiteralString string;
   final NodeList parts;
 
   StringInterpolation(this.string, this.parts);
 
   StringInterpolation asStringInterpolation() => this;
+
+  DartString get dartString() => null;
+  bool get isInterpolation() => true;
 
   accept(Visitor visitor) => visitor.visitStringInterpolation(this);
 
@@ -1264,7 +1111,6 @@ class StringInterpolation extends Expression {
   }
 
   Token getBeginToken() => string.getBeginToken();
-
   Token getEndToken() => parts.getEndToken();
 }
 
@@ -1288,45 +1134,70 @@ class StringInterpolationPart extends Node {
   Token getEndToken() => string.getEndToken();
 }
 
-class LiteralStringJuxtaposition extends LiteralString {
-  // List of either StringLiteral or StringInterpolation.
-  final Link<Expression> literals;
+/**
+ * A class representing juxtaposed string literals.
+ * The string literals can be both plain literals and string interpolations.
+ */
+class StringJuxtaposition extends StringNode {
+  final Expression first;
+  final Expression second;
 
-  LiteralStringJuxtaposition(Link<Expression> literals)
-      : this.literals = literals,
-        super(literals.head.getBeginToken(), concatenateLiterals(literals));
+  /**
+   * Caches the check for whether this juxtaposition contains a string
+   * interpolation
+   */
+  bool isInterpolationCache = null;
 
-  static DartString concatenateLiterals(Link<Expression> literals) {
-    assert(!literals.isEmpty());
-    LiteralString literal = literals.head;
-    if (literals.tail.isEmpty()) {
-      return literal.dartString;
+  /**
+   * Caches a Dart string representation of the entire juxtaposition's
+   * content. Only juxtapositions that don't (transitively) contains
+   * interpolations have a static representation.
+   */
+  DartString dartStringCache = null;
+
+  StringJuxtaposition(this.first, this.second);
+
+  StringJuxtaposition asStringJuxtaposition() => this;
+
+  bool get isInterpolation() {
+    if (isInterpolationCache === null) {
+      isInterpolationCache = (first.accept(const IsInterpolationVisitor()) ||
+                          second.accept(const IsInterpolationVisitor()));
     }
-    return new ConsDartString(literal.dartString,
-                              concatenateLiterals(literals.tail));
+    return isInterpolationCache;
   }
 
-  SourceString get value() => null;
-
-  accept(Visitor visitor) => visitor.visitLiteralStringJuxtaposition(this);
-
-  visitChildren(Visitor visitor) {
-    for (Expression literal in literals) {
-      literal.accept(visitor);
+  /**
+   * Retrieve a single DartString that represents this entire juxtaposition
+   * of string literals.
+   * Should only be called if [isInterpolation] returns false.
+   */
+  DartString get dartString() {
+    if (isInterpolation) {
+      throw new NodeAssertionFailure(this,
+                                     "Getting dartString on interpolation;");
     }
+    if (dartStringCache === null) {
+      DartString firstString = first.accept(const GetDartStringVisitor());
+      DartString secondString = second.accept(const GetDartStringVisitor());
+      if (firstString === null || secondString === null) {
+        return null;
+      }
+      dartStringCache = new DartString.concat(firstString, secondString);
+    }
+    return dartStringCache;
   }
 
-  Token getBeginToken() => literals.head.getBeginToken();
+  accept(Visitor visitor) => visitor.visitStringJuxtaposition(this);
 
-  Token getEndToken() {
-    Link<Expression> current = literals;
-    Expression lastExpression = null;
-    while (!current.isEmpty()) {
-      lastExpression = current.head;
-      current = current.tail;
-    }
-    return lastExpression.getEndToken();
+  void visitChildren(Visitor visitor) {
+    first.accept(visitor);
+    second.accept(visitor);
   }
+
+  Token getBeginToken() => first.getBeginToken();
+
+  Token getEndToken() => second.getEndToken();
 }
 
 class EmptyStatement extends Statement {
@@ -1596,9 +1467,9 @@ class LabeledStatement extends Statement {
 
 class ScriptTag extends Node {
   final Identifier tag;
-  final LiteralString argument;
+  final StringNode argument;
   final Identifier prefixIdentifier;
-  final LiteralString prefix;
+  final StringNode prefix;
 
   final Token beginToken;
   final Token endToken;
@@ -1740,4 +1611,20 @@ class Initializers {
             node.receiver.asIdentifier().isThis() &&
             node.selector.asIdentifier() !== null);
   }
+}
+
+class GetDartStringVisitor extends AbstractVisitor<DartString> {
+  const GetDartStringVisitor();
+  DartString visitNode(Node node) => null;
+  DartString visitStringJuxtaposition(StringJuxtaposition node)
+      => node.dartString;
+  DartString visitLiteralString(LiteralString node) => node.dartString;
+}
+
+class IsInterpolationVisitor extends AbstractVisitor<bool> {
+  const IsInterpolationVisitor();
+  bool visitNode(Node node) => false;
+  bool visitStringInterpolation(StringInterpolation node) => true;
+  bool visitStringJuxtaposition(StringJuxtaposition node)
+      => node.isInterpolation;
 }

@@ -23,8 +23,10 @@ class ScannerTask extends CompilerTask {
     Uri cwd = new Uri(scheme: 'file', path: compiler.currentDirectory);
     Uri base = cwd.resolve(library.script.name.toString());
     for (ScriptTag tag in library.tags.reverse()) {
-      SourceString argument = tag.argument.value.copyWithoutQuotes(1, 1);
-      Uri resolved = base.resolve(argument.slowToString());
+      StringNode argument = tag.argument;
+      // TODO(lrn): Support interpolations here. We need access to the
+      // special constants that can be inserted into script tag strings.
+      Uri resolved = base.resolve(argument.dartString.slowToString());
       if (tag.isImport()) {
         // It is not safe to import other libraries at this point as
         // another library could then observe the current library
@@ -53,8 +55,8 @@ class ScannerTask extends CompilerTask {
     for (ScriptTag tag in imports.toLink()) {
       // Now that we have processed all the source tags, it is safe to
       // start loading other libraries.
-      SourceString argument = tag.argument.value.copyWithoutQuotes(1, 1);
-      Uri resolved = base.resolve(argument.slowToString());
+      StringNode argument = tag.argument;
+      Uri resolved = base.resolve(argument.dartString.slowToString());
       if (resolved.toString() == "dart:core") {
         implicitlyImportCoreLibrary = false;
       }
@@ -104,7 +106,8 @@ class ScannerTask extends CompilerTask {
   void importLibrary(LibraryElement library, LibraryElement imported,
                      ScriptTag tag) {
     if (tag !== null && tag.prefix !== null) {
-      SourceString prefix = tag.prefix.dartString.source;
+      SourceString prefix =
+          new SourceString(tag.prefix.dartString.slowToString());
       Element e = library.find(prefix);
       if (e === null) {
         e = new PrefixElement(prefix, library);

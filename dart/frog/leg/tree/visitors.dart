@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class AbstractVisitor<R> implements Visitor<R> {
+  const AbstractVisitor();
+
   abstract R visitNode(Node node);
 
   R visitBlock(Block node) => visitStatement(node);
@@ -31,10 +33,8 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitLiteralMap(LiteralMap node) => visitExpression(node);
   R visitLiteralMapEntry(LiteralMapEntry node) => visitNode(node);
   R visitLiteralNull(LiteralNull node) => visitLiteral(node);
-  R visitLiteralString(LiteralString node) => visitLiteral(node);
-  R visitLiteralStringJuxtaposition(LiteralStringJuxtaposition node) {
-    return visitLiteralString(node);
-  }
+  R visitLiteralString(LiteralString node) => visitStringNode(node);
+  R visitStringJuxtaposition(Juxtaposition node) => visitStringNode(node);
   R visitLoop(Loop node) => visitStatement(node);
   R visitModifiers(Modifiers node) => visitNode(node);
   R visitNamedArgument(NamedArgument node) => visitExpression(node);
@@ -51,7 +51,8 @@ class AbstractVisitor<R> implements Visitor<R> {
   R visitSend(Send node) => visitExpression(node);
   R visitSendSet(SendSet node) => visitSend(node);
   R visitStatement(Statement node) => visitNode(node);
-  R visitStringInterpolation(StringInterpolation node) => visitExpression(node);
+  R visitStringNode(StringNode node) => visitExpression(node);
+  R visitStringInterpolation(StringInterpolation node) => visitStringNode(node);
   R visitStringInterpolationPart(StringInterpolationPart node) {
     return visitNode(node);
   }

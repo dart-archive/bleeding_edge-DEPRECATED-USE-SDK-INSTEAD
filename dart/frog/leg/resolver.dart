@@ -917,6 +917,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   visitLiteralNull(LiteralNull node) {
   }
 
+  visitStringJuxtaposition(StringJuxtaposition node) {
+    node.visitChildren(this);
+  }
+
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       visit(link.head);

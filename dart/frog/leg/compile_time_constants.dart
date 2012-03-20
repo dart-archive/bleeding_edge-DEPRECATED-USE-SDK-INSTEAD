@@ -769,6 +769,13 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     return new StringConstant(node.dartString);
   }
 
+  Constant visitStringJuxtaposition(StringJuxtaposition node) {
+    if (!node.isInterpolation) {
+      return new StringConstant(node.dartString);
+    }
+    return super.visitStringJuxtaposition(node);
+  }
+
   // TODO(floitsch): provide better error-messages.
   Constant visitSend(Send send) {
     Element element = elements[send];
@@ -1010,7 +1017,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
 
     compiler.registerInstantiatedClass(classElement);
     // TODO(floitsch): take generic types into account.
-    Type type = classElement.computeType(compiler);      
+    Type type = classElement.computeType(compiler);
     Constant constant = new ConstructedConstant(type, jsNewArguments);
     constantHandler.registerCompileTimeConstant(constant);
     return constant;

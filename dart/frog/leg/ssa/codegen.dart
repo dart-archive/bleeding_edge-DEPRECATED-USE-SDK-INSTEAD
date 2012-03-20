@@ -150,6 +150,7 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add('(');
     }
   }
+
   void endExpression(int precedence) {
     if (precedence < expectedPrecedence) {
       buffer.add(')');

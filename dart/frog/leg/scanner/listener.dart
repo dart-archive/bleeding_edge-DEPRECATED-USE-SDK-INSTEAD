@@ -170,7 +170,7 @@ class Listener {
   void endLiteralString(int interpolationCount) {
   }
 
-  void handleLiteralStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(int literalCount) {
   }
 
   void beginMember(Token token) {
@@ -511,22 +511,24 @@ class ElementListener extends Listener {
   }
 
   LiteralString popLiteralString() {
-    Node node = popNode();
-    if (node is !LiteralString) {
-      listener.cancel("String is not a compile time constant", node: node);
+    StringNode node = popNode();
+    // TODO(lrn): Handle interpolations in script tags.
+    if (node.isInterpolation) {
+      listener.cancel("String interpolation not supported in library tags",
+                      node: node);
       return null;
     }
     return node;
   }
 
   void endScriptTag(bool hasPrefix, Token beginToken, Token endToken) {
-    LiteralString prefix = null;
+    StringNode prefix = null;
     Identifier argumentName = null;
     if (hasPrefix) {
       prefix = popLiteralString();
       argumentName = popNode();
     }
-    LiteralString firstArgument = popLiteralString();
+    StringNode firstArgument = popLiteralString();
     Identifier tag = popNode();
     compilationUnitElement.addTag(new ScriptTag(tag, firstArgument,
                                                 argumentName, prefix,
@@ -849,14 +851,16 @@ class ElementListener extends Listener {
     }
   }
 
-  void handleLiteralStringJuxtaposition(int literalCount) {
-    Link<Expression> literals = const EmptyLink<Expression>();
-    while (literalCount > 0) {
+  void handleStringJuxtaposition(int stringCount) {
+    assert(stringCount != 0);
+    Expression accumulator = popNode();
+    stringCount--;
+    while (stringCount > 0) {
       Expression expression = popNode();
-      literals = literals.prepend(expression);
-      literalCount -= 1;
+      accumulator = new StringJuxtaposition(expression, accumulator);
+      stringCount--;
     }
-    pushNode(new LiteralStringJuxtaposition(literals));
+    pushNode(accumulator);
   }
 }
 

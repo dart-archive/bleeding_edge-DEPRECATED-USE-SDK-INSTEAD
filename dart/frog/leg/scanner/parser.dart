@@ -1206,7 +1206,7 @@ class Parser {
       count++;
     }
     if (count > 1) {
-      listener.handleLiteralStringJuxtaposition(count);
+      listener.handleStringJuxtaposition(count);
     }
     return token;
   }

@@ -168,8 +168,10 @@ class SsaBuilderTask extends CompilerTask {
  * too.
  */
 class LocalsHandler {
-  // The values of locals that can be directly accessed (without redirections
-  // to boxes or closure-fields).
+  /**
+   * The values of locals that can be directly accessed (without redirections
+   * to boxes or closure-fields).
+   */
   Map<Element, HInstruction> directLocals;
   Map<Element, Element> redirectionMapping;
   SsaBuilder builder;
@@ -1405,6 +1407,7 @@ class SsaBuilder implements Visitor {
     visit(node.receiver);
     assert(op.token.kind !== PLUS_TOKEN);
     HInstruction operand = pop();
+
     HInstruction target =
         new HStatic(interceptors.getPrefixOperatorInterceptor(op));
     add(target);
@@ -2080,8 +2083,17 @@ class SsaBuilder implements Visitor {
     stack.add(graph.addConstantString(node.dartString));
   }
 
-  void visitLiteralStringJuxtaposition(LiteralStringJuxtaposition node) {
-    visitLiteralString(node);
+  void visitStringJuxtaposition(StringJuxtaposition node) {
+    if (!node.isInterpolation) {
+      // This is a simple string with no interpolations.
+      stack.add(graph.addConstantString(node.dartString));
+      return;
+    }
+    int offset = node.getBeginToken().charOffset;
+    StringBuilderVisitor stringBuilder =
+        new StringBuilderVisitor(this, offset);
+    stringBuilder.visit(node);
+    stack.add(stringBuilder.result());
   }
 
   void visitLiteralNull(LiteralNull node) {
@@ -2204,19 +2216,10 @@ class SsaBuilder implements Visitor {
 
   visitStringInterpolation(StringInterpolation node) {
     int offset = node.getBeginToken().charOffset;
-    Operator op = new Operator(new StringToken(PLUS_INFO, "+", offset));
-    HInstruction target = new HStatic(interceptors.getOperatorInterceptor(op));
-    add(target);
-    visit(node.string);
-    // Handle the parts here, to avoid recreating [target].
-    for (StringInterpolationPart part in node.parts) {
-      HInstruction prefix = pop();
-      visit(part.expression);
-      push(new HAdd(target, prefix, pop()));
-      prefix = pop();
-      visit(part.string);
-      push(new HAdd(target, prefix, pop()));
-    }
+    StringBuilderVisitor stringBuilder =
+        new StringBuilderVisitor(this, offset);
+    stringBuilder.visit(node);
+    stack.add(stringBuilder.result());
   }
 
   visitStringInterpolationPart(StringInterpolationPart node) {
@@ -2706,5 +2709,106 @@ class SsaBuilder implements Visitor {
       }
     }
     handleIf(buildBody, null);
+  }
+}
+
+/**
+ * Visitor that handles generation of string literals (LiteralString,
+ * StringInterpolation), and otherwise delegates to the given visitor for
+ * non-literal subexpressions.
+ * TODO(lrn): Consider whether to handle compile time constant int/boolean
+ * expressions as well.
+ */
+class StringBuilderVisitor extends AbstractVisitor {
+  final SsaBuilder builder;
+
+  /**
+   * Offset used for the synthetic operator token used by concat.
+   * Can probably be removed when we stop using String.operator+.
+   */
+  final int offset;
+
+  /**
+   * Used to collect concatenated string literals into a single literal
+   * instead of introducing unnecessary concatenations.
+   */
+  DartString accumulator = const LiteralDartString("");
+
+  /**
+   * The string value generated so far (not including that which is still
+   * in [accumulator]).
+   */
+  HInstruction prefix = null;
+
+  StringBuilderVisitor(this.builder, this.offset);
+
+  void visit(Node node) {
+    node.accept(this);
+  }
+
+  visitNode(Node node) {
+    compiler.internalError('unexpected node', node: node);
+  }
+
+  void visitExpression(Node node) {
+    flushAccumulator();
+    node.accept(builder);
+    prefix = concat(prefix, builder.pop());
+  }
+
+  void visitStringInterpolation(StringInterpolation node) {
+    node.visitChildren(this);
+  }
+
+  void visitStringInterpolationPart(StringInterpolationPart node) {
+    visit(node.expression);
+    visit(node.string);
+  }
+
+  void visitLiteralString(LiteralString node) {
+    accumulator = new DartString.concat(accumulator, node.dartString);
+  }
+
+  void visitStringJuxtaposition(StringJuxtaposition node) {
+    node.visitChildren(this);
+  }
+
+  void visitNodeList(NodeList node) {
+     node.visitChildren(this);
+  }
+
+  /**
+   * Combine the strings in [accumulator] into the prefix instruction.
+   * After this, the [accumulator] is empty and [prefix] is non-null.
+   */
+  void flushAccumulator() {
+    if (accumulator.isEmpty()) {
+      if (prefix === null) {
+        prefix = builder.graph.addConstantString(accumulator);
+      }
+      return;
+    }
+    HInstruction string = builder.graph.addConstantString(accumulator);
+    accumulator = new DartString.empty();
+    if (prefix !== null) {
+      prefix = concat(prefix, string);
+    } else {
+      prefix = string;
+    }
+  }
+
+  HInstruction concat(HInstruction left, HInstruction right) {
+    Operator op = new Operator(new StringToken(PLUS_INFO, "+", offset));
+    HStatic target =
+        new HStatic(builder.interceptors.getOperatorInterceptor(op));
+    builder.add(target);
+    HInstruction concat = new HAdd(target, left, right);
+    builder.add(concat);
+    return concat;
+  }
+
+  HInstruction result() {
+    flushAccumulator();
+    return prefix;
   }
 }

@@ -54,4 +54,58 @@ main() {
 
   // Binds stronger than property access (it's considered one literal).
   Expect.equals(5, "ab" "cde".length, "Associativity");
+
+  // Check that interpolations are handled correctly.
+  {
+    var x = "foo";
+    var y = 42;
+    var z = true;
+    String e1 = "$x$y$z";
+    Expect.equals(e1, "$x" "$y$z");
+    Expect.equals(e1, "$x$y" "$z");
+    Expect.equals(e1, "$x" "$y" "$z");
+    String e2 = "-$x-$y-$z-";
+    Expect.equals(e2, "-" "$x" "-" "$y" "-" "$z" "-", "a");
+    Expect.equals(e2, "-$x" "-" "$y" "-" "$z" "-", "b");
+    Expect.equals(e2, "-" "$x-" "$y" "-" "$z" "-", "c");
+    Expect.equals(e2, "-" "$x" "-$y" "-" "$z" "-", "d");
+    Expect.equals(e2, "-" "$x" "-" "$y-" "$z" "-", "e");
+    Expect.equals(e2, "-" "$x" "-" "$y" "-$z" "-", "f");
+    Expect.equals(e2, "-" "$x" "-" "$y" "-" "$z-", "g");
+    Expect.equals(e2, "-" "$x-$y" "-" "$z" "-", "h");
+    Expect.equals(e2, "-" "$x-$y-$z" "-", "i");
+
+    Expect.equals("-$x-$y-", "-" "$x" "-" "$y" "-");
+    Expect.equals("-$x-$y", "-" "$x" "-" "$y");
+    Expect.equals("-$x$y-", "-" "$x" "$y" "-");
+    Expect.equals("$x-$y-", "$x" "-" "$y" "-");
+
+    Expect.equals("$x$y", "$x" "$y");
+    Expect.equals("$x$y", "$x" "" "$y");
+    Expect.equals("$x$y", "$x" "" "" "$y");
+    Expect.equals("$x-$y", "$x" "-" "$y");
+    Expect.equals("$x-$y", "$x" "-" "" "$y");
+    Expect.equals("$x-$y", "$x" "" "-" "$y");
+    Expect.equals("$x-$y", "$x" "" "-" "" "$y");
+
+    Expect.equals("$x--$y", "$x" "-" "-" "$y");
+    Expect.equals("$x--$y", "$x" "-" "-" "" "$y");
+    Expect.equals("$x--$y", "$x" "-" "" "-" "$y");
+    Expect.equals("$x--$y", "$x" "" "-" "-" "$y");
+
+    Expect.equals("$x---$y", "$x" "-" "-" "-" "$y");
+    Expect.equals("$x---", "$x" "-" "-" "-");
+    Expect.equals("---$y", "-" "-" "-" "$y");
+
+    Expect.equals("$x-$y-$z", "${'$x' '-' '$y'}" "-" "$z");
+
+    Expect.equals(@"-foo-42-true-",
+                  @"-" "$x" @"""-""" """$y""" @'-' '$z' @'''-''', "j");
+    Expect.equals(@"-$x-42-true-",
+                  @"-" @"$x" @"""-""" """$y""" @'-' '$z' @'''-''', "k");
+    Expect.equals(@"-foo-$y-true-",
+                  @"-" "$x" @"""-""" @"""$y""" @'-' '$z' @'''-''', "l");
+    Expect.equals(@"-foo-42-$z-",
+                  @"-" "$x" @"""-""" """$y""" @'-' @'$z' @'''-''', "m");
+  }
 }

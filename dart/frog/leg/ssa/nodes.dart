@@ -1382,6 +1382,7 @@ class HAdd extends HBinaryArithmetic {
   }
 
   AddOperation get operation() => const AddOperation();
+
   int typeCode() => 5;
   bool typeEquals(other) => other is HAdd;
   bool dataEquals(HInstruction other) => true;

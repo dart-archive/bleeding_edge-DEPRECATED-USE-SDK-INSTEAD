@@ -119,15 +119,10 @@ class Unparser implements Visitor {
     add(node.token.value);
   }
 
-  visitLiteralStringJuxtaposition(LiteralStringJuxtaposition node) {
-    for (Link<Expression> literals = node.literals;
-         !literals.isEmpty();
-         literals = literals.tail) {
-      visit(literals.head);
-      if (!literals.tail.isEmpty()) {
-        sb.add(" ");
-      }
-    }
+  visitStringJuxtaposition(LiteralStringJuxtaposition node) {
+    visit(node.first);
+    sb.add(" ");
+    visit(node.second);
   }
 
   visitLiteralNull(LiteralNull node) {

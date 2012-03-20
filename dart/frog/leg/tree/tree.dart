@@ -9,5 +9,6 @@
 #import('../util/characters.dart');
 
 #source('nodes.dart');
+#source('dartstring.dart');
 #source('unparser.dart');
 #source('visitors.dart');
