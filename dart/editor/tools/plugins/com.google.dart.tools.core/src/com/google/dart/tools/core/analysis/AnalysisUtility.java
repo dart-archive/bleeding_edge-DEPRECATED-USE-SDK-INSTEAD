@@ -27,10 +27,10 @@ import com.google.dart.compiler.UrlDartSource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.indexer.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 
 import java.io.File;
 import java.io.IOException;

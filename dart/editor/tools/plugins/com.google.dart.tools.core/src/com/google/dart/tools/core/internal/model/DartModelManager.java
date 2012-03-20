@@ -27,7 +27,6 @@ import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.indexer.locations.LocationPersitence;
 import com.google.dart.indexer.standard.StandardDriver;
-import com.google.dart.indexer.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.DartPreferenceConstants;
@@ -60,6 +59,7 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.core.problem.ProblemRequestor;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 

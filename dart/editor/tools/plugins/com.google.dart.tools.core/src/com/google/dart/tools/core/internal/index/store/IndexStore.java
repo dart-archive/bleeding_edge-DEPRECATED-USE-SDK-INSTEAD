@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.index.store;
 
-import com.google.dart.indexer.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Location;
@@ -21,6 +20,7 @@ import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.persistance.IndexReader;
 import com.google.dart.tools.core.internal.index.persistance.IndexWriter;
+import com.google.dart.tools.core.utilities.io.PrintStringWriter;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;

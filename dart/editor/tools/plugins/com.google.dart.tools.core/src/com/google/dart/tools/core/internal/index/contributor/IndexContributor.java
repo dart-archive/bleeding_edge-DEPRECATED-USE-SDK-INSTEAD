@@ -47,7 +47,6 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
-import com.google.dart.indexer.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.dom.visitor.ChildVisitor;
@@ -62,6 +61,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.collections.IntStack;
+import com.google.dart.tools.core.utilities.io.PrintStringWriter;
 
 import java.util.ArrayList;
 
