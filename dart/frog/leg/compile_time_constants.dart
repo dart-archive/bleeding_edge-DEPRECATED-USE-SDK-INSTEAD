@@ -770,10 +770,30 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitStringJuxtaposition(StringJuxtaposition node) {
-    if (!node.isInterpolation) {
-      return new StringConstant(node.dartString);
-    }
-    return super.visitStringJuxtaposition(node);
+    StringConstant left = evaluate(node.first);
+    StringConstant right = evaluate(node.second);
+    return new StringConstant(new DartString.concat(left.value, right.value));
+  }
+
+  Constant visitStringInterpolation(StringInterpolation node) {
+    StringConstant initialString = evaluate(node.string);
+    DartString accumulator = initialString.value;
+    for (StringInterpolationPart part in node.parts) {
+      Constant expression = evaluate(part.expression);
+      DartString expressionString;
+      if (expression.isNum() || expression.isBool()) {
+        Object value = expression.value;
+        expressionString = new DartString.literal(value.toString());
+      } else if (expression.isString()) {
+        expressionString = expression.value;
+      } else {
+        error(part.expression);
+      }
+      accumulator = new DartString.concat(accumulator, expressionString);
+      StringConstant partString = evaluate(part.string);
+      accumulator = new DartString.concat(accumulator, partString.value);
+    };
+    return new StringConstant(accumulator);
   }
 
   // TODO(floitsch): provide better error-messages.
