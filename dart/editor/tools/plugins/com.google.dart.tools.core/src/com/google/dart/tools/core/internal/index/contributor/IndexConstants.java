@@ -46,6 +46,18 @@ public interface IndexConstants {
   public static final Relationship DEFINES_INTERFACE = Relationship.getRelationship("defines-interface");
 
   /**
+   * The relationship used to indicate that a type (the left-operand) extends (subtypes) a type at a
+   * specific location (the right operand).
+   */
+  public static final Relationship EXTENDS = Relationship.getRelationship("extends");
+
+  /**
+   * The relationship used to indicate that a type (the left-operand) implements a type at a
+   * specific location (the right operand).
+   */
+  public static final Relationship IMPLEMENTS = Relationship.getRelationship("implements");
+
+  /**
    * The relationship used to indicate that a field, parameter, or variable (the left-operand) is
    * accessed at a specific location (the right operand).
    */

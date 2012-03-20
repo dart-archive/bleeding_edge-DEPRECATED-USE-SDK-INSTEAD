@@ -21,6 +21,7 @@ import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.RelationshipCallback;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.contributor.IndexConstants;
+import com.google.dart.tools.core.internal.index.util.ElementFactory;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
@@ -506,6 +507,52 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchSubtypes(final Type type, final SearchScope scope,
+      final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
+    return gatherResults(2, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchSubtypes(type, scope, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
+  public void searchSubtypes(Type type, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    index.getRelationships(createElement(type), IndexConstants.IS_EXTENDED_BY,
+        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
+    index.getRelationships(createElement(type), IndexConstants.IS_IMPLEMENTED_BY,
+        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
+  }
+
+  @Override
+  public List<SearchMatch> searchSupertypes(final Type type, final SearchScope scope,
+      final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
+    return gatherResults(2, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchSupertypes(type, scope, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
+  public void searchSupertypes(Type type, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    index.getRelationships(createElement(type), IndexConstants.EXTENDS,
+        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
+    index.getRelationships(createElement(type), IndexConstants.IMPLEMENTS,
+        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
+  }
+
+  @Override
   public List<SearchMatch> searchTypeDeclarations(final SearchScope scope,
       final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
@@ -571,16 +618,34 @@ public class NewSearchEngineImpl implements SearchEngine {
     return new NameMatchingSearchListener(pattern, listener);
   }
 
-  private Element createElement(DartFunction function) {
-    // TODO Auto-generated method stub
-    DartCore.notYetImplemented();
-    return null;
+  private Element createElement(DartElement element) throws SearchException {
+    if (element == null || element instanceof CompilationUnit) {
+      return null;
+    } else if (element instanceof DartFunction) {
+      return createElement((DartFunction) element);
+    } else if (element instanceof DartFunctionTypeAlias) {
+      return createElement((DartFunctionTypeAlias) element);
+    } else if (element instanceof Field) {
+      return createElement((Field) element);
+    } else if (element instanceof Method) {
+      return createElement((Method) element);
+    } else if (element instanceof Type) {
+      return createElement((Type) element);
+    } else {
+      return createElement(element.getParent());
+    }
   }
 
-  private Element createElement(DartFunctionTypeAlias alias) {
-    // TODO Auto-generated method stub
-    DartCore.notYetImplemented();
-    return null;
+  private Element createElement(DartFunction function) throws SearchException {
+    String functionName = function.getElementName();
+    // TODO(brianwilkerson) Handle unnamed functions
+    return new Element(getResource(function.getCompilationUnit()), ElementFactory.composeElementId(
+        createElement(function.getParent()), functionName));
+  }
+
+  private Element createElement(DartFunctionTypeAlias alias) throws SearchException {
+    return new Element(getResource(alias.getCompilationUnit()),
+        ElementFactory.composeElementId(alias.getElementName()));
   }
 
   private Element createElement(Field field) throws SearchException {
@@ -588,8 +653,8 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (type == null) {
       return new Element(getResource(field.getCompilationUnit()), field.getElementName());
     }
-    return new Element(getResource(field.getCompilationUnit()), type.getElementName() + "^"
-        + field.getElementName());
+    return new Element(getResource(field.getCompilationUnit()), type.getElementName()
+        + ResourceFactory.SEPARATOR_CHAR + field.getElementName());
   }
 
   private Element createElement(Method method) throws SearchException {
@@ -597,8 +662,8 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (type == null) {
       return new Element(getResource(method.getCompilationUnit()), method.getElementName());
     }
-    return new Element(getResource(method.getCompilationUnit()), type.getElementName() + "^"
-        + method.getElementName());
+    return new Element(getResource(method.getCompilationUnit()), type.getElementName()
+        + ResourceFactory.SEPARATOR_CHAR + method.getElementName());
   }
 
   private Element createElement(SearchScope scope) {

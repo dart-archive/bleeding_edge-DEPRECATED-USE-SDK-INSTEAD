@@ -28,7 +28,6 @@ import java.util.List;
  * search for various pieces of information.
  */
 public interface SearchEngine {
-
   /**
    * Synchronously search for all constructors matching the given pattern within the given scope.
    * Return all matches that pass the optional filter.
@@ -273,6 +272,76 @@ public interface SearchEngine {
    * @throws SearchException if the results could not be computed
    */
   public void searchReferences(Type type, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Synchronously search for subtypes of the given type within the given scope. Return all matches
+   * that pass the optional filter.
+   * 
+   * @param type the type being subtyped by the found matches
+   * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchSubtypes(Type type, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Search for subtypes of the given type within the given scope.
+   * 
+   * @param type the type being subtyped by the found matches
+   * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchSubtypes(Type type, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Synchronously search for supertypes of the given type within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param type the type that subtypes the found matches
+   * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchSupertypes(Type type, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Search for supertypes of the given type within the given scope.
+   * 
+   * @param type the type that subtypes the found matches
+   * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchSupertypes(Type type, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException;
 
   /**

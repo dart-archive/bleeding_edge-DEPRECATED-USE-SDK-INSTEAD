@@ -39,6 +39,7 @@ import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
@@ -820,6 +821,15 @@ public class IndexContributor extends ASTVisitor<Void> {
     return getLocation(peekElement(), offset, length);
   }
 
+  private Location getLocation(InterfaceType type) {
+    Element typeElement = getElement(type);
+    if (typeElement == null) {
+      return null;
+    }
+    SourceInfo info = type.getElement().getNameLocation();
+    return new Location(typeElement, info.getOffset(), info.getLength());
+  }
+
   /**
    * Return the resource representing the given compilation unit.
    * 
@@ -1084,8 +1094,10 @@ public class IndexContributor extends ASTVisitor<Void> {
   private void processSupertype(DartClass node, InterfaceType binding) {
     if (node.isInterface() == binding.getElement().isInterface()) {
       recordRelationship(getElement(binding), IndexConstants.IS_EXTENDED_BY, getLocation(node));
+      recordRelationship(getElement(node), IndexConstants.EXTENDS, getLocation(binding));
     } else {
       recordRelationship(getElement(binding), IndexConstants.IS_IMPLEMENTED_BY, getLocation(node));
+      recordRelationship(getElement(node), IndexConstants.IMPLEMENTS, getLocation(binding));
     }
   }
 

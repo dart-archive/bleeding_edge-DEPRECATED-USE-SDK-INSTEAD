@@ -339,6 +339,34 @@ public final class SearchEngineImpl implements SearchEngine {
   };
 
   @Override
+  public List<SearchMatch> searchSubtypes(Type type, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  };
+
+  @Override
+  public void searchSubtypes(Type type, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
+  public List<SearchMatch> searchSupertypes(Type type, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  };
+
+  @Override
+  public void searchSupertypes(Type type, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
   public List<SearchMatch> searchTypeDeclarations(SearchScope scope, SearchPattern pattern,
       SearchFilter filter, IProgressMonitor monitor) throws SearchException {
     GatheringSearchListener listener = new GatheringSearchListener();
@@ -368,13 +396,13 @@ public final class SearchEngineImpl implements SearchEngine {
       }
     };
     performSearch(helper, scope, pattern, applyFilter(filter, listener), monitor);
-  }
+  };
 
   @Override
   public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     searchTypeDeclarations(scope, pattern, null, listener, monitor);
-  };
+  }
 
   /**
    * Apply the given filter to the given listener.
@@ -454,7 +482,7 @@ public final class SearchEngineImpl implements SearchEngine {
       return trimmed;
     }
     return result;
-  };
+  }
 
   /**
    * Return <code>true</code> if the given element is contained in a compilation unit that is
@@ -478,7 +506,7 @@ public final class SearchEngineImpl implements SearchEngine {
       }
     }
     return false;
-  };
+  }
 
   /**
    * Map the given location reference kind into the corresponding match kind.

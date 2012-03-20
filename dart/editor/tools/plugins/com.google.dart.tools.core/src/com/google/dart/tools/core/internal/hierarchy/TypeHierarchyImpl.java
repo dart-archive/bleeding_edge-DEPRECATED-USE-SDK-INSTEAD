@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.hierarchy;
 import com.google.dart.indexer.exceptions.IndexTemporarilyNonOperational;
 import com.google.dart.indexer.locations.Location;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.indexer.DartIndexer;
 import com.google.dart.tools.core.indexer.DartIndexerResult;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
@@ -37,6 +38,10 @@ import com.google.dart.tools.core.model.Region;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeHierarchy;
 import com.google.dart.tools.core.model.TypeHierarchyChangedListener;
+import com.google.dart.tools.core.search.SearchEngineFactory;
+import com.google.dart.tools.core.search.SearchException;
+import com.google.dart.tools.core.search.SearchMatch;
+import com.google.dart.tools.core.search.SearchScopeFactory;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.runtime.CoreException;
@@ -54,6 +59,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -1626,6 +1632,23 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
       return;
     }
     processedTypes.add(type);
+    if (DartCoreDebug.NEW_INDEXER) {
+      try {
+        List<SearchMatch> matches = SearchEngineFactory.createSearchEngine().searchSubtypes(type,
+            SearchScopeFactory.createWorkspaceScope(), null, null);
+        for (SearchMatch match : matches) {
+          DartElement element = match.getElement();
+          if (element instanceof Type) {
+            Type subtype = (Type) element;
+            addSubtype(type, subtype);
+            processSubtypes(subtype, processedTypes);
+          }
+        }
+      } catch (SearchException exception) {
+        DartCore.logError("Could not search for subtypes of " + type.getElementName(), exception);
+      }
+      return;
+    }
     try {
       DartIndexerResult result = DartIndexer.getSubtypes(type);
       for (Location location : result.getResult()) {
@@ -1635,7 +1658,7 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
         } else {
           addSubtype(type, subtype);
         }
-        processSubtypes(subtype);
+        processSubtypes(subtype, processedTypes);
       }
     } catch (IndexTemporarilyNonOperational exception) {
       DartCore.logError("Could not access subtypes of " + type.getElementName(), exception); //$NON-NLS-1$
@@ -1651,6 +1674,31 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
       return;
     }
     processedTypes.add(type);
+    if (DartCoreDebug.NEW_INDEXER) {
+      try {
+        ArrayList<Type> interfaceList = new ArrayList<Type>();
+        List<SearchMatch> matches = SearchEngineFactory.createSearchEngine().searchSupertypes(type,
+            SearchScopeFactory.createWorkspaceScope(), null, null);
+        for (SearchMatch match : matches) {
+          DartElement element = match.getElement();
+          if (element instanceof Type) {
+            Type supertype = (Type) element;
+            if (isInterface(supertype)) {
+              interfaceList.add(supertype);
+            } else {
+              cacheSuperclass(type, supertype);
+            }
+            processSupertypes(supertype, processedTypes);
+          }
+        }
+        if (!interfaceList.isEmpty()) {
+          cacheSuperInterfaces(type, interfaceList.toArray(new Type[interfaceList.size()]));
+        }
+      } catch (SearchException exception) {
+        DartCore.logError("Could not search for supertypes of " + type.getElementName(), exception);
+      }
+      return;
+    }
     try {
       ArrayList<Type> interfaceList = new ArrayList<Type>();
       DartIndexerResult result = DartIndexer.getSupertypes(type);
@@ -1663,7 +1711,7 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
         } else {
           cacheSuperclass(type, supertype);
         }
-        processSupertypes(supertype);
+        processSupertypes(supertype, processedTypes);
       }
       if (!interfaceList.isEmpty()) {
         cacheSuperInterfaces(type, interfaceList.toArray(new Type[interfaceList.size()]));
