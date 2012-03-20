@@ -17,8 +17,8 @@ class NativeEmitter {
   // Native classes found in the application.
   Set<ClassElement> nativeClasses;
 
-  // Caches the direct native subclasses of a native class.
-  Map<ClassElement, List<ClassElement>> subclasses;
+  // Caches the direct native subtypes of a native class.
+  Map<ClassElement, List<ClassElement>> subtypes;
 
   // Caches the native methods that are overridden by a native class.
   // Note that the method that overrides does not have to be native:
@@ -29,7 +29,7 @@ class NativeEmitter {
   NativeEmitter(this.compiler)
       : classesWithDynamicDispatch = new Set<ClassElement>(),
         nativeClasses = new Set<ClassElement>(),
-        subclasses = new Map<ClassElement, List<ClassElement>>(),
+        subtypes = new Map<ClassElement, List<ClassElement>>(),
         overriddenMethods = new Set<FunctionElement>();
 
   /**
@@ -353,7 +353,7 @@ function(inputTable) {
   }
 
   List<ClassElement> getDirectSubclasses(ClassElement cls) {
-    List<ClassElement> result = subclasses[cls];
+    List<ClassElement> result = subtypes[cls];
     if (result === null) result = const<ClassElement>[];
     return result;
   }

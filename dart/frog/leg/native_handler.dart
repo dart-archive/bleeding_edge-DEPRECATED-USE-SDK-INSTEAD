@@ -18,6 +18,16 @@ void processNativeClasses(Compiler compiler,
   }
 }
 
+void addSubtypes(ClassElement cls,
+                 NativeEmitter emitter) {
+  for (Type type in cls.allSupertypes) {
+    List<Element> subtypes = emitter.subtypes.putIfAbsent(
+        type.element,
+        () => <ClassElement>[]);
+    subtypes.add(cls);
+  }
+}
+
 void processNativeClassesInLibrary(Compiler compiler,
                                    LibraryElement library) {
   for (Link<Element> link = library.topLevelElements;
@@ -33,14 +43,11 @@ void processNativeClassesInLibrary(Compiler compiler,
         classElement.parseNode(compiler);
         // Resolve to setup the inheritance.
         classElement.ensureResolved(compiler);
-        // Add the information that this class is a direct subclass of
-        // its superclass. The code emitter and the ssa builder use that
+        // Add the information that this class is a subtype of
+        // its supertypes. The code emitter and the ssa builder use that
         // information.
         NativeEmitter emitter = compiler.emitter.nativeEmitter;
-        List<Element> subclasses = emitter.subclasses.putIfAbsent(
-            classElement.superclass,
-            () => <ClassElement>[]);
-        subclasses.add(classElement);
+        addSubtypes(classElement, emitter);
       }
     }
   }
@@ -150,11 +157,10 @@ SourceString checkForNativeClass(ElementListener listener) {
 bool isOverriddenMethod(FunctionElement element,
                         ClassElement cls,
                         NativeEmitter nativeEmitter) {
-  List<ClassElement> subclasses = nativeEmitter.subclasses[cls];
-  if (subclasses == null) return false;
-  for (ClassElement subclass in subclasses) {
-    if (subclass.lookupLocalMember(element.name) != null) return true;
-    if (isOverriddenMethod(element, subclass, nativeEmitter)) return true;
+  List<ClassElement> subtypes = nativeEmitter.subtypes[cls];
+  if (subtypes == null) return false;
+  for (ClassElement subtype in subtypes) {
+    if (subtype.lookupLocalMember(element.name) != null) return true;
   }
   return false;
 }

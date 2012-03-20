@@ -4,7 +4,10 @@
 
 // Test for correct simple is-checks on hidden native classes.
 
-interface I {
+interface J {
+}
+
+interface I extends J {
   I read();
   write(I x);
 }
@@ -53,17 +56,20 @@ main() {
   var b1 = makeB();
   var ob = new Object();
 
+  Expect.isFalse(ob is J);
   Expect.isFalse(ob is I);
   Expect.isFalse(ob is A);
   Expect.isFalse(ob is B);
   Expect.isFalse(ob is C);
 
   // Use b1 first to prevent a1 is checks patching the A prototype.
+  Expect.isTrue(b1 is J);
   Expect.isTrue(b1 is I);
   Expect.isTrue(b1 is A);
   Expect.isTrue(b1 is B);
   Expect.isTrue(b1 is !C);
 
+  Expect.isTrue(a1 is J);
   Expect.isTrue(a1 is I);
   Expect.isTrue(a1 is A);
   Expect.isTrue(a1 is !B);

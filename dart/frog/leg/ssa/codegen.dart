@@ -1114,8 +1114,20 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   bool isSupertypeOfNativeClass(Element element) {
-    // TODO(ngeoffray): Check all types that are super types of native
-    // classes.
+    if (element.isTypeVariable()) {
+      compiler.cancel("Is check for type variable", element: work.element);
+      return false;
+    }
+    if (element.computeType(compiler) is FunctionType) return false;
+
+    if (!element.isClass()) {
+      compiler.cancel("Is check does not handle element", element: element);
+      return false;
+    }
+
+    List<ClassElement> subtypes =
+        compiler.emitter.nativeEmitter.subtypes[element];
+    if (subtypes === null) return false;
     return true;
   }
 }
