@@ -1125,18 +1125,18 @@
             visible="false"
             id="com.google.dart.tools.ui.CodingActionSet">
 
-         <action
+         <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.copy.qualified.name"
                label="%CopyQualifiedName.label"
                retarget="true"
                menubarPath="edit/copy"
                icon="$nl$/icons/full/elcl16/cpyqual_menu.gif"
                id="org.eclipse.wst.jsdt.ui.actions.CopyQualifiedName">
-         </action>
+         </action>-->
 <!-- =========================================================================== -->
 <!-- Navigate Menu                                                               -->
 <!-- =========================================================================== -->
-         <action
+         <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.open.external.javadoc"
                label="%OpenExternalJavadocAction.label"
                retarget="true"
@@ -1164,14 +1164,14 @@
                retarget="true"
                menubarPath="navigate/goTo/"
                id="com.google.dart.tools.ui.actions.GoToType">
-         </action>
+         </action>-->
 <!-- =========================================================================== -->
 <!-- Refactoring Menu                                                            -->
 <!-- =========================================================================== -->
          <menu
                label="%Refactoring.menu.label"
                path="edit"
-               id="org.eclipse.wst.jsdt.ui.refactoring.menu">
+               id="com.google.dart.tools.ui.refactoring.menu">
             <separator name="undoRedoGroup"/>
             <separator name="reorgGroup"/>
             <separator name="codingGroup"/>
@@ -1183,217 +1183,196 @@
          </menu>
          
 <!-- reorg group  -->
-         <action
+         <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.move.element"
                label="%Refactoring.moveAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/reorgGroup"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/reorgGroup"
                id="org.eclipse.wst.jsdt.ui.actions.Move">
-         </action>
+         </action>-->
          <action
-               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.rename.element"
+               definitionId="com.google.dart.tools.ui.edit.text.dart.rename.element"
                label="%Refactoring.renameAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/reorgGroup"
-               id="org.eclipse.wst.jsdt.ui.actions.Rename">
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/reorgGroup"
+               id="com.google.dart.tools.ui.actions.Rename">
          </action>
          
 <!-- coding group  -->         
-         <action
+         <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.inline"
                label="%Refactoring.inlineAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="org.eclipse.wst.jsdt.ui.actions.Inline">
          </action>
-<!-- UNTIL REFACTORING SUPPORT
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.constant"
                label="%Refactoring.extractConstantAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="org.eclipse.wst.jsdt.ui.actions.ExtractConstant">
          </action>
-  -->         
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.local.variable"
                label="%Refactoring.extractTempAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="org.eclipse.wst.jsdt.ui.actions.ExtractTemp">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.method"
                label="%Refactoring.extractMethodAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="org.eclipse.wst.jsdt.ui.actions.ExtractMethod">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.modify.method.parameters"
                label="%Refactoring.modifyParametersAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="org.eclipse.wst.jsdt.ui.actions.ModifyParameters">
-         </action>
+         </action>-->
          
 <!-- reorg group 2 -->
-<!-- UNTIL REFACTORING SUPPORT
-         <action
+         <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.promote.local.variable"
                label="%Refactoring.convertLocalToFieldAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/reorgGroup2"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/reorgGroup2"
                id="org.eclipse.wst.jsdt.ui.actions.ConvertLocalToField">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.move.inner.to.top.level"
                label="%Refactoring.convertNestedToTopAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/reorgGroup2"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/reorgGroup2"
                id="org.eclipse.wst.jsdt.ui.actions.ConvertNestedToTop">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.convert.anonymous.to.nested"
                label="%Refactoring.convertAnonymousToNestedAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/reorgGroup2"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/reorgGroup2"
                id="org.eclipse.wst.jsdt.ui.actions.ConvertAnonymousToNested">
-         </action>
-  -->         
-         
-         
-         
+         </action>-->
 <!-- type group  -->
-<!-- UNTIL REFACTORING SUPPORT
-         <action
+         <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.pull.up"
                label="%Refactoring.pullUpAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/typeGroup"
                id="org.eclipse.wst.jsdt.ui.actions.PullUp">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.push.down"
                label="%Refactoring.pushDownAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/typeGroup"
                id="org.eclipse.wst.jsdt.ui.actions.PushDown">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.use.supertype"
                label="%Refactoring.useSupertypeAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/typeGroup"
                id="org.eclipse.wst.jsdt.ui.actions.UseSupertype">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.interface"
                label="%Refactoring.extractInterfaceAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/typeGroup"
                id="org.eclipse.wst.jsdt.ui.actions.ExtractInterface">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.superclass"
                label="%Refactoring.extractSupertypeAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/typeGroup"
                id="org.eclipse.wst.jsdt.ui.actions.ExtractSuperclass">
-         </action>
--->         
-           
+         </action>-->
 <!-- coding group 2  -->
-<!--         
-         <action
+         <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.replace.invocations"
                label="%Refactoring.replaceInvocationsAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup2"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup2"
                id="org.eclipse.wst.jsdt.ui.actions.ReplaceInvocations">
          </action>
--->
-<!-- UNTIL REFACTORING SUPPORT
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.self.encapsulate.field"
                label="%Refactoring.selfEncapsulateFieldAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup2"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup2"
                id="org.eclipse.wst.jsdt.ui.actions.SelfEncapsulateField">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.parameter"
                label="%Refactoring.introduceParameterAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup2"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup2"
                id="org.eclipse.wst.jsdt.ui.actions.IntroduceParameter">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.factory"
                label="%Refactoring.introduceFactoryAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup2"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup2"
                id="org.eclipse.wst.jsdt.ui.actions.IntroduceFactory">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.indirection"
                label="%Refactoring.introduceIndirectionAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/codingGroup2"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup2"
                id="org.eclipse.wst.jsdt.ui.actions.IntroduceIndirection">
-         </action>
--->
-
+         </action>-->
 <!-- type group 2 -->
- <!-- UNTIL REFACTORING SUPPORT
-         <action
+         <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.infer.type.arguments"
                label="%Refactoring.inferTypeArgumentsAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup2"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/typeGroup2"
                id="org.eclipse.wst.jsdt.ui.actions.InferTypeArguments">
          </action>
          <action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.change.type"
                label="%Refactoring.changeTypeAction.label"
                retarget="true"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/typeGroup2"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/typeGroup2"
                id="org.eclipse.wst.jsdt.ui.actions.ChangeType">
-         </action>
--->
-
+         </action>-->
 <!-- script group  -->
-<!-- UNTIL REFACTORING SUPPORT
-        <action
+        <!--<action
               class="org.eclipse.wst.jsdt.internal.ui.refactoring.actions.ShowRefactoringHistoryAction"
               definitionId="org.eclipse.wst.jsdt.ui.refactor.show.refactoring.history"
               id="org.eclipse.ltk.ui.actions.ShowRefactoringHistory"
               label="%Refactoring.showHistory.label"
-              menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/scriptGroup"/>         
+              menubarPath="com.google.dart.tools.ui.refactoring.menu/scriptGroup"/>         
         <action
                class="org.eclipse.wst.jsdt.internal.ui.refactoring.actions.ApplyRefactoringScriptAction"
                definitionId="org.eclipse.wst.jsdt.ui.refactor.apply.refactoring.script"
                id="org.eclipse.ltk.ui.actions.ApplyRefactoringStript"
                label="%Refactoring.applyScript.label"
-               menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/scriptGroup"/>
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/scriptGroup"/>
         <action
               class="org.eclipse.wst.jsdt.internal.ui.refactoring.actions.CreateRefactoringScriptAction"
               definitionId="org.eclipse.wst.jsdt.ui.refactor.create.refactoring.script"
               id="org.eclipse.ltk.ui.actions.CreateRefactoringScript"
               label="%Refactoring.createScript.label"
-              menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/scriptGroup"/>
+              menubarPath="com.google.dart.tools.ui.refactoring.menu/scriptGroup"/>
         <action
               class="org.eclipse.wst.jsdt.internal.ui.refactoring.actions.MigrateJarFileAction"
               definitionId="org.eclipse.wst.jsdt.ui.refactor.migrate.jar"
               id="org.eclipse.wst.jsdt.ui.actions.MigrateJarFile"
               label="%Refactoring.migrateJar.label"
-              menubarPath="org.eclipse.wst.jsdt.ui.refactoring.menu/scriptGroup"/>
--->
-         
+              menubarPath="com.google.dart.tools.ui.refactoring.menu/scriptGroup"/>-->
 <!-- =========================================================================== -->
 <!-- Source Menu                                                                 -->
 <!-- =========================================================================== -->
-         <menu
+         <!--<menu
                label="%SourceMenu.label"
                path="edit"
                id="com.google.dart.tools.ui.source.menu">
@@ -1418,10 +1397,9 @@
             <separator
                   name="convertGroup">
             </separator>
-         </menu>
+         </menu>-->
 <!-- Externalize Group -->
- <!-- UNTIL REFACTORING SUPPORT
-         <action
+         <!--<action
                definitionId="com.google.dart.tools.ui.edit.text.java.find.broken.nls.keys"
                label="%FindNLSProblems.label"
                retarget="true"
@@ -1434,22 +1412,18 @@
                retarget="true"
                menubarPath="com.google.dart.tools.ui.source.menu/externalizeGroup"
                id="com.google.dart.tools.actions.ExternalizeStrings">
-         </action>
--->         
+         </action>-->
 <!-- Code Group -->
-<!-- UNTIL REFACTORING SUPPORT
-         <action
+         <!--<action
                definitionId="com.google.dart.tools.ui.edit.text.java.surround.with.quickMenu"
                label="%SurroundWithTemplateAction.label"
                style="pulldown"
                class="com.google.dart.tools.internal.ui.actions.SurroundWithTemplateMenuAction"
                menubarPath="com.google.dart.tools.ui.source.menu/codeGroup"
                id="com.google.dart.tools.internal.ui.actions.SurroundWithTemplateMenuAction">
-         </action>
--->
+         </action>-->
 <!-- Generate Group -->
-<!-- UNTIL REFACTORING SUPPORT
-         <action
+         <!--<action
                definitionId="com.google.dart.tools.ui.edit.text.java.generate.constructor.using.fields"
                label="%GenerateConstructorUsingFieldsAction.label"
                retarget="true"
@@ -1469,10 +1443,9 @@
                retarget="true"
                menubarPath="com.google.dart.tools.ui.source.menu/generateGroup"
                id="com.google.dart.tools.ui.actions.OverrideMethods">
-         </action>
--->         
+         </action>-->
 <!-- Import Group -->
-         <action
+         <!--<action
                definitionId="com.google.dart.tools.ui.edit.text.java.clean.up"
                label="%CleanUpAction.label"
                retarget="true"
@@ -1485,9 +1458,9 @@
                retarget="true"
                menubarPath="com.google.dart.tools.ui.source.menu/importGroup"
                id="com.google.dart.tools.ui.actions.SortMembers">
-         </action>
+         </action>-->
 <!-- edit group -->
-         <action
+         <!--<action
                definitionId="com.google.dart.tools.ui.edit.text.java.quick.format"
                label="%FormatElementAction.label"
                retarget="true"
@@ -1521,9 +1494,9 @@
                retarget="true"
                menubarPath="com.google.dart.tools.ui.source.menu/editGroup"
                id="com.google.dart.tools.ui.actions.ShiftRight">
-         </action>
+         </action>-->
 <!-- Comment Group -->
-         <action
+         <!--<action
                definitionId="com.google.dart.tools.ui.edit.text.java.add.javadoc.comment"
                label="%AddJavaDocCommentAction.label"
                retarget="true"
@@ -1555,21 +1528,15 @@
                retarget="true"
                menubarPath="com.google.dart.tools.ui.source.menu/commentGroup"
                id="com.google.dart.tools.ui.actions.AddBlockComment">
-         </action>
+         </action>-->
       </actionSet>
    </extension>
 
-   <!-- TODO(devoncarew): commented out until we support the actions in the source and refactor menus. -->
-   <!-- At that time, this actionset should also be re-enabled for the Dart editor. -->
-   <!-- extension
-         point="org.eclipse.ui.actionSetPartAssociations">
-      <actionSetPartAssociation
-            targetID="com.google.dart.tools.ui.CodingActionSet">
-         <part
-               id="org.eclipse.ui.navigator.ProjectExplorer">
-         </part>
+   <extension point="org.eclipse.ui.actionSetPartAssociations">
+      <actionSetPartAssociation targetID="com.google.dart.tools.ui.CodingActionSet">
+         <part id="com.google.dart.tools.ui.text.editor.CompilationUnitEditor"/>
       </actionSetPartAssociation>
-   </extension -->
+   </extension>
 
 <!-- End JavaScript Action Set (Adding the source, refactor and navigate menu -->
 
@@ -1634,7 +1601,7 @@
       <category
             name="%category.refactoring.name"
             description="%category.refactoring.description"
-            id="org.eclipse.wst.jsdt.ui.category.refactoring">
+            id="com.google.dart.tools.ui.category.refactoring">
       </category>
       <!-- search -->
       <command
@@ -2064,155 +2031,155 @@
       <command
             name="%ActionDefinition.refactorQuickMenu.name"
             description="%ActionDefinition.refactorQuickMenu.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.refactor.quickMenu">
       </command>
       <command
             name="%ActionDefinition.renameElement.name"
             description="%ActionDefinition.renameElement.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
-            id="org.eclipse.wst.jsdt.ui.edit.text.java.rename.element">
+            categoryId="com.google.dart.tools.ui.category.refactoring"
+            id="com.google.dart.tools.ui.edit.text.dart.rename.element">
       </command>
       <command
             name="%ActionDefinition.moveElement.name"
             description="%ActionDefinition.moveElement.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.move.element">
       </command>
       <command
             name="%ActionDefinition.modifyMethodParameters.name"
             description="%ActionDefinition.modifyMethodParameters.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.modify.method.parameters">
       </command>
       <command
             name="%ActionDefinition.convertAnonymousToNested.name"
             description="%ActionDefinition.convertAnonymousToNested.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.convert.anonymous.to.nested">
       </command>
       <command
             name="%ActionDefinition.convertNestedToTopLevel.name"
             description="%ActionDefinition.convertNestedToTopLevel.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.move.inner.to.top.level">
       </command>
       <command
             name="%ActionDefinition.pushDown.name"
             description="%ActionDefinition.pushDown.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.push.down">
       </command>
       <command
             name="%ActionDefinition.pullUp.name"
             description="%ActionDefinition.pullUp.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.pull.up">
       </command>
       <command
             name="%ActionDefinition.extractInterface.name"
             description="%ActionDefinition.extractInterface.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.interface">
       </command>
       <command
             name="%ActionDefinition.extractSupertype.name"
             description="%ActionDefinition.extractSupertype.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.superclass">
       </command>
       <command
             name="%ActionDefinition.changeType.name"
             description="%ActionDefinition.changeType.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.change.type">
       </command>
       <command
             name="%ActionDefinition.useSupertype.name"
             description="%ActionDefinition.useSupertype.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.use.supertype">
       </command>
       <command
             name="%ActionDefinition.inferTypeArguments.name"
             description="%ActionDefinition.inferTypeArguments.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.infer.type.arguments">
       </command>
       <command
             name="%ActionDefinition.inline.name"
             description="%ActionDefinition.inline.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.inline">
       </command>
       <command
             name="%ActionDefinition.extractMethod.name"
             description="%ActionDefinition.extractMethod.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.method">
       </command>
       <command
             name="%ActionDefinition.extractLocalVariable.name"
             description="%ActionDefinition.extractLocalVariable.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.local.variable">
       </command>
       <command
             name="%ActionDefinition.extractConstant.name"
             description="%ActionDefinition.extractConstant.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.constant">
       </command>
       <command
             name="%ActionDefinition.replaceInvocations.name"
             description="%ActionDefinition.replaceInvocations.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.replace.invocations">
       </command>
       <command
             name="%ActionDefinition.introduceIndirection.name"
             description="%ActionDefinition.introduceIndirection.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.indirection">
       </command>
       <command
             name="%ActionDefinition.introduceParameter.name"
             description="%ActionDefinition.introduceParameter.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.parameter">
       </command>
       <command
             name="%ActionDefinition.introduceFactory.name"
             description="%ActionDefinition.introduceFactory.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.introduce.factory">
       </command>
       <command
             name="%ActionDefinition.convertLocalToField.name"
             description="%ActionDefinition.convertLocalToField.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.promote.local.variable">
       </command>
       <command
             name="%ActionDefinition.selfEncapsulateField.name"
             description="%ActionDefinition.selfEncapsulateField.description"
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.self.encapsulate.field">
       </command>
       <command
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             description="%ActionDefinition.apply.description"
             id="org.eclipse.wst.jsdt.ui.refactor.apply.refactoring.script"
             name="%ActionDefinition.apply.name">
       </command>
       <command
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             description="%ActionDefinition.create.description"
             id="org.eclipse.wst.jsdt.ui.refactor.create.refactoring.script"
             name="%ActionDefinition.create.name">
        </command>
       <command
-            categoryId="org.eclipse.wst.jsdt.ui.category.refactoring"
+            categoryId="com.google.dart.tools.ui.category.refactoring"
             description="%ActionDefinition.migrate.description"
             id="org.eclipse.wst.jsdt.ui.refactor.migrate.jar"
             name="%ActionDefinition.migrate.name">
@@ -3305,6 +3272,15 @@
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+M3+J"/>
+       <key
+           sequence="M2+M3+R"
+           commandId="com.google.dart.tools.ui.edit.text.dart.rename.element"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+           platform="carbon"
+           sequence="COMMAND+ALT+R"
+           commandId="com.google.dart.tools.ui.edit.text.dart.rename.element"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
       <!-- disable the key binding for Carbon as it conflicts with another one in the SDK -->
       <key
             platform="carbon"

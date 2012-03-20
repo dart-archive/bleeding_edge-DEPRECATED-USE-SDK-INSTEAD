@@ -95,17 +95,22 @@ public class CoreUtility {
           // This call should not be a problem, except in case of having
           // multiple projects with
           // incomplete or dirty build states
-          DartToolsPlugin.getWorkspace().build(IncrementalProjectBuilder.INCREMENTAL_BUILD,
+          DartToolsPlugin.getWorkspace().build(
+              IncrementalProjectBuilder.INCREMENTAL_BUILD,
               new SubProgressMonitor(monitor, 1));
         } else {
-          DartProject[] projects = DartCore.create(DartToolsPlugin.getWorkspace().getRoot()).getDartProjects();
+          DartProject[] projects =
+              DartCore.create(DartToolsPlugin.getWorkspace().getRoot()).getDartProjects();
           if (projects.length > 0) {
             monitor.beginTask(DartUIMessages.CoreUtility_buildall_taskname, 2 * projects.length);
             for (int i = 0; i < projects.length; i++) {
               IProject project = projects[i].getProject();
               if (project.isAccessible()) {
-                project.build(IncrementalProjectBuilder.FULL_BUILD, JavaScriptCore.BUILDER_ID,
-                    null, new SubProgressMonitor(monitor, 2));
+                project.build(
+                    IncrementalProjectBuilder.FULL_BUILD,
+                    JavaScriptCore.BUILDER_ID,
+                    null,
+                    new SubProgressMonitor(monitor, 2));
               }
             }
           }
@@ -121,14 +126,18 @@ public class CoreUtility {
     }
   }
 
-  public static void createDerivedFolder(IFolder folder, boolean force, boolean local,
+  public static void createDerivedFolder(IFolder folder,
+      boolean force,
+      boolean local,
       IProgressMonitor monitor) throws CoreException {
     if (!folder.exists()) {
       IContainer parent = folder.getParent();
       if (parent instanceof IFolder) {
         createDerivedFolder((IFolder) parent, force, local, null);
       }
-      folder.create(force ? (IResource.FORCE | IResource.DERIVED) : IResource.DERIVED, local,
+      folder.create(
+          force ? (IResource.FORCE | IResource.DERIVED) : IResource.DERIVED,
+          local,
           monitor);
     }
   }
@@ -174,7 +183,9 @@ public class CoreUtility {
    * Creates a folder and all parent folders if not existing. Project must exist.
    * <code> org.eclipse.ui.dialogs.ContainerGenerator</code> is too heavy (creates a runnable)
    */
-  public static void createFolder(IFolder folder, boolean force, boolean local,
+  public static void createFolder(IFolder folder,
+      boolean force,
+      boolean local,
       IProgressMonitor monitor) throws CoreException {
     if (!folder.exists()) {
       IContainer parent = folder.getParent();
@@ -221,6 +232,25 @@ public class CoreUtility {
    */
   public static void startBuildInBackground(final IProject project) {
     getBuildJob(project).schedule();
+  }
+
+  /**
+   * Sets whether building automatically is enabled in the workspace or not and returns the old
+   * value.
+   * 
+   * @param state <code>true</code> if automatically building is enabled
+   * @return the old state
+   * @throws CoreException thrown if the operation failed
+   */
+  public static boolean setAutoBuilding(boolean state) throws CoreException {
+    IWorkspace workspace = ResourcesPlugin.getWorkspace();
+    IWorkspaceDescription desc = workspace.getDescription();
+    boolean isAutoBuilding = desc.isAutoBuilding();
+    if (isAutoBuilding != state) {
+      desc.setAutoBuilding(state);
+      workspace.setDescription(desc);
+    }
+    return isAutoBuilding;
   }
 
 }

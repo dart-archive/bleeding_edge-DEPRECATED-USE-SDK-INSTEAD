@@ -247,8 +247,7 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
 
     if (part instanceof DartEditor) {
       DartEditor javaEditor = (DartEditor) part;
-      DartX.todo();
-//      javaEditor.getActionGroup().fillActionBars(getActionBars());
+      javaEditor.getActionGroup().fillActionBars(getActionBars());
       FoldingActionGroup foldingActions = javaEditor.getFoldingActionGroup();
       if (foldingActions != null) {
         foldingActions.updateActionBars();
