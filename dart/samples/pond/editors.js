@@ -10,13 +10,20 @@ var WARNING_CLASSNAME = "compile_warning";
 var editors = {};
 var markers = [];
 
-function newEditor(id, type) {
+function newEditor(id, type, listener) {
   editors[id] = CodeMirror(document.getElementById(id), {
     mode: type,
     tabSize: 2,
     lineNumbers: true,
-    gutter: true
+    gutter: true,
+    onChange: listener
   });
+}
+
+function changeListener(id) {
+  return function(editor, textChanges) {
+    window.postMessage(['js-to-dart', 'update', id], '*');
+  }
 }
 
 function newMark(editorId, startLine, startCol, endLine, endCol, kind) {
@@ -42,13 +49,16 @@ function messageDispatcher(envelope) {
   var reply = null;
   switch (command) {
     case "newEditor":
-      newEditor(args[0], args[1]);
+      newEditor(args[0], args[1], (args[2] ? changeListener(args[0]): null));
       break;
     case "getText":
       reply = editors[args[0]].getValue();
       break;
     case "setText":
       editors[args[0]].setValue(args[1]);
+      break;
+    case "refresh":
+      editors[args[0]].showLine(0);
       break;
     case "mark":
       var reply = newMark(
@@ -61,7 +71,7 @@ function messageDispatcher(envelope) {
       markers[args[0]].clear();
       break;
   }
-  window.postMessage(['js-to-dart', returnId, reply], '*');
+  window.postMessage(['js-to-dart-reply', returnId, reply], '*');
 }
 
 window.addEventListener('message',

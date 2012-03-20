@@ -9,14 +9,23 @@
 #import("editors.dart");
 #import("dart:html");
 
+Map<String, Function> _listeners;
+
 /**
  * An [EditorFactory] stub that sends messages via window.postMessage to
  * implement the editor factory functionality.
  */
 class EditorFactoryStub implements EditorFactory {
 
-  Future<EditorStub> newEditor(String id, String type) {
-    return _callJs(["newEditor", [id, type]]).
+  Future<Editor> newEditor(String id, String type, [Function changeListener]) {
+    if (changeListener != null) {
+      if (_listeners == null) {
+        _listeners = {};
+      }
+      _listeners[id] = changeListener;
+    }
+
+    return _callJs(["newEditor", [id, type, changeListener != null]]).
         transform((ignoreValue) => new EditorStub(id));
   }
 }
@@ -43,6 +52,10 @@ class EditorStub implements Editor {
     return _callJs(["mark",
         [_editorId, start.line, start.column, end.line, end.column, kind]]).
         transform((int markerId) => new MarkerStub(markerId));
+  }
+
+  Future refresh() {
+    return _callJs(["refresh", [_editorId]]);
   }
 }
 
@@ -86,10 +99,16 @@ Future _callJs(var message) {
 }
 
 void postMessageDispatcher(envelope) {
-  if (envelope[0] != 'js-to-dart') {
-    return;
+  if (envelope[0] == 'js-to-dart') {
+    if (envelope[1] == 'update') {
+      final f = _listeners[envelope[2]];
+      if (f != null) f();
+    } else {
+      print("warning: unrecognized js-to-dart message: $envelope");
+    }
+  } else if (envelope[0] == 'js-to-dart-reply') {
+    int id = envelope[1];
+    _pending[id].complete(envelope[2]);
+    _pending.remove(id);
   }
-  int id = envelope[1];
-  _pending[id].complete(envelope[2]);
-  _pending.remove(id);
 }

@@ -13,7 +13,7 @@ interface EditorFactory {
    * Create an editor of a specific [type] (dart, js, html) and display it under
    * a DOM element with the given [id].
    */
-  Future<Editor> newEditor(String id, String type);
+  Future<Editor> newEditor(String id, String type, [Function changeListener]);
 }
 
 /** A remote-editor interface. */
@@ -30,6 +30,12 @@ interface Editor {
 
   /** Create an error or warning marker between [start] and [end]. */
   Future<Marker> mark(Position start, Position end, int kind);
+
+  /**
+   * Ensure that an editor is visible and up to date. Sometimes editors are not
+   * up to date if the UI is hidden when it was rendered.
+   */
+  Future refresh();
 }
 
 /** Interface for a text-marker in an editor. */

@@ -6,16 +6,40 @@
 <html>
   <head>
     <title>Frog Pond</title>
-    <link rel="stylesheet" type="text/css" href="pond.css"/>
     <link rel="stylesheet" type="text/css"
           href="codemirror/lib/codemirror.css"/>
+    <link rel="stylesheet" type="text/css" href="pond.css"/>
     <script type="text/javascript" src="editors_module.js"></script>
     <script type="text/javascript" src="pond.dart.js"></script>
   </head>
   <body>
-    <div id="wrap">
-      <div id="dartEditor"></div>
-      <div id="htmlEditor"></div>
+    <div class="main vbox">
+      <div class="main hbox">
+        <div class="left-pane vbox">
+          <ul class="tabs hbox">
+            <li id="tab-dart" class="tab tab-selected"> Dart
+            <li id="tab-html" class="tab"> Html
+          </ul>
+          <div id="dartEditor" class='editor'></div>
+          <div id="htmlEditor" class='editor hidden'></div>
+        </div>
+
+        <div class="right-pane vbox">
+          <ul class="tabs hbox">
+            <li id="tab-warnings" class="tab"> Errors
+            <li id="tab-console" class="tab"> Console
+            <li id="tab-web" class="tab tab-selected"> Web
+            <li id="tab-js" class="tab"> JS
+          </ul>
+          <div id="warningEditor" class="output hidden"></div>
+          <div id="console" class="output hidden console"></div>
+          <div id="results" class="output">
+            <iframe id="resultFrame"></iframe>
+          </div>
+          <div id="jsEditor" class="output hidden"></div>
+        </div>
+      </div>
+
       <div>
         <input type="button" value="run" id="runButton">
         <input type="button" value="clear output" id="clearButton">
@@ -23,9 +47,6 @@
         <input type="checkbox" id="warningCheckbox">
         <label>treat warnings as errors</label>
       </div>
-      <div id="jsEditor"></div>
-      <div id="result"><iframe id="resultFrame" ></iframe></div>
-      <div id="warningEditor"></div>
     </div>
   </body>
 </html>
