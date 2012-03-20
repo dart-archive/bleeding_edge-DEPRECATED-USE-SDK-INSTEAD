@@ -5,6 +5,7 @@
 #library('touch');
 
 #import('dart:html');
+#import('dart:coreimpl');
 #import('../base/base.dart');
 #import('../util/utilslib.dart');
 

@@ -37,9 +37,8 @@ class ClickBuster {
    * The list of coordinates that we use to measure the distance of clicks from.
    * If a click is within the distance threshold of any of these coordinates
    * then we allow the click.
-   * TODO(ngeoffray): Should be DoubleLinkedQueue<num>
    */
-  static var _coordinates;
+  static DoubleLinkedQueue<num> _coordinates;
 
   /** The last time preventGhostClick was called. */
   static int _lastPreventedTime;
@@ -66,7 +65,7 @@ class ClickBuster {
       return;
     }
     */
-    var entry = _coordinates.firstEntry();
+    DoubleLinkedQueueEntry<num> entry = _coordinates.firstEntry();
     while (entry != null) {
       if (_hitTest(entry.element,
                    entry.nextEntry().element,
@@ -114,7 +113,7 @@ class ClickBuster {
    * Remove one specified coordinate from the coordinates list.
    */
   static void _removeCoordinate(num x, num y) {
-    var entry = _coordinates.firstEntry();
+    DoubleLinkedQueueEntry<num> entry = _coordinates.firstEntry();
     while (entry != null) {
       if (entry.element == x && entry.nextEntry().element == y) {
         entry.nextEntry().remove();
@@ -192,7 +191,7 @@ class ClickBuster {
       EventUtil.observe(document,
           Device.supportsTouch ? document.on.touchStart : document.on.mouseDown,
           startFn, true, true);
-      _coordinates = new Queue<num>();
+      _coordinates = new DoubleLinkedQueue<num>();
     }
 
     // Turn tap highlights off until we know the ghost click has fired.
@@ -201,7 +200,7 @@ class ClickBuster {
     // Above all other rules, we won't bust any clicks if there wasn't some call
     // to preventGhostClick in the last time threshold.
     _lastPreventedTime = TimeUtil.now();
-    var entry = _coordinates.firstEntry();
+    DoubleLinkedQueueEntry<num> entry = _coordinates.firstEntry();
     while (entry != null) {
       if (_hitTest(entry.element, entry.nextEntry().element, x, y)) {
         entry.nextEntry().remove();
