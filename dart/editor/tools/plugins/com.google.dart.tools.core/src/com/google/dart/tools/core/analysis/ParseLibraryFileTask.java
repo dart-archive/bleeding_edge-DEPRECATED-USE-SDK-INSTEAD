@@ -33,7 +33,7 @@ class ParseLibraryFileTask extends Task {
     this.server = server;
     this.context = context;
     this.libraryFile = libraryFile;
-    this.librarySource = new UrlLibrarySource(libraryFile);
+    this.librarySource = new UrlLibrarySource(libraryFile.toURI(), server.getLibraryManager());
   }
 
   @Override

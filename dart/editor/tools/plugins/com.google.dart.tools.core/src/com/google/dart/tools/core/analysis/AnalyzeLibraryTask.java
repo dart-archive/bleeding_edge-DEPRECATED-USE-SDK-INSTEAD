@@ -19,9 +19,12 @@ import java.io.File;
  * Analyze a library
  */
 class AnalyzeLibraryTask extends Task {
+
   private final AnalysisServer server;
   private final Context context;
   private final File libraryFile;
+
+  private boolean analyzeIfNotTracked;
   private long start = 0;
 
   AnalyzeLibraryTask(AnalysisServer server, Context context, File libraryFile) {
@@ -35,7 +38,7 @@ class AnalyzeLibraryTask extends Task {
 
     // Determine if the library should still be analyzed
 
-    if (!server.isTrackedLibraryFile(libraryFile) || !libraryFile.exists()) {
+    if (!(analyzeIfNotTracked || server.isTrackedLibraryFile(libraryFile)) || !libraryFile.exists()) {
       return;
     }
     if (start == 0) {
@@ -79,5 +82,9 @@ class AnalyzeLibraryTask extends Task {
     if (listener != null) {
       listener.analysisComplete(start, libraryFile);
     }
+  }
+
+  void setAnalyzeIfNotTracked(boolean analyzeIfNotTracked) {
+    this.analyzeIfNotTracked = analyzeIfNotTracked;
   }
 }

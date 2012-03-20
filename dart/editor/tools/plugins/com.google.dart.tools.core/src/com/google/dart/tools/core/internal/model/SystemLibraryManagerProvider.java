@@ -19,12 +19,9 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisIndexManager;
 import com.google.dart.tools.core.analysis.AnalysisMarkerManager;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.Target;
 import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * The class <code>SystemLibraryManagerProvider</code> manages the {@link SystemLibraryManager
@@ -34,7 +31,6 @@ public class SystemLibraryManagerProvider {
   private static final Object lock = new Object();
   private static EditorLibraryManager VM_LIBRARY_MANAGER;
 
-  private static Target defaultTarget;
   private static AnalysisServer defaultAnalysisServer;
 
   //private static ResourceChangeListener defaultAnalysisChangeListener;
@@ -45,7 +41,7 @@ public class SystemLibraryManagerProvider {
   public static AnalysisServer getDefaultAnalysisServer() {
     synchronized (lock) {
       if (defaultAnalysisServer == null) {
-        defaultAnalysisServer = new AnalysisServer(getDefaultTarget());
+        defaultAnalysisServer = new AnalysisServer(getVmLibraryManager());
         defaultAnalysisServer.addAnalysisListener(new AnalysisMarkerManager(defaultAnalysisServer));
         defaultAnalysisServer.addAnalysisListener(new AnalysisIndexManager());
         // TODO (danrubel) merge ResourceChangeListener with delta processor
@@ -55,36 +51,6 @@ public class SystemLibraryManagerProvider {
       }
     }
     return defaultAnalysisServer;
-  }
-
-  /**
-   * Answer the default target, mapping "dart:<libname>" to files in the "dart-sdk/lib" directory
-   */
-  // TODO (danrubel): map "dart:<libname>" to files in "dart-sdk" directory
-  public static Target getDefaultTarget() {
-    synchronized (lock) {
-      if (defaultTarget == null) {
-        defaultTarget = new Target() {
-
-          @Override
-          public File resolvePath(String relPath) {
-            URI relativeUri;
-            try {
-              relativeUri = new URI(relPath);
-            } catch (URISyntaxException e) {
-              DartCore.logError("Failed to create URI: " + relPath, e);
-              return null;
-            }
-            URI resolveUri = getVmLibraryManager().resolveDartUri(relativeUri);
-            if (resolveUri == null) {
-              return null;
-            }
-            return new File(resolveUri.getPath());
-          }
-        };
-      }
-    }
-    return defaultTarget;
   }
 
   /**

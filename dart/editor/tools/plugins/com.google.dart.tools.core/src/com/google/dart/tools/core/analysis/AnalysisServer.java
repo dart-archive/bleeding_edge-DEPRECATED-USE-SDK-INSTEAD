@@ -15,6 +15,7 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 
 import java.io.File;
 import java.net.URI;
@@ -45,7 +46,7 @@ public class AnalysisServer {
    * The target (VM, Dartium, JS) against which user libraries are resolved. Targets are immutable
    * and can be accessed on any thread.
    */
-  private final Target target;
+  private final EditorLibraryManager libraryManager;
 
   /**
    * The library files being analyzed by the receiver. Lock against {@link #queue} before accessing
@@ -83,11 +84,10 @@ public class AnalysisServer {
 
   /**
    * Create a new instance that processes analysis tasks on a background thread
-   * 
-   * @param target The target (VM, Dartium, JS) against which user libraries are resolved
+   * @param libraryManager the target (VM, Dartium, JS) against which user libraries are resolved
    */
-  public AnalysisServer(Target target) {
-    this.target = target;
+  public AnalysisServer(EditorLibraryManager libraryManager) {
+    this.libraryManager = libraryManager;
     this.analyze = true;
     new Thread(new Runnable() {
 
@@ -137,6 +137,19 @@ public class AnalysisServer {
     System.arraycopy(analysisListeners, 0, newListeners, 0, oldLen);
     newListeners[oldLen] = listener;
     analysisListeners = newListeners;
+  }
+
+  /**
+   * Analyze all bundled libraries.
+   * 
+   * @return a latch used for waiting until the operation is complete
+   */
+  public CountDownLatch analyzeBundledLibraries() {
+    CountDownLatch latch = new CountDownLatch(1);
+    synchronized (queue) {
+      queueNewTask(new AnalyzeBundledLibrariesTask(this, savedContext, latch));
+    }
+    return latch;
   }
 
   /**
@@ -241,8 +254,8 @@ public class AnalysisServer {
     return analysisListeners;
   }
 
-  Target getTarget() {
-    return target;
+  EditorLibraryManager getLibraryManager() {
+    return libraryManager;
   }
 
   /**
@@ -319,7 +332,18 @@ public class AnalysisServer {
    */
   File resolvePath(URI base, String relPath) {
     if (SystemLibraryManager.isDartSpec(relPath)) {
-      return target.resolvePath(relPath);
+      URI relativeUri;
+      try {
+        relativeUri = new URI(relPath);
+      } catch (URISyntaxException e) {
+        DartCore.logError("Failed to create URI: " + relPath, e);
+        return null;
+      }
+      URI resolveUri = libraryManager.resolveDartUri(relativeUri);
+      if (resolveUri == null) {
+        return null;
+      }
+      return new File(resolveUri.getPath());
     }
     File file = new File(relPath);
     if (file.isAbsolute()) {

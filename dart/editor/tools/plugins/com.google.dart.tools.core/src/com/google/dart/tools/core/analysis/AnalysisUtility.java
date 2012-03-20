@@ -143,12 +143,12 @@ class AnalysisUtility {
       return null;
     }
     if (SystemLibraryManager.isDartUri(uri)) {
-      File file = server.getTarget().resolvePath(uri.toString());
-      if (file != null) {
-        return file;
+      URI resolveUri = server.getLibraryManager().resolveDartUri(uri);
+      if (resolveUri == null) {
+        DartCore.logError("Failed to resolve: " + uri);
+        return null;
       }
-      DartCore.logError("Failed to resolve: " + uri);
-      return null;
+      return new File(resolveUri.getPath());
     }
     DartCore.logError("Unknown library scheme : " + uri);
     return null;
