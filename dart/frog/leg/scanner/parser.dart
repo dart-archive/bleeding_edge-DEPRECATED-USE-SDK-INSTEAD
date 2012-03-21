@@ -1001,7 +1001,7 @@ class Parser {
       } else if (value === 'const') {
         return parseConstExpression(token);
       } else if (value === 'void') {
-        return parseFunction(token, null);
+        return parseFunctionExpression(token);
       } else if (isIdentifier(token)) {
         return parseSendOrFunctionLiteral(token);
       } else {
