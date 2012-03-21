@@ -1983,7 +1983,15 @@ class SsaBuilder implements Visitor {
     }
   }
 
-  visitNewExpression(NewExpression node) => visitSend(node.send);
+  visitNewExpression(NewExpression node) {
+    if (node.isConst()) {
+      ConstantHandler handler = compiler.constantHandler;
+      Constant constant = handler.compileNodeWithDefinitions(node, elements);
+      stack.add(graph.addConstant(constant));
+    } else {
+      visitSend(node.send);
+    }
+  }
 
   visitSendSet(SendSet node) {
     Operator op = node.assignmentOperator;

@@ -495,7 +495,8 @@ class ConstantHandler extends CompilerTask {
     assert(pendingVariables.isEmpty());
   }
 
-  compileVariable(VariableElement element) {
+  Constant compileVariable(VariableElement element) {
+    // TODO(floitsch): wrap this method in 'measure'.
     if (initialVariableValues.containsKey(element)) {
       Constant result = initialVariableValues[element];
       return result;
@@ -511,29 +512,34 @@ class ConstantHandler extends CompilerTask {
                                           TreeElements definitions) {
     return measure(() {
       Node node = element.parseNode(compiler);
-      assert(node !== null);
+      if (pendingVariables.contains(element)) {
+        MessageKind kind = MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS;
+        compiler.reportError(node,
+                             new CompileTimeConstantError(kind, const []));
+      }
+      pendingVariables.add(element);
+
       SendSet assignment = node.asSendSet();
-      var value;
+      Constant value;
       if (assignment === null) {
         // No initial value.
         value = new NullConstant();
       } else {
-        if (pendingVariables.contains(element)) {
-          MessageKind kind = MessageKind.CYCLIC_COMPILE_TIME_CONSTANTS;
-          compiler.reportError(node,
-                               new CompileTimeConstantError(kind, const []));
-        }
-        pendingVariables.add(element);
-
         Node right = assignment.arguments.head;
-        CompileTimeConstantEvaluator evaluator =
-            new CompileTimeConstantEvaluator(this, definitions, compiler);
-        value = evaluator.evaluate(right);
-
-        pendingVariables.remove(element);
+        value = compileNodeWithDefinitions(right, definitions);
       }
       initialVariableValues[element] = value;
+      pendingVariables.remove(element);
       return value;
+    });
+  }
+
+  Constant compileNodeWithDefinitions(Node node, TreeElements definitions) {
+    return measure(() {
+      assert(node !== null);
+      CompileTimeConstantEvaluator evaluator =
+          new CompileTimeConstantEvaluator(this, definitions, compiler);
+      return evaluator.evaluate(node);
     });
   }
 
