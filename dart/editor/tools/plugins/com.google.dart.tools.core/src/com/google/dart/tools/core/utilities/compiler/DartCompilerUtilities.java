@@ -33,11 +33,15 @@ import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.ResolveLibraryListener;
 import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.cache.LRUCache;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -672,21 +676,6 @@ public class DartCompilerUtilities {
    * @throws DartModelException if the library could not be parsed
    */
   public static LibraryUnit resolveLibrary(DartLibraryImpl library,
-      final Collection<DartCompilationError> parseErrors) throws DartModelException {
-    return resolveLibrary(library, false, parseErrors);
-  }
-
-  /**
-   * Parse the compilation units in the specified library. Any exceptions thrown by the
-   * {@link DartParser} will be logged and a {@link DartModelException} thrown.
-   * 
-   * @param library the library to be parsed (not <code>null</code>)
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
-   * @return the parse result
-   * @throws DartModelException if the library could not be parsed
-   */
-  public static LibraryUnit resolveLibrary(DartLibraryImpl library,
       Collection<DartUnit> suppliedUnits, final Collection<DartCompilationError> parseErrors)
       throws DartModelException {
     return resolveLibrary(library.getLibrarySourceFile(), suppliedUnits, parseErrors);
@@ -793,16 +782,51 @@ public class DartCompilerUtilities {
   public static LibraryUnit secureAnalyzeLibrary(LibrarySource librarySource,
       Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
-    synchronized (compilerLock) {
-      // Any calls to compiler involving artifact provider must be synchronized
-      long start = System.currentTimeMillis();
-      LibraryUnit unit = DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider,
-          listener);
-      if (performanceListener != null) {
-        performanceListener.analysisComplete(start, librarySource.getName());
+
+    // Any calls to compiler involving artifact provider must be synchronized
+    long start = System.currentTimeMillis();
+    LibraryUnit unit;
+    if (DartCoreDebug.ANALYSIS_SERVER && parsedUnits == null) {
+
+      // Resolve dart:<libname> to file URI before calling AnalysisServer
+      EditorLibraryManager manager = SystemLibraryManagerProvider.getSystemLibraryManager();
+      URI libraryUri = manager.resolveDartUri(librarySource.getUri());
+
+      File libraryFile = new File(libraryUri.getPath());
+      AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+      final LibraryUnit[] result = new LibraryUnit[1];
+      server.resolveLibrary(libraryFile, new ResolveLibraryListener() {
+
+        @Override
+        public void resolved(LibraryUnit libraryUnit) {
+          synchronized (result) {
+            result[0] = libraryUnit;
+            result.notifyAll();
+          }
+        }
+      });
+      synchronized (result) {
+        if (result[0] == null) {
+          try {
+            result.wait(30000);
+          } catch (InterruptedException e) {
+            //$FALL-THROUGH$
+          }
+        }
+        unit = result[0];
       }
-      return unit;
+      if (unit == null) {
+        throw new RuntimeException("Timed out waiting for library to be resolved: " + libraryFile);
+      }
+    } else {
+      synchronized (compilerLock) {
+        unit = DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider, listener);
+      }
     }
+    if (performanceListener != null) {
+      performanceListener.analysisComplete(start, librarySource.getName());
+    }
+    return unit;
   }
 
   /**

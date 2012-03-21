@@ -418,7 +418,10 @@ public class InMemoryIndex implements Index {
         for (DartLibrary library : project.getDartLibraries()) {
           LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary((DartLibraryImpl) library,
               true, parseErrors);
-          indexUserLibrary(libraryUnit, initializedLibraries);
+          // If AnalysisServer is active, then indexer receives resolved units via listener
+          if (!DartCoreDebug.ANALYSIS_SERVER) {
+            indexUserLibrary(libraryUnit, initializedLibraries);
+          }
         }
       }
     } catch (Exception exception) {

@@ -84,6 +84,7 @@ public class AnalysisServer {
 
   /**
    * Create a new instance that processes analysis tasks on a background thread
+   * 
    * @param libraryManager the target (VM, Dartium, JS) against which user libraries are resolved
    */
   public AnalysisServer(EditorLibraryManager libraryManager) {
@@ -153,7 +154,8 @@ public class AnalysisServer {
   }
 
   /**
-   * Analyze the specified library
+   * Analyze the specified library, and keep that analysis current by tracking any changes. Also see
+   * {@link #resolveLibrary(File, ResolveLibraryListener)}.
    * 
    * @param file the library file (not <code>null</code>)
    */
@@ -229,6 +231,23 @@ public class AnalysisServer {
         System.arraycopy(analysisListeners, i + 1, newListeners, i, oldLen - 1 - i);
         return;
       }
+    }
+  }
+
+  /**
+   * Resolve the specified library. Similar to {@link #analyzeLibrary(File)}, but does not add the
+   * library to the list of libraries to be tracked.
+   * 
+   * @param file the library file (not <code>null</code>)
+   * @param resolutionListener a listener that will be notified when the library has been resolved
+   *          or <code>null</code> if none
+   */
+  public void resolveLibrary(File file, ResolveLibraryListener resolutionListener) {
+    if (!file.isAbsolute()) {
+      throw new IllegalArgumentException("File path must be absolute: " + file);
+    }
+    synchronized (queue) {
+      queueNewTask(new AnalyzeLibraryTask(this, savedContext, file, resolutionListener));
     }
   }
 

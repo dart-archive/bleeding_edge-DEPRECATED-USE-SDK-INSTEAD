@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.tools.core.DartCore;
+
 import java.io.File;
 
 /**
@@ -23,14 +25,21 @@ class AnalyzeLibraryTask extends Task {
   private final AnalysisServer server;
   private final Context context;
   private final File libraryFile;
+  private final ResolveLibraryListener resolutionListener;
 
   private boolean analyzeIfNotTracked;
   private long start = 0;
 
   AnalyzeLibraryTask(AnalysisServer server, Context context, File libraryFile) {
+    this(server, context, libraryFile, null);
+  }
+
+  AnalyzeLibraryTask(AnalysisServer server, Context context, File libraryFile,
+      ResolveLibraryListener resolutionListener) {
     this.server = server;
     this.context = context;
     this.libraryFile = libraryFile;
+    this.resolutionListener = resolutionListener;
   }
 
   @Override
@@ -81,6 +90,13 @@ class AnalyzeLibraryTask extends Task {
     PerformanceListener listener = AnalysisServer.getPerformanceListener();
     if (listener != null) {
       listener.analysisComplete(start, libraryFile);
+    }
+    if (resolutionListener != null) {
+      try {
+        resolutionListener.resolved(library.getLibraryUnit());
+      } catch (Throwable e) {
+        DartCore.logError("Exception during resolution notification", e);
+      }
     }
   }
 
