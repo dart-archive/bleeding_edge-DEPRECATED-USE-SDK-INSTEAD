@@ -99,11 +99,14 @@ class Compiler implements DiagnosticListener {
 
   bool workListIsClosed = false;
 
+  Stopwatch codegenProgress;
+
   Compiler.withCurrentDirectory(String this.currentDirectory,
                                 [this.tracer = const Tracer()])
       : types = new Types(),
         universe = new Universe(),
-        worklist = new Queue<WorkItem>() {
+        worklist = new Queue<WorkItem>(),
+        codegenProgress = new Stopwatch.start() {
     namer = new Namer(this);
     constantHandler = new ConstantHandler(this);
     scanner = new ScannerTask(this);
@@ -274,6 +277,7 @@ class Compiler implements DiagnosticListener {
     });
     native.processNativeClasses(this, universe.libraries.getValues());
     enqueue(new WorkItem.toCompile(element));
+    codegenProgress.reset();
     while (!worklist.isEmpty()) {
       WorkItem work = worklist.removeLast();
       withCurrentElement(work.element, () => (work.run)(this));
@@ -303,7 +307,12 @@ class Compiler implements DiagnosticListener {
   }
 
   String codegen(WorkItem work) {
-    String code;
+    if (codegenProgress.elapsedInMs() > 500) {
+      // TODO(ahe): Add structured diagnostics to the compiler API and
+      // use it to separate this from the --verbose option.
+      log('compiled ${universe.generatedCode.length} methods');
+      codegenProgress.reset();
+    }
     if (work.element.kind == ElementKind.FIELD
         || work.element.kind == ElementKind.PARAMETER
         || work.element.kind == ElementKind.FIELD_PARAMETER) {
@@ -312,7 +321,7 @@ class Compiler implements DiagnosticListener {
     } else {
       HGraph graph = builder.build(work);
       optimizer.optimize(work, graph);
-      code = generator.generate(work, graph);
+      String code = generator.generate(work, graph);
       universe.addGeneratedCode(work, code);
       return code;
     }
