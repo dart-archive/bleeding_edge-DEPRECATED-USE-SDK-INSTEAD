@@ -5,7 +5,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "111171",
+  "webkit_revision": "111385",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
   "nacl_revision": "8040",
@@ -39,7 +39,7 @@ vars = {
   "nacl_toolchain_revision": "7898",
   "pnacl_toolchain_revision": "7898",
 
-  "libjingle_revision": "125",
+  "libjingle_revision": "126",
   "libphonenumber_revision": "425",
   "libvpx_revision": "125647",
   "lss_revision": "9",
@@ -50,11 +50,11 @@ vars = {
   "ffmpeg_hash": "ddcf259fa5fb83159d441bd71f54e617e2a4afd3",
 
   "sfntly_revision": "128",
-  "skia_revision": "3412",
+  "skia_revision": "3441",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "11082",
+  "v8_revision": "11093",
   "webrtc_revision": "1903",
   "jsoncpp_revision": "248",
   "nss_revision": "126189",
@@ -326,6 +326,9 @@ deps = {
 
   "src/third_party/undoview":
     "/trunk/deps/third_party/undoview@119694",
+
+  "src/tools/deps2git":
+    "/trunk/tools/deps2git@123141",
 }
 
 
