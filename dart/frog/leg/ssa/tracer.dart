@@ -346,16 +346,6 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Literal list: [$elementsString]";
   }
 
-  String visitLoad(HLoad node) => "Load: ${temporaryId(node.inputs[0])}";
-
-  String visitLocal(HLocal node) {
-    if (node.element !== null) {
-      return "Local: ${node.element.name.slowToString()}";
-    } else {
-      return "Local";
-    }
-  }
-
   String visitLogicalOperator(HLogicalOperator node) {
     return "LogicalOepration: ${temporaryId(node.left)} ${node.operation} " +
         "${temporaryId(node.right)}";
@@ -402,12 +392,6 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitStaticStore(HStaticStore node) {
     String lhs = node.element.name.slowToString();
     return "Static $lhs = ${temporaryId(node.inputs[0])}";
-  }
-
-  String visitStore(HStore node) {
-    String localId = temporaryId(node.inputs[0]);
-    String valueId = temporaryId(node.inputs[1]);
-    return "Store: $localId := $valueId";
   }
 
   String visitSubtract(HSubtract node) => visitInvokeStatic(node);

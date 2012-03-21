@@ -34,8 +34,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     // since we don't do code motion after this point.
     new SsaCheckInstructionUnuser().visitGraph(graph);
     new SsaConditionMerger().visitGraph(graph);
-    new SsaPhiEliminator(work).visitGraph(graph);
-    compiler.tracer.traceGraph("no-phi", graph);
+    compiler.tracer.traceGraph("codegen-helpers", graph);
   }
 
   String generateMethod(Map<Element, String> parameterNames,
@@ -178,32 +177,36 @@ class SsaCodeGenerator implements HVisitor {
     String name = names[id];
     if (name !== null) return name;
 
-    String prefix = 't';
-    if (!prefixes.containsKey(prefix)) prefixes[prefix] = 0;
-    return newName(id, '${prefix}${prefixes[prefix]++}');
+    if (instruction is HPhi) {
+      HPhi phi = instruction;
+      Element element = phi.element;
+      if (element != null && element.kind == ElementKind.PARAMETER) {
+        name = parameterNames[element];
+        names[id] = name;
+        return name;
+      }
+
+      String prefix;
+      if (element !== null && !element.name.isEmpty()) {
+        prefix = element.name.slowToString();
+      } else {
+        prefix = 'v';
+      }
+      if (!prefixes.containsKey(prefix)) {
+        prefixes[prefix] = 0;
+        return newName(id, prefix);
+      } else {
+        return newName(id, '${prefix}_${prefixes[prefix]++}');
+      }
+    } else {
+      String prefix = 't';
+      if (!prefixes.containsKey(prefix)) prefixes[prefix] = 0;
+      return newName(id, '${prefix}${prefixes[prefix]++}');
+    }
   }
 
-  String local(HLocal localNode) {
-    Element element = localNode.element;
-    if (element != null && element.kind == ElementKind.PARAMETER) {
-      return parameterNames[element];
-    }
-    int id = localNode.id;
-    String name = names[id];
-    if (name !== null) return name;
-
-    String prefix;
-    if (element !== null && !element.name.isEmpty()) {
-      prefix = element.name.slowToString();
-    } else {
-      prefix = 'v';
-    }
-    if (!prefixes.containsKey(prefix)) {
-      prefixes[prefix] = 0;
-      return newName(id, prefix);
-    } else {
-      return newName(id, '${prefix}_${prefixes[prefix]++}');
-    }
+  bool temporaryExists(HInstruction instruction) {
+    return names.containsKey(instruction.id);
   }
 
   String newName(int id, String name) {
@@ -297,13 +300,29 @@ class SsaCodeGenerator implements HVisitor {
     }
 
     currentBlock = node;
+
     if (node.isLoopHeader()) {
       // While loop will be closed by the conditional loop-branch.
       // TODO(floitsch): HACK HACK HACK.
       beginLoop(node);
     }
+
     HInstruction instruction = node.first;
     while (instruction != null) {
+
+      if (instruction == node.last) {
+        for (HBasicBlock successor in node.successors) {
+          int index = successor.predecessors.indexOf(node);
+          successor.forEachPhi((HPhi phi) {
+            addIndentation();
+            if (!temporaryExists(phi)) buffer.add('var ');
+            buffer.add('${temporary(phi)} = ');
+            use(phi.inputs[index], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+            buffer.add(';\n');
+          });
+        }
+      }
+
       if (instruction is HGoto || instruction is HExit || instruction is HTry) {
         visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
         return;
@@ -311,7 +330,7 @@ class SsaCodeGenerator implements HVisitor {
         if (instruction is !HIf && instruction is !HBailoutTarget) {
           addIndentation();
         }
-        if (instruction.usedBy.isEmpty() || instruction is HLocal) {
+        if (instruction.usedBy.isEmpty()) {
           visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
         } else {
           define(instruction);
@@ -769,7 +788,7 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   visitPhi(HPhi node) {
-    unreachable();
+    buffer.add('${temporary(node)}');
   }
 
   visitReturn(HReturn node) {
@@ -848,27 +867,6 @@ class SsaCodeGenerator implements HVisitor {
     buffer.add(' = ');
     use(node.inputs[0], JSPrecedence.ASSIGNMENT_PRECEDENCE);
     endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-  }
-
-  void visitStore(HStore node) {
-    if (node.local.declaredBy === node) {
-      buffer.add('var ');
-    } else {
-      beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-    }
-    buffer.add('${local(node.local)} = ');
-    use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
-    if (node.local.declaredBy !== node) {
-      endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-    }
-  }
-
-  void visitLoad(HLoad node) {
-    buffer.add('${local(node.local)}');
-  }
-
-  void visitLocal(HLocal node) {
-    buffer.add('var ${local(node)}');
   }
 
   void visitLiteralList(HLiteralList node) {
@@ -1359,12 +1357,6 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     int i = 0;
     for (HInstruction input in node.inputs) {
       setup.add('      ${temporary(input)} = env$i;\n');
-      if (input is HLoad) {
-        // We get the load of a phi that was turned into a local in
-        // the environment. Update the local with that load.
-        HLoad load = input;
-        setup.add('      ${local(load.local)} = env$i;\n');
-      }
       i++;
     }
     if (i > maxBailoutParameters) maxBailoutParameters = i;

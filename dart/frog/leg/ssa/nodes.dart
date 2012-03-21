@@ -40,8 +40,6 @@ interface HVisitor<R> {
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
   R visitLiteralList(HLiteralList node);
-  R visitLoad(HLoad node);
-  R visitLocal(HLocal node);
   R visitLogicalOperator(HLogicalOperator node);
   R visitLoopBranch(HLoopBranch node);
   R visitModulo(HModulo node);
@@ -55,7 +53,6 @@ interface HVisitor<R> {
   R visitShiftRight(HShiftRight node);
   R visitStatic(HStatic node);
   R visitStaticStore(HStaticStore node);
-  R visitStore(HStore node);
   R visitSubtract(HSubtract node);
   R visitThis(HThis node);
   R visitThrow(HThrow node);
@@ -289,8 +286,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInvokeSuper(HInvokeSuper node) => visitInvoke(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
-  visitLoad(HLoad node) => visitInstruction(node);
-  visitLocal(HLocal node) => visitInstruction(node);
   visitLogicalOperator(HLogicalOperator node) => visitInstruction(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
@@ -306,7 +301,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
   visitStatic(HStatic node) => visitInstruction(node);
   visitStaticStore(HStaticStore node) => visitInstruction(node);
-  visitStore(HStore node) => visitInstruction(node);
   visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTry(HTry node) => visitControlFlow(node);
@@ -2081,32 +2075,6 @@ class HNonSsaInstruction extends HInstruction {
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
   abstract accept(HVisitor visitor);
-}
-
-class HLoad extends HNonSsaInstruction {
-  HLoad(HLocal local, type) : super(<HInstruction>[local]) { this.type = type; }
-  HLocal get local() => inputs[0];
-  toString() => 'load';
-  accept(HVisitor visitor) => visitor.visitLoad(this);
-}
-
-class HStore extends HNonSsaInstruction {
-  HStore(HLocal local, HInstruction value)
-      : super(<HInstruction>[local, value]);
-  HLocal get local() => inputs[0];
-  HInstruction get value() => inputs[1];
-  toString() => 'store';
-  accept(HVisitor visitor) => visitor.visitStore(this);
-}
-
-class HLocal extends HNonSsaInstruction {
-  Element element;
-  HInstruction declaredBy;
-  HLocal(Element this.element) : super(<HInstruction>[]) {
-    declaredBy = this;
-  }
-  toString() => 'local';
-  accept(HVisitor visitor) => visitor.visitLocal(this);
 }
 
 class HLogicalOperator extends HNonSsaInstruction {

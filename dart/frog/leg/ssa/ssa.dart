@@ -20,7 +20,6 @@
 #source('js_names.dart');
 #source('nodes.dart');
 #source('optimize.dart');
-#source('phi_eliminator.dart');
 #source('types.dart');
 #source('validate.dart');
 #source('value_set.dart');
