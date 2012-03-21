@@ -557,7 +557,8 @@ class LocalsHandler {
         if (instruction === mine) {
           joinedLocals[element] = instruction;
         } else {
-          HInstruction phi = new HPhi.manyInputs(element, [instruction, mine]);
+          HInstruction phi =
+              new HPhi.manyInputs(element, <HInstruction>[instruction, mine]);
           joinBlock.addPhi(phi);
           joinedLocals[element] = phi;
         }
@@ -1096,11 +1097,13 @@ class SsaBuilder implements Visitor {
   }
 
   // For while loops, initializer and update are null.
-  visitLoop(Node loop,
-            Node initializer,
-            Expression condition,
-            NodeList updates,
-            Node body) {
+  // The condition function must return a boolean result.
+  // None of the functions must leave anything on the stack.
+  handleLoop(Node loop,
+             void initialize(),
+             HInstruction condition(),
+             void update(),
+             void body()) {
     // Generate:
     //  <initializer>
     //  loop-entry:
@@ -1109,34 +1112,17 @@ class SsaBuilder implements Visitor {
     //    <updates>
     //    goto loop-entry;
     //  loop-exit:
-    if (body === null) {
-      compiler.unimplemented(
-          'SsaBuilder.visitLoop with empty body',
-          node: loop);
-    }
 
     localsHandler.startLoop(loop);
 
     // The initializer.
-    if (initializer !== null) {
-      visit(initializer);
-      // We don't care about the value of the initialization.
-      if (initializer.asExpression() !== null) pop();
-    }
+    initialize();
     assert(!isAborted());
 
     JumpHandler jumpHandler = beginLoopHeader(loop);
     HBasicBlock conditionBlock = current;
 
-    HInstruction conditionInstruction;
-    if (condition != null) {
-      visit(condition);
-      conditionInstruction = popBoolified();
-    } else {
-      // TODO(ngeoffray): Once our loop recognition does not require a
-      // HLoopBranch, we could just generate a HGoto.
-      conditionInstruction = graph.addConstantBool(true);
-    }
+    HInstruction conditionInstruction = condition();
     HBasicBlock conditionExitBlock =
         close(new HLoopBranch(conditionInstruction));
 
@@ -1148,8 +1134,8 @@ class SsaBuilder implements Visitor {
     open(beginBodyBlock);
 
     localsHandler.enterLoopBody(loop);
+    hackAroundPossiblyAbortingBody(loop, body);
 
-    hackAroundPossiblyAbortingBody(body);
     SubGraph bodyGraph = new SubGraph(beginBodyBlock, current);
     HBasicBlock bodyBlock = close(new HGoto());
 
@@ -1181,15 +1167,8 @@ class SsaBuilder implements Visitor {
 
     localsHandler.enterLoopUpdates(loop);
 
-    if (updates !== null) {
-      for (Expression expression in updates) {
-        visit(expression);
-        assert(!isAborted());
-        // The result of the update instruction isn't used, and can just
-        // be dropped.
-        HInstruction updateInstruction = pop();
-      }
-    }
+    update();
+
     updateBlock = close(new HGoto());
     // The back-edge completing the cycle.
     updateBlock.addSuccessor(conditionBlock);
@@ -1200,11 +1179,48 @@ class SsaBuilder implements Visitor {
 
   visitFor(For node) {
     assert(node.body !== null);
-    visitLoop(node, node.initializer, node.condition, node.update, node.body);
+    void buildInitializer() {
+      if (node.initializer === null) return;
+      Node initializer = node.initializer;
+      if (initializer !== null) {
+        visit(initializer);
+        if (initializer.asExpression() !== null) {
+          pop();
+        }
+      }
+    }
+    HInstruction buildCondition() {
+      if (node.condition === null) {
+        return graph.addConstantBool(true);
+      }
+      visit(node.condition);
+      return popBoolified();
+    }
+    void buildUpdate() {
+      for (Expression expression in node.update) {
+        visit(expression);
+        assert(!isAborted());
+        // The result of the update instruction isn't used, and can just
+        // be dropped.
+        HInstruction updateInstruction = pop();
+      }
+    }
+    void buildBody() {
+      visit(node.body);
+    }
+    handleLoop(node, buildInitializer, buildCondition, buildUpdate, buildBody);
   }
 
   visitWhile(While node) {
-    visitLoop(node, null, node.condition, null, node.body);
+    HInstruction buildCondition() {
+      visit(node.condition);
+      return popBoolified();
+    }
+    handleLoop(node,
+               () {},
+               buildCondition,
+               () {},
+               () { visit(node.body); });
   }
 
   visitDoWhile(DoWhile node) {
@@ -1213,7 +1229,7 @@ class SsaBuilder implements Visitor {
     HBasicBlock loopEntryBlock = current;
 
     localsHandler.enterLoopBody(node);
-    hackAroundPossiblyAbortingBody(node.body);
+    hackAroundPossiblyAbortingBody(node, () { visit(node.body); });
 
     // If there are no continues we could avoid the creation of the condition
     // block. This could also lead to a block having multiple entries and exits.
@@ -1395,7 +1411,8 @@ class SsaBuilder implements Visitor {
         new HIfBlockInformation(branch, rightGraph, null, joinBlock);
 
     localsHandler.mergeWith(savedLocals, joinBlock);
-    HPhi result = new HPhi.manyInputs(null, [boolifiedLeft, boolifiedRight]);
+    HPhi result = new HPhi.manyInputs(null,
+        <HInstruction>[boolifiedLeft, boolifiedRight]);
     joinBlock.addPhi(result);
     stack.add(result);
   }
@@ -2222,7 +2239,8 @@ class SsaBuilder implements Visitor {
     open(joinBlock);
 
     localsHandler.mergeWith(thenLocals, joinBlock);
-    HPhi phi = new HPhi.manyInputs(null, [thenInstruction, elseInstruction]);
+    HPhi phi = new HPhi.manyInputs(null,
+        <HInstruction>[thenInstruction, elseInstruction]);
     joinBlock.addPhi(phi);
     stack.add(phi);
   }
@@ -2298,76 +2316,44 @@ class SsaBuilder implements Visitor {
     //     E <declaredIdentifier> = $iter.next();
     //     <body>
     //   }
-    localsHandler.startLoop(node);
 
-    SourceString iteratorName = const SourceString("iterator");
-
+    // All the generated calls are to zero-argument functions.
     Selector selector = Selector.INVOCATION_0;
-    Element interceptor = interceptors.getStaticInterceptor(iteratorName, 0);
-    assert(interceptor != null);
-    HStatic target = new HStatic(interceptor);
-    add(target);
-    visit(node.expression);
-    List<HInstruction> inputs = <HInstruction>[target, pop()];
-    HInstruction iterator = new HInvokeInterceptor(
-        selector, iteratorName, false, inputs);
-    add(iterator);
-
-    JumpHandler jumpHandler = beginLoopHeader(node);
-    HBasicBlock conditionBlock = current;
-
-    // The condition.
-    push(new HInvokeDynamicMethod(
-        selector, const SourceString('hasNext'), [iterator]));
-    HBasicBlock conditionExitBlock = close(new HLoopBranch(popBoolified()));
-
-    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-
-    // The body.
-    HBasicBlock bodyBlock = addNewBlock();
-    conditionExitBlock.addSuccessor(bodyBlock);
-    open(bodyBlock);
-
-    // The call to next is considered to be part of the loop body.
-    localsHandler.enterLoopBody(node);
-
-    push(new HInvokeDynamicMethod(
-        selector, const SourceString('next'), [iterator]));
-
-    Element variable;
-    if (node.declaredIdentifier.asSend() !== null) {
-      variable = elements[node.declaredIdentifier];
-    } else {
-      assert(node.declaredIdentifier.asVariableDefinitions() !== null);
-      VariableDefinitions variableDefinitions = node.declaredIdentifier;
-      variable = elements[variableDefinitions.definitions.nodes.head];
+    // The iterator is shared between initializer, condition and body.
+    HInstruction iterator;
+    void buildInitializer() {
+      SourceString iteratorName = const SourceString("iterator");
+      Element interceptor = interceptors.getStaticInterceptor(iteratorName, 0);
+      assert(interceptor != null);
+      HStatic target = new HStatic(interceptor);
+      add(target);
+      visit(node.expression);
+      List<HInstruction> inputs = <HInstruction>[target, pop()];
+      iterator = new HInvokeInterceptor(selector, iteratorName, false, inputs);
+      add(iterator);
     }
-    localsHandler.updateLocal(variable, pop());
+    HInstruction buildCondition() {
+      push(new HInvokeDynamicMethod(
+           selector, const SourceString('hasNext'), <HInstruction>[iterator]));
+      return popBoolified();
+    }
+    void buildBody() {
+      push(new HInvokeDynamicMethod(
+           selector, const SourceString('next'), <HInstruction>[iterator]));
 
-    hackAroundPossiblyAbortingBody(node.body);
-    bodyBlock = close(new HGoto());
+      Element variable;
+      if (node.declaredIdentifier.asSend() !== null) {
+        variable = elements[node.declaredIdentifier];
+      } else {
+        assert(node.declaredIdentifier.asVariableDefinitions() !== null);
+        VariableDefinitions variableDefinitions = node.declaredIdentifier;
+        variable = elements[variableDefinitions.definitions.nodes.head];
+      }
+      localsHandler.updateLocal(variable, pop());
 
-    jumpHandler.forEachContinue((x,y) {
-      // TODO(lrn): Handle continue in for-in.
-      // TODO(lrn): Or, preferably, use an abstraction of visitLoop for for-in.
-      compiler.cancel('for-in with continue', node: node);
-    });
-
-    // Update.
-    // We create an update block, even if we are in a for-in loop. The
-    // update block is the jump-target for continue statements. We could avoid
-    // the creation if there is no continue, but for now we always create it.
-    HBasicBlock updateBlock = addNewBlock();
-
-    bodyBlock.addSuccessor(updateBlock);
-    open(updateBlock);
-    updateBlock = close(new HGoto());
-    // The back-edge completing the cycle.
-    updateBlock.addSuccessor(conditionBlock);
-    conditionBlock.postProcessLoopHeader();
-
-    endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
-    jumpHandler.close();
+      visit(node.body);
+    }
+    handleLoop(node, buildInitializer, buildCondition, () {}, buildBody);
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -2394,7 +2380,7 @@ class SsaBuilder implements Visitor {
     HBasicBlock entryBlock = graph.addNewBlock();
     goto(current, entryBlock);
     open(entryBlock);
-    hackAroundPossiblyAbortingBody(body);
+    hackAroundPossiblyAbortingBody(node, () { visit(body); });
     SubGraph bodyGraph = new SubGraph(entryBlock, lastOpenedBlock);
 
     HBasicBlock joinBlock = graph.addNewBlock();
@@ -2712,13 +2698,13 @@ class SsaBuilder implements Visitor {
   }
 
   /** HACK HACK HACK */
-  void hackAroundPossiblyAbortingBody(Node body) {
+  void hackAroundPossiblyAbortingBody(Node statement, void body()) {
     stack.add(graph.addConstantBool(true));
     buildBody() {
       // TODO(lrn): Make sure to take continue into account.
-      visit(body);
+      body();
       if (isAborted()) {
-        compiler.reportWarning(body, "aborting loop body");
+        compiler.reportWarning(statement, "aborting loop body");
       }
     }
     handleIf(buildBody, null);
