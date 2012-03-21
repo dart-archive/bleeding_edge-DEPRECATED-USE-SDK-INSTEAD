@@ -40,7 +40,6 @@ interface HVisitor<R> {
   R visitLess(HLess node);
   R visitLessEqual(HLessEqual node);
   R visitLiteralList(HLiteralList node);
-  R visitLogicalOperator(HLogicalOperator node);
   R visitLoopBranch(HLoopBranch node);
   R visitModulo(HModulo node);
   R visitMultiply(HMultiply node);
@@ -286,7 +285,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInvokeSuper(HInvokeSuper node) => visitInvoke(node);
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
-  visitLogicalOperator(HLogicalOperator node) => visitInstruction(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitModulo(HModulo node) => visitBinaryArithmetic(node);
@@ -2063,31 +2061,6 @@ class HIndexAssign extends HInvokeStatic {
 
   // This instruction does not yield a new value, so it always
   // has the expected type (void).
-  bool hasExpectedType() => true;
-}
-
-class HNonSsaInstruction extends HInstruction {
-  HNonSsaInstruction(inputs) : super(inputs);
-  // Non-SSA instructions cannot take part in GVN.
-  void prepareGvn() { unreachable(); }
-  bool useGvn() { unreachable(); }
-  void setUseGvn() { unreachable(); }
-
-  // TODO(floitsch): make class abstract instead of adding an abstract method.
-  abstract accept(HVisitor visitor);
-}
-
-class HLogicalOperator extends HNonSsaInstruction {
-  String operation;
-  HLogicalOperator(String this.operation,
-                   HInstruction first,
-                   HInstruction second)
-      : super(<HInstruction>[first, second]);
-  toString() => operation;
-  accept(HVisitor visitor) => visitor.visitLogicalOperator(this);
-  HInstruction get left() => inputs[0];
-  HInstruction get right() => inputs[1];
-  HType computeType() => HType.BOOLEAN;
   bool hasExpectedType() => true;
 }
 

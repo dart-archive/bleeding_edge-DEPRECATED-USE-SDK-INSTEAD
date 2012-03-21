@@ -139,6 +139,10 @@ class SsaCheckInstructionUnuser extends HBaseVisitor {
  *  nested ifs and boolean variables.
  */
 class SsaConditionMerger extends HGraphVisitor {
+  Map<HPhi, String> logicalOperations;
+
+  SsaConditionMerger() : logicalOperations = new Map<HPhi, String>();
+
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
@@ -151,7 +155,7 @@ class SsaConditionMerger extends HGraphVisitor {
    * leading to the [instruction]) down to the given [instruction] can be
    * generated at use-site.
    */
-  static bool isExpression(HInstruction instruction, HBasicBlock limit) {
+  bool isExpression(HInstruction instruction, HBasicBlock limit) {
     if (instruction is HPhi) return false;
     while (instruction.previous != null) {
       instruction = instruction.previous;
@@ -161,29 +165,15 @@ class SsaConditionMerger extends HGraphVisitor {
     }
     HBasicBlock block = instruction.block;
     if (!block.phis.isEmpty()) return false;
-    if (instruction is HLogicalOperator) {
-      // We know that the second operand is an expression.
-      return isExpression(instruction.inputs[0], limit);
-    }
     return block.predecessors.length == 1 && block.predecessors[0] == limit;
   }
 
-  static void replaceWithLogicalOperator(HPhi phi, String type) {
-    HBasicBlock block = phi.block;
-    HLogicalOperator logicalOp =
-        new HLogicalOperator(type, phi.inputs[0], phi.inputs[1]);
-    if (canGenerateAtUseSite(phi))  {
-      // TODO(lrn): More tests here?
-      logicalOp.tryGenerateAtUseSite();
-    }
-    block.addAtEntry(logicalOp);
-    // Move instruction that uses phi as input to using the logicalOp instead.
-    block.rewrite(phi, logicalOp);
-    // Remove the no-longer-used phi.
-    block.removePhi(phi);
+  void replaceWithLogicalOperator(HPhi phi, String type) {
+    if (canGenerateAtUseSite(phi)) phi.tryGenerateAtUseSite();
+    logicalOperations[phi] = type;
   }
 
-  static bool canGenerateAtUseSite(HPhi phi) {
+  bool canGenerateAtUseSite(HPhi phi) {
     if (phi.usedBy.length != 1) return false;
     assert(phi.next == null);
     HInstruction use = phi.usedBy[0];
@@ -209,7 +199,7 @@ class SsaConditionMerger extends HGraphVisitor {
     return true;
   }
 
-  static void detectLogicControlFlow(HPhi phi) {
+  void detectLogicControlFlow(HPhi phi) {
     // Check for the most common pattern for a short-circuit logic operation:
     //   B0 b0 = ...; if (b0) goto B1 else B2 (or: if (!b0) goto B2 else B1)
     //   |\
