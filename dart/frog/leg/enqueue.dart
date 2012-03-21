@@ -154,62 +154,55 @@ class EnqueueTask extends CompilerTask {
     });
   }
 
-  void handleUnseenInvocation(SourceString methodName, Selector selector) {
-    String memberName = methodName.slowToString();
+  processInstanceMembers(SourceString n, bool f(Element e)) {
+    String memberName = n.slowToString();
     Link<Element> members = instanceMembersByName[memberName];
     if (members !== null) {
       LinkBuilder<Element> remaining = new LinkBuilder<Element>();
       for (; !members.isEmpty(); members = members.tail) {
-        Element member = members.head;
-        if (member.isGetter()) {
-          compiler.addToWorkList(member);
-          continue;
-        } else if (member.isFunction()) {
-          FunctionElement functionMember = member;
-          FunctionParameters parameters =
-            functionMember.computeParameters(compiler);
-          if (selector.applies(parameters)) {
-            compiler.addToWorkList(member);
-            continue;
-          }
-        }
-        remaining.addLast(member);
+        if (!f(members.head)) remaining.addLast(members.head);
       }
       instanceMembersByName[memberName] = remaining.toLink();
     }
+  }
+
+  void handleUnseenInvocation(SourceString methodName, Selector selector) {
+    processInstanceMembers(methodName, (Element member) {
+      if (member.isGetter()) {
+        compiler.addToWorkList(member);
+        return true;
+      } else if (member.isFunction()) {
+        FunctionElement functionMember = member;
+        FunctionParameters parameters =
+          functionMember.computeParameters(compiler);
+        if (selector.applies(parameters)) {
+          compiler.addToWorkList(member);
+          return true;
+        }
+      }
+      return false;
+    });
   }
 
   void handleUnseenGetter(SourceString methodName) {
-    String memberName = methodName.slowToString();
-    Link<Element> members = instanceMembersByName[memberName];
-    if (members !== null) {
-      LinkBuilder<Element> remaining = new LinkBuilder<Element>();
-      for (; !members.isEmpty(); members = members.tail) {
-        Element member = members.head;
-        if (member.isGetter() || member.isFunction()) {
-          compiler.addToWorkList(member);
-        } else {
-          remaining.addLast(member);
-        }
+    processInstanceMembers(methodName, (Element member) {
+      if (member.isGetter() || member.isFunction()) {
+        compiler.addToWorkList(member);
+        return true;
+      } else {
+        return false;
       }
-      instanceMembersByName[memberName] = remaining.toLink();
-    }
+    });
   }
 
   void handleUnseenSetter(SourceString methodName) {
-    String memberName = methodName.slowToString();
-    Link<Element> members = instanceMembersByName[memberName];
-    if (members !== null) {
-      LinkBuilder<Element> remaining = new LinkBuilder<Element>();
-      for (; !members.isEmpty(); members = members.tail) {
-        Element member = members.head;
-        if (member.isSetter()) {
-          compiler.addToWorkList(member);
-        } else {
-          remaining.addLast(member);
-        }
+    processInstanceMembers(methodName, (Element member) {
+      if (member.isSetter()) {
+        compiler.addToWorkList(member);
+        return true;
+      } else {
+        return false;
       }
-      instanceMembersByName[memberName] = remaining.toLink();
-    }
+    });
   }
 }
