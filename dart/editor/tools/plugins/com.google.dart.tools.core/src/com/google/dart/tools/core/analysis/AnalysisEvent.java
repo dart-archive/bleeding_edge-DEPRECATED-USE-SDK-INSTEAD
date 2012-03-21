@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
@@ -88,9 +89,15 @@ public class AnalysisEvent {
     if (newErrors.size() == 0) {
       return;
     }
+    // TODO (danrubel) revisit whether error filtering should be removed from AnalysisServer
     HashSet<File> fileSet = new HashSet<File>(files);
     for (DartCompilationError error : newErrors) {
-      File file = toFile(server, error.getSource().getUri());
+      Source source = error.getSource();
+      if (source == null) {
+        // TODO (danrubel) where to report errors with no source?
+        continue;
+      }
+      File file = toFile(server, source.getUri());
       if (fileSet.contains(file)) {
         errors.add(error);
       }
