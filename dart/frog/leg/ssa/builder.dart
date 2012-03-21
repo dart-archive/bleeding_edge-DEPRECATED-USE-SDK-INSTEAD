@@ -1924,6 +1924,7 @@ class SsaBuilder implements Visitor {
       ClassElement cls = work.element.getEnclosingClass();
       element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
       HStatic target = new HStatic(element);
+      add(target);
       HInstruction self = localsHandler.readThis();
       Identifier identifier = node.selector.asIdentifier();
       String name = identifier.source.slowToString();
