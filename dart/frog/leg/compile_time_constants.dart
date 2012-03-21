@@ -1015,31 +1015,34 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           compiler.resolver.resolveMethodElement(constructor);
     }
 
+    List<Constant> jsNewArguments;
     ClassElement classElement = constructor.enclosingElement;
-    FunctionExpression functionNode = constructor.parseNode(compiler);
-    NodeList initializerList = functionNode.initializers;
-    FunctionParameters parameters = constructor.computeParameters(compiler);
+    compiler.withCurrentElement(constructor, () {
+      FunctionExpression functionNode = constructor.parseNode(compiler);
+      NodeList initializerList = functionNode.initializers;
+      FunctionParameters parameters = constructor.computeParameters(compiler);
 
-    Map<Element, Constant> fieldValues = new Map<Element, Constant>();
-    Map<Element, Constant> constructorDefinitions =
-        new Map<Element, Constant>();
+      Map<Element, Constant> fieldValues = new Map<Element, Constant>();
+      Map<Element, Constant> constructorDefinitions =
+          new Map<Element, Constant>();
 
-    assignArgumentsToParameters(parameters, constructorDefinitions,
-                                fieldValues);
-    CompileTimeConstantEvaluator initializerEvaluator =
-        new CompileTimeConstantEvaluator.insideConstructor(
-            constantHandler, constructorElements, compiler,
-            constructorDefinitions);
-    if (initializerList !== null) {
-      Link<Node> initializers = functionNode.initializers.nodes;
-      compileInitializers(initializers,
-                          initializerEvaluator,
-                          constructorElements,
-                          constructorDefinitions,
-                          fieldValues);
-    }
-    List<Constant> jsNewArguments =
-        buildJsNewArguments(classElement, fieldValues);
+      assignArgumentsToParameters(parameters, constructorDefinitions,
+                                  fieldValues);
+      CompileTimeConstantEvaluator initializerEvaluator =
+          new CompileTimeConstantEvaluator.insideConstructor(
+              constantHandler, constructorElements, compiler,
+              constructorDefinitions);
+      if (initializerList !== null) {
+        Link<Node> initializers = functionNode.initializers.nodes;
+        compileInitializers(initializers,
+                            initializerEvaluator,
+                            constructorElements,
+                            constructorDefinitions,
+                            fieldValues);
+      }
+      jsNewArguments = buildJsNewArguments(classElement, fieldValues);
+    });
+
 
     compiler.registerInstantiatedClass(classElement);
     // TODO(floitsch): take generic types into account.
