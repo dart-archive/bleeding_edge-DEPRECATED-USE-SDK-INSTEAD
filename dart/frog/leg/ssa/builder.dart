@@ -1938,7 +1938,7 @@ class SsaBuilder implements Visitor {
                             inputs));
       return;
     }
-    HStatic target = new HStatic(element);
+    HInstruction target = new HStatic(element);
     HInstruction context = localsHandler.readThis();
     add(target);
     var inputs = <HInstruction>[target, context];
