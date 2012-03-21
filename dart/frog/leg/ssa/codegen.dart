@@ -321,19 +321,6 @@ class SsaCodeGenerator implements HVisitor {
       beginLoop(node);
     }
 
-    assert(() {
-      // Make sure that all logical operation phis are not generate at
-      // use site.
-      bool noLogicalPhi = true;
-      node.forEachPhi((HPhi phi) {
-        if (!phi.generateAtUseSite()) {
-          String operation = logicalOperations[phi];
-          if (operation !== null) noLogicalPhi = false;
-        }
-      });
-      return noLogicalPhi;
-    });
-
     HInstruction instruction = node.first;
     while (instruction != null) {
       if (instruction === node.last) {
