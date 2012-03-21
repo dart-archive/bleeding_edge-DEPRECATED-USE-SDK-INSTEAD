@@ -21,8 +21,6 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(AttributeTest.class);
     suite.addTestSuite(RelationshipTest.class);
-//    suite.addTest(com.google.dart.tools.core.internal.index.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.indexer.TestAll.suite());
     return suite;
   }
 }
