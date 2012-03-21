@@ -1924,17 +1924,21 @@ class SsaBuilder implements Visitor {
       // Example: co19/Language/10_Expressions/25_Unary_Expressions_A06_t01
       compiler.unimplemented('unresolved super-send', node: node);
     }
-    if (element.kind.category != ElementCategory.FUNCTION) {
-      // Example:
-      // co19/Language/10_Expressions/14_Method_Invocation/3_Super_Invocation_A03_t04
-      compiler.unimplemented('super-send to non-function', node: node);
-    }
     HStatic target = new HStatic(element);
     HInstruction context = localsHandler.readThis();
     add(target);
     var inputs = <HInstruction>[target, context];
-    addStaticSendArgumentsToList(node, element, inputs);
-    push(new HInvokeSuper(selector, inputs));
+    if (element.kind == ElementKind.FUNCTION ||
+        element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+      addStaticSendArgumentsToList(node, element, inputs);
+      push(new HInvokeSuper(selector, inputs));
+    } else {
+      target = new HInvokeSuper(Selector.GETTER, inputs);
+      add(target);
+      inputs = <HInstruction>[target];
+      addDynamicSendArgumentsToList(node, inputs);
+      push(new HInvokeClosure(selector, inputs));
+    }
   }
 
   visitStaticSend(Send node) {

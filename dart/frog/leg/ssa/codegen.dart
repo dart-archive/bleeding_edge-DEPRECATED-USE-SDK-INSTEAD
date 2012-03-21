@@ -638,8 +638,21 @@ class SsaCodeGenerator implements HVisitor {
     // Remove the element and 'this'.
     int argumentCount = node.inputs.length - 2;
     String className = compiler.namer.isolatePropertyAccess(superClass);
-    String methodName = compiler.namer.instanceMethodName(
-        currentLibrary, superMethod.name, argumentCount);
+    String methodName;
+    if (superMethod.kind == ElementKind.FUNCTION ||
+        superMethod.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+      methodName = compiler.namer.instanceMethodName(
+          currentLibrary, superMethod.name, argumentCount);
+    } else {
+      methodName = compiler.namer.getterName(currentLibrary, superMethod.name);
+      // We need to register the name to ensure that the emitter
+      // generates the necessary getter.
+      // TODO(ahe): This is not optimal for tree-shaking, but we lack
+      // API to register the precise information. In this case, the
+      // enclosingElement of superMethod needs the getter, no other
+      // class (not even its subclasses).
+      compiler.registerDynamicGetter(superMethod.name);
+    }
     buffer.add('$className.prototype.$methodName.call');
     visitArguments(node.inputs);
     endExpression(JSPrecedence.CALL_PRECEDENCE);
