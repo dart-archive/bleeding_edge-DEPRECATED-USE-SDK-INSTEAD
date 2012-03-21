@@ -1532,11 +1532,11 @@
       </actionSet>
    </extension>
 
-   <extension point="org.eclipse.ui.actionSetPartAssociations">
+   <!--<extension point="org.eclipse.ui.actionSetPartAssociations">
       <actionSetPartAssociation targetID="com.google.dart.tools.ui.CodingActionSet">
          <part id="com.google.dart.tools.ui.text.editor.CompilationUnitEditor"/>
       </actionSetPartAssociation>
-   </extension>
+   </extension>-->
 
 <!-- End JavaScript Action Set (Adding the source, refactor and navigate menu -->
 
