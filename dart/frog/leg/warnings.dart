@@ -158,6 +158,9 @@ class MessageKind {
   static final CANNOT_IMPLEMENT = const MessageKind(
       "#{1} cannot be implemented");
 
+  static final ILLEGAL_SUPER_SEND = const MessageKind(
+      "#{1} cannot be called on super");
+
   toString() => template;
 }
 

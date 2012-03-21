@@ -1921,8 +1921,22 @@ class SsaBuilder implements Visitor {
     Selector selector = elements.getSelector(node);
     Element element = elements[node];
     if (element === null) {
-      // Example: co19/Language/10_Expressions/25_Unary_Expressions_A06_t01
-      compiler.unimplemented('unresolved super-send', node: node);
+      ClassElement cls = work.element.getEnclosingClass();
+      element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
+      HStatic target = new HStatic(element);
+      HInstruction self = localsHandler.readThis();
+      Identifier identifier = node.selector.asIdentifier();
+      String name = identifier.source.slowToString();
+      // TODO(ahe): Add the arguments to this list.
+      push(new HLiteralList([], true));
+      var inputs = <HInstruction>[
+          target,
+          self,
+          graph.addConstantString(new DartString.literal(name)),
+          pop()];
+      push(new HInvokeSuper(const Selector(SelectorKind.INVOCATION, 2),
+                            inputs));
+      return;
     }
     HStatic target = new HStatic(element);
     HInstruction context = localsHandler.readThis();

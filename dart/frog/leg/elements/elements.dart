@@ -171,6 +171,13 @@ class Element implements Hashable {
     return element;
   }
 
+  ClassElement getEnclosingClass() {
+    for (Element e = this; e !== null; e = e.enclosingElement) {
+      if (e.kind === ElementKind.CLASS) return e;
+    }
+    return null;
+  }
+
   toString() => '$kind(${name.slowToString()})';
 
   bool _isNative = false;

@@ -768,9 +768,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (name.stringValue === 'this') {
       error(node.selector, MessageKind.GENERIC, ["expected an identifier"]);
     } else if (node.isSuperCall) {
-      if (isUserDefinableOperator(name.stringValue)) {
-        name = Elements.constructOperatorName(const SourceString('operator'),
-                                              name);
+      if (node.isOperator) {
+        if (isUserDefinableOperator(name.stringValue)) {
+          name = Elements.constructOperatorName(const SourceString('operator'),
+                                                name);
+        } else {
+          error(node.selector, MessageKind.ILLEGAL_SUPER_SEND, [name]);
+        }
       }
       if (!inInstanceContext) {
         error(node.receiver, MessageKind.NO_INSTANCE_AVAILABLE, [name]);
