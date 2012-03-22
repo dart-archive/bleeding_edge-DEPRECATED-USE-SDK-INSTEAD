@@ -166,12 +166,8 @@ def main():
     cmd = test_cmd + ['--component=dart2js', 'leg_only', 'frog_native']
     RunCommand(*cmd, verbose=True)
 
-    # Run leg on "built-in" tests.
-    cmd = test_cmd + ['--component=dart2js']
-    RunCommand(*cmd, verbose=True)
-
-    # Run leg on client tests.
-    cmd = test_cmd + ['--component=legium', 'client']
+    # Run dart2js and legium on "built-in" tests.
+    cmd = test_cmd + ['--component=dart2js,legium']
     RunCommand(*cmd, verbose=True)
 
 
