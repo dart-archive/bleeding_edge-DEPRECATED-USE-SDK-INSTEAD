@@ -967,7 +967,7 @@ builtin$concat$1(receiver, other) {
   if (receiver is !String) return UNINTERCEPTED(receiver.concat(other));
 
   if (other is !String) throw new IllegalArgumentException(other);
-  return JS('String', @'#.concat(#)', receiver, other);
+  return JS('String', @'# + #', receiver, other);
 }
 
 builtin$contains$1(receiver, other) {

@@ -76,6 +76,8 @@ class Selector implements Hashable {
       const Selector(SelectorKind.INVOCATION, 0);
   static final Selector INVOCATION_1 =
       const Selector(SelectorKind.INVOCATION, 1);
+  static final Selector INVOCATION_2 =
+      const Selector(SelectorKind.INVOCATION, 2);
 
   bool applies(FunctionParameters parameters) {
     if (argumentCount > parameters.parameterCount) return false;

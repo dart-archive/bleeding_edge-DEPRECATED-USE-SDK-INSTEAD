@@ -2771,7 +2771,8 @@ class StringBuilderVisitor extends AbstractVisitor {
   void visitExpression(Node node) {
     flushAccumulator();
     node.accept(builder);
-    prefix = concat(prefix, builder.pop());
+    HInstruction asString = buildToString(node, builder.pop());
+    prefix = concat(prefix, asString);
   }
 
   void visitStringInterpolation(StringInterpolation node) {
@@ -2816,13 +2817,46 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   HInstruction concat(HInstruction left, HInstruction right) {
-    Operator op = new Operator(new StringToken(PLUS_INFO, "+", offset));
-    HStatic target =
-        new HStatic(builder.interceptors.getOperatorInterceptor(op));
+    SourceString dartMethodName = const SourceString("concat");
+    if (!builder.methodInterceptionEnabled) {
+      builder.compiler.internalError(
+        "Using string interpolations in non-intercepted code.",
+        instruction: right);
+    }
+    Element interceptor =
+        builder.interceptors.getStaticInterceptor(dartMethodName, 1);
+    if (interceptor === null) {
+      builder.compiler.internalError(
+          "concat not intercepted.", instruction: left);
+    }
+    HStatic target = new HStatic(interceptor);
     builder.add(target);
-    HInstruction concat = new HAdd(target, left, right);
-    builder.add(concat);
-    return concat;
+    builder.push(new HInvokeInterceptor(Selector.INVOCATION_1,
+                                        dartMethodName,
+                                        false,
+                                        <HInstruction>[target, left, right]));
+    return builder.pop();
+  }
+
+  HInstruction buildToString(Node node, HInstruction input) {
+    SourceString dartMethodName = const SourceString("toString");
+    if (!builder.methodInterceptionEnabled) {
+      builder.compiler.internalError(
+        "Using string interpolations in non-intercepted code.", node: node);
+    }
+    Element interceptor =
+        builder.interceptors.getStaticInterceptor(dartMethodName, 0);
+    if (interceptor === null) {
+      builder.compiler.internalError(
+        "toString not intercepted.", node: node);
+    }
+    HStatic target = new HStatic(interceptor);
+    builder.add(target);
+    builder.push(new HInvokeInterceptor(Selector.INVOCATION_0,
+                                        dartMethodName,
+                                        false,
+                                        <HInstruction>[target, input]));
+    return builder.pop();
   }
 
   HInstruction result() {
