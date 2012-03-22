@@ -157,10 +157,6 @@ class SsaCodeGenerator implements HVisitor {
 
   void preGenerateMethod(HGraph graph) {
     new SsaInstructionMerger(generateAtUseSite).visitGraph(graph);
-    // Replace the results of check instructions with the
-    // original value, if the result is used. This is safe now,
-    // since we don't do code motion after this point.
-    new SsaCheckInstructionUnuser(generateAtUseSite).visitGraph(graph);
     new SsaConditionMerger(generateAtUseSite,
                            logicalOperations).visitGraph(graph);
   }
@@ -246,6 +242,15 @@ class SsaCodeGenerator implements HVisitor {
   void use(HInstruction argument, int expectedPrecedence) {
     if (isGenerateAtUseSite(argument)) {
       visit(argument, expectedPrecedence);
+    } else if (argument is HIntegerCheck) {
+      HIntegerCheck instruction = argument;
+      use(instruction.value, expectedPrecedence);
+    } else if (argument is HBoundsCheck) {
+      HBoundsCheck instruction = argument;
+      use(instruction.index, expectedPrecedence);
+    } else if (argument is HTypeGuard) {
+      HTypeGuard instruction = argument;
+      use(instruction.guarded, expectedPrecedence);
     } else {
       buffer.add(temporary(argument));
     }
@@ -356,7 +361,9 @@ class SsaCodeGenerator implements HVisitor {
         if (instruction is !HIf && instruction is !HBailoutTarget) {
           addIndentation();
         }
-        if (instruction.usedBy.isEmpty()) {
+        if (instruction.usedBy.isEmpty()
+            || instruction is HTypeGuard
+            || instruction is HCheck) {
           visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
         } else {
           define(instruction);

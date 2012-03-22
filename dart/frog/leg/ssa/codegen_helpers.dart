@@ -119,41 +119,6 @@ class SsaInstructionMerger extends HBaseVisitor {
 }
 
 /**
- * In order to generate efficient code that works with bailouts, we
- * rewrite users of check instruction to use the input of the
- * instruction instead of the check itself.
- */
-class SsaCheckInstructionUnuser extends HBaseVisitor {
-  Set<HInstruction> generateAtUseSite;
-
-  SsaCheckInstructionUnuser(this.generateAtUseSite);
-
-  void visitGraph(HGraph graph) {
-    visitDominatorTree(graph);
-  }
-
-  void visitTypeGuard(HTypeGuard node) {
-    assert(!generateAtUseSite.contains(node));
-    HInstruction guarded = node.guarded;
-    currentBlock.rewrite(node, guarded);
-    // Remove generate at use site for the input, except for
-    // parameters, since they do not introduce any computation.
-    if (guarded is !HParameterValue) generateAtUseSite.remove(guarded);
-  }
-
-  void visitBoundsCheck(HBoundsCheck node) {
-    assert(!generateAtUseSite.contains(node));
-    currentBlock.rewrite(node, node.index);
-  }
-
-  void visitIntegerCheck(HIntegerCheck node) {
-    assert(!generateAtUseSite.contains(node));
-    currentBlock.rewrite(node, node.value);
-  }
-}
-
-
-/**
  *  Detect control flow arising from short-circuit logical operators, and
  *  prepare the program to be generated using these operators instead of
  *  nested ifs and boolean variables.

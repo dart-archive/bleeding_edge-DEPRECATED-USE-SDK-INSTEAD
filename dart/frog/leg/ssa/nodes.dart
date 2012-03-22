@@ -962,9 +962,11 @@ class HInstruction implements Hashable {
     return validator.isValid;
   }
 
-  // The code for computing a bailout environment, and the code
-  // generation must agree on what does not need to be captured,
-  // so should always be generated at use site.
+  /**
+   * The code for computing a bailout environment, and the code
+   * generation must agree on what does not need to be captured,
+   * so should always be generated at use site.
+   */
   bool isCodeMotionInvariant() => false;
 }
 
