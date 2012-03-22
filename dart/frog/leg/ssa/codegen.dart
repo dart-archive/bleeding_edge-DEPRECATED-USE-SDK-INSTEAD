@@ -879,7 +879,6 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void visitStatic(HStatic node) {
-    assert(!node.isCodeMotionInvariant() || isGenerateAtUseSite(node));
     compiler.registerStaticUse(node.element);
     buffer.add(compiler.namer.isolateAccess(node.element));
   }
