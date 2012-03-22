@@ -20,16 +20,39 @@ class PartialParser extends Parser {
           (value === ',') ||
           (value === ']'))
         return token;
-      if (value === '=' && token.next.stringValue === '{') {
-        // Handle cases like this:
-        // class Foo {
-        //   var map;
-        //   Foo() : map = {};
-        // }
-        BeginGroupToken begin = token.next;
-        token = (begin.endGroup !== null) ? begin.endGroup : token;
-        token = token.next;
-        continue;
+      if (value === '=') {
+        var nextValue = token.next.stringValue;
+        if (nextValue === 'const') {
+          token = token.next;
+          nextValue = token.next.stringValue;
+        }
+        if (nextValue === '{') {
+          // Handle cases like this:
+          // class Foo {
+          //   var map;
+          //   Foo() : map = {};
+          // }
+          BeginGroupToken begin = token.next;
+          token = (begin.endGroup !== null) ? begin.endGroup : token;
+          token = token.next;
+          continue;
+        }
+        if (nextValue === '<') {
+          // Handle cases like this:
+          // class Foo {
+          //   var map;
+          //   Foo() : map = <Foo>{};
+          // }
+          BeginGroupToken begin = token.next;
+          token = (begin.endGroup !== null) ? begin.endGroup : token;
+          token = token.next;
+          if (token.stringValue === '{') {
+            begin = token;
+            token = (begin.endGroup !== null) ? begin.endGroup : token;
+            token = token.next;
+          }
+          continue;
+        }
       }
       if (!mayParseFunctionExpressions && value === '{')
         return token;
