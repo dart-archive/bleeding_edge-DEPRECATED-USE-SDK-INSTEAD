@@ -221,7 +221,6 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     HInstruction index = insertIntegerCheck(node, node.index);
     index = insertBoundsCheck(node, node.receiver, index);
     HIndex newInstruction = new HIndex(node.target, node.receiver, index);
-    newInstruction.builtin = true;
     node.block.addBefore(node, newInstruction);
     node.block.rewrite(node, newInstruction);
     node.block.remove(node);
@@ -233,7 +232,6 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     index = insertBoundsCheck(node, node.receiver, index);
     HIndexAssign newInstruction =
         new HIndexAssign(node.target, node.receiver, index, node.value);
-    newInstruction.builtin = true;
     node.block.addBefore(node, newInstruction);
     node.block.rewrite(node, newInstruction);
     node.block.remove(node);

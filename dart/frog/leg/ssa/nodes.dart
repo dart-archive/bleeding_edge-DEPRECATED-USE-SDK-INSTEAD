@@ -1147,7 +1147,6 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
-  bool builtin = false;
   /** The first input must be the target. */
   HInvokeStatic(selector, inputs) : super(selector, inputs);
   toString() => 'invoke static: ${element.name}';
@@ -1155,16 +1154,22 @@ class HInvokeStatic extends HInvoke {
   Element get element() => target.element;
   HStatic get target() => inputs[0];
 
+  bool isArrayConstructor() {
+    // TODO(ngeoffray): This is not the right way to do the check,
+    // nor the right place. We need to move it to a phase.
+    return (element.isFactoryConstructor()
+        && element.enclosingElement.name.slowToString() == 'List');
+  }
+
   HType computeType() {
-    if (element.isFactoryConstructor()
-        && element.enclosingElement.name.slowToString() == 'List') {
-      builtin = true;
+    if (isArrayConstructor()) {
       return HType.ARRAY;
     }
     return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => builtin;
+  bool get builtin() => isArrayConstructor();
+  bool hasExpectedType() => isArrayConstructor();
 }
 
 class HInvokeSuper extends HInvokeStatic {
@@ -1316,9 +1321,10 @@ class HBinaryArithmetic extends HInvokeBinary {
     }
   }
 
+  bool get builtin() => left.isNumber() && right.isNumber();
+
   HType computeType() {
     HType inputsType = computeInputsType();
-    builtin = inputsType.isNumber();
     if (!inputsType.isUnknown()) return inputsType;
     if (left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
@@ -1332,7 +1338,7 @@ class HBinaryArithmetic extends HInvokeBinary {
     return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => builtin || type.isUnknown();
+  bool hasExpectedType() => left.isNumber() && right.isNumber();
   // TODO(1603): The class should be marked as abstract.
   abstract BinaryOperation get operation();
 }
@@ -1342,13 +1348,15 @@ class HAdd extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
+  bool get builtin() {
+    return (left.isNumber() && right.isNumber())
+            || (left.isString() && right.isString())
+            || (left.isString() && right is HConstant);
+  }
+
   HType computeType() {
     HType computedType = computeInputsType();
-    builtin = (computedType.isNumber() || computedType.isString());
-    if (computedType.isConflicting() && left.isString()) {
-      builtin = right is HConstant;
-      return HType.STRING;
-    }
+    if (computedType.isConflicting() && left.isString()) return HType.STRING;
     if (!computedType.isUnknown()) return computedType;
     if (left.isNumber()) return HType.NUMBER;
     return HType.UNKNOWN;
@@ -1379,9 +1387,10 @@ class HDivide extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
+  bool get builtin() => left.isNumber() && right.isNumber();
+
   HType computeType() {
     HType inputsType = computeInputsType();
-    builtin = inputsType.isNumber();
     if (left.isNumber()) return HType.DOUBLE;
     return HType.UNKNOWN;
   }
@@ -1444,9 +1453,10 @@ class HBinaryBitOp extends HBinaryArithmetic {
   HBinaryBitOp(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
 
+  bool get builtin() => left.isInteger() && right.isInteger();
+
   HType computeType() {
     HType inputsType = computeInputsType();
-    builtin = inputsType.isInteger();
     if (!inputsType.isUnknown()) return inputsType;
     if (left.isInteger()) return HType.INTEGER;
     return HType.UNKNOWN;
@@ -1535,9 +1545,10 @@ class HInvokeUnary extends HInvokeStatic {
     }
   }
 
+  bool get builtin() => operand.isNumber();
+
   HType computeType() {
     HType operandType = operand.type;
-    builtin = operandType.isNumber();
     if (!operandType.isUnknown()) return operandType;
     return HType.UNKNOWN;
   }
@@ -1549,7 +1560,7 @@ class HInvokeUnary extends HInvokeStatic {
     return HType.UNKNOWN;
   }
 
-  bool hasExpectedType() => builtin || (type.isUnknown());
+  bool hasExpectedType() => builtin || type.isUnknown();
 
   abstract UnaryOperation get operation();
 }
@@ -1568,9 +1579,10 @@ class HBitNot extends HInvokeUnary {
   HBitNot(HStatic target, HInstruction input) : super(target, input);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
+  bool get builtin() => operand.isInteger();
+
   HType computeType() {
     HType operandType = operand.type;
-    builtin = operandType.isInteger();
     if (!operandType.isUnknown()) return operandType;
     return HType.UNKNOWN;
   }
@@ -1829,11 +1841,6 @@ class HRelational extends HInvokeBinary {
     }
   }
 
-  HType computeType() {
-    builtin = computeInputsType().isNumber();
-    return HType.BOOLEAN;
-  }
-
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return HType.UNKNOWN;
@@ -1842,6 +1849,8 @@ class HRelational extends HInvokeBinary {
     return HType.NUMBER;
   }
 
+  bool get builtin() => left.isNumber() && right.isNumber();
+  HType computeType() => HType.BOOLEAN;
   // A HRelational goes through the builtin operator or the top level
   // element. Therefore, it always has the expected type.
   bool hasExpectedType() => true;
@@ -1854,10 +1863,11 @@ class HEquals extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitEquals(this);
 
-  HType computeType() {
-    builtin = computeInputsType().isNumber() || (left is HConstant);
-    return HType.BOOLEAN;
+  bool get builtin() {
+    return (left.isNumber() && right.isNumber()) || left is HConstant;
   }
+
+  HType computeType() => HType.BOOLEAN;
 
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
@@ -1877,11 +1887,8 @@ class HIdentity extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
-  HType computeType() {
-    builtin = true;
-    return HType.BOOLEAN;
-  }
-
+  bool get builtin() => true;
+  HType computeType() => HType.BOOLEAN;
   bool hasExpectedType() => true;
 
   HType computeDesiredInputType(HInstruction input) => HType.UNKNOWN;
@@ -2010,11 +2017,6 @@ class HIndex extends HInvokeStatic {
   HInstruction get receiver() => inputs[1];
   HInstruction get index() => inputs[2];
 
-  HType computeType() {
-    builtin = receiver.isStringOrArray();
-    return HType.UNKNOWN;
-  }
-
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return HType.UNKNOWN;
@@ -2022,6 +2024,8 @@ class HIndex extends HInvokeStatic {
     return HType.UNKNOWN;
   }
 
+  bool get builtin() => receiver.isStringOrArray();
+  HType computeType() => HType.UNKNOWN;
   bool hasExpectedType() => false;
 }
 
@@ -2039,11 +2043,6 @@ class HIndexAssign extends HInvokeStatic {
   HInstruction get index() => inputs[2];
   HInstruction get value() => inputs[3];
 
-  HType computeType() {
-    builtin = receiver.isArray();
-    return value.type;
-  }
-
   HType computeDesiredInputType(HInstruction input) {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return HType.UNKNOWN;
@@ -2051,6 +2050,8 @@ class HIndexAssign extends HInvokeStatic {
     return HType.UNKNOWN;
   }
 
+  bool get builtin() => receiver.isArray();
+  HType computeType() => value.type;
   // This instruction does not yield a new value, so it always
   // has the expected type (void).
   bool hasExpectedType() => true;
