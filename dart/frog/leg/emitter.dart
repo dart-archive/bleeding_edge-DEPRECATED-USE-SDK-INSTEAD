@@ -653,9 +653,9 @@ function(child, parent) {
       mainEnsureGetter = "$mainAccess.$invocationName = $mainAccess";
     }
 
-  // TODO(ngeoffray): These globals are currently required by the isolate
-  // library, but since leg already generates code on an Isolate object, they
-  // are not really needed. We should remove them once Leg replaces Frog.
+    // TODO(ngeoffray): These globals are currently required by the isolate
+    // library, but since leg already generates code on an Isolate object, they
+    // are not really needed. We should remove them once Leg replaces Frog.
     return """
 var \$globalThis = $currentIsolate;
 var \$globalState;
@@ -673,6 +673,18 @@ $mainEnsureGetter
 ${namer.isolateAccess(isolateMain)}($mainAccess);""";
   }
 
+  emitMain(StringBuffer buffer) {
+    if (compiler.isMockCompilation) return;
+    Element main = compiler.mainApp.find(Compiler.MAIN);
+    if (compiler.isolateLibrary != null) {
+      Element isolateMain =
+        compiler.isolateLibrary.find(Compiler.START_ROOT_ISOLATE);
+      buffer.add(buildIsolateSetup(main, isolateMain));
+    } else {
+      buffer.add('${namer.isolateAccess(main)}();\n');
+    }
+  }
+
   String assembleProgram() {
     measure(() {
       StringBuffer buffer = new StringBuffer();
@@ -686,14 +698,7 @@ ${namer.isolateAccess(isolateMain)}($mainAccess);""";
       emitStaticFinalFieldInitializations(buffer);
       nativeEmitter.emitDynamicDispatchMetadata(buffer);
       buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
-      Element main = compiler.mainApp.find(Compiler.MAIN);
-      if (compiler.isolateLibrary != null) {
-        Element isolateMain =
-            compiler.isolateLibrary.find(Compiler.START_ROOT_ISOLATE);
-        buffer.add(buildIsolateSetup(main, isolateMain));
-      } else {
-        buffer.add('${namer.isolateAccess(main)}();\n');
-      }
+      emitMain(buffer);
       compiler.assembledCode = buffer.toString();
     });
     return compiler.assembledCode;

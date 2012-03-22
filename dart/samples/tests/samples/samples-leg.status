@@ -3,15 +3,14 @@
 # BSD-style license that can be found in the LICENSE file.
 
 
-[ $component == dart2js ]
+[ $component == dart2js || $component == legium ]
 chat/ChatServerTest: Fail # Failed invariant in closure analyzer.
+lib/layout/LayoutTest: Fail #: ConstantHandler with this or super not implemented
+lib/view/ViewTest: Fail #: ConstantHandler with this or super not implemented
 proxy/MintMakerRpcTest: Fail # TypeError: Cannot call method 'toSendPort$0' of undefined
+swarm/SwarmTest: Fail #: ConstantHandler with this or super not implemented
 
-lib/observable/ObservableTest: Fail, OK # ReferenceError: window is not defined
-lib/touch/TouchTest: Fail, OK # ReferenceError: window is not defined
-lib/util/UtilTest: Fail, OK # ReferenceError: window is not defined
-dartcombat/DartCombatTest: Fail, OK # ReferenceError: window is not defined
-lib/layout/LayoutTest: Fail, OK # ReferenceError: window is not defined
-lib/view/ViewTest: Fail, OK # ReferenceError: window is not defined
-swarm/SwarmTest: Fail, OK # ReferenceError: window is not defined
-total/TotalTest: Fail, OK # ReferenceError: window is not defined
+
+[ $component == legium ]
+dartcombat/DartCombatTest: Fail
+proxy/MintMakerRpcTest: Pass # Issue 2254.

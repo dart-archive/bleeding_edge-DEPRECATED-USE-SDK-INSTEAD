@@ -25,3 +25,13 @@ class InternalError {
 class StaticResolutionException implements Exception {}
 
 void assert(condition) {}
+
+interface ByteArray extends List default _InternalByteArray {
+  ByteArray(int length);
+}
+
+class _InternalByteArray {
+  factory _InternalByteArray(int length) {
+    throw new UnsupportedOperationException("new ByteArray($length)");
+  }
+}

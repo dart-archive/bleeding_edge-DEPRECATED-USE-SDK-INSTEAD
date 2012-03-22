@@ -42,6 +42,7 @@ String relativize(Uri base, Uri uri) {
 bool compile(frog.World world) {
   final throwOnError = frog.options.throwOnErrors;
   final showWarnings = frog.options.showWarnings;
+  final allowMockCompilation = frog.options.allowMockCompilation;
   // final compiler = new WorldCompiler(world, throwOnError);
   Uri cwd = new Uri(scheme: 'file', path: io.getCurrentDirectory());
   Uri uri = cwd.resolve(frog.options.dartScript);
@@ -79,9 +80,12 @@ bool compile(frog.World world) {
     if (fatal && throwOnError) throw new AbortLeg(message);
   }
 
+  List<String> options = new List<String>();
+  if (allowMockCompilation) options.add('--allow-mock-compilation');
+
   // TODO(ahe): We expect the future to be complete and call value
   // directly. In effect, we don't support truly asynchronous API.
-  String code = api.compile(uri, libraryRoot, provider, handler).value;
+  String code = api.compile(uri, libraryRoot, provider, handler, options).value;
   if (code === null) return false;
   world.legCode = code;
   world.jsBytesWritten = code.length;

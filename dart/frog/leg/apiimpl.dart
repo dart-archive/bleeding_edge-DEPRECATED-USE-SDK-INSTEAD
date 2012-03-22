@@ -16,8 +16,10 @@ class Compiler extends leg.Compiler {
   ReadUriFromString provider;
   DiagnosticHandler handler;
   Uri libraryRoot;
+  List<String> options;
+  bool mockableLibraryUsed = false;
 
-  Compiler(this.provider, this.handler, this.libraryRoot)
+  Compiler(this.provider, this.handler, this.libraryRoot, this.options)
     : super.withCurrentDirectory(null, tracer: new ssa.HTracer());
 
   leg.LibraryElement scanBuiltinLibrary(String filename) {
@@ -50,14 +52,17 @@ class Compiler extends leg.Compiler {
     String uriName = uri.toString();
     // TODO(ahe): Clean this up.
     if (uriName == 'dart:dom') {
+      mockableLibraryUsed = true;
       return libraryRoot.resolve('../../../client/dom/frog/dom_frog.dart');
     } else if (uriName == 'dart:html') {
+      mockableLibraryUsed = true;
       return libraryRoot.resolve('../../../client/html/frog/html_frog.dart');
     } else if (uriName == 'dart:json') {
       return libraryRoot.resolve('../../../lib/json/json.dart');
     } else if (uriName == 'dart:isolate') {
       return libraryRoot.resolve('../../../lib/isolate/isolate_leg.dart');
     } else if (uriName == 'dart:io') {
+      mockableLibraryUsed = true;
       return libraryRoot.resolve('io.dart');
     } else if (uriName == 'dart:utf') {
       return libraryRoot.resolve('../../../lib/utf/utf.dart');
@@ -81,5 +86,10 @@ class Compiler extends leg.Compiler {
     } else {
       handler(span.uri, span.begin, span.end, message, fatal);
     }
+  }
+
+  bool get isMockCompilation() {
+    return mockableLibraryUsed
+      && (options.indexOf('--allow-mock-compilation') !== -1);
   }
 }

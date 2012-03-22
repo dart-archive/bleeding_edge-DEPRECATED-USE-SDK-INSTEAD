@@ -65,6 +65,3 @@ lib/view/ViewTest: Skip
 
 [ $component == frogsh ]
 *: Skip
-
-[ $component == legium ]
-dartcombat/DartCombatTest: Fail # Uncaught TypeError: Object #<FutureImpl> has no method 'receive$1'

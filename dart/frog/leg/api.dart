@@ -39,8 +39,9 @@ typedef void DiagnosticHandler(Uri uri, int begin, int end,
 Future<String> compile(Uri script,
                        Uri libraryRoot,
                        ReadUriFromString provider,
-                       DiagnosticHandler handler) {
-  Compiler compiler = new Compiler(provider, handler, libraryRoot);
+                       DiagnosticHandler handler,
+                       [List<String> options = const []]) {
+  Compiler compiler = new Compiler(provider, handler, libraryRoot, options);
   compiler.run(script);
   String code = compiler.assembledCode;
   Completer<String> completer = new Completer<String>();

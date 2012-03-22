@@ -68,6 +68,10 @@ class _Directory implements Directory {
   factory Directory(arg) {
     throw new UnsupportedOperationException('new Directory($arg)');
   }
+
+  factory Directory.current() {
+    throw new UnsupportedOperationException('new Directory.current()');
+  }
 }
 
 class _Process implements Process {
@@ -88,7 +92,7 @@ class _ServerSocket implements ServerSocket {
 
 class _Socket implements Socket {
   factory Socket(String host, int port) {
-    throw new UnsupportedOperationException('new Socket($host, $int)');
+    throw new UnsupportedOperationException('new Socket($host, $port)');
   }
 }
 

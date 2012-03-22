@@ -180,7 +180,9 @@ def TestFrog(component, mode, system, browser, option, flags):
     # isolate tests, so we're switching to use Chrome in the short term.
     if browser == 'chrome' and system == 'linux':
       TestStep('browser', mode, system, 'frogium', tests, flags)
-      TestStep('browser', mode, system, 'legium', tests, flags)
+      TestStep('browser', mode, system, 'legium', [], flags)
+      TestStep('browser', mode, system, 'legium_extra',
+               ['leg_only', 'frog_native'], flags)
     else:
       additional_flags = ['--browser=' + browser]
       if system.startswith('win') and browser == 'ie':

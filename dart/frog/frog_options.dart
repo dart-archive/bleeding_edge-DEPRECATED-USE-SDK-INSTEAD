@@ -27,6 +27,7 @@ class FrogOptions {
 
   // Options that modify behavior significantly
   bool legOnly = false;
+  bool allowMockCompilation = false;
   bool enableAsserts = false;
   bool enableTypeChecks = false;
   bool warningsAsErrors = false;
@@ -113,6 +114,10 @@ class FrogOptions {
       case '--enable-leg':
       case '--leg-only':
         legOnly = true;
+        return true;
+
+      case '--allow-mock-compilation':
+        allowMockCompilation = true;
         return true;
 
       case '--enable-asserts':

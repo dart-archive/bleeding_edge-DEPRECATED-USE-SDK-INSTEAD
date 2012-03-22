@@ -470,6 +470,8 @@ class Compiler implements DiagnosticListener {
   }
 
   Element findHelper(SourceString name) => jsHelperLibrary.find(name);
+
+  bool get isMockCompilation() => false;
 }
 
 class CompilerTask {
