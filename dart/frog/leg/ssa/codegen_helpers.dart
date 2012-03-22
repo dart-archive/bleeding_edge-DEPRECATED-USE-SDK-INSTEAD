@@ -14,6 +14,9 @@
  */
 class SsaInstructionMerger extends HBaseVisitor {
   List<HInstruction> expectedInputs;
+  Set<HInstruction> generateAtUseSite;
+
+  SsaInstructionMerger(this.generateAtUseSite);
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -27,8 +30,9 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 
   void visitInstruction(HInstruction instruction) {
+    if (instruction.isCodeMotionInvariant()) generateAtUseSite.add(instruction);
     for (HInstruction input in instruction.inputs) {
-      if (!input.generateAtUseSite() && input.usedBy.length == 1) {
+      if (!generateAtUseSite.contains(input) && input.usedBy.length == 1) {
         expectedInputs.add(input);
       }
     }
@@ -42,6 +46,26 @@ class SsaInstructionMerger extends HBaseVisitor {
   // instructions. Its inputs must be emitted prior to visiting it.
   void visitBailoutTarget(HBailoutTarget instruction) {}
 
+  // A check method must not have its input generate at use site,
+  // because it's using it multiple times.
+  void visitCheck(HCheck instruction) {}
+
+  // A type guard should not generate its input at use site, otherwise
+  // they would not be alive.
+  void visitTypeGuard(HTypeGuard instruction) {}
+
+  void tryGenerateAtUseSite(HInstruction instruction) {
+    // A type guard should never be generate at use site, otherwise we
+    // cannot bailout.
+    if (instruction is HTypeGuard) return;
+
+    // A check should never be generate at use site, otherwise we
+    // cannot throw.
+    if (instruction is HCheck) return;
+
+    generateAtUseSite.add(instruction);
+  }
+
   void visitBasicBlock(HBasicBlock block) {
     // Visit each instruction of the basic block in last-to-first order.
     // Keep a list of expected inputs of the current "expression" being
@@ -51,17 +75,13 @@ class SsaInstructionMerger extends HBaseVisitor {
     // The expectedInputs list holds non-trivial instructions that may
     // be generated at their use site, if they occur in the correct order.
     expectedInputs = new List<HInstruction>();
-    // Add non-trivial inputs of instruction to expectedInputs, in
-    // evaluation order.
-    void addInputs(HInstruction instruction) {
-      instruction.accept(this);
-    }
+
     // Pop instructions from expectedInputs until instruction is found.
     // Return true if it is found, or false if not.
     bool findInInputs(HInstruction instruction) {
       while (!expectedInputs.isEmpty()) {
         HInstruction nextInput = expectedInputs.removeLast();
-        assert(!nextInput.generateAtUseSite());
+        assert(!generateAtUseSite.contains(nextInput));
         assert(nextInput.usedBy.length == 1);
         if (nextInput == instruction) {
           return true;
@@ -70,28 +90,28 @@ class SsaInstructionMerger extends HBaseVisitor {
       return false;
     }
 
-    addInputs(block.last);
+    block.last.accept(this);
     for (HInstruction instruction = block.last.previous;
          instruction !== null;
          instruction = instruction.previous) {
-      if (instruction.generateAtUseSite()) {
+      if (generateAtUseSite.contains(instruction)) {
         continue;
       }
+      bool foundInInputs = false;
       // See if the current instruction is the next non-trivial
       // expected input. If not, drop the expectedInputs and
       // start over.
       if (findInInputs(instruction)) {
-        instruction.tryGenerateAtUseSite();
+        foundInInputs = true;
+        tryGenerateAtUseSite(instruction);
       } else {
         assert(expectedInputs.isEmpty());
       }
-      if (instruction is HForeign) {
-        // Never try to merge inputs to HForeign.
-        continue;
-      } else if (instruction.generateAtUseSite() ||
-                 usedOnlyByPhis(instruction)) {
-        // In all other cases, try merging all non-trivial inputs.
-        addInputs(instruction);
+      if (foundInInputs
+          || usedOnlyByPhis(instruction)
+          || instruction.isCodeMotionInvariant()) {
+        // Try merging all non-trivial inputs.
+        instruction.accept(this);
       }
     }
     expectedInputs = null;
@@ -104,30 +124,30 @@ class SsaInstructionMerger extends HBaseVisitor {
  * instruction instead of the check itself.
  */
 class SsaCheckInstructionUnuser extends HBaseVisitor {
+  Set<HInstruction> generateAtUseSite;
+
+  SsaCheckInstructionUnuser(this.generateAtUseSite);
+
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
 
   void visitTypeGuard(HTypeGuard node) {
-    assert(!node.generateAtUseSite());
+    assert(!generateAtUseSite.contains(node));
     HInstruction guarded = node.guarded;
     currentBlock.rewrite(node, guarded);
     // Remove generate at use site for the input, except for
     // parameters, since they do not introduce any computation.
-    if (guarded is !HParameterValue) guarded.clearGenerateAtUseSite();
+    if (guarded is !HParameterValue) generateAtUseSite.remove(guarded);
   }
 
   void visitBoundsCheck(HBoundsCheck node) {
-    assert(!node.generateAtUseSite());
+    assert(!generateAtUseSite.contains(node));
     currentBlock.rewrite(node, node.index);
-    // The instruction merger may have not analyzed the 'length'
-    // instruction because this bounds check instruction is not
-    // generate at use site.
-    if (node.length.usedBy.length == 1) node.length.tryGenerateAtUseSite();
   }
 
   void visitIntegerCheck(HIntegerCheck node) {
-    assert(!node.generateAtUseSite());
+    assert(!generateAtUseSite.contains(node));
     currentBlock.rewrite(node, node.value);
   }
 }
@@ -139,9 +159,10 @@ class SsaCheckInstructionUnuser extends HBaseVisitor {
  *  nested ifs and boolean variables.
  */
 class SsaConditionMerger extends HGraphVisitor {
+  Set<HInstruction> generateAtUseSite;
   Map<HPhi, String> logicalOperations;
 
-  SsaConditionMerger() : logicalOperations = new Map<HPhi, String>();
+  SsaConditionMerger(this.generateAtUseSite, this.logicalOperations);
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -156,20 +177,25 @@ class SsaConditionMerger extends HGraphVisitor {
    * generated at use-site.
    */
   bool isExpression(HInstruction instruction, HBasicBlock limit) {
-    if (instruction is HPhi) return false;
+    if (instruction is HPhi && !logicalOperations.containsKey(instruction)) {
+      return false;
+    }
     while (instruction.previous != null) {
       instruction = instruction.previous;
-      if (!instruction.generateAtUseSite()) {
+      if (!generateAtUseSite.contains(instruction)) {
         return false;
       }
     }
     HBasicBlock block = instruction.block;
     if (!block.phis.isEmpty()) return false;
+    if (instruction is HPhi && logicalOperations.containsKey(instruction)) {
+      return isExpression(instruction.inputs[0], limit);
+    }
     return block.predecessors.length == 1 && block.predecessors[0] == limit;
   }
 
   void replaceWithLogicalOperator(HPhi phi, String type) {
-    if (canGenerateAtUseSite(phi)) phi.tryGenerateAtUseSite();
+    if (canGenerateAtUseSite(phi)) generateAtUseSite.add(phi);
     logicalOperations[phi] = type;
   }
 
@@ -180,7 +206,7 @@ class SsaConditionMerger extends HGraphVisitor {
 
     HInstruction current = phi.block.first;
     while (current != use) {
-      if (!current.generateAtUseSite()) return false;
+      if (!generateAtUseSite.contains(current)) return false;
       if (current.next != null) {
         current = current.next;
       } else if (current is HPhi) {
@@ -235,7 +261,7 @@ class SsaConditionMerger extends HGraphVisitor {
       replaceWithLogicalOperator(phi, "&&");
     } else if (firstNext is HNot &&
                firstNext.inputs[0] == first &&
-               firstNext.generateAtUseSite() &&
+               generateAtUseSite.contains(firstNext) &&
                firstNext.next == firstBlock.last &&
                firstBranch.condition == firstNext) {
       replaceWithLogicalOperator(phi, "||");
@@ -245,10 +271,10 @@ class SsaConditionMerger extends HGraphVisitor {
     // Detected as logic control flow. Mark the corresponding
     // inputs as generated at use site. These will now be generated
     // as part of an expression.
-    first.tryGenerateAtUseSite();
-    firstBlock.last.tryGenerateAtUseSite();
-    second.tryGenerateAtUseSite();
-    secondBlock.last.tryGenerateAtUseSite();
+    generateAtUseSite.add(first);
+    generateAtUseSite.add(firstBlock.last);
+    generateAtUseSite.add(second);
+    generateAtUseSite.add(secondBlock.last);
   }
 
   void visitBasicBlock(HBasicBlock block) {

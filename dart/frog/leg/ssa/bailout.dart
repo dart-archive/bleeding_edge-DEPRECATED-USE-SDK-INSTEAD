@@ -30,7 +30,7 @@ class Environment {
   }
 
   void add(HInstruction instruction) {
-    if (!instruction.generateAtUseSite()) {
+    if (!instruction.isCodeMotionInvariant()) {
       lives.add(instruction);
     } else {
       for (int i = 0, len = instruction.inputs.length; i < len; i++) {

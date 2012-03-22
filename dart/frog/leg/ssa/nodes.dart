@@ -787,8 +787,7 @@ class HInstruction implements Hashable {
   static final int FLAG_DEPENDS_ON_SOMETHING = FLAG_CHANGES_COUNT;
 
   // Other flags.
-  static final int FLAG_GENERATE_AT_USE_SITE = FLAG_DEPENDS_ON_SOMETHING + 1;
-  static final int FLAG_USE_GVN              = FLAG_GENERATE_AT_USE_SITE + 1;
+  static final int FLAG_USE_GVN              = FLAG_DEPENDS_ON_SOMETHING + 1;
 
   HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[];
 
@@ -806,10 +805,6 @@ class HInstruction implements Hashable {
 
   void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
   void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
-
-  bool generateAtUseSite() => getFlag(FLAG_GENERATE_AT_USE_SITE);
-  void tryGenerateAtUseSite() { setFlag(FLAG_GENERATE_AT_USE_SITE); }
-  void clearGenerateAtUseSite()  { clearFlag(FLAG_GENERATE_AT_USE_SITE); }
 
   bool useGvn() => getFlag(FLAG_USE_GVN);
   void setUseGvn() { setFlag(FLAG_USE_GVN); }
@@ -966,6 +961,11 @@ class HInstruction implements Hashable {
     validator.visitInstruction(this);
     return validator.isValid;
   }
+
+  // The code for computing a bailout environment, and the code
+  // generation must agree on what does not need to be captured,
+  // so should always be generated at use site.
+  bool isCodeMotionInvariant() => false;
 }
 
 class HBoolify extends HInstruction {
@@ -986,10 +986,6 @@ class HBoolify extends HInstruction {
 
 class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
-
-  // A check should never be generate at use site, otherwise we
-  // cannot throw.
-  void tryGenerateAtUseSite() {}
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
   abstract accept(HVisitor visitor);
@@ -1013,10 +1009,6 @@ class HTypeGuard extends HInstruction {
 
   HType computeType() => type;
   bool hasExpectedType() => true;
-
-  // A type guard should never be generate at use site, otherwise we
-  // cannot bailout.
-  void tryGenerateAtUseSite() {}
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => 1;
@@ -1675,7 +1667,6 @@ class HConstant extends HInstruction {
   final Constant constant;
   HConstant.internal(this.constant, HType type) : super(<HInstruction>[]) {
     this.type = type;
-    tryGenerateAtUseSite();  // Maybe avoid this if the literal is big?
   }
 
   void prepareGvn() {
@@ -1696,6 +1687,9 @@ class HConstant extends HInstruction {
   bool isConstantNull() => constant.isNull();
   bool isConstantNumber() => constant.isNum();
   bool isConstantString() => constant.isString();
+
+  // Maybe avoid this if the literal is big?
+  bool isCodeMotionInvariant() => true;
 }
 
 class HNot extends HInstruction {
@@ -1720,15 +1714,14 @@ class HNot extends HInstruction {
 class HParameterValue extends HInstruction {
   final Element element;
 
-  HParameterValue(this.element) : super(<HInstruction>[]) {
-    tryGenerateAtUseSite();
-  }
+  HParameterValue(this.element) : super(<HInstruction>[]);
 
   void prepareGvn() {
     assert(!hasSideEffects());
   }
   toString() => 'parameter ${element.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
+  bool isCodeMotionInvariant() => true;
 }
 
 class HThis extends HParameterValue {
@@ -1956,11 +1949,7 @@ class HThrow extends HControlFlow {
 
 class HStatic extends HInstruction {
   Element element;
-  HStatic(this.element) : super(<HInstruction>[]) {
-    if (!element.isAssignable()) {
-      tryGenerateAtUseSite();
-    }
-  }
+  HStatic(this.element) : super(<HInstruction>[]);
 
   void prepareGvn() {
     assert(!hasSideEffects());
@@ -1975,6 +1964,7 @@ class HStatic extends HInstruction {
   int typeCode() => 25;
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
+  bool isCodeMotionInvariant() => !element.isAssignable();
 }
 
 class HStaticStore extends HInstruction {
