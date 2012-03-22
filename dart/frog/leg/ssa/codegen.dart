@@ -441,7 +441,10 @@ class SsaCodeGenerator implements HVisitor {
   visitBitNot(HBitNot node)         => visitInvokeUnary(node, '~');
   visitBitOr(HBitOr node)           => visitInvokeBinary(node, '|');
   visitBitXor(HBitXor node)         => visitInvokeBinary(node, '^');
-  visitShiftRight(HShiftRight node) => visitInvokeBinary(node, '>>');
+
+  // We need to check if the left operand is negative in order to use
+  // the native operator.
+  visitShiftRight(HShiftRight node) => visitInvokeStatic(node);
 
   // Shift left cannot be mapped to the native operator (different semantics).
   visitShiftLeft(HShiftLeft node)   => visitInvokeStatic(node);
