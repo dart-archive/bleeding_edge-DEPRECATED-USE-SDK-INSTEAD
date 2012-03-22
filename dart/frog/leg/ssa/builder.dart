@@ -2750,11 +2750,11 @@ class StringBuilderVisitor extends AbstractVisitor {
    * Used to collect concatenated string literals into a single literal
    * instead of introducing unnecessary concatenations.
    */
-  DartString accumulator = const LiteralDartString("");
+  DartString literalAccumulator = const LiteralDartString("");
 
   /**
    * The string value generated so far (not including that which is still
-   * in [accumulator]).
+   * in [literalAccumulator]).
    */
   HInstruction prefix = null;
 
@@ -2769,10 +2769,27 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   void visitExpression(Node node) {
-    flushAccumulator();
+    flushLiterals();
     node.accept(builder);
     HInstruction asString = buildToString(node, builder.pop());
     prefix = concat(prefix, asString);
+  }
+
+  void visitLiteralNull(LiteralNull node) {
+    addLiteral(const LiteralDartString("null"));
+  }
+
+  void visitLiteralInt(LiteralInt node) {
+    addLiteral(new DartString.literal(node.value.toString()));
+  }
+
+  void visitLiteralDouble(LiteralDouble node) {
+    addLiteral(new DartString.literal(node.value.toString()));
+  }
+
+  void visitLiteralBool(LiteralBool node) {
+    addLiteral(node.value ? const LiteralDartString("true")
+                          : const LiteralDartString("false"));
   }
 
   void visitStringInterpolation(StringInterpolation node) {
@@ -2785,7 +2802,7 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   void visitLiteralString(LiteralString node) {
-    accumulator = new DartString.concat(accumulator, node.dartString);
+    addLiteral(node.dartString);
   }
 
   void visitStringJuxtaposition(StringJuxtaposition node) {
@@ -2797,18 +2814,25 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   /**
-   * Combine the strings in [accumulator] into the prefix instruction.
-   * After this, the [accumulator] is empty and [prefix] is non-null.
+   * Add another literal string to the literalAccumulator.
    */
-  void flushAccumulator() {
-    if (accumulator.isEmpty()) {
+  void addLiteral(DartString dartString) {
+    literalAccumulator = new DartString.concat(literalAccumulator, dartString);
+  }
+
+  /**
+   * Combine the strings in [literalAccumulator] into the prefix instruction.
+   * After this, the [literalAccumulator] is empty and [prefix] is non-null.
+   */
+  void flushLiterals() {
+    if (literalAccumulator.isEmpty()) {
       if (prefix === null) {
-        prefix = builder.graph.addConstantString(accumulator);
+        prefix = builder.graph.addConstantString(literalAccumulator);
       }
       return;
     }
-    HInstruction string = builder.graph.addConstantString(accumulator);
-    accumulator = new DartString.empty();
+    HInstruction string = builder.graph.addConstantString(literalAccumulator);
+    literalAccumulator = new DartString.empty();
     if (prefix !== null) {
       prefix = concat(prefix, string);
     } else {
@@ -2860,7 +2884,7 @@ class StringBuilderVisitor extends AbstractVisitor {
   }
 
   HInstruction result() {
-    flushAccumulator();
+    flushLiterals();
     return prefix;
   }
 }
