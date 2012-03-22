@@ -578,7 +578,8 @@ class ElementListener extends Listener {
     NodeList typeVariables = popNode(); // TOOD(karlklose): do not throw away.
     Identifier name = popNode();
     TypeAnnotation returnType = popNode();
-    pushElement(new TypedefElement(name.source, compilationUnitElement));
+    pushElement(new TypedefElement(name.source, compilationUnitElement,
+                                   typedefKeyword));
   }
 
   void handleVoidKeyword(Token token) {

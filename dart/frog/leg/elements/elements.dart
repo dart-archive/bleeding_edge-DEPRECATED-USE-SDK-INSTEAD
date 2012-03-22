@@ -317,19 +317,25 @@ class LibraryElement extends CompilationUnitElement {
 
 class PrefixElement extends Element {
   Map<SourceString, Element> imported;
+  Token firstPosition;
 
-  PrefixElement(SourceString prefix, Element enclosing)
+  PrefixElement(SourceString prefix, Element enclosing, this.firstPosition)
     : imported = new Map<SourceString, Element>(),
       super(prefix, ElementKind.PREFIX, enclosing);
 
   lookupLocalMember(SourceString memberName) => imported[memberName];
 
   Type computeType(Compiler compiler) => compiler.types.dynamicType;
+
+  Token position() => firstPosition;
 }
 
 class TypedefElement extends Element {
-  TypedefElement(SourceString name, Element enclosing)
+  Token token;
+  TypedefElement(SourceString name, Element enclosing, this.token)
     : super(name, ElementKind.TYPEDEF, enclosing);
+
+  position() => findMyName(token);
 }
 
 class VariableElement extends Element {

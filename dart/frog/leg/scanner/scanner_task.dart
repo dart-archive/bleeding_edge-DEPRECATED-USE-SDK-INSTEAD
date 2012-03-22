@@ -110,7 +110,7 @@ class ScannerTask extends CompilerTask {
           new SourceString(tag.prefix.dartString.slowToString());
       Element e = library.find(prefix);
       if (e === null) {
-        e = new PrefixElement(prefix, library);
+        e = new PrefixElement(prefix, library, tag.getBeginToken());
         library.define(e, compiler);
       }
       if (e.kind !== ElementKind.PREFIX) {

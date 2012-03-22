@@ -435,17 +435,26 @@ class Parser {
     listener.beginScriptTag(token);
     token = parseIdentifier(token.next);
     token = expect('(', token);
-    token = parseLiteralString(token);
+    token = parseLiteralStringOrRecoverExpression(token);
     bool hasPrefix = false;
     if (optional(',', token)) {
       hasPrefix = true;
       token = parseIdentifier(token.next);
       token = expect(':', token);
-      token = parseLiteralString(token);
+      token = parseLiteralStringOrRecoverExpression(token);
     }
     token = expect(')', token);
     listener.endScriptTag(hasPrefix, begin, token);
     return expectSemicolon(token);
+  }
+
+  Token parseLiteralStringOrRecoverExpression(Token token) {
+    if (token.kind === STRING_TOKEN) {
+      return parseLiteralString(token);
+    } else {
+      listener.recoverableError("unexpected", token: token);
+      return parseExpression(token);
+    }
   }
 
   Token expectSemicolon(Token token) {
