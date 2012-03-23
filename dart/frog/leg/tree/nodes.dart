@@ -1628,3 +1628,16 @@ class IsInterpolationVisitor extends AbstractVisitor<bool> {
   bool visitStringJuxtaposition(StringJuxtaposition node)
       => node.isInterpolation;
 }
+
+/**
+ * If the given node is a send set, it visits its initializer (first
+ * argument).
+ *
+ * TODO(ahe): This method is controversial, the team needs to discuss
+ * if top-level methods are acceptable and what naming conventions to
+ * use.
+ */
+initializerDo(Node node, f(Node node)) {
+  SendSet send = node.asSendSet();
+  if (send !== null) return f(send.arguments.head);
+}

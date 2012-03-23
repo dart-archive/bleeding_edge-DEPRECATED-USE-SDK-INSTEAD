@@ -48,9 +48,11 @@ class ResolverTask extends CompilerTask {
           return resolveMethodElement(element);
 
         case ElementKind.FIELD:
+          return resolveField(element);
+
         case ElementKind.PARAMETER:
         case ElementKind.FIELD_PARAMETER:
-          return resolveVariableElement(element);
+          return resolveParameter(element);
 
         default:
           compiler.unimplemented(
@@ -186,13 +188,18 @@ class ResolverTask extends CompilerTask {
     }
   }
 
-  TreeElements resolveVariableElement(Element element) {
+  TreeElements resolveField(Element element) {
     Node tree = element.parseNode(compiler);
     ResolverVisitor visitor = new ResolverVisitor(compiler, element);
-    if (tree is SendSet) {
-      SendSet send = tree;
-      visitor.visit(send.arguments.head);
-    }
+    initializerDo(tree, visitor.visit);
+    return visitor.mapping;
+  }
+
+  TreeElements resolveParameter(Element element) {
+    Node tree = element.parseNode(compiler);
+    ResolverVisitor visitor =
+        new ResolverVisitor(compiler, element.enclosingElement);
+    initializerDo(tree, visitor.visit);
     return visitor.mapping;
   }
 
@@ -651,6 +658,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       }
       VariableDefinitions variableDefinitions = parameterNodes.head;
       Node parameterNode = variableDefinitions.definitions.nodes.head;
+      initializerDo(parameterNode, (n) => n.accept(this));
       // Field parameters (this.x) are not visible inside the constructor. The
       // fields they reference are visible, but must be resolved independently.
       if (element.kind == ElementKind.FIELD_PARAMETER) {

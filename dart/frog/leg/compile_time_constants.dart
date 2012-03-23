@@ -934,6 +934,8 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitNewExpression(NewExpression node) {
+    Element currentElement = compiler.currentElement;
+
     void assignArgumentsToParameters(
         FunctionParameters parameters,
         Map<Element, Constant> constructorDefinitions,
@@ -999,7 +1001,9 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
         }
       }
       if (classElement.superclass != compiler.coreLibrary.find(Types.OBJECT)) {
-        compiler.unimplemented("ConstantHandler with super", node: node);
+        compiler.withCurrentElement(currentElement, () {
+          compiler.unimplemented("ConstantHandler with super", node: node);
+        });
       }
       return jsNewArguments;
     }
