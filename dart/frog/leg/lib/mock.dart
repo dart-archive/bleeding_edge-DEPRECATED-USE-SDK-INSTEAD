@@ -26,6 +26,7 @@ class StaticResolutionException implements Exception {}
 
 void assert(condition) {}
 
+// TODO(ahe): Not sure ByteArray belongs in the core library.
 interface ByteArray extends List default _InternalByteArray {
   ByteArray(int length);
 }
@@ -34,4 +35,9 @@ class _InternalByteArray {
   factory _InternalByteArray(int length) {
     throw new UnsupportedOperationException("new ByteArray($length)");
   }
+}
+
+// TODO(ahe): This definitely does not belong in the core library.
+void exit(int exitCode) {
+  throw new UnsupportedOperationException("exit($exitCode)");
 }

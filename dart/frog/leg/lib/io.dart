@@ -118,3 +118,9 @@ class _EventHandler {
     throw new UnsupportedOperationException('_EventHandler._eventhandler = $e');
   }
 }
+
+final InputStream stdin = null;
+
+final OutputStream stdout = null;
+
+final OutputStream stderr = null;
