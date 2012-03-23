@@ -693,7 +693,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   visitNode(Node node) {
-    compiler.unimplemented("CompileTimeConstantEvaluator", node: node);
+    error(node);
   }
 
   Constant visitLiteralBool(LiteralBool node) {
@@ -1054,6 +1054,10 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     Constant constant = new ConstructedConstant(type, jsNewArguments);
     constantHandler.registerCompileTimeConstant(constant);
     return constant;
+  }
+
+  Constant visitParenthesizedExpression(ParenthesizedExpression node) {
+    return node.expression.accept(this);
   }
 
   error(Node node) {
