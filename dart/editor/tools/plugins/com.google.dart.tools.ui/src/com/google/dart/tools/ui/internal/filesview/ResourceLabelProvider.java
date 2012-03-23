@@ -14,7 +14,10 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.themes.Fonts;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -23,7 +26,10 @@ import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelP
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.viewers.StyledString.Styler;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 /**
@@ -31,10 +37,29 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
  */
 public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvider {
 
-  private static final String IGNORE_FOLDER_ICON = "icons/full/dart16/flder_obj_excl.png";
   private static final String IGNORE_FILE_ICON = "icons/full/dart16/dart_excl.png";
+  private static final String IGNORE_FOLDER_ICON = "icons/full/dart16/flder_obj_excl.png";
 
   private final WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
+
+  private Font boldFont;
+  private Styler boldStyler;
+
+  /**
+   * Create a provider instance.
+   * 
+   * @param font the font that the receiving control will use to present text
+   */
+  ResourceLabelProvider(Font font) {
+
+    boldFont = Fonts.getBoldFont(font);
+    boldStyler = new Styler() {
+      @Override
+      public void applyStyles(TextStyle textStyle) {
+        textStyle.font = boldFont;
+      }
+    };
+  }
 
   @Override
   public void addListener(ILabelProviderListener listener) {
@@ -44,6 +69,7 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
   @Override
   public void dispose() {
     workbenchLabelProvider.dispose();
+    boldFont.dispose();
   }
 
   @Override
@@ -69,8 +95,17 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 
     if (element instanceof IResource) {
       IResource resource = (IResource) element;
+      //un-analyzed resources are grey
       if (!DartCore.isAnalyzed(resource)) {
         return new StyledString(resource.getName(), StyledString.QUALIFIER_STYLER);
+      }
+
+      //resources defining libraries are bold
+      DartElement dartElement = DartCore.create(resource);
+      if (dartElement instanceof CompilationUnit) {
+        if (((CompilationUnit) dartElement).definesLibrary()) {
+          return new StyledString(resource.getName(), boldStyler);
+        }
       }
     }
 
