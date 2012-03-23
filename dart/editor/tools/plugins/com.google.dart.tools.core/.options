@@ -13,11 +13,14 @@ com.google.dart.tools.core/debug/index/contributor = false
 com.google.dart.tools.core/debug/metrics = false
 com.google.dart.tools.core/debug/warmup = false
 com.google.dart.tools.core/debug/verbose = false
+com.google.dart.tools.core/logging/frog = false
+com.google.dart.tools.core/logging/debugger = false
 
 com.google.dart.tools.core/perf/analysis/filescan = false
 
 com.google.dart.tools.core/experimental/analysis/server = false
 com.google.dart.tools.core/experimental/newIndexer = false
+com.google.dart.tools.core/experimental/serverDebugging = false
 
 com.google.dart.tools.core/trace/artifactProvider = false
 com.google.dart.tools.core/trace/index/contributor = false
@@ -25,5 +28,3 @@ com.google.dart.tools.core/trace/index/processor = false
 
 com.google.dart.tools.core/perf/index = false
 
-# Set true for debugging communication with Frog server
-com.google.dart.tools.core/debug/frog = false

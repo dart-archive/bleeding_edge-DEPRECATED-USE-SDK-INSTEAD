@@ -28,12 +28,12 @@ public class DartCoreDebug {
   public static final boolean METRICS = isOptionTrue("debug/metrics");
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
   public static final boolean VERBOSE = isOptionTrue("debug/verbose");
+  public static final boolean LOGGING_FROG = isOptionTrue("logging/frog");
+  public static final boolean LOGGING_DEBUGGER = isOptionTrue("logging/debugger");
 
   public static final boolean TRACE_ARTIFACT_PROVIDER = isOptionTrue("trace/artifactProvider");
   public static final boolean TRACE_INDEX_CONTRIBUTOR = isOptionTrue("trace/index/contributor");
   public static final boolean TRACE_INDEX_PROCESSOR = isOptionTrue("trace/index/processor");
-
-  public static final boolean FROG = isOptionTrue("debug/frog");
 
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
   public static final boolean ENABLE_TYPE_REFINEMENT = isOptionTrue("debug/RefineTypes");
@@ -46,6 +46,7 @@ public class DartCoreDebug {
 
   // Experimental functionality options.
 
+  public static final boolean SERVER_DEBUGGING = isOptionTrue("experimental/serverDebugging");
   public static final boolean ANALYSIS_SERVER = isOptionTrue("experimental/analysis/server");
   public static final boolean NEW_INDEXER = isOptionTrue("experimental/newIndexer");
   public static final boolean ENABLE_CALL_GRAPH = NEW_INDEXER

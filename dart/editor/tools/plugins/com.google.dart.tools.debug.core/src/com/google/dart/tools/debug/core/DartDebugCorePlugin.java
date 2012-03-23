@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.core;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 import com.google.dart.tools.debug.core.util.ResourceChangeManager;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
@@ -49,10 +50,9 @@ public class DartDebugCorePlugin extends Plugin {
   public static final String DEBUG_MODEL_ID = "com.google.dart.tools.debug.core"; //$NON-NLS-1$
 
   /**
-   * If true, causes the Debug plugin to log to the Eclipse .log. Start the vm with
-   * -Ddart.debug.logging=true.
+   * If true, causes the Debug plugin to log to the Eclipse .log.
    */
-  public static final boolean LOGGING = Boolean.getBoolean("dart.debug.logging");
+  public static final boolean LOGGING = DartCoreDebug.LOGGING_DEBUGGER;
 
   // TODO(devoncarew): remove this when the debugger supports pausing
   public static boolean VM_SUPPORTS_PAUSING = false;

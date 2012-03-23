@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.ui.internal.server;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog;
@@ -53,6 +54,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
   private Text heapText;
   private Button checkedModeButton;
+  private Button enableDebuggingButton;
 
   private ModifyListener textModifyListener = new ModifyListener() {
     @Override
@@ -125,6 +127,18 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
       }
     });
 
+    if (DartCoreDebug.SERVER_DEBUGGING) {
+      enableDebuggingButton = new Button(group, SWT.CHECK);
+      enableDebuggingButton.setText("Enable debugging");
+      GridDataFactory.swtDefaults().span(2, 1).applyTo(enableDebuggingButton);
+      enableDebuggingButton.addSelectionListener(new SelectionAdapter() {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+          notifyPanelChanged();
+        }
+      });
+    }
+
     label = new Label(group, SWT.NONE);
     label.setText("Heap (MB):");
     GridDataFactory.swtDefaults().hint(labelWidth, -1).applyTo(label);
@@ -170,6 +184,9 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
     checkedModeButton.setSelection(dartLauncher.getCheckedMode());
     heapText.setText(dartLauncher.getHeapMB());
+    if (enableDebuggingButton != null) {
+      enableDebuggingButton.setSelection(dartLauncher.getEnableDebugging());
+    }
   }
 
   @Override
@@ -186,6 +203,10 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
     dartLauncher.setCheckedMode(checkedModeButton.getSelection());
     dartLauncher.setHeapMB(heapText.getText());
+
+    if (enableDebuggingButton != null) {
+      dartLauncher.setEnableDebugging(enableDebuggingButton.getSelection());
+    }
   }
 
   @Override

@@ -67,6 +67,8 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
   protected void launchVM(ILaunch launch, DartLaunchConfigWrapper launchConfig,
       IProgressMonitor monitor) throws CoreException {
+    boolean enableDebugging = launchConfig.getEnableDebugging();
+
     // Usage: dart [options] script.dart [arguments]
 
     File currentWorkingDirectory = getCurrentWorkingDirectory(launchConfig);
@@ -96,6 +98,10 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     commandsList.add(vmExecPath);
     commandsList.addAll(Arrays.asList(launchConfig.getVmArgumentsAsArray()));
+    if (enableDebugging) {
+      // TODO(devoncarew): add the vm debug args (--debug-brk:5858 ?)
+      //commandsList.add("--debug-brk:5858");
+    }
     commandsList.add(scriptPath);
     commandsList.addAll(Arrays.asList(launchConfig.getArgumentsAsArray()));
 
@@ -137,6 +143,11 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     }
 
     eclipseProcess.setAttribute(IProcess.ATTR_CMDLINE, generateCommandLine(commands));
+
+    if (enableDebugging) {
+      // TODO(devoncarew): start up a debugging target, connection to the VM, ...
+
+    }
 
     monitor.done();
   }
