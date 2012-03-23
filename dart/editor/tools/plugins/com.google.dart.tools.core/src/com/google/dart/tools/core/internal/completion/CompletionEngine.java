@@ -99,6 +99,7 @@ import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchException;
+import com.google.dart.tools.core.search.SearchFilter;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.search.SearchPatternFactory;
 import com.google.dart.tools.core.search.SearchScope;
@@ -1641,13 +1642,21 @@ public class CompletionEngine {
     if (prefix == null) {
       prefix = "";
     }
+    List<SearchMatch> matches;
     try {
-      engine.searchTypeDeclarations(scope, SearchPatternFactory.createPrefixPattern(prefix, true),
-          null, listener, new NullProgressMonitor());
+      if (DartCoreDebug.NEW_INDEXER) {
+        matches = engine.searchTypeDeclarations(scope,
+            SearchPatternFactory.createPrefixPattern(prefix, true), (SearchFilter) null,
+            new NullProgressMonitor());
+      } else {
+        engine.searchTypeDeclarations(scope,
+            SearchPatternFactory.createPrefixPattern(prefix, true), null, listener,
+            new NullProgressMonitor());
+        matches = listener.getMatches();
+      }
     } catch (SearchException ex) {
       return null;
     }
-    List<SearchMatch> matches = listener.getMatches();
     try {
       int idx = 0;
       for (com.google.dart.tools.core.model.Type localType : getCurrentCompilationUnit().getTypes()) {

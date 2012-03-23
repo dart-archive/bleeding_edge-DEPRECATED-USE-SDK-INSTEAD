@@ -14,44 +14,21 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 public class Activator extends AbstractUIPlugin implements IStartup {
 
-  public Activator() {
-  }
-
-  @Override
-  public void earlyStartup() {
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        configureEclipseWindowLocation();
-        closeAllEditors();
-        closeAllViews();
-      }
-    });
-  }
-
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Workbench
-  //
-  ////////////////////////////////////////////////////////////////////////////
-
   /**
-   * Ensures that Eclipse main window is in top-right corner of screen.
+   * Closes all editors.
    */
-  private void configureEclipseWindowLocation() {
-    int x = 450;
-    int y = 0;
-    Shell shell = getActiveWorkbenchWindow().getShell();
-    Point shellLocation = shell.getLocation();
-    if (shellLocation.x != x || shellLocation.y != y) {
-      Rectangle clientArea = Display.getDefault().getClientArea();
-      shell.setBounds(x, y, clientArea.width - x, clientArea.height - 350);
-      waitEventLoop(100, 10);
+  public static void closeAllEditors() {
+    // run event loop to allow any async's be executed
+    while (Display.getCurrent().readAndDispatch()) {
+      // do nothing
     }
-  }
-
-  private static IWorkbenchWindow getActiveWorkbenchWindow() {
-    return PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+    // close all editors
+    IWorkbenchWindow bench = getActiveWorkbenchWindow();
+    if (bench != null) {
+      // bench may be null during testing
+      IWorkbenchPage activePage = bench.getActivePage();
+      activePage.closeAllEditors(false);
+    }
   }
 
   /**
@@ -63,36 +40,20 @@ public class Activator extends AbstractUIPlugin implements IStartup {
       // do nothing
     }
     // do close
-    IWorkbenchPage activePage = getActiveWorkbenchWindow().getActivePage();
-    IViewReference[] viewReferences = activePage.getViewReferences();
-    if (viewReferences.length != 0) {
-      for (IViewReference viewReference : viewReferences) {
-        activePage.hideView(viewReference);
+    IWorkbenchWindow bench = getActiveWorkbenchWindow();
+    if (bench != null) {
+      // bench may be null during testing
+      IWorkbenchPage activePage = bench.getActivePage();
+      IViewReference[] viewReferences = activePage.getViewReferences();
+      if (viewReferences.length != 0) {
+        for (IViewReference viewReference : viewReferences) {
+          activePage.hideView(viewReference);
+        }
+        waitEventLoop(100);
       }
-      waitEventLoop(100);
     }
   }
 
-  /**
-   * Closes all editors.
-   */
-  public static void closeAllEditors() {
-    // run event loop to allow any async's be executed
-    while (Display.getCurrent().readAndDispatch()) {
-      // do nothing
-    }
-    // close all editors
-    {
-      IWorkbenchPage activePage = getActiveWorkbenchWindow().getActivePage();
-      activePage.closeAllEditors(false);
-    }
-  }
-
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // UI
-  //
-  ////////////////////////////////////////////////////////////////////////////
   /**
    * Waits given number of milliseconds and runs events loop every 1 millisecond. At least one
    * events loop will be executed.
@@ -116,6 +77,40 @@ public class Activator extends AbstractUIPlugin implements IStartup {
         // do nothing
       }
     } while (System.currentTimeMillis() - start < time);
+  }
+
+  private static IWorkbenchWindow getActiveWorkbenchWindow() {
+    return PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+  }
+
+  public Activator() {
+  }
+
+  @Override
+  public void earlyStartup() {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        configureEclipseWindowLocation();
+        closeAllEditors();
+        closeAllViews();
+      }
+    });
+  }
+
+  /**
+   * Ensures that Eclipse main window is in top-right corner of screen.
+   */
+  private void configureEclipseWindowLocation() {
+    int x = 450;
+    int y = 0;
+    Shell shell = getActiveWorkbenchWindow().getShell();
+    Point shellLocation = shell.getLocation();
+    if (shellLocation.x != x || shellLocation.y != y) {
+      Rectangle clientArea = Display.getDefault().getClientArea();
+      shell.setBounds(x, y, clientArea.width - x, clientArea.height - 350);
+      waitEventLoop(100, 10);
+    }
   }
 
 }
