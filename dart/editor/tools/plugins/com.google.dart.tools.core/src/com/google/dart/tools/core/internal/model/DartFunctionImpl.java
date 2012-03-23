@@ -14,9 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartFunctionInfo;
-import com.google.dart.tools.core.internal.model.info.DeclarationElementInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
@@ -46,19 +44,6 @@ public class DartFunctionImpl extends SourceReferenceImpl implements DartFunctio
       return false;
     }
     return super.equals(o);
-  }
-
-  @Override
-  public SourceRange getDartDocRange() {
-    try {
-      DartElementInfo info = getElementInfo();
-      if (info instanceof DeclarationElementInfo) {
-        return ((DeclarationElementInfo) info).getDartDocRange();
-      }
-    } catch (DartModelException exception) {
-      // Fall through to return null
-    }
-    return null;
   }
 
   @Override

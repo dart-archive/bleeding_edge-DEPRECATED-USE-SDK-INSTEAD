@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
+import com.google.dart.tools.core.internal.model.info.DeclarationElementInfo;
 import com.google.dart.tools.core.internal.model.info.SourceReferenceInfo;
 import com.google.dart.tools.core.internal.util.DOMFinder;
 import com.google.dart.tools.core.internal.util.Messages;
@@ -115,6 +116,18 @@ public abstract class SourceReferenceImpl extends DartElementImpl implements Sou
   public IResource getCorrespondingResource() throws DartModelException {
     if (!exists()) {
       throw newNotPresentException();
+    }
+    return null;
+  }
+
+  public final SourceRange getDartDocRange() {
+    try {
+      DartElementInfo info = getElementInfo();
+      if (info instanceof DeclarationElementInfo) {
+        return ((DeclarationElementInfo) info).getDartDocRange();
+      }
+    } catch (DartModelException exception) {
+      // Fall through to return null
     }
     return null;
   }
