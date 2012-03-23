@@ -1063,6 +1063,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         error(node, MessageKind.NO_CONTINUE_TARGET);
         return;
       }
+      target.isContinueTarget = true;
     } else {
       String labelName = node.target.source.slowToString();
       LabelElement label = statementScope.lookupLabel(labelName);
@@ -1074,8 +1075,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (!target.statement.isValidContinueTarget()) {
         error(node.target, MessageKind.INVALID_CONTINUE, [labelName]);
       }
+      label.setContinueTarget();
     }
-    target.isContinueTarget = true;
     mapping[node] = target;
   }
 

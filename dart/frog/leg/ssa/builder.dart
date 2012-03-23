@@ -1095,7 +1095,7 @@ class SsaBuilder implements Visitor {
     localsHandler.endLoop(loopEntry);
     if (!breakLocals.isEmpty()) {
       breakLocals.add(savedLocals);
-      localsHandler = localsHandler.mergeMultiple(breakLocals, loopExitBlock);
+      localsHandler = savedLocals.mergeMultiple(breakLocals, loopExitBlock);
     } else {
       localsHandler = savedLocals;
     }
@@ -1229,10 +1229,25 @@ class SsaBuilder implements Visitor {
   }
 
   visitDoWhile(DoWhile node) {
+    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     localsHandler.startLoop(node);
     JumpHandler jumpHandler = beginLoopHeader(node);
     HBasicBlock loopEntryBlock = current;
-
+    HBasicBlock bodyEntryBlock = current;
+    TargetElement target = elements[node];
+    bool hasContinues = target !== null && target.isContinueTarget;
+    if (hasContinues) {
+      // Add extra block to hang labels on.
+      // It doesn't currently work if they are on the same block as the
+      // HLoopInfo. The handling of HLabeledBlockInformation will visit a
+      // SubGraph that starts at the same block again, so the HLoopInfo is
+      // either handled twice, or it's handled after the labeled block info,
+      // both of which generate the wrong code.
+      // Using a separate block is just a simple workaround.
+      bodyEntryBlock = graph.addNewBlock();
+      goto(current, bodyEntryBlock);
+      open(bodyEntryBlock);
+    }
     localsHandler.enterLoopBody(node);
     hackAroundPossiblyAbortingBody(node, () { visit(node.body); });
 
@@ -1240,12 +1255,34 @@ class SsaBuilder implements Visitor {
     // block. This could also lead to a block having multiple entries and exits.
     HBasicBlock bodyExitBlock = close(new HGoto());
     HBasicBlock conditionBlock = addNewBlock();
-    bodyExitBlock.addSuccessor(conditionBlock);
-    jumpHandler.forEachContinue((x,y) {
-      // TODO(lrn): Handle continue in do-while loops.
-      compiler.cancel("do-while with continue", node: node);
+
+    List<LocalsHandler> continueLocals = <LocalsHandler>[];
+    jumpHandler.forEachContinue((HContinue instruction, LocalsHandler locals) {
+      instruction.block.addSuccessor(conditionBlock);
+      continueLocals.add(locals);
     });
+    bodyExitBlock.addSuccessor(conditionBlock);
+    if (!continueLocals.isEmpty()) {
+      continueLocals.add(localsHandler);
+      localsHandler = savedLocals.mergeMultiple(continueLocals, conditionBlock);
+      SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
+      List<LabelElement> labels = jumpHandler.labels();
+      if (!labels.isEmpty()) {
+        bodyEntryBlock.labeledBlockInformation =
+            new HLabeledBlockInformation(bodyGraph,
+                                         conditionBlock,
+                                         labels,
+                                         isContinue: true);
+      } else {
+        bodyEntryBlock.labeledBlockInformation =
+            new HLabeledBlockInformation.implicit(bodyGraph,
+                                                  conditionBlock,
+                                                  target,
+                                                  isContinue: true);
+      }
+    }
     open(conditionBlock);
+
     visit(node.condition);
     assert(!isAborted());
     conditionBlock = close(new HLoopBranch(popBoolified(),

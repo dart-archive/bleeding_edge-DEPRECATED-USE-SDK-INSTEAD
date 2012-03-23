@@ -267,16 +267,21 @@ class SsaCodeGenerator implements HVisitor {
     addIndentation();
     for (LabelElement label in labeledBlockInfo.labels) {
       if (labeledBlockInfo.isContinue) {
-        addContinueLabel(label);
+        if (label.isContinueTarget) {
+          addContinueLabel(label);
+          buffer.add(':');
+        }
       } else {
-        addBreakLabel(label);
+        if (label.isBreakTarget) {
+          addBreakLabel(label);
+          buffer.add(':');
+        }
       }
-      buffer.add(':');
     }
     TargetElement target = labeledBlockInfo.target;
     if (target.isSwitch) {
       addImplicitBreakLabel(target);
-      buffer.add(@':');
+      buffer.add(':');
     }
     if (labeledBlockInfo.isContinue) {
       addImplicitContinueLabel(target);
