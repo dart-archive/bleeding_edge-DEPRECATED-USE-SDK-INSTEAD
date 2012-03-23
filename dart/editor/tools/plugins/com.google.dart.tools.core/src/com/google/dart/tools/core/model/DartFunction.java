@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -17,8 +17,7 @@ package com.google.dart.tools.core.model;
  * The interface <code>DartFunction</code> defines the behavior of elements representing the
  * definition of a function within Dart source code.
  */
-public interface DartFunction extends CompilationUnitElement, ParentElement, SourceReference,
-    DartDocumentable {
+public interface DartFunction extends CompilationUnitElement, ParentElement, SourceReference {
   /**
    * The function main
    */

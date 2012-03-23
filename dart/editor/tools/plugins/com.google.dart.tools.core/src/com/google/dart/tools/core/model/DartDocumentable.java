@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,7 +14,10 @@
 
 package com.google.dart.tools.core.model;
 
-public interface DartDocumentable {
+/**
+ * A DartElement that is documentable.
+ */
+public interface DartDocumentable extends DartElement {
 
   /**
    * Returns the dartdoc range if this element is from source or if this element is a binary element

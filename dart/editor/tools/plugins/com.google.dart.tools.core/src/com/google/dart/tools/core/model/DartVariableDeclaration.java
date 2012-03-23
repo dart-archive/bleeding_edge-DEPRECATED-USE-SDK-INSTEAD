@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,8 +19,7 @@ package com.google.dart.tools.core.model;
  * functions}, {@link Method methods} and {@link CompilationUnit compilation units}, and include
  * parameters defined for either methods or functions.
  */
-public interface DartVariableDeclaration extends CompilationUnitElement, SourceReference,
-    DartDocumentable {
+public interface DartVariableDeclaration extends CompilationUnitElement, SourceReference {
   /**
    * Return the name of the type of this variable, or <code>null</code> if this variable does not
    * have a declared type.

@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package com.google.dart.tools.core.utilities.dartdoc;
 
 import com.google.dart.compiler.ast.DartUnit;
@@ -5,8 +19,12 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartDocumentable;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
+import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 
 import java.io.BufferedReader;
@@ -50,7 +68,11 @@ public final class DartDocUtilities {
         line = line.trim();
 
         if (line.startsWith("*")) {
-          line = line.substring(1).trim();
+          line = line.substring(1);
+
+          if (line.startsWith(" ")) {
+            line = line.substring(1);
+          }
         }
 
         if (line.length() == 0) {
@@ -58,7 +80,7 @@ public final class DartDocUtilities {
           builder.append("\n\n");
         } else {
           if (lineCount > 0) {
-            builder.append(" ");
+            builder.append("\n");
           }
 
           builder.append(line);
@@ -87,9 +109,76 @@ public final class DartDocUtilities {
    */
   public static String getDartDoc(CompilationUnit compilationUnit, DartUnit unit, int start, int end)
       throws DartModelException {
+    DartDocumentable documentable = getDartDocumentable(compilationUnit, unit, start, end);
+
+    if (documentable != null) {
+      return getDartDoc(documentable);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Return the prettified DartDoc text for the given DartDocumentable element.
+   * 
+   * @param documentable
+   * @return
+   * @throws DartModelException
+   */
+  public static String getDartDoc(DartDocumentable documentable) throws DartModelException {
+    SourceRange sourceRange = documentable.getDartDocRange();
+
+    if (sourceRange != null) {
+      SourceRange range = sourceRange;
+
+      String dartDoc = documentable.getOpenable().getBuffer().getText(range.getOffset(),
+          range.getLength());
+
+      return cleanDartDoc(dartDoc);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Return the prettified DartDoc text for the given DartDocumentable element.
+   * 
+   * @param documentable
+   * @return
+   * @throws DartModelException
+   */
+  public static String getDartDocAsHtml(DartDocumentable documentable) throws DartModelException {
+    SourceRange sourceRange = documentable.getDartDocRange();
+
+    if (sourceRange != null) {
+      SourceRange range = sourceRange;
+
+      String dartDoc = documentable.getOpenable().getBuffer().getText(range.getOffset(),
+          range.getLength());
+
+      return convertToHtml(cleanDartDoc(dartDoc));
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Return the DartDocumentable element in the given location, or <code>null</code> if there is no
+   * element at that location.
+   * 
+   * @param compilationUnit the compilation unit containing the location
+   * @param unit the AST corresponding to the given compilation unit
+   * @param start the index of the start of the range identifying the location
+   * @param end the index of the end of the range identifying the location
+   * @return the DartDocumentable element in the given location
+   * @throws DartModelException if the source containing the DartDoc cannot be accessed
+   */
+  public static DartDocumentable getDartDocumentable(CompilationUnit compilationUnit,
+      DartUnit unit, int start, int end) throws DartModelException {
     if (compilationUnit == null || unit == null) {
       return null;
     }
+
     DartElementLocator locator = new DartElementLocator(compilationUnit, start, end);
 
     try {
@@ -98,14 +187,7 @@ public final class DartDocUtilities {
       if (element instanceof DartDocumentable) {
         DartDocumentable documentable = (DartDocumentable) element;
 
-        if (documentable.getDartDocRange() != null) {
-          SourceRange range = documentable.getDartDocRange();
-
-          String dartDoc = element.getOpenable().getBuffer().getText(range.getOffset(),
-              range.getLength());
-
-          return cleanDartDoc(dartDoc);
-        }
+        return documentable;
       }
     } catch (Exception exception) {
       DartCore.logInformation(
@@ -114,6 +196,95 @@ public final class DartDocUtilities {
     }
 
     return null;
+  }
+
+  /**
+   * Return a one-line description of the given documentable DartElement.
+   * 
+   * @param documentable
+   * @return
+   */
+  public static String getTextSummary(DartDocumentable documentable) {
+    // TODO(devoncarew): this method should be re-written as a visitor to remove all the instanceof checks.
+
+    try {
+      if (documentable instanceof Field) {
+        Field field = (Field) documentable;
+
+        // TODO(devoncarew): why/when is this null?
+        if (field.getTypeName() != null) {
+          return field.getTypeName() + " " + field.getElementName();
+        } else {
+          return field.getElementName();
+        }
+      } else if (documentable instanceof DartVariableDeclaration) {
+        DartVariableDeclaration decl = (DartVariableDeclaration) documentable;
+
+        return decl.getTypeName() + " " + decl.getElementName();
+      } else if (documentable instanceof Type) {
+        Type type = (Type) documentable;
+
+        if (type.getLibrary() != null) {
+          return type.getElementName() + " - " + type.getLibrary().getDisplayName();
+        } else {
+          return type.getElementName();
+        }
+      } else if (documentable instanceof DartFunction) {
+        DartFunction method = (DartFunction) documentable;
+
+        StringBuffer buf = new StringBuffer();
+
+        for (int i = 0; i < method.getParameterNames().length; i++) {
+          if (i > 0) {
+            buf.append(", ");
+          }
+
+          buf.append(method.getParameterTypeNames()[i] + " " + method.getParameterNames()[i]);
+        }
+
+        if (method.getReturnTypeName() != null) {
+          return method.getReturnTypeName() + " " + method.getElementName() + "(" + buf + ")";
+        } else {
+          return method.getElementName() + "(" + buf + ")";
+        }
+      } else {
+        return documentable.getElementName();
+      }
+    } catch (DartModelException exception) {
+      return documentable.getElementName();
+    }
+  }
+
+  private static String convertListItems(String[] lines) {
+    StringBuffer buf = new StringBuffer();
+
+    for (String line : lines) {
+      if (line.startsWith("  ")) {
+        buf.append("<li>" + line + "</li>");
+      } else {
+        buf.append(line);
+      }
+
+      buf.append("\n");
+    }
+
+    return buf.toString();
+  }
+
+  private static String convertToHtml(String str) {
+    // escape html entities
+    str = str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+
+    // convert lines starting with "  " to list items
+    str = convertListItems(str.split("\n"));
+
+    // insert line breaks where appropriate
+    str = str.replace("\n\n", "\n<br><br>\n");
+
+    // handle too much whitespace in front of list items
+    str = str.replace("<br>\n<li>", "<li>");
+
+    return str;
   }
 
   private DartDocUtilities() {

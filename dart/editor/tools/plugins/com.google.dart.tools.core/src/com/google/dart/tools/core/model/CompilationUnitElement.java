@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,7 +18,7 @@ package com.google.dart.tools.core.model;
  * {@link DartElement Dart elements} that are contained, either directly or indirectly, in a
  * {@link CompilationUnit compilation unit}.
  */
-public interface CompilationUnitElement extends DartElement {
+public interface CompilationUnitElement extends DartElement, DartDocumentable {
   /**
    * Return the compilation unit in which this element is declared, or <code>null</code> if this
    * element is not declared in a compilation unit.

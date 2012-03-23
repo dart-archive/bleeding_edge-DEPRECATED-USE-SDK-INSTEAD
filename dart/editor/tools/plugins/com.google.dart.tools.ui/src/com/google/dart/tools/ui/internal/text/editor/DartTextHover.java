@@ -1,7 +1,22 @@
+/*
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartDocumentable;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.dartdoc.DartDocUtilities;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
@@ -81,13 +96,32 @@ public class DartTextHover extends DefaultTextHover {
     }
 
     DartUnit unit = editor.getAST();
+
     if (unit == null) {
       return null;
     }
 
     try {
-      return DartDocUtilities.getDartDoc((CompilationUnit) editor.getInputDartElement(), unit,
-          region.getOffset(), region.getOffset() + region.getLength());
+      DartDocumentable documentable = DartDocUtilities.getDartDocumentable(
+          (CompilationUnit) editor.getInputDartElement(), unit, region.getOffset(),
+          region.getOffset() + region.getLength());
+
+      if (documentable != null) {
+        StringBuffer docs = new StringBuffer();
+
+        docs.append("<b>" + DartDocUtilities.getTextSummary(documentable) + "</b>");
+
+        String dartdoc = DartDocUtilities.getDartDocAsHtml(documentable);
+
+        if (dartdoc != null) {
+          docs.append("<br><br>");
+          docs.append(dartdoc);
+        }
+
+        return docs.toString().trim();
+      } else {
+        return null;
+      }
     } catch (DartModelException e) {
       return null;
     }
