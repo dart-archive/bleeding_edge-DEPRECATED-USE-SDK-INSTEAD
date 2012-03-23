@@ -203,6 +203,11 @@
             activityId="com.google.dart.development"
             pattern="org\.eclipse\.ui\.navigate\.previous">
       </activityPatternBinding>
+      <!-- Get rid of "org.eclipse.compare" actions -->
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern="org\.eclipse\.compare.*">
+      </activityPatternBinding>
 
       <!-- internal web browser contributions -->
       <activityPatternBinding

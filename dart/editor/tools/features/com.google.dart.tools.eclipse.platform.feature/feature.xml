@@ -886,28 +886,7 @@
 
   <!-- The next four are required by org.eclipse.ltk.ui.refactoring -->
    <plugin
-         id="org.eclipse.ui.navigator"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
          id="org.eclipse.compare"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.eclipse.team.core"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.eclipse.team.ui"
          download-size="0"
          install-size="0"
          version="0.0.0"
