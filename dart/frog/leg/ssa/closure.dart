@@ -79,19 +79,12 @@ class ClosureData {
   bool isClosure() => closureElement !== null;
 }
 
-Map<Node, ClosureData> _closureDataCache;
-Map<Node, ClosureData> get closureDataCache() {
-  if (_closureDataCache === null) {
-    _closureDataCache = new HashMap<Node, ClosureData>();
-  }
-  return _closureDataCache;
-}
-
 class ClosureTranslator extends AbstractVisitor {
   final Compiler compiler;
   final TreeElements elements;
   int boxCounter = 0;
   bool inTryCatchOrFinally = false;
+  final Map<Node, ClosureData> closureDataCache;
 
   // Map of captured variables. Initially they will map to themselves. If
   // a variable needs to be boxed then the scope declaring the variable
@@ -109,9 +102,11 @@ class ClosureTranslator extends AbstractVisitor {
 
   bool insideClosure = false;
 
-  ClosureTranslator(this.compiler, this.elements)
+  ClosureTranslator(Compiler compiler, this.elements)
       : capturedVariableMapping = new Map<Element, Element>(),
-        closures = <FunctionExpression>[];
+        closures = <FunctionExpression>[],
+        this.compiler = compiler,
+        this.closureDataCache = compiler.builder.closureDataCache;
 
   ClosureData translate(Node node) {
     // Closures have already been analyzed when visiting the surrounding

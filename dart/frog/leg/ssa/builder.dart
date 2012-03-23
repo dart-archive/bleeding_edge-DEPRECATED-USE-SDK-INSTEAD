@@ -112,10 +112,15 @@ class Interceptors {
 }
 
 class SsaBuilderTask extends CompilerTask {
-  SsaBuilderTask(Compiler compiler)
-    : super(compiler), interceptors = new Interceptors(compiler);
+  final Interceptors interceptors;
+  final Map<Node, ClosureData> closureDataCache;
+
   String get name() => 'SSA builder';
-  Interceptors interceptors;
+
+  SsaBuilderTask(Compiler compiler)
+    : interceptors = new Interceptors(compiler),
+      closureDataCache = new HashMap<Node, ClosureData>(),
+      super(compiler);
 
   HGraph build(WorkItem work) {
     return measure(() {
@@ -1254,7 +1259,7 @@ class SsaBuilder implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    ClosureData nestedClosureData = closureDataCache[node];
+    ClosureData nestedClosureData = compiler.builder.closureDataCache[node];
     if (nestedClosureData === null) {
       // TODO(floitsch): we can only assume that the reason for not having a
       // closure data here is, because the function is inside an initializer.
