@@ -458,8 +458,10 @@ public class BrowserManager {
             if (count > 0) {
               String str = new String(buffer, 0, count);
 
-              // Log any browser process output to the debug log.
-              DartDebugCorePlugin.logInfo(processName + ": " + str.trim());
+              // Log any browser process output to stdout.
+              if (DartDebugCorePlugin.LOGGING) {
+                System.out.print(str);
+              }
 
               output.append(str);
             }

@@ -250,10 +250,9 @@ public class DartDebugCorePlugin extends Plugin {
 
     super.start(context);
 
-    if (LOGGING) {
-      logDebuggerEvents();
-    }
-
+//    if (LOGGING) {
+//      logDebuggerEvents();
+//    }
   }
 
   @Override
