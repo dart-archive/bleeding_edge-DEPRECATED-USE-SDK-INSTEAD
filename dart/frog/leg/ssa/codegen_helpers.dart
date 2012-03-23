@@ -30,9 +30,12 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 
   void visitInstruction(HInstruction instruction) {
-    if (instruction.isCodeMotionInvariant()) generateAtUseSite.add(instruction);
+    // A code motion invariant instruction is dealt before visiting it.
+    assert(!instruction.isCodeMotionInvariant());
     for (HInstruction input in instruction.inputs) {
-      if (!generateAtUseSite.contains(input) && input.usedBy.length == 1) {
+      if (!generateAtUseSite.contains(input)
+          && !input.isCodeMotionInvariant()
+          && input.usedBy.length == 1) {
         expectedInputs.add(input);
       }
     }
@@ -97,6 +100,10 @@ class SsaInstructionMerger extends HBaseVisitor {
       if (generateAtUseSite.contains(instruction)) {
         continue;
       }
+      if (instruction.isCodeMotionInvariant()) {
+        generateAtUseSite.add(instruction);
+        continue;
+      }
       bool foundInInputs = false;
       // See if the current instruction is the next non-trivial
       // expected input. If not, drop the expectedInputs and
@@ -107,9 +114,7 @@ class SsaInstructionMerger extends HBaseVisitor {
       } else {
         assert(expectedInputs.isEmpty());
       }
-      if (foundInInputs
-          || usedOnlyByPhis(instruction)
-          || instruction.isCodeMotionInvariant()) {
+      if (foundInInputs || usedOnlyByPhis(instruction)) {
         // Try merging all non-trivial inputs.
         instruction.accept(this);
       }

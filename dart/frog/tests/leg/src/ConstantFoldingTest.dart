@@ -30,16 +30,10 @@ foo(a, b, c, d) {
 }
 """;
 
-void compileAndTest(String code, String entry, RegExp regexp) {
-  String generated = compile(code, entry);
-  Expect.isTrue(regexp.hasMatch(generated),
-                '"$generated" does not match /$regexp/');
-}
-
 main() {
-  compileAndTest(
+  compileAndMatch(
       NUMBER_FOLDING, 'main', const RegExp(@"print\(\(7\)\)"));
-  compileAndTest(
+  compileAndMatch(
       NEGATIVE_NUMBER_FOLDING, 'main', const RegExp(@"print\(\(1\)\)"));
 
   String generated = compile(NULL_EQUALS_FOLDING, 'foo');

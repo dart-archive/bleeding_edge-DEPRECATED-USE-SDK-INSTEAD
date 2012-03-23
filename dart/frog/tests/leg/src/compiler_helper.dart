@@ -77,3 +77,15 @@ bool checkNumberOfMatches(Iterator it, int nb) {
   }
   Expect.isFalse(it.hasNext());
 }
+
+void compileAndMatch(String code, String entry, RegExp regexp) {
+  String generated = compile(code, entry);
+  Expect.isTrue(regexp.hasMatch(generated),
+                '"$generated" does not match /$regexp/');
+}
+
+void compileAndDoNotMatch(String code, String entry, RegExp regexp) {
+  String generated = compile(code, entry);
+  Expect.isFalse(regexp.hasMatch(generated),
+                 '"$generated" has a match in /$regexp/');
+}
