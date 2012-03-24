@@ -313,6 +313,8 @@ class LibraryElement extends CompilationUnitElement {
       }
     });
   }
+
+  bool hasLibraryName() => libraryTag !== null;
 }
 
 class PrefixElement extends Element {

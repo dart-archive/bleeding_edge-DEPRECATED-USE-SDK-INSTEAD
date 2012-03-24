@@ -75,6 +75,10 @@ class MockCompiler extends Compiler {
   }
 
   void reportError(Node node, var message) {
+    if (message is String && message.startsWith("no #library tag found in")) {
+      // TODO(ahe): Fix the MockCompiler to not have this problem.
+      return;
+    }
     errors.add(new WarningMessage(node, message.message));
   }
 

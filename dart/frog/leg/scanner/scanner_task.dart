@@ -19,6 +19,21 @@ class ScannerTask extends CompilerTask {
   }
 
   void processScriptTags(LibraryElement library) {
+    int tagState = TagState.NO_TAG_SEEN;
+
+    /**
+     * If [value] is less than [tagState] complain and return
+     * [tagState]. Otherwise return the new value for [tagState]
+     * (transition function for state machine).
+     */
+    int checkTag(int value, ScriptTag tag) {
+      if (tagState > value) {
+        compiler.reportError(tag, 'out of order');
+        return tagState;
+      }
+      return TagState.NEXT[value];
+    }
+
     LinkBuilder<ScriptTag> imports = new LinkBuilder<ScriptTag>();
     Uri cwd = new Uri(scheme: 'file', path: compiler.currentDirectory);
     Uri base = cwd.resolve(library.script.name.toString());
@@ -28,22 +43,28 @@ class ScannerTask extends CompilerTask {
       // special constants that can be inserted into script tag strings.
       Uri resolved = base.resolve(argument.dartString.slowToString());
       if (tag.isImport()) {
+        tagState = checkTag(TagState.IMPORT, tag);
         // It is not safe to import other libraries at this point as
         // another library could then observe the current library
         // before it fully declares all the members that are sourced
         // in.
         imports.addLast(tag);
       } else if (tag.isLibrary()) {
+        tagState = checkTag(TagState.LIBRARY, tag);
         if (library.libraryTag !== null) {
           compiler.cancel("duplicated library declaration", node: tag);
         } else {
           library.libraryTag = tag;
         }
       } else if (tag.isSource()) {
+        tagState = checkTag(TagState.SOURCE, tag);
         Script script = compiler.readScript(resolved, tag);
         CompilationUnitElement unit =
           new CompilationUnitElement(script, library);
         compiler.withCurrentElement(unit, () => scan(unit));
+      } else if (tag.isResource()) {
+        tagState = checkTag(TagState.RESOURCE, tag);
+        compiler.reportWarning(tag, 'ignoring resource tag');
       } else {
         compiler.cancel("illegal script tag: ${tag.tag}", node: tag);
       }
@@ -105,6 +126,12 @@ class ScannerTask extends CompilerTask {
 
   void importLibrary(LibraryElement library, LibraryElement imported,
                      ScriptTag tag) {
+    if (!imported.hasLibraryName()) {
+      compiler.withCurrentElement(library, () {
+        compiler.reportError(tag,
+                             'no #library tag found in ${imported.script.uri}');
+      });
+    }
     if (tag !== null && tag.prefix !== null) {
       SourceString prefix =
           new SourceString(tag.prefix.dartString.slowToString());
@@ -154,4 +181,24 @@ class DietParserTask extends CompilerTask {
       parser.parseUnit(tokens);
     });
   }
+}
+
+/**
+ * The fields of this class models a state machine for checking script
+ * tags come in the correct order.
+ */
+class TagState {
+  static final int NO_TAG_SEEN = 0;
+  static final int LIBRARY = 1;
+  static final int IMPORT = 2;
+  static final int SOURCE = 3;
+  static final int RESOURCE = 4;
+
+  /** Next state. */
+  static final List<int> NEXT =
+      const <int>[NO_TAG_SEEN,
+                  IMPORT, // Only one library tag is allowed.
+                  IMPORT,
+                  SOURCE,
+                  RESOURCE];
 }

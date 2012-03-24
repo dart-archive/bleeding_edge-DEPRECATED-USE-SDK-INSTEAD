@@ -270,13 +270,22 @@ class Compiler implements DiagnosticListener {
   void runCompiler(Uri uri) {
     scanBuiltinLibraries();
     mainApp = scanner.loadLibrary(uri, null);
-    Element element;
-    withCurrentElement(mainApp, () {
-      element = mainApp.find(MAIN);
-      if (element === null) cancel('Could not find $MAIN');
-    });
+    final Element mainMethod = mainApp.find(MAIN);
+    if (mainMethod === null) {
+      withCurrentElement(mainApp, () => cancel('Could not find $MAIN'));
+    } else {
+      withCurrentElement(mainMethod, () {
+        if (!mainMethod.isFunction()) {
+          cancel('main is not a function', element: mainMethod);
+        }
+        FunctionParameters parameters = mainMethod.computeParameters(this);
+        if (parameters.parameterCount > 0) {
+          cancel('main cannot have parameters', element: mainMethod);
+        }
+      });
+    }
     native.processNativeClasses(this, universe.libraries.getValues());
-    enqueue(new WorkItem.toCompile(element));
+    enqueue(new WorkItem.toCompile(mainMethod));
     codegenProgress.reset();
     while (!worklist.isEmpty()) {
       WorkItem work = worklist.removeLast();

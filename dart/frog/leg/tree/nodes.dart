@@ -1480,6 +1480,7 @@ class ScriptTag extends Node {
   bool isImport() => tag.source == const SourceString("import");
   bool isSource() => tag.source == const SourceString("source");
   bool isLibrary() => tag.source == const SourceString("library");
+  bool isResource() => tag.source == const SourceString("resource");
 
   ScriptTag asScriptTag() => this;
 
