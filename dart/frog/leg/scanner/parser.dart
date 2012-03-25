@@ -292,20 +292,15 @@ class Parser {
   }
 
   Token parseType(Token token) {
-    // TODO(ahe): Rename this method to parseTypeOrVar?
     Token begin = token;
-    int identifierCount = 1;
     if (isIdentifier(token)) {
       token = parseIdentifier(token);
-      if (optional('.', token)) {
-        token = parseIdentifier(token.next);
-        ++identifierCount;
-      }
+      token = parseQualifiedRestOpt(token);
     } else {
       token = listener.expectedType(token);
     }
     token = parseTypeArgumentsOpt(token);
-    listener.endType(identifierCount, begin, token);
+    listener.endType(begin, token);
     return token;
   }
 

@@ -247,7 +247,7 @@ class Listener {
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
   }
 
-  void endType(int count, Token beginToken, Token endToken) {
+  void endType(Token beginToken, Token endToken) {
   }
 
   void beginTypeArguments(Token token) {
@@ -672,13 +672,9 @@ class ElementListener extends Listener {
     pushNode(null);
   }
 
-  void endType(int count, Token beginToken, Token endToken) {
+  void endType(Token beginToken, Token endToken) {
     NodeList typeArguments = popNode();
     Expression typeName = popNode();
-    for (int i = 1; i < count; i++) {
-      // TODO(ahe): I don't think this is correct for foo.bar.baz.
-      typeName = new Send(popNode(), typeName);
-    }
     pushNode(new TypeAnnotation(typeName, typeArguments));
   }
 

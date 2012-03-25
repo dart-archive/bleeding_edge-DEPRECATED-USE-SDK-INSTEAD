@@ -591,29 +591,31 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    SourceString className;
-    if (node.typeName.asSend() !== null) {
-      // In new and const expressions, the type name can be a Send to
-      // denote named constructors or library prefixes.
-      Send send = node.typeName.asSend();
-      className = send.receiver.asIdentifier().source;
+    Send send = node.typeName.asSend();
+    Element element;
+    if (send !== null) {
+      if (typeRequired) {
+        element = resolveSend(send);
+      } else {
+        // Not calling resolveSend as it will emit an error instead of
+        // a warning if the type is bogus.
+        // TODO(ahe): Change resolveSend so it can emit a warning when needed.
+        return null;
+      }
     } else {
-      className = node.typeName.asIdentifier().source;
+      element = context.lookup(node.typeName.asIdentifier().source);
     }
-    if (className == const SourceString('var')) return null;
-    if (className == const SourceString('void')) return null;
-    Element element = context.lookup(className);
     if (element === null) {
       if (typeRequired) {
-        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [className]);
+        error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
       } else {
-        warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [className]);
+        warning(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
       }
     } else if (!element.impliesType()) {
       if (typeRequired) {
-        error(node, MessageKind.NOT_A_TYPE, [className]);
+        error(node, MessageKind.NOT_A_TYPE, [node.typeName]);
       } else {
-        warning(node, MessageKind.NOT_A_TYPE, [className]);
+        warning(node, MessageKind.NOT_A_TYPE, [node.typeName]);
       }
     } else {
       if (element.isClass()) {
