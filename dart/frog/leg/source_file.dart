@@ -4,7 +4,7 @@
 
 #library('source_file');
 
-#import('../../frog/leg/colors.dart');
+#import('colors.dart');
 
 /**
  * Represents a file of source code.

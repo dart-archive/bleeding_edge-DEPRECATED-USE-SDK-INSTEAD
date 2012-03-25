@@ -5,7 +5,7 @@
 #library('frog_leg');
 
 #import('../../lib/uri/uri.dart');
-#import('../../utils/compiler/source_file.dart');
+#import('source_file.dart');
 #import('../lang.dart', prefix: 'frog');
 #import('api.dart', prefix: 'api');
 #import('io/io.dart', prefix: 'io');
