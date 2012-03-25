@@ -23,11 +23,12 @@ public class Activator extends AbstractUIPlugin implements IStartup {
       // do nothing
     }
     // close all editors
-    IWorkbenchWindow bench = getActiveWorkbenchWindow();
-    if (bench != null) {
-      // bench may be null during testing
-      IWorkbenchPage activePage = bench.getActivePage();
-      activePage.closeAllEditors(false);
+    IWorkbenchWindow window = getActiveWorkbenchWindow();
+    if (window != null) {
+      IWorkbenchPage page = window.getActivePage();
+      if (page != null) {
+        page.closeAllEditors(false);
+      }
     }
   }
 
@@ -40,16 +41,17 @@ public class Activator extends AbstractUIPlugin implements IStartup {
       // do nothing
     }
     // do close
-    IWorkbenchWindow bench = getActiveWorkbenchWindow();
-    if (bench != null) {
-      // bench may be null during testing
-      IWorkbenchPage activePage = bench.getActivePage();
-      IViewReference[] viewReferences = activePage.getViewReferences();
-      if (viewReferences.length != 0) {
-        for (IViewReference viewReference : viewReferences) {
-          activePage.hideView(viewReference);
+    IWorkbenchWindow window = getActiveWorkbenchWindow();
+    if (window != null) {
+      IWorkbenchPage page = window.getActivePage();
+      if (page != null) {
+        IViewReference[] viewReferences = page.getViewReferences();
+        if (viewReferences.length != 0) {
+          for (IViewReference viewReference : viewReferences) {
+            page.hideView(viewReference);
+          }
+          waitEventLoop(100);
         }
-        waitEventLoop(100);
       }
     }
   }
@@ -79,6 +81,21 @@ public class Activator extends AbstractUIPlugin implements IStartup {
     } while (System.currentTimeMillis() - start < time);
   }
 
+  /**
+   * Ensures that Eclipse main window is in top-right corner of screen.
+   */
+  private static void configureEclipseWindowLocation() {
+    int x = 450;
+    int y = 0;
+    Shell shell = getActiveWorkbenchWindow().getShell();
+    Point shellLocation = shell.getLocation();
+    if (shellLocation.x != x || shellLocation.y != y) {
+      Rectangle clientArea = Display.getDefault().getClientArea();
+      shell.setBounds(x, y, clientArea.width - x, clientArea.height - 300);
+      waitEventLoop(100, 10);
+    }
+  }
+
   private static IWorkbenchWindow getActiveWorkbenchWindow() {
     return PlatformUI.getWorkbench().getActiveWorkbenchWindow();
   }
@@ -96,21 +113,6 @@ public class Activator extends AbstractUIPlugin implements IStartup {
         closeAllViews();
       }
     });
-  }
-
-  /**
-   * Ensures that Eclipse main window is in top-right corner of screen.
-   */
-  private void configureEclipseWindowLocation() {
-    int x = 450;
-    int y = 0;
-    Shell shell = getActiveWorkbenchWindow().getShell();
-    Point shellLocation = shell.getLocation();
-    if (shellLocation.x != x || shellLocation.y != y) {
-      Rectangle clientArea = Display.getDefault().getClientArea();
-      shell.setBounds(x, y, clientArea.width - x, clientArea.height - 350);
-      waitEventLoop(100, 10);
-    }
   }
 
 }
