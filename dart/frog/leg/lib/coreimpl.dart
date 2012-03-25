@@ -7,14 +7,12 @@
 #import('js_helper.dart');
 
 #source('../../../corelib/src/implementation/collections.dart');
-// TODO(ahe): Source this file again.
-// #source('../../../corelib/src/implementation/dual_pivot_quicksort.dart');
+#source('../../../corelib/src/implementation/dual_pivot_quicksort.dart');
 // TODO(ahe): Source this file again.
 // #source('../../../corelib/src/implementation/duration_implementation.dart');
 #source('../../../corelib/src/implementation/exceptions.dart');
 #source('../../../corelib/src/implementation/future_implementation.dart');
-// TODO(ahe): Source this file again.
-// #source('../../../corelib/src/implementation/hash_map_set.dart');
+#source('../../../corelib/src/implementation/hash_map_set.dart');
 #source('../../../corelib/src/implementation/linked_hash_map.dart');
 #source('../../../corelib/src/implementation/maps.dart');
 #source('../../../corelib/src/implementation/options.dart');
@@ -26,5 +24,3 @@
 #source('../../../runtime/lib/string_buffer.dart');
 
 #source('mockimpl.dart');
-#source('dual_pivot_quicksort.dart');
-#source('hash_map_set.dart');

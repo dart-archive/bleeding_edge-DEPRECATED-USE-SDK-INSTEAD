@@ -1164,10 +1164,15 @@ class SsaBuilder implements Visitor {
 
     HLabeledBlockInformation labelInfo;
     List<LabelElement> labels = jumpHandler.labels();
+    TargetElement target = elements[loop];
     if (!labels.isEmpty()) {
       beginBodyBlock.labeledBlockInformation =
           new HLabeledBlockInformation(bodyGraph, updateBlock,
                                        jumpHandler.labels(), isContinue: true);
+    } else if (target !== null && target.isContinueTarget) {
+      beginBodyBlock.labeledBlockInformation =
+          new HLabeledBlockInformation.implicit(bodyGraph, updateBlock,
+                                                target, isContinue: true);
     }
 
     localsHandler.enterLoopUpdates(loop);
