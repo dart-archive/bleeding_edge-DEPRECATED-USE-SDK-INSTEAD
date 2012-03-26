@@ -77,6 +77,8 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 }
 
+typedef void ElementAction(Element element);
+
 class SsaCodeGenerator implements HVisitor {
   final Compiler compiler;
   final WorkItem work;
@@ -88,6 +90,8 @@ class SsaCodeGenerator implements HVisitor {
   final Map<String, int> prefixes;
   final Set<HInstruction> generateAtUseSite;
   final Map<HPhi, String> logicalOperations;
+  final Map<Element, ElementAction> breakAction;
+  final Map<Element, ElementAction> continueAction;
 
   Element equalsNullElement;
   int indent = 0;
@@ -116,7 +120,9 @@ class SsaCodeGenerator implements HVisitor {
       prefixes = new Map<String, int>(),
       buffer = new StringBuffer(),
       generateAtUseSite = new Set<HInstruction>(),
-      logicalOperations = new Map<HPhi, String>() {
+      logicalOperations = new Map<HPhi, String>(),
+      breakAction = new Map<Element, ElementAction>(),
+      continueAction = new Map<Element, ElementAction>() {
 
     for (final name in parameterNames.getValues()) {
       prefixes[name] = 0;
@@ -263,29 +269,67 @@ class SsaCodeGenerator implements HVisitor {
     this.expectedPrecedence = oldPrecedence;
   }
 
+  void continueAsBreak(LabelElement target) {
+    addIndentation();
+    buffer.add("break ");
+    writeContinueLabel(target);
+    buffer.add(";\n");
+  }
+
+  void implicitContinueAsBreak(TargetElement target) {
+    addIndentation();
+    buffer.add("break ");
+    writeImplicitContinueLabel(target);
+    buffer.add(";\n");
+  }
+
+  void implicitBreakWithLabel(TargetElement target) {
+    addIndentation();
+    buffer.add("break ");
+    writeImplicitLabel(target);
+    buffer.add(";\n");
+  }
+
   void handleLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
     addIndentation();
-    for (LabelElement label in labeledBlockInfo.labels) {
-      if (labeledBlockInfo.isContinue) {
+    Link<Element> continueOverrides = const EmptyLink<Element>();
+    // If [labeledBlockInfo.isContinue], the block is an artificial
+    // block around the body of a loop with an update block, so that
+    // continues of the loop can be written as breaks of the body
+    // block.
+    if (labeledBlockInfo.isContinue) {
+      for (LabelElement label in labeledBlockInfo.labels) {
         if (label.isContinueTarget) {
-          addContinueLabel(label);
+          writeContinueLabel(label);
           buffer.add(':');
+          continueAction[label] = continueAsBreak;
+          continueOverrides = continueOverrides.prepend(label);
         }
-      } else {
+      }
+      // For handling unlabeled continues from the body of a loop.
+      // TODO(lrn): Consider recording whether the target is in fact
+      // a target of an unlabeled continue, and not generate this if it isn't.
+      TargetElement target = labeledBlockInfo.target;
+      writeImplicitContinueLabel(target);
+      buffer.add(':');
+      continueAction[target] = implicitContinueAsBreak;
+      continueOverrides = continueOverrides.prepend(target);
+    } else {
+      for (LabelElement label in labeledBlockInfo.labels) {
         if (label.isBreakTarget) {
-          addBreakLabel(label);
+          writeLabel(label);
           buffer.add(':');
         }
       }
-    }
-    TargetElement target = labeledBlockInfo.target;
-    if (target.isSwitch) {
-      addImplicitBreakLabel(target);
-      buffer.add(':');
-    }
-    if (labeledBlockInfo.isContinue) {
-      addImplicitContinueLabel(target);
-      buffer.add(':');
+      TargetElement target = labeledBlockInfo.target;
+      if (target.isSwitch) {
+        // This is an extra block around a switch that is generated
+        // as a nested if/else chain. We add an extra break target
+        // so that case code can break.
+        writeImplicitLabel(target);
+        buffer.add(':');
+        breakAction[target] = implicitBreakWithLabel;
+      }
     }
     buffer.add('{\n');
     indent++;
@@ -298,6 +342,14 @@ class SsaCodeGenerator implements HVisitor {
 
     if (labeledBlockInfo.joinBlock !== null) {
       visitBasicBlock(labeledBlockInfo.joinBlock);
+    }
+    if (labeledBlockInfo.isContinue) {
+      while (!continueOverrides.isEmpty()) {
+        continueAction.remove(continueOverrides.head);
+        continueOverrides = continueOverrides.tail;
+      }
+    } else {
+      breakAction.remove(labeledBlockInfo.target);
     }
   }
 
@@ -492,60 +544,72 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   // Used to write the name of labels.
-  void addBreakLabel(LabelElement label) {
-    buffer.add(@'$');
-    buffer.add(label.labelName);
+  void writeLabel(LabelElement label) {
+    buffer.add('\$${label.labelName}\$${label.target.nestingLevel}');
   }
 
-  void addContinueLabel(LabelElement label) {
-    buffer.add(@'c$');
-    buffer.add(label.labelName);
+  void writeImplicitLabel(TargetElement target) {
+    buffer.add('\$${target.nestingLevel}');
   }
 
-  void addImplicitBreakLabel(TargetElement target) {
-    buffer.add(@'$');
-    buffer.add('${target.nestingLevel}');
+  // We sometimes handle continue targets differently from break targets,
+  // so we have special continue-only labels.
+  void writeContinueLabel(LabelElement label) {
+    buffer.add('c\$${label.labelName}\$${label.target.nestingLevel}');
   }
 
-  void addImplicitContinueLabel(TargetElement target) {
-    buffer.add(@'c$');
-    buffer.add('${target.nestingLevel}');
+  void writeImplicitContinueLabel(TargetElement target) {
+    buffer.add('c\$${target.nestingLevel}');
+  }
+
+  /**
+   * Checks if [map] contains an [ElementAction] for [element], and
+   * if so calls that action and returns true.
+   * Otherwise returns false.
+   */
+  bool tryCallAction(Map<Element, ElementAction> map, Element element) {
+    ElementAction action = map[element];
+    if (action === null) return false;
+    action(element);
+    return true;
   }
 
   visitBreak(HBreak node) {
     assert(currentBlock.successors.length == 1);
-    addIndentation();
-    buffer.add("break");
     if (node.label !== null) {
-      buffer.add(" ");
-      addBreakLabel(node.label);
+      LabelElement label = node.label;
+      if (!tryCallAction(breakAction, label)) {
+        addIndentation();
+        buffer.add("break ");
+        writeLabel(label);
+        buffer.add(";\n");
+      }
     } else {
       TargetElement target = node.target;
-      if (target.isSwitch) {
-        // We are wrapping switches in a labeled block so that we can
-        // break from them even when they are implemented as if/else chains.
-        // For that reason, we need to use a labeled break targeting the
-        // "implicit" label we gave to the block.
-        buffer.add(@' ');
-        addImplicitBreakLabel(target);
+      if (!tryCallAction(breakAction, target)) {
+        addIndentation();
+        buffer.add("break;\n");
       }
     }
-    buffer.add(";\n");
   }
 
   visitContinue(HContinue node) {
     assert(currentBlock.successors.length == 1);
-    addIndentation();
-    // We currently implement "continue" in a loop as a break of a block
-    // containing the loop body. If we ever implement for-loops as such,
-    // we should use a real continue.
-    buffer.add("break ");
     if (node.label !== null) {
-      addContinueLabel(node.label);
+      LabelElement label = node.label;
+      if (!tryCallAction(continueAction, label)) {
+        addIndentation();
+        buffer.add("continue ");
+        writeLabel(label);
+        buffer.add(";\n");
+      }
     } else {
-      addImplicitContinueLabel(node.target);
+      TargetElement target = node.target;
+      if (!tryCallAction(continueAction, target)) {
+        addIndentation();
+        buffer.add("continue;\n");
+      }
     }
-    buffer.add(";\n");
   }
 
   visitTry(HTry node) {
@@ -1269,7 +1333,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   void beginLoop(HBasicBlock block) {
     addIndentation();
     for (LabelElement label in block.loopInformation.labels) {
-      addBreakLabel(label);
+      writeLabel(label);
       buffer.add(":");
     }
     buffer.add('while (true) {\n');
@@ -1436,7 +1500,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
     addIndentation();
     for (SourceString label in block.loopInformation.labels) {
-      addBreakLabel(label);
+      writeLabel(label);
       buffer.add(":");
     }
     buffer.add('$newLabel: while (true) {\n');
