@@ -781,7 +781,14 @@ class SsaCodeGenerator implements HVisitor {
     String name = handler.getNameForConstant(node.constant);
     if (name === null) {
       assert(!node.constant.isObject());
-      node.constant.writeJsCode(buffer, handler);
+      if (node.constant.isNum()
+          && expectedPrecedence == JSPrecedence.MEMBER_PRECEDENCE) {
+        buffer.add('(');
+        node.constant.writeJsCode(buffer, handler);
+        buffer.add(')');
+      } else {
+        node.constant.writeJsCode(buffer, handler);
+      }
     } else {
       buffer.add(compiler.namer.CURRENT_ISOLATE);
       buffer.add(".");

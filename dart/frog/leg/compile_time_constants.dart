@@ -85,7 +85,7 @@ class IntConstant extends NumConstant {
   bool isInt() => true;
 
   void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
-    buffer.add("($value)");
+    buffer.add("$value");
   }
 
   // We have to override the equality operator so that ints and doubles are
@@ -130,7 +130,7 @@ class DoubleConstant extends NumConstant {
     } else if (value == -double.INFINITY) {
       buffer.add("(-1/0)");
     } else {
-      buffer.add("($value)");
+      buffer.add("$value");
     }
   }
 
