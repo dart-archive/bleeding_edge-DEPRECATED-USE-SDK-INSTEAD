@@ -127,7 +127,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       DartString string = constant.value;
       return graph.addConstantInt(string.length);
     }
-    return node;    
+    return node;
   }
 
   HInstruction visitInvokeBinary(HInvokeBinary node) {
@@ -165,6 +165,61 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitIntegerCheck(HIntegerCheck node) {
     HInstruction value = node.value;
     return value.isInteger() ? value : node;
+  }
+
+  HInstruction visitIs(HIs node) {
+    Element element = node.typeExpression;
+    if (element.kind === ElementKind.TYPE_VARIABLE) {
+      compiler.unimplemented("visitIs for type variables");
+    }
+
+    HType expressionType = node.expression.type;
+    if (element === compiler.objectClass
+        || element === compiler.dynamicClass) {
+      return graph.addConstantBool(true);
+    } else if (expressionType.isInteger()) {
+      if (element === compiler.intClass || element === compiler.numClass) {
+        return graph.addConstantBool(true);
+      } else if (element === compiler.doubleClass) {
+        // We let the JS semantics decide for that check. Currently
+        // the code we emit will always return true.
+        return node;
+      } else {
+        return graph.addConstantBool(false);
+      }
+    } else if (expressionType.isDouble()) {
+      if (element === compiler.doubleClass || element === compiler.numClass) {
+        return graph.addConstantBool(true);
+      } else if (element === compiler.intClass) {
+        // We let the JS semantics decide for that check. Currently
+        // the code we emit will return true for a double that can be
+        // represented as a 31-bit integer.
+        return node;
+      } else {
+        return graph.addConstantBool(false);
+      }
+    } else if (expressionType.isNumber()) {
+      if (element === compiler.numClass) {
+        return graph.addConstantBool(true);
+      }
+      // We cannot just return false, because the expression may be of
+      // type int or double.
+    } else if (expressionType.isString()) {
+      if (element === compiler.stringClass
+               || Elements.isStringSupertype(element, compiler)) {
+        return graph.addConstantBool(true);
+      } else {
+        return graph.addConstantBool(false);
+      }
+    } else if (expressionType.isArray()) {
+      if (element === compiler.listClass
+          || Elements.isListSupertype(element, compiler)) {
+        return graph.addConstantBool(true);
+      } else {
+        return graph.addConstantBool(false);
+      }
+    }
+    return node;
   }
 }
 

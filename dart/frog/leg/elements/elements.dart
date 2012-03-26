@@ -884,6 +884,19 @@ class Elements {
     }
     return new SourceString('$receiver\$$str');
   }
+
+  static bool isStringSupertype(Element element, Compiler compiler) {
+    LibraryElement coreLibrary = compiler.coreLibrary;
+    return (element == coreLibrary.find(const SourceString('Comparable')))
+        || (element == coreLibrary.find(const SourceString('Hashable')))
+        || (element == coreLibrary.find(const SourceString('Pattern')));
+  }
+
+  static bool isListSupertype(Element element, compiler compiler) {
+    LibraryElement coreLibrary = compiler.coreLibrary;
+    return (element == coreLibrary.find(const SourceString('Collection')))
+        || (element == coreLibrary.find(const SourceString('Iterable')));
+  }
 }
 
 

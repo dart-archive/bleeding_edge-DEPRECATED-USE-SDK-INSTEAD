@@ -1071,7 +1071,7 @@ class SsaCodeGenerator implements HVisitor {
 
   void visitIs(HIs node) {
     Element element = node.typeExpression;
-    if (node.typeExpression.kind === ElementKind.TYPE_VARIABLE) {
+    if (element.kind === ElementKind.TYPE_VARIABLE) {
       compiler.unimplemented("visitIs for type variables");
     }
     compiler.registerIsCheck(element);
@@ -1084,7 +1084,8 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add(' || ');
     }
     if (element === objectClass || element === compiler.dynamicClass) {
-      // TODO(ahe): This probably belongs in the constant folder.
+      // The constant folder also does this optimization, but we make
+      // it safe by assuming it may have not run.
       buffer.add('true');
     } else if (element == compiler.stringClass) {
       checkString(input, '===');
@@ -1104,7 +1105,7 @@ class SsaCodeGenerator implements HVisitor {
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
     } else {
       beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-      if (isStringSupertype(element)) {
+      if (Elements.isStringSupertype(element, compiler)) {
         checkString(input, '===');
         buffer.add(' || ');
       }
@@ -1112,7 +1113,8 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add(' && ');
       int precedence = JSPrecedence.PREFIX_PRECEDENCE;
       bool endParen = false;
-      if (isListOrSupertype(element)) {
+      if (element === compiler.listClass
+          || Elements.isListSupertype(element, compiler)) {
         buffer.add("(");
         endParen = true;
         beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
@@ -1153,20 +1155,6 @@ class SsaCodeGenerator implements HVisitor {
     if (node.nullOk) {
       endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
     }
-  }
-
-  bool isStringSupertype(Element element) {
-    LibraryElement coreLibrary = compiler.coreLibrary;
-    return (element == coreLibrary.find(const SourceString('Comparable')))
-      || (element == coreLibrary.find(const SourceString('Hashable')))
-      || (element == coreLibrary.find(const SourceString('Pattern')));
-  }
-
-  bool isListOrSupertype(Element element) {
-    LibraryElement coreLibrary = compiler.coreLibrary;
-    return (element == coreLibrary.find(const SourceString('List')))
-      || (element == coreLibrary.find(const SourceString('Collection')))
-      || (element == coreLibrary.find(const SourceString('Iterable')));
   }
 
   bool isSupertypeOfNativeClass(Element element) {

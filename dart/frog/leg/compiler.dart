@@ -63,6 +63,7 @@ class Compiler implements DiagnosticListener {
   ClassElement stringClass;
   ClassElement functionClass;
   ClassElement nullClass;
+  ClassElement listClass;
 
   Element get currentElement() => _currentElement;
   withCurrentElement(Element element, f()) {
@@ -227,6 +228,7 @@ class Compiler implements DiagnosticListener {
     doubleClass = coreLibrary.find(const SourceString('double'));
     stringClass = coreLibrary.find(const SourceString('String'));
     functionClass = coreLibrary.find(const SourceString('Function'));
+    listClass = coreLibrary.find(const SourceString('List'));
     closureClass = jsHelperLibrary.find(const SourceString('Closure'));
     dynamicClass = jsHelperLibrary.find(const SourceString('Dynamic'));
     nullClass = jsHelperLibrary.find(const SourceString('Null'));
