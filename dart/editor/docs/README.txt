@@ -218,6 +218,7 @@ On the "Plug-ins" page ...
     Click "Deselect all"
     Select "com.google.dart.tools.ui"
     Click "Add Required Plug-ins".
+    Click "Validate plug-ins automatically prior to launching".
 Click "Run" and another instance of Eclipse should launch, running the Dart Editor!
 
 ====================================
