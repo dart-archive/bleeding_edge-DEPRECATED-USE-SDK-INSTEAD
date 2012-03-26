@@ -259,6 +259,8 @@ build system.  The PDE build system has to run under Eclipse.
           Install the sdk zip if build.os is set
          - - - - - - - - - - - - - - - - - -->
     <target name="installSdk" depends="installSdkInNonWindows, installSdkInWindows">
+        <copy file="${build.source}/tools/plugins/com.google.dart.tools.core/import.config" 
+              todir="${build.stage.include.dir}/dart-sdk/lib" />
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
