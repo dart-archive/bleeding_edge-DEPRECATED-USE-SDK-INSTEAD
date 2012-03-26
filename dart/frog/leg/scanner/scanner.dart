@@ -220,7 +220,7 @@ class AbstractScanner<T> implements Scanner {
       if (peek() === $BANG) {
         do {
           next = advance();
-        } while (next != $LF && next != $CR);
+        } while (next !== $LF && next !== $CR && next !== $EOF);
         return next;
       }
     }

@@ -51,4 +51,15 @@ main() {
   } else {
     print('Skipping non-BMP character test');
   }
+
+  // Regression test for issue 1761.
+  // "#!"
+  token = scan([0x23, 0x21, $EOF]);
+  Expect.equals(token.info, EOF_INFO); // Treated as a comment.
+
+  // Regression test for issue 1761.
+  // "#! Hello, World!"
+  token = scan([0x23, 0x21, 0x20, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20,
+                0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, $EOF]);
+  Expect.equals(token.info, EOF_INFO); // Treated as a comment.
 }
