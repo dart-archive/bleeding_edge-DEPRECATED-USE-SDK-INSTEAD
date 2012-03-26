@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.completion;
 
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.model.DartModelException;
 
 import junit.framework.TestCase;
@@ -329,6 +330,9 @@ public class CompletionEngineTest extends TestCase {
     assertTrue("Expected exclamation point ('!') within the source"
         + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
+    if (DartCoreDebug.NEW_INDEXER) {
+      InMemoryIndex.getInstance().initializeIndex();
+    }
     IProgressMonitor monitor = new NullProgressMonitor();
     MockLibrarySource library = new MockLibrarySource("FooLib");
     MockDartSource sourceFile = new MockDartSource(library, "Foo.dart", "");
