@@ -595,8 +595,8 @@ builtin$getRange$2(receiver, start, length) {
   checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
   if (start is !int) throw new IllegalArgumentException(start);
   if (length is !int) throw new IllegalArgumentException(length);
-  if (start < 0) throw new IndexOutOfRangeException(start);
   if (length < 0) throw new IllegalArgumentException(length);
+  if (start < 0) throw new IndexOutOfRangeException(start);
   var end = start + length;
   if (end > receiver.length) {
     throw new IndexOutOfRangeException(length);
@@ -697,7 +697,10 @@ builtin$lastIndexOf$2(receiver, element, start) {
     if (start !== null) {
       if (start is !num) throw new IllegalArgumentException(start);
       if (start < 0) return -1;
-      if (start >= receiver.length) start = receiver.length - 1;
+      if (start >= receiver.length) {
+        if (element == "") return receiver.length;
+        start = receiver.length - 1;
+      }
     }
     return stringLastIndexOfUnchecked(receiver, element, start);
   }

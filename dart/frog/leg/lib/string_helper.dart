@@ -32,21 +32,27 @@ class StringMatch implements Match {
   final String pattern;
 }
 
-allMatchesInStringUnchecked(receiver, str) {
-  var result = new List();
-  var length = receiver.length;
-  if (length === 0) {
-    return result;
-  }
-
-  var strLength = str.length;
-  for (var i = 0; i < strLength;) {
-    var index = str.indexOf(receiver, i);
-    if (index < 0) {
-      return result;
+List<Match> allMatchesInStringUnchecked(String needle, String haystack) {
+  // Copied from StringBase.allMatches in
+  // ../../../runtime/lib/string.dart
+  List<Match> result = new List<Match>();
+  int length = haystack.length;
+  int patternLength = needle.length;
+  int startIndex = 0;
+  while (true) {
+    int position = haystack.indexOf(needle, startIndex);
+    if (position == -1) {
+      break;
     }
-    result.add(new StringMatch(index, str, receiver));
-    i = index + length;
+    result.add(new StringMatch(position, haystack, needle));
+    int endIndex = position + patternLength;
+    if (endIndex == length) {
+      break;
+    } else if (position == endIndex) {
+      ++startIndex;  // empty match, advance and restart
+    } else {
+      startIndex = endIndex;
+    }
   }
   return result;
 }
