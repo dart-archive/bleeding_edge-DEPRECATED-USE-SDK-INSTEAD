@@ -5,10 +5,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "111608",
+  "webkit_revision": "111994",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8077",
+  "nacl_revision": "8096",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "7955",  # native_client/DEPS: tools_rev
@@ -50,12 +50,12 @@ vars = {
   "ffmpeg_hash": "c4db435602131b218d0c39e85ccf18a4be195e60",
 
   "sfntly_revision": "128",
-  "skia_revision": "3448",
+  "skia_revision": "3470",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "11102",
-  "webrtc_revision": "1903",
+  "v8_revision": "11129",
+  "webrtc_revision": "1927",
   "jsoncpp_revision": "248",
   "nss_revision": "126189",
   "rlz_revision": "105",
@@ -84,7 +84,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@374",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@993",
+    (Var("googlecode_url") % "angleproject") + "/trunk@1008",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -116,7 +116,7 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@37",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@17",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@18",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1246",
@@ -328,7 +328,7 @@ deps = {
     "/trunk/deps/third_party/undoview@119694",
 
   "src/tools/deps2git":
-    "/trunk/tools/deps2git@123141",
+    "/trunk/tools/deps2git@128331",
 }
 
 
