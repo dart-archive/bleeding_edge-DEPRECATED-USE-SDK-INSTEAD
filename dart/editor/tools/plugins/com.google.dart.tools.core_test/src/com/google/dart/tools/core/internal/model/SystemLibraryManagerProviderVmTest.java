@@ -36,6 +36,10 @@ public class SystemLibraryManagerProviderVmTest extends SystemLibraryManagerProv
     testLibrary("html", "html_dartium.dart");
   }
 
+  public void test_SystemLibraryManagerProvider_uri() throws Exception {
+    testLibrary("uri", "uri.dart");
+  }
+
   @Override
   protected EditorLibraryManager getLibraryManager() {
     return SystemLibraryManagerProvider.getVmLibraryManager();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Dart project authors.
+ * Copyright 2012 Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,13 +19,18 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 /**
  * Specialized {@link SystemLibraryManager} for accessing libraries bundled with the editor.
@@ -83,6 +88,13 @@ public abstract class EditorLibraryManager extends SystemLibraryManager {
   }
 
   /**
+   * Answer the URI against which {@link #getDefaultLibraries()} resolves relative paths
+   * 
+   * @return the URI (not <code>null</code>)
+   */
+  protected abstract URI getBaseUri();
+
+  /**
    * Scan the directory returned by {@link #getLibrariesDir()} looking for libraries of the form
    * libraries/<name>/<name>_<platform>.dart and libraries/<name>/<name>.dart where <platform> is
    * the value returned by {@link #getPlatformName()}. This is called by the superclass constructor,
@@ -90,50 +102,109 @@ public abstract class EditorLibraryManager extends SystemLibraryManager {
    */
   @Override
   protected SystemLibrary[] getDefaultLibraries() {
-    final String platformName = getPlatformName();
-    final File librariesDir = getLibrariesDir();
     libraries = new ArrayList<SystemLibrary>();
     longToShortUriMap = new HashMap<URI, URI>();
-    if (librariesDir.isDirectory()) {
-      for (String name : librariesDir.list()) {
-        File dir = new File(librariesDir, name);
-        if (!dir.isDirectory()) {
-          if (DartCoreDebug.DARTLIB) {
-            DartCore.logInformation("Skipping " + dir);
+
+    // Cycle through the import.config, extracting explicit mappings and searching directories
+
+    URI base = getBaseUri();
+    Properties importConfig = getImportConfig();
+    HashSet<String> explicitShortNames = new HashSet<String>();
+    for (Entry<Object, Object> entry : importConfig.entrySet()) {
+      String shortName = ((String) entry.getKey()).trim();
+      String path = ((String) entry.getValue()).trim();
+
+      File file;
+      try {
+        file = new File(base.resolve(new URI(null, null, path, null)).normalize());
+      } catch (URISyntaxException e) {
+        DartCore.logError("Failed to resolve " + path + " against " + base);
+        continue;
+      }
+      if (!file.exists()) {
+        DartCore.logError("File for " + shortName + " does not exist - " + file);
+        continue;
+      }
+
+      // If the shortName ends with ":" then search the associated directory for libraries
+
+      if (shortName.endsWith(":")) {
+        if (!file.isDirectory()) {
+          DartCore.logError("Expected directory for " + shortName + " - " + file);
+          continue;
+        }
+        if (DartCoreDebug.DARTLIB) {
+          DartCore.logInformation("Scanning " + file);
+        }
+        for (File child : file.listFiles()) {
+          String host = child.getName();
+          // Do not overwrite explicit shortName to dart file mappings
+          if (explicitShortNames.contains(shortName + host)) {
+            if (DartCoreDebug.DARTLIB) {
+              DartCore.logInformation("Skipping " + shortName + host
+                  + " as it is explicitly defined");
+            }
+            continue;
           }
-          continue;
+          if (!child.isDirectory()) {
+            if (DartCoreDebug.DARTLIB) {
+              DartCore.logInformation("Skipping " + child);
+            }
+            continue;
+          }
+          File dartFile = new File(child, child.getName() + ".dart");
+          if (!dartFile.isFile()) {
+            if (DartCoreDebug.DARTLIB) {
+              DartCore.logInformation("Skipping " + child + " because no " + dartFile.getName());
+            }
+            continue;
+          }
+          //longToShortUriMap.put(shortUri, dartFile.toURI());
+          addLib(shortName, host, host, child, dartFile.getName());
         }
+      } else {
 
-        // First attempt to locate a platform specific library file <name>_<platform>.dart
-        // (e.g. "core_runtime.dart") and if that does not exist then "<name>.dart"
+        // Otherwise treat the entry as an explicit shortName to dart file mapping
 
-        String platformLibFileName = name + "_" + platformName + ".dart";
-        if (addLib(name, name, dir, platformLibFileName)) {
+        int index = shortName.indexOf(':');
+        if (index == -1) {
+          DartCore.logError("Expected ':' in " + shortName);
           continue;
         }
-        String commonLibFileName = name + ".dart";
-        if (addLib(name, name, dir, commonLibFileName)) {
-          continue;
-        }
-
-        // Hack for some libraries because they do not follow the naming convention
-
-        if ("dom".equals(name) && addLib(name, name, dir, "dom_frog.dart")) {
-          continue;
-        }
-        if ("html".equals(name) && addLib(name, name, dir, "html_dartium.dart")) {
-          continue;
-        }
-        if ("isolate".equals(name) && addLib(name, name, dir, "isolate_compiler.dart")) {
-          continue;
-        }
-
-        DartCore.logInformation("Expected " + platformLibFileName + " or " + commonLibFileName
-            + " in " + dir);
+        explicitShortNames.add(shortName);
+        String scheme = shortName.substring(0, index + 1);
+        String host = shortName.substring(index + 1);
+        addLib(scheme, host, host, file.getParentFile(), file.getName());
       }
     }
     return libraries.toArray(new SystemLibrary[libraries.size()]);
   }
+
+  /**
+   * Read the import.config content and return it as a collection of key/value pairs
+   */
+  protected Properties getImportConfig() {
+    Properties importConfig = new Properties();
+    InputStream stream = getImportConfigStream();
+    try {
+      importConfig.load(stream);
+    } catch (IOException e) {
+      DartCore.logError("Failed to load import.config", e);
+    } finally {
+      try {
+        stream.close();
+      } catch (IOException e) {
+        DartCore.logError("Failed to close import.config reader", e);
+      }
+    }
+    return importConfig;
+  }
+
+  /**
+   * Answer a reader on the "import.config" file, typically residing in the editor installation
+   * directory. It is the responsibility of the caller to close the reader when finished.
+   */
+  protected abstract InputStream getImportConfigStream();
 
   /**
    * Answer the platform name (DartC = "compiler", VM = "runtime") used when locating platform
@@ -141,23 +212,23 @@ public abstract class EditorLibraryManager extends SystemLibraryManager {
    */
   abstract String getPlatformName();
 
-  private boolean addLib(String host, String name, File dir, String libFileName)
+  private boolean addLib(String scheme, String host, String name, File dir, String libFileName)
       throws AssertionError {
     File libFile = new File(dir, libFileName);
     if (!libFile.isFile()) {
       return false;
     }
     if (DartCoreDebug.DARTLIB) {
-      DartCore.logInformation("Found dart:" + name + " in " + libFile);
+      DartCore.logInformation("Found " + scheme + name + " in " + libFile);
     }
     SystemLibrary lib = new SystemLibrary(name, host, libFileName, dir);
     libraries.add(lib);
-    String libSpec = "dart:" + name;
+    String libSpec = scheme + name;
     URI libUri;
     URI expandedUri;
     try {
       libUri = new URI(libSpec);
-      expandedUri = new URI("dart://" + host + "/" + libFileName);
+      expandedUri = new URI("dart:" + "//" + host + "/" + libFileName);
     } catch (URISyntaxException e) {
       throw new AssertionError(e);
     }

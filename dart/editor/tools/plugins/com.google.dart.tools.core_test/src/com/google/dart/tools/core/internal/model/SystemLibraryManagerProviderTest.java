@@ -27,13 +27,36 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertNull(fullUri);
   }
 
-  public void test_SystemLibraryManagerProvider_getAllLibrarySpecs() {
-    Collection<String> specs = getLibraryManager().getAllLibrarySpecs();
+  public void test_SystemLibraryManagerProvider_getAllLibrarySpecs() throws Exception {
+    EditorLibraryManager libraryManager = getLibraryManager();
+    Collection<String> specs = libraryManager.getAllLibrarySpecs();
+//    System.out.println(getClass().getName());
+//    System.out.println("  " + specs.size() + " system libraries");
+//    for (String eachSpec : new TreeSet<String>(specs)) {
+//      URI uri;
+//      try {
+//        uri = libraryManager.resolveDartUri(new URI(eachSpec));
+//      } catch (Exception e) {
+//        System.out.println("Failed to resolve " + eachSpec);
+//        e.printStackTrace();
+//        continue;
+//      }
+//      StringBuilder builder = new StringBuilder();
+//      builder.append("  ");
+//      builder.append(eachSpec);
+//      while (builder.length() < 20) {
+//        builder.append(' ');
+//      }
+//      builder.append(" --> ");
+//      builder.append(uri);
+//      System.out.println(builder.toString());
+//    }
     assertNotNull(specs);
     assertTrue(specs.contains("dart:core"));
     assertTrue(specs.contains("dart:coreimpl"));
     assertTrue(specs.contains("dart:dom"));
     assertTrue(specs.contains("dart:html"));
+    assertTrue(specs.contains("dart:uri"));
   }
 
   public void test_SystemLibraryManagerProvider_translateDoesNotExist() throws Exception {

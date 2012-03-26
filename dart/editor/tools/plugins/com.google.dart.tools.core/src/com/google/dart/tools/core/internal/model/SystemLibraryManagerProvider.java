@@ -21,13 +21,21 @@ import com.google.dart.tools.core.analysis.AnalysisMarkerManager;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.model.DartSdk;
 
+import org.eclipse.core.runtime.AssertionFailedException;
+
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.net.URI;
 
 /**
  * The class <code>SystemLibraryManagerProvider</code> manages the {@link SystemLibraryManager
  * system library managers} used by the tools.
  */
 public class SystemLibraryManagerProvider {
+  private static final String IMPORT_CONFIG = "import.config";
   private static final Object lock = new Object();
   private static EditorLibraryManager VM_LIBRARY_MANAGER;
 
@@ -86,6 +94,24 @@ public class SystemLibraryManagerProvider {
               DartCore.logInformation("Reading bundled libraries from " + librariesDir);
             }
             return librariesDir;
+          }
+
+          @Override
+          protected URI getBaseUri() {
+            return DartSdk.getInstallDirectory().toURI();
+          }
+
+          @Override
+          protected InputStream getImportConfigStream() {
+            File file = new File(getLibrariesDir(), IMPORT_CONFIG);
+            if (!file.exists()) {
+              throw new AssertionFailedException("Failed to find " + IMPORT_CONFIG);
+            }
+            try {
+              return new BufferedInputStream(new FileInputStream(file));
+            } catch (FileNotFoundException e) {
+              throw new AssertionFailedException("Failed to open " + file);
+            }
           }
 
           @Override
