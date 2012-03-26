@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -31,7 +31,6 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.functions.DartHeuristicScanner;
 import com.google.dart.tools.ui.internal.text.functions.DartIndenter;
@@ -681,22 +680,22 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     // Heuristic to check whether it is commented code or just a comment
-    DartX.todo("format");
-    // if (newInsert > insert) {
-    // int whitespaceCount = 0;
-    // int i = newInsert;
-    // while (i < endOffset - 1) {
-    // char ch = document.get(i, 1).charAt(0);
-    // if (!Character.isWhitespace(ch))
-    // break;
-    // whitespaceCount = whitespaceCount + computeVisualLength(ch, tabLength);
-    // i++;
-    // }
-    //
-    // if (whitespaceCount != 0
-    // && whitespaceCount >= CodeFormatterUtil.getIndentWidth(fProject))
-    // insert = newInsert;
-    // }
+    if (newInsert > insert) {
+      int whitespaceCount = 0;
+      int i = newInsert;
+      while (i < endOffset - 1) {
+        char ch = document.get(i, 1).charAt(0);
+        if (!Character.isWhitespace(ch)) {
+          break;
+        }
+        whitespaceCount = whitespaceCount + computeVisualLength(ch, tabLength);
+        i++;
+      }
+
+      if (whitespaceCount != 0 && whitespaceCount >= CodeFormatterUtil.getIndentWidth(fProject)) {
+        insert = newInsert;
+      }
+    }
 
     // Insert indent
     document.replace(insert, 0, indent.toString());
@@ -969,6 +968,9 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
   private int getStringEnd(IDocument d, int offset, int endOffset, char ch)
       throws BadLocationException {
+    // TODO this needs to be rewritten to use DartScanner
+    // and be sensitive to comments and strings in interpolation expressions
+    // and to raw strings
     boolean multiline = false;
     if (offset + 2 <= endOffset) {
       if (d.getChar(offset) == ch && d.getChar(offset + 1) == ch) {
@@ -1239,7 +1241,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         return;
       }
 
-      // line of last Java code
+      // line of last code
       int pos = scanner.findNonWhitespaceBackward(p, DartHeuristicScanner.UNBOUND);
       if (pos == -1) {
         return;
@@ -1342,7 +1344,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           return;
         }
 
-        // line of last Java code
+        // line of last code
         int pos = scanner.findNonWhitespaceBackward(p - 1, DartHeuristicScanner.UNBOUND);
         if (pos == -1) {
           return;

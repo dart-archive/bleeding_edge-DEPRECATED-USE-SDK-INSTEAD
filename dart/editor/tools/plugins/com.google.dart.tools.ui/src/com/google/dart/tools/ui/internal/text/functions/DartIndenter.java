@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.functions;
@@ -74,7 +72,7 @@ public class DartIndenter {
     CorePrefs(DartProject project) {
       fProject = project;
       if (isStandalone()) {
-        prefUseTabs = true;
+        prefUseTabs = false;
         prefTabSize = 2; // TODO(5401210)
         prefIndentationSize = 2; // TODO(5401210)
         prefArrayDimensionsDeepIndent = true;
@@ -84,8 +82,8 @@ public class DartIndenter {
         prefArrayDeepIndent = true;
         prefTernaryDeepAlign = false;
         prefTernaryIndent = prefContinuationIndent;
-        prefCaseIndent = 0;
-        prefAssignmentIndent = prefBlockIndent;
+        prefCaseIndent = 1;
+        prefAssignmentIndent = prefBlockIndent + 1;
         prefCaseBlockIndent = prefBlockIndent;
         prefIndentBracesForBlocks = false;
         prefSimpleIndent = (prefIndentBracesForBlocks && prefBlockIndent == 0) ? 1
@@ -102,7 +100,7 @@ public class DartIndenter {
         prefIndentBracesForArrays = false;
         prefIndentBracesForMethods = false;
         prefIndentBracesForTypes = false;
-        prefHasGenerics = false;
+        prefHasGenerics = true;
         prefTabChar = JavaScriptCore.SPACE; // TODO(5401210)
       } else {
         prefUseTabs = prefUseTabs();
@@ -997,7 +995,7 @@ public class DartIndenter {
    */
   private int handleScopeIntroduction(int bound) {
     switch (fToken) {
-      // scope introduction: special treat who special is
+    // scope introduction: special treat who special is
       case Symbols.TokenLPAREN:
         int pos = fPosition; // store
 
@@ -1104,8 +1102,8 @@ public class DartIndenter {
       nextToken();
       switch (fToken) {
 
-        // search for case labels, which consist of (possibly qualified)
-        // identifiers or numbers
+      // search for case labels, which consist of (possibly qualified)
+      // identifiers or numbers
         case Symbols.TokenIDENT:
         case Symbols.TokenOTHER: // dots for qualified constants
           continue;
@@ -1214,9 +1212,9 @@ public class DartIndenter {
     while (true) {
       nextToken();
       switch (fToken) {
-        // invalid cases: another case label or an LBRACE must come before a
-        // case
-        // -> bail out with the current position
+      // invalid cases: another case label or an LBRACE must come before a
+      // case
+      // -> bail out with the current position
         case Symbols.TokenLPAREN:
         case Symbols.TokenLBRACKET:
         case Symbols.TokenEOF:
@@ -1343,7 +1341,7 @@ public class DartIndenter {
     while (true) {
       nextToken();
       switch (fToken) {
-        // scopes: skip them
+      // scopes: skip them
         case Symbols.TokenRPAREN:
         case Symbols.TokenRBRACKET:
         case Symbols.TokenRBRACE:
@@ -1472,7 +1470,7 @@ public class DartIndenter {
       }
 
       switch (fToken) {
-        // scopes: skip them
+      // scopes: skip them
         case Symbols.TokenRPAREN:
         case Symbols.TokenRBRACKET:
         case Symbols.TokenRBRACE:
@@ -1522,7 +1520,7 @@ public class DartIndenter {
 
       if (isInBlock) {
         switch (fToken) {
-          // exit on all block introducers
+        // exit on all block introducers
           case Symbols.TokenIF:
           case Symbols.TokenELSE:
           case Symbols.TokenCATCH:
@@ -1558,10 +1556,10 @@ public class DartIndenter {
       }
 
       switch (fToken) {
-        // scope introduction through: LPAREN, LBRACE, LBRACKET
-        // search stop on SEMICOLON, RBRACE, COLON, EOF
-        // -> the next token is the start of the statement (i.e. previousPos
-        // when backward scanning)
+      // scope introduction through: LPAREN, LBRACE, LBRACKET
+      // search stop on SEMICOLON, RBRACE, COLON, EOF
+      // -> the next token is the start of the statement (i.e. previousPos
+      // when backward scanning)
         case Symbols.TokenLPAREN:
         case Symbols.TokenLBRACE:
         case Symbols.TokenLBRACKET:

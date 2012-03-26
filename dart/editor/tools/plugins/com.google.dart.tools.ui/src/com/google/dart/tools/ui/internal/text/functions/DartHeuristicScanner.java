@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.functions;
@@ -961,7 +959,6 @@ public final class DartHeuristicScanner implements Symbols {
    */
   private int getToken(String s) {
     Assert.isNotNull(s);
-
     switch (s.length()) {
       case 2:
         if ("if".equals(s)) {
@@ -969,6 +966,12 @@ public final class DartHeuristicScanner implements Symbols {
         }
         if ("do".equals(s)) {
           return TokenDO;
+        }
+        if ("is".equals(s)) {
+          return TokenINSTANCEOF;
+        }
+        if ("in".equals(s)) {
+          return TokenIN;
         }
         break;
       case 3:
@@ -995,6 +998,9 @@ public final class DartHeuristicScanner implements Symbols {
         if ("case".equals(s)) {
           return TokenCASE;
         }
+        if ("call".equals(s)) {
+          return TokenCALL;
+        }
         if ("const".equals(s)) {
           return TokenCONST;
         }
@@ -1010,6 +1016,9 @@ public final class DartHeuristicScanner implements Symbols {
         if ("true".equals(s)) {
           return TokenTRUE;
         }
+        if ("void".equals(s)) {
+          return TokenVOID;
+        }
         break;
       case 5:
         if ("break".equals(s)) {
@@ -1021,8 +1030,14 @@ public final class DartHeuristicScanner implements Symbols {
         if ("class".equals(s)) {
           return TokenCLASS;
         }
+        if ("const".equals(s)) {
+          return TokenCONST;
+        }
         if ("false".equals(s)) {
           return TokenFALSE;
+        }
+        if ("final".equals(s)) {
+          return TokenFINAL;
         }
         if ("super".equals(s)) {
           return TokenSUPER;
@@ -1046,6 +1061,9 @@ public final class DartHeuristicScanner implements Symbols {
         }
         if ("negate".equals(s)) {
           return TokenNEGATE;
+        }
+        if ("prefix".equals(s)) {
+          return TokenPREFIX;
         }
         if ("return".equals(s)) {
           return TokenRETURN;
@@ -1076,6 +1094,9 @@ public final class DartHeuristicScanner implements Symbols {
         if ("library".equals(s)) {
           return TokenLIBRARY;
         }
+        if ("typedef".equals(s)) {
+          return TokenTYPEDEF;
+        }
         break;
       case 8:
         if ("abstract".equals(s)) {
@@ -1084,11 +1105,11 @@ public final class DartHeuristicScanner implements Symbols {
         if ("continue".equals(s)) {
           return TokenCONTINUE;
         }
-        if ("function".equals(s)) {
-          return TokenFUNCTION;
-        }
         if ("operator".equals(s)) {
           return TokenOPERATOR;
+        }
+        if ("resource".equals(s)) {
+          return TokenRESOURCE;
         }
         break;
       case 9:
@@ -1099,9 +1120,6 @@ public final class DartHeuristicScanner implements Symbols {
       case 10:
         if ("implements".equals(s)) {
           return TokenIMPLEMENTS;
-        }
-        if ("instanceof".equals(s)) {
-          return TokenINSTANCEOF;
         }
         break;
     }
