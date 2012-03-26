@@ -216,9 +216,6 @@ public class IndexStore {
       elementRelationshipMap.put(relationship, locations);
     }
     locations.add(new ContributedLocation(contributor, location));
-//    if (relationship == IndexConstants.IS_EXTENDED_BY) {
-//      System.out.println("+ " + element + " " + relationship + " " + location);
-//    }
   }
 
   /**

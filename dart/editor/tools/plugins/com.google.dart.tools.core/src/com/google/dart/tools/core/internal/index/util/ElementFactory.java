@@ -244,6 +244,9 @@ public final class ElementFactory {
     com.google.dart.compiler.resolver.Element parent = element.getEnclosingElement();
     if (parent == null) {
       builder.append(element.getName());
+    } else if (parent == element) {
+      DartCore.logInformation("The element " + element.getName() + " is it's own parent");
+      builder.append(element.getName());
     } else {
       pathTo(builder, parent);
       builder.append("/");

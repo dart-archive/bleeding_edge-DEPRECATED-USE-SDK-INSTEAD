@@ -48,6 +48,9 @@ public final class Location {
    * @param length the length of this location
    */
   public Location(Element element, int offset, int length) {
+    if (element == null) {
+      throw new IllegalArgumentException("element cannot be null");
+    }
     this.element = element;
     this.offset = offset;
     this.length = length;

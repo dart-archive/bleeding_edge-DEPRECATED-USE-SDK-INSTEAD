@@ -364,7 +364,10 @@ public class IndexContributor extends ASTVisitor<Void> {
         if (grandparent instanceof DartClass) {
           DartClass classDef = (DartClass) grandparent;
           if (typeNode == classDef.getDefaultClass()) {
-            element = classDef.getElement().getDefaultClass().getElement();
+            InterfaceType defaultClass = classDef.getElement().getDefaultClass();
+            if (defaultClass != null) {
+              element = defaultClass.getElement();
+            }
           }
         }
       }
