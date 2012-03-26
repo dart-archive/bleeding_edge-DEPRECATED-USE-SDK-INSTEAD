@@ -24,6 +24,7 @@ import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
+import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.commands.operations.IUndoContext;
@@ -127,6 +128,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private DeleteAction deleteAction;
   private OpenNewFileWizardAction createFileAction;
   private OpenNewFolderWizardAction createFolderAction;
+  private OpenNewApplicationWizardAction createApplicationAction;
 
   private CopyFilePathAction copyFilePathAction;
 
@@ -280,6 +282,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     if (allElementsAreResources(selection)) {
       manager.add(createFileAction);
       manager.add(createFolderAction);
+      manager.add(createApplicationAction);
     }
 
     // OPEN GROUP
@@ -453,6 +456,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     treeViewer.addSelectionChangedListener(createFileAction);
     createFolderAction = new OpenNewFolderWizardAction(getSite().getWorkbenchWindow());
     treeViewer.addSelectionChangedListener(createFolderAction);
+    createApplicationAction = new OpenNewApplicationWizardAction();
     renameAction = new RenameResourceAction(getShell(), treeViewer.getTree());
     treeViewer.addSelectionChangedListener(renameAction);
     moveAction = new MoveResourceAction(getShell());
