@@ -364,7 +364,7 @@ NoSuchMethodException.prototype.toString = function() {
     sb.add(this._arguments.$index(i));
   }
   if (null == this._existingArgumentNames) {
-    return $add$($add$(("NoSuchMethodException : method not found: '" + this._functionName + "'\n"), ("Receiver: " + this._receiver + "\n")), ("Arguments: [" + sb + "]"));
+    return (("NoSuchMethodException : method not found: '" + this._functionName + "'\n") + ("Receiver: " + this._receiver + "\n") + ("Arguments: [" + sb + "]"));
   }
   else {
     var actualParameters = sb.toString();
@@ -377,7 +377,7 @@ NoSuchMethodException.prototype.toString = function() {
       sb.add(this._existingArgumentNames.$index(i));
     }
     var formalParameters = sb.toString();
-    return $add$($add$($add$("NoSuchMethodException: incorrect number of arguments passed to ", ("method named '" + this._functionName + "'\nReceiver: " + this._receiver + "\n")), ("Tried calling: " + this._functionName + "(" + actualParameters + ")\n")), ("Found: " + this._functionName + "(" + formalParameters + ")"));
+    return ("NoSuchMethodException: incorrect number of arguments passed to " + ("method named '" + this._functionName + "'\nReceiver: " + this._receiver + "\n") + ("Tried calling: " + this._functionName + "(" + actualParameters + ")\n") + ("Found: " + this._functionName + "(" + formalParameters + ")"));
   }
 }
 NoSuchMethodException.prototype.toString$0 = NoSuchMethodException.prototype.toString;
@@ -14503,6 +14503,7 @@ World.prototype.withTiming = function(name, f) {
 function FrogOptions(homedir, args, files) {
   this.config = "dev";
   this.legOnly = false;
+  this.allowMockCompilation = false;
   this.enableAsserts = false;
   this.enableTypeChecks = false;
   this.warningsAsErrors = false;
@@ -14573,6 +14574,11 @@ FrogOptions.prototype.tryParseSimpleOption = function(option) {
     case "--leg-only":
 
       this.legOnly = true;
+      return true;
+
+    case "--allow-mock-compilation":
+
+      this.allowMockCompilation = true;
       return true;
 
     case "--enable-asserts":
@@ -14674,7 +14680,7 @@ FrogOptions.prototype.tryParseSimpleOption = function(option) {
 // ********** Code for LibraryReader **************
 function LibraryReader() {
   if ($eq$($globals.options.config, "dev")) {
-    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "corelib.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "corelib_impl.dart"), "dart:html", joinPaths($globals.options.libDir, "../../client/html/frog/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "../../client/dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "../../lib/json/json_frog.dart"), "dart:io", joinPaths($globals.options.libDir, "../leg/lib/io.dart"), "dart:isolate", joinPaths($globals.options.libDir, "../../lib/isolate/isolate_frog.dart"), "dart:uri", joinPaths($globals.options.libDir, "../../lib/uri/uri.dart"), "dart:utf", joinPaths($globals.options.libDir, "../../lib/utf/utf.dart")]);
+    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "corelib.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "corelib_impl.dart"), "dart:html", joinPaths($globals.options.libDir, "../../lib/html/frog/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "../../lib/dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "../../lib/json/json_frog.dart"), "dart:io", joinPaths($globals.options.libDir, "../leg/lib/io.dart"), "dart:isolate", joinPaths($globals.options.libDir, "../../lib/isolate/isolate_frog.dart"), "dart:uri", joinPaths($globals.options.libDir, "../../lib/uri/uri.dart"), "dart:utf", joinPaths($globals.options.libDir, "../../lib/utf/utf.dart")]);
   }
   else if ($eq$($globals.options.config, "sdk")) {
     this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "core/core_frog.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "coreimpl/coreimpl_frog.dart"), "dart:html", joinPaths($globals.options.libDir, "html/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "dom/dom_frog.dart"), "dart:isolate", joinPaths($globals.options.libDir, "isolate/isolate_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "json/json_frog.dart"), "dart:uri", joinPaths($globals.options.libDir, "uri/uri.dart"), "dart:utf", joinPaths($globals.options.libDir, "utf/utf.dart")]);
