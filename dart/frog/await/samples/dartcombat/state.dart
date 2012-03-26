@@ -145,7 +145,7 @@ class PlayerState extends Isolate {
       _recordPendingShot(x, y);
       try { // async shot!
         _recordShotResult(await enemy.shoot(x, y), x, y);
-      } catch (e) {
+      } catch (var e) {
         _recordFailedShot(x, y);
       }
     }
@@ -166,7 +166,7 @@ class PlayerState extends Isolate {
           // no miss, but no sunk, search around
           _exploreAllDirections(x, y, parallel);
         }
-      } catch (e) {
+      } catch (var e) {
         _recordFailedShot(x, y);
       }
     }
@@ -216,7 +216,7 @@ class PlayerState extends Isolate {
           // within loops that contain await, etc).
           return shot == Constants.SUNK;
         }
-      } catch(e) {
+      } catch (var e) {
         _recordFailedShot(x, y);
         throw e;
       }

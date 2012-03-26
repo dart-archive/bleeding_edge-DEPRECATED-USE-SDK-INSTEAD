@@ -37,7 +37,7 @@ class DomFileSystem implements FileSystem {
       xhr.open('GET', filename, false);
       try {
         xhr.send(null);
-      } catch(e) {
+      } catch (var e) {
         // TODO(vsm): This XHR appears to fail if the URL is a
         // directory.  Return something to make fileExists work.
         // Handle this better.
