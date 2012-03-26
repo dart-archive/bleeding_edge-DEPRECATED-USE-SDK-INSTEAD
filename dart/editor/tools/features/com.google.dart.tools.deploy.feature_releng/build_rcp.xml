@@ -163,16 +163,13 @@ build system.  The PDE build system has to run under Eclipse.
         <copy todir="${samples.out.dir}">
             <fileset dir="${build.source.root}/samples">
                 <include name="clock/**"/>
-                
-                <include name="isolate_html/**"/>
-                <exclude name="isolate_html/main.py"/>
-                <exclude name="isolate_html/deploy.sh"/>
-                <exclude name="isolate_html/app.yaml"/>
 
                 <include name="slider/**"/>
+
                 <include name="sunflower/**"/>
+
                 <include name="time/**"/>
-                
+
                 <include name="total/**"/>
                 <exclude name="total/bin/**"/>
                 <!-- exclude total server until we can successfully run it in editor -->
