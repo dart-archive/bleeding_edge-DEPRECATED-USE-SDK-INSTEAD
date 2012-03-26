@@ -1368,11 +1368,3 @@ class Null {
 }
 
 builtin$get$toString(receiver) => () => builtin$toString$0(receiver);
-
-builtin$copyFrom$4(receiver, arg1, arg2, arg3, arg4) {
-  // TODO(ahe): Remove this method when CL 9839101 has landed.
-  if (!isJsArray(receiver)) {
-    return UNINTERCEPTED(receiver.copyFrom(arg1, arg2, arg3, arg4));
-  }
-  throw new UnsupportedOperationException('copyFrom');
-}
