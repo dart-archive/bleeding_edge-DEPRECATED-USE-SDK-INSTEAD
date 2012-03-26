@@ -5,8 +5,8 @@
 # list of symbols that can follow "dart:", and what dart file to use for it
 core        "frog/lib/corelib.dart"
 coreimpl    "frog/lib/corelib_impl.dart"
-dom         "client/dom/frog/dom_frog.dart"
-html        "client/html/frog/html_frog.dart"
+dom         "lib/dom/frog/dom_frog.dart"
+html        "lib/html/frog/html_frog.dart"
 json        "lib/json/json_frog.dart"
 uri         "lib/uri/uri.dart"
 utf         "lib/utf/utf.dart"

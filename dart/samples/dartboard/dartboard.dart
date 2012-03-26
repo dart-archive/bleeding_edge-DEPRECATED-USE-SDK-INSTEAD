@@ -143,8 +143,8 @@ class HtmlFileSystem implements file_system.FileSystem {
   
   static final Map<String, String> symbolToRelPath = const <String>{
     "core" : "frog/lib/corelib.dart",
-    "dom" : "frog/lib/corelib_impl.dart",
-    "html" : "client/html/release/html.dart",
+    "dom" : "lib/dom/frog/dom_frog.dart",
+    "html" : "lib/html/html_frog.dart",
     "json" : "lib/json/json_frog.dart",
     "uri" : "lib/uri/uri.dart",
     "utf" : "lib/utf/utf.dart"

@@ -53,10 +53,10 @@ class Compiler extends leg.Compiler {
     // TODO(ahe): Clean this up.
     if (uriName == 'dart:dom') {
       mockableLibraryUsed = true;
-      return libraryRoot.resolve('../../../client/dom/frog/dom_frog.dart');
+      return libraryRoot.resolve('../../../lib/dom/frog/dom_frog.dart');
     } else if (uriName == 'dart:html') {
       mockableLibraryUsed = true;
-      return libraryRoot.resolve('../../../client/html/frog/html_frog.dart');
+      return libraryRoot.resolve('../../../lib/html/frog/html_frog.dart');
     } else if (uriName == 'dart:json') {
       return libraryRoot.resolve('../../../lib/json/json.dart');
     } else if (uriName == 'dart:isolate') {
