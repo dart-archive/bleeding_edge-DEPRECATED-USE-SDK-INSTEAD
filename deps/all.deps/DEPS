@@ -7,6 +7,8 @@ vars = {
   "co19_rev": "@164",
   "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",
   "chromium_url": "http://src.chromium.org/svn",
+  "webkit_url": "http://src.chromium.org/multivm/trunk/webkit",
+  "webkit_rev": "@313",
 }
 
 deps = {
@@ -22,6 +24,9 @@ deps = {
 
   "dart/tests/co19/src":
     Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
+
+  "dart/third_party/WebCore":
+    Var("webkit_url") + "/Source/WebCore" + Var("webkit_rev"),
 }
 
 deps_os = {
