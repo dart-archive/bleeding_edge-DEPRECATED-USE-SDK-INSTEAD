@@ -357,11 +357,16 @@ class Primitives {
     }
   }
 
+  /** [: @"$".charCodeAt(0) :] */
+  static final int DOLLAR_CHAR_VALUE = 36;
+
   static String objectToString(Object object) {
     String name = JS('String', @'#.constructor.name', object);
     if (name === null) {
-      name = JS('String', @'#.match(/^\s*function\s*(\S*)\s*\(/)[1]',
+      name = JS('String', @'#.match(/^\s*function\s*\$?(\S*)\s*\(/)[1]',
                 JS('String', @'#.constructor.toString()', object));
+    } else {
+      if (name.charCodeAt(0) === DOLLAR_CHAR_VALUE) name = name.substring(1);
     }
     return "Instance of '$name'";
   }

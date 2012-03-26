@@ -285,7 +285,8 @@ function(child, parent) {
     }
 
     String className = namer.isolatePropertyAccess(classElement);
-    buffer.add('$className = function ${classElement.name.slowToString()}(');
+    String constructorName = namer.safeName(classElement.name.slowToString());
+    buffer.add('$className = function $constructorName(');
     StringBuffer bodyBuffer = new StringBuffer();
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can leave its JavaScript constructor empty.

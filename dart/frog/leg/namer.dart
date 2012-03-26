@@ -122,11 +122,7 @@ class Namer {
         name = element.name.slowToString();
       }
       // Prefix the name with '$' if it is reserved.
-      if (jsReserved.contains(name)) {
-        name = "\$$name";
-        assert(!jsReserved.contains(name));
-      }
-      return name;
+      return safeName(name);
     }
   }
 
@@ -210,5 +206,13 @@ class Namer {
 
   String operatorIs(Element element) {
     return 'is\$${getName(element)}';
+  }
+
+  String safeName(String name) {
+    if (jsReserved.contains(name) || name.startsWith('\$')) {
+      name = "\$$name";
+      assert(!jsReserved.contains(name));
+    }
+    return name;
   }
 }
