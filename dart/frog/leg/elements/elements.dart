@@ -892,7 +892,7 @@ class Elements {
         || (element == coreLibrary.find(const SourceString('Pattern')));
   }
 
-  static bool isListSupertype(Element element, compiler compiler) {
+  static bool isListSupertype(Element element, Compiler compiler) {
     LibraryElement coreLibrary = compiler.coreLibrary;
     return (element == coreLibrary.find(const SourceString('Collection')))
         || (element == coreLibrary.find(const SourceString('Iterable')));
