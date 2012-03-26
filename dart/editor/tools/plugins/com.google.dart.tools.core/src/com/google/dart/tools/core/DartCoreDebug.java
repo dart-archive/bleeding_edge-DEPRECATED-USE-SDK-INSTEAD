@@ -48,7 +48,7 @@ public class DartCoreDebug {
 
   public static final boolean SERVER_DEBUGGING = isOptionTrue("experimental/serverDebugging");
   public static final boolean ANALYSIS_SERVER = isOptionTrue("experimental/analysis/server");
-  public static final boolean NEW_INDEXER = isOptionTrue("experimental/newIndexer");
+  public static final boolean NEW_INDEXER = true; //isOptionTrue("experimental/newIndexer");
   public static final boolean ENABLE_CALL_GRAPH = NEW_INDEXER
       && isOptionTrue("experimental/callHierarchy");
 
