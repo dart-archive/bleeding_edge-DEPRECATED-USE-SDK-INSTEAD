@@ -1363,6 +1363,8 @@ interface Dynamic {
  */
 class Null {
   factory Null() {
-    throw UnsupportedOperationException('new Null()');
+    throw new UnsupportedOperationException('new Null()');
   }
 }
+
+builtin$get$toString(receiver) => () => builtin$toString$0(receiver);
