@@ -97,10 +97,10 @@ class ArrayBasedScanner<S> extends AbstractScanner<S> {
   int appendEndGroup(PrecedenceInfo info, String value, int openKind) {
     assert(openKind !== LT_TOKEN);
     appendStringToken(info, value);
+    discardOpenLt();
     if (groupingStack.isEmpty()) {
       return advance();
     }
-    discardOpenLt();
     BeginGroupToken begin = groupingStack.head;
     if (begin.kind !== openKind) {
       if (openKind !== OPEN_CURLY_BRACKET_TOKEN ||
