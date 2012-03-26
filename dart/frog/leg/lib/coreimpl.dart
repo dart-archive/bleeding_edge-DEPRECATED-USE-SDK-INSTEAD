@@ -8,8 +8,7 @@
 
 #source('../../../corelib/src/implementation/collections.dart');
 #source('../../../corelib/src/implementation/dual_pivot_quicksort.dart');
-// TODO(ahe): Source this file again.
-// #source('../../../corelib/src/implementation/duration_implementation.dart');
+#source('../../../corelib/src/implementation/duration_implementation.dart');
 #source('../../../corelib/src/implementation/exceptions.dart');
 #source('../../../corelib/src/implementation/future_implementation.dart');
 #source('../../../corelib/src/implementation/hash_map_set.dart');

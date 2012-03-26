@@ -329,6 +329,27 @@ class DateImplementation implements Date {
   }
 
   String toString() {
+    String fourDigits(int n) {
+      int absN = n.abs();
+      String sign = n < 0 ? "-" : "";
+      if (absN >= 1000) return "$n";
+      if (absN >= 100) return "${sign}0$absN";
+      if (absN >= 10) return "${sign}00$absN";
+      if (absN >= 1) return "${sign}000$absN";
+      throw new IllegalArgumentException(n);
+    }
+
+    String threeDigits(int n) {
+      if (n >= 100) return "${n}";
+      if (n > 10) return "0${n}";
+      return "00${n}";
+    }
+
+    String twoDigits(int n) {
+      if (n >= 10) return "${n}";
+      return "0${n}";
+    }
+
     String y = fourDigits(year);
     String m = twoDigits(month);
     String d = twoDigits(day);
@@ -377,64 +398,5 @@ class ListFactory<E> implements List<E> {
       result.add(iterator.next());
     }
     return result;
-  }
-}
-
-class DurationImplementation implements Duration {
-  final int inMilliseconds;
-
-  const DurationImplementation([int days = 0,
-                                int hours = 0,
-                                int minutes = 0,
-                                int seconds = 0,
-                                int milliseconds = 0])
-    : inMilliseconds = days * Duration.MILLISECONDS_PER_DAY +
-                       hours * Duration.MILLISECONDS_PER_HOUR +
-                       minutes * Duration.MILLISECONDS_PER_MINUTE +
-                       seconds * Duration.MILLISECONDS_PER_SECOND +
-                       milliseconds;
-
-  int get inDays() {
-    return inMilliseconds ~/ Duration.MILLISECONDS_PER_DAY;
-  }
-
-  int get inHours() {
-    return inMilliseconds ~/ Duration.MILLISECONDS_PER_HOUR;
-  }
-
-  int get inMinutes() {
-    return inMilliseconds ~/ Duration.MILLISECONDS_PER_MINUTE;
-  }
-
-  int get inSeconds() {
-    return inMilliseconds ~/ Duration.MILLISECONDS_PER_SECOND;
-  }
-
-  bool operator ==(other) {
-    if (other is !Duration) return false;
-    return inMilliseconds == other.inMilliseconds;
-  }
-
-  int hashCode() {
-    return inMilliseconds.hashCode();
-  }
-
-  int compareTo(Duration other) {
-    return inMilliseconds.compareTo(other.inMilliseconds);
-  }
-
-  String toString() {
-    if (inMilliseconds < 0) {
-      Duration duration =
-          new DurationImplementation(milliseconds: -inMilliseconds);
-      return "-${duration}";
-    }
-    String twoDigitMinutes =
-        twoDigits(inMinutes.remainder(Duration.MINUTES_PER_HOUR));
-    String twoDigitSeconds =
-        twoDigits(inSeconds.remainder(Duration.SECONDS_PER_MINUTE));
-    String threeDigitMs =
-        threeDigits(inMilliseconds.remainder(Duration.MILLISECONDS_PER_SECOND));
-    return "${inHours}:${twoDigitMinutes}:${twoDigitSeconds}.${threeDigitMs}";
   }
 }
