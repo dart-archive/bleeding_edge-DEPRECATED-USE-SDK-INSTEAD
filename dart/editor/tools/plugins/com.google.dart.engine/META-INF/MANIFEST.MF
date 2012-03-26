@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ActivationPolicy: lazy
+Bundle-Localization: plugin
+Bundle-ManifestVersion: 2
+Bundle-Name: %pluginName
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: com.google.dart.engine;singleton:=true
+Bundle-Version: 0.1.0.qualifier
+Bundle-Vendor: %providerName
