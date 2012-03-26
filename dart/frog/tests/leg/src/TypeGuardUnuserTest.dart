@@ -40,7 +40,7 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, 'foo');
-  regexp = const RegExp("foo\\(\\(1\\)\\)");
+  regexp = const RegExp("foo\\(1\\)");
   matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
 

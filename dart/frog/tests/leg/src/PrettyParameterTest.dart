@@ -87,18 +87,18 @@ main() {
   generated = compile(NO_LOCAL, 'foo');
   regexp = const RegExp("return baz");
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = const RegExp(@"baz = \(2\)");
+  regexp = const RegExp(@"baz = 2");
   Expect.isTrue(regexp.hasMatch(generated));
-  regexp = const RegExp(@"baz = \(3\)");
+  regexp = const RegExp(@"baz = 3");
   Expect.isTrue(regexp.hasMatch(generated));
   regexp = const RegExp("bar === true");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(MULTIPLE_PHIS_ONE_LOCAL, 'foo');
-  regexp = const RegExp(@"var a = \(2\);");
+  regexp = const RegExp(@"var a = 2;");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp(@"a = \(2\);");
+  regexp = const RegExp(@"a = 2;");
   Iterator matches = regexp.allMatches(generated).iterator();
   Expect.isTrue(matches.hasNext());
   matches.next();

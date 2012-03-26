@@ -43,9 +43,9 @@ closureInvocation() {
   String generated = compile(TEST_INVOCATION0);
   Expect.isTrue(generated.contains(".\$call\$0()"));
   generated = compile(TEST_INVOCATION1);
-  Expect.isTrue(generated.contains(@".$call$1((1))"));
+  Expect.isTrue(generated.contains(@".$call$1(1)"));
   generated = compile(TEST_INVOCATION2);
-  Expect.isTrue(generated.contains(@".$call$2((1), (2))"));
+  Expect.isTrue(generated.contains(@".$call$2(1, 2)"));
 }
 
 // Make sure that the bailout version does not introduce a second version of

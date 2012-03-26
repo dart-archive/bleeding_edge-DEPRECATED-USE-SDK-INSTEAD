@@ -13,7 +13,7 @@ void foo(bar) {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  RegExp regexp = const RegExp(@"\(1\) \+ bar");
+  RegExp regexp = const RegExp(@"1 \+ bar");
   Iterator matches = regexp.allMatches(generated).iterator();
   Expect.isTrue(matches.hasNext());
   matches.next();

@@ -15,7 +15,7 @@ foo() {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  Expect.isTrue(generated.contains('print([(1), (2)]);'));
-  Expect.isTrue(generated.contains('print([(3)]);'));
-  Expect.isTrue(generated.contains('print([(4), (5)]);'));
+  Expect.isTrue(generated.contains('print([1, 2]);'));
+  Expect.isTrue(generated.contains('print([3]);'));
+  Expect.isTrue(generated.contains('print([4, 5]);'));
 }

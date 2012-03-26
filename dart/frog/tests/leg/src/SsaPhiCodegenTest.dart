@@ -56,10 +56,10 @@ foo() {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  RegExp regexp = const RegExp(@"a = \(2\)");
+  RegExp regexp = const RegExp(@"a = 2");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  regexp = const RegExp(@"a = \(3\)");
+  regexp = const RegExp(@"a = 3");
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp(@"print\(a\)");
@@ -84,7 +84,7 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
   // Check that a store just after the declaration of the local
   // only generates one instruction.
-  regexp = const RegExp(@"var val = \(42\)");
+  regexp = const RegExp(@"var val = 42");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_FOUR, 'foo');
