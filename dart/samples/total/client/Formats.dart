@@ -35,13 +35,15 @@ class Formats {
   static final int FORMAT_HOURS = 14;
   static final int FORMAT_BOOLEAN = 15;
 
-  static NumericFormat get DEFAULT_NUMERIC_FORMAT() => String _(double x) {
+  static NumericFormat get DEFAULT_NUMERIC_FORMAT() => defaultNumericFormat;
+  
+  static String defaultNumericFormat(double x) {
     if (x == x.floor()) {
       return x.toInt().toString();
     } else {
       return x.toString();
     }
-  };
+  }
 
   static TextFormat get DEFAULT_TEXT_FORMAT() => String _(String x) => x;
 

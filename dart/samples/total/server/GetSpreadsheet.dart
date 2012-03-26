@@ -4,31 +4,31 @@
 
 class GetSpreadsheet {
 
-  static void getSample(HTTPRequest req, HTTPResponse res) {
+  static void getSample(HttpRequest req, HttpResponse res) {
     switch (req.method) {
       case 'GET':
         String name = req.queryParameters['name'];
-        res.writeString(new SYLKProducer().makeExample(name));
-        res.writeDone();
+        res.outputStream.writeString(new SYLKProducer().makeExample(name));
+        res.outputStream.close();
         break;
       case 'POST': // Fall through intended
       default:
-        res.statusCode = HTTPStatus.METHOD_NOT_ALLOWED;
-        res.writeDone();
+        res.statusCode = HttpStatus.METHOD_NOT_ALLOWED;
+        res.outputStream.close();
         break;
     }
   }
 
-  static void listSamples(HTTPRequest req, HTTPResponse res) {
+  static void listSamples(HttpRequest req, HttpResponse res) {
     switch (req.method) {
       case 'GET':
-        res.writeString(new SYLKProducer().listSamples());
-        res.writeDone();
+        res.outputStream.writeString(new SYLKProducer().listSamples());
+        res.outputStream.close();
         break;
       case 'POST': // Fall through intended
       default:
-        res.statusCode = HTTPStatus.METHOD_NOT_ALLOWED;
-        res.writeDone();
+        res.statusCode = HttpStatus.METHOD_NOT_ALLOWED;
+        res.outputStream.close();
         break;
     }
   }

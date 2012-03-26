@@ -4,8 +4,7 @@
 
 #library("total:server");
 
-#import("../../chat/chat_server_lib.dart");
-#import("../../chat/http.dart");
+#import("dart:io");
 #import("DartCompiler.dart");
 #source("GetSpreadsheet.dart");
 #source("SYLKProducer.dart");
@@ -83,31 +82,31 @@ class TotalServer extends IsolatedServer {
 
   TotalServer() : super() {
     addHandler("/",
-               (HTTPRequest request, HTTPResponse response)
+               (HttpRequest request, HttpResponse response)
                => redirectPageHandler(request, response, "Total.html"));
     addHandler("/Total.html",
-               (HTTPRequest request, HTTPResponse response) 
+               (HttpRequest request, HttpResponse response) 
                => fileHandler(request, response, '${CLIENT_DIR}/Total.html'));
     addHandler("/dart.js",
-      (HTTPRequest request, HTTPResponse response) 
+      (HttpRequest request, HttpResponse response) 
       => fileHandler(request, response, '${OUTPUT_DIR}/dart.js'));
     addHandler("/Total.dart.js",
-               (HTTPRequest request, HTTPResponse response) 
+               (HttpRequest request, HttpResponse response) 
                => compileAndServe(request, response, 'Total.dart'));
     addHandler("/total.css",
-               (HTTPRequest request, HTTPResponse response)
+               (HttpRequest request, HttpResponse response)
                => fileHandler(request, response, '${CLIENT_DIR}/total.css'));
-    addHandler("/favicon.png",  (HTTPRequest request, HTTPResponse response)
+    addHandler("/favicon.png",  (HttpRequest request, HttpResponse response)
                => redirectPageHandler(request, response, "img/favicon.png"));
     for (String fileName in dartResources) {
       addHandler("/$fileName",  
-                (HTTPRequest request, HTTPResponse response)
+                (HttpRequest request, HttpResponse response)
                   => fileHandler(request, response, 
                                  "${CLIENT_DIR}/$fileName"));
     }
     for (String fileName in imageResources) {
       addHandler("/img/$fileName",  
-                (HTTPRequest request, HTTPResponse response)
+                (HttpRequest request, HttpResponse response)
                   => fileHandler(request, response, 
                                  "${CLIENT_DIR}/img/$fileName"));
     }
@@ -115,27 +114,27 @@ class TotalServer extends IsolatedServer {
     addHandler('/spreadsheet/list', GetSpreadsheet.listSamples);
 
     addHandler("/adm/Adminz.js",
-               (HTTPRequest request, HTTPResponse response)
+               (HttpRequest request, HttpResponse response)
                  => fileHandler(request, response, "${CLIENT_DIR}/Adminz.js"));
     addHandler("/adm/stop", stopServer);
     addHandler("/adm/restart", restartServer);
   }
 
-  void restartServer(HTTPRequest request, HTTPResponse response) {
+  void restartServer(HttpRequest request, HttpResponse response) {
     writeData(request, response, 'Restarting, KBBS', 'text/plain');
     stop();
     print("GRACEFUL RESTART!!");
     exit(42);
   }
 
-  void stopServer(HTTPRequest request, HTTPResponse response) {
+  void stopServer(HttpRequest request, HttpResponse response) {
     writeData(request, response, 'Exiting, KTHXBYE', 'text/plain');
     stop();
     print("GRACEFUL EXIT!!");
     exit(0);
   }
 
-  void writeData(HTTPRequest request, HTTPResponse response, String message, String mimeType) {
+  void writeData(HttpRequest request, HttpResponse response, String message, String mimeType) {
     response.setHeader("Content-Type", mimeType);
 
     List<int> buffer = message.charCodes();
@@ -143,7 +142,7 @@ class TotalServer extends IsolatedServer {
     response.writeDone();
   }
 
-  void compileAndServe(HTTPRequest request, HTTPResponse response, String fileName) {
+  void compileAndServe(HttpRequest request, HttpResponse response, String fileName) {
     DartCompiler compiler = new DartCompiler('${CLIENT_DIR}/${fileName}');
     compiler.out = '${OUTPUT_DIR}/${fileName}.js';
     compiler.compile((int exitCode, String errorOutput) {
