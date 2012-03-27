@@ -6,8 +6,7 @@
 
 #import('dart:html');
 
-// TODO(732): Reenable when this works in the VM.
-// #resource('sunflower.css');
+#resource('sunflower.css');
 
 main() {
   new Sunflower();
