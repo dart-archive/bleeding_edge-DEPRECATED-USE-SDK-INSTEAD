@@ -42,6 +42,6 @@ public class SystemLibraryManagerProviderVmTest extends SystemLibraryManagerProv
 
   @Override
   protected EditorLibraryManager getLibraryManager() {
-    return SystemLibraryManagerProvider.getAnyLibraryManager();
+    return SystemLibraryManagerProvider.getVmLibraryManager();
   }
 }
