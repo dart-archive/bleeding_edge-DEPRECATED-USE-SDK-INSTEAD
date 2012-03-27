@@ -45,10 +45,6 @@ class SsaInstructionMerger extends HBaseVisitor {
   // set generate at use site.
   void visitIs(HIs instruction) {}
 
-  // A bailout target does not use its input like the other
-  // instructions. Its inputs must be emitted prior to visiting it.
-  void visitBailoutTarget(HBailoutTarget instruction) {}
-
   // A check method must not have its input generate at use site,
   // because it's using it multiple times.
   void visitCheck(HCheck instruction) {}
@@ -69,7 +65,21 @@ class SsaInstructionMerger extends HBaseVisitor {
     generateAtUseSite.add(instruction);
   }
 
+  bool isBlockSinglePredecessor(HBasicBlock block) {
+    return block.successors.length === 1
+        && block.successors[0].predecessors.length === 1;
+  }
+
   void visitBasicBlock(HBasicBlock block) {
+    // Compensate from not merging blocks: if the block is the
+    // single predecessor of its single successor, let the successor
+    // visit it.
+    if (isBlockSinglePredecessor(block)) return;
+
+    tryMergingExpressions(block);
+  }
+
+  void tryMergingExpressions(HBasicBlock block) {
     // Visit each instruction of the basic block in last-to-first order.
     // Keep a list of expected inputs of the current "expression" being
     // merged. If instructions occur in the expected order, they are
@@ -77,7 +87,7 @@ class SsaInstructionMerger extends HBaseVisitor {
 
     // The expectedInputs list holds non-trivial instructions that may
     // be generated at their use site, if they occur in the correct order.
-    expectedInputs = new List<HInstruction>();
+    if (expectedInputs === null) expectedInputs = new List<HInstruction>();
 
     // Pop instructions from expectedInputs until instruction is found.
     // Return true if it is found, or false if not.
@@ -119,7 +129,13 @@ class SsaInstructionMerger extends HBaseVisitor {
         instruction.accept(this);
       }
     }
-    expectedInputs = null;
+
+    if (block.predecessors.length === 1
+        && isBlockSinglePredecessor(block.predecessors[0])) {
+      tryMergingExpressions(block.predecessors[0]);
+    } else {
+      expectedInputs = null;
+    }
   }
 }
 

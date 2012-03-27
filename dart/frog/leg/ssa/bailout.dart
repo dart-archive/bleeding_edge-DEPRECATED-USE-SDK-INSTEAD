@@ -71,16 +71,21 @@ class Environment {
  * in post-dominator order. Removes an instruction from the environment
  * and adds its inputs to the environment at the instruction's
  * definition.
+ *
+ * At the end of the computation, insert type guards in the graph.
  */
-class SsaEnvironmentBuilder extends HBaseVisitor {
+class SsaTypeGuardBuilder extends HBaseVisitor implements OptimizationPhase {
   final Compiler compiler;
+  final WorkItem work;
+  final String name = 'SsaTypeGuardBuilder';
   Environment environment;
   SubGraph subGraph;
 
   final Map<HInstruction, Environment> capturedEnvironments;
 
-  SsaEnvironmentBuilder(Compiler this.compiler)
+  SsaTypeGuardBuilder(Compiler this.compiler, WorkItem this.work)
     : capturedEnvironments = new Map<HInstruction, Environment>();
+
 
   void visitGraph(HGraph graph) {
     subGraph = new SubGraph(graph.entry, graph.exit);
@@ -92,9 +97,6 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     }
     insertCapturedEnvironments();
   }
-
-  abstract void insertCapturedEnvironments();
-  abstract bool shouldCaptureEnvironment(HInstruction instruction);
 
   void maybeCaptureEnvironment(HInstruction instruction) {
     if (shouldCaptureEnvironment(instruction)) {
@@ -270,63 +272,23 @@ class SsaEnvironmentBuilder extends HBaseVisitor {
     compiler.internalError('Control flow instructions already dealt with.',
                            instruction: instruction);
   }
-}
-
-/**
- * Visits the graph and replaces guards with guards that capture the
- * environment.
- */
-class SsaTypeGuardBuilder extends SsaEnvironmentBuilder implements OptimizationPhase {
-
-  final String name = 'SsaTypeGuardBuilder';
-
-  SsaTypeGuardBuilder(Compiler compiler) : super(compiler);
 
   bool shouldCaptureEnvironment(HInstruction instruction) {
     return instruction.type.isKnown() && !instruction.hasExpectedType();
   }
 
   void insertCapturedEnvironments() {
+    work.guards = <HTypeGuard>[];
+    int state = 1;
     capturedEnvironments.forEach((HInstruction instruction, Environment env) {
       List<HInstruction> inputs = env.buildAndSetLast(instruction);
-      HTypeGuard guard =
-          new HTypeGuard(instruction.type, inputs, instruction.id);
-      // Remove the instruction's type, the guard is now holding that
-      // type.
-      instruction.type = HType.UNKNOWN;
+      HTypeGuard guard = new HTypeGuard(state++, inputs);
+      work.guards.add(guard);
       instruction.block.rewrite(instruction, guard);
       HInstruction insertionPoint = (instruction is HPhi)
           ? instruction.block.first
           : instruction.next;
       insertionPoint.block.addBefore(insertionPoint, guard);
-    });
-  }
-}
-
-/*
- * Visits the graph and inserts [HBailoutTarget] instructions where
- * the optimized version had [HTypeGuard] instructions.
- */
-class SsaBailoutBuilder
-    extends SsaEnvironmentBuilder implements OptimizationPhase {
-  final Map<int, BailoutInfo> bailouts;
-  final String name = 'SsaBailoutBuilder';
-
-  SsaBailoutBuilder(Compiler compiler, this.bailouts) : super(compiler);
-
-  bool shouldCaptureEnvironment(HInstruction instruction) {
-    return bailouts[instruction.id] != null;
-  }
-
-  void insertCapturedEnvironments() {
-    capturedEnvironments.forEach((HInstruction instruction, Environment env) {
-      BailoutInfo info = bailouts[instruction.id];
-      List<HInstruction> inputs = env.buildAndSetLast(instruction);
-      HBailoutTarget bailout = new HBailoutTarget(info.bailoutId, inputs);
-      HInstruction insertionPoint = (instruction is HPhi)
-          ? instruction.block.first
-          : instruction.next;
-      instruction.block.addBefore(insertionPoint, bailout);
     });
   }
 }
@@ -396,9 +358,9 @@ class SsaBailoutPropagator extends HBaseVisitor {
                            instruction: instruction);
   }
 
-  visitBailoutTarget(HBailoutTarget target) {
+  visitTypeGuard(HTypeGuard guard) {
     blocks.forEach((HBasicBlock block) {
-      block.bailouts.add(target);
+      block.guards.add(guard);
     });
   }
 }

@@ -29,37 +29,6 @@ String compileAll(String code) {
   return compiler.assembledCode;
 }
 
-class HGraphPair {
-  ssa.HGraph optimized;
-  ssa.HGraph unoptimized;
-  HGraphPair(this.optimized, this.unoptimized);
-}
-
-ssa.HGraph getGraph(MockCompiler compiler, leg.WorkItem work) {
-  compiler.analyze(work);
-  ssa.HGraph graph = compiler.builder.build(work);
-  compiler.optimizer.optimize(work, graph);
-  // Also run the code generator to get the unoptimized version in the
-  // queue.
-  compiler.generator.generate(work, graph);
-  return graph;
-}
-
-HGraphPair getGraphs(String code, String entry) {
-  MockCompiler compiler = new MockCompiler();
-  compiler.parseScript(code);
-  lego.Element element = compiler.mainApp.find(buildSourceString(entry));
-  if (element === null) return null;
-  leg.WorkItem work = new leg.WorkItem.toCompile(element);
-  ssa.HGraph optimized = getGraph(compiler, work);
-  ssa.HGraph unoptimized = null;
-  work = compiler.lastBailoutWork;
-  if (work != null && work.element == element) {
-    unoptimized = getGraph(compiler, work);
-  }
-  return new HGraphPair(optimized, unoptimized);
-}
-
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 
 String getIntTypeCheck(String variable) {

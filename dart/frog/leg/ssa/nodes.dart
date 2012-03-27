@@ -4,7 +4,6 @@
 
 interface HVisitor<R> {
   R visitAdd(HAdd node);
-  R visitBailoutTarget(HBailoutTarget node);
   R visitBitAnd(HBitAnd node);
   R visitBitNot(HBitNot node);
   R visitBitOr(HBitOr node);
@@ -249,7 +248,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBitNot(HBitNot node) => visitInvokeUnary(node);
   visitBitOr(HBitOr node) => visitBinaryBitOp(node);
   visitBitXor(HBitXor node) => visitBinaryBitOp(node);
-  visitBailoutTarget(HBailoutTarget node) => visitInstruction(node);
   visitBoolify(HBoolify node) => visitInstruction(node);
   visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
   visitBreak(HBreak node) => visitGoto(node);
@@ -410,7 +408,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
   HLoopInformation loopInformation = null;
   HLabeledBlockInformation labeledBlockInformation = null;
   HBasicBlock parentLoopHeader = null;
-  List<HBailoutTarget> bailouts;
+  List<HTypeGuard> guards;
 
   final List<HBasicBlock> predecessors;
   List<HBasicBlock> successors;
@@ -424,7 +422,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
         predecessors = <HBasicBlock>[],
         successors = const <HBasicBlock>[],
         dominatedBlocks = <HBasicBlock>[],
-        bailouts = <HBailoutTarget>[];
+        guards = <HTypeGuard>[];
 
   int hashCode() => id;
 
@@ -435,7 +433,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
   bool isLoopHeader() => loopInformation !== null;
   bool hasLabeledBlockInformation() => labeledBlockInformation !== null;
 
-  bool hasBailouts() => !bailouts.isEmpty();
+  bool hasGuards() => !guards.isEmpty();
 
   void open() {
     assert(isNew());
@@ -994,13 +992,8 @@ class HCheck extends HInstruction {
 }
 
 class HTypeGuard extends HInstruction {
-  // Instruction id of the original guarded instruction.
-  final int originalGuardedId;
-
-  HTypeGuard(HType type, List<HInstruction> env, int this.originalGuardedId)
-    : super(env) {
-    this.type = type;
-  }
+  int state;
+  HTypeGuard(int this.state, List<HInstruction> env) : super(env);
 
   void prepareGvn() {
     assert(!hasSideEffects());
@@ -1016,12 +1009,6 @@ class HTypeGuard extends HInstruction {
   int typeCode() => 1;
   bool typeEquals(other) => other is HTypeGuard;
   bool dataEquals(HTypeGuard other) => type == other.type;
-}
-
-class HBailoutTarget extends HInstruction {
-  final int state;
-  HBailoutTarget(this.state, inputs) : super(inputs);
-  accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
 }
 
 class HBoundsCheck extends HCheck {
@@ -1181,7 +1168,6 @@ class HInvokeSuper extends HInvokeStatic {
 class HInvokeInterceptor extends HInvokeStatic {
   final SourceString name;
   final bool getter;
-  String builtinJsName;
 
   HInvokeInterceptor(Selector selector,
                      SourceString this.name,
@@ -1191,16 +1177,26 @@ class HInvokeInterceptor extends HInvokeStatic {
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
 
-  HType computeType() {
-    if (getter && name == const SourceString('length')
+  
+  String get builtinJsName() {
+    if (getter
+        && name == const SourceString('length')
         && inputs[1].isStringOrArray()) {
-      builtinJsName = 'length';
-      return HType.INTEGER;
+      return 'length';
     } else if (name == const SourceString('add') && inputs[1].isArray()) {
-      builtinJsName = 'push';
+      return 'push';
     } else if (name == const SourceString('removeLast')
                && inputs[1].isArray()) {
-      builtinJsName = 'pop';
+      return 'pop';
+    }
+    return null;
+  }
+
+  HType computeType() {
+    if (getter
+        && name == const SourceString('length')
+        && inputs[1].isStringOrArray()) {
+      return HType.INTEGER;
     }
     return HType.UNKNOWN;
   }
@@ -1220,7 +1216,7 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   void prepareGvn() {
     if (builtinJsName == 'length') {
-      assert(!hasSideEffects());
+      clearAllSideEffects();
     } else {
       setAllSideEffects();
     }
@@ -1314,7 +1310,7 @@ class HBinaryArithmetic extends HInvokeBinary {
     // numbering and do not have any side-effects if we know that all
     // inputs are numbers.
     if (builtin) {
-      assert(!hasSideEffects());
+      clearAllSideEffects();
       setUseGvn();
     } else {
       setAllSideEffects();
@@ -1538,7 +1534,7 @@ class HInvokeUnary extends HInvokeStatic {
     // numbering and does not have any side-effects if its input is a
     // number.
     if (builtin) {
-      assert(!hasSideEffects());
+      clearAllSideEffects();
       setUseGvn();
     } else {
       setAllSideEffects();
@@ -1834,7 +1830,7 @@ class HRelational extends HInvokeBinary {
     // and do not have any side-effects if we know all the inputs are
     // numbers. This can be improved for at least equality.
     if (builtin) {
-      assert(!hasSideEffects());
+      clearAllSideEffects();
       setUseGvn();
     } else {
       setAllSideEffects();
@@ -1961,8 +1957,8 @@ class HStatic extends HInstruction {
   HStatic(this.element) : super(<HInstruction>[]);
 
   void prepareGvn() {
-    assert(!hasSideEffects());
     if (!element.isAssignable()) {
+      clearAllSideEffects();
       setUseGvn();
     }
   }
@@ -2008,7 +2004,7 @@ class HIndex extends HInvokeStatic {
 
   void prepareGvn() {
     if (builtin) {
-      assert(!hasSideEffects());
+      clearAllSideEffects();
     } else {
       setAllSideEffects();
     }

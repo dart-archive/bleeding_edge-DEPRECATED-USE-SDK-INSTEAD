@@ -51,7 +51,6 @@ class MockCompiler extends Compiler {
   List<WarningMessage> errors;
   final Map<String, String> sources;
   Node parsedTree;
-  WorkItem lastBailoutWork;
 
   MockCompiler([String coreSource = DEFAULT_CORELIB,
                 String helperSource = DEFAULT_HELPERLIB])
@@ -127,7 +126,6 @@ class MockCompiler extends Compiler {
   }
 
   void enqueue(WorkItem work) {
-    if (work.isBailoutVersion()) lastBailoutWork = work;
     super.enqueue(work);
   }
 

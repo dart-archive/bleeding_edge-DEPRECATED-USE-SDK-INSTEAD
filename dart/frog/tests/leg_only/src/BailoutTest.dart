@@ -4,7 +4,7 @@
 
 var myString;
 
-void ifBailout(test) {
+String ifBailout(test) {
   if (test) {
     // Share the same variable for the type inference.
     var o = myString;
@@ -15,7 +15,7 @@ void ifBailout(test) {
   return '${myString[0]} no bailout';
 }
 
-void ifElseBailout(test) {
+String ifElseBailout(test) {
   if (test) {
     // Share the same variable for the type inference.
     var o = myString;

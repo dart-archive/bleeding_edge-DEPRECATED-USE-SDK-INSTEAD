@@ -27,11 +27,11 @@ class Universe {
                isChecks = new Set<Element>();
 
   void addGeneratedCode(WorkItem work, String code) {
-    if (work.isBailoutVersion()) {
-      generatedBailoutCode[work.element] = code;
-    } else {
-      generatedCode[work.element] = code;
-    }
+    generatedCode[work.element] = code;
+  }
+
+  void addBailoutCode(WorkItem work, String code) {
+    generatedBailoutCode[work.element] = code;
   }
 }
 

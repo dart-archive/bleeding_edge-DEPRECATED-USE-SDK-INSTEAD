@@ -6,74 +6,55 @@ class SsaCodeGeneratorTask extends CompilerTask {
   SsaCodeGeneratorTask(Compiler compiler) : super(compiler);
   String get name() => 'SSA code generator';
 
-  String generate(WorkItem work, HGraph graph) {
+
+  String generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
-
-      FunctionElement function = work.element;
-      Map<Element, String> parameterNames =
-          new LinkedHashMap<Element, String>();
-
-      // The dom/html libraries have inline JS code that reference
-      // parameter names directly. Long-term such code will be rejected.
-      // Now, just don't mangle the parameter name.
-      function.computeParameters(compiler).forEachParameter((Element element) {
-        parameterNames[element] = function.isNative()
-            ? element.name.slowToString()
-            : JsNames.getValid('${element.name.slowToString()}');
-      });
-
-      String code = generateMethod(parameterNames, work, graph);
-      return code;
-    });
-  }
-
-  String generateMethod(Map<Element, String> parameterNames,
-                        WorkItem work,
-                        HGraph graph) {
-    StringBuffer parameters = new StringBuffer();
-    List<String> names = parameterNames.getValues();
-    for (int i = 0; i < names.length; i++) {
-      if (i != 0) parameters.add(', ');
-      parameters.add(names[i]);
-    }
-
-    if (work.isBailoutVersion()) {
-      new SsaBailoutPropagator(compiler).visitGraph(graph);
-      SsaUnoptimizedCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
-          compiler, work, parameters, parameterNames);
-      codegen.visitGraph(graph);
-      StringBuffer newParameters = new StringBuffer();
-      if (!parameterNames.isEmpty()) newParameters.add('$parameters, ');
-      newParameters.add('state');
-      for (int i = 0; i < codegen.maxBailoutParameters; i++) {
-        newParameters.add(', env$i');
-      }
-      return 'function($newParameters) {\n${codegen.setup}${codegen.buffer}}';
-    } else {
+      Map<Element, String> parameterNames = getParameterNames(work);
+      String parameters = Strings.join(parameterNames.getValues(), ', ');
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           compiler, work, parameters, parameterNames);
       codegen.visitGraph(graph);
-      if (!codegen.guards.isEmpty()) {
-        addBailoutVersion(codegen.guards, work);
-      }
       return 'function($parameters) {\n${codegen.buffer}}';
-    }
+    });
   }
 
-  void addBailoutVersion(List<HTypeGuard> guards, WorkItem work) {
-    int length = guards.length;
-    Map<int, BailoutInfo> bailouts = new Map<int, BailoutInfo>();
-    int bailoutId = 1;
-    guards.forEach((HTypeGuard guard) {
-      if (guard.guarded is !HParameterValue) {
-        int originalGuardedId = guard.originalGuardedId;
-        BailoutInfo info = new BailoutInfo(originalGuardedId, bailoutId++);
-        bailouts[originalGuardedId] = info;
+  String generateBailoutMethod(WorkItem work, HGraph graph) {
+    return measure(() {
+      compiler.tracer.traceGraph("codegen-bailout", graph);
+      new SsaBailoutPropagator(compiler).visitGraph(graph);
+
+      Map<Element, String> parameterNames = getParameterNames(work);
+      String parameters = Strings.join(parameterNames.getValues(), ', ');
+      SsaUnoptimizedCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
+          compiler, work, parameters, parameterNames);
+      codegen.visitGraph(graph);
+
+      StringBuffer newParameters = new StringBuffer();
+      if (!parameterNames.isEmpty()) newParameters.add('$parameters, ');
+      newParameters.add('state');
+
+      for (int i = 0; i < codegen.maxBailoutParameters; i++) {
+        newParameters.add(', env$i');
       }
+
+      return 'function($newParameters) {\n${codegen.setup}${codegen.buffer}}';
     });
-    compiler.enqueue(new WorkItem.bailoutVersion(
-        work.element, work.resolutionTree, bailouts));
+  }
+
+  Map<Element, String> getParameterNames(WorkItem work) {
+    Map<Element, String> parameterNames = new LinkedHashMap<Element, String>();
+    FunctionElement function = work.element;
+
+    // The dom/html libraries have inline JS code that reference
+    // parameter names directly. Long-term such code will be rejected.
+    // Now, just don't mangle the parameter name.
+    function.computeParameters(compiler).forEachParameter((Element element) {
+      parameterNames[element] = function.isNative()
+          ? element.name.slowToString()
+          : JsNames.getValid('${element.name.slowToString()}');
+    });
+    return parameterNames;
   }
 }
 
@@ -133,7 +114,6 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   abstract visitTypeGuard(HTypeGuard node);
-  abstract visitBailoutTarget(HBailoutTarget node);
 
   abstract beginGraph(HGraph graph);
   abstract endGraph(HGraph graph);
@@ -415,7 +395,7 @@ class SsaCodeGenerator implements HVisitor {
         visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
         return;
       } else if (!isGenerateAtUseSite(instruction)) {
-        if (instruction is !HIf && instruction is !HBailoutTarget) {
+        if (instruction is !HIf && instruction is !HTypeGuard) {
           addIndentation();
         }
         if (instruction.usedBy.isEmpty()
@@ -426,7 +406,7 @@ class SsaCodeGenerator implements HVisitor {
           define(instruction);
         }
         // Control flow instructions know how to handle ';'.
-        if (instruction is !HControlFlow && instruction is !HBailoutTarget) {
+        if (instruction is !HControlFlow && instruction is !HTypeGuard) {
           buffer.add(';\n');
         }
       } else if (instruction is HIf) {
@@ -1224,18 +1204,13 @@ class SsaCodeGenerator implements HVisitor {
 }
 
 class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
-  final List<HTypeGuard> guards;
-  int state = 0;
-
   SsaOptimizedCodeGenerator(compiler, work, parameters, parameterNames)
-    : super(compiler, work, parameters, parameterNames),
-      guards = <HTypeGuard>[];
+    : super(compiler, work, parameters, parameterNames);
 
   void beginGraph(HGraph graph) {}
   void endGraph(HGraph graph) {}
 
   void bailout(HTypeGuard guard, String reason) {
-    guards.add(guard);
     HInstruction input = guard.guarded;
     Namer namer = compiler.namer;
     Element element = work.element;
@@ -1251,7 +1226,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     buffer.add('($parameters');
     if (parametersCount != 0) buffer.add(', ');
     if (guard.guarded is !HParameterValue) {
-      buffer.add('${++state}');
+      buffer.add('${guard.state}');
       bool first = true;
       // TODO(ngeoffray): if the bailout method takes more arguments,
       // fill the remaining arguments with undefined.
@@ -1270,6 +1245,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void visitTypeGuard(HTypeGuard node) {
+    addIndentation();
     HInstruction input = node.guarded;
     assert(!isGenerateAtUseSite(input) || input.isCodeMotionInvariant());
     if (node.isInteger()) {
@@ -1311,6 +1287,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     } else {
       unreachable();
     }
+    buffer.add(';\n');
   }
 
   void beginLoop(HBasicBlock block) {
@@ -1364,10 +1341,6 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   void endElse(HIf node) {
   }
-
-  void visitBailoutTarget(HBailoutTarget target) {
-    compiler.internalError('Bailout target in an optimized method');
-  }
 }
 
 class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
@@ -1397,7 +1370,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void beginGraph(HGraph graph) {
-    if (!graph.entry.hasBailouts()) return;
+    if (!graph.entry.hasGuards()) return;
     addIndentation();
     buffer.add('switch (state) {\n');
     indent++;
@@ -1412,7 +1385,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void endGraph(HGraph graph) {
-    if (!graph.entry.hasBailouts()) return;
+    if (!graph.entry.hasGuards()) return;
     indent--; // Close original case.
     indent--;
     addIndentation();
@@ -1420,11 +1393,25 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     setup.add('  }\n');
   }
 
-  void visitTypeGuard(HTypeGuard guard) {
-    compiler.internalError('Type guard in an unoptimized method');
+  // For instructions that reference a guard or a check, we change that
+  // reference to the instruction they guard against. Therefore, we must
+  // use that instruction when restoring the environment.
+  HInstruction unwrap(HInstruction argument) {
+    if (argument is HIntegerCheck) {
+      HIntegerCheck instruction = argument;
+      return unwrap(instruction.value);
+    } else if (argument is HBoundsCheck) {
+      HBoundsCheck instruction = argument;
+      return unwrap(instruction.index);
+    } else if (argument is HTypeGuard) {
+      HTypeGuard instruction = argument;
+      return unwrap(instruction.guarded);
+    } else {
+      return argument;
+    }
   }
 
-  void visitBailoutTarget(HBailoutTarget node) {
+  void visitTypeGuard(HTypeGuard node) {
     indent--;
     addIndentation();
     buffer.add('case ${node.state}:\n');
@@ -1435,25 +1422,26 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     setup.add('    case ${node.state}:\n');
     int i = 0;
     for (HInstruction input in node.inputs) {
-      setup.add('      ${temporary(input)} = env$i;\n');
+      HInstruction instruction = unwrap(input);
+      setup.add('      ${temporary(instruction)} = env$i;\n');
       i++;
     }
     if (i > maxBailoutParameters) maxBailoutParameters = i;
     setup.add('      break;\n');
   }
 
-  void startBailoutCase(List<HBailoutTarget> bailouts1,
-                        List<HBailoutTarget> bailouts2) {
+  void startBailoutCase(List<HTypeGuard> bailouts1,
+                        List<HTypeGuard> bailouts2) {
     indent--;
     handleBailoutCase(bailouts1);
     handleBailoutCase(bailouts2);
     indent++;
   }
 
-  void handleBailoutCase(List<HBailoutTarget> bailouts) {
-    for (int i = 0, len = bailouts.length; i < len; i++) {
+  void handleBailoutCase(List<HTypeGuard> guards) {
+    for (int i = 0, len = guards.length; i < len; i++) {
       addIndentation();
-      buffer.add('case ${bailouts[i].state}:\n');
+      buffer.add('case ${guards[i].state}:\n');
     }
   }
 
@@ -1477,8 +1465,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   void beginLoop(HBasicBlock block) {
     // TODO(ngeoffray): Don't put labels on loops that don't bailout.
     String newLabel = pushLabel();
-    if (block.hasBailouts()) {
-      startBailoutCase(block.bailouts, const <HBailoutTarget>[]);
+    if (block.hasGuards()) {
+      startBailoutCase(block.guards, const <HTypeGuard>[]);
     }
 
     addIndentation();
@@ -1489,7 +1477,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     buffer.add('$newLabel: while (true) {\n');
     indent++;
 
-    if (block.hasBailouts()) {
+    if (block.hasGuards()) {
       startBailoutSwitch();
     }
   }
@@ -1497,7 +1485,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   void endLoop(HBasicBlock block) {
     popLabel();
     HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
-    if (header.hasBailouts()) {
+    if (header.hasGuards()) {
       endBailoutSwitch();
     }
     indent--;
@@ -1512,11 +1500,11 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void startIf(HIf node) {
-    bool hasBailouts = node.thenBlock.hasBailouts()
-        || (node.hasElse && node.elseBlock.hasBailouts());
-    if (hasBailouts) {
-      startBailoutCase(node.thenBlock.bailouts,
-          node.hasElse ? node.elseBlock.bailouts : const <HBailoutTarget>[]);
+    bool hasGuards = node.thenBlock.hasGuards()
+        || (node.hasElse && node.elseBlock.hasGuards());
+    if (hasGuards) {
+      startBailoutCase(node.thenBlock.guards,
+          node.hasElse ? node.elseBlock.guards : const <HTypeGuard>[]);
     }
   }
 
@@ -1528,33 +1516,33 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void startThen(HIf node) {
     addIndentation();
-    bool hasBailouts = node.thenBlock.hasBailouts()
-        || (node.hasElse && node.elseBlock.hasBailouts());
+    bool hasGuards = node.thenBlock.hasGuards()
+        || (node.hasElse && node.elseBlock.hasGuards());
     buffer.add('if (');
     int precedence = JSPrecedence.EXPRESSION_PRECEDENCE;
-    if (hasBailouts) {
+    if (hasGuards) {
       // TODO(ngeoffray): Put the condition initialization in the
       // [setup] buffer.
-      List<HBailoutTarget> bailouts = node.thenBlock.bailouts;
-      for (int i = 0, len = bailouts.length; i < len; i++) {
-        buffer.add('state == ${bailouts[i].state} || ');
+      List<HTypeGuard> guards = node.thenBlock.guards;
+      for (int i = 0, len = guards.length; i < len; i++) {
+        buffer.add('state == ${guards[i].state} || ');
       }
       buffer.add('(state == 0 && ');
       precedence = JSPrecedence.BITWISE_OR_PRECEDENCE;
     }
     use(node.inputs[0], precedence);
-    if (hasBailouts) {
+    if (hasGuards) {
       buffer.add(')');
     }
     buffer.add(') {\n');
     indent++;
-    if (node.thenBlock.hasBailouts()) {
+    if (node.thenBlock.hasGuards()) {
       startBailoutSwitch();
     }
   }
 
   void endThen(HIf node) {
-    if (node.thenBlock.hasBailouts()) {
+    if (node.thenBlock.hasGuards()) {
       endBailoutSwitch();
     }
   }
@@ -1564,13 +1552,13 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     addIndentation();
     buffer.add('} else {\n');
     indent++;
-    if (node.elseBlock.hasBailouts()) {
+    if (node.elseBlock.hasGuards()) {
       startBailoutSwitch();
     }
   }
 
   void endElse(HIf node) {
-    if (node.elseBlock.hasBailouts()) {
+    if (node.elseBlock.hasGuards()) {
       endBailoutSwitch();
     }
   }

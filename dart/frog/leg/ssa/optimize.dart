@@ -11,31 +11,56 @@ class SsaOptimizerTask extends CompilerTask {
   SsaOptimizerTask(Compiler compiler) : super(compiler);
   String get name() => 'SSA optimizer';
 
+  void runPhases(HGraph graph, List<OptimizationPhase> phases) {
+    for (OptimizationPhase phase in phases) {
+      phase.visitGraph(graph);
+      compiler.tracer.traceGraph(phase.name, graph);
+    }
+  }
+
   void optimize(WorkItem work, HGraph graph) {
     measure(() {
-      List<OptimizationPhase> phases = <OptimizationPhase>[];
-      if (work.isBailoutVersion()) {
-        phases.add(new SsaBailoutBuilder(compiler, work.bailouts));
-      } else {
-        if (work.allowSpeculativeOptimization) {
-          // TODO(ngeoffray): We should be more fine-grained and still
-          // allow type propagation of instructions we know the type.
-          phases.add(new SsaTypePropagator(compiler));
-          phases.add(new SsaTypeGuardBuilder(compiler));
-          phases.add(new SsaCheckInserter(compiler));
-        }
-        phases.add(new SsaConstantFolder(compiler));
-        phases.add(new SsaRedundantPhiEliminator());
-        phases.add(new SsaDeadPhiEliminator());
-        phases.add(new SsaGlobalValueNumberer(compiler));
-        phases.add(new SsaCodeMotion());
-        phases.add(new SsaDeadCodeEliminator());
-      }
+      List<OptimizationPhase> phases = <OptimizationPhase>[
+          new SsaConstantFolder(compiler),
+          new SsaRedundantPhiEliminator(),
+          new SsaDeadPhiEliminator(),
+          new SsaGlobalValueNumberer(compiler),
+          new SsaCodeMotion(),
+          new SsaDeadCodeEliminator()];
+      runPhases(graph, phases);
+    });
+  }
 
-      for (OptimizationPhase phase in phases) {
-        phase.visitGraph(graph);
-        compiler.tracer.traceGraph(phase.name, graph);
-      }
+  bool trySpeculativeOptimizations(WorkItem work, HGraph graph) {
+    return measure(() {
+      // Run the phases that will generate type guards. We must also run
+      // [SsaCheckInserter] because the type propagator also propagates
+      // types non-speculatively. For example, it propagates the type
+      // array for a call to the List constructor.
+      List<OptimizationPhase> phases = <OptimizationPhase>[
+          new SsaTypePropagator(compiler),
+          new SsaTypeGuardBuilder(compiler, work),
+          new SsaCheckInserter(compiler)];
+      runPhases(graph, phases);
+      return !work.guards.isEmpty();
+    });
+  }
+
+  void prepareForSpeculativeOptimizations(WorkItem work, HGraph graph) {
+    measure(() {
+      // In order to generate correct code for the bailout version, we did not
+      // propagate types from the instruction to the type guard. We do it
+      // now to be able to optimize further.
+      work.guards.forEach((HTypeGuard guard) {
+        guard.type = guard.guarded.type;
+        guard.guarded.type = HType.UNKNOWN;
+      });
+      // We also need to insert range and integer checks for the type guards,
+      // now that they know their type. We did not need to do that
+      // before because instructions that reference a guard would
+      // have not tried to use, e.g. native array access, since the
+      // guard was not typed.
+      runPhases(graph, <OptimizationPhase>[new SsaCheckInserter(compiler)]);
     });
   }
 }
@@ -256,7 +281,6 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
         const SourceString("length"),
         true,
         <HInstruction>[interceptor, receiver]);
-    length.builtinJsName = "length";
     length.type = HType.NUMBER;
     node.block.addBefore(node, length);
 

@@ -6,8 +6,8 @@ class WorkItem {
   final Element element;
   TreeElements resolutionTree;
   Function run;
-  Map<int, BailoutInfo> bailouts = null;
   bool allowSpeculativeOptimization = true;
+  List<HTypeGuard> guards = const <HTypeGuard>[];
 
   WorkItem.toCompile(this.element) : resolutionTree = null {
     run = this.compile;
@@ -16,12 +16,6 @@ class WorkItem {
   WorkItem.toCodegen(this.element, this.resolutionTree) {
     run = this.codegen;
   }
-
-  WorkItem.bailoutVersion(this.element, this.resolutionTree, this.bailouts) {
-    run = this.codegen;
-  }
-
-  bool isBailoutVersion() => bailouts != null;
 
   bool isAnalyzed() => resolutionTree != null;
 
@@ -326,17 +320,26 @@ class Compiler implements DiagnosticListener {
       log('compiled ${universe.generatedCode.length} methods');
       codegenProgress.reset();
     }
-    if (work.element.kind == ElementKind.FIELD
-        || work.element.kind == ElementKind.PARAMETER
-        || work.element.kind == ElementKind.FIELD_PARAMETER) {
+    if (work.element.kind.category == ElementCategory.VARIABLE) {
       constantHandler.compileWorkItem(work);
       return null;
     } else {
       HGraph graph = builder.build(work);
       optimizer.optimize(work, graph);
-      String code = generator.generate(work, graph);
-      universe.addGeneratedCode(work, code);
-      return code;
+      if (work.allowSpeculativeOptimization
+          && optimizer.trySpeculativeOptimizations(work, graph)) {
+        String code = generator.generateBailoutMethod(work, graph);
+        universe.addBailoutCode(work, code);
+        optimizer.prepareForSpeculativeOptimizations(work, graph);
+        optimizer.optimize(work, graph);
+        code = generator.generateMethod(work, graph);
+        universe.addGeneratedCode(work, code);
+        return code;
+      } else {
+        String code = generator.generateMethod(work, graph);
+        universe.addGeneratedCode(work, code);
+        return code;
+      }
     }
   }
 

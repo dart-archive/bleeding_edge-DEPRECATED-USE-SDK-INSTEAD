@@ -2667,7 +2667,6 @@ class SsaBuilder implements Visitor {
 
   visitTryStatement(TryStatement node) {
     work.allowSpeculativeOptimization = false;
-    assert(!work.isBailoutVersion());
     HBasicBlock enterBlock = graph.addNewBlock();
     close(new HGoto()).addSuccessor(enterBlock);
     open(enterBlock);

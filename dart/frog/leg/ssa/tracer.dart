@@ -180,15 +180,6 @@ class HInstructionStringifier implements HVisitor<String> {
     return "$prefix${instruction.id}";
   }
 
-  String visitBailoutTarget(HBailoutTarget node) {
-    StringBuffer env = new StringBuffer();
-    for (int i = 0; i < node.inputs.length; i++) {
-      if (i != 0) env.add(", ");
-      env.add(temporaryId(node.inputs[i]));
-    }
-    return "Bailout target ($env)";
-  }
-
   String visitBoolify(HBoolify node) {
     return "Boolify: ${temporaryId(node.inputs[0])}";
   }
@@ -418,6 +409,7 @@ class HInstructionStringifier implements HVisitor<String> {
       case HType.NUMBER: type = "number"; break;
       case HType.STRING: type = "string"; break;
       case HType.STRING_OR_ARRAY: type = "string_or_array"; break;
+      case HType.UNKNOWN: type = 'unknown'; break;
       default: unreachable();
     }
     return "TypeGuard: ${temporaryId(node.inputs[0])} is $type";
