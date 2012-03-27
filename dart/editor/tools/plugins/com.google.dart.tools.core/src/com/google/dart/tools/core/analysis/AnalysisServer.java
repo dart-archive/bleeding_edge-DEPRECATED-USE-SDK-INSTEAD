@@ -141,19 +141,6 @@ public class AnalysisServer {
   }
 
   /**
-   * Analyze all bundled libraries.
-   * 
-   * @return a latch used for waiting until the operation is complete
-   */
-  public CountDownLatch analyzeBundledLibraries() {
-    CountDownLatch latch = new CountDownLatch(1);
-    synchronized (queue) {
-      queueNewTask(new AnalyzeBundledLibrariesTask(this, savedContext, latch));
-    }
-    return latch;
-  }
-
-  /**
    * Analyze the specified library, and keep that analysis current by tracking any changes. Also see
    * {@link #resolveLibrary(File, ResolveLibraryListener)}.
    * 

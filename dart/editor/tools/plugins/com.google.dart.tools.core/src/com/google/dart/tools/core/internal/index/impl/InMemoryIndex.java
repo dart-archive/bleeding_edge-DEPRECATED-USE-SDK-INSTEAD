@@ -22,7 +22,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.AttributeCallback;
 import com.google.dart.tools.core.index.Element;
@@ -64,8 +63,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The unique instance of the class <code>InMemoryIndex</code> maintains an in-memory {@link Index
@@ -302,29 +299,8 @@ public class InMemoryIndex implements Index {
    * @return <code>true</code> if the bundled libraries were successfully indexed
    */
   private boolean indexBundledLibraries() {
-    long startTime = System.currentTimeMillis();
-    boolean librariesIndexed;
-    if (DartCoreDebug.ANALYSIS_SERVER) {
-      librariesIndexed = indexBundledLibraries2();
-    } else {
-      librariesIndexed = indexBundledLibraries1();
-    }
-    if (DartCoreDebug.PERF_INDEX) {
-      long endTime = System.currentTimeMillis();
-      DartCore.logInformation("Initializing the index with information from bundled libraries took "
-          + (endTime - startTime) + " ms (" + initIndexingTime + " ms indexing)");
-    }
-    return librariesIndexed;
-  }
-
-  /**
-   * Initialize this index with information from the bundled libraries using
-   * {@link DartCompilerUtilities#resolveLibrary(DartLibraryImpl, java.util.Collection, java.util.Collection)}
-   * 
-   * @return <code>true</code> if the bundled libraries were successfully indexed
-   */
-  private boolean indexBundledLibraries1() {
     boolean librariesIndexed = true;
+    long startTime = System.currentTimeMillis();
     EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
     ArrayList<String> librarySpecs = new ArrayList<String>(libraryManager.getAllLibrarySpecs());
     if (librarySpecs.remove("dart:html")) {
@@ -337,9 +313,14 @@ public class InMemoryIndex implements Index {
       try {
         URI libraryUri = new URI(urlSpec);
         UrlLibrarySource librarySource = new UrlLibrarySource(libraryUri, libraryManager);
-        LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary(librarySource,
-            contributedUnits, parseErrors);
-        indexBundledLibrary(libraryUnit, initializedLibraries);
+        if (!DartCoreDebug.ANALYSIS_SERVER) {
+          LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary(librarySource,
+              contributedUnits, parseErrors);
+          indexBundledLibrary(libraryUnit, initializedLibraries);
+        } else {
+          File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
+          SystemLibraryManagerProvider.getDefaultAnalysisServer().resolveLibrary(libraryFile, null);
+        }
       } catch (URISyntaxException exception) {
         librariesIndexed = false;
         DartCore.logError("Invalid URI returned from the system library manager: \"" + urlSpec
@@ -352,23 +333,10 @@ public class InMemoryIndex implements Index {
         DartCore.logError("Could not index bundled libraries", exception);
       }
     }
-    return librariesIndexed;
-  }
-
-  /**
-   * Initialize this index with information from the bundled libraries using the
-   * {@link AnalysisServer}.
-   * 
-   * @return <code>true</code> if the bundled libraries were successfully indexed
-   */
-  private boolean indexBundledLibraries2() {
-    AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-    CountDownLatch latch = server.analyzeBundledLibraries();
-    boolean librariesIndexed;
-    try {
-      librariesIndexed = latch.await(30, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      librariesIndexed = false;
+    if (DartCoreDebug.PERF_INDEX) {
+      long endTime = System.currentTimeMillis();
+      DartCore.logInformation("Initializing the index with information from bundled libraries took "
+          + (endTime - startTime) + " ms (" + initIndexingTime + " ms indexing)");
     }
     return librariesIndexed;
   }
