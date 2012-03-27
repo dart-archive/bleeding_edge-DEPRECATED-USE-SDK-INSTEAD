@@ -256,7 +256,7 @@ def main():
   if status != 0:
     print '@@@STEP_FAILURE@@@'
 
-  if component == 'frogium':
+  if compiler == 'frog' and runtime == 'drt':
     CleanUpTemporaryFiles(system, browser)
   return status
 
