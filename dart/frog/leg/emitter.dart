@@ -37,11 +37,13 @@ function(child, parent) {
   final Namer namer;
   final NativeEmitter nativeEmitter;
   Set<ClassElement> generatedClasses;
+  StringBuffer mainBuffer;
 
   CodeEmitterTask(Compiler compiler)
       : namer = compiler.namer,
         nativeEmitter = new NativeEmitter(compiler),
         generatedClasses = new Set<ClassElement>(),
+        mainBuffer = new StringBuffer(),
         super(compiler);
 
   String get name() => 'CodeEmitter';
@@ -54,12 +56,12 @@ function(child, parent) {
     return namer.isolatePropertyAccess(objectClass);
   }
 
-  void addInheritFunctionIfNecessary(StringBuffer buffer) {
+  void addInheritFunctionIfNecessary() {
     if (addedInheritFunction) return;
     addedInheritFunction = true;
-    buffer.add('$inheritsName = ');
-    buffer.add(INHERIT_FUNCTION);
-    buffer.add(';\n');
+    mainBuffer.add('$inheritsName = ');
+    mainBuffer.add(INHERIT_FUNCTION);
+    mainBuffer.add(';\n');
   }
 
   void addParameterStub(FunctionElement member,
@@ -158,7 +160,7 @@ function(child, parent) {
     if (isNative) {
       nativeEmitter.emitParameterStub(
           member, invocationName, parametersString, argumentsBuffer,
-          indexOfLastOptionalArgumentInParameters, buffer);
+          indexOfLastOptionalArgumentInParameters);
     } else {
       String arguments = Strings.join(argumentsBuffer, ",");
       buffer.add('  return this.${namer.getName(member)}($arguments)');
@@ -262,7 +264,7 @@ function(child, parent) {
   void emitInherits(ClassElement cls, StringBuffer buffer) {
     ClassElement superclass = cls.superclass;
     if (superclass !== null) {
-      addInheritFunctionIfNecessary(buffer);
+      addInheritFunctionIfNecessary();
       String className = namer.isolatePropertyAccess(cls);
       String superName = namer.isolatePropertyAccess(superclass);
       buffer.add('${inheritsName}($className, $superName);\n');
@@ -280,8 +282,13 @@ function(child, parent) {
     ensureGenerated(classElement.superclass, buffer);
 
     if (classElement.isNative()) {
-      nativeEmitter.generateNativeClass(classElement, buffer);
+      nativeEmitter.generateNativeClass(classElement);
       return;
+    } else {
+      // TODO(ngeoffray): Instead of switching between buffer, we
+      // should create code sections, and decide where to emit them at
+      // the end.
+      buffer = mainBuffer;
     }
 
     String className = namer.isolatePropertyAccess(classElement);
@@ -688,19 +695,20 @@ ${namer.isolateAccess(isolateMain)}($mainAccess);""";
 
   String assembleProgram() {
     measure(() {
-      StringBuffer buffer = new StringBuffer();
-      buffer.add('function ${namer.ISOLATE}() {');
-      emitStaticNonFinalFieldInitializations(buffer);
-      buffer.add('}\n\n');
-      emitClasses(buffer);
-      emitStaticFunctions(buffer);
-      emitStaticFunctionGetters(buffer);
-      emitCompileTimeConstants(buffer);
-      emitStaticFinalFieldInitializations(buffer);
-      nativeEmitter.emitDynamicDispatchMetadata(buffer);
-      buffer.add('var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
-      emitMain(buffer);
-      compiler.assembledCode = buffer.toString();
+      mainBuffer.add('function ${namer.ISOLATE}() {');
+      emitStaticNonFinalFieldInitializations(mainBuffer);
+      mainBuffer.add('}\n\n');
+      emitClasses(mainBuffer);
+      emitStaticFunctions(mainBuffer);
+      emitStaticFunctionGetters(mainBuffer);
+      emitCompileTimeConstants(mainBuffer);
+      emitStaticFinalFieldInitializations(mainBuffer);
+      nativeEmitter.emitDynamicDispatchMetadata();
+      mainBuffer.add(
+          'var ${namer.CURRENT_ISOLATE} = new ${namer.ISOLATE}();\n');
+      nativeEmitter.assembleCode(mainBuffer);
+      emitMain(mainBuffer);
+      compiler.assembledCode = mainBuffer.toString();
     });
     return compiler.assembledCode;
   }

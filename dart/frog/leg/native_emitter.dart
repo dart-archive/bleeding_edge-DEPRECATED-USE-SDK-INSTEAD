@@ -5,10 +5,7 @@
 class NativeEmitter {
 
   Compiler compiler;
-  bool addedDynamicFunction = false;
-  bool addedTypeNameOfFunction = false;
-  bool addedDefPropFunction = false;
-  bool addedNativeProperty = false;
+  StringBuffer buffer;
 
   // Classes that participate in dynamic dispatch. These are the
   // classes that contain used members.
@@ -30,239 +27,41 @@ class NativeEmitter {
       : classesWithDynamicDispatch = new Set<ClassElement>(),
         nativeClasses = new Set<ClassElement>(),
         subtypes = new Map<ClassElement, List<ClassElement>>(),
-        overriddenMethods = new Set<FunctionElement>();
+        overriddenMethods = new Set<FunctionElement>(),
+        buffer = new StringBuffer();
 
-  /**
-   * Code for finding the type name of a JavaScript object.
-   */
-  static final String TYPE_NAME_OF_FUNCTION = @"""
-(function() {
-  function constructorNameWithFallback(obj) {
-    var constructor = obj.constructor;
-    if (typeof(constructor) == 'function') {
-      // The constructor isn't null or undefined at this point. Try
-      // to grab hold of its name.
-      var name = constructor.name;
-      // If the name is a non-empty string, we use that as the type
-      // name of this object. On Firefox, we often get 'Object' as
-      // the constructor name even for more specialized objects so
-      // we have to fall through to the toString() based implementation
-      // below in that case.
-      if (typeof(name) == 'string' && name && name != 'Object') return name;
-    }
-    var string = Object.prototype.toString.call(obj);
-    return string.substring(8, string.length - 1);
+  String get dynamicName() {
+    Element element = compiler.findHelper(
+        const SourceString('dynamicFunction'));
+    return compiler.namer.isolateAccess(element);
   }
 
-  function chrome$typeNameOf(obj) {
-    var name = obj.constructor.name;
-    if (name == 'Window') return 'DOMWindow';
-    return name;
+  String get dynamicSetMetadataName() {
+    Element element = compiler.findHelper(
+        const SourceString('dynamicSetMetadata'));
+    return compiler.namer.isolateAccess(element);
   }
 
-  function firefox$typeNameOf(obj) {
-    var name = constructorNameWithFallback(obj);
-    if (name == 'Window') return 'DOMWindow';
-    if (name == 'Document') return 'HTMLDocument';
-    if (name == 'XMLDocument') return 'Document';
-    return name;
+  String get typeNameOfName() {
+    Element element = compiler.findHelper(
+        const SourceString('getTypeNameOf'));
+    return compiler.namer.isolateAccess(element);
   }
 
-  function ie$typeNameOf(obj) {
-    var name = constructorNameWithFallback(obj);
-    if (name == 'Window') return 'DOMWindow';
-    // IE calls both HTML and XML documents 'Document', so we check for the
-    // xmlVersion property, which is the empty string on HTML documents.
-    if (name == 'Document' && obj.xmlVersion) return 'Document';
-    if (name == 'Document') return 'HTMLDocument';
-    return name;
+  String get dynamicIsCheckName() {
+    Element element = compiler.findHelper(
+        const SourceString('dynamicIsCheck'));
+    return compiler.namer.isolateAccess(element);
   }
 
-  // If we're not in the browser, we're almost certainly running on v8.
-  if (typeof(navigator) != 'object') return chrome$typeNameOf;
-
-  var userAgent = navigator.userAgent;
-  if (/Chrome|DumpRenderTree/.test(userAgent)) return chrome$typeNameOf;
-  if (/Firefox/.test(userAgent)) return firefox$typeNameOf;
-  if (/MSIE/.test(userAgent)) return ie$typeNameOf;
-  return constructorNameWithFallback;
-})()""";
-
-  /**
-   * Code for defining a property in a JavaScript object that will not
-   * be visible through for-in (aka enumerable is false).
-   */
-  static final String DEF_PROP_FUNCTION = '''
-function(obj, prop, value) {
-  Object.defineProperty(obj, prop,
-      {value: value, enumerable: false, writable: true, configurable: true});
-}''';
-
-  /**
-   * Code for doing the dynamic dispatch on JavaScript prototypes that are not
-   * available at compile-time. Each property of a native Dart class
-   * is registered through this function, which is called with the
-   * following pattern:
-   *
-   * $dynamic('propertyName').prototypeName = // JS code
-   *
-   * What this function does is:
-   * - Creates a map of { prototypeName: JS code }.
-   * - Attaches 'propertyName' to the JS Object prototype that will
-   *   intercept at runtime all calls to propertyName.
-   * - Sets the value of 'propertyName' to a function that queries the
-   *   map with the prototype of 'this', patches the prototype of
-   *   'this' with the found JS code, and invokes the JS code.
-   *
-   */
-  String buildDynamicFunctionCode() {
-    ClassElement noSuchMethodException =
-        compiler.coreLibrary.find(Compiler.NO_SUCH_METHOD_EXCEPTION);
-    Element helper = compiler.findHelper(new SourceString('captureStackTrace'));
-    String capture = compiler.namer.isolateAccess(helper);
-    String exception = compiler.namer.isolateAccess(noSuchMethodException);
-
-    return '''
-function(name) {
-  var f = Object.prototype[name];
-  if (f && f.methods) return f.methods;
-
-  var methods = {};
-  // If there is a method attached to the Dart Object class, use it as
-  // the method to call in case no method is registered for that type.
-  var dartMethod = ${compiler.emitter.objectClassName}.prototype[name];
-  if (dartMethod) methods.Object = dartMethod;
-  function dynamicBind() {
-    // Find the target method
-    var obj = this;
-    var tag = $typeNameOfName(obj);
-    var method = methods[tag];
-    if (!method) {
-      var table = $dynamicMetadataName;
-      for (var i = 0; i < table.length; i++) {
-        var entry = table[i];
-        if (entry.map.hasOwnProperty(tag)) {
-          method = methods[entry.tag];
-          if (method) break;
-        }
-      }
-    }
-    method = method || methods.Object;
-
-    if (method == null) {
-      method = function() {
-        throw $capture(new $exception(obj, name, arguments));
-      };
-    }
-
-    var proto = Object.getPrototypeOf(obj);
-    var nullCheckMethod = function() {
-      var res = method.apply(this, Array.prototype.slice.call(arguments));
-      return res === null ? (void 0) : res;
-    }
-    if (!proto.hasOwnProperty(name)) {
-      $defPropName(proto, name, nullCheckMethod);
-    }
-
-    return nullCheckMethod.apply(this, Array.prototype.slice.call(arguments));
-  };
-  dynamicBind.methods = methods;
-  $defPropName(Object.prototype, name, dynamicBind);
-  return methods;
-}''';
-}
-
-  String buildDynamicMetadataCode() => '''
-if (typeof $dynamicMetadataName == 'undefined') $dynamicMetadataName = [];''';
-
-  // This method will be called for 'is' checks on native types.
-  // It takes the object on which the 'is' check is being done, and the
-  // property name for the type check. The method patches the real
-  // prototype of the object with the value from the Dart object
-  // (see [generateNativeClass]).
-  String buildDynamicIsCheckCode() {
-    ClassElement objectClass =
-        compiler.coreLibrary.find(const SourceString('Object'));
-    return '''
-function(obj, isCheck) {
-  if (obj.constructor === Array) return false;
-  var proto = Object.getPrototypeOf(obj);
-  // Check if the Dart object corresponding to this class has the property.
-  var res =
-      !!${compiler.namer.CURRENT_ISOLATE}.native[$typeNameOfName(obj)][isCheck];
-  res = res || false;
-  $defPropName(proto, isCheck, res);
-  return res;
-}''';
+  String get isChecksHelperName() {
+    Element element = compiler.findHelper(
+        const SourceString('isChecksHelper'));
+    if (element === null) return null;
+    return compiler.namer.isolateAccess(element);
   }
 
-  String buildNativePropertyCode() => '''
-${compiler.namer.ISOLATE}.prototype.native = {};''';
-
-  String buildDynamicSetMetadataCode() => """
-function(inputTable) {
-  // TODO: Deal with light isolates.
-  var table = [];
-  for (var i = 0; i < inputTable.length; i++) {
-    var tag = inputTable[i][0];
-    var tags = inputTable[i][1];
-    var map = {};
-    var tagNames = tags.split('|');
-    for (var j = 0; j < tagNames.length; j++) {
-      map[tagNames[j]] = true;
-    }
-    table.push({tag: tag, tags: tags, map: map});
-  }
-  $dynamicMetadataName = table;
-}""";
-
-
-  String get dynamicName() => '${compiler.namer.ISOLATE}.\$dynamic';
-  String get defPropName() => '${compiler.namer.ISOLATE}.\$defProp';
-  String get typeNameOfName() => '${compiler.namer.ISOLATE}.\$typeNameOf';
-  String get dynamicMetadataName() =>
-      '${compiler.namer.ISOLATE}.\$dynamicMetatada';
-  String get dynamicIsCheckName() =>
-      '${compiler.namer.ISOLATE}.\$dynamicIsCheck';
-  String get dynamicSetMetadataName() =>
-      '${compiler.namer.ISOLATE}.\$dynamicSetMetatada';
-
-  void addDynamicFunctionIfNecessary(StringBuffer buffer) {
-    if (addedDynamicFunction) return;
-    addedDynamicFunction = true;
-    addTypeNameOfFunctionIfNecessary(buffer);
-    buffer.add('$dynamicName = ');
-    buffer.add(buildDynamicFunctionCode());
-    buffer.add('\n');
-    buffer.add(buildDynamicMetadataCode());
-    buffer.add('\n');
-  }
-
-  void addTypeNameOfFunctionIfNecessary(StringBuffer buffer) {
-    if (addedTypeNameOfFunction) return;
-    addedTypeNameOfFunction = true;
-    addDefPropFunctionIfNecessary(buffer);
-    buffer.add('$typeNameOfName = ');
-    buffer.add(TYPE_NAME_OF_FUNCTION);
-    buffer.add('\n');
-  }
-
-  void addDefPropFunctionIfNecessary(StringBuffer buffer) {
-    if (addedDefPropFunction) return;
-    addedDefPropFunction = true;
-    buffer.add('$defPropName = ');
-    buffer.add(DEF_PROP_FUNCTION);
-    buffer.add('\n');
-  }
-
-  void addNativePropertyIfNecessary(StringBuffer buffer) {
-    if (addedNativeProperty) return;
-    addedNativeProperty = true;
-    buffer.add(buildNativePropertyCode());
-    buffer.add('\n');
-  }
-
-  void generateNativeLiteral(ClassElement classElement, StringBuffer buffer) {
+  void generateNativeLiteral(ClassElement classElement) {
     String quotedNative = classElement.nativeName.slowToString();
     String nativeCode = quotedNative.substring(2, quotedNative.length - 1);
     String className = compiler.namer.getName(classElement);
@@ -299,13 +98,13 @@ function(inputTable) {
     }
   }
 
-  void generateNativeClass(ClassElement classElement, StringBuffer buffer) {
+  void generateNativeClass(ClassElement classElement) {
     nativeClasses.add(classElement);
 
     assert(classElement.backendMembers.isEmpty());
     String quotedName = classElement.nativeName.slowToString();
     if (isNativeLiteral(quotedName)) {
-      generateNativeLiteral(classElement, buffer);
+      generateNativeLiteral(classElement);
       // The native literal kind needs to be dealt with specially when
       // generating code for it.
       return;
@@ -316,7 +115,6 @@ function(inputTable) {
 
     String attachTo(String name) {
       hasUsedSelectors = true;
-      addDynamicFunctionIfNecessary(buffer);
       return "$dynamicName('$name').$nativeName";
     }
 
@@ -327,10 +125,8 @@ function(inputTable) {
       }
     }
 
-    addNativePropertyIfNecessary(buffer);
-    // Create an object that contains the is checks properties. The
-    // object will be used when entering [buildDynamicIsCheckCode].
-    buffer.add('${compiler.namer.ISOLATE}.prototype.native.$nativeName = { ');
+    // Create an object that contains the is checks properties.
+    buffer.add('$isChecksHelperName.$nativeName = { ');
     List<String> tests = <String>[];
 
     ClassElement objectClass =
@@ -362,8 +158,7 @@ function(inputTable) {
                          String invocationName,
                          String stubParameters,
                          List<String> argumentsBuffer,
-                         int indexOfLastOptionalArgumentInParameters,
-                         StringBuffer buffer) {
+                         int indexOfLastOptionalArgumentInParameters) {
     // The target JS function may check arguments.length so we need to
     // make sure not to pass any unspecified optional arguments to it.
     // For example, for the following Dart method:
@@ -404,13 +199,7 @@ function(inputTable) {
     buffer.add(');');
   }
 
-  void emitDynamicDispatchMetadata(StringBuffer buffer) {
-    // TODO(ngeoffray): emit this conditionally.
-    addTypeNameOfFunctionIfNecessary(buffer);
-    buffer.add('$dynamicIsCheckName = ');
-    buffer.add(buildDynamicIsCheckCode());
-    buffer.add('\n');
-
+  void emitDynamicDispatchMetadata() {
     if (classesWithDynamicDispatch.isEmpty()) return;
     buffer.add('// ${classesWithDynamicDispatch.length} dynamic classes.\n');
 
@@ -502,10 +291,6 @@ function(inputTable) {
     // Write out a thunk that builds the metadata.
 
     if (!tagDefns.isEmpty()) {
-      buffer.add('$dynamicSetMetadataName = ');
-      buffer.add(buildDynamicSetMetadataCode());
-      buffer.add(';\n\n');
-
       buffer.add('(function(){\n');
 
       for (final String varName in varNames) {
@@ -528,5 +313,10 @@ function(inputTable) {
 
       buffer.add('})();\n');
     }
+  }
+
+  void assembleCode(StringBuffer other) {
+    if (isChecksHelperName === null) return;
+    other.add('(function() { $isChecksHelperName = {};\n$buffer\n })();\n');
   }
 }

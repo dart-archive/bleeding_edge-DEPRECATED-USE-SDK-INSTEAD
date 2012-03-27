@@ -1851,14 +1851,23 @@ class SsaBuilder implements Visitor {
     // If the invoke is on foreign code, don't visit the first
     // argument, which is the type, and the second argument,
     // which is the foreign code.
+    if (link.isEmpty() || link.isEmpty()) {
+      compiler.cancel('At least two arguments expected', node: node.arguments);
+    }
     link = link.tail.tail;
     List<HInstruction> inputs = <HInstruction>[];
     addGenericSendArgumentsToList(link, inputs);
-    LiteralString type = node.arguments.head;
-    LiteralString literal = node.arguments.tail.head;
-    compiler.ensure(literal is LiteralString);
-    compiler.ensure(type is LiteralString);
-    push(new HForeign(literal.dartString, type.dartString, inputs));
+    Node type = node.arguments.head;
+    Node literal = node.arguments.tail.head;
+    if (literal is !StringNode || literal.dynamic.isInterpolation) {
+      compiler.cancel('JS code must be a string literal', node: literal);
+    }
+    if (type is !LiteralString) {
+      compiler.cancel(
+          'The type of a JS expression must be a string literal', node: type);
+    }
+    push(new HForeign(
+        literal.dynamic.dartString, type.dynamic.dartString, inputs));
   }
 
   void handleForeignUnintercepted(Send node) {
@@ -1941,23 +1950,49 @@ class SsaBuilder implements Visitor {
     }
   }
 
+  void handleForeignDartClosureToJs(Send node) {
+    if (node.arguments.isEmpty() || !node.arguments.tail.isEmpty()) {
+      compiler.cancel('Exactly one argument required', node: node.arguments);
+    }
+    Node closure = node.arguments.head;
+    Element element = elements[closure];
+    if (!Elements.isStaticOrTopLevelFunction(element)) {
+      compiler.cancel(
+          'JS_TO_CLOSURE requires a static or top-level method',
+          node: closure);
+    }
+    FunctionElement function = element;
+    FunctionParameters parameters = element.computeParameters(compiler);
+    if (parameters.optionalParameterCount !== 0) {
+      compiler.cancel(
+          'JS_TO_CLOSURE does not handle closure with optional parameters',
+          node: closure);
+    }
+    visit(closure);
+    List<HInstruction> inputs = <HInstruction>[pop()];
+    String invocationName = compiler.namer.closureInvocationName(
+        new Selector(SelectorKind.INVOCATION,
+                     parameters.requiredParameterCount));
+    push(new HForeign(new SourceString('#.$invocationName'),
+                      const SourceString('var'),
+                      inputs));
+  }
+
   handleForeignSend(Send node) {
     Element element = elements[node];
-    if (element === compiler.findHelper(const SourceString('JS'))) {
+    if (element.name == const SourceString('JS')) {
       handleForeignJs(node);
-    } else if (element === compiler.findHelper(
-          const SourceString('UNINTERCEPTED'))) {
+    } else if (element.name == const SourceString('UNINTERCEPTED')) {
       handleForeignUnintercepted(node);
-    } else if (element === compiler.findHelper(
-          const SourceString('JS_HAS_EQUALS'))) {
+    } else if (element.name == const SourceString('JS_HAS_EQUALS')) {
       handleForeignJsHasEquals(node);
-    } else if (element === compiler.findHelper(
-          const SourceString('JS_CURRENT_ISOLATE'))) {
+    } else if (element.name == const SourceString('JS_CURRENT_ISOLATE')) {
       handleForeignJsCurrentIsolate(node);
-    } else if (element === compiler.findHelper(
-          const SourceString('JS_CALL_IN_ISOLATE'))) {
+    } else if (element.name == const SourceString('JS_CALL_IN_ISOLATE')) {
       handleForeignJsCallInIsolate(node);
-    } else if (element === currentLibrary.find(const SourceString('native'))) {
+    } else if (element.name == const SourceString('DART_CLOSURE_TO_JS')) {
+      handleForeignDartClosureToJs(node);
+    } else if (element.name == const SourceString('native')) {
       native.handleSsaNative(this, node);
     } else {
       throw "Unknown foreign: ${node.selector}";

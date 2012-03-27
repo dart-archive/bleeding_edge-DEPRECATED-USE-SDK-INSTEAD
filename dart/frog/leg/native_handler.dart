@@ -30,12 +30,14 @@ void addSubtypes(ClassElement cls,
 
 void processNativeClassesInLibrary(Compiler compiler,
                                    LibraryElement library) {
+  bool hasNativeClass = false;
   for (Link<Element> link = library.topLevelElements;
        !link.isEmpty(); link = link.tail) {
     Element element = link.head;
     if (element.kind == ElementKind.CLASS) {
       ClassElement classElement = element;
       if (classElement.isNative()) {
+        hasNativeClass = true;
         compiler.registerInstantiatedClass(classElement);
         // Also parse the node to know all its methods because
         // otherwise it will only be parsed if there is a call to
@@ -50,6 +52,14 @@ void processNativeClassesInLibrary(Compiler compiler,
         addSubtypes(classElement, emitter);
       }
     }
+  }
+  if (hasNativeClass) {
+    compiler.registerStaticUse(compiler.findHelper(
+        const SourceString('dynamicFunction')));
+    compiler.registerStaticUse(compiler.findHelper(
+        const SourceString('dynamicSetMetadata')));
+    compiler.registerStaticUse(compiler.findHelper(
+        const SourceString('dynamicIsCheck')));
   }
 }
 

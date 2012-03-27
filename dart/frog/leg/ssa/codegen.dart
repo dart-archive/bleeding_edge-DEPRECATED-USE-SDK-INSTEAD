@@ -1236,6 +1236,8 @@ class SsaCodeGenerator implements HVisitor {
     List<ClassElement> subtypes =
         compiler.emitter.nativeEmitter.subtypes[element];
     if (subtypes === null) return false;
+    compiler.registerStaticUse(compiler.findHelper(
+        const SourceString('dynamicIsCheck')));
     return true;
   }
 }

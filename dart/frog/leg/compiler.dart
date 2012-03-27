@@ -267,6 +267,8 @@ class Compiler implements DiagnosticListener {
         const SourceString('JS_CURRENT_ISOLATE'), library), this);
     library.define(new ForeignElement(
         const SourceString('JS_CALL_IN_ISOLATE'), library), this);
+    library.define(new ForeignElement(
+        const SourceString('DART_CLOSURE_TO_JS'), library), this);
   }
 
   void runCompiler(Uri uri) {

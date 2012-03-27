@@ -7,6 +7,7 @@
 #import('coreimpl.dart');
 
 #source('constant_map.dart');
+#source('native_helper.dart');
 #source('regexp_helper.dart');
 #source('string_helper.dart');
 
@@ -1187,7 +1188,7 @@ builtin$get$dynamic(receiver) => receiver;
 captureStackTrace(ex) {
   var jsError = JS('Object', @'new Error()');
   JS('void', @'#.dartException = #', jsError, ex);
-  JS('void', @'''#.toString = #''', jsError, toStringWrapper);
+  JS('void', @'''#.toString = #''', jsError, DART_CLOSURE_TO_JS(toStringWrapper));
   return jsError;
 }
 
@@ -1226,7 +1227,7 @@ makeLiteralListConst(list) {
  */
 unwrapException(ex) {
   // Note that we are checking if the object has the property. If it
-  // has, it could be set null if the thrown value is null.
+  // has, it could be set to null if the thrown value is null.
   if (JS('bool', @'"dartException" in #', ex)) {
     return JS('Object', @'#.dartException', ex);
   } else if (JS('bool', @'# instanceof TypeError', ex)) {
@@ -1318,7 +1319,7 @@ convertDartClosureToJS(closure) {
   function = JS("var", @"""function() {
     return #(#, #, arguments.length, arguments[0], arguments[1]);
   }""",
-  invokeClosure,
+  DART_CLOSURE_TO_JS(invokeClosure),
   closure,
   JS_CURRENT_ISOLATE());
 
