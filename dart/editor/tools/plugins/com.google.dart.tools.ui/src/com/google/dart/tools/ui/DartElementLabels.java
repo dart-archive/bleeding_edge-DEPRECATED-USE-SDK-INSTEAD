@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui;
@@ -381,7 +379,7 @@ public class DartElementLabels {
    * @return the label for the Dart element
    */
   public static String getDartElementName(String name) {
-    return Strings.markJavaElementLabelLTR(name);
+    return Strings.markDartElementLabelLTR(name);
   }
 
 //  /**
@@ -419,8 +417,7 @@ public class DartElementLabels {
     if (getFlag(flags, D_QUALIFIED)) {
       DartElement openable = declaration.getOpenable();
       if (openable != null) {
-        buf.append(getElementLabel(openable, CF_QUALIFIED | CU_QUALIFIED
-            | (flags & QUALIFIER_FLAGS)));
+        buf.append(getElementLabel(openable, CF_QUALIFIED | CU_QUALIFIED | flags & QUALIFIER_FLAGS));
         buf.append('/');
       }
     }
@@ -434,8 +431,7 @@ public class DartElementLabels {
       DartElement openable = declaration.getOpenable();
       if (openable != null) {
         buf.append(CONCAT_STRING);
-        buf.append(getElementLabel(openable, CF_QUALIFIED | CU_QUALIFIED
-            | (flags & QUALIFIER_FLAGS)));
+        buf.append(getElementLabel(openable, CF_QUALIFIED | CU_QUALIFIED | flags & QUALIFIER_FLAGS));
       }
     }
   }
@@ -559,9 +555,9 @@ public class DartElementLabels {
       Type declaringType = field.getDeclaringType();
       if (getFlag(flags, F_FULLY_QUALIFIED)) {
         if (declaringType != null) {
-          getTypeLabel(declaringType, T_FULLY_QUALIFIED | (flags & QUALIFIER_FLAGS), buf);
+          getTypeLabel(declaringType, T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
         } else {
-          getFileLabel(field, T_FULLY_QUALIFIED | (flags & QUALIFIER_FLAGS), buf);
+          getFileLabel(field, T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
         }
         buf.append('.');
       }
@@ -588,9 +584,9 @@ public class DartElementLabels {
       if (getFlag(flags, F_POST_QUALIFIED)) {
         buf.append(CONCAT_STRING);
         if (declaringType != null) {
-          getTypeLabel(declaringType, T_FULLY_QUALIFIED | (flags & QUALIFIER_FLAGS), buf);
+          getTypeLabel(declaringType, T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
         } else {
-          getFileLabel(field, T_FULLY_QUALIFIED | (flags & QUALIFIER_FLAGS), buf);
+          getFileLabel(field, T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
         }
       }
     } catch (DartModelException ex) {
@@ -682,8 +678,7 @@ public class DartElementLabels {
       Type declaringType = method.getDeclaringType();
       if (getFlag(flags, M_FULLY_QUALIFIED)) {
         if (declaringType != null && !method.isConstructor()) {
-          getTypeLabel(method.getDeclaringType(), T_FULLY_QUALIFIED | (flags & QUALIFIER_FLAGS),
-              buf);
+          getTypeLabel(method.getDeclaringType(), T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
           buf.append('.');
         }
         // else {
@@ -735,10 +730,9 @@ public class DartElementLabels {
       if (getFlag(flags, M_POST_QUALIFIED)) {
         buf.append(CONCAT_STRING);
         if (declaringType != null) {
-          getTypeLabel(method.getDeclaringType(), T_FULLY_QUALIFIED | (flags & QUALIFIER_FLAGS),
-              buf);
+          getTypeLabel(method.getDeclaringType(), T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
         } else {
-          getFileLabel(method, T_FULLY_QUALIFIED | (flags & QUALIFIER_FLAGS), buf);
+          getFileLabel(method, T_FULLY_QUALIFIED | flags & QUALIFIER_FLAGS, buf);
         }
       }
     } catch (DartModelException ex) {
@@ -794,7 +788,7 @@ public class DartElementLabels {
   public static StyledString getStyledElementLabel(DartElement element, long flags) {
     StyledString result = new StyledString();
     getElementLabel(element, flags, result);
-    return Strings.markJavaElementLabelLTR(result);
+    return Strings.markDartElementLabelLTR(result);
   }
 
   /**
@@ -1076,7 +1070,7 @@ public class DartElementLabels {
           }
           if (types != null) {
             String paramSig = types[i];
-            if (renderVarargs && (i == nParams - 1)) {
+            if (renderVarargs && i == nParams - 1) {
               DartX.todo();
               buf.append(paramSig);
 //            int newDim = Signature.getArrayCount(paramSig) - 1;

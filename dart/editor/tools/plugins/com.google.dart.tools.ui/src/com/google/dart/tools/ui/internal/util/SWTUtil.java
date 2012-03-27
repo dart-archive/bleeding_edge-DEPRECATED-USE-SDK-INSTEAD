@@ -221,7 +221,6 @@ public class SWTUtil {
    * @param combo the combo
    * @see Combo#setVisibleItemCount(int)
    * @see #COMBO_VISIBLE_ITEM_COUNT
-   * @since 3.5
    */
   public static void setDefaultVisibleItemCount(Combo combo) {
     combo.setVisibleItemCount(COMBO_VISIBLE_ITEM_COUNT);

@@ -1,9 +1,9 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
-import com.google.dart.core.ILocalVariable;
 import com.google.dart.core.IPackageFragment;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
@@ -50,9 +50,7 @@ public class RenameModifications extends RefactoringModifications {
     for (int i = 0; i < fRename.size(); i++) {
       Object element = fRename.get(i);
       if (element instanceof IResource) {
-        ResourceModifications.buildMoveDelta(
-            builder,
-            (IResource) element,
+        ResourceModifications.buildMoveDelta(builder, (IResource) element,
             (RenameArguments) fRenameArguments.get(i));
       }
     }
@@ -129,24 +127,14 @@ public class RenameModifications extends RefactoringModifications {
 
   @Override
   public RefactoringParticipant[] loadParticipants(RefactoringStatus status,
-      RefactoringProcessor owner,
-      String[] natures,
-      SharableParticipants shared) {
+      RefactoringProcessor owner, String[] natures, SharableParticipants shared) {
     List<RefactoringParticipant> result = new ArrayList<RefactoringParticipant>();
     for (int i = 0; i < fRename.size(); i++) {
-      result.addAll(Arrays.asList(ParticipantManager.loadRenameParticipants(
-          status,
-          owner,
-          fRename.get(i),
-          (RenameArguments) fRenameArguments.get(i),
-          fParticipantDescriptorFilter.get(i),
-          natures,
-          shared)));
+      result.addAll(Arrays.asList(ParticipantManager.loadRenameParticipants(status, owner,
+          fRename.get(i), (RenameArguments) fRenameArguments.get(i),
+          fParticipantDescriptorFilter.get(i), natures, shared)));
     }
-    result.addAll(Arrays.asList(getResourceModifications().getParticipants(
-        status,
-        owner,
-        natures,
+    result.addAll(Arrays.asList(getResourceModifications().getParticipants(status, owner, natures,
         shared)));
     return result.toArray(new RefactoringParticipant[result.size()]);
   }
@@ -154,8 +142,7 @@ public class RenameModifications extends RefactoringModifications {
   public void rename(CompilationUnit unit, RenameArguments args) {
     add(unit, args, null);
     if (unit.getResource() != null) {
-      getResourceModifications().addRename(
-          unit.getResource(),
+      getResourceModifications().addRename(unit.getResource(),
           new RenameArguments(args.getNewName(), args.getUpdateReferences()));
     }
   }
@@ -177,12 +164,12 @@ public class RenameModifications extends RefactoringModifications {
 //    }
   }
 
-  public void rename(Field field, RenameArguments args) {
-    add(field, args, null);
+  public void rename(DartVariableDeclaration variable, RenameArguments args) {
+    add(variable, args, null);
   }
 
-  public void rename(ILocalVariable variable, RenameArguments args) {
-    add(variable, args, null);
+  public void rename(Field field, RenameArguments args) {
+    add(field, args, null);
   }
 
 //  public void rename(ITypeParameter typeParameter, RenameArguments arguments) {
@@ -280,20 +267,16 @@ public class RenameModifications extends RefactoringModifications {
 //    return result.toArray(new IPackageFragment[result.size()]);
 //  }
 
-  private IFolder computeTargetFolder(IPackageFragment rootPackage,
-      RenameArguments args,
+  private IFolder computeTargetFolder(IPackageFragment rootPackage, RenameArguments args,
       IPackageFragment pack) {
     IPath path = pack.getParent().getPath();
-    path =
-        path.append(getNewPackageName(rootPackage, args.getNewName(), pack.getElementName()).replace(
-            '.',
-            IPath.SEPARATOR));
+    path = path.append(getNewPackageName(rootPackage, args.getNewName(), pack.getElementName()).replace(
+        '.', IPath.SEPARATOR));
     IFolder target = ResourcesPlugin.getWorkspace().getRoot().getFolder(path);
     return target;
   }
 
-  private String getNewPackageName(IPackageFragment rootPackage,
-      String newPackageName,
+  private String getNewPackageName(IPackageFragment rootPackage, String newPackageName,
       String oldSubPackageName) {
     String oldPackageName = rootPackage.getElementName();
     return newPackageName + oldSubPackageName.substring(oldPackageName.length());

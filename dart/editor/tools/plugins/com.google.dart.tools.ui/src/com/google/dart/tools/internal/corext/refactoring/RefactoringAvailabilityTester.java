@@ -23,7 +23,7 @@ import java.util.List;
  * eagerly load refactoring classes during action initialization.
  * </p>
  */
-public final class RefactoringAvailabilityTester {
+public class RefactoringAvailabilityTester {
 
   public static Type getDeclaringType(DartElement element) {
     if (element == null) {
@@ -35,7 +35,7 @@ public final class RefactoringAvailabilityTester {
     return (Type) element;
   }
 
-  public static DartElement[] getJavaElements(final Object[] elements) {
+  public static DartElement[] getDartElements(Object[] elements) {
     List<DartElement> result = new ArrayList<DartElement>();
     for (int index = 0; index < elements.length; index++) {
       if (elements[index] instanceof DartElement) {
@@ -45,8 +45,8 @@ public final class RefactoringAvailabilityTester {
     return result.toArray(new DartElement[result.size()]);
   }
 
-//  public static TypeMember[] getPullUpMembers(final Type type) throws DartModelException {
-//    final List<TypeMember> list = new ArrayList<TypeMember>(3);
+//  public static TypeMember[] getPullUpMembers(Type type) throws DartModelException {
+//    List<TypeMember> list = new ArrayList<TypeMember>(3);
 //    if (type.exists()) {
 //      TypeMember[] members = type.getFields();
 //      for (int index = 0; index < members.length; index++) {
@@ -64,8 +64,8 @@ public final class RefactoringAvailabilityTester {
 //    return list.toArray(new TypeMember[list.size()]);
 //  }
 //
-//  public static TypeMember[] getPushDownMembers(final Type type) throws DartModelException {
-//    final List<TypeMember> list = new ArrayList<TypeMember>(3);
+//  public static TypeMember[] getPushDownMembers(Type type) throws DartModelException {
+//    List<TypeMember> list = new ArrayList<TypeMember>(3);
 //    if (type.exists()) {
 //      TypeMember[] members = type.getFields();
 //      for (int index = 0; index < members.length; index++) {
@@ -83,7 +83,7 @@ public final class RefactoringAvailabilityTester {
 //    return list.toArray(new TypeMember[list.size()]);
 //  }
 //
-//  public static IResource[] getResources(final Object[] elements) {
+//  public static IResource[] getResources(Object[] elements) {
 //    List<IResource> result = new ArrayList<IResource>();
 //    for (int index = 0; index < elements.length; index++) {
 //      if (elements[index] instanceof IResource) {
@@ -100,7 +100,7 @@ public final class RefactoringAvailabilityTester {
 //      return (Type) first;
 //    }
 //    if (first instanceof CompilationUnit) {
-//      final CompilationUnit unit = (CompilationUnit) first;
+//      CompilationUnit unit = (CompilationUnit) first;
 //      if (unit.exists()) {
 //        return JavaElementUtil.getMainType(unit);
 //      }
@@ -108,43 +108,43 @@ public final class RefactoringAvailabilityTester {
 //    return null;
 //  }
 //
-//  public static Type getTopLevelType(final TypeMember[] members) {
+//  public static Type getTopLevelType(TypeMember[] members) {
 //    if (members != null && members.length == 1 && Checks.isTopLevelType(members[0])) {
 //      return (Type) members[0];
 //    }
 //    return null;
 //  }
 //
-//  public static boolean isChangeSignatureAvailable(final Method method) throws DartModelException {
+//  public static boolean isChangeSignatureAvailable(Method method) throws DartModelException {
 //    return Checks.isAvailable(method) && !Flags.isAnnotation(method.getDeclaringType().getFlags());
 //  }
 //
-//  public static boolean isChangeSignatureAvailable(final IStructuredSelection selection)
+//  public static boolean isChangeSignatureAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.size() == 1) {
 //      if (selection.getFirstElement() instanceof Method) {
-//        final Method method = (Method) selection.getFirstElement();
+//        Method method = (Method) selection.getFirstElement();
 //        return isChangeSignatureAvailable(method);
 //      }
 //    }
 //    return false;
 //  }
 //
-//  public static boolean isChangeSignatureAvailable(final DartTextSelection selection)
+//  public static boolean isChangeSignatureAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement[] elements = selection.resolveElementAtOffset();
+//    DartElement[] elements = selection.resolveElementAtOffset();
 //    if (elements.length == 1 && elements[0] instanceof Method) {
 //      return isChangeSignatureAvailable((Method) elements[0]);
 //    }
-//    final DartElement element = selection.resolveEnclosingElement();
+//    DartElement element = selection.resolveEnclosingElement();
 //    return element instanceof Method && isChangeSignatureAvailable((Method) element);
 //  }
 //
-//  public static boolean isCommonDeclaringType(final TypeMember[] members) {
+//  public static boolean isCommonDeclaringType(TypeMember[] members) {
 //    if (members.length == 0) {
 //      return false;
 //    }
-//    final Type type = members[0].getDeclaringType();
+//    Type type = members[0].getDeclaringType();
 //    if (type == null) {
 //      return false;
 //    }
@@ -156,7 +156,7 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isConvertAnonymousAvailable(final IStructuredSelection selection)
+//  public static boolean isConvertAnonymousAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.size() == 1) {
 //      if (selection.getFirstElement() instanceof Type) {
@@ -166,9 +166,9 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isConvertAnonymousAvailable(final Type type) throws DartModelException {
+//  public static boolean isConvertAnonymousAvailable(Type type) throws DartModelException {
 //    if (Checks.isAvailable(type)) {
-//      final DartElement element = type.getParent();
+//      DartElement element = type.getParent();
 //      if (element instanceof Field && JdtFlags.isEnum((TypeMember) element)) {
 //        return false;
 //      }
@@ -177,26 +177,26 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isConvertAnonymousAvailable(final DartTextSelection selection)
+//  public static boolean isConvertAnonymousAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final Type type = RefactoringActions.getEnclosingType(selection);
+//    Type type = RefactoringActions.getEnclosingType(selection);
 //    if (type != null) {
 //      return RefactoringAvailabilityTester.isConvertAnonymousAvailable(type);
 //    }
 //    return false;
 //  }
 //
-//  public static boolean isCopyAvailable(final IResource[] resources, final DartElement[] elements)
+//  public static boolean isCopyAvailable(IResource[] resources, DartElement[] elements)
 //      throws DartModelException {
 //    return ReorgPolicyFactory.createCopyPolicy(resources, elements).canEnable();
 //  }
 //
-//  public static boolean isDelegateCreationAvailable(final Field field) throws DartModelException {
+//  public static boolean isDelegateCreationAvailable(Field field) throws DartModelException {
 //    return field.exists()
 //        && Flags.isStatic(field.getFlags()) && Flags.isFinal(field.getFlags());
 //  }
 //
-//  public static boolean isDeleteAvailable(final DartElement element) {
+//  public static boolean isDeleteAvailable(DartElement element) {
 //    if (!element.exists()) {
 //      return false;
 //    }
@@ -226,7 +226,7 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isDeleteAvailable(final IResource resource) {
+//  public static boolean isDeleteAvailable(IResource resource) {
 //    if (!resource.exists() || resource.isPhantom()) {
 //      return false;
 //    }
@@ -236,20 +236,20 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isDeleteAvailable(final IStructuredSelection selection) {
+//  public static boolean isDeleteAvailable(IStructuredSelection selection) {
 //    if (!selection.isEmpty()) {
 //      return isDeleteAvailable(selection.toArray());
 //    }
 //    return false;
 //  }
 //
-//  public static boolean isDeleteAvailable(final Object[] objects) {
+//  public static boolean isDeleteAvailable(Object[] objects) {
 //    if (objects.length != 0) {
 //      if (ReorgUtils.containsOnlyWorkingSets(Arrays.asList(objects))) {
 //        return true;
 //      }
-//      final IResource[] resources = RefactoringAvailabilityTester.getResources(objects);
-//      final DartElement[] elements = RefactoringAvailabilityTester.getJavaElements(objects);
+//      IResource[] resources = RefactoringAvailabilityTester.getResources(objects);
+//      DartElement[] elements = RefactoringAvailabilityTester.getJavaElements(objects);
 //
 //      if (objects.length != resources.length + elements.length) {
 //        return false;
@@ -269,7 +269,7 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isExternalizeStringsAvailable(final IStructuredSelection selection)
+//  public static boolean isExternalizeStringsAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    for (Iterator<?> iter = selection.iterator(); iter.hasNext();) {
 //      Object element = iter.next();
@@ -306,7 +306,7 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isExtractConstantAvailable(final DartTextSelection selection) {
+//  public static boolean isExtractConstantAvailable(DartTextSelection selection) {
 //    return (selection.resolveInClassInitializer()
 //        || selection.resolveInMethodBody()
 //        || selection.resolveInVariableInitializer() || selection.resolveInAnnotation())
@@ -315,7 +315,7 @@ public final class RefactoringAvailabilityTester {
 //            selection.resolveCoveringNode());
 //  }
 //
-//  public static boolean isExtractInterfaceAvailable(final IStructuredSelection selection)
+//  public static boolean isExtractInterfaceAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.size() == 1) {
 //      Object first = selection.getFirstElement();
@@ -333,7 +333,7 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isExtractInterfaceAvailable(final Type type) throws DartModelException {
+//  public static boolean isExtractInterfaceAvailable(Type type) throws DartModelException {
 //    return Checks.isAvailable(type)
 //        && !type.isBinary()
 //        && !type.isReadOnly()
@@ -341,12 +341,12 @@ public final class RefactoringAvailabilityTester {
 //        && !type.isAnonymous();
 //  }
 //
-//  public static boolean isExtractInterfaceAvailable(final DartTextSelection selection)
+//  public static boolean isExtractInterfaceAvailable(DartTextSelection selection)
 //      throws DartModelException {
 //    return isExtractInterfaceAvailable(RefactoringActions.getEnclosingOrPrimaryType(selection));
 //  }
 //
-//  public static boolean isExtractMethodAvailable(final ASTNode[] nodes) {
+//  public static boolean isExtractMethodAvailable(ASTNode[] nodes) {
 //    if (nodes != null && nodes.length != 0) {
 //      if (nodes.length == 1) {
 //        return nodes[0] instanceof Statement || Checks.isExtractableExpression(nodes[0]);
@@ -362,7 +362,7 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isExtractMethodAvailable(final DartTextSelection selection) {
+//  public static boolean isExtractMethodAvailable(DartTextSelection selection) {
 //    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer() || selection.resolveInVariableInitializer())
 //        && !selection.resolveInAnnotation()
 //        && RefactoringAvailabilityTester.isExtractMethodAvailable(selection.resolveSelectedNodes());
@@ -372,7 +372,7 @@ public final class RefactoringAvailabilityTester {
 //    if (!member.exists()) {
 //      return false;
 //    }
-//    final int type = member.getElementType();
+//    int type = member.getElementType();
 //    if (type != DartElement.METHOD && type != DartElement.FIELD && type != DartElement.TYPE) {
 //      return false;
 //    }
@@ -383,7 +383,7 @@ public final class RefactoringAvailabilityTester {
 //      return false;
 //    }
 //    if (member instanceof Method) {
-//      final Method method = (Method) member;
+//      Method method = (Method) member;
 //      if (method.isConstructor()) {
 //        return false;
 //      }
@@ -405,10 +405,10 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isExtractSupertypeAvailable(final TypeMember[] members)
+//  public static boolean isExtractSupertypeAvailable(TypeMember[] members)
 //      throws DartModelException {
 //    if (members != null && members.length != 0) {
-//      final Type type = getTopLevelType(members);
+//      Type type = getTopLevelType(members);
 //      if (type != null && !type.isClass()) {
 //        return false;
 //      }
@@ -422,7 +422,7 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isExtractSupertypeAvailable(final IStructuredSelection selection)
+//  public static boolean isExtractSupertypeAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (!selection.isEmpty()) {
 //      if (selection.size() == 1) {
@@ -430,17 +430,17 @@ public final class RefactoringAvailabilityTester {
 //         {
 //          return true; // Do not force opening
 //        }
-//        final Type type = getSingleSelectedType(selection);
+//        Type type = getSingleSelectedType(selection);
 //        if (type != null) {
 //          return Checks.isAvailable(type) && isExtractSupertypeAvailable(new Type[]{type});
 //        }
 //      }
-//      for (final Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
+//      for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
 //        if (!(iterator.next() instanceof TypeMember)) {
 //          return false;
 //        }
 //      }
-//      final Set<TypeMember> members = new HashSet<TypeMember>();
+//      Set<TypeMember> members = new HashSet<TypeMember>();
 //      @SuppressWarnings("unchecked")
 //      List<TypeMember> selectionList =
 //          (List<TypeMember>) (List<?>) Arrays.asList(selection.toArray());
@@ -450,7 +450,7 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isExtractSupertypeAvailable(final DartTextSelection selection)
+//  public static boolean isExtractSupertypeAvailable(DartTextSelection selection)
 //      throws DartModelException {
 //    DartElement element = selection.resolveEnclosingElement();
 //    if (!(element instanceof TypeMember)) {
@@ -459,22 +459,22 @@ public final class RefactoringAvailabilityTester {
 //    return isExtractSupertypeAvailable(new TypeMember[]{(TypeMember) element});
 //  }
 //
-//  public static boolean isExtractTempAvailable(final DartTextSelection selection) {
-//    final ASTNode[] nodes = selection.resolveSelectedNodes();
+//  public static boolean isExtractTempAvailable(DartTextSelection selection) {
+//    ASTNode[] nodes = selection.resolveSelectedNodes();
 //    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer())
 //        && !selection.resolveInAnnotation()
 //        && (Checks.isExtractableExpression(nodes, selection.resolveCoveringNode()) || nodes != null
 //            && nodes.length == 1 && nodes[0] instanceof ExpressionStatement);
 //  }
 //
-//  public static boolean isGeneralizeTypeAvailable(final DartElement element)
+//  public static boolean isGeneralizeTypeAvailable(DartElement element)
 //      throws DartModelException {
 //    if (element != null && element.exists()) {
 //      String type = null;
 //      if (element instanceof Method) {
 //        type = ((Method) element).getReturnTypeName();
 //      } else if (element instanceof Field) {
-//        final Field field = (Field) element;
+//        Field field = (Field) element;
 //        if (JdtFlags.isEnum(field)) {
 //          return false;
 //        }
@@ -482,7 +482,7 @@ public final class RefactoringAvailabilityTester {
 //      } else if (element instanceof DartVariableDeclaration) {
 //        return true;
 //      } else if (element instanceof Type) {
-//        final Type clazz = (Type) element;
+//        Type clazz = (Type) element;
 //        if (JdtFlags.isEnum(clazz)) {
 //          return false;
 //        }
@@ -496,21 +496,21 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isGeneralizeTypeAvailable(final IStructuredSelection selection)
+//  public static boolean isGeneralizeTypeAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.size() == 1) {
-//      final Object element = selection.getFirstElement();
+//      Object element = selection.getFirstElement();
 //      if (element instanceof Method) {
-//        final Method method = (Method) element;
+//        Method method = (Method) element;
 //        if (!method.exists()) {
 //          return false;
 //        }
-//        final String type = method.getReturnTypeName();
+//        String type = method.getReturnTypeName();
 //        if (PrimitiveType.toCode(Signature.toString(type)) == null) {
 //          return Checks.isAvailable(method);
 //        }
 //      } else if (element instanceof Field) {
-//        final Field field = (Field) element;
+//        Field field = (Field) element;
 //        if (!field.exists()) {
 //          return false;
 //        }
@@ -522,16 +522,16 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isGeneralizeTypeAvailable(final DartTextSelection selection)
+//  public static boolean isGeneralizeTypeAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement[] elements = selection.resolveElementAtOffset();
+//    DartElement[] elements = selection.resolveElementAtOffset();
 //    if (elements.length != 1) {
 //      return false;
 //    }
 //    return isGeneralizeTypeAvailable(elements[0]);
 //  }
 //
-//  public static boolean isInferTypeArgumentsAvailable(final DartElement element)
+//  public static boolean isInferTypeArgumentsAvailable(DartElement element)
 //      throws DartModelException {
 //    if (!Checks.isAvailable(element)) {
 //      return false;
@@ -557,7 +557,7 @@ public final class RefactoringAvailabilityTester {
 //    }
 //  }
 //
-//  public static boolean isInferTypeArgumentsAvailable(final DartElement[] elements)
+//  public static boolean isInferTypeArgumentsAvailable(DartElement[] elements)
 //      throws DartModelException {
 //    if (elements.length == 0) {
 //      return false;
@@ -571,7 +571,7 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isInferTypeArgumentsAvailable(final IStructuredSelection selection)
+//  public static boolean isInferTypeArgumentsAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.isEmpty()) {
 //      return false;
@@ -597,25 +597,25 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isInlineConstantAvailable(final Field field) throws DartModelException {
+//  public static boolean isInlineConstantAvailable(Field field) throws DartModelException {
 //    return Checks.isAvailable(field)
 //        && JdtFlags.isStatic(field)
 //        && JdtFlags.isFinal(field)
 //        && !JdtFlags.isEnum(field);
 //  }
 //
-//  public static boolean isInlineConstantAvailable(final IStructuredSelection selection)
+//  public static boolean isInlineConstantAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.isEmpty() || selection.size() != 1) {
 //      return false;
 //    }
-//    final Object first = selection.getFirstElement();
+//    Object first = selection.getFirstElement();
 //    return first instanceof Field && isInlineConstantAvailable((Field) first);
 //  }
 //
-//  public static boolean isInlineConstantAvailable(final DartTextSelection selection)
+//  public static boolean isInlineConstantAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement[] elements = selection.resolveElementAtOffset();
+//    DartElement[] elements = selection.resolveElementAtOffset();
 //    if (elements.length != 1) {
 //      return false;
 //    }
@@ -641,18 +641,18 @@ public final class RefactoringAvailabilityTester {
 //    return SourceRange.isAvailable(method.getNameRange());
 //  }
 //
-//  public static boolean isInlineMethodAvailable(final IStructuredSelection selection)
+//  public static boolean isInlineMethodAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.isEmpty() || selection.size() != 1) {
 //      return false;
 //    }
-//    final Object first = selection.getFirstElement();
+//    Object first = selection.getFirstElement();
 //    return first instanceof Method && isInlineMethodAvailable((Method) first);
 //  }
 //
-//  public static boolean isInlineMethodAvailable(final DartTextSelection selection)
+//  public static boolean isInlineMethodAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement[] elements = selection.resolveElementAtOffset();
+//    DartElement[] elements = selection.resolveElementAtOffset();
 //    if (elements.length != 1) {
 //      DartElement enclosingElement = selection.resolveEnclosingElement();
 //      if (!(enclosingElement instanceof TypeMember)) {
@@ -740,14 +740,14 @@ public final class RefactoringAvailabilityTester {
 //    return null;
 //  }
 //
-//  public static boolean isInlineTempAvailable(final DartVariableDeclaration variable)
+//  public static boolean isInlineTempAvailable(DartVariableDeclaration variable)
 //      throws DartModelException {
 //    return Checks.isAvailable(variable);
 //  }
 //
-//  public static boolean isInlineTempAvailable(final DartTextSelection selection)
+//  public static boolean isInlineTempAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement[] elements = selection.resolveElementAtOffset();
+//    DartElement[] elements = selection.resolveElementAtOffset();
 //    if (elements.length != 1) {
 //      return false;
 //    }
@@ -755,11 +755,11 @@ public final class RefactoringAvailabilityTester {
 //        && isInlineTempAvailable((DartVariableDeclaration) elements[0]);
 //  }
 //
-//  public static boolean isIntroduceFactoryAvailable(final Method method) throws DartModelException {
+//  public static boolean isIntroduceFactoryAvailable(Method method) throws DartModelException {
 //    return Checks.isAvailable(method) && method.isConstructor();
 //  }
 //
-//  public static boolean isIntroduceFactoryAvailable(final IStructuredSelection selection)
+//  public static boolean isIntroduceFactoryAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.size() == 1 && selection.getFirstElement() instanceof Method) {
 //      return isIntroduceFactoryAvailable((Method) selection.getFirstElement());
@@ -767,9 +767,9 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isIntroduceFactoryAvailable(final DartTextSelection selection)
+//  public static boolean isIntroduceFactoryAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement[] elements = selection.resolveElementAtOffset();
+//    DartElement[] elements = selection.resolveElementAtOffset();
 //    if (elements.length == 1 && elements[0] instanceof Method) {
 //      return isIntroduceFactoryAvailable((Method) elements[0]);
 //    }
@@ -826,18 +826,18 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isIntroduceIndirectionAvailable(final IStructuredSelection selection)
+//  public static boolean isIntroduceIndirectionAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.isEmpty() || selection.size() != 1) {
 //      return false;
 //    }
-//    final Object first = selection.getFirstElement();
+//    Object first = selection.getFirstElement();
 //    return first instanceof Method && isIntroduceIndirectionAvailable((Method) first);
 //  }
 //
-//  public static boolean isIntroduceIndirectionAvailable(final DartTextSelection selection)
+//  public static boolean isIntroduceIndirectionAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement[] elements = selection.resolveElementAtOffset();
+//    DartElement[] elements = selection.resolveElementAtOffset();
 //    if (elements.length == 1) {
 //      return elements[0] instanceof Method
 //          && isIntroduceIndirectionAvailable((Method) elements[0]);
@@ -856,12 +856,12 @@ public final class RefactoringAvailabilityTester {
 //    }
 //  }
 //
-//  public static boolean isIntroduceParameterAvailable(final ASTNode[] selectedNodes,
+//  public static boolean isIntroduceParameterAvailable(ASTNode[] selectedNodes,
 //      ASTNode coveringNode) {
 //    return Checks.isExtractableExpression(selectedNodes, coveringNode);
 //  }
 //
-//  public static boolean isIntroduceParameterAvailable(final DartTextSelection selection) {
+//  public static boolean isIntroduceParameterAvailable(DartTextSelection selection) {
 //    return selection.resolveInMethodBody()
 //        && !selection.resolveInAnnotation()
 //        && isIntroduceParameterAvailable(
@@ -869,7 +869,7 @@ public final class RefactoringAvailabilityTester {
 //            selection.resolveCoveringNode());
 //  }
 //
-//  public static boolean isMoveAvailable(final IResource[] resources, final DartElement[] elements)
+//  public static boolean isMoveAvailable(IResource[] resources, DartElement[] elements)
 //      throws DartModelException {
 //    if (elements != null) {
 //      for (int index = 0; index < elements.length; index++) {
@@ -891,16 +891,16 @@ public final class RefactoringAvailabilityTester {
 //    return ReorgPolicyFactory.createMovePolicy(resources, elements).canEnable();
 //  }
 //
-//  public static boolean isMoveAvailable(final DartTextSelection selection)
+//  public static boolean isMoveAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement element = selection.resolveEnclosingElement();
+//    DartElement element = selection.resolveEnclosingElement();
 //    if (element == null) {
 //      return false;
 //    }
 //    return isMoveAvailable(new IResource[0], new DartElement[]{element});
 //  }
 //
-//  public static boolean isMoveInnerAvailable(final IStructuredSelection selection)
+//  public static boolean isMoveInnerAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.size() == 1) {
 //      Object first = selection.getFirstElement();
@@ -911,14 +911,14 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isMoveInnerAvailable(final Type type) throws DartModelException {
+//  public static boolean isMoveInnerAvailable(Type type) throws DartModelException {
 //    return Checks.isAvailable(type)
 //        && !Checks.isAnonymous(type)
 //        && !JavaElementUtil.isMainType(type)
 //        && !Checks.isInsideLocalType(type);
 //  }
 //
-//  public static boolean isMoveInnerAvailable(final DartTextSelection selection)
+//  public static boolean isMoveInnerAvailable(DartTextSelection selection)
 //      throws DartModelException {
 //    Type type = RefactoringAvailabilityTester.getDeclaringType(selection.resolveEnclosingElement());
 //    if (type == null) {
@@ -927,7 +927,7 @@ public final class RefactoringAvailabilityTester {
 //    return isMoveInnerAvailable(type);
 //  }
 //
-//  public static boolean isMoveMethodAvailable(final Method method) throws DartModelException {
+//  public static boolean isMoveMethodAvailable(Method method) throws DartModelException {
 //    return method.exists()
 //        && !method.isConstructor()
 //        && !method.isBinary()
@@ -936,36 +936,36 @@ public final class RefactoringAvailabilityTester {
 //        && !JdtFlags.isStatic(method);
 //  }
 //
-//  public static boolean isMoveMethodAvailable(final IStructuredSelection selection)
+//  public static boolean isMoveMethodAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.size() == 1) {
-//      final Object first = selection.getFirstElement();
+//      Object first = selection.getFirstElement();
 //      return first instanceof Method && isMoveMethodAvailable((Method) first);
 //    }
 //    return false;
 //  }
 //
-//  public static boolean isMoveMethodAvailable(final DartTextSelection selection)
+//  public static boolean isMoveMethodAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement method = selection.resolveEnclosingElement();
+//    DartElement method = selection.resolveEnclosingElement();
 //    if (!(method instanceof Method)) {
 //      return false;
 //    }
 //    return isMoveMethodAvailable((Method) method);
 //  }
 //
-//  public static boolean isMoveStaticAvailable(final TypeMember member) throws DartModelException {
+//  public static boolean isMoveStaticAvailable(TypeMember member) throws DartModelException {
 //    if (!member.exists()) {
 //      return false;
 //    }
-//    final int type = member.getElementType();
+//    int type = member.getElementType();
 //    if (type != DartElement.METHOD && type != DartElement.FIELD && type != DartElement.TYPE) {
 //      return false;
 //    }
 //    if (JdtFlags.isEnum(member) && type != DartElement.TYPE) {
 //      return false;
 //    }
-//    final Type declaring = member.getDeclaringType();
+//    Type declaring = member.getDeclaringType();
 //    if (declaring == null) {
 //      return false;
 //    }
@@ -990,7 +990,7 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isMoveStaticAvailable(final TypeMember[] members) throws DartModelException {
+//  public static boolean isMoveStaticAvailable(TypeMember[] members) throws DartModelException {
 //    for (int index = 0; index < members.length; index++) {
 //      if (!isMoveStaticAvailable(members[index])) {
 //        return false;
@@ -999,16 +999,16 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isMoveStaticAvailable(final DartTextSelection selection)
+//  public static boolean isMoveStaticAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement element = selection.resolveEnclosingElement();
+//    DartElement element = selection.resolveEnclosingElement();
 //    if (!(element instanceof TypeMember)) {
 //      return false;
 //    }
 //    return RefactoringAvailabilityTester.isMoveStaticMembersAvailable(new TypeMember[]{(TypeMember) element});
 //  }
 //
-//  public static boolean isMoveStaticMembersAvailable(final TypeMember[] members)
+//  public static boolean isMoveStaticMembersAvailable(TypeMember[] members)
 //      throws DartModelException {
 //    if (members == null) {
 //      return false;
@@ -1025,14 +1025,14 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isPromoteTempAvailable(final DartVariableDeclaration variable)
+//  public static boolean isPromoteTempAvailable(DartVariableDeclaration variable)
 //      throws DartModelException {
 //    return Checks.isAvailable(variable);
 //  }
 //
-//  public static boolean isPromoteTempAvailable(final DartTextSelection selection)
+//  public static boolean isPromoteTempAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement[] elements = selection.resolveElementAtOffset();
+//    DartElement[] elements = selection.resolveElementAtOffset();
 //    if (elements.length != 1) {
 //      return false;
 //    }
@@ -1044,7 +1044,7 @@ public final class RefactoringAvailabilityTester {
 //    if (!member.exists()) {
 //      return false;
 //    }
-//    final int type = member.getElementType();
+//    int type = member.getElementType();
 //    if (type != DartElement.METHOD && type != DartElement.FIELD && type != DartElement.TYPE) {
 //      return false;
 //    }
@@ -1060,14 +1060,14 @@ public final class RefactoringAvailabilityTester {
 //      }
 //    }
 //    if (member instanceof Method) {
-//      final Method method = (Method) member;
+//      Method method = (Method) member;
 //      if (method.isConstructor()) {
 //        return false;
 //      }
 //      if (JdtFlags.isNative(method)) {
 //        return false;
 //      }
-//      final Type declaring = method.getDeclaringType();
+//      Type declaring = method.getDeclaringType();
 //      if (declaring != null && declaring.isAnnotation()) {
 //        return false;
 //      }
@@ -1075,9 +1075,9 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isPullUpAvailable(final TypeMember[] members) throws DartModelException {
+//  public static boolean isPullUpAvailable(TypeMember[] members) throws DartModelException {
 //    if (members != null && members.length != 0) {
-//      final Type type = getTopLevelType(members);
+//      Type type = getTopLevelType(members);
 //      if (type != null && getPullUpMembers(type).length != 0) {
 //        return true;
 //      }
@@ -1091,7 +1091,7 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isPullUpAvailable(final IStructuredSelection selection)
+//  public static boolean isPullUpAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (!selection.isEmpty()) {
 //      if (selection.size() == 1) {
@@ -1099,17 +1099,17 @@ public final class RefactoringAvailabilityTester {
 //         {
 //          return true; // Do not force opening
 //        }
-//        final Type type = getSingleSelectedType(selection);
+//        Type type = getSingleSelectedType(selection);
 //        if (type != null) {
 //          return Checks.isAvailable(type) && isPullUpAvailable(new Type[]{type});
 //        }
 //      }
-//      for (final Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
+//      for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
 //        if (!(iterator.next() instanceof TypeMember)) {
 //          return false;
 //        }
 //      }
-//      final Set<TypeMember> members = new HashSet<TypeMember>();
+//      Set<TypeMember> members = new HashSet<TypeMember>();
 //      @SuppressWarnings("unchecked")
 //      List<TypeMember> selectionList =
 //          (List<TypeMember>) (List<?>) Arrays.asList(selection.toArray());
@@ -1119,7 +1119,7 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isPullUpAvailable(final DartTextSelection selection)
+//  public static boolean isPullUpAvailable(DartTextSelection selection)
 //      throws DartModelException {
 //    DartElement element = selection.resolveEnclosingElement();
 //    if (!(element instanceof TypeMember)) {
@@ -1128,11 +1128,11 @@ public final class RefactoringAvailabilityTester {
 //    return isPullUpAvailable(new TypeMember[]{(TypeMember) element});
 //  }
 //
-//  public static boolean isPushDownAvailable(final TypeMember member) throws DartModelException {
+//  public static boolean isPushDownAvailable(TypeMember member) throws DartModelException {
 //    if (!member.exists()) {
 //      return false;
 //    }
-//    final int type = member.getElementType();
+//    int type = member.getElementType();
 //    if (type != DartElement.METHOD && type != DartElement.FIELD) {
 //      return false;
 //    }
@@ -1146,14 +1146,14 @@ public final class RefactoringAvailabilityTester {
 //      return false;
 //    }
 //    if (type == DartElement.METHOD) {
-//      final Method method = (Method) member;
+//      Method method = (Method) member;
 //      if (method.isConstructor()) {
 //        return false;
 //      }
 //      if (JdtFlags.isNative(method)) {
 //        return false;
 //      }
-//      final Type declaring = method.getDeclaringType();
+//      Type declaring = method.getDeclaringType();
 //      if (declaring != null && declaring.isAnnotation()) {
 //        return false;
 //      }
@@ -1161,9 +1161,9 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isPushDownAvailable(final TypeMember[] members) throws DartModelException {
+//  public static boolean isPushDownAvailable(TypeMember[] members) throws DartModelException {
 //    if (members != null && members.length != 0) {
-//      final Type type = getTopLevelType(members);
+//      Type type = getTopLevelType(members);
 //      if (type != null && RefactoringAvailabilityTester.getPushDownMembers(type).length != 0) {
 //        return true;
 //      }
@@ -1180,7 +1180,7 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isPushDownAvailable(final IStructuredSelection selection)
+//  public static boolean isPushDownAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (!selection.isEmpty()) {
 //      if (selection.size() == 1) {
@@ -1188,17 +1188,17 @@ public final class RefactoringAvailabilityTester {
 //         {
 //          return true; // Do not force opening
 //        }
-//        final Type type = getSingleSelectedType(selection);
+//        Type type = getSingleSelectedType(selection);
 //        if (type != null) {
 //          return isPushDownAvailable(new Type[]{type});
 //        }
 //      }
-//      for (final Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
+//      for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
 //        if (!(iterator.next() instanceof TypeMember)) {
 //          return false;
 //        }
 //      }
-//      final Set<TypeMember> members = new HashSet<TypeMember>();
+//      Set<TypeMember> members = new HashSet<TypeMember>();
 //      @SuppressWarnings("unchecked")
 //      List<TypeMember> selectionList =
 //          (List<TypeMember>) (List<?>) Arrays.asList(selection.toArray());
@@ -1208,7 +1208,7 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isPushDownAvailable(final DartTextSelection selection)
+//  public static boolean isPushDownAvailable(DartTextSelection selection)
 //      throws DartModelException {
 //    DartElement element = selection.resolveEnclosingElement();
 //    if (!(element instanceof TypeMember)) {
@@ -1217,7 +1217,7 @@ public final class RefactoringAvailabilityTester {
 //    return isPullUpAvailable(new TypeMember[]{(TypeMember) element});
 //  }
 
-  public static boolean isRenameAvailable(final CompilationUnit unit) {
+  public static boolean isRenameAvailable(CompilationUnit unit) {
     if (unit == null) {
       return false;
     }
@@ -1233,7 +1233,7 @@ public final class RefactoringAvailabilityTester {
     return true;
   }
 
-  public static boolean isRenameAvailable(final DartProject project) throws DartModelException {
+  public static boolean isRenameAvailable(DartProject project) throws DartModelException {
     if (project == null) {
       return false;
     }
@@ -1246,12 +1246,12 @@ public final class RefactoringAvailabilityTester {
     return true;
   }
 
-  public static boolean isRenameAvailable(final DartVariableDeclaration variable)
+  public static boolean isRenameAvailable(DartVariableDeclaration variable)
       throws DartModelException {
     return Checks.isAvailable(variable);
   }
 
-  public static boolean isRenameAvailable(final IResource resource) {
+  public static boolean isRenameAvailable(IResource resource) {
     if (resource == null) {
       return false;
     }
@@ -1264,7 +1264,7 @@ public final class RefactoringAvailabilityTester {
     return true;
   }
 
-//  public static boolean isRenameAvailable(final IPackageFragment fragment)
+//  public static boolean isRenameAvailable(IPackageFragment fragment)
 //      throws DartModelException {
 //    if (fragment == null) {
 //      return false;
@@ -1278,7 +1278,7 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isRenameAvailable(final IPackageFragmentRoot root)
+//  public static boolean isRenameAvailable(IPackageFragmentRoot root)
 //      throws DartModelException {
 //    if (root == null) {
 //      return false;
@@ -1301,7 +1301,7 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 
-  public static boolean isRenameAvailable(final Method method) throws CoreException {
+  public static boolean isRenameAvailable(Method method) throws CoreException {
     if (method == null) {
       return false;
     }
@@ -1317,7 +1317,7 @@ public final class RefactoringAvailabilityTester {
     return true;
   }
 
-  public static boolean isRenameAvailable(final Type type) throws DartModelException {
+  public static boolean isRenameAvailable(Type type) throws DartModelException {
     if (type == null) {
       return false;
     }
@@ -1330,7 +1330,7 @@ public final class RefactoringAvailabilityTester {
     return true;
   }
 
-//  public static boolean isRenameAvailable(final ITypeParameter parameter) throws DartModelException {
+//  public static boolean isRenameAvailable(ITypeParameter parameter) throws DartModelException {
 //    return Checks.isAvailable(parameter);
 //  }
 
@@ -1347,14 +1347,14 @@ public final class RefactoringAvailabilityTester {
       case DartElement.TYPE:
         return isRenameAvailable((Type) element);
       case DartElement.METHOD:
-        final Method method = (Method) element;
+        Method method = (Method) element;
         if (method.isConstructor()) {
           return isRenameAvailable(method.getDeclaringType());
         } else {
           return isRenameAvailable(method);
         }
       case DartElement.FIELD:
-        final Field field = (Field) element;
+        Field field = (Field) element;
         return isRenameFieldAvailable(field);
 //      case DartElement.TYPE_PARAMETER:
 //        return isRenameAvailable((ITypeParameter) element);
@@ -1364,18 +1364,18 @@ public final class RefactoringAvailabilityTester {
     return false;
   }
 
-  public static boolean isRenameFieldAvailable(final Field field) throws DartModelException {
+  public static boolean isRenameFieldAvailable(Field field) throws DartModelException {
     return Checks.isAvailable(field);
   }
 
-  public static boolean isRenameNonVirtualMethodAvailable(final Method method)
-      throws DartModelException, CoreException {
+  public static boolean isRenameNonVirtualMethodAvailable(Method method) throws DartModelException,
+      CoreException {
     // TODO(scheglov) virtual?
     return isRenameAvailable(method);
     //return isRenameAvailable(method) && !MethodChecks.isVirtual(method);
   }
 
-  public static boolean isRenameProhibited(final Method method) throws CoreException {
+  public static boolean isRenameProhibited(Method method) throws CoreException {
     if (method.getElementName().equals("toString") //$NON-NLS-1$
         && method.getParameterNames().length == 0
         && (method.getReturnTypeName().equals("Ljava.lang.String;") //$NON-NLS-1$
@@ -1387,12 +1387,12 @@ public final class RefactoringAvailabilityTester {
     }
   }
 
-  public static boolean isRenameProhibited(final Type type) {
+  public static boolean isRenameProhibited(Type type) {
     return false;
     //return type.getPackageFragment().getElementName().equals("java.lang"); //$NON-NLS-1$
   }
 
-  public static boolean isRenameVirtualMethodAvailable(final Method method) throws CoreException {
+  public static boolean isRenameVirtualMethodAvailable(Method method) throws CoreException {
     // TODO(scheglov) virtual?
     return isRenameAvailable(method);
     //return isRenameAvailable(method) && MethodChecks.isVirtual(method);
@@ -1411,18 +1411,18 @@ public final class RefactoringAvailabilityTester {
 //    return true;
 //  }
 //
-//  public static boolean isReplaceInvocationsAvailable(final IStructuredSelection selection)
+//  public static boolean isReplaceInvocationsAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.isEmpty() || selection.size() != 1) {
 //      return false;
 //    }
-//    final Object first = selection.getFirstElement();
+//    Object first = selection.getFirstElement();
 //    return first instanceof Method && isReplaceInvocationsAvailable((Method) first);
 //  }
 //
-//  public static boolean isReplaceInvocationsAvailable(final DartTextSelection selection)
+//  public static boolean isReplaceInvocationsAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement[] elements = selection.resolveElementAtOffset();
+//    DartElement[] elements = selection.resolveElementAtOffset();
 //    if (elements.length != 1) {
 //      return false;
 //    }
@@ -1436,30 +1436,30 @@ public final class RefactoringAvailabilityTester {
 //        && !field.getDeclaringType().isAnnotation();
 //  }
 //
-//  public static boolean isSelfEncapsulateAvailable(final IStructuredSelection selection)
+//  public static boolean isSelfEncapsulateAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.size() == 1) {
 //      if (selection.getFirstElement() instanceof Field) {
-//        final Field field = (Field) selection.getFirstElement();
+//        Field field = (Field) selection.getFirstElement();
 //        return Checks.isAvailable(field) && !JdtFlags.isEnum(field);
 //      }
 //    }
 //    return false;
 //  }
 //
-//  public static boolean isSelfEncapsulateAvailable(final DartTextSelection selection)
+//  public static boolean isSelfEncapsulateAvailable(DartTextSelection selection)
 //      throws DartModelException {
-//    final DartElement[] elements = selection.resolveElementAtOffset();
+//    DartElement[] elements = selection.resolveElementAtOffset();
 //    if (elements.length != 1) {
 //      return false;
 //    }
 //    return elements[0] instanceof Field && isSelfEncapsulateAvailable((Field) elements[0]);
 //  }
 //
-//  public static boolean isUseSuperTypeAvailable(final IStructuredSelection selection)
+//  public static boolean isUseSuperTypeAvailable(IStructuredSelection selection)
 //      throws DartModelException {
 //    if (selection.size() == 1) {
-//      final Object first = selection.getFirstElement();
+//      Object first = selection.getFirstElement();
 //      if (first instanceof Type) {
 //        return isUseSuperTypeAvailable((Type) first);
 //      } else if (first instanceof CompilationUnit) {
@@ -1474,16 +1474,16 @@ public final class RefactoringAvailabilityTester {
 //    return false;
 //  }
 //
-//  public static boolean isUseSuperTypeAvailable(final Type type) throws DartModelException {
+//  public static boolean isUseSuperTypeAvailable(Type type) throws DartModelException {
 //    return type != null && type.exists() && !type.isAnnotation() && !type.isAnonymous();
 //  }
 //
-//  public static boolean isUseSuperTypeAvailable(final DartTextSelection selection)
+//  public static boolean isUseSuperTypeAvailable(DartTextSelection selection)
 //      throws DartModelException {
 //    return isUseSuperTypeAvailable(RefactoringActions.getEnclosingOrPrimaryType(selection));
 //  }
 //
-//  public static boolean isWorkingCopyElement(final DartElement element) {
+//  public static boolean isWorkingCopyElement(DartElement element) {
 //    if (element instanceof CompilationUnit) {
 //      return ((CompilationUnit) element).isWorkingCopy();
 //    }

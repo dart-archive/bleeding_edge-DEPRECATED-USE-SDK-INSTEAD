@@ -171,7 +171,7 @@ public class ActionUtil {
     return false;
   }
 
-  public static boolean mustDisableJavaModelAction(Shell shell, Object element) {
+  public static boolean mustDisableDartModelAction(Shell shell, Object element) {
     IResource resource = ResourceUtil.getResource(element);
     if ((resource == null) || (!(resource instanceof IFolder)) || (!resource.isLinked())) {
       return false;

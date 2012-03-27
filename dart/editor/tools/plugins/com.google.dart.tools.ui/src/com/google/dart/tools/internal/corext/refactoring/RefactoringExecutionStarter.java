@@ -1,12 +1,7 @@
 package com.google.dart.tools.internal.corext.refactoring;
 
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
-import com.google.dart.tools.core.model.Field;
-import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
@@ -27,8 +22,8 @@ public final class RefactoringExecutionStarter {
 
   public static void startRenameRefactoring(final DartElement element, final Shell shell)
       throws CoreException {
-    final RenameSupport support =
-        createRenameSupport(element, null, RenameSupport.UPDATE_REFERENCES);
+    final RenameSupport support = createRenameSupport(element, null,
+        RenameSupport.UPDATE_REFERENCES);
     if (support != null && support.preCheck().isOK()) {
       support.openDialog(shell);
     }
@@ -292,35 +287,32 @@ public final class RefactoringExecutionStarter {
 
   public static void startRenameResourceRefactoring(final IResource resource, final Shell shell) {
     RenameResourceWizard wizard = new RenameResourceWizard(resource);
-    new RefactoringStarter().activate(
-        wizard,
-        shell,
-        wizard.getWindowTitle(),
+    new RefactoringStarter().activate(wizard, shell, wizard.getWindowTitle(),
         RefactoringSaveHelper.SAVE_ALL);
   }
 
   private static RenameSupport createRenameSupport(DartElement element, String newName, int flags)
       throws CoreException {
     switch (element.getElementType()) {
-      case DartElement.DART_PROJECT:
-        return RenameSupport.create((DartProject) element, newName, flags);
+//      case DartElement.DART_PROJECT:
+//        return RenameSupport.create((DartProject) element, newName, flags);
 //        case IJavaElement.PACKAGE_FRAGMENT_ROOT:
 //        	return RenameSupport.create((IPackageFragmentRoot) element, newName);
 //        case IJavaElement.PACKAGE_FRAGMENT:
 //        	return RenameSupport.create((IPackageFragment) element, newName, flags);
-      case DartElement.COMPILATION_UNIT:
-        return RenameSupport.create((CompilationUnit) element, newName, flags);
-      case DartElement.TYPE:
-        return RenameSupport.create((Type) element, newName, flags);
-      case DartElement.METHOD:
-        final Method method = (Method) element;
-        if (method.isConstructor()) {
-          return createRenameSupport(method.getDeclaringType(), newName, flags);
-        } else {
-          return RenameSupport.create((Method) element, newName, flags);
-        }
-      case DartElement.FIELD:
-        return RenameSupport.create((Field) element, newName, flags);
+//      case DartElement.COMPILATION_UNIT:
+//        return RenameSupport.create((CompilationUnit) element, newName, flags);
+//      case DartElement.TYPE:
+//        return RenameSupport.create((Type) element, newName, flags);
+//      case DartElement.METHOD:
+//        final Method method = (Method) element;
+//        if (method.isConstructor()) {
+//          return createRenameSupport(method.getDeclaringType(), newName, flags);
+//        } else {
+//          return RenameSupport.create((Method) element, newName, flags);
+//        }
+//      case DartElement.FIELD:
+//        return RenameSupport.create((Field) element, newName, flags);
 //        case IJavaElement.TYPE_PARAMETER:
 //        	return RenameSupport.create((ITypeParameter) element, newName, flags);
       case DartElement.VARIABLE:

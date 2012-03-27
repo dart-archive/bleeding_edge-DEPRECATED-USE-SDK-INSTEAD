@@ -27,8 +27,6 @@ import org.eclipse.text.edits.UndoEdit;
 
 /**
  * A {@link TextFileChange} that operates on an {@link ICompilationUnit} in the workspace.
- * 
- * @since 1.3
  */
 public class CompilationUnitChange extends TextFileChange {
 
@@ -73,17 +71,11 @@ public class CompilationUnitChange extends TextFileChange {
     return fCUnit;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public ChangeDescriptor getDescriptor() {
     return fDescriptor;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public Object getModifiedElement() {
     return fCUnit;
@@ -98,9 +90,6 @@ public class CompilationUnitChange extends TextFileChange {
     fDescriptor = descriptor;
   }
 
-//  /**
-//   * {@inheritDoc}
-//   */
 //  @Override
 //  protected IDocument acquireDocument(IProgressMonitor pm) throws CoreException {
 //    pm.beginTask("", 2); //$NON-NLS-1$
@@ -108,9 +97,6 @@ public class CompilationUnitChange extends TextFileChange {
 //    return super.acquireDocument(new SubProgressMonitor(pm, 1));
 //  }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   protected Change createUndoChange(UndoEdit edit, ContentStamp stampToRestore) {
     try {
@@ -121,9 +107,6 @@ public class CompilationUnitChange extends TextFileChange {
     }
   }
 
-//  /**
-//   * {@inheritDoc}
-//   */
 //  @Override
 //  protected void releaseDocument(IDocument document, IProgressMonitor pm) throws CoreException {
 //    boolean isModified = isDocumentModified();

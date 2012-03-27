@@ -1,6 +1,7 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.core.ILocalVariable;
+import com.google.dart.core.IPackageFragment;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
@@ -8,17 +9,22 @@ import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.rename.DartRenameProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.reorg.RenameSelectionState;
 import com.google.dart.tools.internal.corext.refactoring.tagging.INameUpdating;
 import com.google.dart.tools.internal.corext.refactoring.tagging.IReferenceUpdating;
 import com.google.dart.tools.internal.corext.refactoring.tagging.ITextUpdating;
 import com.google.dart.tools.ui.DartUIMessages;
+import com.google.dart.tools.ui.internal.refactoring.reorg.RenameRefactoringWizard;
+import com.google.dart.tools.ui.internal.refactoring.reorg.RenameUserInterfaceManager;
+import com.google.dart.tools.ui.internal.refactoring.reorg.RenameUserInterfaceStarter;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableContext;
+import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.RenameProcessor;
 import org.eclipse.ltk.core.refactoring.participants.RenameRefactoring;
@@ -36,6 +42,42 @@ import java.lang.reflect.InvocationTargetException;
  * @noextend This class is not intended to be subclassed by clients.
  */
 public class RenameSupport {
+
+  /**
+   * Flag indicating that DartDoc comments are to be updated as well.
+   * 
+   * @deprecated use UPDATE_REFERENCES or UPDATE_TEXTUAL_MATCHES or both.
+   */
+  @Deprecated
+  public static final int UPDATE_DARTDOC_COMMENTS = 1 << 1;
+
+  /**
+   * Flag indicating that regular comments are to be updated as well.
+   * 
+   * @deprecated use UPDATE_TEXTUAL_MATCHES
+   */
+  @Deprecated
+  public static final int UPDATE_REGULAR_COMMENTS = 1 << 2;
+
+  /**
+   * Flag indicating that string literals are to be updated as well.
+   * 
+   * @deprecated use UPDATE_TEXTUAL_MATCHES
+   */
+  @Deprecated
+  public static final int UPDATE_STRING_LITERALS = 1 << 3;
+
+  /**
+   * Flag indicating that textual matches in comments and in string literals are to be updated as
+   * well.
+   */
+  public static final int UPDATE_TEXTUAL_MATCHES = 1 << 6;
+
+  /** Flag indicating that the getter method is to be updated as well. */
+  public static final int UPDATE_GETTER_METHOD = 1 << 4;
+
+  /** Flag indicating that the setter method is to be updated as well. */
+  public static final int UPDATE_SETTER_METHOD = 1 << 5;
 
   /**
    * Creates a new rename support for the given {@link CompilationUnit}.
@@ -89,11 +131,9 @@ public class RenameSupport {
    */
   public static RenameSupport create(DartVariableDeclaration variable, String newName, int flags)
       throws CoreException {
-    // TODO(scheglov) implement
-    throw new RuntimeException("Not implemented");
-//    RenameLocalVariableProcessor processor= new RenameLocalVariableProcessor(variable);
-//    processor.setUpdateReferences(updateReferences(flags));
-//    return new RenameSupport(processor, newName, flags);
+    RenameLocalVariableProcessor processor = new RenameLocalVariableProcessor(variable);
+    processor.setUpdateReferences(updateReferences(flags));
+    return new RenameSupport(processor, newName, flags);
   }
 
   /**
@@ -144,6 +184,18 @@ public class RenameSupport {
 //    }
 //    return new RenameSupport(processor, newName, flags);
   }
+
+//  /**
+//   * Creates a new rename support for the given {@link RenameDartElementDescriptor}.
+//   * 
+//   * @param descriptor the {@link RenameDartElementDescriptor} to create a {@link RenameSupport}
+//   *          for. The caller is responsible for configuring the descriptor before it is passed.
+//   * @return the {@link RenameSupport}.
+//   * @throws CoreException if an unexpected error occurred while creating the {@link RenameSupport}.
+//   */
+//  public static RenameSupport create(RenameDartElementDescriptor descriptor) throws CoreException {
+//    return new RenameSupport(descriptor);
+//  }
 
   /**
    * Creates a new rename support for the given {@link Type}.
@@ -196,41 +248,6 @@ public class RenameSupport {
     return (flags & UPDATE_SETTER_METHOD) != 0;
   }
 
-  private static boolean updateTextualMatches(int flags) {
-    int TEXT_UPDATES = UPDATE_TEXTUAL_MATCHES | UPDATE_REGULAR_COMMENTS | UPDATE_STRING_LITERALS;
-    return (flags & TEXT_UPDATES) != 0;
-  }
-
-  private RenameRefactoring fRefactoring;
-
-  private RefactoringStatus fPreCheckStatus;
-
-//  private RenameSupport(RenameJavaElementDescriptor descriptor) throws CoreException {
-//  	RefactoringStatus refactoringStatus= new RefactoringStatus();
-//  	fRefactoring= (RenameRefactoring) descriptor.createRefactoring(refactoringStatus);
-//  	if (refactoringStatus.hasFatalError()) {
-//  		fPreCheckStatus= refactoringStatus;
-//  	} else {
-//  		preCheck();
-//  		refactoringStatus.merge(fPreCheckStatus);
-//  		fPreCheckStatus= refactoringStatus;
-//  	}
-//  }
-
-  /** Flag indication that no additional update is to be performed. */
-  public static final int NONE = 0;
-
-  /** Flag indicating that references are to be updated as well. */
-  public static final int UPDATE_REFERENCES = 1 << 0;
-
-  /**
-   * Flag indicating that Javadoc comments are to be updated as well.
-   * 
-   * @deprecated use UPDATE_REFERENCES or UPDATE_TEXTUAL_MATCHES or both.
-   */
-  @Deprecated
-  public static final int UPDATE_JAVADOC_COMMENTS = 1 << 1;
-
   /**
    * Creates a new rename support for the given {@link IPackageFragmentRoot}.
    * 
@@ -262,30 +279,17 @@ public class RenameSupport {
 //  	return new RenameSupport(processor, newName, flags);
 //  }
 
-  /**
-   * Flag indicating that regular comments are to be updated as well.
-   * 
-   * @deprecated use UPDATE_TEXTUAL_MATCHES
-   */
-  @Deprecated
-  public static final int UPDATE_REGULAR_COMMENTS = 1 << 2;
+  private static boolean updateTextualMatches(int flags) {
+    int TEXT_UPDATES = UPDATE_TEXTUAL_MATCHES | UPDATE_REGULAR_COMMENTS | UPDATE_STRING_LITERALS;
+    return (flags & TEXT_UPDATES) != 0;
+  }
 
-  /**
-   * Flag indicating that string literals are to be updated as well.
-   * 
-   * @deprecated use UPDATE_TEXTUAL_MATCHES
-   */
-  @Deprecated
-  public static final int UPDATE_STRING_LITERALS = 1 << 3;
+  private final RenameRefactoring fRefactoring;
 
-  /**
-   * Flag indicating that textual matches in comments and in string literals are to be updated as
-   * well.
-   */
-  public static final int UPDATE_TEXTUAL_MATCHES = 1 << 6;
+  private RefactoringStatus fPreCheckStatus;
 
-  /** Flag indicating that the getter method is to be updated as well. */
-  public static final int UPDATE_GETTER_METHOD = 1 << 4;
+  /** Flag indication that no additional update is to be performed. */
+  public static final int NONE = 0;
 
   /**
    * Creates a new rename support for the given {@link ITypeParameter}.
@@ -304,32 +308,31 @@ public class RenameSupport {
 //  	return new RenameSupport(processor, newName, flags);
 //  }
 
-  /** Flag indicating that the setter method is to be updated as well. */
-  public static final int UPDATE_SETTER_METHOD = 1 << 5;
-
-  /**
-   * Creates a new rename support for the given {@link RenameJavaElementDescriptor}.
-   * 
-   * @param descriptor the {@link RenameJavaElementDescriptor} to create a {@link RenameSupport}
-   *          for. The caller is responsible for configuring the descriptor before it is passed.
-   * @return the {@link RenameSupport}.
-   * @throws CoreException if an unexpected error occurred while creating the {@link RenameSupport}.
-   */
-//  public static RenameSupport create(RenameJavaElementDescriptor descriptor) throws CoreException {
-//  	return new RenameSupport(descriptor);
-//  }
+  /** Flag indicating that references are to be updated as well. */
+  public static final int UPDATE_REFERENCES = 1 << 0;
 
   private RenameSupport(DartRenameProcessor processor, String newName, int flags) {
     fRefactoring = new RenameRefactoring(processor);
     initialize(processor, newName, flags);
   }
 
+//  private RenameSupport(RenameDartElementDescriptor descriptor) throws CoreException {
+//    RefactoringStatus refactoringStatus = new RefactoringStatus();
+//    fRefactoring = (RenameRefactoring) descriptor.createRefactoring(refactoringStatus);
+//    if (refactoringStatus.hasFatalError()) {
+//      fPreCheckStatus = refactoringStatus;
+//    } else {
+//      preCheck();
+//      refactoringStatus.merge(fPreCheckStatus);
+//      fPreCheckStatus = refactoringStatus;
+//    }
+//  }
+
   /**
    * Opens the refactoring dialog for this rename support.
    * 
    * @param parent a shell used as a parent for the refactoring dialog.
    * @throws CoreException if an unexpected exception occurs while opening the dialog.
-   * 
    * @see #openDialog(Shell, boolean)
    */
   public void openDialog(Shell parent) throws CoreException {
@@ -338,7 +341,6 @@ public class RenameSupport {
 
   /**
    * Opens the refactoring dialog for this rename support.
-   * 
    * <p>
    * This method has to be called from within the UI thread.
    * </p>
@@ -348,91 +350,81 @@ public class RenameSupport {
    *          shows the preview or error page. Otherwise, shows all pages.
    * @return <code>true</code> if the refactoring has been executed successfully, <code>false</code>
    *         if it has been canceled or if an error has happened during initial conditions checking.
-   * 
    * @throws CoreException if an error occurred while executing the operation.
-   * 
    * @see #openDialog(Shell)
    */
   public boolean openDialog(Shell parent, boolean showPreviewOnly) throws CoreException {
-    // TODO(scheglov) implement
-    return false;
-//    ensureChecked();
-//    if (fPreCheckStatus.hasFatalError()) {
-//    	showInformation(parent, fPreCheckStatus);
-//    	return false;
-//    }
-//
-//    UserInterfaceStarter starter;
-//    if (! showPreviewOnly) {
-//    	starter= RenameUserInterfaceManager.getDefault().getStarter(fRefactoring);
-//    } else {
-//    	starter= new RenameUserInterfaceStarter();
-//    	RenameRefactoringWizard wizard= new RenameRefactoringWizard(fRefactoring, fRefactoring.getName(), null, null, null) {
-//    		@Override
-//    		protected void addUserInputPages() {
-//    			// nothing to add
-//    		}
-//    	};
-//    	wizard.setForcePreviewReview(showPreviewOnly);
-//    	starter.initialize(wizard);
-//    }
-//    return starter.activate(fRefactoring, parent, getJavaRenameProcessor().getSaveMode());
+    ensureChecked();
+    if (fPreCheckStatus.hasFatalError()) {
+      showInformation(parent, fPreCheckStatus);
+      return false;
+    }
+
+    UserInterfaceStarter starter;
+    if (!showPreviewOnly) {
+      starter = RenameUserInterfaceManager.getDefault().getStarter(fRefactoring);
+    } else {
+      starter = new RenameUserInterfaceStarter();
+      RenameRefactoringWizard wizard = new RenameRefactoringWizard(fRefactoring,
+          fRefactoring.getName(), null, null, null) {
+        @Override
+        protected void addUserInputPages() {
+          // nothing to add
+        }
+      };
+      wizard.setForcePreviewReview(showPreviewOnly);
+      starter.initialize(wizard);
+    }
+    return starter.activate(fRefactoring, parent, getDartRenameProcessor().getSaveMode());
   }
 
   /**
    * Executes the rename refactoring without showing a dialog to gather additional user input (for
-   * example the new name of the <tt>IJavaElement</tt>). Only an error dialog is shown (if
-   * necessary) to present the result of the refactoring's full precondition checking.
+   * example the new name of the <tt>DartElement</tt>). Only an error dialog is shown (if necessary)
+   * to present the result of the refactoring's full precondition checking.
    * <p>
    * The method has to be called from within the UI thread.
    * </p>
    * 
    * @param parent a shell used as a parent for the error dialog.
    * @param context a {@link IRunnableContext} to execute the operation.
-   * 
    * @throws InterruptedException if the operation has been canceled by the user.
    * @throws InvocationTargetException if an error occurred while executing the operation.
-   * 
    * @see #openDialog(Shell)
    * @see IRunnableContext#run(boolean, boolean, org.eclipse.jface.operation.IRunnableWithProgress)
    */
   public void perform(Shell parent, IRunnableContext context) throws InterruptedException,
       InvocationTargetException {
     // TODO(scheglov) implement
-//    try {
-//    	ensureChecked();
-//    	if (fPreCheckStatus.hasFatalError()) {
-//    		showInformation(parent, fPreCheckStatus);
-//    		return;
-//    	}
-//
-//    	RenameSelectionState state= createSelectionState();
-//
-//    	RefactoringExecutionHelper helper= new RefactoringExecutionHelper(fRefactoring,
-//    			RefactoringCore.getConditionCheckingFailedSeverity(),
-//    			getJavaRenameProcessor().getSaveMode(),
-//    			parent,
-//    			context);
-//    	helper.perform(true, true);
-//
-//    	restoreSelectionState(state);
-//    } catch (CoreException e) {
-//    	throw new InvocationTargetException(e);
-//    }
+    try {
+      ensureChecked();
+      if (fPreCheckStatus.hasFatalError()) {
+        showInformation(parent, fPreCheckStatus);
+        return;
+      }
+
+      RenameSelectionState state = createSelectionState();
+
+      RefactoringExecutionHelper helper = new RefactoringExecutionHelper(fRefactoring,
+          RefactoringCore.getConditionCheckingFailedSeverity(),
+          getDartRenameProcessor().getSaveMode(), parent, context);
+      helper.perform(true, true);
+
+      restoreSelectionState(state);
+    } catch (CoreException e) {
+      throw new InvocationTargetException(e);
+    }
   }
 
   /**
    * Executes some light weight precondition checking. If the returned status is an error then the
    * refactoring can't be executed at all. However, returning an OK status doesn't guarantee that
    * the refactoring can be executed. It may still fail while performing the exhaustive precondition
-   * checking done inside the methods <code>openDialog</code> or <code>perform</code>.
-   * 
-   * The method is mainly used to determine enable/disablement of actions.
+   * checking done inside the methods <code>openDialog</code> or <code>perform</code>. The method is
+   * mainly used to determine enable/disablement of actions.
    * 
    * @return the result of the light weight precondition checking.
-   * 
    * @throws CoreException if an unexpected exception occurs while performing the checking.
-   * 
    * @see #openDialog(Shell)
    * @see #perform(Shell, IRunnableContext)
    */
@@ -448,16 +440,15 @@ public class RenameSupport {
   private RenameSelectionState createSelectionState() {
     RenameProcessor processor = (RenameProcessor) fRefactoring.getProcessor();
     Object[] elements = processor.getElements();
-    RenameSelectionState state =
-        elements.length == 1 ? new RenameSelectionState(elements[0]) : null;
+    RenameSelectionState state = elements.length == 1 ? new RenameSelectionState(elements[0])
+        : null;
     return state;
   }
 
   private void ensureChecked() throws CoreException {
     if (fPreCheckStatus == null) {
       if (!fRefactoring.isApplicable()) {
-        fPreCheckStatus =
-            RefactoringStatus.createFatalErrorStatus(DartUIMessages.RenameSupport_not_available);
+        fPreCheckStatus = RefactoringStatus.createFatalErrorStatus(DartUIMessages.RenameSupport_not_available);
       } else {
         fPreCheckStatus = new RefactoringStatus();
       }

@@ -1,12 +1,13 @@
 package com.google.dart.tools.internal.corext.refactoring;
 
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.TypeMember;
-import com.google.dart.tools.ui.DartElementLabels;
+import com.google.dart.tools.internal.corext.dom.ASTNodes;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
@@ -58,11 +59,11 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Java field name.
+   * Checks if the given name is a valid Dart field name.
    * 
-   * @param name the java field name.
+   * @param name the Dart field name.
    * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid java field
+   * @return a refactoring status containing the error message if the name is not a valid Dart field
    *         name.
    */
   public static RefactoringStatus checkFieldName(String name, DartElement context) {
@@ -70,11 +71,11 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Java type parameter name.
+   * Checks if the given name is a valid Dart type parameter name.
    * 
-   * @param name the java type parameter name.
+   * @param name the Dart type parameter name.
    * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid java type
+   * @return a refactoring status containing the error message if the name is not a valid Dart type
    *         parameter name.
    */
 //  public static RefactoringStatus checkTypeParameterName(String name, DartElement context) {
@@ -82,11 +83,11 @@ public class Checks {
 //  }
 
   /**
-   * Checks if the given name is a valid Java identifier.
+   * Checks if the given name is a valid Dart identifier.
    * 
-   * @param name the java identifier.
+   * @param name the Dart identifier.
    * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid java
+   * @return a refactoring status containing the error message if the name is not a valid Dart
    *         identifier.
    */
 //  public static RefactoringStatus checkIdentifier(String name, DartElement context) {
@@ -102,8 +103,7 @@ public class Checks {
    * @return <code>RefactoringStatus</code> with <code>WARNING</code> severity if the give method
    *         will have a constructor name after renaming <code>null</code> otherwise.
    */
-  public static RefactoringStatus checkIfConstructorName(Method method,
-      String newMethodName,
+  public static RefactoringStatus checkIfConstructorName(Method method, String newMethodName,
       String newTypeName) {
     // TODO(scheglov) implement
     throw new RuntimeException("Not implemented");
@@ -120,11 +120,11 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Java method name.
+   * Checks if the given name is a valid Dart method name.
    * 
-   * @param name the java method name.
+   * @param name the Dart method name.
    * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid java
+   * @return a refactoring status containing the error message if the name is not a valid Dart
    *         method name.
    */
   public static RefactoringStatus checkMethodName(String name, DartElement context) {
@@ -137,11 +137,11 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Java package name.
+   * Checks if the given name is a valid Dart package name.
    * 
-   * @param name the java package name.
+   * @param name the Dart package name.
    * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid java
+   * @return a refactoring status containing the error message if the name is not a valid Dart
    *         package name.
    */
 //  public static RefactoringStatus checkPackageName(String name, DartElement context) {
@@ -179,11 +179,11 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Java type name.
+   * Checks if the given name is a valid Dart type name.
    * 
-   * @param name the java method name.
+   * @param name the Dart method name.
    * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid java type
+   * @return a refactoring status containing the error message if the name is not a valid Dart type
    *         name.
    */
   public static RefactoringStatus checkTypeName(String name, DartElement context) {
@@ -195,22 +195,57 @@ public class Checks {
     }
   }
 
-  // XXX
-  public static boolean isAvailable(DartElement javaElement) throws DartModelException {
-    if (javaElement == null) {
+  public static boolean isAvailable(DartElement dartElement) throws DartModelException {
+    if (dartElement == null) {
       return false;
     }
-    if (!javaElement.exists()) {
+    if (!dartElement.exists()) {
       return false;
     }
-    if (javaElement.isReadOnly()) {
+    if (dartElement.isReadOnly()) {
       return false;
     }
     return true;
   }
 
-  public static boolean resourceExists(IPath resourcePath) {
-    return ResourcesPlugin.getWorkspace().getRoot().findMember(resourcePath) != null;
+  /**
+   * @param e
+   * @return int Checks.IS_RVALUE if e is an rvalue Checks.IS_RVALUE_GUESSED if e is guessed as an
+   *         rvalue Checks.NOT_RVALUE_VOID if e is not an rvalue because its type is void
+   *         Checks.NOT_RVALUE_MISC if e is not an rvalue for some other reason
+   */
+//  public static int checkExpressionIsRValue(Expression e) {
+//  	if (e instanceof Name) {
+//  		if(!(((Name) e).resolveBinding() instanceof IVariableBinding)) {
+//  			return NOT_RVALUE_MISC;
+//  		}
+//  	}
+//  	if (e instanceof Annotation)
+//  		return NOT_RVALUE_MISC;
+//  		
+//
+//  	ITypeBinding tb= e.resolveTypeBinding();
+//  	boolean guessingRequired= false;
+//  	if (tb == null) {
+//  		guessingRequired= true;
+//  		tb= ASTResolving.guessBindingForReference(e);
+//  	}
+//  	if (tb == null)
+//  		return NOT_RVALUE_MISC;
+//  	else if (tb.getName().equals("void")) //$NON-NLS-1$
+//  		return NOT_RVALUE_VOID;
+//
+//  	return guessingRequired ? IS_RVALUE_GUESSED : IS_RVALUE;
+//  }
+
+  public static boolean isDeclaredIn(DartVariable tempDeclaration,
+      Class<? extends DartNode> astNodeClass) {
+    // TODO(scheglov) I think that this is bad function, because DartVariable is just local variable.
+    DartNode parent = ASTNodes.getParent(tempDeclaration, astNodeClass);
+    if (parent == null) {
+      return false;
+    }
+    return true;
   }
 
 //  public static boolean isTopLevel(Type type){
@@ -298,104 +333,8 @@ public class Checks {
 //  	return result;
 //  }
 
-  /**
-   * Checks if the new method somehow conflicts with an already existing method in the hierarchy.
-   * The following checks are done:
-   * <ul>
-   * <li>if the new method overrides a method defined in the given type or in one of its super
-   * classes.</li>
-   * </ul>
-   * 
-   * @param type
-   * @param methodName
-   * @param returnType
-   * @param parameters
-   * @return the status
-   */
-//  public static RefactoringStatus checkMethodInHierarchy(ITypeBinding type, String methodName, ITypeBinding returnType, ITypeBinding[] parameters) {
-//  	RefactoringStatus result= new RefactoringStatus();
-//  	IMethodBinding method= Bindings.findMethodInHierarchy(type, methodName, parameters);
-//  	if (method != null) {
-//  		boolean returnTypeClash= false;
-//  		ITypeBinding methodReturnType= method.getReturnType();
-//  		if (returnType != null && methodReturnType != null) {
-//  			String returnTypeKey= returnType.getKey();
-//  			String methodReturnTypeKey= methodReturnType.getKey();
-//  			if (returnTypeKey == null && methodReturnTypeKey == null) {
-//  				returnTypeClash= returnType != methodReturnType;
-//  			} else if (returnTypeKey != null && methodReturnTypeKey != null) {
-//  				returnTypeClash= !returnTypeKey.equals(methodReturnTypeKey);
-//  			}
-//  		}
-//  		ITypeBinding dc= method.getDeclaringClass();
-//  		if (returnTypeClash) {
-//  			result.addError(Messages.format(RefactoringCoreMessages.Checks_methodName_returnTypeClash,
-//  				new Object[] {BasicElementLabels.getJavaElementName(methodName), BasicElementLabels.getJavaElementName(dc.getName())}),
-//  				JavaStatusContext.create(method));
-//  		} else {
-//  			result.addError(Messages.format(RefactoringCoreMessages.Checks_methodName_overrides,
-//  				new Object[] {BasicElementLabels.getJavaElementName(methodName), BasicElementLabels.getJavaElementName(dc.getName())}),
-//  				JavaStatusContext.create(method));
-//  		}
-//  	}
-//  	return result;
-//  }
-
-  //---- Selection checks --------------------------------------------------------------------
-
-//  public static boolean isExtractableExpression(DartNode[] selectedNodes, DartNode coveringNode) {
-//  	DartNode node= coveringNode;
-//  	if (isEnumCase(node))
-//  		return false;
-//  	if (selectedNodes != null && selectedNodes.length == 1)
-//  		node= selectedNodes[0];
-//  	return isExtractableExpression(node);
-//  }
-//
-//  public static boolean isEnumCase(DartNode node) {
-//  	if (node instanceof SwitchCase) {
-//  		final SwitchCase caze= (SwitchCase) node;
-//  		final Expression expression= caze.getExpression();
-//  		if (expression instanceof Name) {
-//  			final Name name= (Name) expression;
-//  			final IBinding binding= name.resolveBinding();
-//  			if (binding instanceof IVariableBinding) {
-//  				IVariableBinding variableBinding= (IVariableBinding) binding;
-//  				return variableBinding.isEnumConstant();
-//  			}
-//  		}
-//  	}
-//  	return false;
-//  }
-//
-//  public static boolean isExtractableExpression(DartNode node) {
-//  	if (!(node instanceof Expression))
-//  		return false;
-//  	if (node instanceof Name) {
-//  		IBinding binding= ((Name) node).resolveBinding();
-//  		return binding == null || binding instanceof IVariableBinding;
-//  	}
-//  	return true;
-//  }
-//
-//  public static boolean isInsideJavadoc(DartNode node) {
-//  	do {
-//  		if (node.getNodeType() == DartNode.JAVADOC)
-//  			return true;
-//  		node= node.getParent();
-//  	} while (node != null);
-//  	return false;
-//  }
-
-  public static boolean startsWithLowerCase(String s) {
-    if (s == null) {
-      return false;
-    } else if ("".equals(s)) {
-      return false;
-    } else {
-      //workaround for JDK bug (see 26529)
-      return s.charAt(0) == Character.toLowerCase(s.charAt(0));
-    }
+  public static boolean resourceExists(IPath resourcePath) {
+    return ResourcesPlugin.getWorkspace().getRoot().findMember(resourcePath) != null;
   }
 
   /**
@@ -687,20 +626,118 @@ public class Checks {
 //  }
 
   /**
-   * Checks whether it is possible to modify the given <code>DartElement</code>. The
-   * <code>DartElement</code> must exist and be non read-only to be modifiable. Moreover, if it is a
-   * <code>TypeMember</code> it must not be binary. The returned <code>RefactoringStatus</code> has
-   * <code>ERROR</code> severity if it is not possible to modify the element.
+   * Checks if the new method somehow conflicts with an already existing method in the hierarchy.
+   * The following checks are done:
+   * <ul>
+   * <li>if the new method overrides a method defined in the given type or in one of its super
+   * classes.</li>
+   * </ul>
    * 
-   * @param javaElement
+   * @param type
+   * @param methodName
+   * @param returnType
+   * @param parameters
    * @return the status
-   * @throws DartModelException
-   * 
-   * @see DartElement#exists
-   * @see DartElement#isReadOnly
-   * @see TypeMember#isBinary
-   * @see RefactoringStatus
    */
+//  public static RefactoringStatus checkMethodInHierarchy(ITypeBinding type, String methodName, ITypeBinding returnType, ITypeBinding[] parameters) {
+//  	RefactoringStatus result= new RefactoringStatus();
+//  	IMethodBinding method= Bindings.findMethodInHierarchy(type, methodName, parameters);
+//  	if (method != null) {
+//  		boolean returnTypeClash= false;
+//  		ITypeBinding methodReturnType= method.getReturnType();
+//  		if (returnType != null && methodReturnType != null) {
+//  			String returnTypeKey= returnType.getKey();
+//  			String methodReturnTypeKey= methodReturnType.getKey();
+//  			if (returnTypeKey == null && methodReturnTypeKey == null) {
+//  				returnTypeClash= returnType != methodReturnType;
+//  			} else if (returnTypeKey != null && methodReturnTypeKey != null) {
+//  				returnTypeClash= !returnTypeKey.equals(methodReturnTypeKey);
+//  			}
+//  		}
+//  		ITypeBinding dc= method.getDeclaringClass();
+//  		if (returnTypeClash) {
+//  			result.addError(Messages.format(RefactoringCoreMessages.Checks_methodName_returnTypeClash,
+//  				new Object[] {BasicElementLabels.getJavaElementName(methodName), BasicElementLabels.getJavaElementName(dc.getName())}),
+//  				JavaStatusContext.create(method));
+//  		} else {
+//  			result.addError(Messages.format(RefactoringCoreMessages.Checks_methodName_overrides,
+//  				new Object[] {BasicElementLabels.getJavaElementName(methodName), BasicElementLabels.getJavaElementName(dc.getName())}),
+//  				JavaStatusContext.create(method));
+//  		}
+//  	}
+//  	return result;
+//  }
+
+  //---- Selection checks --------------------------------------------------------------------
+
+//  public static boolean isExtractableExpression(DartNode[] selectedNodes, DartNode coveringNode) {
+//  	DartNode node= coveringNode;
+//  	if (isEnumCase(node))
+//  		return false;
+//  	if (selectedNodes != null && selectedNodes.length == 1)
+//  		node= selectedNodes[0];
+//  	return isExtractableExpression(node);
+//  }
+//
+//  public static boolean isEnumCase(DartNode node) {
+//  	if (node instanceof SwitchCase) {
+//  		final SwitchCase caze= (SwitchCase) node;
+//  		final Expression expression= caze.getExpression();
+//  		if (expression instanceof Name) {
+//  			final Name name= (Name) expression;
+//  			final IBinding binding= name.resolveBinding();
+//  			if (binding instanceof IVariableBinding) {
+//  				IVariableBinding variableBinding= (IVariableBinding) binding;
+//  				return variableBinding.isEnumConstant();
+//  			}
+//  		}
+//  	}
+//  	return false;
+//  }
+//
+//  public static boolean isExtractableExpression(DartNode node) {
+//  	if (!(node instanceof Expression))
+//  		return false;
+//  	if (node instanceof Name) {
+//  		IBinding binding= ((Name) node).resolveBinding();
+//  		return binding == null || binding instanceof IVariableBinding;
+//  	}
+//  	return true;
+//  }
+//
+//  public static boolean isInsideJavadoc(DartNode node) {
+//  	do {
+//  		if (node.getNodeType() == DartNode.JAVADOC)
+//  			return true;
+//  		node= node.getParent();
+//  	} while (node != null);
+//  	return false;
+//  }
+
+  public static boolean startsWithLowerCase(String s) {
+    if (s == null) {
+      return false;
+    } else if (s.isEmpty()) {
+      return false;
+    } else {
+      return s.charAt(0) == Character.toLowerCase(s.charAt(0));
+    }
+  }
+
+//  /**
+//   * Checks whether it is possible to modify the given <code>DartElement</code>. The
+//   * <code>DartElement</code> must exist and be non read-only to be modifiable. Moreover, if it is a
+//   * <code>TypeMember</code> it must not be binary. The returned <code>RefactoringStatus</code> has
+//   * <code>ERROR</code> severity if it is not possible to modify the element.
+//   * 
+//   * @param javaElement
+//   * @return the status
+//   * @throws DartModelException
+//   * @see DartElement#exists
+//   * @see DartElement#isReadOnly
+//   * @see TypeMember#isBinary
+//   * @see RefactoringStatus
+//   */
 //  public static RefactoringStatus checkAvailability(DartElement javaElement) throws DartModelException{
 //  	RefactoringStatus result= new RefactoringStatus();
 //  	if (! javaElement.exists())
@@ -713,17 +750,11 @@ public class Checks {
 //  		result.addFatalError(Messages.format(RefactoringCoreMessages.Refactoring_binary, getJavaElementName(javaElement)));
 //  	return result;
 //  }
-
-  private static String getJavaElementName(DartElement element) {
-    return DartElementLabels.getElementLabel(element, DartElementLabels.ALL_DEFAULT);
-  }
-
-  /**
-   * no instances
-   */
-  private Checks() {
-  }
-
+//
+//  private static String getDartElementName(DartElement element) {
+//    return DartElementLabels.getElementLabel(element, DartElementLabels.ALL_DEFAULT);
+//  }
+//
 //  public static Type findTypeInPackage(IPackageFragment pack, String elementName) throws DartModelException {
 //  	Assert.isTrue(pack.exists());
 //  	Assert.isTrue(!pack.isReadOnly());
@@ -787,45 +818,8 @@ public class Checks {
 //  }
 
   /**
-   * @param e
-   * @return int Checks.IS_RVALUE if e is an rvalue Checks.IS_RVALUE_GUESSED if e is guessed as an
-   *         rvalue Checks.NOT_RVALUE_VOID if e is not an rvalue because its type is void
-   *         Checks.NOT_RVALUE_MISC if e is not an rvalue for some other reason
+   * no instances
    */
-//  public static int checkExpressionIsRValue(Expression e) {
-//  	if (e instanceof Name) {
-//  		if(!(((Name) e).resolveBinding() instanceof IVariableBinding)) {
-//  			return NOT_RVALUE_MISC;
-//  		}
-//  	}
-//  	if (e instanceof Annotation)
-//  		return NOT_RVALUE_MISC;
-//  		
-//
-//  	ITypeBinding tb= e.resolveTypeBinding();
-//  	boolean guessingRequired= false;
-//  	if (tb == null) {
-//  		guessingRequired= true;
-//  		tb= ASTResolving.guessBindingForReference(e);
-//  	}
-//  	if (tb == null)
-//  		return NOT_RVALUE_MISC;
-//  	else if (tb.getName().equals("void")) //$NON-NLS-1$
-//  		return NOT_RVALUE_VOID;
-//
-//  	return guessingRequired ? IS_RVALUE_GUESSED : IS_RVALUE;
-//  }
-//
-//  public static boolean isDeclaredIn(VariableDeclaration tempDeclaration, Class<? extends DartNode> astNodeClass) {
-//  	DartNode initializer= ASTNodes.getParent(tempDeclaration, astNodeClass);
-//  	if (initializer == null)
-//  		return false;
-//  	DartNode anonymous= ASTNodes.getParent(tempDeclaration, AnonymousClassDeclaration.class);
-//  	if (anonymous == null)
-//  		return true;
-//  	// stupid code. Is to find out if the variable declaration isn't a field.
-//  	if (ASTNodes.isParent(anonymous, initializer))
-//  		return false;
-//  	return true;
-//  }
+  private Checks() {
+  }
 }

@@ -48,7 +48,7 @@ import org.eclipse.ui.IWorkbenchSite;
 public abstract class SelectionDispatchAction extends AbstractInstrumentedAction implements
     ISelectionChangedListener {
 
-  private IWorkbenchSite fSite;
+  private final IWorkbenchSite fSite;
   private ISelectionProvider fSpecialSelectionProvider;
 
   /**
@@ -109,9 +109,6 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
     return fSite;
   }
 
-  /*
-   * (non-Javadoc) Method declared on IAction.
-   */
   @Override
   public void run() {
     EmitInstrumentationCommand();
@@ -197,9 +194,6 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
     selectionChanged((ISelection) selection);
   }
 
-  /*
-   * (non-Javadoc) Method declared on ISelectionChangedListener.
-   */
   @Override
   public void selectionChanged(SelectionChangedEvent event) {
     dispatchSelectionChanged(event.getSelection());

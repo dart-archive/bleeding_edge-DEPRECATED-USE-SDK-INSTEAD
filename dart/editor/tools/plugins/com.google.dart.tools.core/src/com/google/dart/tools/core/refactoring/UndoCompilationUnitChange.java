@@ -49,17 +49,11 @@ import org.eclipse.text.edits.UndoEdit;
     fCUnit = unit;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public Object getModifiedElement() {
     return fCUnit;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public Change perform(IProgressMonitor pm) throws CoreException {
     pm.beginTask("", 2); //$NON-NLS-1$
@@ -71,9 +65,6 @@ import org.eclipse.text.edits.UndoEdit;
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   protected Change createUndoChange(UndoEdit edit, ContentStamp stampToRestore)
       throws CoreException {

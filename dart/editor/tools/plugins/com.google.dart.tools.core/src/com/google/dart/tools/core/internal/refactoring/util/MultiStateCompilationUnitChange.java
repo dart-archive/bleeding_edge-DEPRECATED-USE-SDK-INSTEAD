@@ -20,8 +20,6 @@ import org.eclipse.ltk.core.refactoring.MultiStateTextFileChange;
 
 /**
  * Multi state compilation unit change for composite refactorings.
- * 
- * @since 3.2
  */
 public final class MultiStateCompilationUnitChange extends MultiStateTextFileChange {
 
@@ -61,9 +59,6 @@ public final class MultiStateCompilationUnitChange extends MultiStateTextFileCha
     return fUnit;
   }
 
-//  /**
-//   * {@inheritDoc}
-//   */
 //  @Override
 //  public String getName() {
 //    return Messages.format(

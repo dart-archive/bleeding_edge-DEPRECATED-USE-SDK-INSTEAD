@@ -16,9 +16,8 @@ import org.eclipse.ui.PlatformUI;
 /**
  * Renames a Dart element or workbench resource.
  * <p>
- * Action is applicable to selections containing elements of type <code>IJavaElement</code> or
+ * Action is applicable to selections containing elements of type <code>DartElement</code> or
  * <code>IResource</code>.
- * 
  * <p>
  * This class may be instantiated; it is not intended to be subclassed.
  * </p>
@@ -28,13 +27,12 @@ import org.eclipse.ui.PlatformUI;
 public class RenameAction extends SelectionDispatchAction {
 
   private RenameDartElementAction fRenameDartElement;
-  private RenameResourceAction fRenameResource;
+  private final RenameResourceAction fRenameResource;
 
   /**
    * Note: This constructor is for internal use only. Clients should not call this constructor.
    * 
-   * @param editor the Java editor
-   * 
+   * @param editor the {@link DartEditor}
    * @noreference This constructor is not intended to be referenced by clients.
    */
   public RenameAction(DartEditor editor) {

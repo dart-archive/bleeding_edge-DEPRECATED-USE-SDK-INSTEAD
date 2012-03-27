@@ -12,6 +12,8 @@ import com.google.dart.tools.ui.actions.SelectionDispatchAction;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
+import com.google.dart.tools.ui.internal.refactoring.reorg.RenameLinkedMode;
+import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
@@ -27,14 +29,14 @@ import org.eclipse.ui.IWorkbenchSite;
 public class RenameDartElementAction extends SelectionDispatchAction {
 
   private static boolean canEnable(IStructuredSelection selection) throws CoreException {
-    DartElement element = getJavaElement(selection);
+    DartElement element = getDartElement(selection);
     if (element == null) {
       return false;
     }
     return RefactoringAvailabilityTester.isRenameElementAvailable(element);
   }
 
-  private static DartElement getJavaElement(IStructuredSelection selection) {
+  private static DartElement getDartElement(IStructuredSelection selection) {
     if (selection.size() != 1) {
       return null;
     }
@@ -59,12 +61,12 @@ public class RenameDartElementAction extends SelectionDispatchAction {
 
   public boolean canRunInEditor() {
     // TODO(scheglov) linked mode support
-//    if (RenameLinkedMode.getActiveLinkedMode() != null) {
-//      return true;
-//    }
+    if (RenameLinkedMode.getActiveLinkedMode() != null) {
+      return true;
+    }
 
     try {
-      DartElement element = getJavaElementFromEditor();
+      DartElement element = getDartElementFromEditor();
       if (element == null) {
         return true;
       }
@@ -82,18 +84,18 @@ public class RenameDartElementAction extends SelectionDispatchAction {
 
   public void doRun() {
     // TODO(scheglov) linked mode support
-//    RenameLinkedMode activeLinkedMode = RenameLinkedMode.getActiveLinkedMode();
-//    if (activeLinkedMode != null) {
-//      if (activeLinkedMode.isCaretInLinkedPosition()) {
-//        activeLinkedMode.startFullDialog();
-//        return;
-//      } else {
-//        activeLinkedMode.cancel();
-//      }
-//    }
+    RenameLinkedMode activeLinkedMode = RenameLinkedMode.getActiveLinkedMode();
+    if (activeLinkedMode != null) {
+      if (activeLinkedMode.isCaretInLinkedPosition()) {
+        activeLinkedMode.startFullDialog();
+        return;
+      } else {
+        activeLinkedMode.cancel();
+      }
+    }
 
     try {
-      DartElement element = getJavaElementFromEditor();
+      DartElement element = getDartElementFromEditor();
       IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
       boolean lightweight = store.getBoolean(PreferenceConstants.REFACTOR_LIGHTWEIGHT);
       if (element != null && RefactoringAvailabilityTester.isRenameElementAvailable(element)) {
@@ -111,20 +113,16 @@ public class RenameDartElementAction extends SelectionDispatchAction {
 //        }
 //      }
     } catch (CoreException e) {
-      ExceptionHandler.handle(
-          e,
-          RefactoringMessages.RenameJavaElementAction_name,
+      ExceptionHandler.handle(e, RefactoringMessages.RenameJavaElementAction_name,
           RefactoringMessages.RenameJavaElementAction_exception);
     }
-    MessageDialog.openInformation(
-        getShell(),
-        RefactoringMessages.RenameJavaElementAction_name,
+    MessageDialog.openInformation(getShell(), RefactoringMessages.RenameJavaElementAction_name,
         RefactoringMessages.RenameJavaElementAction_not_available);
   }
 
   @Override
   public void run(IStructuredSelection selection) {
-    DartElement element = getJavaElement(selection);
+    DartElement element = getDartElement(selection);
     if (element == null) {
       return;
     }
@@ -134,9 +132,7 @@ public class RenameDartElementAction extends SelectionDispatchAction {
     try {
       run(element, false);
     } catch (CoreException e) {
-      ExceptionHandler.handle(
-          e,
-          RefactoringMessages.RenameJavaElementAction_name,
+      ExceptionHandler.handle(e, RefactoringMessages.RenameJavaElementAction_name,
           RefactoringMessages.RenameJavaElementAction_exception);
     }
   }
@@ -149,9 +145,7 @@ public class RenameDartElementAction extends SelectionDispatchAction {
     if (canRunInEditor()) {
       doRun();
     } else {
-      MessageDialog.openInformation(
-          getShell(),
-          RefactoringMessages.RenameAction_rename,
+      MessageDialog.openInformation(getShell(), RefactoringMessages.RenameAction_rename,
           RefactoringMessages.RenameAction_unavailable);
     }
   }
@@ -194,7 +188,7 @@ public class RenameDartElementAction extends SelectionDispatchAction {
     }
   }
 
-  private DartElement getJavaElementFromEditor() throws DartModelException {
+  private DartElement getDartElementFromEditor() throws DartModelException {
     DartElement[] elements = SelectionConverter.codeResolve(fEditor);
     if (elements == null || elements.length != 1) {
       return null;
@@ -208,18 +202,16 @@ public class RenameDartElementAction extends SelectionDispatchAction {
       return;
     }
     // Workaround bug 31998
-    if (ActionUtil.mustDisableJavaModelAction(getShell(), element)) {
+    if (ActionUtil.mustDisableDartModelAction(getShell(), element)) {
       return;
     }
 
     // TODO(scheglov) linked mode support
-    RefactoringExecutionStarter.startRenameRefactoring(element, getShell());
-//    if (lightweight
-//        && fEditor instanceof CompilationUnitEditor
-//        && !(element instanceof IPackageFragment)) {
-//      new RenameLinkedMode(element, (CompilationUnitEditor) fEditor).start();
-//    } else {
-//      RefactoringExecutionStarter.startRenameRefactoring(element, getShell());
-//    }
+//    RefactoringExecutionStarter.startRenameRefactoring(element, getShell());
+    if (lightweight && fEditor instanceof CompilationUnitEditor) {
+      new RenameLinkedMode(element, (CompilationUnitEditor) fEditor).start();
+    } else {
+      RefactoringExecutionStarter.startRenameRefactoring(element, getShell());
+    }
   }
 }

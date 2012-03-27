@@ -17,9 +17,6 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.TextEdit;
 
-/**
- * @since 3.4
- */
 public class TextEditUtil {
 
   /**
@@ -40,7 +37,6 @@ public class TextEditUtil {
    * 
    * @param edit the edit tree to flatten
    * @return a list of edits
-   * @since 3.4
    */
   public static MultiTextEdit flatten(TextEdit edit) {
     MultiTextEdit result = new MultiTextEdit();
@@ -65,7 +61,6 @@ public class TextEditUtil {
    * 
    * @param edit the edit to verify
    * @return true if edit is minimal
-   * @since 3.4
    */
   public static boolean isPacked(TextEdit edit) {
     if (!(edit instanceof MultiTextEdit)) {
@@ -109,7 +104,6 @@ public class TextEditUtil {
    * @return the merged tree
    * @throws MalformedTreeException if {@link #overlaps(TextEdit, TextEdit)} returns <b>true</b>
    * @see #overlaps(TextEdit, TextEdit)
-   * @since 3.4
    */
   public static TextEdit merge(TextEdit edit1, TextEdit edit2) {
     if (edit1 instanceof MultiTextEdit && !edit1.hasChildren()) {
@@ -134,7 +128,6 @@ public class TextEditUtil {
    * @param edit1 the edit to compare against edit2
    * @param edit2 the edit to compare against edit1
    * @return true of no node overlaps with any other node
-   * @since 3.4
    */
   public static boolean overlaps(TextEdit edit1, TextEdit edit2) {
     if (edit1 instanceof MultiTextEdit && edit2 instanceof MultiTextEdit) {

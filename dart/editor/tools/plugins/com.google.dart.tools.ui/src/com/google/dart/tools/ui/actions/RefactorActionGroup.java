@@ -515,14 +515,14 @@ public class RefactorActionGroup extends ActionGroup {
         return;
       }
       ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-      DartTextSelection javaSelection =
+      DartTextSelection dartSelection =
           new DartTextSelection(element,
               getDocument(),
               textSelection.getOffset(),
               textSelection.getLength());
 
       for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
-        iter.next().update(javaSelection);
+        iter.next().update(dartSelection);
       }
       fillRefactorMenu(menu);
       for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
@@ -651,7 +651,7 @@ public class RefactorActionGroup extends ActionGroup {
       }
     });
     ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-    DartTextSelection javaSelection =
+    DartTextSelection dartSelection =
         new DartTextSelection(getEditorInput(),
             getDocument(),
             textSelection.getOffset(),
@@ -659,7 +659,7 @@ public class RefactorActionGroup extends ActionGroup {
 
     for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
       SelectionDispatchAction action = iter.next();
-      action.update(javaSelection);
+      action.update(dartSelection);
     }
     refactorSubmenu.removeAll();
     if (fillRefactorMenu(refactorSubmenu) == 0) {

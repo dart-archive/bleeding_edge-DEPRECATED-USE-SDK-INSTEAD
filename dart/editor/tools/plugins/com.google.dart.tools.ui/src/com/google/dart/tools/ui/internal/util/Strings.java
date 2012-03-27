@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.util;
@@ -32,7 +30,7 @@ import org.eclipse.osgi.util.TextProcessor;
  */
 public class Strings {
 
-  private static final String JAVA_ELEMENT_DELIMITERS = TextProcessor.getDefaultDelimiters()
+  private static final String DART_ELEMENT_DELIMITERS = TextProcessor.getDefaultDelimiters()
       + "<>(),?{} "; //$NON-NLS-1$
 
   /**
@@ -40,7 +38,7 @@ public class Strings {
    * indent added. The first line of the code will not be changed. (It is considered to have no
    * indent as it might start in the middle of a line)
    * 
-   * @param project the java project from which to get the formatter preferences, or
+   * @param project the Dart project from which to get the formatter preferences, or
    *          <code>null</code> for global preferences
    */
   public static String changeIndent(String code, int codeIndentLevel, DartProject project,
@@ -65,7 +63,7 @@ public class Strings {
    * Returns the indent of the given string in indentation units. Odd spaces are not counted.
    * 
    * @param line the text line
-   * @param project the java project from which to get the formatter preferences, or
+   * @param project the DArt project from which to get the formatter preferences, or
    *          <code>null</code> for global preferences
    */
   public static int computeIndentUnits(String line, DartProject project) {
@@ -100,7 +98,7 @@ public class Strings {
   }
 
   /**
-   * Returns <code>true</code> if the given string only consists of white spaces according to Java.
+   * Returns <code>true</code> if the given string only consists of white spaces according to DArt.
    * If the string is empty, <code>true
    * </code> is returned.
    * 
@@ -160,7 +158,7 @@ public class Strings {
    * indentation units.
    * 
    * @param line the line to scan
-   * @param project the java project from which to get the formatter preferences, or
+   * @param project the Dart project from which to get the formatter preferences, or
    *          <code>null</code> for global preferences
    * @return the indent part of <code>line</code>, but no odd spaces
    */
@@ -190,25 +188,25 @@ public class Strings {
   }
 
   /**
-   * Adds special marks so that that the given Java element label is readable in a BiDi environment.
+   * Adds special marks so that that the given Dart element label is readable in a BiDi environment.
    * 
    * @param string the string
    * @return the processed styled string
    */
-  public static String markJavaElementLabelLTR(String string) {
-    return TextProcessor.process(string, JAVA_ELEMENT_DELIMITERS);
+  public static String markDartElementLabelLTR(String string) {
+    return TextProcessor.process(string, DART_ELEMENT_DELIMITERS);
   }
 
   /**
-   * Adds special marks so that that the given styled Java element label is readable in a BiDi
+   * Adds special marks so that that the given styled Dart element label is readable in a BiDi
    * environment.
    * 
    * @param styledString the styled string
    * @return the processed styled string
    */
-  public static StyledString markJavaElementLabelLTR(StyledString styledString) {
+  public static StyledString markDartElementLabelLTR(StyledString styledString) {
     String inputString = styledString.getString();
-    String string = TextProcessor.process(inputString, JAVA_ELEMENT_DELIMITERS);
+    String string = TextProcessor.process(inputString, DART_ELEMENT_DELIMITERS);
     if (string != inputString) {
       insertMarks(styledString, inputString, string);
     }
@@ -335,7 +333,7 @@ public class Strings {
    * Removes the given number of indents from the line. Asserts that the given line has the
    * requested number of indents. If <code>indentsToRemove <= 0</code> the line is returned.
    * 
-   * @param project the java project from which to get the formatter preferences, or
+   * @param project the Dart project from which to get the formatter preferences, or
    *          <code>null</code> for global preferences
    */
   public static String trimIndent(String line, int indentsToRemove, DartProject project) {
@@ -391,7 +389,7 @@ public class Strings {
    * Removes the common number of indents from all lines. If a line only consists out of white space
    * it is ignored.
    * 
-   * @param project the java project from which to get the formatter preferences, or
+   * @param project the Dart project from which to get the formatter preferences, or
    *          <code>null</code> for global preferences
    */
   public static void trimIndentation(String[] lines, DartProject project) {
@@ -404,7 +402,7 @@ public class Strings {
    * it is ignored. If <code>
    * considerFirstLine</code> is false the first line will be ignored.
    * 
-   * @param project the java project from which to get the formatter preferences, or
+   * @param project the Dart project from which to get the formatter preferences, or
    *          <code>null</code> for global preferences
    */
   public static void trimIndentation(String[] lines, DartProject project, boolean considerFirstLine) {

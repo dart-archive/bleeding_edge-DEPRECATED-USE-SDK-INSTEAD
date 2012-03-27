@@ -31,7 +31,7 @@ public interface ITextUpdating {
 
   /**
    * If <code>canEnableTextUpdating</code> returns <code>true</code>, then this method is used to
-   * ask the refactoring object whether references in regular (non JavaDoc) comments and string
+   * ask the refactoring object whether references in regular (non DartDoc) comments and string
    * literals should be updated. This call can be ignored if <code>canEnableTextUpdating</code>
    * returns <code>false</code>.
    */
@@ -39,7 +39,7 @@ public interface ITextUpdating {
 
   /**
    * If <code>canEnableTextUpdating</code> returns <code>true</code>, then this method is used to
-   * inform the refactoring object whether references in regular (non JavaDoc) comments and string
+   * inform the refactoring object whether references in regular (non DartDoc) comments and string
    * literals should be updated. This call can be ignored if <code>canEnableTextUpdating</code>
    * returns <code>false</code>.
    */
