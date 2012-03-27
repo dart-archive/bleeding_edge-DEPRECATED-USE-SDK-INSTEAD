@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sample name="Slider" file="SliderSample.dart">
+<sample name="Slider" file="slider_sample.dart">
     <description>Very simple sample app showing use of the SliderMenu view and DOM queries.</description>
 </sample>

@@ -902,10 +902,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     MenuManager menu = new MenuManager(IDEWorkbenchMessages.Workbench_help,
         IWorkbenchActionConstants.M_HELP);
 
-    menu.add(new GroupMarker("group.intro")); //$NON-NLS-1$
-    menu.add(new OpenIntroEditorAction());
-    menu.add(new GroupMarker("group.intro.ext")); //$NON-NLS-1$
-
     menu.add(new Separator("group.main")); //$NON-NLS-1$
     menu.add(openOnlineDocsAction);
     //menu.add(helpContentsAction);
@@ -985,6 +981,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     //menu.add(new Separator());
     addViewActions(menu);
+
+    menu.add(new OpenIntroEditorAction());
 
     menu.add(new Separator());
 

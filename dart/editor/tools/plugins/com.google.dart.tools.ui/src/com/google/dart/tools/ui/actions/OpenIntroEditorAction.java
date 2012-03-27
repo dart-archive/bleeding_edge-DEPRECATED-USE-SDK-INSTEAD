@@ -26,6 +26,8 @@ public class OpenIntroEditorAction extends AbstractInstrumentedAction {
 
   public OpenIntroEditorAction() {
     super("&Welcome");
+
+    setImageDescriptor(DartToolsPlugin.findImageDescriptor("icons/dart_16_16.gif"));
   }
 
   @Override
