@@ -62,6 +62,7 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.URIUtil;
@@ -1481,7 +1482,11 @@ public class DeltaProcessor {
         return false;
       case IResourceDelta.REMOVED:
         if (DartCoreDebug.ANALYSIS_SERVER) {
-          File file = deltaRes.getLocation().toFile();
+          IPath location = deltaRes.getLocation();
+          if (location == null) {
+            return false;
+          }
+          File file = location.toFile();
           AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
           server.changed(file);
           server.discard(file);
