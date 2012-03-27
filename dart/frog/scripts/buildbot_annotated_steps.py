@@ -246,7 +246,7 @@ def main():
       print '@@@STEP_FAILURE@@@'
     return status # Return unconditionally for dart2js.
 
-  if runtime != 'd8' or (system == 'linux' and runtime == 'chrome'):
+  if runtime == 'd8' or (system == 'linux' and runtime == 'chrome'):
     status = TestFrog(compiler, runtime, mode, system, None, [])
     if status != 0:
       print '@@@STEP_FAILURE@@@'
