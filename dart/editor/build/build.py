@@ -436,16 +436,6 @@ def main():
                                                  to_bucket,
                                                  found_zips,
                                                  revision, gsu)
-      #Temporary code to copy the dart-editor-* to DartBuild-*.
-      # This will be removed
-      # once everything is switched to use dart-editor-*
-      for gs_object_old in gs_objects:
-        pos_name = gs_object_old.rfind('dart-editor-')
-        gs_object_new = (gs_object_old[:pos_name] + 'DartBuild' +
-                         gs_object_old[pos_name + 11:])
-        gsu.Copy(gs_object_old, gs_object_new)
-        _SetAcl(gs_object_new, gsu)
-      #end temporary code
       if _ShouldMoveToLatest(staging_bucket, revision, gsu):
         _MoveContinuousToLatest(staging_bucket, to_bucket, revision, gsu)
         _CleanupStaging(staging_bucket, revision, gsu)
