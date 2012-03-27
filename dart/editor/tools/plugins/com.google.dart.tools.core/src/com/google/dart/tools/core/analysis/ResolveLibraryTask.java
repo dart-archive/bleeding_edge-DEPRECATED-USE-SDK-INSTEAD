@@ -58,11 +58,11 @@ class ResolveLibraryTask extends Task {
       Library lib = todo.get(index);
       LibraryUnit libUnit = lib.getLibraryUnit();
       if (libUnit != null) {
-        resolvedLibs.put(lib.getFile().toURI(), libUnit);
-        continue;
-      }
-      for (Entry<File, DartUnit> entry : lib.getCachedUnits().entrySet()) {
-        parsedUnits.put(entry.getKey().toURI(), entry.getValue());
+        resolvedLibs.put(libUnit.getSource().getUri(), libUnit);
+      } else {
+        for (Entry<File, DartUnit> entry : lib.getCachedUnits().entrySet()) {
+          parsedUnits.put(entry.getKey().toURI(), entry.getValue());
+        }
       }
       for (File file : lib.getImportedFiles()) {
         Library importedLib = context.getCachedLibrary(file);

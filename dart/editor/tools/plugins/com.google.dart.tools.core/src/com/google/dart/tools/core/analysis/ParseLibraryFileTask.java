@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import static com.google.dart.tools.core.analysis.AnalysisUtility.parse;
 
 import java.io.File;
+import java.net.URI;
 
 /**
  * Parse a library source file and create the associated {@link Library}
@@ -33,7 +34,10 @@ class ParseLibraryFileTask extends Task {
     this.server = server;
     this.context = context;
     this.libraryFile = libraryFile;
-    this.librarySource = new UrlLibrarySource(libraryFile.toURI(), server.getLibraryManager());
+    URI fileUri = libraryFile.toURI();
+    URI shortUri = server.getLibraryManager().getShortUri(fileUri);
+    URI libUri = shortUri != null ? shortUri : fileUri;
+    this.librarySource = new UrlLibrarySource(libUri, server.getLibraryManager());
   }
 
   @Override
