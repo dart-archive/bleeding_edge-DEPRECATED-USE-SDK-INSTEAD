@@ -33,6 +33,6 @@ public class SystemLibraryManagerProviderDartCTest extends SystemLibraryManagerP
 
   @Override
   protected EditorLibraryManager getLibraryManager() {
-    return SystemLibraryManagerProvider.getVmLibraryManager();
+    return SystemLibraryManagerProvider.getAnyLibraryManager();
   }
 }
