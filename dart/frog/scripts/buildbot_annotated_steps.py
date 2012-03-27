@@ -63,7 +63,7 @@ def GetBuildInfo():
 
     elif web_pattern:
       compiler = 'frog'
-      runtime = web_pattern.grop(1)
+      runtime = web_pattern.group(1)
       mode = 'release'
       system = web_pattern.group(2)
 
