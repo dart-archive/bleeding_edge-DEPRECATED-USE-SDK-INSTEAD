@@ -64,10 +64,6 @@ public class DartDebugHover implements ITextHover, ITextHoverExtension2 {
     Object object = getHoverInfo2(textViewer, hoverRegion);
     if (object instanceof DartiumDebugVariable) {
       DartiumDebugVariable var = (DartiumDebugVariable) object;
-      // TODO(keertip): add support for non primitives
-      if (!var.isPrimitiveValue()) {
-        return null;
-      }
       return getVariableText(var);
     }
     return null;

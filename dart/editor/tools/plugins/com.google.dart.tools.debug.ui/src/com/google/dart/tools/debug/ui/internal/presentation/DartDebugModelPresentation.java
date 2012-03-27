@@ -37,6 +37,8 @@ import org.eclipse.ui.part.FileEditorInput;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A debug model presentation is responsible for providing labels, images, and editors associated
@@ -120,11 +122,11 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
     return null;
   }
 
-  public String getFormattedValueText(DartiumDebugValue value) {
+  public String getFormattedValueText(DartiumDebugValue value) throws DebugException {
     String valueString = "<unknown value>";
 
     if (value != null) {
-      valueString = value.getDisplayString();
+      valueString = getValueText(value);
 
       if (valueString == null) {
         valueString = "<unknown value>";
@@ -162,25 +164,42 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
   }
 
   /**
-   * Build the text for an {@link DartiumDebugValue}.
+   * Build the text for an {@link DartiumDebugValue}. This can be a long running call since we wait
+   * for the toString call to get back with the value.
    */
   public String getValueText(DartiumDebugValue value) throws DebugException {
-    String refTypeName = value.getReferenceTypeName();
 
     boolean isPrimitive = value.isPrimitive();
     boolean isArray = value.isList();
 
-    // Always show type name for objects & arrays (but not Strings)
-    if (!isPrimitive && (refTypeName.length() > 0)) {
-      //TODO(keertip): fill in for non primitives
-      if (isArray) {
+    final String valueString[] = new String[1];
+    
+    if (!isPrimitive) {
+   
+      final CountDownLatch latch = new CountDownLatch(1);
+      this.getClass();
 
+      computeDetail(value, new IValueDetailListener() {
+        @Override
+        public void detailComputed(IValue value, String result) {
+          valueString[0] = result;
+          latch.countDown();
+        }
+      });
+      try {
+        latch.await(3, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        return null;
       }
+      if (isArray) {
+        valueString[0] = "[" + valueString[0] + "]";
+      }
+      return valueString[0];
+
     } else {
       return value.getDisplayString();
     }
 
-    return null;
   }
 
   public String getVariableText(DartiumDebugVariable var) {
@@ -198,7 +217,12 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
     StringBuffer buff = new StringBuffer();
     buff.append(varLabel);
 
-    String valueString = getFormattedValueText(value);
+    String valueString = null;
+    try {
+      valueString = getFormattedValueText(value);
+    } catch (DebugException e) {
+      return null;
+    }
 
     if (valueString.length() != 0) {
       buff.append("= "); //$NON-NLS-1$
