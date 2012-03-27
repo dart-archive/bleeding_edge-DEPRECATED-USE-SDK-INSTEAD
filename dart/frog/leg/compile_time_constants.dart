@@ -20,6 +20,12 @@ class Constant implements Hashable {
   bool isObject() => false;
 
   abstract void writeJsCode(StringBuffer buffer, ConstantHandler handler);
+  /**
+    * Unless the constant can be emitted multiple times (as for numbers and
+    * strings) adds its canonical name to the buffer.
+    */
+  abstract void writeCanonicalizedJsCode(StringBuffer buffer,
+                                         ConstantHandler handler);
   abstract List<Constant> getDependencies();
 }
 
@@ -38,6 +44,10 @@ class PrimitiveConstant extends Constant {
   // Primitive constants don't have dependencies.
   List<Constant> getDependencies() => const <Constant>[];
   abstract DartString toDartString();
+
+  void writeCanonicalizedJsCode(StringBuffer buffer, ConstantHandler handler) {
+    writeJsCode(buffer, handler);
+  }
 }
 
 class NullConstant extends PrimitiveConstant {
@@ -245,6 +255,12 @@ class ObjectConstant extends Constant {
   // TODO(1603): The class should be marked as abstract, but the VM doesn't
   // currently allow this.
   abstract int hashCode();
+
+  void writeCanonicalizedJsCode(StringBuffer buffer, ConstantHandler handler) {
+    String name = handler.getNameForConstant(this);
+    String isolatePrototype = "${handler.compiler.namer.ISOLATE}.prototype";
+    buffer.add("$isolatePrototype.$name");
+  }
 }
 
 class ListConstant extends ObjectConstant {
@@ -268,12 +284,7 @@ class ListConstant extends ObjectConstant {
     for (int i = 0; i < entries.length; i++) {
       if (i != 0) buffer.add(", ");
       Constant entry = entries[i];
-      if (entry.isObject()) {
-        String name = handler.getNameForConstant(entry);
-        buffer.add("$isolatePrototype.$name");
-      } else {
-        entry.writeJsCode(buffer, handler);
-      }
+      entry.writeCanonicalizedJsCode(buffer, handler);
     }
     buffer.add("])");
   }
@@ -315,7 +326,6 @@ class MapConstant extends ObjectConstant {
   bool isMap() => true;
 
   void writeJsCode(StringBuffer buffer, ConstantHandler handler) {
-    String isolatePrototype = "${handler.compiler.namer.ISOLATE}.prototype";
 
     void writeJsMap() {
       buffer.add("{");
@@ -326,14 +336,7 @@ class MapConstant extends ObjectConstant {
         key.writeJsCode(buffer, handler);
         buffer.add(": ");
         Constant value = values[i];
-        // TODO(floitsch): share this code with the ListConstant and
-        // ConstructedConstant.
-        if (value.isObject()) {
-          String name = handler.getNameForConstant(value);
-          buffer.add("$isolatePrototype.$name");
-        } else {
-          value.writeJsCode(buffer, handler);
-        }
+        value.writeCanonicalizedJsCode(buffer, handler);
       }
       buffer.add("}");
     }
@@ -356,10 +359,7 @@ class MapConstant extends ObjectConstant {
       } else if (element.name == JS_OBJECT_NAME) {
         writeJsMap();
       } else if (element.name == KEYS_NAME) {
-        // TODO(floitsch): share this code with the ListConstant and
-        // ConstructedConstant.
-        String name = handler.getNameForConstant(keys);
-        buffer.add("$isolatePrototype.$name");
+        keys.writeCanonicalizedJsCode(buffer, handler);
       } else {
         // Skip methods.
         if (element.kind == ElementKind.FIELD) badFieldCountError();
@@ -417,17 +417,10 @@ class ConstructedConstant extends ObjectConstant {
     buffer.add("new ");
     buffer.add(handler.getJsConstructor(type.element));
     buffer.add("(");
-    String isolatePrototype = "${handler.compiler.namer.ISOLATE}.prototype";
     for (int i = 0; i < fields.length; i++) {
       if (i != 0) buffer.add(", ");
       Constant field = fields[i];
-      // TODO(floitsch): share this code with the ListConstant.
-      if (field.isObject()) {
-        String name = handler.getNameForConstant(field);
-        buffer.add("$isolatePrototype.$name");
-      } else {
-        field.writeJsCode(buffer, handler);
-      }
+      field.writeCanonicalizedJsCode(buffer, handler);
     }
     buffer.add(")");
   }
@@ -485,27 +478,28 @@ class ConstantHandler extends CompilerTask {
    * static field.
    */
   void compileWorkItem(WorkItem work) {
-    assert(work.element.kind == ElementKind.FIELD
-           || work.element.kind == ElementKind.PARAMETER
-           || work.element.kind == ElementKind.FIELD_PARAMETER);
-    VariableElement element = work.element;
-    // Shortcut if it has already been compiled.
-    if (initialVariableValues.containsKey(element)) return;
-    compileVariableWithDefinitions(element, work.resolutionTree);
-    assert(pendingVariables.isEmpty());
+    measure(() {
+      assert(work.element.kind == ElementKind.FIELD
+             || work.element.kind == ElementKind.PARAMETER
+             || work.element.kind == ElementKind.FIELD_PARAMETER);
+      VariableElement element = work.element;
+      // Shortcut if it has already been compiled.
+      if (initialVariableValues.containsKey(element)) return;
+      compileVariableWithDefinitions(element, work.resolutionTree);
+      assert(pendingVariables.isEmpty());
+    });
   }
 
   Constant compileVariable(VariableElement element) {
-    // TODO(floitsch): wrap this method in 'measure'.
-    if (initialVariableValues.containsKey(element)) {
-      Constant result = initialVariableValues[element];
-      return result;
-    }
-    // TODO(floitsch): keep track of currently compiling elements so that we
-    // don't end up in an infinite loop: final x = y; final y = x;
-    TreeElements definitions = compiler.analyzeElement(element);
-    Constant constant =  compileVariableWithDefinitions(element, definitions);
-    return constant;
+    return measure(() {
+      if (initialVariableValues.containsKey(element)) {
+        Constant result = initialVariableValues[element];
+        return result;
+      }
+      TreeElements definitions = compiler.analyzeElement(element);
+      Constant constant =  compileVariableWithDefinitions(element, definitions);
+      return constant;
+    });
   }
 
   Constant compileVariableWithDefinitions(VariableElement element,
@@ -697,8 +691,6 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
   }
 
   Constant visitLiteralBool(LiteralBool node) {
-    // TODO(floitsch): make BoolConstant a factory and cache the two values
-    // there.
     return new BoolConstant(node.value);
   }
 
