@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == dart2js ]
+[ $compiler == dart2js ]
 ClassTest: Fail
 StatementsTest: Fail
 TypedLocalsTest: Fail
@@ -13,5 +13,5 @@ OperatorTest: Skip
 StringInterpolationTest: Skip
 
 
-[ $component == frog || $component == frogsh || $component == legium ]
+[ $compiler == frog || $compiler == frogsh || $runtime == drt ]
 *: Skip

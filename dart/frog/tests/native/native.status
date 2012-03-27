@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $component == frog || $component == frogsh ]
+[ $compiler == frog || $compiler == frogsh ]
 NativePropertyFrogTest: Fail
 NativeMissingMethod1FrogTest: Fail # Issue 1912
 NativeWindow1FrogTest: Fail # Issue 1915
@@ -14,5 +14,5 @@ ForeignTest: Fail # Leg only test
 NativeCheckedFieldsFrogTest: Fail
 
 
-[ $component == webdriver || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == legium ]
+[ $compiler == dartc || $runtime == drt || $runtime == ie || $runtime == chrome || $runtime == safari || $runtime == ff || $runtime == opera ]
 *: Skip

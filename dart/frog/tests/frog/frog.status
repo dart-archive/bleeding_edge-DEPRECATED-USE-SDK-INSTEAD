@@ -10,22 +10,22 @@ PrototypePatchingTest: Skip            # TODO(jimhug): Fix flakiness uniformly
 [ $checked ]
 NativeCheckedFieldsFrogTest: Fail
 
-[ $component == frogsh && $checked]
+[ $compiler == frogsh && $checked]
 NodeProcessTest: Fail # Checked mode failure -- looked like it failed to find assert$WritableStream
 NativeCheckedFieldsFrogTest: Fail
 
 
-[ $component == vm || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == frog || $component == dart2js ]
+[ $runtime == vm || $compiler == dartc || $compiler == frog || $compiler == dart2js || $runtime == drt && $compiler == none ]
 Node*Test: Skip
 
 
-[ $component == frog || $component == frogsh || $component == dartc || $component == chromium || $component == dartium || $component == frogium || $component == dart2js ]
+[ $compiler == frog || $compiler == frogsh || $compiler == dartc || $runtime == drt && $compiler == none || $compiler == dart2js ]
 FrogServerTest: Skip
 
 
-[ $component == webdriver ]
+[ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == opera || $runtime == ff ]
 *: Skip
 
 
-[ $component == legium ]
+[ $compiler == dart2js && $runtime == drt ]
 *: Skip

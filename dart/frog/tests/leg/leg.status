@@ -5,8 +5,5 @@
 ConstantFoldingStringTest: Fail
 RedundantPhiEliminatorTest: Fail # Fails because of hack to allow aborting loops.
 
-[ $component == dartc || $component == frog || $component == frogsh || $component == frogium || $component == webdriver || $component == legium ]
-*: Skip # Leg uses #import('dart:io');
-
-[ $component == dart2js ]
-*: Skip # Leg is not self-hosted (yet).
+[ $compiler == dartc || $compiler == frog || $compiler == frogsh || $compiler == dart2js || $runtime == ie || $runtime == opera || $runtime == ff || $runtime == chrome || $runtime == safari ]
+*: Skip # Leg uses #import('dart:io'); and Leg is not self-hosted (yet).
