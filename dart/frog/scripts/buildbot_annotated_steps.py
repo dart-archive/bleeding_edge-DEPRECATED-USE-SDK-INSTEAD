@@ -28,18 +28,18 @@ NO_COLOR_ENV = dict(os.environ)
 NO_COLOR_ENV['TERM'] = 'nocolor'
 
 def GetBuildInfo():
-  """Returns a tuple (name, mode, system, browser, option) where:
-    - name: 'dart2js', 'frog', 'frogsh', 'frogium', or None when the
-      builder has an incorrect name
+  """Returns a tuple (compiler, runtime, mode, system, option) where:
+    - compiler: 'dart2js', 'frog', 'frogsh', or None when the builder has an 
+      incorrect name
+    - runtime: 'd8', 'ie', 'ff', 'safari', 'chrome', 'opera'
     - mode: 'debug' or 'release'
     - system: 'linux', 'mac', or 'win7'
-    - browser: 'ie', 'ff', 'safari', 'chrome'
     - option: 'checked'
   """
-  name = None
+  compiler = None
+  runtime = None
   mode = None
   system = None
-  browser = None
   builder_name = os.environ.get(BUILDER_NAME)
   option = None
   if builder_name:
@@ -49,20 +49,22 @@ def GetBuildInfo():
     web_pattern = re.match(WEB_BUILDER, builder_name)
 
     if dart2js_pattern:
-      name = 'dart2js'
+      compiler = 'dart2js'
+      runtime = 'd8'
       system = dart2js_pattern.group(1)
       mode = dart2js_pattern.group(2)
       option = dart2js_pattern.group(4)
 
     elif frog_pattern:
-      name = frog_pattern.group(1)
+      compiler = frog_pattern.group(1)
+      runtime = 'd8'
       system = frog_pattern.group(2)
       mode = frog_pattern.group(3)
 
     elif web_pattern:
-      name = 'frogium'
+      compiler = 'frog'
+      runtime = web_pattern.grop(1)
       mode = 'release'
-      browser = web_pattern.group(1)
       system = web_pattern.group(2)
 
       # TODO(jmesserly): do we want to do anything different for the second IE
@@ -72,16 +74,18 @@ def GetBuildInfo():
   if system == 'windows':
     system = 'win7'
 
-  return (name, mode, system, browser, option)
+  return (compiler, runtime, mode, system, option)
 
 
-def ComponentsNeedsXterm(component):
-  return component in ['frogsh', 'frogium', 'legium', 'webdriver']
+def NeedsXterm(compiler, runtime):
+  return compiler == 'frogsh' or runtime in ['ie', 'chrome', 'safari', 'opera',
+      'ff', 'drt']
 
-def TestStep(name, mode, system, component, targets, flags):
-  print '@@@BUILD_STEP %s tests: %s %s@@@' % (name, component, ' '.join(flags))
+def TestStep(name, mode, system, compiler, runtime, targets, flags):
+  print '@@@BUILD_STEP %s %s tests: %s %s@@@' % (name, compiler, runtime, 
+      ' '.join(flags))
   sys.stdout.flush()
-  if ComponentsNeedsXterm(component) and system == 'linux':
+  if NeedsXterm(compiler, runtime) and system == 'linux':
     cmd = ['xvfb-run', '-a']
   else:
     cmd = []
@@ -91,7 +95,8 @@ def TestStep(name, mode, system, component, targets, flags):
   cmd.extend([sys.executable,
               os.path.join(os.curdir, 'tools', 'test.py'),
               '--mode=' + mode,
-              '--component=' + component,
+              '--compiler=' + compiler,
+              '--runtime=' + runtime,
               '--time',
               '--report'])
 
@@ -111,11 +116,10 @@ def TestStep(name, mode, system, component, targets, flags):
   return exit_code
 
 
-def BuildFrog(component, mode, system):
+def BuildFrog(compiler, mode, system):
   """ build frog.
    Args:
-     - component: either 'dart2js', 'frog', 'frogsh' (frog
-       self-hosted), 'frogium' or 'legium'
+     - compiler: either 'dart2js', 'frog', 'frogsh' (frog self-hosted)
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
   """
@@ -129,14 +133,13 @@ def BuildFrog(component, mode, system):
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
-def TestFrog(component, mode, system, browser, option, flags):
+def TestFrog(compiler, runtime, mode, system, option, flags):
   """ test frog.
    Args:
-     - component: either 'dart2js', 'frog', 'frogsh' (frog
-       self-hosted), 'frogium', or 'legium'
+     - compiler: either 'dart2js', 'frog', or 'frogsh' (frog self-hosted)
+     - runtime: either 'd8', or one of the browsers, see GetBuildInfo
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
-     - browser: one of the browsers, see GetBuildInfo
      - option: 'checked'
      - flags: extra flags to pass to test.dart
   """
@@ -144,53 +147,44 @@ def TestFrog(component, mode, system, browser, option, flags):
   # Make sure we are in the frog directory
   os.chdir(DART_PATH)
 
-  # TODO(jmesserly): temporary workaround until we remove nodejs from the bots
-  if system == 'win7':
-    os.environ['PATH'] += ';c:\\Program Files (x86)\\nodejs\\'
-
-  if component == 'dart2js':
+  if compiler == 'dart2js':
     if (option == 'checked'):
       flags.append('--host-checked')
     # Leg isn't self-hosted (yet) so we run the leg unit tests on the VM.
-    TestStep("dart2js_unit", mode, system, 'vm', ['leg'], ['--checked'])
+    TestStep("dart2js_unit", mode, system, 'none', 'vm', ['leg'], ['--checked'])
 
     extra_suites = ['leg_only', 'frog_native']
-    TestStep("dart2js_extra", mode, system, 'dart2js', extra_suites, flags)
+    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extra_suites, 
+        flags)
 
-    TestStep("dart2js", mode, system, 'dart2js', [], flags)
+    TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
 
-  elif component != 'frogium': # frog and frogsh
-    TestStep("frog", mode, system, component, [], flags)
-    TestStep("frog_extra", mode, system,
-        component, ['frog', 'frog_native', 'peg', 'css'], flags)
-    TestStep("sdk", mode, system,
-        'vm', ['dartdoc'], flags)
+  elif runtime == 'd8' and compiler in ['frog', 'frogsh']:
+    TestStep("frog", mode, system, compiler, runtime, [], flags)
+    TestStep("frog_extra", mode, system, compiler, runtime,
+        ['frog', 'frog_native', 'peg', 'css'], flags)
+    TestStep("sdk", mode, system, 'none', 'vm', ['dartdoc'], flags)
 
   else:
     tests = ['client', 'language', 'corelib', 'isolate', 'frog',
              'frog_native', 'peg', 'css']
 
-    # TODO(jmesserly): make DumpRenderTree more like other browser tests, so
-    # we don't have this translation step. See dartbug.com/1158.
-    # Ideally we can run most Chrome tests in DumpRenderTree because it's more
-    # debuggable, but still have some tests run the full browser.
-    # Also: we don't have DumpRenderTree on Windows yet
     # TODO(efortuna): Move Mac back to DumpRenderTree when we have a more stable
     # solution for DRT. Right now DRT is flakier than regular Chrome for the
     # isolate tests, so we're switching to use Chrome in the short term.
-    if browser == 'chrome' and system == 'linux':
-      TestStep('browser', mode, system, 'frogium', tests, flags)
-      TestStep('browser_dart2js', mode, system, 'legium', [], flags)
-      TestStep('browser_dart2js_extra', mode, system, 'legium',
+    if runtime == 'chrome' and system == 'linux':
+      TestStep('browser', mode, system, 'frog', 'drt', tests, flags)
+      TestStep('browser_dart2js', mode, system, 'dart2js', 'drt', [], flags)
+      TestStep('browser_dart2js_extra', mode, system, 'dart2js', 'drt',
                ['leg_only', 'frog_native'], flags)
     else:
-      additional_flags = ['--browser=' + browser]
-      if system.startswith('win') and browser == 'ie':
+      additional_flags = []
+      if system.startswith('win') and runtime == 'ie':
         # There should not be more than one InternetExplorerDriver instance
         # running at a time. For details, see
         # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
         additional_flags += ['-j1']
-      TestStep(browser, mode, system, 'webdriver', tests,
+      TestStep(runtime, mode, system, compiler, runtime, tests,
           flags + additional_flags)
 
   return 0
@@ -235,30 +229,30 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
-  component, mode, system, browser, option = GetBuildInfo()
-  print "component: %s, mode: %s, system: %s, browser: %s, option: %s" % (
-      component, mode, system, browser, option)
-  if component is None:
+  compiler, runtime, mode, system, option = GetBuildInfo()
+  print "compiler: %s, runtime: %s mode: %s, system: %s, option: %s" % (
+      compiler, runtime, mode, system, option)
+  if compiler is None:
     return 1
 
-  status = BuildFrog(component, mode, system)
+  status = BuildFrog(compiler, mode, system)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
     return status
 
-  if component == 'dart2js':
-    status = TestFrog(component, mode, system, browser, option, [])
+  if compiler == 'dart2js':
+    status = TestFrog(compiler, runtime, mode, system, option, [])
     if status != 0:
       print '@@@STEP_FAILURE@@@'
     return status # Return unconditionally for dart2js.
 
-  if component != 'frogium' or (system == 'linux' and browser == 'chrome'):
-    status = TestFrog(component, mode, system, browser, None, [])
+  if runtime != 'd8' or (system == 'linux' and runtime == 'chrome'):
+    status = TestFrog(compiler, runtime, mode, system, None, [])
     if status != 0:
       print '@@@STEP_FAILURE@@@'
       return status
 
-  status = TestFrog(component, mode, system, browser, None, ['--checked'])
+  status = TestFrog(compiler, runtime, mode, system, None, ['--checked'])
   if status != 0:
     print '@@@STEP_FAILURE@@@'
 

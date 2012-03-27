@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 
-[ $component == dart2js || $component == legium ]
+[ $compiler == dart2js ]
 chat/ChatServerTest: Fail # Failed invariant in closure analyzer.
 lib/layout/LayoutTest: Fail #: ConstantHandler with this or super not implemented
 lib/view/ViewTest: Fail #: ConstantHandler with this or super not implemented
@@ -11,6 +11,6 @@ proxy/MintMakerRpcTest: Fail # TypeError: Cannot call method 'toSendPort$0' of u
 swarm/SwarmTest: Fail #: ConstantHandler with this or super not implemented
 
 
-[ $component == legium ]
+[ $compiler == dart2js && $runtime == drt ]
 dartcombat/DartCombatTest: Fail
 proxy/MintMakerRpcTest: Pass # Issue 2254.
