@@ -1973,8 +1973,8 @@ class SsaBuilder implements Visitor {
     String invocationName = compiler.namer.closureInvocationName(
         new Selector(SelectorKind.INVOCATION,
                      parameters.requiredParameterCount));
-    push(new HForeign(new SourceString('#.$invocationName'),
-                      const SourceString('var'),
+    push(new HForeign(new DartString.literal('#.$invocationName'),
+                      const LiteralDartString('var'),
                       inputs));
   }
 
