@@ -64,7 +64,7 @@ class SsaCodeGenerator implements HVisitor {
   final Compiler compiler;
   final WorkItem work;
   final StringBuffer buffer;
-  final StringBuffer parameters;
+  final String parameters;
 
   final Map<Element, String> parameterNames;
   final Map<int, String> names;
