@@ -105,6 +105,31 @@ class ShiftRightOperation extends BinaryIntOperation {
   }
 }
 
+class BinaryBoolOperation implements BinaryOperation {
+  const BinaryBoolOperation();
+  Constant fold(Constant left, Constant right) {
+    if (left.isBool() && right.isBool()) {
+      BoolConstant leftBool = left;
+      BoolConstant rightBool = right;
+      bool resultValue = foldBools(leftBool.value, rightBool.value);
+      return new BoolConstant(resultValue);
+    }
+    return null;
+  }
+
+  abstract bool foldBools(bool left, bool right);
+}
+
+class BooleanAnd extends BinaryBoolOperation {
+  const BooleanAnd();
+  bool foldBools(bool left, bool right) => left && right;
+}
+
+class BooleanOr extends BinaryBoolOperation {
+  const BooleanOr();
+  bool foldBools(bool left, bool right) => left || right;
+}
+
 class ArithmeticNumOperation implements BinaryOperation {
   const ArithmeticNumOperation();
   Constant fold(Constant left, Constant right) {

@@ -878,6 +878,12 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
         case "^":
           folded = const BitXorOperation().fold(left, right);
           break;
+        case "||":
+          folded = const BooleanOr().fold(left, right);
+          break;
+        case "&&":
+          folded = const BooleanAnd().fold(left, right);
+          break;
         case "<<":
           folded = const ShiftLeftOperation().fold(left, right);
           break;
