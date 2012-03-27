@@ -1127,10 +1127,46 @@ class SsaCodeGenerator implements HVisitor {
   }
 
   void checkType(HInstruction input, Element element) {
-    buffer.add('!!');
+    bool requiresNativeIsCheck =
+        compiler.emitter.nativeEmitter.requiresNativeIsCheck(element);
+    if (!requiresNativeIsCheck) buffer.add('!!');
     use(input, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
     buffer.add(compiler.namer.operatorIs(element));
+    if (requiresNativeIsCheck) buffer.add('()');
+  }
+
+  void handleStringSupertypeCheck(HInstruction input, Element element) {
+    // Make sure List and String don't share supertypes, otherwise we
+    // would need to check for List too.
+    assert(element !== compiler.listClass
+           && !Elements.isListSupertype(element, compiler));
+    beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+    checkString(input, '===');
+    buffer.add(' || ');
+    beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+    checkObject(input, '===');
+    buffer.add(' && ');
+    checkType(input, element);
+    endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+    endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+  }
+
+  void handleListOrSupertypeCheck(HInstruction input, Element element) {
+    // Make sure List and String don't share supertypes, otherwise we
+    // would need to check for String too.
+    assert(element !== compiler.stringClass
+           && !Elements.isStringSupertype(element, compiler));
+    beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+    checkObject(input, '===');
+    buffer.add(' && (');
+    beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+    checkArray(input, '===');
+    buffer.add(' || ');
+    checkType(input, element);
+    buffer.add(')');
+    endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+    endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
   }
 
   void visitIs(HIs node) {
@@ -1147,6 +1183,7 @@ class SsaCodeGenerator implements HVisitor {
       checkNull(input);
       buffer.add(' || ');
     }
+
     if (element === objectClass || element === compiler.dynamicClass) {
       // The constant folder also does this optimization, but we make
       // it safe by assuming it may have not run.
@@ -1167,78 +1204,22 @@ class SsaCodeGenerator implements HVisitor {
       buffer.add(' && ');
       checkInt(input, '===');
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+    } else if (Elements.isStringSupertype(element, compiler)) {
+        handleStringSupertypeCheck(input, element);
+    } else if (element === compiler.listClass
+               || Elements.isListSupertype(element, compiler)) {
+      handleListOrSupertypeCheck(input, element);
     } else {
       beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-      if (Elements.isStringSupertype(element, compiler)) {
-        checkString(input, '===');
-        buffer.add(' || ');
-      }
       checkObject(input, '===');
       buffer.add(' && ');
-      int precedence = JSPrecedence.PREFIX_PRECEDENCE;
-      bool endParen = false;
-      if (element === compiler.listClass
-          || Elements.isListSupertype(element, compiler)) {
-        buffer.add("(");
-        endParen = true;
-        beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
-        checkArray(input, '===');
-        buffer.add(' || ');
-        precedence = JSPrecedence.LOGICAL_OR_PRECEDENCE;
-      } else if (element.isClass() && (element.dynamic.isNative()
-                                       || isSupertypeOfNativeClass(element))) {
-        buffer.add("(");
-        endParen = true;
-      } else {
-        beginExpression(precedence);
-      }
-      checkType(input, node.typeExpression);
-      if (element.isClass() && (element.dynamic.isNative()
-                                || isSupertypeOfNativeClass(element))) {
-        buffer.add(' || ');
-        beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-        // First check if the object is not a Dart object. If the
-        // object is a Dart object, we know the property check was
-        // sufficient.
-        compiler.registerIsCheck(objectClass);
-        buffer.add('!');
-        use(input, JSPrecedence.MEMBER_PRECEDENCE);
-        buffer.add('.');
-        buffer.add(compiler.namer.operatorIs(objectClass));
-        buffer.add(' && ');
-        buffer.add(compiler.emitter.nativeEmitter.dynamicIsCheckName);
-        buffer.add('(');
-        use(input, JSPrecedence.MEMBER_PRECEDENCE);
-        buffer.add(", '${compiler.namer.operatorIs(node.typeExpression)}')");
-        endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-      }
-      endExpression(precedence);
-      if (endParen) buffer.add(')');
+      checkType(input, element);
       endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
     }
+
     if (node.nullOk) {
       endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
     }
-  }
-
-  bool isSupertypeOfNativeClass(Element element) {
-    if (element.isTypeVariable()) {
-      compiler.cancel("Is check for type variable", element: work.element);
-      return false;
-    }
-    if (element.computeType(compiler) is FunctionType) return false;
-
-    if (!element.isClass()) {
-      compiler.cancel("Is check does not handle element", element: element);
-      return false;
-    }
-
-    List<ClassElement> subtypes =
-        compiler.emitter.nativeEmitter.subtypes[element];
-    if (subtypes === null) return false;
-    compiler.registerStaticUse(compiler.findHelper(
-        const SourceString('dynamicIsCheck')));
-    return true;
   }
 }
 

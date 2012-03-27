@@ -165,7 +165,7 @@ function(child, parent) {
       String arguments = Strings.join(argumentsBuffer, ",");
       buffer.add('  return this.${namer.getName(member)}($arguments)');
   }
-    buffer.add('\n}\n');
+    buffer.add('\n};\n');
   }
 
   void addParameterStubs(FunctionElement member,
@@ -318,7 +318,13 @@ function(child, parent) {
       }
     }
     generateTypeTests(classElement, (Element other) {
-      buffer.add('${attachTo(namer.operatorIs(other))} = true;\n');
+      buffer.add('${attachTo(namer.operatorIs(other))} = ');
+      if (nativeEmitter.requiresNativeIsCheck(other)) {
+        buffer.add('function() { return true; }');
+      } else {
+        buffer.add('true');
+      }
+      buffer.add(';\n');
     });
 
     if (classElement === compiler.objectClass && compiler.enabledNoSuchMethod) {
@@ -335,17 +341,20 @@ function(child, parent) {
     if (compiler.universe.isChecks.contains(cls)) {
       generateTypeTest(cls);
     }
-    generateInterfacesIsTests(cls, generateTypeTest);
+    generateInterfacesIsTests(cls, generateTypeTest, new Set<Element>());
   }
 
   void generateInterfacesIsTests(ClassElement cls,
-                                 void generateTypeTest(ClassElement element)) {
+                                 void generateTypeTest(ClassElement element),
+                                 Set<Element> alreadyGenerated) {
     for (Type interfaceType in cls.interfaces) {
       Element element = interfaceType.element;
-      if (compiler.universe.isChecks.contains(element)) {
+      if (!alreadyGenerated.contains(element) &&
+          compiler.universe.isChecks.contains(element)) {
+        alreadyGenerated.add(element);
         generateTypeTest(element);
       }
-      generateInterfacesIsTests(element, generateTypeTest);
+      generateInterfacesIsTests(element, generateTypeTest, alreadyGenerated);
     }
   }
 

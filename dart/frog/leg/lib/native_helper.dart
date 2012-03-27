@@ -257,21 +257,3 @@ void dynamicSetMetadata(List<List<String>> inputTable) {
     _dynamicMetadata.add(new MetaInfo(tag, tags, set));
   }
 }
-
-// Initialized by the compiler.
-var isChecksHelper;
-
-// This method will be called for 'is' checks on native types.
-// It takes the object on which the 'is' check is being done, and the
-// property name for the type check. The method patches the real
-// prototype of the object with the value from the Dart object
-// (see [generateNativeClass]).
-bool dynamicIsCheck(obj, String typeName) {
-  if (isJsArray(obj)) return false;
-  // Check if the Dart object corresponding to this class has the property.
-  var res = JS('bool', '!!#[#][#]', isChecksHelper, getTypeNameOf(obj),
-      typeName);
-  var proto = JS('var', 'Object.getPrototypeOf(#)', obj);
-  defineProperty(proto, typeName, res);
-  return res;
-}

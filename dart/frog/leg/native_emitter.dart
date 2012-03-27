@@ -48,16 +48,9 @@ class NativeEmitter {
     return compiler.namer.isolateAccess(element);
   }
 
-  String get dynamicIsCheckName() {
+  String get defPropName() {
     Element element = compiler.findHelper(
-        const SourceString('dynamicIsCheck'));
-    return compiler.namer.isolateAccess(element);
-  }
-
-  String get isChecksHelperName() {
-    Element element = compiler.findHelper(
-        const SourceString('isChecksHelper'));
-    if (element === null) return null;
+        const SourceString('defineProperty'));
     return compiler.namer.isolateAccess(element);
   }
 
@@ -125,25 +118,11 @@ class NativeEmitter {
       }
     }
 
-    // Create an object that contains the is checks properties.
-    buffer.add('$isChecksHelperName.$nativeName = { ');
-    List<String> tests = <String>[];
-
-    ClassElement objectClass =
-        compiler.coreLibrary.find(const SourceString('Object'));
-    ClassElement element = classElement;
-    // We need to put the super class is checks too, since a check on
-    // the subclass can happen before a check on the super class
-    // (which does the patching on the prototype).
-    do {
-      compiler.emitter.generateTypeTests(element, (Element other) {
-        tests.add("${compiler.namer.operatorIs(other)}:true");
-      });
-      element = element.superclass;
-    } while (element !== objectClass);
-
-    buffer.add('${Strings.join(tests, ",")}');
-    buffer.add('};\n');
+    compiler.emitter.generateTypeTests(classElement, (Element other) {
+      assert(requiresNativeIsCheck(other));
+      buffer.add('${attachTo(compiler.namer.operatorIs(other))} = ');
+      buffer.add('function() { return true; };\n');
+    });
 
     if (hasUsedSelectors) classesWithDynamicDispatch.add(classElement);
   }
@@ -315,8 +294,40 @@ class NativeEmitter {
     }
   }
 
+  bool isSupertypeOfNativeClass(Element element) {
+    if (element.isTypeVariable()) {
+      compiler.cancel("Is check for type variable", element: work.element);
+      return false;
+    }
+    if (element.computeType(compiler) is FunctionType) return false;
+
+    if (!element.isClass()) {
+      compiler.cancel("Is check does not handle element", element: element);
+      return false;
+    }
+
+    return subtypes[element] !== null;
+  }
+
+  bool requiresNativeIsCheck(Element element) {
+    if (!element.isClass()) return false;
+    ClassElement cls = element;
+    if (cls.isNative()) return true;
+    return isSupertypeOfNativeClass(element);
+  }
+
+  void emitIsChecks(StringBuffer buffer) {
+    for (Element type in compiler.universe.isChecks) {
+      if (!requiresNativeIsCheck(type)) continue;
+      String name = compiler.namer.operatorIs(type);
+      buffer.add("$defPropName(Object.prototype, '$name', ");
+      buffer.add('function() { return false; });\n');
+    }
+  }
+
   void assembleCode(StringBuffer other) {
-    if (isChecksHelperName === null) return;
-    other.add('(function() { $isChecksHelperName = {};\n$buffer\n })();\n');
+    StringBuffer isChecks = new StringBuffer();
+    emitIsChecks(isChecks);
+    other.add('(function() {\n$isChecks$buffer\n})();\n');
   }
 }
