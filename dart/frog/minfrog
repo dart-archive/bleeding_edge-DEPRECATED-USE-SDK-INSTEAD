@@ -1087,7 +1087,6 @@ function HashMapImplementation_Dynamic$DoubleLinkedQueueEntry_KeyValuePair() {
   this._keys = new Array((8));
   this._values = new Array((8));
 }
-HashMapImplementation_Dynamic$DoubleLinkedQueueEntry_KeyValuePair.prototype.is$Map = function(){return true};
 HashMapImplementation_Dynamic$DoubleLinkedQueueEntry_KeyValuePair.prototype.remove$1 = HashMapImplementation_Dynamic$DoubleLinkedQueueEntry_KeyValuePair.prototype.remove;
 // ********** Code for HashMapImplementation_dart_core_String$dart_core_String **************
 $inherits(HashMapImplementation_dart_core_String$dart_core_String, HashMapImplementation);
@@ -1098,7 +1097,6 @@ function HashMapImplementation_dart_core_String$dart_core_String() {
   this._keys = new Array((8));
   this._values = new Array((8));
 }
-HashMapImplementation_dart_core_String$dart_core_String.prototype.is$Map = function(){return true};
 HashMapImplementation_dart_core_String$dart_core_String.prototype.remove$1 = HashMapImplementation_dart_core_String$dart_core_String.prototype.remove;
 // ********** Code for HashMapImplementation_dart_core_String$VariableValue **************
 $inherits(HashMapImplementation_dart_core_String$VariableValue, HashMapImplementation);
@@ -1109,7 +1107,6 @@ function HashMapImplementation_dart_core_String$VariableValue() {
   this._keys = new Array((8));
   this._values = new Array((8));
 }
-HashMapImplementation_dart_core_String$VariableValue.prototype.is$Map = function(){return true};
 HashMapImplementation_dart_core_String$VariableValue.prototype.remove$1 = HashMapImplementation_dart_core_String$VariableValue.prototype.remove;
 // ********** Code for HashMapImplementation_Library$Library **************
 $inherits(HashMapImplementation_Library$Library, HashMapImplementation);
@@ -1120,7 +1117,6 @@ function HashMapImplementation_Library$Library() {
   this._keys = new Array((8));
   this._values = new Array((8));
 }
-HashMapImplementation_Library$Library.prototype.is$Map = function(){return true};
 // ********** Code for HashMapImplementation_Member$Member **************
 $inherits(HashMapImplementation_Member$Member, HashMapImplementation);
 function HashMapImplementation_Member$Member() {
@@ -1130,7 +1126,16 @@ function HashMapImplementation_Member$Member() {
   this._keys = new Array((8));
   this._values = new Array((8));
 }
-HashMapImplementation_Member$Member.prototype.is$Map = function(){return true};
+// ********** Code for HashMapImplementation_Type$Map_dart_core_String$bool **************
+$inherits(HashMapImplementation_Type$Map_dart_core_String$bool, HashMapImplementation);
+function HashMapImplementation_Type$Map_dart_core_String$bool() {
+  this._numberOfEntries = (0);
+  this._numberOfDeleted = (0);
+  this._loadLimit = HashMapImplementation._computeLoadLimit((8));
+  this._keys = new Array((8));
+  this._values = new Array((8));
+}
+HashMapImplementation_Type$Map_dart_core_String$bool.prototype.remove$1 = HashMapImplementation_Type$Map_dart_core_String$bool.prototype.remove;
 // ********** Code for HashMapImplementation_Type$Type **************
 $inherits(HashMapImplementation_Type$Type, HashMapImplementation);
 function HashMapImplementation_Type$Type() {
@@ -1140,7 +1145,6 @@ function HashMapImplementation_Type$Type() {
   this._keys = new Array((8));
   this._values = new Array((8));
 }
-HashMapImplementation_Type$Type.prototype.is$Map = function(){return true};
 // ********** Code for HashSetImplementation **************
 function HashSetImplementation() {
   this._backingMap = new HashMapImplementation();
@@ -1222,26 +1226,22 @@ $inherits(HashSetImplementation_dart_core_String, HashSetImplementation);
 function HashSetImplementation_dart_core_String() {
   this._backingMap = new HashMapImplementation_dart_core_String$dart_core_String();
 }
-HashSetImplementation_dart_core_String.prototype.is$Collection = function(){return true};
 HashSetImplementation_dart_core_String.prototype.contains$1 = HashSetImplementation_dart_core_String.prototype.contains;
 // ********** Code for HashSetImplementation_Library **************
 $inherits(HashSetImplementation_Library, HashSetImplementation);
 function HashSetImplementation_Library() {
   this._backingMap = new HashMapImplementation_Library$Library();
 }
-HashSetImplementation_Library.prototype.is$Collection = function(){return true};
 // ********** Code for HashSetImplementation_Member **************
 $inherits(HashSetImplementation_Member, HashSetImplementation);
 function HashSetImplementation_Member() {
   this._backingMap = new HashMapImplementation_Member$Member();
 }
-HashSetImplementation_Member.prototype.is$Collection = function(){return true};
 // ********** Code for HashSetImplementation_Type **************
 $inherits(HashSetImplementation_Type, HashSetImplementation);
 function HashSetImplementation_Type() {
   this._backingMap = new HashMapImplementation_Type$Type();
 }
-HashSetImplementation_Type.prototype.is$Collection = function(){return true};
 HashSetImplementation_Type.prototype.contains$1 = HashSetImplementation_Type.prototype.contains;
 // ********** Code for HashSetIterator **************
 function HashSetIterator(set_) {
@@ -1544,7 +1544,6 @@ $inherits(DoubleLinkedQueue_KeyValuePair, DoubleLinkedQueue);
 function DoubleLinkedQueue_KeyValuePair() {
   this._sentinel = new _DoubleLinkedQueueEntrySentinel_KeyValuePair();
 }
-DoubleLinkedQueue_KeyValuePair.prototype.is$Collection = function(){return true};
 // ********** Code for _DoubleLinkedQueueIterator **************
 function _DoubleLinkedQueueIterator(_sentinel) {
   this._sentinel = _sentinel;
@@ -3377,6 +3376,7 @@ WorldGenerator.prototype.run = function() {
     var isolateMain = $globals.world.isolatelib.lookup("startRootIsolate", this.main.get$span());
     mainCall = isolateMain.invoke(this.mainContext, null, new TypeValue($globals.world.isolatelib.topType, this.main.get$span()), new Arguments(null, [this.main._get(this.mainContext, this.main.definition, null)]));
   }
+  this.typeEmittedTests = new HashMapImplementation_Type$Map_dart_core_String$bool();
   this.writeTypes($globals.world.coreimpl);
   this.writeTypes($globals.world.corelib);
   this.writeTypes(this.main.declaringType.get$library());
@@ -3547,20 +3547,43 @@ WorldGenerator.prototype._writePrototypePatch = function(type, name, functionBod
   }
 }
 WorldGenerator.prototype._maybeIsTest = function(onType, checkType) {
+  var $this = this; // closure support
   var isSubtype = onType.isSubtypeOf(checkType);
+  var onTypeMap = this.typeEmittedTests.$index(onType);
+  if ($eq$(onTypeMap)) this.typeEmittedTests.$setindex(onType, onTypeMap = new HashMapImplementation());
+  var protoParent = $eq$(onType.get$genericType(), onType) ? onType.get$parent() : onType.get$genericType();
+  function needToOverride(checkName) {
+    if (protoParent != null) {
+      var map0 = $this.typeEmittedTests.$index(protoParent);
+      if ($ne$(map0)) {
+        var protoParentIsSubtype = map0.$index(checkName);
+        if (protoParentIsSubtype != null && $eq$(protoParentIsSubtype, isSubtype)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
   if (checkType.isTested) {
-    this._writePrototypePatch(onType, ("is$" + checkType.get$jsname()), ("function(){return " + isSubtype + "}"), this.writer, true);
+    var checkName = ("is$" + checkType.get$jsname());
+    onTypeMap.$setindex(checkName, isSubtype);
+    if (needToOverride(checkName)) {
+      this._writePrototypePatch(onType, checkName, ("function(){return " + isSubtype + "}"), this.writer, true);
+    }
   }
   if (checkType.isChecked) {
-    var body = "return this";
     var checkName = ("assert$" + checkType.get$jsname());
-    if (!isSubtype) {
-      body = $globals.world.objectType.varStubs.$index(checkName).get$body();
+    onTypeMap.$setindex(checkName, isSubtype);
+    if (needToOverride(checkName)) {
+      var body = "return this";
+      if (!isSubtype) {
+        body = $globals.world.objectType.varStubs.$index(checkName).get$body();
+      }
+      else if ($eq$(onType, $globals.world.stringImplType) || $eq$(onType, $globals.world.numImplType)) {
+        body = ("return " + onType.get$nativeType().name + "(this)");
+      }
+      this._writePrototypePatch(onType, checkName, ("function(){" + body + "}"), this.writer, true);
     }
-    else if ($eq$(onType, $globals.world.stringImplType) || $eq$(onType, $globals.world.numImplType)) {
-      body = ("return " + onType.get$nativeType().name + "(this)");
-    }
-    this._writePrototypePatch(onType, checkName, ("function(){" + body + "}"), this.writer, true);
   }
 }
 WorldGenerator.prototype.writeType = function(type) {
@@ -12548,7 +12571,6 @@ $inherits(CopyOnWriteMap_dart_core_String$VariableValue, CopyOnWriteMap);
 function CopyOnWriteMap_dart_core_String$VariableValue() {
   this._lang_map = new _SharedBackingMap_dart_core_String$VariableValue();
 }
-CopyOnWriteMap_dart_core_String$VariableValue.prototype.is$Map = function(){return true};
 CopyOnWriteMap_dart_core_String$VariableValue.prototype.remove$1 = CopyOnWriteMap_dart_core_String$VariableValue.prototype.remove;
 // ********** Code for Value **************
 function Value(type, code, span) {

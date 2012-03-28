@@ -34,6 +34,12 @@ class WorldGenerator {
   /** */
   Set<Type> typesWithDynamicDispatch;
 
+  /**
+   * For a type, which type-checks are on the prototype chain, and to they match
+   * or not?  Type checks are in-predicates (x is T) and type assertions.
+   */
+  Map<Type, Map<String, bool>> typeEmittedTests;
+
   WorldGenerator(this.main, this.writer)
     : globals = {}, corejs = new CoreJs();
 
@@ -98,6 +104,8 @@ class WorldGenerator {
           new TypeValue(world.isolatelib.topType, main.span),
           new Arguments(null, [main._get(mainContext, main.definition, null)]));
     }
+
+    typeEmittedTests = new Map<Type, Map<String, bool>>();
 
     writeTypes(world.coreimpl);
     writeTypes(world.corelib);
@@ -300,25 +308,55 @@ class WorldGenerator {
 
   _maybeIsTest(Type onType, Type checkType) {
     bool isSubtype = onType.isSubtypeOf(checkType);
+
+    var onTypeMap = typeEmittedTests[onType];
+    if (onTypeMap == null) typeEmittedTests[onType] = onTypeMap = {};
+
+    Type protoParent = onType.genericType == onType
+        ? onType.parent
+        : onType.genericType;
+
+    needToOverride(checkName) {
+      if (protoParent != null) {
+        var map = typeEmittedTests[protoParent];
+        if (map != null) {
+          bool protoParentIsSubtype = map[checkName];
+          if (protoParentIsSubtype != null &&
+              protoParentIsSubtype == isSubtype) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
     if (checkType.isTested) {
-      // TODO(jmesserly): cache these functions? they just return true or false.
-      _writePrototypePatch(onType, 'is\$${checkType.jsname}',
-          'function(){return $isSubtype}', writer);
+      String checkName = 'is\$${checkType.jsname}';
+      onTypeMap[checkName] = isSubtype;
+      if (needToOverride(checkName)) {
+        // TODO(jmesserly): cache these functions? they just return true or
+        // false.
+        _writePrototypePatch(onType, checkName,
+            'function(){return $isSubtype}', writer);
+      }
     }
 
     if (checkType.isChecked) {
-      String body = 'return this';
       String checkName = 'assert\$${checkType.jsname}';
-      if (!isSubtype) {
-        // Get the code to throw a TypeError.
-        // TODO(jmesserly): it'd be nice not to duplicate this code, and instead
-        // be able to refer to the JS function.
-        body = world.objectType.varStubs[checkName].body;
-      } else if (onType == world.stringImplType
-          || onType == world.numImplType) {
-        body = 'return ${onType.nativeType.name}(this)';
+      onTypeMap[checkName] = isSubtype;
+      if (needToOverride(checkName)) {
+        String body = 'return this';
+        if (!isSubtype) {
+          // Get the code to throw a TypeError.
+          // TODO(jmesserly): it'd be nice not to duplicate this code, and
+          // instead be able to refer to the JS function.
+          body = world.objectType.varStubs[checkName].body;
+        } else if (onType == world.stringImplType
+                   || onType == world.numImplType) {
+          body = 'return ${onType.nativeType.name}(this)';
+        }
+        _writePrototypePatch(onType, checkName, 'function(){$body}', writer);
       }
-      _writePrototypePatch(onType, checkName, 'function(){$body}', writer);
     }
   }
 
