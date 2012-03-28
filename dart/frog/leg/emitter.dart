@@ -528,8 +528,12 @@ function(child, parent) {
     ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission();
     String prototype = "${namer.ISOLATE}.prototype";
-    emitMakeConstantList(prototype, buffer);
+    bool addedMakeConstantList = false;
     for (Constant constant in constants) {
+      if (!addedMakeConstantList && constant.isList()) {
+        addedMakeConstantList = true;
+        emitMakeConstantList(prototype, buffer);
+      }
       String name = handler.getNameForConstant(constant);
       buffer.add('$prototype.$name = ');
       handler.writeJsCode(buffer, constant);
