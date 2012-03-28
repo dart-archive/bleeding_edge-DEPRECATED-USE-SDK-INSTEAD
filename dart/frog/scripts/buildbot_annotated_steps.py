@@ -256,7 +256,8 @@ def main():
   if status != 0:
     print '@@@STEP_FAILURE@@@'
 
-  if compiler == 'frog' and runtime == 'drt':
+  if compiler == 'frog' and runtime in ['ff', 'chrome', 'safari', 'opera', 
+      'ie', 'drt']:
     CleanUpTemporaryFiles(system, browser)
   return status
 

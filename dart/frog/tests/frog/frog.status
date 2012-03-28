@@ -15,11 +15,11 @@ NodeProcessTest: Fail # Checked mode failure -- looked like it failed to find as
 NativeCheckedFieldsFrogTest: Fail
 
 
-[ $runtime == vm || $compiler == dartc || $compiler == frog || $compiler == dart2js || $runtime == drt && $compiler == none ]
+[ $runtime == vm || $compiler == dartc || $compiler == frog || $compiler == dart2js || ($runtime == drt && $compiler == none) ]
 Node*Test: Skip
 
 
-[ $compiler == frog || $compiler == frogsh || $compiler == dartc || $runtime == drt && $compiler == none || $compiler == dart2js ]
+[ $compiler == frog || $compiler == frogsh || $compiler == dartc || ($runtime == drt && $compiler == none) || $compiler == dart2js ]
 FrogServerTest: Skip
 
 
