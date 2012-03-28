@@ -666,6 +666,9 @@ public final class DartHeuristicScanner implements Symbols {
       case QUESTIONMARK:
         return TokenQUESTIONMARK;
       case EQUAL:
+        if (scanForward(pos + 1, pos + 2, '>') != NOT_FOUND) {
+          return TokenDEFUN;
+        }
         return TokenEQUAL;
       case LANGLE:
         return TokenLESSTHAN;
@@ -743,6 +746,9 @@ public final class DartHeuristicScanner implements Symbols {
       case LANGLE:
         return TokenLESSTHAN;
       case RANGLE:
+        if (scanBackward(pos - 1, pos - 2, '=') != NOT_FOUND) {
+          return TokenDEFUN;
+        }
         return TokenGREATERTHAN;
     }
 

@@ -33,6 +33,7 @@ public interface Symbols {
   int TokenEQUAL = 12;
   int TokenLESSTHAN = 13;
   int TokenGREATERTHAN = 14;
+  int TokenDEFUN = 15;
   // Keywords
   int TokenIF = 1009;
   int TokenDO = 1010;

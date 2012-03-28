@@ -66,6 +66,7 @@ public class DartIndenter {
     final int prefContinuationIndent;
     final boolean prefHasGenerics;
     final String prefTabChar;
+    final int prefDefunIndent;
 
     private final DartProject fProject;
 
@@ -102,6 +103,7 @@ public class DartIndenter {
         prefIndentBracesForTypes = false;
         prefHasGenerics = true;
         prefTabChar = JavaScriptCore.SPACE; // TODO(5401210)
+        prefDefunIndent = prefContinuationIndent;
       } else {
         prefUseTabs = prefUseTabs();
         prefTabSize = prefTabSize();
@@ -132,6 +134,7 @@ public class DartIndenter {
         prefIndentBracesForTypes = prefIndentBracesForTypes();
         prefHasGenerics = hasGenerics();
         prefTabChar = getCoreFormatterOption(DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR);
+        prefDefunIndent = prefDefunIndent();
       }
     }
 
@@ -210,14 +213,10 @@ public class DartIndenter {
     }
 
     private int prefCaseBlockIndent() {
-      if (true) {
-        return prefBlockIndent();
-      }
-
       if (DefaultCodeFormatterConstants.TRUE.equals(getCoreFormatterOption(DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_CASES))) {
         return prefBlockIndent();
       } else {
-        return 0;
+        return 1;
       }
     }
 
@@ -225,7 +224,7 @@ public class DartIndenter {
       if (DefaultCodeFormatterConstants.TRUE.equals(getCoreFormatterOption(DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_SWITCH))) {
         return prefBlockIndent();
       } else {
-        return 0;
+        return 1;
       }
     }
 
@@ -237,6 +236,10 @@ public class DartIndenter {
       }
 
       return 2; // sensible default
+    }
+
+    private int prefDefunIndent() {
+      return prefContinuationIndent();
     }
 
     private int prefIndentationSize() {
@@ -318,10 +321,6 @@ public class DartIndenter {
     }
 
     private boolean prefParenthesisDeepIndent() {
-      if (true) {
-        return false;
-      }
-
       String option = getCoreFormatterOption(DefaultCodeFormatterConstants.FORMATTER_CONTINUATION_INDENTATION);
       try {
         return DefaultCodeFormatterConstants.getIndentStyle(option) == DefaultCodeFormatterConstants.INDENT_ON_COLUMN;
@@ -608,6 +607,11 @@ public class DartIndenter {
       case Symbols.TokenEQUAL:
         // indent assignments
         fIndent = fPrefs.prefAssignmentIndent;
+        return fPosition;
+
+      case Symbols.TokenDEFUN:
+        // indent short-form functions
+        fIndent = fPrefs.prefDefunIndent;
         return fPosition;
 
       case Symbols.TokenCOLON:
