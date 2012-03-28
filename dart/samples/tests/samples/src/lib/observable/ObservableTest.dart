@@ -6,7 +6,7 @@
 
 #import('dart:html');
 #import('../../../../../ui_lib/observable/observable.dart');
-#import('../../../../../../client/testing/unittest/unittest_html.dart');
+#import('../../../../../../lib/unittest/unittest_html.dart');
 
 #source('AbstractObservableTests.dart');
 #source('ChangeEventTests.dart');

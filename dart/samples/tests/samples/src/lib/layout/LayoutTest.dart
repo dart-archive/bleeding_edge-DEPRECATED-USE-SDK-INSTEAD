@@ -9,7 +9,7 @@
 #import('../../../../../ui_lib/layout/layout.dart');
 #import('../../../../../ui_lib/view/view.dart');
 #import('../../../../../ui_lib/util/utilslib.dart');
-#import('../../../../../../client/testing/unittest/unittest_html.dart');
+#import('../../../../../../lib/unittest/unittest_html.dart');
 
 #source('GridLayoutDemo.dart');
 #source('GridExamples.dart');

@@ -7,7 +7,7 @@
 #import('dart:html');
 #import('../../../../../ui_lib/base/base.dart');
 #import('../../../../../ui_lib/view/view.dart');
-#import('../../../../../../client/testing/unittest/unittest_html.dart');
+#import('../../../../../../lib/unittest/unittest_html.dart');
 
 void main() {
   test('does not render immediately', () {

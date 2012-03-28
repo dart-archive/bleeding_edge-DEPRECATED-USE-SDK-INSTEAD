@@ -8,7 +8,7 @@
 #library("unittest");
 
 #import('../../../lib/node/node.dart');
-#source('../../../../client/testing/unittest/shared.dart');
+#source('../../../../lib/unittest/shared.dart');
 
 _platformInitialize() {
   // Do nothing.
