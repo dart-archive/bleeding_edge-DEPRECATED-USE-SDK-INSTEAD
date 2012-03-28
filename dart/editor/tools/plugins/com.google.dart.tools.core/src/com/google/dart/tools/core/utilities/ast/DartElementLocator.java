@@ -442,7 +442,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
         DartNode parent = node.getParent();
         if (parent instanceof DartImportDirective
             && ((DartImportDirective) parent).getLibraryUri() == node) {
-          resolvedElement = ((DartImportDirective) parent).getElement();
+          //resolvedElement = ((DartImportDirective) parent).getElement();
           DartLibrary library = compilationUnit.getLibrary();
           String libraryName = node.getValue();
           if (libraryName.startsWith("dart:")) {
@@ -475,7 +475,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
           }
         } else if (parent instanceof DartSourceDirective
             && ((DartSourceDirective) parent).getSourceUri() == node) {
-          resolvedElement = ((DartSourceDirective) parent).getElement();
+          //resolvedElement = ((DartSourceDirective) parent).getElement();
           DartLibrary library = compilationUnit.getLibrary();
           String fileName = getFileName(library, node.getValue());
           CompilationUnit sourcedUnit = library.getCompilationUnit(fileName);
@@ -484,7 +484,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
           }
         } else if (parent instanceof DartResourceDirective
             && ((DartResourceDirective) parent).getResourceUri() == node) {
-          resolvedElement = ((DartResourceDirective) parent).getElement();
+          //resolvedElement = ((DartResourceDirective) parent).getElement();
           DartLibrary library = compilationUnit.getLibrary();
           try {
             DartSource unitSource = compilationUnit.getSourceRef();
