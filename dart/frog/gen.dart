@@ -122,7 +122,13 @@ class WorldGenerator {
     writeDynamicDispatchMetadata();
 
     writeGlobals();
-    writer.writeln('${mainCall.code};');
+    writer.writeln("if (typeof window != 'undefined' && window.addEventListener) {");
+    writer.writeln("  window.addEventListener('DOMContentLoaded', function(e) {");
+    writer.writeln("    ${mainCall.code};");
+    writer.writeln("  });");
+    writer.writeln("} else {");
+    writer.writeln("  ${mainCall.code};");
+    writer.writeln("}");
   }
 
   void markLibrariesUsed(List<Library> libs) =>

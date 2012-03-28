@@ -1610,7 +1610,7 @@ StringBufferImpl.prototype.isEmpty = function() {
   return this._length == (0);
 }
 StringBufferImpl.prototype.add = function(obj) {
-  var str = obj.toString$0();
+  var str = obj.toString();
   if (null == str || str.isEmpty()) return this;
   this._buffer.add(str);
   this._length = this._length + str.length;
@@ -3383,7 +3383,13 @@ WorldGenerator.prototype.run = function() {
   if (this._mixins != null) this.writer.write(this._mixins.get$text());
   this.writeDynamicDispatchMetadata();
   this.writeGlobals();
-  this.writer.writeln(("" + mainCall.get$code() + ";"));
+  this.writer.writeln("if (typeof window != 'undefined' && window.addEventListener) {");
+  this.writer.writeln("  window.addEventListener('DOMContentLoaded', function(e) {");
+  this.writer.writeln(("    " + mainCall.get$code() + ";"));
+  this.writer.writeln("  });");
+  this.writer.writeln("} else {");
+  this.writer.writeln(("  " + mainCall.get$code() + ";"));
+  this.writer.writeln("}");
 }
 WorldGenerator.prototype.markLibrariesUsed = function(libs) {
   return this.getAllTypes(libs).forEach(this.get$markTypeUsed());
@@ -15042,4 +15048,10 @@ var const$0011 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "u
 var const$0012 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"]);
 var $globals = {};
 $static_init();
-main();
+if (typeof window != 'undefined' && window.addEventListener) {
+  window.addEventListener('DOMContentLoaded', function(e) {
+    main();
+  });
+} else {
+  main();
+}
