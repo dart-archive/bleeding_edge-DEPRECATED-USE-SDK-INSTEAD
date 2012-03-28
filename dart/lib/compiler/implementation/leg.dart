@@ -4,7 +4,7 @@
 
 #library('leg');
 
-#import('../../lib/uri/uri.dart');
+#import('../../uri/uri.dart');
 
 #import('colors.dart');
 #import('elements/elements.dart');

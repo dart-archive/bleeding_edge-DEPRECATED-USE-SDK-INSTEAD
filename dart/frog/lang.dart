@@ -33,4 +33,4 @@
 #source('frog_options.dart');
 #source('reader.dart');
 #source('var_member.dart');
-#source('leg/ssa/js_names.dart');
+#source('../lib/compiler/implementation/ssa/js_names.dart');

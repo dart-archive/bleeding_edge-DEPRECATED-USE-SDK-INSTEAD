@@ -6,9 +6,9 @@
 #library("compiler_helper");
 
 #import('../../../../lib/uri/uri.dart');
-#import("../../../leg/leg.dart", prefix: "leg");
-#import("../../../leg/elements/elements.dart", prefix: "lego");
-#import("../../../leg/ssa/ssa.dart", prefix: "ssa");
+#import("../../../../lib/compiler/implementation/leg.dart", prefix: "leg");
+#import("../../../../lib/compiler/implementation/elements/elements.dart", prefix: "lego");
+#import("../../../../lib/compiler/implementation/ssa/ssa.dart", prefix: "ssa");
 #import("parser_helper.dart");
 #import("mock_compiler.dart");
 

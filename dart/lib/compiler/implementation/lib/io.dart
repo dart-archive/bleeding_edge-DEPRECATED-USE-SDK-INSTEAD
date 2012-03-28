@@ -15,42 +15,42 @@
 // TODO(ahe): Should Leg support this library?
 // #import("dart:nativewrappers");
 #import("dart:uri");
-#source('../../../runtime/bin/buffer_list.dart');
-#source('../../../runtime/bin/common.dart');
-#source('../../../runtime/bin/chunked_stream.dart');
-#source('../../../runtime/bin/directory.dart');
+#source('../../../../runtime/bin/buffer_list.dart');
+#source('../../../../runtime/bin/common.dart');
+#source('../../../../runtime/bin/chunked_stream.dart');
+#source('../../../../runtime/bin/directory.dart');
 // Uses native keyword.
-// #source('../../../runtime/bin/directory_impl.dart');
+// #source('../../../../runtime/bin/directory_impl.dart');
 // Uses native keyword.
-// #source('../../../runtime/bin/eventhandler.dart');
-#source('../../../runtime/bin/file.dart');
+// #source('../../../../runtime/bin/eventhandler.dart');
+#source('../../../../runtime/bin/file.dart');
 // Uses native keyword.
-// #source('../../../runtime/bin/file_impl.dart');
-#source('../../../runtime/bin/http.dart');
-#source('../../../runtime/bin/http_impl.dart');
-#source('../../../runtime/bin/http_parser.dart');
-#source('../../../runtime/bin/http_utils.dart');
-#source('../../../runtime/bin/input_stream.dart');
-#source('../../../runtime/bin/list_stream.dart');
-#source('../../../runtime/bin/list_stream_impl.dart');
-#source('../../../runtime/bin/output_stream.dart');
-#source('../../../runtime/bin/stream_util.dart');
-#source('../../../runtime/bin/string_stream.dart');
-#source('../../../runtime/bin/platform.dart');
+// #source('../../../../runtime/bin/file_impl.dart');
+#source('../../../../runtime/bin/http.dart');
+#source('../../../../runtime/bin/http_impl.dart');
+#source('../../../../runtime/bin/http_parser.dart');
+#source('../../../../runtime/bin/http_utils.dart');
+#source('../../../../runtime/bin/input_stream.dart');
+#source('../../../../runtime/bin/list_stream.dart');
+#source('../../../../runtime/bin/list_stream_impl.dart');
+#source('../../../../runtime/bin/output_stream.dart');
+#source('../../../../runtime/bin/stream_util.dart');
+#source('../../../../runtime/bin/string_stream.dart');
+#source('../../../../runtime/bin/platform.dart');
 // Uses native keyword.
-// #source('../../../runtime/bin/platform_impl.dart');
-#source('../../../runtime/bin/process.dart');
+// #source('../../../../runtime/bin/platform_impl.dart');
+#source('../../../../runtime/bin/process.dart');
 // Uses native keyword.
-// #source('../../../runtime/bin/process_impl.dart');
-#source('../../../runtime/bin/socket.dart');
+// #source('../../../../runtime/bin/process_impl.dart');
+#source('../../../../runtime/bin/socket.dart');
 // Uses native keyword.
-// #source('../../../runtime/bin/socket_impl.dart');
-#source('../../../runtime/bin/socket_stream.dart');
-#source('../../../runtime/bin/socket_stream_impl.dart');
+// #source('../../../../runtime/bin/socket_impl.dart');
+#source('../../../../runtime/bin/socket_stream.dart');
+#source('../../../../runtime/bin/socket_stream_impl.dart');
 // Uses native keyword.
-// #source('../../../runtime/bin/stdio.dart');
-#source('../../../runtime/bin/timer.dart');
-#source('../../../runtime/bin/timer_impl.dart');
+// #source('../../../../runtime/bin/stdio.dart');
+#source('../../../../runtime/bin/timer.dart');
+#source('../../../../runtime/bin/timer_impl.dart');
 
 class _File implements File {
   factory File(arg) {

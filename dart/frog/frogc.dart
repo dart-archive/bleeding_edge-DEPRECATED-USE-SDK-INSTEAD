@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import('lang.dart', prefix: 'lang');
-#import('leg/frog_leg.dart', prefix: 'leg');
+#import('../lib/compiler/implementation/frog_leg.dart', prefix: 'leg');
 #import('minfrogc.dart', prefix: 'minfrogc');
 
 void main() {

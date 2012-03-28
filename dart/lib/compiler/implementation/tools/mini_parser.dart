@@ -6,7 +6,7 @@
 
 #import('dart:io');
 
-#import('../../../lib/utf/utf.dart');
+#import('../../../utf/utf.dart');
 
 #import('../elements/elements.dart');
 #import('../scanner/scanner_implementation.dart');

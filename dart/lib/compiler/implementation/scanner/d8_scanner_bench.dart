@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('d8_scanner_bench');
-#import('../../lib/node/node.dart');
+#import('../../node/node.dart');
 #import('scannerlib.dart');
 #import('scanner_implementation.dart');
 #import('scanner_bench.dart');

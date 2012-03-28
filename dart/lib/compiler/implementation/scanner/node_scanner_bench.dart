@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('node_scanner_bench');
-#import('../../lib/node/node.dart');
+#import('../../node/node.dart');
 #import('scannerlib.dart');
 #import('scanner_implementation.dart');
 #import('scanner_bench.dart');
-#import('../../../lib/utf/utf.dart');
+#import('../../../utf/utf.dart');
 #source('byte_strings.dart');
 #source('byte_array_scanner.dart');
 

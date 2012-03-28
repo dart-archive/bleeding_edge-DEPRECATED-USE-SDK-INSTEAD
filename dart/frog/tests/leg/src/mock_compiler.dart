@@ -6,11 +6,11 @@
 
 #import("../../../../lib/uri/uri.dart");
 
-#import("../../../leg/elements/elements.dart");
-#import("../../../leg/io/io.dart", prefix: 'io');
-#import("../../../leg/leg.dart");
-#import("../../../leg/tree/tree.dart");
-#import("../../../leg/util/util.dart");
+#import("../../../../lib/compiler/implementation/elements/elements.dart");
+#import("../../../../lib/compiler/implementation/io/io.dart", prefix: 'io');
+#import("../../../../lib/compiler/implementation/leg.dart");
+#import("../../../../lib/compiler/implementation/tree/tree.dart");
+#import("../../../../lib/compiler/implementation/util/util.dart");
 #import("parser_helper.dart");
 
 class WarningMessage {

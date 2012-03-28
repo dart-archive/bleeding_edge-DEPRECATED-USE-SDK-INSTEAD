@@ -4,10 +4,10 @@
 
 #library('frog_leg');
 
-#import('../../lib/uri/uri.dart');
+#import('../../uri/uri.dart');
 #import('source_file.dart');
-#import('../lang.dart', prefix: 'frog');
-#import('api.dart', prefix: 'api');
+#import('../../../frog/lang.dart', prefix: 'frog');
+#import('../compiler.dart', prefix: 'compiler');
 #import('io/io.dart', prefix: 'io');
 
 String relativize(Uri base, Uri uri) {
@@ -44,13 +44,12 @@ bool compile(frog.World world) {
   final throwOnError = frog.options.throwOnErrors;
   final showWarnings = frog.options.showWarnings;
   final allowMockCompilation = frog.options.allowMockCompilation;
-  // final compiler = new WorldCompiler(world, throwOnError);
   Uri cwd = new Uri(scheme: 'file', path: io.getCurrentDirectory());
   Uri uri = cwd.resolve(frog.options.dartScript);
   String frogLibDir = frog.options.libDir;
   if (!frogLibDir.endsWith("/")) frogLibDir = "$frogLibDir/";
   Uri frogLib = new Uri(scheme: 'file', path: frogLibDir);
-  Uri libraryRoot = frogLib.resolve('../leg/lib/');
+  Uri libraryRoot = frogLib.resolve('../../lib/compiler/implementation/lib/');
   Map<String, SourceFile> sourceFiles = <SourceFile>{};
 
   Future<String> provider(Uri uri) {
@@ -86,7 +85,8 @@ bool compile(frog.World world) {
 
   // TODO(ahe): We expect the future to be complete and call value
   // directly. In effect, we don't support truly asynchronous API.
-  String code = api.compile(uri, libraryRoot, provider, handler, options).value;
+  String code =
+    compiler.compile(uri, libraryRoot, provider, handler, options).value;
   if (code === null) return false;
   world.legCode = code;
   world.jsBytesWritten = code.length;

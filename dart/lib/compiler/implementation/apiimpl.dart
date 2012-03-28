@@ -8,9 +8,10 @@
 #import('elements/elements.dart', prefix: 'leg');
 #import('tree/tree.dart', prefix: 'leg');
 #import('ssa/tracer.dart', prefix: 'ssa');
-#import('../lang.dart', prefix: 'frog');
-#import('api.dart');
-#import('../../lib/uri/uri.dart');
+// TODO(ahe): Remove dependency on frog.
+#import('../../../frog/lang.dart', prefix: 'frog');
+#import('../compiler.dart');
+#import('../../uri/uri.dart');
 
 class Compiler extends leg.Compiler {
   ReadUriFromString provider;
@@ -53,21 +54,21 @@ class Compiler extends leg.Compiler {
     // TODO(ahe): Clean this up.
     if (uriName == 'dart:dom') {
       mockableLibraryUsed = true;
-      return libraryRoot.resolve('../../../lib/dom/frog/dom_frog.dart');
+      return libraryRoot.resolve('../../../../lib/dom/frog/dom_frog.dart');
     } else if (uriName == 'dart:html') {
       mockableLibraryUsed = true;
-      return libraryRoot.resolve('../../../lib/html/frog/html_frog.dart');
+      return libraryRoot.resolve('../../../../lib/html/frog/html_frog.dart');
     } else if (uriName == 'dart:json') {
-      return libraryRoot.resolve('../../../lib/json/json.dart');
+      return libraryRoot.resolve('../../../../lib/json/json.dart');
     } else if (uriName == 'dart:isolate') {
-      return libraryRoot.resolve('../../../lib/isolate/isolate_leg.dart');
+      return libraryRoot.resolve('../../../../lib/isolate/isolate_leg.dart');
     } else if (uriName == 'dart:io') {
       mockableLibraryUsed = true;
       return libraryRoot.resolve('io.dart');
     } else if (uriName == 'dart:utf') {
-      return libraryRoot.resolve('../../../lib/utf/utf.dart');
+      return libraryRoot.resolve('../../../../lib/utf/utf.dart');
     } else if (uriName == 'dart:uri') {
-      return libraryRoot.resolve('../../../lib/uri/uri.dart');
+      return libraryRoot.resolve('../../../../lib/uri/uri.dart');
     }
     reportError(node, "library not found $uriName");
   }

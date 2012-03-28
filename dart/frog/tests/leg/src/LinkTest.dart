@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('../../../leg/util/util.dart');
-#import('../../../leg/util/util_implementation.dart');
+#import('../../../../lib/compiler/implementation/util/util.dart');
+#import('../../../../lib/compiler/implementation/util/util_implementation.dart');
 
 main() {
   test(new Link<Comparable>('three').prepend(2).prepend('one'),

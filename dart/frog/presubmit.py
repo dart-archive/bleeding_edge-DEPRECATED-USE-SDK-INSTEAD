@@ -127,7 +127,7 @@ def main():
 
   if args:
     if options.leg_only:
-      test_cmd.append('--component=dart2js')
+      test_cmd.extend('--compiler=dart2js', '--runtime=d8')
     else:
       test_cmd.append('--component=frogsh,dart2js')
     test_cmd.extend(args)
@@ -153,21 +153,22 @@ def main():
 
     # Run the "utils" tests which includes dartdoc. Frog/leg changes often
     # break dartdoc and this tries to catch those.
-    cmd = test_cmd + ['--component=vm', 'utils']
+    cmd = test_cmd + ['--compiler=none', '--runtime=vm', 'utils']
     RunCommand(*cmd, verbose=True)
 
     # Run leg unit tests.
-    cmd = test_cmd + ['--component=vm', 'leg']
+    cmd = test_cmd + ['--compiler=none', '--runtime=vm', 'leg']
     RunCommand(*cmd, verbose=True)
 
     # Leg does not implement checked mode yet.
     test_cmd.remove('--checked')
 
-    cmd = test_cmd + ['--component=dart2js', 'leg_only', 'frog_native']
+    cmd = test_cmd + ['--compiler=dart2js', '--runtime=d8',
+                      'leg_only', 'frog_native']
     RunCommand(*cmd, verbose=True)
 
     # Run dart2js and legium on "built-in" tests.
-    cmd = test_cmd + ['--component=dart2js,legium']
+    cmd = test_cmd + ['--compiler=dart2js', '--runtime=d8,drt']
     RunCommand(*cmd, verbose=True)
 
 

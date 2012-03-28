@@ -7,10 +7,10 @@
 #import('dart:io');
 #import('dart:utf');
 
-#import('../../lib/uri/uri.dart');
-#import('../../frog/leg/api.dart', prefix: 'api');
-#import('../../frog/leg/io/io.dart', prefix: 'io');
-#import('../../frog/leg/colors.dart');
+#import('../../uri/uri.dart');
+#import('../compiler.dart', prefix: 'api');
+#import('io/io.dart', prefix: 'io');
+#import('colors.dart');
 #import('source_file.dart');
 
 String relativize(Uri base, Uri uri) {

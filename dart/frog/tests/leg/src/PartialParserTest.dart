@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import('parser_helper.dart');
-#import('../../../leg/scanner/scannerlib.dart');
+#import('../../../../lib/compiler/implementation/scanner/scannerlib.dart');
 
 void main() {
   testSkipExpression();

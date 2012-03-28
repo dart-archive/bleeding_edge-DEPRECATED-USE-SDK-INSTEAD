@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import('parser_helper.dart');
-#import("../../../leg/tree/tree.dart");
+#import("../../../../lib/compiler/implementation/tree/tree.dart");
 
 void testStatement(String statement) {
   Node node = parseStatement(statement);

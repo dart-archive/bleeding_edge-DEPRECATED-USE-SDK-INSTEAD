@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import('../../../../lib/utf/utf.dart');
-#import('../../../leg/scanner/scannerlib.dart');
-#import('../../../leg/scanner/scanner_implementation.dart');
-#import('../../../leg/util/characters.dart');
-#source('../../../leg/scanner/byte_strings.dart');
-#source('../../../leg/scanner/byte_array_scanner.dart');
+#import('../../../../lib/compiler/implementation/scanner/scannerlib.dart');
+#import('../../../../lib/compiler/implementation/scanner/scanner_implementation.dart');
+#import('../../../../lib/compiler/implementation/util/characters.dart');
+#source('../../../../lib/compiler/implementation/scanner/byte_strings.dart');
+#source('../../../../lib/compiler/implementation/scanner/byte_array_scanner.dart');
 
 Token scan(List<int> bytes) => new ByteArrayScanner(bytes).tokenize();
 
