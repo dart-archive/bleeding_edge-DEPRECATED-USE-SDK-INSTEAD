@@ -35,9 +35,8 @@ import java.net.URI;
  * system library managers} used by the tools.
  */
 public class SystemLibraryManagerProvider {
-  private static final String IMPORT_CONFIG = "import.config";
   private static final Object lock = new Object();
-  private static EditorLibraryManager VM_LIBRARY_MANAGER;
+  private static EditorLibraryManager ANY_LIBRARY_MANAGER;
 
   private static AnalysisServer defaultAnalysisServer;
 
@@ -49,7 +48,7 @@ public class SystemLibraryManagerProvider {
   public static AnalysisServer getDefaultAnalysisServer() {
     synchronized (lock) {
       if (defaultAnalysisServer == null) {
-        defaultAnalysisServer = new AnalysisServer(getVmLibraryManager());
+        defaultAnalysisServer = new AnalysisServer(getAnyLibraryManager());
         defaultAnalysisServer.addAnalysisListener(new AnalysisMarkerManager(defaultAnalysisServer));
         defaultAnalysisServer.addAnalysisListener(new AnalysisIndexManager());
         // TODO (danrubel) merge ResourceChangeListener with delta processor
@@ -65,63 +64,35 @@ public class SystemLibraryManagerProvider {
    * Return the default library manager.
    */
   public static EditorLibraryManager getSystemLibraryManager() {
-    return getVmLibraryManager();
+    return getAnyLibraryManager();
   }
 
   /**
    * Return the manager for VM libraries
    */
-  public static EditorLibraryManager getVmLibraryManager() {
+  public static EditorLibraryManager getAnyLibraryManager() {
     synchronized (lock) {
-      if (VM_LIBRARY_MANAGER == null) {
-        VM_LIBRARY_MANAGER = new EditorLibraryManager() {
-
-          /**
-           * Return the SDK "lib" directory
-           */
-          @Override
-          public File getLibrariesDir() {
-            DartSdk sdk = DartSdk.getInstance();
-            if (sdk == null) {
-              DartCore.logError("Missing SDK");
-            }
-            File libDir = sdk.getLibraryDirectory();
-            if (!libDir.exists()) {
-              DartCore.logError("Missing libraries directory: " + libDir);
-            }
-            File librariesDir = libDir;
-            if (DartCoreDebug.DARTLIB) {
-              DartCore.logInformation("Reading bundled libraries from " + librariesDir);
-            }
-            return librariesDir;
-          }
-
-          @Override
-          protected URI getBaseUri() {
-            return DartSdk.getInstallDirectory().toURI();
-          }
-
-          @Override
-          protected InputStream getImportConfigStream() {
-            File file = new File(getLibrariesDir(), IMPORT_CONFIG);
-            if (!file.exists()) {
-              throw new AssertionFailedException("Failed to find " + IMPORT_CONFIG);
-            }
-            try {
-              return new BufferedInputStream(new FileInputStream(file));
-            } catch (FileNotFoundException e) {
-              throw new AssertionFailedException("Failed to open " + file);
-            }
-          }
-
-          @Override
-          protected String getPlatformName() {
-            return "runtime";
-          }
-        };
+      if (ANY_LIBRARY_MANAGER == null) {
+        
+        DartSdk sdk = DartSdk.getInstance();
+        if (sdk == null) {
+          DartCore.logError("Missing SDK");
+          return null;
+        }
+        
+        File sdkDir = sdk.getDirectory();
+        if (!sdkDir.exists()) {
+          DartCore.logError("Missing libraries directory: " + sdkDir);
+          return null;
+        }
+        
+        DartCore.logInformation("Reading bundled libraries from " + sdkDir);
+        
+        ANY_LIBRARY_MANAGER = new EditorLibraryManager(sdkDir, "any");
+        
       }
     }
-    return VM_LIBRARY_MANAGER;
+    return ANY_LIBRARY_MANAGER;
   }
 
   /**

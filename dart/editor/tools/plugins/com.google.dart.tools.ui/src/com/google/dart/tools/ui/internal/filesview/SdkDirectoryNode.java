@@ -74,7 +74,7 @@ class SdkDirectoryNode {
     if (libraries == null) {
       List<SdkLibraryNode> libs = new ArrayList<SdkLibraryNode>();
 
-      File file = SystemLibraryManagerProvider.getSystemLibraryManager().getLibrariesDir();
+      File file = SystemLibraryManagerProvider.getSystemLibraryManager().getSdkLibPath();
 
       for (File child : file.listFiles()) {
         if (child.isDirectory()) {
