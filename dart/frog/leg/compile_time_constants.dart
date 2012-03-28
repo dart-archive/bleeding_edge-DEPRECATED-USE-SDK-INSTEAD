@@ -532,7 +532,7 @@ class ConstantHandler extends CompilerTask {
     return measure(() {
       assert(node !== null);
       CompileTimeConstantEvaluator evaluator =
-          new CompileTimeConstantEvaluator(this, definitions, compiler);
+          new CompileTimeConstantEvaluator(definitions, compiler);
       return evaluator.evaluate(node);
     });
   }
@@ -666,21 +666,10 @@ class ConstantHandler extends CompilerTask {
 }
 
 class CompileTimeConstantEvaluator extends AbstractVisitor {
-  final ConstantHandler constantHandler;
   final TreeElements elements;
   final Compiler compiler;
-  final Map<Element, Constant> definitions = null;
 
-  CompileTimeConstantEvaluator(this.constantHandler,
-                               this.elements,
-                               this.compiler);
-
-  CompileTimeConstantEvaluator.insideConstructor(this.constantHandler,
-                                                 this.elements,
-                                                 this.compiler,
-                                                 this.definitions);
-
-  bool insideConstructor() => definitions !== null;
+  CompileTimeConstantEvaluator(this.elements, this.compiler);
 
   Constant evaluate(Node node) {
     return node.accept(this);
@@ -713,7 +702,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     // TODO(floitsch): get type from somewhere.
     Type type = null;
     Constant constant = new ListConstant(type, arguments);
-    constantHandler.registerCompileTimeConstant(constant);
+    compiler.constantHandler.registerCompileTimeConstant(constant);
     return constant;
   }
 
@@ -747,7 +736,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     // TODO(floitsch): this should be a List<String> type.
     Type keysType = null;
     ListConstant keysList = new ListConstant(keysType, keys);
-    constantHandler.registerCompileTimeConstant(keysList);
+    compiler.constantHandler.registerCompileTimeConstant(keysList);
     ClassElement classElement =
         compiler.jsHelperLibrary.find(MapConstant.DART_CLASS);
     classElement.ensureResolved(compiler);
@@ -755,7 +744,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     Type type = new SimpleType(classElement.name, classElement);
     compiler.registerInstantiatedClass(classElement);
     Constant constant = new MapConstant(type, keysList, values);
-    constantHandler.registerCompileTimeConstant(constant);
+    compiler.constantHandler.registerCompileTimeConstant(constant);
     return constant;
   }
 
@@ -802,7 +791,7 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           !element.modifiers.isFinal()) {
         error(send);
       }
-      return constantHandler.compileVariable(element);
+      return compiler.compileVariable(element);
     } else if (send.isPrefix) {
       assert(send.isOperator);
       Constant receiverConstant = evaluate(send.receiver);
@@ -824,13 +813,6 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
       }
       if (folded === null) error(send);
       return folded;
-    } else if (Elements.isLocal(element)) {
-      if (!insideConstructor()) error(send);
-      Constant constant = definitions[element];
-      if (constant === null) {
-        compiler.internalError("Local variable without value", node: send);
-      }
-      return constant;
     } else if (send.isOperator && !send.isPostfix) {
       assert(send.argumentCount() == 1);
       Constant left = evaluate(send.receiver);
@@ -931,126 +913,44 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     error(node);
   }
 
+  /** Returns the list of constants that are passed to the static function. */
+  List<Constant> evaluateArgumentsToConstructor(Send send,
+                                                FunctionElement target) {
+    FunctionParameters parameters = target.computeParameters(compiler);
+    List<Constant> arguments = <Constant>[];
+    Selector selector = elements.getSelector(send);
+
+    Function compileArgument = evaluate;
+    Function compileConstant = compiler.compileVariable;
+    bool succeeded = selector.addSendArgumentsToList(
+        send, arguments, parameters, compileArgument, compileConstant);
+    if (!succeeded) error(send);
+    return arguments;
+  }
+
   Constant visitNewExpression(NewExpression node) {
-    Element currentElement = compiler.currentElement;
-
-    void assignArgumentsToParameters(
-        FunctionParameters parameters,
-        Map<Element, Constant> constructorDefinitions,
-        Map<Element, Constant> fieldValues) {
-      Send send = node.send;
-      if (send.arguments.isEmpty() && parameters.parameterCount == 0) return;
-      List<Constant> arguments = <Constant>[];
-      Selector selector = elements.getSelector(send);
-
-      Function compileArgument = evaluate;
-      Function compileConstant = constantHandler.compileVariable;
-      bool succeeded = selector.addSendArgumentsToList(
-          send, arguments, parameters, compileArgument, compileConstant);
-      if (!succeeded) error(node);
-
-      int index = 0;
-      parameters.forEachParameter((Element parameter) {
-        Constant argument = arguments[index++];
-        constructorDefinitions[parameter] = argument;
-        if (parameter.kind == ElementKind.FIELD_PARAMETER) {
-          FieldParameterElement fieldParameterElement = parameter;
-          fieldValues[fieldParameterElement.fieldElement] = argument;
-        }
-      });
-    }
-
-    void compileInitializers(Link<Node> initializers,
-                             CompileTimeConstantEvaluator evaluator,
-                             TreeElements constructorElements,
-                             Map<Element, Constant> constructorDefinitions,
-                             Map<Element, Constant> fieldValues) {
-      for (Link<Node> link = initializers; !link.isEmpty(); link = link.tail) {
-        assert(link.head is Send);
-        if (link.head is !SendSet) {
-          // A super initializer or constructor redirection.
-          Send call = link.head;
-          assert(Initializers.isSuperConstructorCall(call) ||
-                 Initializers.isConstructorRedirect(call));
-          compiler.unimplemented("ConstantHandler with this or super",
-                                 node: call);
-        } else {
-          // A field initializer.
-          SendSet init = link.head;
-          Link<Node> arguments = init.arguments;
-          assert(!arguments.isEmpty() && arguments.tail.isEmpty());
-          Constant fieldValue = evaluator.evaluate(arguments.head);
-          fieldValues[constructorElements[init]] = fieldValue;
-        }
-      }
-    }
-
-    List<Constant> buildJsNewArguments(ClassElement classElement,
-                                       Map<Element, Constant> fieldValues) {
-      List<Constant> jsNewArguments = <Constant>[];
-      for (Element member in classElement.members) {
-        if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
-          Constant fieldValue = fieldValues[member];
-          if (fieldValue === null) {
-            // Use the default value.
-            fieldValue = constantHandler.compileVariable(member);
-          }
-          jsNewArguments.add(fieldValue);
-        }
-      }
-      if (classElement.superclass != compiler.coreLibrary.find(Types.OBJECT)) {
-        compiler.withCurrentElement(currentElement, () {
-          compiler.unimplemented("ConstantHandler with super", node: node);
-        });
-      }
-      return jsNewArguments;
-    }
-
     if (!node.isConst()) error(node);
 
     FunctionElement constructor = elements[node.send];
-    TreeElements constructorElements =
-        compiler.resolver.resolveMethodElement(constructor);
-    if (constructor != constructor.defaultImplementation) {
+    ClassElement classElement = constructor.enclosingElement;
+    if (classElement.isInterface()) {
+      compiler.resolver.resolveMethodElement(constructor);
       constructor = constructor.defaultImplementation;
-      constructorElements =
-          compiler.resolver.resolveMethodElement(constructor);
+      classElement = constructor.enclosingElement;
     }
 
-    List<Constant> jsNewArguments;
-    ClassElement classElement = constructor.enclosingElement;
-    compiler.withCurrentElement(constructor, () {
-      FunctionExpression functionNode = constructor.parseNode(compiler);
-      NodeList initializerList = functionNode.initializers;
-      FunctionParameters parameters = constructor.computeParameters(compiler);
-
-      Map<Element, Constant> fieldValues = new Map<Element, Constant>();
-      Map<Element, Constant> constructorDefinitions =
-          new Map<Element, Constant>();
-
-      assignArgumentsToParameters(parameters, constructorDefinitions,
-                                  fieldValues);
-      CompileTimeConstantEvaluator initializerEvaluator =
-          new CompileTimeConstantEvaluator.insideConstructor(
-              constantHandler, constructorElements, compiler,
-              constructorDefinitions);
-      if (initializerList !== null) {
-        Link<Node> initializers = functionNode.initializers.nodes;
-        compileInitializers(initializers,
-                            initializerEvaluator,
-                            constructorElements,
-                            constructorDefinitions,
-                            fieldValues);
-      }
-      jsNewArguments = buildJsNewArguments(classElement, fieldValues);
-    });
-
+    List<Constant> arguments =
+        evaluateArgumentsToConstructor(node.send, constructor);
+    ConstructorEvaluator evaluator =
+        new ConstructorEvaluator(constructor, compiler);
+    evaluator.evaluateConstructorFieldValues(arguments);
+    List<Constant>jsNewArguments = evaluator.buildJsNewArguments(classElement);
 
     compiler.registerInstantiatedClass(classElement);
     // TODO(floitsch): take generic types into account.
     Type type = classElement.computeType(compiler);
     Constant constant = new ConstructedConstant(type, jsNewArguments);
-    constantHandler.registerCompileTimeConstant(constant);
+    compiler.constantHandler.registerCompileTimeConstant(constant);
     return constant;
   }
 
@@ -1063,5 +963,142 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
     // and present some kind of stack-trace.
     MessageKind kind = MessageKind.NOT_A_COMPILE_TIME_CONSTANT;
     compiler.reportError(node, new CompileTimeConstantError(kind, const []));
+  }
+}
+
+class ConstructorEvaluator extends CompileTimeConstantEvaluator {
+  FunctionElement constructor;
+  final Map<Element, Constant> definitions;
+  final Map<Element, Constant> fieldValues;
+
+  ConstructorEvaluator(FunctionElement constructor, Compiler compiler)
+      : this.constructor = constructor,
+        this.definitions = new Map<Element, Constant>(),
+        this.fieldValues = new Map<Element, Constant>(),
+        super(compiler.resolver.resolveMethodElement(constructor),
+              compiler);
+
+  Constant visitSend(Send send) {
+    Element element = elements[send];
+    if (Elements.isLocal(element)) {
+      Constant constant = definitions[element];
+      if (constant === null) {
+        compiler.internalError("Local variable without value", node: send);
+      }
+      return constant;
+    }
+    return super.visitSend(send);
+  }
+
+  /**
+   * Given the arguments (a list of constants) assigns them to the parameters,
+   * updating the definitions map. If the constructor has field-initializer
+   * parameters (like [:this.x:]), also updates the [fieldValues] map.
+   */ 
+  void assignArgumentsToParameters(List<Constant> arguments) {
+    // Assign arguments to parameters.
+    FunctionParameters parameters = constructor.computeParameters(compiler);
+    int index = 0;
+    parameters.forEachParameter((Element parameter) {
+      Constant argument = arguments[index++];
+      definitions[parameter] = argument;
+      if (parameter.kind == ElementKind.FIELD_PARAMETER) {
+        FieldParameterElement fieldParameterElement = parameter;
+        fieldValues[fieldParameterElement.fieldElement] = argument;
+      }
+    });    
+  }
+
+  void evaluateSuperOrRedirectSend(FunctionElement targetConstructor,
+                                   List<Constant> targetArguments) {
+    ConstructorEvaluator evaluator =
+        new ConstructorEvaluator(targetConstructor, compiler);
+    evaluator.evaluateConstructorFieldValues(targetArguments);
+    // Copy over the fieldValues from the super/redirect-constructor.
+    evaluator.fieldValues.forEach((key, value) => fieldValues[key] = value);
+  }
+
+  /**
+   * Runs through the initializers of the given [constructor] and updates
+   * the [fieldValues] map.
+   */
+  void evaluateConstructorInitializers() {
+    FunctionExpression functionNode = constructor.parseNode(compiler);
+    NodeList initializerList = functionNode.initializers;
+
+    bool foundSuperOrRedirect = false;
+
+    if (initializerList !== null) {
+      for (Link<Node> link = initializerList.nodes;
+           !link.isEmpty();
+           link = link.tail) {
+        assert(link.head is Send);
+        if (link.head is !SendSet) {
+          // A super initializer or constructor redirection.
+          Send call = link.head;
+          FunctionElement targetConstructor = elements[call];
+          List<Constant> targetArguments =
+              evaluateArgumentsToConstructor(call, targetConstructor);
+          evaluateSuperOrRedirectSend(targetConstructor, targetArguments);
+          foundSuperOrRedirect = true;
+        } else {
+          // A field initializer.
+          SendSet init = link.head;
+          Link<Node> initArguments = init.arguments;
+          assert(!initArguments.isEmpty() && initArguments.tail.isEmpty());
+          Constant fieldValue = evaluate(initArguments.head);
+          fieldValues[elements[init]] = fieldValue;
+        }
+      }
+    }
+
+    if (!foundSuperOrRedirect) {
+      // No super initializer found. Try to find the default constructor if
+      // the class is not Object.
+      ClassElement enclosingClass = constructor.enclosingElement;
+      ClassElement superClass = enclosingClass.superclass;
+      if (enclosingClass != compiler.objectClass) {
+        assert(superClass !== null);
+        assert(superClass.isResolved);
+        FunctionElement targetConstructor =
+            superClass.lookupConstructor(superClass.name);
+        if (targetConstructor === null) {
+          compiler.internalError("no default constructor available");
+        }
+        evaluateSuperOrRedirectSend(targetConstructor, const <Constant>[]);
+      }
+    }
+  }
+
+  /**
+   * Simulates the execution of the [constructor] with the given
+   * [arguments] to obtain the field values that need to be passed to the
+   * native JavaScript constructor.
+   */
+  void evaluateConstructorFieldValues(List<Constant> arguments) {
+    compiler.withCurrentElement(constructor, () {
+      assignArgumentsToParameters(arguments);
+      evaluateConstructorInitializers();
+    });
+  }
+
+  List<Constant> buildJsNewArguments(ClassElement classElement) {
+    List<Constant> jsNewArguments = <Constant>[];
+    // TODO(floitsch): share this code with the emitter, so that we don't
+    // need to care about the order of fields here.
+    while (classElement != compiler.objectClass) {
+      for (Element member in classElement.members) {
+        if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
+          Constant fieldValue = fieldValues[member];
+          if (fieldValue === null) {
+            // Use the default value.
+            fieldValue = compiler.compileVariable(member);
+          }
+          jsNewArguments.add(fieldValue);
+        }
+      }
+      classElement = classElement.superclass;
+    } 
+    return jsNewArguments;
   }
 }

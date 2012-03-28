@@ -5,10 +5,7 @@
 
 [ $compiler == dart2js ]
 chat/ChatServerTest: Fail # Failed invariant in closure analyzer.
-lib/layout/LayoutTest: Fail #: ConstantHandler with this or super not implemented
-lib/view/ViewTest: Fail #: ConstantHandler with this or super not implemented
 proxy/MintMakerRpcTest: Fail # TypeError: Cannot call method 'toSendPort$0' of undefined
-swarm/SwarmTest: Fail #: ConstantHandler with this or super not implemented
 
 
 [ $compiler == dart2js && $runtime == drt ]

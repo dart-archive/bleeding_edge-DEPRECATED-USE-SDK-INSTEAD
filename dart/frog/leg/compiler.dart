@@ -401,7 +401,7 @@ class Compiler implements DiagnosticListener {
                               () => resolver.resolveSignature(element));
   }
 
-  Object compileVariable(VariableElement element) {
+  Constant compileVariable(VariableElement element) {
     return withCurrentElement(element, () {
       return constantHandler.compileVariable(element);
     });
