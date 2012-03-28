@@ -16,6 +16,8 @@ class Constant implements Hashable {
   bool isList() => false;
   bool isMap() => false;
   bool isConstructedObject() => false;
+  /** Returns true if the constant is null, a bool, a number or a string. */
+  bool isPrimitive() => false;
   /** Returns true if the constant is a list, a map or a constructed object. */
   bool isObject() => false;
 
@@ -32,6 +34,7 @@ class Constant implements Hashable {
 class PrimitiveConstant extends Constant {
   abstract get value();
   const PrimitiveConstant();
+  bool isPrimitive() => true;
 
   bool operator ==(var other) {
     if (other is !PrimitiveConstant) return false;
@@ -877,26 +880,34 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
           folded = const GreaterEqualOperation().fold(left, right);
           break;
         case "==":
-          folded = const EqualsOperation().fold(left, right);
+          if (left.isPrimitive() && right.isPrimitive()) { 
+            folded = const EqualsOperation().fold(left, right);
+          }
           break;
         case "===":
-          folded = const IdentityOperation().fold(left, right);
+          if (left.isPrimitive() && right.isPrimitive()) { 
+            folded = const IdentityOperation().fold(left, right);
+          }
           break;
         case "!=":
-          BoolConstant areEquals = const EqualsOperation().fold(left, right);
-          if (areEquals === null) {
-            folded = null;
-          } else {
-            folded = areEquals.negate();
+          if (left.isPrimitive() && right.isPrimitive()) { 
+            BoolConstant areEquals = const EqualsOperation().fold(left, right);
+            if (areEquals === null) {
+              folded = null;
+            } else {
+              folded = areEquals.negate();
+            }
           }
           break;
         case "!==":
-          BoolConstant areIdentical =
-              const IdentityOperation().fold(left, right);
-          if (areIdentical === null) {
-            folded = null;
-          } else {
-            folded = areIdentical.negate();
+          if (left.isPrimitive() && right.isPrimitive()) { 
+            BoolConstant areIdentical =
+                const IdentityOperation().fold(left, right);
+            if (areIdentical === null) {
+              folded = null;
+            } else {
+              folded = areIdentical.negate();
+            }
           }
           break;
         default:

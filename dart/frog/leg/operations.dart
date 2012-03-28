@@ -267,6 +267,11 @@ class EqualsOperation implements BinaryOperation {
       NumConstant rightNum = right;
       return new BoolConstant(leftNum.value == rightNum.value);
     }
+    if (left.isConstructedObject()) {
+      // Unless we know that the user-defined object does not implement the
+      // equality operator we cannot fold here.
+      return null;
+    }
     return new BoolConstant(left == right);
   }
 }
