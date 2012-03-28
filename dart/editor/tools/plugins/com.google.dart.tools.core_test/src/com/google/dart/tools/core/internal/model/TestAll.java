@@ -31,6 +31,7 @@ public class TestAll {
     suite.addTestSuite(DartProjectNatureTest.class);
     suite.addTestSuite(DartTypeImplTest.class);
     suite.addTestSuite(HTMLFileImplTest.class);
+    suite.addTestSuite(DartIgnoreFileTest.class);
 //    suite.addTestSuite(SystemLibraryManagerProviderDartCTest.class);
     suite.addTestSuite(SystemLibraryManagerProviderVmTest.class);
 

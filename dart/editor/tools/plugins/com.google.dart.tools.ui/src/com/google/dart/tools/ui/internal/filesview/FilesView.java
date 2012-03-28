@@ -130,6 +130,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private OpenNewFolderWizardAction createFolderAction;
   private OpenNewApplicationWizardAction createApplicationAction;
 
+  private IgnoreResourceAction ignoreResourceAction;
+
   private CopyFilePathAction copyFilePathAction;
 
   private HideProjectAction hideContainerAction;
@@ -322,7 +324,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         manager.add(renameAction);
         manager.add(moveAction);
       }
-
+      manager.add(new Separator());
+      manager.add(ignoreResourceAction);
       manager.add(new Separator());
       manager.add(deleteAction);
 
@@ -462,6 +465,15 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     moveAction = new MoveResourceAction(getShell());
     treeViewer.addSelectionChangedListener(moveAction);
 
+    ignoreResourceAction = new IgnoreResourceAction(getShell()) {
+      @Override
+      public void run() {
+        super.run();
+        treeViewer.refresh();
+      }
+    };
+    treeViewer.addSelectionChangedListener(ignoreResourceAction);
+
     clipboard = new Clipboard(getShell().getDisplay());
 
     pasteAction = new PasteAction(getShell(), clipboard);
@@ -484,5 +496,4 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     copyFilePathAction = new CopyFilePathAction(getSite());
     treeViewer.addSelectionChangedListener(copyFilePathAction);
   }
-
 }

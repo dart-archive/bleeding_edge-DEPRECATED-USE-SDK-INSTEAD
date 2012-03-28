@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.search.SearchEngine;
@@ -29,6 +30,7 @@ import com.google.dart.tools.ui.omni.OmniBoxMessages;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ui.dialogs.SearchPattern;
 
@@ -39,11 +41,25 @@ import java.util.List;
  * Provider for type elements.
  */
 public class TypeProvider extends OmniProposalProvider {
+
+  /**
+   * Filters out resources that have been marked as ignored.
+   */
+  private static class DartIgnoreFilter implements SearchFilter {
+    @Override
+    public boolean passes(SearchMatch match) {
+      DartElement element = match.getElement();
+      IResource resource = element.getResource();
+      return DartCore.isAnalyzed(resource);
+    }
+  }
+
+  private static final DartIgnoreFilter IGNORE_FILTER = new DartIgnoreFilter();
+
   private final IProgressMonitor progressMonitor;
+
   //TODO (pquitslund): support additional scopes
   private final SearchScope searchScope = SearchScopeFactory.createWorkspaceScope();
-
-  private static OmniElement[] EMPTY_ARRAY = new OmniElement[0];
 
   public TypeProvider(IProgressMonitor progressMonitor) {
     this.progressMonitor = progressMonitor;
@@ -83,7 +99,7 @@ public class TypeProvider extends OmniProposalProvider {
     try {
       SearchEngine engine = SearchEngineFactory.createSearchEngine((WorkingCopyOwner) null);
       List<SearchMatch> matches = engine.searchTypeDeclarations(getSearchScope(), searchPattern,
-          (SearchFilter) null, progressMonitor);
+          IGNORE_FILTER, progressMonitor);
       List<OmniElement> results = new ArrayList<OmniElement>(matches.size());
       for (SearchMatch match : matches) {
         DartElement element = match.getElement();

@@ -87,11 +87,9 @@ import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.service.prefs.BackingStoreException;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -300,12 +298,6 @@ public class DartModelManager {
 
   private final IEclipsePreferences[] preferencesLookup = new IEclipsePreferences[2];
 
-  /**
-   * A list of exclusion patterns that are to be applied to determine which files are not currently
-   * being analyzed.
-   */
-  private ArrayList<String> exclusionPatterns;
-
   private static final int PREF_INSTANCE = 0;
 
   private static final int PREF_DEFAULT = 1;
@@ -407,6 +399,17 @@ public class DartModelManager {
    */
   public void addElementChangedListener(ElementChangedListener listener, int eventMask) {
     deltaState.addElementChangedListener(listener, eventMask);
+  }
+
+  /**
+   * Add the given resource to the set of ignored resources.
+   * 
+   * @param resource the resource to ignore
+   * @throws IOException if there was an error accessing the ignore file
+   * @throws CoreException if there was an error deleting markers
+   */
+  public void addToIgnores(IResource resource) throws IOException, CoreException {
+    DartIgnoreManager.getInstance().addToIgnores(resource);
   }
 
   /**
@@ -1049,6 +1052,16 @@ public class DartModelManager {
   }
 
   /**
+   * Remove the given resource from the set of ignored resources.
+   * 
+   * @param resource the resource to (un)ignore
+   * @throws IOException if there was an error accessing the ignore file
+   */
+  public void removeFromIgnores(IResource resource) throws IOException {
+    DartIgnoreManager.getInstance().removeFromIgnores(resource);
+  }
+
+  /**
    * Remove any information cached for the given element or any children of the element.
    * 
    * @param element the element associated with the information to be removed
@@ -1503,28 +1516,7 @@ public class DartModelManager {
    * @return the exclusion patterns used to determine which files are not currently being analyzed
    */
   private ArrayList<String> getExclusionPatterns() {
-    // TODO(brianwilkerson) Re-implement this once the real semantics have been decided on.
-    if (exclusionPatterns == null) {
-      exclusionPatterns = new ArrayList<String>();
-      File patternFile = ResourcesPlugin.getWorkspace().getRoot().getLocation().append(
-          ".dartignore").toFile();
-      if (patternFile.exists()) {
-        try {
-          BufferedReader reader = new BufferedReader(new StringReader(
-              FileUtilities.getContents(patternFile)));
-          String nextLine = reader.readLine();
-          while (nextLine != null) {
-            if (!nextLine.isEmpty()) {
-              exclusionPatterns.add(nextLine);
-            }
-            nextLine = reader.readLine();
-          }
-        } catch (IOException exception) {
-          DartCore.logInformation("Could not read ignore file from workspace", exception);
-        }
-      }
-    }
-    return exclusionPatterns;
+    return DartIgnoreManager.getInstance().getExclusionPatterns();
   }
 
   private Set<File> getFilesForLibrary(File libraryFile, DartUnit libraryUnit) {
