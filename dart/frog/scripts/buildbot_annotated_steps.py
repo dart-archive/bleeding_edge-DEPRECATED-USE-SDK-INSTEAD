@@ -258,7 +258,7 @@ def main():
 
   if compiler == 'frog' and runtime in ['ff', 'chrome', 'safari', 'opera', 
       'ie', 'drt']:
-    CleanUpTemporaryFiles(system, browser)
+    CleanUpTemporaryFiles(system, runtime)
   return status
 
 
