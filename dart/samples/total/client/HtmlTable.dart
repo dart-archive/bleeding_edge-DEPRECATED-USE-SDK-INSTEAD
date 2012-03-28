@@ -83,7 +83,7 @@ class HtmlTable {
   // Add or remove a class name from a table cell.
   void modifyClasses(Set<CellLocation> locations, String className, bool add,
       int rows, int columns, int rowShift, int columnShift) {
-    ElementList tableRows = _table.rows;
+    List<Node> tableRows = _table.rows;
     locations.forEach((CellLocation loc) {
       if (!_inView(loc.rowCol, rows, columns, rowShift, columnShift)) {
         return;
@@ -102,9 +102,9 @@ class HtmlTable {
 
   int redraw(SelectionManager selectionManager,
       int rows, int columns, int rowShift, int columnShift, int cellDisplay) {
-    ElementList tableRows = _table.rows;
+    List<Node> tableRows = _table.rows;
     TableRowElement tableHeaderRow = tableRows[0];
-    ElementList tableHeaderCells = tableHeaderRow.cells;
+    List<Node> tableHeaderCells = tableHeaderRow.cells;
     TableRowElement rowElement;
     TableCellElement cellElement;
     DOMTokenList cellClasses;
@@ -240,9 +240,9 @@ class HtmlTable {
 
   void redrawHeaders(SelectionManager selectionManager,
       int rows, int columns, int rowShift, int columnShift, int cellDisplay) {
-    ElementList tableRows = _table.rows;
+    List<Node> tableRows = _table.rows;
     TableRowElement tableHeaderRow = tableRows[0];
-    ElementList tableHeaderCells = tableHeaderRow.cells;
+    List<Node> tableHeaderCells = tableHeaderRow.cells;
     TableCellElement cellElement;
     Set<String> cellClasses;
 
@@ -302,7 +302,7 @@ class HtmlTable {
       TableRowElement tableRow = tableRows[r];
       tableRow.style.setProperty("height",
           HtmlUtils.toPx(_spreadsheet.getRowHeight(r + rowShift)));
-      ElementList rowCells = tableRow.cells;
+      List<Node> rowCells = tableRow.cells;
       // Row headers - physical column 0 contains the row numbers
       cellElement = rowCells[0];
       cellClasses = cellElement.classes;
@@ -339,10 +339,10 @@ class HtmlTable {
 
   // Remove innerHTML and class names from the entire visible portion of the table
   void resetTableContents(int rows, int columns) {
-    ElementList tableRows = _table.rows;
+    List<Node> tableRows = _table.rows;
     for (int r = 0; r <= rows; r++) {
       TableRowElement tableRow = tableRows[r];
-      ElementList tableRowCells = tableRow.cells;
+      List<Node> tableRowCells = tableRow.cells;
       int oldLen = tableRowCells.length;
       for (int c = 0; c <= columns; c++) {
         TableCellElement cellElement = tableRowCells[c];
