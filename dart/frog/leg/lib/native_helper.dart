@@ -82,6 +82,10 @@ String getTypeNameOf(var obj) {
   return _getTypeNameOf(obj);
 }
 
+String toStringForNativeObject(var obj) {
+  return 'Instance of ${getTypeNameOf(obj)}';
+}
+
 /**
  * Sets a JavaScript property on an object.
  */

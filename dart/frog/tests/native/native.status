@@ -8,6 +8,7 @@ NativeMissingMethod1FrogTest: Fail # Issue 1912
 NativeWindow1FrogTest: Fail # Issue 1915
 NativeWindow2FrogTest: Fail # Issue 1915
 ForeignTest: Fail # Leg only test
+NativeNoSuchMethodExceptionFrogTest: Fail # Frog does not support no such method on native objects.
 
 
 [ $checked ]

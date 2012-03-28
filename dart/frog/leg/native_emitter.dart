@@ -54,6 +54,12 @@ class NativeEmitter {
     return compiler.namer.isolateAccess(element);
   }
 
+  String get toStringHelperName() {
+    Element element = compiler.findHelper(
+        const SourceString('toStringForNativeObject'));
+    return compiler.namer.isolateAccess(element);
+  }
+
   void generateNativeLiteral(ClassElement classElement) {
     String quotedNative = classElement.nativeName.slowToString();
     String nativeCode = quotedNative.substring(2, quotedNative.length - 1);
@@ -326,8 +332,25 @@ class NativeEmitter {
   }
 
   void assembleCode(StringBuffer other) {
-    StringBuffer isChecks = new StringBuffer();
-    emitIsChecks(isChecks);
-    other.add('(function() {\n$isChecks$buffer\n})();\n');
+    if (nativeClasses.isEmpty()) return;
+
+    // Because of native classes, we have to generate some is checks
+    // by calling a method, instead of accessing a property. So we
+    // attach to the JS Object prototype these methods that return
+    // false, and will be overridden by subclasses when they have to
+    // return true.
+    StringBuffer objectProperties = new StringBuffer();
+    emitIsChecks(objectProperties);
+
+    // In order to have the toString method on every native class,
+    // we must patch the JS Object prototype with a helper method.
+    String toStringName = compiler.namer.instanceMethodName(
+        null, const SourceString('toString'), 0);
+    objectProperties.add("$defPropName(Object.prototype, '$toStringName', ");
+    objectProperties.add(
+        'function() { return $toStringHelperName(this); });\n');
+
+    // Finally, emit the code in the main buffer.
+    other.add('(function() {\n$objectProperties$buffer\n})();\n');
   }
 }

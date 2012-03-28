@@ -60,6 +60,8 @@ void processNativeClassesInLibrary(Compiler compiler,
         const SourceString('dynamicSetMetadata')));
     compiler.registerStaticUse(compiler.findHelper(
         const SourceString('defineProperty')));
+    compiler.registerStaticUse(compiler.findHelper(
+        const SourceString('toStringForNativeObject')));
   }
 }
 
