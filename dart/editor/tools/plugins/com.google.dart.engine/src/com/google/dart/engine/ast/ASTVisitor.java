@@ -17,17 +17,17 @@ package com.google.dart.engine.ast;
  * Instances of the class <code>ASTVisitor</code> can be used to visit an AST structure.
  */
 public class ASTVisitor<R> {
-//  public R visitArrayAccess(ArrayAccess node) {
-//    return visitExpression(node);
-//  }
+  public R visitArrayAccess(ArrayAccess node) {
+    return visitExpression(node);
+  }
 
 //  public R visitAssertStatement(AssertStatement node) {
 //    return visitStatement(node);
 //  }
 
-//  public R visitAssignmentExpression(AssignmentExpression node) {
-//    return visitExpression(node);
-//  }
+  public R visitAssignmentExpression(AssignmentExpression node) {
+    return visitExpression(node);
+  }
 
   public R visitBinaryExpression(BinaryExpression node) {
     return visitExpression(node);
@@ -41,9 +41,9 @@ public class ASTVisitor<R> {
 //    return visitFunctionBody(node);
 //  }
 
-//  public R visitBooleanLiteral(BooleanLiteral node) {
-//    return visitLiteral(node);
-//  }
+  public R visitBooleanLiteral(BooleanLiteral node) {
+    return visitLiteral(node);
+  }
 
 //  public R visitBreakStatement(BreakStatement node) {
 //    return visitStatement(node);
@@ -77,9 +77,9 @@ public class ASTVisitor<R> {
 //    return visitDeclaration(node);
 //  }
 
-//  public R visitConditionalExpression(ConditionalExpression node) {
-//    return visitExpression(node);
-//  }
+  public R visitConditionalExpression(ConditionalExpression node) {
+    return visitExpression(node);
+  }
 
 //  public R visitConstructorDeclaration(ConstructorDeclaration node) {
 //    return visitTypeMember(node);
@@ -113,9 +113,9 @@ public class ASTVisitor<R> {
 //    return visitStatement(node);
 //  }
 
-//  public R visitDoubleLiteral(DoubleLiteral node) {
-//    return visitLiteral(node);
-//  }
+  public R visitDoubleLiteral(DoubleLiteral node) {
+    return visitLiteral(node);
+  }
 
 //  public R visitEmptyStatement(EmptyStatement node) {
 //    return visitStatement(node);
@@ -161,9 +161,9 @@ public class ASTVisitor<R> {
 //    return visitStatement(node);
 //  }
 
-//  public R visitIdentifier(Identifier node) {
-//    return visitExpression(node);
-//  }
+  public R visitIdentifier(Identifier node) {
+    return visitExpression(node);
+  }
 
 //  public R visitIfStatement(IfStatement node) {
 //    return visitStatement(node);
@@ -181,9 +181,9 @@ public class ASTVisitor<R> {
 //    return visitSimpleFormalParameter(node);
 //  }
 
-//  public R visitIntegerLiteral(IntegerLiteral node) {
-//    return visitLiteral(node);
-//  }
+  public R visitIntegerLiteral(IntegerLiteral node) {
+    return visitLiteral(node);
+  }
 
 //  public R visitInterfaceDeclaration(InterfaceDeclaration node) {
 //    return visitTypeDeclaration(node);
@@ -209,9 +209,9 @@ public class ASTVisitor<R> {
 //    return visitInterpolationElement(node);
 //  }
 
-//  public R visitIsExpression(IsExpression node) {
-//    return visitExpression(node);
-//  }
+  public R visitIsExpression(IsExpression node) {
+    return visitExpression(node);
+  }
 
 //  public R visitLabeledStatement(LabeledStatement node) {
 //    return visitStatement(node);
@@ -221,21 +221,21 @@ public class ASTVisitor<R> {
 //    return visitDirective(node);
 //  }
 
-//  public R visitListLiteral(ListLiteral node) {
-//    return visitTypedLiteral(node);
-//  }
+  public R visitListLiteral(ListLiteral node) {
+    return visitTypedLiteral(node);
+  }
 
-//  public R visitLiteral(Literal node) {
-//    return visitExpression(node);
-//  }
+  public R visitLiteral(Literal node) {
+    return visitExpression(node);
+  }
 
-//  public R visitMapLiteral(MapLiteral node) {
-//    return visitTypedLiteral(node);
-//  }
+  public R visitMapLiteral(MapLiteral node) {
+    return visitTypedLiteral(node);
+  }
 
-//  public R visitMapLiteralEntry(MapLiteralEntry node) {
-//    return visitNode(node);
-//  }
+  public R visitMapLiteralEntry(MapLiteralEntry node) {
+    return visitNode(node);
+  }
 
 //  public R visitMethodDeclaration(MethodDeclaration node) {
 //    return visitTypeMember(node);
@@ -274,29 +274,29 @@ public class ASTVisitor<R> {
 //    return visitFormalParameter(node);
 //  }
 
-//  public R visitNullLiteral(NullLiteral node) {
-//    return visitLiteral(node);
-//  }
+  public R visitNullLiteral(NullLiteral node) {
+    return visitLiteral(node);
+  }
 
-//  public R visitParenthesizedExpression(ParenthesizedExpression node) {
-//    return visitExpression(node);
-//  }
+  public R visitParenthesizedExpression(ParenthesizedExpression node) {
+    return visitExpression(node);
+  }
 
-//  public R visitPostfixExpression(PostfixExpression node) {
-//    return visitExpression(node);
-//  }
+  public R visitPostfixExpression(PostfixExpression node) {
+    return visitExpression(node);
+  }
 
-//  public R visitPrefixedIdentifier(PrefixedIdentifier node) {
-//    return visitIdentifier(node);
-//  }
+  public R visitPrefixedIdentifier(PrefixedIdentifier node) {
+    return visitIdentifier(node);
+  }
 
-//  public R visitPrefixExpression(PrefixExpression node) {
-//    return visitExpression(node);
-//  }
+  public R visitPrefixExpression(PrefixExpression node) {
+    return visitExpression(node);
+  }
 
-//  public R visitPropertyAccess(PropertyAccess node) {
-//    return visitExpression(node);
-//  }
+  public R visitPropertyAccess(PropertyAccess node) {
+    return visitExpression(node);
+  }
 
 //  public R visitResourceDirective(ResourceDirective node) {
 //    return visitNode(node);
@@ -310,9 +310,9 @@ public class ASTVisitor<R> {
 //    return visitNormalFormalParameter(node);
 //  }
 
-//  public R visitSimpleIdentifier(SimpleIdentifier node) {
-//    return visitIdentifier(node);
-//  }
+  public R visitSimpleIdentifier(SimpleIdentifier node) {
+    return visitIdentifier(node);
+  }
 
 //  public R visitSourceDirective(SourceDirective node) {
 //    return visitNode(node);
@@ -326,9 +326,9 @@ public class ASTVisitor<R> {
 //    return visitLiteral(node);
 //  }
 
-//  public R visitStringLiteral(StringLiteral node) {
-//    return visitLiteral(node);
-//  }
+  public R visitStringLiteral(StringLiteral node) {
+    return visitLiteral(node);
+  }
 
 //  public R visitSuperConstructorInvocation(SuperConstructorInvocation node) {
 //    return visitConstructorInitializer(node);
@@ -354,9 +354,13 @@ public class ASTVisitor<R> {
 //    return visitStatement(node);
 //  }
 
-//  public R visitThisExpression(ThisExpression node) {
-//    return visitExpression(node);
-//  }
+  public R visitSuperExpression(SuperExpression node) {
+    return visitExpression(node);
+  }
+
+  public R visitThisExpression(ThisExpression node) {
+    return visitExpression(node);
+  }
 
 //  public R visitThrowStatement(ThrowStatement node) {
 //    return visitStatement(node);
@@ -374,17 +378,17 @@ public class ASTVisitor<R> {
 //    return visitCompilationUnitMember(node);
 //  }
 
-//  public R visitTypedLiteral(TypedLiteral node) {
-//    return visitLiteral(node);
-//  }
+  public R visitTypedLiteral(TypedLiteral node) {
+    return visitLiteral(node);
+  }
 
 //  public R visitTypeMember(TypeMember node) {
 //    return visitDeclaration(node);
 //  }
 
-//  public R visitTypeName(TypeName node) {
-//    return visitNode(node);
-//  }
+  public R visitTypeName(TypeName node) {
+    return visitNode(node);
+  }
 
 //  public R visitTypeParameter(TypeParameter node) {
 //    return visitNode(node);

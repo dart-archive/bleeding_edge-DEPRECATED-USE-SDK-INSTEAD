@@ -129,11 +129,7 @@ public class BinaryExpression extends Expression {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    if (leftOperand != null) {
-      leftOperand.accept(visitor);
-    }
-    if (rightOperand != null) {
-      rightOperand.accept(visitor);
-    }
+    safelyVisitChild(leftOperand, visitor);
+    safelyVisitChild(rightOperand, visitor);
   }
 }

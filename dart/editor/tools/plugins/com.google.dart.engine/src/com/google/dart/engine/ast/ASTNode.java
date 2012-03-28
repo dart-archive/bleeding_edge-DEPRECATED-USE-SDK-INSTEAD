@@ -54,7 +54,7 @@ public abstract class ASTNode {
    */
   public int getLength() {
     Token endToken = getEndToken();
-    return endToken.getOffset() + endToken.getLength();
+    return endToken.getOffset() + endToken.getLength() - getBeginToken().getOffset() - 1;
   }
 
   /**
@@ -117,6 +117,18 @@ public abstract class ASTNode {
       node.setParent(this);
     }
     return child;
+  }
+
+  /**
+   * If the given child is not <code>null</code>, use the given visitor to visit it.
+   * 
+   * @param child the child to be visited
+   * @param visitor the visitor that will be used to visit the child
+   */
+  protected void safelyVisitChild(ASTNode child, ASTVisitor<?> visitor) {
+    if (child != null) {
+      child.accept(visitor);
+    }
   }
 
   /**
