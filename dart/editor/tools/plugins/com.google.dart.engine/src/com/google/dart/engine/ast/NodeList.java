@@ -13,15 +13,28 @@
  */
 package com.google.dart.engine.ast;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * Instances of the class <code>NodeList</code> represent a list of AST nodes that have a common
  * parent.
  */
-public class NodeList<E extends ASTNode> implements Iterable<E> {
+public class NodeList<E extends ASTNode> extends AbstractList<E> {
+  /**
+   * Create an empty list with the given owner. This is a convenience method that allows the
+   * compiler to determine the correct value of the type argument {@link #E} without needing to
+   * explicitly specify it.
+   * 
+   * @param owner the node that is the parent of each of the elements in the list
+   * @return the list that was created
+   */
+  public static <E extends ASTNode> NodeList<E> create(ASTNode owner) {
+    return new NodeList<E>(owner);
+  }
+
   /**
    * The node that is the parent of each of the elements in the list.
    */
@@ -52,28 +65,23 @@ public class NodeList<E extends ASTNode> implements Iterable<E> {
     }
   }
 
-  /**
-   * Add the given node to this list.
-   * 
-   * @param node the node to be added
-   */
-  public void add(E node) {
+  @Override
+  public void add(int index, E node) {
     owner.becomeParentOf(node);
-    elements.add(node);
+    elements.add(index, node);
   }
 
-  /**
-   * Add all of the nodes in the given list to this list.
-   * 
-   * @param nodes the list of nodes to be added
-   */
-  public void addAll(List<E> nodes) {
+  @Override
+  public boolean addAll(Collection<? extends E> nodes) {
     if (nodes != null) {
-      for (E node : nodes) {
-        owner.becomeParentOf(node);
-        elements.add(node);
-      }
+      return super.addAll(nodes);
     }
+    return false;
+  }
+
+  @Override
+  public E get(int index) {
+    return elements.get(index);
   }
 
   /**
@@ -86,16 +94,18 @@ public class NodeList<E extends ASTNode> implements Iterable<E> {
   }
 
   @Override
-  public Iterator<E> iterator() {
-    return elements.iterator();
+  public E remove(int index) {
+    return elements.remove(index);
   }
 
-  /**
-   * Remove the given node from this list.
-   * 
-   * @param node the node to be removed
-   */
-  public void remove(E node) {
-    elements.remove(node);
+  @Override
+  public E set(int index, E node) {
+    owner.becomeParentOf(node);
+    return elements.set(index, node);
+  }
+
+  @Override
+  public int size() {
+    return elements.size();
   }
 }

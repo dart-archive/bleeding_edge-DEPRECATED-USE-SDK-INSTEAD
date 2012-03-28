@@ -21,9 +21,9 @@ public class ASTVisitor<R> {
     return visitExpression(node);
   }
 
-//  public R visitAssertStatement(AssertStatement node) {
-//    return visitStatement(node);
-//  }
+  public R visitAssertStatement(AssertStatement node) {
+    return visitStatement(node);
+  }
 
   public R visitAssignmentExpression(AssignmentExpression node) {
     return visitExpression(node);
@@ -33,25 +33,25 @@ public class ASTVisitor<R> {
     return visitExpression(node);
   }
 
-//  public R visitBlock(Block node) {
-//    return visitStatement(node);
-//  }
+  public R visitBlock(Block node) {
+    return visitStatement(node);
+  }
 
-//  public R visitBlockFunctionBody(BlockFunctionBody node) {
-//    return visitFunctionBody(node);
-//  }
+  public R visitBlockFunctionBody(BlockFunctionBody node) {
+    return visitFunctionBody(node);
+  }
 
   public R visitBooleanLiteral(BooleanLiteral node) {
     return visitLiteral(node);
   }
 
-//  public R visitBreakStatement(BreakStatement node) {
-//    return visitStatement(node);
-//  }
+  public R visitBreakStatement(BreakStatement node) {
+    return visitStatement(node);
+  }
 
-//  public R visitCatchClause(CatchClause node) {
-//    return visitNode(node);
-//  }
+  public R visitCatchClause(CatchClause node) {
+    return visitNode(node);
+  }
 
 //  public R visitClassDeclaration(ClassDeclaration node) {
 //    return visitTypeDeclaration(node);
@@ -61,13 +61,13 @@ public class ASTVisitor<R> {
 //    return visitNode(node);
 //  }
 
-//  public R visitComment(Comment node) {
-//    return visitNode(node);
-//  }
+  public R visitComment(Comment node) {
+    return visitNode(node);
+  }
 
-//  public R visitCommentReference(CommentReference node) {
-//    return visitNode(node);
-//  }
+  public R visitCommentReference(CommentReference node) {
+    return visitNode(node);
+  }
 
 //  public R visitCompilationUnit(CompilationUnit node) {
 //    return visitNode(node);
@@ -93,45 +93,45 @@ public class ASTVisitor<R> {
 //    return visitNode(node);
 //  }
 
-//  public R visitContinueStatement(ContinueStatement node) {
-//    return visitStatement(node);
-//  }
+  public R visitContinueStatement(ContinueStatement node) {
+    return visitStatement(node);
+  }
 
-//  public R visitDeclaration(Declaration node) {
-//    return visitNode(node);
-//  }
+  public R visitDeclaration(Declaration node) {
+    return visitNode(node);
+  }
 
-//  public R visitDefaultClause(DefaultClause node) {
-//    return visitNode(node);
-//  }
+  public R visitDefaultClause(DefaultClause node) {
+    return visitNode(node);
+  }
 
   public R visitDirective(Directive node) {
     return visitNode(node);
   }
 
-//  public R visitDoStatement(DoStatement node) {
-//    return visitStatement(node);
-//  }
+  public R visitDoStatement(DoStatement node) {
+    return visitStatement(node);
+  }
 
   public R visitDoubleLiteral(DoubleLiteral node) {
     return visitLiteral(node);
   }
 
-//  public R visitEmptyStatement(EmptyStatement node) {
-//    return visitStatement(node);
-//  }
+  public R visitEmptyStatement(EmptyStatement node) {
+    return visitStatement(node);
+  }
 
   public R visitExpression(Expression node) {
     return visitNode(node);
   }
 
-//  public R visitExpressionFunctionBody(ExpressionFunctionBody node) {
-//    return visitFunctionBody(node);
-//  }
+  public R visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    return visitFunctionBody(node);
+  }
 
-//  public R visitExpressionStatement(ExpressionStatement node) {
-//    return visitStatement(node);
-//  }
+  public R visitExpressionStatement(ExpressionStatement node) {
+    return visitStatement(node);
+  }
 
 //  public R visitFieldDeclaration(FieldDeclaration node) {
 //    return visitTypeMember(node);
@@ -141,17 +141,17 @@ public class ASTVisitor<R> {
 //    return visitStatement(node);
 //  }
 
-//  public R visitFormalParameter(FormalParameter node) {
-//    return visitNode(node);
-//  }
+  public R visitFormalParameter(FormalParameter node) {
+    return visitNode(node);
+  }
 
 //  public R visitForStatement(ForStatement node) {
 //    return visitStatement(node);
 //  }
 
-//  public R visitFunctionBody(FunctionBody node) {
-//    return visitNode(node);
-//  }
+  public R visitFunctionBody(FunctionBody node) {
+    return visitNode(node);
+  }
 
 //  public R visitFunctionDeclaration(FunctionDeclaration node) {
 //    return visitNode(node);
@@ -270,9 +270,9 @@ public class ASTVisitor<R> {
     return null;
   }
 
-//  public R visitNormalFormalParameter(NormalFormalParameter node) {
-//    return visitFormalParameter(node);
-//  }
+  public R visitNormalFormalParameter(NormalFormalParameter node) {
+    return visitFormalParameter(node);
+  }
 
   public R visitNullLiteral(NullLiteral node) {
     return visitLiteral(node);
@@ -306,9 +306,9 @@ public class ASTVisitor<R> {
 //    return visitStatement(node);
 //  }
 
-//  public R visitSimpleFormalParameter(SimpleFormalParameter node) {
-//    return visitNormalFormalParameter(node);
-//  }
+  public R visitSimpleFormalParameter(SimpleFormalParameter node) {
+    return visitNormalFormalParameter(node);
+  }
 
   public R visitSimpleIdentifier(SimpleIdentifier node) {
     return visitIdentifier(node);
@@ -390,9 +390,9 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
-//  public R visitTypeParameter(TypeParameter node) {
-//    return visitNode(node);
-//  }
+  public R visitTypeParameter(TypeParameter node) {
+    return visitNode(node);
+  }
 
 //  public R visitVariableDeclaration(VariableDeclaration node) {
 //    return visitDeclaration(node);
