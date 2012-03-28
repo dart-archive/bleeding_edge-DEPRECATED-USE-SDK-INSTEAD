@@ -34,12 +34,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.compiler.resolver.ClassElement;
-import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.type.FunctionAliasType;
-import com.google.dart.compiler.type.FunctionType;
-import com.google.dart.compiler.type.InterfaceType;
-import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.completion.CompletionRequestor;
@@ -163,7 +157,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
                   + fieldNode.getSourceInfo().getLength());
               captureDartDoc(fieldNode, typeInfo);
               fieldInfo.setNameRange(new SourceRangeImpl(fieldNode.getName()));
-              fieldInfo.setTypeName(extractTypeName(fieldListNode.getType(), false));
+              fieldInfo.setTypeName(extractTypeName(fieldListNode.getTypeNode(), false));
               fieldInfo.setModifiers(fieldNode.getModifiers());
               children.add(fieldImpl);
               addNewElement(fieldImpl, fieldInfo);
@@ -236,7 +230,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
               + fieldNode.getSourceInfo().getLength());
           captureDartDoc(fieldNode, variableInfo);
           variableInfo.setNameRange(new SourceRangeImpl(fieldNode.getName()));
-          variableInfo.setTypeName(extractTypeName(node.getType(), false));
+          variableInfo.setTypeName(extractTypeName(node.getTypeNode(), false));
           variableInfo.setModifiers(modifiers);
 
           FunctionGatherer functionGatherer = new FunctionGatherer(fieldNode, variableImpl,
@@ -533,11 +527,10 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         variableInfo.setSourceRangeStart(start);
         variableInfo.setSourceRangeEnd(start + variable.getSourceInfo().getLength() - 1);
         captureDartDoc(variable, variableInfo);
-        variableInfo.setNameRange(new SourceRangeImpl(
-            variableName.getSourceInfo().getOffset(),
+        variableInfo.setNameRange(new SourceRangeImpl(variableName.getSourceInfo().getOffset(),
             variableName.getSourceInfo().getLength()));
         variableInfo.setParameter(false);
-        char[] typeName = extractTypeName(variable.getType(), true);
+        char[] typeName = extractTypeName(node.getTypeNode(), true);
         variableInfo.setTypeName(typeName == null ? CharOperation.NO_CHAR : typeName);
 
         FunctionGatherer functionGatherer = new FunctionGatherer(variable, variableImpl,
@@ -625,8 +618,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         variableInfo.setSourceRangeStart(start);
         variableInfo.setSourceRangeEnd(start + parameter.getSourceInfo().getLength() - 1);
         captureDartDoc(parameter, variableInfo);
-        variableInfo.setNameRange(new SourceRangeImpl(
-            parameterName.getSourceInfo().getOffset(),
+        variableInfo.setNameRange(new SourceRangeImpl(parameterName.getSourceInfo().getOffset(),
             parameterName.getSourceInfo().getLength()));
         variableInfo.setParameter(true);
         char[] typeName = extractTypeName(parameter.getTypeNode(), true);
@@ -680,82 +672,6 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       return extractName(access.getQualifier()) + access.getName().getName();
     }
     throw new IllegalArgumentException();
-  }
-
-  /**
-   * Extracts and returns the name of the given type.
-   * 
-   * @param type the type whose name will be returned
-   * @param returnStrVar if <code>true</code>, <code>"var"</code> is returned instead of
-   *          <code>null</code> in cases where the name can't be extracted
-   * @return the name of the given type
-   */
-  private static char[] extractTypeName(com.google.dart.compiler.type.Type type,
-      boolean returnStrVar) {
-    Element element = null;
-    List<? extends com.google.dart.compiler.type.Type> typeParmeters = null;
-    List<? extends com.google.dart.compiler.type.Type> parmeterTypes = null;
-    switch (type.getKind()) {
-      case DYNAMIC:
-        break;
-      case FUNCTION:
-        FunctionType functionType = (FunctionType) type;
-        element = functionType.getElement();
-        parmeterTypes = functionType.getParameterTypes();
-        break;
-      case FUNCTION_ALIAS:
-        element = ((FunctionAliasType) type).getElement();
-        break;
-      case INTERFACE:
-        ClassElement classElement = ((InterfaceType) type).getElement();
-        element = classElement;
-        typeParmeters = classElement.getTypeParameters();
-        break;
-      case NONE:
-        break;
-      case VARIABLE:
-        element = ((TypeVariable) type).getTypeVariableElement();
-        break;
-    }
-    if (element != null) {
-      String typeName = element.getName();
-      if (typeName != null) {
-        if (typeParmeters != null && !typeParmeters.isEmpty()) {
-          StringBuilder builder = new StringBuilder();
-          builder.append(typeName);
-          builder.append('<');
-          boolean needsSeparator = false;
-          for (com.google.dart.compiler.type.Type typeParmeter : typeParmeters) {
-            builder.append(extractTypeName(typeParmeter, true));
-            if (needsSeparator) {
-              builder.append(',');
-            } else {
-              needsSeparator = true;
-            }
-          }
-          builder.append('>');
-          typeName = builder.toString();
-        }
-        if (parmeterTypes != null) {
-          StringBuilder builder = new StringBuilder();
-          builder.append(typeName);
-          builder.append('(');
-          boolean needsSeparator = false;
-          for (com.google.dart.compiler.type.Type parmeterType : parmeterTypes) {
-            builder.append(extractTypeName(parmeterType, true));
-            if (needsSeparator) {
-              builder.append(',');
-            } else {
-              needsSeparator = true;
-            }
-          }
-          builder.append(')');
-          typeName = builder.toString();
-        }
-        return typeName.toCharArray();
-      }
-    }
-    return returnStrVar ? VAR : null;
   }
 
   /**
