@@ -13,8 +13,6 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -23,7 +21,6 @@ import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.internal.ui.refactoring.ChangeExceptionHandler;
-import org.eclipse.ltk.ui.refactoring.RefactoringUI;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -78,7 +75,8 @@ public class RefactoringExecutionHelper {
             SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
 
         fPerformChangeOperation = new PerformChangeOperation(fChange);//RefactoringUI.createUIAwareChangeOperation(fChange);
-        fPerformChangeOperation.setUndoManager(RefactoringCore.getUndoManager(),
+        fPerformChangeOperation.setUndoManager(
+            RefactoringCore.getUndoManager(),
             fRefactoring.getName());
 //        if (fRefactoring instanceof IScheduledRefactoring) {
 //          fPerformChangeOperation.setSchedulingRule(((IScheduledRefactoring) fRefactoring).getSchedulingRule());
@@ -98,9 +96,7 @@ public class RefactoringExecutionHelper {
      * @return <code>true</code> iff the operation should be cancelled
      */
     private boolean showStatusDialog(RefactoringStatus status) {
-      Dialog dialog = RefactoringUI.createRefactoringStatusDialog(status, fParent,
-          fRefactoring.getName(), false);
-      return dialog.open() == IDialogConstants.CANCEL_ID;
+      return UserInteractions.showStatusDialog.open(status, fParent, fRefactoring.getName());
     }
   }
 

@@ -22,7 +22,6 @@ import com.google.dart.tools.ui.internal.refactoring.reorg.RenameUserInterfaceSt
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
@@ -132,7 +131,6 @@ public class RenameSupport {
   public static RenameSupport create(DartVariableDeclaration variable, String newName, int flags)
       throws CoreException {
     RenameLocalVariableProcessor processor = new RenameLocalVariableProcessor(variable);
-    processor.setUpdateReferences(updateReferences(flags));
     return new RenameSupport(processor, newName, flags);
   }
 
@@ -395,7 +393,6 @@ public class RenameSupport {
    */
   public void perform(Shell parent, IRunnableContext context) throws InterruptedException,
       InvocationTargetException {
-    // TODO(scheglov) implement
     try {
       ensureChecked();
       if (fPreCheckStatus.hasFatalError()) {
@@ -471,6 +468,9 @@ public class RenameSupport {
 
   private void showInformation(Shell parent, RefactoringStatus status) {
     String message = status.getMessageMatchingSeverity(RefactoringStatus.FATAL);
-    MessageDialog.openInformation(parent, DartUIMessages.RenameSupport_dialog_title, message);
+    UserInteractions.openInformation.open(
+        parent,
+        DartUIMessages.RenameSupport_dialog_title,
+        message);
   }
 }

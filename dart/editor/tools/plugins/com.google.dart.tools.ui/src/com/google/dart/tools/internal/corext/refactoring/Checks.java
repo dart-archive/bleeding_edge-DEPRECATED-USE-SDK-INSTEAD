@@ -71,30 +71,6 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Dart type parameter name.
-   * 
-   * @param name the Dart type parameter name.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart type
-   *         parameter name.
-   */
-//  public static RefactoringStatus checkTypeParameterName(String name, DartElement context) {
-//  	return checkName(name, DartConventions.validateTypeVariableName(name, context));
-//  }
-
-  /**
-   * Checks if the given name is a valid Dart identifier.
-   * 
-   * @param name the Dart identifier.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart
-   *         identifier.
-   */
-//  public static RefactoringStatus checkIdentifier(String name, DartElement context) {
-//    return checkName(name, DartConventions.validateIdentifier(name, context));
-//  }
-
-  /**
    * Checks if method will have a constructor name after renaming.
    * 
    * @param method
@@ -120,6 +96,30 @@ public class Checks {
   }
 
   /**
+   * Checks if the given name is a valid Dart type parameter name.
+   * 
+   * @param name the Dart type parameter name.
+   * @param context an {@link DartElement} or <code>null</code>
+   * @return a refactoring status containing the error message if the name is not a valid Dart type
+   *         parameter name.
+   */
+//  public static RefactoringStatus checkTypeParameterName(String name, DartElement context) {
+//  	return checkName(name, DartConventions.validateTypeVariableName(name, context));
+//  }
+
+  /**
+   * Checks if the given name is a valid Dart identifier.
+   * 
+   * @param name the Dart identifier.
+   * @param context an {@link DartElement} or <code>null</code>
+   * @return a refactoring status containing the error message if the name is not a valid Dart
+   *         identifier.
+   */
+//  public static RefactoringStatus checkIdentifier(String name, DartElement context) {
+//    return checkName(name, DartConventions.validateIdentifier(name, context));
+//  }
+
+  /**
    * Checks if the given name is a valid Dart method name.
    * 
    * @param name the Dart method name.
@@ -135,18 +135,6 @@ public class Checks {
       return status;
     }
   }
-
-  /**
-   * Checks if the given name is a valid Dart package name.
-   * 
-   * @param name the Dart package name.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart
-   *         package name.
-   */
-//  public static RefactoringStatus checkPackageName(String name, DartElement context) {
-//  	return checkName(name, DartConventions.validatePackageName(name));
-//  }
 
   /**
    * Returns a fatal error in case the name is empty. In all other cases, an error based on the
@@ -179,6 +167,18 @@ public class Checks {
   }
 
   /**
+   * Checks if the given name is a valid Dart package name.
+   * 
+   * @param name the Dart package name.
+   * @param context an {@link DartElement} or <code>null</code>
+   * @return a refactoring status containing the error message if the name is not a valid Dart
+   *         package name.
+   */
+//  public static RefactoringStatus checkPackageName(String name, DartElement context) {
+//  	return checkName(name, DartConventions.validatePackageName(name));
+//  }
+
+  /**
    * Checks if the given name is a valid Dart type name.
    * 
    * @param name the Dart method name.
@@ -193,6 +193,16 @@ public class Checks {
     } else {
       return checkName(name, DartConventions.validateTypeName(name));
     }
+  }
+
+  /**
+   * Checks if the given name is a valid Dart variable name.
+   * 
+   * @return a refactoring status containing the error message if the name is not a valid Dart
+   *         variable name.
+   */
+  public static RefactoringStatus checkVariableName(String name) {
+    return checkName(name, DartConventions.validateVariableName(name));
   }
 
   public static boolean isAvailable(DartElement dartElement) throws DartModelException {

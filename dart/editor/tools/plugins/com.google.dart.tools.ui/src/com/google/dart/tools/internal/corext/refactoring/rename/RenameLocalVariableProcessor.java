@@ -1,6 +1,5 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -21,7 +20,6 @@ import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailability
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.participants.DartProcessors;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil.LocalAnalyzePackage;
-import com.google.dart.tools.internal.corext.refactoring.tagging.IReferenceUpdating;
 import com.google.dart.tools.internal.corext.refactoring.util.ResourceUtil;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 
@@ -41,7 +39,7 @@ import org.eclipse.text.edits.TextEditGroup;
 
 import java.util.List;
 
-public class RenameLocalVariableProcessor extends DartRenameProcessor implements IReferenceUpdating {
+public class RenameLocalVariableProcessor extends DartRenameProcessor {
 
   public static final String IDENTIFIER = "com.google.dart.tools.ui.renameLocalVariableProcessor"; //$NON-NLS-1$
 
@@ -49,7 +47,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor implements
   private final CompilationUnit fCu;
 
   //the following fields are set or modified after the construction
-  private boolean fUpdateReferences;
   private String fCurrentName;
   private String fNewName;
   private DartUnit fCompilationUnitNode;
@@ -75,8 +72,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor implements
    */
   public RenameLocalVariableProcessor(DartVariableDeclaration localVariable) {
     fLocalVariable = localVariable;
-    fUpdateReferences = true;
-    fCu = localVariable.getAncestor(CompilationUnit.class);
+    fCu = localVariable != null ? localVariable.getAncestor(CompilationUnit.class) : null;
     fNewName = ""; //$NON-NLS-1$
   }
 
@@ -124,7 +120,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor implements
 
   @Override
   public RefactoringStatus checkNewElementName(String newName) throws DartModelException {
-    RefactoringStatus result = Checks.checkFieldName(newName, fCu);
+    RefactoringStatus result = Checks.checkVariableName(newName);
     if (!Checks.startsWithLowerCase(newName)) {
 //      if (fIsComposite) {
 //        final String nameOfParent = DartElementLabels.getElementLabel(fLocalVariable.getParent(),
@@ -194,11 +190,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor implements
   }
 
   @Override
-  public boolean getUpdateReferences() {
-    return fUpdateReferences;
-  }
-
-  @Override
   public boolean isApplicable() throws CoreException {
     return RefactoringAvailabilityTester.isRenameAvailable(fLocalVariable);
   }
@@ -210,14 +201,9 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor implements
   }
 
   @Override
-  public void setUpdateReferences(boolean updateReferences) {
-    fUpdateReferences = updateReferences;
-  }
-
-  @Override
   protected RenameModifications computeRenameModifications() throws CoreException {
     RenameModifications result = new RenameModifications();
-    result.rename(fLocalVariable, new RenameArguments(getNewElementName(), getUpdateReferences()));
+    result.rename(fLocalVariable, new RenameArguments(getNewElementName(), true));
     return result;
   }
 
@@ -235,8 +221,12 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor implements
 //      if (!fIsComposite)
       {
         LocalAnalyzePackage[] localAnalyzePackages = new RenameAnalyzeUtil.LocalAnalyzePackage[] {fLocalAnalyzePackage};
-        result.merge(RenameAnalyzeUtil.analyzeLocalRenames(localAnalyzePackages, fChange, fCu,
-            fCompilationUnitNode, true));
+        result.merge(RenameAnalyzeUtil.analyzeLocalRenames(
+            localAnalyzePackages,
+            fChange,
+            fCu,
+            fCompilationUnitNode,
+            true));
       }
       return result;
     } finally {
@@ -335,10 +325,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor implements
   }
 
   private List<TextEdit> getAllRenameEdits(TextEdit declarationEdit) {
-    if (!fUpdateReferences) {
-      return ImmutableList.of(declarationEdit);
-    }
-    // Replace all references.
     final List<TextEdit> edits = Lists.newArrayList(declarationEdit);
     DartNode enclosingMethod = ASTNodes.getParent(fVariableNode, DartMethodDefinition.class);
     enclosingMethod.accept(new ASTVisitor<Void>() {
