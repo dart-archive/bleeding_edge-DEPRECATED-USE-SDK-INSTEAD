@@ -7,7 +7,6 @@
 #import("../../../../lib/uri/uri.dart");
 
 #import("../../../../lib/compiler/implementation/elements/elements.dart");
-#import("../../../../lib/compiler/implementation/io/io.dart", prefix: 'io');
 #import("../../../../lib/compiler/implementation/leg.dart");
 #import("../../../../lib/compiler/implementation/tree/tree.dart");
 #import("../../../../lib/compiler/implementation/util/util.dart");
@@ -56,7 +55,7 @@ class MockCompiler extends Compiler {
                 String helperSource = DEFAULT_HELPERLIB])
       : warnings = [], errors = [],
         sources = new Map<String, String>(),
-        super.withCurrentDirectory(io.getCurrentDirectory()) {
+        super() {
     Uri uri = new Uri(scheme: "source");
     var script = new Script(uri, new MockFile(coreSource));
     coreLibrary = new LibraryElement(script);
