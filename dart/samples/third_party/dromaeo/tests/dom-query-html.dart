@@ -1,8 +1,7 @@
-#library("dom_query_html");
+#library("dom_query");
 #import("dart:html");
 #import('../common/common.dart');
-#source("Common.dart");
-#source("RunnerSuite.dart");
+#import('runner.dart');
 
 void main() {
   final int num = 40;
@@ -26,77 +25,77 @@ void main() {
       });
       final div = new Element.tag('div');
       div.innerHTML = html;
-      document.body.nodes.add(div);
+      document.body.$dom_appendChild(div);
     })
     .test('getElementById', () {
       for (int i = 0; i < num * 30; i++) {
-        ret = document.query('#testA$num').hidden;
-        ret = document.query('#testB$num').hidden;
-        ret = document.query('#testC$num').hidden;
-        ret = document.query('#testD$num').hidden;
-        ret = document.query('#testE$num').hidden;
-        ret = document.query('#testF$num').hidden;
+        ret = document.$dom_getElementById('testA$num').$dom_nodeType;
+        ret = document.$dom_getElementById('testB$num').$dom_nodeType;
+        ret = document.$dom_getElementById('testC$num').$dom_nodeType;
+        ret = document.$dom_getElementById('testD$num').$dom_nodeType;
+        ret = document.$dom_getElementById('testE$num').$dom_nodeType;
+        ret = document.$dom_getElementById('testF$num').$dom_nodeType;
       }
     })
     .test('getElementById (not in document)', () {
       for (int i = 0; i < num * 30; i++) {
-        ret = document.query('#testA');
-        ret = document.query('#testB');
-        ret = document.query('#testC');
-        ret = document.query('#testD');
-        ret = document.query('#testE');
-        ret = document.query('#testF');
+        ret = document.$dom_getElementById('testA');
+        ret = document.$dom_getElementById('testB');
+        ret = document.$dom_getElementById('testC');
+        ret = document.$dom_getElementById('testD');
+        ret = document.$dom_getElementById('testE');
+        ret = document.$dom_getElementById('testF');
       }
     })
     .test('getElementsByTagName(div)', () {
       for (int i = 0; i < num; i++) {
-        var elems = document.queryAll('div');
-        ret = elems.last().hidden;
+        final elems = document.$dom_getElementsByTagName('div');
+        ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(p)', () {
       for (int i = 0; i < num; i++) {
-        final elems = document.queryAll('p');
-        ret = elems.last().hidden;
+        final elems = document.$dom_getElementsByTagName('p');
+        ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(a)', () {
       for (int i = 0; i < num; i++) {
-        var elems = document.queryAll('a');
-        ret = elems.last().hidden;
+        final elems = document.$dom_getElementsByTagName('a');
+        ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(*)', () {
       for (int i = 0; i < num; i++) {
-        var elems = document.queryAll('*');
-        ret = elems.last().hidden;
+        var elems = document.$dom_getElementsByTagName('*');
+        ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName (not in document)', () {
       for (int i = 0; i < num; i++) {
-        var elems = document.queryAll('strong');
-        ret = elems.length == 0;
+        final elems = document.$dom_getElementsByTagName('strong');
+        ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByName', () {
       for (int i = 0; i < num * 20; i++) {
-        var elems = document.queryAll('[name="test$num"]');
-        ret = elems.last().hidden;
-        elems = document.queryAll('[name="test$num"]');
-        ret = elems.last().hidden;
-        elems = document.queryAll('[name="test$num"]');
-        ret = elems.last().hidden;
-        elems = document.queryAll('[name="test$num"]');
-        ret = elems.last().hidden;
+        ElementList elems = document.$dom_getElementsByName('test$num');
+        ret = elems[elems.length-1].$dom_nodeType;
+        elems = document.$dom_getElementsByName('test$num');
+        ret = elems[elems.length-1].$dom_nodeType;
+        elems = document.$dom_getElementsByName('test$num');
+        ret = elems[elems.length-1].$dom_nodeType;
+        elems = document.$dom_getElementsByName('test$num');
+        ret = elems[elems.length-1].$dom_nodeType;
       }
     })
     .test('getElementsByName (not in document)', () {
       for (int i = 0; i < num * 20; i++) {
-        ret = document.queryAll('[name="test"]').length == 0;
-        ret = document.queryAll('[name="test"]').length == 0;
-        ret = document.queryAll('[name="test"]').length == 0;
-        ret = document.queryAll('[name="test"]').length == 0;
-        ret = document.queryAll('[name="test"]').length == 0;
+        ret = document.$dom_getElementsByName('test').length == 0;
+        ret = document.$dom_getElementsByName('test').length == 0;
+        ret = document.$dom_getElementsByName('test').length == 0;
+        ret = document.$dom_getElementsByName('test').length == 0;
+        ret = document.$dom_getElementsByName('test').length == 0;
       }
     })
     .end();

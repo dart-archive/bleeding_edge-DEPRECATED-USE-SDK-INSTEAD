@@ -58,11 +58,11 @@ void main() {
     })
     .test('appendChild', () {
       for (int i = 0; i < elems.length; i++)
-        document.body.$dom_appendChild(elems[i]);
+        document.body.nodes.add(elems[i]);
     })
     .test('insertBefore', () {
       for (int i = 0; i < elems.length; i++)
-        document.body.insertBefore(elems[i], document.body.$dom_firstChild);
+        document.body.insertBefore(elems[i], document.body.nodes.first);
     })
     .end();
 }

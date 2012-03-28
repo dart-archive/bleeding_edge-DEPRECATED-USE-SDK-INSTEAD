@@ -24,6 +24,7 @@ class Suites {
   static final CATEGORIES = const {
     'dom': 'DOM Core Tests (dart:dom)',
     'html': 'DOM Core Tests (dart:html)',
+    'htmlidiomatic': 'DOM Core Tests (dart:html) Idiomatic',
     'js': 'DOM Core Tests (JavaScript)',
     'dart': 'DOM Core Tests (dart)',
     'frog': 'DOM Core Tests (frog)',
@@ -75,10 +76,14 @@ class Suites {
   static _jsPath(path) => path;
   static _domPath(path) => path.replaceFirst('.html', '-dom.html');
   static _htmlPath(path) => path.replaceFirst('.html', '-html.html');
+  static _htmlIdiomaticPath(path) =>
+      path.replaceFirst('.html', '-htmlidiomatic.html');
   static _frogDomPath(path) =>
       'frog/${path.replaceFirst(".html", "-dom-js.html")}';
   static _frogHtmlPath(path) =>
       'frog/${path.replaceFirst(".html", "-html-js.html")}';
+  static _frogHtmlIdiomaticPath(path) =>
+      'frog/${path.replaceFirst(".html", "-htmlidiomatic-js.html")}';
 
   static var _SUITE_DESCRIPTIONS;
 
@@ -94,8 +99,11 @@ class Suites {
     add('js', _jsPath, ['js']);
     add('dart:dom', _domPath, ['dart', 'dom']);
     add('dart:html', _htmlPath, ['dart', 'html']);
+    add('dart:html idiomatic', _htmlPath, ['dart', 'htmlidiomatic']);
     add('frog dart:dom', _frogDomPath, ['frog', 'dom']);
     add('frog dart:html', _frogHtmlPath, ['frog', 'html']);
+    add('frog dart:html idiomatic', _frogHtmlIdiomaticPath,
+        ['frog', 'htmlidiomatic']);
     return _SUITE_DESCRIPTIONS;
   }
 

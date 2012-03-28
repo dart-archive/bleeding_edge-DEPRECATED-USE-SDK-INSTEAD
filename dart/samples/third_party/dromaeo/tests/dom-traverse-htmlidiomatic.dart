@@ -1,8 +1,8 @@
-#library("dom_traverse");
+#library("dom_traverse_html");
 #import("dart:html");
 #import('../common/common.dart');
-#import('runner.dart');
-
+#source("Common.dart");
+#source("RunnerSuite.dart");
 
 void main() {
   final int num = 40;
@@ -27,7 +27,7 @@ void main() {
 
       final div = new Element.tag('div');
       div.innerHTML = html;
-      document.body.appendChild(div);
+      document.body.nodes.add(div);
     })
     .test('firstChild', () {
       final nodes = document.body.nodes;
@@ -37,7 +37,7 @@ void main() {
         for (int j = 0; j < nl; j++) {
           Node cur = nodes[j];
           while (cur !== null) {
-            cur = cur.$dom_firstChild;
+            cur = cur.nodes.first;
           }
           ret = cur;
         }
@@ -51,7 +51,7 @@ void main() {
         for (int j = 0; j < nl; j++) {
           Node cur = nodes[j];
           while (cur !== null) {
-            cur = cur.$dom_lastChild;
+            cur = cur.nodes.last();
           }
           ret = cur;
         }
@@ -59,7 +59,7 @@ void main() {
     })
     .test('nextSibling', () {
       for (int i = 0; i < num * 2; i++) {
-        Node cur = document.body.$dom_firstChild;
+        Node cur = document.body.nodes.first;
         while (cur !== null) {
           cur = cur.nextNode;
         }
@@ -68,7 +68,7 @@ void main() {
     })
     .test('previousSibling', () {
       for (int i = 0; i < num * 2; i++) {
-        Node cur = document.body.$dom_lastChild;
+        Node cur = document.body.nodes.last();
         while (cur !== null) {
           cur = cur.previousNode;
         }

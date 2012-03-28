@@ -1,6 +1,8 @@
-#library("dom_attr");
+#library("dom_attr_html");
 #import("dart:html");
-#import('runner.dart');
+#import("dart:json");
+#source("Common.dart");
+#source("RunnerSuite.dart");
 
 void main() {
   final int num = 10240;
@@ -9,12 +11,12 @@ void main() {
   var ret;
 
   Element elem = document.query('#test1');
-  Element a = document.query('a');
+  Element a = document.queryAll('a')[0];
 
   new Suite(window, 'dom-attr')
     .test('getAttribute', () {
       for (int i = 0; i < num; i++)
-        ret = elem.$dom_getAttribute('id');
+        ret = elem.attributes['id'];
     })
     .test('element.property', () {
       for (int i = 0; i < num * 2; i++)
@@ -22,7 +24,7 @@ void main() {
     })
     .test('setAttribute', () {
         for (int i = 0; i < num; i++)
-        a.$dom_setAttribute('id', 'foo');
+        a.attributes['id'] = 'foo';
     })
     .test('element.property = value', () {
       for (int i = 0; i < num; i++)
