@@ -122,7 +122,8 @@ class WorldGenerator {
     writeDynamicDispatchMetadata();
 
     writeGlobals();
-    writer.writeln("if (typeof window != 'undefined' && window.addEventListener) {");
+    writer.writeln("if (typeof window != 'undefined' && typeof document != 'undefined' &&");
+    writer.writeln("    window.addEventListener && document.readyState == 'loading') {");
     writer.writeln("  window.addEventListener('DOMContentLoaded', function(e) {");
     writer.writeln("    ${mainCall.code};");
     writer.writeln("  });");
