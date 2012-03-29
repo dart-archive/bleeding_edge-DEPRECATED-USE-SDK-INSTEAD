@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.scanner.Token;
+
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -82,6 +84,30 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
   @Override
   public E get(int index) {
     return elements.get(index);
+  }
+
+  /**
+   * Return the first token included in this node's source range.
+   * 
+   * @return the first token included in this node's source range
+   */
+  public Token getBeginToken() {
+    if (elements.isEmpty()) {
+      return null;
+    }
+    return elements.get(0).getBeginToken();
+  }
+
+  /**
+   * Return the last token included in this node list's source range.
+   * 
+   * @return the last token included in this node list's source range
+   */
+  public Token getEndToken() {
+    if (elements.isEmpty()) {
+      return null;
+    }
+    return elements.get(elements.size() - 1).getEndToken();
   }
 
   /**
