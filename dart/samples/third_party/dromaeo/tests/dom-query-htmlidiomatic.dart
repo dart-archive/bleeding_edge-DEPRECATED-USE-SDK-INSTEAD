@@ -50,31 +50,31 @@ void main() {
     })
     .test('getElementsByTagName(div)', () {
       for (int i = 0; i < num; i++) {
-        final elems = document.queryAll('div');
+        ElementList elems = document.queryAll('div');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(p)', () {
       for (int i = 0; i < num; i++) {
-        final elems = document.queryAll('p');
+        ElementList elems = document.queryAll('p');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(a)', () {
       for (int i = 0; i < num; i++) {
-        final elems = document.queryAll('a');
+        ElementList elems = document.queryAll('a');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName(*)', () {
       for (int i = 0; i < num; i++) {
-        final elems = document.queryAll('*');
+        ElementList elems = document.queryAll('*');
         ret = elems.last().$dom_nodeType;
       }
     })
     .test('getElementsByTagName (not in document)', () {
       for (int i = 0; i < num; i++) {
-        final elems = document.queryAll('strong');
+        ElementList elems = document.queryAll('strong');
         ret = elems.last().$dom_nodeType;
       }
     })
