@@ -111,6 +111,12 @@ class World {
   /** Internal map to track name conflicts in the generated javascript. */
   Map<String, Element> _topNames;
 
+  /**
+   * Internal set of member names that should be avoided because they are known
+   * to exist on various objects.
+   */
+  Set<String> _hazardousMemberNames;
+
   Map<String, MemberSet> _members;
 
   MessageHandler messageHandler;
@@ -150,6 +156,7 @@ class World {
 
   World(this.files)
     : libraries = {}, _todo = [], _members = {}, _topNames = {},
+      _hazardousMemberNames = new Set<String>(),
       // TODO(jmesserly): these two types don't actually back our Date and
       // RegExp yet, so we need to add them manually.
       reader = new LibraryReader(), counters = new CounterLog() {
@@ -158,6 +165,7 @@ class World {
   void reset() {
     // TODO(jimhug): Use a smaller hammer in the future.
     libraries = {}; _todo = []; _members = {}; _topNames = {};
+    _hazardousMemberNames = new Set<String>();
     counters = new CounterLog();
     errors = warnings = 0;
     seenFatal = false;
@@ -165,6 +173,12 @@ class World {
   }
 
   init() {
+    // Hack: We don't want Dart's String.split to overwrite the existing JS
+    // String.prototype.split method. By marking 'split' as 'hazardous' we
+    // ensure that frog will not use the 'split' name, thus leaving the original
+    // JS String.prototype.split untouched.
+    _addHazardousMemberName('split');
+
     // Setup well-known libraries and types.
     corelib = new Library(readFile('dart:core'));
     libraries['dart:core'] = corelib;
@@ -195,6 +209,8 @@ class World {
 
     nonNullBool = new NonNullableType(boolType);
   }
+
+  _addHazardousMemberName(String name) => _hazardousMemberNames.add(name);
 
   _addMember(Member member) {
     // Private members are only visible in their own library.
@@ -410,7 +426,7 @@ class World {
   void runCompilationPhases() {
     final lib = withTiming('first pass', () => processDartScript());
     withTiming('resolve top level', resolveAll);
-    withTiming('privatization', () { makePrivateMembersUnique(lib); });
+    withTiming('name safety', () { nameSafety(lib); });
     if (experimentalAwaitPhase != null) {
       withTiming('await translation', experimentalAwaitPhase);
     }
@@ -489,15 +505,20 @@ class World {
     }
   }
 
+  nameSafety(Library rootLib) {
+    makePrivateMembersUnique(rootLib);
+    avoidHazardousMemberNames();
+  }
+
   makePrivateMembersUnique(Library rootLib) {
     var usedNames = new Set<String>();
     process(lib) {
       for (var name in lib._privateMembers.getKeys()) {
         if (usedNames.contains(name)) {
-          var members = lib._privateMembers[name];
-          String uniqueName = '_${lib.jsname}${members.jsname}';
-          members.jsname = uniqueName;
-          for (var member in members.members) {
+          var mset = lib._privateMembers[name];
+          String uniqueName = '_${lib.jsname}${mset.jsname}';
+          mset.jsname = uniqueName;
+          for (var member in mset.members) {
             member._jsname = uniqueName;
           }
         } else {
@@ -517,6 +538,43 @@ class World {
       }
     }
     visit(rootLib);
+  }
+
+  /**
+   * Ensures no non-native member has a jsname conflicting with a known native
+   * member jsname.
+   */
+  avoidHazardousMemberNames() {
+    rename(jsname) {
+      if (_hazardousMemberNames.contains(jsname)) {
+        jsname = '${jsname}\$_';
+      }
+      return jsname;
+    }
+
+    for (var name in _members.getKeys()) {
+      var mset = _members[name];
+      bool renamed = false;
+      for (var member in mset.members) {
+        if (!member.isNative ||
+            (member is MethodMember && member.hasNativeBody)) {
+          String oldName = member._jsname;
+          member._jsname = rename(oldName);
+          if (member._jsname != oldName) renamed = true;
+        }
+      }
+      // If any of the members where renamed, rename mset.
+      //
+      // If all members were renamed this makes mset.jsname consistent.  If none
+      // were renamed that means they are native methods (with names different
+      // to the Dart names), so the mset name should not be renamed to stay
+      // consistent.  If only some were renamed then the mset has no consistent
+      // calling convention, and will dispatch via a stub, so the mset name is
+      // irrelevant.
+      if (renamed) {
+        mset.jsname = rename(mset.jsname);
+      }
+    }
   }
 
   findMainMethod(Library lib) {

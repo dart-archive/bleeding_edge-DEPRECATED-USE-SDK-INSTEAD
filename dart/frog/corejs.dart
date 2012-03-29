@@ -352,7 +352,23 @@ function $dynamic(name) {
       }
     }
     method = method || methods.Object;
+
     var proto = Object.getPrototypeOf(obj);
+
+    if (method == null) {
+      // Trampoline to throw NoSuchMethodException (TODO: call noSuchMethod).
+      method = function(){
+        // Exact type check to prevent this code shadowing the dispatcher from a
+        // subclass.
+        if (Object.getPrototypeOf(this) === proto) {
+          // TODO(sra): 'name' is the jsname, should be the Dart name.
+          $throw(new NoSuchMethodException(
+              obj, name, Array.prototype.slice.call(arguments)));
+        }
+        return Object.prototype[name].apply(this, arguments);
+      };
+    }
+
     if (!proto.hasOwnProperty(name)) {
       $defProp(proto, name, method);
     }

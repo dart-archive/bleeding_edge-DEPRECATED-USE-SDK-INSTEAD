@@ -101,12 +101,11 @@ class MethodData {
     }
 
     if (gen != null) {
-      if (method.definition.nativeBody != null && method == baseMethod) {
-        if (method.definition.nativeBody == '') return true;
+      if (method.isNative && method == baseMethod) {
+        if (!method.hasNativeBody) return true;
         gen.writer = new CodeWriter();
         gen.writer.write(method.definition.nativeBody);
         gen._paramCode = map(method.parameters, (p) => p.name);
-
       }
       gen.writeDefinition(writer, null);
       return true;

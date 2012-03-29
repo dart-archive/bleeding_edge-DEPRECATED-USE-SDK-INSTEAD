@@ -1610,7 +1610,7 @@ StringBufferImpl.prototype.isEmpty = function() {
   return this._length == (0);
 }
 StringBufferImpl.prototype.add = function(obj) {
-  var str = obj.toString();
+  var str = obj.toString$0();
   if (null == str || str.isEmpty()) return this;
   this._buffer.add(str);
   this._length = this._length + str.length;
@@ -1699,7 +1699,7 @@ StringImplementation.prototype.replaceAll = function(from, to) {
   }
   buffer.add(this.substring(lastMatchEnd));
 }
-StringImplementation.prototype.split_ = function(pattern) {
+StringImplementation.prototype.split$_ = function(pattern) {
   if ((typeof(pattern) == 'string')) return this._split(pattern);
   if (!!(pattern && pattern.is$RegExp())) return this._splitRegExp(pattern);
   $throw("String.split(Pattern) unimplemented.");
@@ -1949,7 +1949,23 @@ function $dynamic(name) {
       }
     }
     method = method || methods.Object;
+
     var proto = Object.getPrototypeOf(obj);
+
+    if (method == null) {
+      // Trampoline to throw NoSuchMethodException (TODO: call noSuchMethod).
+      method = function(){
+        // Exact type check to prevent this code shadowing the dispatcher from a
+        // subclass.
+        if (Object.getPrototypeOf(this) === proto) {
+          // TODO(sra): 'name' is the jsname, should be the Dart name.
+          $throw(new NoSuchMethodException(
+              obj, name, Array.prototype.slice.call(arguments)));
+        }
+        return Object.prototype[name].apply(this, arguments);
+      };
+    }
+
     if (!proto.hasOwnProperty(name)) {
       $defProp(proto, name, method);
     }
@@ -1993,8 +2009,8 @@ function canonicalizePath(path) {
 function joinPaths(path1, path2) {
   path1 = canonicalizePath(path1);
   path2 = canonicalizePath(path2);
-  var pieces = path1.split_("/");
-  var $$list = path2.split_("/");
+  var pieces = path1.split$_("/");
+  var $$list = path2.split$_("/");
   for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
     var piece = $$i.next();
     if ($eq$(piece, "..") && pieces.get$length() > (0) && $ne$(pieces.last(), ".") && $ne$(pieces.last(), "..")) {
@@ -2986,7 +3002,7 @@ CodeWriter.prototype.write = function(text) {
   if (text.length == (0)) return;
   if (this._pendingIndent) this._indent();
   if (text.indexOf("\n") != (-1)) {
-    var lines = text.split_("\n");
+    var lines = text.split$_("\n");
     for (var i = (0);
      i < lines.get$length() - (1); i++) {
       this.writeln(lines.$index(i));
@@ -3111,7 +3127,7 @@ CoreJs.prototype.ensureDynamicProto = function() {
   this._generatedDynamicProto = true;
   this.ensureTypeNameOf();
   this.ensureDefProp();
-  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var obj = this;\n    var tag = obj.$typeNameOf();\n    var method = methods[tag];\n    if (!method) {\n      var table = $dynamicMetadata;\n      for (var i = 0; i < table.length; i++) {\n        var entry = table[i];\n        if (entry.map.hasOwnProperty(tag)) {\n          method = methods[entry.tag];\n          if (method) break;\n        }\n      }\n    }\n    method = method || methods.Object;\n    var proto = Object.getPrototypeOf(obj);\n    if (!proto.hasOwnProperty(name)) {\n      $defProp(proto, name, method);\n    }\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  $defProp(Object.prototype, name, $dynamicBind);\n  return methods;\n}\nif (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];\n");
+  this.writer.writeln("function $dynamic(name) {\n  var f = Object.prototype[name];\n  if (f && f.methods) return f.methods;\n\n  var methods = {};\n  if (f) methods.Object = f;\n  function $dynamicBind() {\n    // Find the target method\n    var obj = this;\n    var tag = obj.$typeNameOf();\n    var method = methods[tag];\n    if (!method) {\n      var table = $dynamicMetadata;\n      for (var i = 0; i < table.length; i++) {\n        var entry = table[i];\n        if (entry.map.hasOwnProperty(tag)) {\n          method = methods[entry.tag];\n          if (method) break;\n        }\n      }\n    }\n    method = method || methods.Object;\n\n    var proto = Object.getPrototypeOf(obj);\n\n    if (method == null) {\n      // Trampoline to throw NoSuchMethodException (TODO: call noSuchMethod).\n      method = function(){\n        // Exact type check to prevent this code shadowing the dispatcher from a\n        // subclass.\n        if (Object.getPrototypeOf(this) === proto) {\n          // TODO(sra): 'name' is the jsname, should be the Dart name.\n          $throw(new NoSuchMethodException(\n              obj, name, Array.prototype.slice.call(arguments)));\n        }\n        return Object.prototype[name].apply(this, arguments);\n      };\n    }\n\n    if (!proto.hasOwnProperty(name)) {\n      $defProp(proto, name, method);\n    }\n\n    return method.apply(this, Array.prototype.slice.call(arguments));\n  };\n  $dynamicBind.methods = methods;\n  $defProp(Object.prototype, name, $dynamicBind);\n  return methods;\n}\nif (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];\n");
 }
 CoreJs.prototype.ensureDynamicSetMetadata = function() {
   if (this._generatedDynamicSetMetadata) return;
@@ -3189,6 +3205,7 @@ function Element(name, _enclosingElement) {
 }
 Element.prototype.get$name = function() { return this.name; };
 Element.prototype.set$name = function(value) { return this.name = value; };
+Element.prototype.get$_jsname = function() { return this._jsname; };
 Element.prototype.set$_jsname = function(value) { return this._jsname = value; };
 Element.prototype.get$library = function() {
   return null;
@@ -5371,10 +5388,7 @@ Member.prototype.get$genericMember = function() { return this.genericMember; };
 Member.prototype.set$genericMember = function(value) { return this.genericMember = value; };
 Member.prototype.mangleJsName = function() {
   var mangled = Element.prototype.mangleJsName.call(this);
-  if ($eq$(mangled, "split")) {
-    return "split_";
-  }
-  else if (this.declaringType != null && this.declaringType.get$isTop()) {
+  if (this.declaringType != null && this.declaringType.get$isTop()) {
     return JsNames.getValid(mangled);
   }
   else {
@@ -6388,9 +6402,17 @@ function MethodMember(name, declaringType, definition) {
   this.isConst = false;
   this.isFactory = false;
   this._provideOptionalParamInfo = false;
+  this._hasNativeBody = false;
   this.definition = definition;
   this.isLambda = false;
   Member.call(this, name, declaringType);
+  if (this.get$isNative()) {
+    if (const$0013.hasMatch(this.definition.nativeBody)) {
+      this._jsname = this.definition.nativeBody;
+      $globals.world._addHazardousMemberName(this._jsname);
+    }
+    this._hasNativeBody = this.definition.nativeBody != "" && this.definition.nativeBody != this._jsname;
+  }
 }
 MethodMember.lambda$ctor = function(name, declaringType, definition) {
   this.isStatic = false;
@@ -6398,6 +6420,7 @@ MethodMember.lambda$ctor = function(name, declaringType, definition) {
   this.isConst = false;
   this.isFactory = false;
   this._provideOptionalParamInfo = false;
+  this._hasNativeBody = false;
   this.definition = definition;
   this.isLambda = true;
   Member.call(this, name, declaringType);
@@ -6440,6 +6463,9 @@ MethodMember.prototype.get$isMethod = function() {
 MethodMember.prototype.get$isNative = function() {
   if (this.definition == null) return false;
   return this.definition.nativeBody != null;
+}
+MethodMember.prototype.get$hasNativeBody = function() {
+  return this._hasNativeBody;
 }
 MethodMember.prototype.get$canGet = function() {
   return true;
@@ -7163,6 +7189,9 @@ InvokeKey.prototype.addMembers = function(members, context, target, args) {
     else if ($globals.options.enableTypeChecks && member.get$isMethod() && member.needsArgumentConversion(args)) {
       this.needsVarCall = true;
     }
+    else if (member.get$jsname() != members.$index((0)).get$jsname()) {
+      this.needsVarCall = true;
+    }
     else if ($eq$(member.get$library(), $globals.world.dom)) {
       var $$list = member.get$parameters();
       for (var $i0 = $$list.iterator(); $i0.hasNext(); ) {
@@ -7256,8 +7285,8 @@ MethodData.prototype.writeDefinition = function(method, writer) {
     }
   }
   if ($ne$(gen)) {
-    if (method.definition.nativeBody != null && $eq$(method, this.baseMethod)) {
-      if (method.definition.nativeBody == "") return true;
+    if (method.get$isNative() && $eq$(method, this.baseMethod)) {
+      if (!method.get$hasNativeBody()) return true;
       gen.set$writer(new CodeWriter());
       gen.get$writer().write(method.definition.nativeBody);
       gen.set$_paramCode(map(method.parameters, (function (p) {
@@ -14127,11 +14156,13 @@ function World(files) {
   this._todo = [];
   this._members = new HashMapImplementation();
   this._topNames = new HashMapImplementation();
+  this._hazardousMemberNames = new HashSetImplementation_dart_core_String();
   this.reader = new LibraryReader();
   this.counters = new CounterLog();
 }
 World.prototype.get$functionType = function() { return this.functionType; };
 World.prototype.init = function() {
+  this._addHazardousMemberName("split");
   this.corelib = new Library(this.readFile("dart:core"));
   this.libraries.$setindex("dart:core", this.corelib);
   this._todo.add(this.corelib);
@@ -14155,6 +14186,9 @@ World.prototype.init = function() {
   this.listFactoryType = this.coreimpl.addType("ListFactory", null, true);
   this.functionImplType = this.coreimpl.addType("_FunctionImplementation", null, true);
   this.nonNullBool = new NonNullableType(this.boolType);
+}
+World.prototype._addHazardousMemberName = function(name) {
+  return this._hazardousMemberNames.add(name);
 }
 World.prototype._addMember = function(member) {
   if (member.get$isStatic()) {
@@ -14297,8 +14331,8 @@ World.prototype.runCompilationPhases = function() {
   })
   );
   this.withTiming("resolve top level", this.get$resolveAll());
-  this.withTiming("privatization", (function () {
-    $this.makePrivateMembersUnique(lib);
+  this.withTiming("name safety", (function () {
+    $this.nameSafety(lib);
   })
   );
   if ($globals.experimentalAwaitPhase != null) {
@@ -14386,6 +14420,10 @@ World.prototype.resolveAll = function() {
 World.prototype.get$resolveAll = function() {
   return this.resolveAll.bind(this);
 }
+World.prototype.nameSafety = function(rootLib) {
+  this.makePrivateMembersUnique(rootLib);
+  this.avoidHazardousMemberNames();
+}
 World.prototype.makePrivateMembersUnique = function(rootLib) {
   var usedNames = new HashSetImplementation_dart_core_String();
   function process(lib) {
@@ -14393,10 +14431,10 @@ World.prototype.makePrivateMembersUnique = function(rootLib) {
     for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
       var name = $$i.next();
       if (usedNames.contains$1(name)) {
-        var members = lib.get$_privateMembers().$index(name);
-        var uniqueName = ("_" + lib.get$jsname() + members.get$jsname());
-        members.set$jsname(uniqueName);
-        var $list0 = members.get$members();
+        var mset = lib.get$_privateMembers().$index(name);
+        var uniqueName = ("_" + lib.get$jsname() + mset.get$jsname());
+        mset.set$jsname(uniqueName);
+        var $list0 = mset.get$members();
         for (var $i0 = $list0.iterator(); $i0.hasNext(); ) {
           var member = $i0.next();
           member.set$_jsname(uniqueName);
@@ -14419,6 +14457,33 @@ World.prototype.makePrivateMembersUnique = function(rootLib) {
     }
   }
   visit(rootLib);
+}
+World.prototype.avoidHazardousMemberNames = function() {
+  var $this = this; // closure support
+  function rename(jsname) {
+    if ($this._hazardousMemberNames.contains(jsname)) {
+      jsname = ("" + jsname + "$_");
+    }
+    return jsname;
+  }
+  var $$list = this._members.getKeys();
+  for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
+    var name = $$i.next();
+    var mset = this._members.$index(name);
+    var renamed = false;
+    var $list0 = mset.get$members();
+    for (var $i0 = $list0.iterator(); $i0.hasNext(); ) {
+      var member = $i0.next();
+      if (!member.get$isNative() || ((member instanceof MethodMember) && member.get$hasNativeBody())) {
+        var oldName = member.get$_jsname();
+        member.set$_jsname(rename(oldName));
+        if (member.get$_jsname() != oldName) renamed = true;
+      }
+    }
+    if (renamed) {
+      mset.set$jsname(rename(mset.get$jsname()));
+    }
+  }
 }
 World.prototype.findMainMethod = function(lib) {
   var main = lib.lookup("main", lib.get$span());
@@ -15046,6 +15111,7 @@ var const$0009 = new JSSyntaxRegExp("^[a-zA-Z]:/");
 var const$0010 = ImmutableList.ImmutableList$from$factory(["__PROTO__", "prototype", "constructor"]);
 var const$0011 = ImmutableList.ImmutableList$from$factory(["NaN", "Infinity", "undefined", "eval", "parseInt", "parseFloat", "isNan", "isFinite", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "Object", "Function", "Array", "String", "Boolean", "Number", "Date", "RegExp", "Error", "EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError", "Math", "arguments", "escape", "unescape", "applicationCache", "closed", "Components", "content", "controllers", "crypto", "defaultStatus", "dialogArguments", "directories", "document", "frameElement", "frames", "fullScreen", "globalStorage", "history", "innerHeight", "innerWidth", "length", "location", "locationbar", "localStorage", "menubar", "mozInnerScreenX", "mozInnerScreenY", "mozScreenPixelsPerCssPixel", "name", "navigator", "opener", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "parent", "personalbar", "pkcs11", "returnValue", "screen", "scrollbars", "scrollMaxX", "scrollMaxY", "self", "sessionStorage", "sidebar", "status", "statusbar", "toolbar", "top", "window", "alert", "addEventListener", "atob", "back", "blur", "btoa", "captureEvents", "clearInterval", "clearTimeout", "close", "confirm", "disableExternalCapture", "dispatchEvent", "dump", "enableExternalCapture", "escape", "find", "focus", "forward", "GeckoActiveXObject", "getAttention", "getAttentionWithCycleCount", "getComputedStyle", "getSelection", "home", "maximize", "minimize", "moveBy", "moveTo", "open", "openDialog", "postMessage", "print", "prompt", "QueryInterface", "releaseEvents", "removeEventListener", "resizeBy", "resizeTo", "restore", "routeEvent", "scroll", "scrollBy", "scrollByLines", "scrollByPages", "scrollTo", "setInterval", "setResizeable", "setTimeout", "showModalDialog", "sizeToContent", "stop", "uuescape", "updateCommands", "XPCNativeWrapper", "XPCSafeJSOjbectWrapper", "onabort", "onbeforeunload", "onchange", "onclick", "onclose", "oncontextmenu", "ondragdrop", "onerror", "onfocus", "onhashchange", "onkeydown", "onkeypress", "onkeyup", "onload", "onmousedown", "onmousemove", "onmouseout", "onmouseover", "onmouseup", "onmozorientation", "onpaint", "onreset", "onresize", "onscroll", "onselect", "onsubmit", "onunload", "ontouchcancel", "ontouchend", "ontouchmove", "ontouchstart", "ongesturestart", "ongesturechange", "ongestureend", "uneval", "getPrototypeOf", "let", "yield", "abstract", "int", "short", "boolean", "interface", "static", "byte", "long", "char", "final", "native", "synchronized", "float", "package", "throws", "goto", "private", "transient", "implements", "protected", "volatile", "double", "public", "attachEvent", "clientInformation", "clipboardData", "createPopup", "dialogHeight", "dialogLeft", "dialogTop", "dialogWidth", "onafterprint", "onbeforedeactivate", "onbeforeprint", "oncontrolselect", "ondeactivate", "onhelp", "onresizeend", "event", "external", "Debug", "Enumerator", "Global", "Image", "ActiveXObject", "VBArray", "Components", "toString", "getClass", "constructor", "prototype", "valueOf", "Anchor", "Applet", "Attr", "Canvas", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CDATASection", "CharacterData", "Comment", "CSS2Properties", "CSSRule", "CSSStyleSheet", "Document", "DocumentFragment", "DocumentType", "DOMException", "DOMImplementation", "DOMParser", "Element", "Event", "ExternalInterface", "FlashPlayer", "Form", "Frame", "History", "HTMLCollection", "HTMLDocument", "HTMLElement", "IFrame", "Image", "Input", "JSObject", "KeyEvent", "Link", "Location", "MimeType", "MouseEvent", "Navigator", "Node", "NodeList", "Option", "Plugin", "ProcessingInstruction", "Range", "RangeException", "Screen", "Select", "Table", "TableCell", "TableRow", "TableSelection", "Text", "TextArea", "UIEvent", "Window", "XMLHttpRequest", "XMLSerializer", "XPathException", "XPathResult", "XSLTProcessor", "java", "Packages", "netscape", "sun", "JavaObject", "JavaClass", "JavaArray", "JavaMember", "$wnd", "$doc", "$entry", "$moduleName", "$moduleBase", "$gwt_version", "$sessionId", "$stack", "$stackDepth", "$location", "call"]);
 var const$0012 = ImmutableList.ImmutableList$from$factory(["break", "delete", "function", "return", "typeof", "case", "do", "if", "switch", "var", "catch", "else", "in", "this", "void", "continue", "false", "instanceof", "throw", "while", "debugger", "finally", "new", "true", "with", "default", "for", "null", "try", "abstract", "double", "goto", "native", "static", "boolean", "enum", "implements", "package", "super", "byte", "export", "import", "private", "synchronized", "char", "extends", "int", "protected", "throws", "class", "final", "interface", "public", "transient", "const", "float", "long", "short", "volatile"]);
+var const$0013 = new JSSyntaxRegExp("^[a-zA-Z][a-zA-Z_$0-9]*$");
 var $globals = {};
 $static_init();
 if (typeof window != 'undefined' && window.addEventListener) {

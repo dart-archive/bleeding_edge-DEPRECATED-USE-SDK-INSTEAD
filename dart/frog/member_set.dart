@@ -27,14 +27,6 @@ class MemberSet {
   // TODO(jimhug): Better way to check for operator.
   bool get isOperator() => members[0].isOperator;
 
-  Value _makeError(Node node, Value target, String action) {
-    if (!target.type.isVar) {
-      world.warning('could not find applicable $action for "$name"', node.span);
-    }
-    return new Value(world.varType,
-        '${target.code}.$jsname() /*no applicable $action*/', node.span);
-  }
-
   bool get treatAsField() {
     if (_treatAsField == null) {
       _treatAsField = !isVar && members.every((m) => m.isField);
@@ -269,6 +261,12 @@ class InvokeKey {
         // The member we're adding is a method that needs argument
         // conversion, so we have to make it go through the var call
         // path to get the correct type checks inserted.
+        needsVarCall = true;
+      } else if (member.jsname != members[0].jsname) {
+        // If the jsnames differ we need the var call since one of the stubs
+        // will change the name.  Native methods can have different jsnames,
+        // e.g.
+        //     foo() native 'bar';
         needsVarCall = true;
       } else if (member.library == world.dom) {
         // TODO(jimhug): Egregious hack for isolates + DOM - see

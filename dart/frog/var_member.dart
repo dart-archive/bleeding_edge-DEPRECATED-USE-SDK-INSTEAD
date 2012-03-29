@@ -258,16 +258,16 @@ class VarMethodSet extends VarMember {
 }
 
 String _getCallStubName(String name, Arguments args) {
-  // TODO: This code needs global knowledge to ensure the stub name does not
-  // collide with any other name.  E.g. it is unlikely but possible for the user
-  // to have methods called 'foo' and 'foo$0'.
+  // The stub name should not collide with any user declared method name since
+  // the '$'s in the stub name are always alone and world.toJsIdentifier doubles
+  // up those in a user declared method name.
   final nameBuilder = new StringBuffer('${name}\$${args.bareCount}');
   for (int i = args.bareCount; i < args.length; i++) {
     var argName = args.getName(i);
     nameBuilder.add('\$');
     if (argName.contains('\$')) {
-      // Disambiguate "a:b:" from "a$b:".  Using the length works well because
-      // the names can't start with digits.
+      // Disambiguate "a:b:" from "a$b:".  Prefixing the length works because
+      // parameter names can't start with digits.
       nameBuilder.add('${argName.length}');
     }
     nameBuilder.add(argName);

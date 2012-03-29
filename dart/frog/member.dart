@@ -93,13 +93,7 @@ class Member extends Element {
 
   String mangleJsName() {
     var mangled = super.mangleJsName();
-    if (mangled == 'split') {
-      // Hack: We don't want Dart's String.split to overwrite the
-      // existing JS String.prototype.split method. By mangling it we
-      // ensure that frog will not use the 'split' name, thus leaving
-      // the original JS String.prototype.split untouched.
-      return 'split_';
-    } else if (declaringType != null && declaringType.isTop) {
+    if (declaringType != null && declaringType.isTop) {
       return JsNames.getValid(mangled);
     } else {
       // We don't need to mangle native member names unless
@@ -732,8 +726,28 @@ class MethodMember extends Member {
    */
   Member initDelegate;
 
+  bool _hasNativeBody = false;
+
+  static final kIdentifierRegExp = const RegExp(@'^[a-zA-Z][a-zA-Z_$0-9]*$');
+
   MethodMember(String name, Type declaringType, this.definition)
-      : isLambda = false, super(name, declaringType);
+      : isLambda = false, super(name, declaringType) {
+    if (isNative) {
+      // Parse the native string.  The the native string can be a native name
+      // (identifier) or a chunk of JavaScript code.
+      //
+      //  foo() native 'bar';      // The native method is called 'bar'.
+      //  foo() native 'return 1'; // Defines method with native implementation.
+      //
+      if (kIdentifierRegExp.hasMatch(definition.nativeBody)) {
+        _jsname = definition.nativeBody;
+        // Prevent the compiler from using the name for a regular Dart member.
+        world._addHazardousMemberName(_jsname);
+      }
+      _hasNativeBody = definition.nativeBody != '' &&
+                       definition.nativeBody != _jsname;
+    }
+  }
 
   MethodMember.lambda(String name, Type declaringType, this.definition)
       : isLambda = true, super(name, declaringType);
@@ -762,6 +776,8 @@ class MethodMember extends Member {
     if (definition == null) return false;
     return definition.nativeBody != null;
   }
+
+  bool get hasNativeBody() => _hasNativeBody;
 
   bool get canGet() => true;
   bool get canSet() => false;
