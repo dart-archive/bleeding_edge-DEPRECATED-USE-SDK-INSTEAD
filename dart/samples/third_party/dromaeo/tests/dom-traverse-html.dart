@@ -27,7 +27,7 @@ void main() {
 
       final div = new Element.tag('div');
       div.innerHTML = html;
-      document.body.appendChild(div);
+      document.body.$dom_appendChild(div);
     })
     .test('firstChild', () {
       final nodes = document.body.nodes;
