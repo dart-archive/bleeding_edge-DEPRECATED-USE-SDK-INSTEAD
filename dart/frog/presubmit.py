@@ -135,19 +135,20 @@ def main():
   else:
     if not options.leg_only:
       # Run frog.py on the corelib tests, so we get some frog.py coverage.
-      cmd = test_cmd + ['--component=frog', 'corelib']
+      cmd = test_cmd + ['--compiler=frog', '--runtime=d8', 'corelib']
       RunCommand(*cmd, verbose=True)
 
       # Run frogium client tests. This is a pretty quick test but
       # tends to uncover different issues due to the size/complexity
       # of the DOM APIs.
-      cmd = test_cmd + ['--component=frogium', 'client']
+      cmd = test_cmd + ['--compiler=frog', '--runtime=drt', 'client']
       RunCommand(*cmd, verbose=True)
 
       # TODO(jimhug): Consider adding co19 back when it delivers more value
       #   than pain.
       # Run frogsh on most of the tests.
-      cmd = test_cmd + ['--component=frogsh', 'language', 'corelib',
+      cmd = test_cmd + ['--compiler=frogsh', '--runtime=d8',
+                        'language', 'corelib',
                         'isolate', 'peg', 'frog', 'css', 'frog_native']
       RunCommand(*cmd, verbose=True)
 
