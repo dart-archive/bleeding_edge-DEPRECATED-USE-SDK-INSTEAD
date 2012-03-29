@@ -21,6 +21,7 @@ com.google.dart.tools.core/perf/analysis/filescan = false
 com.google.dart.tools.core/experimental/analysis/server = false
 com.google.dart.tools.core/experimental/newIndexer = false
 com.google.dart.tools.core/experimental/serverDebugging = false
+com.google.dart.tools.core/experimental/update = false
 
 com.google.dart.tools.core/trace/artifactProvider = false
 com.google.dart.tools.core/trace/index/contributor = false

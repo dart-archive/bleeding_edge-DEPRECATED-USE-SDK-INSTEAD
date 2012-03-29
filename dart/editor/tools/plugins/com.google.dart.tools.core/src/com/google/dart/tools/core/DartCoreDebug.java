@@ -51,6 +51,7 @@ public class DartCoreDebug {
   public static final boolean NEW_INDEXER = true; //isOptionTrue("experimental/newIndexer");
   public static final boolean ENABLE_CALL_GRAPH = NEW_INDEXER
       && isOptionTrue("experimental/callHierarchy");
+  public static final boolean ENABLE_UPDATE = isOptionTrue("experimental/update");
 
   private static boolean isOptionTrue(String optionSuffix) {
     return "true".equalsIgnoreCase(Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix));
