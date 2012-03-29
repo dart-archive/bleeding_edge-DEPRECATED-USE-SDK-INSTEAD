@@ -20,6 +20,7 @@ import com.google.dart.tools.debug.ui.launch.ManageLaunchesAction;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
+import com.google.dart.tools.ui.actions.OpenApiDocsAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
@@ -220,6 +221,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private IWorkbenchAction newApplicationWizardAction;
   private OpenOnlineDocsAction openOnlineDocsAction;
+  private OpenApiDocsAction openApiDocsAction;
 
   /**
    * Constructs a new action builder which contributes actions to the given window.
@@ -315,6 +317,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     prefListener = null;
     propPrefListener = null;
     openOnlineDocsAction = null;
+    openApiDocsAction = null;
     //minimizeItem = null;
     //zoomItem = null;
     //arrangeWindowsItem = null;
@@ -600,6 +603,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     openOnlineDocsAction = new OpenOnlineDocsAction();
     register(openOnlineDocsAction);
+
+    openApiDocsAction = new OpenApiDocsAction();
+    register(openApiDocsAction);
 
 //    if (Util.isCocoa()) {
 //
@@ -902,11 +908,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     MenuManager menu = new MenuManager(IDEWorkbenchMessages.Workbench_help,
         IWorkbenchActionConstants.M_HELP);
 
+    menu.add(new Separator("group.assist")); //$NON-NLS-1$
     menu.add(new Separator("group.main")); //$NON-NLS-1$
+    menu.add(openApiDocsAction);
     menu.add(openOnlineDocsAction);
-    //menu.add(helpContentsAction);
-    //menu.add(helpSearchAction);
-    menu.add(new GroupMarker("group.assist")); //$NON-NLS-1$
 
     // HELP_START should really be the first item, but it was after
     // quickStartAction and tipsAndTricksAction in 2.1.
