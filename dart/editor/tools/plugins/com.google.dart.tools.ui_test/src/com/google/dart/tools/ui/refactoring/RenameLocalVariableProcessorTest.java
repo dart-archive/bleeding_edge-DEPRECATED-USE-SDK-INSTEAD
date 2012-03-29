@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
@@ -36,6 +37,29 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }
 
+  public void test_badFinalState_conflictWithNextVariable() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test() {",
+        "  int foo = 1;",
+        "  int bar = 2;",
+        "}");
+    DartVariableDeclaration variable = findElement("foo = 1;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameLocalVariable(variable, "bar");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals("Duplicate local variable 'bar'", showStatusMessages.get(0));
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
   public void test_badNewName_notIdentifier() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -56,6 +80,9 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(
+        "The variable name '-notIdentifier' is not a valid identifier",
+        showStatusMessages.get(0));
     assertThat(showStatusMessages.get(0)).contains(
         "The variable name '-notIdentifier' is not a valid identifier");
     // no source changes
@@ -112,7 +139,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     assertEquals(source, testUnit.getSource());
   }
 
-  public void test_OK_onDeclaration() throws Exception {
+  public void test_OK_local_onDeclaration() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "test() {",
@@ -134,7 +161,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
         "}");
   }
 
-  public void test_OK_onReference() throws Exception {
+  public void test_OK_local_onReference() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "test() {",
@@ -153,6 +180,26 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
         "  int bar = 2;",
         "  newName = 3;",
         "  bar = 4;",
+        "}");
+  }
+
+  public void test_OK_parameter_onDeclaration() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(foo) {",
+        "  foo = 1;",
+        "  int bar = 2;",
+        "}");
+    // TODO(scheglov) DartVariableDeclaration should be returned here, fix DartElementLocator
+    DartFunction func = findElement("foo)");
+    DartVariableDeclaration variable = func.getLocalVariables()[0];
+    // do rename
+    renameLocalVariable(variable, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(newName) {",
+        "  newName = 1;",
+        "  int bar = 2;",
         "}");
   }
 }

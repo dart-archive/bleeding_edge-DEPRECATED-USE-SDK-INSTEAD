@@ -1,6 +1,5 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
-import com.google.dart.core.IPackageFragment;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
@@ -10,14 +9,10 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.participants.ResourceModifications;
 import com.google.dart.tools.internal.corext.refactoring.reorg.RefactoringModifications;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.mapping.IResourceChangeDescriptionFactory;
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.IParticipantDescriptorFilter;
 import org.eclipse.ltk.core.refactoring.participants.ParticipantManager;
@@ -35,9 +30,9 @@ import java.util.List;
 
 public class RenameModifications extends RefactoringModifications {
 
-  private List<Object> fRename;
-  private List<RefactoringArguments> fRenameArguments;
-  private List<IParticipantDescriptorFilter> fParticipantDescriptorFilter;
+  private final List<Object> fRename;
+  private final List<RefactoringArguments> fRenameArguments;
+  private final List<IParticipantDescriptorFilter> fParticipantDescriptorFilter;
 
   public RenameModifications() {
     fRename = new ArrayList<Object>();
@@ -50,7 +45,9 @@ public class RenameModifications extends RefactoringModifications {
     for (int i = 0; i < fRename.size(); i++) {
       Object element = fRename.get(i);
       if (element instanceof IResource) {
-        ResourceModifications.buildMoveDelta(builder, (IResource) element,
+        ResourceModifications.buildMoveDelta(
+            builder,
+            (IResource) element,
             (RenameArguments) fRenameArguments.get(i));
       }
     }
@@ -130,11 +127,19 @@ public class RenameModifications extends RefactoringModifications {
       RefactoringProcessor owner, String[] natures, SharableParticipants shared) {
     List<RefactoringParticipant> result = new ArrayList<RefactoringParticipant>();
     for (int i = 0; i < fRename.size(); i++) {
-      result.addAll(Arrays.asList(ParticipantManager.loadRenameParticipants(status, owner,
-          fRename.get(i), (RenameArguments) fRenameArguments.get(i),
-          fParticipantDescriptorFilter.get(i), natures, shared)));
+      result.addAll(Arrays.asList(ParticipantManager.loadRenameParticipants(
+          status,
+          owner,
+          fRename.get(i),
+          (RenameArguments) fRenameArguments.get(i),
+          fParticipantDescriptorFilter.get(i),
+          natures,
+          shared)));
     }
-    result.addAll(Arrays.asList(getResourceModifications().getParticipants(status, owner, natures,
+    result.addAll(Arrays.asList(getResourceModifications().getParticipants(
+        status,
+        owner,
+        natures,
         shared)));
     return result.toArray(new RefactoringParticipant[result.size()]);
   }
@@ -142,7 +147,8 @@ public class RenameModifications extends RefactoringModifications {
   public void rename(CompilationUnit unit, RenameArguments args) {
     add(unit, args, null);
     if (unit.getResource() != null) {
-      getResourceModifications().addRename(unit.getResource(),
+      getResourceModifications().addRename(
+          unit.getResource(),
           new RenameArguments(args.getNewName(), args.getUpdateReferences()));
     }
   }
@@ -248,9 +254,9 @@ public class RenameModifications extends RefactoringModifications {
 //    return target;
 //  }
 
-  private boolean canMove(IContainer source, IContainer target) {
-    return !target.exists() && !source.getFullPath().isPrefixOf(target.getFullPath());
-  }
+//  private boolean canMove(IContainer source, IContainer target) {
+//    return !target.exists() && !source.getFullPath().isPrefixOf(target.getFullPath());
+//  }
 
 //  private IPackageFragment[] getSubpackages(IPackageFragment pack) throws CoreException {
 //    IPackageFragmentRoot root = (IPackageFragmentRoot) pack.getParent();
@@ -267,18 +273,18 @@ public class RenameModifications extends RefactoringModifications {
 //    return result.toArray(new IPackageFragment[result.size()]);
 //  }
 
-  private IFolder computeTargetFolder(IPackageFragment rootPackage, RenameArguments args,
-      IPackageFragment pack) {
-    IPath path = pack.getParent().getPath();
-    path = path.append(getNewPackageName(rootPackage, args.getNewName(), pack.getElementName()).replace(
-        '.', IPath.SEPARATOR));
-    IFolder target = ResourcesPlugin.getWorkspace().getRoot().getFolder(path);
-    return target;
-  }
-
-  private String getNewPackageName(IPackageFragment rootPackage, String newPackageName,
-      String oldSubPackageName) {
-    String oldPackageName = rootPackage.getElementName();
-    return newPackageName + oldSubPackageName.substring(oldPackageName.length());
-  }
+//  private IFolder computeTargetFolder(IPackageFragment rootPackage, RenameArguments args,
+//      IPackageFragment pack) {
+//    IPath path = pack.getParent().getPath();
+//    path = path.append(getNewPackageName(rootPackage, args.getNewName(), pack.getElementName()).replace(
+//        '.', IPath.SEPARATOR));
+//    IFolder target = ResourcesPlugin.getWorkspace().getRoot().getFolder(path);
+//    return target;
+//  }
+//
+//  private String getNewPackageName(IPackageFragment rootPackage, String newPackageName,
+//      String oldSubPackageName) {
+//    String oldPackageName = rootPackage.getElementName();
+//    return newPackageName + oldSubPackageName.substring(oldPackageName.length());
+//  }
 }

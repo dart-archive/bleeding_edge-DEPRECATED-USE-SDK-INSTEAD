@@ -2,13 +2,11 @@ package com.google.dart.tools.internal.corext.refactoring.reorg;
 
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.internal.corext.refactoring.DartRefactoringArguments;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.ltk.core.refactoring.ChangeDescriptor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
 import org.eclipse.ltk.core.refactoring.participants.RefactoringParticipant;
@@ -73,11 +71,6 @@ public interface IReorgPolicy extends IReorgDestinationValidator {
   public DartElement[] getDartElements();
 
   /**
-   * @return a descriptor describing a reorg from source to target
-   */
-  public ChangeDescriptor getDescriptor();
-
-  /**
    * @return the unique id of this policy
    */
   public String getPolicyId();
@@ -97,15 +90,6 @@ public interface IReorgPolicy extends IReorgDestinationValidator {
    * @see RefactoringSaveHelper
    */
   public int getSaveMode();
-
-  /**
-   * Initializes the reorg policy with arguments from a script.
-   * 
-   * @param arguments the arguments
-   * @return an object describing the status of the initialization. If the status has severity
-   *         <code>FATAL_ERROR</code>, the refactoring will not be executed.
-   */
-  public RefactoringStatus initialize(DartRefactoringArguments arguments);
 
   public RefactoringParticipant[] loadParticipants(RefactoringStatus status,
       RefactoringProcessor processor, String[] natures, SharableParticipants shared)
