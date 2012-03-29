@@ -18,6 +18,7 @@ import junit.framework.TestCase;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.HashSet;
 
 public abstract class SystemLibraryManagerProviderTest extends TestCase {
 
@@ -57,6 +58,21 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertTrue(specs.contains("dart:dom"));
     assertTrue(specs.contains("dart:html"));
     assertTrue(specs.contains("dart:uri"));
+  }
+
+  public void test_SystemLibraryManagerProvider_getAllLibrarySpecs_no_duplicates() throws Exception {
+    EditorLibraryManager libraryManager = getLibraryManager();
+    Collection<String> specs = libraryManager.getAllLibrarySpecs();
+    Collection<String> visited = new HashSet<String>();
+    String actual = "";
+    for (String eachSpec : specs) {
+      if (visited.contains(eachSpec)) {
+        actual += eachSpec + ", ";
+      } else {
+        visited.add(eachSpec);
+      }
+    }
+    assertEquals("", actual);
   }
 
   public void test_SystemLibraryManagerProvider_translateDoesNotExist() throws Exception {
