@@ -20,7 +20,8 @@ BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 DART_PATH = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-DART2JS_BUILDER = r'dart2js-(linux|mac|windows)-(debug|release)(-([a-z]+))?'
+DART2JS_BUILDER = (
+    r'dart2js-(linux|mac|windows)-(debug|release)(-([a-z]+))?-?(\d*)-?(\d*)')
 FROG_BUILDER = r'(frog|frogsh)-(linux|mac|windows)-(debug|release)'
 WEB_BUILDER = r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(\d+))?'
 
@@ -29,7 +30,7 @@ NO_COLOR_ENV['TERM'] = 'nocolor'
 
 def GetBuildInfo():
   """Returns a tuple (compiler, runtime, mode, system, option) where:
-    - compiler: 'dart2js', 'frog', 'frogsh', or None when the builder has an 
+    - compiler: 'dart2js', 'frog', 'frogsh', or None when the builder has an
       incorrect name
     - runtime: 'd8', 'ie', 'ff', 'safari', 'chrome', 'opera'
     - mode: 'debug' or 'release'
@@ -42,6 +43,8 @@ def GetBuildInfo():
   system = None
   builder_name = os.environ.get(BUILDER_NAME)
   option = None
+  shard_index = None
+  total_shards = None
   if builder_name:
 
     dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
@@ -54,6 +57,8 @@ def GetBuildInfo():
       system = dart2js_pattern.group(1)
       mode = dart2js_pattern.group(2)
       option = dart2js_pattern.group(4)
+      shard_index = dart2js_pattern.group(5)
+      total_shards = dart2js_pattern.group(6)
 
     elif frog_pattern:
       compiler = frog_pattern.group(1)
@@ -74,7 +79,7 @@ def GetBuildInfo():
   if system == 'windows':
     system = 'win7'
 
-  return (compiler, runtime, mode, system, option)
+  return (compiler, runtime, mode, system, option, shard_index, total_shards)
 
 
 def NeedsXterm(compiler, runtime):
@@ -82,7 +87,7 @@ def NeedsXterm(compiler, runtime):
       'ff', 'drt']
 
 def TestStep(name, mode, system, compiler, runtime, targets, flags):
-  print '@@@BUILD_STEP %s %s tests: %s %s@@@' % (name, compiler, runtime, 
+  print '@@@BUILD_STEP %s %s tests: %s %s@@@' % (name, compiler, runtime,
       ' '.join(flags))
   sys.stdout.flush()
   if NeedsXterm(compiler, runtime) and system == 'linux':
@@ -154,7 +159,7 @@ def TestFrog(compiler, runtime, mode, system, option, flags):
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['leg'], ['--checked'])
 
     extra_suites = ['leg_only', 'frog_native']
-    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extra_suites, 
+    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extra_suites,
         flags)
 
     TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
@@ -229,9 +234,13 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
-  compiler, runtime, mode, system, option = GetBuildInfo()
-  print "compiler: %s, runtime: %s mode: %s, system: %s, option: %s" % (
-      compiler, runtime, mode, system, option)
+  compiler, runtime, mode, system, option, shard_index, total_shards = (
+      GetBuildInfo())
+  shard_description = ""
+  if shard_index:
+    shard_description = " shard %s of %s" % (shard_index, total_shards)
+  print "compiler: %s, runtime: %s mode: %s, system: %s, option: %s%s" % (
+      compiler, runtime, mode, system, option, shard_description)
   if compiler is None:
     return 1
 
@@ -239,24 +248,27 @@ def main():
   if status != 0:
     print '@@@STEP_FAILURE@@@'
     return status
-
+  test_flags = []
+  if shard_index:
+    test_flags = ['--shards=%s' % total_shards, '--shard=%s' % shard_index]
   if compiler == 'dart2js':
-    status = TestFrog(compiler, runtime, mode, system, option, [])
+    status = TestFrog(compiler, runtime, mode, system, option, test_flags)
     if status != 0:
       print '@@@STEP_FAILURE@@@'
     return status # Return unconditionally for dart2js.
 
   if runtime == 'd8' or (system == 'linux' and runtime == 'chrome'):
-    status = TestFrog(compiler, runtime, mode, system, None, [])
+    status = TestFrog(compiler, runtime, mode, system, option, test_flags)
     if status != 0:
       print '@@@STEP_FAILURE@@@'
       return status
 
-  status = TestFrog(compiler, runtime, mode, system, None, ['--checked'])
+  status = TestFrog(compiler, runtime, mode, system, option,
+                    test_flags + ['--checked'])
   if status != 0:
     print '@@@STEP_FAILURE@@@'
 
-  if compiler == 'frog' and runtime in ['ff', 'chrome', 'safari', 'opera', 
+  if compiler == 'frog' and runtime in ['ff', 'chrome', 'safari', 'opera',
       'ie', 'drt']:
     CleanUpTemporaryFiles(system, runtime)
   return status
