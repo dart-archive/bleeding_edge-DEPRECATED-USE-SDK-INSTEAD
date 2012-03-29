@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Dart project authors.
+ * Copyright 2012 Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-public class SystemLibraryManagerProviderVmTest extends SystemLibraryManagerProviderTest {
+public class SystemLibraryManagerProviderAnyTest extends SystemLibraryManagerProviderTest {
 
   public void test_SystemLibraryManagerProvider_builtin() throws Exception {
     testLibrary("builtin", "builtin_runtime.dart");
@@ -36,8 +36,24 @@ public class SystemLibraryManagerProviderVmTest extends SystemLibraryManagerProv
     testLibrary("html", "html_dartium.dart");
   }
 
+  public void test_SystemLibraryManagerProvider_io() throws Exception {
+    testLibrary("io", "io_runtime.dart");
+  }
+
+  public void test_SystemLibraryManagerProvider_isolate() throws Exception {
+    testLibrary("isolate", "isolate_runtime.dart");
+  }
+
+  public void test_SystemLibraryManagerProvider_json() throws Exception {
+    testLibrary("json", "json.dart");
+  }
+
   public void test_SystemLibraryManagerProvider_uri() throws Exception {
     testLibrary("uri", "uri.dart");
+  }
+
+  public void test_SystemLibraryManagerProvider_utf() throws Exception {
+    testLibrary("utf", "utf.dart");
   }
 
   @Override
