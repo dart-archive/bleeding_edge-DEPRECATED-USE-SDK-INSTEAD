@@ -90,6 +90,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       if (treeViewer != null) {
         if (DartBasePreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
           updateTreeFont();
+          treeViewer.refresh();
         }
       }
     }
@@ -154,6 +155,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private Clipboard clipboard;
 
+  private ResourceLabelProvider resourceLabelProvider;
+
   public FilesView() {
   }
 
@@ -161,10 +164,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   public void createPartControl(Composite parent) {
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new ResourceContentProvider());
-    // TODO(pquitslund): replace with WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider()
-    //treeViewer.setLabelProvider(WorkbenchLabelProvider.getDecoratingWorkbenchLabelProvider());
-    treeViewer.setLabelProvider(new DecoratingStyledCellLabelProvider(new ResourceLabelProvider(
-        treeViewer.getTree().getFont()), new ProblemsLabelDecorator(), null));
+    resourceLabelProvider = new ResourceLabelProvider(treeViewer.getTree().getFont());
+    treeViewer.setLabelProvider(new DecoratingStyledCellLabelProvider(resourceLabelProvider,
+        new ProblemsLabelDecorator(), null));
     treeViewer.setComparator(new FilesViewerComparator());
     treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
@@ -420,6 +422,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     Font oldFont = treeViewer.getTree().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     treeViewer.getTree().setFont(font);
+    resourceLabelProvider.updateFont(font);
   }
 
   Shell getShell() {

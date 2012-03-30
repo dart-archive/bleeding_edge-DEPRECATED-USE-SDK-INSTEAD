@@ -17,11 +17,14 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.themes.Fonts;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -41,7 +44,7 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
   private static final String IGNORE_FOLDER_ICON = "icons/full/dart16/flder_obj_excl.png";
 
   private final WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
-
+  
   private Font boldFont;
   private Styler boldStyler;
 
@@ -125,6 +128,11 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
   @Override
   public void removeListener(ILabelProviderListener listener) {
     workbenchLabelProvider.removeListener(listener);
+  }
+
+  void updateFont(Font font) {
+    Font newFont = JFaceResources.getFont(DartBasePreferencePage.BASE_FONT_KEY);
+    boldFont = SWTUtil.changeFontSize(boldFont, newFont);
   }
 
 }
