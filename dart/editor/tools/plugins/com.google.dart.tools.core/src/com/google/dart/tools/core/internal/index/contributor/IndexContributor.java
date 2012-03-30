@@ -50,7 +50,6 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.dom.visitor.ChildVisitor;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Location;
 import com.google.dart.tools.core.index.Relationship;
@@ -120,11 +119,6 @@ public class IndexContributor extends ASTVisitor<Void> {
    * inner-most enclosing scope.
    */
   private ArrayList<Element> elementStack = new ArrayList<Element>();
-
-  /**
-   * A visitor that will visit all of the children of the node being visited.
-   */
-  private ChildVisitor<Void> childVisitor = new ChildVisitor<Void>(this);
 
   /**
    * The number of milliseconds taken to convert AST nodes or elements into core model elements.
@@ -423,12 +417,6 @@ public class IndexContributor extends ASTVisitor<Void> {
       notFound("new expression", node);
     }
     return super.visitNewExpression(node);
-  }
-
-  @Override
-  public Void visitNode(DartNode node) {
-    visitChildren(node);
-    return null;
   }
 
   @Override
@@ -1160,16 +1148,5 @@ public class IndexContributor extends ASTVisitor<Void> {
       return toString(access.getQualifier()) + "." + access.getPropertyName();
     }
     return "";
-  }
-
-  /**
-   * Visit the children of the given node. This method is to be used rather than
-   * {@link DartNode#visitChildren(com.google.dart.compiler.ast.DartPlainVisitor)} because that
-   * method does not always visit all of the children of the node, whereas this method does.
-   * 
-   * @param node the node whose children are to be visited
-   */
-  private void visitChildren(DartNode node) {
-    node.accept(childVisitor);
   }
 }

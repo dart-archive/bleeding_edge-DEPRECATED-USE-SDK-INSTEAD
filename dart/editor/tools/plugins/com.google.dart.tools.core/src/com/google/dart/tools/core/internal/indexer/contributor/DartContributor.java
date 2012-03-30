@@ -18,7 +18,6 @@ import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartMethodDefinition;
-import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.FieldElement;
@@ -30,7 +29,6 @@ import com.google.dart.indexer.exceptions.IndexRequestFailedUnchecked;
 import com.google.dart.indexer.index.configuration.Contributor;
 import com.google.dart.indexer.index.updating.LayerUpdater;
 import com.google.dart.indexer.locations.Location;
-import com.google.dart.tools.core.dom.visitor.ChildVisitor;
 import com.google.dart.tools.core.internal.indexer.location.FieldLocation;
 import com.google.dart.tools.core.internal.indexer.location.FunctionLocation;
 import com.google.dart.tools.core.internal.indexer.location.FunctionTypeAliasLocation;
@@ -63,11 +61,6 @@ public class DartContributor extends ASTVisitor<Void> implements Contributor {
   private LayerUpdater layerUpdater;
 
   /**
-   * A visitor that will visit all of the children of the node being visited.
-   */
-  private ChildVisitor<Void> childVisitor = new ChildVisitor<Void>(this);
-
-  /**
    * Initialize a newly created contributor.
    */
   public DartContributor() {
@@ -83,12 +76,6 @@ public class DartContributor extends ASTVisitor<Void> implements Contributor {
   public void initialize(CompilationUnit compilationUnit, LayerUpdater layerUpdater) {
     this.compilationUnit = compilationUnit;
     this.layerUpdater = layerUpdater;
-  }
-
-  @Override
-  public Void visitNode(DartNode node) {
-    visitChildren(node);
-    return null;
   }
 
   /**
@@ -290,16 +277,5 @@ public class DartContributor extends ASTVisitor<Void> implements Contributor {
     } catch (IndexRequestFailed exception) {
       throw new IndexRequestFailedUnchecked(exception);
     }
-  }
-
-  /**
-   * Visit the children of the given node. This method is to be used rather than
-   * {@link DartNode#visitChildren(com.google.dart.compiler.ast.DartPlainVisitor)} because that
-   * method does not always visit all of the children of the node, whereas this method does.
-   * 
-   * @param node the node whose children are to be visited
-   */
-  protected void visitChildren(DartNode node) {
-    node.accept(childVisitor);
   }
 }

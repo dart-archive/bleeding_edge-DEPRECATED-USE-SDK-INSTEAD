@@ -44,7 +44,6 @@ import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.dom.visitor.ChildVisitor;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -112,11 +111,6 @@ public class DartElementLocator extends ASTVisitor<Void> {
    * <code>null</code> if there is no element.
    */
   private IRegion candidateRegion;
-
-  /**
-   * A visitor that will visit all of the children of the node being visited.
-   */
-  private ChildVisitor<Void> childVisitor = new ChildVisitor<Void>(this);
 
   /**
    * The resolved element that was found that corresponds to the given source range, or
@@ -233,7 +227,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
    */
   public DartElement searchWithin(DartNode node) {
     try {
-      node.accept(childVisitor);
+      node.accept(this);
     } catch (DartElementFoundException exception) {
       // A node with the right source position was found.
     } catch (Exception exception) {
@@ -405,7 +399,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
   @Override
   public Void visitNode(DartNode node) {
     try {
-      node.accept(childVisitor);
+      node.visitChildren(this);
     } catch (DartElementFoundException exception) {
       throw exception;
     } catch (Exception exception) {
