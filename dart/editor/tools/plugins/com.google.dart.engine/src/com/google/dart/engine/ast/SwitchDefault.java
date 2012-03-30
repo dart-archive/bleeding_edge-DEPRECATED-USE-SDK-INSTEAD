@@ -41,8 +41,7 @@ public class SwitchDefault extends SwitchMember {
    * @param colon the colon separating the keyword or the expression from the statements
    * @param statements the statements that will be executed if this switch member is selected
    */
-  public SwitchDefault(SimpleIdentifier label, Token keyword, Token colon,
-      List<Statement> statements) {
+  public SwitchDefault(Label label, Token keyword, Token colon, List<Statement> statements) {
     super(label, keyword, colon, statements);
   }
 

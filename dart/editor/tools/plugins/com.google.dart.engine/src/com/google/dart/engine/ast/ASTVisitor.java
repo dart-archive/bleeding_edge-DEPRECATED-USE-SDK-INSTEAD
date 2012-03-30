@@ -17,6 +17,10 @@ package com.google.dart.engine.ast;
  * Instances of the class <code>ASTVisitor</code> can be used to visit an AST structure.
  */
 public class ASTVisitor<R> {
+  public R visitAdjacentStrings(AdjacentStrings node) {
+    return visitExpression(node);
+  }
+
   public R visitArrayAccess(ArrayAccess node) {
     return visitExpression(node);
   }
@@ -57,9 +61,9 @@ public class ASTVisitor<R> {
 //    return visitTypeDeclaration(node);
 //  }
 
-//  public R visitClassExtendsClause(ClassExtendsClause node) {
-//    return visitNode(node);
-//  }
+  public R visitClassExtendsClause(ClassExtendsClause node) {
+    return visitNode(node);
+  }
 
   public R visitComment(Comment node) {
     return visitNode(node);
@@ -69,13 +73,13 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
-//  public R visitCompilationUnit(CompilationUnit node) {
-//    return visitNode(node);
-//  }
+  public R visitCompilationUnit(CompilationUnit node) {
+    return visitNode(node);
+  }
 
-//  public R visitCompilationUnitMember(CompilationUnitMember node) {
-//    return visitDeclaration(node);
-//  }
+  public R visitCompilationUnitMember(CompilationUnitMember node) {
+    return visitDeclaration(node);
+  }
 
   public R visitConditionalExpression(ConditionalExpression node) {
     return visitExpression(node);
@@ -169,9 +173,9 @@ public class ASTVisitor<R> {
     return visitStatement(node);
   }
 
-//  public R visitImplementsClause(ImplementsClause node) {
-//    return visitNode(node);
-//  }
+  public R visitImplementsClause(ImplementsClause node) {
+    return visitNode(node);
+  }
 
   public R visitImportCombinator(ImportCombinator node) {
     return visitNode(node);
@@ -201,33 +205,37 @@ public class ASTVisitor<R> {
 //    return visitTypeDeclaration(node);
 //  }
 
-//  public R visitInterfaceExtendsClause(InterfaceExtendsClause node) {
-//    return visitNode(node);
-//  }
+  public R visitInterfaceExtendsClause(InterfaceExtendsClause node) {
+    return visitNode(node);
+  }
 
-//  public R visitInterpolationElement(InterpolationElement node) {
-//    return visitNode(node);
-//  }
+  public R visitInterpolationElement(InterpolationElement node) {
+    return visitNode(node);
+  }
 
 //  public R visitNativeDirective(NativeDirective node) {
 //    return visitDirective(node);
 //  }
 
-//  public R visitInterpolationExpression(InterpolationExpression node) {
-//    return visitInterpolationElement(node);
-//  }
+  public R visitInterpolationExpression(InterpolationExpression node) {
+    return visitInterpolationElement(node);
+  }
 
-//  public R visitInterpolationString(InterpolationString node) {
-//    return visitInterpolationElement(node);
-//  }
+  public R visitInterpolationString(InterpolationString node) {
+    return visitInterpolationElement(node);
+  }
 
   public R visitIsExpression(IsExpression node) {
     return visitExpression(node);
   }
 
-//  public R visitLabeledStatement(LabeledStatement node) {
-//    return visitStatement(node);
-//  }
+  public R visitLabel(Label node) {
+    return visitNode(node);
+  }
+
+  public R visitLabeledStatement(LabeledStatement node) {
+    return visitStatement(node);
+  }
 
   public R visitLibraryDirective(LibraryDirective node) {
     return visitDirective(node);
@@ -261,13 +269,13 @@ public class ASTVisitor<R> {
 //    return visitNode(node);
 //  }
 
-//  public R visitNamedExpression(NamedExpression node) {
-//    return visitExpression(node);
-//  }
+  public R visitNamedExpression(NamedExpression node) {
+    return visitExpression(node);
+  }
 
-//  public R visitNamedFormalParameter(NamedFormalParameter node) {
-//    return visitFormalParameter(node);
-//  }
+  public R visitNamedFormalParameter(NamedFormalParameter node) {
+    return visitFormalParameter(node);
+  }
 
 //  public R visitNativeFunctionBody(NativeFunctionBody node) {
 //    return visitFunctionBody(node);
@@ -334,9 +342,9 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
-//  public R visitStringInterpolation(StringInterpolation node) {
-//    return visitLiteral(node);
-//  }
+  public R visitStringInterpolation(StringInterpolation node) {
+    return visitLiteral(node);
+  }
 
   public R visitStringLiteral(StringLiteral node) {
     return visitLiteral(node);

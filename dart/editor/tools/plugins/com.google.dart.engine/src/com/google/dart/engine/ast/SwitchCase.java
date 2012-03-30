@@ -46,7 +46,7 @@ public class SwitchCase extends SwitchMember {
    * @param colon the colon separating the keyword or the expression from the statements
    * @param statements the statements that will be executed if this switch member is selected
    */
-  public SwitchCase(SimpleIdentifier label, Token keyword, Expression expression, Token colon,
+  public SwitchCase(Label label, Token keyword, Expression expression, Token colon,
       List<Statement> statements) {
     super(label, keyword, colon, statements);
     this.expression = becomeParentOf(expression);

@@ -31,7 +31,7 @@ public abstract class SwitchMember extends ASTNode {
   /**
    * The label associated with the switch member, or <code>null</code> if there is no label.
    */
-  private SimpleIdentifier label;
+  private Label label;
 
   /**
    * The token representing the 'case' or 'default' keyword.
@@ -62,7 +62,7 @@ public abstract class SwitchMember extends ASTNode {
    * @param colon the colon separating the keyword or the expression from the statements
    * @param statements the statements that will be executed if this switch member is selected
    */
-  public SwitchMember(SimpleIdentifier label, Token keyword, Token colon, List<Statement> statements) {
+  public SwitchMember(Label label, Token keyword, Token colon, List<Statement> statements) {
     this.label = becomeParentOf(label);
     this.keyword = keyword;
     this.colon = colon;
@@ -108,7 +108,7 @@ public abstract class SwitchMember extends ASTNode {
    * 
    * @return the label associated with the switch member
    */
-  public SimpleIdentifier getLabel() {
+  public Label getLabel() {
     return label;
   }
 
@@ -137,5 +137,14 @@ public abstract class SwitchMember extends ASTNode {
    */
   public void setKeyword(Token keyword) {
     this.keyword = keyword;
+  }
+
+  /**
+   * Set the label associated with the switch member to the given label.
+   * 
+   * @param label the label associated with the switch member
+   */
+  public void setLabel(Label label) {
+    this.label = label;
   }
 }
