@@ -8,11 +8,6 @@ NativeMissingMethod1FrogTest: Fail # Issue 1912
 NativeWindow1FrogTest: Fail # Issue 1915
 ForeignTest: Fail # Leg only test
 
-[ $compiler == dart2js ]
-NativeMethodRename1FrogTest: Fail
-NativeMethodRename2FrogTest: Fail
-NativeMethodRename3FrogTest: Fail
-
 [ $checked ]
 NativeCheckedFieldsFrogTest: Fail
 
