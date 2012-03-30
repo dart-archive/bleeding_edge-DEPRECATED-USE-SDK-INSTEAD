@@ -257,6 +257,9 @@ public class DartcBuildHandler {
 
       // Delete the previous compiler output, if it exists.
       libResource = lib.getCorrespondingResource();
+      if (!DartCore.isAnalyzed(libResource)) {
+        return;
+      }
       File file = DartBuilder.getJsAppArtifactFile(libResource);
 
       if (shouldGenerateJs) {
