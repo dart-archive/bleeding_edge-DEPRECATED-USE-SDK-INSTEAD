@@ -238,8 +238,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   }
 
   private void createEdits() {
-    TextEdit declarationEdit = createRenameEdit(fVariableElement.getSourceInfo().getOffset());
-    List<TextEdit> allRenameEdits = getAllRenameEdits(declarationEdit);
+    List<TextEdit> allRenameEdits = getAllRenameEdits();
 
 //    TextEdit[] allUnparentedRenameEdits = new TextEdit[allRenameEdits.length];
 //    TextEdit unparentedDeclarationEdit = null;
@@ -265,7 +264,8 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 //      }
       rootEdit.addChild(edit);
       fChange.addTextEditGroup(new TextEditGroup(
-          RefactoringCoreMessages.RenameTempRefactoring_changeName, edit));
+          RefactoringCoreMessages.RenameTempRefactoring_changeName,
+          edit));
     }
 
     // store information for analysis
@@ -274,8 +274,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 //          allUnparentedRenameEdits);
 //    } else
     {
-      fLocalAnalyzePackage = new RenameAnalyzeUtil.LocalAnalyzePackage(declarationEdit,
-          allRenameEdits);
+      fLocalAnalyzePackage = new RenameAnalyzeUtil.LocalAnalyzePackage(null, allRenameEdits);
     }
   }
 
@@ -283,8 +282,8 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
     return new ReplaceEdit(offset, fCurrentName.length(), fNewName);
   }
 
-  private List<TextEdit> getAllRenameEdits(TextEdit declarationEdit) {
-    final List<TextEdit> edits = Lists.newArrayList(declarationEdit);
+  private List<TextEdit> getAllRenameEdits() {
+    final List<TextEdit> edits = Lists.newArrayList();
     DartNode enclosingMethod = ASTNodes.getParent(fVariableNode, DartMethodDefinition.class);
     enclosingMethod.accept(new ASTVisitor<Void>() {
       @Override
@@ -312,16 +311,9 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
       return;
     }
     // Prepare variable Element.
-    // TODO(scheglov) Fix DartC to set Element for DartIdentifier
-    if (fVariableNode.getElement() == null) {
-      fVariableNode = fVariableNode.getParent();
-    }
     if (fVariableNode.getElement() instanceof VariableElement) {
       fVariableElement = (VariableElement) fVariableNode.getElement();
     }
-//    if (variableReferenceNode.getParent() instanceof DartVariable) {
-//      fTempDeclarationNode = (DartVariable) variableReferenceNode.getParent();
-//    }
   }
 
   private void initNames() {

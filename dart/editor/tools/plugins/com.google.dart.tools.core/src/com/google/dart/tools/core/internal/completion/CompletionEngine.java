@@ -1149,6 +1149,10 @@ public class CompletionEngine {
 
     NodeFinder finder = NodeFinder.find(parsedUnit, completionPosition, 0);
     DartNode resolvedNode = finder.selectNode();
+    // NodeFinder returns the inner most node, in case of DartParameter - name of its type, or name.
+    if (resolvedNode instanceof DartIdentifier && resolvedNode.getParent() instanceof DartParameter) {
+      resolvedNode = resolvedNode.getParent();
+    }
     resolvedMember = finder.getEnclosingMethod();
     if (resolvedMember == null) {
       resolvedMember = finder.getEnclosingField();
