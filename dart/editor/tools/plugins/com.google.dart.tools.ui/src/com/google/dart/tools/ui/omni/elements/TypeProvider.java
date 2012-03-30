@@ -50,7 +50,7 @@ public class TypeProvider extends OmniProposalProvider {
     public boolean passes(SearchMatch match) {
       DartElement element = match.getElement();
       IResource resource = element.getResource();
-      return DartCore.isAnalyzed(resource);
+      return resource == null || DartCore.isAnalyzed(resource);
     }
   }
 
