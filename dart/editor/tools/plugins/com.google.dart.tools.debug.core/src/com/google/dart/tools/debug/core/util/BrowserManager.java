@@ -114,7 +114,7 @@ public class BrowserManager {
       Process process = browserProcesses.get(browserName);
 
       if (!isProcessTerminated(process)) {
-        // TODO(devoncarew): try and us an OS mechanism to send it a graceful shutdown request?
+        // TODO(devoncarew): try and use an OS mechanism to send it a graceful shutdown request?
         // This could avoid the problem w/ Chrome displaying the crashed message on the next run.
 
         process.destroy();

@@ -66,8 +66,6 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 
     // Turn off the ability to move the toolbars around.
     getWindowConfigurer().getActionBarConfigurer().getCoolBarManager().setLockLayout(true);
-
-    checkForFirstStart();
   }
 
   @Override
@@ -78,16 +76,6 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
     configurer.setShowStatusLine(true);
     configurer.setShowProgressIndicator(true);
     configurer.setTitle("Dart Editor"); //$NON-NLS-1$
-  }
-
-  private void checkForFirstStart() {
-    final String FIRST_START = "firstStart";
-
-    if (!Activator.getDefault().getPreferenceStore().contains(FIRST_START)) {
-      Activator.getDefault().getPreferenceStore().putValue(FIRST_START, "false");
-
-      PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().resetPerspective();
-    }
   }
 
   private void filterUnwantedPreferenceNodes() {
