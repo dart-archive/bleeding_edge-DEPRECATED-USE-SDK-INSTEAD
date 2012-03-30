@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.model.delta;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
@@ -293,15 +292,6 @@ public class DeltaProcessingState implements IResourceChangeListener {
    */
   @Override
   public void resourceChanged(final IResourceChangeEvent event) {
-    if (event.getDelta() == null) {
-      return;
-    }
-
-    // Only for handle resource changes in Dart projects.
-    if (!DartProjectNature.hasDartNature(event.getDelta().getResource())) {
-      return;
-    }
-
     // for each of the pre-resource change listeners, loop through and notify the listener of the change event
     for (int i = 0; i < preResourceChangeListenerCount; i++) {
       // wrap callbacks with Safe runnable for subsequent listeners to be called
@@ -322,7 +312,6 @@ public class DeltaProcessingState implements IResourceChangeListener {
         });
       }
     }
-
     try {
       getDeltaProcessor().resourceChanged(event);
     } finally {
