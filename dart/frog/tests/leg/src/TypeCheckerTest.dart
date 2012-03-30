@@ -22,6 +22,8 @@ main() {
                 testFor,
                 testWhile,
                 testOperators,
+                testConstructorInvocationArgumentCount,
+                testConstructorInvocationArgumentTypes,
                 testMethodInvocationArgumentCount,
                 testMethodInvocations,
                 testControlFlow,
@@ -132,6 +134,35 @@ testOperators() {
   }
 }
 
+void testConstructorInvocationArgumentCount() {
+  compiler.parseScript("""
+     class C1 { C1(x, y); }
+     class C2 { C2(int x, int y); }
+  """);
+  // calls to untyped constructor C1
+  analyze("new C1(1, 2);");
+  analyze("new C1();", MessageKind.MISSING_ARGUMENT);
+  analyze("new C1(1);", MessageKind.MISSING_ARGUMENT);
+  analyze("new C1(1, 2, 3);", MessageKind.ADDITIONAL_ARGUMENT);
+  // calls to typed constructor C2
+  analyze("new C2(1, 2);");
+  analyze("new C2();", MessageKind.MISSING_ARGUMENT);
+  analyze("new C2(1);", MessageKind.MISSING_ARGUMENT);
+  analyze("new C2(1, 2, 3);", MessageKind.ADDITIONAL_ARGUMENT);
+}
+
+void testConstructorInvocationArgumentTypes() {
+  compiler.parseScript("""
+    class C1 { C1(x); }
+    class C2 { C2(int x); }
+  """);
+  analyze("new C1(42);");
+  analyze("new C1('string');");
+  analyze("new C2(42);");
+  analyze("new C2('string');",
+          MessageKind.NOT_ASSIGNABLE);
+}
+
 void testMethodInvocationArgumentCount() {
   compiler.parseScript(CLASS_WITH_METHODS);
   final String header = "{ ClassWithMethods c; ";
@@ -199,6 +230,9 @@ void testMethodInvocations() {
   analyze("${header}int k = c.intTwoArgumentMethod(i, j); }");
   analyze("${header}ClassWithMethods x = c.intTwoArgumentMethod(i, j); }",
           MessageKind.NOT_ASSIGNABLE);
+
+  analyze("${header}c.intField(); }", MessageKind.METHOD_NOT_FOUND);
+  analyze("${header}d.intField(); }", MessageKind.METHOD_NOT_FOUND);
 }
 
 /** Tests analysis of returns (not required by the specification). */
