@@ -35,7 +35,10 @@ final String DEFAULT_HELPERLIB = @'''
   builtin$removeLast$0(receiver) {}
   index(a, index) {}
   indexSet(a, index, value) {}
-  class Closure {} ''';
+  class Closure {}
+  builtin$iterator$0() {}
+  builtin$next$0() {}
+  builtin$hasNext$0() {}''';
 
 final String DEFAULT_CORELIB = @'''
   print(var obj) {}
