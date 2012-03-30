@@ -75,7 +75,7 @@ void main() {
     .test('getElementsByTagName (not in document)', () {
       for (int i = 0; i < num; i++) {
         ElementList elems = document.queryAll('strong');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.isEmpty();
       }
     })
     .test('getElementsByName', () {

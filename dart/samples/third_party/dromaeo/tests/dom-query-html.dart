@@ -74,7 +74,7 @@ void main() {
     .test('getElementsByTagName (not in document)', () {
       for (int i = 0; i < num; i++) {
         NodeList elems = document.$dom_getElementsByTagName('strong');
-        ret = elems.last().$dom_nodeType;
+        ret = elems.length == 0;
       }
     })
     .test('getElementsByName', () {
