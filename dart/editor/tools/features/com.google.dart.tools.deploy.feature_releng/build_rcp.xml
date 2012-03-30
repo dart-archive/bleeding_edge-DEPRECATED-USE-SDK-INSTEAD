@@ -396,6 +396,7 @@ build system.  The PDE build system has to run under Eclipse.
                 <include name="args4j/**" />
                 <include name="guava/**" />
                 <include name="hamcrest/**" />
+                <include name="fest/**" />
                 <include name="json/**" />
             </fileset>
         </copy>
