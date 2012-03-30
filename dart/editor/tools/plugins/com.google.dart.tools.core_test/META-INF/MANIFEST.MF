@@ -20,4 +20,8 @@ Require-Bundle: com.google.dart.compiler.js,
 Export-Package: com.google.dart.tools.core,
  com.google.dart.tools.core.samples,
  com.google.dart.tools.core.test.util,
- com.google.dart.tools.core.testutil
+ com.google.dart.tools.core.testutil,
+ org.fest.assertions
+Bundle-ClassPath: third_party/fest/fest-util-1.1.6.jar,
+ third_party/fest/fest-assert-1.4.jar,
+ .

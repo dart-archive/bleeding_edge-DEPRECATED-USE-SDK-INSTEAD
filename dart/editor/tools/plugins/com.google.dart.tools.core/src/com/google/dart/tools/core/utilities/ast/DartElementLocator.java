@@ -41,7 +41,6 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.LibraryElement;
-import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.tools.core.DartCore;
@@ -383,18 +382,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
         } else {
           if (targetElement instanceof VariableElement) {
             VariableElement variableElement = (VariableElement) targetElement;
-            if (variableElement.getKind() == ElementKind.PARAMETER) {
-              resolvedElement = variableElement;
-              if (variableElement.getEnclosingElement() instanceof MethodElement) {
-                MethodElement methodElement = (MethodElement) variableElement.getEnclosingElement();
-                foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
-                    methodElement);
-                candidateRegion = new Region(variableElement.getNameLocation().getOffset(),
-                    variableElement.getNameLocation().getLength());
-              } else {
-                foundElement = null;
-              }
-            } else if (variableElement.getKind() == ElementKind.VARIABLE) {
+            if (variableElement.getKind() == ElementKind.PARAMETER
+                || variableElement.getKind() == ElementKind.VARIABLE) {
               resolvedElement = variableElement;
               foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
                   variableElement);

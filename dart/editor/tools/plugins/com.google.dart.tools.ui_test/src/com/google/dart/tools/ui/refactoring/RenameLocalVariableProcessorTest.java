@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
-import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
@@ -190,9 +189,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
         "  foo = 1;",
         "  int bar = 2;",
         "}");
-    // TODO(scheglov) DartVariableDeclaration should be returned here, fix DartElementLocator
-    DartFunction func = findElement("foo)");
-    DartVariableDeclaration variable = func.getLocalVariables()[0];
+    DartVariableDeclaration variable = findElement("foo)");
     // do rename
     renameLocalVariable(variable, "newName");
     assertTestUnitContent(

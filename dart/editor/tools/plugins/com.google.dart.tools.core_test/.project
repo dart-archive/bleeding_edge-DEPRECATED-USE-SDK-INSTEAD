@@ -31,5 +31,10 @@
 			<type>2</type>
 			<locationURI>DART_TRUNK/compiler/javatests</locationURI>
 		</link>
+		<link>
+			<name>third_party</name>
+			<type>2</type>
+			<locationURI>DART_TRUNK/third_party</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>
