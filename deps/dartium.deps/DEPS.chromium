@@ -50,7 +50,7 @@ vars = {
   "ffmpeg_hash": "c4db435602131b218d0c39e85ccf18a4be195e60",
 
   "sfntly_revision": "128",
-  "skia_revision": "3506",
+  "skia_revision": "3543",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -186,7 +186,7 @@ deps = {
   # When roll to another webgl conformance tests revision, please goto
   # chrome/test/gpu and run generate_webgl_conformance_test_list.py.
   "src/third_party/webgl_conformance":
-    "/trunk/deps/third_party/webgl/sdk/tests@121363",
+    "/trunk/deps/third_party/webgl/sdk/tests@129652",
 
   # We should use the same software_rendering_list.json for all branches.
   "src/chrome/browser/resources/software_rendering_list":
@@ -218,6 +218,9 @@ deps = {
     Var("webkit_revision"),
   "src/content/test/data/layout_tests/LayoutTests/platform/chromium/fast/workers":
     Var("webkit_trunk") + "/LayoutTests/platform/chromium/fast/workers@" +
+    Var("webkit_revision"),
+  "src/content/test/data/layout_tests/LayoutTests/platform/chromium/fast/events":
+    Var("webkit_trunk") + "/LayoutTests/platform/chromium/fast/events@" +
     Var("webkit_revision"),
   "src/content/test/data/layout_tests/LayoutTests/platform/chromium-win/fast/events":
     Var("webkit_trunk") + "/LayoutTests/platform/chromium-win/fast/events@" +
