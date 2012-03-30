@@ -19,6 +19,7 @@ import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
 /**
@@ -36,10 +37,30 @@ public class DartProjectNature implements IProjectNature {
    */
   public static boolean hasDartNature(IProject project) {
     try {
+      if (project == null) {
+        return false;
+      }
+
       return project.hasNature(DartCore.DART_PROJECT_NATURE);
     } catch (CoreException exception) {
       return false;
     }
+  }
+
+  /**
+   * Return <code>true</code> if the given resource's project has the Dart project nature, or
+   * <code>false</code> if it either doesn't have the Dart nature or if we cannot determine whether
+   * or not it has the Dart nature.
+   * 
+   * @param resource the resource being tested
+   * @return <code>true</code> if the given resource's project has the Dart nature
+   */
+  public static boolean hasDartNature(IResource resource) {
+    if (resource == null) {
+      return false;
+    }
+
+    return hasDartNature(resource.getProject());
   }
 
   /**
