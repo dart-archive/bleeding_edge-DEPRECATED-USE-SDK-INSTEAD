@@ -293,6 +293,10 @@ public class DeltaProcessingState implements IResourceChangeListener {
    */
   @Override
   public void resourceChanged(final IResourceChangeEvent event) {
+    if (event.getDelta() == null) {
+      return;
+    }
+
     // Only for handle resource changes in Dart projects.
     if (!DartProjectNature.hasDartNature(event.getDelta().getResource())) {
       return;
