@@ -80,17 +80,12 @@ public class DartUIStartup implements IStartup {
     }
 
     private void indexerWarmup() throws InterruptedException {
-      // This will initialize the Dart Tools Core plugin as well as the indexer plugin.
-      long start = System.currentTimeMillis();
-      DartModelManager.getInstance().getDartModel();
-      if (DartCoreDebug.WARMUP) {
-        long delta = System.currentTimeMillis() - start;
-        DartCore.logInformation("Warmup Model : " + delta);
-      }
-
+      //
+      // Initialize the indexer.
+      //
       if (!getThread().isInterrupted()) {
         // Warm up the type cache.
-        start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         if (DartCoreDebug.NEW_INDEXER) {
           InMemoryIndex.getInstance().initializeIndex();
         } else {
@@ -99,6 +94,17 @@ public class DartUIStartup implements IStartup {
         if (DartCoreDebug.WARMUP) {
           long delta = System.currentTimeMillis() - start;
           DartCore.logInformation("Warmup Indexer : " + delta);
+        }
+      }
+      //
+      // Initialize the Dart Tools Core plugin.
+      //
+      if (!getThread().isInterrupted()) {
+        long start = System.currentTimeMillis();
+        DartModelManager.getInstance().getDartModel();
+        if (DartCoreDebug.WARMUP) {
+          long delta = System.currentTimeMillis() - start;
+          DartCore.logInformation("Warmup Model : " + delta);
         }
       }
     }
