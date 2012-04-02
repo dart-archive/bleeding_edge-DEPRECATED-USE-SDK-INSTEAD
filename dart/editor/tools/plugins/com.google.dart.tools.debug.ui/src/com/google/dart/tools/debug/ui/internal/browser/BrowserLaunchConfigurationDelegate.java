@@ -157,10 +157,12 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
 
           if (result.getExitCode() != 0) {
             String errMsg = NLS.bind(
-                "Failure to launch - unable to generate JavaScript for {0}.\n\nPlease see console for more details.",
+                "Failure to launch - unable to generate JavaScript for {0}.\n\nPlease see the console or log for more details.",
                 resource.getName());
 
             errMsg = errMsg.trim();
+
+            DartDebugCorePlugin.logError(result.getAllOutput());
 
             throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, errMsg));
           }
