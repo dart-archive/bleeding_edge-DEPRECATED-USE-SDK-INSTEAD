@@ -9,6 +9,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
+import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.internal.corext.dom.LinkedNodeFinder;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
@@ -260,8 +261,10 @@ public class RenameLinkedMode {
     int offset = fOriginalSelection.x;
 
     try {
-      DartUnit root = ASTProvider.getASTProvider().getAST(getCompilationUnit(),
-          ASTProvider.WAIT_YES, null);
+      DartUnit root = ASTProvider.getASTProvider().getAST(
+          getCompilationUnit(),
+          ASTProvider.WAIT_YES,
+          null);
 
       fLinkedPositionGroup = new LinkedPositionGroup();
       DartNode selectedNode = NodeFinder.perform(root, fOriginalSelection.x, fOriginalSelection.y);
@@ -303,7 +306,8 @@ public class RenameLinkedMode {
          * @return the rank of the node with respect to the invocation offset
          */
         private int rank(DartNode node) {
-          int relativeRank = node.getSourceInfo().getOffset() + node.getSourceInfo().getLength()
+          int relativeRank = node.getSourceInfo().getOffset()
+              + node.getSourceInfo().getLength()
               - pos;
           if (relativeRank < 0) {
             return Integer.MAX_VALUE + relativeRank;
@@ -314,8 +318,11 @@ public class RenameLinkedMode {
       });
       for (int i = 0; i < sameNodes.length; i++) {
         DartNode elem = sameNodes[i];
-        LinkedPosition linkedPosition = new LinkedPosition(document,
-            elem.getSourceInfo().getOffset(), elem.getSourceInfo().getLength(), i);
+        LinkedPosition linkedPosition = new LinkedPosition(
+            document,
+            elem.getSourceInfo().getOffset(),
+            elem.getSourceInfo().getLength(),
+            i);
         if (i == 0) {
           fNamePosition = linkedPosition;
         }
@@ -510,8 +517,11 @@ public class RenameLinkedMode {
         });
       }
     } catch (InvocationTargetException e) {
-      throw new CoreException(new Status(IStatus.ERROR, DartToolsPlugin.getPluginId(),
-          ReorgMessages.RenameLinkedMode_error_saving_editor, e));
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartToolsPlugin.getPluginId(),
+          ReorgMessages.RenameLinkedMode_error_saving_editor,
+          e));
     } catch (InterruptedException e) {
       // canceling is OK
       return null;
@@ -527,8 +537,18 @@ public class RenameLinkedMode {
 
 //    RenameDartElementDescriptor descriptor = createRenameDescriptor(fDartElement, newName);
 //    RenameSupport renameSupport = RenameSupport.create(descriptor);
-    return RenameSupport.create((DartVariableDeclaration) fDartElement, newName,
-        RenameSupport.UPDATE_REFERENCES);
+    // TODO(scheglov) create actual RenameSupport based on element type
+    switch (fDartElement.getElementType()) {
+      case DartElement.FIELD:
+        return RenameSupport.create((Field) fDartElement, newName, RenameSupport.UPDATE_REFERENCES);
+      case DartElement.VARIABLE:
+        return RenameSupport.create(
+            (DartVariableDeclaration) fDartElement,
+            newName,
+            RenameSupport.UPDATE_REFERENCES);
+      default:
+        return null;
+    }
   }
 
 }

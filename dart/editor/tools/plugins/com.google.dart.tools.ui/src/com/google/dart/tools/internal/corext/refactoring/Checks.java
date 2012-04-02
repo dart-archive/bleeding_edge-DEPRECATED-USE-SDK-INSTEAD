@@ -2,17 +2,27 @@ package com.google.dart.tools.internal.corext.refactoring;
 
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartVariable;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
+import com.google.dart.tools.internal.corext.refactoring.util.Messages;
+import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+
+import java.util.List;
 
 /**
  * This class defines a set of reusable static checks methods.
@@ -58,6 +68,81 @@ public class Checks {
 //      return new RefactoringStatus();
   }
 
+  public static void checkCompileErrorsInAffectedFile(RefactoringStatus result, IResource resource)
+      throws DartModelException {
+    if (hasCompileErrors(resource)) {
+      result.addWarning(Messages.format(
+          RefactoringCoreMessages.Checks_cu_has_compile_errors,
+          BasicElementLabels.getPathLabel(resource.getFullPath(), false)));
+    }
+  }
+
+  /**
+   * From SearchResultGroup[] passed as the parameter this method removes all those that correspond
+   * to a non-parsable CompilationUnit and returns it as a result.
+   * 
+   * @param grouped the array of search result groups from which non parsable compilation units are
+   *          to be removed.
+   * @param status a refactoring status to collect errors and problems
+   * @return the array of search result groups
+   * @throws DartModelException
+   */
+//  public static SearchResultGroup[] excludeCompilationUnits(SearchResultGroup[] grouped, RefactoringStatus status) throws DartModelException{
+//  	List<SearchResultGroup> result= new ArrayList<SearchResultGroup>();
+//  	boolean wasEmpty= grouped.length == 0;
+//  	for (int i= 0; i < grouped.length; i++){
+//  		IResource resource= grouped[i].getResource();
+//  		DartElement element= JavaCore.create(resource);
+//  		if (! (element instanceof CompilationUnit))
+//  			continue;
+//  		//XXX this is a workaround 	for a jcore feature that shows errors in cus only when you get the original element
+//  		CompilationUnit cu= (CompilationUnit)JavaCore.create(resource);
+//  		if (! cu.isStructureKnown()){
+//  			status.addError(Messages.format(RefactoringCoreMessages.Checks_cannot_be_parsed, BasicElementLabels.getPathLabel(cu.getPath(), false)));
+//  			continue; //removed, go to the next one
+//  		}
+//  		result.add(grouped[i]);
+//  	}
+//
+//  	if ((!wasEmpty) && result.isEmpty())
+//  		status.addFatalError(RefactoringCoreMessages.Checks_all_excluded);
+//
+//  	return result.toArray(new SearchResultGroup[result.size()]);
+//  }
+
+  public static RefactoringStatus checkCompileErrorsInAffectedFiles(List<SearchMatch> matches)
+      throws DartModelException {
+    RefactoringStatus result = new RefactoringStatus();
+    for (SearchMatch match : matches) {
+      checkCompileErrorsInAffectedFile(result, match.getElement().getResource());
+    }
+    return result;
+  }
+
+  /**
+   * Checks if the given name is a valid Dart type parameter name.
+   * 
+   * @param name the Dart type parameter name.
+   * @param context an {@link DartElement} or <code>null</code>
+   * @return a refactoring status containing the error message if the name is not a valid Dart type
+   *         parameter name.
+   */
+//  public static RefactoringStatus checkTypeParameterName(String name, DartElement context) {
+//  	return checkName(name, DartConventions.validateTypeVariableName(name, context));
+//  }
+
+  /**
+   * Checks if the given name is a valid Dart identifier.
+   * 
+   * @param name the Dart identifier.
+   * @param context an {@link DartElement} or <code>null</code>
+   * @return a refactoring status containing the error message if the name is not a valid Dart
+   *         identifier.
+   */
+//  public static RefactoringStatus checkIdentifier(String name, DartElement context) {
+//    return checkName(name, DartConventions.validateIdentifier(name, context));
+//  }
+
   /**
    * Checks if the given name is a valid Dart field name.
    * 
@@ -96,28 +181,47 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Dart type parameter name.
+   * Checks if the given name is a valid Dart package name.
    * 
-   * @param name the Dart type parameter name.
+   * @param name the Dart package name.
    * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart type
-   *         parameter name.
+   * @return a refactoring status containing the error message if the name is not a valid Dart
+   *         package name.
    */
-//  public static RefactoringStatus checkTypeParameterName(String name, DartElement context) {
-//  	return checkName(name, DartConventions.validateTypeVariableName(name, context));
+//  public static RefactoringStatus checkPackageName(String name, DartElement context) {
+//  	return checkName(name, DartConventions.validatePackageName(name));
 //  }
 
   /**
-   * Checks if the given name is a valid Dart identifier.
-   * 
-   * @param name the Dart identifier.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart
-   *         identifier.
+   * Compare two parameter signatures.
    */
-//  public static RefactoringStatus checkIdentifier(String name, DartElement context) {
-//    return checkName(name, DartConventions.validateIdentifier(name, context));
+//  public static boolean compareParamTypes(String[] paramTypes1, String[] paramTypes2) {
+//  	if (paramTypes1.length == paramTypes2.length) {
+//  		int i= 0;
+//  		while (i < paramTypes1.length) {
+//  			String t1= Signature.getSimpleName(Signature.toString(paramTypes1[i]));
+//  			String t2= Signature.getSimpleName(Signature.toString(paramTypes2[i]));
+//  			if (!t1.equals(t2)) {
+//  				return false;
+//  			}
+//  			i++;
+//  		}
+//  		return true;
+//  	}
+//  	return false;
 //  }
+
+  //---------------------
+
+  public static RefactoringStatus checkIfCuBroken(TypeMember member) throws DartModelException {
+    CompilationUnit cu = (CompilationUnit) DartCore.create(member.getCompilationUnit().getResource());
+    if (cu == null) {
+      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.Checks_cu_not_created);
+    } else if (!cu.isStructureKnown()) {
+      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.Checks_cu_not_parsed);
+    }
+    return new RefactoringStatus();
+  }
 
   /**
    * Checks if the given name is a valid Dart method name.
@@ -167,18 +271,6 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Dart package name.
-   * 
-   * @param name the Dart package name.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart
-   *         package name.
-   */
-//  public static RefactoringStatus checkPackageName(String name, DartElement context) {
-//  	return checkName(name, DartConventions.validatePackageName(name));
-//  }
-
-  /**
    * Checks if the given name is a valid Dart type name.
    * 
    * @param name the Dart method name.
@@ -195,94 +287,6 @@ public class Checks {
     }
   }
 
-  /**
-   * Checks if the given name is a valid Dart variable name.
-   * 
-   * @return a refactoring status containing the error message if the name is not a valid Dart
-   *         variable name.
-   */
-  public static RefactoringStatus checkVariableName(String name) {
-    return checkName(name, DartConventions.validateVariableName(name));
-  }
-
-  public static boolean isAvailable(DartElement dartElement) throws DartModelException {
-    if (dartElement == null) {
-      return false;
-    }
-    if (!dartElement.exists()) {
-      return false;
-    }
-    if (dartElement.isReadOnly()) {
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * @param e
-   * @return int Checks.IS_RVALUE if e is an rvalue Checks.IS_RVALUE_GUESSED if e is guessed as an
-   *         rvalue Checks.NOT_RVALUE_VOID if e is not an rvalue because its type is void
-   *         Checks.NOT_RVALUE_MISC if e is not an rvalue for some other reason
-   */
-//  public static int checkExpressionIsRValue(Expression e) {
-//  	if (e instanceof Name) {
-//  		if(!(((Name) e).resolveBinding() instanceof IVariableBinding)) {
-//  			return NOT_RVALUE_MISC;
-//  		}
-//  	}
-//  	if (e instanceof Annotation)
-//  		return NOT_RVALUE_MISC;
-//  		
-//
-//  	ITypeBinding tb= e.resolveTypeBinding();
-//  	boolean guessingRequired= false;
-//  	if (tb == null) {
-//  		guessingRequired= true;
-//  		tb= ASTResolving.guessBindingForReference(e);
-//  	}
-//  	if (tb == null)
-//  		return NOT_RVALUE_MISC;
-//  	else if (tb.getName().equals("void")) //$NON-NLS-1$
-//  		return NOT_RVALUE_VOID;
-//
-//  	return guessingRequired ? IS_RVALUE_GUESSED : IS_RVALUE;
-//  }
-
-  public static boolean isDeclaredIn(DartVariable tempDeclaration,
-      Class<? extends DartNode> astNodeClass) {
-    // TODO(scheglov) I think that this is bad function, because DartVariable is just local variable.
-    DartNode parent = ASTNodes.getParent(tempDeclaration, astNodeClass);
-    if (parent == null) {
-      return false;
-    }
-    return true;
-  }
-
-//  public static boolean isTopLevel(Type type){
-//  	return type.getDeclaringType() == null;
-//  }
-//
-//  public static boolean isAnonymous(Type type) throws DartModelException {
-//  	return type.isAnonymous();
-//  }
-//
-//  public static boolean isTopLevelType(TypeMember member){
-//  	return  member.getElementType() == DartElement.TYPE && isTopLevel((Type) member);
-//  }
-//
-//  public static boolean isInsideLocalType(Type type) throws DartModelException {
-//  	while (type != null) {
-//  		if (type.isLocal())
-//  			return true;
-//  		type= type.getDeclaringType();
-//  	}
-//  	return false;
-//  }
-//
-//  public static boolean isAlreadyNamed(DartElement element, String name){
-//  	return name.equals(element.getElementName());
-//  }
-//
 //  //-------------- main and native method checks ------------------
 //  public static RefactoringStatus checkForMainAndNativeMethods(CompilationUnit cu) throws DartModelException {
 //  	return checkForMainAndNativeMethods(cu.getTypes());
@@ -321,30 +325,41 @@ public class Checks {
 //  	return result;
 //  }
 
-  //---- New method name checking -------------------------------------------------------------
-
-  /**
-   * Checks if the new method is already used in the given type.
-   * 
-   * @param type
-   * @param methodName
-   * @param parameters
-   * @return the status
-   */
-//  public static RefactoringStatus checkMethodInType(ITypeBinding type, String methodName, ITypeBinding[] parameters) {
-//  	RefactoringStatus result= new RefactoringStatus();
-//  	if (methodName.equals(type.getName()))
-//  		result.addWarning(RefactoringCoreMessages.Checks_methodName_constructor);
-//  	IMethodBinding method= org.eclipse.jdt.internal.corext.dom.Bindings.findMethodInType(type, methodName, parameters);
-//  	if (method != null)
-//  		result.addError(Messages.format(RefactoringCoreMessages.Checks_methodName_exists,
-//  			new Object[] {BasicElementLabels.getJavaElementName(methodName), BasicElementLabels.getJavaElementName(type.getName())}),
-//  			JavaStatusContext.create(method));
-//  	return result;
+//  public static boolean isTopLevel(Type type){
+//  	return type.getDeclaringType() == null;
+//  }
+//
+//  public static boolean isAnonymous(Type type) throws DartModelException {
+//  	return type.isAnonymous();
+//  }
+//
+//  public static boolean isTopLevelType(TypeMember member){
+//  	return  member.getElementType() == DartElement.TYPE && isTopLevel((Type) member);
+//  }
+//
+//  public static boolean isInsideLocalType(Type type) throws DartModelException {
+//  	while (type != null) {
+//  		if (type.isLocal())
+//  			return true;
+//  		type= type.getDeclaringType();
+//  	}
+//  	return false;
 //  }
 
-  public static boolean resourceExists(IPath resourcePath) {
-    return ResourcesPlugin.getWorkspace().getRoot().findMember(resourcePath) != null;
+  /**
+   * Checks if the given name is a valid Dart variable name.
+   * 
+   * @return a refactoring status containing the error message if the name is not a valid Dart
+   *         variable name.
+   */
+  public static RefactoringStatus checkVariableName(String name) {
+    return checkName(name, DartConventions.validateVariableName(name));
+  }
+
+  //---- New method name checking -------------------------------------------------------------
+
+  public static boolean isAlreadyNamed(DartElement element, String name) {
+    return name.equals(element.getElementName());
   }
 
   /**
@@ -437,81 +452,83 @@ public class Checks {
 //  	return null;
 //  }
 
+  public static boolean isAvailable(DartElement dartElement) throws DartModelException {
+    if (dartElement == null) {
+      return false;
+    }
+    if (!dartElement.exists()) {
+      return false;
+    }
+    if (dartElement.isReadOnly()) {
+      return false;
+    }
+    return true;
+  }
+
   /**
-   * Compare two parameter signatures.
+   * @param e
+   * @return int Checks.IS_RVALUE if e is an rvalue Checks.IS_RVALUE_GUESSED if e is guessed as an
+   *         rvalue Checks.NOT_RVALUE_VOID if e is not an rvalue because its type is void
+   *         Checks.NOT_RVALUE_MISC if e is not an rvalue for some other reason
    */
-//  public static boolean compareParamTypes(String[] paramTypes1, String[] paramTypes2) {
-//  	if (paramTypes1.length == paramTypes2.length) {
-//  		int i= 0;
-//  		while (i < paramTypes1.length) {
-//  			String t1= Signature.getSimpleName(Signature.toString(paramTypes1[i]));
-//  			String t2= Signature.getSimpleName(Signature.toString(paramTypes2[i]));
-//  			if (!t1.equals(t2)) {
-//  				return false;
-//  			}
-//  			i++;
+//  public static int checkExpressionIsRValue(Expression e) {
+//  	if (e instanceof Name) {
+//  		if(!(((Name) e).resolveBinding() instanceof IVariableBinding)) {
+//  			return NOT_RVALUE_MISC;
 //  		}
-//  		return true;
 //  	}
-//  	return false;
+//  	if (e instanceof Annotation)
+//  		return NOT_RVALUE_MISC;
+//  		
+//
+//  	ITypeBinding tb= e.resolveTypeBinding();
+//  	boolean guessingRequired= false;
+//  	if (tb == null) {
+//  		guessingRequired= true;
+//  		tb= ASTResolving.guessBindingForReference(e);
+//  	}
+//  	if (tb == null)
+//  		return NOT_RVALUE_MISC;
+//  	else if (tb.getName().equals("void")) //$NON-NLS-1$
+//  		return NOT_RVALUE_VOID;
+//
+//  	return guessingRequired ? IS_RVALUE_GUESSED : IS_RVALUE;
 //  }
 
-  //---------------------
-
-//  public static RefactoringStatus checkIfCuBroken(TypeMember member) throws DartModelException{
-//  	CompilationUnit cu= (CompilationUnit)JavaCore.create(member.getCompilationUnit().getResource());
-//  	if (cu == null)
-//  		return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.Checks_cu_not_created);
-//  	else if (! cu.isStructureKnown())
-//  		return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.Checks_cu_not_parsed);
-//  	return new RefactoringStatus();
-//  }
+  public static boolean isDeclaredIn(DartVariable tempDeclaration,
+      Class<? extends DartNode> astNodeClass) {
+    // TODO(scheglov) I think that this is bad function, because DartVariable is just local variable.
+    DartNode parent = ASTNodes.getParent(tempDeclaration, astNodeClass);
+    if (parent == null) {
+      return false;
+    }
+    return true;
+  }
 
   /**
-   * From SearchResultGroup[] passed as the parameter this method removes all those that correspond
-   * to a non-parsable CompilationUnit and returns it as a result.
+   * Checks if the new method is already used in the given type.
    * 
-   * @param grouped the array of search result groups from which non parsable compilation units are
-   *          to be removed.
-   * @param status a refactoring status to collect errors and problems
-   * @return the array of search result groups
-   * @throws DartModelException
+   * @param type
+   * @param methodName
+   * @param parameters
+   * @return the status
    */
-//  public static SearchResultGroup[] excludeCompilationUnits(SearchResultGroup[] grouped, RefactoringStatus status) throws DartModelException{
-//  	List<SearchResultGroup> result= new ArrayList<SearchResultGroup>();
-//  	boolean wasEmpty= grouped.length == 0;
-//  	for (int i= 0; i < grouped.length; i++){
-//  		IResource resource= grouped[i].getResource();
-//  		DartElement element= JavaCore.create(resource);
-//  		if (! (element instanceof CompilationUnit))
-//  			continue;
-//  		//XXX this is a workaround 	for a jcore feature that shows errors in cus only when you get the original element
-//  		CompilationUnit cu= (CompilationUnit)JavaCore.create(resource);
-//  		if (! cu.isStructureKnown()){
-//  			status.addError(Messages.format(RefactoringCoreMessages.Checks_cannot_be_parsed, BasicElementLabels.getPathLabel(cu.getPath(), false)));
-//  			continue; //removed, go to the next one
-//  		}
-//  		result.add(grouped[i]);
-//  	}
-//
-//  	if ((!wasEmpty) && result.isEmpty())
-//  		status.addFatalError(RefactoringCoreMessages.Checks_all_excluded);
-//
-//  	return result.toArray(new SearchResultGroup[result.size()]);
-//  }
-//
-//  public static RefactoringStatus checkCompileErrorsInAffectedFiles(SearchResultGroup[] grouped) throws DartModelException {
+//  public static RefactoringStatus checkMethodInType(ITypeBinding type, String methodName, ITypeBinding[] parameters) {
 //  	RefactoringStatus result= new RefactoringStatus();
-//  	for (int i= 0; i < grouped.length; i++)
-//  		checkCompileErrorsInAffectedFile(result, grouped[i].getResource());
+//  	if (methodName.equals(type.getName()))
+//  		result.addWarning(RefactoringCoreMessages.Checks_methodName_constructor);
+//  	IMethodBinding method= org.eclipse.jdt.internal.corext.dom.Bindings.findMethodInType(type, methodName, parameters);
+//  	if (method != null)
+//  		result.addError(Messages.format(RefactoringCoreMessages.Checks_methodName_exists,
+//  			new Object[] {BasicElementLabels.getJavaElementName(methodName), BasicElementLabels.getJavaElementName(type.getName())}),
+//  			JavaStatusContext.create(method));
 //  	return result;
 //  }
-//
-//  public static void checkCompileErrorsInAffectedFile(RefactoringStatus result, IResource resource) throws DartModelException {
-//  	if (hasCompileErrors(resource))
-//  		result.addWarning(Messages.format(RefactoringCoreMessages.Checks_cu_has_compile_errors, BasicElementLabels.getPathLabel(resource.getFullPath(), false)));
-//  }
-//
+
+  public static boolean resourceExists(IPath resourcePath) {
+    return ResourcesPlugin.getWorkspace().getRoot().findMember(resourcePath) != null;
+  }
+
 //  public static RefactoringStatus checkCompileErrorsInAffectedFiles(SearchResultGroup[] references, IResource declaring) throws DartModelException {
 //  	RefactoringStatus result= new RefactoringStatus();
 //  	for (int i= 0; i < references.length; i++){
@@ -522,116 +539,6 @@ public class Checks {
 //  	}
 //  	if (declaring != null)
 //  		checkCompileErrorsInAffectedFile(result, declaring);
-//  	return result;
-//  }
-//
-//  private static boolean hasCompileErrors(IResource resource) throws DartModelException {
-//  	try {
-//  		IMarker[] problemMarkers= resource.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-//  		for (int i= 0; i < problemMarkers.length; i++) {
-//  			if (problemMarkers[i].getAttribute(IMarker.SEVERITY, -1) == IMarker.SEVERITY_ERROR)
-//  				return true;
-//  		}
-//  		return false;
-//  	} catch (DartModelException e){
-//  		throw e;
-//  	} catch (CoreException e){
-//  		throw new DartModelException(e);
-//  	}
-//  }
-
-  //------
-//  public static boolean isReadOnly(Object element) throws DartModelException{
-//  	if (element instanceof IResource)
-//  		return isReadOnly((IResource)element);
-//
-//  	if (element instanceof DartElement) {
-//  		if ((element instanceof IPackageFragmentRoot) && isClasspathDelete((IPackageFragmentRoot)element))
-//  			return false;
-//  		return isReadOnly(((DartElement)element).getResource());
-//  	}
-//
-//  	Assert.isTrue(false, "not expected to get here");	 //$NON-NLS-1$
-//  	return false;
-//  }
-//
-//  public static boolean isReadOnly(IResource res) throws DartModelException {
-//  	ResourceAttributes attributes= res.getResourceAttributes();
-//  	if (attributes != null && attributes.isReadOnly())
-//  		return true;
-//
-//  	if (! (res instanceof IContainer))
-//  		return false;
-//
-//  	IContainer container= (IContainer)res;
-//  	try {
-//  		IResource[] children= container.members();
-//  		for (int i= 0; i < children.length; i++) {
-//  			if (isReadOnly(children[i]))
-//  				return true;
-//  		}
-//  		return false;
-//  	} catch (DartModelException e){
-//  		throw e;
-//  	} catch (CoreException e) {
-//  		throw new DartModelException(e);
-//  	}
-//  }
-//
-//  public static boolean isClasspathDelete(IPackageFragmentRoot pkgRoot) {
-//  	IResource res= pkgRoot.getResource();
-//  	if (res == null)
-//  		return true;
-//  	IProject definingProject= res.getProject();
-//  	if (res.getParent() != null && pkgRoot.isArchive() && ! res.getParent().equals(definingProject))
-//  		return true;
-//
-//  	IProject occurringProject= pkgRoot.getJavaProject().getProject();
-//  	return !definingProject.equals(occurringProject);
-//  }
-
-  //-------- validateEdit checks ----
-
-//  public static RefactoringStatus validateModifiesFiles(IFile[] filesToModify, Object context) {
-//  	RefactoringStatus result= new RefactoringStatus();
-//  	IStatus status= Resources.checkInSync(filesToModify);
-//  	if (!status.isOK())
-//  		result.merge(RefactoringStatus.create(status));
-//  	status= Resources.makeCommittable(filesToModify, context);
-//  	if (!status.isOK()) {
-//  		result.merge(RefactoringStatus.create(status));
-//  		if (!result.hasFatalError()) {
-//  			result.addFatalError(RefactoringCoreMessages.Checks_validateEdit);
-//  		}
-//  	}
-//  	return result;
-//  }
-//
-//  public static void addModifiedFilesToChecker(IFile[] filesToModify, CheckConditionsContext context) {
-//  	ResourceChangeChecker checker= (ResourceChangeChecker) context.getChecker(ResourceChangeChecker.class);
-//  	IResourceChangeDescriptionFactory deltaFactory= checker.getDeltaFactory();
-//
-//  	for (int i= 0; i < filesToModify.length; i++) {
-//  		deltaFactory.change(filesToModify[i]);
-//  	}
-//  }
-//
-//
-//  public static RefactoringStatus validateEdit(CompilationUnit unit, Object context) {
-//  	IResource resource= unit.getPrimary().getResource();
-//  	RefactoringStatus result= new RefactoringStatus();
-//  	if (resource == null)
-//  		return result;
-//  	IStatus status= Resources.checkInSync(resource);
-//  	if (!status.isOK())
-//  		result.merge(RefactoringStatus.create(status));
-//  	status= Resources.makeCommittable(resource, context);
-//  	if (!status.isOK()) {
-//  		result.merge(RefactoringStatus.create(status));
-//  		if (!result.hasFatalError()) {
-//  			result.addFatalError(RefactoringCoreMessages.Checks_validateEdit);
-//  		}
-//  	}
 //  	return result;
 //  }
 
@@ -731,6 +638,120 @@ public class Checks {
       return false;
     } else {
       return s.charAt(0) == Character.toLowerCase(s.charAt(0));
+    }
+  }
+
+  //------
+//  public static boolean isReadOnly(Object element) throws DartModelException{
+//  	if (element instanceof IResource)
+//  		return isReadOnly((IResource)element);
+//
+//  	if (element instanceof DartElement) {
+//  		if ((element instanceof IPackageFragmentRoot) && isClasspathDelete((IPackageFragmentRoot)element))
+//  			return false;
+//  		return isReadOnly(((DartElement)element).getResource());
+//  	}
+//
+//  	Assert.isTrue(false, "not expected to get here");	 //$NON-NLS-1$
+//  	return false;
+//  }
+//
+//  public static boolean isReadOnly(IResource res) throws DartModelException {
+//  	ResourceAttributes attributes= res.getResourceAttributes();
+//  	if (attributes != null && attributes.isReadOnly())
+//  		return true;
+//
+//  	if (! (res instanceof IContainer))
+//  		return false;
+//
+//  	IContainer container= (IContainer)res;
+//  	try {
+//  		IResource[] children= container.members();
+//  		for (int i= 0; i < children.length; i++) {
+//  			if (isReadOnly(children[i]))
+//  				return true;
+//  		}
+//  		return false;
+//  	} catch (DartModelException e){
+//  		throw e;
+//  	} catch (CoreException e) {
+//  		throw new DartModelException(e);
+//  	}
+//  }
+//
+//  public static boolean isClasspathDelete(IPackageFragmentRoot pkgRoot) {
+//  	IResource res= pkgRoot.getResource();
+//  	if (res == null)
+//  		return true;
+//  	IProject definingProject= res.getProject();
+//  	if (res.getParent() != null && pkgRoot.isArchive() && ! res.getParent().equals(definingProject))
+//  		return true;
+//
+//  	IProject occurringProject= pkgRoot.getJavaProject().getProject();
+//  	return !definingProject.equals(occurringProject);
+//  }
+
+  //-------- validateEdit checks ----
+
+//  public static RefactoringStatus validateModifiesFiles(IFile[] filesToModify, Object context) {
+//  	RefactoringStatus result= new RefactoringStatus();
+//  	IStatus status= Resources.checkInSync(filesToModify);
+//  	if (!status.isOK())
+//  		result.merge(RefactoringStatus.create(status));
+//  	status= Resources.makeCommittable(filesToModify, context);
+//  	if (!status.isOK()) {
+//  		result.merge(RefactoringStatus.create(status));
+//  		if (!result.hasFatalError()) {
+//  			result.addFatalError(RefactoringCoreMessages.Checks_validateEdit);
+//  		}
+//  	}
+//  	return result;
+//  }
+//
+//  public static void addModifiedFilesToChecker(IFile[] filesToModify, CheckConditionsContext context) {
+//  	ResourceChangeChecker checker= (ResourceChangeChecker) context.getChecker(ResourceChangeChecker.class);
+//  	IResourceChangeDescriptionFactory deltaFactory= checker.getDeltaFactory();
+//
+//  	for (int i= 0; i < filesToModify.length; i++) {
+//  		deltaFactory.change(filesToModify[i]);
+//  	}
+//  }
+//
+//
+//  public static RefactoringStatus validateEdit(CompilationUnit unit, Object context) {
+//  	IResource resource= unit.getPrimary().getResource();
+//  	RefactoringStatus result= new RefactoringStatus();
+//  	if (resource == null)
+//  		return result;
+//  	IStatus status= Resources.checkInSync(resource);
+//  	if (!status.isOK())
+//  		result.merge(RefactoringStatus.create(status));
+//  	status= Resources.makeCommittable(resource, context);
+//  	if (!status.isOK()) {
+//  		result.merge(RefactoringStatus.create(status));
+//  		if (!result.hasFatalError()) {
+//  			result.addFatalError(RefactoringCoreMessages.Checks_validateEdit);
+//  		}
+//  	}
+//  	return result;
+//  }
+
+  private static boolean hasCompileErrors(IResource resource) throws DartModelException {
+    try {
+      IMarker[] problemMarkers = resource.findMarkers(
+          DartCore.DART_PROBLEM_MARKER_TYPE,
+          true,
+          IResource.DEPTH_INFINITE);
+      for (int i = 0; i < problemMarkers.length; i++) {
+        if (problemMarkers[i].getAttribute(IMarker.SEVERITY, -1) == IMarker.SEVERITY_ERROR) {
+          return true;
+        }
+      }
+      return false;
+    } catch (DartModelException e) {
+      throw e;
+    } catch (CoreException e) {
+      throw new DartModelException(e);
     }
   }
 

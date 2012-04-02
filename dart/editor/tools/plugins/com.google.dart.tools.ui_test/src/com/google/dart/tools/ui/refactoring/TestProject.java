@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.refactoring;
 
+import com.google.common.io.CharStreams;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
@@ -25,15 +26,39 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.jobs.IJobManager;
+import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 /**
  * Helper for creating, manipulating and disposing temporary {@link DartProject}.
  */
 public class TestProject {
+
+  /**
+   * Wait for auto-build notification to occur, that is for the auto-build to finish.
+   */
+  public static void waitForAutoBuild() {
+    while (true) {
+      try {
+        IJobManager jobManager = Job.getJobManager();
+        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
+        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
+        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
+        jobManager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+        break;
+      } catch (Throwable e) {
+      }
+    }
+  }
+
   private final IProject project;
+
+  private final DartProject dartProject;
 
   /**
    * Creates new {@link DartProject} with name "Test".
@@ -64,6 +89,8 @@ public class TestProject {
       description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
       project.setDescription(description, null);
     }
+    // remmeber DartProject
+    dartProject = DartCore.create(project);
   }
 
   /**
@@ -71,6 +98,41 @@ public class TestProject {
    */
   public void dispose() throws Exception {
     project.delete(true, true, null);
+  }
+
+  /**
+   * @return the {@link DartProject}.
+   */
+  public DartProject getDartProject() {
+    return dartProject;
+  }
+
+  /**
+   * @return the {@link String} content of the {@link IFile} with given path.
+   */
+  public String getFileString(String path) throws Exception {
+    IFile file = project.getFile(new Path(path));
+    Reader reader = new InputStreamReader(file.getContents(), file.getCharset());
+    try {
+      return CharStreams.toString(reader);
+    } finally {
+      reader.close();
+    }
+  }
+
+  /**
+   * @return the underlying {@link IProject}.
+   */
+  public IProject getProject() {
+    return project;
+  }
+
+  /**
+   * @return the {@link CompilationUnit} on given path.
+   */
+  public CompilationUnit getUnit(String path) throws Exception {
+    IFile file = project.getFile(new Path(path));
+    return (CompilationUnit) DartCore.create(file);
   }
 
   /**

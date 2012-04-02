@@ -1,11 +1,8 @@
 package com.google.dart.tools.ui.internal.refactoring.reorg;
 
-import com.google.dart.tools.internal.corext.refactoring.tagging.IDelegateUpdating;
 import com.google.dart.tools.internal.corext.refactoring.tagging.INameUpdating;
 import com.google.dart.tools.internal.corext.refactoring.tagging.IQualifiedNameUpdating;
-import com.google.dart.tools.internal.corext.refactoring.tagging.IReferenceUpdating;
 import com.google.dart.tools.internal.corext.refactoring.tagging.ITextUpdating;
-import com.google.dart.tools.ui.internal.refactoring.DelegateUIHelper;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.TextInputWizardPage;
 import com.google.dart.tools.ui.internal.util.RowLayouter;
@@ -13,8 +10,6 @@ import com.google.dart.tools.ui.internal.util.RowLayouter;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -25,24 +20,7 @@ import org.eclipse.ui.PlatformUI;
 
 abstract class RenameInputWizardPage extends TextInputWizardPage {
 
-  private static Button createCheckbox(Composite parent, String title, boolean value,
-      RowLayouter layouter) {
-    Button checkBox = new Button(parent, SWT.CHECK);
-    checkBox.setText(title);
-    checkBox.setSelection(value);
-    layouter.perform(checkBox);
-    return checkBox;
-  }
-
   private final String fHelpContextID;
-  private Button fUpdateReferences;
-  private Button fUpdateTextualMatches;
-  private Button fUpdateQualifiedNames;
-  private Button fLeaveDelegateCheckBox;
-
-//  private Button fDeprecateDelegateCheckBox;
-
-//  private QualifiedNameComponent fQualifiedNameComponent;
 
   /**
    * Creates a new text input page.
@@ -92,32 +70,11 @@ abstract class RenameInputWizardPage extends TextInputWizardPage {
     gridData.heightHint = 2;
     separator.setLayoutData(gridData);
 
-    int indent = convertWidthInCharsToPixels(2);
-
-    addOptionalUpdateReferencesCheckbox(composite, layouter);
     addAdditionalOptions(composite, layouter);
-    addOptionalUpdateTextualMatches(composite, layouter);
-//    addOptionalUpdateQualifiedNameComponent(composite, layouter, indent);
-    addOptionalLeaveDelegateCheckbox(composite, layouter);
-//    addOptionalDeprecateDelegateCheckbox(composite, layouter, indent);
     updateForcePreview();
 
     Dialog.applyDialogFont(superComposite);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), fHelpContextID);
-  }
-
-  @Override
-  public void dispose() {
-    if (saveSettings()) {
-      saveBooleanSetting(RenameRefactoringWizard.UPDATE_TEXTUAL_MATCHES, fUpdateTextualMatches);
-      saveBooleanSetting(RenameRefactoringWizard.UPDATE_QUALIFIED_NAMES, fUpdateQualifiedNames);
-//      if (fQualifiedNameComponent != null) {
-//        fQualifiedNameComponent.savePatterns(getRefactoringSettings());
-//      }
-      DelegateUIHelper.saveLeaveDelegateSetting(fLeaveDelegateCheckBox);
-//      DelegateUIHelper.saveDeprecateDelegateSetting(fDeprecateDelegateCheckBox);
-    }
-    super.dispose();
   }
 
   @Override
@@ -173,149 +130,6 @@ abstract class RenameInputWizardPage extends TextInputWizardPage {
     if (checkBox != null) {
       getRefactoringSettings().put(key, checkBox.getSelection());
     }
-  }
-
-  protected boolean saveSettings() {
-    // always save
-//		if (getContainer() instanceof Dialog)
-//			return ((Dialog)getContainer()).getReturnCode() == IDialogConstants.OK_ID;
-    return true;
-  }
-
-  protected void updateLeaveDelegateCheckbox(int delegateCount) {
-    if (fLeaveDelegateCheckBox == null) {
-      return;
-    }
-    final IDelegateUpdating refactoring = (IDelegateUpdating) getRefactoring().getAdapter(
-        IDelegateUpdating.class);
-    fLeaveDelegateCheckBox.setEnabled(delegateCount > 0);
-    fLeaveDelegateCheckBox.setText(refactoring.getDelegateUpdatingTitle(delegateCount > 1));
-    if (delegateCount == 0) {
-      fLeaveDelegateCheckBox.setSelection(false);
-      refactoring.setDelegateUpdating(false);
-    }
-  }
-
-//  private void addOptionalDeprecateDelegateCheckbox(Composite result, RowLayouter layouter,
-//      int marginWidth) {
-//    final IDelegateUpdating refactoring = (IDelegateUpdating) getRefactoring().getAdapter(
-//        IDelegateUpdating.class);
-//    if (refactoring == null || !refactoring.canEnableDelegateUpdating()) {
-//      return;
-//    }
-//    fDeprecateDelegateCheckBox = new Button(result, SWT.CHECK);
-//    GridData data = new GridData();
-//    data.horizontalAlignment = GridData.FILL;
-//    data.horizontalIndent = marginWidth
-//        + fDeprecateDelegateCheckBox.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-//    fDeprecateDelegateCheckBox.setLayoutData(data);
-//    fDeprecateDelegateCheckBox.setText(DelegateUIHelper.getDeprecateDelegateCheckBoxTitle());
-//    fDeprecateDelegateCheckBox.setSelection(DelegateUIHelper.loadDeprecateDelegateSetting(refactoring));
-//    layouter.perform(fDeprecateDelegateCheckBox);
-//    refactoring.setDeprecateDelegates(fDeprecateDelegateCheckBox.getSelection());
-//    fDeprecateDelegateCheckBox.addSelectionListener(new SelectionAdapter() {
-//      @Override
-//      public void widgetSelected(SelectionEvent e) {
-//        refactoring.setDeprecateDelegates(fDeprecateDelegateCheckBox.getSelection());
-//      }
-//    });
-//    if (fLeaveDelegateCheckBox != null) {
-//      fDeprecateDelegateCheckBox.setEnabled(fLeaveDelegateCheckBox.getSelection());
-//      fLeaveDelegateCheckBox.addSelectionListener(new SelectionAdapter() {
-//        @Override
-//        public void widgetSelected(SelectionEvent e) {
-//          fDeprecateDelegateCheckBox.setEnabled(fLeaveDelegateCheckBox.getSelection());
-//        }
-//      });
-//    }
-//  }
-
-  private void addOptionalLeaveDelegateCheckbox(Composite result, RowLayouter layouter) {
-    final IDelegateUpdating refactoring = (IDelegateUpdating) getRefactoring().getAdapter(
-        IDelegateUpdating.class);
-    if (refactoring == null || !refactoring.canEnableDelegateUpdating()) {
-      return;
-    }
-    fLeaveDelegateCheckBox = createCheckbox(result, refactoring.getDelegateUpdatingTitle(false),
-        DelegateUIHelper.loadLeaveDelegateSetting(refactoring), layouter);
-    refactoring.setDelegateUpdating(fLeaveDelegateCheckBox.getSelection());
-    fLeaveDelegateCheckBox.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        refactoring.setDelegateUpdating(fLeaveDelegateCheckBox.getSelection());
-      }
-    });
-  }
-
-//  private void addOptionalUpdateQualifiedNameComponent(Composite parent, RowLayouter layouter,
-//      int marginWidth) {
-//    final IQualifiedNameUpdating ref = (IQualifiedNameUpdating) getRefactoring().getAdapter(
-//        IQualifiedNameUpdating.class);
-//    if (ref == null || !ref.canEnableQualifiedNameUpdating()) {
-//      return;
-//    }
-//    fUpdateQualifiedNames = new Button(parent, SWT.CHECK);
-//    int indent = marginWidth + fUpdateQualifiedNames.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-//    fUpdateQualifiedNames.setText(RefactoringMessages.RenameInputWizardPage_update_qualified_names);
-//    layouter.perform(fUpdateQualifiedNames);
-//
-//    fQualifiedNameComponent = new QualifiedNameComponent(parent, SWT.NONE, ref,
-//        getRefactoringSettings());
-//    layouter.perform(fQualifiedNameComponent);
-//    GridData gd = (GridData) fQualifiedNameComponent.getLayoutData();
-//    gd.horizontalAlignment = GridData.FILL;
-//    gd.horizontalIndent = indent;
-//
-//    boolean defaultSelection = getBooleanSetting(RenameRefactoringWizard.UPDATE_QUALIFIED_NAMES,
-//        ref.getUpdateQualifiedNames());
-//    fUpdateQualifiedNames.setSelection(defaultSelection);
-//    updateQulifiedNameUpdating(ref, defaultSelection);
-//
-//    fUpdateQualifiedNames.addSelectionListener(new SelectionAdapter() {
-//      @Override
-//      public void widgetSelected(SelectionEvent e) {
-//        boolean enabled = ((Button) e.widget).getSelection();
-//        updateQulifiedNameUpdating(ref, enabled);
-//      }
-//    });
-//  }
-
-  private void addOptionalUpdateReferencesCheckbox(Composite result, RowLayouter layouter) {
-    final IReferenceUpdating ref = (IReferenceUpdating) getRefactoring().getAdapter(
-        IReferenceUpdating.class);
-    if (ref == null) {
-      return;
-    }
-    String title = RefactoringMessages.RenameInputWizardPage_update_references;
-    boolean defaultValue = true; //bug 77901
-    fUpdateReferences = createCheckbox(result, title, defaultValue, layouter);
-    ref.setUpdateReferences(fUpdateReferences.getSelection());
-    fUpdateReferences.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        ref.setUpdateReferences(fUpdateReferences.getSelection());
-      }
-    });
-  }
-
-  private void addOptionalUpdateTextualMatches(Composite result, RowLayouter layouter) {
-    final ITextUpdating refactoring = (ITextUpdating) getRefactoring().getAdapter(
-        ITextUpdating.class);
-    if (refactoring == null || !refactoring.canEnableTextUpdating()) {
-      return;
-    }
-    String title = RefactoringMessages.RenameInputWizardPage_update_textual_matches;
-    boolean defaultValue = getBooleanSetting(RenameRefactoringWizard.UPDATE_TEXTUAL_MATCHES,
-        refactoring.getUpdateTextualMatches());
-    fUpdateTextualMatches = createCheckbox(result, title, defaultValue, layouter);
-    refactoring.setUpdateTextualMatches(fUpdateTextualMatches.getSelection());
-    fUpdateTextualMatches.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        refactoring.setUpdateTextualMatches(fUpdateTextualMatches.getSelection());
-        updateForcePreview();
-      }
-    });
   }
 
   private void updateForcePreview() {

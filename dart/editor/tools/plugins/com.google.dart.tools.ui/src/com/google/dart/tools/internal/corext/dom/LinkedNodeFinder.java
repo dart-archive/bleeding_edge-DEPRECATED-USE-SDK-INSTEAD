@@ -45,7 +45,6 @@ public class LinkedNodeFinder {
 
     @Override
     public Void visitIdentifier(DartIdentifier node) {
-      System.out.println(node);
       Element binding = node.getElement();
       // TODO(scheglov) DartC should set Element for DartIdentifier,
       // so we would not need to ask parent

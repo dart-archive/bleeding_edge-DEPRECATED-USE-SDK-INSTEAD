@@ -9,6 +9,7 @@ import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.rename.DartRenameProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.reorg.RenameSelectionState;
 import com.google.dart.tools.internal.corext.refactoring.tagging.INameUpdating;
@@ -130,7 +131,7 @@ public class RenameSupport {
    */
   public static RenameSupport create(DartVariableDeclaration variable, String newName, int flags)
       throws CoreException {
-    RenameLocalVariableProcessor processor = new RenameLocalVariableProcessor(variable);
+    DartRenameProcessor processor = new RenameLocalVariableProcessor(variable);
     return new RenameSupport(processor, newName, flags);
   }
 
@@ -148,16 +149,8 @@ public class RenameSupport {
    * @throws CoreException if an unexpected error occurred while creating the {@link RenameSupport}.
    */
   public static RenameSupport create(Field field, String newName, int flags) throws CoreException {
-    // TODO(scheglov) implement
-    throw new RuntimeException("Not implemented");
-//    if (JdtFlags.isEnum(field))
-//    	return new RenameSupport(new RenameEnumConstProcessor(field), newName, flags);
-//    else {
-//    	final RenameFieldProcessor processor= new RenameFieldProcessor(field);
-//    	processor.setRenameGetter(updateGetterMethod(flags));
-//    	processor.setRenameSetter(updateSetterMethod(flags));
-//    	return new RenameSupport(processor, newName, flags);
-//    }
+    DartRenameProcessor processor = new RenameFieldProcessor(field);
+    return new RenameSupport(processor, newName, flags);
   }
 
   /**
@@ -363,8 +356,12 @@ public class RenameSupport {
       starter = RenameUserInterfaceManager.getDefault().getStarter(fRefactoring);
     } else {
       starter = new RenameUserInterfaceStarter();
-      RenameRefactoringWizard wizard = new RenameRefactoringWizard(fRefactoring,
-          fRefactoring.getName(), null, null, null) {
+      RenameRefactoringWizard wizard = new RenameRefactoringWizard(
+          fRefactoring,
+          fRefactoring.getName(),
+          null,
+          null,
+          null) {
         @Override
         protected void addUserInputPages() {
           // nothing to add
@@ -402,9 +399,12 @@ public class RenameSupport {
 
       RenameSelectionState state = createSelectionState();
 
-      RefactoringExecutionHelper helper = new RefactoringExecutionHelper(fRefactoring,
+      RefactoringExecutionHelper helper = new RefactoringExecutionHelper(
+          fRefactoring,
           RefactoringCore.getConditionCheckingFailedSeverity(),
-          getDartRenameProcessor().getSaveMode(), parent, context);
+          getDartRenameProcessor().getSaveMode(),
+          parent,
+          context);
       helper.perform(true, true);
 
       restoreSelectionState(state);
@@ -437,7 +437,8 @@ public class RenameSupport {
   private RenameSelectionState createSelectionState() {
     RenameProcessor processor = (RenameProcessor) fRefactoring.getProcessor();
     Object[] elements = processor.getElements();
-    RenameSelectionState state = elements.length == 1 ? new RenameSelectionState(elements[0])
+    RenameSelectionState state = elements.length == 1
+        ? new RenameSelectionState(elements[0])
         : null;
     return state;
   }
