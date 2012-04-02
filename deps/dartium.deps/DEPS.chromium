@@ -5,10 +5,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "112458",
+  "webkit_revision": "112724",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8118",
+  "nacl_revision": "8134",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "7955",  # native_client/DEPS: tools_rev
@@ -63,7 +63,7 @@ vars = {
 
 deps = {
   "src/breakpad/src":
-    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@931",
+    (Var("googlecode_url") % "google-breakpad") + "/trunk/src@939",
 
   "src/build/util/support":
     "/trunk/deps/support@20411",
@@ -97,7 +97,7 @@ deps = {
     "/trunk/deps/third_party/icu46@122842",
 
   "src/third_party/hunspell":
-   "/trunk/deps/third_party/hunspell@125060",
+   "/trunk/deps/third_party/hunspell@129758",
 
   "src/third_party/hunspell_dictionaries":
     "/trunk/deps/third_party/hunspell_dictionaries@79099",
@@ -119,7 +119,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@18",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1282",
+    (Var("googlecode_url") % "gyp") + "/trunk@1293",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
