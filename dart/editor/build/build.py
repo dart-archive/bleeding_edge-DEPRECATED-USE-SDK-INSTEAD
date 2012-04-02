@@ -208,6 +208,7 @@ def main():
                            'com.google.dart.tools.deploy.feature_releng')
   utils = GetUtils(toolspath)
   buildos = utils.GuessOS()
+  # TODO(devoncarew): remove this hardcoded e:\ path
   buildroot_parent = {'linux': dartpath, 'macos': dartpath, 'win32': r'e:\tmp'}
   buildroot = os.path.join(buildroot_parent[buildos], 'build_root')
 
@@ -390,6 +391,7 @@ def main():
     #We don't need to install the sdk+dartium, run tests, or copy to google
     #storage.
     if not buildos:
+      print "skipping sdk and dartium steps for dart-editor build"
       return 0
 
     sys.stdout.flush()
@@ -830,14 +832,11 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
   print '_InstallDartium({0}, {1}, {2}, gsu)'.format(buildroot,
                                                      buildout,
                                                      buildos)
-  # will need to add windows here once the windows builds are ready
-  file_types = ['linlucful', 'macmacful']
+  file_types = ['linlucful', 'macmacful', 'winwinful']
   tmp_zip_name = None
-  #there is no dartum for windows so skip it
-  if 'win' in buildos:
-    return
 
   try:
+    # dartium-win-full-6091.6091.zip
     file_name_re = re.compile(r'dartium-([lmw].+)-(.+)-.+\.(\d+)M?.+')
     tmp_dir = os.path.join(buildroot, 'tmp')
     unzip_dir = os.path.join(tmp_dir, 'unzip_dartium')
@@ -877,6 +876,10 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
         dartium_zip = ziputils.ZipUtil(tmp_zip_name, buildos)
         dartium_zip.UnZip(unzip_dir)
         if 'lin' in buildos:
+          paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
+          add_path = paths[0]
+          zip_rel_path = 'dart/dart-sdk/chromium'
+        if 'win' in buildos:
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
           zip_rel_path = 'dart/dart-sdk/chromium'

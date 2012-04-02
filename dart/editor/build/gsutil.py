@@ -55,6 +55,7 @@ class GsUtil(object):
     if operating_system == 'Windows' or operating_system == 'Microsoft':
     # On Windows Vista platform.system() can return "Microsoft" with some
     # versions of Python, see http://bugs.python.org/issue1082 for details.
+      # TODO(devoncarew): remove this hardcoded e:\ path
       bot_gs_util = 'e:\\b\\build\\scripts\\slave\\gsutil'
       self._useshell = True
     if gsutil_loc is None:
