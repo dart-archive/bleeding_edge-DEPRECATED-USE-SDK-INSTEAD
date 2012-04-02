@@ -57,9 +57,9 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
-//  public R visitClassDeclaration(ClassDeclaration node) {
-//    return visitTypeDeclaration(node);
-//  }
+  public R visitClassDeclaration(ClassDeclaration node) {
+    return visitTypeDeclaration(node);
+  }
 
   public R visitClassExtendsClause(ClassExtendsClause node) {
     return visitNode(node);
@@ -137,9 +137,9 @@ public class ASTVisitor<R> {
     return visitStatement(node);
   }
 
-//  public R visitFieldDeclaration(FieldDeclaration node) {
-//    return visitTypeMember(node);
-//  }
+  public R visitFieldDeclaration(FieldDeclaration node) {
+    return visitTypeMember(node);
+  }
 
   public R visitForEachStatement(ForEachStatement node) {
     return visitStatement(node);
@@ -197,13 +197,17 @@ public class ASTVisitor<R> {
     return visitSimpleFormalParameter(node);
   }
 
+  public R visitInstanceCreationExpression(InstanceCreationExpression node) {
+    return visitExpression(node);
+  }
+
   public R visitIntegerLiteral(IntegerLiteral node) {
     return visitLiteral(node);
   }
 
-//  public R visitInterfaceDeclaration(InterfaceDeclaration node) {
-//    return visitTypeDeclaration(node);
-//  }
+  public R visitInterfaceDeclaration(InterfaceDeclaration node) {
+    return visitTypeDeclaration(node);
+  }
 
   public R visitInterfaceExtendsClause(InterfaceExtendsClause node) {
     return visitNode(node);
@@ -257,17 +261,13 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
-//  public R visitMethodDeclaration(MethodDeclaration node) {
-//    return visitTypeMember(node);
-//  }
+  public R visitMethodDeclaration(MethodDeclaration node) {
+    return visitTypeMember(node);
+  }
 
-//  public R visitMethodInvocation(MethodInvocation node) {
-//    return visitNode(node);
-//  }
-
-//  public R visitModifiers(Modifiers node) {
-//    return visitNode(node);
-//  }
+  public R visitMethodInvocation(MethodInvocation node) {
+    return visitNode(node);
+  }
 
   public R visitNamedExpression(NamedExpression node) {
     return visitExpression(node);
@@ -279,10 +279,6 @@ public class ASTVisitor<R> {
 
 //  public R visitNativeFunctionBody(NativeFunctionBody node) {
 //    return visitFunctionBody(node);
-//  }
-
-//  public R visitNewExpression(NewExpression node) {
-//    return visitExpression(node);
 //  }
 
   public R visitNode(ASTNode node) {
@@ -354,10 +350,6 @@ public class ASTVisitor<R> {
 //    return visitConstructorInitializer(node);
 //  }
 
-//  public R visitSuperExpression(SuperExpression node) {
-//    return visitExpression(node);
-//  }
-
   public R visitSuperExpression(SuperExpression node) {
     return visitExpression(node);
   }
@@ -390,21 +382,21 @@ public class ASTVisitor<R> {
     return visitStatement(node);
   }
 
-//  public R visitTypeAlias(TypeAlias node) {
-//    return visitCompilationUnitMember(node);
-//  }
+  public R visitTypeAlias(TypeAlias node) {
+    return visitCompilationUnitMember(node);
+  }
 
-//  public R visitTypeDeclaration(TypeDeclaration node) {
-//    return visitCompilationUnitMember(node);
-//  }
+  public R visitTypeDeclaration(TypeDeclaration node) {
+    return visitCompilationUnitMember(node);
+  }
 
   public R visitTypedLiteral(TypedLiteral node) {
     return visitLiteral(node);
   }
 
-//  public R visitTypeMember(TypeMember node) {
-//    return visitDeclaration(node);
-//  }
+  public R visitTypeMember(TypeMember node) {
+    return visitDeclaration(node);
+  }
 
   public R visitTypeName(TypeName node) {
     return visitNode(node);
@@ -414,17 +406,17 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
-//  public R visitVariableDeclaration(VariableDeclaration node) {
-//    return visitDeclaration(node);
-//  }
+  public R visitVariableDeclaration(VariableDeclaration node) {
+    return visitDeclaration(node);
+  }
 
-//  public R visitVariableDeclarationList(VariableDeclarationList node) {
-//    return visitNode(node);
-//  }
+  public R visitVariableDeclarationList(VariableDeclarationList node) {
+    return visitNode(node);
+  }
 
-//  public R visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-//    return visitStatement(node);
-//  }
+  public R visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    return visitStatement(node);
+  }
 
   public R visitWhileStatement(WhileStatement node) {
     return visitStatement(node);
