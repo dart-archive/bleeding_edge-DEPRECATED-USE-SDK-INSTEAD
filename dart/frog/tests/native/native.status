@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == frog || $compiler == frogsh ]
+NativeClassInheritance4FrogTest: Fail
 NativePropertyFrogTest: Fail
 NativeMissingMethod1FrogTest: Fail # Issue 1912
 NativeWindow1FrogTest: Fail # Issue 1915
@@ -11,6 +12,8 @@ ForeignTest: Fail # Leg only test
 [ $checked ]
 NativeCheckedFieldsFrogTest: Fail
 
+[ $compiler == dart2js ]
+NativeClassInheritance4FrogTest: Fail
 
 [ $compiler == dartc || $runtime == drt || $runtime == ie || $runtime == chrome || $runtime == safari || $runtime == ff || $runtime == opera ]
 *: Skip
