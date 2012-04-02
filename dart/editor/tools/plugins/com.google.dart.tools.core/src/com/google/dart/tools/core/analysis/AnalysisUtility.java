@@ -106,7 +106,7 @@ class AnalysisUtility {
     Map<URI, LibraryUnit> newlyResolved = null;
     try {
       newlyResolved = DartCompiler.analyzeLibraries(librarySource, resolvedLibs, parsedUnits,
-          config, provider, errorListener);
+          config, provider, errorListener, true);
     } catch (IOException e) {
       errorListener.onError(newIoError(librarySource, e));
     } catch (Throwable e) {
