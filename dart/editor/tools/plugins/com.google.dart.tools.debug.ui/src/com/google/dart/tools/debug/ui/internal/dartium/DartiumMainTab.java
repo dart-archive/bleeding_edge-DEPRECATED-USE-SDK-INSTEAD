@@ -81,7 +81,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Text htmlText;
 
-  private ModifyListener textModifyListener = new ModifyListener() {
+  protected ModifyListener textModifyListener = new ModifyListener() {
     @Override
     public void modifyText(ModifyEvent e) {
       notifyPanelChanged();
@@ -114,7 +114,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   @Override
   public void createControl(Composite parent) {
     Composite composite = new Composite(parent, SWT.NONE);
-    GridLayoutFactory.swtDefaults().spacing(1, 1).applyTo(composite);
+    GridLayoutFactory.swtDefaults().spacing(1, 3).applyTo(composite);
 
     // Project group
     Group group = new Group(composite, SWT.NONE);

@@ -39,7 +39,6 @@ import org.eclipse.swt.widgets.Text;
  * Main launch tab for Browser launch configurations
  */
 public class BrowserMainTab extends DartiumMainTab {
-
   private Button selectBrowserButton;
   private Button defaultBrowserButton;
   private Text browserText;
@@ -90,6 +89,7 @@ public class BrowserMainTab extends DartiumMainTab {
 
     browserText = new Text(browserGroup, SWT.BORDER | SWT.SINGLE);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(browserText);
+    browserText.addModifyListener(textModifyListener);
 
     selectBrowserButton = new Button(browserGroup, SWT.PUSH);
     selectBrowserButton.setText(Messages.BrowserMainTab_Select);

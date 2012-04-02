@@ -15,20 +15,12 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisIndexManager;
 import com.google.dart.tools.core.analysis.AnalysisMarkerManager;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.model.DartSdk;
 
-import org.eclipse.core.runtime.AssertionFailedException;
-
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.net.URI;
 
 /**
  * The class <code>SystemLibraryManagerProvider</code> manages the {@link SystemLibraryManager
@@ -41,6 +33,34 @@ public class SystemLibraryManagerProvider {
   private static AnalysisServer defaultAnalysisServer;
 
   //private static ResourceChangeListener defaultAnalysisChangeListener;
+
+  /**
+   * Return the manager for VM libraries
+   */
+  public static EditorLibraryManager getAnyLibraryManager() {
+    synchronized (lock) {
+      if (ANY_LIBRARY_MANAGER == null) {
+
+        DartSdk sdk = DartSdk.getInstance();
+        if (sdk == null) {
+          DartCore.logError("Missing SDK");
+          return null;
+        }
+
+        File sdkDir = sdk.getDirectory();
+        if (!sdkDir.exists()) {
+          DartCore.logError("Missing libraries directory: " + sdkDir);
+          return null;
+        }
+
+        DartCore.logInformation("Reading bundled libraries from " + sdkDir);
+
+        ANY_LIBRARY_MANAGER = new EditorLibraryManager(sdkDir, "any");
+
+      }
+    }
+    return ANY_LIBRARY_MANAGER;
+  }
 
   /**
    * Answer the server used to analyze source against the "dart-sdk/lib" directory
@@ -65,34 +85,6 @@ public class SystemLibraryManagerProvider {
    */
   public static EditorLibraryManager getSystemLibraryManager() {
     return getAnyLibraryManager();
-  }
-
-  /**
-   * Return the manager for VM libraries
-   */
-  public static EditorLibraryManager getAnyLibraryManager() {
-    synchronized (lock) {
-      if (ANY_LIBRARY_MANAGER == null) {
-        
-        DartSdk sdk = DartSdk.getInstance();
-        if (sdk == null) {
-          DartCore.logError("Missing SDK");
-          return null;
-        }
-        
-        File sdkDir = sdk.getDirectory();
-        if (!sdkDir.exists()) {
-          DartCore.logError("Missing libraries directory: " + sdkDir);
-          return null;
-        }
-        
-        DartCore.logInformation("Reading bundled libraries from " + sdkDir);
-        
-        ANY_LIBRARY_MANAGER = new EditorLibraryManager(sdkDir, "any");
-        
-      }
-    }
-    return ANY_LIBRARY_MANAGER;
   }
 
   /**
