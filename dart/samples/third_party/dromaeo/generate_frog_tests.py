@@ -18,10 +18,9 @@ def Compile(source, target):
   binary = os.path.abspath(os.path.join(DART_PATH,
                                         utils.GetBuildRoot(utils.GuessOS(),
                                                            'release', 'ia32'),
-                                        'frog', 'bin', 'frogsh'))
+                                        'dart-sdk', 'bin', 'frogc'))
 
   cmd = [binary, '--compile-only',
-         '--libdir=' + os.path.join(DART_PATH, 'frog', 'lib'),
          '--out=' + target]
   cmd.append(source)
   print 'Executing: ' + ' '.join(cmd)
@@ -33,6 +32,8 @@ def HtmlConvert(infile):
   if head == 'tests':
     outdir = 'frog'
     os.chdir('tests')
+    if not os.path.exists(outdir):
+      os.makedirs(outdir)
   elif head == '':
     outdir = '.'
   else:
