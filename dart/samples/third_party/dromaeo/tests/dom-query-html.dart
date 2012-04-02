@@ -1,7 +1,8 @@
 #library("dom_query");
 #import("dart:html");
 #import('../common/common.dart');
-#import('runner.dart');
+#source("Common.dart");
+#source("RunnerSuite.dart");
 
 void main() {
   final int num = 40;

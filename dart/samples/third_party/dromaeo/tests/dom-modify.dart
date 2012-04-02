@@ -1,6 +1,8 @@
 #library("dom_modify");
 #import("dart:dom");
-#import('runner.dart');
+#import("dart:json");
+#source("Common.dart");
+#source("RunnerSuite.dart");
 
 void main() {
   final int num = 400;
