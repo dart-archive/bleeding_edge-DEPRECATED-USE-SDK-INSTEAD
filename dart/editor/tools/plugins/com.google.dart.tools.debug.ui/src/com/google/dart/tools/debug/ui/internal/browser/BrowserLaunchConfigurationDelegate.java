@@ -51,6 +51,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -193,6 +194,16 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     }
     cmd.add(browserName);
     cmd.add(url);
+
+    if (launchConfig.getArguments().length() != 0) {
+      if (DartCore.isMac()) {
+        cmd.add("--args");
+        cmd.add(launchConfig.getArguments());
+      } else {
+        cmd.addAll(Arrays.asList(launchConfig.getArgumentsAsArray()));
+      }
+
+    }
 
     try {
       ProcessBuilder builder = new ProcessBuilder(cmd);
