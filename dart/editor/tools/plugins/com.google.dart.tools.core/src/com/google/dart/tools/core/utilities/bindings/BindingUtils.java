@@ -650,14 +650,16 @@ public class BindingUtils {
       MethodElement methodElement = (MethodElement) variableBinding.getEnclosingElement();
       com.google.dart.tools.core.model.DartFunction functionElement = getDartElement(library,
           methodElement);
-      try {
-        for (DartVariableDeclaration variable : functionElement.getLocalVariables()) {
-          if (variable.getElementName().equals(variableName)) {
-            return variable;
+      if (functionElement != null) {
+        try {
+          for (DartVariableDeclaration variable : functionElement.getLocalVariables()) {
+            if (variable.getElementName().equals(variableName)) {
+              return variable;
+            }
           }
+        } catch (DartModelException exception) {
+          DartCore.logError("Cannot access local variables within function", exception);
         }
-      } catch (DartModelException exception) {
-        DartCore.logError("Cannot access local variables within function", exception);
       }
     }
     return null;
