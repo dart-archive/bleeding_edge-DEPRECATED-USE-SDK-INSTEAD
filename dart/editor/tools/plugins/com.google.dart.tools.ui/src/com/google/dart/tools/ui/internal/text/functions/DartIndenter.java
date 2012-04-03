@@ -26,15 +26,15 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
 /**
- * Uses the {@link com.google.dart.tools.ui.DartHeuristicScanner.JavaHeuristicScanner} to get the
- * indentation level for a certain position in a document.
+ * Uses the {@link com.google.dart.tools.ui.DartHeuristicScanner} to get the indentation level for a
+ * certain position in a document.
  * <p>
- * An instance holds some internal position in the document and is therefore not threadsafe.
+ * An instance holds some internal position in the document and is therefore not thread-safe.
  */
 public class DartIndenter {
 
   /**
-   * The JDT Core preferences.
+   * The Dart Core preferences.
    */
   private final class CorePrefs {
     final boolean prefUseTabs;
@@ -46,7 +46,6 @@ public class DartIndenter {
     final boolean prefTernaryDeepAlign;
     final int prefTernaryIndent;
     final int prefCaseIndent;
-    final int prefAssignmentIndent;
     final int prefCaseBlockIndent;
     final int prefSimpleIndent;
     final int prefBracketIndent;
@@ -74,8 +73,8 @@ public class DartIndenter {
       fProject = project;
       if (isStandalone()) {
         prefUseTabs = false;
-        prefTabSize = 2; // TODO(5401210)
-        prefIndentationSize = 2; // TODO(5401210)
+        prefTabSize = 2;
+        prefIndentationSize = 2;
         prefArrayDimensionsDeepIndent = true;
         prefContinuationIndent = 2;
         prefBlockIndent = 1;
@@ -84,7 +83,6 @@ public class DartIndenter {
         prefTernaryDeepAlign = false;
         prefTernaryIndent = prefContinuationIndent;
         prefCaseIndent = 1;
-        prefAssignmentIndent = prefBlockIndent + 1;
         prefCaseBlockIndent = prefBlockIndent;
         prefIndentBracesForBlocks = false;
         prefSimpleIndent = (prefIndentBracesForBlocks && prefBlockIndent == 0) ? 1
@@ -102,7 +100,7 @@ public class DartIndenter {
         prefIndentBracesForMethods = false;
         prefIndentBracesForTypes = false;
         prefHasGenerics = true;
-        prefTabChar = JavaScriptCore.SPACE; // TODO(5401210)
+        prefTabChar = JavaScriptCore.SPACE;
         prefDefunIndent = prefContinuationIndent;
       } else {
         prefUseTabs = prefUseTabs();
@@ -116,7 +114,6 @@ public class DartIndenter {
         prefTernaryDeepAlign = prefTernaryDeepAlign();
         prefTernaryIndent = prefTernaryIndent();
         prefCaseIndent = prefCaseIndent();
-        prefAssignmentIndent = prefAssignmentIndent();
         prefCaseBlockIndent = prefCaseBlockIndent();
         prefIndentBracesForBlocks = prefIndentBracesForBlocks();
         prefSimpleIndent = prefSimpleIndent();
@@ -193,10 +190,6 @@ public class DartIndenter {
       }
 
       return prefContinuationIndent(); // default
-    }
-
-    private int prefAssignmentIndent() {
-      return prefBlockIndent();
     }
 
     private int prefBlockIndent() {
@@ -395,7 +388,7 @@ public class DartIndenter {
    * initializers)
    */
   private int fAlign;
-  /** The stateful scanposition for the indentation methods. */
+  /** The stateful scan position for the indentation methods. */
   private int fPosition;
   /** The previous position. */
   private int fPreviousPos;
@@ -409,7 +402,7 @@ public class DartIndenter {
    */
   private final DartHeuristicScanner fScanner;
   /**
-   * The JDT Core preferences.
+   * The Dart Core preferences.
    */
   private final CorePrefs fPrefs;
 
@@ -430,8 +423,8 @@ public class DartIndenter {
    * @param document the document to scan
    * @param scanner the {@link DartHeuristicScanner}to be used for scanning the document. It must be
    *          installed on the same <code>IDocument</code>.
-   * @param project the java project to get the formatter preferences from, or <code>null</code> to
-   *          use the workspace settings
+   * @param project the project to get the formatter preferences from, or <code>null</code> to use
+   *          the workspace settings
    */
   public DartIndenter(IDocument document, DartHeuristicScanner scanner, DartProject project) {
     Assert.isNotNull(document);
@@ -555,9 +548,10 @@ public class DartIndenter {
       }
     }
 
-    // align parenthesis'
+    // align parenthesis
     if (matchParen) {
       if (skipScope(Symbols.TokenLPAREN, Symbols.TokenRPAREN)) {
+//        fIndent = fPrefs.prefContinuationIndent; // uncomment to indent initial ')' to continuation
         return fPosition;
       } else {
         // if we can't find the matching paren, the heuristic is to unindent
@@ -578,23 +572,30 @@ public class DartIndenter {
     nextToken();
     switch (fToken) {
       case Symbols.TokenGREATERTHAN:
-      case Symbols.TokenRBRACKET:
+      case Symbols.TokenRBRACKET: // see below for alternative
       case Symbols.TokenRBRACE:
-        // skip the block and fall through
+        // skip the block
         // if we can't complete the scope, reset the scan position
         int pos = fPosition;
         if (!skipScope()) {
           fPosition = pos;
         }
-        //$FALL-THROUGH$
+        return skipToStatementStart(danglingElse, false);
       case Symbols.TokenSEMICOLON:
         // this is the 90% case: after a statement block
         // the end of the previous statement / block previous.end
         // search to the end of the statement / block before the previous; the
         // token just after that is previous.start
-        return skipToStatementStart(danglingElse, false);
+        pos = fPosition;
+        if (isForStatement()) {
+          fIndent = fPrefs.prefContinuationIndent;
+          return fPosition;
+        } else {
+          fPosition = pos;
+          return skipToStatementStart(danglingElse, false);
+        }
 
-        // scope introduction: special treat who special is
+        // scope introduction
       case Symbols.TokenLPAREN:
       case Symbols.TokenLBRACE:
       case Symbols.TokenLBRACKET:
@@ -606,8 +607,7 @@ public class DartIndenter {
 
       case Symbols.TokenEQUAL:
         // indent assignments
-        fIndent = fPrefs.prefAssignmentIndent;
-        return fPosition;
+        return handleEqual();
 
       case Symbols.TokenDEFUN:
         // indent short-form functions
@@ -630,7 +630,7 @@ public class DartIndenter {
           return fPosition;
         }
 
-        // indentation for blockless introducers:
+        // indentation for block-less introducers:
       case Symbols.TokenDO:
       case Symbols.TokenWHILE:
       case Symbols.TokenELSE:
@@ -639,6 +639,11 @@ public class DartIndenter {
 
       case Symbols.TokenTRY:
         return skipToStatementStart(danglingElse, false);
+
+//      case Symbols.TokenRBRACKET: // use this case to make initial ']' indent at continuation level
+//        fIndent = fPrefs.prefContinuationIndent;
+//        return fPosition;
+
       case Symbols.TokenRPAREN:
         int line = fLine;
         if (skipScope(Symbols.TokenLPAREN, Symbols.TokenRPAREN)) {
@@ -664,8 +669,10 @@ public class DartIndenter {
         // restore
         fPosition = offset;
         fLine = line;
-        // else: fall through to default
-        //$FALL-THROUGH$
+        return skipToPreviousListItemOrListStart();
+      case Symbols.TokenRETURN:
+        fIndent = fPrefs.prefContinuationIndent;
+        return fPosition;
       case Symbols.TokenCOMMA:
         // inside a list of some type
         // easy if there is already a list item before with its own indentation
@@ -717,10 +724,8 @@ public class DartIndenter {
     boolean matchParen = false;
     boolean matchCase = false;
 
-    // account for un-indentation characters already typed in, but after
-    // position
-    // if they are on a line by themselves, the indentation gets adjusted
-    // accordingly
+    // account for un-indentation characters already typed in, but after position
+    // if they are on a line by themselves, the indentation gets adjusted accordingly
     //
     // also account for a dangling else
     if (offset < fDocument.getLength()) {
@@ -984,10 +989,37 @@ public class DartIndenter {
   }
 
   /**
+   * Checks if the statement at position is itself a continuation of the previous, else sets the
+   * indentation to Continuation Indent.
+   * 
+   * @return the position of the token
+   */
+  private int handleEqual() {
+    try {
+      // If this line is itself continuation of the previous then do nothing
+      IRegion line = fDocument.getLineInformationOfOffset(fPosition);
+      int nonWS = fScanner.findNonWhitespaceBackward(line.getOffset(), DartHeuristicScanner.UNBOUND);
+      if (nonWS != Symbols.TokenEOF) {
+        int tokenAtPreviousLine = fScanner.nextToken(nonWS, nonWS + 1);
+        if (tokenAtPreviousLine != Symbols.TokenSEMICOLON
+            && tokenAtPreviousLine != Symbols.TokenRBRACE
+            && tokenAtPreviousLine != Symbols.TokenLBRACE
+            && tokenAtPreviousLine != Symbols.TokenEOF) {
+          return fPosition;
+        }
+      }
+    } catch (BadLocationException e) {
+      return fPosition;
+    }
+    fIndent = fPrefs.prefContinuationIndent;
+    return fPosition;
+  }
+
+  /**
    * Handles the introduction of a new scope. The current token must be one out of
    * <code>Symbols.TokenLPAREN</code>, <code>Symbols.TokenLBRACE</code>, and
    * <code>Symbols.TokenLBRACKET</code>. Returns as the reference position either the token
-   * introducing the scope or - if available - the first java token after that.
+   * introducing the scope or - if available - the first token after that.
    * <p>
    * Depending on the type of scope introduction, the indentation will align (deep indenting) with
    * the reference position (<code>fAlign</code> will be set to the reference position) or
@@ -999,7 +1031,7 @@ public class DartIndenter {
    */
   private int handleScopeIntroduction(int bound) {
     switch (fToken) {
-    // scope introduction: special treat who special is
+    // scope introduction
       case Symbols.TokenLPAREN:
         int pos = fPosition; // store
 
@@ -1112,10 +1144,37 @@ public class DartIndenter {
         case Symbols.TokenOTHER: // dots for qualified constants
           continue;
         case Symbols.TokenCASE:
+        case Symbols.TokenDEFAULT:
           return false;
 
         default:
           return true;
+      }
+    }
+  }
+
+  /**
+   * Checks if the semicolon at the current position is part of a for statement.
+   * 
+   * @return returns <code>true</code> if current position is part of for statement
+   */
+  private boolean isForStatement() {
+    int semiColonCount = 1;
+    while (true) {
+      nextToken();
+      switch (fToken) {
+        case Symbols.TokenFOR:
+          return true;
+        case Symbols.TokenLBRACE:
+          return false;
+        case Symbols.TokenSEMICOLON:
+          semiColonCount++;
+          if (semiColonCount > 2) {
+            return false;
+          }
+          break;
+        case Symbols.TokenEOF:
+          return false;
       }
     }
   }
@@ -1169,8 +1228,7 @@ public class DartIndenter {
    * @return <code>true</code> if the current position looks like a method call header.
    */
   private boolean looksLikeMethodCall() {
-    // TODO [5.0] add awareness for constructor calls with generic types: new
-    // ArrayList<String>()
+    // TODO add awareness for constructor calls with generic types: new List<String>()
     // TODO recognize function calls
     DartX.todo();
     nextToken();
@@ -1181,26 +1239,35 @@ public class DartIndenter {
    * Returns <code>true</code> if the current tokens look like a method declaration header (i.e.
    * only the return type and method name). The heuristic calls <code>nextToken</code> and expects
    * an identifier (method name) and a type declaration (an identifier with optional brackets) which
-   * also covers the visibility modifier of constructors; it does not recognize package visible
-   * constructors.
+   * also covers the visibility modifier of constructors.
    * 
    * @return <code>true</code> if the current position looks like a method declaration header.
    */
   private boolean looksLikeMethodDecl() {
     /*
-     * TODO This heuristic does not recognize package private constructors since those do have
-     * neither type nor visibility keywords. One option would be to go over the parameter list, but
-     * that might be empty as well, or not typed in yet - hard to do without an AST...
+     * Note: This heuristic relies on indentation to recognize untyped method decls (including
+     * constructors). Untyped methods defined at deep indentation levels will not be recognized.
      */
-
     nextToken();
     if (fToken == Symbols.TokenIDENT) { // method name
+      int pos = fPosition;
       do {
         nextToken();
       } while (skipBrackets()); // optional brackets for array valued return types
 
-      return fToken == Symbols.TokenIDENT; // return type name
-
+      if (fToken == Symbols.TokenIDENT) { // return type name
+        return true;
+      }
+      if (fToken == Symbols.TokenRBRACE) {
+        // assume that whatever follows a close brace at 0 or 1 indent levels is a method decl
+        StringBuffer buf = getLeadingWhitespace(pos);
+        if (buf.length() == 0 || buf.length() == fPrefs.prefTabSize) {
+          return true;
+        }
+      }
+      if (fToken == Symbols.TokenEOF) {
+        return true; // top-level function or typedef at beginning of file
+      }
     }
     return false;
   }
@@ -1216,8 +1283,7 @@ public class DartIndenter {
     while (true) {
       nextToken();
       switch (fToken) {
-      // invalid cases: another case label or an LBRACE must come before a
-      // case
+      // invalid cases: another case label or an LBRACE must come before a case
       // -> bail out with the current position
         case Symbols.TokenLPAREN:
         case Symbols.TokenLBRACKET:
@@ -1296,7 +1362,7 @@ public class DartIndenter {
 
   /**
    * Sets the deep indent offset (<code>fAlign</code>) to either the offset right after
-   * <code>scopeIntroducerOffset</code> or - if available - the first Java token after
+   * <code>scopeIntroducerOffset</code> or - if available - the first token after
    * <code>scopeIntroducerOffset</code>, but before <code>bound</code>.
    * 
    * @param scopeIntroducerOffset the offset of the scope introducer
@@ -1304,8 +1370,7 @@ public class DartIndenter {
    * @return the reference position
    */
   private int setFirstElementAlignment(int scopeIntroducerOffset, int bound) {
-    int firstPossible = scopeIntroducerOffset + 1; // align with the first
-// position after the scope intro
+    int firstPossible = scopeIntroducerOffset + 1; // align with the first position after the scope intro
     fAlign = fScanner.findNonWhitespaceForwardInAnyPartition(firstPossible, bound);
     if (fAlign == DartHeuristicScanner.NOT_FOUND) {
       fAlign = firstPossible;
@@ -1482,13 +1547,19 @@ public class DartIndenter {
           skipScope();
           break;
 
-        // scope introduction: special treat who special is
+        // scope introduction
         case Symbols.TokenLPAREN:
         case Symbols.TokenLBRACE:
         case Symbols.TokenLBRACKET:
           return handleScopeIntroduction(startPosition + 1);
 
         case Symbols.TokenSEMICOLON:
+          int savedPosition = fPosition;
+          if (isForStatement()) {
+            fIndent = fPrefs.prefContinuationIndent;
+          } else {
+            fPosition = savedPosition;
+          }
           return fPosition;
         case Symbols.TokenQUESTIONMARK:
           if (fPrefs.prefTernaryDeepAlign) {
@@ -1498,6 +1569,11 @@ public class DartIndenter {
             fIndent = fPrefs.prefTernaryIndent;
             return fPosition;
           }
+        case Symbols.TokenRETURN:
+          fIndent = fPrefs.prefContinuationIndent;
+          return fPosition;
+        case Symbols.TokenEQUAL:
+          return handleEqual();
         case Symbols.TokenEOF:
           return 0;
 
@@ -1540,16 +1616,8 @@ public class DartIndenter {
             mayBeMethodBody = READ_IDENT; // treat static blocks like methods
             break;
 
-//          case Symbols.TokenSYNCHRONIZED:
-//            // if inside a method declaration, use body indentation
-//            // else use block indentation.
-//            if (mayBeMethodBody != READ_IDENT)
-//              return fPosition;
-//            break;
-
           case Symbols.TokenCLASS:
           case Symbols.TokenINTERFACE:
-//          case Symbols.TokenENUM:
             isTypeBody = true;
             break;
 
@@ -1562,8 +1630,7 @@ public class DartIndenter {
       switch (fToken) {
       // scope introduction through: LPAREN, LBRACE, LBRACKET
       // search stop on SEMICOLON, RBRACE, COLON, EOF
-      // -> the next token is the start of the statement (i.e. previousPos
-      // when backward scanning)
+      // -> the next token is the start of the statement (i.e. previousPos when backward scanning)
         case Symbols.TokenLPAREN:
         case Symbols.TokenLBRACE:
         case Symbols.TokenLBRACKET:
@@ -1583,12 +1650,11 @@ public class DartIndenter {
           break;
 
         case Symbols.TokenRBRACE:
-          // RBRACE is a little tricky: it can be the end of an array
-          // definition, but
+          // RBRACE is a little tricky: it can be the end of a map definition, but
           // usually it is the end of a previous block
           pos = fPreviousPos; // store state
           if (skipScope() && looksLikeArrayInitializerIntro()) {
-            continue; // it's an array
+            continue; // it's a map
           } else {
             if (isInBlock) {
               fIndent = getBlockIndent(mayBeMethodBody == READ_IDENT, isTypeBody);
@@ -1611,8 +1677,7 @@ public class DartIndenter {
             return pos;
           }
 
-          // IF / ELSE: align the position after the conditional block with the
-          // if
+          // IF / ELSE: align the position after the conditional block with the if
           // so we are ready for an else, except if danglingElse is false
           // in order for this to work, we must skip an else to its if
         case Symbols.TokenIF:
@@ -1654,9 +1719,7 @@ public class DartIndenter {
 
         default:
           // keep searching
-
       }
-
     }
   }
 

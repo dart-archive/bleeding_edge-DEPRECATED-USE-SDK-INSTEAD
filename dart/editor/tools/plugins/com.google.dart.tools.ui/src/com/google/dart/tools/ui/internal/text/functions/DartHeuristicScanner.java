@@ -29,7 +29,7 @@ import java.util.Arrays;
 /**
  * Utility methods for heuristic based Dart manipulations in an incomplete Dart source file.
  * <p>
- * An instance holds some internal position in the document and is therefore not threadsafe.
+ * An instance holds some internal position in the document and is therefore not thread-safe.
  * </p>
  */
 public final class DartHeuristicScanner implements Symbols {
@@ -60,10 +60,6 @@ public final class DartHeuristicScanner implements Symbols {
       Arrays.sort(chars);
     }
 
-    /*
-     * @see com.google.dart.tools.ui.functions.JavaHeuristicScanner.StopCondition #nextPosition(int,
-     * boolean)
-     */
     @Override
     public int nextPosition(int position, boolean forward) {
       ITypedRegion partition = getPartition(position);
@@ -85,9 +81,6 @@ public final class DartHeuristicScanner implements Symbols {
       return super.nextPosition(position, forward);
     }
 
-    /*
-     * @see com.google.dart.tools.ui.functions.JavaHeuristicScanner.StopCondition #stop(char, int)
-     */
     @Override
     public boolean stop(char ch, int position, boolean forward) {
       return Arrays.binarySearch(fChars, ch) >= 0 && isDefaultPartition(position);
@@ -95,13 +88,10 @@ public final class DartHeuristicScanner implements Symbols {
   }
 
   /**
-   * Stops upon a non-java identifier (as defined by {@link Character#isJavaIdentifierPart(char)})
+   * Stops upon a non-identifier (as defined by {@link Character#isJavaIdentifierPart(char)})
    * character.
    */
-  private static class NonJavaIdentifierPart extends StopCondition {
-    /*
-     * @see com.google.dart.tools.ui.functions.JavaHeuristicScanner.StopCondition #stop(char)
-     */
+  private static class NonDartIdentifierPart extends StopCondition {
     @Override
     public boolean stop(char ch, int position, boolean forward) {
       return !Character.isJavaIdentifierPart(ch);
@@ -109,15 +99,11 @@ public final class DartHeuristicScanner implements Symbols {
   }
 
   /**
-   * Stops upon a non-java identifier character in the default partition.
+   * Stops upon a non-identifier character in the default partition.
    * 
-   * @see DartHeuristicScanner.NonJavaIdentifierPart
+   * @see DartHeuristicScanner.NonDartIdentifierPart
    */
-  private final class NonJavaIdentifierPartDefaultPartition extends NonJavaIdentifierPart {
-    /*
-     * @see com.google.dart.tools.ui.functions.JavaHeuristicScanner.StopCondition #nextPosition(int,
-     * boolean)
-     */
+  private final class NonDartIdentifierPartDefaultPartition extends NonDartIdentifierPart {
     @Override
     public int nextPosition(int position, boolean forward) {
       ITypedRegion partition = getPartition(position);
@@ -139,9 +125,6 @@ public final class DartHeuristicScanner implements Symbols {
       return super.nextPosition(position, forward);
     }
 
-    /*
-     * @see com.google.dart.tools.ui.functions.JavaHeuristicScanner.StopCondition #stop(char)
-     */
     @Override
     public boolean stop(char ch, int position, boolean forward) {
       return super.stop(ch, position, true) || !isDefaultPartition(position);
@@ -151,9 +134,6 @@ public final class DartHeuristicScanner implements Symbols {
    * Stops upon a non-whitespace (as defined by {@link Character#isWhitespace(char)}) character.
    */
   private static class NonWhitespace extends StopCondition {
-    /*
-     * @see com.google.dart.tools.ui.functions.JavaHeuristicScanner.StopCondition #stop(char)
-     */
     @Override
     public boolean stop(char ch, int position, boolean forward) {
       return !Character.isWhitespace(ch);
@@ -165,10 +145,6 @@ public final class DartHeuristicScanner implements Symbols {
    * @see DartHeuristicScanner.NonWhitespace
    */
   private final class NonWhitespaceDefaultPartition extends NonWhitespace {
-    /*
-     * @see com.google.dart.tools.ui.functions.JavaHeuristicScanner.StopCondition #nextPosition(int,
-     * boolean)
-     */
     @Override
     public int nextPosition(int position, boolean forward) {
       ITypedRegion partition = getPartition(position);
@@ -190,9 +166,6 @@ public final class DartHeuristicScanner implements Symbols {
       return super.nextPosition(position, forward);
     }
 
-    /*
-     * @see com.google.dart.tools.ui.functions.JavaHeuristicScanner.StopCondition #stop(char)
-     */
     @Override
     public boolean stop(char ch, int position, boolean forward) {
       return super.stop(ch, position, true) && isDefaultPartition(position);
@@ -292,8 +265,9 @@ public final class DartHeuristicScanner implements Symbols {
      * will never come Also, it will fail on lower case types and type variables
      */
     int length = identifier.length();
-    if (length > 0 && Character.isUpperCase(identifier.charAt(0))) {
-      for (int i = 0; i < length; i++) {
+    if (length > 0
+        && (Character.isUpperCase(identifier.charAt(0)) || Character.isUpperCase(identifier.charAt(0)))) {
+      for (int i = 1; i < length; i++) { // start at 1 to allow private types
         if (identifier.charAt(i) == '_') {
           return false;
         }
@@ -303,7 +277,7 @@ public final class DartHeuristicScanner implements Symbols {
     return false;
   }
 
-  private final StopCondition fNonIdent = new NonJavaIdentifierPartDefaultPartition();
+  private final StopCondition fNonIdent = new NonDartIdentifierPartDefaultPartition();
 
   /**
    * Calls
@@ -401,7 +375,7 @@ public final class DartHeuristicScanner implements Symbols {
    * @param bound the first position in <code>fDocument</code> to not consider any more, with
    *          <code>bound</code> &lt; <code>position</code>, or <code>UNBOUND</code>
    * @return the highest position of a non-whitespace character in ( <code>bound</code>,
-   *         <code>position</code>] that resides in a Java partition, or <code>NOT_FOUND</code> if
+   *         <code>position</code>] that resides in a Dart partition, or <code>NOT_FOUND</code> if
    *         none can be found
    */
   public int findNonWhitespaceBackward(int position, int bound) {
@@ -418,7 +392,7 @@ public final class DartHeuristicScanner implements Symbols {
    * @param bound the first position in <code>fDocument</code> to not consider any more, with
    *          <code>bound</code> &gt; <code>position</code>, or <code>UNBOUND</code>
    * @return the smallest position of a non-whitespace character in [ <code>position</code>,
-   *         <code>bound</code>) that resides in a Java partition, or <code>NOT_FOUND</code> if none
+   *         <code>bound</code>) that resides in a Dart partition, or <code>NOT_FOUND</code> if none
    *         can be found
    */
   public int findNonWhitespaceForward(int position, int bound) {
@@ -573,7 +547,7 @@ public final class DartHeuristicScanner implements Symbols {
   }
 
   /**
-   * Checks whether <code>position</code> resides in a default (Java) partition of
+   * Checks whether <code>position</code> resides in a default (Dart) partition of
    * <code>fDocument</code>.
    * 
    * @param position the position to be checked
@@ -592,18 +566,18 @@ public final class DartHeuristicScanner implements Symbols {
    * <code>true</code> if <code>start</code> is at the following positions (|):
    * 
    * <pre>
-   *  new java.util. ArrayList|&lt;String&gt;(10)
-   *  new ArrayList |(10)
-   *  new  / * comment  * / ArrayList |(10)
+   *  new core. List|&lt;String&gt;(10)
+   *  new List |(10)
+   *  new  / * comment  * / List |(10)
    * </pre>
    * 
    * but not the following:
    * 
    * <pre>
-   *  new java.util. ArrayList&lt;String&gt;(10)|
-   *  new java.util. ArrayList&lt;String&gt;|(10)
-   *  new ArrayList (10)|
-   *  ArrayList |(10)
+   *  new core. List&lt;String&gt;(10)|
+   *  new core. List&lt;String&gt;|(10)
+   *  new List (10)|
+   *  List |(10)
    * </pre>
    * 
    * @param start the position where the type name of the class instance creation supposedly ends
@@ -790,7 +764,7 @@ public final class DartHeuristicScanner implements Symbols {
    *          <code>bound</code> &lt; <code>position</code>, or <code>UNBOUND</code>
    * @param ch the <code>char</code> to search for
    * @return the highest position of one element in <code>chars</code> in ( <code>bound</code>,
-   *         <code>position</code>] that resides in a Java partition, or <code>NOT_FOUND</code> if
+   *         <code>position</code>] that resides in a Dart partition, or <code>NOT_FOUND</code> if
    *         none can be found
    */
   public int scanBackward(int position, int bound, char ch) {
@@ -808,7 +782,7 @@ public final class DartHeuristicScanner implements Symbols {
    *          <code>bound</code> &lt; <code>position</code>, or <code>UNBOUND</code>
    * @param chars an array of <code>char</code> to search for
    * @return the highest position of one element in <code>chars</code> in ( <code>bound</code>,
-   *         <code>position</code>] that resides in a Java partition, or <code>NOT_FOUND</code> if
+   *         <code>position</code>] that resides in a Dart partition, or <code>NOT_FOUND</code> if
    *         none can be found
    */
   public int scanBackward(int position, int bound, char[] chars) {
@@ -862,7 +836,7 @@ public final class DartHeuristicScanner implements Symbols {
    *          <code>bound</code> &gt; <code>position</code>, or <code>UNBOUND</code>
    * @param ch the <code>char</code> to search for
    * @return the lowest position of <code>ch</code> in (<code>bound</code>, <code>position</code>]
-   *         that resides in a Java partition, or <code>NOT_FOUND</code> if none can be found
+   *         that resides in a Dart partition, or <code>NOT_FOUND</code> if none can be found
    */
   public int scanForward(int position, int bound, char ch) {
     return scanForward(position, bound, new CharacterMatch(ch));
@@ -879,7 +853,7 @@ public final class DartHeuristicScanner implements Symbols {
    *          <code>bound</code> &gt; <code>position</code>, or <code>UNBOUND</code>
    * @param chars an array of <code>char</code> to search for
    * @return the lowest position of a non-whitespace character in [ <code>position</code>,
-   *         <code>bound</code>) that resides in a Java partition, or <code>NOT_FOUND</code> if none
+   *         <code>bound</code>) that resides in a Dart partition, or <code>NOT_FOUND</code> if none
    *         can be found
    */
   public int scanForward(int position, int bound, char[] chars) {

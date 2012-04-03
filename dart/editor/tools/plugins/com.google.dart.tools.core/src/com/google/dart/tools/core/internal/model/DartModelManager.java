@@ -699,6 +699,10 @@ public class DartModelManager {
     return null;
   }
 
+  public HashSet<String> getOptionNames() {
+    return optionNames;
+  }
+
   /**
    * Return the table of the current options. Initially, all options have their default values, and
    * this method returns a table that includes all known options.

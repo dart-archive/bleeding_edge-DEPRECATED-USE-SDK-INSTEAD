@@ -416,17 +416,15 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
 
   @Override
   public String getOption(String optionName, boolean inheritDartCoreOptions) {
-    // if (DartModelManager.getInstance().optionNames.contains(optionName)) {
-    // IEclipsePreferences projectPreferences = getEclipsePreferences();
-    // String javaCoreDefault = inheritDartCoreOptions
-    // ? DartCore.getOption(optionName) : null;
-    // if (projectPreferences == null) {
-    // return javaCoreDefault;
-    // }
-    // String value = projectPreferences.get(optionName, javaCoreDefault);
-    // return value == null ? null : value.trim();
-    // }
-    DartCore.notYetImplemented();
+    if (DartModelManager.getInstance().getOptionNames().contains(optionName)) {
+      IEclipsePreferences projectPreferences = getEclipsePreferences();
+      String coreDefault = inheritDartCoreOptions ? DartCore.getOption(optionName) : null;
+      if (projectPreferences == null) {
+        return coreDefault;
+      }
+      String value = projectPreferences.get(optionName, coreDefault);
+      return value == null ? null : value.trim();
+    }
     return null;
   }
 

@@ -14,26 +14,26 @@
 package com.google.dart.tools.ui.internal.text.functions;
 
 /**
- * Symbols for the heuristic java scanner.
+ * Symbols for the heuristic scanner.
  */
 public interface Symbols {
   int TokenEOF = -1;
   // Symbols
-  int TokenLBRACE = 1;
-  int TokenRBRACE = 2;
-  int TokenLBRACKET = 3;
-  int TokenRBRACKET = 4;
+  int TokenLBRACE = 1; // {
+  int TokenRBRACE = 2; // }
+  int TokenLBRACKET = 3; // [
+  int TokenRBRACKET = 4; // ]
   int TokenLPAREN = 5;
   int TokenRPAREN = 6;
   int TokenSEMICOLON = 7;
-  int TokenOTHER = 8;
+  int TokenOTHER = 8; // period, operators, number literals etc
   int TokenCOLON = 9;
   int TokenQUESTIONMARK = 10;
   int TokenCOMMA = 11;
   int TokenEQUAL = 12;
   int TokenLESSTHAN = 13;
   int TokenGREATERTHAN = 14;
-  int TokenDEFUN = 15;
+  int TokenDEFUN = 15; // =>
   // Keywords
   int TokenIF = 1009;
   int TokenDO = 1010;

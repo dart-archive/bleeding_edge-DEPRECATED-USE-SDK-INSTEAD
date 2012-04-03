@@ -26,11 +26,11 @@ import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dom.NodeFinder;
-import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.functions.DartHeuristicScanner;
 import com.google.dart.tools.ui.internal.text.functions.DartIndenter;
@@ -38,7 +38,6 @@ import com.google.dart.tools.ui.internal.text.functions.FastDartPartitionScanner
 import com.google.dart.tools.ui.internal.text.functions.Symbols;
 import com.google.dart.tools.ui.internal.util.CodeFormatterUtil;
 import com.google.dart.tools.ui.text.DartPartitions;
-import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -245,7 +244,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
    * parenthesis is only separated by whitespace from <code>position</code>. If no such parenthesis
    * can be found, <code>position</code> is returned.
    * 
-   * @param scanner the java heuristic scanner set up on the document
+   * @param scanner the heuristic scanner set up on the document
    * @param position the first character position in <code>document</code> to be considered
    * @return the position of a closing parenthesis left to <code>position</code> separated only by
    *         whitespace, or <code>position</code> if no parenthesis can be found
@@ -336,8 +335,8 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
    *          preference
    * @param key the key of the preference
    * @return the value of the preference
-   * @since 3.5
    */
+  @SuppressWarnings("unused")
   private static String getCoreOption(DartProject project, String key) {
     if (project == null) {
       return DartCore.getOption(key);
@@ -348,7 +347,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   /**
    * Returns the indentation of the line <code>line</code> in <code>document</code>. The returned
    * string may contain pairs of leading slashes that are considered part of the indentation. The
-   * space before the asterisk in a javadoc-like comment is not considered part of the indentation.
+   * space before the asterisk in a Dart doc comment is not considered part of the indentation.
    * 
    * @param document the document
    * @param line the line
@@ -374,7 +373,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       to++;
     }
 
-    // don't count the space before javadoc like, asterisk-style comment lines
+    // don't count the space before Dart doc, asterisk-style comment lines
     if (to > from && to < endOffset - 1 && document.get(to - 1, 2).equals(" *")) { //$NON-NLS-1$
       String type = TextUtilities.getContentType(document, DartPartitions.DART_PARTITIONING, to,
           true);
@@ -420,11 +419,11 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   }
 
   /**
-   * Installs a java partitioner with <code>document</code>.
+   * Installs a Dart partitioner with <code>document</code>.
    * 
    * @param document the document
    */
-  private static void installJavaStuff(Document document) {
+  private static void installDartStuff(Document document) {
     String[] types = new String[] {
         DartPartitions.DART_DOC, DartPartitions.DART_MULTI_LINE_COMMENT,
         DartPartitions.DART_SINGLE_LINE_COMMENT, DartPartitions.DART_STRING,
@@ -435,7 +434,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   }
 
   /**
-   * Checks whether <code>position</code> resides in a default (Java) partition of
+   * Checks whether <code>position</code> resides in a default (Dart) partition of
    * <code>document</code>.
    * 
    * @param document the document being modified
@@ -531,11 +530,11 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   }
 
   /**
-   * Installs a java partitioner with <code>document</code>.
+   * Installs a Dart partitioner with <code>document</code>.
    * 
    * @param document the document
    */
-  private static void removeJavaStuff(Document document) {
+  private static void removeDartStuff(Document document) {
     document.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, null);
   }
 
@@ -599,13 +598,11 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
   /**
    * The viewer.
-   * 
-   * @since 3.5
    */
   private final ISourceViewer fViewer;
 
   /**
-   * Creates a new Java auto indent strategy for the given document partitioning.
+   * Creates a new Dart auto indent strategy for the given document partitioning.
    * 
    * @param partitioning the document partitioning
    * @param project the project to get formatting preferences from, or null to use default
@@ -618,10 +615,6 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     fViewer = viewer;
   }
 
-  /*
-   * @see org.eclipse.jface.text.IAutoIndentStrategy#customizeDocumentCommand(org
-   * .eclipse.jface.text.IDocument, org.eclipse.jface.text.DocumentCommand)
-   */
   @Override
   public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
     try {
@@ -883,7 +876,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
      * Search for scope closers in the pasted text and find their opening peers in the document.
      */
     Document pasted = new Document(command.text);
-    installJavaStuff(pasted);
+    installDartStuff(pasted);
     int firstPeer = command.offset;
 
     DartHeuristicScanner pScanner = new DartHeuristicScanner(pasted);
@@ -1051,11 +1044,12 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
    * The preference setting that tells whether to insert spaces when pressing the Tab key.
    * 
    * @return <code>true</code> if spaces are inserted when pressing the Tab key
-   * @since 3.5
    */
   private boolean isInsertingSpacesForTab() {
-    return JavaScriptCore.SPACE.equals(getCoreOption(fProject,
-        DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR));
+    DartX.todo(); // Restore pref lookup
+    return true;
+//    return JavaScriptCore.SPACE.equals(getCoreOption(fProject,
+//        DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR));
   }
 
   private boolean isLineDelimiter(IDocument document, String text) {
@@ -1071,7 +1065,6 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
    * 
    * @param text the text to check
    * @return <code>true</code> if the text represents hitting the Tab key
-   * @since 3.5
    */
   private boolean isRepresentingTab(String text) {
     if (text == null) {
@@ -1248,8 +1241,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       }
       int lastLine = d.getLineOfOffset(pos);
 
-      // only shift if the last java line is further up and is a braceless block
-      // candidate
+      // only shift if the last line is further up and is a brace-less block candidate
       if (lastLine < line) {
 
         DartIndenter indenter = new DartIndenter(d, scanner, fProject);
@@ -1302,15 +1294,14 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           return;
         }
 
-        // line of last Java code
+        // line of last code
         int pos = scanner.findNonWhitespaceBackward(p - 1, DartHeuristicScanner.UNBOUND);
         if (pos == -1) {
           return;
         }
         int lastLine = d.getLineOfOffset(pos);
 
-        // only shift if the last java line is further up and is a braceless
-        // block candidate
+        // only shift if the last line is further up and is a brace-less block candidate
         if (lastLine < line) {
 
           DartIndenter indenter = new DartIndenter(d, scanner, fProject);
@@ -1351,8 +1342,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         }
         int lastLine = d.getLineOfOffset(pos);
 
-        // only shift if the last java line is further up and is a braceless
-        // block candidate
+        // only shift if the last line is further up and is a brace-less block candidate
         if (lastLine < line) {
 
           DartIndenter indenter = new DartIndenter(d, scanner, fProject);
@@ -1426,7 +1416,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       DocumentRewriteSession session = temp.startRewriteSession(DocumentRewriteSessionType.STRICTLY_SEQUENTIAL);
       scanner = new DartHeuristicScanner(temp);
       indenter = new DartIndenter(temp, scanner, fProject);
-      installJavaStuff(temp);
+      installDartStuff(temp);
 
       // indent the first and second line
       // compute the relative indentation difference from the second line
@@ -1500,13 +1490,16 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
       }
 
-      removeJavaStuff(temp);
+      removeDartStuff(temp);
       temp.stopRewriteSession(session);
       newText = temp.get(prefix.length(), temp.getLength() - prefix.length());
 
-      command.offset = newOffset;
-      command.length = newLength;
-      command.text = newText;
+      // if a tab causes indentation to the current level, allow it to add another level
+      if (!(newText.isEmpty() && isRepresentingTab(command.text))) {
+        command.offset = newOffset;
+        command.length = newLength;
+        command.text = newText;
+      }
 
     } catch (BadLocationException e) {
       DartToolsPlugin.log(e);
