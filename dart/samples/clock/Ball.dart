@@ -15,18 +15,18 @@ class Ball {
   }
 
   Element root;
-  HTMLImageElement elem;
+  ImageElement elem;
   double x, y;
   double vx, vy;
   double ax, ay;
   double age;
 
   Ball(Element this.root, double this.x, double this.y, int color) {
-    elem = window.document.createElement('img');
+    elem = new Element.tag('img');
     elem.src = Balls.PNGS[color];
     Util.abs(elem);
     Util.pos(elem, x.toDouble(), y.toDouble());
-    root.appendChild(elem);
+    root.nodes.add(elem);
 
     ax = 0.0;
     ay = GRAVITY;
@@ -46,7 +46,7 @@ class Ball {
 
     // Handle falling off the edge.
     if ((x < RADIUS) || (x > Util.clientWidth())) {
-      root.removeChild(elem);
+      elem.remove();
       return false;
     }
 

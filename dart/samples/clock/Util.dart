@@ -3,31 +3,31 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Util {
-  static void abs(HTMLElement elem) {
-    elem.style.setProperty("position", 'absolute');
+  static void abs(Element elem) {
+    elem.style.position = 'absolute';
   }
 
-  static void rel(HTMLElement elem) {
-    elem.style.setProperty("position", 'relative');
+  static void rel(Element elem) {
+    elem.style.position = 'relative';
   }
 
-  static void pos(HTMLElement elem, double x, double y) {
-    elem.style.setProperty("left", x.toString() + "PX");
-    elem.style.setProperty("top", y.toString() + "PX");
+  static void pos(Element elem, double x, double y) {
+    elem.style.left = "${x}PX";
+    elem.style.top = "${y}PX";
   }
 
-  static void posSize(HTMLElement elem, double l, double t, double r, double b) {
+  static void posSize(Element elem, double l, double t, double r, double b) {
     pos(elem, l, t);
-    elem.style.setProperty("right", r.toString() + "PX");
-    elem.style.setProperty("bottom", b.toString() + "PX");
+    elem.style.right = "${r}PX";
+    elem.style.bottom = "${b}PX";
   }
 
-  static ClientRect bounds(HTMLElement elem) {
-    return elem.getBoundingClientRect();
+  static ClientRect bounds(Element elem) {
+    return elem.$dom_getBoundingClientRect();
   }
 
-  static void opacity(HTMLElement elem, double value) {
-    elem.style.setProperty("opacity", value.toString());
+  static void opacity(Element elem, double value) {
+    elem.style.opacity = value.toString();
   }
 
   static int currentTimeMillis() {
@@ -35,10 +35,10 @@ class Util {
   }
 
   static int clientWidth() {
-    return window.document.documentElement.clientWidth;
+    return window.innerWidth;
   }
 
   static int clientHeight() {
-    return window.document.documentElement.clientHeight;
+    return window.innerHeight;
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('dart:dom');
+#import('dart:html');
 
 #source('Ball.dart');
 #source('Balls.dart');
@@ -70,36 +70,36 @@ class CountDownClock {
   }
 
   void createNumbers() {
-    HTMLDivElement root = window.document.createElement('div');
+    DivElement root = new Element.tag('div');
     Util.rel(root);
     root.style.setProperty("textAlign", 'center');
-    window.document.getElementById("canvas-content").appendChild(root);
+    window.document.query("#canvas-content").nodes.add(root);
 
     double x = 0.0;
 
     for (int i = 0; i < hours.length; ++i) {
       hours[i] = new ClockNumber(this, x, 2);
-      root.appendChild(hours[i].root);
+      root.nodes.add(hours[i].root);
       Util.pos(hours[i].root, x.toDouble(), 0.0);
       x += BALL_WIDTH * ClockNumber.WIDTH + NUMBER_SPACING;
     }
 
-    root.appendChild(new Colon(x).root);
+    root.nodes.add(new Colon(x).root);
     x += BALL_WIDTH + NUMBER_SPACING;
 
     for (int i = 0; i < minutes.length; ++i) {
       minutes[i] = new ClockNumber(this, x, 5);
-      root.appendChild(minutes[i].root);
+      root.nodes.add(minutes[i].root);
       Util.pos(minutes[i].root, x.toDouble(), 0.0);
       x += BALL_WIDTH * ClockNumber.WIDTH + NUMBER_SPACING;
     }
 
-    root.appendChild(new Colon(x).root);
+    root.nodes.add(new Colon(x).root);
     x += BALL_WIDTH + NUMBER_SPACING;
 
     for (int i = 0; i < seconds.length; ++i) {
       seconds[i] = new ClockNumber(this, x, 1);
-      root.appendChild(seconds[i].root);
+      root.nodes.add(seconds[i].root);
       Util.pos(seconds[i].root, x.toDouble(), 0.0);
       x += BALL_WIDTH * ClockNumber.WIDTH + NUMBER_SPACING;
     }

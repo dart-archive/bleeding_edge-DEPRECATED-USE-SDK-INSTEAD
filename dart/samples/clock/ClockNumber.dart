@@ -8,26 +8,26 @@ class ClockNumber {
 
   CountDownClock app;
   Element root;
-  List<List<HTMLImageElement>> imgs;
+  List<List<ImageElement>> imgs;
   List<List<int>> pixels;
   int ballColor;
 
   ClockNumber(CountDownClock this.app, double pos, int this.ballColor) {
-    imgs = new List<List<HTMLImageElement>>(HEIGHT);
+    imgs = new List<List<ImageElement>>(HEIGHT);
 
-    root = window.document.createElement('div');
+    root = new Element.tag('div');
     Util.abs(root);
     Util.pos(root, pos, 0.0);
 
     // HACK(jgw): Need a better way to initialize multi-dimensional arrays.
     for (int y = 0; y < HEIGHT; ++y) {
-      imgs[y] = new List<HTMLImageElement>(WIDTH);
+      imgs[y] = new List<ImageElement>(WIDTH);
     }
 
     for (int y = 0; y < HEIGHT; ++y) {
       for (int x = 0; x < WIDTH; ++x) {
-        imgs[y][x] = window.document.createElement('img');
-        root.appendChild(imgs[y][x]);
+        imgs[y][x] = new Element.tag('img');
+        root.nodes.add(imgs[y][x]);
         Util.abs(imgs[y][x]);
         Util.pos(imgs[y][x], x * CountDownClock.BALL_WIDTH, y * CountDownClock.BALL_HEIGHT);
       }
@@ -37,7 +37,7 @@ class ClockNumber {
   void setPixels(List<List<int>> px) {
     for (int y = 0; y < HEIGHT; ++y) {
       for (int x = 0; x < WIDTH; ++x) {
-        HTMLImageElement img = imgs[y][x];
+        ImageElement img = imgs[y][x];
 
         if (pixels != null) {
           if ((pixels[y][x] != 0) && (px[y][x] == 0)) {

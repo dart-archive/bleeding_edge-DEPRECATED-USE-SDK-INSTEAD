@@ -11,16 +11,16 @@ class Balls {
       "images/ball-265897.png", "images/ball-b6b4b5.png",
       "images/ball-c0000b.png", "images/ball-c9c9c9.png"];
 
-  HTMLDivElement root;
+  DivElement root;
   int lastTime;
   List<Ball> balls;
 
   Balls() :
       lastTime = Util.currentTimeMillis(),
       balls = new List<Ball>() {
-    root = window.document.createElement('div');
-    window.document.body.appendChild(root);
-    root.style.setProperty("zIndex", '100');
+    root = new Element.tag('div');
+    window.document.body.nodes.add(root);
+    root.style.zIndex = 100;
     Util.abs(root);
     Util.posSize(root, 0.0, 0.0, 0.0, 0.0);
   }

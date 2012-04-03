@@ -6,18 +6,18 @@ class Colon {
   Element root;
 
   Colon(double pos) {
-    root = window.document.createElement('div');
+    root = new Element.tag('div');
     Util.abs(root);
     Util.pos(root, pos, 0.0);
 
-    HTMLImageElement dot = window.document.createElement('img');
-    root.appendChild(dot);
+    ImageElement dot = new Element.tag('img');
+    root.nodes.add(dot);
     Util.abs(dot);
     Util.pos(dot, 0.0, 2.0 * CountDownClock.BALL_HEIGHT);
     dot.src = Balls.PNGS[4];
 
-    dot = window.document.createElement('img');
-    root.appendChild(dot);
+    dot = new Element.tag('img');
+    root.nodes.add(dot);
     Util.abs(dot);
     Util.pos(dot, 0.0, 4.0 * CountDownClock.BALL_HEIGHT);
     dot.src = Balls.PNGS[4];
