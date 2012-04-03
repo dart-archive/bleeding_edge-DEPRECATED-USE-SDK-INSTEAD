@@ -72,13 +72,7 @@ public class OperationQueue {
         if (timeout <= 0L) {
           return null;
         }
-        try {
-          operations.wait(timeout);
-        } finally {
-          synchronized (isIdle) {
-            isIdle[0] = false;
-          }
-        }
+        operations.wait(timeout);
         if (operations.isEmpty()) {
           return null;
         }
@@ -96,6 +90,9 @@ public class OperationQueue {
     synchronized (operations) {
       operations.add(operation);
       operations.notifyAll();
+      synchronized (isIdle) {
+        isIdle[0] = false;
+      }
     }
   }
 
