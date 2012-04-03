@@ -103,7 +103,6 @@ public class ManageLaunchesDialog extends TitleAreaDialog
   }
 
   public boolean canLaunch() {
-
     if (workingCopy == null) {
       return false;
     }
@@ -164,8 +163,17 @@ public class ManageLaunchesDialog extends TitleAreaDialog
 
   @Override
   public void launchConfigurationChanged(ILaunchConfiguration configuration) {
-    updateButtons();
-    updateMessage();
+    getShell().getDisplay().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        Shell shell = getShell();
+
+        if (shell != null && !shell.isDisposed()) {
+          updateButtons();
+          updateMessage();
+        }
+      }
+    });
   }
 
   @Override
@@ -178,7 +186,6 @@ public class ManageLaunchesDialog extends TitleAreaDialog
         refreshLaunchesViewer();
         selectFirstLaunchConfig();
       } else {
-
         refreshLaunchesViewer();
       }
     } finally {
