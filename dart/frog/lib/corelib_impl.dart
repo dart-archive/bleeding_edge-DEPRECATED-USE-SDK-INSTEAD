@@ -66,54 +66,56 @@ class ListFactory<E> implements List<E> native "Array" {
 
   E last() => this[this.length-1];
 
-  List<E> getRange(int start, int length) native """
-    if (length == 0) return [];
-    if (length < 0) throw new IllegalArgumentException('length');
-    if (start < 0 || start + length > this.length)
+  List<E> getRange(int start, int rangeLength) native """
+    if (rangeLength == 0) return [];
+    if (rangeLength < 0) throw new IllegalArgumentException('length');
+    if (start < 0 || start + rangeLength > this.length)
       throw new IndexOutOfRangeException(start);
-    return this.slice(start, start + length);
+    return this.slice(start, start + rangeLength);
   """ { throw new IllegalArgumentException('');
         throw new IndexOutOfRangeException(0); }
 
-  void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List<E> from, [int startFrom = 0]) {
     // length of 0 prevails and should not throw exceptions.
-    if (length == 0) return;
-    if (length < 0) throw new IllegalArgumentException('length is negative');
+    if (rangeLength == 0) return;
+    if (rangeLength < 0) {
+      throw new IllegalArgumentException('length is negative');
+    }
 
     if (start < 0) throw new IndexOutOfRangeException(start);
 
-    int end = start + length;
+    int end = start + rangeLength;
     if (end > this.length) throw new IndexOutOfRangeException(end);
 
     if (startFrom < 0) throw new IndexOutOfRangeException(startFrom);
 
-    int endFrom = startFrom + length;
+    int endFrom = startFrom + rangeLength;
     if (endFrom > from.length) throw new IndexOutOfRangeException(endFrom);
 
-    for (var i = 0; i < length; ++i)
+    for (var i = 0; i < rangeLength; ++i)
       this[start + i] = from[startFrom + i];
   }
 
-  void removeRange(int start, int length) native """
-    if (length == 0) return;
-    if (length < 0) throw new IllegalArgumentException('length');
-    if (start < 0 || start + length > this.length)
+  void removeRange(int start, int rangeLength) native """
+    if (rangeLength == 0) return;
+    if (rangeLength < 0) throw new IllegalArgumentException('length');
+    if (start < 0 || start + rangeLength > this.length)
       throw new IndexOutOfRangeException(start);
-    this.splice(start, length);
+    this.splice(start, rangeLength);
   """ { throw new IllegalArgumentException('');
         throw new IndexOutOfRangeException(0); }
 
-  void insertRange(int start, int length, [E initialValue]) native """
-    if (length == 0) return;
-    if (length < 0) throw new IllegalArgumentException('length');
+  void insertRange(int start, int rangeLength, [E initialValue]) native """
+    if (rangeLength == 0) return;
+    if (rangeLength < 0) throw new IllegalArgumentException('length');
     if (start < 0 || start > this.length)
       throw new IndexOutOfRangeException(start);
 
     // Splice in the values with a minimum of array allocations.
-    var args = new Array(length + 2);
+    var args = new Array(rangeLength + 2);
     args[0] = start;
     args[1] = 0;
-    for (var i = 0; i < length; i++) {
+    for (var i = 0; i < rangeLength; i++) {
       args[i + 2] = initialValue;
     }
     this.splice.apply(this, args);
@@ -358,13 +360,13 @@ class MatchImplementation implements Match {
 
   int start() => _start;
   int end() => _end;
-  String group(int group) => _groups[group];
-  String operator [](int group) => _groups[group];
+  String group(int groupIndex) => _groups[groupIndex];
+  String operator [](int groupIndex) => _groups[groupIndex];
   int groupCount() => _groups.length;
 
-  List<String> groups(List<int> groups) {
+  List<String> groups(List<int> groupIndices) {
     List<String> out = [];
-    groups.forEach((int group) => out.add(_groups[group]));
+    groupIndices.forEach((int groupIndex) => out.add(_groups[groupIndex]));
     return out;
   }
 }
@@ -393,9 +395,9 @@ class _AllMatchesIterator implements Iterator<Match> {
     }
 
     // _next is set by #hasNext
-    var next = _next;
+    var result = _next;
     _next = null;
-    return next;
+    return result;
   }
 
   bool hasNext() {

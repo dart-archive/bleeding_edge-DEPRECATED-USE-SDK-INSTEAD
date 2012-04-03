@@ -91,6 +91,9 @@ return this.replace(from, to);""";
   List<String> _splitRegExp(RegExp pattern) native
     "'use strict'; return this.split(pattern.re);";
 
+  Iterable<Match> allMatches(String str) {
+    throw "String.allMatches(String str) unimplemented.";
+  }
   /*
   Iterable<Match> allMatches(String str) {
     List<Match> result = [];

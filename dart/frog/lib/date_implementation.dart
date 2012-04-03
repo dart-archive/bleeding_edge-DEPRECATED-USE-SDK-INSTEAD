@@ -6,7 +6,7 @@
 // TODO(jimhug): Making the date value non-lazy might be a good path there.
 class DateImplementation implements Date {
   final int value;
-  final TimeZoneImplementation timeZone;
+  final TimeZone timeZone;
 
   factory DateImplementation(int years,
                              int month,
@@ -28,7 +28,7 @@ class DateImplementation implements Date {
                                   int minutes,
                                   int seconds,
                                   int milliseconds,
-                                  TimeZoneImplementation timeZone)
+                                  TimeZone timeZone)
       : this.timeZone = timeZone,
         value = _valueFromDecomposed(years, month, day,
                                      hours, minutes, seconds, milliseconds,
