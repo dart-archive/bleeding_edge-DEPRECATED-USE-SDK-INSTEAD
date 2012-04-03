@@ -1,11 +1,13 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
+import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
-import com.google.dart.tools.core.search.SearchException;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
@@ -13,15 +15,17 @@ import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
 import com.google.dart.tools.internal.corext.refactoring.participants.DartProcessors;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.internal.corext.refactoring.util.ResourceUtil;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
+import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
@@ -39,6 +43,7 @@ public class RenameFieldProcessor extends DartRenameProcessor {
   public static final String IDENTIFIER = "com.google.dart.tools.ui.renameFieldProcessor"; //$NON-NLS-1$
 
   private final Field fField;
+  private final String oldName;
   private final TextChangeManager fChangeManager = new TextChangeManager(true);
   private List<SearchMatch> fReferences;
 
@@ -49,7 +54,8 @@ public class RenameFieldProcessor extends DartRenameProcessor {
    */
   public RenameFieldProcessor(Field field) {
     fField = field;
-    setNewElementName(fField.getElementName());
+    oldName = fField.getElementName();
+    setNewElementName(oldName);
   }
 
   @Override
@@ -148,7 +154,7 @@ public class RenameFieldProcessor extends DartRenameProcessor {
 
       // prepare references
       pm.setTaskName(RefactoringCoreMessages.RenameFieldRefactoring_searching);
-      fReferences = getReferences(new SubProgressMonitor(pm, 3), result);
+      fReferences = getReferences(new SubProgressMonitor(pm, 3));
       pm.setTaskName(RefactoringCoreMessages.RenameFieldRefactoring_checking);
 
       // analyze affected units (such as warn about existing compilation errors)
@@ -209,8 +215,72 @@ public class RenameFieldProcessor extends DartRenameProcessor {
 
   private RefactoringStatus analyzeRenameChanges(IProgressMonitor pm) throws CoreException {
     RefactoringStatus result = new RefactoringStatus();
-    pm.done();
+    //List<CompilationUnit> units = Lists.newArrayList(fChangeManager.getAllCompilationUnits());
+    Type enclosingType = fField.getAncestor(Type.class);
+    List<Type> subTypes = RenameAnalyzeUtil.getSubTypes(enclosingType);
+    String newName = getNewElementName();
+    // analyze subtypes
+    for (Type type : subTypes) {
+      // check for declared members
+      if (type.getExistingMembers(newName).length != 0) {
+        result.addFatalError(Messages.format(
+            "Type ''{0}'' from ''{1}'' declares member with name ''{2}'' which will shadow renamed field",
+            new Object[] {
+                type.getElementName(),
+                BasicElementLabels.getPathLabel(type.getResource().getFullPath(), false),
+                newName}));
+      }
+      // check for local variables
+      for (Method method : type.getMethods()) {
+        DartVariableDeclaration[] localVariables = method.getLocalVariables();
+        for (DartVariableDeclaration variable : localVariables) {
+          if (variable.getElementName().equals(newName)) {
+            result.addFatalError(Messages.format(
+                "Method ''{0}.{1}()'' from ''{2}'' declares local variable with name ''{3}'' which will shadow renamed field",
+                new Object[] {
+                    type.getElementName(),
+                    method.getElementName(),
+                    BasicElementLabels.getPathLabel(type.getResource().getFullPath(), false),
+                    newName}));
+          }
+        }
+      }
+    }
     return result;
+    // TODO(scheglov)
+//    List<CompilationUnit> newUnits = Collections.emptyList();
+//    try {
+//      pm.beginTask("", 2); //$NON-NLS-1$
+//      RefactoringStatus result = new RefactoringStatus();
+//      List<SearchMatch> oldReferences = fReferences;
+//
+//      List<CompilationUnit> oldUnits = Lists.newArrayList(fChangeManager.getAllCompilationUnits());
+//      newUnits = RenameAnalyzeUtil.createWorkingCopies(oldUnits, fChangeManager);
+//      pm.worked(1);
+//
+//      newWorkingCopies = RenameAnalyzeUtil.createNewWorkingCopies(
+//          compilationUnitsToModify.toArray(new CompilationUnit[compilationUnitsToModify.size()]),
+//          fChangeManager,
+//          newWCOwner,
+//          new SubProgressMonitor(pm, 1));
+//
+//      SearchResultGroup[] newReferences = getNewReferences(
+//          new SubProgressMonitor(pm, 1),
+//          result,
+//          newWCOwner,
+//          newWorkingCopies);
+//      result.merge(RenameAnalyzeUtil.analyzeRenameChanges2(
+//          fChangeManager,
+//          oldReferences,
+//          newReferences,
+//          getNewElementName()));
+//      return result;
+//    } finally {
+//      pm.done();
+//      for (CompilationUnit newUnit : newUnits) {
+//        newUnit.discardWorkingCopy();
+//      }
+//    }
     // TODO(scheglov)
 //    CompilationUnit[] newWorkingCopies = null;
 //    WorkingCopyOwner newWCOwner = new WorkingCopyOwner() { /* must subclass */
@@ -267,6 +337,11 @@ public class RenameFieldProcessor extends DartRenameProcessor {
     return result;
   }
 
+  private TextEdit createTextChange(SearchMatch match) {
+    SourceRange sourceRange = match.getSourceRange();
+    return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), getNewElementName());
+  }
+
 //  private IJavaSearchScope createRefactoringScope() throws CoreException {
 //    return RefactoringScopeFactory.create(fField, true, false);
 //  }
@@ -274,11 +349,6 @@ public class RenameFieldProcessor extends DartRenameProcessor {
 //  private SearchPattern createSearchPattern() {
 //    return SearchPatternFactory.createPattern(fField, IJavaSearchConstants.REFERENCES);
 //  }
-
-  private TextEdit createTextChange(SearchMatch match) {
-    SourceRange sourceRange = match.getSourceRange();
-    return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), getNewElementName());
-  }
 
 //  private Field getFieldInWorkingCopy(CompilationUnit newWorkingCopyOfDeclaringCu,
 //      String elementName) {
@@ -334,12 +404,13 @@ public class RenameFieldProcessor extends DartRenameProcessor {
 //        status);
 //  }
 
-  private List<SearchMatch> getReferences(IProgressMonitor pm, RefactoringStatus status)
-      throws CoreException {
-    try {
-      return SearchEngineFactory.createSearchEngine().searchReferences(fField, null, null, pm);
-    } catch (SearchException e) {
-      throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, e.getMessage(), e));
-    }
+  private List<SearchMatch> getReferences(final IProgressMonitor pm) throws CoreException {
+    return ExecutionUtils.runObjectCore(new RunnableObjectEx<List<SearchMatch>>() {
+      @Override
+      public List<SearchMatch> runObject() throws Exception {
+        SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
+        return searchEngine.searchReferences(fField, null, null, pm);
+      }
+    });
   }
 }

@@ -3,35 +3,29 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorSeverity;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.search.SearchEngine;
+import com.google.dart.tools.core.search.SearchEngineFactory;
+import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStringStatusContext;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
 import org.eclipse.ltk.core.refactoring.TextChange;
-import org.eclipse.text.edits.TextEdit;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.List;
 
 class RenameAnalyzeUtil {
 
-  static class LocalAnalyzePackage {
-    public final TextEdit fDeclarationEdit;
-    public final List<TextEdit> fOccurenceEdits;
-
-    public LocalAnalyzePackage(final TextEdit declarationEdit, final List<TextEdit> occurenceEdits) {
-      fDeclarationEdit = declarationEdit;
-      fOccurenceEdits = occurenceEdits;
-    }
-  }
+  private static final WorkingCopyOwner WORKING_COPY_OWNER = new WorkingCopyOwner() {
+  };
 
 //  private static class ProblemNodeFinder {
 //
@@ -104,76 +98,40 @@ class RenameAnalyzeUtil {
 //  }
 
   /**
-   * This method analyzes a set of local variable renames inside one cu. It checks whether any new
-   * compile errors have been introduced by the rename(s) and whether the correct node(s) has/have
-   * been renamed.
+   * This method analyzes a set of local variable renames inside one {@link CompilationUnit}. It
+   * checks whether any new compile errors have been introduced by the rename.
    * 
-   * @param analyzePackages the LocalAnalyzePackages containing the information about the local
-   *          renames
-   * @param cuChange the TextChange containing all local variable changes to be applied.
-   * @param oldCUNode the fully (incl. bindings) resolved AST node of the original compilation unit
-   * @param recovery whether statements and bindings recovery should be performed when parsing the
-   *          changed CU
-   * @return a RefactoringStatus containing errors if compile errors or wrongly renamed nodes are
-   *         found
-   * @throws CoreException thrown if there was an error greating the preview content of the change
+   * @return a {@link RefactoringStatus} containing errors if compile errors or wrongly renamed
+   *         nodes are found.
    */
-  public static RefactoringStatus analyzeLocalRenames(LocalAnalyzePackage[] analyzePackages,
-      TextChange cuChange, final CompilationUnit compilationUnit, DartUnit oldCUNode,
-      boolean recovery) throws CoreException {
-
+  public static RefactoringStatus analyzeLocalRenames(TextChange change, CompilationUnit oldUnit)
+      throws CoreException {
     RefactoringStatus result = new RefactoringStatus();
 
-    final String newCuSource = cuChange.getPreviewContent(new NullProgressMonitor());
-    CompilationUnit newSourceCompilationUnit = (CompilationUnit) Proxy.newProxyInstance(
-        RenameAnalyzeUtil.class.getClassLoader(), new Class[] {CompilationUnit.class},
-        new InvocationHandler() {
-          @Override
-          public Object invoke(Object o, Method method, Object[] args) throws Throwable {
-            if (method.getName().equals("getSource")) {
-              return newCuSource;
-            }
-            return method.invoke(compilationUnit, args);
-          }
-        });
-    List<DartCompilationError> compilationErrors = Lists.newArrayList();
-    DartUnit newCUNode = DartCompilerUtilities.resolveUnit(newSourceCompilationUnit,
-        compilationErrors);
-
-    // TODO(scheglov) check for introduced compilation errors.
-    for (DartCompilationError compilationError : compilationErrors) {
-      ErrorSeverity errorSeverity = compilationError.getErrorCode().getErrorSeverity();
-      if (errorSeverity == ErrorSeverity.ERROR) {
-        DartStringStatusContext statusContext = new DartStringStatusContext(newCuSource,
-            SourceRangeFactory.create(compilationError));
-        result.addEntry(new RefactoringStatusEntry(RefactoringStatus.ERROR,
-            compilationError.getMessage(), statusContext));
-      }
+    // prepare new compilation errors
+    String newSource = change.getPreviewContent(null);
+    List<DartCompilationError> newErrors = Lists.newArrayList();
+    CompilationUnit newUnit = oldUnit.getWorkingCopy(WORKING_COPY_OWNER, null);
+    try {
+      newUnit.getBuffer().setContents(newSource);
+      DartCompilerUtilities.resolveUnit(newUnit, newErrors);
+    } finally {
+      newUnit.discardWorkingCopy();
     }
 
-//    result.merge(analyzeCompileErrors(newCuSource, newCUNode, oldCUNode));
-//    if (result.hasError()) {
-//      return result;
-//    }
-//
-//    for (int i = 0; i < analyzePackages.length; i++) {
-//      DartNode enclosing = getEnclosingBlockOrMethod(analyzePackages[i].fDeclarationEdit, cuChange,
-//          newCUNode);
-//
-//      // get new declaration
-//      IRegion newRegion = RefactoringAnalyzeUtil.getNewTextRange(
-//          analyzePackages[i].fDeclarationEdit, cuChange);
-//      DartNode newDeclaration = NodeFinder.perform(newCUNode, newRegion.getOffset(),
-//          newRegion.getLength());
-//      Assert.isTrue(newDeclaration instanceof Name);
-//
-//      DartVariable declaration = getDartVariable((Name) newDeclaration);
-//      Assert.isNotNull(declaration);
-//
-//      DartIdentifier[] problemNodes = ProblemNodeFinder.getProblemNodes(enclosing, declaration,
-//          analyzePackages[i].fOccurenceEdits, cuChange);
-//      result.merge(RefactoringAnalyzeUtil.reportProblemNodes(newCuSource, problemNodes));
-//    }
+    // check for introduced compilation errors
+    for (DartCompilationError compilationError : newErrors) {
+      ErrorSeverity errorSeverity = compilationError.getErrorCode().getErrorSeverity();
+      if (errorSeverity == ErrorSeverity.ERROR) {
+        DartStringStatusContext statusContext = new DartStringStatusContext(
+            newSource,
+            SourceRangeFactory.create(compilationError));
+        result.addEntry(new RefactoringStatusEntry(
+            RefactoringStatus.ERROR,
+            compilationError.getMessage(),
+            statusContext));
+      }
+    }
     return result;
   }
 
@@ -242,28 +200,50 @@ class RenameAnalyzeUtil {
 //    }
 //    return result;
 //  }
-//
-//  static DartUnit[] createNewWorkingCopies(DartUnit[] compilationUnitsToModify,
-//      TextChangeManager manager, WorkingCopyOwner owner, SubProgressMonitor pm)
-//      throws CoreException {
-//    pm.beginTask("", compilationUnitsToModify.length); //$NON-NLS-1$
-//    DartUnit[] newWorkingCopies = new DartUnit[compilationUnitsToModify.length];
-//    for (int i = 0; i < compilationUnitsToModify.length; i++) {
-//      DartUnit cu = compilationUnitsToModify[i];
-//      newWorkingCopies[i] = createNewWorkingCopy(cu, manager, owner, new SubProgressMonitor(pm, 1));
+
+  /**
+   * @return all direct and indirect subtypes of the given {@link Type}.
+   */
+  public static List<Type> getSubTypes(final Type type) throws CoreException {
+    List<Type> subTypes = Lists.newArrayList();
+    // find direct references
+    List<SearchMatch> matches = ExecutionUtils.runObjectCore(new RunnableObjectEx<List<SearchMatch>>() {
+      @Override
+      public List<SearchMatch> runObject() throws Exception {
+        SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
+        return searchEngine.searchSubtypes(type, null, null, null);
+      }
+    });
+    // add references from Types, find indirect subtypes
+    for (SearchMatch match : matches) {
+      if (match.getElement() instanceof Type) {
+        Type subType = (Type) match.getElement();
+        subTypes.add(subType);
+        subTypes.addAll(getSubTypes(subType));
+      }
+    }
+    // done
+    return subTypes;
+  }
+
+//  static List<CompilationUnit> createWorkingCopies(List<CompilationUnit> oldUnits,
+//      TextChangeManager manager) throws CoreException {
+//    List<CompilationUnit> newUnits = Lists.newArrayList();
+//    for (CompilationUnit oldUnit : oldUnits) {
+//      newUnits.add(createWorkingCopy(oldUnit, manager));
 //    }
-//    pm.done();
-//    return newWorkingCopies;
+//    return newUnits;
 //  }
 //
-//  static DartUnit createNewWorkingCopy(DartUnit cu, TextChangeManager manager,
-//      WorkingCopyOwner owner, SubProgressMonitor pm) throws CoreException {
-//    DartUnit newWc = cu.getWorkingCopy(owner, null);
-//    String previewContent = manager.get(cu).getPreviewContent(new NullProgressMonitor());
-//    newWc.getBuffer().setContents(previewContent);
+//  static CompilationUnit createWorkingCopy(CompilationUnit oldUnit, TextChangeManager manager)
+//      throws CoreException {
+//    CompilationUnit newUnit = oldUnit.getWorkingCopy(WORKING_COPY_OWNER, null);
+//    String newSource = manager.get(oldUnit).getPreviewContent(null);
+//    newUnit.getBuffer().setContents(newSource);
 //    newWc.reconcile(DartUnit.NO_AST, false, owner, pm);
-//    return newWc;
+//    return newUnit;
 //  }
+
 //
 //  static DartUnit findWorkingCopyForCu(DartUnit[] newWorkingCopies, DartUnit cu) {
 //    DartUnit original = cu == null ? null : cu.getPrimary();

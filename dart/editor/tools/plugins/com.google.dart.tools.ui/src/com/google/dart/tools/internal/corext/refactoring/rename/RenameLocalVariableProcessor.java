@@ -19,7 +19,6 @@ import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.participants.DartProcessors;
-import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil.LocalAnalyzePackage;
 import com.google.dart.tools.internal.corext.refactoring.util.ResourceUtil;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 
@@ -46,18 +45,12 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   private final DartVariableDeclaration fLocalVariable;
   private final CompilationUnit fCu;
 
-  //the following fields are set or modified after the construction
   private String fCurrentName;
   private String fNewName;
   private DartUnit fCompilationUnitNode;
   private DartNode fVariableNode;
   private VariableElement fVariableElement;
   private CompilationUnitChange fChange;
-
-//  private boolean fIsComposite;
-//  private GroupCategorySet fCategorySet;
-//  private TextChangeManager fChangeManager;
-  private RenameAnalyzeUtil.LocalAnalyzePackage fLocalAnalyzePackage;
 
   /**
    * Creates a new rename local variable processor.
@@ -69,26 +62,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
     fCu = localVariable != null ? localVariable.getAncestor(CompilationUnit.class) : null;
     fNewName = ""; //$NON-NLS-1$
   }
-
-  /**
-   * Creates a new rename local variable processor.
-   * <p>
-   * This constructor is only used by <code>RenameTypeProcessor</code>.
-   * </p>
-   * 
-   * @param localVariable the local variable
-   * @param manager the change manager
-   * @param node the compilation unit node
-   * @param categorySet the group category set
-   */
-//  RenameLocalVariableProcessor(DartVariableDeclaration localVariable, TextChangeManager manager,
-//      DartUnit node, GroupCategorySet categorySet) {
-//    this(localVariable);
-//    fChangeManager = manager;
-//    fCategorySet = categorySet;
-//    fCompilationUnitNode = node;
-//    fIsComposite = true;
-//  }
 
   @Override
   public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException {
@@ -108,7 +81,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 //      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.RenameTempRefactoring_only_in_methods_and_initializers);
 //    }
     // OK
-    initNames();
+    fCurrentName = fVariableElement.getName();
     return new RefactoringStatus();
   }
 
@@ -116,17 +89,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   public RefactoringStatus checkNewElementName(String newName) throws DartModelException {
     RefactoringStatus result = Checks.checkVariableName(newName);
     if (!Checks.startsWithLowerCase(newName)) {
-//      if (fIsComposite) {
-//        final String nameOfParent = DartElementLabels.getElementLabel(fLocalVariable.getParent(),
-//            DartElementLabels.ALL_DEFAULT);
-//        final String nameOfType = DartElementLabels.getElementLabel(
-//            fLocalVariable.getAncestor(Type.class), DartElementLabels.ALL_DEFAULT);
-//        result.addWarning(Messages.format(RefactoringCoreMessages.RenameTempRefactoring_lowercase2,
-//            new String[] {BasicElementLabels.getDartElementName(newName), nameOfParent, nameOfType}));
-//      } else
-      {
-        result.addWarning(RefactoringCoreMessages.RenameTempRefactoring_lowercase);
-      }
+      result.addWarning(RefactoringCoreMessages.RenameTempRefactoring_lowercase);
     }
     return result;
   }
@@ -158,7 +121,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 
   @Override
   public Object getNewElement() {
-    return null; //cannot create an DartVariableDeclaration
+    return null;
   }
 
   @Override
@@ -199,31 +162,18 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
       CheckConditionsContext context) throws CoreException, OperationCanceledException {
     try {
       pm.beginTask("", 1); //$NON-NLS-1$
-
+      // Check new name.
       RefactoringStatus result = checkNewElementName(fNewName);
       if (result.hasFatalError()) {
         return result;
       }
+      // Prepare changes.
       createEdits();
-//      if (!fIsComposite)
-      {
-        LocalAnalyzePackage[] localAnalyzePackages = new RenameAnalyzeUtil.LocalAnalyzePackage[] {fLocalAnalyzePackage};
-        result.merge(RenameAnalyzeUtil.analyzeLocalRenames(
-            localAnalyzePackages,
-            fChange,
-            fCu,
-            fCompilationUnitNode,
-            true));
-      }
+      // Check that no changes don't cause problems.
+      result.merge(RenameAnalyzeUtil.analyzeLocalRenames(fChange, fCu));
       return result;
     } finally {
       pm.done();
-//      if (fIsComposite) {
-//        // end of life cycle for this processor
-//        fChange = null;
-//        fCompilationUnitNode = null;
-//        fVariableElement = null;
-//      }
     }
   }
 
@@ -240,41 +190,16 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   private void createEdits() {
     List<TextEdit> allRenameEdits = getAllRenameEdits();
 
-//    TextEdit[] allUnparentedRenameEdits = new TextEdit[allRenameEdits.length];
-//    TextEdit unparentedDeclarationEdit = null;
-
     fChange = new CompilationUnitChange(RefactoringCoreMessages.RenameTempRefactoring_rename, fCu);
     MultiTextEdit rootEdit = new MultiTextEdit();
     fChange.setEdit(rootEdit);
     fChange.setKeepPreviewEdits(true);
 
     for (TextEdit edit : allRenameEdits) {
-//      if (fIsComposite) {
-//        // Add a copy of the text edit (text edit may only have one
-//        // parent) to keep problem reporting code clean
-//        TextChangeCompatibility.addTextEdit(fChangeManager.get(fCu),
-//            RefactoringCoreMessages.RenameTempRefactoring_changeName, allRenameEdits[i].copy(),
-//            fCategorySet);
-//
-//        // Add a separate copy for problem reporting
-//        allUnparentedRenameEdits[i] = allRenameEdits[i].copy();
-//        if (allRenameEdits[i].equals(declarationEdit)) {
-//          unparentedDeclarationEdit = allUnparentedRenameEdits[i];
-//        }
-//      }
       rootEdit.addChild(edit);
       fChange.addTextEditGroup(new TextEditGroup(
           RefactoringCoreMessages.RenameTempRefactoring_changeName,
           edit));
-    }
-
-    // store information for analysis
-//    if (fIsComposite) {
-//      fLocalAnalyzePackage = new RenameAnalyzeUtil.LocalAnalyzePackage(unparentedDeclarationEdit,
-//          allUnparentedRenameEdits);
-//    } else
-    {
-      fLocalAnalyzePackage = new RenameAnalyzeUtil.LocalAnalyzePackage(null, allRenameEdits);
     }
   }
 
@@ -300,23 +225,16 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   }
 
   private void initAST() throws DartModelException {
-//    if (!fIsComposite)
-    {
-      fCompilationUnitNode = DartCompilerUtilities.resolveUnit(fCu);
-    }
+    fCompilationUnitNode = DartCompilerUtilities.resolveUnit(fCu);
     // Prepare variable Node.
     SourceRange sourceRange = fLocalVariable.getNameRange();
     fVariableNode = NodeFinder.perform(fCompilationUnitNode, sourceRange);
     if (fVariableNode == null) {
       return;
     }
-    // Prepare variable Element.
+    // prepare variable Element.
     if (fVariableNode.getElement() instanceof VariableElement) {
       fVariableElement = (VariableElement) fVariableNode.getElement();
     }
-  }
-
-  private void initNames() {
-    fCurrentName = fVariableElement.getName();
   }
 }

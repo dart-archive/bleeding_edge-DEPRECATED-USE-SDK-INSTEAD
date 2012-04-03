@@ -1,7 +1,5 @@
 package com.google.dart.tools.internal.corext.refactoring;
 
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
@@ -10,15 +8,12 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchMatch;
-import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
@@ -36,28 +31,28 @@ public class Checks {
   public static final int NOT_RVALUE_VOID = 2;
   public static final int IS_RVALUE_GUESSED = 3;
 
-  /**
-   * Checks if the given name is a valid compilation unit name.
-   * 
-   * @param name the compilation unit name.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid
-   *         compilation unit name.
-   */
-  public static RefactoringStatus checkCompilationUnitName(String name, DartElement context) {
-    return checkName(name, DartConventions.validateCompilationUnitName(name));
-  }
-
-  /**
-   * Returns ok status if the new name is ok. This is when no other file with that name exists.
-   * 
-   * @param cu
-   * @param newName
-   * @return the status
-   */
-  public static RefactoringStatus checkCompilationUnitNewName(CompilationUnit cu, String newName) {
-    // TODO(scheglov) implement
-    throw new RuntimeException("Not implemented");
+//  /**
+//   * Checks if the given name is a valid compilation unit name.
+//   * 
+//   * @param name the compilation unit name.
+//   * @param context an {@link DartElement} or <code>null</code>
+//   * @return a refactoring status containing the error message if the name is not a valid
+//   *         compilation unit name.
+//   */
+//  public static RefactoringStatus checkCompilationUnitName(String name, DartElement context) {
+//    return checkName(name, DartConventions.validateCompilationUnitName(name));
+//  }
+//
+//  /**
+//   * Returns ok status if the new name is ok. This is when no other file with that name exists.
+//   * 
+//   * @param cu
+//   * @param newName
+//   * @return the status
+//   */
+//  public static RefactoringStatus checkCompilationUnitNewName(CompilationUnit cu, String newName) {
+//    // TODO(scheglov) implement
+//    throw new RuntimeException("Not implemented");
 //    String newCUName = DartModelUtil.getRenamedCUName(cu, newName);
 //    IPath renamedResourcePath = cu.getParent().getPath().append(newCUName);
 //    if (resourceExists(renamedResourcePath))
@@ -66,7 +61,7 @@ public class Checks {
 //          BasicElementLabels.getResourceName(newCUName)));
 //    else
 //      return new RefactoringStatus();
-  }
+//  }
 
   public static void checkCompileErrorsInAffectedFile(RefactoringStatus result, IResource resource)
       throws DartModelException {
@@ -270,22 +265,22 @@ public class Checks {
     }
   }
 
-  /**
-   * Checks if the given name is a valid Dart type name.
-   * 
-   * @param name the Dart method name.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart type
-   *         name.
-   */
-  public static RefactoringStatus checkTypeName(String name, DartElement context) {
-    //fix for: 1GF5Z0Z: ITPJUI:WINNT - assertion failed after renameType refactoring
-    if (name.indexOf(".") != -1) {
-      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.Checks_no_dot);
-    } else {
-      return checkName(name, DartConventions.validateTypeName(name));
-    }
-  }
+//  /**
+//   * Checks if the given name is a valid Dart type name.
+//   * 
+//   * @param name the Dart method name.
+//   * @param context an {@link DartElement} or <code>null</code>
+//   * @return a refactoring status containing the error message if the name is not a valid Dart type
+//   *         name.
+//   */
+//  public static RefactoringStatus checkTypeName(String name, DartElement context) {
+//    //fix for: 1GF5Z0Z: ITPJUI:WINNT - assertion failed after renameType refactoring
+//    if (name.indexOf(".") != -1) {
+//      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.Checks_no_dot);
+//    } else {
+//      return checkName(name, DartConventions.validateTypeName(name));
+//    }
+//  }
 
 //  //-------------- main and native method checks ------------------
 //  public static RefactoringStatus checkForMainAndNativeMethods(CompilationUnit cu) throws DartModelException {
@@ -495,24 +490,24 @@ public class Checks {
 //  	return guessingRequired ? IS_RVALUE_GUESSED : IS_RVALUE;
 //  }
 
-  public static boolean isDeclaredIn(DartVariable tempDeclaration,
-      Class<? extends DartNode> astNodeClass) {
-    // TODO(scheglov) I think that this is bad function, because DartVariable is just local variable.
-    DartNode parent = ASTNodes.getParent(tempDeclaration, astNodeClass);
-    if (parent == null) {
-      return false;
-    }
-    return true;
-  }
+//  public static boolean isDeclaredIn(DartVariable tempDeclaration,
+//      Class<? extends DartNode> astNodeClass) {
+//    // TODO(scheglov) I think that this is bad function, because DartVariable is just local variable.
+//    DartNode parent = ASTNodes.getParent(tempDeclaration, astNodeClass);
+//    if (parent == null) {
+//      return false;
+//    }
+//    return true;
+//  }
 
-  /**
-   * Checks if the new method is already used in the given type.
-   * 
-   * @param type
-   * @param methodName
-   * @param parameters
-   * @return the status
-   */
+//  /**
+//   * Checks if the new method is already used in the given type.
+//   * 
+//   * @param type
+//   * @param methodName
+//   * @param parameters
+//   * @return the status
+//   */
 //  public static RefactoringStatus checkMethodInType(ITypeBinding type, String methodName, ITypeBinding[] parameters) {
 //  	RefactoringStatus result= new RefactoringStatus();
 //  	if (methodName.equals(type.getName()))
@@ -524,11 +519,11 @@ public class Checks {
 //  			JavaStatusContext.create(method));
 //  	return result;
 //  }
-
-  public static boolean resourceExists(IPath resourcePath) {
-    return ResourcesPlugin.getWorkspace().getRoot().findMember(resourcePath) != null;
-  }
-
+//
+//  public static boolean resourceExists(IPath resourcePath) {
+//    return ResourcesPlugin.getWorkspace().getRoot().findMember(resourcePath) != null;
+//  }
+//
 //  public static RefactoringStatus checkCompileErrorsInAffectedFiles(SearchResultGroup[] references, IResource declaring) throws DartModelException {
 //  	RefactoringStatus result= new RefactoringStatus();
 //  	for (int i= 0; i < references.length; i++){
