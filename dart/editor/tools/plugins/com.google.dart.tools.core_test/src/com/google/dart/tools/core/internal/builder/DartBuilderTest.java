@@ -40,8 +40,7 @@ public class DartBuilderTest extends TestCase {
     DartProject dartMoneyProject = MoneyProjectUtilities.getMoneyProject();
     IProject moneyProject = dartMoneyProject.getProject();
 
-    DartProject dartSampleProject = TestUtilities.loadPluginRelativeProject(
-        "com.google.dart.tools.core_test", "SampleCode");
+    DartProject dartSampleProject = TestUtilities.loadPluginRelativeProject("SampleCode");
     IProject sampleProject = dartSampleProject.getProject();
 
     moneyProject.build(IncrementalProjectBuilder.FULL_BUILD, null);

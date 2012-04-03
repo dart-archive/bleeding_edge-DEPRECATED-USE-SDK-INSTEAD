@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URL;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -58,6 +59,8 @@ public class TestUtilities {
 
     public boolean threadCompleted();
   }
+
+  private static final String CORE_TEST_PLUGIN_ID = "com.google.dart.tools.core_test";
 
   /**
    * The name of the directory containing projects that can be loaded for testing purposes.
@@ -197,6 +200,38 @@ public class TestUtilities {
       }
       Assert.fail(writer.toString());
     }
+  }
+
+  /**
+   * Copy the content in the directory with the given name located in the <code>test_data</code>
+   * directory in core test plug-in into the specified target directory.
+   * 
+   * @param projectName the name of the directory containing the project
+   * @param targetDirectory the directory into which the content is copied. This directory is
+   *          created if it does not already exist
+   * @throws IOException if a required file cannot be accessed
+   */
+  public static void copyPluginRelativeContent(String projectName, File targetDirectory)
+      throws IOException {
+    copyPluginRelativeContent(CORE_TEST_PLUGIN_ID, projectName, targetDirectory);
+  }
+
+  /**
+   * Copy the content in the directory with the given name located in the <code>test_data</code>
+   * directory in the plug-in with the given id into the specified target directory.
+   * 
+   * @param pluginId the id of the plug-in containing the project
+   * @param projectName the name of the directory containing the project
+   * @param targetDirectory the directory into which the content is copied. This directory is
+   *          created if it does not already exist
+   * @throws IOException if a required file cannot be accessed
+   */
+  public static void copyPluginRelativeContent(String pluginId, String projectName,
+      File targetDirectory) throws IOException {
+    URL pluginInstallUri = PluginUtilities.getInstallUrl(pluginId);
+    URL sourceUrl = new URL(pluginInstallUri, PROJECT_DIRECTORY_NAME + "/" + projectName);
+    IPath sourcePath = new Path(FileLocator.toFileURL(sourceUrl).getPath());
+    FileUtilities.copyDirectoryContents(sourcePath.toFile(), targetDirectory);
   }
 
   /**
@@ -348,32 +383,45 @@ public class TestUtilities {
 
   /**
    * Return the project in the directory with the given name located in the <code>test_data</code>
-   * directory in the plug-in with the given id, loading the project if it is not already loaded.
-   * This method assumes that there is no conflict with project names.
+   * directory in the core test plug-in, loading the project if it is not already loaded. This
+   * method assumes that there is no conflict with project names.
    * 
    * @param pluginId the id of the plug-in containing the project
-   * @param projectDirectory the name of the directory containing the project
+   * @param projectName the name of the directory containing the project
    * @return the project in the specified directory
    * @throws CoreException
    * @throws FileNotFoundException if a required file or directory does not exist
    * @throws IOException if a required file cannot be accessed
    * @throws SAXException if the .project file is not valid
    */
-  public static DartProject loadPluginRelativeProject(String pluginId, String projectDirectory)
+  public static DartProject loadPluginRelativeProject(String projectName) throws CoreException,
+      FileNotFoundException, IOException, SAXException {
+    return loadPluginRelativeProject(CORE_TEST_PLUGIN_ID, projectName);
+  }
+
+  /**
+   * Return the project in the directory with the given name located in the <code>test_data</code>
+   * directory in the plug-in with the given id, loading the project if it is not already loaded.
+   * This method assumes that there is no conflict with project names.
+   * 
+   * @param pluginId the id of the plug-in containing the project
+   * @param projectName the name of the directory containing the project
+   * @return the project in the specified directory
+   * @throws CoreException
+   * @throws FileNotFoundException if a required file or directory does not exist
+   * @throws IOException if a required file cannot be accessed
+   * @throws SAXException if the .project file is not valid
+   */
+  public static DartProject loadPluginRelativeProject(String pluginId, String projectName)
       throws CoreException, FileNotFoundException, IOException, SAXException {
 
-    IPath targetDirectory = ResourcesPlugin.getWorkspace().getRoot().getLocation();
-    targetDirectory = targetDirectory.append(projectDirectory);
+    IPath targetPath = ResourcesPlugin.getWorkspace().getRoot().getLocation();
+    targetPath = targetPath.append(projectName);
 
-    if (!targetDirectory.append(".project").toFile().exists()) {
-
-      IPath sourceDirectory = new Path(FileLocator.toFileURL(
-          PluginUtilities.getInstallUrl(pluginId)).getPath());
-      sourceDirectory = sourceDirectory.append(PROJECT_DIRECTORY_NAME).append(projectDirectory);
-
-      FileUtilities.copyDirectoryContents(sourceDirectory.toFile(), targetDirectory.toFile());
+    if (!targetPath.append(".project").toFile().exists()) {
+      copyPluginRelativeContent(pluginId, projectName, targetPath.toFile());
     }
-    DartProject project = loadDartProject(targetDirectory);
+    DartProject project = loadDartProject(targetPath);
     refreshWorkspace();
 
     return project;

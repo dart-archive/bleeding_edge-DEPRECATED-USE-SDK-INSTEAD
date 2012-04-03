@@ -288,8 +288,7 @@ public class BindingUtilsTest extends TestCase {
   }
 
   private DartLibrary getLibrary(String projectName) throws Exception {
-    DartProject project = TestUtilities.loadPluginRelativeProject(
-        "com.google.dart.tools.core_test", projectName);
+    DartProject project = TestUtilities.loadPluginRelativeProject(projectName);
     if (project == null) {
       return null;
     }

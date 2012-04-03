@@ -48,7 +48,7 @@ public class MoneyProjectUtilities {
   }
 
   public static DartProject getMoneyProject() throws Exception {
-    return TestUtilities.loadPluginRelativeProject("com.google.dart.tools.core_test", "Money");
+    return TestUtilities.loadPluginRelativeProject("Money");
   }
 
 }
