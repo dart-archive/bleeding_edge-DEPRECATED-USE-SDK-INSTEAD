@@ -26,6 +26,13 @@ public class OperationQueue {
   private ArrayList<IndexOperation> operations = new ArrayList<IndexOperation>();
 
   /**
+   * An array containing a single boolean indicating whether the receiver has an idle processor
+   * waiting for new operations to be queued. Synchronize against this array before accessing it. If
+   * you wait on this array to be notified then do not synchronize against {@link #operations}.
+   */
+  private boolean[] isIdle = new boolean[1];
+
+  /**
    * Initialize a newly created operation queue to be empty.
    */
   public OperationQueue() {
@@ -57,10 +64,21 @@ public class OperationQueue {
   public IndexOperation dequeue(long timeout) throws InterruptedException {
     synchronized (operations) {
       if (operations.isEmpty()) {
+        // Notify any objects waiting for the receiver to be idle
+        synchronized (isIdle) {
+          isIdle[0] = true;
+          isIdle.notifyAll();
+        }
         if (timeout <= 0L) {
           return null;
         }
-        operations.wait(timeout);
+        try {
+          operations.wait(timeout);
+        } finally {
+          synchronized (isIdle) {
+            isIdle[0] = false;
+          }
+        }
         if (operations.isEmpty()) {
           return null;
         }
@@ -79,5 +97,32 @@ public class OperationQueue {
       operations.add(operation);
       operations.notifyAll();
     }
+  }
+
+  /**
+   * Wait up to the specified number of milliseconds for the receiver to have an idle processor
+   * waiting for new operations to be queued. If the number of milliseconds specified is less than
+   * or equal to zero, then this method returns immediately.
+   * 
+   * @param milliseconds the maximum number of milliseconds to wait for idle.
+   * @return <code>true</code> if the receiver is idle or <code>false</code> if the specified number
+   *         of milliseconds has passed and the receiver is still not idle.
+   */
+  public boolean waitForIdle(int milliseconds) {
+    long end = System.currentTimeMillis() + milliseconds;
+    synchronized (isIdle) {
+      while (!isIdle[0]) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          return false;
+        }
+        try {
+          isIdle.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+    }
+    return true;
   }
 }

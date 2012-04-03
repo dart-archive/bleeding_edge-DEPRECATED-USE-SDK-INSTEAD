@@ -121,6 +121,10 @@ public class InMemoryIndex implements Index {
     return UniqueInstance;
   }
 
+  public static InMemoryIndex newInstanceForTesting() {
+    return new InMemoryIndex();
+  }
+
   private long initIndexingTime = 0L;
 
   /**
@@ -261,15 +265,6 @@ public class InMemoryIndex implements Index {
     }
   }
 
-  /**
-   * Return the file in which the state of the index is to be stored between sessions.
-   * 
-   * @return the file in which the state of the index is to be stored
-   */
-  private File getIndexFile() {
-    return new File(DartCore.getPlugin().getStateLocation().toFile(), INDEX_FILE);
-  }
-
 //  /**
 //   * Return the index file with the given name.
 //   * 
@@ -279,6 +274,28 @@ public class InMemoryIndex implements Index {
 //  private File getIndexFile(String fileName) {
 //    return new File(DartCore.getPlugin().getStateLocation().toFile(), fileName);
 //  }
+
+  /**
+   * Wait up to the specified number of milliseconds for the receiver to finish processing its
+   * operations. If the number of milliseconds specified is less than or equal to zero, then this
+   * method returns immediately.
+   * 
+   * @param milliseconds the maximum number of milliseconds to wait for idle.
+   * @return <code>true</code> if the receiver is idle or <code>false</code> if the specified number
+   *         of milliseconds has passed and the receiver is still not idle.
+   */
+  public boolean waitForIdle(int milliseconds) {
+    return queue.waitForIdle(milliseconds);
+  }
+
+  /**
+   * Return the file in which the state of the index is to be stored between sessions.
+   * 
+   * @return the file in which the state of the index is to be stored
+   */
+  private File getIndexFile() {
+    return new File(DartCore.getPlugin().getStateLocation().toFile(), INDEX_FILE);
+  }
 
   /**
    * Return the file containing the initial state of the index. This file should be considered to be
@@ -304,7 +321,11 @@ public class InMemoryIndex implements Index {
     EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
     ArrayList<String> librarySpecs = new ArrayList<String>(libraryManager.getAllLibrarySpecs());
     if (librarySpecs.remove("dart:html")) {
-      librarySpecs.add(0, "dart:html");
+      if (DartCoreDebug.ANALYSIS_SERVER) {
+        librarySpecs.add("dart:html");
+      } else {
+        librarySpecs.add(0, "dart:html");
+      }
     }
     ArrayList<DartUnit> contributedUnits = new ArrayList<DartUnit>();
     ArrayList<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
@@ -313,13 +334,13 @@ public class InMemoryIndex implements Index {
       try {
         URI libraryUri = new URI(urlSpec);
         UrlLibrarySource librarySource = new UrlLibrarySource(libraryUri, libraryManager);
-        if (!DartCoreDebug.ANALYSIS_SERVER) {
+        if (DartCoreDebug.ANALYSIS_SERVER) {
+          File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
+          SystemLibraryManagerProvider.getDefaultAnalysisServer().resolveLibrary(libraryFile, null);
+        } else {
           LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary(librarySource,
               contributedUnits, parseErrors);
           indexBundledLibrary(libraryUnit, initializedLibraries);
-        } else {
-          File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
-          SystemLibraryManagerProvider.getDefaultAnalysisServer().resolveLibrary(libraryFile, null);
         }
       } catch (URISyntaxException exception) {
         librariesIndexed = false;
