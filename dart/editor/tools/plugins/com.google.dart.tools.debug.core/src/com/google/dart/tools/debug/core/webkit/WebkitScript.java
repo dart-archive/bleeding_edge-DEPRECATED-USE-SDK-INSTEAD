@@ -53,6 +53,10 @@ public class WebkitScript {
 
   private String scriptId;
 
+  private String scriptSource;
+
+  private Object privateData;
+
   private WebkitScript() {
 
   }
@@ -80,8 +84,16 @@ public class WebkitScript {
     return endLine;
   }
 
+  public Object getPrivateData() {
+    return privateData;
+  }
+
   public String getScriptId() {
     return scriptId;
+  }
+
+  public String getScriptSource() {
+    return scriptSource;
   }
 
   public String getSourceMapURL() {
@@ -105,8 +117,24 @@ public class WebkitScript {
     return scriptId.hashCode();
   }
 
+  public boolean hasScriptSource() {
+    return scriptSource != null;
+  }
+
   public boolean isContentScript() {
     return isContentScript;
+  }
+
+  public boolean isSystemScript() {
+    return url != null && url.startsWith("dart:");
+  }
+
+  public void setPrivateData(Object object) {
+    this.privateData = object;
+  }
+
+  public void setScriptSource(String source) {
+    this.scriptSource = source;
   }
 
   @Override

@@ -127,9 +127,13 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     WebkitScript script = getConnection().getDebugger().getScript(scriptId);
 
     if (script != null) {
-      URI uri = URI.create(script.getUrl());
+      if (script.isSystemScript()) {
+        return script.getUrl();
+      } else {
+        URI uri = URI.create(script.getUrl());
 
-      return uri.getPath();
+        return uri.getPath();
+      }
     }
 
     return null;

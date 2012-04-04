@@ -45,6 +45,17 @@ import java.util.List;
  * The IDebugTarget implementation for the Dartium debug elements.
  */
 public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTarget {
+  private static DartiumDebugTarget activeTarget;
+
+  // TODO(devoncarew): replace this singleton with a more sophisticated architecture.
+  public static DartiumDebugTarget getActiveTarget() {
+    return activeTarget;
+  }
+
+  private static void setActiveTarget(DartiumDebugTarget target) {
+    activeTarget = target;
+  }
+
   private String debugTargetName;
   private WebkitConnection connection;
   private ILaunch launch;
@@ -62,6 +73,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   public DartiumDebugTarget(String debugTargetName, WebkitConnection connection, ILaunch launch,
       Process javaProcess, IResourceResolver resourceResolver) {
     super(null);
+
+    setActiveTarget(this);
 
     this.debugTargetName = debugTargetName;
     this.connection = connection;
@@ -123,6 +136,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   @Override
   public void fireTerminateEvent() {
+    setActiveTarget(null);
+
     breakpointManager.dispose();
 
     if (cssScriptManager != null) {

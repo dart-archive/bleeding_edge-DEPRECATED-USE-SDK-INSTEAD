@@ -28,7 +28,6 @@ import java.io.File;
  * A source container that expects its input path to be a workspace relative path.
  */
 public class WorkspaceSourceContainer extends AbstractSourceContainer {
-
   public static final String TYPE_ID = DebugPlugin.getUniqueIdentifier()
       + ".containerType.workspace"; //$NON-NLS-1$
 

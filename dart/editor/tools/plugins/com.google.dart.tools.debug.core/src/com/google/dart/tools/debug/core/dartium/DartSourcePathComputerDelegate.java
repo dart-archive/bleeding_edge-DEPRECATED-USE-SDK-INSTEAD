@@ -33,9 +33,8 @@ public class DartSourcePathComputerDelegate implements ISourcePathComputerDelega
   public ISourceContainer[] computeSourceContainers(ILaunchConfiguration launchConfig,
       IProgressMonitor monitor) throws CoreException {
 
-    // TODO(devoncarew): we may want another source container for retrieving remote dart scripts
-    // (like dart:dom, ...).
-    return new ISourceContainer[] {new WorkspaceSourceContainer()};
+    return new ISourceContainer[] {
+        new WorkspaceSourceContainer(), new RemoteScriptSourceContainer()};
   }
 
 }

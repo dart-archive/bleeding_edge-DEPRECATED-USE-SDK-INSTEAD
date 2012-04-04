@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * A WIP debugger domain object.
@@ -237,6 +238,16 @@ public class WebkitDebugger extends WebkitDomain {
     return scriptMap.get(scriptId);
   }
 
+  public WebkitScript getScriptByUrl(String url) {
+    for (WebkitScript script : getAllScripts()) {
+      if (url.equals(script.getUrl())) {
+        return script;
+      }
+    }
+
+    return null;
+  }
+
   /**
    * Returns source for the script with given id.
    * <p>
@@ -271,6 +282,47 @@ public class WebkitDebugger extends WebkitDomain {
 
   public void pause() throws IOException {
     sendSimpleCommand("Debugger.pause");
+  }
+
+  /**
+   * This is a convenience method which will synchronously populate the given script's source if
+   * necessary.
+   * 
+   * @param script
+   * @throws IOException
+   */
+  public void populateScriptSource(WebkitScript script) throws IOException {
+    if (!script.hasScriptSource()) {
+      final IOException[] error = new IOException[1];
+      final String[] source = new String[1];
+
+      final CountDownLatch latch = new CountDownLatch(1);
+
+      getScriptSource(script.getScriptId(), new WebkitCallback<String>() {
+        @Override
+        public void handleResult(WebkitResult<String> result) {
+          if (result.isError()) {
+            error[0] = new IOException("error retrieving script source");
+          } else {
+            source[0] = result.getResult();
+          }
+
+          latch.countDown();
+        }
+      });
+
+      try {
+        latch.await();
+      } catch (InterruptedException e) {
+        throw new IOException(e);
+      }
+
+      if (error[0] != null) {
+        throw error[0];
+      }
+
+      script.setScriptSource(source[0]);
+    }
   }
 
   public void removeBreakpoint(String breakpointId) throws IOException {
