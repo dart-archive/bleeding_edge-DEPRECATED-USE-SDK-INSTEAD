@@ -1251,12 +1251,11 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     _rowShift = row;
     _scrolledByKeyboard = true;
     int top = _spreadsheet.getRowEnd(row) - _spreadsheet.getRowEnd(0);
-    _tableScrollContainer.scrollTop = top;
-
     _columnShift = column;
     _scrolledByKeyboard = true;
     int left = _spreadsheet.getColumnEnd(column) - _spreadsheet.getColumnEnd(0);
-    _tableScrollContainer.scrollLeft = left;
+    _tableScrollContainer.$dom_scrollTop = top;
+    _tableScrollContainer.$dom_scrollLeft = left;
   }
 
   // Set a function to be called for each mousemove and mouseup event on the document.
