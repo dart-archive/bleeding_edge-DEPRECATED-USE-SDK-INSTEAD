@@ -28,6 +28,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public class RenameModifications extends RefactoringModifications {
 
   private final List<Object> fRename;

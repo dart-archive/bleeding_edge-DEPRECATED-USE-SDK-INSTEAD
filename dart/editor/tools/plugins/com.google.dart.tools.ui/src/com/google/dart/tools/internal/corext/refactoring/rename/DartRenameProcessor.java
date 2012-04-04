@@ -17,6 +17,9 @@ import org.eclipse.ltk.core.refactoring.participants.ResourceChangeChecker;
 import org.eclipse.ltk.core.refactoring.participants.SharableParticipants;
 import org.eclipse.ltk.core.refactoring.participants.ValidateEditChecker;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public abstract class DartRenameProcessor extends RenameProcessor implements INameUpdating {
 
   private String fNewElementName;

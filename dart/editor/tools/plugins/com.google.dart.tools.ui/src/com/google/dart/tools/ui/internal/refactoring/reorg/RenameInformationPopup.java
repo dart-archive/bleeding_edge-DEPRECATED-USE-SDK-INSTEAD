@@ -72,6 +72,9 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.progress.UIJob;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class RenameInformationPopup implements IWidgetTokenKeeper, IWidgetTokenKeeperExtension {
 
   private class PopupVisibilityManager implements IPartListener2, ControlListener, MouseListener,

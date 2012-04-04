@@ -2,6 +2,9 @@ package com.google.dart.tools.ui.internal.refactoring.reorg;
 
 import org.eclipse.osgi.util.NLS;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public final class ReorgMessages extends NLS {
 
   private static final String BUNDLE_NAME = ReorgMessages.class.getName();

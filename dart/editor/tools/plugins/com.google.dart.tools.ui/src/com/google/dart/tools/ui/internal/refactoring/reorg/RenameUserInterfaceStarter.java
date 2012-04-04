@@ -9,6 +9,9 @@ import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.participants.RenameProcessor;
 import org.eclipse.swt.widgets.Shell;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class RenameUserInterfaceStarter extends UserInterfaceStarter {
 
   @Override

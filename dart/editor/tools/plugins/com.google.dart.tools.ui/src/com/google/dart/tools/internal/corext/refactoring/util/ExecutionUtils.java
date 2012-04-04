@@ -8,6 +8,8 @@ import org.eclipse.core.runtime.Status;
 
 /**
  * Utilities for executing actions, such as {@link RunnableObjectEx}.
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public class ExecutionUtils {
   /**

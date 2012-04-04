@@ -13,6 +13,9 @@ import org.eclipse.ltk.core.refactoring.participants.RefactoringParticipant;
 import org.eclipse.ltk.core.refactoring.participants.RefactoringProcessor;
 import org.eclipse.ltk.core.refactoring.participants.SharableParticipants;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public interface IReorgPolicy extends IReorgDestinationValidator {
 
 //  public static interface ICopyPolicy extends IReorgPolicy {

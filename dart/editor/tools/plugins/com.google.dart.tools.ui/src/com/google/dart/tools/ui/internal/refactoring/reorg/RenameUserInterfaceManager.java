@@ -4,6 +4,9 @@ import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProce
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.ui.internal.refactoring.UserInterfaceManager;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class RenameUserInterfaceManager extends UserInterfaceManager {
   private static final UserInterfaceManager fgInstance = new RenameUserInterfaceManager();
 

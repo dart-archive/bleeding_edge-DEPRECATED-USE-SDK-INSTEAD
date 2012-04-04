@@ -9,6 +9,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class UserInterfaceManager {
 
   private static class Tuple {

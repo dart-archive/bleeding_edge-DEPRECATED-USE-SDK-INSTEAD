@@ -13,6 +13,8 @@ import org.eclipse.jface.text.IRegion;
 
 /**
  * Helper class to provide String manipulation functions not available in standard JDK.
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public class Strings {
   /**

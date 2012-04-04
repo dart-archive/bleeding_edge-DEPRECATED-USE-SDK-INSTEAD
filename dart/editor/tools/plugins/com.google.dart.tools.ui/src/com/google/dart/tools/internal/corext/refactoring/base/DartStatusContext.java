@@ -13,6 +13,8 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
 /**
  * {@link DartStatusContext} that can be used to annotate a {@link RefactoringStatusEntry} with
  * detailed information about an error detected in an {@link DartElement}.
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public abstract class DartStatusContext extends RefactoringStatusContext {
 

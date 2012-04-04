@@ -6,6 +6,9 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.ltk.core.refactoring.Refactoring;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public final class RenameLocalVariableWizard extends RenameRefactoringWizard {
 
   public RenameLocalVariableWizard(Refactoring refactoring) {

@@ -21,6 +21,8 @@ import java.util.List;
 
 /**
  * This class defines a set of reusable static checks methods.
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public class Checks {
 

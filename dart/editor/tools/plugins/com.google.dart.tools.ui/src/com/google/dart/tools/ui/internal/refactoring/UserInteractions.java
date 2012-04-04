@@ -7,6 +7,9 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.ui.refactoring.RefactoringUI;
 import org.eclipse.swt.widgets.Shell;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public final class UserInteractions {
 
   /**

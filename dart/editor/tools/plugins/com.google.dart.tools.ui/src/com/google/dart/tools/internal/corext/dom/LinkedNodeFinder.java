@@ -13,7 +13,6 @@ import java.util.ArrayList;
  * methods or methods overriding (if existing in the same AST), for constructors also the type and
  * all other constructors.
  */
-
 public class LinkedNodeFinder {
 
   private static class BindingFinder extends ASTVisitor<Void> {

@@ -29,6 +29,8 @@ import java.util.List;
 
 /**
  * A data structure to collect resource modifications.
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public class ResourceModifications {
 

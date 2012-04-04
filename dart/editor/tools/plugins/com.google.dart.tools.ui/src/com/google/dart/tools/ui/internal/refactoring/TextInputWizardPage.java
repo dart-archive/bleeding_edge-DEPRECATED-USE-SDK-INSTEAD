@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Text;
  * A TextInputWizardPage is a simple UserInputWizardPage with facilities to create a text input
  * field and validate its contents. The text is assumed to be a Dart identifier, hence CamelCase
  * word jumping is installed.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public abstract class TextInputWizardPage extends UserInputWizardPage {
 

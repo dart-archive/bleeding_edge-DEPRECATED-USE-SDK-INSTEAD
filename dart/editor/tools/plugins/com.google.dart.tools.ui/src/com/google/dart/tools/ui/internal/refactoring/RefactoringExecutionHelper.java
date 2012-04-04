@@ -30,6 +30,8 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * A helper class to execute a refactoring. The class takes care of pushing the undo change onto the
  * undo stack and folding editor edits into one editor undo object.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class RefactoringExecutionHelper {
 

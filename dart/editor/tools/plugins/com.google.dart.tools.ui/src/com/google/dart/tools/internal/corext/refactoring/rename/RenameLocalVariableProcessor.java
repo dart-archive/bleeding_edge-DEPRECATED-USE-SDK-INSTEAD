@@ -38,6 +38,9 @@ import org.eclipse.text.edits.TextEditGroup;
 
 import java.util.List;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public class RenameLocalVariableProcessor extends DartRenameProcessor {
 
   public static final String IDENTIFIER = "com.google.dart.tools.ui.renameLocalVariableProcessor"; //$NON-NLS-1$

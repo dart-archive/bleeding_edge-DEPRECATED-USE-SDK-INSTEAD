@@ -18,6 +18,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 abstract class RenameInputWizardPage extends TextInputWizardPage {
 
   private final String fHelpContextID;

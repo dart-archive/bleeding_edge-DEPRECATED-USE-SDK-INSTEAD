@@ -12,7 +12,7 @@ import org.eclipse.ltk.core.refactoring.participants.RenameArguments;
  * This class is not intended to be subclassed by clients.
  * </p>
  * 
- * @noextend This class is not intended to be subclassed by clients.
+ * @coverage dart.editor.ui.refactoring.core
  */
 public class RenameTypeArguments extends RenameArguments {
 

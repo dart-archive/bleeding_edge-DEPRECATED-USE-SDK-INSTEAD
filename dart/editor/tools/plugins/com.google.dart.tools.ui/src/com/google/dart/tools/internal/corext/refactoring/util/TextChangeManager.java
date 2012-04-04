@@ -14,6 +14,8 @@ import java.util.Set;
 /**
  * A <code>TextChangeManager</code> manages associations between <code>CompilationUnit</code> or
  * <code>IFile</code> and <code>TextChange</code> objects.
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public class TextChangeManager {
 

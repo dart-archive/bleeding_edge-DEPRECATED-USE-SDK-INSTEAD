@@ -10,6 +10,9 @@ import org.eclipse.ltk.core.refactoring.participants.RefactoringProcessor;
 import org.eclipse.ltk.core.refactoring.participants.SharableParticipants;
 import org.eclipse.ltk.core.refactoring.participants.ValidateEditChecker;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public abstract class RefactoringModifications {
 
   private ResourceModifications fResourceModifications;

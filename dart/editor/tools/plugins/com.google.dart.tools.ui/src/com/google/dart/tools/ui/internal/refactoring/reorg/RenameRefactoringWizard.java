@@ -10,6 +10,9 @@ import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class RenameRefactoringWizard extends RefactoringWizard {
 
   private final String fInputPageDescription;

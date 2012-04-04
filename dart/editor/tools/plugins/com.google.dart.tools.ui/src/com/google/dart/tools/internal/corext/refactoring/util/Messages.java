@@ -4,6 +4,8 @@ import com.ibm.icu.text.MessageFormat;
 
 /**
  * Helper class to format message strings.
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public class Messages {
 

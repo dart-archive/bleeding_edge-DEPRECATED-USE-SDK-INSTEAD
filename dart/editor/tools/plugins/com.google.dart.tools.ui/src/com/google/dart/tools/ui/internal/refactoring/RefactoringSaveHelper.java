@@ -17,6 +17,8 @@ import org.eclipse.ui.actions.GlobalBuildAction;
  * Helper to save dirty editors prior to starting a refactoring. Saving happens with automatic build
  * turned off, so when {@link #triggerIncrementalBuild()} should be called later to build changes
  * made by refactoring and also changes in saved editors.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class RefactoringSaveHelper {
 

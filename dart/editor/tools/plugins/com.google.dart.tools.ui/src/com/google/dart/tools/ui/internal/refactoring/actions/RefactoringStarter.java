@@ -10,6 +10,8 @@ import org.eclipse.swt.widgets.Shell;
 
 /**
  * A helper class to activate the UI of a refactoring
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class RefactoringStarter {
 

@@ -4,6 +4,8 @@ import org.eclipse.jface.viewers.ViewerDropAdapter;
 
 /**
  * {@link ReorgDestinationFactory} can create concrete instances
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public interface IReorgDestination {
 

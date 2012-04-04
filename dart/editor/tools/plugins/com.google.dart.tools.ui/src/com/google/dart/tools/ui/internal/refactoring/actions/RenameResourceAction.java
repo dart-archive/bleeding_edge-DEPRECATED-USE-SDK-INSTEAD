@@ -8,6 +8,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchSite;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class RenameResourceAction extends SelectionDispatchAction {
 
   public RenameResourceAction(IWorkbenchSite site) {

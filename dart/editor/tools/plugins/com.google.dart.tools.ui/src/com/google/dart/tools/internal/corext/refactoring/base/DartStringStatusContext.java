@@ -9,6 +9,8 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
  * A Dart string context can be used to annotate a </code>RefactoringStatusEntry<code>
  * with detailed information about an error detected in Dart source code represented
  * by a string.
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public class DartStringStatusContext extends RefactoringStatusContext {
 

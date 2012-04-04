@@ -12,6 +12,8 @@ import java.util.Set;
 
 /**
  * Utility class to deal with Dart element processors.
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public class DartProcessors {
 

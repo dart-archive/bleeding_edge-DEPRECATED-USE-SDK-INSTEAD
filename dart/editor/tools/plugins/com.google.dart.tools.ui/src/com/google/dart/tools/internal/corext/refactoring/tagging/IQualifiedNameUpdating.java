@@ -1,5 +1,8 @@
 package com.google.dart.tools.internal.corext.refactoring.tagging;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public interface IQualifiedNameUpdating {
 
   /**

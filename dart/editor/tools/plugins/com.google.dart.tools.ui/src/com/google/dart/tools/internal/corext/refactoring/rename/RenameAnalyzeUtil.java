@@ -28,6 +28,9 @@ import org.eclipse.ltk.core.refactoring.TextChange;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 class RenameAnalyzeUtil {
 
   private static final WorkingCopyOwner WORKING_COPY_OWNER = new WorkingCopyOwner() {

@@ -26,6 +26,9 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchSite;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class RenameDartElementAction extends SelectionDispatchAction {
 
   private static boolean canEnable(IStructuredSelection selection) throws CoreException {

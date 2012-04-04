@@ -19,6 +19,9 @@ import org.eclipse.ui.part.ISetSelectionTarget;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public class RenameSelectionState {
   private final Display fDisplay;
   private final Object fElement;

@@ -64,6 +64,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Comparator;
 
+/**
+ * @coverage dart.editor.ui.refactoring.ui
+ */
 public class RenameLinkedMode {
 
   private class EditorSynchronizer implements ILinkedModeListener {

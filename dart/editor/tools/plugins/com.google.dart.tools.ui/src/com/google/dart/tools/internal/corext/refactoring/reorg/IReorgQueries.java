@@ -1,5 +1,8 @@
 package com.google.dart.tools.internal.corext.refactoring.reorg;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public interface IReorgQueries {
 
   public static final int CONFIRM_DELETE_EMPTY_CUS = 2;

@@ -5,6 +5,8 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 /**
  * Represents processors in the JDT space that rename elements.
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public interface INameUpdating {
 

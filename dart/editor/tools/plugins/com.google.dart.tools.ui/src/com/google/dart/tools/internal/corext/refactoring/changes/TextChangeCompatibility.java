@@ -13,6 +13,8 @@ import org.eclipse.text.edits.TextEditGroup;
 /**
  * A utility class to provide compatibility with the old text change API of adding text edits
  * directly and auto inserting them into the tree.
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public class TextChangeCompatibility {
 

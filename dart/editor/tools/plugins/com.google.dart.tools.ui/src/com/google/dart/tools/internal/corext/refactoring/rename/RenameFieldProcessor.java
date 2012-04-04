@@ -43,6 +43,9 @@ import org.eclipse.text.edits.TextEdit;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public class RenameFieldProcessor extends DartRenameProcessor {
 
   public static final String IDENTIFIER = "com.google.dart.tools.ui.renameFieldProcessor"; //$NON-NLS-1$

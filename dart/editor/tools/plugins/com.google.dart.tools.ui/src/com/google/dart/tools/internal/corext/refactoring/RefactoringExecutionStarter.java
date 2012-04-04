@@ -17,6 +17,8 @@ import org.eclipse.swt.widgets.Shell;
  * This class has been introduced to decouple actions from the refactoring code, in order not to
  * eagerly load refactoring classes during action initialization.
  * </p>
+ * 
+ * @coverage dart.editor.ui.refactoring.core
  */
 public final class RefactoringExecutionStarter {
 

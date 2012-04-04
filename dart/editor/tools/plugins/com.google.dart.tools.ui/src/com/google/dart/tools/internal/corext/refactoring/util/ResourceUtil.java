@@ -10,6 +10,9 @@ import org.eclipse.core.resources.IResource;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public class ResourceUtil {
 
   public static IFile getFile(CompilationUnit cu) {

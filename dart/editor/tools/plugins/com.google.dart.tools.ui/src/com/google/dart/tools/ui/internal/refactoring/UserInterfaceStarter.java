@@ -9,6 +9,8 @@ import org.eclipse.swt.widgets.Shell;
 
 /**
  * Opens the user interface for a given refactoring.
+ * 
+ * @coverage dart.editor.ui.refactoring.ui
  */
 public class UserInterfaceStarter {
 

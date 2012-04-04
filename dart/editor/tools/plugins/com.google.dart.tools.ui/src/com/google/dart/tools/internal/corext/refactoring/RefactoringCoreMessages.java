@@ -2,6 +2,9 @@ package com.google.dart.tools.internal.corext.refactoring;
 
 import org.eclipse.osgi.util.NLS;
 
+/**
+ * @coverage dart.editor.ui.refactoring.core
+ */
 public final class RefactoringCoreMessages extends NLS {
 
   public static String AbstractRenameChange_Renaming;
