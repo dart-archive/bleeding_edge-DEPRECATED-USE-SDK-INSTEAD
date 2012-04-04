@@ -89,7 +89,7 @@ public class TestProject {
       description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
       project.setDescription(description, null);
     }
-    // remmeber DartProject
+    // remember DartProject
     dartProject = DartCore.create(project);
   }
 
