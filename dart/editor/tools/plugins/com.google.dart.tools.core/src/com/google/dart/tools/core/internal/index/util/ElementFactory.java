@@ -227,6 +227,9 @@ public final class ElementFactory {
    * @return the path to the element
    */
   private static String pathTo(com.google.dart.compiler.resolver.Element element) {
+    if (element.isDynamic()) {
+      return "dynamic";
+    }
     StringBuilder builder = new StringBuilder();
     pathTo(builder, element);
     return builder.toString();

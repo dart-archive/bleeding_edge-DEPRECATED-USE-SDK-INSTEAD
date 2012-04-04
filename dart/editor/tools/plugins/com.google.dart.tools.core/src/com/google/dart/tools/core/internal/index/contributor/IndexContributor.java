@@ -383,6 +383,10 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitMethodDefinition(DartMethodDefinition node) {
+    if (node.getParent() instanceof DartField) {
+      super.visitMethodDefinition(node);
+      return null;
+    }
     enterScope(getElement(node));
     try {
       processMethodDefinition(node);
