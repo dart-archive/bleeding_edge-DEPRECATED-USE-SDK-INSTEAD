@@ -342,7 +342,7 @@ def runTest(test, target, verbose, keep_temporary_files):
 
   # run the htmlconverter.py script on it
   printLine("... converting input html [%d]" % (test + 1))
-  cmd = [sys.executable, 'tools/htmlconverter.py', inputfile,
+  cmd = [sys.executable, './htmlconverter.py', inputfile,
          '-o', 'out/', '-t', target]
   if verbose: cmd.append('--verbose')
   status, out, err = execute(cmd, verbose)
@@ -386,7 +386,6 @@ def shouldRunTest(test, prefixes):
 
 
 def main():
-  os.chdir(CLIENT_PATH)
   parser = Flags()
   options, args = parser.parse_args()
   verbose = options.verbose

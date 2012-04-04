@@ -12,10 +12,12 @@ Building and running:
 2. build the dartc compiler:
   $ ./tools/build.py --arch=ia32
 
-3. run the htmlconverter tool, that converts the dart code to javascript:
-  $ cd client/
-  $ python ./tools/htmlconverter.py \
-    samples/slider/slider_sample.html -o out/
+3. either compile the Dart code to JavaScript, or load the code directly into
+   Dartium:
 
-4. open the generated file in a browser:
-  $ google-chrome out/client/samples/slider/slider_sample-js.html
+   - to compile the code:
+     $(DART_SDK)/bin/frogc --out=slide_sample.dart.js slide_sample.dart
+
+4. open the generated file in a browser (either Dartium, Chrome, or another
+   supported browser):
+  $ google-chrome slide_sample.html

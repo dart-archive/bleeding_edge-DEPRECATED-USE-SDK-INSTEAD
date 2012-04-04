@@ -470,7 +470,7 @@ def Flags():
       metavar="[js,chromium,dartium]",
       default='chromium')
   result.add_option("--extra-flags",
-      help="Extra flags for dartc",
+      help="Extra flags for frogc",
       type="string",
       default="")
   result.set_usage("htmlconverter.py input.html -o OUTDIR")
