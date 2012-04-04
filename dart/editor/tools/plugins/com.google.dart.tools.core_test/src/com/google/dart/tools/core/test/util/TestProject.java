@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.ui.refactoring;
+package com.google.dart.tools.core.test.util;
 
 import com.google.common.io.CharStreams;
 import com.google.dart.tools.core.DartCore;

@@ -282,6 +282,26 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
+  public Type findTypeInScope(String typeName) throws DartModelException {
+    // try to find in this library
+    Type type = findType(typeName);
+    if (type != null) {
+      return type;
+    }
+    // try to find in imported libraries, non-transitively
+    if (!typeName.startsWith("_")) {
+      for (DartLibrary library : getImportedLibraries()) {
+        type = library.findType(typeName);
+        if (type != null) {
+          return type;
+        }
+      }
+    }
+    // not found
+    return null;
+  }
+
+  @Override
   public CompilationUnit getCompilationUnit(String name) {
     if (!DartCore.isDartLikeFileName(name)) {
       // TODO move the following exception name into some messages.properties file

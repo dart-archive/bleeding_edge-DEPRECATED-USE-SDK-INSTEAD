@@ -18,6 +18,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.ui.internal.refactoring.UserInteractions;
 
 import junit.framework.TestCase;

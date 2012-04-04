@@ -70,15 +70,23 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public void delete(IProgressMonitor monitor) throws DartModelException;
 
   /**
-   * Return the type with the given name that is visible within this library, or <code>null</code>
-   * if there is no such type defined in this library.
+   * Return the type with the given name that is declared within this library, or <code>null</code>
+   * if there is no such type declared in this library.
    * 
    * @param typeName the name of the type to be returned
-   * @return the type with the given name that is visible within this library
+   * @return the type with the given name that is declared within this library
    * @throws DartModelException if the types defined in this library cannot be determined for some
    *           reason
    */
   public Type findType(String typeName) throws DartModelException;
+
+  /**
+   * @return the {@link Type} with the given name that is visible within this library, or
+   *         <code>null</code> if there is no such type visible in this library. Here "visible"
+   *         means that type declared in this library or declared in one of the imported libraries
+   *         and not private.
+   */
+  public Type findTypeInScope(String typeName) throws DartModelException;
 
   /**
    * Return the compilation unit with the specified name in this library (for example,

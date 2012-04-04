@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 import com.google.dart.compiler.DefaultLibrarySource;
@@ -25,6 +26,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
@@ -186,8 +188,123 @@ public class DartLibraryImplTest extends TestCase {
     assertEquals(lib, new DartLibraryImpl(new File(libDir, "libExternal.dart")));
   }
 
-  public void test_DartLibraryImpl_findType() {
-    // TODO Implement this
+  /**
+   * Test for {@link DartLibrary#findType(String)}.
+   */
+  public void test_DartLibraryImpl_findType() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      testProject.setUnitContent(
+          "Test1.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "class B {}",
+              ""));
+      testProject.setUnitContent(
+          "Test2.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "class C {}",
+              ""));
+      IResource libResource = testProject.setUnitContent(
+          "Test.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('test');",
+              "#source('Test1.dart');",
+              "#source('Test2.dart');",
+              "class A {}",
+              "")).getResource();
+      DartLibrary library = testProject.getDartProject().getDartLibrary(libResource);
+      assertNotNull(library.findType("A"));
+      assertNotNull(library.findType("B"));
+      assertNotNull(library.findType("C"));
+      assertNull(library.findType("NoSuchType"));
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * Test for {@link DartLibrary#findTypeInScope(String)}.
+   */
+  public void test_DartLibraryImpl_findTypeInScope() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "TestA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "class A1 {}",
+              "class _A2 {}",
+              "")).getResource();
+      IResource libResourceB = testProject.setUnitContent(
+          "TestB.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('B');",
+              "#import('TestA.dart');",
+              "class B1 {}",
+              "class _B2 {}",
+              "")).getResource();
+      // using "libraryA" we can find all types of "A"
+      {
+        DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+        assertNotNull(libraryA.findTypeInScope("A1"));
+        assertNotNull(libraryA.findTypeInScope("_A2"));
+        assertNull(libraryA.findTypeInScope("B1"));
+      }
+      // using "libraryB" we can find all types of "B" and non-private classes of "A"
+      {
+        DartLibrary libraryB = testProject.getDartProject().getDartLibrary(libResourceB);
+        assertNotNull(libraryB.findTypeInScope("B1"));
+        assertNotNull(libraryB.findTypeInScope("_B2"));
+        assertNotNull(libraryB.findTypeInScope("A1"));
+        assertNull(libraryB.findTypeInScope("_A2"));
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * Test for {@link DartLibrary#findTypeInScope(String)}.
+   */
+  public void test_DartLibraryImpl_findTypeInScope_nonTransitive() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      testProject.setUnitContent(
+          "TestA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "class A {}",
+              "")).getResource();
+      testProject.setUnitContent(
+          "TestB.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('B');",
+              "#import('TestA.dart');",
+              "class B {}",
+              "")).getResource();
+      IResource libResourceC = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('C');",
+              "#import('TestB.dart');",
+              "class C {}",
+              "")).getResource();
+      // using "libraryC" we can find types of "C", "B", but not "A"
+      DartLibrary libraryC = testProject.getDartProject().getDartLibrary(libResourceC);
+      assertNotNull(libraryC.findTypeInScope("C"));
+      assertNotNull(libraryC.findTypeInScope("B"));
+      assertNull(libraryC.findTypeInScope("A"));
+    } finally {
+      testProject.dispose();
+    }
   }
 
   public void test_DartLibraryImpl_getChildren_lib1() throws Exception {
@@ -612,7 +729,7 @@ public class DartLibraryImplTest extends TestCase {
   private CompilationUnitImpl assertContainsCompUnit(DartElement[] elements, String elemPath,
       boolean inWorkspace, boolean exists) throws DartModelException {
     for (DartElement elem : elements) {
-      if ((elem instanceof CompilationUnitImpl) && elem.getElementName().endsWith(elemPath)) {
+      if (elem instanceof CompilationUnitImpl && elem.getElementName().endsWith(elemPath)) {
         CompilationUnitImpl unit = (CompilationUnitImpl) elem;
         assertHandleMemento(unit);
 
@@ -727,7 +844,7 @@ public class DartLibraryImplTest extends TestCase {
   /**
    * Assert that the info for the specified library and all children of that library have been
    * cleared.
-   * 
+   *
    * @param lib the library (not <code>null</code>)
    */
   private void assertInfoCleared(DartLibraryImpl lib, boolean expectChildInfo) {

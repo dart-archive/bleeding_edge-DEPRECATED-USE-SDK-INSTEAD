@@ -24,6 +24,7 @@ import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
 import junit.framework.TestCase;
@@ -37,8 +38,12 @@ import java.util.List;
  */
 public class DartElementLocatorTest extends TestCase {
 
-  private static void assertLocation(CompilationUnit unit, String posMarker,
-      Class<?> expectedElementType, String expectedMarker, int expectedLen) throws Exception {
+  private static void assertLocation(
+      CompilationUnit unit,
+      String posMarker,
+      Class<?> expectedElementType,
+      String expectedMarker,
+      int expectedLen) throws Exception {
     String source = unit.getSource();
     // prepare DartUnit
     DartUnit dartUnit;
@@ -69,8 +74,12 @@ public class DartElementLocatorTest extends TestCase {
     }
   }
 
-  private static void testElementLocator(String[] sourceLines, String posMarker,
-      Class<?> expectedElementType, String expectedMarker, int expectedLen) throws Exception {
+  private static void testElementLocator(
+      String[] sourceLines,
+      String posMarker,
+      Class<?> expectedElementType,
+      String expectedMarker,
+      int expectedLen) throws Exception {
     TestProject testProject = new TestProject("Test");
     try {
       CompilationUnit unit = testProject.setUnitContent(
