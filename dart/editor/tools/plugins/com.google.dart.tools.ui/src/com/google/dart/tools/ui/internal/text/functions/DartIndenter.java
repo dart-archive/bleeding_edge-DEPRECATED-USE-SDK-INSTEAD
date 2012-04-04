@@ -1255,18 +1255,21 @@ public class DartIndenter {
         nextToken();
       } while (skipBrackets()); // optional brackets for array valued return types
 
-      if (fToken == Symbols.TokenIDENT) { // return type name
-        return true;
-      }
-      if (fToken == Symbols.TokenRBRACE) {
-        // assume that whatever follows a close brace at 0 or 1 indent levels is a method decl
-        StringBuffer buf = getLeadingWhitespace(pos);
-        if (buf.length() == 0 || buf.length() == fPrefs.prefTabSize) {
+      switch (fToken) {
+        case Symbols.TokenIDENT:
+        case Symbols.TokenGET:
+        case Symbols.TokenSET:
+        case Symbols.TokenOPERATOR:
+        case Symbols.TokenVOID:
+        case Symbols.TokenVAR: // common mistake
+        case Symbols.TokenEOF:
           return true;
-        }
-      }
-      if (fToken == Symbols.TokenEOF) {
-        return true; // top-level function or typedef at beginning of file
+        case Symbols.TokenRBRACE:
+          // assume that whatever follows a close brace at 0 or 1 indent levels is a method decl
+          StringBuffer buf = getLeadingWhitespace(pos);
+          if (buf.length() == 0 || buf.length() == fPrefs.prefTabSize) {
+            return true;
+          }
       }
     }
     return false;
