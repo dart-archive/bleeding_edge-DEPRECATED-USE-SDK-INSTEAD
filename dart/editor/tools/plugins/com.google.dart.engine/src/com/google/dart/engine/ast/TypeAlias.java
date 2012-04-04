@@ -15,14 +15,13 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
-import java.util.List;
-
 /**
  * Instances of the class <code>TypeAlias</code> represent a type alias.
  * 
  * <pre>
  * typeAlias ::=
- *     'typedef' {@link TypeName returnType}? {@link SimpleIdentifier name} typeParameters? formalParameterList ';'
+ *     'typedef' {@link TypeName returnType}? {@link SimpleIdentifier name}
+ *     {@link TypeParameterList typeParameterList}? {@link FormalParameterList formalParameterList} ';'
  * </pre>
  */
 public class TypeAlias extends CompilationUnitMember {
@@ -42,34 +41,15 @@ public class TypeAlias extends CompilationUnitMember {
   private SimpleIdentifier name;
 
   /**
-   * The left bracket, or <code>null</code> if there are no type parameters.
+   * The type parameters for the type, or <code>null</code> if the type does not have any type
+   * parameters.
    */
-  private Token leftBracket;
-
-  /**
-   * The type parameters for the type.
-   */
-  private NodeList<TypeParameter> typeParameters = new NodeList<TypeParameter>(this);
-
-  /**
-   * The right bracket, or <code>null</code> if there are no type parameters.
-   */
-  private Token rightBracket;
-
-  /**
-   * The left parenthesis.
-   */
-  private Token leftParenthesis;
+  private TypeParameterList typeParameters;
 
   /**
    * The parameters associated with the function.
    */
-  private NodeList<FormalParameter> parameters = new NodeList<FormalParameter>(this);
-
-  /**
-   * The right parenthesis.
-   */
-  private Token rightParenthesis;
+  private FormalParameterList parameters;
 
   /**
    * The semicolon terminating the declaration.
@@ -89,28 +69,18 @@ public class TypeAlias extends CompilationUnitMember {
    * @param keyword the token representing the 'typedef' keyword
    * @param returnType the name of the return type of the function type being defined
    * @param name the name of the type being declared
-   * @param leftBracket the left bracket
    * @param typeParameters the type parameters for the type
-   * @param rightBracket the right bracket
-   * @param leftParenthesis the left parenthesis
    * @param parameters the parameters associated with the function
-   * @param rightParenthesis the right parenthesis
    * @param semicolon the semicolon terminating the declaration
    */
   public TypeAlias(Comment comment, Token keyword, TypeName returnType, SimpleIdentifier name,
-      Token leftBracket, List<TypeParameter> typeParameters, Token rightBracket,
-      Token leftParenthesis, List<FormalParameter> parameters, Token rightParenthesis,
-      Token semicolon) {
+      TypeParameterList typeParameters, FormalParameterList parameters, Token semicolon) {
     super(comment);
     this.keyword = keyword;
     this.returnType = becomeParentOf(returnType);
     this.name = becomeParentOf(name);
-    this.leftBracket = leftBracket;
-    this.typeParameters.addAll(typeParameters);
-    this.rightBracket = rightBracket;
-    this.leftParenthesis = leftParenthesis;
-    this.parameters.addAll(parameters);
-    this.rightParenthesis = rightParenthesis;
+    this.typeParameters = becomeParentOf(typeParameters);
+    this.parameters = becomeParentOf(parameters);
     this.semicolon = semicolon;
   }
 
@@ -139,24 +109,6 @@ public class TypeAlias extends CompilationUnitMember {
   }
 
   /**
-   * Return the left bracket, or <code>null</code> if there are no type parameters.
-   * 
-   * @return the left bracket
-   */
-  public Token getLeftBracket() {
-    return leftBracket;
-  }
-
-  /**
-   * Return the left parenthesis.
-   * 
-   * @return the left parenthesis
-   */
-  public Token getLeftParenthesis() {
-    return leftParenthesis;
-  }
-
-  /**
    * Return the name of the type being declared.
    * 
    * @return the name of the type being declared
@@ -170,7 +122,7 @@ public class TypeAlias extends CompilationUnitMember {
    * 
    * @return the parameters associated with the function type
    */
-  public NodeList<FormalParameter> getParameters() {
+  public FormalParameterList getParameters() {
     return parameters;
   }
 
@@ -184,24 +136,6 @@ public class TypeAlias extends CompilationUnitMember {
   }
 
   /**
-   * Return the right bracket, or <code>null</code> if there are no type parameters.
-   * 
-   * @return the right bracket
-   */
-  public Token getRightBracket() {
-    return rightBracket;
-  }
-
-  /**
-   * Return the right parenthesis.
-   * 
-   * @return the right parenthesis
-   */
-  public Token getRightParenthesis() {
-    return rightParenthesis;
-  }
-
-  /**
    * Return the semicolon terminating the declaration.
    * 
    * @return the semicolon terminating the declaration
@@ -211,11 +145,12 @@ public class TypeAlias extends CompilationUnitMember {
   }
 
   /**
-   * Return the type parameters for the function type.
+   * Return the type parameters for the function type, or <code>null</code> if the type does not
+   * have any type parameters.
    * 
    * @return the type parameters for the function type
    */
-  public NodeList<TypeParameter> getTypeParameters() {
+  public TypeParameterList getTypeParameters() {
     return typeParameters;
   }
 
@@ -229,30 +164,21 @@ public class TypeAlias extends CompilationUnitMember {
   }
 
   /**
-   * Set the left bracket to the given token.
-   * 
-   * @param bracket the left bracket
-   */
-  public void setLeftBracket(Token bracket) {
-    leftBracket = bracket;
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   * 
-   * @param parenthesis the left parenthesis
-   */
-  public void setLeftParenthesis(Token parenthesis) {
-    leftParenthesis = parenthesis;
-  }
-
-  /**
    * Set the name of the type being declared to the given identifier.
    * 
    * @param identifier the name of the type being declared
    */
   public void setName(SimpleIdentifier identifier) {
     name = becomeParentOf(identifier);
+  }
+
+  /**
+   * Set the parameters associated with the function type to the given list of parameters.
+   * 
+   * @param parameters the parameters associated with the function type
+   */
+  public void setParameters(FormalParameterList parameters) {
+    this.parameters = parameters;
   }
 
   /**
@@ -265,24 +191,6 @@ public class TypeAlias extends CompilationUnitMember {
   }
 
   /**
-   * Set the right bracket to the given token.
-   * 
-   * @param bracket the right bracket
-   */
-  public void setRightBracket(Token bracket) {
-    rightBracket = bracket;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   * 
-   * @param parenthesis the right parenthesis
-   */
-  public void setRightParenthesis(Token parenthesis) {
-    rightParenthesis = parenthesis;
-  }
-
-  /**
    * Set the semicolon terminating the declaration to the given token.
    * 
    * @param semicolon the semicolon terminating the declaration
@@ -291,12 +199,21 @@ public class TypeAlias extends CompilationUnitMember {
     this.semicolon = semicolon;
   }
 
+  /**
+   * Set the type parameters for the function type to the given list of parameters.
+   * 
+   * @param typeParameters the type parameters for the function type
+   */
+  public void setTypeParameters(TypeParameterList typeParameters) {
+    this.typeParameters = typeParameters;
+  }
+
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(getDocumentationComment(), visitor);
     safelyVisitChild(returnType, visitor);
     safelyVisitChild(name, visitor);
-    typeParameters.accept(visitor);
-    parameters.accept(visitor);
+    safelyVisitChild(typeParameters, visitor);
+    safelyVisitChild(parameters, visitor);
   }
 }

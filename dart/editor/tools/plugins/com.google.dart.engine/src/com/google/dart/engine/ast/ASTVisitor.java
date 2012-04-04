@@ -149,6 +149,10 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
+  public R visitFormalParameterList(FormalParameterList node) {
+    return visitNode(node);
+  }
+
   public R visitForStatement(ForStatement node) {
     return visitStatement(node);
   }
@@ -403,6 +407,10 @@ public class ASTVisitor<R> {
   }
 
   public R visitTypeParameter(TypeParameter node) {
+    return visitNode(node);
+  }
+
+  public R visitTypeParameterList(TypeParameterList node) {
     return visitNode(node);
   }
 

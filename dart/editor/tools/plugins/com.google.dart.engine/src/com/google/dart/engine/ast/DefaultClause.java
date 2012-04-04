@@ -15,15 +15,13 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
-import java.util.List;
-
 /**
  * Instances of the class <code>DefaultClause</code> represent the default clause in an interface
  * declaration.
  * 
  * <pre>
  * defaultClause ::=
- *     'default' {@link SimpleIdentifier identifier} typeParameters?
+ *     'default' {@link SimpleIdentifier identifier} {@link TypeParameterList typeParameterList}?
  * </pre>
  */
 public class DefaultClause extends ASTNode {
@@ -38,9 +36,10 @@ public class DefaultClause extends ASTNode {
   private Identifier defaultName;
 
   /**
-   * The type parameters for the default class.
+   * The type parameters for the default class, or <code>null</code> if the default type does not
+   * have any type parameters.
    */
-  private NodeList<TypeParameter> defaultTypeParameters = new NodeList<TypeParameter>(this);
+  private TypeParameterList defaultTypeParameters;
 
   /**
    * Initialize a newly created default clause.
@@ -54,9 +53,9 @@ public class DefaultClause extends ASTNode {
    * @param defaultName the name of the default class associated with the interface
    * @param defaultTypeParameters the type parameters for the default class
    */
-  public DefaultClause(Identifier defaultName, List<TypeParameter> defaultTypeParameters) {
+  public DefaultClause(Identifier defaultName, TypeParameterList defaultTypeParameters) {
     this.defaultName = becomeParentOf(defaultName);
-    this.defaultTypeParameters.addAll(defaultTypeParameters);
+    this.defaultTypeParameters = becomeParentOf(defaultTypeParameters);
   }
 
   @Override
@@ -79,20 +78,21 @@ public class DefaultClause extends ASTNode {
   }
 
   /**
-   * Return the type parameters for the default class.
+   * Return the type parameters for the default class, or <code>null</code> if the default type does
+   * not have any type parameters.
    * 
    * @return the type parameters for the default class
    */
-  public NodeList<TypeParameter> getDefaultTypeParameters() {
+  public TypeParameterList getDefaultTypeParameters() {
     return defaultTypeParameters;
   }
 
   @Override
   public Token getEndToken() {
-    if (defaultTypeParameters.size() == 0) {
+    if (defaultTypeParameters != null) {
       return defaultName.getEndToken();
     }
-    return defaultTypeParameters.get(defaultTypeParameters.size() - 1).getEndToken();
+    return defaultTypeParameters.getEndToken();
   }
 
   /**
@@ -114,6 +114,15 @@ public class DefaultClause extends ASTNode {
   }
 
   /**
+   * Set the type parameters for the default class to the given list of parameters.
+   * 
+   * @param defaultTypeParameters the type parameters for the default class
+   */
+  public void setDefaultTypeParameters(TypeParameterList defaultTypeParameters) {
+    this.defaultTypeParameters = defaultTypeParameters;
+  }
+
+  /**
    * Set the token representing the 'default' keyword to the given token.
    * 
    * @param keyword the token representing the 'default' keyword
@@ -125,6 +134,6 @@ public class DefaultClause extends ASTNode {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(defaultName, visitor);
-    defaultTypeParameters.accept(visitor);
+    safelyVisitChild(defaultTypeParameters, visitor);
   }
 }

@@ -19,16 +19,13 @@ import java.util.List;
 
 /**
  * Instances of the class <code>ClassDeclaration</code> represent the declaration of a class.
- *
+ * 
  * <pre>
  * classDeclaration ::=
- *     'class' {@link SimpleIdentifier name} typeParameters?
+ *     'class' {@link SimpleIdentifier name} {@link TypeParameterList typeParameterList}?
  *     {@link ClassExtendsClause classExtendsClause}?
  *     {@link ImplementsClause implementsClause}?
  *     '{' classMemberDefinition* '}'
- *
- * typeParameters ::=
- *     '<' {@link TypeParameter typeParameter} (',' {@link TypeParameter typeParameter})* '>'
  * </pre>
  */
 public class ClassDeclaration extends TypeDeclaration {
@@ -59,14 +56,15 @@ public class ClassDeclaration extends TypeDeclaration {
    * @param typeParameters the type parameters for the class
    * @param classExtendsClause the extends clause for the class
    * @param implementsClause the implements clause for the class
+   * @param leftBracket the left curly bracket
    * @param members the members defined by the class
+   * @param rightBracket the right curly bracket
    */
   public ClassDeclaration(Comment comment, Token keyword, SimpleIdentifier name,
-      Token leftAngleBracket, List<TypeParameter> typeParameters, Token rightAngleBracket,
-      ClassExtendsClause classExtendsClause, ImplementsClause implementsClause, Token leftBracket,
-      List<TypeMember> members, Token rightBracket) {
-    super(comment, keyword, name, leftAngleBracket, typeParameters, rightAngleBracket, leftBracket,
-        members, rightBracket);
+      TypeParameterList typeParameters, ClassExtendsClause classExtendsClause,
+      ImplementsClause implementsClause, Token leftBracket, List<TypeMember> members,
+      Token rightBracket) {
+    super(comment, keyword, name, typeParameters, leftBracket, members, rightBracket);
     this.classExtendsClause = becomeParentOf(classExtendsClause);
     this.implementsClause = becomeParentOf(implementsClause);
   }
@@ -118,7 +116,7 @@ public class ClassDeclaration extends TypeDeclaration {
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(getDocumentationComment(), visitor);
     safelyVisitChild(getName(), visitor);
-    getTypeParameters().accept(visitor);
+    safelyVisitChild(getTypeParameters(), visitor);
     safelyVisitChild(classExtendsClause, visitor);
     safelyVisitChild(implementsClause, visitor);
     getMembers().accept(visitor);

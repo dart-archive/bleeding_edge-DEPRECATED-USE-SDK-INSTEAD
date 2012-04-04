@@ -20,16 +20,13 @@ import java.util.List;
 /**
  * Instances of the class <code>InterfaceDeclaration</code> represent the declaration of an
  * interface.
- *
+ * 
  * <pre>
  * interfaceDeclaration ::=
- *     'interface' {@link SimpleIdentifier name} typeParameters?
+ *     'interface' {@link SimpleIdentifier name} {@link TypeParameterList typeParameterList}?
  *     {@link InterfaceExtendsClause interfaceExtendsClause}?
  *     {@link DefaultClause defaultClause}?
  *     '{' (interfaceMemberDefinition)* '}'
- *
- * typeParameters ::=
- *     '<' {@link TypeParameter typeParameter} (',' {@link TypeParameter typeParameter})* '>'
  * </pre>
  */
 public class InterfaceDeclaration extends TypeDeclaration {
@@ -60,14 +57,14 @@ public class InterfaceDeclaration extends TypeDeclaration {
    * @param typeParameters the type parameters for the interface
    * @param interfaceExtendsClause the extends clause for the interface
    * @param factoryClause the factory clause for the interface
+   * @param leftBracket the left curly bracket
    * @param members the members defined by the interface
+   * @param rightBracket the right curly bracket
    */
   public InterfaceDeclaration(Comment comment, Token keyword, SimpleIdentifier name,
-      Token leftAngleBracket, List<TypeParameter> typeParameters, Token rightAngleBracket,
-      InterfaceExtendsClause interfaceExtendsClause, DefaultClause factoryClause,
-      Token leftBracket, List<TypeMember> members, Token rightBracket) {
-    super(comment, keyword, name, leftAngleBracket, typeParameters, rightAngleBracket, leftBracket,
-        members, rightBracket);
+      TypeParameterList typeParameters, InterfaceExtendsClause interfaceExtendsClause,
+      DefaultClause factoryClause, Token leftBracket, List<TypeMember> members, Token rightBracket) {
+    super(comment, keyword, name, typeParameters, leftBracket, members, rightBracket);
     this.interfaceExtendsClause = becomeParentOf(interfaceExtendsClause);
     this.defaultClause = becomeParentOf(factoryClause);
   }
@@ -119,7 +116,7 @@ public class InterfaceDeclaration extends TypeDeclaration {
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(getDocumentationComment(), visitor);
     safelyVisitChild(getName(), visitor);
-    getTypeParameters().accept(visitor);
+    safelyVisitChild(getTypeParameters(), visitor);
     safelyVisitChild(interfaceExtendsClause, visitor);
     safelyVisitChild(defaultClause, visitor);
     getMembers().accept(visitor);

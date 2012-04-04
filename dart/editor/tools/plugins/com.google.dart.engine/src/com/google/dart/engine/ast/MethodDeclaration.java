@@ -15,8 +15,6 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
-import java.util.List;
-
 /**
  * Instances of the class <code>MethodDeclaration</code> represent a method declaration.
  * 
@@ -25,22 +23,12 @@ import java.util.List;
  *     methodSignature {@link FunctionBody body}
  *
  * methodSignature ::=
- *     ('abstract' | 'static')? {@link Type returnType}? ('get' | 'set')? methodName formalParameterList
+ *     ('abstract' | 'static')? {@link Type returnType}? ('get' | 'set')? methodName
+ *     {@link FormalParameterList formalParameterList}
  *
  * methodName ::=
  *     {@link SimpleIdentifier name} ('.' {@link SimpleIdentifier name})?
  *   | 'operator' {@link SimpleIdentifier operator}
- *
- * formalParameterList ::=
- *    '(' ')'
- *  | '(' normalFormalParameters (',' namedFormalParameters)? ')'
- *  | '(' namedFormalParameters ')'
- *
- * normalFormalParameters ::=
- *     {@link NormalFormalParameter normalFormalParameter} (',' {@link NormalFormalParameter normalFormalParameter})*
- *
- * namedFormalParameters ::=
- *     '[' {@link NamedFormalParameter namedFormalParameter} (',' {@link NamedFormalParameter namedFormalParameter})* ']'
  * </pre>
  */
 public class MethodDeclaration extends TypeMember {
@@ -73,29 +61,9 @@ public class MethodDeclaration extends TypeMember {
   private Identifier name;
 
   /**
-   * The left parenthesis.
-   */
-  private Token leftParenthesis;
-
-  /**
    * The parameters associated with the method.
    */
-  private NodeList<FormalParameter> parameters = new NodeList<FormalParameter>(this);
-
-  /**
-   * The left square bracket.
-   */
-  private Token leftBracket;
-
-  /**
-   * The right square bracket.
-   */
-  private Token rightBracket;
-
-  /**
-   * The right parenthesis.
-   */
-  private Token rightParenthesis;
+  private FormalParameterList parameters;
 
   /**
    * The body of the method.
@@ -117,28 +85,19 @@ public class MethodDeclaration extends TypeMember {
    * @param propertyKeyword the token representing the 'get' or 'set' keyword
    * @param operatorKeyword the token representing the 'operator' keyword
    * @param name the name of the method
-   * @param leftParenthesis the left parenthesis
    * @param parameters the parameters associated with the method
-   * @param leftBracket the left square bracket
-   * @param rightBracket the right square bracket
-   * @param rightParenthesis the right parenthesis
    * @param body the body of the method
    */
   private MethodDeclaration(Comment comment, Token modifierKeyword, TypeName returnType,
-      Token propertyKeyword, Token operatorKeyword, Identifier name, Token leftParenthesis,
-      List<FormalParameter> parameters, Token leftBracket, Token rightBracket,
-      Token rightParenthesis, FunctionBody body) {
+      Token propertyKeyword, Token operatorKeyword, Identifier name,
+      FormalParameterList parameters, FunctionBody body) {
     super(comment);
     this.modifierKeyword = modifierKeyword;
     this.returnType = becomeParentOf(returnType);
     this.propertyKeyword = propertyKeyword;
     this.operatorKeyword = operatorKeyword;
     this.name = becomeParentOf(name);
-    this.leftParenthesis = leftParenthesis;
-    this.parameters.addAll(parameters);
-    this.leftBracket = leftBracket;
-    this.rightBracket = rightBracket;
-    this.rightParenthesis = rightParenthesis;
+    this.parameters = becomeParentOf(parameters);
     this.body = becomeParentOf(body);
   }
 
@@ -179,24 +138,6 @@ public class MethodDeclaration extends TypeMember {
   }
 
   /**
-   * Return the left square bracket.
-   * 
-   * @return the left square bracket
-   */
-  public Token getLeftBracket() {
-    return leftBracket;
-  }
-
-  /**
-   * Return the left parenthesis.
-   * 
-   * @return the left parenthesis
-   */
-  public Token getLeftParenthesis() {
-    return leftParenthesis;
-  }
-
-  /**
    * Return the token representing the 'abstract' or 'static' keyword, or <code>null</code> if
    * neither modifier was specified.
    * 
@@ -230,7 +171,7 @@ public class MethodDeclaration extends TypeMember {
    * 
    * @return the parameters associated with the method
    */
-  public NodeList<FormalParameter> getParameters() {
+  public FormalParameterList getParameters() {
     return parameters;
   }
 
@@ -254,48 +195,12 @@ public class MethodDeclaration extends TypeMember {
   }
 
   /**
-   * Return the right square bracket.
-   * 
-   * @return the right square bracket
-   */
-  public Token getRightBracket() {
-    return rightBracket;
-  }
-
-  /**
-   * Return the right parenthesis.
-   * 
-   * @return the right parenthesis
-   */
-  public Token getRightParenthesis() {
-    return rightParenthesis;
-  }
-
-  /**
    * Set the body of the method to the given function body.
    * 
    * @param functionBody the body of the method
    */
   public void setBody(FunctionBody functionBody) {
     body = becomeParentOf(functionBody);
-  }
-
-  /**
-   * Set the left square bracket to the given token.
-   * 
-   * @param bracket the left square bracket
-   */
-  public void setLeftBracket(Token bracket) {
-    leftBracket = bracket;
-  }
-
-  /**
-   * Set the left parenthesis to the given token.
-   * 
-   * @param parenthesis the left parenthesis
-   */
-  public void setLeftParenthesis(Token parenthesis) {
-    leftParenthesis = parenthesis;
   }
 
   /**
@@ -326,6 +231,15 @@ public class MethodDeclaration extends TypeMember {
   }
 
   /**
+   * Set the parameters associated with the method to the given list of parameters.
+   * 
+   * @param parameters the parameters associated with the method
+   */
+  public void setParameters(FormalParameterList parameters) {
+    this.parameters = parameters;
+  }
+
+  /**
    * Set the token representing the 'get' or 'set' keyword to the given token.
    * 
    * @param propertyKeyword the token representing the 'get' or 'set' keyword
@@ -343,30 +257,12 @@ public class MethodDeclaration extends TypeMember {
     returnType = becomeParentOf(typeName);
   }
 
-  /**
-   * Set the right square bracket to the given token.
-   * 
-   * @param bracket the right square bracket
-   */
-  public void setRightBracket(Token bracket) {
-    rightBracket = bracket;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   * 
-   * @param parenthesis the right parenthesis
-   */
-  public void setRightParenthesis(Token parenthesis) {
-    rightParenthesis = parenthesis;
-  }
-
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(returnType, visitor);
     safelyVisitChild(name, visitor);
-    parameters.accept(visitor);
+    safelyVisitChild(parameters, visitor);
     safelyVisitChild(body, visitor);
   }
 }

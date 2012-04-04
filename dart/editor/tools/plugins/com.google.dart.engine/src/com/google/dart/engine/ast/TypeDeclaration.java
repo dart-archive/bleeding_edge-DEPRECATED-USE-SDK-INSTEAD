@@ -39,24 +39,15 @@ public abstract class TypeDeclaration extends CompilationUnitMember {
   private SimpleIdentifier name;
 
   /**
-   * The left angle bracket, or <code>null</code> if there are no type parameters.
+   * The type parameters for the type, or <code>null</code> if the type does not have any type
+   * parameters.
    */
-  private Token leftAngleBracket;
-
-  /**
-   * The type parameters for the type.
-   */
-  private NodeList<TypeParameter> typeParameters = new NodeList<TypeParameter>(this);
-
-  /**
-   * The right angle bracket, or <code>null</code> if there are no type parameters.
-   */
-  private Token rightAngleBracket;
+  private TypeParameterList typeParameters;
 
   /**
    * The left curly bracket.
    */
-  private Token leftCurlyBracket;
+  private Token leftBracket;
 
   /**
    * The members defined by the type.
@@ -66,7 +57,7 @@ public abstract class TypeDeclaration extends CompilationUnitMember {
   /**
    * The right curly bracket.
    */
-  private Token rightCurlyBracket;
+  private Token rightBracket;
 
   /**
    * Initialize a newly created type declaration.
@@ -80,25 +71,21 @@ public abstract class TypeDeclaration extends CompilationUnitMember {
    * @param comment the documentation comment associated with this member
    * @param keyword the token representing the 'class' or 'interface' keyword
    * @param name the name of the type being declared
-   * @param leftAngleBracket the left angle bracket
    * @param typeParameters the type parameters for the type
-   * @param rightAngleBracket the right angle bracket
-   * @param leftCurlyBracket the left curly bracket
+   * @param leftBracket the left curly bracket
    * @param members the members defined by the type
-   * @param rightCurlyBracket the right curly bracket
+   * @param rightBracket the right curly bracket
    */
   public TypeDeclaration(Comment comment, Token keyword, SimpleIdentifier name,
-      Token leftAngleBracket, List<TypeParameter> typeParameters, Token rightAngleBracket,
-      Token leftCurlyBracket, List<TypeMember> members, Token rightCurlyBracket) {
+      TypeParameterList typeParameters, Token leftBracket, List<TypeMember> members,
+      Token rightBracket) {
     super(comment);
     this.keyword = keyword;
     this.name = becomeParentOf(name);
-    this.leftAngleBracket = leftAngleBracket;
-    this.typeParameters.addAll(typeParameters);
-    this.rightAngleBracket = rightAngleBracket;
-    this.leftCurlyBracket = leftCurlyBracket;
+    this.typeParameters = becomeParentOf(typeParameters);
+    this.leftBracket = leftBracket;
     this.members.addAll(members);
-    this.rightCurlyBracket = rightCurlyBracket;
+    this.rightBracket = rightBracket;
   }
 
   @Override
@@ -112,7 +99,7 @@ public abstract class TypeDeclaration extends CompilationUnitMember {
 
   @Override
   public Token getEndToken() {
-    return rightCurlyBracket;
+    return rightBracket;
   }
 
   /**
@@ -125,21 +112,12 @@ public abstract class TypeDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Return the left angle bracket, or <code>null</code> if there are no type parameters.
-   * 
-   * @return the left angle bracket
-   */
-  public Token getLeftAngleBracket() {
-    return leftAngleBracket;
-  }
-
-  /**
    * Return the left curly bracket.
    * 
    * @return the left curly bracket
    */
   public Token getLeftBracket() {
-    return leftCurlyBracket;
+    return leftBracket;
   }
 
   /**
@@ -161,29 +139,21 @@ public abstract class TypeDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Return the right angle bracket, or <code>null</code> if there are no type parameters.
-   * 
-   * @return the right angle bracket
-   */
-  public Token getRightAngleBracket() {
-    return rightAngleBracket;
-  }
-
-  /**
    * Return the right curly bracket.
    * 
    * @return the right curly bracket
    */
   public Token getRightBracket() {
-    return rightCurlyBracket;
+    return rightBracket;
   }
 
   /**
-   * Return the type parameters for the type.
+   * Return the type parameters for the type, or <code>null</code> if the type does not have any
+   * type parameters.
    * 
    * @return the type parameters for the type
    */
-  public NodeList<TypeParameter> getTypeParameters() {
+  public TypeParameterList getTypeParameters() {
     return typeParameters;
   }
 
@@ -197,21 +167,12 @@ public abstract class TypeDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Set the left angle bracket to the given token.
-   * 
-   * @param bracket the left angle bracket
-   */
-  public void setLeftAngleBracket(Token bracket) {
-    leftAngleBracket = bracket;
-  }
-
-  /**
    * Set the left curly bracket to the given token.
    * 
    * @param leftBracket the left curly bracket
    */
   public void setLeftBracket(Token leftBracket) {
-    this.leftCurlyBracket = leftBracket;
+    this.leftBracket = leftBracket;
   }
 
   /**
@@ -224,20 +185,20 @@ public abstract class TypeDeclaration extends CompilationUnitMember {
   }
 
   /**
-   * Set the right angle bracket to the given token.
-   * 
-   * @param bracket the right angle bracket
-   */
-  public void setRightAngleBracket(Token bracket) {
-    rightAngleBracket = bracket;
-  }
-
-  /**
    * Set the right curly bracket to the given token.
    * 
    * @param rightBracket the right curly bracket
    */
   public void setRightBracket(Token rightBracket) {
-    this.rightCurlyBracket = rightBracket;
+    this.rightBracket = rightBracket;
+  }
+
+  /**
+   * Set the type parameters for the type to the given list of type parameters.
+   * 
+   * @param typeParameters the type parameters for the type
+   */
+  public void setTypeParameters(TypeParameterList typeParameters) {
+    this.typeParameters = typeParameters;
   }
 }
