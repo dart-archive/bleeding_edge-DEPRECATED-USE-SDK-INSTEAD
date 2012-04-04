@@ -83,6 +83,13 @@ public class AnalysisServer {
   private boolean analyze;
 
   /**
+   * An array containing a single boolean indicating whether the receiver has tasks to perform.
+   * Synchronize against this array before accessing it. If you wait on this array to be notified
+   * then do not synchronize against {@link #queue}.
+   */
+  private boolean[] isIdle = new boolean[1];
+
+  /**
    * Create a new instance that processes analysis tasks on a background thread
    * 
    * @param libraryManager the target (VM, Dartium, JS) against which user libraries are resolved
@@ -100,6 +107,11 @@ public class AnalysisServer {
             // Find the next analysis task
             synchronized (queue) {
               if (queue.isEmpty()) {
+                // Notify any objects waiting for the receiver to be idle
+                synchronized (isIdle) {
+                  isIdle[0] = true;
+                  isIdle.notifyAll();
+                }
                 try {
                   queue.wait();
                 } catch (InterruptedException e) {
@@ -200,15 +212,6 @@ public class AnalysisServer {
     }
   }
 
-  /**
-   * Answer <code>true</code> if the receiver is finished analyzing.
-   */
-  public boolean isIdle() {
-    synchronized (queue) {
-      return queue.size() == 0 && currentTask == null;
-    }
-  }
-
   public void removeAnalysisListener(AnalysisListener listener) {
     int oldLen = analysisListeners.length;
     for (int i = 0; i < oldLen; i++) {
@@ -233,8 +236,10 @@ public class AnalysisServer {
     if (!file.isAbsolute()) {
       throw new IllegalArgumentException("File path must be absolute: " + file);
     }
+    AnalyzeLibraryTask task = new AnalyzeLibraryTask(this, savedContext, file, resolutionListener);
+    task.setAnalyzeIfNotTracked(true);
     synchronized (queue) {
-      queueNewTask(new AnalyzeLibraryTask(this, savedContext, file, resolutionListener));
+      queueNewTask(task);
     }
   }
 
@@ -254,6 +259,31 @@ public class AnalysisServer {
     } catch (InterruptedException e) {
       //$FALL-THROUGH$
     }
+  }
+
+  /**
+   * Wait for up to the specified number of milliseconds for the receiver to be idle.
+   * 
+   * @param millis the number of milliseconds to wait for the receiver to be idle. If this number is
+   *          less than or equal to zero, then the receiver will return immediately.
+   * @return <code>true</code> if the receiver is idle
+   */
+  public boolean waitForIdle(long millis) {
+    long end = System.currentTimeMillis() + millis;
+    synchronized (isIdle) {
+      while (!isIdle[0]) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          return false;
+        }
+        try {
+          isIdle.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+    }
+    return true;
   }
 
   AnalysisListener[] getAnalysisListeners() {
@@ -314,6 +344,9 @@ public class AnalysisServer {
         queue.add(0, task);
         queueIndex++;
         queue.notifyAll();
+        synchronized (isIdle) {
+          isIdle[0] = false;
+        }
       }
     }
   }

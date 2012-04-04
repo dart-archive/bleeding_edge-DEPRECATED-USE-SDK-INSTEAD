@@ -21,7 +21,6 @@ import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 
 import java.io.File;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -52,22 +51,13 @@ class ResolveLibraryTask extends Task {
     HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
     HashMap<URI, DartUnit> parsedUnits = new HashMap<URI, DartUnit>();
 
-    ArrayList<Library> todo = new ArrayList<Library>();
-    todo.add(library);
-    for (int index = 0; index < todo.size(); index++) {
-      Library lib = todo.get(index);
+    for (Library lib : context.getCachedLibraries()) {
       LibraryUnit libUnit = lib.getLibraryUnit();
       if (libUnit != null) {
         resolvedLibs.put(libUnit.getSource().getUri(), libUnit);
       } else {
         for (Entry<File, DartUnit> entry : lib.getCachedUnits().entrySet()) {
           parsedUnits.put(entry.getKey().toURI(), entry.getValue());
-        }
-      }
-      for (File file : lib.getImportedFiles()) {
-        Library importedLib = context.getCachedLibrary(file);
-        if (importedLib != null && !todo.contains(importedLib)) {
-          todo.add(importedLib);
         }
       }
     }

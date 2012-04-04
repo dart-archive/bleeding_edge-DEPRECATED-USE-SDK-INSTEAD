@@ -72,6 +72,6 @@ public class AnalysisCompleteCondition implements ICondition {
 
   @Override
   public boolean test() throws Exception {
-    return SystemLibraryManagerProvider.getDefaultAnalysisServer().isIdle();
+    return SystemLibraryManagerProvider.getDefaultAnalysisServer().waitForIdle(0);
   }
 }

@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 /**
@@ -37,6 +38,10 @@ class Context {
   Context(AnalysisServer server) {
     this.server = server;
     this.libraryCache = new HashMap<File, Library>();
+  }
+
+  public Collection<Library> getCachedLibraries() {
+    return libraryCache.values();
   }
 
   void cacheLibrary(Library library) {

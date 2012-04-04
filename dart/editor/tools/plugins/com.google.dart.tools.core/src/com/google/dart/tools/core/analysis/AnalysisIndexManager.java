@@ -63,6 +63,11 @@ public class AnalysisIndexManager implements AnalysisListener {
     }
   }
 
+  public AnalysisIndexManager(InMemoryIndex index) {
+    this.index = index;
+    indexServer = null;
+  }
+
   @Override
   public void parsed(AnalysisEvent event) {
   }
