@@ -705,7 +705,7 @@
             annotationType="com.google.dart.tools.ui.overrideIndicator"
             label="%OverrideIndicator.label"
             icon="$nl$/icons/full/ovr16/over_co.gif"
-            annotationImageProvider ="org.eclipse.wst.jsdt.internal.ui.javaeditor.OverrideIndicatorImageProvider"
+            annotationImageProvider ="com.google.dart.tools.ui.internal.text.editor.OverrideIndicatorImageProvider"
             textPreferenceKey="javaScriptOverrideIndicator"
             textPreferenceValue="false"
             highlightPreferenceKey="javaScriptOverrideIndicatorHighlighting"
