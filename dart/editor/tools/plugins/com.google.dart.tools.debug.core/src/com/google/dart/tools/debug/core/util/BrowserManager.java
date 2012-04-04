@@ -90,6 +90,10 @@ public class BrowserManager {
   protected void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
       String url, IProgressMonitor monitor, boolean enableDebugging) throws CoreException {
 
+    // For now, we always start a debugging connection, even when we're not really debugging.
+    boolean enableBreakpoints = enableDebugging;
+    enableDebugging = true;
+
     monitor.beginTask("Launching Dartium...", enableDebugging ? 7 : 2);
 
     File dartium = DartSdk.getInstance().getDartiumExecutable();
@@ -200,7 +204,7 @@ public class BrowserManager {
 
     if (enableDebugging) {
       connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, runtimeProcess,
-          resourceResolver, timer);
+          resourceResolver, timer, enableBreakpoints);
     } else {
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
     }
@@ -214,8 +218,8 @@ public class BrowserManager {
    */
   void connectToChromiumDebug(String browserName, ILaunch launch,
       DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
-      Process runtimeProcess, IResourceResolver resourceResolver, LogTimer timer)
-      throws CoreException {
+      Process runtimeProcess, IResourceResolver resourceResolver, LogTimer timer,
+      boolean enableBreakpoints) throws CoreException {
     monitor.worked(1);
 
     try {
@@ -246,7 +250,7 @@ public class BrowserManager {
       WebkitConnection connection = new WebkitConnection(chromiumTab.getWebSocketDebuggerUrl());
 
       DartiumDebugTarget debugTarget = new DartiumDebugTarget(browserName, connection, launch,
-          runtimeProcess, resourceResolver);
+          runtimeProcess, resourceResolver, enableBreakpoints);
 
       monitor.worked(1);
 

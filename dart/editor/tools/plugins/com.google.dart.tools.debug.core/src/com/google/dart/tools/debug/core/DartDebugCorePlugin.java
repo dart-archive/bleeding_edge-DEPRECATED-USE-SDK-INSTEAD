@@ -60,7 +60,7 @@ public class DartDebugCorePlugin extends Plugin {
   // TODO(devoncarew): remove this when the debugger supports value modification
   public static boolean VM_SUPPORTS_VALUE_MODIFICATION = false;
 
-  public static boolean SEND_MODIFIED_CSS = false;
+  public static boolean SEND_MODIFIED_CSS = true;
 
   // TODO(devoncarew): the vm/webkit protocol claims to support source modification, but it does
   // not yet do anything

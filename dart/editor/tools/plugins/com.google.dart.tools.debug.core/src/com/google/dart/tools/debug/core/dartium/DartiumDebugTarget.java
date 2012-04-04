@@ -71,7 +71,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
    * @param target
    */
   public DartiumDebugTarget(String debugTargetName, WebkitConnection connection, ILaunch launch,
-      Process javaProcess, IResourceResolver resourceResolver) {
+      Process javaProcess, IResourceResolver resourceResolver, boolean enableBreakpoints) {
     super(null);
 
     setActiveTarget(this);
@@ -83,7 +83,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     debugThread = new DartiumDebugThread(this);
     process = new DartiumProcess(this, javaProcess);
     outputStreamMonitor = new DartiumStreamMonitor();
-    breakpointManager = new BreakpointManager(this, resourceResolver);
+
+    if (enableBreakpoints) {
+      breakpointManager = new BreakpointManager(this, resourceResolver);
+    }
 
     if (DartDebugCorePlugin.SEND_MODIFIED_CSS) {
       cssScriptManager = new CssScriptManager(this, resourceResolver);
@@ -138,7 +141,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   public void fireTerminateEvent() {
     setActiveTarget(null);
 
-    breakpointManager.dispose();
+    if (breakpointManager != null) {
+      breakpointManager.dispose();
+    }
 
     if (cssScriptManager != null) {
       cssScriptManager.dispose();
@@ -238,12 +243,16 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     connection.getDebugger().addDebuggerListener(new DebuggerListenerAdapter() {
       @Override
       public void debuggerBreakpointResolved(WebkitBreakpoint breakpoint) {
-        breakpointManager.handleBreakpointResolved(breakpoint);
+        if (breakpointManager != null) {
+          breakpointManager.handleBreakpointResolved(breakpoint);
+        }
       }
 
       @Override
       public void debuggerGlobalObjectCleared() {
-        breakpointManager.handleGlobalObjectCleared();
+        if (breakpointManager != null) {
+          breakpointManager.handleGlobalObjectCleared();
+        }
       }
 
       @Override
@@ -271,7 +280,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     process.fireCreationEvent();
 
     // Set our existing breakpoints and start listening for new breakpoints.
-    breakpointManager.connect();
+    if (breakpointManager != null) {
+      breakpointManager.connect();
+    }
 
     // TODO(devoncarew): the VM does not yet support this, and we'd want a way to expose this in
     // the UI as an toggle.
