@@ -410,7 +410,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "}");
   }
 
-  public void test_postCondition_hasFieldOverride() throws Exception {
+  public void test_postCondition_hasFieldOverride_inSubType() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -434,13 +434,43 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "Type 'C' from 'Test/Test.dart' declares member with name 'newName' which will shadow renamed field",
+        "Type 'C' in 'Test/Test.dart' declares member 'newName' which will shadow renamed field",
         showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }
 
-  public void test_postCondition_hasLocalVariableHiding_inSubtype() throws Exception {
+  public void test_postCondition_hasFieldOverride_inSuperType() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var newName = 1;",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
+        "  var test = 2;",
+        "}",
+        "");
+    Field field = findElement("test = 2;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameField(field, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals(
+        "Type 'A' in 'Test/Test.dart' declares member 'newName' which will be shadowed by renamed field",
+        showStatusMessages.get(0));
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_hasLocalVariableHiding_inSubType() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -464,10 +494,73 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "Method 'B.foo()' from 'Test/Test.dart' declares local variable with name 'newName' which will shadow renamed field",
+        "Method 'B.foo()' in 'Test/Test.dart' declares local variable 'newName' which will shadow renamed field",
         showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_hasParameterHiding_inSubType() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var test = 1;",
+        "}",
+        "class B extends A {",
+        "  foo(var newName) {",
+        "  }",
+        "}",
+        "");
+    Field field = findElement("test = 1;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameField(field, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals(
+        "Method 'B.foo()' in 'Test/Test.dart' declares parameter 'newName' which will shadow renamed field",
+        showStatusMessages.get(0));
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_shadowsTopLevel_class() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var test = 1;",
+        "}",
+        "class newName {",
+        "}",
+        "");
+    check_postCondition_shadowsTopLevel();
+  }
+
+  public void test_postCondition_shadowsTopLevel_functionTypeAlias() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef newName(int p);",
+        "class A {",
+        "  var test = 1;",
+        "}",
+        "");
+    check_postCondition_shadowsTopLevel();
+  }
+
+  public void test_postCondition_shadowsTopLevel_variable() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var newName;",
+        "class A {",
+        "  var test = 1;",
+        "}",
+        "");
+    check_postCondition_shadowsTopLevel();
   }
 
   public void test_preCondition_hasCompilationErrors() throws Exception {
@@ -524,5 +617,24 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "  a.newName = 5;",
         "}",
         "somethingBad");
+  }
+
+  private void check_postCondition_shadowsTopLevel() throws Exception {
+    Field field = findElement("test = 1;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameField(field, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals(
+        "File 'Test/Test.dart' in library 'Test' declares top-level element 'newName' which will shadow renamed field",
+        showStatusMessages.get(0));
+    // no source changes
+    assertEquals(source, testUnit.getSource());
   }
 }

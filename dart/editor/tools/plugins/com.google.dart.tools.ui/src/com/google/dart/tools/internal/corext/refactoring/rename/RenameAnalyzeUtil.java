@@ -1,9 +1,14 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
@@ -21,6 +26,7 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
 import org.eclipse.ltk.core.refactoring.TextChange;
 
 import java.util.List;
+import java.util.Set;
 
 class RenameAnalyzeUtil {
 
@@ -224,6 +230,64 @@ class RenameAnalyzeUtil {
     }
     // done
     return subTypes;
+  }
+
+  /**
+   * @return all direct and indirect supertypes of the given {@link Type}.
+   */
+  public static Set<Type> getSuperTypes(final Type type) throws CoreException {
+    Set<Type> superTypes = Sets.newHashSet();
+    // find direct supertypes
+    List<SearchMatch> matches = ExecutionUtils.runObjectCore(new RunnableObjectEx<List<SearchMatch>>() {
+      @Override
+      public List<SearchMatch> runObject() throws Exception {
+        SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
+        return searchEngine.searchSupertypes(type, null, null, null);
+      }
+    });
+    // add references from Types, find indirect supertypes
+    for (SearchMatch match : matches) {
+      if (match.getElement() instanceof Type) {
+        Type superType = (Type) match.getElement();
+        if (superTypes.add(superType)) {
+          superTypes.addAll(getSuperTypes(superType));
+        }
+      }
+    }
+    // done
+    return superTypes;
+  }
+
+  /**
+   * @return the first top-level {@link DartElement} in the enclosing {@link DartLibrary} or any
+   *         {@link DartLibrary} imported by it, which has given name. May be <code>null</code>.
+   */
+  public static DartElement getTopLevelElementNamed(
+      Set<DartLibrary> visitedLibraries,
+      DartElement reference,
+      String name) throws DartModelException {
+    DartLibrary library = reference.getAncestor(DartLibrary.class);
+    if (library != null && !visitedLibraries.contains(library)) {
+      visitedLibraries.add(library);
+      // search in units of this library
+      for (CompilationUnit unit : library.getCompilationUnits()) {
+        DartElement[] children = unit.getChildren();
+        for (DartElement element : children) {
+          if (Objects.equal(element.getElementName(), name)) {
+            return element;
+          }
+        }
+      }
+      // search in imported libraries
+      for (DartLibrary importedLibrary : library.getImportedLibraries()) {
+        DartElement element = getTopLevelElementNamed(visitedLibraries, importedLibrary, name);
+        if (element != null) {
+          return element;
+        }
+      }
+    }
+    // not found
+    return null;
   }
 
 //  static List<CompilationUnit> createWorkingCopies(List<CompilationUnit> oldUnits,

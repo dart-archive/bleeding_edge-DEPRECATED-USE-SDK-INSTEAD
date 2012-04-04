@@ -1652,6 +1652,16 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameFieldRefactoring_Update_setter_occurrence;
 
+  public static String RenameFieldRefactoring_shadow_subTypeMember_willShadow;
+
+  public static String RenameFieldRefactoring_shadow_subTypeVariable_willShadow;
+
+  public static String RenameFieldRefactoring_shadow_subTypeParameter_willShadow;
+
+  public static String RenameFieldRefactoring_shadow_superTypeMember_willBeShadowed;
+
+  public static String RenameFieldRefactoring_shadow_topLevel_willShadow;
+
   public static String RenameJavaProjectChange_descriptor_description;
 
   public static String RenameJavaProjectChange_rename;

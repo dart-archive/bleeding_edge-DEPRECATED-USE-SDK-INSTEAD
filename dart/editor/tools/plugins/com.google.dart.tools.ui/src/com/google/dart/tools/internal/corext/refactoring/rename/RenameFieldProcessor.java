@@ -1,6 +1,9 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
+import com.google.common.collect.Sets;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
@@ -25,6 +28,7 @@ import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -37,6 +41,7 @@ import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
 import java.util.List;
+import java.util.Set;
 
 public class RenameFieldProcessor extends DartRenameProcessor {
 
@@ -141,31 +146,29 @@ public class RenameFieldProcessor extends DartRenameProcessor {
   }
 
   @Override
-  protected RefactoringStatus doCheckFinalConditions(IProgressMonitor pm,
+  protected RefactoringStatus doCheckFinalConditions(
+      IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException {
     try {
-      pm.beginTask("", 14); //$NON-NLS-1$
+      pm.beginTask("", 19); //$NON-NLS-1$
       pm.setTaskName(RefactoringCoreMessages.RenameFieldRefactoring_checking);
       RefactoringStatus result = new RefactoringStatus();
-
       // check new name
       result.merge(checkNewElementName(getNewElementName()));
       pm.worked(1);
-
       // prepare references
       pm.setTaskName(RefactoringCoreMessages.RenameFieldRefactoring_searching);
       fReferences = getReferences(new SubProgressMonitor(pm, 3));
       pm.setTaskName(RefactoringCoreMessages.RenameFieldRefactoring_checking);
-
       // analyze affected units (such as warn about existing compilation errors)
       result.merge(analyzeAffectedCompilationUnits());
-
-      // OK, create changes
-      result.merge(createChanges(new SubProgressMonitor(pm, 10)));
+      // check for possible conflicts
+      result.merge(analyzePossibleConflicts(new SubProgressMonitor(pm, 10)));
       if (result.hasFatalError()) {
         return result;
       }
-
+      // OK, create changes
+      createChanges(new SubProgressMonitor(pm, 5));
       return result;
     } finally {
       pm.done();
@@ -213,196 +216,98 @@ public class RenameFieldProcessor extends DartRenameProcessor {
     return result;
   }
 
-  private RefactoringStatus analyzeRenameChanges(IProgressMonitor pm) throws CoreException {
+  private RefactoringStatus analyzePossibleConflicts(IProgressMonitor pm) throws CoreException {
     RefactoringStatus result = new RefactoringStatus();
-    //List<CompilationUnit> units = Lists.newArrayList(fChangeManager.getAllCompilationUnits());
     Type enclosingType = fField.getAncestor(Type.class);
-    List<Type> subTypes = RenameAnalyzeUtil.getSubTypes(enclosingType);
     String newName = getNewElementName();
+    // analyze top-level elements
+    {
+      Set<DartLibrary> visitedLibraries = Sets.newHashSet();
+      for (SearchMatch searchMatch : fReferences) {
+        DartElement shadowElement = RenameAnalyzeUtil.getTopLevelElementNamed(
+            visitedLibraries,
+            searchMatch.getElement(),
+            newName);
+        if (shadowElement != null) {
+          DartLibrary shadowLibrary = shadowElement.getAncestor(DartLibrary.class);
+          IPath libraryPath = shadowLibrary.getResource().getFullPath();
+          IPath resourcePath = shadowElement.getResource().getFullPath();
+          result.addFatalError(Messages.format(
+              RefactoringCoreMessages.RenameFieldRefactoring_shadow_topLevel_willShadow,
+              new Object[] {
+                  BasicElementLabels.getPathLabel(resourcePath, false),
+                  BasicElementLabels.getPathLabel(libraryPath, false),
+                  newName}));
+          return result;
+        }
+      }
+    }
+    // analyze supertypes
+    Set<Type> superTypes = RenameAnalyzeUtil.getSuperTypes(enclosingType);
+    for (Type type : superTypes) {
+      if (type.getExistingMembers(newName).length != 0) {
+        IPath resourcePath = type.getResource().getFullPath();
+        result.addFatalError(Messages.format(
+            RefactoringCoreMessages.RenameFieldRefactoring_shadow_superTypeMember_willBeShadowed,
+            new Object[] {
+                type.getElementName(),
+                BasicElementLabels.getPathLabel(resourcePath, false),
+                newName}));
+        return result;
+      }
+    }
     // analyze subtypes
+    List<Type> subTypes = RenameAnalyzeUtil.getSubTypes(enclosingType);
     for (Type type : subTypes) {
       // check for declared members
       if (type.getExistingMembers(newName).length != 0) {
+        IPath resourcePath = type.getResource().getFullPath();
         result.addFatalError(Messages.format(
-            "Type ''{0}'' from ''{1}'' declares member with name ''{2}'' which will shadow renamed field",
+            RefactoringCoreMessages.RenameFieldRefactoring_shadow_subTypeMember_willShadow,
             new Object[] {
                 type.getElementName(),
-                BasicElementLabels.getPathLabel(type.getResource().getFullPath(), false),
+                BasicElementLabels.getPathLabel(resourcePath, false),
                 newName}));
+        return result;
       }
       // check for local variables
       for (Method method : type.getMethods()) {
         DartVariableDeclaration[] localVariables = method.getLocalVariables();
         for (DartVariableDeclaration variable : localVariables) {
           if (variable.getElementName().equals(newName)) {
+            IPath resourcePath = type.getResource().getFullPath();
             result.addFatalError(Messages.format(
-                "Method ''{0}.{1}()'' from ''{2}'' declares local variable with name ''{3}'' which will shadow renamed field",
+                variable.isParameter()
+                    ? RefactoringCoreMessages.RenameFieldRefactoring_shadow_subTypeParameter_willShadow
+                    : RefactoringCoreMessages.RenameFieldRefactoring_shadow_subTypeVariable_willShadow,
                 new Object[] {
                     type.getElementName(),
                     method.getElementName(),
-                    BasicElementLabels.getPathLabel(type.getResource().getFullPath(), false),
+                    BasicElementLabels.getPathLabel(resourcePath, false),
                     newName}));
+            return result;
           }
         }
       }
     }
     return result;
-    // TODO(scheglov)
-//    List<CompilationUnit> newUnits = Collections.emptyList();
-//    try {
-//      pm.beginTask("", 2); //$NON-NLS-1$
-//      RefactoringStatus result = new RefactoringStatus();
-//      List<SearchMatch> oldReferences = fReferences;
-//
-//      List<CompilationUnit> oldUnits = Lists.newArrayList(fChangeManager.getAllCompilationUnits());
-//      newUnits = RenameAnalyzeUtil.createWorkingCopies(oldUnits, fChangeManager);
-//      pm.worked(1);
-//
-//      newWorkingCopies = RenameAnalyzeUtil.createNewWorkingCopies(
-//          compilationUnitsToModify.toArray(new CompilationUnit[compilationUnitsToModify.size()]),
-//          fChangeManager,
-//          newWCOwner,
-//          new SubProgressMonitor(pm, 1));
-//
-//      SearchResultGroup[] newReferences = getNewReferences(
-//          new SubProgressMonitor(pm, 1),
-//          result,
-//          newWCOwner,
-//          newWorkingCopies);
-//      result.merge(RenameAnalyzeUtil.analyzeRenameChanges2(
-//          fChangeManager,
-//          oldReferences,
-//          newReferences,
-//          getNewElementName()));
-//      return result;
-//    } finally {
-//      pm.done();
-//      for (CompilationUnit newUnit : newUnits) {
-//        newUnit.discardWorkingCopy();
-//      }
-//    }
-    // TODO(scheglov)
-//    CompilationUnit[] newWorkingCopies = null;
-//    WorkingCopyOwner newWCOwner = new WorkingCopyOwner() { /* must subclass */
-//    };
-//    try {
-//      pm.beginTask("", 2); //$NON-NLS-1$
-//      RefactoringStatus result = new RefactoringStatus();
-//      List<SearchMatch> oldReferences = fReferences;
-//
-//      List<CompilationUnit> compilationUnitsToModify = new ArrayList<CompilationUnit>();
-//      compilationUnitsToModify.addAll(Arrays.asList(fChangeManager.getAllCompilationUnits()));
-//
-//      newWorkingCopies = RenameAnalyzeUtil.createNewWorkingCopies(
-//          compilationUnitsToModify.toArray(new CompilationUnit[compilationUnitsToModify.size()]),
-//          fChangeManager,
-//          newWCOwner,
-//          new SubProgressMonitor(pm, 1));
-//
-//      SearchResultGroup[] newReferences = getNewReferences(
-//          new SubProgressMonitor(pm, 1),
-//          result,
-//          newWCOwner,
-//          newWorkingCopies);
-//      result.merge(RenameAnalyzeUtil.analyzeRenameChanges2(
-//          fChangeManager,
-//          oldReferences,
-//          newReferences,
-//          getNewElementName()));
-//      return result;
-//    } finally {
-//      pm.done();
-//      if (newWorkingCopies != null) {
-//        for (int i = 0; i < newWorkingCopies.length; i++) {
-//          newWorkingCopies[i].discardWorkingCopy();
-//        }
-//      }
-//    }
   }
 
-  private RefactoringStatus createChanges(IProgressMonitor pm) throws CoreException {
-    pm.beginTask(RefactoringCoreMessages.RenameFieldRefactoring_checking, 3);
-    RefactoringStatus result = new RefactoringStatus();
-
+  private void createChanges(IProgressMonitor pm) throws CoreException {
+    pm.beginTask(RefactoringCoreMessages.RenameFieldRefactoring_checking, 10);
     fChangeManager.clear();
+    // update declaration
     addDeclarationUpdate();
-    addReferenceUpdates(new SubProgressMonitor(pm, 1));
-
-    result.merge(analyzeRenameChanges(new SubProgressMonitor(pm, 2)));
-    if (result.hasFatalError()) {
-      return result;
-    }
-
+    pm.worked(1);
+    // update references
+    addReferenceUpdates(new SubProgressMonitor(pm, 9));
     pm.done();
-    return result;
   }
 
   private TextEdit createTextChange(SearchMatch match) {
     SourceRange sourceRange = match.getSourceRange();
     return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), getNewElementName());
   }
-
-//  private IJavaSearchScope createRefactoringScope() throws CoreException {
-//    return RefactoringScopeFactory.create(fField, true, false);
-//  }
-//
-//  private SearchPattern createSearchPattern() {
-//    return SearchPatternFactory.createPattern(fField, IJavaSearchConstants.REFERENCES);
-//  }
-
-//  private Field getFieldInWorkingCopy(CompilationUnit newWorkingCopyOfDeclaringCu,
-//      String elementName) {
-//    Type type = fField.getDeclaringType();
-//    Type typeWc = (Type) DartModelUtil.findInCompilationUnit(newWorkingCopyOfDeclaringCu, type);
-//    if (typeWc == null) {
-//      return null;
-//    }
-//
-//    return typeWc.getField(elementName);
-//  }
-//
-//  private SearchResultGroup[] getNewReferences(IProgressMonitor pm, RefactoringStatus status,
-//      WorkingCopyOwner owner, CompilationUnit[] newWorkingCopies) throws CoreException {
-//    pm.beginTask("", 2); //$NON-NLS-1$
-//    CompilationUnit declaringCuWorkingCopy = RenameAnalyzeUtil.findWorkingCopyForCu(
-//        newWorkingCopies,
-//        fField.getCompilationUnit());
-//    if (declaringCuWorkingCopy == null) {
-//      return new SearchResultGroup[0];
-//    }
-//
-//    Field field = getFieldInWorkingCopy(declaringCuWorkingCopy, getNewElementName());
-//    if (field == null || !field.exists()) {
-//      return new SearchResultGroup[0];
-//    }
-//
-//    CollectingSearchRequestor requestor = null;
-//    if (fDelegateUpdating && RefactoringAvailabilityTester.isDelegateCreationAvailable(fField)) {
-//      // There will be two new matches inside the delegate (the invocation
-//      // and the javadoc) which are OK and must not be reported.
-//      final Field oldField = getFieldInWorkingCopy(declaringCuWorkingCopy, getCurrentElementName());
-//      requestor = new CollectingSearchRequestor() {
-//        @Override
-//        public void acceptSearchMatch(SearchMatch match) throws CoreException {
-//          if (!oldField.equals(match.getElement())) {
-//            super.acceptSearchMatch(match);
-//          }
-//        }
-//      };
-//    } else {
-//      requestor = new CollectingSearchRequestor();
-//    }
-//
-//    SearchPattern newPattern = SearchPattern.createPattern(field, IJavaSearchConstants.REFERENCES);
-//    IJavaSearchScope scope = RefactoringScopeFactory.create(fField, true, true);
-//    return RefactoringSearchEngine.search(
-//        newPattern,
-//        owner,
-//        scope,
-//        requestor,
-//        new SubProgressMonitor(pm, 1),
-//        status);
-//  }
 
   private List<SearchMatch> getReferences(final IProgressMonitor pm) throws CoreException {
     return ExecutionUtils.runObjectCore(new RunnableObjectEx<List<SearchMatch>>() {
