@@ -30,6 +30,11 @@ public interface DartVariableDeclaration extends CompilationUnitElement, SourceR
   public String getTypeName() throws DartModelException;
 
   /**
+   * @return the {@link SourceRange} in which this variable is visible.
+   */
+  public SourceRange getVisibleRange() throws DartModelException;
+
+  /**
    * Return <code>true</code> if this variable is global (defined at the top-level of a compilation
    * unit).
    * 

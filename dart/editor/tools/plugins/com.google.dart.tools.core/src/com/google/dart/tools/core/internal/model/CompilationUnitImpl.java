@@ -257,11 +257,12 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       DartFunctionTypeAliasInfo aliasInfo = new DartFunctionTypeAliasInfo();
       int start = node.getSourceInfo().getOffset();
       aliasInfo.setSourceRangeStart(start);
-      aliasInfo.setSourceRangeEnd(start + node.getSourceInfo().getLength() - 1);
+      aliasInfo.setSourceRangeEnd(node.getSourceInfo().getEnd() - 1);
       captureDartDoc(node, aliasInfo);
       aliasInfo.setNameRange(new SourceRangeImpl(node.getName()));
       aliasInfo.setReturnTypeName(extractTypeName(node.getReturnTypeNode(), false));
-      List<DartElementImpl> parameters = getParameters(aliasImpl, node.getParameters());
+      List<DartElementImpl> parameters = getParameters(aliasImpl, node.getParameters(),
+          node.getSourceInfo().getEnd());
       aliasInfo.setChildren(parameters.toArray(new DartElementImpl[parameters.size()]));
       addNewElement(aliasImpl, aliasInfo);
       topLevelElements.add(aliasImpl);
@@ -518,6 +519,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
     @Override
     public Void visitVariableStatement(DartVariableStatement node) {
+      int blockEnd = node.getParent().getSourceInfo().getEnd();
       for (DartVariable variable : node.getVariables()) {
         DartVariableImpl variableImpl = new DartVariableImpl(parentElement, new String(
             variable.getVariableName().toCharArray()));
@@ -532,6 +534,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         variableInfo.setParameter(false);
         char[] typeName = extractTypeName(node.getTypeNode(), true);
         variableInfo.setTypeName(typeName == null ? CharOperation.NO_CHAR : typeName);
+        variableInfo.setVisibleStart(variableName.getSourceInfo().getOffset());
+        variableInfo.setVisibleEnd(blockEnd);
 
         FunctionGatherer functionGatherer = new FunctionGatherer(variable, variableImpl,
             newElements);
@@ -596,7 +600,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      * @return a list containing all of the parameters that were created
      */
     protected List<DartElementImpl> getParameters(DartElementImpl parent, DartFunction functionNode) {
-      return getParameters(parent, functionNode.getParameters());
+      int visibleEnd = functionNode.getBody().getSourceInfo().getEnd();
+      return getParameters(parent, functionNode.getParameters(), visibleEnd);
     }
 
     /**
@@ -607,7 +612,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      * @return a list containing all of the parameters that were created
      */
     protected List<DartElementImpl> getParameters(DartElementImpl parent,
-        List<DartParameter> parameterNodes) {
+        List<DartParameter> parameterNodes, int visibleEnd) {
       ArrayList<DartElementImpl> parameters = new ArrayList<DartElementImpl>();
       for (DartParameter parameter : parameterNodes) {
         DartVariableImpl variableImpl = new DartVariableImpl(parent, new String(
@@ -621,6 +626,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         variableInfo.setNameRange(new SourceRangeImpl(parameterName.getSourceInfo().getOffset(),
             parameterName.getSourceInfo().getLength()));
         variableInfo.setParameter(true);
+        variableInfo.setVisibleStart(parameterName.getSourceInfo().getOffset());
+        variableInfo.setVisibleEnd(visibleEnd);
         char[] typeName = extractTypeName(parameter.getTypeNode(), true);
         // If function parameters are defined, then append the parameters to the type name.
         List<DartParameter> functionParameters = parameter.getFunctionParameters();
