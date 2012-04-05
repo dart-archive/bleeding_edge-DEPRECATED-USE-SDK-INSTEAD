@@ -773,10 +773,18 @@ public class CompletionEngine {
         }
         // { foo.! } or { class X { X(this.!c) : super() {}}
         Type type = analyzeType(completionNode.getQualifier());
-        if (TypeKind.of(type) == TypeKind.VOID) {
+        if (TypeKind.of(type) == TypeKind.DYNAMIC) {
+          // if dynamic use ScopedNameFinder to look for a declaration
+          // { List list; list.! Map map; }
           DartIdentifier name = (DartIdentifier) completionNode.getQualifier();
           Element element = name.getElement();
-          type = element.getType();
+          ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
+          completionNode.accept(vars);
+          ScopedName varName = vars.getLocals().get(name.getName());
+          if (varName != null) {
+            element = varName.getSymbol();
+            type = element.getType();
+          }
         }
         createCompletionsForQualifiedMemberAccess(propertyName, type, false);
       }
@@ -1256,7 +1264,11 @@ public class CompletionEngine {
       }
     }
     if (DartCoreDebug.ENABLE_TYPE_REFINEMENT && target instanceof DartIdentifier) {
-      type = TypeRefiner.refineType((DartIdentifier) target, type, typeProvider);
+      Type newType = TypeRefiner.refineType((DartIdentifier) target, type, typeProvider);
+      // TODO newType should not be null but can be currently
+      if (newType != null && TypeKind.of(newType) != TypeKind.DYNAMIC) {
+        type = newType;
+      }
     }
     return type;
   }

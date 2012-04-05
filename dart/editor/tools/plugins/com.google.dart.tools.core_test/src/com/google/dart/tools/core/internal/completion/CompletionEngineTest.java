@@ -211,6 +211,14 @@ public class CompletionEngineTest extends TestCase {
     test("int xa; String s = '$!1'", "1+xa");
   }
 
+  public void testCommentSnippets040() throws Exception {
+    test("class X{m(){List list; list.!1 Map map;}}", "1+add");
+  }
+
+  public void testCommentSnippets041() throws Exception {
+    test("class X{m(){List list; list.!1 zox();}}", "1+add");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test
