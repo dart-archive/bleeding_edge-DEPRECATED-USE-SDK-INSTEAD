@@ -85,17 +85,17 @@ public class ASTVisitor<R> {
     return visitExpression(node);
   }
 
-//  public R visitConstructorDeclaration(ConstructorDeclaration node) {
-//    return visitTypeMember(node);
-//  }
+  public R visitConstructorDeclaration(ConstructorDeclaration node) {
+    return visitTypeMember(node);
+  }
 
-//  public R visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-//    return visitConstructorInitializer(node);
-//  }
+  public R visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    return visitConstructorInitializer(node);
+  }
 
-//  public R visitConstructorInitializer(ConstructorInitializer node) {
-//    return visitNode(node);
-//  }
+  public R visitConstructorInitializer(ConstructorInitializer node) {
+    return visitNode(node);
+  }
 
   public R visitContinueStatement(ContinueStatement node) {
     return visitStatement(node);
@@ -161,13 +161,17 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
-//  public R visitFunctionDeclaration(FunctionDeclaration node) {
-//    return visitNode(node);
-//  }
+  public R visitFunctionDeclaration(FunctionDeclaration node) {
+    return visitNode(node);
+  }
 
-//  public R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-//    return visitStatement(node);
-//  }
+  public R visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    return visitStatement(node);
+  }
+
+  public R visitFunctionExpression(FunctionExpression node) {
+    return visitExpression(node);
+  }
 
   public R visitIdentifier(Identifier node) {
     return visitExpression(node);
@@ -350,9 +354,9 @@ public class ASTVisitor<R> {
     return visitLiteral(node);
   }
 
-//  public R visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-//    return visitConstructorInitializer(node);
-//  }
+  public R visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    return visitConstructorInitializer(node);
+  }
 
   public R visitSuperExpression(SuperExpression node) {
     return visitExpression(node);
