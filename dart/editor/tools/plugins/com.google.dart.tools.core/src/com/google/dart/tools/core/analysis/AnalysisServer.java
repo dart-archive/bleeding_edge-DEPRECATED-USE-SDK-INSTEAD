@@ -370,6 +370,9 @@ public class AnalysisServer {
    * @return the file or <code>null</code> if it could not be resolved
    */
   File resolvePath(URI base, String relPath) {
+    if (relPath == null) {
+      return null;
+    }
     if (SystemLibraryManager.isDartSpec(relPath)) {
       URI relativeUri;
       try {
