@@ -55,9 +55,21 @@ module window {
         Element getElementByIdInShadowRoot(in Node shadowRoot, in DOMString id) raises(DOMException);
         boolean isValidContentSelect(in Element contentElement) raises(DOMException);
 
+        Node nextSiblingByWalker(in Node node) raises(DOMException);
+        Node firstChildByWalker(in Node node) raises(DOMException);
+        Node lastChildByWalker(in Node node) raises(DOMException);
+        Node nextNodeByWalker(in Node node) raises(DOMException);
+        Node previousNodeByWalker(in Node node) raises(DOMException);
+
+        Node nextSiblingInReifiedTree(in Node node) raises(DOMException);
+        Node firstChildInReifiedTree(in Node node) raises(DOMException);
+        Node lastChildInReifiedTree(in Node node) raises(DOMException);
+        Node traverseNextNodeInReifiedTree(in Node node) raises(DOMException);
+        Node traversePreviousNodeInReifiedTree(in Node node) raises(DOMException);
+
         boolean attached(in Node node) raises(DOMException);
 
-#if defined(ENABLE_INPUT_COLOR) && ENABLE_INPUT_COLOR
+#if defined(ENABLE_INPUT_TYPE_COLOR) && ENABLE_INPUT_TYPE_COLOR
         void selectColorInColorChooser(in Element element, in DOMString colorValue);
 #endif
 
@@ -89,6 +101,7 @@ module window {
 #if defined(ENABLE_TOUCH_ADJUSTMENT) && ENABLE_TOUCH_ADJUSTMENT
         WebKitPoint touchPositionAdjustedToBestClickableNode(in long x, in long y, in long width, in long height, in Document document) raises (DOMException);
         Node touchNodeAdjustedToBestClickableNode(in long x, in long y, in long width, in long height, in Document document) raises (DOMException);
+        ClientRect bestZoomableAreaForTouchPoint(in long x, in long y, in long width, in long height, in Document document) raises (DOMException);
 #endif
 
         long lastSpellCheckRequestSequence(in Document document) raises (DOMException);
@@ -101,7 +114,7 @@ module window {
         boolean shouldDisplayTrackKind(in Document document, in DOMString trackKind) raises (DOMException);
 #endif
 
-        attribute [Custom] Array userPreferredLanguages;
+        attribute sequence<String> userPreferredLanguages;
 
         unsigned long wheelEventHandlerCount(in Document document) raises (DOMException);
         unsigned long touchEventHandlerCount(in Document document) raises (DOMException);
@@ -120,7 +133,11 @@ module window {
 
 #if defined(ENABLE_BATTERY_STATUS) && ENABLE_BATTERY_STATUS
         void setBatteryStatus(in Document document, in DOMString eventType, in boolean charging, in double chargingTime, in double dischargingTime, in double level) raises (DOMException);
-#endif 
+#endif
+
+#if defined(ENABLE_NETWORK_INFO) && ENABLE_NETWORK_INFO
+        void setNetworkInformation(in Document document, in DOMString eventType, in long bandwidth, in boolean metered) raises (DOMException);
+#endif
 
         [Conditional=INSPECTOR] unsigned long numberOfLiveNodes();
         [Conditional=INSPECTOR] unsigned long numberOfLiveDocuments();
