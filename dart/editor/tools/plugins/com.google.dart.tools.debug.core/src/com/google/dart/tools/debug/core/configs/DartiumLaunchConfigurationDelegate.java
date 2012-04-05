@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.core.configs;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.util.BrowserManager;
@@ -76,6 +77,7 @@ public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       url = launchConfig.getUrl();
     }
 
+    DartCore.getConsole().clear();
     BrowserManager manager = BrowserManager.getManager();
 
     if (resource instanceof IFile) {
