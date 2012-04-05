@@ -883,6 +883,10 @@ public class InternalCompletionProposal extends CompletionProposal {
       throw new IllegalArgumentException();
     }
     this.relevance = rating;
+    if (name != null && name.length > 4 && name[0] == '$' && name[1] == 'd' && name[2] == 'o'
+        && name[3] == 'm') {
+      this.relevance = 0;
+    }
   }
 
   /**
