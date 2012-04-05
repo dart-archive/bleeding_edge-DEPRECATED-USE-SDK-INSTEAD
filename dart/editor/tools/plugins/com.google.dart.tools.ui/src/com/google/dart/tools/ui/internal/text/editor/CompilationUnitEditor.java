@@ -95,6 +95,7 @@ import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -1261,6 +1262,15 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
   public RefactorActionGroup getRefactorActionGroup() {
     return fRefactorActionGroup;
+  }
+
+  @Override
+  public Image getTitleImage() {
+    if (getEditorInput() != null && getEditorInput().getImageDescriptor() != null) {
+      return DartToolsPlugin.getImage(getEditorInput().getImageDescriptor());
+    } else {
+      return super.getTitleImage();
+    }
   }
 
   @Override

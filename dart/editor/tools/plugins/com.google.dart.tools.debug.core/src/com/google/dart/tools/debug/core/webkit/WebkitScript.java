@@ -34,6 +34,8 @@ public class WebkitScript {
     script.isContentScript = JsonUtils.getBoolean(params, "isContentScript");
     script.sourceMapURL = JsonUtils.getString(params, "sourceMapURL");
 
+    script.patchupScriptUrl();
+
     return script;
   }
 
@@ -140,6 +142,16 @@ public class WebkitScript {
   @Override
   public String toString() {
     return "[" + url + "," + scriptId + "]";
+  }
+
+  private void patchupScriptUrl() {
+    // TODO(devoncarew): this method converts unqualified library urls to slightly better formed urls.
+    if (url != null) {
+      // bootstrap_impl ==> dart:bootstrap_impl
+      if (url.equals("bootstrap_impl")) {
+        url = "dart:" + url;
+      }
+    }
   }
 
 }

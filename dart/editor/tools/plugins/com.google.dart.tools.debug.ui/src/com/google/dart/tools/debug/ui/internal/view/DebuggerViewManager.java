@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.ui.internal.view;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.hover.DartDebugHover;
+import com.google.dart.tools.debug.ui.internal.util.DebuggerEditorInput;
 import com.google.dart.tools.ui.internal.text.editor.DartTextHover;
 
 import org.eclipse.core.runtime.CoreException;
@@ -31,6 +32,8 @@ import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.contexts.ISuspendTrigger;
 import org.eclipse.debug.ui.contexts.ISuspendTriggerListener;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -87,7 +90,7 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
         attachConsoleListener((IProcess) event.getSource());
       } else if (event.getKind() == DebugEvent.TERMINATE
           && event.getSource() instanceof IDebugTarget) {
-        removeDebugTarget((IDebugTarget) event.getSource());
+        handleDebugTargetTerminated((IDebugTarget) event.getSource());
       }
     }
   }
@@ -151,6 +154,17 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
     });
   }
 
+  protected void handleDebugTargetTerminated(IDebugTarget target) {
+    removeDebugTarget(target);
+
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        closeDebuggerEditors();
+      }
+    });
+  }
+
   private void attachConsoleListener(IProcess process) {
     IConsole console = DebugUITools.getConsole(process);
 
@@ -158,6 +172,27 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
       TextConsole textConsole = (TextConsole) console;
 
       textConsole.addPatternMatchListener(patternMatchListener);
+    }
+  }
+
+  /**
+   * Close any editors that are open on files loaded through the debug channel.
+   */
+  private void closeDebuggerEditors() {
+    if (Display.getDefault().isDisposed()) {
+      return;
+    }
+
+    IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+
+    for (IEditorReference ref : page.getEditorReferences()) {
+      IEditorPart editor = ref.getEditor(false);
+
+      if (editor != null) {
+        if (editor.getEditorInput() instanceof DebuggerEditorInput) {
+          page.closeEditor(editor, false);
+        }
+      }
     }
   }
 

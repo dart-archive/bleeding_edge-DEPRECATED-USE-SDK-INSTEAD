@@ -68,7 +68,9 @@ import org.osgi.framework.Constants;
 import org.osgi.service.prefs.BackingStoreException;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -104,6 +106,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
       return size() >= 20;
     }
   };
+
+  private static Map<ImageDescriptor, Image> imageCache = new HashMap<ImageDescriptor, Image>();
 
   /**
    * Create an error Status object with the given message and this plugin's ID.
@@ -223,6 +227,24 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   }
 
   /**
+   * Get an image given an ImageDescriptor.
+   * 
+   * @param imageDescriptor
+   * @return an image
+   */
+  public static Image getImage(ImageDescriptor imageDescriptor) {
+    Image image = imageCache.get(imageDescriptor);
+
+    if (image == null) {
+      image = imageDescriptor.createImage();
+
+      imageCache.put(imageDescriptor, image);
+    }
+
+    return image;
+  }
+
+  /**
    * Get an image given a path relative to this plugin.
    * 
    * @param path
@@ -337,15 +359,15 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     }
   }
 
-  /* package */static void initializeAfterLoad(IProgressMonitor monitor) {
-    DartX.notYet();
-    // OpenTypeHistory.getInstance().checkConsistency(monitor);
-  }
-
 //  @Deprecated
 //  private static IPreferenceStore getDeprecatedWorkbenchPreferenceStore() {
 //    return PlatformUI.getWorkbench().getPreferenceStore();
 //  }
+
+  /* package */static void initializeAfterLoad(IProgressMonitor monitor) {
+    DartX.notYet();
+    // OpenTypeHistory.getInstance().checkConsistency(monitor);
+  }
 
   /**
    * The template context type registry for the java editor.
@@ -367,13 +389,13 @@ public class DartToolsPlugin extends AbstractUIPlugin {
    * The coded template store for the java editor.
    */
   private TemplateStore codeTemplateStore;
-
   /**
    * Default instance of the appearance type filters.
    */
   static {
     DartX.todo();
   }
+
   private TypeFilter typeFilter;
 
   private WorkingCopyManager workingCopyManager;
@@ -390,22 +412,22 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   private ProblemMarkerManager problemMarkerManager;
 
   private ImageDescriptorRegistry imageDescriptorRegistry;
-
   static {
     DartX.todo();
   }
-  private MembersOrderPreferenceCache membersOrderPreferenceCache;
 
   //private IPropertyChangeListener fFontPropertyChangeListener;
+
+  private MembersOrderPreferenceCache membersOrderPreferenceCache;
 
   /**
    * Property change listener on this plugin's preference store.
    */
   private IPropertyChangeListener propertyChangeListener;
-
   static {
     DartX.todo("hover");
   }
+
   @SuppressWarnings("unused")
   private/* JavaEditorTextHoverDescriptor */Object[] dartEditorTextHoverDescriptors;
 
@@ -435,12 +457,12 @@ public class DartToolsPlugin extends AbstractUIPlugin {
    */
   private SaveParticipantRegistry saveParticipantRegistry;
 
-  private FormToolkit dialogsFormToolkit;
-
   /**
    * Theme listener.
    */
   //private IPropertyChangeListener fThemeListener;
+
+  private FormToolkit dialogsFormToolkit;
 
   /**
    * The clean up registry
@@ -867,11 +889,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     }
   }
 
-  @Override
-  protected ImageRegistry createImageRegistry() {
-    return DartPluginImages.getImageRegistry();
-  }
-
 //  /**
 //   * Installs backwards compatibility for the preference store.
 //   */
@@ -995,6 +1012,12 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   // return
   // org.eclipse.wst.jsdt.internal.corext.template.java.CodeTemplates.getInstance();
   // }
+
+  @Deprecated
+  @Override
+  protected ImageRegistry createImageRegistry() {
+    return DartPluginImages.getImageRegistry();
+  }
 
   /**
    * @deprecated Indirection added to avoid deprecated warning on file

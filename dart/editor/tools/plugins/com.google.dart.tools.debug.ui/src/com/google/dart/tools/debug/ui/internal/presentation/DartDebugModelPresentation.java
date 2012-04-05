@@ -17,9 +17,9 @@ import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugVariable;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.debug.ui.internal.util.DebuggerEditorInput;
 
 import org.eclipse.core.filesystem.EFS;
-import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugException;
@@ -28,13 +28,9 @@ import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.sourcelookup.containers.LocalFileStorage;
 import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IValueDetailListener;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IMemento;
-import org.eclipse.ui.IPersistableElement;
-import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
 import java.net.URI;
@@ -48,50 +44,6 @@ import java.util.concurrent.TimeUnit;
  * with debug elements in a specific debug model.
  */
 public class DartDebugModelPresentation implements IDebugModelPresentation {
-
-  /**
-   * A custom FileStoreEditorInput used to represent scripts loaded from a remote debug server.
-   */
-  private static class DebuggerEditorInput extends FileStoreEditorInput {
-
-    public DebuggerEditorInput(IFileStore fileStore) {
-      super(fileStore);
-    }
-
-    @Override
-    public ImageDescriptor getImageDescriptor() {
-      return DartDebugUIPlugin.getImageDescriptor("obj16/remoteDartFile.png");
-    }
-
-    @Override
-    public String getName() {
-      // Convert dart_foo_123456.dart to dart:foo.
-      String name = super.getName().replaceFirst("_", ":");
-
-      int index = name.indexOf('_');
-
-      if (index != -1) {
-        name = name.substring(0, index);
-      }
-
-      return name;
-    }
-
-    @Override
-    public IPersistableElement getPersistable() {
-      return null;
-    }
-
-    @Override
-    public String getToolTipText() {
-      return getName();
-    }
-
-    @Override
-    public void saveState(IMemento memento) {
-
-    }
-  }
 
   private static final String DART_EDITOR_ID = "com.google.dart.tools.ui.text.editor.CompilationUnitEditor";
 

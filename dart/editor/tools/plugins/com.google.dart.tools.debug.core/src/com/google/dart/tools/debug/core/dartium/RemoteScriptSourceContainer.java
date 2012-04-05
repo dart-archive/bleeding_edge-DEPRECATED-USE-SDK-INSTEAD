@@ -88,7 +88,7 @@ public class RemoteScriptSourceContainer extends AbstractSourceContainer {
 
   private LocalFileStorage getCreateStorageFor(WebkitScript script) throws IOException {
     if (script.getPrivateData() == null) {
-      File file = File.createTempFile(script.getUrl().replace(':', '_') + "_", ".dart");
+      File file = File.createTempFile(script.getUrl().replace(':', '_') + "$", ".dart");
       file.deleteOnExit();
 
       Writer out = new OutputStreamWriter(new FileOutputStream(file), Charset.forName("UTF8"));
