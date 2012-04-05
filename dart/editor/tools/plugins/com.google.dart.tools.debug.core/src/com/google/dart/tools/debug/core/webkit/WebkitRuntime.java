@@ -152,7 +152,7 @@ public class WebkitRuntime extends WebkitDomain {
 
       WebkitRemoteObject remoteObject = WebkitRemoteObject.createFrom(obj.getJSONObject("result"));
 
-      if (obj.has("wasThrown")) {
+      if (JsonUtils.getBoolean(obj, "wasThrown")) {
         result.setError(remoteObject);
       } else {
         result.setResult(remoteObject.getValue());
