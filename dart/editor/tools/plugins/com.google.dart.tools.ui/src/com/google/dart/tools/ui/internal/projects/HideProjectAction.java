@@ -13,15 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.projects;
 
-import com.google.dart.tools.ui.DartToolsPlugin;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.MessageDialogWithToggle;
-import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.ui.actions.CloseResourceAction;
 
@@ -29,12 +25,6 @@ import org.eclipse.ui.actions.CloseResourceAction;
  * Standard action for hiding the currently selected project(s).
  */
 public class HideProjectAction extends CloseResourceAction {
-
-  /**
-   * Preference key indicating whether to show explanatory text again (or not).
-   */
-  private static final String SHOW_MSG_PREF_KEY = HideProjectAction.class.getName()
-      + ".showMessage"; //$NON-NLS-1$
 
   private final IShellProvider shellProvider;
 
@@ -82,16 +72,9 @@ public class HideProjectAction extends CloseResourceAction {
    */
   private boolean confirmHide() {
 
-    IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
-    String value = store.getString(SHOW_MSG_PREF_KEY);
-    if (MessageDialogWithToggle.ALWAYS.equals(value)) {
-      return true;
-    }
-
-    return MessageDialogWithToggle.openOkCancelConfirm(shellProvider.getShell(),
+    return MessageDialog.openConfirm(shellProvider.getShell(),
         ProjectMessages.HideProjectAction_confirm_title,
-        ProjectMessages.HideProjectAction_confirm_msg,
-        ProjectMessages.HideProjectAction_always_yes_msg, false, store, SHOW_MSG_PREF_KEY).getReturnCode() == IDialogConstants.OK_ID;
+        ProjectMessages.HideProjectAction_confirm_msg);
 
   }
 }
