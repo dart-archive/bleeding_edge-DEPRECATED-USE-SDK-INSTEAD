@@ -236,7 +236,7 @@ public class AnalysisServerTest extends TestCase {
         InMemoryIndex defaultIndex = InMemoryIndex.getInstance();
         defaultIndex.initializeIndex();
         long delta = waitForIdle(defaultServer, defaultIndex);
-        System.out.println("  Waited " + delta + " ms for idle");
+        System.out.println("  " + delta + " ms for default analysis server to be idle");
       } else {
         System.out.println("  Default analysis server not enabled");
       }
@@ -271,15 +271,16 @@ public class AnalysisServerTest extends TestCase {
     }
   }
 
-  private void setupServer() {
+  private void setupServer() throws Exception {
     EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
     server = new AnalysisServer(libraryManager);
     listener = new Listener();
     server.addAnalysisListener(listener);
-    assertTrue(server.waitForIdle(10));
+    long delta = waitForIdle(server, null);
+    System.out.println("  " + delta + " ms for server initialization");
   }
 
-  private void setupServerAndIndex() {
+  private void setupServerAndIndex() throws Exception {
     setupServer();
     index = InMemoryIndex.newInstanceForTesting();
     new Thread(new Runnable() {
