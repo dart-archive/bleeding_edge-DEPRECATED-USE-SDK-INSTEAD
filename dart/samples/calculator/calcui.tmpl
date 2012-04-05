@@ -1,0 +1,1106 @@
+/* Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file.
+ */
+
+/* Flat UI Calculator key theme. */
+template FlatPadUI() {
+  css {
+    .calc-pad {
+      background-color: #222;
+      width: 241px;
+      height: 168px;
+      padding-top: 4px;
+      padding-bottom: 4px;
+      cursor: default;
+    }
+
+    .calc-row {
+      color:white;
+      font-size: 25pt;
+      font-family: arial;
+      font-weight: bold;
+      padding-top: 2px;
+      padding-left: 12px;
+    }
+
+    .calc-num {
+      padding-left: 8px;
+      padding-right: 8px;
+      margin-right: 11px;
+      cursor: pointer;
+    }
+
+    .calc-period {
+      padding-left: 7px;
+      padding-right: 7px;
+      margin-right: 11px;
+      cursor: pointer;
+      font-size: 24pt;
+    }
+
+    .calc-op-button {
+      padding-left: 12px;
+      padding-right: 19px;
+      color: gray;
+      font-size: 20pt;
+      vertical-align: middle;
+    }
+
+    .calc-num:hover {
+      width: 100px;
+      height: 100px;
+      background: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+      color: black;
+    }
+
+    .calc-num-hover {
+      width: 100px;
+      height: 100px;
+      background: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+      color: black;
+    }
+
+    .calc-num:active {
+      width: 100px;
+      height: 100px;
+      background: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+      color: white;
+    }
+
+    .calc-num-active {
+      width: 100px;
+      height: 100px;
+      background: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+      color: white;
+    }
+
+    .calc-period:hover {
+      width: 100px;
+      height: 100px;
+      background: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+      color: black;
+    }
+
+    .calc-period-hover {
+      width: 100px;
+      height: 100px;
+      background: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+      color: black;
+    }
+
+    .calc-period:active {
+      width: 100px;
+      height: 100px;
+      background: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+      color: white;
+    }
+
+    .calc-period-active {
+      width: 100px;
+      height: 100px;
+      background: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+      color: white;
+    }
+
+    .calc-period-error {
+      width: 100px;
+      height: 100px;
+      background: IndianRed;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 50px;
+      border-radius: 50px;
+      color: firebrick;
+    }
+
+    .op-plus-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 185px;
+      left: 158px;
+    }
+
+    .op-plus {
+      background-image: url(plus.png);
+      background-repeat: no-repeat;
+    }
+
+    .op-plus:hover {
+      background-image: url(plus_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-plus-hover {
+      background-image: url(plus_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-plus:active {
+      background-image: url(plus_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-plus-active {
+      background-image: url(plus_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-minus-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 185px;
+      left: 198px;
+    }
+
+    .op-minus {
+      background-image: url(minus.png);
+      background-repeat: no-repeat;
+    }
+
+    .op-minus:hover {
+      background-image: url(minus_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-minus-hover {
+      background-image: url(minus_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-minus:active {
+      background-image: url(minus_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-minus-active {
+      background-image: url(minus_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-mult-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 228px;
+      left: 158px;
+    }
+
+    .op-mult {
+      background-image: url(mult.png);
+      background-repeat: no-repeat;
+    }
+
+    .op-mult:hover {
+      background-image: url(mult_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-mult-hover {
+      background-image: url(mult_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-mult:active {
+      background-image: url(mult_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-mult-active {
+      background-image: url(mult_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-div-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 228px;
+      left: 198px;
+    }
+
+    .op-div {
+      background-image: url(div.png);
+      background-repeat: no-repeat;
+    }
+
+    .op-div:hover {
+      background-image: url(div_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-div-hover {
+      background-image: url(div_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-div:active {
+      background-image: url(div_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-div-active {
+      background-image: url(div_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-equal-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 268px;
+      left: 158px;
+    }
+
+    .op-equal {
+      background-image: url(equal.png);
+      background-repeat: no-repeat;
+    }
+
+    .op-equal:hover {
+      background-image: url(equal_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-equal-hover {
+      background-image: url(equal_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-equal:active {
+      background-image: url(equal_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-equal-active {
+      background-image: url(equal_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-arrow-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 268px;
+      left: 198px;
+    }
+
+    .op-arrow {
+      background-image: url(arrow.png);
+      background-repeat: no-repeat;
+    }
+
+    .op-arrow:hover {
+      background-image: url(arrow_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-arrow-hover {
+      background-image: url(arrow_black.png);
+      background-repeat: no-repeat;
+      background-color: lightgray;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-arrow:active {
+      background-image: url(arrow_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+
+    .op-arrow-active {
+      background-image: url(arrow_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      -moz-border-radius: 50px;
+      -webkit-border-radius: 20px;
+      border-radius: 20px;
+      background-position: center;
+    }
+  }
+  <div class="calc-pad">
+    <div class="calc-row">
+      <span var=keySeven class="calc-num">7</span>
+      <span var=keyEight class="calc-num">8</span>
+      <span var=keyNine class="calc-num">9</span>
+      <div var=keyPlus class="op-plus-base op-plus"></div>
+      <div var=keyMinus class="op-minus-base op-minus"></div>
+    </div>
+    <div class="calc-row">
+      <span var=keyFour class="calc-num">4</span>
+      <span var=keyFive class="calc-num">5</span>
+      <span var=keySix class="calc-num">6</span>
+      <div var=keyStar class="op-mult-base op-mult"></div>
+      <div var=keySlash class="op-div-base op-div"></div>
+    </div>
+    <div class="calc-row">
+      <span var=keyOne class="calc-num">1</span>
+      <span var=keyTwo class="calc-num">2</span>
+      <span var=keyThree class="calc-num">3</span>
+      <div var=keyEqual class="op-equal-base op-equal"></div>
+      <div var=keyClear class="op-arrow-base op-arrow"></div>
+    </div>
+    <div class="calc-row">
+      <span var=keyZero class="calc-num">0</span>
+      <span var=keyDot class="calc-period">
+        <span style="font-size:9pt;">&nbsp;&nbsp;</span>.<span style="font-size:9pt;">&nbsp;&nbsp;</span>
+      </span>
+    </div>
+  </div>
+}
+
+/* Button UI Calculator key theme. */
+template ButtonPadUI() {
+  css {
+    .button-pad {
+      background-color: #F4F4F4;
+      width: 241px;
+      height: 168px;
+      padding-top: 8px;
+      padding-bottom: 4px;
+      cursor: default;
+    }
+
+    .button-row {
+      color: #444;
+      font-size: 16pt;
+      font-family: arial;
+      font-weight: bold;
+      padding-bottom: 10px;
+      padding-left: 12px;
+      margin-top: 5px;
+    }
+
+    .button-num {
+      padding-left: 12px;
+      padding-right: 12px;
+      margin-right: 6px;
+      cursor: pointer;
+      border: 1px solid gray;
+      padding-top: 5px;
+      padding-bottom: 6px;
+      background-color: #FCFCFC;
+      -moz-box-shadow: 1px 1px 1px 1px #ccc;
+      -webkit-box-shadow: 1px 1px 1px 1px #ccc;
+      box-shadow: 1px 1px 1px 1px #ccc;
+      -moz-border-radius: 3px;
+      -webkit-border-radius: 3px;
+      border-radius: 3px;
+    }
+
+    .button-period {
+      padding-left: 9px;
+      padding-right: 8px;
+      margin-right: 6px;
+      cursor: pointer;
+      border: 1px solid gray;
+      padding-top: 5px;
+      padding-bottom: 6px;
+      background-color: #FCFCFC;
+      -moz-box-shadow: 1px 1px 1px 1px #ccc;
+      -webkit-box-shadow: 1px 1px 1px 1px #ccc;
+      box-shadow: 1px 1px 1px 1px #ccc;
+      -moz-border-radius: 3px;
+      -webkit-border-radius: 3px;
+      border-radius: 3px;
+    }
+
+    .button-num:hover {
+      width: 100px;
+      height: 100px;
+      background: lightgray;
+      color: black;
+    }
+
+    .button-num-hover {
+      width: 100px;
+      height: 100px;
+      background: lightgray;
+      color: black;
+    }
+
+    .button-num:active {
+      width: 100px;
+      height: 100px;
+      background: lightslategrey;
+      color: white;
+    }
+
+    .button-num-active {
+      width: 100px;
+      height: 100px;
+      background: lightslategrey;
+      color: white;
+    }
+
+    .button-period:hover {
+      width: 100px;
+      height: 100px;
+      background: lightgray;
+      color: black;
+    }
+
+    .button-period-hover {
+      width: 100px;
+      height: 100px;
+      background: lightgray;
+      color: black;
+    }
+
+    .button-period:active {
+      width: 100px;
+      height: 100px;
+      background: lightslategrey;
+      color: white;
+    }
+
+    .button-period-active {
+      width: 100px;
+      height: 100px;
+      background: lightslategrey;
+      color: white;
+    }
+
+    .button-period-error {
+      width: 100px;
+      height: 100px;
+      background: IndianRed;
+      color: firebrick;
+    }
+
+    .buttonop-plus-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 185px;
+      left: 158px;
+    }
+
+    .buttonop-plus {
+      background-image: url(plus.png);
+      background-repeat: no-repeat;
+      background-color: #DDD;
+      border: 1px solid gray;
+      -moz-box-shadow: 1px 1px 1px 1px #CCC;
+      -webkit-box-shadow: 1px 1px 1px 1px #CCC;
+      box-shadow: 1px 1px 1px 1px #CCC;
+      -moz-border-radius: 3px;
+      -webkit-border-radius: 3px;
+      border-radius: 3px;
+    }
+
+    .buttonop-plus:hover {
+      background-image: url(plus_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-plus-hover {
+      background-image: url(plus_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-plus:active {
+      background-image: url(plus_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+
+    .buttonop-plus-active {
+      background-image: url(plus_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+
+    .buttonop-minus-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 185px;
+      left: 201px;
+    }
+
+    .buttonop-minus {
+      background-image: url(minus.png);
+      background-repeat: no-repeat;
+      background-color: #DDD;
+      border: 1px solid gray;
+      -moz-box-shadow: 1px 1px 1px 1px #CCC;
+      -webkit-box-shadow: 1px 1px 1px 1px #CCC;
+      box-shadow: 1px 1px 1px 1px #CCC;
+      -moz-border-radius: 3px;
+      -webkit-border-radius: 3px;
+      border-radius: 3px;
+    }
+
+    .buttonop-minus:hover {
+      background-image: url(minus_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-minus-hover {
+      background-image: url(minus_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-minus:active {
+      background-image: url(minus_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+
+    .buttonop-minus-active {
+      background-image: url(minus_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+
+    .buttonop-mult-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 225px;
+      left: 158px;
+    }
+
+    .buttonop-mult {
+      background-image: url(mult.png);
+      background-repeat: no-repeat;
+      background-color: #DDD;
+      border: 1px solid gray;
+      -moz-box-shadow: 1px 1px 1px 1px #CCC;
+      -webkit-box-shadow: 1px 1px 1px 1px #CCC;
+      box-shadow: 1px 1px 1px 1px #CCC;
+      -moz-border-radius: 3px;
+      -webkit-border-radius: 3px;
+      border-radius: 3px;
+    }
+
+    .buttonop-mult:hover {
+      background-image: url(mult_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-mult-hover {
+      background-image: url(mult_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-mult:active {
+      background-image: url(mult_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+
+    .buttonop-mult-active {
+      background-image: url(mult_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+
+    .buttonop-div-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 225px;
+      left: 201px;
+    }
+
+    .buttonop-div {
+      background-image: url(div.png);
+      background-repeat: no-repeat;
+      background-color: #DDD;
+      border: 1px solid gray;
+      -moz-box-shadow: 1px 1px 1px 1px #CCC;
+      -webkit-box-shadow: 1px 1px 1px 1px #CCC;
+      box-shadow: 1px 1px 1px 1px #CCC;
+      -moz-border-radius: 3px;
+      -webkit-border-radius: 3px;
+      border-radius: 3px;
+    }
+
+    .buttonop-div:hover {
+      background-image: url(div_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-div-hover {
+      background-image: url(div_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-div:active {
+      background-image: url(div_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+
+    .buttonop-div-active {
+      background-image: url(div_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+
+    .buttonop-equal-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 266px;
+      left: 158px;
+    }
+
+    .buttonop-equal {
+      background-image: url(equal.png);
+      background-repeat: no-repeat;
+      background-color: #DDD;
+      border: 1px solid gray;
+      -moz-box-shadow: 1px 1px 1px 1px #CCC;
+      -webkit-box-shadow: 1px 1px 1px 1px #CCC;
+      box-shadow: 1px 1px 1px 1px #CCC;
+      -moz-border-radius: 3px;
+      -webkit-border-radius: 3px;
+      border-radius: 3px;
+    }
+
+    .buttonop-equal:hover {
+      background-image: url(equal_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-equal-hover {
+      background-image: url(equal_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-equal:active {
+      background-image: url(equal_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+
+    .buttonop-equal-active {
+      background-image: url(equal_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+
+    .buttonop-arrow-base {
+      width: 35px;
+      height: 35px;
+      position: absolute;
+      top: 266px;
+      left: 201px;
+    }
+
+    .buttonop-arrow {
+      background-image: url(arrow.png);
+      background-repeat: no-repeat;
+      background-color: #DDD;
+      border: 1px solid gray;
+      -moz-box-shadow: 1px 1px 1px 1px #CCC;
+      -webkit-box-shadow: 1px 1px 1px 1px #CCC;
+      box-shadow: 1px 1px 1px 1px #CCC;
+      -moz-border-radius: 3px;
+      -webkit-border-radius: 3px;
+      border-radius: 3px;
+    }
+
+    .buttonop-arrow:hover {
+      background-image: url(arrow_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-arrow-hover {
+      background-image: url(arrow_black.png);
+      background-repeat: no-repeat;
+      background-color: #EEE;
+      background-position: center;
+    }
+
+    .buttonop-arrow:active {
+      background-image: url(arrow_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+
+    .buttonop-arrow-active {
+      background-image: url(arrow_white.png);
+      background-repeat: no-repeat;
+      background-color: lightslategrey;
+      background-position: center;
+    }
+  }
+  <div class="button-pad">
+    <div class="button-row">
+      <span var=keySeven class="button-num">7</span>
+      <span var=keyEight class="button-num">8</span>
+      <span var=keyNine class="button-num">9</span>
+      <div var=keyPlus class="buttonop-plus-base buttonop-plus"></div>
+      <div var=keyMinus class="buttonop-minus-base buttonop-minus"></div>
+    </div>
+    <div class="button-row">
+      <span var=keyFour class="button-num">4</span>
+      <span var=keyFive class="button-num">5</span>
+      <span var=keySix class="button-num">6</span>
+      <div var=keyStar class="buttonop-mult-base buttonop-mult"></div>
+      <div var=keySlash class="buttonop-div-base buttonop-div"></div>
+    </div>
+    <div class="button-row">
+      <span var=keyOne class="button-num">1</span>
+      <span var=keyTwo class="button-num">2</span>
+      <span var=keyThree class="button-num">3</span>
+      <div var=keyEqual class="buttonop-equal-base buttonop-equal"></div>
+      <div var=keyClear class="buttonop-arrow-base buttonop-arrow"></div>
+    </div>
+    <div class="button-row" style="padding-top: 1px;">
+      <span var=keyZero class="button-num">0</span>
+      <span var=keyDot class="button-period">
+        <span style="font-size:9pt;">&nbsp;&nbsp;</span>.<span style="font-size:9pt;">&nbsp;&nbsp;</span>
+      </span>
+    </div>
+  </div>
+}
+
+
+template SettingsDialog() {
+  css {
+    .setting-glyph {
+      position: absolute;
+      left: 239px;
+      top: 10px;
+      background-image: url(settings.png);
+      background-repeat: no-repeat;
+      width: 2px;
+      height: 20px;
+      z-index: 1000;
+      padding-left: 2px;
+      padding-right: 2px;
+      background-color: transparent;
+      border-color: transparent;
+      border-style: solid;
+      border-top-width: 1px;
+      border-left-width: 0px;
+      border-right-width: 3px;
+      border-bottom-width: 2px;
+      cursor: pointer;
+    }
+
+    .setting-glyph:hover {
+      background-color: #333 !important;
+    }
+
+    .dialog {
+      font-size: 10pt;
+      font-weight: normal;
+      margin-top: 26px;
+      position: absolute;
+      left: 14px;
+      background-color: lightgray;
+      width: 227px;
+      padding-bottom: 3px;
+      border: 1px solid black;
+    }
+
+    .dlg-area {
+      margin-left: 25px;
+    }
+
+    .dlg-item {
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    .dlg-subtitle {
+      font-weight: bold;
+      margin-top: 3px;
+    }
+
+    .expression-input {
+      width: 205px;
+      font-family: arial;
+      font-weight: bold;
+    }  }
+  <div>
+    <div var=settings class="setting-glyph"></div>
+    <div var=settingsDialog class="dialog" style="visibility: hidden;">
+      <div class="dlg-area">
+        <div class="dlg-subtitle">Theme:</div>
+        <div var="simpleTitle" style="cursor: pointer;">
+          <input var="simple" name="theme" type="radio" class="dlg-item"/>
+          <span>Simple</span>
+        </div>
+        <div var="buttonTitle" style="cursor: pointer;">
+          <input var="buttons" name="theme" type="radio" class="dlg-item"/>
+          <span>Buttons</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+/* Calculator Tape template with HTML snippets for sub totals, totals, operator
+ * displayed, errors, clearing calculations, linebreaks, and replace operators
+ * and subtotals.
+ */
+template TapeUI() {
+  css {
+    .calculator-tape {
+      height: 7em;
+      font-size: 18pt;
+      color: black;
+      background-color: white;
+      width: 229px;
+      border: 1px black solid;
+      font-family: arial;
+      font-weight: bolder;
+      padding-right: 2px;
+      padding-left: 8px;
+      overflow-y: auto;
+    }
+
+    .calculator-tape::-webkit-scrollbar {
+      width: 0px;
+    }
+
+    .alignleft {
+      float: left;
+    }
+
+    .alignright {
+      float: right;
+      color: lightgray;
+      padding-right: 4px;
+    }
+
+    .clear-line {
+      clear: both;
+    }
+
+    .clear-calc {
+      clear: both;
+      border-bottom: 1px solid lightgray;
+      margin-bottom: 5px;
+      height: 5px;
+    }
+
+    .error {
+      clear: both;
+      background-color: red;
+      color: white;
+      margin-bottom: 5px;
+      font-size: 10pt;
+    }
+
+    .total {
+      clear: both;
+      border-bottom: 1px solid lightgray;
+      margin-bottom: 5px;
+    }
+  }
+  get lineBreak() {
+    <div class="clear-line"></div>
+  }
+  get clearCalculation() {
+    <div class="clear-calc"></div>
+  }
+  get firstOp(displayedOp, number) {
+    <span style="font-family: courier;">${displayedOp}</span>${number}
+  }
+  get displayOpAndNumber(opAsStr, number) {
+    <div id="activeInput" class="alignleft"><span style="font-family: courier;">${opAsStr}</span>${number}</div>
+  }
+  get displayOp(opAsStr) {
+    <div id="activeInput" class="alignleft"><span style="font-family: courier;">${opAsStr}</span></div>
+  }
+  get displayEqual() {
+    <div class="alignleft"><span style="font-family: courier;">&nbsp;&nbsp;</span></div>
+  }  
+  get alignSubTotal() {
+    <div class="alignright"></div>
+  }
+  get displayTotal(formattedTotal) {
+    <div class="alignright">= ${formattedTotal}</div>
+  }
+  get displayActiveTotal() {
+    <div id="activeTotal" class="alignright"></div>
+  }
+  get displayError(err) {
+    <div class="error">${err}</div>
+  }
+  get replaceActiveOp(value) {
+    <div class="alignleft">${value}</div>
+  }
+  get replaceActiveTotal(value) {
+    <div class="alignright">${value}</div>
+  }
+  <div var="tape" class="calculator-tape"></div>  
+}

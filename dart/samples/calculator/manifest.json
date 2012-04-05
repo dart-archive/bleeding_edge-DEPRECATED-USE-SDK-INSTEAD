@@ -1,0 +1,13 @@
+{
+  "name": "ChromeOS Calculator",
+  "description": "Simple LTR Calculator with two themes.",
+  "version": "0.0.0.1",
+  "icons": {
+    "128": "calc_128.png"
+  },
+  "app": {
+    "launch": {
+      "web_url": "http://www.corp.google.com/~terry/dart/calculator/calculator.html"
+    }
+  }
+}
