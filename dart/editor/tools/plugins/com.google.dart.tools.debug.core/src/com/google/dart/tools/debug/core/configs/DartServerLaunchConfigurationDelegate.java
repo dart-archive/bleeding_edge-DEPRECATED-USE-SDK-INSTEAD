@@ -170,7 +170,9 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     IResource resource = launchConfig.getApplicationResource();
 
     if (resource == null) {
-      return launchConfig.getProject().getLocation().toFile();
+      if (launchConfig.getProject() != null) {
+        return launchConfig.getProject().getLocation().toFile();
+      }
     } else {
       if (resource.isLinked()) {
         // If the resource is linked, set the cwd to the parent directory of the resolved resource.
@@ -180,6 +182,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
         return resource.getProject().getLocation().toFile();
       }
     }
+    return null;
   }
 
   private String translateToFilePath(String scriptPath) {
