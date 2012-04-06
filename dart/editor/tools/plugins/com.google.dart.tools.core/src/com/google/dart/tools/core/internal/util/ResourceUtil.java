@@ -233,6 +233,9 @@ public class ResourceUtil {
   }
 
   private static URI getCanonicalUri(URI uri) {
+    if (uri == null) {
+      return null;
+    }
     try {
       return new File(uri).getCanonicalFile().toURI();
     } catch (IOException exception) {
@@ -257,7 +260,10 @@ public class ResourceUtil {
               int type = proxy.getType();
               if (type == IResource.FILE || type == IResource.FOLDER || type == IResource.PROJECT) {
                 IResource resource = proxy.requestResource();
-                resourceMap.put(getCanonicalUri(resource), resource);
+                URI resourceUri = getCanonicalUri(resource);
+                if (resourceUri != null) {
+                  resourceMap.put(resourceUri, resource);
+                }
               }
               return true;
             }
