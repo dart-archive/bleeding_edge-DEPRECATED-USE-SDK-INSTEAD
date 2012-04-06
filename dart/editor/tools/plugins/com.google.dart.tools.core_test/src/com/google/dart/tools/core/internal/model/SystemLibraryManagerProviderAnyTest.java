@@ -40,9 +40,9 @@ public class SystemLibraryManagerProviderAnyTest extends SystemLibraryManagerPro
     testLibrary("io", "io_runtime.dart");
   }
 
-//  public void test_SystemLibraryManagerProvider_isolate() throws Exception {
-//    testLibrary("isolate", "isolate_compiler.dart");
-//  }
+  public void test_SystemLibraryManagerProvider_isolate() throws Exception {
+    testLibrary("isolate", "isolate_compiler.dart");
+  }
 
   public void test_SystemLibraryManagerProvider_json() throws Exception {
     testLibrary("json", "json.dart");
