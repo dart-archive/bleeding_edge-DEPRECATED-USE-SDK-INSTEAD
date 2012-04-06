@@ -85,7 +85,7 @@ public class DartLaunchConfigWrapper {
   }
 
   /**
-   * @return the arguments string for the Dart application
+   * @return the arguments string for the Dart application or Browser
    */
   public String getArguments() {
     try {
@@ -98,7 +98,7 @@ public class DartLaunchConfigWrapper {
   }
 
   /**
-   * @return the arguments for the Dart application
+   * @return the arguments for the Dart application or Browser
    */
   public String[] getArgumentsAsArray() {
     String command = getArguments();
@@ -169,7 +169,7 @@ public class DartLaunchConfigWrapper {
 
   public boolean getEnableDebugging() {
     try {
-      return launchConfig.getAttribute(VM_ENABLE_DEBUGGING, false);
+      return launchConfig.getAttribute(VM_ENABLE_DEBUGGING, true);
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);
 
