@@ -687,7 +687,16 @@ public class CompletionEngine {
           }
           // { foo.! doFoo(); }
           Type type = analyzeType(completionNode.getTarget());
-          createCompletionsForQualifiedMemberAccess(functionName, type, false);
+          if (type != null) {
+            createCompletionsForQualifiedMemberAccess(functionName, type, false);
+          } else {
+            DartNode target = completionNode.getTarget();
+            if (target instanceof DartPropertyAccess) {
+              // TODO(zundel): HACK! This might be a 'this' or 'static' access: I didn't check
+              createCompletionsForPropertyAccess(((DartPropertyAccess) target).getName(), 
+                                                 analyzeType(target), false, false);
+            }
+          }
         }
       }
       return null;
@@ -776,7 +785,13 @@ public class CompletionEngine {
         if (TypeKind.of(type) == TypeKind.DYNAMIC) {
           // if dynamic use ScopedNameFinder to look for a declaration
           // { List list; list.! Map map; }
-          DartIdentifier name = (DartIdentifier) completionNode.getQualifier();
+          DartNode qualifier = completionNode.getQualifier();
+          DartIdentifier name;
+          if (qualifier instanceof DartIdentifier) {
+            name = (DartIdentifier)qualifier;
+          } else {
+            name = ((DartPropertyAccess)qualifier).getName(); 
+          }
           Element element = name.getElement();
           ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
           completionNode.accept(vars);
