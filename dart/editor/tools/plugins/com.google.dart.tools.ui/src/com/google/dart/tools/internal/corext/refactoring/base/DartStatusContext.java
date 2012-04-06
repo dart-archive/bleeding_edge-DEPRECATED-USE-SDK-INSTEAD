@@ -2,10 +2,11 @@ package com.google.dart.tools.internal.corext.refactoring.base;
 
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
-import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.model.SourceReference;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
@@ -78,25 +79,27 @@ public abstract class DartStatusContext extends RefactoringStatusContext {
 //    }
 //  }
 
-  private static class MemberSourceContext extends DartStatusContext {
-    private final TypeMember fMember;
+  private static class DartElementSourceContext extends DartStatusContext {
+    private final CompilationUnitElement element;
 
-    private MemberSourceContext(TypeMember member) {
-      fMember = member;
+    private DartElementSourceContext(CompilationUnitElement element) {
+      this.element = element;
     }
 
     @Override
     public CompilationUnit getCompilationUnit() {
-      return fMember.getCompilationUnit();
+      return element.getCompilationUnit();
     }
 
     @Override
     public SourceRange getSourceRange() {
-      try {
-        return fMember.getSourceRange();
-      } catch (DartModelException e) {
-        return new SourceRangeImpl(0, 0);
+      if (element instanceof SourceReference) {
+        try {
+          return ((SourceReference) element).getSourceRange();
+        } catch (DartModelException e) {
+        }
       }
+      return new SourceRangeImpl(0, 0);
     }
   }
 
@@ -114,16 +117,14 @@ public abstract class DartStatusContext extends RefactoringStatusContext {
 //  }
 
   /**
-   * Creates an status entry context for the given member
-   * 
-   * @param member the java member for which the context is supposed to be created
-   * @return the status entry context or <code>null</code> if the context cannot be created
+   * @return the {@link RefactoringStatusContext} for given {@link CompilationUnitElement}, may be
+   *         <code>null</code> if the context cannot be created.
    */
-  public static RefactoringStatusContext create(TypeMember member) {
-    if (member == null || !member.exists()) {
+  public static RefactoringStatusContext create(CompilationUnitElement element) {
+    if (element == null || !element.exists()) {
       return null;
     }
-    return new MemberSourceContext(member);
+    return new DartElementSourceContext(element);
   }
 
 //  /**

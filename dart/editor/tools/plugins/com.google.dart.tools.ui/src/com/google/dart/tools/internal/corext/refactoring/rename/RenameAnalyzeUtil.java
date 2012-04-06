@@ -3,38 +3,38 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
+import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchMatch;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
-import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
-import com.google.dart.tools.internal.corext.SourceRangeFactory;
-import com.google.dart.tools.internal.corext.refactoring.base.DartStringStatusContext;
+import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
+import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
-import org.eclipse.ltk.core.refactoring.TextChange;
+import org.eclipse.ltk.core.refactoring.participants.RenameProcessor;
 
 import java.util.List;
 import java.util.Set;
 
 /**
+ * Utilities used in various {@link RenameProcessor} implementations.
+ * 
  * @coverage dart.editor.ui.refactoring.core
  */
-class RenameAnalyzeUtil {
-
-  private static final WorkingCopyOwner WORKING_COPY_OWNER = new WorkingCopyOwner() {
-  };
+public class RenameAnalyzeUtil {
 
 //  private static class ProblemNodeFinder {
 //
@@ -105,45 +105,6 @@ class RenameAnalyzeUtil {
 //      //static
 //    }
 //  }
-
-  /**
-   * This method analyzes a set of local variable renames inside one {@link CompilationUnit}. It
-   * checks whether any new compile errors have been introduced by the rename.
-   * 
-   * @return a {@link RefactoringStatus} containing errors if compile errors or wrongly renamed
-   *         nodes are found.
-   */
-  public static RefactoringStatus analyzeLocalRenames(TextChange change, CompilationUnit oldUnit)
-      throws CoreException {
-    RefactoringStatus result = new RefactoringStatus();
-
-    // prepare new compilation errors
-    String newSource = change.getPreviewContent(null);
-    List<DartCompilationError> newErrors = Lists.newArrayList();
-    CompilationUnit newUnit = oldUnit.getWorkingCopy(WORKING_COPY_OWNER, null);
-    try {
-      newUnit.getBuffer().setContents(newSource);
-      DartCompilerUtilities.resolveUnit(newUnit, newErrors);
-    } finally {
-      newUnit.discardWorkingCopy();
-    }
-
-    // check for introduced compilation errors
-    for (DartCompilationError compilationError : newErrors) {
-      ErrorSeverity errorSeverity = compilationError.getErrorCode().getErrorSeverity();
-      if (errorSeverity == ErrorSeverity.ERROR) {
-        DartStringStatusContext statusContext = new DartStringStatusContext(
-            newSource,
-            SourceRangeFactory.create(compilationError));
-        result.addEntry(new RefactoringStatusEntry(
-            RefactoringStatus.ERROR,
-            compilationError.getMessage(),
-            statusContext));
-      }
-    }
-    return result;
-  }
-
 //  static RefactoringStatus analyzeRenameChanges(TextChangeManager manager,
 //      SearchResultGroup[] oldOccurrences, SearchResultGroup[] newOccurrences) {
 //    RefactoringStatus result = new RefactoringStatus();
@@ -238,34 +199,26 @@ class RenameAnalyzeUtil {
   /**
    * @return all direct and indirect supertypes of the given {@link Type}.
    */
-  public static Set<Type> getSuperTypes(final Type type) throws CoreException {
+  public static Set<Type> getSuperTypes(Type type) throws CoreException {
     Set<Type> superTypes = Sets.newHashSet();
-    // find direct supertypes
-    List<SearchMatch> matches = ExecutionUtils.runObjectCore(new RunnableObjectEx<List<SearchMatch>>() {
-      @Override
-      public List<SearchMatch> runObject() throws Exception {
-        SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
-        return searchEngine.searchSupertypes(type, null, null, null);
-      }
-    });
-    // add references from Types, find indirect supertypes
-    for (SearchMatch match : matches) {
-      if (match.getElement() instanceof Type) {
-        Type superType = (Type) match.getElement();
-        if (superTypes.add(superType)) {
+    DartLibrary library = type.getLibrary();
+    if (library != null) {
+      for (String superTypeName : type.getSupertypeNames()) {
+        Type superType = library.findTypeInScope(superTypeName);
+        if (superType != null && superTypes.add(superType)) {
           superTypes.addAll(getSuperTypes(superType));
         }
       }
     }
-    // done
     return superTypes;
   }
 
   /**
-   * @return the first top-level {@link DartElement} in the enclosing {@link DartLibrary} or any
-   *         {@link DartLibrary} imported by it, which has given name. May be <code>null</code>.
+   * @return the first top-level {@link CompilationUnitElement} in the enclosing {@link DartLibrary}
+   *         or any {@link DartLibrary} imported by it, which has given name. May be
+   *         <code>null</code>.
    */
-  public static DartElement getTopLevelElementNamed(
+  public static CompilationUnitElement getTopLevelElementNamed(
       Set<DartLibrary> visitedLibraries,
       DartElement reference,
       String name) throws DartModelException {
@@ -276,14 +229,18 @@ class RenameAnalyzeUtil {
       for (CompilationUnit unit : library.getCompilationUnits()) {
         DartElement[] children = unit.getChildren();
         for (DartElement element : children) {
-          if (Objects.equal(element.getElementName(), name)) {
-            return element;
+          if (element instanceof CompilationUnitElement
+              && Objects.equal(element.getElementName(), name)) {
+            return (CompilationUnitElement) element;
           }
         }
       }
       // search in imported libraries
       for (DartLibrary importedLibrary : library.getImportedLibraries()) {
-        DartElement element = getTopLevelElementNamed(visitedLibraries, importedLibrary, name);
+        CompilationUnitElement element = getTopLevelElementNamed(
+            visitedLibraries,
+            importedLibrary,
+            name);
         if (element != null) {
           return element;
         }
@@ -291,6 +248,110 @@ class RenameAnalyzeUtil {
     }
     // not found
     return null;
+  }
+
+  /**
+   * Adds fatal error into {@link RefactoringStatus} if "newName" will shadow any subtype member or
+   * local variable.
+   */
+  static void checkShadow_subType(
+      RefactoringStatus result,
+      Type enclosingType,
+      String newName,
+      String errorFormat_member,
+      String errorFormat_parameter,
+      String errorFormat_variable) throws CoreException {
+    if (enclosingType != null) {
+      List<Type> subTypes = RenameAnalyzeUtil.getSubTypes(enclosingType);
+      for (Type subType : subTypes) {
+        // check for declared members
+        TypeMember[] subTypeMembers = subType.getExistingMembers(newName);
+        if (subTypeMembers.length != 0) {
+          IPath resourcePath = subType.getResource().getFullPath();
+          String message = Messages.format(
+              errorFormat_member,
+              new Object[] {
+                  subType.getElementName(),
+                  BasicElementLabels.getPathLabel(resourcePath, false),
+                  newName});
+          result.addFatalError(message, DartStatusContext.create(subTypeMembers[0]));
+          return;
+        }
+        // check for local variables
+        for (Method method : subType.getMethods()) {
+          DartVariableDeclaration[] localVariables = method.getLocalVariables();
+          for (DartVariableDeclaration variable : localVariables) {
+            if (variable.getElementName().equals(newName)) {
+              IPath resourcePath = subType.getResource().getFullPath();
+              String message = Messages.format(
+                  variable.isParameter() ? errorFormat_parameter : errorFormat_variable,
+                  new Object[] {
+                      subType.getElementName(),
+                      method.getElementName(),
+                      BasicElementLabels.getPathLabel(resourcePath, false),
+                      newName});
+              result.addFatalError(message, DartStatusContext.create(variable));
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Adds fatal error into {@link RefactoringStatus} if "newName" will shadow any supertype member.
+   */
+  static void checkShadow_superType_member(
+      RefactoringStatus result,
+      Type enclosingType,
+      String newName,
+      String errorFormat) throws CoreException {
+    if (enclosingType != null) {
+      Set<Type> superTypes = RenameAnalyzeUtil.getSuperTypes(enclosingType);
+      for (Type superType : superTypes) {
+        TypeMember[] superTypeMembers = superType.getExistingMembers(newName);
+        if (superTypeMembers.length != 0) {
+          IPath resourcePath = superType.getResource().getFullPath();
+          String message = Messages.format(errorFormat, new Object[] {
+              superType.getElementName(),
+              BasicElementLabels.getPathLabel(resourcePath, false),
+              newName});
+          result.addFatalError(message, DartStatusContext.create(superTypeMembers[0]));
+          return;
+        }
+      }
+    }
+  }
+
+  /**
+   * Adds fatal error into {@link RefactoringStatus} if "newName" will be shadowed any top-level
+   * declaration.
+   */
+  static void checkShadow_topLevel(
+      RefactoringStatus result,
+      List<SearchMatch> references,
+      String newName,
+      String errorFormat) throws CoreException {
+    Set<DartLibrary> visitedLibraries = Sets.newHashSet();
+    for (SearchMatch searchMatch : references) {
+      CompilationUnitElement shadowElement = RenameAnalyzeUtil.getTopLevelElementNamed(
+          visitedLibraries,
+          searchMatch.getElement(),
+          newName);
+      if (shadowElement != null) {
+        DartLibrary shadowLibrary = shadowElement.getAncestor(DartLibrary.class);
+        IPath libraryPath = shadowLibrary.getResource().getFullPath();
+        IPath resourcePath = shadowElement.getResource().getFullPath();
+        String message = Messages.format(
+            errorFormat,
+            new Object[] {
+                BasicElementLabels.getPathLabel(resourcePath, false),
+                BasicElementLabels.getPathLabel(libraryPath, false),
+                newName});
+        result.addFatalError(message, DartStatusContext.create(shadowElement));
+      }
+    }
   }
 
 //  static List<CompilationUnit> createWorkingCopies(List<CompilationUnit> oldUnits,

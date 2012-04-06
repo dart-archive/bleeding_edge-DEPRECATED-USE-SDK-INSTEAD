@@ -1655,15 +1655,11 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameFieldRefactoring_Update_setter_occurrence;
 
-  public static String RenameFieldRefactoring_shadow_subTypeMember_willShadow;
-
-  public static String RenameFieldRefactoring_shadow_subTypeVariable_willShadow;
-
-  public static String RenameFieldRefactoring_shadow_subTypeParameter_willShadow;
-
-  public static String RenameFieldRefactoring_shadow_superTypeMember_willBeShadowed;
-
-  public static String RenameFieldRefactoring_shadow_topLevel_willShadow;
+  public static String RenameFieldRefactoring_shadow_subType_member;
+  public static String RenameFieldRefactoring_shadow_subType_variable;
+  public static String RenameFieldRefactoring_shadow_subType_parameter;
+  public static String RenameFieldRefactoring_shadow_superType_member;
+  public static String RenameFieldRefactoring_shadow_topLevel;
 
   public static String RenameJavaProjectChange_descriptor_description;
 
@@ -1682,8 +1678,10 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameJavaProjectRefactoring_rename;
 
   public static String RenameLocalVariableProcessor_descriptor_description;
-
   public static String RenameLocalVariableProcessor_descriptor_description_short;
+  public static String RenameLocalVariableProcessor_shadow_variable;
+  public static String RenameLocalVariableProcessor_shadow_superType_member;
+  public static String RenameLocalVariableProcessor_shadow_topLevel;
 
   public static String RenameMethodInInterfaceRefactoring_already_defined;
 

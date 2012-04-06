@@ -23,6 +23,7 @@ public class TestAll {
     suite.addTestSuite(LibraryReferenceFinderTest.class);
     suite.addTestSuite(NullInputStreamTest.class);
     suite.addTestSuite(JSONErrorMessageParserTest.class);
+    suite.addTestSuite(SourceRangeUtilsTest.class);
     return suite;
   }
 }

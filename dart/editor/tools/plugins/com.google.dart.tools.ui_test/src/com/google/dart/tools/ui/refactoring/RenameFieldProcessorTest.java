@@ -38,58 +38,6 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }
 
-//  public void test_badFinalState_conflictWithNextVariable() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "test() {",
-//        "  int test = 1;",
-//        "  int bar = 2;",
-//        "}");
-//    DartVariableDeclaration variable = findElement("test = 1;");
-//    // try to rename
-//    String source = testUnit.getSource();
-//    try {
-//      renameLocalVariable(variable, "bar");
-//      fail();
-//    } catch (InterruptedException e) {
-//    }
-//    // error should be displayed
-//    assertThat(openInformationMessages).isEmpty();
-//    assertThat(showStatusMessages).hasSize(1);
-//    assertEquals("Duplicate local variable 'bar'", showStatusMessages.get(0));
-//    // no source changes
-//    assertEquals(source, testUnit.getSource());
-//  }
-//
-//  public void test_badNewName_notIdentifier() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "test() {",
-//        "  int test = 1;",
-//        "  int bar = 2;",
-//        "  test = 3;",
-//        "  bar = 4;",
-//        "}");
-//    DartVariableDeclaration variable = findElement("test = 1;");
-//    // try to rename
-//    String source = testUnit.getSource();
-//    try {
-//      renameLocalVariable(variable, "-notIdentifier");
-//      fail();
-//    } catch (InterruptedException e) {
-//    }
-//    // error should be displayed
-//    assertThat(openInformationMessages).isEmpty();
-//    assertThat(showStatusMessages).hasSize(1);
-//    assertEquals(
-//        "The variable name '-notIdentifier' is not a valid identifier",
-//        showStatusMessages.get(0));
-//    assertThat(showStatusMessages.get(0)).contains(
-//        "The variable name '-notIdentifier' is not a valid identifier");
-//    // no source changes
-//    assertEquals(source, testUnit.getSource());
-//  }
-
   public void test_badNewName_alreadyNamed() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -157,6 +105,21 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     assertEquals("A field with this name is already defined.", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
+  }
+
+  /**
+   * Just for coverage of {@link RenameFieldVariableProcessor#getCurrentElementName()}.
+   */
+  public void test_getCurrentElementName() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int test = 1;",
+        "}");
+    Field field = findElement("test = 1;");
+    // do check
+    RenameFieldProcessor processor = new RenameFieldProcessor(field);
+    assertEquals("test", processor.getCurrentElementName());
   }
 
   public void test_OK_multipleUnits_onReference() throws Exception {
@@ -227,49 +190,6 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "  }",
         "}");
   }
-
-//
-//  public void test_notAvailable_noElement() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "test() {",
-//        "  int test = 1;",
-//        "  int bar = 2;",
-//        "  test = 3;",
-//        "  bar = 4;",
-//        "}");
-//    DartVariableDeclaration variable = null;
-//    // try to rename
-//    String source = testUnit.getSource();
-//    renameLocalVariable(variable, "newName");
-//    // error should be displayed
-//    assertThat(openInformationMessages).hasSize(1);
-//    assertEquals("The refactoring operation is not available", openInformationMessages.get(0));
-//    // no source changes
-//    assertEquals(source, testUnit.getSource());
-//  }
-//
-//  public void test_OK_local_onDeclaration() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "test() {",
-//        "  int test = 1;",
-//        "  int bar = 2;",
-//        "  test = 3;",
-//        "  bar = 4;",
-//        "}");
-//    DartVariableDeclaration variable = findElement("test = 1;");
-//    // do rename
-//    renameLocalVariable(variable, "newName");
-//    assertTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "test() {",
-//        "  int newName = 1;",
-//        "  int bar = 2;",
-//        "  newName = 3;",
-//        "  bar = 4;",
-//        "}");
-//  }
 
   public void test_OK_singleUnit_onDeclaration() throws Exception {
     setTestUnitContent(
@@ -553,6 +473,23 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     check_postCondition_shadowsTopLevel();
   }
 
+  public void test_postCondition_shadowsTopLevel_otherLibrary() throws Exception {
+    setUnitContent(
+        "Lib.dart",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('Lib');",
+        "var newName;");
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('Test');",
+        "#import('Lib.dart');",
+        "class A {",
+        "  var test = 1;",
+        "}",
+        "");
+    check_postCondition_shadowsTopLevel("Lib.dart");
+  }
+
   public void test_postCondition_shadowsTopLevel_variable() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -621,6 +558,10 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
   }
 
   private void check_postCondition_shadowsTopLevel() throws Exception {
+    check_postCondition_shadowsTopLevel("Test.dart");
+  }
+
+  private void check_postCondition_shadowsTopLevel(String unitName) throws Exception {
     Field field = findElement("test = 1;");
     // try to rename
     String source = testUnit.getSource();
@@ -633,7 +574,9 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "File 'Test/Test.dart' in library 'Test' declares top-level element 'newName' which will shadow renamed field",
+        "File 'Test/"
+            + unitName
+            + "' in library 'Test' declares top-level element 'newName' which will shadow renamed field",
         showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());

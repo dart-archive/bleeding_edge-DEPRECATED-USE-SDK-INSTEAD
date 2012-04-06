@@ -1,6 +1,8 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
@@ -8,25 +10,35 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.tools.core.dom.NodeFinder;
+import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.CompilationUnitElement;
+import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
+import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.participants.DartProcessors;
+import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.internal.corext.refactoring.util.ResourceUtil;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
+import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
@@ -45,46 +57,36 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 
   public static final String IDENTIFIER = "com.google.dart.tools.ui.renameLocalVariableProcessor"; //$NON-NLS-1$
 
-  private final DartVariableDeclaration fLocalVariable;
-  private final CompilationUnit fCu;
+  private final DartVariableDeclaration variable;
+  private final CompilationUnit unit;
 
-  private String fCurrentName;
-  private String fNewName;
-  private DartUnit fCompilationUnitNode;
-  private DartNode fVariableNode;
-  private VariableElement fVariableElement;
-  private CompilationUnitChange fChange;
+  private final String oldName;
+  private String newName;
+  private DartUnit unitNode;
+  private DartNode variableNode;
+  private VariableElement variableElement;
+  private CompilationUnitChange change;
 
   /**
    * Creates a new rename local variable processor.
    * 
-   * @param localVariable the local variable, or <code>null</code> if invoked by scripting
+   * @param variable the local variable, not <code>null</code>.
    */
-  public RenameLocalVariableProcessor(DartVariableDeclaration localVariable) {
-    fLocalVariable = localVariable;
-    fCu = localVariable != null ? localVariable.getAncestor(CompilationUnit.class) : null;
-    fNewName = ""; //$NON-NLS-1$
+  public RenameLocalVariableProcessor(DartVariableDeclaration variable) {
+    this.variable = variable;
+    this.unit = variable.getAncestor(CompilationUnit.class);
+    this.oldName = variable.getElementName();
+    this.newName = oldName;
   }
 
   @Override
   public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException {
     initAST();
-    // We should be able to find variable Node and Element.
-    if (fVariableElement == null) {
+    // we should be able to find variable Node and Element
+    if (variableElement == null) {
       return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.RenameTempRefactoring_must_select_local);
     }
-    // TODO(scheglov) I don't understand reason for this check. Yes, we need to check that local
-    // variable was selected. But may be not this way.
-//    if (fTempDeclarationNode == null || fTempDeclarationNode.resolveBinding() == null) {
-//      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.RenameTempRefactoring_must_select_local);
-//    }
-    // TODO(scheglov) Dart has no "initializers". Hm... But Dart has functions.
-//    if (!Checks.isDeclaredIn(fTempDeclarationNode, DartMethodDefinition.class)
-//        && !Checks.isDeclaredIn(fTempDeclarationNode, Initializer.class)) {
-//      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.RenameTempRefactoring_only_in_methods_and_initializers);
-//    }
     // OK
-    fCurrentName = fVariableElement.getName();
     return new RefactoringStatus();
   }
 
@@ -101,7 +103,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   public Change createChange(IProgressMonitor monitor) throws CoreException {
     monitor.beginTask(RefactoringCoreMessages.RenameTypeProcessor_creating_changes, 1);
     try {
-      return fChange;
+      return change;
     } finally {
       monitor.done();
     }
@@ -109,12 +111,12 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 
   @Override
   public String getCurrentElementName() {
-    return fCurrentName;
+    return oldName;
   }
 
   @Override
   public Object[] getElements() {
-    return new Object[] {fLocalVariable};
+    return new Object[] {variable};
   }
 
   @Override
@@ -129,7 +131,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 
   @Override
   public String getNewElementName() {
-    return fNewName;
+    return newName;
   }
 
   @Override
@@ -144,36 +146,41 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 
   @Override
   public boolean isApplicable() throws CoreException {
-    return RefactoringAvailabilityTester.isRenameAvailable(fLocalVariable);
+    return RefactoringAvailabilityTester.isRenameAvailable(variable);
   }
 
   @Override
   public void setNewElementName(String newName) {
     Assert.isNotNull(newName);
-    fNewName = newName;
+    this.newName = newName;
   }
 
   @Override
   protected RenameModifications computeRenameModifications() throws CoreException {
     RenameModifications result = new RenameModifications();
-    result.rename(fLocalVariable, new RenameArguments(getNewElementName(), true));
+    result.rename(variable, new RenameArguments(getNewElementName(), true));
     return result;
   }
 
   @Override
-  protected RefactoringStatus doCheckFinalConditions(IProgressMonitor pm,
+  protected RefactoringStatus doCheckFinalConditions(
+      IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException, OperationCanceledException {
     try {
-      pm.beginTask("", 1); //$NON-NLS-1$
-      // Check new name.
-      RefactoringStatus result = checkNewElementName(fNewName);
+      pm.beginTask("", 12); //$NON-NLS-1$
+      // check new name
+      RefactoringStatus result = checkNewElementName(newName);
       if (result.hasFatalError()) {
         return result;
       }
-      // Prepare changes.
+      pm.worked(1);
+      // check for possible conflicts
+      result.merge(analyzePossibleConflicts(new SubProgressMonitor(pm, 10)));
+      if (result.hasFatalError()) {
+        return result;
+      }
+      // OK, create changes
       createEdits();
-      // Check that no changes don't cause problems.
-      result.merge(RenameAnalyzeUtil.analyzeLocalRenames(fChange, fCu));
       return result;
     } finally {
       pm.done();
@@ -182,41 +189,103 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 
   @Override
   protected final String[] getAffectedProjectNatures() throws CoreException {
-    return DartProcessors.computeAffectedNatures(fLocalVariable);
+    return DartProcessors.computeAffectedNatures(variable);
   }
 
   @Override
   protected IFile[] getChangedFiles() throws CoreException {
-    return new IFile[] {ResourceUtil.getFile(fCu)};
+    return new IFile[] {ResourceUtil.getFile(unit)};
+  }
+
+  private RefactoringStatus analyzePossibleConflicts(IProgressMonitor pm) throws CoreException {
+    pm.beginTask("Analyze possible conflicts", 3);
+    try {
+      RefactoringStatus result = new RefactoringStatus();
+      Type enclosingType = variable.getAncestor(Type.class);
+      // analyze variables in same function
+      {
+        DartFunction enclosingFunction = variable.getAncestor(DartFunction.class);
+        if (enclosingFunction != null) {
+          DartVariableDeclaration[] localVariables = enclosingFunction.getLocalVariables();
+          for (DartVariableDeclaration otherVariable : localVariables) {
+            if (Objects.equal(otherVariable.getElementName(), newName)
+                && SourceRangeUtils.intersects(
+                    otherVariable.getVisibleRange(),
+                    variable.getVisibleRange())) {
+              String message = Messages.format(
+                  RefactoringCoreMessages.RenameLocalVariableProcessor_shadow_variable,
+                  newName);
+              result.addFatalError(message, DartStatusContext.create(otherVariable));
+              return result;
+            }
+          }
+        }
+      }
+      // analyze supertypes
+      pm.subTask("Analyze supertypes");
+      RenameAnalyzeUtil.checkShadow_superType_member(
+          result,
+          enclosingType,
+          newName,
+          RefactoringCoreMessages.RenameLocalVariableProcessor_shadow_superType_member);
+      pm.worked(1);
+      if (result.hasFatalError()) {
+        return result;
+      }
+      // analyze top-level elements
+      pm.subTask("Analyze top-level elements");
+      {
+        CompilationUnitElement topLevelElement = RenameAnalyzeUtil.getTopLevelElementNamed(
+            Sets.<DartLibrary>newHashSet(),
+            variable,
+            newName);
+        if (topLevelElement != null) {
+          DartLibrary shadowLibrary = topLevelElement.getAncestor(DartLibrary.class);
+          IPath libraryPath = shadowLibrary.getResource().getFullPath();
+          IPath resourcePath = topLevelElement.getResource().getFullPath();
+          String message = Messages.format(
+              RefactoringCoreMessages.RenameLocalVariableProcessor_shadow_topLevel,
+              new Object[] {
+                  BasicElementLabels.getPathLabel(resourcePath, false),
+                  BasicElementLabels.getPathLabel(libraryPath, false),
+                  newName});
+          result.addFatalError(message, DartStatusContext.create(topLevelElement));
+        }
+      }
+      // OK
+      return result;
+    } finally {
+      pm.done();
+    }
   }
 
   private void createEdits() {
     List<TextEdit> allRenameEdits = getAllRenameEdits();
 
-    fChange = new CompilationUnitChange(RefactoringCoreMessages.RenameTempRefactoring_rename, fCu);
+    change = new CompilationUnitChange(RefactoringCoreMessages.RenameTempRefactoring_rename, unit);
     MultiTextEdit rootEdit = new MultiTextEdit();
-    fChange.setEdit(rootEdit);
-    fChange.setKeepPreviewEdits(true);
+    change.setEdit(rootEdit);
+    change.setKeepPreviewEdits(true);
 
     for (TextEdit edit : allRenameEdits) {
       rootEdit.addChild(edit);
-      fChange.addTextEditGroup(new TextEditGroup(
+      change.addTextEditGroup(new TextEditGroup(
           RefactoringCoreMessages.RenameTempRefactoring_changeName,
           edit));
     }
   }
 
   private TextEdit createRenameEdit(int offset) {
-    return new ReplaceEdit(offset, fCurrentName.length(), fNewName);
+    return new ReplaceEdit(offset, oldName.length(), newName);
   }
 
   private List<TextEdit> getAllRenameEdits() {
     final List<TextEdit> edits = Lists.newArrayList();
-    DartNode enclosingMethod = ASTNodes.getParent(fVariableNode, DartMethodDefinition.class);
+    DartNode enclosingMethod = ASTNodes.getParent(variableNode, DartMethodDefinition.class);
     enclosingMethod.accept(new ASTVisitor<Void>() {
       @Override
       public Void visitIdentifier(DartIdentifier node) {
-        if (node.getElement() == fVariableElement) {
+        if (node.getElement() == variableElement) {
           int offset = node.getSourceInfo().getOffset();
           TextEdit edit = createRenameEdit(offset);
           edits.add(edit);
@@ -228,16 +297,16 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   }
 
   private void initAST() throws DartModelException {
-    fCompilationUnitNode = DartCompilerUtilities.resolveUnit(fCu);
+    unitNode = DartCompilerUtilities.resolveUnit(unit);
     // Prepare variable Node.
-    SourceRange sourceRange = fLocalVariable.getNameRange();
-    fVariableNode = NodeFinder.perform(fCompilationUnitNode, sourceRange);
-    if (fVariableNode == null) {
+    SourceRange sourceRange = variable.getNameRange();
+    variableNode = NodeFinder.perform(unitNode, sourceRange);
+    if (variableNode == null) {
       return;
     }
     // prepare variable Element.
-    if (fVariableNode.getElement() instanceof VariableElement) {
-      fVariableElement = (VariableElement) fVariableNode.getElement();
+    if (variableNode.getElement() instanceof VariableElement) {
+      variableElement = (VariableElement) variableNode.getElement();
     }
   }
 }
