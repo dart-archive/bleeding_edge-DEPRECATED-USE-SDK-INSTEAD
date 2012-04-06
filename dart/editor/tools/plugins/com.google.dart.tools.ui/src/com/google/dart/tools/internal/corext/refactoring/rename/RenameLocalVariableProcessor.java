@@ -167,7 +167,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
       IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException, OperationCanceledException {
     try {
-      pm.beginTask("", 12); //$NON-NLS-1$
+      pm.beginTask("", 11); //$NON-NLS-1$
       // check new name
       RefactoringStatus result = checkNewElementName(newName);
       if (result.hasFatalError()) {

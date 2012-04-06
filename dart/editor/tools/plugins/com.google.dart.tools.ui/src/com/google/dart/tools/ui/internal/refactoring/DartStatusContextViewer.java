@@ -57,7 +57,7 @@ public class DartStatusContextViewer extends TextStatusContextViewer {
         CompilationUnit cunit = jsc.getCompilationUnit();
         if (cunit.isWorkingCopy()) {
           try {
-            document = newJavaDocument(cunit.getSource());
+            document = newDocument(cunit.getSource());
           } catch (DartModelException e) {
             // document is null which is a valid input.
           }
@@ -76,7 +76,7 @@ public class DartStatusContextViewer extends TextStatusContextViewer {
     } else if (context instanceof DartStringStatusContext) {
       updateTitle(null);
       DartStringStatusContext sc = (DartStringStatusContext) context;
-      setInput(newJavaDocument(sc.getSource()), createRegion(sc.getSourceRange()));
+      setInput(newDocument(sc.getSource()), createRegion(sc.getSourceRange()));
     }
   }
 
@@ -102,7 +102,7 @@ public class DartStatusContextViewer extends TextStatusContextViewer {
     return result;
   }
 
-  private IDocument newJavaDocument(String source) {
+  private IDocument newDocument(String source) {
     IDocument result = new Document(source);
     DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
     textTools.setupJavaDocumentPartitioner(result);
