@@ -225,7 +225,7 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
     }
 
     if (valueString.length() != 0) {
-      buff.append("= "); //$NON-NLS-1$
+      buff.append(" = "); //$NON-NLS-1$
       buff.append(valueString);
     }
 
