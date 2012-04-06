@@ -1136,6 +1136,30 @@
       </actionSetPartAssociation>
    </extension>
 <!-- End JavaScript Open action contributions  -->
+    <extension
+        point="org.eclipse.ui.actionSets">
+        <actionSet
+            label="%CodingActionSet.label"
+            description="%CodingActionSet.description"
+            visible="false"
+            id="com.google.dart.tools.ui.RefactorActionSet">
+            <action
+                definitionId="com.google.dart.tools.ui.edit.text.dart.rename.element"
+                label="%Refactoring.renameAction.label"
+                retarget="true"
+                menubarPath="edit/endEdit"
+                id="com.google.dart.tools.ui.actions.Rename">
+            </action>
+        </actionSet>
+    </extension>
+
+    <extension point="org.eclipse.ui.actionSetPartAssociations">
+        <actionSetPartAssociation targetID="com.google.dart.tools.ui.RefactorActionSet">
+            <part id="com.google.dart.tools.ui.text.editor.CompilationUnitEditor"/>
+        </actionSetPartAssociation>
+    </extension>
+    
+
    <extension
          point="org.eclipse.ui.actionSets">
       <actionSet

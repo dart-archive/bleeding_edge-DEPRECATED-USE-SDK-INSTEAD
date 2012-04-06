@@ -27,16 +27,6 @@ import java.util.List;
  */
 public class RefactoringAvailabilityTester {
 
-  public static Type getDeclaringType(DartElement element) {
-    if (element == null) {
-      return null;
-    }
-    if (!(element instanceof Type)) {
-      element = element.getAncestor(Type.class);
-    }
-    return (Type) element;
-  }
-
   public static DartElement[] getDartElements(Object[] elements) {
     List<DartElement> result = new ArrayList<DartElement>();
     for (int index = 0; index < elements.length; index++) {
@@ -45,6 +35,16 @@ public class RefactoringAvailabilityTester {
       }
     }
     return result.toArray(new DartElement[result.size()]);
+  }
+
+  public static Type getDeclaringType(DartElement element) {
+    if (element == null) {
+      return null;
+    }
+    if (!(element instanceof Type)) {
+      element = element.getAncestor(Type.class);
+    }
+    return (Type) element;
   }
 
 //  public static TypeMember[] getPullUpMembers(Type type) throws DartModelException {
@@ -1338,28 +1338,27 @@ public class RefactoringAvailabilityTester {
 
   public static boolean isRenameElementAvailable(DartElement element) throws CoreException {
     switch (element.getElementType()) {
-      case DartElement.DART_PROJECT:
-        return isRenameAvailable((DartProject) element);
-//      case DartElement.PACKAGE_FRAGMENT_ROOT:
-//        return isRenameAvailable((IPackageFragmentRoot) element);
-//      case DartElement.PACKAGE_FRAGMENT:
-//        return isRenameAvailable((IPackageFragment) element);
-      case DartElement.COMPILATION_UNIT:
-        return isRenameAvailable((CompilationUnit) element);
-      case DartElement.TYPE:
-        return isRenameAvailable((Type) element);
-      case DartElement.METHOD:
-        Method method = (Method) element;
-        if (method.isConstructor()) {
-          return isRenameAvailable(method.getDeclaringType());
-        } else {
-          return isRenameAvailable(method);
-        }
-      case DartElement.FIELD:
-        Field field = (Field) element;
-        return isRenameFieldAvailable(field);
+//      case DartElement.DART_PROJECT:
+//        return isRenameAvailable((DartProject) element);
+//      case DartElement.COMPILATION_UNIT:
+//        return isRenameAvailable((CompilationUnit) element);
+//      case DartElement.TYPE:
+//        return isRenameAvailable((Type) element);
+//      case DartElement.METHOD:
+//        Method method = (Method) element;
+//        if (method.isConstructor()) {
+//          return isRenameAvailable(method.getDeclaringType());
+//        } else {
+//          return isRenameAvailable(method);
+//        }
 //      case DartElement.TYPE_PARAMETER:
 //        return isRenameAvailable((ITypeParameter) element);
+//      case DartElement.FUNCTION:
+//      case DartElement.FUNCTION_TYPE_ALIAS:
+//      case DartElement.LIBRARY:
+//        return false;
+      case DartElement.FIELD:
+        return isRenameFieldAvailable((Field) element);
       case DartElement.VARIABLE:
         return isRenameAvailable((DartVariableDeclaration) element);
     }
