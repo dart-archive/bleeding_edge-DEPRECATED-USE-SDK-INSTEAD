@@ -19,8 +19,8 @@ import com.google.dart.engine.metrics.Tracer.EventType;
  * Dart events for SpeedTracer.
  */
 public enum DartEventType implements EventType {
-  ADD_OUTOFDATE("MistyRose"), BUILD_LIB_SCOPES("violet"), COMPILE("green"), //
-  COMPILE_APP("gray"), COMPILE_LIBRARIES("brown"), EXEC_PHASE("blue"), //
+  ADD_OUTOFDATE("MistyRose"), BUILD_LIB_SCOPES("violet"), ANALYZE("green"), //
+  ANALYZE_TOP_LEVEL_LIBRARY("gray"), ANALYZE_IMPORTS("brown"), EXEC_PHASE("blue"), //
   IMPORT_EMBEDDED_LIBRARIES("purple"), IS_SOURCE_OUTOFDATE("Chartreuse"), //
   SCANNER("GoldenRod"), PARSE("red"), PARSE_OUTOFDATE("LightCoral"), //
   RESOLVE_LIBRARIES("black"), TIMESTAMP_OUTOFDATE("LightSteelBlue"), //

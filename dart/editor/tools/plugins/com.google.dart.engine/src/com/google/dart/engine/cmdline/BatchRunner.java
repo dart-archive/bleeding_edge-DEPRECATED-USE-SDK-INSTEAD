@@ -13,32 +13,29 @@
  */
 package com.google.dart.engine.cmdline;
 
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 /**
- * Provides a framework to read command line options from stdin and feed them to
- * a callback.
+ * Provides a framework to read command line options from stdin and feed them to a callback.
  */
 public class BatchRunner {
 
   public interface Invocation {
-    public boolean invoke (String[] args) throws Throwable;
+    public boolean invoke(String[] args) throws Throwable;
   }
 
   /**
-   * Run the tool in 'batch' mode, receiving command lines through stdin and returning
-   * pass/fail status through stdout.  This feature is intended for use in unit testing.
-   *
+   * Run the tool in 'batch' mode, receiving command lines through stdin and returning pass/fail
+   * status through stdout. This feature is intended for use in unit testing.
+   * 
    * @param batchArgs command line arguments forwarded from main().
    */
   public static void runAsBatch(String[] batchArgs, Invocation toolInvocation) throws Throwable {
     System.out.println(">>> BATCH START");
 
     // Read command lines in from stdin and create a new compiler for each one.
-    BufferedReader cmdlineReader = new BufferedReader(new InputStreamReader(
-        System.in));
+    BufferedReader cmdlineReader = new BufferedReader(new InputStreamReader(System.in));
     long startTime = System.currentTimeMillis();
     int testsFailed = 0;
     int totalTests = 0;
@@ -68,8 +65,8 @@ public class BatchRunner {
       throw e;
     }
     long elapsed = System.currentTimeMillis() - startTime;
-    System.out.println(">>> BATCH END (" + (totalTests - testsFailed) + "/"
-        + totalTests + ") " + elapsed + "ms");
+    System.out.println(">>> BATCH END (" + (totalTests - testsFailed) + "/" + totalTests + ") "
+        + elapsed + "ms");
     System.out.flush();
   }
 }

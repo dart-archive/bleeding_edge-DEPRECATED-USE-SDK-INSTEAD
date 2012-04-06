@@ -19,9 +19,9 @@ import java.lang.management.ThreadMXBean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Collection of compiler metrics.
+ * Collection of metrics.
  */
-public final class CompilerMetrics {
+public final class AnalysisMetrics {
   public static long getCPUTime() {
     return System.currentTimeMillis() * 1000000;
   }
@@ -64,7 +64,7 @@ public final class CompilerMetrics {
   // Timing metrics for complete stages
   private long updateAndResolveTimeStart = 0L;
 
-  public CompilerMetrics() {
+  public AnalysisMetrics() {
     this.milliStartTime = System.currentTimeMillis();
   }
 

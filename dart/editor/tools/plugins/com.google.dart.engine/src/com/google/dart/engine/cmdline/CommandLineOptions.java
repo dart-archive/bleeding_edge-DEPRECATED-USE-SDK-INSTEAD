@@ -14,6 +14,7 @@
 package com.google.dart.engine.cmdline;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.cmdline.CommandLineErrorFormatter.ErrorFormat;
 
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
@@ -29,9 +30,9 @@ import java.util.List;
 public class CommandLineOptions {
 
   /**
-   * Command line options accepted by the {@link DartCompiler} entry point.
+   * Command line options accepted by the {@link AnalyzerMain} entry point.
    */
-  public static class CompilerOptions {
+  public static class AnalyzerOptions {
 
     @Option(name = "--batch", aliases = {"-batch"}, usage = "Batch mode (for unit testing)")
     private boolean batch = false;
@@ -43,15 +44,15 @@ public class CommandLineOptions {
     private boolean developerModeChecks = false;
 
     @Option(name = "--ignore_unrecognized_flags", aliases = {"--ignore-unrecognized-flags"}, //
-        usage = "Ignore unrecognized command line flags")
+    usage = "Ignore unrecognized command line flags")
     private boolean ignoreUnrecognizedFlags = false;
 
     @Option(name = "--jvm_metrics_detail", //
-        usage = "Display summary (default) or\n verbose metrics")
+    usage = "Display summary (default) or\n verbose metrics")
     private String jvmMetricDetail = "summary";
 
     @Option(name = "--jvm_metrics_format", //
-        usage = "Output metrics in tabular (default)\n or pretty format")
+    usage = "Output metrics in tabular (default)\n or pretty format")
     private String jvmMetricFormat = "tabular";
 
     @Option(name = "--jvm_metrics_type", usage = "Comma-separated list to display:\n "
@@ -62,58 +63,40 @@ public class CommandLineOptions {
     @Option(name = "--help", aliases = {"-?", "-help"}, usage = "Prints this help message")
     private boolean showHelp = false;
 
-    @Option(name = "--jvm_metrics", usage = "Print jvm metrics at end of compile")
+    @Option(name = "--jvm_metrics", usage = "Print jvm metrics at end of the program")
     private boolean showJvmMetrics = false;
 
-    @Option(name = "--metrics", usage = "Print compilation metrics")
+    @Option(name = "--metrics", usage = "Print metrics")
     private boolean showMetrics = false;
 
     @Option(name = "--fatal_warnings", aliases = {"-Werror"}, //
-        usage = "Treat non-type warnings as fatal")
+    usage = "Treat non-type warnings as fatal")
     private boolean warningsAreFatal = false;
 
     @Option(name = "--platform", //
-        usage = "Platform libraries to analyze (e.g. dartium, vm, dart2js, frog, any)")
+    usage = "Platform libraries to analyze (e.g. dartium, vm, dart2js, frog, any)")
     private String platformName = "Not Implemented";
 
     @Option(name = "--dart_sdk", aliases = {"--dart-sdk"}, //
-        usage = "Path to dart sdk.  (system property com.google.dart.sdk)")
+    usage = "Path to dart sdk.  (system property com.google.dart.sdk)")
     private File dartSdkPath = new File("Not Implemented");
 
     @Option(name = "--show_sdk_warnings", usage = "show warnings from SDK source")
     private boolean showSdkWarnings = false;
 
-    @Option(name = "--resolve_on_parse_error", //
-        usage = "For debugging, continue on with resolution even if there are parse errors.")
-    private boolean resolveDespiteParseErrors;
-
     @Argument
     private final List<String> sourceFiles = Lists.newArrayList();
 
-    public String getJvmMetricOptions() {
-      if (!showJvmMetrics) {
-        return null;
-      }
-      return jvmMetricDetail + ":" + jvmMetricFormat + ":" + jvmMetricType;
-    }
-
-    public String getPlatformName() {
-      return platformName;
-    }
-
-    public File getDartSdkPath() {
+    public File dartSdkPath() {
       return dartSdkPath;
     }
 
-    /**
-     * Returns whether warnings from SDK files should be suppressed.
-     */
-    public boolean suppressSdkWarnings() {
-      return !showSdkWarnings;
+    public boolean developerModeChecks() {
+      return developerModeChecks;
     }
 
     /**
-     * Returns the list of files passed to the compiler.
+     * Returns the list of files passed to the analyzer.
      */
     public List<String> getSourceFiles() {
       return sourceFiles;
@@ -123,16 +106,34 @@ public class CommandLineOptions {
       return ignoreUnrecognizedFlags;
     }
 
+    public String jvmMetricOptions() {
+      if (!showJvmMetrics) {
+        return null;
+      }
+      return jvmMetricDetail + ":" + jvmMetricFormat + ":" + jvmMetricType;
+    }
+
+    public String platformName() {
+      return platformName;
+    }
+
+    /**
+     * @return the format to use for printing errors
+     */
+    public ErrorFormat printErrorFormat() {
+      String lowerError = errorFormat.toLowerCase();
+      if ("machine".equals(lowerError)) {
+        return ErrorFormat.MACHINE;
+      }
+      return ErrorFormat.NORMAL;
+    }
+
     public boolean shouldBatch() {
       return batch;
     }
 
-    public boolean resolveDespiteParseErrors() {
-      return resolveDespiteParseErrors;
-    }
-
     /**
-     * Returns <code>true</code> if the compiler should print it's help message.
+     * Returns <code>true</code> to indicate printing the help message.
      */
     public boolean showHelp() {
       return showHelp;
@@ -147,25 +148,17 @@ public class CommandLineOptions {
     }
 
     /**
+     * Returns whether warnings from SDK files should be suppressed.
+     */
+    public boolean suppressSdkWarnings() {
+      return !showSdkWarnings;
+    }
+
+    /**
      * Returns whether warnings (excluding type warnings) are fatal.
      */
     public boolean warningsAreFatal() {
       return warningsAreFatal;
-    }
-
-    public boolean developerModeChecks() {
-      return developerModeChecks;
-    }
-
-    /**
-     * @return the format to use for printing errors
-     */
-    public ErrorFormat printErrorFormat() {
-      String lowerError = errorFormat.toLowerCase();
-      if ("machine".equals(lowerError)) {
-        return ErrorFormat.MACHINE;
-      }
-      return ErrorFormat.NORMAL;
     }
   }
 
@@ -178,7 +171,7 @@ public class CommandLineOptions {
    * @param parsedOptions [out parameter] parsed options
    * @throws CmdLineException Thrown if there is a problem parsing the options.
    */
-  public static CmdLineParser parse(String[] args, CompilerOptions parsedOptions)
+  public static CmdLineParser parse(String[] args, AnalyzerOptions parsedOptions)
       throws CmdLineException {
     boolean ignoreUnrecognized = false;
     for (String arg : args) {
