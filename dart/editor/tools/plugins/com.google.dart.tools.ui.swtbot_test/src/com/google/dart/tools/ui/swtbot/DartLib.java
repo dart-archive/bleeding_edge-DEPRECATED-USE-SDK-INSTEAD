@@ -196,7 +196,7 @@ public class DartLib {
   /**
    * Open the specified sample in the editor then click the launch toolbar button.
    */
-  public void openAndLaunch(SWTWorkbenchBot bot) {
+  public void openAndLaunch(SWTWorkbenchBot bot) throws Exception {
     deleteJsFile();
     new OpenLibraryHelper(bot).open(this);
     if (this == TIME_SERVER_SAMPLE) {

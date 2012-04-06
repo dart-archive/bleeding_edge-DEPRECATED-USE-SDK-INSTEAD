@@ -52,6 +52,7 @@ public class DartEditorUiTest {
     CompilerWarmedUp.waitUntilWarmedUp(bot);
     if (DartCoreDebug.ANALYSIS_SERVER) {
       AnalysisCompleteCondition.startListening();
+      AnalysisCompleteCondition.waitUntilWarmedUp(bot);
     } else {
       BuildLibCondition.startListening();
     }

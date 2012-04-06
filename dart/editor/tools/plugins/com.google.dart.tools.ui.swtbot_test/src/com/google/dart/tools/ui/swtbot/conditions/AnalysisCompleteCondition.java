@@ -20,6 +20,7 @@ import com.google.dart.tools.core.analysis.PerformanceListener;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
 
+import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
 
@@ -59,6 +60,10 @@ public class AnalysisCompleteCondition implements ICondition {
             //Performance.RESOLVE.log(event.getStartTime());
           }
         });
+  }
+
+  public static void waitUntilWarmedUp(SWTWorkbenchBot bot) {
+    Performance.ANALYSIS_SERVER_WARMUP.log(bot, new AnalysisCompleteCondition());
   }
 
   @Override

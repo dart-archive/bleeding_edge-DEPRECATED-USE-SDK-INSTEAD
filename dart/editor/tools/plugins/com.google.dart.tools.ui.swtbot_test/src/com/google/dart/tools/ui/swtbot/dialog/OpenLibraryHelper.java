@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.swtbot.dialog;
 
+import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.swtbot.DartLib;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
 
@@ -39,13 +40,13 @@ public class OpenLibraryHelper extends NativeDialogHelper {
    * 
    * @param lib the library (not <code>null</code>)
    */
-  public void open(DartLib lib) {
+  public void open(DartLib lib) throws Exception {
     if (!lib.dartFile.exists()) {
       fail("Cannot open non existing file: " + lib.dartFile);
     }
 
     // Open the native dialog
-    bot.menu("File").menu("Open...").click();
+    bot.menu("File").menu("Open Folder...").click();
 
     try {
       waitForNativeShellShowing();
@@ -59,7 +60,7 @@ public class OpenLibraryHelper extends NativeDialogHelper {
 
       // Type the absolute path to the library
       bot.sleep(500);
-      typeText(lib.dartFile.getAbsolutePath());
+      typeText(lib.dir.getAbsolutePath());
       bot.sleep(1000);
 
       // On Mac, extra CR to close the "Go to Folder" popup
@@ -73,7 +74,9 @@ public class OpenLibraryHelper extends NativeDialogHelper {
       waitForNativeShellClosed();
       lib.logFullAnalysisTime();
       String title = lib.dartFile.getName();
-      Performance.OPEN_LIB.log(bot, waitForEditorWithTitle(title), lib.name);
+      Performance.OPEN_LIB.logInBackground(waitForEditorWithTitle(title), lib.name);
+      EditorUtility.openInEditor(lib.dartFile);
+      Performance.waitForResults(bot);
       lib.editor = editorWithTitle(bot, title);
 
     } finally {

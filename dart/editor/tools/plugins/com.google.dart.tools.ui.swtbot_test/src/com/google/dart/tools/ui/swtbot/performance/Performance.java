@@ -220,6 +220,7 @@ public class Performance {
 
   public static final Metric ANALYZE = new Metric("Analyze", 200);
   public static final Metric ANALYZE_FULL = new Metric("Analyze (Full)", 3000);
+  public static final Metric ANALYSIS_SERVER_WARMUP = new Metric("AnalysisServer Warmup", 5000);
   public static final Metric CODE_COMPLETION = new Metric("Code Completion", 200);
   public static final Metric COMPILE = new Metric("Compile", 1000);
   public static final Metric COMPILER_PARSE = new Metric("Compiler Parse", 10);
