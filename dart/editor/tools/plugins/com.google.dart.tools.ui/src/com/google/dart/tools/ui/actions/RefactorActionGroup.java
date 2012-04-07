@@ -14,10 +14,9 @@ import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.PerformanceStats;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
@@ -25,9 +24,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.events.MenuAdapter;
-import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchSite;
@@ -37,6 +33,7 @@ import org.eclipse.ui.handlers.IHandlerActivation;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.operations.UndoRedoActionGroup;
 import org.eclipse.ui.part.Page;
+import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -45,7 +42,6 @@ import java.util.List;
 /**
  * Action group that adds refactor actions (for example 'Rename', 'Move') to a context menu and the
  * global menu bar.
- * 
  * <p>
  * This class may be instantiated; it is not intended to be subclassed.
  * </p>
@@ -61,8 +57,7 @@ public class RefactorActionGroup extends ActionGroup {
     }
   }
 
-  private static final String PERF_REFACTOR_ACTION_GROUP =
-      "com.google.dart.tools.ui/perf/explorer/RefactorActionGroup"; //$NON-NLS-1$
+  private static final String PERF_REFACTOR_ACTION_GROUP = "com.google.dart.tools.ui/perf/explorer/RefactorActionGroup"; //$NON-NLS-1$
 
   /**
    * Pop-up menu: id of the refactor sub menu (value
@@ -105,12 +100,12 @@ public class RefactorActionGroup extends ActionGroup {
    * Pop-up menu: id of the type group 2 of the refactor sub menu (value <code>typeGroup3</code>).
    */
   public static final String GROUP_TYPE3 = "typeGroup3"; //$NON-NLS-1$
-  private IWorkbenchSite fSite;
+  private final IWorkbenchSite fSite;
   private DartEditor fEditor;
   private String fGroupName = IContextMenuConstants.GROUP_REORGANIZE;
 
 //  private SelectionDispatchAction fMoveAction;
-  private SelectionDispatchAction fRenameAction;
+  private final SelectionDispatchAction fRenameAction;
 //  private SelectionDispatchAction fModifyParametersAction;
 //  private SelectionDispatchAction fConvertAnonymousToNestedAction;
 //
@@ -141,13 +136,12 @@ public class RefactorActionGroup extends ActionGroup {
 
   private final List<SelectionDispatchAction> fActions = new ArrayList<SelectionDispatchAction>();
 
-  private static final String QUICK_MENU_ID =
-      "com.google.dart.tools.ui.edit.text.java.refactor.quickMenu"; //$NON-NLS-1$
+  private static final String QUICK_MENU_ID = "com.google.dart.tools.ui.edit.text.java.refactor.quickMenu"; //$NON-NLS-1$
   private IHandlerActivation fQuickAccessHandlerActivation;
 
   private IHandlerService fHandlerService;
 
-  private Action fNoActionAvailable = new NoActionAvailable();
+  private final Action fNoActionAvailable = new NoActionAvailable();
 
   private final ISelectionProvider fSelectionProvider;
 
@@ -156,7 +150,6 @@ public class RefactorActionGroup extends ActionGroup {
    * 
    * @param editor the Dart editor
    * @param groupName the group name to add the actions to
-   * 
    * @noreference This constructor is not intended to be referenced by clients.
    */
   public RefactorActionGroup(DartEditor editor, String groupName) {
@@ -279,8 +272,8 @@ public class RefactorActionGroup extends ActionGroup {
   public RefactorActionGroup(IViewPart part) {
     this(part.getSite(), null);
 
-    IUndoContext workspaceContext =
-        (IUndoContext) ResourcesPlugin.getWorkspace().getAdapter(IUndoContext.class);
+    IUndoContext workspaceContext = (IUndoContext) ResourcesPlugin.getWorkspace().getAdapter(
+        IUndoContext.class);
     fUndoRedoActionGroup = new UndoRedoActionGroup(part.getViewSite(), workspaceContext, true);
 
     installQuickAccessAction();
@@ -299,8 +292,9 @@ public class RefactorActionGroup extends ActionGroup {
     stats.startRun();
 
     fSite = site;
-    fSelectionProvider =
-        selectionProvider == null ? fSite.getSelectionProvider() : selectionProvider;
+    fSelectionProvider = selectionProvider == null
+        ? fSite.getSelectionProvider()
+        : selectionProvider;
     ISelection selection = fSelectionProvider.getSelection();
 
     fRenameAction = new RenameAction(fSite);
@@ -463,37 +457,39 @@ public class RefactorActionGroup extends ActionGroup {
 //    actionBars.setGlobalActionHandler(ActionFactory.MOVE.getId(), fMoveAction);
   }
 
-  private int addAction(IMenuManager menu, IAction action) {
+  private int addAction(IMenuManager menu, String group, IAction action) {
     if (action != null && action.isEnabled()) {
-      menu.add(action);
+      menu.appendToGroup(group, action);
       return 1;
     }
     return 0;
   }
 
   private void addRefactorSubmenu(IMenuManager menu) {
-    MenuManager refactorSubmenu = new MenuManager(ActionMessages.RefactorMenu_label, MENU_ID);
-    refactorSubmenu.setActionDefinitionId(QUICK_MENU_ID);
+    // TODO(scheglov) really add "Refactoring" sub-menu
+//    MenuManager refactorSubmenu = new MenuManager(ActionMessages.RefactorMenu_label, MENU_ID);
+//    refactorSubmenu.setActionDefinitionId(QUICK_MENU_ID);
     if (fEditor != null) {
       final DartElement element = getEditorInput();
       if (element != null && ActionUtil.isOnBuildPath(element)) {
-        refactorSubmenu.addMenuListener(new IMenuListener() {
-          @Override
-          public void menuAboutToShow(IMenuManager manager) {
-            refactorMenuShown(manager);
-          }
-        });
-        refactorSubmenu.add(fNoActionAvailable);
-        menu.appendToGroup(fGroupName, refactorSubmenu);
+//        refactorSubmenu.addMenuListener(new IMenuListener() {
+//          @Override
+//          public void menuAboutToShow(IMenuManager manager) {
+//            refactorMenuShown(manager);
+//          }
+//        });
+//        refactorSubmenu.add(fNoActionAvailable);
+//        menu.appendToGroup(fGroupName, refactorSubmenu);
+        refactorMenuShown(menu);
       }
     } else {
       ISelection selection = fSelectionProvider.getSelection();
       for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
         iter.next().update(selection);
       }
-      if (fillRefactorMenu(refactorSubmenu) > 0) {
-        menu.appendToGroup(fGroupName, refactorSubmenu);
-      }
+//      if (fillRefactorMenu(refactorSubmenu) > 0) {
+//        menu.appendToGroup(fGroupName, refactorSubmenu);
+//      }
     }
   }
 
@@ -515,11 +511,11 @@ public class RefactorActionGroup extends ActionGroup {
         return;
       }
       ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-      DartTextSelection dartSelection =
-          new DartTextSelection(element,
-              getDocument(),
-              textSelection.getOffset(),
-              textSelection.getLength());
+      DartTextSelection dartSelection = new DartTextSelection(
+          element,
+          getDocument(),
+          textSelection.getOffset(),
+          textSelection.getLength());
 
       for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
         iter.next().update(dartSelection);
@@ -540,8 +536,14 @@ public class RefactorActionGroup extends ActionGroup {
 
   private int fillRefactorMenu(IMenuManager refactorSubmenu) {
     int added = 0;
-    refactorSubmenu.add(new Separator(GROUP_REORG));
-    added += addAction(refactorSubmenu, fRenameAction);
+    // TODO(scheglov) restore real "Refactoring" sub-menu
+//    refactorSubmenu.add(new Separator(GROUP_REORG));
+//    added += addAction(refactorSubmenu, fRenameAction);
+    refactorSubmenu.appendToGroup(
+        ITextEditorActionConstants.GROUP_EDIT,
+        new GroupMarker(fGroupName));
+    refactorSubmenu.appendToGroup(fGroupName, new Separator(GROUP_REORG));
+    added += addAction(refactorSubmenu, GROUP_REORG, fRenameAction);
 //    added += addAction(refactorSubmenu, fMoveAction);
 
     refactorSubmenu.add(new Separator(GROUP_CODING));
@@ -588,7 +590,8 @@ public class RefactorActionGroup extends ActionGroup {
     return DartUI.getEditorInputDartElement(fEditor.getEditorInput());
   }
 
-  private void initAction(SelectionDispatchAction action,
+  private void initAction(
+      SelectionDispatchAction action,
       ISelection selection,
       String actionDefinitionId) {
     initUpdatingAction(action, null, null, selection, actionDefinitionId);
@@ -604,7 +607,8 @@ public class RefactorActionGroup extends ActionGroup {
    * @param selection the selection
    * @param actionDefinitionId the action definition id
    */
-  private void initUpdatingAction(SelectionDispatchAction action,
+  private void initUpdatingAction(
+      SelectionDispatchAction action,
       ISelectionProvider provider,
       ISelectionProvider specialProvider,
       ISelection selection,
@@ -633,38 +637,40 @@ public class RefactorActionGroup extends ActionGroup {
     }
   }
 
-  private void refactorMenuHidden() {
-    ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-    for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
-      SelectionDispatchAction action = iter.next();
-      action.update(textSelection);
-    }
-  }
+//  private void refactorMenuHidden() {
+//    ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
+//    for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
+//      SelectionDispatchAction action = iter.next();
+//      action.update(textSelection);
+//    }
+//  }
 
   private void refactorMenuShown(IMenuManager refactorSubmenu) {
+    // TODO(scheglov) really add "Refactoring" sub-menu
     // we know that we have an MenuManager since we created it in addRefactorSubmenu()
-    Menu menu = ((MenuManager) refactorSubmenu).getMenu();
-    menu.addMenuListener(new MenuAdapter() {
-      @Override
-      public void menuHidden(MenuEvent e) {
-        refactorMenuHidden();
-      }
-    });
+//    Menu menu = ((MenuManager) refactorSubmenu).getMenu();
+//    menu.addMenuListener(new MenuAdapter() {
+//      @Override
+//      public void menuHidden(MenuEvent e) {
+//        refactorMenuHidden();
+//      }
+//    });
     ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-    DartTextSelection dartSelection =
-        new DartTextSelection(getEditorInput(),
-            getDocument(),
-            textSelection.getOffset(),
-            textSelection.getLength());
+    DartTextSelection dartSelection = new DartTextSelection(
+        getEditorInput(),
+        getDocument(),
+        textSelection.getOffset(),
+        textSelection.getLength());
 
     for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
       SelectionDispatchAction action = iter.next();
       action.update(dartSelection);
     }
-    refactorSubmenu.removeAll();
-    if (fillRefactorMenu(refactorSubmenu) == 0) {
-      refactorSubmenu.add(fNoActionAvailable);
-    }
+//    refactorSubmenu.removeAll();
+//    if (fillRefactorMenu(refactorSubmenu) == 0) {
+//      refactorSubmenu.add(fNoActionAvailable);
+//    }
+    fillRefactorMenu(refactorSubmenu);
   }
 
 }

@@ -108,6 +108,7 @@ import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.texteditor.ContentAssistAction;
@@ -1228,6 +1229,12 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   @Override
   public void editorContextMenuAboutToShow(IMenuManager menu) {
     super.editorContextMenuAboutToShow(menu);
+    {
+      ActionContext context = new ActionContext(getSelectionProvider().getSelection());
+      fContextMenuGroup.setContext(context);
+      fContextMenuGroup.fillContextMenu(menu);
+      fContextMenuGroup.setContext(null);
+    }
     addAction(menu, "ToggleComment");
   }
 
@@ -1477,10 +1484,11 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     // We have to keep the context menu group separate to have better control
     // over positioning
     fContextMenuGroup = new CompositeActionGroup(new ActionGroup[] {
-        fGenerateActionGroup, fRefactorActionGroup,
-    //         surroundWith,
-    //         new LocalHistoryActionGroup(this,
-    //         ITextEditorActionConstants.GROUP_EDIT)
+//        fGenerateActionGroup,
+        fRefactorActionGroup,
+//             surroundWith,
+//             new LocalHistoryActionGroup(this,
+//             ITextEditorActionConstants.GROUP_EDIT)
         });
 
     // allow shortcuts for quick fix/assist
