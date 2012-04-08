@@ -99,8 +99,10 @@ public class JvmMetrics {
       out.println("\nJIT Stats");
       out.println(String.format("\t%s jit time: %d ms", name, cBean.getTotalCompilationTime()));
     } else {
-      out.println(normalizeTabularColonPos(String.format("%s-jit-time-ms : %d",
-          normalizeName(name), cBean.getTotalCompilationTime())));
+      out.println(normalizeTabularColonPos(String.format(
+          "%s-jit-time-ms : %d",
+          normalizeName(name),
+          cBean.getTotalCompilationTime())));
     }
   }
 
@@ -112,9 +114,11 @@ public class JvmMetrics {
       out.format("\t\tcurrent           : %s\n", formatBytes(usage.getUsed()));
     } else {
       prefix = normalizeName(prefix);
-      out.println(normalizeTabularColonPos(String.format(prefix + "-available-bytes : %d",
+      out.println(normalizeTabularColonPos(String.format(
+          prefix + "-available-bytes : %d",
           usage.getMax())));
-      out.println(normalizeTabularColonPos(String.format(prefix + "-current-bytes : %d",
+      out.println(normalizeTabularColonPos(String.format(
+          prefix + "-current-bytes : %d",
           usage.getUsed())));
     }
   }
@@ -126,11 +130,14 @@ public class JvmMetrics {
       out.format("\t\tpeak              : %s\n", formatBytes(peakUsage.getUsed()));
       out.format("\t\tcurrent           : %s\n", formatBytes(usage.getUsed()));
     } else {
-      out.println(normalizeTabularColonPos(String.format(prefix + "-available-bytes : %d",
+      out.println(normalizeTabularColonPos(String.format(
+          prefix + "-available-bytes : %d",
           usage.getMax())));
-      out.println(normalizeTabularColonPos(String.format(prefix + "-peak-bytes : %d",
+      out.println(normalizeTabularColonPos(String.format(
+          prefix + "-peak-bytes : %d",
           peakUsage.getUsed())));
-      out.println(normalizeTabularColonPos(String.format(prefix + "-current-bytes : %d",
+      out.println(normalizeTabularColonPos(String.format(
+          prefix + "-current-bytes : %d",
           usage.getUsed())));
     }
   }
@@ -159,8 +166,12 @@ public class JvmMetrics {
           out.println("\tPool " + mpBean.getName());
           writePoolMemoryUsage(out, currentUsage, peakUsage, null, true);
         } else {
-          writePoolMemoryUsage(out, currentUsage, peakUsage,
-              "mem-pool-" + normalizeName(mpBean.getName()), false);
+          writePoolMemoryUsage(
+              out,
+              currentUsage,
+              peakUsage,
+              "mem-pool-" + normalizeName(mpBean.getName()),
+              false);
         }
       }
     } else {
@@ -221,7 +232,8 @@ public class JvmMetrics {
         out.format("\t\tcollection time    : %d ms\n", collectionTime);
       } else {
         String name = normalizeName("aggregate");
-        out.println(normalizeTabularColonPos(String.format("gc-" + name + "-collection-count : %d",
+        out.println(normalizeTabularColonPos(String.format(
+            "gc-" + name + "-collection-count : %d",
             collectionCount)));
         out.println(normalizeTabularColonPos(String.format("gc-" + name
             + "-collection-time-ms : %d", collectionTime)));

@@ -19,7 +19,8 @@ import com.google.dart.engine.metrics.Tracer.EventType;
  * Represents a type of event whose performance is tracked while running.
  */
 public enum SpeedTracerEventType implements EventType {
-  GC("Garbage Collection", "Plum"), OVERHEAD("Speedtracer Overhead", "Black");
+  GC("Garbage Collection", "Plum"),
+  OVERHEAD("Speedtracer Overhead", "Black");
 
   final String cssColor;
   final String name;

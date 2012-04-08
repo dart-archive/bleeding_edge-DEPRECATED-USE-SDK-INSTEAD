@@ -128,7 +128,12 @@ public final class Tracer {
      *          {@code refEvent}
      */
     GcEvent(TraceEvent refEvent, String gcType, long collectionCount, long durationNanos) {
-      super(null, SpeedTracerEventType.GC, "Collector Type", gcType, "Cumulative Collection Count",
+      super(
+          null,
+          SpeedTracerEventType.GC,
+          "Collector Type",
+          gcType,
+          "Cumulative Collection Count",
           Long.toString(collectionCount));
 
       this.refEvent = refEvent;
@@ -193,7 +198,8 @@ public final class Tracer {
       long nextFlush = System.currentTimeMillis() + FLUSH_TIMER_MSECS;
       try {
         while (true) {
-          TraceEvent event = threadEventQueue.poll(nextFlush - System.currentTimeMillis(),
+          TraceEvent event = threadEventQueue.poll(
+              nextFlush - System.currentTimeMillis(),
               TimeUnit.MILLISECONDS);
           if (event == null) {
             // ignore.
@@ -752,7 +758,10 @@ public final class Tracer {
       if (currGcTime > lastGcTime) {
         // create a new event
         long gcDurationNanos = (currGcTime - lastGcTime) * 1000000L;
-        TraceEvent gcEvent = new GcEvent(refEvent, gcName, gcMXBean.getCollectionCount(),
+        TraceEvent gcEvent = new GcEvent(
+            refEvent,
+            gcName,
+            gcMXBean.getCollectionCount(),
             gcDurationNanos);
 
         eventsToWrite.add(gcEvent);
@@ -788,7 +797,8 @@ public final class Tracer {
 
     while (currentEvent != event && !threadPendingEvents.isEmpty()) {
       // Missed a closing end for one or more frames! Try to sync back up.
-      currentEvent.addData("Missed",
+      currentEvent.addData(
+          "Missed",
           "This event was closed without an explicit call to Event.end()");
       currentEvent = threadPendingEvents.pop();
       currentEvent.updateDuration();

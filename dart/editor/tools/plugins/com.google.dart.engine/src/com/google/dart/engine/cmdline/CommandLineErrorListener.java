@@ -48,7 +48,9 @@ public class CommandLineErrorListener implements AnalysisErrorListener {
   }
 
   public void printFormattedErrors(PrintStream stream) {
-    CommandLineErrorFormatter formatter = new CommandLineErrorFormatter(stream, true,
+    CommandLineErrorFormatter formatter = new CommandLineErrorFormatter(
+        stream,
+        true,
         options.printErrorFormat());
     for (AnalysisError event : events) {
       formatter.format(event);

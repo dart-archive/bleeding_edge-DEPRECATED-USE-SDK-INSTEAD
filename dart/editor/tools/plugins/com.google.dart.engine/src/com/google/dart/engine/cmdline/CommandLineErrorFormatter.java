@@ -107,16 +107,25 @@ public class CommandLineErrorFormatter {
             ? WARNING_BOLD_COLOR : ERROR_BOLD_COLOR);
       }
       if (errorFormat == ErrorFormat.MACHINE) {
-        buf.append(String.format("%s|%s|%s|%s|%d|%d|%d|%s",
+        buf.append(String.format(
+            "%s|%s|%s|%s|%d|%d|%d|%s",
             escapePipe(event.getErrorCode().getErrorSeverity().toString()),
             escapePipe(event.getErrorCode().getSubSystem().toString()),
-            escapePipe(event.getErrorCode().toString()), escapePipe(sourceFile.getDisplayName()),
-            event.getLineNumber(), 1 + col, length, escapePipe(event.getMessage())));
+            escapePipe(event.getErrorCode().toString()),
+            escapePipe(sourceFile.getDisplayName()),
+            event.getLineNumber(),
+            1 + col,
+            length,
+            escapePipe(event.getMessage())));
       } else {
         String sourceName = sourceFile.getDisplayName();
         String includeFrom = getImportString(sourceFile);
-        buf.append(String.format("%s:%d: %s%s", sourceName, event.getLineNumber(),
-            event.getMessage(), includeFrom));
+        buf.append(String.format(
+            "%s:%d: %s%s",
+            sourceName,
+            event.getLineNumber(),
+            event.getMessage(),
+            includeFrom));
       }
       if (useColor) {
         buf.append(NO_COLOR);
@@ -129,9 +138,14 @@ public class CommandLineErrorFormatter {
 
       if (useColor) {
         // highlight error in red
-        buf.append(String.format("%6d: %s%s%s%s%s\n", line, lineText.substring(0, col),
+        buf.append(String.format(
+            "%6d: %s%s%s%s%s\n",
+            line,
+            lineText.substring(0, col),
             event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING ? WARNING_COLOR
-                : ERROR_COLOR, lineText.substring(col, col + length), NO_COLOR,
+                : ERROR_COLOR,
+            lineText.substring(col, col + length),
+            NO_COLOR,
             lineText.substring(col + length)));
       } else {
         // print the error line without formatting
@@ -206,7 +220,12 @@ public class CommandLineErrorFormatter {
     if (sourceFile != null) {
       sourceName = sourceFile.getDisplayName();
     }
-    outputStream.printf("%s:%d:%d: %s%s\n", sourceName, event.getLineNumber(),
-        event.getColumnNumber(), event.getMessage(), includeFrom);
+    outputStream.printf(
+        "%s:%d:%d: %s%s\n",
+        sourceName,
+        event.getLineNumber(),
+        event.getColumnNumber(),
+        event.getMessage(),
+        includeFrom);
   }
 }

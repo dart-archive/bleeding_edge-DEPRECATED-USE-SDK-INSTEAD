@@ -19,12 +19,22 @@ import com.google.dart.engine.metrics.Tracer.EventType;
  * Dart events for SpeedTracer.
  */
 public enum DartEventType implements EventType {
-  ADD_OUTOFDATE("MistyRose"), BUILD_LIB_SCOPES("violet"), ANALYZE("green"), //
-  ANALYZE_TOP_LEVEL_LIBRARY("gray"), ANALYZE_IMPORTS("brown"), EXEC_PHASE("blue"), //
-  IMPORT_EMBEDDED_LIBRARIES("purple"), IS_SOURCE_OUTOFDATE("Chartreuse"), //
-  SCANNER("GoldenRod"), PARSE("red"), PARSE_OUTOFDATE("LightCoral"), //
-  RESOLVE_LIBRARIES("black"), TIMESTAMP_OUTOFDATE("LightSteelBlue"), //
-  UPDATE_LIBRARIES("yellow"), UPDATE_RESOLVE("orange"), WRITE_METRICS("LightChiffon");
+  ADD_OUTOFDATE("MistyRose"),
+  BUILD_LIB_SCOPES("violet"),
+  ANALYZE("green"), //
+  ANALYZE_TOP_LEVEL_LIBRARY("gray"),
+  ANALYZE_IMPORTS("brown"),
+  EXEC_PHASE("blue"), //
+  IMPORT_EMBEDDED_LIBRARIES("purple"),
+  IS_SOURCE_OUTOFDATE("Chartreuse"), //
+  SCANNER("GoldenRod"),
+  PARSE("red"),
+  PARSE_OUTOFDATE("LightCoral"), //
+  RESOLVE_LIBRARIES("black"),
+  TIMESTAMP_OUTOFDATE("LightSteelBlue"), //
+  UPDATE_LIBRARIES("yellow"),
+  UPDATE_RESOLVE("orange"),
+  WRITE_METRICS("LightChiffon");
 
   final String cssColor;
   final String name;

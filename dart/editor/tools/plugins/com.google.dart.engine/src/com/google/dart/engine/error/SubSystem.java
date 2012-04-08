@@ -17,5 +17,8 @@ package com.google.dart.engine.error;
  * A subsystem of the analysis engine.
  */
 public enum SubSystem {
-  SCANNER, PARSER, STATIC_TYPE, RESOLVER;
+  SCANNER,
+  PARSER,
+  STATIC_TYPE,
+  RESOLVER;
 }

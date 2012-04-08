@@ -50,8 +50,10 @@ public class Analyzer {
    */
   public String analyze(File sourceFile, AnalysisConfiguration config,
       AnalysisErrorListener listener) throws IOException {
-    TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.ANALYZE_TOP_LEVEL_LIBRARY,
-        "src", sourceFile.toString()) : null;
+    TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(
+        DartEventType.ANALYZE_TOP_LEVEL_LIBRARY,
+        "src",
+        sourceFile.toString()) : null;
     try {
       // TODO(zundel): Start scanning, parsing, and analyzing
       System.err.println("Not Implemented");
