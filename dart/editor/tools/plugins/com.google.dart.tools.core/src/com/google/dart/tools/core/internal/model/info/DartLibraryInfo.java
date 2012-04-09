@@ -37,6 +37,12 @@ public class DartLibraryInfo extends OpenableElementInfo {
   private DartLibrary[] importedLibraries = DartLibrary.EMPTY_LIBRARY_ARRAY;
 
   /**
+   * An array containing all of the prefixes used when importing libraries into this library. There
+   * are no duplicates, but the order is not specified.
+   */
+  private String[] prefixes = new String[0];
+
+  /**
    * Add the given library to the array of imported libraries. If the library was already in the
    * array, then the array of imported libraries will not be modified.
    * 
@@ -87,6 +93,16 @@ public class DartLibraryInfo extends OpenableElementInfo {
    */
   public String getName() {
     return name;
+  }
+
+  /**
+   * Return an array containing all of the prefixes used when importing libraries into this library.
+   * There are no duplicates, but the order is not specified.
+   * 
+   * @return an array containing all of the prefixes used when importing libraries into this library
+   */
+  public String[] getPrefixes() {
+    return prefixes;
   }
 
   /**
@@ -143,5 +159,16 @@ public class DartLibraryInfo extends OpenableElementInfo {
    */
   public void setName(String newName) {
     name = newName;
+  }
+
+  /**
+   * Set the prefixes used when importing libraries into this library to the given array of strings.
+   * There should not be any duplicates, but the order is not specified.
+   * 
+   * @param prefixes an array containing all of the prefixes used when importing libraries into this
+   *          library
+   */
+  public void setPrefixes(String[] prefixes) {
+    this.prefixes = prefixes;
   }
 }

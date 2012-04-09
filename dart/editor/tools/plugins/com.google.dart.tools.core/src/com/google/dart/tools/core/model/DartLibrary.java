@@ -144,6 +144,15 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public DartLibrary[] getImportedLibraries() throws DartModelException;
 
   /**
+   * Return an array containing all of the prefixes used when importing libraries into this library.
+   * There are no duplicates, but the order is not specified.
+   * 
+   * @return an array containing all of the prefixes used when importing libraries into this library
+   * @throws DartModelException if the list of prefixes could not be determined
+   */
+  public String[] getPrefixes() throws DartModelException;
+
+  /**
    * Return a possibly empty list of the libraries that reference this library.
    * 
    * @return a list of the libraries that reference this library

@@ -74,6 +74,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -445,6 +446,16 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
+  public String[] getPrefixes() throws DartModelException {
+    DartLibraryInfo elementInfo = (DartLibraryInfo) getElementInfo();
+    if (elementInfo != null) {
+      return elementInfo.getPrefixes();
+    } else {
+      return new String[0];
+    }
+  }
+
+  @Override
   public List<DartLibrary> getReferencingLibraries() throws DartModelException {
     List<DartLibrary> libraries = new ArrayList<DartLibrary>();
     for (DartProject project : DartModelManager.getInstance().getDartModel().getDartProjects()) {
@@ -651,6 +662,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       return true;
     }
     final ArrayList<DartLibraryImpl> importedLibraries = new ArrayList<DartLibraryImpl>();
+    final HashSet<String> prefixes = new HashSet<String>();
     final ArrayList<IResource> resourceList = new ArrayList<IResource>();
     final DartModelManager modelManager = DartModelManager.getInstance();
     unit.accept(new SafeDartNodeTraverser<Void>() {
@@ -659,6 +671,10 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         String relativePath = getRelativePath(node.getLibraryUri());
         if (relativePath == null) {
           return null;
+        }
+        DartStringLiteral prefix = node.getPrefix();
+        if (prefix != null) {
+          prefixes.add(prefix.getValue());
         }
         LibrarySource lib;
         try {
@@ -822,6 +838,9 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     }
     if (!importedLibraries.isEmpty()) {
       libraryInfo.setImportedLibraries(importedLibraries.toArray(new DartLibraryImpl[importedLibraries.size()]));
+    }
+    if (!prefixes.isEmpty()) {
+      libraryInfo.setPrefixes(prefixes.toArray(new String[prefixes.size()]));
     }
     return true;
   }
