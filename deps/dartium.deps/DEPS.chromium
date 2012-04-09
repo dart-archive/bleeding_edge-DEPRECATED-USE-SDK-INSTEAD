@@ -5,10 +5,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "113354",
+  "webkit_revision": "113522",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8134",
+  "nacl_revision": "8184",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "7955",  # native_client/DEPS: tools_rev
@@ -119,7 +119,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@23",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1309",
+    (Var("googlecode_url") % "gyp") + "/trunk@1319",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
