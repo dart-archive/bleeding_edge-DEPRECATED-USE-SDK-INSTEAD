@@ -42,7 +42,9 @@ import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * An abstract parent of Dart launch shortcuts.
@@ -274,7 +276,16 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
     if (elem instanceof DartProjectImpl) {
       DartLibrary[] libraries = ((DartProjectImpl) elem).getDartLibraries();
       if (libraries.length > 0) {
-        return getHtmlFileFor(libraries[0]);
+        Set<IResource> htmlFiles = new HashSet<IResource>();
+        for (DartLibrary library : libraries) {
+          IResource htmlFile = getHtmlFileFor(library);
+          if (htmlFile != null) {
+            htmlFiles.add(htmlFile);
+          }
+        }
+        IResource[] files = htmlFiles.toArray(new IResource[htmlFiles.size()]);
+        // TODO(keertip): need to handle the case of mutliple html files 
+        return files[0];
       }
     }
     DartLibrary parentLibrary = elem.getAncestor(DartLibrary.class);

@@ -57,13 +57,20 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
       return false;
     }
 
-    DartLibrary library = LaunchUtils.getDartLibrary(resource);
+    DartLibrary[] libraries = LaunchUtils.getDartLibraries(resource);
 
-    if (library instanceof DartLibraryImpl) {
-      return ((DartLibraryImpl) library).isServerApplication();
-    } else {
-      return false;
+    if (libraries.length > 0) {
+      for (DartLibrary library : libraries) {
+        if (library instanceof DartLibraryImpl) {
+          DartLibraryImpl impl = (DartLibraryImpl) library;
+          if (impl.isServerApplication()) {
+            return true;
+          }
+        }
+      }
     }
+
+    return false;
   }
 
   @Override

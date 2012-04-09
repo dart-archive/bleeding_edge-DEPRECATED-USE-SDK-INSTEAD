@@ -58,15 +58,20 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILa
       }
     }
 
-    DartLibrary library = LaunchUtils.getDartLibrary(resource);
+    DartLibrary[] libraries = LaunchUtils.getDartLibraries(resource);
 
-    if (library instanceof DartLibraryImpl) {
-      DartLibraryImpl impl = (DartLibraryImpl) library;
-
-      return impl.isBrowserApplication();
-    } else {
-      return false;
+    if (libraries.length > 0) {
+      for (DartLibrary library : libraries) {
+        if (library instanceof DartLibraryImpl) {
+          DartLibraryImpl impl = (DartLibraryImpl) library;
+          if (impl.isBrowserApplication()) {
+            return true;
+          }
+        }
+      }
     }
+
+    return false;
   }
 
   @Override

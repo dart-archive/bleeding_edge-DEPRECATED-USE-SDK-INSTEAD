@@ -161,24 +161,22 @@ public class LaunchUtils {
   /**
    * @return given an IResource, return the corresponding DartLibrary
    */
-  public static DartLibrary getDartLibrary(IResource resource) {
+  public static DartLibrary[] getDartLibraries(IResource resource) {
     DartElement element = DartCore.create(resource);
 
     if (element instanceof CompilationUnit) {
       CompilationUnit unit = (CompilationUnit) element;
 
-      return unit.getLibrary();
+      return new DartLibrary[] {unit.getLibrary()};
     } else if (element instanceof DartLibrary) {
-      return (DartLibrary) element;
+      return new DartLibrary[] {(DartLibrary) element};
     } else if (element instanceof HTMLFile) {
       HTMLFile htmlFile = (HTMLFile) element;
 
       try {
         DartLibrary libraries[] = htmlFile.getReferencedLibraries();
+        return libraries;
 
-        if (libraries.length > 0) {
-          return libraries[0];
-        }
       } catch (DartModelException exception) {
         DartUtil.logError(exception);
       }
@@ -191,11 +189,9 @@ public class LaunchUtils {
       } catch (DartModelException e) {
 
       }
-      if (libraries.length > 0) {
-        return libraries[0];
-      }
+      return libraries;
     }
-    return null;
+    return new DartLibrary[] {};
 
   }
 
@@ -227,15 +223,17 @@ public class LaunchUtils {
     // No existing configs - check if the current resource is not launchable.
     if (getApplicableLaunchShortcuts(resource).size() == 0) {
       // Try and locate a launchable library that references this library.
-      DartLibrary library = getDartLibrary(resource);
+      DartLibrary[] libraries = getDartLibraries(resource);
 
-      if (library != null) {
+      if (libraries.length > 0) {
         Set<ILaunchConfiguration> libraryConfigs = new HashSet<ILaunchConfiguration>();
 
-        for (DartLibrary referencingLib : library.getReferencingLibraries()) {
-          IResource libResource = referencingLib.getCorrespondingResource();
+        for (DartLibrary library : libraries) {
+          for (DartLibrary referencingLib : library.getReferencingLibraries()) {
+            IResource libResource = referencingLib.getCorrespondingResource();
 
-          libraryConfigs.addAll(getExistingLaunchesFor(libResource));
+            libraryConfigs.addAll(getExistingLaunchesFor(libResource));
+          }
         }
 
         if (libraryConfigs.size() > 0) {
@@ -310,10 +308,18 @@ public class LaunchUtils {
   public static boolean isLaunchableWith(IResource resource, ILaunchConfiguration config) {
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
 
-    DartLibrary testLibrary = LaunchUtils.getDartLibrary(resource);
-    DartLibrary existingLibrary = LaunchUtils.getDartLibrary(launchWrapper.getApplicationResource());
+    DartLibrary[] testLibraries = LaunchUtils.getDartLibraries(resource);
+    DartLibrary[] existingLibrary = LaunchUtils.getDartLibraries(launchWrapper.getApplicationResource());
 
-    return testLibrary != null && testLibrary.equals(existingLibrary);
+    if (testLibraries.length > 0 & existingLibrary.length > 0) {
+      for (DartLibrary testLibrary : testLibraries) {
+        if (testLibrary.equals(existingLibrary[0])) {
+          return true;
+        }
+
+      }
+    }
+    return false;
   }
 
   private static List<ILaunchConfiguration> getExistingLaunchesFor(IResource resource) {
