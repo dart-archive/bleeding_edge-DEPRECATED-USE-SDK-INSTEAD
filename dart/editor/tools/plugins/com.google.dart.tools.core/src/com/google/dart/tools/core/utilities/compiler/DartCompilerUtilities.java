@@ -35,7 +35,7 @@ import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.ResolveLibraryListener;
+import com.google.dart.tools.core.analysis.ResolveLibraryCallback;
 import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.cache.LRUCache;
@@ -795,7 +795,7 @@ public class DartCompilerUtilities {
       File libraryFile = new File(libraryUri.getPath());
       AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
       final LibraryUnit[] result = new LibraryUnit[1];
-      server.resolveLibrary(libraryFile, new ResolveLibraryListener() {
+      server.resolveLibrary(libraryFile, new ResolveLibraryCallback() {
 
         @Override
         public void resolved(LibraryUnit libraryUnit) {

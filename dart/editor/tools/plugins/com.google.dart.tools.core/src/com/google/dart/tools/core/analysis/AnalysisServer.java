@@ -67,13 +67,13 @@ public class AnalysisServer {
   private int queueIndex = 0;
 
   /**
-   * The current task being executed on the background thread. This should only be accessed on the
-   * background thread.
+   * The background thread on which analysis tasks are performed
    */
-  private Task currentTask;
+  private final Thread backgroundThread;
 
   /**
-   * A context representing what is "saved on disk"
+   * A context representing what is "saved on disk". Contents of this object should only be accessed
+   * on the background thread.
    */
   private final Context savedContext = new Context(this);
 
@@ -83,11 +83,10 @@ public class AnalysisServer {
   private boolean analyze;
 
   /**
-   * An array containing a single boolean indicating whether the receiver has tasks to perform.
-   * Synchronize against this array before accessing it. If you wait on this array to be notified
-   * then do not synchronize against {@link #queue}.
+   * Flag indicating whether the background thread is waiting for more tasks to be queued. Lock
+   * against {@link #queue} before accessing this field.
    */
-  private boolean[] isIdle = new boolean[1];
+  private boolean isBackgroundThreadIdle = false;
 
   /**
    * Create a new instance that processes analysis tasks on a background thread
@@ -97,46 +96,65 @@ public class AnalysisServer {
   public AnalysisServer(EditorLibraryManager libraryManager) {
     this.libraryManager = libraryManager;
     this.analyze = true;
-    new Thread(new Runnable() {
+    this.backgroundThread = new Thread(new Runnable() {
 
       @Override
       public void run() {
         try {
+
           while (analyze) {
 
-            // Find the next analysis task
+            // Get a task from the queue or null if the queue is empty
+            // and determine if the thread has changed idle state
+            Task task = null;
+            boolean notify = false;
             synchronized (queue) {
-              if (queue.isEmpty()) {
-                // Notify any objects waiting for the receiver to be idle
-                synchronized (isIdle) {
-                  isIdle[0] = true;
-                  isIdle.notifyAll();
+              if (queue.size() > 0) {
+                queueIndex = 0;
+                task = queue.remove(0);
+                if (isBackgroundThreadIdle) {
+                  isBackgroundThreadIdle = false;
+                  notify = true;
                 }
-                try {
-                  queue.wait();
-                } catch (InterruptedException e) {
-                  //$FALL-THROUGH$
+              } else {
+                if (!isBackgroundThreadIdle) {
+                  isBackgroundThreadIdle = true;
+                  notify = true;
                 }
-                continue;
               }
-              queueIndex = 0;
-              currentTask = queue.remove(queueIndex);
             }
 
-            // Perform the task
-            try {
-              currentTask.perform();
-            } catch (Throwable e) {
-              DartCore.logError("Analysis Task Exception", e);
+            // Notify others if the receiver's idle state has changed
+            if (notify) {
+              notifyIdle(task == null);
             }
-            currentTask = null;
+
+            // Perform the task or wait for a new task to be added to the queue
+            if (task != null) {
+              try {
+                task.perform();
+              } catch (Throwable e) {
+                DartCore.logError("Analysis Task Exception", e);
+              }
+            } else {
+              synchronized (queue) {
+                if (queue.isEmpty()) {
+                  try {
+                    queue.wait();
+                  } catch (InterruptedException e) {
+                    //$FALL-THROUGH$
+                  }
+                }
+              }
+            }
 
           }
         } catch (Throwable e) {
           DartCore.logError("Analysis Server Exception", e);
         }
       }
-    }, getClass().getSimpleName()).start();
+    }, getClass().getSimpleName());
+    this.backgroundThread.start();
   }
 
   public void addAnalysisListener(AnalysisListener listener) {
@@ -154,7 +172,7 @@ public class AnalysisServer {
 
   /**
    * Analyze the specified library, and keep that analysis current by tracking any changes. Also see
-   * {@link #resolveLibrary(File, ResolveLibraryListener)}.
+   * {@link #resolveLibrary(File, ResolveLibraryCallback)}.
    * 
    * @param file the library file (not <code>null</code>)
    */
@@ -212,6 +230,16 @@ public class AnalysisServer {
     }
   }
 
+  /**
+   * Answer <code>true</code> if the recevier does not have any queued tasks and the receiver's
+   * background thread is waiting for new tasks to be queued.
+   */
+  public boolean isIdle() {
+    synchronized (queue) {
+      return isBackgroundThreadIdle && queue.isEmpty();
+    }
+  }
+
   public void removeAnalysisListener(AnalysisListener listener) {
     int oldLen = analysisListeners.length;
     for (int i = 0; i < oldLen; i++) {
@@ -229,14 +257,14 @@ public class AnalysisServer {
    * library to the list of libraries to be tracked.
    * 
    * @param file the library file (not <code>null</code>)
-   * @param resolutionListener a listener that will be notified when the library has been resolved
-   *          or <code>null</code> if none
+   * @param callback a listener that will be notified when the library has been resolved or
+   *          <code>null</code> if none
    */
-  public void resolveLibrary(File file, ResolveLibraryListener resolutionListener) {
+  public void resolveLibrary(File file, ResolveLibraryCallback callback) {
     if (!file.isAbsolute()) {
       throw new IllegalArgumentException("File path must be absolute: " + file);
     }
-    AnalyzeLibraryTask task = new AnalyzeLibraryTask(this, savedContext, file, resolutionListener);
+    AnalyzeLibraryTask task = new AnalyzeLibraryTask(this, savedContext, file, callback);
     task.setAnalyzeIfNotTracked(true);
     synchronized (queue) {
       queueNewTask(task);
@@ -259,31 +287,6 @@ public class AnalysisServer {
     } catch (InterruptedException e) {
       //$FALL-THROUGH$
     }
-  }
-
-  /**
-   * Wait for up to the specified number of milliseconds for the receiver to be idle.
-   * 
-   * @param millis the number of milliseconds to wait for the receiver to be idle. If this number is
-   *          less than or equal to zero, then the receiver will return immediately.
-   * @return <code>true</code> if the receiver is idle
-   */
-  public boolean waitForIdle(long millis) {
-    long end = System.currentTimeMillis() + millis;
-    synchronized (isIdle) {
-      while (!isIdle[0]) {
-        long delta = end - System.currentTimeMillis();
-        if (delta <= 0) {
-          return false;
-        }
-        try {
-          isIdle.wait(delta);
-        } catch (InterruptedException e) {
-          //$FALL-THROUGH$
-        }
-      }
-    }
-    return true;
   }
 
   AnalysisListener[] getAnalysisListeners() {
@@ -329,14 +332,14 @@ public class AnalysisServer {
             return;
           }
         }
-        queue.add(queueIndex, new AnalyzeContextTask(this, savedContext));
+        queue.add(index, new AnalyzeContextTask(this, savedContext));
       }
     }
   }
 
   /**
-   * Add a priority task to the front of the queue. Should *not* be called by the
-   * {@link #currentTask}... use {@link #queueSubTask(Task)} instead.
+   * Add a priority task to the front of the queue. Should *not* be called by the current task being
+   * performed... use {@link #queueSubTask(Task)} instead.
    */
   void queueNewTask(Task task) {
     if (analyze) {
@@ -344,19 +347,19 @@ public class AnalysisServer {
         queue.add(0, task);
         queueIndex++;
         queue.notifyAll();
-        synchronized (isIdle) {
-          isIdle[0] = false;
-        }
       }
     }
   }
 
   /**
-   * Used by the {@link #currentTask} to add subtasks in a way that will not reduce the priority of
-   * new tasks that have been queued while the current task is executing
+   * Used by the current task being performed to add subtasks in a way that will not reduce the
+   * priority of new tasks that have been queued while the current task is executing
    */
   void queueSubTask(Task subtask) {
     if (analyze) {
+      if (Thread.currentThread() != backgroundThread) {
+        throw new IllegalStateException();
+      }
       synchronized (queue) {
         queue.add(queueIndex, subtask);
         queueIndex++;
@@ -395,6 +398,16 @@ public class AnalysisServer {
       return new File(base.resolve(new URI(null, null, relPath, null)).normalize().getPath());
     } catch (URISyntaxException e) {
       return null;
+    }
+  }
+
+  private void notifyIdle(boolean idle) {
+    for (AnalysisListener listener : getAnalysisListeners()) {
+      try {
+        listener.idle(idle);
+      } catch (Throwable e) {
+        DartCore.logError("Exception during idle notification", e);
+      }
     }
   }
 }

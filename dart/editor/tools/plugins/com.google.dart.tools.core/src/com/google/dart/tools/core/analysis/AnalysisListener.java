@@ -22,6 +22,11 @@ package com.google.dart.tools.core.analysis;
 public interface AnalysisListener {
 
   /**
+   * Called when the server's background thread transitions from busy to idle or idle to busy
+   */
+  void idle(boolean idle);
+
+  /**
    * Called after files are parsed regardless of whether there were errors.
    */
   void parsed(AnalysisEvent event);

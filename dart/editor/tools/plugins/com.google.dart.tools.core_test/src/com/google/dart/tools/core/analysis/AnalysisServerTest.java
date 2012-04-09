@@ -1,7 +1,23 @@
+/*
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.index.Attribute;
+import com.google.dart.tools.core.index.AttributeCallback;
+import com.google.dart.tools.core.index.Element;
+import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
@@ -14,74 +30,14 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class AnalysisServerTest extends TestCase {
-
-  private static final class Listener implements AnalysisListener {
-    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
-
-    private final HashSet<String> resolved = new HashSet<String>();
-    private final StringBuilder duplicates = new StringBuilder();
-
-    @Override
-    public void parsed(AnalysisEvent event) {
-    }
-
-    @Override
-    public void resolved(AnalysisEvent event) {
-      String libPath = event.getLibraryFile().getPath();
-      if (!resolved.add(libPath)) {
-        if (duplicates.length() == 0) {
-          duplicates.append("Duplicate library resolutions:");
-        }
-        duplicates.append(LINE_SEPARATOR);
-        duplicates.append(libPath);
-      }
-    }
-
-    void assertBundledLibrariesResolved() throws Exception {
-      ArrayList<String> notResolved = new ArrayList<String>();
-      EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
-      ArrayList<String> librarySpecs = new ArrayList<String>(libraryManager.getAllLibrarySpecs());
-      for (String urlSpec : librarySpecs) {
-        URI libraryUri = new URI(urlSpec);
-        File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
-        String libraryPath = libraryFile.getPath();
-        if (!resolved.contains(libraryPath)) {
-          notResolved.add(libraryPath);
-        }
-      }
-      if (notResolved.size() > 0) {
-        fail("Expected these libraries to be resolved: " + notResolved);
-      }
-    }
-
-    void assertNoDuplicates() {
-      if (duplicates.length() > 0) {
-        fail(duplicates.toString());
-      }
-    }
-
-    HashSet<String> getResolved() {
-      return resolved;
-    }
-
-    void reset() {
-      resolved.clear();
-      duplicates.setLength(0);
-    }
-  }
 
   private static final String TEST_CLASS_SIMPLE_NAME = AnalysisServerTest.class.getSimpleName();
 
   private static final int FIVE_MINUTES_MS = 300000;
-
-  /**
-   * Indicated whether the test has waited for both the default analysis server and the indexer to
-   * finish processing background tasks.
-   */
-  private static boolean waitedForIdle = false;
 
   private AnalysisServer server;
 
@@ -108,7 +64,7 @@ public class AnalysisServerTest extends TestCase {
     }
     setupServer();
     server.analyzeLibrary(libFile);
-    waitForIdle(server, index);
+    waitForIdle();
     if (!listener.getResolved().contains(libFile.getPath())) {
       fail("Expected resolved library " + libFile + " but found " + listener.getResolved());
     }
@@ -130,7 +86,7 @@ public class AnalysisServerTest extends TestCase {
     File libFile = test_AnalysisServer_analyzeLibrary(tempDir);
     listener.reset();
     server.changed(libFile);
-    waitForIdle(server, index);
+    waitForIdle();
     if (!listener.getResolved().contains(libFile.getPath())) {
       fail("Expected resolved library " + libFile + " but found " + listener.getResolved());
     }
@@ -152,7 +108,7 @@ public class AnalysisServerTest extends TestCase {
     File libFile = test_AnalysisServer_analyzeLibrary(tempDir);
     listener.reset();
     server.discard(libFile);
-    waitForIdle(server, index);
+    waitForIdle();
     assertEquals(0, listener.getResolved().size());
     listener.assertNoDuplicates();
     return libFile;
@@ -176,13 +132,13 @@ public class AnalysisServerTest extends TestCase {
     }
     setupServer();
     final LibraryUnit[] resolved = new LibraryUnit[1];
-    server.resolveLibrary(libFile, new ResolveLibraryListener() {
+    server.resolveLibrary(libFile, new ResolveLibraryCallback() {
       @Override
       public void resolved(LibraryUnit libraryUnit) {
         resolved[0] = libraryUnit;
       }
     });
-    waitForIdle(server, index);
+    waitForIdle();
     assertNotNull(resolved[0]);
     if (!listener.getResolved().contains(libFile.getPath())) {
       fail("Expected resolved library " + libFile + " but found " + listener.getResolved());
@@ -221,28 +177,6 @@ public class AnalysisServerTest extends TestCase {
     }
   }
 
-  /**
-   * Wait for both the system analysis server and the indexer to be idle so that they do not
-   * interfere with timings
-   */
-  @Override
-  protected void setUp() throws Exception {
-    if (!waitedForIdle) {
-      waitedForIdle = true;
-      System.out.println(TEST_CLASS_SIMPLE_NAME);
-      if (DartCoreDebug.ANALYSIS_SERVER) {
-        System.out.println("  Waiting for analysis server and indexer to be idle...");
-        AnalysisServer defaultServer = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-        InMemoryIndex defaultIndex = InMemoryIndex.getInstance();
-        defaultIndex.initializeIndex();
-        long delta = waitForIdle(defaultServer, defaultIndex);
-        System.out.println("  " + delta + " ms for default analysis server to be idle");
-      } else {
-        System.out.println("  Default analysis server not enabled");
-      }
-    }
-  }
-
   @Override
   protected void tearDown() throws Exception {
     if (server != null) {
@@ -256,7 +190,7 @@ public class AnalysisServerTest extends TestCase {
   private long resolveBundledLibraries() throws URISyntaxException, InterruptedException, Exception {
     listener.reset();
     resolveBundledLibraries(server);
-    long delta = waitForIdle(server, index);
+    long delta = waitForIdle();
     listener.assertNoDuplicates();
     return delta;
   }
@@ -274,10 +208,13 @@ public class AnalysisServerTest extends TestCase {
   private void setupServer() throws Exception {
     EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
     server = new AnalysisServer(libraryManager);
-    listener = new Listener();
-    server.addAnalysisListener(listener);
-    long delta = waitForIdle(server, null);
-    System.out.println("  " + delta + " ms for server initialization");
+    listener = new Listener(server);
+    long start = System.currentTimeMillis();
+    listener.waitForIdle(FIVE_MINUTES_MS);
+    long delta = System.currentTimeMillis() - start;
+    if (delta > 50) {
+      System.out.println("  " + delta + " ms waiting for analysis server to initialize");
+    }
   }
 
   private void setupServerAndIndex() throws Exception {
@@ -293,19 +230,32 @@ public class AnalysisServerTest extends TestCase {
   }
 
   /**
-   * Wait for the specified server and index to finish background processing
+   * Wait for the server and index under test to finish background processing
    * 
-   * @param server the server (not <code>null</code>)
-   * @param index the index or <code>null</code>
    * @return the # of milliseconds waited
    */
-  private long waitForIdle(AnalysisServer server, InMemoryIndex index) throws InterruptedException {
+  private long waitForIdle() throws InterruptedException {
     final long start = System.currentTimeMillis();
-    if (!server.waitForIdle(FIVE_MINUTES_MS)) {
+    if (!listener.waitForIdle(FIVE_MINUTES_MS)) {
       fail(server.getClass().getSimpleName() + " not idle");
     }
-    if (index != null && !index.waitForIdle(FIVE_MINUTES_MS)) {
-      fail(index.getClass().getSimpleName() + " not idle");
+    // In the current implementation, the index will process all background indexing
+    // before answering any search request
+    if (index != null) {
+      final CountDownLatch latch = new CountDownLatch(1);
+      Resource resource = new Resource("resource");
+      Element element = new Element(resource, "element");
+      Attribute attribute = Attribute.getAttribute("attribute");
+      index.getAttribute(element, attribute, new AttributeCallback() {
+
+        @Override
+        public void hasValue(Element element, Attribute attribute, String value) {
+          latch.countDown();
+        }
+      });
+      if (!latch.await(FIVE_MINUTES_MS, TimeUnit.MILLISECONDS)) {
+        fail(index.getClass().getSimpleName() + " not idle");
+      }
     }
     return System.currentTimeMillis() - start;
   }

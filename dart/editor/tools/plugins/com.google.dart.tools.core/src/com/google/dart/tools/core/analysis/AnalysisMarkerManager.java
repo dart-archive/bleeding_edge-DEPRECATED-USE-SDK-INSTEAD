@@ -39,6 +39,11 @@ public class AnalysisMarkerManager implements AnalysisListener {
     this.server = server;
   }
 
+  @Override
+  public void idle(boolean idle) {
+    // ignored
+  }
+
   /**
    * Remove all existing problem markers for the specified files and create new problem markers for
    * any parse errors that were found.

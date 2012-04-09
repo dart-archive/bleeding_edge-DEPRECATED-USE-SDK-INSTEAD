@@ -16,10 +16,10 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.compiler.ast.LibraryUnit;
 
 /**
- * Used by {@link AnalysisServer#resolveLibrary(java.io.File, ResolveLibraryListener)} to provide
+ * Used by {@link AnalysisServer#resolveLibrary(java.io.File, ResolveLibraryCallback)} to provide
  * asynchronous results.
  */
-public interface ResolveLibraryListener {
+public interface ResolveLibraryCallback {
 
   void resolved(LibraryUnit libraryUnit);
 

@@ -29,9 +29,15 @@ import java.io.File;
 public class AnalysisCompleteCondition implements ICondition {
 
   /**
+   * Flag indicating whether the default analysis server is idle
+   */
+  private static boolean isIdle = true;
+
+  /**
    * Start gathering performance information from {@link AnalysisServer}
    */
   public static void startListening() {
+    AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
     AnalysisServer.setPerformanceListener(new PerformanceListener() {
 
       @Override
@@ -47,22 +53,26 @@ public class AnalysisCompleteCondition implements ICondition {
         return simpleName;
       }
     });
-    SystemLibraryManagerProvider.getDefaultAnalysisServer().addAnalysisListener(
-        new AnalysisListener() {
+    server.addAnalysisListener(new AnalysisListener() {
 
-          @Override
-          public void parsed(AnalysisEvent event) {
-            //Performance.PARSE.log(event.getStartTime());
-          }
+      @Override
+      public void idle(boolean idle) {
+        isIdle = idle;
+      }
 
-          @Override
-          public void resolved(AnalysisEvent event) {
-            //Performance.RESOLVE.log(event.getStartTime());
-          }
-        });
+      @Override
+      public void parsed(AnalysisEvent event) {
+        //Performance.PARSE.log(event.getStartTime());
+      }
+
+      @Override
+      public void resolved(AnalysisEvent event) {
+        //Performance.RESOLVE.log(event.getStartTime());
+      }
+    });
   }
 
-  public static void waitUntilWarmedUp(SWTWorkbenchBot bot) {
+  public static void waitUntilWarmedUp(SWTWorkbenchBot bot) throws Exception {
     Performance.ANALYSIS_SERVER_WARMUP.log(bot, new AnalysisCompleteCondition());
   }
 
@@ -77,6 +87,8 @@ public class AnalysisCompleteCondition implements ICondition {
 
   @Override
   public boolean test() throws Exception {
-    return SystemLibraryManagerProvider.getDefaultAnalysisServer().waitForIdle(0);
+    // Give the background analysis server thread a chance to execute
+    Thread.yield();
+    return isIdle;
   }
 }

@@ -25,7 +25,7 @@ class AnalyzeLibraryTask extends Task {
   private final AnalysisServer server;
   private final Context context;
   private final File libraryFile;
-  private final ResolveLibraryListener resolutionListener;
+  private final ResolveLibraryCallback callback;
 
   private boolean analyzeIfNotTracked;
   private long start = 0;
@@ -35,11 +35,11 @@ class AnalyzeLibraryTask extends Task {
   }
 
   AnalyzeLibraryTask(AnalysisServer server, Context context, File libraryFile,
-      ResolveLibraryListener resolutionListener) {
+      ResolveLibraryCallback callback) {
     this.server = server;
     this.context = context;
     this.libraryFile = libraryFile;
-    this.resolutionListener = resolutionListener;
+    this.callback = callback;
   }
 
   @Override
@@ -91,9 +91,9 @@ class AnalyzeLibraryTask extends Task {
     if (listener != null) {
       listener.analysisComplete(start, libraryFile);
     }
-    if (resolutionListener != null) {
+    if (callback != null) {
       try {
-        resolutionListener.resolved(library.getLibraryUnit());
+        callback.resolved(library.getLibraryUnit());
       } catch (Throwable e) {
         DartCore.logError("Exception during resolution notification", e);
       }

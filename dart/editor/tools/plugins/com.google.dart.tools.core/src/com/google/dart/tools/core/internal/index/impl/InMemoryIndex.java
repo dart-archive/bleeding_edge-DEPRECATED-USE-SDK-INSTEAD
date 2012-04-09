@@ -276,19 +276,6 @@ public class InMemoryIndex implements Index {
 //  }
 
   /**
-   * Wait up to the specified number of milliseconds for the receiver to finish processing its
-   * operations. If the number of milliseconds specified is less than or equal to zero, then this
-   * method returns immediately.
-   * 
-   * @param milliseconds the maximum number of milliseconds to wait for idle.
-   * @return <code>true</code> if the receiver is idle or <code>false</code> if the specified number
-   *         of milliseconds has passed and the receiver is still not idle.
-   */
-  public boolean waitForIdle(int milliseconds) {
-    return queue.waitForIdle(milliseconds);
-  }
-
-  /**
    * Return the file in which the state of the index is to be stored between sessions.
    * 
    * @return the file in which the state of the index is to be stored
