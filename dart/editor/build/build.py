@@ -17,6 +17,7 @@ import string
 import subprocess
 import sys
 import tempfile
+import buildutil
 import gsutil
 import postprocess
 import ziputils
@@ -215,7 +216,7 @@ def main():
   os.chdir(buildpath)
   ant_property_file = None
   sdk_zip = None
-  if 'lin' in buildos:
+  if 'lin' in buildos and not os.environ.get('DONT_RUN_GSUTIL_TESTS'):
     gsutil_test = os.path.join(editorpath, 'build', './gsutilTest.py')
     cmds = [sys.executable, gsutil_test]
     print 'running gsutil tests'
@@ -307,19 +308,20 @@ def main():
                   ' USER and USERNAME')
       return 1
     sdk_environment = os.environ
+    build_util = buildutil.BuildUtil(buildos, buildout, dartpath)
     if username.startswith('chrome'):
-      from_bucket = 'gs://dart-dump-render-tree'
       to_bucket = 'gs://dart-editor-archive-continuous'
       staging_bucket = 'gs://dart-editor-build'
       run_sdk_build = True
       running_on_buildbot = True
     else:
-      from_bucket = 'gs://dart-editor-archive-testing'
       to_bucket = 'gs://dart-editor-archive-testing'
       staging_bucket = 'gs://dart-editor-archive-testing-staging'
       run_sdk_build = False
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
+
+    sdkpath = build_util.SdkZipLocation()
 
     homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
     gsu = gsutil.GsUtil(False, homegsutil,
@@ -340,7 +342,7 @@ def main():
       _PrintSeparator('running the build of the Dart SDK')
       dartbuildscript = os.path.join(toolspath, 'build.py')
       cmds = [sys.executable, dartbuildscript,
-              '--mode=release', 'upload_sdk']
+              '--mode=release', 'create_sdk']
       cwd = os.getcwd()
       try:
         os.chdir(dartpath)
@@ -352,10 +354,19 @@ def main():
           return status
       finally:
         os.chdir(cwd)
-      _CopySdk(buildos, revision, to_bucket, from_bucket, gsu)
+      _CopySdk(buildos, revision, to_bucket, sdkpath, gsu)
 
     if builder_name == 'dart-editor':
       buildos = None
+
+    sdk_zip_orig = os.path.join(sdkpath, 'dart-sdk.zip')
+    sdk_zip = os.path.join(buildroot, 'downloads',
+                           'dart-{0}.zip'.format(buildos))
+    if not os.path.exists(os.path.dirname(sdk_zip)):
+      os.makedirs(os.path.dirname(sdk_zip))
+
+    print 'copying {0} to {1}'.format(sdk_zip_orig, sdk_zip)
+    shutil.copy2(sdk_zip_orig, sdk_zip)
   #  else:
   #    _PrintSeparator('new builder running on {0} is'
   #                    ' a place holder until the os specific builds'
@@ -366,10 +377,6 @@ def main():
     _PrintSeparator('running the build to produce the Zipped RCP''s')
     #tell the ant script where to write the sdk zip file so it can
     #be expanded later
-    sdk_zip = os.path.join(buildroot, 'downloads',
-                           'dart-{0}.zip'.format(buildos))
-    if not os.path.exists(os.path.dirname(sdk_zip)):
-      os.makedirs(os.path.dirname(sdk_zip))
     status = ant.RunAnt('.', 'build_rcp.xml', revision, options.name,
                         buildroot, buildout, editorpath, buildos,
                         sdk_zip=sdk_zip,
@@ -391,7 +398,7 @@ def main():
     #We don't need to install the sdk+dartium, run tests, or copy to google
     #storage.
     if not buildos:
-      print "skipping sdk and dartium steps for dart-editor build"
+      print 'skipping sdk and dartium steps for dart-editor build'
       return 0
 
     sys.stdout.flush()
@@ -541,7 +548,7 @@ def _DeployToContinuous(build_os, to_bucket, zip_files, svnid, gsu):
     the status of the copy to Google Storage
   """
   print '_DeployToContinuous({0}, {1}, {2}, gsu)'.format(to_bucket, zip_files,
-                                                       build_os)
+                                                         build_os)
   gs_objects = []
   for element in zip_files:
     base_name = os.path.basename(element)
@@ -744,20 +751,21 @@ def _SetAcl(element, gsu):
   gsu.SetAclFromFile(element, aclfile)
 
 
-def _CopySdk(buildos, revision, bucket_to, bucket_from, gsu):
+def _CopySdk(buildos, revision, bucket_to, from_dir, gsu):
   """Copy the deployed SDK to the editor buckets.
 
   Args:
     buildos: the OS the build is running under
     revision: the svn revision
     bucket_to: the bucket to upload to
-    bucket_from: the bucket to copy the sdk from
+    from_dir: the directory to copy the sdk from
     gsu: the gsutil object
   """
-  print '_CopySdk({0}, {1}, {2}, gsu)'.format(buildos, revision, bucket_to)
-  sdkfullzip = 'dart-{0}-{1}.zip'.format(buildos, revision)
+  print '_CopySdk({0}, {1}, {2}, {3}, gsu)'.format(buildos, revision,
+                                                   bucket_to, from_dir)
+  sdkzip = 'dart-sdk.zip'
   sdkshortzip = 'dart-{0}.zip'.format(buildos)
-  gssdkzip = '{0}/sdk/{1}'.format(bucket_from, sdkfullzip)
+  gssdkzip = os.path.join(from_dir, sdkzip)
   gseditorzip = '{0}/{1}/{2}'.format(bucket_to, revision, sdkshortzip)
   gseditorlatestzip = '{0}/{1}/{2}'.format(bucket_to, 'latest', sdkshortzip)
 
@@ -929,9 +937,9 @@ def _InstallArtifacts(buildout, buildos, extra_artifacts):
     buildos: the OS the build is running under
     extra_artifacts: the directoryt he extra artifacts are in
   """
-  print '_InstallSdk({0}, {1}, {2})'.format(buildout,
-                                            buildos,
-                                            extra_artifacts)
+  print '_InstallArtifacts({0}, {1}, {2})'.format(buildout,
+                                                  buildos,
+                                                  extra_artifacts)
   files = _FindRcpZipFiles(buildout)
   for f in files:
     dart_zip_path = os.path.join(buildout, f)
