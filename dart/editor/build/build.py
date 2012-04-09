@@ -355,18 +355,18 @@ def main():
       finally:
         os.chdir(cwd)
       _CopySdk(buildos, revision, to_bucket, sdkpath, gsu)
+      sdk_zip_orig = os.path.join(sdkpath, 'dart-sdk.zip')
+      sdk_zip = os.path.join(buildroot, 'downloads',
+                             'dart-{0}.zip'.format(buildos))
+      if not os.path.exists(os.path.dirname(sdk_zip)):
+        os.makedirs(os.path.dirname(sdk_zip))
+
+      print 'copying {0} to {1}'.format(sdk_zip_orig, sdk_zip)
+      shutil.copy2(sdk_zip_orig, sdk_zip)
 
     if builder_name == 'dart-editor':
       buildos = None
 
-    sdk_zip_orig = os.path.join(sdkpath, 'dart-sdk.zip')
-    sdk_zip = os.path.join(buildroot, 'downloads',
-                           'dart-{0}.zip'.format(buildos))
-    if not os.path.exists(os.path.dirname(sdk_zip)):
-      os.makedirs(os.path.dirname(sdk_zip))
-
-    print 'copying {0} to {1}'.format(sdk_zip_orig, sdk_zip)
-    shutil.copy2(sdk_zip_orig, sdk_zip)
   #  else:
   #    _PrintSeparator('new builder running on {0} is'
   #                    ' a place holder until the os specific builds'
