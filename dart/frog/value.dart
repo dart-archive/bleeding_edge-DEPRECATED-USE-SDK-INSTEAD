@@ -1349,8 +1349,10 @@ class ObjectValue extends EvaluatedValue {
 
   String _code;
 
-  ObjectValue(bool isConst, Type type, SourceSpan span):
-    fields = {}, fieldsInInitOrder = [], super(isConst, type, span);
+  ObjectValue(bool isConst, Type type, SourceSpan span)
+      : fields = new Map<FieldMember, Value>(),
+        fieldsInInitOrder = <FieldMember>[],
+        super(isConst, type, span);
 
   String get code() {
     if (_code === null) validateInitialized(null);

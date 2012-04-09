@@ -615,25 +615,25 @@ $defProp(ListFactory.prototype, "removeLast", function() {
 $defProp(ListFactory.prototype, "last", function() {
   return this.$index(this.get$length() - (1));
 });
-$defProp(ListFactory.prototype, "getRange", function(start, length) {
-      if (length == 0) return [];
-      if (length < 0) throw new IllegalArgumentException('length');
-      if (start < 0 || start + length > this.length)
+$defProp(ListFactory.prototype, "getRange", function(start, rangeLength) {
+      if (rangeLength == 0) return [];
+      if (rangeLength < 0) throw new IllegalArgumentException('length');
+      if (start < 0 || start + rangeLength > this.length)
         throw new IndexOutOfRangeException(start);
-      return this.slice(start, start + length);
+      return this.slice(start, start + rangeLength);
     
 });
-$defProp(ListFactory.prototype, "insertRange", function(start, length, initialValue) {
-      if (length == 0) return;
-      if (length < 0) throw new IllegalArgumentException('length');
+$defProp(ListFactory.prototype, "insertRange", function(start, rangeLength, initialValue) {
+      if (rangeLength == 0) return;
+      if (rangeLength < 0) throw new IllegalArgumentException('length');
       if (start < 0 || start > this.length)
         throw new IndexOutOfRangeException(start);
 
       // Splice in the values with a minimum of array allocations.
-      var args = new Array(length + 2);
+      var args = new Array(rangeLength + 2);
       args[0] = start;
       args[1] = 0;
-      for (var i = 0; i < length; i++) {
+      for (var i = 0; i < rangeLength; i++) {
         args[i + 2] = initialValue;
       }
       this.splice.apply(this, args);
@@ -768,8 +768,8 @@ MatchImplementation.prototype.get$start = function() {
 MatchImplementation.prototype.end = function() {
   return this._end;
 }
-MatchImplementation.prototype.$index = function(group) {
-  return this._groups.$index(group);
+MatchImplementation.prototype.$index = function(groupIndex) {
+  return this._groups.$index(groupIndex);
 }
 MatchImplementation.prototype.end$0 = MatchImplementation.prototype.end;
 // ********** Code for _AllMatchesIterable **************
@@ -790,9 +790,9 @@ _AllMatchesIterator.prototype.next = function() {
   if (!this.hasNext()) {
     $throw(const$0001);
   }
-  var next = this._next;
+  var result = this._next;
   this._next = null;
-  return next;
+  return result;
 }
 _AllMatchesIterator.prototype.hasNext = function() {
   if (this._done) {
@@ -1108,6 +1108,16 @@ function HashMapImplementation_dart_core_String$VariableValue() {
   this._values = new Array((8));
 }
 HashMapImplementation_dart_core_String$VariableValue.prototype.remove$1 = HashMapImplementation_dart_core_String$VariableValue.prototype.remove;
+// ********** Code for HashMapImplementation_FieldMember$Value **************
+$inherits(HashMapImplementation_FieldMember$Value, HashMapImplementation);
+function HashMapImplementation_FieldMember$Value() {
+  this._numberOfEntries = (0);
+  this._numberOfDeleted = (0);
+  this._loadLimit = HashMapImplementation._computeLoadLimit((8));
+  this._keys = new Array((8));
+  this._values = new Array((8));
+}
+HashMapImplementation_FieldMember$Value.prototype.remove$1 = HashMapImplementation_FieldMember$Value.prototype.remove;
 // ********** Code for HashMapImplementation_Library$Library **************
 $inherits(HashMapImplementation_Library$Library, HashMapImplementation);
 function HashMapImplementation_Library$Library() {
@@ -1610,7 +1620,7 @@ StringBufferImpl.prototype.isEmpty = function() {
   return this._length == (0);
 }
 StringBufferImpl.prototype.add = function(obj) {
-  var str = obj.toString();
+  var str = obj.toString$0();
   if (null == str || str.isEmpty()) return this;
   this._buffer.add(str);
   this._length = this._length + str.length;
@@ -1709,6 +1719,9 @@ StringImplementation.prototype._split = function(pattern) {
 }
 StringImplementation.prototype._splitRegExp = function(pattern) {
   'use strict'; return this.split(pattern.re);
+}
+StringImplementation.prototype.allMatches = function(str) {
+  $throw("String.allMatches(String str) unimplemented.");
 }
 StringImplementation.prototype.hashCode = function() {
       'use strict';
@@ -13824,7 +13837,7 @@ MapValue.prototype.binop = function(kind, other, context, node) {
 $inherits(ObjectValue, EvaluatedValue);
 function ObjectValue(isConst, type, span) {
   this.seenNativeInitializer = false;
-  this.fields = new HashMapImplementation();
+  this.fields = new HashMapImplementation_FieldMember$Value();
   this.fieldsInInitOrder = [];
   EvaluatedValue.call(this, isConst, type, span);
 }
@@ -14774,7 +14787,7 @@ FrogOptions.prototype.tryParseSimpleOption = function(option) {
 // ********** Code for LibraryReader **************
 function LibraryReader() {
   if ($eq$($globals.options.config, "dev")) {
-    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "corelib.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "corelib_impl.dart"), "dart:html", joinPaths($globals.options.libDir, "../../lib/html/frog/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "../../lib/dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "../../lib/json/json_frog.dart"), "dart:io", joinPaths($globals.options.libDir, "../leg/lib/io.dart"), "dart:isolate", joinPaths($globals.options.libDir, "../../lib/isolate/isolate_frog.dart"), "dart:uri", joinPaths($globals.options.libDir, "../../lib/uri/uri.dart"), "dart:utf", joinPaths($globals.options.libDir, "../../lib/utf/utf.dart")]);
+    this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "corelib.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "corelib_impl.dart"), "dart:html", joinPaths($globals.options.libDir, "../../lib/html/frog/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "../../lib/dom/frog/dom_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "../../lib/json/json_frog.dart"), "dart:io", joinPaths($globals.options.libDir, "../../lib/compiler/implementation/lib/io.dart"), "dart:isolate", joinPaths($globals.options.libDir, "../../lib/isolate/isolate_frog.dart"), "dart:uri", joinPaths($globals.options.libDir, "../../lib/uri/uri.dart"), "dart:utf", joinPaths($globals.options.libDir, "../../lib/utf/utf.dart")]);
   }
   else if ($eq$($globals.options.config, "sdk")) {
     this._specialLibs = _map(["dart:core", joinPaths($globals.options.libDir, "core/core_frog.dart"), "dart:coreimpl", joinPaths($globals.options.libDir, "coreimpl/coreimpl_frog.dart"), "dart:html", joinPaths($globals.options.libDir, "html/html_frog.dart"), "dart:dom", joinPaths($globals.options.libDir, "dom/dom_frog.dart"), "dart:isolate", joinPaths($globals.options.libDir, "isolate/isolate_frog.dart"), "dart:json", joinPaths($globals.options.libDir, "json/json_frog.dart"), "dart:uri", joinPaths($globals.options.libDir, "uri/uri.dart"), "dart:utf", joinPaths($globals.options.libDir, "utf/utf.dart")]);
