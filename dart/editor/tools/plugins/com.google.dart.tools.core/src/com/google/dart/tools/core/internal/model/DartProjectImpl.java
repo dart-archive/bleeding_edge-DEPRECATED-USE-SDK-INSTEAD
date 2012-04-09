@@ -522,7 +522,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
         return;
       }
     } catch (DartModelException exception) {
-      DartCore.logError("Failed to recompute the set of top-level libraries in the project:" //$NON-NLS-1$
+      DartCore.logError("Unable to recompute the set of top-level libraries in the project:" //$NON-NLS-1$
           + getElementName(), exception);
     }
   }

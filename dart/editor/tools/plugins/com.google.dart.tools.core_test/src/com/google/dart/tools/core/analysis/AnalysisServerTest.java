@@ -153,7 +153,8 @@ public class AnalysisServerTest extends TestCase {
     listener.assertBundledLibrariesResolved();
     System.out.println("  " + delta + " ms to resolve all sdk libraries");
     delta = resolveBundledLibraries();
-    if (delta > 10) {
+    // Increasing this test from 10 to 100 ms - we can get valid values larger then 10.
+    if (delta > 100) {
       fail("Expected libraries to be cached, but took " + delta + " ms");
     }
     int resolveCount = listener.getResolved().size();
@@ -168,7 +169,7 @@ public class AnalysisServerTest extends TestCase {
     listener.assertBundledLibrariesResolved();
     System.out.println("  " + delta + " ms to resolve and index all sdk libraries");
     delta = resolveBundledLibraries();
-    if (delta > 10) {
+    if (delta > 100) {
       fail("Expected libraries to be cached, but took " + delta + " ms");
     }
     int resolveCount = listener.getResolved().size();
