@@ -20,8 +20,15 @@ build system.  The PDE build system has to run under Eclipse.
         <echoProperty propertyname="build.root" />
         <echoProperty propertyname="build.out" />
         <echoProperty propertyname="build.source" />
+        <echoProperty propertyname="build.running.headless" />
         
+        <!-- build.running.headless is set by the python build script 
+             this will only be set to false if running a local build -->
         <property name="build.running.headless" value="false" />
+        <!-- only download the sdk if this is a local build -->
+        <condition property="build.download.sdk">
+            <isfalse value="${build.running.headless}" />
+        </condition>
         
         <fail>
             <condition>
@@ -43,6 +50,7 @@ build system.  The PDE build system has to run under Eclipse.
             build.source
             These properties should have been set by the Python code
         </fail>
+        <echoProperty propertyname="build.download.sdk" />
     </target>
     
     <!--
@@ -222,7 +230,7 @@ build system.  The PDE build system has to run under Eclipse.
     <!-- - - - - - - - - - - - - - - - - - 
           target: getSdk
          - - - - - - - - - - - - - - - - - -->
-    <target name="getSdk" if="osfamily" depends="setOS">
+    <target name="getSdk" if="build.download.sdk" depends="setOS">
         <get src="http://gsdview.appspot.com/dart-editor-archive-continuous/latest/dart-${osfamily}.zip"
              dest="${build.dart.sdk.zip}"
              usetimestamp="true" />

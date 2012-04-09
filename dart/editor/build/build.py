@@ -352,17 +352,9 @@ def main():
         if status:
           _PrintError('the build of the SDK failed')
           return status
+        _CopySdk(buildos, revision, to_bucket, sdkpath, buildroot, gsu)
       finally:
         os.chdir(cwd)
-      _CopySdk(buildos, revision, to_bucket, sdkpath, gsu)
-      sdk_zip_orig = os.path.join(sdkpath, 'dart-sdk.zip')
-      sdk_zip = os.path.join(buildroot, 'downloads',
-                             'dart-{0}.zip'.format(buildos))
-      if not os.path.exists(os.path.dirname(sdk_zip)):
-        os.makedirs(os.path.dirname(sdk_zip))
-
-      print 'copying {0} to {1}'.format(sdk_zip_orig, sdk_zip)
-      shutil.copy2(sdk_zip_orig, sdk_zip)
 
     if builder_name == 'dart-editor':
       buildos = None
@@ -751,7 +743,7 @@ def _SetAcl(element, gsu):
   gsu.SetAclFromFile(element, aclfile)
 
 
-def _CopySdk(buildos, revision, bucket_to, from_dir, gsu):
+def _CopySdk(buildos, revision, bucket_to, from_dir, buildroot, gsu):
   """Copy the deployed SDK to the editor buckets.
 
   Args:
@@ -759,22 +751,55 @@ def _CopySdk(buildos, revision, bucket_to, from_dir, gsu):
     revision: the svn revision
     bucket_to: the bucket to upload to
     from_dir: the directory to copy the sdk from
+    buildroot: the root of the build source
     gsu: the gsutil object
+
+  Raises:
+    Exception: the dart-sdk.zip could nto be found
   """
-  print '_CopySdk({0}, {1}, {2}, {3}, gsu)'.format(buildos, revision,
-                                                   bucket_to, from_dir)
+  print '_CopySdk({0}, {1}, {2}, {3}, {4}, gsu)'.format(buildos, revision,
+                                                        bucket_to, from_dir,
+                                                        buildroot)
   sdkzip = 'dart-sdk.zip'
   sdkshortzip = 'dart-{0}.zip'.format(buildos)
   gssdkzip = os.path.join(from_dir, sdkzip)
   gseditorzip = '{0}/{1}/{2}'.format(bucket_to, revision, sdkshortzip)
   gseditorlatestzip = '{0}/{1}/{2}'.format(bucket_to, 'latest', sdkshortzip)
 
-  print 'copying {0} to {1}'.format(gssdkzip, gseditorzip)
-  gsu.Copy(gssdkzip, gseditorzip)
-  _SetAcl(gseditorzip, gsu)
-  print 'copying {0} to {1}'.format(gssdkzip, gseditorlatestzip)
-  gsu.Copy(gssdkzip, gseditorlatestzip)
-  _SetAcl(gseditorlatestzip, gsu)
+  sdk_zip = os.path.join(buildroot, 'downloads',
+                         'dart-{0}.zip'.format(buildos))
+  if not os.path.exists(os.path.dirname(sdk_zip)):
+    os.makedirs(os.path.dirname(sdk_zip))
+
+  #Some bots when building the SDK do not create a zip file
+  #do not try to copy the non existant file to Google Storage
+  if os.path.exists(gssdkzip):
+    print 'copying {0} to {1}'.format(gssdkzip, gseditorzip)
+    gsu.Copy(gssdkzip, gseditorzip)
+    _SetAcl(gseditorzip, gsu)
+    print 'copying {0} to {1}'.format(gssdkzip, gseditorlatestzip)
+    gsu.Copy(gssdkzip, gseditorlatestzip)
+    _SetAcl(gseditorlatestzip, gsu)
+  else:
+    if 'win' in buildos:
+      #If this is windows get the latest dart-sdk.zip from Google Storage.
+      #the windows version of creat_sdk does not create a
+      #dart-sdk.zip does not exist
+      #
+      # TODO 
+      # create_sdk should be creating an SDK and we should be consuming it
+      #
+      print '*' * 40
+      print ('could not find {0} getting {1}'
+             ' from Google Storage'.format(gssdkzip, sdkshortzip))
+      print '*' * 40
+      gsu.Copy(gseditorlatestzip, gssdkzip)
+    else:
+      #if NOT windows then fail the build
+      raise Exception('could not find dart-sdk ({0})'.format(gssdkzip))
+
+  print 'copying {0} to {1}'.format(gssdkzip, sdk_zip)
+  shutil.copy2(gssdkzip, sdk_zip)
 
 
 def _FindRcpZipFiles(out_dir):
