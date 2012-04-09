@@ -37,6 +37,8 @@ import org.eclipse.swtbot.swt.finder.waits.WaitForObjectCondition;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.WorkbenchPartReference;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.hamcrest.Matcher;
@@ -53,6 +55,14 @@ import java.util.List;
  */
 @SuppressWarnings("restriction")
 public class DartEditorHelper {
+
+  public static IWorkbenchWindow getWorkbenchWindow() {
+    IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+    if (window == null) {
+      window = PlatformUI.getWorkbench().getWorkbenchWindows()[0];
+    }
+    return window;
+  }
 
   private final SWTWorkbenchBot bot;
   private final DartLib app;

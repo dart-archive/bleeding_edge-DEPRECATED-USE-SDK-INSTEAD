@@ -42,7 +42,6 @@ import java.util.List;
  */
 public class DartLib {
   public static final DartLib CLOCK_SAMPLE = new DartLib("clock", "Clock");
-  public static final DartLib ISOLATE_SAMPLE = new DartLib("isolate_html", "isolate_sample");
   public static final DartLib SLIDER_SAMPLE = new DartLib("slider", "slider_sample");
   public static final DartLib SUNFLOWER_SAMPLE = new DartLib("sunflower", "Sunflower");
   public static final DartLib TIME_SERVER_SAMPLE = new DartLib("time", "time_server");
@@ -74,8 +73,7 @@ public class DartLib {
   public static DartLib[] getAllSamples() {
     if (allSamples == null) {
       allSamples = new DartLib[] {
-          CLOCK_SAMPLE, ISOLATE_SAMPLE, SLIDER_SAMPLE, SUNFLOWER_SAMPLE, TIME_SERVER_SAMPLE,
-          TOTAL_SAMPLE};
+          CLOCK_SAMPLE, SLIDER_SAMPLE, SUNFLOWER_SAMPLE, TIME_SERVER_SAMPLE, TOTAL_SAMPLE};
       List<String> libDirs = Arrays.asList("chat", "lib", "ui_lib");
 
       // Assert that all samples are included
@@ -165,6 +163,13 @@ public class DartLib {
   }
 
   /**
+   * Close <code>this</code> Dart project.
+   */
+  public void close(SWTWorkbenchBot bot) {
+    // TODO (jwren) implement this method
+  }
+
+  /**
    * If the library dart file exists, then delete the directory containing it. This is used to
    * ensure a clean test when creating new Dart applications.
    */
@@ -194,15 +199,17 @@ public class DartLib {
   }
 
   /**
-   * Open the specified sample in the editor then click the launch toolbar button.
+   * Open <code>this</code> sample in the editor then click the launch toolbar button.
    */
-  public void openAndLaunch(SWTWorkbenchBot bot) throws Exception {
+  public void openAndLaunch(SWTWorkbenchBot bot, boolean isWebApp) throws Exception {
     deleteJsFile();
     new OpenLibraryHelper(bot).open(this);
-    if (this == TIME_SERVER_SAMPLE) {
+    if (!isWebApp) {
+      // TODO (jwren) implement a different version of LaunchBrowerHelper for server apps, so that console output can be asserted against
       Performance.waitForResults(bot);
     } else {
       new LaunchBrowserHelper(bot).launch(this);
     }
   }
+
 }

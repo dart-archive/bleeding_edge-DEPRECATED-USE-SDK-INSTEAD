@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.swtbot.views;
 
+import com.google.dart.tools.ui.swtbot.DartEditorUiTest;
+
 import static com.google.dart.tools.ui.swtbot.util.FormattedStringBuilder.appendText;
 
 import org.eclipse.swt.widgets.Composite;
@@ -31,16 +33,23 @@ import static org.junit.Assert.fail;
  */
 public class ProblemsViewHelper {
 
+  private SWTBot bot;
+
   private SWTBotTable table;
 
   public ProblemsViewHelper(SWTBot bot) {
-    SWTBotView view = ((SWTWorkbenchBot) bot).viewByTitle("Problems");
+    this.bot = bot;
+    SWTBotView view = ((SWTWorkbenchBot) bot).viewByTitle(DartEditorUiTest.PROBLEMS_VIEW_NAME);
     Composite composite = (Composite) view.getWidget();
     Table problemsTable = bot.widget(widgetOfType(Table.class), composite);
     table = new SWTBotTable(problemsTable);
   }
 
   public void assertNoProblems() {
+    // TODO (jwren) before this assertion is made, we have to wait for the Problems view has enough
+    // time to populate itself, figure out a way to write a condition instead of a sleep call.
+    bot.sleep(1000);
+
     int count = getProblemCount();
     if (count == 0) {
       return;

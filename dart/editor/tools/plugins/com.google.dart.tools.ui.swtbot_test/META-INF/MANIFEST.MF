@@ -18,6 +18,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.google.dart.tools.core,
  com.google.dart.tools.core_test,
  com.google.dart.tools.ui,
+ com.google.dart.compiler.js,
  org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

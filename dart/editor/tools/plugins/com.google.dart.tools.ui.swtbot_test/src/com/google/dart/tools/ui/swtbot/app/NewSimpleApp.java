@@ -38,7 +38,7 @@ public class NewSimpleApp {
   }
 
   public void create() throws Exception {
-    app = new NewApplicationHelper(bot).create("SimpleApp");
+    app = new NewApplicationHelper(bot).create("SimpleApp", NewApplicationHelper.ContentType.WEB);
     new LaunchBrowserHelper(DartEditorUiTest.bot).launch(app);
     Performance.waitForResults(DartEditorUiTest.bot);
     try {

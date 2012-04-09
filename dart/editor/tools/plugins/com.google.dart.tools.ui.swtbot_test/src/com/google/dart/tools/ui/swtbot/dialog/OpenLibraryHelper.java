@@ -13,25 +13,32 @@
  */
 package com.google.dart.tools.ui.swtbot.dialog;
 
+import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
+import com.google.dart.tools.ui.swtbot.DartEditorHelper;
 import com.google.dart.tools.ui.swtbot.DartLib;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
 
 import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.editorWithTitle;
 import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.waitForEditorWithTitle;
 
-import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 
-import static org.eclipse.swtbot.swt.finder.utils.SWTUtils.isMac;
 import static org.junit.Assert.fail;
 
 /**
- * Helper for driving the "Open Library.." command
+ * Helper for driving the "Open Folder..." command
  */
-public class OpenLibraryHelper extends NativeDialogHelper {
+// TODO (jwren) rename to OpenFolder to match current UI
+public class OpenLibraryHelper {
+
+  SWTWorkbenchBot bot;
+
   public OpenLibraryHelper(SWTWorkbenchBot bot) {
-    super(bot);
+    this.bot = bot;
   }
 
   /**
@@ -40,47 +47,29 @@ public class OpenLibraryHelper extends NativeDialogHelper {
    * 
    * @param lib the library (not <code>null</code>)
    */
-  public void open(DartLib lib) throws Exception {
+  public void open(final DartLib lib) throws Exception {
     if (!lib.dartFile.exists()) {
       fail("Cannot open non existing file: " + lib.dartFile);
     }
 
-    // Open the native dialog
-    bot.menu("File").menu("Open Folder...").click();
-
-    try {
-      waitForNativeShellShowing();
-      bot.sleep(500);
-
-      // On Mac, open the "Go to Folder" popup
-      if (isMac()) {
-        typeKeyCode(SWT.COMMAND | SWT.SHIFT | 'g');
+    Display.getDefault().syncExec(new Runnable() {
+      @SuppressWarnings("restriction")
+      @Override
+      public void run() {
+        try {
+          new CreateAndRevealProjectAction(DartEditorHelper.getWorkbenchWindow(),
+              lib.dartFile.getParentFile().getAbsolutePath()).run();
+          EditorUtility.openInEditor(ResourceUtil.getFile(lib.dartFile));
+        } catch (Exception e) {
+          DartToolsPlugin.log(e);
+        }
       }
-      typeKeyCode(SWT.MOD1 | 'a'); // Select all
+    });
 
-      // Type the absolute path to the library
-      bot.sleep(500);
-      typeText(lib.dir.getAbsolutePath());
-      bot.sleep(1000);
+    String title = lib.dartFile.getName();
+    Performance.OPEN_LIB.logInBackground(waitForEditorWithTitle(title), lib.name);
+    Performance.waitForResults(bot);
 
-      // On Mac, extra CR to close the "Go to Folder" popup
-      if (isMac()) {
-        typeChar(SWT.CR);
-        bot.sleep(250);
-      }
-
-      // Press Enter and wait for the operation to complete
-      typeChar(SWT.CR);
-      waitForNativeShellClosed();
-      lib.logFullAnalysisTime();
-      String title = lib.dartFile.getName();
-      Performance.OPEN_LIB.logInBackground(waitForEditorWithTitle(title), lib.name);
-      EditorUtility.openInEditor(lib.dartFile);
-      Performance.waitForResults(bot);
-      lib.editor = editorWithTitle(bot, title);
-
-    } finally {
-      ensureNativeShellClosed();
-    }
+    lib.editor = editorWithTitle(bot, title);
   }
 }

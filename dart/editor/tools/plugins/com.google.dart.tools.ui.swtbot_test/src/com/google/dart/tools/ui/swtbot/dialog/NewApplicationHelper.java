@@ -19,16 +19,24 @@ import com.google.dart.tools.ui.swtbot.performance.Performance;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.keyboard.Keystrokes;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotRadio;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
 
 import static org.eclipse.swtbot.eclipse.finder.waits.Conditions.waitForEditor;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
 public class NewApplicationHelper {
+
+  public enum ContentType {
+    WEB, SERVER
+  };
 
   private final SWTWorkbenchBot bot;
 
@@ -42,18 +50,41 @@ public class NewApplicationHelper {
    * @param appName the application name
    * @return the new application
    */
-  public DartLib create(String appName) {
+  public DartLib create(String appName, ContentType contentType) {
 
     // Open wizard
     bot.menu("File").menu("New Application...").click();
-    SWTBotShell shell = bot.shell("New Dart Application");
+    SWTBotShell shell = bot.activeShell();
     shell.activate();
 
-    // Assert content
-    SWTBotText appNameField = bot.text();
+    // Reference widgets and Assert content
+    SWTBotText appNameField = bot.textWithLabel("Name: ");
     SWTBotText appDirField = bot.textWithLabel("Directory: ");
+    SWTBotButton browseButton = bot.button("Browse...");
+
+    SWTBotRadio webAppRadio = bot.radioInGroup("Web application", "Create sample content");
+    SWTBotRadio serverAppRadio = bot.radioInGroup("Server application", "Create sample content");
+
     assertEquals("", appNameField.getText());
     assertTrue(appDirField.getText().length() > 0);
+    assertNotNull(browseButton);
+
+    assertTrue(webAppRadio.isSelected());
+    assertFalse(serverAppRadio.isSelected());
+
+    // Make either the selection of the web sample, or the server sample
+    switch (contentType) {
+      case WEB:
+        webAppRadio.click();
+        assertTrue(webAppRadio.isSelected());
+        assertFalse(serverAppRadio.isSelected());
+        break;
+      case SERVER:
+        serverAppRadio.click();
+        assertTrue(serverAppRadio.isSelected());
+        assertFalse(webAppRadio.isSelected());
+        break;
+    }
 
     // Ensure that the directory to be created does not exist
     DartLib lib = new DartLib(new File(appDirField.getText(), appName), appName);
