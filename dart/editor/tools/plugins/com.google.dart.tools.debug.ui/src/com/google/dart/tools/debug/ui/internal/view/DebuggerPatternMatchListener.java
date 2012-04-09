@@ -124,19 +124,21 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
   @Override
   public void matchFound(PatternMatchEvent event) {
     try {
-      String match = console.getDocument().get(event.getOffset(), event.getLength());
+      if (console != null) {
+        String match = console.getDocument().get(event.getOffset(), event.getLength());
 
-      Location location = parseMatch(match);
+        Location location = parseMatch(match);
 
-      if (location != null && location.doesExist()) {
-        console.addHyperlink(
-            new FileLink(location.getFile(), DartUI.ID_CU_EDITOR, -1, -1, location.getLine()),
-            event.getOffset(), event.getLength());
+        if (location != null && location.doesExist()) {
+          console.addHyperlink(new FileLink(location.getFile(), DartUI.ID_CU_EDITOR, -1, -1,
+              location.getLine()), event.getOffset(), event.getLength());
+        }
       }
     } catch (BadLocationException e) {
       // don't create a hyperlink
 
     }
+
   }
 
   private IFile getIFileForAbsolutePath(String pathStr) {
