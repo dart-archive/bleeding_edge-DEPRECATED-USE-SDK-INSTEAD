@@ -307,6 +307,7 @@ def main():
                   ' tried environment variables'
                   ' USER and USERNAME')
       return 1
+    build_skip_tests = os.environ.get('DART_SKIP_RUNNING_TESTS')
     sdk_environment = os.environ
     build_util = buildutil.BuildUtil(buildos, buildout, dartpath)
     if username.startswith('chrome'):
@@ -352,7 +353,8 @@ def main():
         if status:
           _PrintError('the build of the SDK failed')
           return status
-        _CopySdk(buildos, revision, to_bucket, sdkpath, buildroot, gsu)
+        sdk_zip = _CopySdk(buildos, revision, to_bucket, sdkpath,
+                           buildroot, gsu)
       finally:
         os.chdir(cwd)
 
@@ -417,19 +419,23 @@ def main():
     sys.stdout.flush()
 
     _PrintSeparator('Running the tests')
-    ant_status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
-                            'buildTests.xml',
-                            revision, options.name, buildroot, buildout,
-                            editorpath, buildos,
-                            extra_artifacts=extra_artifacts)
-    properties = _ReadPropertyFile(buildos, ant_property_file.name)
-    if buildos:
-      _UploadTestHtml(buildout, to_bucket, revision, buildos, gsu)
-    if ant_status:
-      if properties['build.runtime']:
-        #if there is a build.runtime and the status is not
-        #zero see if there are any *.log entries
-        _PrintErrorLog(properties['build.runtime'])
+    if not build_skip_tests:
+      ant_status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
+                              'buildTests.xml',
+                              revision, options.name, buildroot, buildout,
+                              editorpath, buildos,
+                              extra_artifacts=extra_artifacts)
+      properties = _ReadPropertyFile(buildos, ant_property_file.name)
+      if buildos:
+        _UploadTestHtml(buildout, to_bucket, revision, buildos, gsu)
+      if ant_status:
+        if properties['build.runtime']:
+          #if there is a build.runtime and the status is not
+          #zero see if there are any *.log entries
+          _PrintErrorLog(properties['build.runtime'])
+    else:
+      ant_status = 0
+
     if buildos:
       found_zips = _FindRcpZipFiles(buildout)
       _InstallArtifacts(buildout, buildos, extra_artifacts)
@@ -754,6 +760,9 @@ def _CopySdk(buildos, revision, bucket_to, from_dir, buildroot, gsu):
     buildroot: the root of the build source
     gsu: the gsutil object
 
+  Returns:
+    the location of the dar-sdk.zip file
+
   Raises:
     Exception: the dart-sdk.zip could nto be found
   """
@@ -786,8 +795,8 @@ def _CopySdk(buildos, revision, bucket_to, from_dir, buildroot, gsu):
       #the windows version of creat_sdk does not create a
       #dart-sdk.zip does not exist
       #
-      # TODO 
-      # create_sdk should be creating an SDK and we should be consuming it
+      # TODO(mrrussell): create_sdk should create an SDK and we
+      #should be consuming it
       #
       print '*' * 40
       print ('could not find {0} getting {1}'
@@ -800,6 +809,7 @@ def _CopySdk(buildos, revision, bucket_to, from_dir, buildroot, gsu):
 
   print 'copying {0} to {1}'.format(gssdkzip, sdk_zip)
   shutil.copy2(gssdkzip, sdk_zip)
+  return sdk_zip
 
 
 def _FindRcpZipFiles(out_dir):
