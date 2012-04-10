@@ -13,12 +13,28 @@
  */
 package com.google.dart.tools.ui.swtbot.dialog;
 
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.swtbot.DartEditorUiTest;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
+
+import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.activeShell;
+
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.swt.finder.SWTBot;
+import org.eclipse.swtbot.swt.finder.waits.ICondition;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotCheckBox;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
+import org.eclipse.ui.internal.dialogs.WorkbenchPreferenceDialog;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Drive the "Preferences" dialog
  */
+@SuppressWarnings("restriction")
 public class PreferencesHelper {
 
   @SuppressWarnings("unused")
@@ -30,6 +46,24 @@ public class PreferencesHelper {
     this.bot = bot;
   }
 
+  public void assertDefaultPreferencesSelected() {
+    SWTBotCheckBox lineNumbersCheckBox = bot.checkBoxInGroup("Show line numbers", "General");
+    SWTBotCheckBox printMarginCheckBox = bot.checkBoxInGroup("Show print margin at column:",
+        "General");
+
+    assertNotNull(lineNumbersCheckBox);
+    assertFalse(lineNumbersCheckBox.isChecked());
+    assertTrue(lineNumbersCheckBox.isEnabled());
+    assertTrue(lineNumbersCheckBox.isVisible());
+
+    assertNotNull(printMarginCheckBox);
+    assertFalse(printMarginCheckBox.isChecked());
+    assertTrue(printMarginCheckBox.isEnabled());
+    assertTrue(printMarginCheckBox.isVisible());
+
+    // TODO (jwren) make assertions on the rest of the default-preferences
+  }
+
   public void close() {
     if (shell != null && shell.isOpen()) {
       shell.close();
@@ -37,16 +71,50 @@ public class PreferencesHelper {
     }
   }
 
+  @SuppressWarnings("restriction")
   public SWTBotShell open() {
+    final SWTBotShell mainShell = activeShell(bot);
     if (shell == null) {
-      // TODO (jwren) Do some research online to figure out how to get the preferences dialog open,
-      // this may be different on different OSs
       // Open dialog
-//      bot.bot.menu("Dart Editor").click();
-//      shell = bot.shell("Preferences");
-//      assertNotNull(shell);
-//      assertTrue(shell.isOpen());
-//      shell.activate();
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            WorkbenchPreferenceDialog.createDialogOn(DartEditorUiTest.getShell(), null).open();
+          } catch (Exception e) {
+            DartToolsPlugin.log(e);
+          }
+        }
+      });
+
+      // Wait for the main shell to loose focus
+      bot.waitUntil(new ICondition() {
+
+        @Override
+        public String getFailureMessage() {
+          return "Failed to detect launch of the Preference dialog";
+        }
+
+        @Override
+        public void init(SWTBot bot) {
+        }
+
+        @Override
+        public boolean test() throws Exception {
+          return !mainShell.isActive();
+        }
+      }, Performance.DEFAULT_TIMEOUT_MS);
+
+      SWTBotShell activeShell = activeShell(bot);
+
+      // Assert that the active shell is the Preferences dialog
+      assertNotNull(activeShell);
+      assertTrue(activeShell.getText().equals("Preferences"));
+      assertTrue(activeShell.isEnabled());
+      assertTrue(activeShell.isOpen());
+      assertTrue(activeShell.isVisible());
+
+      shell = activeShell;
     }
     return shell;
   }

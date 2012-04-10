@@ -20,17 +20,24 @@ import com.google.dart.tools.ui.swtbot.conditions.AnalysisCompleteCondition;
 import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
 import com.google.dart.tools.ui.swtbot.conditions.CompilerWarmedUp;
 import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
+import com.google.dart.tools.ui.swtbot.dialog.PreferencesHelper;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
 import com.google.dart.tools.ui.swtbot.views.ConsoleViewHelper;
+import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
 
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotPerspective;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewReference;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -40,6 +47,7 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(SWTBotJunit4ClassRunner.class)
@@ -59,6 +67,18 @@ public class DartEditorUiTest {
   public static String FILES_VIEW_NAME = "Files";
   public static String OUTLINE_VIEW_NAME = "Outline";
   public static String PROBLEMS_VIEW_NAME = "Problems";
+
+  public static Shell getShell() {
+    return getWorkbenchWindow().getShell();
+  }
+
+  public static IWorkbenchWindow getWorkbenchWindow() {
+    IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+    if (window == null) {
+      window = PlatformUI.getWorkbench().getWorkbenchWindows()[0];
+    }
+    return window;
+  }
 
   @AfterClass
   public static void printResults() {
@@ -89,6 +109,13 @@ public class DartEditorUiTest {
     DartLib.getAllSamples();
   }
 
+  @After
+  public void assertNoLibrariesOpen() {
+    // Before any test starts, assert that there is only one element (SDK Libraries) in the Files view,
+    // this guarantees that any previous examples have been closed out.
+    new FilesViewHelper(bot).assertTreeItemsEqual(FilesViewHelper.SDK_TEXT);
+  }
+
   @Ignore("Not yet implemented")
   @Test
   public void testInitState_aboutDialog() throws Exception {
@@ -117,20 +144,12 @@ public class DartEditorUiTest {
     assertEquals("Dart", perspective.getLabel());
   }
 
-  @Ignore("Not yet implemented")
   @Test
   public void testInitState_preferencesDialog() throws Exception {
-    // TODO (jwren) once implemented, this test should assert that:
-    // the dialog appears
-    // correct default settings are selected
-    // user can hit cancel to exit preferences
-    // user can modify preferences, hit OKAY, then go into dialog to see the set preference
-//    PreferencesHelper prefHelper = new PreferencesHelper(bot);
-//    SWTBotShell shell = prefHelper.open();
-//    assertNotNull(shell);
-//    assertTrue(shell.isActive());
-//    assertTrue(shell.isEnabled());
-//    prefHelper.close();
+    PreferencesHelper prefrencesHelper = new PreferencesHelper(bot);
+    prefrencesHelper.open();
+    prefrencesHelper.assertDefaultPreferencesSelected();
+    prefrencesHelper.close();
   }
 
   @Test
@@ -155,9 +174,12 @@ public class DartEditorUiTest {
   @Test
   public void testInitState_view_files() throws Exception {
     baseViewAssertions(FILES_VIEW_NAME);
-    // TODO (jwren) make some more assertions on the Files view:
-    // exactly one element, with an icon, and the correct text, in the tree
-    // correct number of toolbar icons, with tooltips/icons
+    FilesViewHelper filesViewHelper = new FilesViewHelper(bot);
+    filesViewHelper.assertTreeItemCount(1);
+    filesViewHelper.assertTreeItemsEqual(FilesViewHelper.SDK_TEXT);
+    SWTBotTreeItem sdkTreeItem = filesViewHelper.getItems()[0];
+    assertFalse(sdkTreeItem.isExpanded());
+    assertTrue(sdkTreeItem.isVisible());
   }
 
   @Test
@@ -179,7 +201,7 @@ public class DartEditorUiTest {
     DartLib dartLib = new NewApplicationHelper(bot).create("NewAppServer",
         NewApplicationHelper.ContentType.SERVER);
     Performance.waitForResults(bot);
-    // TODO (jwren) once we can launch server apps (see TODO in DartLib.openAndLaunch), then this
+    // TODO (jwren) once we can launch server apps (see todo in DartLib.openAndLaunch), then this
     // call should be: openAndLaunchLibrary(dartLib, false, "Hello World");
     openAndLaunchLibrary(dartLib, false, false);
   }
@@ -230,9 +252,11 @@ public class DartEditorUiTest {
 
   @Test
   public void testSimpleApp() throws Exception {
-    new NewSimpleApp(bot).create();
+    NewSimpleApp newSimpleApp = new NewSimpleApp(bot);
+    newSimpleApp.create();
     Performance.waitForResults(bot);
     new ProblemsViewHelper(bot).assertNoProblems();
+    newSimpleApp.app.close(bot);
   }
 
   /**
@@ -302,6 +326,13 @@ public class DartEditorUiTest {
         new ConsoleViewHelper(bot).assertConsoleEquals(consoleOutput);
       }
     }
+
+    // Files view assertions
+    new FilesViewHelper(bot).assertTreeItemsEqual(dartLibSample.getNameInFilesView(),
+        FilesViewHelper.SDK_TEXT);
+
+    // Finally, close the library
     dartLibSample.close(bot);
   }
+
 }

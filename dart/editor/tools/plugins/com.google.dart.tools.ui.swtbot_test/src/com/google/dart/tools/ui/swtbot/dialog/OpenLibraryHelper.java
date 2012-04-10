@@ -17,7 +17,7 @@ import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
-import com.google.dart.tools.ui.swtbot.DartEditorHelper;
+import com.google.dart.tools.ui.swtbot.DartEditorUiTest;
 import com.google.dart.tools.ui.swtbot.DartLib;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
 
@@ -57,8 +57,8 @@ public class OpenLibraryHelper {
       @Override
       public void run() {
         try {
-          new CreateAndRevealProjectAction(DartEditorHelper.getWorkbenchWindow(),
-              lib.dartFile.getParentFile().getAbsolutePath()).run();
+          String directoryToOpen = lib.dir.getAbsolutePath();
+          new CreateAndRevealProjectAction(DartEditorUiTest.getWorkbenchWindow(), directoryToOpen).run();
           EditorUtility.openInEditor(ResourceUtil.getFile(lib.dartFile));
         } catch (Exception e) {
           DartToolsPlugin.log(e);

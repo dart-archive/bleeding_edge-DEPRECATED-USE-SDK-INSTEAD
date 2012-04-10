@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
 import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
 import com.google.dart.tools.ui.swtbot.util.AntRunner;
+import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 
 import static com.google.dart.tools.ui.swtbot.performance.Performance.prepend;
 
@@ -166,7 +167,7 @@ public class DartLib {
    * Close <code>this</code> Dart project.
    */
   public void close(SWTWorkbenchBot bot) {
-    // TODO (jwren) implement this method
+    new FilesViewHelper(bot).contextClick_removeFromEditor(getNameInFilesView());
   }
 
   /**
@@ -187,6 +188,10 @@ public class DartLib {
     if (jsFile.exists()) {
       jsFile.delete();
     }
+  }
+
+  public String getNameInFilesView() {
+    return dir.getName();
   }
 
   /**
