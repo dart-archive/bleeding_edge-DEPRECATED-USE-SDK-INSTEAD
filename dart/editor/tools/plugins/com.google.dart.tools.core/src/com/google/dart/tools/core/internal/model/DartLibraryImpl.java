@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
@@ -73,6 +74,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -350,6 +352,18 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   public CompilationUnit[] getCompilationUnits() throws DartModelException {
     List<CompilationUnit> compilationUnits = getChildrenOfType(CompilationUnit.class);
     return compilationUnits.toArray(new CompilationUnit[compilationUnits.size()]);
+  }
+
+  @Override
+  public List<CompilationUnit> getCompilationUnitsInScope() throws DartModelException {
+    List<CompilationUnit> units = Lists.newArrayList();
+    // add units from imported libraries
+    for (DartLibrary library : getImportedLibraries()) {
+      Collections.addAll(units, library.getCompilationUnits());
+    }
+    // add units of this library
+    Collections.addAll(units, getCompilationUnits());
+    return units;
   }
 
   @Override

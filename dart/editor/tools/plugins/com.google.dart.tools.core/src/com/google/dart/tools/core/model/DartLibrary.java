@@ -118,6 +118,13 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public CompilationUnit[] getCompilationUnits() throws DartModelException;
 
   /**
+   * @return {@link CompilationUnit}s that contribute to this library. Here "contribute" means that
+   *         unit is defined in this library or any in any directly imported library (not
+   *         transitive).
+   */
+  public List<CompilationUnit> getCompilationUnitsInScope() throws DartModelException;
+
+  /**
    * Return the compilation unit that defines this library.
    * 
    * @return the compilation unit that defines this library

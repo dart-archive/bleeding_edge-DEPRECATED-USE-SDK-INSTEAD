@@ -22,6 +22,7 @@ import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
@@ -39,6 +40,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -421,6 +424,44 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getCompilationUnits_libHtml() throws Exception {
     assertTrue(getDartLibHtml().getCompilationUnits().length > 0);
+  }
+
+  /**
+   * Test for {@link DartLibrary#getCompilationUnitsInScope()}.
+   */
+  public void test_DartLibraryImpl_getCompilationUnitsInScope() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      CompilationUnit unitA = testProject.setUnitContent(
+          "TestA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              ""));
+      CompilationUnit unitB = testProject.setUnitContent(
+          "TestB.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('B');",
+              "#import('TestA.dart');",
+              ""));
+      IResource resourceA = unitA.getResource();
+      IResource resourceB = unitB.getResource();
+      // "libraryA" has only units of "A"
+      {
+        DartLibrary libraryA = testProject.getDartProject().getDartLibrary(resourceA);
+        List<CompilationUnit> units = libraryA.getCompilationUnitsInScope();
+        assertThat(units).containsOnly(unitA);
+      }
+      // "libraryA" has units of "A" and "B"
+      {
+        DartLibrary libraryB = testProject.getDartProject().getDartLibrary(resourceB);
+        List<CompilationUnit> units = libraryB.getCompilationUnitsInScope();
+        assertThat(units).containsOnly(unitA, unitB);
+      }
+    } finally {
+      testProject.dispose();
+    }
   }
 
   public void test_DartLibraryImpl_getCorrespondingResource() {
