@@ -15,6 +15,7 @@ package com.google.dart.tools.core.dom;
 
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
@@ -117,8 +118,8 @@ public class NodeFinder extends ASTVisitor<Void> {
   }
 
   private int fStart;
-  private int fEnd;
 
+  private int fEnd;
   private DartNode fCoveringNode;
   private DartNode fCoveredNode;
   private DartMethodDefinition method;
@@ -126,6 +127,7 @@ public class NodeFinder extends ASTVisitor<Void> {
   private DartClass classDef;
   private DartClass enclosingClass;
   private DartField enclosingField;
+
   private DartField field;
 
   public NodeFinder(int offset, int length) {
@@ -146,6 +148,18 @@ public class NodeFinder extends ASTVisitor<Void> {
    * is the last covering node found in a top-down traversal of the AST.
    */
   public DartNode getCoveringNode() {
+    // In DartMethodDefinition nodes getName() and getFunction() have intersecting source ranges,
+    // but are not parent and child.
+    // So, here we check for this specific case to choose getName().
+    if (fCoveringNode != null && fCoveringNode.getParent() instanceof DartMethodDefinition) {
+      DartMethodDefinition methodDefinition = (DartMethodDefinition) fCoveringNode.getParent();
+      if (fCoveringNode == methodDefinition.getFunction()) {
+        DartExpression name = methodDefinition.getName();
+        if (name.getSourceInfo().getOffset() <= fStart && fEnd <= name.getSourceInfo().getEnd()) {
+          return name;
+        }
+      }
+    }
     return fCoveringNode;
   }
 
@@ -206,14 +220,17 @@ public class NodeFinder extends ASTVisitor<Void> {
       return null;
     }
     if (nodeStart <= fStart && fEnd <= nodeEnd) {
-      // use current node only if it has more specific source range
-      if (fCoveringNode == null || fCoveringNode.getSourceInfo().getOffset() > nodeStart
-          || fCoveringNode.getSourceInfo().getEnd() > nodeEnd) {
-        fCoveringNode = node;
-        enclosingMethod = method;
-        enclosingField = field;
-        enclosingClass = classDef;
-      }
+      fCoveringNode = node;
+      enclosingMethod = method;
+      enclosingField = field;
+      enclosingClass = classDef;
+//      // use current node only if it has more specific source range
+//      if (fCoveringNode == null || areParentChild(fCoveringNode, node)
+//          || fCoveringNode.getSourceInfo().getOffset() > nodeStart
+//          || fCoveringNode.getSourceInfo().getEnd() > nodeEnd) {
+//      } else {
+//        System.out.println("zzzzzzzz: " + node);
+//      }
     }
     if (fStart <= nodeStart && nodeEnd <= fEnd) {
       if (fCoveringNode == node) {
