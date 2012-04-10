@@ -46,7 +46,7 @@ main() {
     // add a boat of length 4 using mousedown/mousemove/mouseup
     var startCell = p1OwnBoard.nodes[0].nodes[4].nodes[2];
     var endCell = p1OwnBoard.nodes[0].nodes[4].nodes[5];
-    serialInvokeAsync([
+    _serialInvokeAsync([
       () => doMouseEvent("mousedown", startCell),
       () => doMouseEvent("mousemove", endCell),
       () => doMouseEvent("mouseup", endCell),
@@ -82,7 +82,7 @@ main() {
     // add a boat of length 4 using mousedown/mousemove/mouseup
     var startCell = p2OwnBoard.nodes[0].nodes[3].nodes[8];
     var endCell = p2OwnBoard.nodes[0].nodes[7].nodes[8];
-    serialInvokeAsync([
+    _serialInvokeAsync([
       () => doMouseEvent("mousedown", startCell),
       () => doMouseEvent("mousemove", endCell),
       () => doMouseEvent("mouseup", endCell),
@@ -147,4 +147,19 @@ doMouseEvent(String type, var targetCell) {
   MouseEvent e = new MouseEvent(type, window, 0, 0, 0, point.x, point.y, 0,
       relatedTarget: targetCell);
   targetCell.on[type].dispatch(e);
+}
+
+void _serialInvokeAsync(List closures) {
+  final length = closures.length;
+  if (length > 0) {
+    int i = 0;
+    void invokeNext() {
+      closures[i]();
+      i++;
+      if (i < length) {
+        window.setTimeout(invokeNext, 0);
+      }
+    }
+    window.setTimeout(invokeNext, 0);
+  }
 }

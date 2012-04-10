@@ -7,40 +7,18 @@
 // node library.
 #library("unittest");
 
+#import('dart:isolate');
 #import('../../../lib/node/node.dart');
+
+#source('../../../../lib/unittest/config.dart');
 #source('../../../../lib/unittest/shared.dart');
 
-_platformInitialize() {
-  // Do nothing.
-}
-
-_platformDefer(void callback()) {
-  setTimeout(callback, 0);
-}
-
-_platformStartTests() {
-  // Do nothing.
-}
-
-_platformCompleteTests(int testsPassed, int testsFailed, int testsErrors) {
-  // Print each test's result.
-  for (final test in _tests) {
-    print('${test.result.toUpperCase()}: ${test.description}');
-
-    if (test.message != '') {
-      print('  ${test.message}');
+class PlatformConfiguration extends Configuration {
+  void onDone(int passed, int failed, int errors, List<TestCase> results) {
+    try {
+      super.onDone(passed, failed, errors, results);
+    } catch (Exception e) {
+      process.exit(1);
     }
-  }
-
-  // Show the summary.
-  print('');
-
-  if (testsPassed == 0 && testsFailed == 0 && testsErrors == 0) {
-    print('No tests found.');
-  } else if (testsFailed == 0 && testsErrors == 0) {
-    print('All $testsPassed tests passed.');
-  } else {
-    print('$testsPassed PASSED, $testsFailed FAILED, $testsErrors ERRORS');
-    process.exit(1);
   }
 }

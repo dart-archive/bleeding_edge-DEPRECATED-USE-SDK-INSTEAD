@@ -45,7 +45,7 @@ void main() {
   }
 
   asyncTest('BackButton', 1, () {
-    serialInvokeAsync([() {
+    _serialInvokeAsync([() {
       Expect.equals(null, swarm.frontView.storyView); // verify initial state
 
       // Make sure we've transitioned to the section
@@ -135,5 +135,20 @@ class UIStateProxy extends SwarmState {
       Expect.equals(e['article'], h['article']);
     }
     clearHistory();
+  }
+}
+
+void _serialInvokeAsync(List closures) {
+  final length = closures.length;
+  if (length > 0) {
+    int i = 0;
+    void invokeNext() {
+      closures[i]();
+      i++;
+      if (i < length) {
+        window.setTimeout(invokeNext, 0);
+      }
+    }
+    window.setTimeout(invokeNext, 0);
   }
 }
