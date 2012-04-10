@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="com.google.dart.tools.ui.web.css.CssEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="css"
+            icon="icons/cssfile.png"
+            id="com.google.dart.tools.ui.web.css.CSSEditor"
+            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
+            name="Dart CSS Editor"
+            default="true">
+      </editor>
+
+      <editor
+            class="com.google.dart.tools.ui.web.xml.XmlEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="xml"
+            icon="icons/doc_section_obj.gif"
+            id="com.google.dart.tools.ui.web.xml.XmlEditor"
+            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
+            name="Dart XML Editor"
+            default="true">
+      </editor>
+
+      <editor
+            class="com.google.dart.tools.ui.web.html.HtmlEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="html,htm"
+            icon="icons/htmlfile.png"
+            id="com.google.dart.tools.ui.web.html.HtmlEditor"
+            symbolicFontName="com.google.dart.tools.ui.editors.textfont"
+            name="Dart HTML Editor"
+            default="true">
+      </editor>
+   </extension>
+   
+</plugin>
