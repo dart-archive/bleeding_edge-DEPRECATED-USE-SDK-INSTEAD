@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- * 
+ * Copyright (c) 2012, the Dart project authors.
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -27,6 +27,7 @@ import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
+import com.google.dart.compiler.ast.DartSyntheticErrorIdentifier;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartVariableStatement;
@@ -620,7 +621,7 @@ public class CompletionParser extends DartParser {
     CompletionNode newNode;
     if (nodeClass == DartMethodInvocation.class) {
       newNode = MethodInvocationCompleter.from((DartMethodInvocation) node);
-    } else if (nodeClass == DartIdentifier.class) {
+    } else if (nodeClass == DartIdentifier.class || nodeClass == DartSyntheticErrorIdentifier.class) {
       newNode = IdentifierCompleter.from((DartIdentifier) node);
     } else if (nodeClass == DartPropertyAccess.class) {
       newNode = PropertyAccessCompleter.from((DartPropertyAccess) node);

@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -655,6 +655,8 @@ public class CompletionEngine {
 
     @Override
     public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+      // TODO(zundel): This should not recurse
+      node.visitChildren(this);
       return null;
     }
 
@@ -693,7 +695,7 @@ public class CompletionEngine {
             DartNode target = completionNode.getTarget();
             if (target instanceof DartPropertyAccess) {
               // TODO(zundel): HACK! This might be a 'this' or 'static' access: I didn't check
-              createCompletionsForPropertyAccess(((DartPropertyAccess) target).getName(), 
+              createCompletionsForPropertyAccess(((DartPropertyAccess) target).getName(),
                                                  analyzeType(target), false, false);
             }
           }
@@ -790,7 +792,7 @@ public class CompletionEngine {
           if (qualifier instanceof DartIdentifier) {
             name = (DartIdentifier)qualifier;
           } else {
-            name = ((DartPropertyAccess)qualifier).getName(); 
+            name = ((DartPropertyAccess)qualifier).getName();
           }
           Element element = name.getElement();
           ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
@@ -854,6 +856,11 @@ public class CompletionEngine {
             DartPropertyAccess prop = (DartPropertyAccess) completionNode.getParent();
             prop.accept(new IdentifierCompletionProposer(prop.getName()));
           }
+        } else if (completionNode.getParent() instanceof DartTypeParameter) {
+           // < T extends !>
+          if (completionNode.getIdentifier() instanceof DartIdentifier) {
+            proposeTypeNamesForPrefix((DartIdentifier)completionNode.getIdentifier());
+          }
         }
       }
       return null;
@@ -876,6 +883,8 @@ public class CompletionEngine {
           }
         }
       }
+      // TODO(zundel): This should not recurse
+      node.visitChildren(this);
       return null;
     }
 
