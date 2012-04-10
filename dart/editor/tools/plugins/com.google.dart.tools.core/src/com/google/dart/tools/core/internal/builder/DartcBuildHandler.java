@@ -181,6 +181,37 @@ public class DartcBuildHandler {
    */
   private final ArtifactProvider provider = new ArtifactProvider();
 
+  /**
+   * Build all of the libraries in the given project that are contained within the given parent.
+   * 
+   * @param project the project containing the libraries to be built
+   * @param parent the parent of the libraries to be built
+   * @param monitor the monitor used to provide feedback to the user, or <code>null</code> if no
+   *          feedback is requested
+   * @throws CoreException if the build fails for some reason
+   */
+  public void buildLibrariesIn(IProject project, IResource parent, IProgressMonitor monitor)
+      throws CoreException {
+    DartProject dartProject = DartCore.create(project);
+    DartLibrary[] allLibraries = dartProject.getDartLibraries();
+    SubMonitor subMonitor = SubMonitor.convert(monitor, "Building " + dartProject.getElementName()
+        + "...", allLibraries.length * 100);
+    try {
+      for (DartLibrary lib : allLibraries) {
+        if (monitor.isCanceled()) {
+          throw new OperationCanceledException();
+        }
+        CompilationUnit definingUnit = lib.getDefiningCompilationUnit();
+        IResource resource = definingUnit.getResource();
+        if (isOrContains(parent, resource)) {
+          buildLibrary(project, lib, false, subMonitor.newChild(100));
+        }
+      }
+    } finally {
+      monitor.done();
+    }
+  }
+
   public void clean(IProject project, IProgressMonitor monitor) throws CoreException {
     BuilderUtil.clearErrorMarkers(project);
     provider.clean(project, monitor);
@@ -213,7 +244,7 @@ public class DartcBuildHandler {
   /**
    * Build all the libraries in the project associated with the receiver
    * 
-   * @param monitor the progress monitor (not <code>null</code>)
+   * @param monitor the progress monitor
    */
   protected void buildAllApplications(IProject project, boolean shouldGenerateJs,
       IProgressMonitor monitor) throws CoreException {
@@ -347,4 +378,18 @@ public class DartcBuildHandler {
     }
   }
 
+  /**
+   * Return <code>true</code> if the parent resource is either the same as or contains the child
+   * resource.
+   * 
+   * @param parent the resource that might contain the child
+   * @param child the resource being tested for containment in the parent
+   * @return <code>true</code> if the parent resource is either the same as or contains the child
+   *         resource
+   */
+  private boolean isOrContains(IResource parent, IResource child) {
+    String parentPath = parent.getFullPath().toPortableString();
+    String childPath = child.getFullPath().toPortableString();
+    return childPath.equals(parentPath) || childPath.startsWith(parentPath + "/");
+  }
 }
