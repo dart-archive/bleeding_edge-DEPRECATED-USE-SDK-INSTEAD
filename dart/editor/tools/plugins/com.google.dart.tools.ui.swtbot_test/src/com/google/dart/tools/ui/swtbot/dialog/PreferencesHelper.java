@@ -21,6 +21,7 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
  */
 public class PreferencesHelper {
 
+  @SuppressWarnings("unused")
   private final SWTWorkbenchBot bot;
 
   private SWTBotShell shell;

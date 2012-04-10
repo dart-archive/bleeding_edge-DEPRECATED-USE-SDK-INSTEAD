@@ -33,6 +33,7 @@ import static org.junit.Assert.fail;
  * Helper for driving the "Open Folder..." command
  */
 // TODO (jwren) rename to OpenFolder to match current UI
+@SuppressWarnings("restriction")
 public class OpenLibraryHelper {
 
   SWTWorkbenchBot bot;
@@ -53,7 +54,6 @@ public class OpenLibraryHelper {
     }
 
     Display.getDefault().syncExec(new Runnable() {
-      @SuppressWarnings("restriction")
       @Override
       public void run() {
         try {
