@@ -19,17 +19,25 @@ public class ExecutionUtils {
     private static Throwable throwable;
 
     public static synchronized void spit(Throwable t) {
-      ExceptionThrower.throwable = t;
-      try {
-        ExceptionThrower.class.newInstance();
-      } catch (InstantiationException e) {
-      } catch (IllegalAccessException e) {
-      } finally {
-        ExceptionThrower.throwable = null;
+      if (System.getProperty("de.ExecutionUtils.propagate().dontThrow") == null) {
+        ExceptionThrower.throwable = t;
+        try {
+          ExceptionThrower.class.newInstance();
+        } catch (InstantiationException e) {
+        } catch (IllegalAccessException e) {
+        } finally {
+          ExceptionThrower.throwable = null;
+        }
       }
     }
 
     private ExceptionThrower() throws Throwable {
+      if (System.getProperty("de.ExecutionUtils.propagate().InstantiationException") != null) {
+        throw new InstantiationException();
+      }
+      if (System.getProperty("de.ExecutionUtils.propagate().IllegalAccessException") != null) {
+        throw new IllegalAccessException();
+      }
       throw throwable;
     }
   }
@@ -41,7 +49,9 @@ public class ExecutionUtils {
    *         this method in "throw" statement.
    */
   public static RuntimeException propagate(Throwable throwable) {
-    ExceptionThrower.spit(throwable);
+    if (System.getProperty("de.ExecutionUtils.propagate().forceReturn") == null) {
+      ExceptionThrower.spit(throwable);
+    }
     return null;
   }
 

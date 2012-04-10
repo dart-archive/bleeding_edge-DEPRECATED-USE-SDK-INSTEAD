@@ -18,7 +18,6 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.SourceRange;
-import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
@@ -26,13 +25,10 @@ import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
-import com.google.dart.tools.internal.corext.refactoring.participants.DartProcessors;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
-import com.google.dart.tools.internal.corext.refactoring.util.ResourceUtil;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -42,7 +38,6 @@ import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
-import org.eclipse.ltk.core.refactoring.participants.RenameArguments;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
@@ -51,6 +46,8 @@ import org.eclipse.text.edits.TextEditGroup;
 import java.util.List;
 
 /**
+ * {@link DartRenameProcessor} for {@link DartVariableDeclaration}.
+ * 
  * @coverage dart.editor.ui.refactoring.core
  */
 public class RenameLocalVariableProcessor extends DartRenameProcessor {
@@ -68,8 +65,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   private CompilationUnitChange change;
 
   /**
-   * Creates a new rename local variable processor.
-   * 
    * @param variable the local variable, not <code>null</code>.
    */
   public RenameLocalVariableProcessor(DartVariableDeclaration variable) {
@@ -156,13 +151,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   }
 
   @Override
-  protected RenameModifications computeRenameModifications() throws CoreException {
-    RenameModifications result = new RenameModifications();
-    result.rename(variable, new RenameArguments(getNewElementName(), true));
-    return result;
-  }
-
-  @Override
   protected RefactoringStatus doCheckFinalConditions(
       IProgressMonitor pm,
       CheckConditionsContext context) throws CoreException, OperationCanceledException {
@@ -187,21 +175,10 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
     }
   }
 
-  @Override
-  protected final String[] getAffectedProjectNatures() throws CoreException {
-    return DartProcessors.computeAffectedNatures(variable);
-  }
-
-  @Override
-  protected IFile[] getChangedFiles() throws CoreException {
-    return new IFile[] {ResourceUtil.getFile(unit)};
-  }
-
   private RefactoringStatus analyzePossibleConflicts(IProgressMonitor pm) throws CoreException {
     pm.beginTask("Analyze possible conflicts", 3);
     try {
       RefactoringStatus result = new RefactoringStatus();
-      Type enclosingType = variable.getAncestor(Type.class);
       // analyze variables in same function
       {
         DartFunction enclosingFunction = variable.getAncestor(DartFunction.class);
@@ -225,7 +202,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
       pm.subTask("Analyze supertypes");
       RenameAnalyzeUtil.checkShadow_superType_member(
           result,
-          enclosingType,
+          variable,
           newName,
           RefactoringCoreMessages.RenameLocalVariableProcessor_shadow_superType_member);
       pm.worked(1);
@@ -248,6 +225,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
               new Object[] {
                   BasicElementLabels.getPathLabel(resourcePath, false),
                   BasicElementLabels.getPathLabel(libraryPath, false),
+                  RenameAnalyzeUtil.getElementTypeName(topLevelElement),
                   newName});
           result.addFatalError(message, DartStatusContext.create(topLevelElement));
         }

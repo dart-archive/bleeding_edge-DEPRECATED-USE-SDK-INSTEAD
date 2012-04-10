@@ -2,10 +2,11 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Field;
+import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchMatch;
@@ -36,56 +37,52 @@ import org.eclipse.text.edits.TextEdit;
 import java.util.List;
 
 /**
- * {@link DartRenameProcessor} for {@link Field}.
+ * {@link DartRenameProcessor} for {@link Method}.
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public class RenameFieldProcessor extends DartRenameProcessor {
+public class RenameMethodProcessor extends DartRenameProcessor {
 
-  public static final String IDENTIFIER = "com.google.dart.tools.ui.renameFieldProcessor"; //$NON-NLS-1$
+  public static final String IDENTIFIER = "com.google.dart.tools.ui.renameMethodProcessor"; //$NON-NLS-1$
 
   private static void addTextEdit(TextChange change, String groupName, TextEdit textEdit) {
     TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
   }
 
-  private final Field field;
+  private final Method method;
   private final String oldName;
   private final TextChangeManager changeManager = new TextChangeManager(true);
 
   private List<SearchMatch> references;
 
   /**
-   * @param field the {@link Field} to rename, not <code>null</code>.
+   * @param method the {@link Method} to rename, not <code>null</code>.
    */
-  public RenameFieldProcessor(Field field) {
-    this.field = field;
-    oldName = field.getElementName();
+  public RenameMethodProcessor(Method method) {
+    this.method = method;
+    oldName = method.getElementName();
     setNewElementName(oldName);
   }
 
   @Override
   public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException {
-    return Checks.checkIfCuBroken(field);
+    return Checks.checkIfCuBroken(method);
   }
 
   @Override
   public RefactoringStatus checkNewElementName(String newName) throws CoreException {
-    RefactoringStatus result = Checks.checkFieldName(newName);
+    RefactoringStatus result = Checks.checkMethodName(newName);
 
-    if (!field.isStatic() && !Checks.startsWithLowerCase(newName)) {
-      result.addWarning(RefactoringCoreMessages.RenameFieldRefactoring_should_start_lowercase);
-    }
-
-    if (Checks.isAlreadyNamed(field, newName)) {
+    if (Checks.isAlreadyNamed(method, newName)) {
       result.addError(
           RefactoringCoreMessages.RenameRefactoring_another_name,
-          DartStatusContext.create(field));
+          DartStatusContext.create(method));
       return result;
     }
 
     // type can not have two members with same name
     {
-      Type enclosingType = field.getDeclaringType();
+      Type enclosingType = method.getDeclaringType();
       TypeMember[] existingMembers = enclosingType.getExistingMembers(newName);
       if (existingMembers.length != 0) {
         IPath resourcePath = enclosingType.getResource().getFullPath();
@@ -114,12 +111,12 @@ public class RenameFieldProcessor extends DartRenameProcessor {
 
   @Override
   public final String getCurrentElementName() {
-    return field.getElementName();
+    return method.getElementName();
   }
 
   @Override
   public Object[] getElements() {
-    return new Object[] {field};
+    return new Object[] {method};
   }
 
   @Override
@@ -129,12 +126,12 @@ public class RenameFieldProcessor extends DartRenameProcessor {
 
   @Override
   public Object getNewElement() {
-    return field.getDeclaringType().getField(getNewElementName());
+    return method.getDeclaringType().getMethod(getNewElementName(), null);
   }
 
   @Override
   public String getProcessorName() {
-    return RefactoringCoreMessages.RenameFieldRefactoring_name;
+    return RefactoringCoreMessages.RenameMethodRefactoring_name;
   }
 
   @Override
@@ -144,7 +141,7 @@ public class RenameFieldProcessor extends DartRenameProcessor {
 
   @Override
   public boolean isApplicable() throws CoreException {
-    return RefactoringAvailabilityTester.isRenameAvailable(field);
+    return RefactoringAvailabilityTester.isRenameAvailable(method);
   }
 
   @Override
@@ -178,8 +175,8 @@ public class RenameFieldProcessor extends DartRenameProcessor {
   }
 
   private void addDeclarationUpdate() throws CoreException {
-    SourceRange nameRange = field.getNameRange();
-    CompilationUnit cu = field.getCompilationUnit();
+    SourceRange nameRange = method.getNameRange();
+    CompilationUnit cu = method.getCompilationUnit();
     String editName = RefactoringCoreMessages.RenameRefactoring_update_declaration;
     addTextEdit(changeManager.get(cu), editName, createTextChange(nameRange));
   }
@@ -189,7 +186,7 @@ public class RenameFieldProcessor extends DartRenameProcessor {
     String editName = RefactoringCoreMessages.RenameRefactoring_update_reference;
     for (SearchMatch searchMatch : references) {
       SourceRange matchRange = searchMatch.getSourceRange();
-      if (matchRange.getOffset() != field.getSourceRange().getOffset()) {
+      if (matchRange.getOffset() != method.getSourceRange().getOffset()) {
         CompilationUnit cu = searchMatch.getElement().getAncestor(CompilationUnit.class);
         addTextEdit(changeManager.get(cu), editName, createTextChange(matchRange));
       }
@@ -223,7 +220,7 @@ public class RenameFieldProcessor extends DartRenameProcessor {
       pm.subTask("Analyze supertypes");
       RenameAnalyzeUtil.checkShadow_superType_member(
           result,
-          field,
+          method,
           newName,
           RefactoringCoreMessages.RenameRefactoring_shadow_superType_member);
       pm.worked(1);
@@ -234,7 +231,7 @@ public class RenameFieldProcessor extends DartRenameProcessor {
       pm.subTask("Analyze subtypes");
       RenameAnalyzeUtil.checkShadow_subType(
           result,
-          field,
+          method,
           newName,
           RefactoringCoreMessages.RenameRefactoring_shadow_subType_member,
           RefactoringCoreMessages.RenameRefactoring_shadow_subType_parameter,
@@ -268,8 +265,10 @@ public class RenameFieldProcessor extends DartRenameProcessor {
       @Override
       public List<SearchMatch> runObject() throws Exception {
         SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
-        return searchEngine.searchReferences(field, null, null, pm);
+        return searchEngine.searchReferences(method, null, null, pm);
       }
     });
+    // FIXME(scheglov) SearchEngine does not return declaration
+    references.add(new SearchMatch(MatchQuality.EXACT, method, method.getNameRange()));
   }
 }

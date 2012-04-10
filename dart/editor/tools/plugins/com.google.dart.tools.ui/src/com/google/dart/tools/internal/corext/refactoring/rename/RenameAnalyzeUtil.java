@@ -15,6 +15,7 @@ import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchMatch;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
@@ -171,6 +172,12 @@ public class RenameAnalyzeUtil {
 //    return result;
 //  }
 
+  public static String getElementTypeName(DartElement element) {
+    return Messages.format(
+        RefactoringCoreMessages.RenameRefactoring_elementTypeName,
+        element.getElementType());
+  }
+
   /**
    * @return all direct and indirect subtypes of the given {@link Type}.
    */
@@ -256,13 +263,14 @@ public class RenameAnalyzeUtil {
    */
   static void checkShadow_subType(
       RefactoringStatus result,
-      Type enclosingType,
+      DartElement renameElement,
       String newName,
       String errorFormat_member,
       String errorFormat_parameter,
       String errorFormat_variable) throws CoreException {
+    Type enclosingType = renameElement.getAncestor(Type.class);
     if (enclosingType != null) {
-      List<Type> subTypes = RenameAnalyzeUtil.getSubTypes(enclosingType);
+      List<Type> subTypes = getSubTypes(enclosingType);
       for (Type subType : subTypes) {
         // check for declared members
         TypeMember[] subTypeMembers = subType.getExistingMembers(newName);
@@ -273,7 +281,9 @@ public class RenameAnalyzeUtil {
               new Object[] {
                   subType.getElementName(),
                   BasicElementLabels.getPathLabel(resourcePath, false),
-                  newName});
+                  getElementTypeName(subTypeMembers[0]),
+                  newName,
+                  getElementTypeName(renameElement)});
           result.addFatalError(message, DartStatusContext.create(subTypeMembers[0]));
           return;
         }
@@ -289,7 +299,8 @@ public class RenameAnalyzeUtil {
                       subType.getElementName(),
                       method.getElementName(),
                       BasicElementLabels.getPathLabel(resourcePath, false),
-                      newName});
+                      newName,
+                      getElementTypeName(renameElement)});
               result.addFatalError(message, DartStatusContext.create(variable));
               return;
             }
@@ -304,11 +315,12 @@ public class RenameAnalyzeUtil {
    */
   static void checkShadow_superType_member(
       RefactoringStatus result,
-      Type enclosingType,
+      DartElement renameElement,
       String newName,
       String errorFormat) throws CoreException {
+    Type enclosingType = renameElement.getAncestor(Type.class);
     if (enclosingType != null) {
-      Set<Type> superTypes = RenameAnalyzeUtil.getSuperTypes(enclosingType);
+      Set<Type> superTypes = getSuperTypes(enclosingType);
       for (Type superType : superTypes) {
         TypeMember[] superTypeMembers = superType.getExistingMembers(newName);
         if (superTypeMembers.length != 0) {
@@ -316,7 +328,9 @@ public class RenameAnalyzeUtil {
           String message = Messages.format(errorFormat, new Object[] {
               superType.getElementName(),
               BasicElementLabels.getPathLabel(resourcePath, false),
-              newName});
+              getElementTypeName(superTypeMembers[0]),
+              newName,
+              getElementTypeName(renameElement)});
           result.addFatalError(message, DartStatusContext.create(superTypeMembers[0]));
           return;
         }
@@ -334,10 +348,11 @@ public class RenameAnalyzeUtil {
       String newName,
       String errorFormat) throws CoreException {
     Set<DartLibrary> visitedLibraries = Sets.newHashSet();
-    for (SearchMatch searchMatch : references) {
-      CompilationUnitElement shadowElement = RenameAnalyzeUtil.getTopLevelElementNamed(
+    for (SearchMatch match : references) {
+      DartElement matchElement = match.getElement();
+      CompilationUnitElement shadowElement = getTopLevelElementNamed(
           visitedLibraries,
-          searchMatch.getElement(),
+          matchElement,
           newName);
       if (shadowElement != null) {
         DartLibrary shadowLibrary = shadowElement.getAncestor(DartLibrary.class);
@@ -348,7 +363,9 @@ public class RenameAnalyzeUtil {
             new Object[] {
                 BasicElementLabels.getPathLabel(resourcePath, false),
                 BasicElementLabels.getPathLabel(libraryPath, false),
-                newName});
+                getElementTypeName(shadowElement),
+                newName,
+                getElementTypeName(matchElement)});
         result.addFatalError(message, DartStatusContext.create(shadowElement));
       }
     }

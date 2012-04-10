@@ -14,9 +14,9 @@
 package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.Field;
+import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.test.util.TestProject;
-import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameMethodProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
 import org.eclipse.ui.IWorkbenchWindow;
@@ -25,32 +25,32 @@ import org.eclipse.ui.PlatformUI;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Test for {@link RenameFieldProcessor}.
+ * Test for {@link RenameMethodProcessor}.
  */
-public final class RenameFieldProcessorTest extends RefactoringTest {
+public final class RenameMethodProcessorTest extends RefactoringTest {
   /**
-   * Uses {@link RenameSupport} to rename {@link Field}.
+   * Uses {@link RenameSupport} to rename {@link Method}.
    */
-  private static void renameField(Field field, String newName) throws Exception {
+  private static void renameMethod(Method method, String newName) throws Exception {
     TestProject.waitForAutoBuild();
-    RenameSupport renameSupport = RenameSupport.create(field, newName);
+    RenameSupport renameSupport = RenameSupport.create(method, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }
 
   /**
-   * Just for coverage of {@link RenameFieldProcessor} accessors.
+   * Just for coverage of {@link RenameMethodProcessor} accessors.
    */
   public void test_accessors() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int test = 1;",
+        "  test() {}",
         "}");
-    Field field = findElement("test = 1;");
+    Method method = findElement("test()");
     // do check
-    RenameFieldProcessor processor = new RenameFieldProcessor(field);
-    assertEquals(RenameFieldProcessor.IDENTIFIER, processor.getIdentifier());
+    RenameMethodProcessor processor = new RenameMethodProcessor(method);
+    assertEquals(RenameMethodProcessor.IDENTIFIER, processor.getIdentifier());
     assertEquals("test", processor.getCurrentElementName());
   }
 
@@ -58,13 +58,13 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int test = 1;",
+        "  test() {}",
         "}");
-    Field field = findElement("test = 1;");
+    Method method = findElement("test()");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameField(field, "test");
+      renameMethod(method, "test");
       fail();
     } catch (InterruptedException e) {
     }
@@ -80,14 +80,14 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int test = 1;",
-        "  int newName = 2;",
+        "  test() {}",
+        "  var newName;",
         "}");
-    Field field = findElement("test = 1;");
+    Method method = findElement("test()");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameField(field, "newName");
+      renameMethod(method, "newName");
       fail();
     } catch (InterruptedException e) {
     }
@@ -105,14 +105,14 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int test = 1;",
+        "  test() {}",
         "  newName() {}",
         "}");
-    Field field = findElement("test = 1;");
+    Method method = findElement("test()");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameField(field, "newName");
+      renameMethod(method, "newName");
       fail();
     } catch (InterruptedException e) {
     }
@@ -130,23 +130,23 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int test = 1;",
+        "  test() {}",
         "}");
-    Field field = findElement("test = 1;");
+    Method method = findElement("test()");
     // try to rename
     showStatusCancel = false;
-    renameField(field, "NAME");
+    renameMethod(method, "NAME");
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "By convention, field names usually start with a lowercase letter",
+        "By convention, method names usually start with a lowercase letter",
         showStatusMessages.get(0));
     // status was warning, so rename was done
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int NAME = 1;",
+        "  NAME() {}",
         "}");
   }
 
@@ -155,11 +155,11 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "Test1.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int test = 1;",
-        "  int bar = 2;",
+        "  test() {}",
+        "  bar() {}",
         "  f1() {",
-        "    test = 3;",
-        "    bar = 4;",
+        "    test();",
+        "    bar();",
         "  }",
         "}");
     setUnitContent(
@@ -167,14 +167,14 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  A a = new A();",
-        "  a.test = 5;",
+        "  a.test();",
         "}");
     setUnitContent(
         "Test3.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
         "class B extends A {",
         "  f3() {",
-        "    test = 6;",
+        "    test();",
         "  }",
         "}");
     setTestUnitContent(
@@ -187,19 +187,19 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     CompilationUnit unit1 = testProject.getUnit("Test1.dart");
     CompilationUnit unit2 = testProject.getUnit("Test2.dart");
     CompilationUnit unit3 = testProject.getUnit("Test3.dart");
-    // find Field to rename
-    Field field = findElement(unit2, "test = 5;");
+    // find Method to rename
+    Method method = findElement(unit2, "test();");
     // do rename
-    renameField(field, "newName");
+    renameMethod(method, "newName");
     assertUnitContent(
         unit1,
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int newName = 1;",
-        "  int bar = 2;",
+        "  newName() {}",
+        "  bar() {}",
         "  f1() {",
-        "    newName = 3;",
-        "    bar = 4;",
+        "    newName();",
+        "    bar();",
         "  }",
         "}");
     assertUnitContent(
@@ -207,14 +207,14 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  A a = new A();",
-        "  a.newName = 5;",
+        "  a.newName();",
         "}");
     assertUnitContent(
         unit3,
         "// filler filler filler filler filler filler filler filler filler filler",
         "class B extends A {",
         "  f3() {",
-        "    newName = 6;",
+        "    newName();",
         "  }",
         "}");
   }
@@ -223,104 +223,86 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int test = 1;",
-        "  int bar = 2;",
+        "  test() {}",
+        "  bar() {}",
         "  f1() {",
-        "    test = 3;",
-        "    bar = 4;",
+        "    test();",
+        "    bar();",
         "  }",
         "}",
         "f2() {",
         "  A a = new A();",
-        "  a.test = 5;",
+        "  a.test();",
         "}",
         "class B extends A {",
         "  f3() {",
-        "    test = 6;",
+        "    test();",
         "  }",
         "}");
-    Field field = findElement("test = 1;");
+    Method method = findElement("test() {}");
     // do rename
-    renameField(field, "newName");
+    renameMethod(method, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int newName = 1;",
-        "  int bar = 2;",
+        "  newName() {}",
+        "  bar() {}",
         "  f1() {",
-        "    newName = 3;",
-        "    bar = 4;",
+        "    newName();",
+        "    bar();",
         "  }",
         "}",
         "f2() {",
         "  A a = new A();",
-        "  a.newName = 5;",
+        "  a.newName();",
         "}",
         "class B extends A {",
         "  f3() {",
-        "    newName = 6;",
+        "    newName();",
         "  }",
         "}");
-  }
-
-  public void test_OK_singleUnit_onDeclaration_withoutInitializer() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  var test; // rename here",
-        "}",
-        "");
-    Field field = findElement("test; // rename here");
-    // do rename
-    renameField(field, "newName");
-    assertTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  var newName; // rename here",
-        "}",
-        "");
   }
 
   public void test_OK_singleUnit_onReference() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int test = 1;",
-        "  int bar = 2;",
+        "  test() {}",
+        "  bar() {}",
         "  f1() {",
-        "    test = 3;",
-        "    bar = 4;",
+        "    test();",
+        "    bar();",
         "  }",
         "}",
         "f2() {",
         "  A a = new A();",
-        "  a.test = 5;",
+        "  a.test(); // rename here",
         "}",
         "class B extends A {",
         "  f3() {",
-        "    test = 6;",
+        "    test();",
         "  }",
         "}");
-    Field field = findElement("test = 5;");
+    Method method = findElement("test(); // rename here");
     // do rename
-    renameField(field, "newName");
+    renameMethod(method, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int newName = 1;",
-        "  int bar = 2;",
+        "  newName() {}",
+        "  bar() {}",
         "  f1() {",
-        "    newName = 3;",
-        "    bar = 4;",
+        "    newName();",
+        "    bar();",
         "  }",
         "}",
         "f2() {",
         "  A a = new A();",
-        "  a.newName = 5;",
+        "  a.newName(); // rename here",
         "}",
         "class B extends A {",
         "  f3() {",
-        "    newName = 6;",
+        "    newName();",
         "  }",
         "}");
   }
@@ -329,50 +311,24 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  var test = 1;",
+        "  test() {}",
         "}",
         "class B extends A {",
         "  f() {",
-        "    test = 2;",
+        "    test(); // rename here",
         "  }",
         "}");
-    Field field = findElement("test = 2;");
+    Method method = findElement("test(); // rename here");
     // do rename
-    renameField(field, "newName");
+    renameMethod(method, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  var newName = 1;",
+        "  newName() {}",
         "}",
         "class B extends A {",
         "  f() {",
-        "    newName = 2;",
-        "  }",
-        "}");
-  }
-
-  public void test_OK_singleUnit_withThisFieldConstructor() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  int test = 1;",
-        "  A(this.test) {",
-        "  }",
-        "  f1() {",
-        "    test = 2;",
-        "  }",
-        "}");
-    Field field = findElement("test = 1;");
-    // do rename
-    renameField(field, "newName");
-    assertTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  int newName = 1;",
-        "  A(this.newName) {",
-        "  }",
-        "  f1() {",
-        "    newName = 2;",
+        "    newName(); // rename here",
         "  }",
         "}");
   }
@@ -381,19 +337,19 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  var test = 1;",
+        "  test() {}",
         "}",
         "class B extends A {",
         "}",
         "class C extends B {",
-        "  newName() {}",
+        "  var newName;",
         "}",
         "");
-    Field field = findElement("test = 1;");
+    Method method = findElement("test() {}");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameField(field, "newName");
+      renameMethod(method, "newName");
       fail();
     } catch (InterruptedException e) {
     }
@@ -401,7 +357,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "Type 'C' in 'Test/Test.dart' declares method 'newName' which will shadow renamed field",
+        "Type 'C' in 'Test/Test.dart' declares field 'newName' which will shadow renamed method",
         showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -411,19 +367,19 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  newName() {}",
+        "  var newName;",
         "}",
         "class B extends A {",
         "}",
         "class C extends B {",
-        "  var test = 2;",
+        "  test() {}",
         "}",
         "");
-    Field field = findElement("test = 2;");
+    Method method = findElement("test() {}");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameField(field, "newName");
+      renameMethod(method, "newName");
       fail();
     } catch (InterruptedException e) {
     }
@@ -431,7 +387,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "Type 'A' in 'Test/Test.dart' declares method 'newName' which will be shadowed by renamed field",
+        "Type 'A' in 'Test/Test.dart' declares field 'newName' which will be shadowed by renamed method",
         showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -441,7 +397,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  var test = 1;",
+        "  test() {}",
         "}",
         "class B extends A {",
         "  foo() {",
@@ -449,11 +405,11 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "  }",
         "}",
         "");
-    Field field = findElement("test = 1;");
+    Method method = findElement("test() {}");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameField(field, "newName");
+      renameMethod(method, "newName");
       fail();
     } catch (InterruptedException e) {
     }
@@ -461,7 +417,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "Method 'B.foo()' in 'Test/Test.dart' declares local variable 'newName' which will shadow renamed field",
+        "Method 'B.foo()' in 'Test/Test.dart' declares local variable 'newName' which will shadow renamed method",
         showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -471,18 +427,18 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  var test = 1;",
+        "  test() {}",
         "}",
         "class B extends A {",
         "  foo(var newName) {",
         "  }",
         "}",
         "");
-    Field field = findElement("test = 1;");
+    Method method = findElement("test() {}");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameField(field, "newName");
+      renameMethod(method, "newName");
       fail();
     } catch (InterruptedException e) {
     }
@@ -490,7 +446,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "Method 'B.foo()' in 'Test/Test.dart' declares parameter 'newName' which will shadow renamed field",
+        "Method 'B.foo()' in 'Test/Test.dart' declares parameter 'newName' which will shadow renamed method",
         showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -500,7 +456,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  var test = 1;",
+        "  test() {}",
         "}",
         "class newName {",
         "}",
@@ -513,7 +469,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "typedef newName(int p);",
         "class A {",
-        "  var test = 1;",
+        "  test() {}",
         "}",
         "");
     check_postCondition_shadowsTopLevel("function type alias");
@@ -530,7 +486,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "#library('Test');",
         "#import('Lib.dart');",
         "class A {",
-        "  var test = 1;",
+        "  test() {}",
         "}",
         "");
     check_postCondition_shadowsTopLevel("Lib.dart", "variable");
@@ -541,7 +497,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "var newName;",
         "class A {",
-        "  var test = 1;",
+        "  test() {}",
         "}",
         "");
     check_postCondition_shadowsTopLevel("variable");
@@ -552,9 +508,9 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "Test1.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int test = 1;",
+        "  test() {}",
         "  f1() {",
-        "    test = 3;",
+        "    test();",
         "  }",
         "}");
     setUnitContent(
@@ -562,7 +518,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  A a = new A();",
-        "  a.test = 5;",
+        "  a.test();",
         "}",
         "somethingBad");
     setTestUnitContent(
@@ -573,10 +529,10 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     // get units, because they have not library
     CompilationUnit unit1 = testProject.getUnit("Test1.dart");
     CompilationUnit unit2 = testProject.getUnit("Test2.dart");
-    Field field = findElement(unit1, "test = 1;");
+    Method method = findElement(unit1, "test() {}");
     // try to rename
     showStatusCancel = false;
-    renameField(field, "newName");
+    renameMethod(method, "newName");
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
@@ -588,9 +544,9 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         unit1,
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  int newName = 1;",
+        "  newName() {}",
         "  f1() {",
-        "    newName = 3;",
+        "    newName();",
         "  }",
         "}");
     assertUnitContent(
@@ -598,7 +554,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  A a = new A();",
-        "  a.newName = 5;",
+        "  a.newName();",
         "}",
         "somethingBad");
   }
@@ -609,11 +565,11 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
 
   private void check_postCondition_shadowsTopLevel(String unitName, String shadowName)
       throws Exception {
-    Field field = findElement("test = 1;");
+    Method method = findElement("test() {}");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameField(field, "newName");
+      renameMethod(method, "newName");
       fail();
     } catch (InterruptedException e) {
     }
@@ -624,7 +580,7 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         + unitName
         + "' in library 'Test' declares top-level "
         + shadowName
-        + " 'newName' which will shadow renamed field", showStatusMessages.get(0));
+        + " 'newName' which will shadow renamed method", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }

@@ -11,10 +11,9 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.rename.DartRenameProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameMethodProcessor;
 import com.google.dart.tools.internal.corext.refactoring.reorg.RenameSelectionState;
 import com.google.dart.tools.internal.corext.refactoring.tagging.INameUpdating;
-import com.google.dart.tools.internal.corext.refactoring.tagging.IReferenceUpdating;
-import com.google.dart.tools.internal.corext.refactoring.tagging.ITextUpdating;
 import com.google.dart.tools.ui.DartUIMessages;
 import com.google.dart.tools.ui.internal.refactoring.reorg.RenameRefactoringWizard;
 import com.google.dart.tools.ui.internal.refactoring.reorg.RenameUserInterfaceManager;
@@ -137,42 +136,25 @@ public class RenameSupport {
   /**
    * Creates a new rename support for the given {@link Field}.
    * 
-   * @param field the {@link Field} to be renamed.
-   * @param newName the field's new name. <code>null</code> is a valid value indicating that no new
-   *          name is provided.
-   * @param flags flags controlling additional parameters. Valid flags are
-   *          <code>UPDATE_REFERENCES</code>, <code>UPDATE_TEXTUAL_MATCHES</code>,
-   *          <code>UPDATE_GETTER_METHOD</code>, and <code>UPDATE_SETTER_METHOD</code>, or their
-   *          bitwise OR, or <code>NONE</code>.
+   * @param field the {@link Field} to be renamed, not <code>null</code>.
+   * @param newName the field's new name, not <code>null</code>.
    * @return the {@link RenameSupport}.
-   * @throws CoreException if an unexpected error occurred while creating the {@link RenameSupport}.
    */
-  public static RenameSupport create(Field field, String newName, int flags) throws CoreException {
+  public static RenameSupport create(Field field, String newName) {
     DartRenameProcessor processor = new RenameFieldProcessor(field);
-    return new RenameSupport(processor, newName, flags);
+    return new RenameSupport(processor, newName, 0);
   }
 
   /**
    * Creates a new rename support for the given {@link Method}.
    * 
-   * @param method the {@link Method} to be renamed.
-   * @param newName the method's new name. <code>null</code> is a valid value indicating that no new
-   *          name is provided.
-   * @param flags flags controlling additional parameters. Valid flags are
-   *          <code>UPDATE_REFERENCES</code> or <code>NONE</code>.
+   * @param method the {@link Method} to be renamed, not <code>null</code>.
+   * @param newName the method's new name, not <code>null</code>.
    * @return the {@link RenameSupport}.
-   * @throws CoreException if an unexpected error occurred while creating the {@link RenameSupport}.
    */
-  public static RenameSupport create(Method method, String newName, int flags) throws CoreException {
-    // TODO(scheglov) implement
-    throw new RuntimeException("Not implemented");
-//    JavaRenameProcessor processor;
-//    if (MethodChecks.isVirtual(method)) {
-//    	processor= new RenameVirtualMethodProcessor(method);
-//    } else {
-//    	processor= new RenameNonVirtualMethodProcessor(method);
-//    }
-//    return new RenameSupport(processor, newName, flags);
+  public static RenameSupport create(Method method, String newName) {
+    DartRenameProcessor processor = new RenameMethodProcessor(method);
+    return new RenameSupport(processor, newName, 0);
   }
 
 //  /**
@@ -207,35 +189,13 @@ public class RenameSupport {
   }
 
   private static void initialize(DartRenameProcessor processor, String newName, int flags) {
-
     setNewName(processor, newName);
-    if (processor instanceof IReferenceUpdating) {
-      IReferenceUpdating reference = (IReferenceUpdating) processor;
-      reference.setUpdateReferences(updateReferences(flags));
-    }
-
-    if (processor instanceof ITextUpdating) {
-      ITextUpdating text = (ITextUpdating) processor;
-      text.setUpdateTextualMatches(updateTextualMatches(flags));
-    }
   }
 
   private static void setNewName(INameUpdating refactoring, String newName) {
     if (newName != null) {
       refactoring.setNewElementName(newName);
     }
-  }
-
-  private static boolean updateGetterMethod(int flags) {
-    return (flags & UPDATE_GETTER_METHOD) != 0;
-  }
-
-  private static boolean updateReferences(int flags) {
-    return (flags & UPDATE_REFERENCES) != 0;
-  }
-
-  private static boolean updateSetterMethod(int flags) {
-    return (flags & UPDATE_SETTER_METHOD) != 0;
   }
 
   /**
@@ -268,11 +228,6 @@ public class RenameSupport {
 //  	JavaRenameProcessor processor= new RenamePackageProcessor(fragment);
 //  	return new RenameSupport(processor, newName, flags);
 //  }
-
-  private static boolean updateTextualMatches(int flags) {
-    int TEXT_UPDATES = UPDATE_TEXTUAL_MATCHES | UPDATE_REGULAR_COMMENTS | UPDATE_STRING_LITERALS;
-    return (flags & TEXT_UPDATES) != 0;
-  }
 
   private final RenameRefactoring fRefactoring;
 

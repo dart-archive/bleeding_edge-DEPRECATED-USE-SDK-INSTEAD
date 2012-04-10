@@ -1611,11 +1611,11 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameFieldRefactoring_already_exists;
 
-  public static String RenameFieldRefactoring_another_name;
+  public static String RenameRefactoring_another_name;
 
   public static String RenameFieldRefactoring_another_name2;
 
-  public static String RenameFieldRefactoring_checking;
+  public static String RenameRefactoring_checking;
 
   public static String RenameFieldRefactoring_declared_in_supertype;
 
@@ -1623,7 +1623,7 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameFieldRefactoring_descriptor_description_short;
 
-  public static String RenameFieldRefactoring_field_already_defined;
+  public static String RenameRefactoring_enclosing_type_member_already_defined;
 
   public static String RenameFieldRefactoring_field_already_defined2;
 
@@ -1637,7 +1637,7 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameFieldRefactoring_overridden_or_overrides;
 
-  public static String RenameFieldRefactoring_searching;
+  public static String RenameRefactoring_searching;
 
   public static String RenameFieldRefactoring_setting_rename_getter;
 
@@ -1647,19 +1647,20 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameFieldRefactoring_should_start_lowercase2;
 
-  public static String RenameFieldRefactoring_Update_field_declaration;
+  public static String RenameRefactoring_update_declaration;
 
-  public static String RenameFieldRefactoring_Update_field_reference;
+  public static String RenameRefactoring_update_reference;
 
   public static String RenameFieldRefactoring_Update_getter_occurrence;
 
   public static String RenameFieldRefactoring_Update_setter_occurrence;
 
-  public static String RenameFieldRefactoring_shadow_subType_member;
-  public static String RenameFieldRefactoring_shadow_subType_variable;
-  public static String RenameFieldRefactoring_shadow_subType_parameter;
-  public static String RenameFieldRefactoring_shadow_superType_member;
-  public static String RenameFieldRefactoring_shadow_topLevel;
+  public static String RenameRefactoring_shadow_subType_member;
+  public static String RenameRefactoring_shadow_subType_variable;
+  public static String RenameRefactoring_shadow_subType_parameter;
+  public static String RenameRefactoring_shadow_superType_member;
+  public static String RenameRefactoring_shadow_topLevel;
+  public static String RenameRefactoring_elementTypeName;
 
   public static String RenameJavaProjectChange_descriptor_description;
 

@@ -144,11 +144,10 @@ public class Checks {
    * Checks if the given name is a valid Dart field name.
    * 
    * @param name the Dart field name.
-   * @param context an {@link DartElement} or <code>null</code>
    * @return a refactoring status containing the error message if the name is not a valid Dart field
    *         name.
    */
-  public static RefactoringStatus checkFieldName(String name, DartElement context) {
+  public static RefactoringStatus checkFieldName(String name) {
     return checkName(name, DartConventions.validateFieldName(name));
   }
 
@@ -161,7 +160,9 @@ public class Checks {
    * @return <code>RefactoringStatus</code> with <code>WARNING</code> severity if the give method
    *         will have a constructor name after renaming <code>null</code> otherwise.
    */
-  public static RefactoringStatus checkIfConstructorName(Method method, String newMethodName,
+  public static RefactoringStatus checkIfConstructorName(
+      Method method,
+      String newMethodName,
       String newTypeName) {
     // TODO(scheglov) implement
     throw new RuntimeException("Not implemented");
@@ -224,11 +225,10 @@ public class Checks {
    * Checks if the given name is a valid Dart method name.
    * 
    * @param name the Dart method name.
-   * @param context an {@link DartElement} or <code>null</code>
    * @return a refactoring status containing the error message if the name is not a valid Dart
    *         method name.
    */
-  public static RefactoringStatus checkMethodName(String name, DartElement context) {
+  public static RefactoringStatus checkMethodName(String name) {
     RefactoringStatus status = checkName(name, DartConventions.validateMethodName(name));
     if (status.isOK() && !startsWithLowerCase(name)) {
       return RefactoringStatus.createWarningStatus(RefactoringCoreMessages.Checks_method_names_lowercase);

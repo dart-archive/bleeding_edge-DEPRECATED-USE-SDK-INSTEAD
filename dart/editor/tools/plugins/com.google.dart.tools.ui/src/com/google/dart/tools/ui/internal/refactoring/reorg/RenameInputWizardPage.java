@@ -1,14 +1,11 @@
 package com.google.dart.tools.ui.internal.refactoring.reorg;
 
 import com.google.dart.tools.internal.corext.refactoring.tagging.INameUpdating;
-import com.google.dart.tools.internal.corext.refactoring.tagging.IQualifiedNameUpdating;
-import com.google.dart.tools.internal.corext.refactoring.tagging.ITextUpdating;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.TextInputWizardPage;
 import com.google.dart.tools.ui.internal.util.RowLayouter;
 
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -74,7 +71,6 @@ abstract class RenameInputWizardPage extends TextInputWizardPage {
     separator.setLayoutData(gridData);
 
     addAdditionalOptions(composite, layouter);
-    updateForcePreview();
 
     Dialog.applyDialogFont(superComposite);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), fHelpContextID);
@@ -133,25 +129,5 @@ abstract class RenameInputWizardPage extends TextInputWizardPage {
     if (checkBox != null) {
       getRefactoringSettings().put(key, checkBox.getSelection());
     }
-  }
-
-  private void updateForcePreview() {
-    boolean forcePreview = false;
-    Refactoring refactoring = getRefactoring();
-    ITextUpdating tu = (ITextUpdating) refactoring.getAdapter(ITextUpdating.class);
-    IQualifiedNameUpdating qu = (IQualifiedNameUpdating) refactoring.getAdapter(IQualifiedNameUpdating.class);
-    if (tu != null) {
-      forcePreview = tu.getUpdateTextualMatches();
-    }
-    if (qu != null) {
-      forcePreview |= qu.getUpdateQualifiedNames();
-    }
-    getRefactoringWizard().setForcePreviewReview(forcePreview);
-  }
-
-  private void updateQulifiedNameUpdating(final IQualifiedNameUpdating ref, boolean enabled) {
-//    fQualifiedNameComponent.setEnabled(enabled);
-    ref.setUpdateQualifiedNames(enabled);
-    updateForcePreview();
   }
 }

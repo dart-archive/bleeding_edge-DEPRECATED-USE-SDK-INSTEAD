@@ -41,6 +41,25 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }
 
+  /**
+   * Just for coverage of {@link RenameLocalVariableProcessor} accessors.
+   */
+  public void test_accessors() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int test = 1;",
+        "}");
+    DartVariableDeclaration variable = findElement("test = 1;");
+    // do check
+    RenameLocalVariableProcessor processor = new RenameLocalVariableProcessor(variable);
+    assertEquals(RenameLocalVariableProcessor.IDENTIFIER, processor.getIdentifier());
+    assertEquals("test", processor.getCurrentElementName());
+    // new name
+    processor.setNewElementName("newName");
+    assertEquals("newName", processor.getNewElementName());
+  }
+
   public void test_badNewName_notIdentifier() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -98,21 +117,6 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
         "  NotLowerCase = 3;",
         "  foo = 4;",
         "}");
-  }
-
-  /**
-   * Just for coverage of {@link RenameLocalVariableProcessor#getCurrentElementName()}.
-   */
-  public void test_getCurrentElementName() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "f() {",
-        "  int test = 1;",
-        "}");
-    DartVariableDeclaration variable = findElement("test = 1;");
-    // do check
-    RenameLocalVariableProcessor processor = new RenameLocalVariableProcessor(variable);
-    assertEquals("test", processor.getCurrentElementName());
   }
 
   public void test_notAvailable_noElement() throws Exception {
@@ -299,7 +303,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "Type 'A' in 'Test/Test.dart' declares member 'newName' which will be shadowed by renamed variable",
+        "Type 'A' in 'Test/Test.dart' declares field 'newName' which will be shadowed by renamed variable",
         showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -325,7 +329,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "File 'Test/Test.dart' in library 'Test' declares top-level element 'newName' which will be shadowed by renamed variable",
+        "File 'Test/Test.dart' in library 'Test' declares top-level variable 'newName' which will be shadowed by renamed variable",
         showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());

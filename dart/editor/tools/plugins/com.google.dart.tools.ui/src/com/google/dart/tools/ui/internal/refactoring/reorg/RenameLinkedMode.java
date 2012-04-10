@@ -10,6 +10,7 @@ import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
+import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.internal.corext.dom.LinkedNodeFinder;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
@@ -309,8 +310,7 @@ public class RenameLinkedMode {
          * @return the rank of the node with respect to the invocation offset
          */
         private int rank(DartNode node) {
-          int relativeRank = node.getSourceInfo().getOffset()
-              + node.getSourceInfo().getLength()
+          int relativeRank = node.getSourceInfo().getOffset() + node.getSourceInfo().getLength()
               - pos;
           if (relativeRank < 0) {
             return Integer.MAX_VALUE + relativeRank;
@@ -543,7 +543,9 @@ public class RenameLinkedMode {
     // TODO(scheglov) create actual RenameSupport based on element type
     switch (fDartElement.getElementType()) {
       case DartElement.FIELD:
-        return RenameSupport.create((Field) fDartElement, newName, RenameSupport.UPDATE_REFERENCES);
+        return RenameSupport.create((Field) fDartElement, newName);
+      case DartElement.METHOD:
+        return RenameSupport.create((Method) fDartElement, newName);
       case DartElement.VARIABLE:
         return RenameSupport.create(
             (DartVariableDeclaration) fDartElement,
