@@ -77,13 +77,17 @@ public class IgnoreResourceAction extends SelectionListenerAction {
 
     resource = (IResource) selection.getFirstElement();
 
+    updateLabel();
+
+    return true;
+  }
+
+  void updateLabel() {
     if (DartCore.isAnalyzed(resource)) {
       setText(FilesViewMessages.IgnoreResourcesAction_dont_analyze_label);
     } else {
       setText(FilesViewMessages.IgnoreResourcesAction_do_analyze_label);
     }
-
-    return true;
   }
 
 }
