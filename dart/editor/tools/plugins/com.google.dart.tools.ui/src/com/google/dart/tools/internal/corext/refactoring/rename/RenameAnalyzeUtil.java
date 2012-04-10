@@ -172,6 +172,9 @@ public class RenameAnalyzeUtil {
 //    return result;
 //  }
 
+  /**
+   * @return the localized name of the {@link DartElement}.
+   */
   public static String getElementTypeName(DartElement element) {
     return Messages.format(
         RefactoringCoreMessages.RenameRefactoring_elementTypeName,
@@ -255,6 +258,19 @@ public class RenameAnalyzeUtil {
     }
     // not found
     return null;
+  }
+
+  /**
+   * @return {@link TypeMember} children of the given {@link Type};
+   */
+  public static List<TypeMember> getTypeMembers(Type type) throws DartModelException {
+    List<TypeMember> members = Lists.newArrayList();
+    for (DartElement typeChild : type.getChildren()) {
+      if (typeChild instanceof TypeMember) {
+        members.add((TypeMember) typeChild);
+      }
+    }
+    return members;
   }
 
   /**

@@ -6,7 +6,6 @@ import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
@@ -211,8 +210,8 @@ public class Checks {
 
   //---------------------
 
-  public static RefactoringStatus checkIfCuBroken(TypeMember member) throws DartModelException {
-    CompilationUnit cu = (CompilationUnit) DartCore.create(member.getCompilationUnit().getResource());
+  public static RefactoringStatus checkIfCuBroken(DartElement element) throws DartModelException {
+    CompilationUnit cu = element.getAncestor(CompilationUnit.class);
     if (cu == null) {
       return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.Checks_cu_not_created);
     } else if (!cu.isStructureKnown()) {
@@ -267,22 +266,20 @@ public class Checks {
     }
   }
 
-//  /**
-//   * Checks if the given name is a valid Dart type name.
-//   * 
-//   * @param name the Dart method name.
-//   * @param context an {@link DartElement} or <code>null</code>
-//   * @return a refactoring status containing the error message if the name is not a valid Dart type
-//   *         name.
-//   */
-//  public static RefactoringStatus checkTypeName(String name, DartElement context) {
-//    //fix for: 1GF5Z0Z: ITPJUI:WINNT - assertion failed after renameType refactoring
-//    if (name.indexOf(".") != -1) {
-//      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.Checks_no_dot);
-//    } else {
-//      return checkName(name, DartConventions.validateTypeName(name));
-//    }
-//  }
+  /**
+   * Checks if the given name is a valid Dart type name.
+   * 
+   * @param name the Dart type name.
+   * @return a refactoring status containing the error message if the name is not a valid Dart type
+   *         name.
+   */
+  public static RefactoringStatus checkTypeName(String name) {
+    if (name.indexOf(".") != -1) {
+      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.Checks_no_dot);
+    } else {
+      return checkName(name, DartConventions.validateTypeName(name));
+    }
+  }
 
 //  //-------------- main and native method checks ------------------
 //  public static RefactoringStatus checkForMainAndNativeMethods(CompilationUnit cu) throws DartModelException {

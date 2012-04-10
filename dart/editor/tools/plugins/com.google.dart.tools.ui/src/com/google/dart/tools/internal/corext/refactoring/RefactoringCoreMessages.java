@@ -1662,6 +1662,11 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameRefactoring_shadow_topLevel;
   public static String RenameRefactoring_elementTypeName;
 
+  public static String RenameTopRefactoring_shadow_topLevel;
+  public static String RenameTopRefactoring_shadow_typeMember;
+  public static String RenameTopRefactoring_shadow_variable_inMethod;
+  public static String RenameTopRefactoring_shadow_variable_inFunction;
+
   public static String RenameJavaProjectChange_descriptor_description;
 
   public static String RenameJavaProjectChange_rename;

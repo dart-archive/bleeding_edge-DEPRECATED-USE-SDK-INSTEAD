@@ -9,14 +9,14 @@ import org.eclipse.ltk.core.refactoring.Refactoring;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameMethodWizard extends RenameRefactoringWizard {
+public class RenameTypeWizard extends RenameRefactoringWizard {
 
-  public RenameMethodWizard(Refactoring refactoring) {
+  public RenameTypeWizard(Refactoring refactoring) {
     super(
         refactoring,
-        RefactoringMessages.RenameMethodWizard_defaultPageTitle,
-        RefactoringMessages.RenameMethodWizard_inputPage_description,
-        DartPluginImages.DESC_WIZBAN_REFACTOR_METHOD,
-        DartHelpContextIds.RENAME_METHOD_WIZARD_PAGE);
+        RefactoringMessages.RenameTypeWizard_defaultPageTitle,
+        RefactoringMessages.RenameTypeWizardInputPage_description,
+        DartPluginImages.DESC_WIZBAN_REFACTOR_TYPE,
+        DartHelpContextIds.RENAME_TYPE_WIZARD_PAGE);
   }
 }

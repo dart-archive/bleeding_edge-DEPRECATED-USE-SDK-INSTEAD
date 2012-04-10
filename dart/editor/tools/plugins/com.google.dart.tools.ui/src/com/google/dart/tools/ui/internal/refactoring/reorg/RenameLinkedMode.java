@@ -3,7 +3,6 @@ package com.google.dart.tools.ui.internal.refactoring.reorg;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
@@ -11,6 +10,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.dom.LinkedNodeFinder;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
@@ -272,9 +272,6 @@ public class RenameLinkedMode {
 
       fLinkedPositionGroup = new LinkedPositionGroup();
       DartNode selectedNode = NodeFinder.perform(root, fOriginalSelection.x, fOriginalSelection.y);
-      if (selectedNode instanceof DartVariable) {
-        selectedNode = ((DartVariable) selectedNode).getName();
-      }
       if (!(selectedNode instanceof DartIdentifier)) {
         return; // TODO: show dialog
       }
@@ -542,6 +539,8 @@ public class RenameLinkedMode {
 //    RenameSupport renameSupport = RenameSupport.create(descriptor);
     // TODO(scheglov) create actual RenameSupport based on element type
     switch (fDartElement.getElementType()) {
+      case DartElement.TYPE:
+        return RenameSupport.create((Type) fDartElement, newName);
       case DartElement.FIELD:
         return RenameSupport.create((Field) fDartElement, newName);
       case DartElement.METHOD:

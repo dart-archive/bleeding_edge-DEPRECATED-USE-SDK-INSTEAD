@@ -12,6 +12,7 @@ import com.google.dart.tools.internal.corext.refactoring.rename.DartRenameProces
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameMethodProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
 import com.google.dart.tools.internal.corext.refactoring.reorg.RenameSelectionState;
 import com.google.dart.tools.internal.corext.refactoring.tagging.INameUpdating;
 import com.google.dart.tools.ui.DartUIMessages;
@@ -175,17 +176,12 @@ public class RenameSupport {
    * @param type the {@link Type} to be renamed.
    * @param newName the type's new name. <code>null</code> is a valid value indicating that no new
    *          name is provided.
-   * @param flags flags controlling additional parameters. Valid flags are
-   *          <code>UPDATE_REFERENCES</code>, and <code>UPDATE_TEXTUAL_MATCHES</code>, or their
-   *          bitwise OR, or <code>NONE</code>.
    * @return the {@link RenameSupport}.
    * @throws CoreException if an unexpected error occurred while creating the {@link RenameSupport}.
    */
-  public static RenameSupport create(Type type, String newName, int flags) throws CoreException {
-    // TODO(scheglov) implement
-    throw new RuntimeException("Not implemented");
-//    JavaRenameProcessor processor= new RenameTypeProcessor(type);
-//    return new RenameSupport(processor, newName, flags);
+  public static RenameSupport create(Type type, String newName) throws CoreException {
+    DartRenameProcessor processor = new RenameTypeProcessor(type);
+    return new RenameSupport(processor, newName, 0);
   }
 
   private static void initialize(DartRenameProcessor processor, String newName, int flags) {

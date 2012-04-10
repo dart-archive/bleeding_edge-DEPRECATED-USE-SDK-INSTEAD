@@ -1354,6 +1354,8 @@ public class RefactoringAvailabilityTester {
 //      case DartElement.FUNCTION_TYPE_ALIAS:
 //      case DartElement.LIBRARY:
 //        return false;
+      case DartElement.TYPE:
+        return isRenameAvailable((Type) element);
       case DartElement.FIELD:
         return isRenameAvailable((Field) element);
       case DartElement.METHOD:

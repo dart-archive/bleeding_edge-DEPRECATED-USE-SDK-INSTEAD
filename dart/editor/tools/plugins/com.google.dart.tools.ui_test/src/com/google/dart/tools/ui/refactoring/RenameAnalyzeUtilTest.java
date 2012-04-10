@@ -14,10 +14,13 @@
 package com.google.dart.tools.ui.refactoring;
 
 import com.google.common.collect.Sets;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 
@@ -30,6 +33,37 @@ import java.util.Set;
  * Test for {@link RenameAnalyzeUtil}.
  */
 public final class RenameAnalyzeUtilTest extends RefactoringTest {
+
+  public void test_getElementTypeName() throws Exception {
+    CompilationUnit unit = setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef MyFunctionTypeAlias();",
+        "var myTopLevelVariable;",
+        "class MyType {",
+        "  var myField;",
+        "  myMethod() {",
+        "    var myLocalVariable;",
+        "  }",
+        "}",
+        "myTopLevelFunction() {}",
+        "");
+    DartElement[] unitChildren = unit.getChildren();
+    assertEquals("function type alias", RenameAnalyzeUtil.getElementTypeName(unitChildren[0]));
+    assertEquals("variable", RenameAnalyzeUtil.getElementTypeName(unitChildren[1]));
+    assertEquals("type", RenameAnalyzeUtil.getElementTypeName(unitChildren[2]));
+    {
+      Type type = (Type) unitChildren[2];
+      DartElement[] typeChildren = type.getChildren();
+      assertEquals("field", RenameAnalyzeUtil.getElementTypeName(typeChildren[0]));
+      assertEquals("method", RenameAnalyzeUtil.getElementTypeName(typeChildren[1]));
+      {
+        Method method = (Method) typeChildren[1];
+        assertEquals(
+            "variable",
+            RenameAnalyzeUtil.getElementTypeName(method.getLocalVariables()[0]));
+      }
+    }
+  }
 
   public void test_getSubTypes() throws Exception {
     setUnitContent(
@@ -171,6 +205,19 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
     assertNotNull(getTopLevelElementNamed("testVar"));
     assertNotNull(getTopLevelElementNamed("libVar"));
     assertNull(getTopLevelElementNamed("noSuchName"));
+  }
+
+  public void test_getTypeMembers() throws Exception {
+    CompilationUnit unit = setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var myField;",
+        "  myMethod() {}",
+        "}",
+        "");
+    Type type = (Type) unit.getChildren()[0];
+    List<TypeMember> typeMembers = RenameAnalyzeUtil.getTypeMembers(type);
+    assertThat(typeMembers).contains(type.getChildren()[0], type.getChildren()[1]);
   }
 
   /**

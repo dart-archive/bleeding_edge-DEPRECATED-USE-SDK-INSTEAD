@@ -89,8 +89,7 @@ public class NodeFinder extends ASTVisitor<Void> {
       return null;
     }
     int nodeStart = result.getSourceInfo().getOffset();
-    if (start <= nodeStart
-        && nodeStart + result.getSourceInfo().getLength() <= start + length) {
+    if (start <= nodeStart && nodeStart + result.getSourceInfo().getLength() <= start + length) {
       Buffer buffer = source.getBuffer();
       if (buffer != null) {
         String src = buffer.getText(start, length);
@@ -198,7 +197,7 @@ public class NodeFinder extends ASTVisitor<Void> {
   @Override
   public Void visitNode(DartNode node) {
     int nodeStart = node.getSourceInfo().getOffset();
-    int nodeEnd = nodeStart + node.getSourceInfo().getLength();
+    int nodeEnd = node.getSourceInfo().getEnd();
     if (nodeEnd < fStart || fEnd < nodeStart) {
       if (nodeEnd == -2) {
         // TODO Remove this workaround for a parser bug: no source positions set
@@ -207,10 +206,14 @@ public class NodeFinder extends ASTVisitor<Void> {
       return null;
     }
     if (nodeStart <= fStart && fEnd <= nodeEnd) {
-      fCoveringNode = node;
-      enclosingMethod = method;
-      enclosingField = field;
-      enclosingClass = classDef;
+      // use current node only if it has more specific source range
+      if (fCoveringNode == null || fCoveringNode.getSourceInfo().getOffset() > nodeStart
+          || fCoveringNode.getSourceInfo().getEnd() > nodeEnd) {
+        fCoveringNode = node;
+        enclosingMethod = method;
+        enclosingField = field;
+        enclosingClass = classDef;
+      }
     }
     if (fStart <= nodeStart && nodeEnd <= fEnd) {
       if (fCoveringNode == node) {
