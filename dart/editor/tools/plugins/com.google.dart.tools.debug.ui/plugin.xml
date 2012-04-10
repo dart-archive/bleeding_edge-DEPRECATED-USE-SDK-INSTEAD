@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   
+    <extension
+         point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            class="com.google.dart.tools.debug.ui.launch.RunPropertyTester"
+            id="com.google.dart.tools.debug.ui.run.propertyTester"
+            namespace="com.google.dart.tools.debug.ui.launch"
+            properties="canLaunch"
+            type="org.eclipse.jface.viewers.ISelection">
+      </propertyTester>
+   </extension>
    <extension
          point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
@@ -309,6 +318,33 @@
             name="%launchDialogCommandName">
       </command>
    </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="true"
+            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
+         <command
+               commandId="com.google.dart.tools.debug.ui.run"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <count
+                        value="1">
+                  </count>
+                  <and>
+                        <test
+                              forcePluginActivation="true"
+                              property="com.google.dart.tools.debug.ui.launch.canLaunch">
+                        </test>
+                  </and>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+   </extension>
+  
 
  <!--extension
          point="org.eclipse.ui.popupMenus">
