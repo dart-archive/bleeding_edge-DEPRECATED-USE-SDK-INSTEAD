@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == frogsh || $compiler == frog ]
-*: Skip  # compiler API evolved and this codea and tests are not maintained.
+*: Skip  # compiler API evolved and this code and tests are not maintained.
 
 # Not implemented yet
 #WhileLoopWithBreakTest: Fail    # break within a loop
