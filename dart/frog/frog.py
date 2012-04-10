@@ -146,10 +146,15 @@ def compileAndRun(options, args, dart):
       break
 
   outfile_given = False
+  execute_output = True
   for i in range(len(args)):
     if args[i].startswith('--out'):
       outfile_given = True
       outfile = args[i][6:]
+      execute_output = False
+      break;
+    if args[i] == '--compile-only':
+      execute_output = False
       break;
 
   if options.verbose: print "nodeArgs %s" % ' '.join(nodeArgs);
@@ -200,7 +205,7 @@ def compileAndRun(options, args, dart):
     return exit_code
 
   result = 0
-  if not outfile_given:
+  if execute_output:
     if not options.html:
       if ensureJsEngine(options) != 0:
         return 1
@@ -211,8 +216,10 @@ def compileAndRun(options, args, dart):
       f.write(HTML)
       f.close()
       result = execute([browser, outhtml])
-  else:
+  elif outfile_given:
     print 'Compilation succeded. Code generated in: %s' % outfile
+  else:
+    print 'Compilation succeded.'
 
   if cleanup: shutil.rmtree(workdir)
   if result != 0:
