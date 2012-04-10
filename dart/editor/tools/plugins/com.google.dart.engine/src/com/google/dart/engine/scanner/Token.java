@@ -18,7 +18,31 @@ package com.google.dart.engine.scanner;
  * token knows which token follows it, acting as the head of a linked list of tokens.
  */
 public class Token {
-  // TODO(brianwilkerson) Implement this class.
+  /**
+   * The type of the token.
+   */
+  private final TokenType type;
+
+  /**
+   * The offset from the beginning of the file to the first character in the token.
+   */
+  private final int offset;
+
+  /**
+   * The next token in the token stream.
+   */
+  private Token next;
+
+  /**
+   * Initialize a newly created token to have the given type and offset.
+   * 
+   * @param type the type of the token
+   * @param offset the offset from the beginning of the file to the first character in the token
+   */
+  public Token(TokenType type, int offset) {
+    this.type = type;
+    this.offset = offset;
+  }
 
   /**
    * Return the number of characters in the node's source range.
@@ -26,7 +50,25 @@ public class Token {
    * @return the number of characters in the node's source range
    */
   public int getLength() {
-    return 0;
+    return getLexeme().length();
+  }
+
+  /**
+   * Return the lexeme that represents this token.
+   * 
+   * @return the lexeme that represents this token
+   */
+  public String getLexeme() {
+    return type.getLexeme();
+  }
+
+  /**
+   * Return the next token in the token stream.
+   * 
+   * @return the next token in the token stream
+   */
+  public Token getNext() {
+    return next;
   }
 
   /**
@@ -35,6 +77,41 @@ public class Token {
    * @return the offset from the beginning of the file to the first character in the token
    */
   public int getOffset() {
-    return 0;
+    return offset;
+  }
+
+  /**
+   * Return the type of the token.
+   * 
+   * @return the type of the token
+   */
+  public TokenType getType() {
+    return type;
+  }
+
+  /**
+   * Set the next token in the token stream to the given token.
+   * 
+   * @param token the next token in the token stream
+   * @return the token that was passed in
+   */
+  public Token setNext(Token token) {
+    next = token;
+    return token;
+  }
+
+  @Override
+  public String toString() {
+    return getLexeme();
+  }
+
+  /**
+   * Return the value of this token. For keyword tokens, this is the keyword associated with the
+   * token, for other tokens it is the lexeme associated with the token.
+   * 
+   * @return the value of this token
+   */
+  public Object value() {
+    return type.getLexeme();
   }
 }
