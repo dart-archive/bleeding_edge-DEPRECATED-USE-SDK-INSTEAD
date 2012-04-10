@@ -716,6 +716,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
   private boolean rescheduleJob;
 
+  private long lastShowTime;
+
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
 
   public ProblemsView() {
@@ -950,7 +952,8 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
 
         @Override
         public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
-          if (rescheduleJob) {
+          // Update problems view at least every 2 to 3 seconds
+          if (rescheduleJob && System.currentTimeMillis() - lastShowTime < 2000) {
             rescheduleJob = false;
             schedule(1000);
           } else {
@@ -967,6 +970,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
               }
 
               showMarkers(markers);
+              lastShowTime = System.currentTimeMillis();
             } catch (CoreException ce) {
               DartToolsPlugin.log(ce);
             } finally {
