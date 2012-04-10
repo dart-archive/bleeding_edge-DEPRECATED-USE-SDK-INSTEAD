@@ -326,9 +326,11 @@ public class LaunchUtils {
     Set<ILaunchConfiguration> configs = new LinkedHashSet<ILaunchConfiguration>();
 
     for (ILaunchShortcut shortcut : getAllLaunchShortcuts()) {
-      ILaunchShortcutExt handler = (ILaunchShortcutExt) shortcut;
+      if (shortcut instanceof ILaunchShortcutExt) {
+        ILaunchShortcutExt handler = (ILaunchShortcutExt) shortcut;
 
-      configs.addAll(Arrays.asList(handler.getAssociatedLaunchConfigurations(resource)));
+        configs.addAll(Arrays.asList(handler.getAssociatedLaunchConfigurations(resource)));
+      }
     }
 
     return new ArrayList<ILaunchConfiguration>(configs);
