@@ -27,5 +27,5 @@ FrogServerTest: Skip
 *: Skip
 
 
-[ $compiler == dart2js && $runtime == drt ]
+[ $compiler == dart2js || $compiler == dartc ]
 *: Skip

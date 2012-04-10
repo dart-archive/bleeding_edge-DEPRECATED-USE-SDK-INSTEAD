@@ -11,3 +11,6 @@ proxy/MintMakerRpcTest: Fail # TypeError: Cannot call method 'toSendPort$0' of u
 [ $compiler == dart2js && $runtime == drt ]
 dartcombat/DartCombatTest: Fail
 proxy/MintMakerRpcTest: Pass # Issue 2254.
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.

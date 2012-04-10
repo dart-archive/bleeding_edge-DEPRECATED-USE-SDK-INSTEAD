@@ -15,3 +15,6 @@ StringInterpolationTest: Skip
 
 [ $compiler == frog || $compiler == frogsh || $runtime == drt ]
 *: Skip
+
+[ $compiler == dart2js || $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.
