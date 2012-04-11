@@ -145,6 +145,38 @@ public class DartSdk {
   }
 
   /**
+   * @return the SDK's documentation directory
+   */
+  public File getDocDirectory() {
+    return new File(DartSdk.getInstance().getDirectory(), "docs");
+  }
+
+  /**
+   * Return the auxiliary documentation file for the given library. Return null if no such file
+   * exists.
+   * 
+   * @param libraryName
+   * @return
+   */
+  public File getDocFileFor(String libraryName) {
+    File dir = getDocDirectory();
+
+    if (!dir.exists()) {
+      return null;
+    }
+
+    File libDir = new File(dir, libraryName);
+
+    File docFile = new File(libDir, libraryName + "_api.json");
+
+    if (docFile.exists()) {
+      return docFile;
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * @return the SDK's library directory path
    */
   public File getLibraryDirectory() {
@@ -183,6 +215,13 @@ public class DartSdk {
       }
     }
     return vm;
+  }
+
+  /**
+   * @return whether this install of the SDK has documentation
+   */
+  public boolean hasDocumentation() {
+    return getDocDirectory().exists();
   }
 
   /**
