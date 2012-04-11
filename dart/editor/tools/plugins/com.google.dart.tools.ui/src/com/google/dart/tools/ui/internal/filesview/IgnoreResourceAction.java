@@ -14,10 +14,16 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.builder.DartcBuildHandler;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
@@ -30,6 +36,34 @@ import java.util.Iterator;
  * Action to add (or remove) resources from the dart ignore list.
  */
 public class IgnoreResourceAction extends SelectionListenerAction {
+
+  class AnalyzeProjectJob extends WorkspaceJob {
+
+    IProject project;
+
+    public AnalyzeProjectJob(IProject project) {
+      super("Analyzing source");
+      this.project = project;
+
+    }
+
+    @Override
+    public IStatus runInWorkspace(IProgressMonitor monitor) {
+
+      try {
+        monitor.beginTask("Analyzing...", IProgressMonitor.UNKNOWN);
+        new DartcBuildHandler().buildLibrariesIn(project, resource, monitor);
+      } catch (CoreException e) {
+        DartCore.getConsole().print(FilesViewMessages.IgnoreResourceAction_Analyze_fail_message);
+        return Status.CANCEL_STATUS;
+
+      } finally {
+        monitor.done();
+      }
+
+      return Status.OK_STATUS;
+    }
+  }
 
   private static boolean allElementsAreResources(IStructuredSelection selection) {
     for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
@@ -58,12 +92,14 @@ public class IgnoreResourceAction extends SelectionListenerAction {
           DartModelManager.getInstance().addToIgnores(resource);
         } else {
           DartModelManager.getInstance().removeFromIgnores(resource);
+          AnalyzeProjectJob analyzeProjectJob = new AnalyzeProjectJob(resource.getProject());
+          analyzeProjectJob.schedule();
         }
       } catch (IOException e) {
         MessageDialog.openError(shell, "Error Ignoring Resource", e.getMessage());
         DartCore.logInformation("Could not access ignore file", e);
       } catch (CoreException e) {
-        MessageDialog.openError(shell, "Error Deleting Markers", e.getMessage());
+        MessageDialog.openError(shell, "Error Deleting Markers", e.getMessage()); //$NON-NLS-1$
       }
     }
   }

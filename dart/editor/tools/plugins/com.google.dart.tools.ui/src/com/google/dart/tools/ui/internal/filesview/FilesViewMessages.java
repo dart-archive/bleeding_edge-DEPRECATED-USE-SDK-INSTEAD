@@ -20,6 +20,7 @@ import org.eclipse.osgi.util.NLS;
  */
 public class FilesViewMessages extends NLS {
   private static final String BUNDLE_NAME = "com.google.dart.tools.ui.internal.filesview.FilesViewMessages"; //$NON-NLS-1$
+  public static String IgnoreResourceAction_Analyze_fail_message;
   public static String IgnoreResourcesAction_do_analyze_label;
   public static String IgnoreResourcesAction_dont_analyze_label;
   static {
