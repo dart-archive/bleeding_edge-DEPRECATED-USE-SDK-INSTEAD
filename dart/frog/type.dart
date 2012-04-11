@@ -652,7 +652,7 @@ class DefinedType extends Type {
       if (resolvedInterface.isClosed &&
           !(library.isCore || library.isCoreImpl)) {
         world.error(
-          'cannot implement "${resolvedInterface.name}": ' +
+          'cannot implement "${resolvedInterface.name}": '
           'only native implementation allowed', type.span);
       }
       resolvedInterface.addDirectSubtype(this);

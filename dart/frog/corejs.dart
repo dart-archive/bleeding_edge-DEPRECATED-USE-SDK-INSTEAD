@@ -148,47 +148,47 @@ class CoreJs {
   }
 
   void generate(CodeWriter w) {
-    // Write any stuff we had queued up, then replace our writer with the one
-    // in WorldGenerator so anything we discover that we need later on will be
-    // generated on-demand.
+    // Write any stuff we had queued up, then replace our writer with a
+    // subwriter into the one in WorldGenerator so anything we discover that we
+    // need later on will be generated on-demand.
     w.write(writer.text);
-    writer = w;
+    writer = w.subWriter();
 
     if (useNotNullBool) {
       useThrow = true;
-      w.writeln(_NOTNULL_BOOL_FUNCTION);
+      writer.writeln(_NOTNULL_BOOL_FUNCTION);
     }
 
     if (useThrow) {
-      w.writeln(_THROW_FUNCTION);
+      writer.writeln(_THROW_FUNCTION);
     }
 
     if (useIndex) {
       markCorelibTypeUsed('NoSuchMethodException');
       ensureDefProp();
-      w.writeln(options.disableBoundsChecks ?
+      writer.writeln(options.disableBoundsChecks ?
         _INDEX_OPERATORS : _CHECKED_INDEX_OPERATORS);
     }
 
     if (useSetIndex) {
       markCorelibTypeUsed('NoSuchMethodException');
       ensureDefProp();
-      w.writeln(options.disableBoundsChecks ?
+      writer.writeln(options.disableBoundsChecks ?
         _SETINDEX_OPERATORS : _CHECKED_SETINDEX_OPERATORS);
     }
 
     if (!useIsolates) {
       if (useWrap0) {
-        w.writeln(_EMPTY_WRAP_CALL0_FUNCTION);
+        writer.writeln(_EMPTY_WRAP_CALL0_FUNCTION);
       }
       if (useWrap1) {
-        w.writeln(_EMPTY_WRAP_CALL1_FUNCTION);
+        writer.writeln(_EMPTY_WRAP_CALL1_FUNCTION);
       }
     }
 
     // Write operator helpers
     for (var opImpl in orderValuesByKeys(_usedOperators)) {
-      w.writeln(opImpl);
+      writer.writeln(opImpl);
     }
 
     if (world.dom != null) {
@@ -197,8 +197,8 @@ class CoreJs {
       // TODO(jmesserly): we need to find a way to avoid conflicts with other
       // generated "typeName" fields. Ideally we wouldn't be patching 'Object'
       // here.
-      w.writeln('\$defProp(Object.prototype, "get\$typeName", ' +
-                'Object.prototype.\$typeNameOf);');
+      writer.writeln('\$defProp(Object.prototype, "get\$typeName", '
+                     'Object.prototype.\$typeNameOf);');
     }
   }
 }

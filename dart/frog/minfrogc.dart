@@ -18,7 +18,7 @@ main() {
   }
 
   if (!outFileDefined) {
-    argv.insertRange(0, 1, "--out=" + argv[argv.length-1] + ".js");
+    argv.insertRange(0, 1, "--out=${argv[argv.length-1]}.js");
   }
 
   // TODO(dgrove) we're simulating node by placing the arguments to frogc

@@ -193,12 +193,12 @@ class WorldGenerator {
   GlobalValue globalForConst(Value exp, List<Value> dependencies) {
     // Include type name to ensure unique constants - this matches
     // the code above that includes the type name for static fields.
-    var key = exp.type.jsname + ':' + exp.code;
+    var key = '${exp.type.jsname}:${exp.code}';
     var ret = globals[key];
     if (ret === null) {
       // another egregious hack!!!
       var ns = globals.length.toString();
-      while (ns.length < 4) ns = '0' + ns;
+      while (ns.length < 4) ns = '0$ns';
       var name = "const\$${ns}";
       ret = new GlobalValue(exp.type, name, true, null, name, exp,
           exp.span, dependencies);
@@ -300,7 +300,7 @@ class WorldGenerator {
       // We special case these two so that by default we can use "= function()"
       // syntax for better readability of the others.
       if (isOneLiner) {
-        ending = ')' + ending;
+        ending = ')$ending';
       }
       corejs.ensureDefProp();
       writeFunction(
@@ -308,7 +308,7 @@ class WorldGenerator {
       if (isOneLiner) return '}';
       return '});';
     } else {
-      writeFunction(_prototypeOf(type, name) + ' = ' + functionBody + ending);
+      writeFunction('${_prototypeOf(type, name)} = ${functionBody}${ending}');
       return isOneLiner? '': '}';
     }
   }
@@ -558,7 +558,7 @@ class WorldGenerator {
 
     // TODO(jmesserly): make sure we don't do this on hidden native types!
     if (property.needsFieldSyntax) {
-      writer.enterBlock('Object.defineProperty(' +
+      writer.enterBlock('Object.defineProperty('
         '${property.declaringType.jsname}.prototype, "${property.jsname}", {');
       if (property.getter != null) {
         writer.write(
@@ -836,7 +836,7 @@ class MethodGenerator implements TreeVisitor, CallingContext {
     if (_freeTemps.length > 0) {
       name = _freeTemps.removeLast();
     } else {
-      name = '\$' + _usedTemps.length;
+      name = '\$${_usedTemps.length}';
     }
     _usedTemps.add(name);
     return new VariableValue(value.staticType, name, value.span, false, value);
@@ -954,7 +954,7 @@ class MethodGenerator implements TreeVisitor, CallingContext {
     }
     if (method.isConstructor && method.constructorName != '') {
       defWriter.writeln(
-        '${method.declaringType.jsname}.${method.constructorName}\$ctor.prototype = ' +
+        '${method.declaringType.jsname}.${method.constructorName}\$ctor.prototype = '
         '${method.declaringType.jsname}.prototype;');
     }
 
@@ -972,7 +972,7 @@ class MethodGenerator implements TreeVisitor, CallingContext {
   static bool _maybeGenerateBoundGetter(MethodMember m, CodeWriter defWriter) {
     if (m._provideGetter) {
       String suffix = world.gen._writePrototypePatch(m.declaringType,
-          'get\$' + m.jsname, 'function() {', defWriter, false);
+          'get\$${m.jsname}', 'function() {', defWriter, false);
       defWriter.writeln('return this.${m.jsname}.bind(this);');
       defWriter.exitBlock(suffix);
       return true;
@@ -1013,7 +1013,7 @@ class MethodGenerator implements TreeVisitor, CallingContext {
           }
 
           optNames.addAll(optValues);
-          var optional = "['" + Strings.join(optNames, "', '") + "']";
+          var optional = "['${Strings.join(optNames, "', '")}']";
           defWriter.writeln('${start}${meth.jsname}.\$optional = $optional');
         }
       }
@@ -1625,7 +1625,7 @@ class MethodGenerator implements TreeVisitor, CallingContext {
     if (list.type.genericType == world.listFactoryType) {
       var tmpi = _scope.create('\$i', world.numType, null);
       var listLength = list.get_(this, 'length', node.list);
-      writer.enterBlock('for (var ${tmpi.code} = 0;' +
+      writer.enterBlock('for (var ${tmpi.code} = 0;'
           '${tmpi.code} < ${listLength.code}; ${tmpi.code}++) {');
       var value = list.invoke(this, ':index', node.list,
           new Arguments(null, [tmpi]));

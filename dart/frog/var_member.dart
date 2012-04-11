@@ -238,7 +238,7 @@ class VarMethodSet extends VarMember {
       final type = member.declaringType;
       final target = new Value(type, 'this', node.span);
       var result = member.invoke(context, node, target, args);
-      var stub = new VarMethodStub(name, member, args, 'return ' + result.code);
+      var stub = new VarMethodStub(name, member, args, 'return ${result.code}');
       type.varStubs[stub.name] = stub;
       if (type.isObject) hasObjectType = true;
     }
@@ -248,7 +248,7 @@ class VarMethodSet extends VarMember {
     if (!hasObjectType) {
       final target = new Value(world.objectType, 'this', node.span);
       var result = target.invokeNoSuchMethod(context, baseName, node, args);
-      var stub = new VarMethodStub(name, null, args, 'return ' + result.code);
+      var stub = new VarMethodStub(name, null, args, 'return ${result.code}');
       world.objectType.varStubs[stub.name] = stub;
     }
   }

@@ -239,6 +239,118 @@ function $truncdiv$(x, y) {
     $throw(new NoSuchMethodException(x, "operator ~/", [y]));
   }
 }
+/** Implements extends for Dart classes on JavaScript prototypes. */
+function $inherits(child, parent) {
+  if (child.prototype.__proto__) {
+    child.prototype.__proto__ = parent.prototype;
+  } else {
+    function tmp() {};
+    tmp.prototype = parent.prototype;
+    child.prototype = new tmp();
+    child.prototype.constructor = child;
+  }
+}
+$defProp(Object.prototype, '$typeNameOf', (function() {
+  function constructorNameWithFallback(obj) {
+    var constructor = obj.constructor;
+    if (typeof(constructor) == 'function') {
+      // The constructor isn't null or undefined at this point. Try
+      // to grab hold of its name.
+      var name = constructor.name;
+      // If the name is a non-empty string, we use that as the type
+      // name of this object. On Firefox, we often get 'Object' as
+      // the constructor name even for more specialized objects so
+      // we have to fall through to the toString() based implementation
+      // below in that case.
+      if (typeof(name) == 'string' && name && name != 'Object') return name;
+    }
+    var string = Object.prototype.toString.call(obj);
+    return string.substring(8, string.length - 1);
+  }
+
+  function chrome$typeNameOf() {
+    var name = this.constructor.name;
+    if (name == 'Window') return 'DOMWindow';
+    return name;
+  }
+
+  function firefox$typeNameOf() {
+    var name = constructorNameWithFallback(this);
+    if (name == 'Window') return 'DOMWindow';
+    if (name == 'Document') return 'HTMLDocument';
+    if (name == 'XMLDocument') return 'Document';
+    return name;
+  }
+
+  function ie$typeNameOf() {
+    var name = constructorNameWithFallback(this);
+    if (name == 'Window') return 'DOMWindow';
+    // IE calls both HTML and XML documents 'Document', so we check for the
+    // xmlVersion property, which is the empty string on HTML documents.
+    if (name == 'Document' && this.xmlVersion) return 'Document';
+    if (name == 'Document') return 'HTMLDocument';
+    return name;
+  }
+
+  // If we're not in the browser, we're almost certainly running on v8.
+  if (typeof(navigator) != 'object') return chrome$typeNameOf;
+
+  var userAgent = navigator.userAgent;
+  if (/Chrome|DumpRenderTree/.test(userAgent)) return chrome$typeNameOf;
+  if (/Firefox/.test(userAgent)) return firefox$typeNameOf;
+  if (/MSIE/.test(userAgent)) return ie$typeNameOf;
+  return function() { return constructorNameWithFallback(this); };
+})());
+function $dynamic(name) {
+  var f = Object.prototype[name];
+  if (f && f.methods) return f.methods;
+
+  var methods = {};
+  if (f) methods.Object = f;
+  function $dynamicBind() {
+    // Find the target method
+    var obj = this;
+    var tag = obj.$typeNameOf();
+    var method = methods[tag];
+    if (!method) {
+      var table = $dynamicMetadata;
+      for (var i = 0; i < table.length; i++) {
+        var entry = table[i];
+        if (entry.map.hasOwnProperty(tag)) {
+          method = methods[entry.tag];
+          if (method) break;
+        }
+      }
+    }
+    method = method || methods.Object;
+
+    var proto = Object.getPrototypeOf(obj);
+
+    if (method == null) {
+      // Trampoline to throw NoSuchMethodException (TODO: call noSuchMethod).
+      method = function(){
+        // Exact type check to prevent this code shadowing the dispatcher from a
+        // subclass.
+        if (Object.getPrototypeOf(this) === proto) {
+          // TODO(sra): 'name' is the jsname, should be the Dart name.
+          $throw(new NoSuchMethodException(
+              obj, name, Array.prototype.slice.call(arguments)));
+        }
+        return Object.prototype[name].apply(this, arguments);
+      };
+    }
+
+    if (!proto.hasOwnProperty(name)) {
+      $defProp(proto, name, method);
+    }
+
+    return method.apply(this, Array.prototype.slice.call(arguments));
+  };
+  $dynamicBind.methods = methods;
+  $defProp(Object.prototype, name, $dynamicBind);
+  return methods;
+}
+if (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];
 // ********** Code for Object **************
 $defProp(Object.prototype, "get$dynamic", function() {
   "use strict"; return this;
@@ -665,17 +777,6 @@ ListIterator.prototype.next = function() {
   return this._array.$index(this._pos++);
 }
 // ********** Code for ImmutableList **************
-/** Implements extends for Dart classes on JavaScript prototypes. */
-function $inherits(child, parent) {
-  if (child.prototype.__proto__) {
-    child.prototype.__proto__ = parent.prototype;
-  } else {
-    function tmp() {};
-    tmp.prototype = parent.prototype;
-    child.prototype = new tmp();
-    child.prototype.constructor = child;
-  }
-}
 $inherits(ImmutableList, ListFactory);
 function ImmutableList(length) {
   Array.call(this, length);
@@ -1889,107 +1990,6 @@ EnvMap.prototype.$index = function(key) {
 }
 // ********** Code for ReadableStream **************
 // ********** Code for WritableStream **************
-$defProp(Object.prototype, '$typeNameOf', (function() {
-  function constructorNameWithFallback(obj) {
-    var constructor = obj.constructor;
-    if (typeof(constructor) == 'function') {
-      // The constructor isn't null or undefined at this point. Try
-      // to grab hold of its name.
-      var name = constructor.name;
-      // If the name is a non-empty string, we use that as the type
-      // name of this object. On Firefox, we often get 'Object' as
-      // the constructor name even for more specialized objects so
-      // we have to fall through to the toString() based implementation
-      // below in that case.
-      if (typeof(name) == 'string' && name && name != 'Object') return name;
-    }
-    var string = Object.prototype.toString.call(obj);
-    return string.substring(8, string.length - 1);
-  }
-
-  function chrome$typeNameOf() {
-    var name = this.constructor.name;
-    if (name == 'Window') return 'DOMWindow';
-    return name;
-  }
-
-  function firefox$typeNameOf() {
-    var name = constructorNameWithFallback(this);
-    if (name == 'Window') return 'DOMWindow';
-    if (name == 'Document') return 'HTMLDocument';
-    if (name == 'XMLDocument') return 'Document';
-    return name;
-  }
-
-  function ie$typeNameOf() {
-    var name = constructorNameWithFallback(this);
-    if (name == 'Window') return 'DOMWindow';
-    // IE calls both HTML and XML documents 'Document', so we check for the
-    // xmlVersion property, which is the empty string on HTML documents.
-    if (name == 'Document' && this.xmlVersion) return 'Document';
-    if (name == 'Document') return 'HTMLDocument';
-    return name;
-  }
-
-  // If we're not in the browser, we're almost certainly running on v8.
-  if (typeof(navigator) != 'object') return chrome$typeNameOf;
-
-  var userAgent = navigator.userAgent;
-  if (/Chrome|DumpRenderTree/.test(userAgent)) return chrome$typeNameOf;
-  if (/Firefox/.test(userAgent)) return firefox$typeNameOf;
-  if (/MSIE/.test(userAgent)) return ie$typeNameOf;
-  return function() { return constructorNameWithFallback(this); };
-})());
-function $dynamic(name) {
-  var f = Object.prototype[name];
-  if (f && f.methods) return f.methods;
-
-  var methods = {};
-  if (f) methods.Object = f;
-  function $dynamicBind() {
-    // Find the target method
-    var obj = this;
-    var tag = obj.$typeNameOf();
-    var method = methods[tag];
-    if (!method) {
-      var table = $dynamicMetadata;
-      for (var i = 0; i < table.length; i++) {
-        var entry = table[i];
-        if (entry.map.hasOwnProperty(tag)) {
-          method = methods[entry.tag];
-          if (method) break;
-        }
-      }
-    }
-    method = method || methods.Object;
-
-    var proto = Object.getPrototypeOf(obj);
-
-    if (method == null) {
-      // Trampoline to throw NoSuchMethodException (TODO: call noSuchMethod).
-      method = function(){
-        // Exact type check to prevent this code shadowing the dispatcher from a
-        // subclass.
-        if (Object.getPrototypeOf(this) === proto) {
-          // TODO(sra): 'name' is the jsname, should be the Dart name.
-          $throw(new NoSuchMethodException(
-              obj, name, Array.prototype.slice.call(arguments)));
-        }
-        return Object.prototype[name].apply(this, arguments);
-      };
-    }
-
-    if (!proto.hasOwnProperty(name)) {
-      $defProp(proto, name, method);
-    }
-
-    return method.apply(this, Array.prototype.slice.call(arguments));
-  };
-  $dynamicBind.methods = methods;
-  $defProp(Object.prototype, name, $dynamicBind);
-  return methods;
-}
-if (typeof $dynamicMetadata == 'undefined') $dynamicMetadata = [];
 $dynamic("end$0").WriteStream = function() {
   return this.end(null, "utf8");
 };
@@ -2991,47 +2991,80 @@ BlockScope.prototype.create$3$isFinal = function($0, $1, $2, isFinal) {
 };
 // ********** Code for CodeWriter **************
 function CodeWriter() {
-  this._indentation = (0);
-  this._pendingIndent = false;
   this.writeComments = true;
-  this._buf = new StringBufferImpl("");
+  this._buf = [];
 }
 CodeWriter.prototype.get$text = function() {
-  return this._buf.toString();
-}
-CodeWriter.prototype._indent = function() {
-  this._pendingIndent = false;
-  for (var i = (0);
-   i < this._indentation; i++) {
-    this._buf.add("  ");
+  var $this = this; // closure support
+  var sb = new StringBufferImpl("");
+  var indentation = (0);
+  var pendingIndent = false;
+  function _walk(list) {
+    for (var $$i = list.iterator(); $$i.hasNext(); ) {
+      var thing = $$i.next();
+      if ((typeof(thing) == 'string')) {
+        if (pendingIndent) {
+          for (var i = (0);
+           i < indentation; i++) {
+            sb.add("  ");
+          }
+          pendingIndent = false;
+        }
+        sb.add(thing);
+      }
+      else if (null == thing) {
+        sb.add("\n");
+        pendingIndent = true;
+      }
+      else if ((typeof(thing) == 'number')) {
+        indentation = $add$(indentation, thing);
+      }
+      else if (!!(thing && thing.is$List())) {
+        _walk(thing);
+      }
+    }
   }
+  _walk(this._buf);
+  return sb.toString();
+}
+CodeWriter.prototype.subWriter = function() {
+  var sub = new CodeWriter();
+  sub.writeComments = this.writeComments;
+  this._buf.add(sub._buf);
+  return sub;
 }
 CodeWriter.prototype.comment = function(text) {
   if (this.writeComments) {
     this.writeln(text);
   }
 }
+CodeWriter.prototype._writeFragment = function(text) {
+  if (text.length == (0)) return;
+  this._buf.add(text);
+}
 CodeWriter.prototype.write = function(text) {
   if (text.length == (0)) return;
-  if (this._pendingIndent) this._indent();
   if (text.indexOf("\n") != (-1)) {
     var lines = text.split$_("\n");
-    for (var i = (0);
-     i < lines.get$length() - (1); i++) {
-      this.writeln(lines.$index(i));
+    this._writeFragment(lines.$index((0)));
+    for (var i = (1);
+     i < lines.get$length(); i++) {
+      this._buf.add();
+      this._writeFragment(lines.$index(i));
     }
-    this.write(lines.$index(lines.get$length() - (1)));
   }
   else {
     this._buf.add(text);
   }
 }
 CodeWriter.prototype.writeln = function(text) {
-  if (text != null) {
-    this.write(text);
+  if (text == null) {
+    this._buf.add();
   }
-  if (!text.endsWith("\n")) this._buf.add("\n");
-  this._pendingIndent = true;
+  else {
+    this.write(text);
+    if (!text.endsWith("\n")) this._buf.add();
+  }
 }
 CodeWriter.prototype.writeln.$optional = ['text', 'null']
 CodeWriter.prototype.get$writeln = function() {
@@ -3039,19 +3072,19 @@ CodeWriter.prototype.get$writeln = function() {
 }
 CodeWriter.prototype.enterBlock = function(text) {
   this.writeln(text);
-  this._indentation++;
+  this._buf.add((1));
 }
 CodeWriter.prototype.get$enterBlock = function() {
   return this.enterBlock.bind(this);
 }
 CodeWriter.prototype.exitBlock = function(text) {
-  this._indentation--;
+  this._buf.add((-1));
   this.writeln(text);
 }
 CodeWriter.prototype.nextBlock = function(text) {
-  this._indentation--;
+  this._buf.add((-1));
   this.writeln(text);
-  this._indentation++;
+  this._buf.add((1));
 }
 CodeWriter.prototype.write$1 = CodeWriter.prototype.write;
 // ********** Code for CoreJs **************
@@ -3170,41 +3203,41 @@ CoreJs.prototype.ensureBind = function() {
 }
 CoreJs.prototype.generate = function(w) {
   w.write(this.writer.get$text());
-  this.writer = w;
+  this.writer = w.subWriter();
   if (this.useNotNullBool) {
     this.useThrow = true;
-    w.writeln("function $notnull_bool(test) {\n  if (test === true || test === false) return test;\n  $throw(new TypeError(test, 'bool'));\n}");
+    this.writer.writeln("function $notnull_bool(test) {\n  if (test === true || test === false) return test;\n  $throw(new TypeError(test, 'bool'));\n}");
   }
   if (this.useThrow) {
-    w.writeln("function $throw(e) {\n  // If e is not a value, we can use V8's captureStackTrace utility method.\n  // TODO(jmesserly): capture the stack trace on other JS engines.\n  if (e && (typeof e == 'object') && Error.captureStackTrace) {\n    // TODO(jmesserly): this will clobber the e.stack property\n    Error.captureStackTrace(e, $throw);\n  }\n  throw e;\n}");
+    this.writer.writeln("function $throw(e) {\n  // If e is not a value, we can use V8's captureStackTrace utility method.\n  // TODO(jmesserly): capture the stack trace on other JS engines.\n  if (e && (typeof e == 'object') && Error.captureStackTrace) {\n    // TODO(jmesserly): this will clobber the e.stack property\n    Error.captureStackTrace(e, $throw);\n  }\n  throw e;\n}");
   }
   if (this.useIndex) {
     this.markCorelibTypeUsed("NoSuchMethodException");
     this.ensureDefProp();
-    w.writeln($globals.options.disableBoundsChecks ? "$defProp(Object.prototype, '$index', function(i) {\n  $throw(new NoSuchMethodException(this, \"operator []\", [i]));\n});\n$defProp(Array.prototype, '$index', function(i) {\n  return this[i];\n});\n$defProp(String.prototype, '$index', function(i) {\n  return this[i];\n});" : "$defProp(Object.prototype, '$index', function(i) {\n  $throw(new NoSuchMethodException(this, \"operator []\", [i]));\n});\n$defProp(Array.prototype, '$index', function(index) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i];\n});\n$defProp(String.prototype, '$index', function(i) {\n  return this[i];\n});");
+    this.writer.writeln($globals.options.disableBoundsChecks ? "$defProp(Object.prototype, '$index', function(i) {\n  $throw(new NoSuchMethodException(this, \"operator []\", [i]));\n});\n$defProp(Array.prototype, '$index', function(i) {\n  return this[i];\n});\n$defProp(String.prototype, '$index', function(i) {\n  return this[i];\n});" : "$defProp(Object.prototype, '$index', function(i) {\n  $throw(new NoSuchMethodException(this, \"operator []\", [i]));\n});\n$defProp(Array.prototype, '$index', function(index) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i];\n});\n$defProp(String.prototype, '$index', function(i) {\n  return this[i];\n});");
   }
   if (this.useSetIndex) {
     this.markCorelibTypeUsed("NoSuchMethodException");
     this.ensureDefProp();
-    w.writeln($globals.options.disableBoundsChecks ? "$defProp(Object.prototype, '$setindex', function(i, value) {\n  $throw(new NoSuchMethodException(this, \"operator []=\", [i, value]));\n});\n$defProp(Array.prototype, '$setindex',\n    function(i, value) { return this[i] = value; });" : "$defProp(Object.prototype, '$setindex', function(i, value) {\n  $throw(new NoSuchMethodException(this, \"operator []=\", [i, value]));\n});\n$defProp(Array.prototype, '$setindex', function(index, value) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i] = value;\n});");
+    this.writer.writeln($globals.options.disableBoundsChecks ? "$defProp(Object.prototype, '$setindex', function(i, value) {\n  $throw(new NoSuchMethodException(this, \"operator []=\", [i, value]));\n});\n$defProp(Array.prototype, '$setindex',\n    function(i, value) { return this[i] = value; });" : "$defProp(Object.prototype, '$setindex', function(i, value) {\n  $throw(new NoSuchMethodException(this, \"operator []=\", [i, value]));\n});\n$defProp(Array.prototype, '$setindex', function(index, value) {\n  var i = index | 0;\n  if (i !== index) {\n    throw new IllegalArgumentException('index is not int');\n  } else if (i < 0 || i >= this.length) {\n    throw new IndexOutOfRangeException(index);\n  }\n  return this[i] = value;\n});");
   }
   if (!this.useIsolates) {
     if (this.useWrap0) {
-      w.writeln("function $wrap_call$0(fn) { return fn; }");
+      this.writer.writeln("function $wrap_call$0(fn) { return fn; }");
     }
     if (this.useWrap1) {
-      w.writeln("function $wrap_call$1(fn) { return fn; }");
+      this.writer.writeln("function $wrap_call$1(fn) { return fn; }");
     }
   }
   var $$list = orderValuesByKeys(this._usedOperators);
   for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
     var opImpl = $$i.next();
-    w.writeln(opImpl);
+    this.writer.writeln(opImpl);
   }
   if ($globals.world.dom != null) {
     this.ensureTypeNameOf();
     this.ensureDefProp();
-    w.writeln("$defProp(Object.prototype, \"get$typeName\", Object.prototype.$typeNameOf);");
+    this.writer.writeln("$defProp(Object.prototype, \"get$typeName\", Object.prototype.$typeNameOf);");
   }
 }
 // ********** Code for Element **************
@@ -3484,11 +3517,11 @@ WorldGenerator.prototype.globalForStaticField = function(field, exp, dependencie
   return ret;
 }
 WorldGenerator.prototype.globalForConst = function(exp, dependencies) {
-  var key = $add$($add$(exp.get$type().get$jsname(), ":"), exp.get$code());
+  var key = ("" + exp.get$type().get$jsname() + ":" + exp.get$code());
   var ret = this.globals.$index(key);
   if (null == ret) {
     var ns = this.globals.get$length().toString$0();
-    while (ns.get$length() < (4)) ns = $add$("0", ns);
+    while (ns.get$length() < (4)) ns = ("0" + ns);
     var name = ("const$" + ns);
     ret = new GlobalValue(exp.get$type(), name, true, null, name, exp, exp.span, dependencies);
     this.globals.$setindex(key, ret);
@@ -3571,7 +3604,7 @@ WorldGenerator.prototype._writePrototypePatch = function(type, name, functionBod
   }
   if (type.get$isObject() || $eq$(type.get$genericType(), $globals.world.listFactoryType)) {
     if (isOneLiner) {
-      ending = $add$(")", ending);
+      ending = (")" + ending);
     }
     this.corejs.ensureDefProp();
     writeFunction.call$1(("$defProp(" + type.get$jsname() + ".prototype, \"" + name + "\", " + functionBody + ending));
@@ -3579,7 +3612,7 @@ WorldGenerator.prototype._writePrototypePatch = function(type, name, functionBod
     return "});";
   }
   else {
-    writeFunction.call$1($add$($add$($add$(this._prototypeOf(type, name), " = "), functionBody), ending));
+    writeFunction.call$1(("" + this._prototypeOf(type, name) + " = " + functionBody + ending));
     return isOneLiner ? "" : "}";
   }
 }
@@ -3773,7 +3806,7 @@ WorldGenerator.prototype._writeProperty = function(property) {
   if (property.getter != null) this._writeMethod(property.getter);
   if (property.setter != null) this._writeMethod(property.setter);
   if (property.get$needsFieldSyntax()) {
-    this.writer.enterBlock($add$("Object.defineProperty(", ("" + property.declaringType.get$jsname() + ".prototype, \"" + property.get$jsname() + "\", {")));
+    this.writer.enterBlock(("Object.defineProperty(" + ("" + property.declaringType.get$jsname() + ".prototype, \"" + property.get$jsname() + "\", {")));
     if (property.getter != null) {
       this.writer.write(("get: " + property.declaringType.get$jsname() + ".prototype." + property.getter.get$jsname()));
       this.writer.writeln(property.setter == null ? "" : ",");
@@ -4010,7 +4043,7 @@ MethodGenerator.prototype.forceTemp = function(value) {
     name = this._freeTemps.removeLast();
   }
   else {
-    name = "$" + this._usedTemps.get$length();
+    name = ("$" + this._usedTemps.get$length());
   }
   this._usedTemps.add(name);
   return new VariableValue(value.get$staticType(), name, value.span, false, value);
@@ -4119,7 +4152,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
     defWriter.exitBlock(suffix);
   }
   if (this.method.get$isConstructor() && this.method.get$constructorName() != "") {
-    defWriter.writeln($add$(("" + this.method.declaringType.get$jsname() + "." + this.method.get$constructorName() + "$ctor.prototype = "), ("" + this.method.declaringType.get$jsname() + ".prototype;")));
+    defWriter.writeln((("" + this.method.declaringType.get$jsname() + "." + this.method.get$constructorName() + "$ctor.prototype = ") + ("" + this.method.declaringType.get$jsname() + ".prototype;")));
   }
   this._provideOptionalParamInfo(defWriter);
   if ((this.method instanceof MethodMember)) {
@@ -4131,7 +4164,7 @@ MethodGenerator.prototype.writeDefinition = function(defWriter, lambda) {
 }
 MethodGenerator._maybeGenerateBoundGetter = function(m, defWriter) {
   if (m._provideGetter) {
-    var suffix = $globals.world.gen._writePrototypePatch(m.declaringType, $add$("get$", m.get$jsname()), "function() {", defWriter, false);
+    var suffix = $globals.world.gen._writePrototypePatch(m.declaringType, ("get$" + m.get$jsname()), "function() {", defWriter, false);
     defWriter.writeln(("return this." + m.get$jsname() + ".bind(this);"));
     defWriter.exitBlock(suffix);
     return true;
@@ -4164,7 +4197,7 @@ MethodGenerator.prototype._provideOptionalParamInfo = function(defWriter) {
           start = $add$(meth.declaringType.get$jsname(), ".prototype.");
         }
         optNames.addAll(optValues);
-        var optional = $add$($add$("['", Strings.join(optNames, "', '")), "']");
+        var optional = ("['" + Strings.join(optNames, "', '") + "']");
         defWriter.writeln(("" + start + meth.get$jsname() + ".$optional = " + optional));
       }
     }
@@ -4656,7 +4689,7 @@ MethodGenerator.prototype._visitForInBody = function(node, itemType, list) {
   if ($eq$(list.get$type().get$genericType(), $globals.world.listFactoryType)) {
     var tmpi = this._scope.create("$i", $globals.world.numType, null, false, false);
     var listLength = list.get_(this, "length", node.list);
-    this.writer.enterBlock($add$(("for (var " + tmpi.get$code() + " = 0;"), ("" + tmpi.get$code() + " < " + listLength.get$code() + "; " + tmpi.get$code() + "++) {")));
+    this.writer.enterBlock((("for (var " + tmpi.get$code() + " = 0;") + ("" + tmpi.get$code() + " < " + listLength.get$code() + "; " + tmpi.get$code() + "++) {")));
     var value = list.invoke(this, ":index", node.list, new Arguments(null, [tmpi]));
     this.writer.writeln(("var " + item.get$code() + " = " + value.get$code() + ";"));
   }
@@ -12135,7 +12168,7 @@ DefinedType.prototype._resolveInterfaces = function(types) {
     var type = $$i.next();
     var resolvedInterface = this.resolveType(type, true, true);
     if (resolvedInterface.get$isClosed() && !(this.library.get$isCore() || this.library.get$isCoreImpl())) {
-      $globals.world.error($add$(("cannot implement \"" + resolvedInterface.get$name() + "\": "), "only native implementation allowed"), type.get$span());
+      $globals.world.error((("cannot implement \"" + resolvedInterface.get$name() + "\": ") + "only native implementation allowed"), type.get$span());
     }
     resolvedInterface.addDirectSubtype(this);
     interfaces.add(resolvedInterface);
@@ -13027,7 +13060,7 @@ Value.prototype._typeAssert = function(context, toType) {
   }
   else {
     toType.isChecked = true;
-    var checkName = $add$("assert$", toType.get$jsname());
+    var checkName = ("assert$" + toType.get$jsname());
     var temp = context.getTemp(this);
     check = ("(" + context.assignTemp(temp, this).get$code() + " == null ? null :");
     check = $add$(check, (" " + temp.get$code() + "." + checkName + "())"));
@@ -13063,20 +13096,19 @@ Value.prototype.instanceOf = function(context, toType, span, isTrue, forceCheck)
     toType.markUsed();
     testCode = ("(" + this.get$code() + " instanceof " + toType.get$jsname() + ")");
     if (!isTrue) {
-      testCode = $add$("!", testCode);
+      testCode = ("!" + testCode);
     }
   }
   if (testCode == null) {
     toType.isTested = true;
     var temp = context.getTemp(this);
     var checkName = ("is$" + toType.get$jsname());
-    testCode = ("(" + context.assignTemp(temp, this).get$code() + " &&");
-    testCode = $add$(testCode, (" " + temp.get$code() + "." + checkName + "())"));
+    testCode = (("(" + context.assignTemp(temp, this).get$code() + " &&") + (" " + temp.get$code() + "." + checkName + "())"));
     if (isTrue) {
-      testCode = $add$("!!", testCode);
+      testCode = ("!!" + testCode);
     }
     else {
-      testCode = $add$("!", testCode);
+      testCode = ("!" + testCode);
     }
     if ($ne$(this, temp)) context.freeTemp(temp);
     if (!$globals.world.objectType.varStubs.containsKey(checkName)) {
@@ -14288,7 +14320,7 @@ World.prototype.compileAndSave = function() {
     if (success) {
       var code = $globals.world.getGeneratedCode();
       if (!$globals.options.outfile.endsWith(".js")) {
-        code = $add$("#!/usr/bin/env node\n", code);
+        code = ("#!/usr/bin/env node\n" + code);
       }
       $globals.world.files.writeString($globals.options.outfile, code);
     }
@@ -14962,14 +14994,14 @@ VarMethodSet.prototype._invokeMembers = function(context, node) {
     var type = member.get$declaringType();
     var target = new Value(type, "this", node.span);
     var result = member.invoke(context, node, target, this.args);
-    var stub = new VarMethodStub(this.name, member, this.args, $add$("return ", result.get$code()));
+    var stub = new VarMethodStub(this.name, member, this.args, ("return " + result.get$code()));
     type.get$varStubs().$setindex(stub.get$name(), stub);
     if (type.get$isObject()) hasObjectType = true;
   }
   if (!hasObjectType) {
     var target = new Value($globals.world.objectType, "this", node.span);
     var result = target.invokeNoSuchMethod(context, this.baseName, node, this.args);
-    var stub = new VarMethodStub(this.name, null, this.args, $add$("return ", result.get$code()));
+    var stub = new VarMethodStub(this.name, null, this.args, ("return " + result.get$code()));
     $globals.world.objectType.varStubs.$setindex(stub.get$name(), stub);
   }
 }

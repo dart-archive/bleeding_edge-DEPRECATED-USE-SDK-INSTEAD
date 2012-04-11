@@ -738,7 +738,7 @@ function \$assert_${toType.name}(x) {
     } else {
       toType.isChecked = true;
 
-      String checkName = 'assert\$' + toType.jsname;
+      String checkName = 'assert\$${toType.jsname}';
 
       // If we track nullability, we could simplify this check.
       var temp = context.getTemp(this);
@@ -796,7 +796,7 @@ function \$assert_${toType.name}(x) {
       toType.markUsed();
       testCode = '($code instanceof ${toType.jsname})';
       if (!isTrue) {
-        testCode = '!' + testCode;
+        testCode = '!${testCode}';
       }
     }
     if (testCode == null) {
@@ -806,16 +806,16 @@ function \$assert_${toType.name}(x) {
       var temp = context.getTemp(this);
 
       String checkName = 'is\$${toType.jsname}';
-      testCode = '(${context.assignTemp(temp, this).code} &&';
-      testCode += ' ${temp.code}.$checkName())';
+      testCode = '(${context.assignTemp(temp, this).code} &&'
+          ' ${temp.code}.$checkName())';
       if (isTrue) {
         // Add !! to convert to boolean.
         // TODO(jimhug): only do this if needed
-        testCode = '!!' + testCode;
+        testCode = '!!${testCode}';
       } else {
         // The single ! here nicely converts undefined to false and function
         // to true.
-        testCode = '!' + testCode;
+        testCode = '!${testCode}';
       }
       if (this != temp) context.freeTemp(temp);
 

@@ -370,13 +370,13 @@ class World {
         var code = world.getGeneratedCode();
         if (!options.outfile.endsWith('.js')) {
           // Add in #! to invoke node.js on files with non-js extensions
-          code = '#!/usr/bin/env node\n' + code;
+          code = '#!/usr/bin/env node\n${code}';
         }
         world.files.writeString(options.outfile, code);
       } else {
         // Throw here so we get a non-zero exit code when running.
         // TODO(jmesserly): make this an alert when compiling for the browser?
-        world.files.writeString(options.outfile, "throw " +
+        world.files.writeString(options.outfile, "throw "
           "'Sorry, but I could not generate reasonable code to run.\\n';");
       }
     }

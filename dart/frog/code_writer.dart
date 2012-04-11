@@ -7,22 +7,52 @@
  */
 class CodeWriter {
   static final INDENTATION = '  ';
-  static final NEWLINE = '\n';
 
-  StringBuffer _buf;
-  int _indentation = 0;
-  bool _pendingIndent = false;
+  static final int INC_INDENT = +1;
+  static final int DEC_INDENT = -1;
+  static final NEWLINE = null;       // Anything but an int, String or List.
+
+  List _buf;
   bool writeComments = true;
 
-  CodeWriter(): _buf = new StringBuffer();
+  CodeWriter(): _buf = [];
 
-  String get text() { return _buf.toString(); }
+  bool get isEmpty() => _buf.length == 0;
 
-  _indent() {
-    _pendingIndent = false;
-    for (int i=0; i < _indentation; i++) {
-      _buf.add(INDENTATION);
+  String get text() {
+    StringBuffer sb = new StringBuffer();
+    int indentation = 0;
+    bool pendingIndent = false;
+    void _walk(list) {
+      for (var thing in list) {
+        if (thing is String) {
+          if (pendingIndent) {
+            for (int i = 0; i < indentation; i++) {
+              sb.add(INDENTATION);
+            }
+            pendingIndent = false;
+          }
+          sb.add(thing);
+        } else if (thing === NEWLINE) {
+          sb.add('\n');
+          pendingIndent = true;
+        } else if (thing is int) {
+          indentation += thing;
+        } else if (thing is List) {
+          _walk(thing);
+        }
+      }
     }
+    _walk(_buf);
+    return sb.toString();
+  }
+
+  /** Returns a CodeWriter that writes at the current position. */
+  CodeWriter subWriter() {
+    CodeWriter sub = new CodeWriter();
+    sub.writeComments = writeComments;
+    _buf.add(sub._buf);   // Splice subwriter's output into this parent writer.
+    return sub;
   }
 
   comment(String text) {
@@ -31,44 +61,50 @@ class CodeWriter {
     }
   }
 
+  _writeFragment(String text) {
+    if (text.length == 0) return;
+    _buf.add(text);
+  }
+
   write(String text) {
     if (text.length == 0) return;
 
-    if (_pendingIndent) _indent();
     // TODO(jimhug): Check perf consequences of this split.
     if (text.indexOf('\n') != -1) {
       var lines = text.split('\n');
-      for (int i = 0; i < lines.length - 1; i++) {
-        writeln(lines[i]);
+      _writeFragment(lines[0]);
+      for (int i = 1; i < lines.length; i++) {
+        _buf.add(NEWLINE);
+        _writeFragment(lines[i]);
       }
-      write(lines[lines.length-1]);
     } else {
       _buf.add(text);
     }
   }
 
-  writeln([String text=null]) {
-    if (text != null) {
+  writeln([String text = null]) {
+    if (text == null) {
+      _buf.add(NEWLINE);
+    } else {
       write(text);
+      if (!text.endsWith('\n')) _buf.add(NEWLINE);
     }
-    if (!text.endsWith('\n')) _buf.add(NEWLINE);
-    _pendingIndent = true;
   }
 
   enterBlock(String text) {
     writeln(text);
-    _indentation++;
+    _buf.add(INC_INDENT);
   }
 
   exitBlock(String text) {
-    _indentation--;
+    _buf.add(DEC_INDENT);
     writeln(text);
   }
 
   /** Switch to an adjacent block in one line, e.g. "} else if (...) {" */
   nextBlock(String text) {
-    _indentation--;
+    _buf.add(DEC_INDENT);
     writeln(text);
-    _indentation++;
+    _buf.add(INC_INDENT);
   }
 }
