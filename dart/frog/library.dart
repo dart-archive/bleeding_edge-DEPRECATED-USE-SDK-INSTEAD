@@ -59,6 +59,7 @@ class Library extends Element {
 
   String makeFullPath(String filename) {
     if (filename.startsWith('dart:')) return filename;
+    if (filename.startsWith('package:')) return filename;
     // TODO(jmesserly): replace with node.js path.resolve
     if (filename.startsWith('/')) return filename;
     if (filename.startsWith('file:///')) return filename;

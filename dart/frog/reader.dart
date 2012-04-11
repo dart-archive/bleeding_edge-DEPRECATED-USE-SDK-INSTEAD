@@ -43,10 +43,17 @@ class LibraryReader {
     }
   }
 
-  SourceFile readFile(String fullname) {
-    var filename = _specialLibs[fullname];
+  SourceFile readFile(String fullName) {
+    String filename;
+    if (fullName.startsWith('package:')) {
+      filename = joinPaths(dirname(options.dartScript),
+          joinPaths('packages', fullName.substring('package:'.length)));
+    } else {
+      filename = _specialLibs[fullName];
+    }
+
     if (filename == null) {
-      filename = fullname;
+      filename = fullName;
     }
 
     if (world.files.fileExists(filename)) {
