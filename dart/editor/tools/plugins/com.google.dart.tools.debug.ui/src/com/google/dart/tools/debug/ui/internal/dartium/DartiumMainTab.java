@@ -20,7 +20,6 @@ import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
-import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog;
 
 import org.eclipse.core.resources.IContainer;
@@ -90,7 +89,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Button htmlButton;
 
-  private Button htmlBrowsebutton;
+  private Button htmlBrowseButton;
 
   private Button urlButton;
 
@@ -222,34 +221,31 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   @Override
   public boolean isValid(ILaunchConfiguration launchConfig) {
-    if (getErrorMessage() != null) {
-      return false;
-    }
+    return getErrorMessage() == null;
 
-    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(launchConfig);
-
-    if (launchWrapper.getShouldLaunchFile()) {
-      IResource resource = launchWrapper.getApplicationResource();
-      if (resource == null) {
-        return false;
-      }
-      if (!resource.exists()) {
-        return false;
-      }
-      return (DartUtil.isWebPage(resource) || DartUtil.isDartLibrary(resource));
-    } else {
-
-      IResource project = ResourcesPlugin.getWorkspace().getRoot().findMember(
-          launchWrapper.getProjectName());
-      if (project == null) {
-        return false;
-      }
-      if (!project.exists()) {
-        return false;
-      }
-    }
-
-    return true;
+//    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(launchConfig);
+//
+//    if (launchWrapper.getShouldLaunchFile()) {
+//      IResource resource = launchWrapper.getApplicationResource();
+//      if (resource == null) {
+//        return false;
+//      }
+//      if (!resource.exists()) {
+//        return false;
+//      }
+//      return (DartUtil.isWebPage(resource) || DartUtil.isDartLibrary(resource));
+//    } else {
+//      IResource project = ResourcesPlugin.getWorkspace().getRoot().findMember(
+//          launchWrapper.getProjectName());
+//      if (project == null) {
+//        return false;
+//      }
+//      if (!project.exists()) {
+//        return false;
+//      }
+//    }
+//
+//    return true;
   }
 
   @Override
@@ -290,13 +286,13 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(400, SWT.DEFAULT).grab(true,
         false).applyTo(htmlText);
 
-    htmlBrowsebutton = new Button(composite, SWT.PUSH);
-    htmlBrowsebutton.setText(DartiumLaunchMessages.DartiumMainTab_Browse);
-    PixelConverter converter = new PixelConverter(htmlBrowsebutton);
+    htmlBrowseButton = new Button(composite, SWT.PUSH);
+    htmlBrowseButton.setText(DartiumLaunchMessages.DartiumMainTab_Browse);
+    PixelConverter converter = new PixelConverter(htmlBrowseButton);
     int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(
-        htmlBrowsebutton);
-    htmlBrowsebutton.addSelectionListener(new SelectionAdapter() {
+        htmlBrowseButton);
+    htmlBrowseButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         handleApplicationBrowseButton();
@@ -332,7 +328,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     projectBrowseButton = new Button(composite, SWT.PUSH);
     projectBrowseButton.setText(DartiumLaunchMessages.DartiumMainTab_Browse);
-    PixelConverter converter = new PixelConverter(htmlBrowsebutton);
+    PixelConverter converter = new PixelConverter(htmlBrowseButton);
     int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
     GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(
         projectBrowseButton);
@@ -416,18 +412,16 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   private void updateEnablements(boolean isFile) {
     if (isFile) {
       htmlText.setEnabled(true);
-      htmlBrowsebutton.setEnabled(true);
+      htmlBrowseButton.setEnabled(true);
       urlText.setEnabled(false);
       projectText.setEnabled(false);
       projectBrowseButton.setEnabled(false);
-
     } else {
       htmlText.setEnabled(false);
-      htmlBrowsebutton.setEnabled(false);
+      htmlBrowseButton.setEnabled(false);
       urlText.setEnabled(true);
       projectText.setEnabled(true);
       projectBrowseButton.setEnabled(true);
-
     }
   }
 

@@ -149,7 +149,8 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
       } else if (variable.isPrimitiveValue()) {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       } else if (variable.isListValue()) {
-        return DartDebugUIPlugin.getImage("obj16/list_obj.png");
+        return DartDebugUIPlugin.getImage("obj16/object_obj.png");
+        //return DartDebugUIPlugin.getImage("obj16/list_obj.png");
       } else {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       }

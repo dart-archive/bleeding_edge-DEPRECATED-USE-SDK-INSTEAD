@@ -76,8 +76,8 @@ import java.lang.reflect.InvocationTargetException;
  * A dialog to create, edit, and manage launch configurations.
  */
 @SuppressWarnings("restriction")
-public class ManageLaunchesDialog extends TitleAreaDialog
-    implements ILaunchConfigurationDialog, ILaunchConfigurationListener {
+public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConfigurationDialog,
+    ILaunchConfigurationListener {
   private IWorkbenchWindow window;
 
   private TableViewer launchesViewer;
@@ -224,8 +224,8 @@ public class ManageLaunchesDialog extends TitleAreaDialog
       configNameText.setVisible(true);
 
       activeTab.createControl(configUI);
-      GridDataFactory.swtDefaults()
-          .grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(activeTab.getControl());
+      GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+          activeTab.getControl());
       configUI.layout(true);
 
       activeTab.activated(workingCopy);
@@ -253,8 +253,8 @@ public class ManageLaunchesDialog extends TitleAreaDialog
   public void updateButtons() {
     if (getButton(IDialogConstants.OK_ID) != null) {
       // Run button
-      getButton(IDialogConstants.OK_ID)
-          .setEnabled(activeTab != null && activeTab.getErrorMessage() == null && canLaunch());
+      getButton(IDialogConstants.OK_ID).setEnabled(
+          activeTab != null && activeTab.getErrorMessage() == null && canLaunch());
 
       // Delete action
       getDeleteAction().setEnabled(selectedConfig != null);
@@ -263,7 +263,6 @@ public class ManageLaunchesDialog extends TitleAreaDialog
 
   @Override
   public void updateMessage() {
-
     try {
       verifyName();
     } catch (CoreException ce) {
@@ -301,7 +300,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog
     // Apply
     createButton(parent, IDialogConstants.CLIENT_ID, "Apply", false);
     getButton(IDialogConstants.CLIENT_ID).addSelectionListener(new SelectionAdapter() {
-        @Override
+      @Override
       public void widgetSelected(SelectionEvent e) {
         handleApplyButton();
       }
@@ -327,10 +326,10 @@ public class ManageLaunchesDialog extends TitleAreaDialog
     DebugPlugin.getDefault().getLaunchManager().addLaunchConfigurationListener(this);
 
     parent.addDisposeListener(new DisposeListener() {
-        @Override
+      @Override
       public void widgetDisposed(DisposeEvent e) {
-        DebugPlugin.getDefault()
-            .getLaunchManager().removeLaunchConfigurationListener(ManageLaunchesDialog.this);
+        DebugPlugin.getDefault().getLaunchManager().removeLaunchConfigurationListener(
+            ManageLaunchesDialog.this);
       }
     });
 
@@ -412,13 +411,12 @@ public class ManageLaunchesDialog extends TitleAreaDialog
     GridLayoutFactory.fillDefaults().margins(12, 6).applyTo(parent);
 
     SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
-    GridDataFactory.fillDefaults()
-        .grab(true, true).align(SWT.FILL, SWT.FILL).hint(675, 350).applyTo(sashForm);
+    GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(675, 350).applyTo(
+        sashForm);
 
     Composite leftComposite = new Composite(sashForm, SWT.NONE);
     GridLayoutFactory.fillDefaults().applyTo(leftComposite);
-    GridDataFactory.swtDefaults()
-        .grab(false, true).align(SWT.FILL, SWT.FILL).applyTo(leftComposite);
+    GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).applyTo(leftComposite);
 
     ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);
     ToolBar toolBar = toolBarManager.createControl(leftComposite);
@@ -434,19 +432,19 @@ public class ManageLaunchesDialog extends TitleAreaDialog
     launchesViewer.setInput(ResourcesPlugin.getWorkspace().getRoot());
     launchesViewer.getTable().setFocus();
     launchesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-        @Override
+      @Override
       public void selectionChanged(SelectionChangedEvent event) {
         handleSelectedConfigChanged();
       }
     });
     launchesViewer.addDoubleClickListener(new IDoubleClickListener() {
-        @Override
+      @Override
       public void doubleClick(DoubleClickEvent event) {
         okPressed();
       }
     });
-    GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).hint(50, 50)
-        .applyTo(launchesViewer.getControl());
+    GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).hint(50, 50).applyTo(
+        launchesViewer.getControl());
 
     toolBarManager.add(getCreateAction());
     toolBarManager.add(getDeleteAction());
@@ -455,23 +453,21 @@ public class ManageLaunchesDialog extends TitleAreaDialog
 
     configUI = new Composite(sashForm, SWT.NONE);
     GridLayoutFactory.fillDefaults().applyTo(configUI);
-    GridDataFactory.swtDefaults()
-        .grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(configUI);
+    GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(configUI);
 
     toolBar.pack();
     Label toolbarSpacer = new Label(configUI, SWT.NONE);
     GridDataFactory.swtDefaults().hint(SWT.NONE, toolBar.getSize().y).applyTo(toolbarSpacer);
 
     Composite nameComposite = new Composite(configUI, SWT.NONE);
-    GridDataFactory.swtDefaults()
-        .grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(nameComposite);
+    GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(nameComposite);
     GridLayoutFactory.swtDefaults().margins(6, 0).applyTo(nameComposite);
 
     configNameText = new Text(nameComposite, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.swtDefaults()
-        .grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(configNameText);
+    GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(
+        configNameText);
     configNameText.addModifyListener(new ModifyListener() {
-        @Override
+      @Override
       public void modifyText(ModifyEvent e) {
         if (workingCopy != null) {
           workingCopy.rename(configNameText.getText());
@@ -488,8 +484,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog
 
   private ILaunchConfiguration getConfigurationNamed(String name) {
     try {
-      for (ILaunchConfiguration config :
-          DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations()) {
+      for (ILaunchConfiguration config : DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations()) {
         if (name.equals(config.getName())) {
           return config;
         }
@@ -574,8 +569,8 @@ public class ManageLaunchesDialog extends TitleAreaDialog
       workingCopy = launchConfig.getWorkingCopy();
       configNameText.setText(workingCopy.getName());
 
-      currentTabGroup = LaunchConfigurationPresentationManager.getDefault()
-          .getTabGroup(workingCopy, getMode());
+      currentTabGroup = LaunchConfigurationPresentationManager.getDefault().getTabGroup(
+          workingCopy, getMode());
       currentTabGroup.createTabs(this, getMode());
 
       ILaunchConfigurationTab[] tabs = currentTabGroup.getTabs();
@@ -607,8 +602,8 @@ public class ManageLaunchesDialog extends TitleAreaDialog
       try {
         mgr.isValidLaunchConfigurationName(currentName);
       } catch (IllegalArgumentException iae) {
-        throw new CoreException(new Status(
-            IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, 0, iae.getMessage(), null));
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, 0,
+            iae.getMessage(), null));
       }
       // Otherwise, if there's already a config with the same name, complain
       if (!launchConfig.getName().equals(currentName)) {
