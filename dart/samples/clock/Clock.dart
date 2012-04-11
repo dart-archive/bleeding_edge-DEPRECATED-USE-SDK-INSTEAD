@@ -72,7 +72,7 @@ class CountDownClock {
   void createNumbers() {
     DivElement root = new Element.tag('div');
     Util.rel(root);
-    root.style.setProperty("textAlign", 'center');
+    root.style.textAlign = 'center';
     window.document.query("#canvas-content").nodes.add(root);
 
     double x = 0.0;
