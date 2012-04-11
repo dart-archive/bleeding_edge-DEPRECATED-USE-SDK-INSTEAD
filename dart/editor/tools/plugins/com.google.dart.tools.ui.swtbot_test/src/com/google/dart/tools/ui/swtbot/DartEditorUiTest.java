@@ -250,6 +250,7 @@ public class DartEditorUiTest {
     }).testSamples(DartLib.getSamplesDir());
   }
 
+  //Not working on Linux yet
   @Test
   public void testSimpleApp() throws Exception {
     NewSimpleApp newSimpleApp = new NewSimpleApp(bot);

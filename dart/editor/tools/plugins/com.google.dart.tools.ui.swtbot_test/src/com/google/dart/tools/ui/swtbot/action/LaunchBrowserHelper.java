@@ -56,6 +56,9 @@ public class LaunchBrowserHelper {
     final SWTBotShell mainShell = bot.activeShell();
 
     SWTBotToolbarDropDownButton launchButton = toolbarDropDownButton(bot, "Run.*");
+    // By calling setFocus on this widget, we ensure that the main shell is made the top-most
+    // shell before the click action happens.
+    launchButton.setFocus();
     long start = System.currentTimeMillis();
     launchButton.click();
     Metric metric = Performance.LAUNCH_APP;

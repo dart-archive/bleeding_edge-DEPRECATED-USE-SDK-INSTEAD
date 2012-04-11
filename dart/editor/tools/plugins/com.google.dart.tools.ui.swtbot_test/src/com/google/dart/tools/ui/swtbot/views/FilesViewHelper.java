@@ -20,7 +20,6 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 
@@ -86,11 +85,12 @@ public class FilesViewHelper {
     int beforeCount = getItems().length;
     // Click the Remove action, if successful, wait for dialog
     if (contextClick(projectLabel, REMOVE_FROM_EDITOR)) {
-      SWTBotShell shell = bot.activeShell();
-      shell.activate();
 
       // Click OK in dialog that appears
       SWTBotButton okButton = bot.button("OK");
+      // By calling setFocus on this widget, we ensure that this dialog is made the top-most
+      // window before the click action happens.
+      okButton.setFocus();
       okButton.click();
       assertEquals("After removing " + projectLabel
           + ", expected one less item in the Files view, but instead there are "
