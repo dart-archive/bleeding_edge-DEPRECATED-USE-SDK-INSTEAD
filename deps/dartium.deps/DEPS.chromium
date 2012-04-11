@@ -5,10 +5,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "113595",
+  "webkit_revision": "113671",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8184",
+  "nacl_revision": "8222",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "7955",  # native_client/DEPS: tools_rev
@@ -56,7 +56,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "11234",
+  "v8_revision": "11253",
   "webrtc_revision": "1973",
   "jsoncpp_revision": "248",
   "nss_revision": "126189",
@@ -80,10 +80,10 @@ deps = {
     (Var("googlecode_url") % "open-vcdiff") + "/trunk@42",
 
   "src/testing/gtest":
-    (Var("googlecode_url") % "googletest") + "/trunk@560",
+    (Var("googlecode_url") % "googletest") + "/trunk@613",
 
   "src/testing/gmock":
-    (Var("googlecode_url") % "googlemock") + "/trunk@374",
+    (Var("googlecode_url") % "googlemock") + "/trunk@405",
 
   "src/third_party/angle":
     (Var("googlecode_url") % "angleproject") + "/trunk@1018",
@@ -105,7 +105,7 @@ deps = {
     "/trunk/deps/third_party/hunspell_dictionaries@79099",
 
   "src/third_party/safe_browsing/testing":
-    (Var("googlecode_url") % "google-safe-browsing") + "/trunk/testing@106",
+    (Var("googlecode_url") % "google-safe-browsing") + "/trunk/testing@109",
 
   "src/third_party/cacheinvalidation/files/src/google":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
@@ -118,7 +118,7 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@37",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@23",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@33",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1323",
