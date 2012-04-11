@@ -14,8 +14,10 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole.MessageStream;
 import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -268,6 +270,10 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
           }
         }
       });
+
+      if (DartCoreDebug.ANALYSIS_SERVER) {
+        new AnalysisMonitor(SystemLibraryManagerProvider.getDefaultAnalysisServer()).start();
+      }
 
     } finally {// Resume background jobs after we startup
       Job.getJobManager().resume();
