@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.callhierarchy;
 
-import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.dialogs.StatusInfo;
@@ -39,7 +39,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class HistoryListAction extends Action {
@@ -48,9 +49,9 @@ public class HistoryListAction extends Action {
 
     private ListDialogField historyList;
     private IStatus historyStatus;
-    private TypeMember[] result;
+    private DartElement[] result;
 
-    private HistoryListDialog(Shell shell, TypeMember[][] elements) {
+    private HistoryListDialog(Shell shell, DartElement[][] elements) {
       super(shell);
       setTitle(CallHierarchyMessages.HistoryListDialog_title);
 
@@ -78,19 +79,19 @@ public class HistoryListAction extends Action {
 
         @Override
         public Image getImage(Object element) {
-          TypeMember[] members = (TypeMember[]) element;
+          DartElement[] members = (DartElement[]) element;
           return super.getImage(members[0]);
         }
 
         @Override
         public StyledString getStyledText(Object element) {
-          TypeMember[] members = (TypeMember[]) element;
+          DartElement[] members = (DartElement[]) element;
           return new StyledString(HistoryAction.getElementLabel(members));
         }
 
         @Override
         public String getText(Object element) {
-          TypeMember[] members = (TypeMember[]) element;
+          DartElement[] members = (DartElement[]) element;
           return HistoryAction.getElementLabel(members);
         }
       };
@@ -98,7 +99,11 @@ public class HistoryListAction extends Action {
       historyList = new ListDialogField(adapter, buttonLabels, new ColoringLabelProvider(
           labelProvider));
       historyList.setLabelText(CallHierarchyMessages.HistoryListDialog_label);
-      historyList.setElements(Arrays.asList(elements));
+      Collection<Object> col = new ArrayList<Object>();
+      for (Object each : elements) {
+        col.add(each);
+      }
+      historyList.setElements(col);
 
       ISelection sel;
       if (elements.length > 0) {
@@ -110,12 +115,12 @@ public class HistoryListAction extends Action {
       historyList.selectElements(sel);
     }
 
-    public TypeMember[][] getRemaining() {
+    public DartElement[][] getRemaining() {
       List<Object> elems = historyList.getElements();
-      return elems.toArray(new TypeMember[elems.size()][]);
+      return elems.toArray(new DartElement[elems.size()][]);
     }
 
-    public TypeMember[] getResult() {
+    public DartElement[] getResult() {
       return result;
     }
 
@@ -169,7 +174,7 @@ public class HistoryListAction extends Action {
         status.setError(""); //$NON-NLS-1$
         result = null;
       } else {
-        result = (TypeMember[]) selected.get(0);
+        result = (DartElement[]) selected.get(0);
       }
       historyList.enableButton(0, historyList.getSize() > selected.size() && selected.size() != 0);
       historyStatus = status;
@@ -188,7 +193,7 @@ public class HistoryListAction extends Action {
 
   @Override
   public void run() {
-    TypeMember[][] historyEntries = fView.getHistoryEntries();
+    DartElement[][] historyEntries = fView.getHistoryEntries();
     HistoryListDialog dialog = new HistoryListDialog(DartToolsPlugin.getActiveWorkbenchShell(),
         historyEntries);
     if (dialog.open() == Window.OK) {

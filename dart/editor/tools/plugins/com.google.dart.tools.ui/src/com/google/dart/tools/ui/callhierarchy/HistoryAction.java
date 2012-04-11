@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.callhierarchy;
 
-import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -31,7 +31,7 @@ class HistoryAction extends Action {
       | DartElementLabels.T_TYPE_PARAMETERS | DartElementLabels.P_COMPRESSED
       | DartElementLabels.COLORIZE;
 
-  static String getElementLabel(TypeMember[] members) {
+  static String getElementLabel(DartElement[] members) {
     switch (members.length) {
       case 0:
         Assert.isTrue(false);
@@ -51,7 +51,7 @@ class HistoryAction extends Action {
     }
   }
 
-  private static ImageDescriptor getImageDescriptor(TypeMember[] members) {
+  private static ImageDescriptor getImageDescriptor(DartElement[] members) {
     DartElementImageProvider imageProvider = new DartElementImageProvider();
     ImageDescriptor desc = imageProvider.getBaseImageDescriptor(members[0], 0);
     imageProvider.dispose();
@@ -59,14 +59,14 @@ class HistoryAction extends Action {
 
   }
 
-  private static String getShortLabel(TypeMember member) {
+  private static String getShortLabel(DartElement member) {
     return DartElementLabels.getElementLabel(member, LABEL_FLAGS);
   }
 
   private CallHierarchyViewPart chvPart;
-  private TypeMember[] members;
+  private DartElement[] members;
 
-  public HistoryAction(CallHierarchyViewPart viewPart, TypeMember[] members) {
+  public HistoryAction(CallHierarchyViewPart viewPart, DartElement[] members) {
     super("", AS_RADIO_BUTTON); //$NON-NLS-1$
     chvPart = viewPart;
     this.members = members;

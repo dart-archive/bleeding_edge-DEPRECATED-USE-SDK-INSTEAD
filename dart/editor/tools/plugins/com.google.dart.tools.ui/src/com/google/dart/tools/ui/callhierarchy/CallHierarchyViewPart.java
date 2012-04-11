@@ -340,11 +340,11 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
    * 
    * @return all history entries
    */
-  public TypeMember[][] getHistoryEntries() {
+  public DartElement[][] getHistoryEntries() {
     if (getMethodHistory().size() > 0) {
       updateHistoryEntries();
     }
-    return getMethodHistory().toArray(new TypeMember[getMethodHistory().size()][]);
+    return getMethodHistory().toArray(new DartElement[getMethodHistory().size()][]);
   }
 
   public DartElement[] getInputElements() {
@@ -428,7 +428,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
    * 
    * @param entries the new history entries
    */
-  public void setHistoryEntries(TypeMember[][] entries) {
+  public void setHistoryEntries(DartElement[][] entries) {
     getMethodHistory().clear();
 
     for (int i = 0; i < entries.length; i++) {
@@ -969,7 +969,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
 //      fieldSubMenu.add(toggleFieldModeActions[i]);
 //    }
 //    viewMenu.add(fieldSubMenu);
-    viewMenu.add(showSearchInDialogAction);
+//    viewMenu.add(showSearchInDialogAction);
   }
 
   private IActionBars getActionBars() {

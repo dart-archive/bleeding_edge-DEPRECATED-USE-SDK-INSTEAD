@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.callhierarchy;
 
-import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
@@ -79,7 +79,7 @@ class HistoryDropDownAction extends Action implements IMenuCreator {
       menu.dispose();
     }
     menu = new Menu(parent);
-    TypeMember[][] elements = chvPart.getHistoryEntries();
+    DartElement[][] elements = chvPart.getHistoryEntries();
     addEntries(menu, elements);
     new MenuItem(menu, SWT.SEPARATOR);
     addActionToMenu(menu, new HistoryListAction(chvPart));
@@ -102,7 +102,7 @@ class HistoryDropDownAction extends Action implements IMenuCreator {
     item.fill(parent, -1);
   }
 
-  private boolean addEntries(Menu menu, TypeMember[][] elements) {
+  private boolean addEntries(Menu menu, DartElement[][] elements) {
     boolean checked = false;
 
     int min = Math.min(elements.length, RESULTS_IN_DROP_DOWN);

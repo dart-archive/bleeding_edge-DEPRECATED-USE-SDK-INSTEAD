@@ -250,8 +250,8 @@ class SearchScopeActionGroup extends ActionGroup {
 
   private Action[] getActions() {
     List<Action> actions = new ArrayList<Action>();
-    addAction(actions, searchScopeWorkspaceAction);
-    addAction(actions, searchScopeProjectAction);
+//    addAction(actions, searchScopeWorkspaceAction);
+//    addAction(actions, searchScopeProjectAction);
 //    addAction(actions, selectWorkingSetAction);
 
 //    Iterator<IWorkingSet[]> iter = SearchUtil.getLRUWorkingSets().sortedIterator();
