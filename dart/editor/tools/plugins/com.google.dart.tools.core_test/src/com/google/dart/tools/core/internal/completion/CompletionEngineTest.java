@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -126,13 +126,11 @@ public class CompletionEngineTest extends TestCase {
         "1+newz", "1-Map");
   }
 
-  // TODO(zundel): disabled after AST changes
-  public void disabledTestCommentSnippets021() throws Exception {
+  public void testCommentSnippets021() throws Exception {
     test("class tst {var newt;void newf(){}test() {var newz;new !1/**/;}}", "1+Map", "1-newt");
   }
 
-  // TODO(zundel): disabled after AST changes
-  public void disabledTestCommentSnippets022() throws Exception {
+  public void testCommentSnippets022() throws Exception {
     test("class F{m(){new !1;}}", "1+Map");
   }
 
@@ -197,13 +195,11 @@ public class CompletionEngineTest extends TestCase {
     }
   }
 
-  // TODO(zundel): The AST for this case looks different after r6503
-  public void disabledTestCommentSnippets036() throws Exception {
+  public void testCommentSnippets036() throws Exception {
     test("t3() {var x=new List!1}", "1+List");
   }
 
-  // TODO(zundel): The AST for this case looks different after r6503
-  public void disabledTestCommentSnippets037() throws Exception {
+  public void testCommentSnippets037() throws Exception {
     test("t3() {var x=new List.!1}", "1+from");
   }
 
@@ -221,6 +217,14 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCommentSnippets041() throws Exception {
     test("class X{m(){List list; list.!1 zox();}}", "1+add");
+  }
+
+  public void testCommentSnippets042() throws Exception {
+    test("fd(){Date d=new Date.now();d.!1WED!2;}", "1+day", "2-WED");
+  }
+
+  public void testCommentSnippets043() throws Exception {
+    test("class L{var k;void.!1}", "1-k");
   }
 
   public void testCompletion_alias_field() throws Exception {
@@ -297,13 +301,11 @@ public class CompletionEngineTest extends TestCase {
     test("class Foo {!1}", "1+Collection", "1+List");
   }
 
-  // TODO(zundel): disabled after AST changes
-  public void disabledTestCompletion_newMemberType3() throws Exception {
+  public void testCompletion_newMemberType3() throws Exception {
     test("class Foo {L!1}", "1-Collection", "1+List");
   }
 
-  // TODO(zundel): disabled after AST changes
-  public void disabledTestCompletion_newMemberType4() throws Exception {
+  public void testCompletion_newMemberType4() throws Exception {
     test("class Foo {C!1}", "1+Collection", "1-List");
   }
 
@@ -334,7 +336,7 @@ public class CompletionEngineTest extends TestCase {
    * character prefix. The first character of the prefix corresponds to an X in the
    * <code>originalSource</code>. The second character is either a '+' or a '-' indicating whether
    * the string is a positive or negative result.
-   *
+   * 
    * @param originalSource The source for a completion test that contains completion points
    * @param validationStrings The positive and negative predictions
    */

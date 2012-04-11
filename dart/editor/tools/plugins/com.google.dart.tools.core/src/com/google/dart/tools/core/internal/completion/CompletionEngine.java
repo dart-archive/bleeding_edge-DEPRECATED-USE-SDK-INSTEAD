@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -34,6 +34,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartReturnStatement;
@@ -49,6 +50,7 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.parser.ParserContext;
 import com.google.dart.compiler.resolver.ClassElement;
@@ -59,12 +61,15 @@ import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.FunctionAliasElement;
+import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolutionContext;
 import com.google.dart.compiler.resolver.Resolver;
 import com.google.dart.compiler.resolver.Scope;
 import com.google.dart.compiler.resolver.VariableElement;
+import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeAnalyzer;
@@ -79,6 +84,7 @@ import com.google.dart.tools.core.internal.completion.ScopedNameFinder.ScopedNam
 import com.google.dart.tools.core.internal.completion.ast.BlockCompleter;
 import com.google.dart.tools.core.internal.completion.ast.FunctionCompleter;
 import com.google.dart.tools.core.internal.completion.ast.MethodInvocationCompleter;
+import com.google.dart.tools.core.internal.completion.ast.NewExpressionCompleter;
 import com.google.dart.tools.core.internal.completion.ast.ParameterCompleter;
 import com.google.dart.tools.core.internal.completion.ast.PropertyAccessCompleter;
 import com.google.dart.tools.core.internal.completion.ast.TypeCompleter;
@@ -117,9 +123,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Stack;
 
 /**
@@ -242,6 +251,13 @@ public class CompletionEngine {
     @Override
     public Void visitMethodDefinition(DartMethodDefinition node) {
       if (node.getName() == identifier) {
+        if (isCompletionAfterDot && identifier.getName().isEmpty()) {
+          return null;
+        }
+        proposeIdentifierPrefixCompletions(identifier);
+        return null;
+      }
+      if (!(isCompletionAfterDot && node.getName() instanceof DartIdentifier)) {
         proposeIdentifierPrefixCompletions(identifier);
       }
       return null;
@@ -302,7 +318,6 @@ public class CompletionEngine {
         if (propertyName == identifier) {
           Type type = analyzeType(completionNode.getQualifier());
           if (type.getKind() == TypeKind.DYNAMIC || type.getKind() == TypeKind.VOID) {
-            // TODO Reconsider this code; it seems fragile. We want the type Array from "Array.f!"
             if (completionNode.getQualifier() instanceof DartIdentifier) {
               Element element = ((DartIdentifier) completionNode.getQualifier()).getElement();
               if (ElementKind.of(element) == ElementKind.CLASS) {
@@ -312,6 +327,9 @@ public class CompletionEngine {
                   createCompletionsForFactoryInvocation(propertyName, (InterfaceType) type);
                   createCompletionsForQualifiedMemberAccess(propertyName, type, false);
                 }
+              } else if (ElementKind.of(element) == ElementKind.LIBRARY) {
+                // #import('dart:html', prefix: 'html'); class X{ html.!DivElement! div; }
+                createCompletionsForLibraryPrefix(propertyName, (LibraryElement) element);
               }
             }
           } else {
@@ -529,6 +547,28 @@ public class CompletionEngine {
           } else {
             // TODO top-level element
           }
+        } else if (stack.peek() == Mark.FunctionStatementBody) {
+          if (block.getStatements().isEmpty() && block.getParent() instanceof FunctionCompleter) {
+            if (block.getParent().getParent() instanceof DartMethodDefinition) {
+              // this odd AST is the price of better error recovery
+              DartMethodDefinition method = (DartMethodDefinition) block.getParent().getParent();
+              if (actualCompletionPosition + 1 == method.getName().getSourceInfo().getEnd()) {
+                DartExpression expr = method.getName();
+                if (expr instanceof DartIdentifier) {
+                  SourceInfo src = method.getSourceInfo();
+                  String nameString = source.substring(src.getOffset(), src.getEnd());
+                  if (nameString.indexOf('.') >= 0) {
+                    return null;
+                  }
+                  SyntheticIdentifier synth = new SyntheticIdentifier(nameString,
+                      actualCompletionPosition - nameString.length() + 1, nameString.length());
+                  method.accept(new IdentifierCompletionProposer(synth));
+                } else if (expr instanceof DartPropertyAccess) {
+                  expr.accept(this);
+                }
+              }
+            }
+          }
         }
       }
       return null;
@@ -589,7 +629,10 @@ public class CompletionEngine {
 
     @Override
     public Void visitExprStmt(DartExprStmt node) {
-      // TODO Determine if there are any valid completions
+      DartExpression expr = node.getExpression();
+      if (expr instanceof DartNewExpression) {
+        expr.accept(this);
+      }
       return null;
     }
 
@@ -655,7 +698,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
-      // TODO(zundel): This should not recurse
+      // TODO: This should not need to recurse, but the inner node is not being found
       node.visitChildren(this);
       return null;
     }
@@ -671,19 +714,7 @@ public class CompletionEngine {
       if (completionNode instanceof MethodInvocationCompleter) {
         DartIdentifier functionName = completionNode.getFunctionName();
         int nameStart = functionName.getSourceInfo().getOffset();
-        if (actualCompletionPosition >= nameStart + functionName.getSourceInfo().getLength()) {
-          // TODO Determine purpose of this branch; it may be historical and obsolete
-          createCompletionsForLocalVariables(completionNode, null, resolvedMember);
-          if (resolvedMember.getParent() instanceof DartClass) {
-            DartClass classDef = (DartClass) resolvedMember.getParent();
-            ClassElement elem = classDef.getElement();
-            Type type = elem.getType();
-            createCompletionsForPropertyAccess(null, type, false, false);
-          } else {
-            // top-level element
-            return null;
-          }
-        } else {
+        if (!(actualCompletionPosition >= nameStart + functionName.getSourceInfo().getLength())) {
           if (nameStart > actualCompletionPosition) {
             functionName = null;
           }
@@ -691,13 +722,14 @@ public class CompletionEngine {
           Type type = analyzeType(completionNode.getTarget());
           if (type != null) {
             createCompletionsForQualifiedMemberAccess(functionName, type, false);
-          } else {
-            DartNode target = completionNode.getTarget();
-            if (target instanceof DartPropertyAccess) {
-              // TODO(zundel): HACK! This might be a 'this' or 'static' access: I didn't check
-              createCompletionsForPropertyAccess(((DartPropertyAccess) target).getName(),
-                                                 analyzeType(target), false, false);
-            }
+            // TODO: delete this block after confirming it is not needed
+//          } else {
+//            DartNode target = completionNode.getTarget();
+//            if (target instanceof DartPropertyAccess) {
+//              // TODO(zundel): HACK! This might be a 'this' or 'static' access: I didn't check
+//              createCompletionsForPropertyAccess(((DartPropertyAccess) target).getName(),
+//                  analyzeType(target), false, false);
+//            }
           }
         }
       }
@@ -741,6 +773,35 @@ public class CompletionEngine {
     public Void visitNode(DartNode node) {
       visitorNotImplementedYet(node, this.completionNode, getClass());
       return null;
+    }
+
+    @Override
+    public Void visitNullLiteral(DartNullLiteral node) {
+      if (node.getParent() instanceof NewExpressionCompleter) {
+        // this odd AST is the price of better error recovery
+        NewExpressionCompleter newExpr = (NewExpressionCompleter) node.getParent();
+        SourceInfo loc = newExpr.getConstructor().getSourceInfo();
+        if (loc.getOffset() + loc.getLength() == actualCompletionPosition + 1) {
+          DartNode cons = newExpr.getConstructor();
+          DartIdentifier typeName;
+          if (cons instanceof DartTypeNode) {
+            // f() {var x=new List!}
+            typeName = (DartIdentifier) ((DartTypeNode) cons).getIdentifier();
+          } else if (cons instanceof DartPropertyAccess) {
+            if (isCompletionAfterDot) {
+              // f() {var x=new List.!}
+              return ((DartPropertyAccess) cons).getQualifier().accept(this);
+            } else {
+              // f() {var x=new html.Element!}
+              typeName = ((DartPropertyAccess) cons).getName();
+            }
+          } else {
+            return null; // not reached;
+          }
+          node.getParent().accept(new IdentifierCompletionProposer(typeName));
+        }
+      }
+      return visitLiteral(node);
     }
 
     @Override
@@ -790,9 +851,9 @@ public class CompletionEngine {
           DartNode qualifier = completionNode.getQualifier();
           DartIdentifier name;
           if (qualifier instanceof DartIdentifier) {
-            name = (DartIdentifier)qualifier;
+            name = (DartIdentifier) qualifier;
           } else {
-            name = ((DartPropertyAccess)qualifier).getName();
+            name = ((DartPropertyAccess) qualifier).getName();
           }
           Element element = name.getElement();
           ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
@@ -857,9 +918,9 @@ public class CompletionEngine {
             prop.accept(new IdentifierCompletionProposer(prop.getName()));
           }
         } else if (completionNode.getParent() instanceof DartTypeParameter) {
-           // < T extends !>
+          // < T extends !>
           if (completionNode.getIdentifier() instanceof DartIdentifier) {
-            proposeTypeNamesForPrefix((DartIdentifier)completionNode.getIdentifier());
+            proposeTypeNamesForPrefix((DartIdentifier) completionNode.getIdentifier());
           }
         }
       }
@@ -950,6 +1011,7 @@ public class CompletionEngine {
 
     SyntheticIdentifier(String name, int srcStart, int srcLen) {
       super(name);
+      setSourceInfo(new SourceInfo(null, srcStart, srcLen));
       this.srcStart = srcStart;
       this.srcLen = srcLen;
     }
@@ -1002,6 +1064,31 @@ public class CompletionEngine {
     return list;
   }
 
+  static private char[][] getParameterNames(FunctionAliasElement alias) {
+    FunctionType type = alias.getFunctionType();
+    List<Type> paramTypes = type.getParameterTypes();
+    Set<String> dups = new HashSet<String>();
+    char[][] names = new char[paramTypes.size()][];
+    for (int i = 0; i < names.length; i++) {
+      String name = paramTypes.get(i).getElement().getName();
+      if (Character.isLowerCase(name.charAt(0))) {
+        name = "x" + name;
+      }
+      if (dups.contains(name)) {
+        String newName = name;
+        int k = 1;
+        while (dups.contains(newName)) {
+          newName = name + k++;
+        }
+        name = newName;
+      }
+      dups.add(name);
+      names[i] = name.toCharArray();
+      names[i][0] = Character.toLowerCase(names[i][0]);
+    }
+    return names;
+  }
+
   static private char[][] getParameterNames(Method method) {
     try {
       String[] paramNames = method.getParameterNames();
@@ -1022,6 +1109,16 @@ public class CompletionEngine {
     char[][] names = new char[posParamCount][];
     for (int i = 0; i < posParamCount; i++) {
       names[i] = params.get(i).getName().toCharArray();
+    }
+    return names;
+  }
+
+  static private char[][] getParameterTypeNames(FunctionAliasElement alias) {
+    FunctionType type = alias.getFunctionType();
+    List<Type> paramTypes = type.getParameterTypes();
+    char[][] names = new char[paramTypes.size()][];
+    for (int i = 0; i < names.length; i++) {
+      names[i] = paramTypes.get(i).getElement().getName().toCharArray();
     }
     return names;
   }
@@ -1339,6 +1436,76 @@ public class CompletionEngine {
     }
   }
 
+  private void createCompletionsForLibraryPrefix(DartIdentifier identifier,
+      LibraryElement libraryElement) {
+    String prefix = extractFilterPrefix(identifier);
+    Scope scope = libraryElement.getScope();
+    Map<String, Element> elements = scope.getElements();
+    for (Entry<String, Element> entry : elements.entrySet()) {
+      String name = entry.getKey();
+      Element element = entry.getValue();
+      boolean disallowPrivate = true;
+      if (prefix != null) {
+        disallowPrivate = !prefix.startsWith("_");
+        if (prefix.length() == 0) {
+          prefix = null;
+        }
+      }
+      if (prefix != null && !name.startsWith(prefix)) {
+        continue;
+      }
+      if (disallowPrivate && name.startsWith("_")) {
+        continue;
+      }
+      String typeName = name;
+      char[][] parameterNames = null;
+      char[][] parameterTypeNames = null;
+      char[] returnTypeName = null;
+      boolean isInterface = false;
+      int kind;
+      switch (ElementKind.of(element)) {
+        case CLASS:
+          kind = CompletionProposal.TYPE_REF;
+          isInterface = ((ClassElement) element).isInterface();
+          break;
+        case FUNCTION_TYPE_ALIAS:
+          kind = CompletionProposal.METHOD_NAME_REFERENCE;
+          FunctionAliasElement function = (FunctionAliasElement) element;
+          parameterNames = getParameterNames(function);
+          parameterTypeNames = getParameterTypeNames(function);
+          returnTypeName = function.getFunctionType().getReturnType().getElement().getName().toCharArray();
+          break;
+        case METHOD:
+          kind = CompletionProposal.METHOD_NAME_REFERENCE;
+          MethodElement method = (MethodElement) element;
+          parameterNames = getParameterNames(method);
+          parameterTypeNames = getParameterTypeNames(method);
+          returnTypeName = method.getReturnType().getElement().getName().toCharArray();
+          break;
+        case FIELD:
+          kind = CompletionProposal.FIELD_REF;
+          FieldElement field = (FieldElement) element;
+          typeName = field.getType().getElement().getName();
+          break;
+        default:
+          continue;
+      }
+      InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+          kind, actualCompletionPosition - offset);
+      proposal.setDeclarationSignature(libraryElement.getLibraryUnit().getName().toCharArray());
+      proposal.setSignature(typeName.toCharArray());
+      proposal.setCompletion(name.toCharArray());
+      proposal.setName(name.toCharArray());
+      proposal.setIsInterface(isInterface);
+      proposal.setParameterNames(parameterNames);
+      proposal.setParameterTypeNames(parameterTypeNames);
+      proposal.setTypeName(returnTypeName);
+      setSourceLoc(proposal, identifier, prefix);
+      proposal.setRelevance(1);
+      requestor.accept(proposal);
+    }
+  }
+
   private void createCompletionsForLocalVariables(DartNode terminalNode, DartIdentifier node,
       DartClassMember<? extends DartExpression> method) {
     String prefix = extractFilterPrefix(node);
@@ -1396,6 +1563,9 @@ public class CompletionEngine {
         continue;
       }
       String name = method.getName();
+      if (name.isEmpty()) {
+        continue;
+      }
       if (prefix != null && !name.startsWith(prefix)) {
         continue;
       }
@@ -1447,6 +1617,12 @@ public class CompletionEngine {
       boolean fieldIsStatic = field.getModifiers().isStatic();
       if (isMethodStatic && !fieldIsStatic || isQualifiedByThis && fieldIsStatic) {
         continue;
+      }
+      if (fieldIsStatic && node.getParent() instanceof DartPropertyAccess) {
+        DartPropertyAccess parent = (DartPropertyAccess) node.getParent();
+        if (field.getEnclosingElement() != parent.getQualifier().getElement()) {
+          continue;
+        }
       }
       String name = field.getName();
       if (prefix != null && !name.startsWith(prefix)) {
@@ -1809,7 +1985,13 @@ public class CompletionEngine {
       return;
     }
     String prefix = extractFilterPrefix(identifier);
+    Set<String> uniques = new HashSet<String>(matches.size()); // indexer returns duplicates
     for (SearchMatch match : matches) {
+      String matchName = match.getElement().getElementName();
+      if (uniques.contains(matchName)) {
+        continue;
+      }
+      uniques.add(matchName);
       createTypeCompletionsForParameterDecl(identifier, match, prefix);
     }
     if (allowVoid) {
