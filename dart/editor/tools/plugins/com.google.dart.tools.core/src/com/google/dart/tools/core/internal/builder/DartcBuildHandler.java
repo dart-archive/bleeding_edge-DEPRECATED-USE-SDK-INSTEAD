@@ -82,15 +82,24 @@ public class DartcBuildHandler {
       rootProvider.clearCachedArtifacts();
 
       for (DartLibrary library : getDartLibraries(project)) {
-        try {
-          File file = DartBuilder.getJsAppArtifactFile(library.getCorrespondingResource());
+        cleanLibraryArtifactFile(library);
+      }
+    }
 
-          if (file != null && file.exists()) {
-            file.delete();
-          }
-        } catch (DartModelException exception) {
-          DartCore.logError(exception);
+    public void cleanLibrary(DartLibrary library) {
+      rootProvider.removeArtifactsFor(((DartLibraryImpl) library).getLibrarySourceFile());
+      cleanLibraryArtifactFile(library);
+    }
+
+    public void cleanLibraryArtifactFile(DartLibrary library) {
+      try {
+        File file = DartBuilder.getJsAppArtifactFile(library.getCorrespondingResource());
+
+        if (file != null && file.exists()) {
+          file.delete();
         }
+      } catch (DartModelException exception) {
+        DartCore.logError(exception);
       }
     }
 
@@ -197,14 +206,15 @@ public class DartcBuildHandler {
     SubMonitor subMonitor = SubMonitor.convert(monitor, "Building " + dartProject.getElementName()
         + "...", allLibraries.length * 100);
     try {
-      for (DartLibrary lib : allLibraries) {
+      for (DartLibrary library : allLibraries) {
         if (monitor.isCanceled()) {
           throw new OperationCanceledException();
         }
-        CompilationUnit definingUnit = lib.getDefiningCompilationUnit();
+        CompilationUnit definingUnit = library.getDefiningCompilationUnit();
         IResource resource = definingUnit.getResource();
         if (isOrContains(parent, resource)) {
-          buildLibrary(project, lib, false, subMonitor.newChild(100));
+          provider.cleanLibrary(library);
+          buildLibrary(project, library, false, subMonitor.newChild(100));
         }
       }
     } finally {
