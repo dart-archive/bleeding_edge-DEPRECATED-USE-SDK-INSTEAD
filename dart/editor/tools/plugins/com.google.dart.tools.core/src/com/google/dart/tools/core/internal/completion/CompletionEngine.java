@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -34,7 +34,6 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartReturnStatement;
@@ -84,7 +83,6 @@ import com.google.dart.tools.core.internal.completion.ScopedNameFinder.ScopedNam
 import com.google.dart.tools.core.internal.completion.ast.BlockCompleter;
 import com.google.dart.tools.core.internal.completion.ast.FunctionCompleter;
 import com.google.dart.tools.core.internal.completion.ast.MethodInvocationCompleter;
-import com.google.dart.tools.core.internal.completion.ast.NewExpressionCompleter;
 import com.google.dart.tools.core.internal.completion.ast.ParameterCompleter;
 import com.google.dart.tools.core.internal.completion.ast.PropertyAccessCompleter;
 import com.google.dart.tools.core.internal.completion.ast.TypeCompleter;
@@ -773,35 +771,6 @@ public class CompletionEngine {
     public Void visitNode(DartNode node) {
       visitorNotImplementedYet(node, this.completionNode, getClass());
       return null;
-    }
-
-    @Override
-    public Void visitNullLiteral(DartNullLiteral node) {
-      if (node.getParent() instanceof NewExpressionCompleter) {
-        // this odd AST is the price of better error recovery
-        NewExpressionCompleter newExpr = (NewExpressionCompleter) node.getParent();
-        SourceInfo loc = newExpr.getConstructor().getSourceInfo();
-        if (loc.getOffset() + loc.getLength() == actualCompletionPosition + 1) {
-          DartNode cons = newExpr.getConstructor();
-          DartIdentifier typeName;
-          if (cons instanceof DartTypeNode) {
-            // f() {var x=new List!}
-            typeName = (DartIdentifier) ((DartTypeNode) cons).getIdentifier();
-          } else if (cons instanceof DartPropertyAccess) {
-            if (isCompletionAfterDot) {
-              // f() {var x=new List.!}
-              return ((DartPropertyAccess) cons).getQualifier().accept(this);
-            } else {
-              // f() {var x=new html.Element!}
-              typeName = ((DartPropertyAccess) cons).getName();
-            }
-          } else {
-            return null; // not reached;
-          }
-          node.getParent().accept(new IdentifierCompletionProposer(typeName));
-        }
-      }
-      return visitLiteral(node);
     }
 
     @Override
