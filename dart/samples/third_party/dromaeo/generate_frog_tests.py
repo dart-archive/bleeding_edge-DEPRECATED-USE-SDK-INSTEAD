@@ -3,6 +3,7 @@
 import glob
 import os
 import os.path
+import platform
 import re
 import subprocess
 import sys
@@ -24,7 +25,10 @@ def Compile(source, target):
          '--out=' + target]
   cmd.append(source)
   print 'Executing: ' + ' '.join(cmd)
-  subprocess.call(cmd)
+  if platform.system() == "Windows":    
+    subprocess.call(cmd, shell=True)
+  else:
+    subprocess.call(cmd)
 
 def HtmlConvert(infile):
   (head, tail) = os.path.split(infile)
