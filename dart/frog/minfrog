@@ -540,20 +540,11 @@ function NullPointerException(functionName, arguments) {
   this.arguments = arguments;
 }
 NullPointerException.prototype.toString = function() {
-  var sb = new StringBufferImpl("");
-  if (this.arguments != null) {
-    var $$list = this.arguments;
-    for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
-      var arg = $$i.next();
-      if (!sb.isEmpty()) sb.add(", ");
-      sb.add(arg);
-    }
-  }
   if (this.functionName == null) {
     return this.get$exceptionName();
   }
   else {
-    return (("" + this.get$exceptionName() + " : method: '" + this.functionName + "'\n") + "Receiver: null\n" + ("Arguments: [" + sb + "]"));
+    return (("" + this.get$exceptionName() + " : method: '" + this.functionName + "'\n") + "Receiver: null\n" + ("Arguments: " + this.arguments));
   }
 }
 NullPointerException.prototype.get$exceptionName = function() {
@@ -682,14 +673,14 @@ function _toDartException(e) {
       case 'property_not_function':
       case 'called_non_callable':
         if (e.arguments[0] == null) {
-          return attachStack(new NullPointerException());
+          return attachStack(new NullPointerException(null, []));
         } else {
           return attachStack(new ObjectNotClosureException());
         }
         break;
       case 'non_object_property_call':
       case 'non_object_property_load':
-        return attachStack(new NullPointerException());
+        return attachStack(new NullPointerException(null, []));
         break;
       case 'undefined_method':
         var mname = e.arguments[0];

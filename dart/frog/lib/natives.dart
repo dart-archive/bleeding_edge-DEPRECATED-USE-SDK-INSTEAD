@@ -32,14 +32,14 @@ if (e instanceof TypeError) {
     case 'property_not_function':
     case 'called_non_callable':
       if (e.arguments[0] == null) {
-        return attachStack(new NullPointerException());
+        return attachStack(new NullPointerException(null, []));
       } else {
         return attachStack(new ObjectNotClosureException());
       }
       break;
     case 'non_object_property_call':
     case 'non_object_property_load':
-      return attachStack(new NullPointerException());
+      return attachStack(new NullPointerException(null, []));
       break;
     case 'undefined_method':
       var mname = e.arguments[0];
@@ -60,7 +60,7 @@ if (e instanceof TypeError) {
 return e;""" {
   // Ensure constructors are generated
   new ObjectNotClosureException();
-  new NullPointerException();
+  new NullPointerException(null, null);
   new NoSuchMethodException(null, null, null);
   new StackOverflowException();
 }
