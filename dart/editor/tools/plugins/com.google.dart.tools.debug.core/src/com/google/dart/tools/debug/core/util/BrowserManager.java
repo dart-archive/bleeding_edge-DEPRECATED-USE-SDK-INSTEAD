@@ -45,7 +45,7 @@ import java.util.Map;
  * A manager that launches and manages configured browsers.
  */
 public class BrowserManager {
-  private static final int PORT_NUMBER = 9222;
+  private static final int DEVTOOLS_PORT_NUMBER = 9322;
 
   private static BrowserManager manager = new BrowserManager();
 
@@ -168,7 +168,19 @@ public class BrowserManager {
       }
     }
 
-    List<String> arguments = buildArgumentsList(browserLocation, url, enableDebugging);
+    int devToolsPortNumber = DEVTOOLS_PORT_NUMBER;
+
+    if (enableDebugging) {
+      devToolsPortNumber = NetUtils.findUnusedPort(DEVTOOLS_PORT_NUMBER);
+
+      if (devToolsPortNumber == -1) {
+        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+            "Unable to locate an available port for the Dartium debugger"));
+      }
+    }
+
+    List<String> arguments = buildArgumentsList(browserLocation, url, enableDebugging,
+        devToolsPortNumber);
     builder.command(arguments);
     builder.directory(new File(DartSdk.getInstance().getDartiumWorkingDirectory()));
 
@@ -204,7 +216,7 @@ public class BrowserManager {
 
     if (enableDebugging) {
       connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, runtimeProcess,
-          resourceResolver, timer, enableBreakpoints);
+          resourceResolver, timer, enableBreakpoints, devToolsPortNumber);
     } else {
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
     }
@@ -219,14 +231,14 @@ public class BrowserManager {
   void connectToChromiumDebug(String browserName, ILaunch launch,
       DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
       Process runtimeProcess, IResourceResolver resourceResolver, LogTimer timer,
-      boolean enableBreakpoints) throws CoreException {
+      boolean enableBreakpoints, int devToolsPortNumber) throws CoreException {
     monitor.worked(1);
 
     try {
       // avg: 383ms
       timer.startTask("get chromium tabs");
 
-      List<ChromiumTabInfo> tabs = getChromiumTabs(runtimeProcess);
+      List<ChromiumTabInfo> tabs = getChromiumTabs(runtimeProcess, devToolsPortNumber);
 
       monitor.worked(2);
 
@@ -270,13 +282,14 @@ public class BrowserManager {
     monitor.worked(1);
   }
 
-  private List<String> buildArgumentsList(IPath browserLocation, String url, boolean enableDebugging) {
+  private List<String> buildArgumentsList(IPath browserLocation, String url,
+      boolean enableDebugging, int devToolsPortNumber) {
     List<String> arguments = new ArrayList<String>();
 
     arguments.add(browserLocation.toOSString());
 
     // Enable remote debug over HTTP on the specified port.
-    arguments.add("--remote-debugging-port=" + PORT_NUMBER);
+    arguments.add("--remote-debugging-port=" + devToolsPortNumber);
 
     // In order to start up multiple Chrome processes, we need to specify a different user dir.
     arguments.add("--user-data-dir=" + getCreateUserDataDirectoryPath());
@@ -338,8 +351,8 @@ public class BrowserManager {
     return null;
   }
 
-  private List<ChromiumTabInfo> getChromiumTabs(Process runtimeProcess) throws IOException,
-      CoreException {
+  private List<ChromiumTabInfo> getChromiumTabs(Process runtimeProcess, int devToolsPortNumber)
+      throws IOException, CoreException {
     // Give Chromium a maximum of 10 seconds to start up.
     final int maxStartupDelay = 10 * 1000;
 
@@ -353,7 +366,7 @@ public class BrowserManager {
       }
 
       try {
-        List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(PORT_NUMBER);
+        List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(devToolsPortNumber);
 
         if (tabs.size() == 0 || findTargetTab(tabs) == null) {
           // Keep waiting - Dartium sometimes needs time to bring up the first tab.
