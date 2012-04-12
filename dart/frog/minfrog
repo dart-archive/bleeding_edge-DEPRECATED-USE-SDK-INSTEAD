@@ -535,10 +535,28 @@ BadNumberFormatException.prototype.toString = function() {
 }
 BadNumberFormatException.prototype.toString$0 = BadNumberFormatException.prototype.toString;
 // ********** Code for NullPointerException **************
-function NullPointerException() {
-
+function NullPointerException(functionName, arguments) {
+  this.functionName = functionName;
+  this.arguments = arguments;
 }
 NullPointerException.prototype.toString = function() {
+  var sb = new StringBufferImpl("");
+  if (this.arguments != null) {
+    var $$list = this.arguments;
+    for (var $$i = $$list.iterator(); $$i.hasNext(); ) {
+      var arg = $$i.next();
+      if (!sb.isEmpty()) sb.add(", ");
+      sb.add(arg);
+    }
+  }
+  if (this.functionName == null) {
+    return this.get$exceptionName();
+  }
+  else {
+    return (("" + this.get$exceptionName() + " : method: '" + this.functionName + "'\n") + "Receiver: null\n" + ("Arguments: [" + sb + "]"));
+  }
+}
+NullPointerException.prototype.get$exceptionName = function() {
   return "NullPointerException";
 }
 NullPointerException.prototype.toString$0 = NullPointerException.prototype.toString;
@@ -5684,6 +5702,7 @@ Library.prototype.get$span = function() {
 }
 Library.prototype.makeFullPath = function(filename) {
   if (filename.startsWith("dart:")) return filename;
+  if (filename.startsWith("package:")) return filename;
   if (filename.startsWith("/")) return filename;
   if (filename.startsWith("file:///")) return filename;
   if (filename.startsWith("http://")) return filename;
@@ -14828,10 +14847,16 @@ function LibraryReader() {
     $globals.world.error(("Invalid configuration " + $globals.options.config));
   }
 }
-LibraryReader.prototype.readFile = function(fullname) {
-  var filename = this._specialLibs.$index(fullname);
-  if ($eq$(filename)) {
-    filename = fullname;
+LibraryReader.prototype.readFile = function(fullName) {
+  var filename;
+  if (fullName.startsWith("package:")) {
+    filename = joinPaths(dirname($globals.options.dartScript), joinPaths("packages", fullName.substring("package:".length)));
+  }
+  else {
+    filename = this._specialLibs.$index(fullName);
+  }
+  if (filename == null) {
+    filename = fullName;
   }
   if ($globals.world.files.fileExists(filename)) {
     return new SourceFile(filename, $globals.world.files.readAll(filename));
