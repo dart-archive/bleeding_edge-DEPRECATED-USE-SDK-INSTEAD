@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.preferences;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.editor.DartDocumentSetupParticipant;
@@ -21,6 +22,7 @@ import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 import com.google.dart.tools.ui.text.DartTextTools;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -280,6 +282,20 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       @Override
       public void widgetSelected(SelectionEvent e) {
         resetFonts();
+      }
+    });
+
+    //
+    // Temporary preference to facilitate testing of AnalysisServer
+    //
+    final String msg = "This setting requires Dart Editor to be restarted for it to take effect.";
+    final Button analysisServerCheck = createCheckBox(composite, "Enable AnalysisServer", msg);
+    analysisServerCheck.setSelection(DartCoreDebug.ANALYSIS_SERVER);
+    analysisServerCheck.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        DartCoreDebug.setAnalysisServerEnabled(analysisServerCheck.getSelection());
+        MessageDialog.openInformation(null, "Enable AnalysisServer", msg);
       }
     });
 

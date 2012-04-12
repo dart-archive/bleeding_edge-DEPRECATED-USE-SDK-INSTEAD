@@ -15,10 +15,16 @@ package com.google.dart.tools.core;
 
 import org.eclipse.core.runtime.Platform;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.Properties;
+
 /**
  * Debug/Tracing options for the {@link DartCore} plugin.
  */
 public class DartCoreDebug {
+  private static final String ANALYSIS_SERVER_KEY = "experimental/analysis/server";
 
   // Debugging / Tracing options
 
@@ -47,12 +53,62 @@ public class DartCoreDebug {
   // Experimental functionality options.
 
   public static final boolean SERVER_DEBUGGING = isOptionTrue("experimental/serverDebugging");
-  public static final boolean ANALYSIS_SERVER = isOptionTrue("experimental/analysis/server");
+  public static final boolean ANALYSIS_SERVER = isRawOptionTrue(ANALYSIS_SERVER_KEY);
   public static final boolean NEW_INDEXER = true; //isOptionTrue("experimental/newIndexer");
   public static final boolean ENABLE_CALL_GRAPH = true; //NEW_INDEXER && isOptionTrue("experimental/callHierarchy");
   public static final boolean ENABLE_UPDATE = isOptionTrue("experimental/update");
 
+  private static Properties rawOptions;
+
+  public static void setAnalysisServerEnabled(boolean enabled) {
+    readRawOptions();
+    rawOptions.put(DartCore.PLUGIN_ID + "/" + ANALYSIS_SERVER_KEY, enabled ? "true" : "false");
+    writeRawOptions();
+  }
+
+  private static File getRawOptionsFile() {
+    return new File(Platform.getInstallLocation().getURL().getFile(), ".options");
+  }
+
   private static boolean isOptionTrue(String optionSuffix) {
     return "true".equalsIgnoreCase(Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix));
+  }
+
+  private static boolean isRawOptionTrue(String optionSuffix) {
+    readRawOptions();
+    return "true".equalsIgnoreCase(rawOptions.getProperty(DartCore.PLUGIN_ID + "/" + optionSuffix));
+  }
+
+  private static void readRawOptions() {
+    if (rawOptions != null) {
+      return;
+    }
+    rawOptions = new Properties();
+    if (!getRawOptionsFile().exists()) {
+      return;
+    }
+    try {
+      FileReader reader = new FileReader(getRawOptionsFile());
+      try {
+        rawOptions.load(reader);
+      } finally {
+        reader.close();
+      }
+    } catch (Exception e) {
+      DartCore.logError("Failed to read " + getRawOptionsFile(), e);
+    }
+  }
+
+  private static void writeRawOptions() {
+    try {
+      FileWriter writer = new FileWriter(getRawOptionsFile());
+      try {
+        rawOptions.store(writer, null);
+      } finally {
+        writer.close();
+      }
+    } catch (Exception e) {
+      DartCore.logError("Failed to write " + getRawOptionsFile(), e);
+    }
   }
 }
