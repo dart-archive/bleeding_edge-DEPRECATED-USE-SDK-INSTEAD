@@ -136,7 +136,7 @@ import java.util.Stack;
  * Within the visitors the analyses are annotated with a shorthand of the AST form required to hit
  * that analysis block. A '!' is used to indicate the completion location. There may be multiple '!'
  * in a single example to indicate several distinct completions points that drive the same analysis.
- * A single space indicates arbitrary whitespace; image each as a newline to get a better idea of
+ * A single space indicates arbitrary whitespace; imagine each as a newline to get a better idea of
  * the code patterns involved.
  */
 public class CompletionEngine {
