@@ -10,7 +10,8 @@
  * arbitrary third-party JavaScript (!).  
  */
 
-#import('unittest_node.dart');
+#import('node_config.dart');
+#import('../../../../lib/unittest/unittest.dart');
 #import('../../../lang.dart');
 #import('../../../file_system_node.dart');
 #import('../../../lib/node/node.dart');
@@ -38,6 +39,7 @@ return findMethodCount(testObject);""";
   
 
 main() {
+  useNodeConfiguration();
 
   // Get the home directory from our executable.
   var homedir = path.dirname(fs.realpathSync(process.argv[1]));

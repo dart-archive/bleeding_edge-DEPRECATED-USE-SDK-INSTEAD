@@ -4,7 +4,6 @@
 
 #library('ConsoleHelper');
 
-#import('unittest_node.dart');
 #import('../../../lib/node/node.dart');
 #import('NodeTestHelper.dart');
 

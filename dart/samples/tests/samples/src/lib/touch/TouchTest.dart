@@ -6,10 +6,12 @@
 
 #import('dart:html'); // TODO(rnystrom): Only needed to tell architecture.py
                       // that this is a web test. Come up with cleaner solution.
-#import('../../../../../../lib/unittest/unittest_html.dart');
+#import('../../../../../../lib/unittest/unittest.dart');
+#import('../../../../../../lib/unittest/html_config.dart');
 #import('../../../../../ui_lib/touch/touch.dart');
 
 main() {
+  useHtmlConfiguration();
   test('Solver', () {
     expect(Solver.solve((x) => x * x, 81, 10)).approxEquals(9);
     expect(Solver.solve((x) => x * x, 0, 10)).approxEquals(0);

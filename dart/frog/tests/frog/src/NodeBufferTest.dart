@@ -4,10 +4,12 @@
 
 #library('NodeBufferTest');
 
-#import('unittest_node.dart');
+#import('node_config.dart');
+#import('../../../../lib/unittest/unittest.dart');
 #import('../../../lib/node/node.dart');
 
 main() {
+  useNodeConfiguration();
   group('Node Buffer', () {
       test('constructor', () {
           Buffer b = new Buffer(100);

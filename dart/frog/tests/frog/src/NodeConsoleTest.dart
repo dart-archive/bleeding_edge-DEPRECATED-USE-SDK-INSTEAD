@@ -4,11 +4,13 @@
 
 #library('NodeConsoleTest');
 
-#import('unittest_node.dart');
+#import('node_config.dart');
+#import('../../../../lib/unittest/unittest.dart');
 #import('../../../lib/node/node.dart');
 #import('NodeTestHelper.dart');
 
 void main() {
+  useNodeConfiguration();
   group('console', () {
     final helperProgram = getFilename('NodeConsoleHelper.dart');
     asyncSimpleTests(helperProgram,

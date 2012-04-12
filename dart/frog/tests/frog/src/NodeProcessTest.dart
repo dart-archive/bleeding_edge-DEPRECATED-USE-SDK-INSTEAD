@@ -4,11 +4,13 @@
 
 #library('NodeProcessTest');
 
-#import('unittest_node.dart');
+#import('node_config.dart');
+#import('../../../../lib/unittest/unittest.dart');
 #import('../../../lib/node/node.dart');
 #import('NodeTestHelper.dart');
 
 void main() {
+  useNodeConfiguration();
   group('process', () {
     final helperProgram = getFilename('NodeProcessHelper.dart');
     asyncTest('nextTick', 1,

@@ -4,7 +4,7 @@
 
 #library('NodeTestHelper');
 
-#import('unittest_node.dart');
+#import('../../../../lib/unittest/unittest.dart');
 #import('../../../lib/node/node.dart');
 
 /**

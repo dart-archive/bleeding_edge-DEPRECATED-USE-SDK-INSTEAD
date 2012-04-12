@@ -9,7 +9,8 @@
 #import('../../../../../ui_lib/layout/layout.dart');
 #import('../../../../../ui_lib/view/view.dart');
 #import('../../../../../ui_lib/util/utilslib.dart');
-#import('../../../../../../lib/unittest/unittest_html.dart');
+#import('../../../../../../lib/unittest/unittest.dart');
+#import('../../../../../../lib/unittest/html_config.dart');
 
 #source('GridLayoutDemo.dart');
 #source('GridExamples.dart');
@@ -31,6 +32,7 @@
  * [http://dev.w3.org/csswg/css3-grid-align/]
  */
 main() {
+  useHtmlConfiguration();
   addGridStyles('400px', '400px');
 
   asyncTest('Spec Example 1', 1, () {

@@ -4,7 +4,8 @@
 
 #library('EvaluatorTest');
 
-#import('unittest_node.dart');
+#import('node_config.dart');
+#import('../../../../lib/unittest/unittest.dart');
 #import('../../../evaluator.dart');
 // TODO(nweiz): don't depend on Node for these tests
 #import('../../../lib/node/node.dart');
@@ -12,6 +13,7 @@
 #import('../../../js_evaluator_node.dart');
 
 main() {
+  useNodeConfiguration();
   // TODO(nweiz): This won't work if we aren't running through frogsh.
   var homedir = path.dirname(fs.realpathSync(process.argv[1]));
   Evaluator.initWorld(homedir, [], new NodeFileSystem());

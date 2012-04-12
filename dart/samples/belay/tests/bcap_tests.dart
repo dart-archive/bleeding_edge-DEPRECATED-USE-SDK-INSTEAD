@@ -5,7 +5,7 @@
 #library('bcap_tests');
 
 #import('dart:html');
-#import('../../../lib/unittest/unittest_html.dart');
+#import('../../../lib/unittest/unittest.dart');
 #import('../../../lib/json/json.dart');
 #import('../bcap/bcap.dart');
 

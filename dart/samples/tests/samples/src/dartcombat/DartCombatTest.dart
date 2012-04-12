@@ -7,12 +7,14 @@
 
 #import('dart:html');
 #import('dart:isolate');
-#import('../../../../../lib/unittest/unittest_html.dart');
+#import('../../../../../lib/unittest/unittest.dart');
+#import('../../../../../lib/unittest/html_config.dart');
 #import('../../../../dartcombat/dartcombatlib.dart');
 
 ReceivePort testPort;
 
 main() {
+  useHtmlConfiguration();
   testPort = new ReceivePort();
 
   setupUI();

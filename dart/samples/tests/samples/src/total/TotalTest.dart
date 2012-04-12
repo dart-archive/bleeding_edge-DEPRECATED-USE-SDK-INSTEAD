@@ -6,10 +6,12 @@
 
 #import('dart:html');
 #import('../../../../../samples/total/client/TotalLib.dart');
-#import('../../../../../lib/unittest/unittest_html.dart');
+#import('../../../../../lib/unittest/unittest.dart');
+#import('../../../../../lib/unittest/html_config.dart');
 #source('../../../../../samples/total/server/SYLKProducer.dart');
 #source('total_test_lib.dart');
 
 void main() {
+  useHtmlConfiguration();
   totalTests();
 }

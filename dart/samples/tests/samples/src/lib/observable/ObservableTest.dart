@@ -6,7 +6,8 @@
 
 #import('dart:html');
 #import('../../../../../ui_lib/observable/observable.dart');
-#import('../../../../../../lib/unittest/unittest_html.dart');
+#import('../../../../../../lib/unittest/unittest.dart');
+#import('../../../../../../lib/unittest/html_config.dart');
 
 #source('AbstractObservableTests.dart');
 #source('ChangeEventTests.dart');
@@ -15,6 +16,7 @@
 #source('ObservableValueTests.dart');
 
 void main() {
+  useHtmlConfiguration();
   group('AbstractObservable', testAbstractObservable);
   group('ChangeEvent', testChangeEvent);
   group('EventBatch', testEventBatch);
