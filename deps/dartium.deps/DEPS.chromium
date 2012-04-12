@@ -5,7 +5,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "113671",
+  "webkit_revision": "113857",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
   "nacl_revision": "8222",
@@ -41,7 +41,7 @@ vars = {
   "nacl_toolchain_revision": "8169",
   "pnacl_toolchain_revision": "8169",
 
-  "libjingle_revision": "128",
+  "libjingle_revision": "132",
   "libphonenumber_revision": "425",
   "libvpx_revision": "125647",
   "lss_revision": "9",
@@ -52,7 +52,7 @@ vars = {
   "ffmpeg_hash": "bca931a3804e215f954de27bbef34cf15c576e92",
 
   "sfntly_revision": "128",
-  "skia_revision": "3627",
+  "skia_revision": "3648",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -86,7 +86,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@405",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@1018",
+    (Var("googlecode_url") % "angleproject") + "/trunk@1030",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -385,7 +385,7 @@ deps_os = {
     # Binary level profile guided optimizations. This points to the
     # latest release binaries for the toolchain.
     "src/third_party/syzygy/binaries":
-      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@674",
+      (Var("googlecode_url") % "sawbuck") + "/trunk/syzygy/binaries@780",
 
     # Binaries for nacl sdk.
     "src/third_party/nacl_sdk_binaries":
