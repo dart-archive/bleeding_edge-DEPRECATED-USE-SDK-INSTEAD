@@ -175,6 +175,31 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
       this.tokenOffset = tokenOffset;
       this.tokenLength = tokenLength;
     }
+
+    @Override
+    public String toString() {
+      StringBuilder builder = new StringBuilder();
+      printOn(builder);
+      return builder.toString();
+    }
+
+    /**
+     * Append a textual representation of this token to the given builder.
+     * 
+     * @param builder the builder to which the textual representation is to be added
+     */
+    private void printOn(StringBuilder builder) {
+      builder.append(token.getData());
+      builder.append(" (");
+      builder.append(tokenOffset);
+      builder.append(" - ");
+      builder.append(tokenOffset + tokenLength - 1);
+      builder.append(")");
+      if (next != null && next != this) {
+        builder.append(", ");
+        next.printOn(builder);
+      }
+    }
   }
 
   private static IToken CODE_TOKEN = new Token(null);
@@ -664,11 +689,11 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
     //
     // Fix the token offset of the first token to match the requested offset.
     //
-    TokenData firstToken = currentToken.next;
-    if (firstToken.tokenOffset < offset) {
-      firstToken.tokenLength = firstToken.tokenLength - (offset - firstToken.tokenOffset);
-      firstToken.tokenOffset = offset;
-    }
+//    TokenData firstToken = currentToken.next;
+//    if (firstToken.tokenOffset < offset) {
+//      firstToken.tokenLength = firstToken.tokenLength - (offset - firstToken.tokenOffset);
+//      firstToken.tokenOffset = offset;
+//    }
     //
     // Trim the tail of the list to cover only the requested length.
     //
@@ -678,7 +703,7 @@ public class FastDartPartitionScanner implements IPartitionTokenScanner, DartPar
       totalLength += nextToken.tokenLength;
     }
     if (totalLength > length) {
-      nextToken.tokenLength = nextToken.tokenLength - (tokenLength - length);
+//      nextToken.tokenLength = nextToken.tokenLength - (tokenLength - length);
       TokenData lastToken = nextToken.next;
       while (lastToken != lastToken.next) {
         lastToken = lastToken.next;
