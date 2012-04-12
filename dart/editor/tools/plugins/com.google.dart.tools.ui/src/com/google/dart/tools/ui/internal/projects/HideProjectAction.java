@@ -17,7 +17,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.ui.actions.CloseResourceAction;
 
@@ -26,23 +25,19 @@ import org.eclipse.ui.actions.CloseResourceAction;
  */
 public class HideProjectAction extends CloseResourceAction {
 
-  private final IShellProvider shellProvider;
-
   /**
    * Create the action.
    */
   public HideProjectAction(IShellProvider shellProvider) {
     super(shellProvider, ProjectMessages.HideProjectAction_text);
-    //cached here since the field in super is package-private
-    this.shellProvider = shellProvider;
     setToolTipText(ProjectMessages.HideProjectAction_tooltip);
   }
 
   @Override
   public void run() {
-    if (confirmHide()) {
-      super.run();
-    }
+
+    super.run();
+
   }
 
   @Override
@@ -61,20 +56,9 @@ public class HideProjectAction extends CloseResourceAction {
   }
 
   @Override
-  protected void invokeOperation(IResource resource, IProgressMonitor monitor) throws CoreException {
+  protected void invokeOperation(IResource resource, IProgressMonitor monitor)
+      throws CoreException {
     ((IProject) resource).delete(false, true, monitor);
   }
 
-  /**
-   * Prompt the user to confirm hiding.
-   * 
-   * @return <code>true</code> if action should be performed, <code>false</code> otherwise
-   */
-  private boolean confirmHide() {
-
-    return MessageDialog.openConfirm(shellProvider.getShell(),
-        ProjectMessages.HideProjectAction_confirm_title,
-        ProjectMessages.HideProjectAction_confirm_msg);
-
-  }
 }
