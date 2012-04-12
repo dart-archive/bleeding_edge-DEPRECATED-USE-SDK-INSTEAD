@@ -9,6 +9,8 @@
 Runs tests for the frog compiler (running on the vm or the self-hosting version)
 """
 
+import platform
+import optparse
 import os
 import re
 import shutil
@@ -37,6 +39,11 @@ def GetBuildInfo():
     - system: 'linux', 'mac', or 'win7'
     - option: 'checked'
   """
+  parser = optparse.OptionParser()
+  parser.add_option('-n', '--name', dest='name', help='The name of the build' +\
+      'bot you woud like to emulate (ex: web-chrome-win7)', default=None)
+  args, _ = parser.parse_args()
+
   compiler = None
   runtime = None
   mode = None
@@ -45,6 +52,14 @@ def GetBuildInfo():
   option = None
   shard_index = None
   total_shards = None
+  if not builder_name:
+    # We are not running on a buildbot.
+    if args.name:
+      builder_name = args.name
+    else:
+      print 'Use -n $BUILDBOT_NAME for the bot you would like to emulate.'
+      sys.exit(1)
+
   if builder_name:
 
     dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
@@ -79,6 +94,12 @@ def GetBuildInfo():
   if system == 'windows':
     system = 'win7'
 
+  if (system == 'win7' and platform.system() != 'Windows') or (system == 'mac'
+      and platform.system() != 'Darwin') or (system == 'linux' and
+      platform.system() != 'Linux'):
+    print 'Error: You cannot emulate a buildbot with a platform different ' + \
+        'from your own.'
+    sys.exit(1)
   return (compiler, runtime, mode, system, option, shard_index, total_shards)
 
 
