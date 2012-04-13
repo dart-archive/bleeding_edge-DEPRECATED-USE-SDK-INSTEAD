@@ -65,12 +65,12 @@ main() {
   regexp = const RegExp(@"print\(a\)");
   Expect.isTrue(regexp.hasMatch(generated));
 
-  // TODO(ngeoffray): Add live range analysis to the codegen
-  // to make this test pass.
   generated = compile(TEST_TWO, 'main');
   regexp = new RegExp("t = \\(?$anyIdentifier +");
-  Expect.isFalse(regexp.hasMatch(generated));
+  Expect.isTrue(regexp.hasMatch(generated));
 
+  // TODO(ngeoffray): Add live range analysis to the codegen
+  // to make this test pass.
   regexp = new RegExp("i = \\(?$anyIdentifier +");
   Expect.isFalse(regexp.hasMatch(generated));
 

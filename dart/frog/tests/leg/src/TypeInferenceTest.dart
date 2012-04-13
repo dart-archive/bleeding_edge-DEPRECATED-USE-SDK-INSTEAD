@@ -54,8 +54,7 @@ main() {
   Expect.isFalse(regexp.hasMatch(generated));
 
   regexp = new RegExp("sum = \\(?$anyIdentifier \\+ $anyIdentifier\\)?");
-  // TODO(ngeoffray): Do live range analysis to make this test pass.
-  Expect.isFalse(regexp.hasMatch(generated));
+  Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp("typeof param0 !== 'number'");
   Expect.isTrue(regexp.hasMatch(generated));
