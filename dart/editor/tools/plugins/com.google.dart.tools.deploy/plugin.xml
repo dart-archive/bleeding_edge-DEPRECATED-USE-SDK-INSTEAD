@@ -216,7 +216,7 @@
 
       <!-- internal web browser contributions -->
       <activityPatternBinding
-            activityId="com.google.dart.development.launch"
+            activityId="com.google.dart.development"
             pattern="org.eclipse.ui.browser/org.eclipse.ui.browser.edito.*">
       </activityPatternBinding>
    </extension>
@@ -233,10 +233,14 @@
 
       <activityPatternBinding
             activityId="com.google.dart.development.launch"
-            pattern="org.eclipse.debug.ui/.*">
+            pattern="org.eclipse.debug.ui/org.eclipse.debug.ui.actions.ToggleStepFilters">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development.launch"
+            pattern="org.eclipse.debug.ui/org.eclipse.debug.ui.actions.RunToLine">
       </activityPatternBinding>
     </extension>
-  
+
     <extension
          point="org.eclipse.core.contenttype.contentTypes">
       <file-association

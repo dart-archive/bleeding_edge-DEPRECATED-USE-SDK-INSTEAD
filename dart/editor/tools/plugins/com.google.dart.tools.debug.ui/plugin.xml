@@ -351,7 +351,55 @@
          </command>
       </menuContribution>
    </extension>
-  
+   
+   <extension point="org.eclipse.ui.bindings">
+      <key
+            sequence="F5"
+            contextId="org.eclipse.debug.ui.debugging"
+            commandId="org.eclipse.debug.ui.commands.StepInto"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="F6"
+            contextId="org.eclipse.debug.ui.debugging"
+            commandId="org.eclipse.debug.ui.commands.StepOver"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+      <key
+            sequence="F7"
+            contextId="org.eclipse.debug.ui.debugging"
+            commandId="org.eclipse.debug.ui.commands.StepReturn"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+            sequence="F8"
+            contextId="org.eclipse.debug.ui.debugging"
+            commandId="org.eclipse.debug.ui.commands.Resume"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+            sequence="M1+F2"
+            contextId="org.eclipse.debug.ui.debugging"
+            commandId="org.eclipse.debug.ui.commands.Terminate"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>            
+      <key
+            sequence="M1+M2+B"
+            
+            commandId="org.eclipse.debug.ui.commands.ToggleBreakpoint"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <!-- key
+            commandId="org.eclipse.debug.ui.commands.eof"
+            contextId="org.eclipse.debug.ui.console"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+D"/>
+      <key
+            contextId="org.eclipse.debug.ui.console"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+D"
+            platform="win32"/>
+      <key
+            commandId="org.eclipse.debug.ui.commands.eof"
+            contextId="org.eclipse.debug.ui.console"
+            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+            sequence="CTRL+Z"
+            platform="win32"/ -->                                
+    </extension>  
 
  <!--extension
          point="org.eclipse.ui.popupMenus">
