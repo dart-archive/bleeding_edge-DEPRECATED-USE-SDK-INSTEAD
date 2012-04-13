@@ -4,4 +4,4 @@
 
 SCRIPTPATH=`dirname $0`
 LIBPATH=`dirname $SCRIPTPATH`/lib
-$SCRIPTPATH/dart --new_gen_heap_size=128 $SCRIPTPATH/frogc.dart --libdir=$LIBPATH $@
+$SCRIPTPATH/dart $SCRIPTPATH/frogc.dart --libdir=$LIBPATH $@

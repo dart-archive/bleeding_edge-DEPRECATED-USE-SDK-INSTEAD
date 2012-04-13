@@ -15,4 +15,4 @@ REM Canonicalize the direction of the slashes.
 set script=%*
 set script=%script:\=/%
 
-"%SCRIPTPATH%\dart.exe" --new_gen_heap_size=128 "%SCRIPTPATH%\frogc.dart" --no_colors --libdir="%LIBPATH%" %script%
+"%SCRIPTPATH%\dart.exe" "%SCRIPTPATH%\frogc.dart" --no_colors --libdir="%LIBPATH%" %script%
