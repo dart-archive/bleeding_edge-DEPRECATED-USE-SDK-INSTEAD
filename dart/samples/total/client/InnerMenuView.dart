@@ -165,7 +165,7 @@ class InnerMenuView {
     _row.on.transitionEnd.add(f);
     _window.webkitRequestAnimationFrame((int time) {
       _onRequestAnimationFrame(time);
-    }, _row);
+    });
 
     _row.on['DOMNodeRemoved'].add(void g(Event event) {
       if (_row == event.target) {
@@ -199,7 +199,7 @@ class InnerMenuView {
     _row.on.transitionEnd.add(f);
     _window.webkitRequestAnimationFrame((int time) {
       _onRequestAnimationFrame(time);
-    }, _row);
+    });
   }
 
   bool isAttachedTo(TableRowElement row) => _row == row;
@@ -342,7 +342,7 @@ class InnerMenuView {
     if (!_transitionDidComplete) {
       _window.webkitRequestAnimationFrame((int time_) {
         _onRequestAnimationFrame(time_);
-      }, _row);
+      });
     }
   }
 

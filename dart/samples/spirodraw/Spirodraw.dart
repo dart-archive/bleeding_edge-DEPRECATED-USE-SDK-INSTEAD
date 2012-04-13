@@ -164,7 +164,7 @@ class Spirodraw {
       drawFrame(rad);
       int nTurns = (rad / PI2).toInt();
       numTurns.text = '${nTurns}/$maxTurns';
-      window.webkitRequestAnimationFrame(animate, frontCanvas);
+      window.webkitRequestAnimationFrame(animate);
     } else {
       stop();
     }
@@ -174,7 +174,7 @@ class Spirodraw {
     refresh();
     rad = 0.0;
     run = true;
-    window.webkitRequestAnimationFrame(animate, frontCanvas); 
+    window.webkitRequestAnimationFrame(animate);
   }
 
   int calcTurns() {
