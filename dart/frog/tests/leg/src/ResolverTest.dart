@@ -68,6 +68,50 @@ main() {
   testInitializers();
   testThis();
   testSuperCalls();
+  testTypeVariables();
+}
+
+testTypeVariables() {
+  testTypeResolving(visitor, text, name, expectedElements) {
+    VariableDefinitions definition = parseStatement(text);
+    visitor.visit(definition.type);
+    InterfaceType type = visitor.mapping.getType(definition.type);
+    Expect.equals(definition.type.typeArguments.length(),
+                  length(type.arguments));
+    int index = 0;
+    Link<Type> arguments = type.arguments;
+    while (!arguments.isEmpty()) {
+      Expect.equals(expectedElements[index], arguments.head.element);
+      index++;
+      arguments = arguments.tail;
+    }
+  }
+
+  MockCompiler compiler = new MockCompiler();
+  ResolverVisitor visitor = compiler.resolverVisitor();
+  compiler.parseScript('class Foo<T, U> {}');
+  visitor.visit(parseStatement('Foo foo;'));
+  ClassElement foo = compiler.mainApp.find(buildSourceString('Foo'));
+  testTypeResolving(visitor, 'Foo<int, String> x;', 'Foo',
+                    [compiler.intClass, compiler.stringClass]);
+  testTypeResolving(visitor, 'Foo<Foo, Foo> x;', 'Foo',
+                    [foo, foo]);
+
+  compiler = new MockCompiler();
+  compiler.parseScript('class Foo<T, U> {}');
+  compiler.resolveStatement('Foo<notype, int> x;');
+  Expect.equals(1, compiler.warnings.length);
+  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE,
+                compiler.warnings[0].message.kind);
+  Expect.equals(0, compiler.errors.length);
+
+  compiler = new MockCompiler();
+  compiler.parseScript('class Foo<T, U> {}');
+  compiler.resolveStatement('var x = new Foo<notype, int>();');
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(1, compiler.errors.length);
+  Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE,
+                compiler.errors[0].message.kind);
 }
 
 testSuperCalls() {
