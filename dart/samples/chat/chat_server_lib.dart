@@ -375,9 +375,9 @@ class IsolatedServer extends Isolate {
       // Get the length of the file for setting the Content-Length header.
       RandomAccessFile openedFile = file.openSync();
       response.contentLength = openedFile.lengthSync();
-      openedFile.close();
+      openedFile.closeSync();
       // Pipe the file content into the response.
-      file.openInputStreamSync().pipe(response.outputStream);
+      file.openInputStream().pipe(response.outputStream);
     } else {
       print("File not found: $fileName");
       _notFoundHandler(request, response);
