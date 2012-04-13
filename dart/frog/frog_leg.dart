@@ -5,11 +5,10 @@
 #library('frog_leg');
 
 #import('dart:io');
+#import('dart:uri');
 
-#import('../../uri/uri.dart');
-#import('source_file.dart');
-#import('../../../frog/lang.dart', prefix: 'frog');
-#import('../compiler.dart', prefix: 'compiler');
+#import('lang.dart', prefix: 'frog');
+#import('../lib/compiler/compiler.dart', prefix: 'compiler');
 
 String relativize(Uri base, Uri uri) {
   if (base.scheme == 'file' &&
@@ -51,7 +50,7 @@ bool compile(frog.World world) {
   if (!frogLibDir.endsWith("/")) frogLibDir = "$frogLibDir/";
   Uri frogLib = new Uri(scheme: 'file', path: frogLibDir);
   Uri libraryRoot = frogLib.resolve('../../');
-  Map<String, SourceFile> sourceFiles = <SourceFile>{};
+  Map<String, frog.SourceFile> sourceFiles = <frog.SourceFile>{};
 
   Future<String> provider(Uri uri) {
     if (uri.scheme != 'file') {
@@ -60,7 +59,7 @@ bool compile(frog.World world) {
     String source = world.files.readAll(uri.path);
     world.dartBytesRead += source.length;
     sourceFiles[uri.toString()] =
-      new SourceFile(relativize(cwd, uri), source);
+      new frog.SourceFile(relativize(cwd, uri), source);
     Completer<String> completer = new Completer<String>();
     completer.complete(source);
     return completer.future;
@@ -75,7 +74,7 @@ bool compile(frog.World world) {
       assert(fatal);
       print(message);
     } else if (fatal || showWarnings) {
-      SourceFile file = sourceFiles[uri.toString()];
+      frog.SourceFile file = sourceFiles[uri.toString()];
       print(file.getLocationMessage(message, begin, end, true));
     }
     if (fatal && throwOnError) throw new AbortLeg(message);

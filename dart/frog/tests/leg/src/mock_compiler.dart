@@ -4,7 +4,7 @@
 
 #library('mock_compiler');
 
-#import("../../../../lib/uri/uri.dart");
+#import("dart:uri");
 
 #import("../../../../lib/compiler/implementation/elements/elements.dart");
 #import("../../../../lib/compiler/implementation/leg.dart");

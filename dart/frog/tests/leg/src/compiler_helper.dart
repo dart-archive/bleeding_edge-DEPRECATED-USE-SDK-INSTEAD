@@ -5,7 +5,7 @@
 
 #library("compiler_helper");
 
-#import('../../../../lib/uri/uri.dart');
+#import("dart:uri");
 #import("../../../../lib/compiler/implementation/leg.dart", prefix: "leg");
 #import("../../../../lib/compiler/implementation/elements/elements.dart", prefix: "lego");
 #import("../../../../lib/compiler/implementation/ssa/ssa.dart", prefix: "ssa");

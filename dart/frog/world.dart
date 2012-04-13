@@ -13,7 +13,7 @@ Function experimentalAwaitPhase;
 
 /**
  * Set when the leg compiler is available.  Should always be set
- * to leg/frog_leg.dart/compile.
+ * to frog_leg/compile.
  */
 typedef bool LegCompile(World world);
 LegCompile legCompile;
