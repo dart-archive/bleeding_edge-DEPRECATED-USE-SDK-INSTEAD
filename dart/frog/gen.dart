@@ -19,7 +19,7 @@ class WorldGenerator {
   CodeWriter writer;
   CodeWriter _mixins;
 
-  CallingContext mainContext;
+  final CallingContext mainContext;
 
   /**
    * Whether the app has any static fields used. Note this could still be true
@@ -40,8 +40,11 @@ class WorldGenerator {
    */
   Map<Type, Map<String, bool>> typeEmittedTests;
 
-  WorldGenerator(this.main, this.writer)
-    : globals = {}, corejs = new CoreJs();
+  WorldGenerator(main, this.writer)
+    : this.main = main,
+      mainContext = new MethodGenerator(main, null),
+      globals = {},
+      corejs = new CoreJs();
 
   analyze() {
     // Walk all code and find all NewExpressions - to determine possible types
@@ -73,7 +76,6 @@ class WorldGenerator {
   }
 
   run() {
-    mainContext = new MethodGenerator(main, null);
     var mainTarget = new TypeValue(main.declaringType, main.span);
     var mainCall = main.invoke(mainContext, null, mainTarget, Arguments.EMPTY);
     main.declaringType.markUsed();

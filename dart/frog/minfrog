@@ -3392,8 +3392,9 @@ ExistingJsGlobal.prototype.get$library = function() {
 // ********** Code for WorldGenerator **************
 function WorldGenerator(main, writer) {
   this.hasStatics = false;
-  this.main = main;
   this.writer = writer;
+  this.main = main;
+  this.mainContext = new MethodGenerator(main, null);
   this.globals = new HashMapImplementation();
   this.corejs = new CoreJs();
 }
@@ -3428,7 +3429,6 @@ WorldGenerator.prototype.analyze = function() {
   }
 }
 WorldGenerator.prototype.run = function() {
-  this.mainContext = new MethodGenerator(this.main, null);
   var mainTarget = new TypeValue(this.main.declaringType, this.main.get$span());
   var mainCall = this.main.invoke(this.mainContext, null, mainTarget, Arguments.get$EMPTY());
   this.main.declaringType.markUsed();
@@ -7369,7 +7369,7 @@ MethodData.prototype.createLambda = function(node, context) {
     lambdaGen._pushBlock$1(this.baseMethod.definition);
   }
   this._calls.add(new MethodCallData(this, this.baseMethod));
-  lambdaGen.run();
+  lambdaGen.run$0();
   if (this.baseMethod.name != "") {
     lambdaGen._popBlock(this.baseMethod.definition);
   }
