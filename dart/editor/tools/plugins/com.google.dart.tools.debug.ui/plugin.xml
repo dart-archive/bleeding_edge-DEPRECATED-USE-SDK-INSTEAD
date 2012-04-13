@@ -277,7 +277,7 @@
          <action
                class="com.google.dart.tools.debug.ui.launch.DartRunAction"
                enablesFor="1"
-               id="com.google.dart.tools.debug.ui.run"
+               id="com.google.dart.tools.debug.ui.run.selection"
                label="Run in Browser"
                menubarPath="additions">
          </action>
@@ -305,9 +305,16 @@
       point="org.eclipse.ui.commands">
       <command
             categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.launch.DartRunLastHandler"
+            description="%runCommandName"
+            id="com.google.dart.tools.debug.ui.run.last"
+            name="%runCommandName">
+      </command>
+       <command
+            categoryId="org.eclipse.ui.category.window"
             defaultHandler="com.google.dart.tools.debug.ui.launch.DartRunHandler"
             description="%runCommandName"
-            id="com.google.dart.tools.debug.ui.run"
+            id="com.google.dart.tools.debug.ui.run.selection"
             name="%runCommandName">
       </command>
       <command
@@ -324,7 +331,7 @@
             allPopups="true"
             locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
          <command
-               commandId="com.google.dart.tools.debug.ui.run"
+               commandId="com.google.dart.tools.debug.ui.run.selection"
                style="push">
             <visibleWhen
                   checkEnabled="false">
