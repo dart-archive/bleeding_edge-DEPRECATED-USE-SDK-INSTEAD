@@ -40,8 +40,8 @@ def GetBuildInfo():
     - option: 'checked'
   """
   parser = optparse.OptionParser()
-  parser.add_option('-n', '--name', dest='name', help='The name of the build' +\
-      'bot you woud like to emulate (ex: web-chrome-win7)', default=None)
+  parser.add_option('-n', '--name', dest='name', help='The name of the build'
+      'bot you would like to emulate (ex: web-chrome-win7)', default=None)
   args, _ = parser.parse_args()
 
   compiler = None
@@ -90,15 +90,22 @@ def GetBuildInfo():
       # TODO(jmesserly): do we want to do anything different for the second IE
       # bot? For now we're using it to track down flakiness.
       number = web_pattern.group(4)
+      
+      # TODO(efortuna): This is a temporary repurposing of one of the IE bots so
+      # that the VM team can debug the VM crash on Windows (and not have to
+      # modify the buildbot master code). Get rid of this code once it is fixed.
+      if number == 2:
+        mode = 'debug'
+        runtime = 'chrome' # Use chrome for runtime because it's the fastest.
 
   if system == 'windows':
     system = 'win7'
 
-  if (system == 'win7' and platform.system() != 'Windows') or (system == 'mac'
-      and platform.system() != 'Darwin') or (system == 'linux' and
-      platform.system() != 'Linux'):
-    print 'Error: You cannot emulate a buildbot with a platform different ' + \
-        'from your own.'
+  if (system == 'win7' and platform.system() != 'Windows') or (
+      system == 'mac' and platform.system() != 'Darwin') or (
+      system == 'linux' and platform.system() != 'Linux'):
+    print ('Error: You cannot emulate a buildbot with a platform different '
+        'from your own.')
     sys.exit(1)
   return (compiler, runtime, mode, system, option, shard_index, total_shards)
 
