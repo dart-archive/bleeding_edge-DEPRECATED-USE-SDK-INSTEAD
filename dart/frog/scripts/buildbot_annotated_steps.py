@@ -94,7 +94,7 @@ def GetBuildInfo():
       # TODO(efortuna): This is a temporary repurposing of one of the IE bots so
       # that the VM team can debug the VM crash on Windows (and not have to
       # modify the buildbot master code). Get rid of this code once it is fixed.
-      if number == 2:
+      if number == '2':
         mode = 'debug'
         runtime = 'chrome' # Use chrome for runtime because it's the fastest.
 
