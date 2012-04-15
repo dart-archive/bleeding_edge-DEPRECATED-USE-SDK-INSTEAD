@@ -35,7 +35,7 @@ public final class ElementFactory {
   /**
    * The element id used for library elements.
    */
-  private static final String LIBRARY_ELEMENT_ID = "#library";
+  public static final String LIBRARY_ELEMENT_ID = "#library";
 
   /**
    * Compose the element id of the given parent element and the name of a child element into an

@@ -29,6 +29,7 @@ import com.google.dart.tools.core.internal.search.listener.FilteredSearchListene
 import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
 import com.google.dart.tools.core.internal.search.listener.NameMatchingSearchListener;
 import com.google.dart.tools.core.internal.search.listener.WrappedSearchListener;
+import com.google.dart.tools.core.internal.search.scope.LibrarySearchScope;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -372,6 +373,60 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchFieldDeclarations(final SearchScope scope,
+      final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
+      throws SearchException {
+    return gatherResults(1, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchFieldDeclarations(scope, pattern, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
+  public void searchFieldDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    Element scopeElement = createElement(scope);
+    index.getRelationships(
+        scopeElement,
+        IndexConstants.DEFINES_FIELD,
+        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
+            applyPattern(pattern, listener))));
+  }
+
+  @Override
+  public List<SearchMatch> searchFunctionDeclarations(final SearchScope scope,
+      final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
+      throws SearchException {
+    return gatherResults(1, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchFunctionDeclarations(scope, pattern, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
+  public void searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    Element scopeElement = createElement(scope);
+    index.getRelationships(
+        scopeElement,
+        IndexConstants.DEFINES_FUNCTION,
+        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
+            applyPattern(pattern, listener))));
+  }
+
+  @Override
   public List<SearchMatch> searchImplementors(final Type type, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
     return gatherResults(1, new SearchRunner() {
@@ -392,6 +447,33 @@ public class NewSearchEngineImpl implements SearchEngine {
         createElement(type),
         IndexConstants.IS_IMPLEMENTED_BY,
         new RelationshipCallbackImpl(MatchKind.INTERFACE_IMPLEMENTED, applyFilter(filter, listener)));
+  }
+
+  @Override
+  public List<SearchMatch> searchMethodDeclarations(final SearchScope scope,
+      final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
+      throws SearchException {
+    return gatherResults(1, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchMethodDeclarations(scope, pattern, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
+  public void searchMethodDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    Element scopeElement = createElement(scope);
+    index.getRelationships(
+        scopeElement,
+        IndexConstants.DEFINES_METHOD,
+        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
+            applyPattern(pattern, listener))));
   }
 
   @Override
@@ -586,6 +668,33 @@ public class NewSearchEngineImpl implements SearchEngine {
     searchTypeDeclarations(scope, pattern, null, listener, monitor);
   }
 
+  @Override
+  public List<SearchMatch> searchVariableDeclarations(final SearchScope scope,
+      final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
+      throws SearchException {
+    return gatherResults(1, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchVariableDeclarations(scope, pattern, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
+  public void searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    Element scopeElement = createElement(scope);
+    index.getRelationships(
+        scopeElement,
+        IndexConstants.DEFINES_FUNCTION,
+        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
+            applyPattern(pattern, listener))));
+  }
+
   /**
    * Apply the given filter to the given listener.
    * 
@@ -648,6 +757,15 @@ public class NewSearchEngineImpl implements SearchEngine {
         ElementFactory.composeElementId(alias.getElementName()));
   }
 
+  private Element createElement(DartLibrary library) throws SearchException {
+    try {
+      Resource libraryResource = getResource(library.getDefiningCompilationUnit());
+      return new Element(libraryResource, ElementFactory.LIBRARY_ELEMENT_ID);
+    } catch (DartModelException exception) {
+      throw new SearchException(exception);
+    }
+  }
+
   private Element createElement(Field field) throws SearchException {
     Type type = field.getDeclaringType();
     if (type == null) {
@@ -666,8 +784,11 @@ public class NewSearchEngineImpl implements SearchEngine {
         + ResourceFactory.SEPARATOR_CHAR + method.getElementName());
   }
 
-  private Element createElement(SearchScope scope) {
+  private Element createElement(SearchScope scope) throws SearchException {
     // TODO(brianwilkerson) Figure out how to handle scope information
+    if (scope instanceof LibrarySearchScope) {
+      return createElement(((LibrarySearchScope) scope).getLibrary());
+    }
     return IndexConstants.UNIVERSE;
   }
 

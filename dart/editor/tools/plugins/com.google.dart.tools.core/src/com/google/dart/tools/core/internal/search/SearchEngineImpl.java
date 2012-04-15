@@ -172,6 +172,36 @@ public final class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchFieldDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
+  public void searchFieldDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
+  public List<SearchMatch> searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
+  public void searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
   public List<SearchMatch> searchImplementors(Type type, SearchScope scope, SearchFilter filter,
       IProgressMonitor monitor) throws SearchException {
     DartCore.notYetImplemented();
@@ -183,6 +213,21 @@ public final class SearchEngineImpl implements SearchEngine {
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     DartCore.notYetImplemented();
   }
+
+  @Override
+  public List<SearchMatch> searchMethodDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
+  public void searchMethodDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  };
 
   @Override
   public List<SearchMatch> searchReferences(DartFunction function, SearchScope scope,
@@ -212,14 +257,14 @@ public final class SearchEngineImpl implements SearchEngine {
       }
     };
     performSearch(helper, scope, null, applyFilter(filter, listener), monitor);
-  }
+  };
 
   @Override
   public List<SearchMatch> searchReferences(DartFunctionTypeAlias alias, SearchScope scope,
       SearchFilter filter, IProgressMonitor monitor) throws SearchException {
     DartCore.notYetImplemented();
     throw new NotYetImplementedException();
-  }
+  };
 
   @Override
   public void searchReferences(final DartFunctionTypeAlias alias, SearchScope scope,
@@ -250,7 +295,7 @@ public final class SearchEngineImpl implements SearchEngine {
       IProgressMonitor monitor) throws SearchException {
     DartCore.notYetImplemented();
     throw new NotYetImplementedException();
-  }
+  };
 
   @Override
   public void searchReferences(final Field field, SearchScope scope, SearchFilter filter,
@@ -306,14 +351,14 @@ public final class SearchEngineImpl implements SearchEngine {
       }
     };
     performSearch(helper, scope, null, applyFilter(filter, listener), monitor);
-  };
+  }
 
   @Override
   public List<SearchMatch> searchReferences(Type type, SearchScope scope, SearchFilter filter,
       IProgressMonitor monitor) throws SearchException {
     DartCore.notYetImplemented();
     throw new NotYetImplementedException();
-  }
+  };
 
   @Override
   public void searchReferences(final Type type, SearchScope scope, SearchFilter filter,
@@ -343,7 +388,7 @@ public final class SearchEngineImpl implements SearchEngine {
       IProgressMonitor monitor) throws SearchException {
     DartCore.notYetImplemented();
     throw new NotYetImplementedException();
-  };
+  }
 
   @Override
   public void searchSubtypes(Type type, SearchScope scope, SearchFilter filter,
@@ -357,7 +402,7 @@ public final class SearchEngineImpl implements SearchEngine {
       IProgressMonitor monitor) throws SearchException {
     DartCore.notYetImplemented();
     throw new NotYetImplementedException();
-  };
+  }
 
   @Override
   public void searchSupertypes(Type type, SearchScope scope, SearchFilter filter,
@@ -372,7 +417,7 @@ public final class SearchEngineImpl implements SearchEngine {
     GatheringSearchListener listener = new GatheringSearchListener();
     searchTypeDeclarations(scope, pattern, filter, listener, monitor);
     return listener.getMatches();
-  };
+  }
 
   @Override
   public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern, SearchFilter filter,
@@ -396,12 +441,27 @@ public final class SearchEngineImpl implements SearchEngine {
       }
     };
     performSearch(helper, scope, pattern, applyFilter(filter, listener), monitor);
-  };
+  }
 
   @Override
   public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     searchTypeDeclarations(scope, pattern, null, listener, monitor);
+  }
+
+  @Override
+  public List<SearchMatch> searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
+  public void searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
   }
 
   /**

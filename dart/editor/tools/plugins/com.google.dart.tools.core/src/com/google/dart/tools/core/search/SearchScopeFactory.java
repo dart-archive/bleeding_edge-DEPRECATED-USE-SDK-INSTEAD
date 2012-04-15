@@ -14,8 +14,10 @@
 package com.google.dart.tools.core.search;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.search.scope.LibrarySearchScope;
 import com.google.dart.tools.core.internal.search.scope.ProjectSearchScope;
 import com.google.dart.tools.core.internal.search.scope.WorkspaceSearchScope;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.TypeHierarchy;
 
@@ -40,6 +42,16 @@ public final class SearchScopeFactory {
   public static SearchScope createHierarchyScope(TypeHierarchy typeHierarchy) {
     DartCore.notYetImplemented();
     return null;
+  }
+
+  /**
+   * Create a search scope that encompasses everything in the given library.
+   * 
+   * @param library the library defining which elements are included in the scope
+   * @return the search scope that was created
+   */
+  public static SearchScope createLibraryScope(DartLibrary library) {
+    return new LibrarySearchScope(library);
   }
 
   /**

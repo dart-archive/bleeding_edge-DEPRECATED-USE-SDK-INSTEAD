@@ -65,6 +65,78 @@ public interface SearchEngine {
       throws SearchException;
 
   /**
+   * Synchronously search for all fields matching the given pattern within the given scope. Return
+   * all matches that pass the optional filter.
+   * 
+   * @param scope the scope containing the field declarations to be searched
+   * @param pattern the pattern used to determine which field declarations are to be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchFieldDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Search for all fields matching the given pattern within the given scope.
+   * 
+   * @param scope the scope containing the field declarations to be searched
+   * @param pattern the pattern used to determine which field declarations are to be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
+   *          , indicating that no progress should be reported and that the operation cannot be
+   *          canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchFieldDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException;
+
+  /**
+   * Synchronously search for all functions matching the given pattern within the given scope.
+   * Return all matches that pass the optional filter.
+   * 
+   * @param scope the scope containing the function declarations to be searched
+   * @param pattern the pattern used to determine which function declarations are to be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Search for all functions matching the given pattern within the given scope.
+   * 
+   * @param scope the scope containing the function declarations to be searched
+   * @param pattern the pattern used to determine which function declarations are to be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
+   *          , indicating that no progress should be reported and that the operation cannot be
+   *          canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException;
+
+  /**
    * Synchronously search for implementors of the given type within the given scope. Return all
    * matches that pass the optional filter.
    * 
@@ -98,6 +170,42 @@ public interface SearchEngine {
    */
   public void searchImplementors(Type type, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Synchronously search for all methods matching the given pattern within the given scope. Return
+   * all matches that pass the optional filter.
+   * 
+   * @param scope the scope containing the method declarations to be searched
+   * @param pattern the pattern used to determine which method declarations are to be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchMethodDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Search for all methods matching the given pattern within the given scope.
+   * 
+   * @param scope the scope containing the method declarations to be searched
+   * @param pattern the pattern used to determine which method declarations are to be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
+   *          , indicating that no progress should be reported and that the operation cannot be
+   *          canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchMethodDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException;
 
   /**
    * Synchronously search for references to the given function within the given scope. Return all
@@ -399,4 +507,40 @@ public interface SearchEngine {
   @Deprecated
   public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern,
       SearchListener listener, IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Synchronously search for all variables matching the given pattern within the given scope.
+   * Return all matches that pass the optional filter.
+   * 
+   * @param scope the scope containing the variable declarations to be searched
+   * @param pattern the pattern used to determine which variable declarations are to be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Search for all variables matching the given pattern within the given scope.
+   * 
+   * @param scope the scope containing the variable declarations to be searched
+   * @param pattern the pattern used to determine which variable declarations are to be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts <code>null</code>
+   *          , indicating that no progress should be reported and that the operation cannot be
+   *          canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException;
 }

@@ -35,6 +35,18 @@ public interface IndexConstants {
 
   /**
    * The relationship used to indicate that a container (the left-operand) contains the definition
+   * of a field at a specific location (the right operand).
+   */
+  public static final Relationship DEFINES_FIELD = Relationship.getRelationship("defines-field");
+
+  /**
+   * The relationship used to indicate that a container (the left-operand) contains the definition
+   * of a function at a specific location (the right operand).
+   */
+  public static final Relationship DEFINES_FUNCTION = Relationship.getRelationship("defines-function");
+
+  /**
+   * The relationship used to indicate that a container (the left-operand) contains the definition
    * of a function type at a specific location (the right operand).
    */
   public static final Relationship DEFINES_FUNCTION_TYPE = Relationship.getRelationship("defines-function-type");
@@ -44,6 +56,18 @@ public interface IndexConstants {
    * of an interface at a specific location (the right operand).
    */
   public static final Relationship DEFINES_INTERFACE = Relationship.getRelationship("defines-interface");
+
+  /**
+   * The relationship used to indicate that a container (the left-operand) contains the definition
+   * of a method at a specific location (the right operand).
+   */
+  public static final Relationship DEFINES_METHOD = Relationship.getRelationship("defines-method");
+
+  /**
+   * The relationship used to indicate that a container (the left-operand) contains the definition
+   * of a method at a specific location (the right operand).
+   */
+  public static final Relationship DEFINES_VARIABLE = Relationship.getRelationship("defines-variable");
 
   /**
    * The relationship used to indicate that a type (the left-operand) extends (subtypes) a type at a

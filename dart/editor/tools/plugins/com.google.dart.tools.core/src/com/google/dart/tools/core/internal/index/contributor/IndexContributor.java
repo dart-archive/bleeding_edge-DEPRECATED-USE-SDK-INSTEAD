@@ -30,6 +30,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
@@ -39,6 +40,7 @@ import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
@@ -64,6 +66,8 @@ import com.google.dart.tools.core.utilities.collections.IntStack;
 import com.google.dart.tools.core.utilities.io.PrintStringWriter;
 
 import java.util.ArrayList;
+
+import javax.lang.model.element.TypeElement;
 
 /**
  * Instances of the class <code>IndexContributor</code> visit an AST structure to compute the data
@@ -319,12 +323,13 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitIdentifier(DartIdentifier node) {
+    DartNode parent = node.getParent();
+    if (parent instanceof DartParameter || parent instanceof DartField
+        || parent instanceof DartVariable) {
+      return null;
+    }
     com.google.dart.compiler.resolver.Element element = node.getElement();
     if (element == null) {
-      element = node.getElement();
-    }
-    if (element == null) {
-      DartNode parent = node.getParent();
       if (parent instanceof DartTypeNode) {
         DartNode grandparent = parent.getParent();
         if (grandparent instanceof DartNewExpression) {
@@ -749,6 +754,22 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   /**
+   * Return a location representing the location of the name of the given function.
+   * 
+   * @param node the node representing the declaration of the function
+   * @return a location representing the location of the name of the given function
+   */
+  private Location getLocation(DartFunction node) {
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element instanceof MethodElement) {
+      MethodElement method = (MethodElement) element;
+      SourceInfo location = method.getNameLocation();
+      return getLocation(peekElement(), location.getOffset(), location.getLength());
+    }
+    return null;
+  }
+
+  /**
    * Return a location representing the location of the name of the given function type.
    * 
    * @param node the node representing the declaration of the function type
@@ -1012,6 +1033,11 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @param element the element describing the field
    */
   private void processField(DartIdentifier node, FieldElement element) {
+    if (element.getEnclosingElement() instanceof TypeElement) {
+      recordRelationship(libraryElement, IndexConstants.DEFINES_FIELD, getLocation(node));
+    } else {
+      recordRelationship(libraryElement, IndexConstants.DEFINES_VARIABLE, getLocation(node));
+    }
   }
 
   /**
@@ -1020,6 +1046,7 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @param node the node representing the definition of the function
    */
   private void processFunction(DartFunction node) {
+    recordRelationship(libraryElement, IndexConstants.DEFINES_FUNCTION, getLocation(node));
   }
 
   /**
@@ -1042,6 +1069,7 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @param node the node representing the definition of the method
    */
   private void processMethodDefinition(DartMethodDefinition node) {
+    recordRelationship(libraryElement, IndexConstants.DEFINES_METHOD, getLocation(node));
     com.google.dart.compiler.resolver.Element element = node.getElement();
     if (element instanceof MethodElement) {
       MethodElement methodElement = (MethodElement) element;
