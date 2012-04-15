@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine;
+package com.google.dart.engine.scanner;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -19,7 +19,9 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(com.google.dart.engine.scanner.TestAll.suite());
+    suite.addTestSuite(CharBufferScannerTest.class);
+    suite.addTestSuite(KeywordStateTest.class);
+    suite.addTestSuite(StringScannerTest.class);
     return suite;
   }
 }

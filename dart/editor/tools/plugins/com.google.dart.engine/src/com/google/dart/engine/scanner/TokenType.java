@@ -35,6 +35,8 @@ public enum TokenType {
   INT,
   HEXADECIMAL,
   STRING,
+  SINGLE_LINE_COMMENT,
+  MULTI_LINE_COMMENT,
 
   AMPERSAND(null, "&"),
   BACKPING(null, "`"),
