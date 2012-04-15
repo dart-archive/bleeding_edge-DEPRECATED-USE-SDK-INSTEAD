@@ -14,10 +14,12 @@
 package com.google.dart.tools.core;
 
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.osgi.service.datalocation.Location;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.net.URL;
 import java.util.Properties;
 
 /**
@@ -67,7 +69,15 @@ public class DartCoreDebug {
   }
 
   private static File getRawOptionsFile() {
-    return new File(Platform.getInstallLocation().getURL().getFile(), ".options");
+    Location installLocation = Platform.getInstallLocation();
+    if (installLocation == null) {
+      return null;
+    }
+    URL installUrl = installLocation.getURL();
+    if (installUrl == null) {
+      return null;
+    }
+    return new File(installUrl.getFile(), ".options");
   }
 
   private static boolean isOptionTrue(String optionSuffix) {
@@ -84,31 +94,37 @@ public class DartCoreDebug {
       return;
     }
     rawOptions = new Properties();
-    if (!getRawOptionsFile().exists()) {
+    File rawOptionsFile = getRawOptionsFile();
+    if (rawOptionsFile == null || !rawOptionsFile.exists()) {
       return;
     }
     try {
-      FileReader reader = new FileReader(getRawOptionsFile());
+      FileReader reader = new FileReader(rawOptionsFile);
       try {
         rawOptions.load(reader);
       } finally {
         reader.close();
       }
     } catch (Exception e) {
-      DartCore.logError("Failed to read " + getRawOptionsFile(), e);
+      DartCore.logError("Failed to read " + rawOptionsFile, e);
     }
   }
 
   private static void writeRawOptions() {
+    File rawOptionsFile = getRawOptionsFile();
+    if (rawOptionsFile == null) {
+      DartCore.logError("Failed to write raw options file: could not compute its location");
+      return;
+    }
     try {
-      FileWriter writer = new FileWriter(getRawOptionsFile());
+      FileWriter writer = new FileWriter(rawOptionsFile);
       try {
         rawOptions.store(writer, null);
       } finally {
         writer.close();
       }
     } catch (Exception e) {
-      DartCore.logError("Failed to write " + getRawOptionsFile(), e);
+      DartCore.logError("Failed to write " + rawOptionsFile, e);
     }
   }
 }
