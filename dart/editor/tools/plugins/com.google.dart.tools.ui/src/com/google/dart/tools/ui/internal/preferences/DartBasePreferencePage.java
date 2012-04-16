@@ -294,8 +294,15 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     analysisServerCheck.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
-        DartCoreDebug.setAnalysisServerEnabled(analysisServerCheck.getSelection());
-        MessageDialog.openInformation(null, "Enable AnalysisServer", msg);
+        if (DartCoreDebug.setAnalysisServerEnabled(analysisServerCheck.getSelection())) {
+          MessageDialog.openInformation(null, "Enable AnalysisServer", msg);
+        } else {
+          MessageDialog.openError(
+              null,
+              "Enable AnalysisServer",
+              "Failed to write .options file (see log file for more):\n"
+                  + DartCoreDebug.getRawOptionsFile());
+        }
       }
     });
 

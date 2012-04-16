@@ -62,13 +62,7 @@ public class DartCoreDebug {
 
   private static Properties rawOptions;
 
-  public static void setAnalysisServerEnabled(boolean enabled) {
-    readRawOptions();
-    rawOptions.put(DartCore.PLUGIN_ID + "/" + ANALYSIS_SERVER_KEY, enabled ? "true" : "false");
-    writeRawOptions();
-  }
-
-  private static File getRawOptionsFile() {
+  public static File getRawOptionsFile() {
     Location installLocation = Platform.getInstallLocation();
     if (installLocation == null) {
       return null;
@@ -78,6 +72,17 @@ public class DartCoreDebug {
       return null;
     }
     return new File(installUrl.getFile(), ".options");
+  }
+
+  /**
+   * Set the {@link #ANALYSIS_SERVER} option and write the .options file
+   * 
+   * @return <code>true</code> if the option was set and the .options file was successfully written
+   */
+  public static boolean setAnalysisServerEnabled(boolean enabled) {
+    readRawOptions();
+    rawOptions.put(DartCore.PLUGIN_ID + "/" + ANALYSIS_SERVER_KEY, enabled ? "true" : "false");
+    return writeRawOptions();
   }
 
   private static boolean isOptionTrue(String optionSuffix) {
@@ -110,11 +115,16 @@ public class DartCoreDebug {
     }
   }
 
-  private static void writeRawOptions() {
+  /**
+   * Write the .options file
+   * 
+   * @return <code>true</code> if the .options file was successfully written
+   */
+  private static boolean writeRawOptions() {
     File rawOptionsFile = getRawOptionsFile();
     if (rawOptionsFile == null) {
       DartCore.logError("Failed to write raw options file: could not compute its location");
-      return;
+      return false;
     }
     try {
       FileWriter writer = new FileWriter(rawOptionsFile);
@@ -125,6 +135,8 @@ public class DartCoreDebug {
       }
     } catch (Exception e) {
       DartCore.logError("Failed to write " + rawOptionsFile, e);
+      return false;
     }
+    return true;
   }
 }
