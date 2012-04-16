@@ -37,6 +37,7 @@ import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.ParentElement;
@@ -523,6 +524,31 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchReferences(final DartVariableDeclaration variable,
+      final SearchScope scope, final SearchFilter filter, final IProgressMonitor monitor)
+      throws SearchException {
+    return gatherResults(2, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchReferences(variable, scope, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
+  public void searchReferences(DartVariableDeclaration variable, SearchScope scope,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    index.getRelationships(createElement(variable), IndexConstants.IS_ACCESSED_BY,
+        new RelationshipCallbackImpl(MatchKind.FIELD_READ, applyFilter(filter, listener)));
+    index.getRelationships(createElement(variable), IndexConstants.IS_MODIFIED_BY,
+        new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, applyFilter(filter, listener)));
+  }
+
+  @Override
   public List<SearchMatch> searchReferences(final Field field, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
     return gatherResults(2, new SearchRunner() {
@@ -734,6 +760,8 @@ public class NewSearchEngineImpl implements SearchEngine {
       return createElement((DartFunction) element);
     } else if (element instanceof DartFunctionTypeAlias) {
       return createElement((DartFunctionTypeAlias) element);
+    } else if (element instanceof DartVariableDeclaration) {
+      return createElement((DartVariableDeclaration) element);
     } else if (element instanceof Field) {
       return createElement((Field) element);
     } else if (element instanceof Method) {
@@ -764,6 +792,11 @@ public class NewSearchEngineImpl implements SearchEngine {
     } catch (DartModelException exception) {
       throw new SearchException(exception);
     }
+  }
+
+  private Element createElement(DartVariableDeclaration variable) throws SearchException {
+    return new Element(getResource(variable.getCompilationUnit()),
+        ElementFactory.composeElementId(variable.getElementName()));
   }
 
   private Element createElement(Field field) throws SearchException {

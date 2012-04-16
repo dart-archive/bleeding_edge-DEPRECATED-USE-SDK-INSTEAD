@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.index.util;
 
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
+import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
@@ -144,8 +145,12 @@ public final class ElementFactory {
       DartCore.logInformation("Could not getElement for field " + pathTo(element));
       return null;
     }
+    EnclosingElement parentElement = element.getEnclosingElement();
+    if (parentElement instanceof LibraryElement) {
+      return new Element(ResourceFactory.getResource(field), composeElementId(element.getName()));
+    }
     return new Element(ResourceFactory.getResource(field), composeElementId(
-        getElement(element.getEnclosingElement()), element.getName()));
+        getElement(parentElement), element.getName()));
   }
 
   /**
@@ -198,8 +203,12 @@ public final class ElementFactory {
     if (element instanceof ConstructorElement) {
       methodName = element.getEnclosingElement().getName();
     }
+    EnclosingElement parentElement = element.getEnclosingElement();
+    if (parentElement instanceof LibraryElement) {
+      return new Element(ResourceFactory.getResource(method), composeElementId(methodName));
+    }
     return new Element(ResourceFactory.getResource(method), composeElementId(
-        getElement(element.getEnclosingElement()), methodName));
+        getElement(parentElement), methodName));
   }
 
   /**
