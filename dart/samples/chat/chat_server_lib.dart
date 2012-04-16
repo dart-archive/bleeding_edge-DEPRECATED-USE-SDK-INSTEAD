@@ -330,7 +330,7 @@ class IsolatedServer extends Isolate {
 </body></html>""";
 
   void _sendJSONResponse(HttpResponse response, Map responseData) {
-    response.setHeader("Content-Type", "application/json; charset=UTF-8");
+    response.headers.set("Content-Type", "application/json; charset=UTF-8");
     response.outputStream.writeString(JSON.stringify(responseData));
     response.outputStream.close();
   }
@@ -346,7 +346,7 @@ class IsolatedServer extends Isolate {
       _redirectPage = redirectPageHtml.charCodes();
     }
     response.statusCode = HttpStatus.FOUND;
-    response.setHeader(
+    response.headers.set(
         "Location", "http://$_host:$_port/${redirectPath}");
     response.contentLength = _redirectPage.length;
     response.outputStream.write(_redirectPage);
@@ -371,7 +371,7 @@ class IsolatedServer extends Isolate {
         if (extension == ".ico") { mimeType = "image/vnd.microsoft.icon"; }
         if (extension == ".png") { mimeType = "image/png"; }
       }
-      response.setHeader("Content-Type", mimeType);
+      response.headers.set("Content-Type", mimeType);
       // Get the length of the file for setting the Content-Length header.
       RandomAccessFile openedFile = file.openSync();
       response.contentLength = openedFile.lengthSync();
@@ -390,7 +390,7 @@ class IsolatedServer extends Isolate {
       _notFoundPage = notFoundPageHtml.charCodes();
     }
     response.statusCode = HttpStatus.NOT_FOUND;
-    response.setHeader("Content-Type", "text/html; charset=UTF-8");
+    response.headers.set("Content-Type", "text/html; charset=UTF-8");
     response.contentLength = _notFoundPage.length;
     response.outputStream.write(_notFoundPage);
     response.outputStream.close();
