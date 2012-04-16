@@ -653,7 +653,8 @@ public class PreferenceConstants {
    * Value is of type <code>Boolean</code>.
    * </p>
    */
-  public static final String EDITOR_REMOVE_TRAILING_WS = "removeTrailingWhitespace";
+  public static final String EDITOR_REMOVE_TRAILING_WS = DartCore.PLUGIN_ID
+      + ".removeTrailingWhitespace";
 
   /**
    * A named preference that controls whether the outline view selection should stay in sync with
