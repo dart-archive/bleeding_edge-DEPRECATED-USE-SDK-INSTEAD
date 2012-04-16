@@ -25,7 +25,7 @@ import org.eclipse.ui.ide.IDE;
 public class OpenIntroEditorAction extends AbstractInstrumentedAction {
 
   public OpenIntroEditorAction() {
-    super("&Welcome");
+    super("&Welcome Page");
 
     setImageDescriptor(DartToolsPlugin.findImageDescriptor("icons/dart_16_16.gif"));
   }

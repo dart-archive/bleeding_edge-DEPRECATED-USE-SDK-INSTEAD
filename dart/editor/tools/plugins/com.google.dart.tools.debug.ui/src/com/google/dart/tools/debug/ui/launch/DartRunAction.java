@@ -49,7 +49,7 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
   public DartRunAction(IWorkbenchWindow window, boolean noMenu) {
     super(window, "Run", noMenu ? IAction.AS_PUSH_BUTTON : IAction.AS_DROP_DOWN_MENU);
 
-    setActionDefinitionId("com.google.dart.tools.debug.ui.run");
+    setActionDefinitionId("com.google.dart.tools.debug.ui.run.selection");
     setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.gif"));
   }
 

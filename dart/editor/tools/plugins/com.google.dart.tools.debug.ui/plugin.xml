@@ -376,6 +376,12 @@
       </menuContribution>
    </extension>
    
+   <extension point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension targetID="com.google.dart.tools.ui.DartPerspective">
+         <actionSet id="org.eclipse.debug.ui.debugActionSet"/>
+      </perspectiveExtension>
+   </extension>
+   
    <extension point="org.eclipse.ui.bindings">
       <key
             sequence="F5"

@@ -746,9 +746,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_FILE_EXPLORER);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
-//TODO (pquitslund): deprecated libaries view support    
-//    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_LIBRARIES);
-//    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(IPageLayout.ID_OUTLINE);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
@@ -760,7 +757,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_CALL_HIERARCHY);
       menu.add(new AccessibleShowViewAction(window, viewDesc, false));
     }
-
   }
 
   /**
@@ -985,6 +981,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     //menu.add(new Separator());
     addViewActions(menu);
+
+    menu.add(new Separator());
 
     menu.add(new OpenIntroEditorAction());
 
