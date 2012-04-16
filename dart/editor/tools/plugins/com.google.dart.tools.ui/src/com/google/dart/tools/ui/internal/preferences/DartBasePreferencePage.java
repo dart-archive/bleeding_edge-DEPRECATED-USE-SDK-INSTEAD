@@ -116,6 +116,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private FontData[] fontData;
   private FontData[] baseData;
 
+  private Button removeTrailingWhitespaceCheck;
+
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
     setDescription(PreferencesMessages.DartBasePreferencePage_editor_preferences);
@@ -143,6 +145,9 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
           AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN,
           printMarginText.getText());
     }
+
+    PreferenceConstants.getPreferenceStore().setValue(
+        PreferenceConstants.EDITOR_REMOVE_TRAILING_WS, removeTrailingWhitespaceCheck.getSelection());
 
     persistFont(EDITOR_FONT_KEY, fontData);
     persistFont(BASE_FONT_KEY, baseData);
@@ -193,6 +198,11 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     printMarginText = new Text(generalGroup, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
     printMarginText.setTextLimit(5);
     GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(printMarginText);
+
+    removeTrailingWhitespaceCheck = createCheckBox(generalGroup,
+        PreferencesMessages.DartBasePreferencePage_trailing_ws_label,
+        PreferencesMessages.DartBasePreferencePage_trailing_ws_details);
+    GridDataFactory.fillDefaults().span(3, 1).applyTo(removeTrailingWhitespaceCheck);
 
     Group fontGroup = new Group(composite, SWT.NONE);
     fontGroup.setText(PreferencesMessages.DartBasePreferencePage_font_group_label);
@@ -450,6 +460,9 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     printMarginCheck.setSelection(editorPreferences.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN));
     printMarginText.setText(editorPreferences.getString(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN));
     printMarginText.setEnabled(printMarginCheck.getSelection());
+
+    removeTrailingWhitespaceCheck.setSelection(PreferenceConstants.getPreferenceStore().getBoolean(
+        PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
 
     getFontData();
     getBaseData();

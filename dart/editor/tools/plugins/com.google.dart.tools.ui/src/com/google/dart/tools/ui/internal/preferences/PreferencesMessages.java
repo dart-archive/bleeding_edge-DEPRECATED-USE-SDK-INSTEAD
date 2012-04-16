@@ -94,6 +94,10 @@ public final class PreferencesMessages extends NLS {
   public static String ImportOrganizeInputDialog_error_entryExists;
   public static String ImportOrganizeInputDialog_name_group_label;
   public static String ImportOrganizeInputDialog_name_group_static_label;
+  public static String DartBasePreferencePage_auto_download_label;
+
+  public static String DartBasePreferencePage_auto_download_tooltip;
+
   public static String DartBasePreferencePage_description;
   public static String DartBasePreferencePage_doubleclick_action;
   public static String DartBasePreferencePage_doubleclick_gointo;
@@ -761,6 +765,12 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_general;
   public static String DartBasePreferencePage_select;
   public static String DartBasePreferencePage_text_font;
+
+  public static String DartBasePreferencePage_trailing_ws_details;
+
+  public static String DartBasePreferencePage_trailing_ws_label;
+
+  public static String DartBasePreferencePage_update_group_label;
 
   public static String CodeAssistConfigurationBlock_matchCamelCase_label;
   public static String ComplianceConfigurationBlock_version16;

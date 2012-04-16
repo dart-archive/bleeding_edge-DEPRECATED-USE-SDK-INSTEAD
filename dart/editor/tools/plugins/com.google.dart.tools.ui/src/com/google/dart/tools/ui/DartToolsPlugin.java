@@ -359,11 +359,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     }
   }
 
-//  @Deprecated
-//  private static IPreferenceStore getDeprecatedWorkbenchPreferenceStore() {
-//    return PlatformUI.getWorkbench().getPreferenceStore();
-//  }
-
   /* package */static void initializeAfterLoad(IProgressMonitor monitor) {
     DartX.notYet();
     // OpenTypeHistory.getInstance().checkConsistency(monitor);
@@ -380,6 +375,11 @@ public class DartToolsPlugin extends AbstractUIPlugin {
    */
   private ContextTypeRegistry codeTemplateContextTypeRegistry;
 
+//  @Deprecated
+//  private static IPreferenceStore getDeprecatedWorkbenchPreferenceStore() {
+//    return PlatformUI.getWorkbench().getPreferenceStore();
+//  }
+
   /**
    * The template store for the java editor.
    */
@@ -389,6 +389,7 @@ public class DartToolsPlugin extends AbstractUIPlugin {
    * The coded template store for the java editor.
    */
   private TemplateStore codeTemplateStore;
+
   /**
    * Default instance of the appearance type filters.
    */
@@ -399,7 +400,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   private TypeFilter typeFilter;
 
   private WorkingCopyManager workingCopyManager;
-
   @Deprecated
   private ICompilationUnitDocumentProvider compilationUnitDocumentProvider;
 
@@ -412,11 +412,10 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   private ProblemMarkerManager problemMarkerManager;
 
   private ImageDescriptorRegistry imageDescriptorRegistry;
+
   static {
     DartX.todo();
   }
-
-  //private IPropertyChangeListener fFontPropertyChangeListener;
 
   private MembersOrderPreferenceCache membersOrderPreferenceCache;
 
@@ -428,6 +427,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     DartX.todo("hover");
   }
 
+  //private IPropertyChangeListener fFontPropertyChangeListener;
+
   @SuppressWarnings("unused")
   private/* JavaEditorTextHoverDescriptor */Object[] dartEditorTextHoverDescriptors;
 
@@ -435,7 +436,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
    * The AST provider.
    */
   private ASTProvider astProvider;
-
   /**
    * The combined preference store.
    */
@@ -889,6 +889,21 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     }
   }
 
+  /**
+   * @deprecated Indirection added to avoid deprecated warning on file
+   */
+  // private org.eclipse.wst.jsdt.internal.corext.template.java.CodeTemplates
+  // getOldCodeTemplateStoreInstance() {
+  // return
+  // org.eclipse.wst.jsdt.internal.corext.template.java.CodeTemplates.getInstance();
+  // }
+
+  @Deprecated
+  @Override
+  protected ImageRegistry createImageRegistry() {
+    return DartPluginImages.getImageRegistry();
+  }
+
 //  /**
 //   * Installs backwards compatibility for the preference store.
 //   */
@@ -1003,21 +1018,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   // }
   // store.setValue(proposalOrderMigrated, true);
 //  }
-
-  /**
-   * @deprecated Indirection added to avoid deprecated warning on file
-   */
-  // private org.eclipse.wst.jsdt.internal.corext.template.java.CodeTemplates
-  // getOldCodeTemplateStoreInstance() {
-  // return
-  // org.eclipse.wst.jsdt.internal.corext.template.java.CodeTemplates.getInstance();
-  // }
-
-  @Deprecated
-  @Override
-  protected ImageRegistry createImageRegistry() {
-    return DartPluginImages.getImageRegistry();
-  }
 
   /**
    * @deprecated Indirection added to avoid deprecated warning on file

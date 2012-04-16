@@ -36,7 +36,7 @@ import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 /**
- * Preference constants used in the JDT-UI preference store. Clients should only read the JDT-UI
+ * Preference constants used in the Dart-UI preference store. Clients should only read the Dart-UI
  * preference store using these values. Clients are not allowed to modify the preference store
  * programmatically. Provisional API: This class/interface is part of an interim API that is still
  * under development and expected to change significantly before reaching stability. It is being
@@ -646,6 +646,14 @@ public class PreferenceConstants {
    */
   @Deprecated
   public final static String EDITOR_TAB_WIDTH = "com.google.dart.tools.ui.editor.tab.width"; //$NON-NLS-1$
+
+  /**
+   * A named preference that controls whether the editor should remove trailing whitespace on saves.
+   * <p>
+   * Value is of type <code>Boolean</code>.
+   * </p>
+   */
+  public static final String EDITOR_REMOVE_TRAILING_WS = "removeTrailingWhitespace";
 
   /**
    * A named preference that controls whether the outline view selection should stay in sync with
@@ -3244,9 +3252,9 @@ public class PreferenceConstants {
   }
 
   /**
-   * Returns the JDT-UI preference store.
+   * Returns the Dart-UI preference store.
    * 
-   * @return the JDT-UI preference store
+   * @return the Dart-UI preference store
    */
   public static IPreferenceStore getPreferenceStore() {
     return DartToolsPlugin.getDefault().getPreferenceStore();
@@ -3508,6 +3516,8 @@ public class PreferenceConstants {
     store.setDefault(PreferenceConstants.EDITOR_ESCAPE_STRINGS, false);
     store.setDefault(PreferenceConstants.EDITOR_ADD_JAVADOC_TAGS, true);
     store.setDefault(PreferenceConstants.EDITOR_FORMAT_JAVADOCS, false);
+
+    store.setDefault(PreferenceConstants.EDITOR_REMOVE_TRAILING_WS, false);
 
     int sourceHoverModifier = SWT.MOD2;
     String sourceHoverModifierName = Action.findModifierString(sourceHoverModifier); // Shift

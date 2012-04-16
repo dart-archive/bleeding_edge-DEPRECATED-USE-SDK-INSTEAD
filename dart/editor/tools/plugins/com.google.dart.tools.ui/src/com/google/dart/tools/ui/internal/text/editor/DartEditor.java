@@ -44,6 +44,7 @@ import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
 import com.google.dart.tools.ui.internal.text.dart.hover.SourceViewerInformationControl;
+import com.google.dart.tools.ui.internal.text.editor.saveactions.RemoveTrailingWhitespaceAction;
 import com.google.dart.tools.ui.internal.text.editor.selectionactions.GoToNextPreviousMemberAction;
 import com.google.dart.tools.ui.internal.text.editor.selectionactions.SelectionHistory;
 import com.google.dart.tools.ui.internal.text.editor.selectionactions.StructureSelectEnclosingAction;
@@ -182,6 +183,7 @@ import org.eclipse.ui.views.contentoutline.ContentOutline;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.osgi.service.prefs.BackingStoreException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.CharacterIterator;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1616,6 +1618,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   /** The outline page */
   protected DartOutlinePage fOutlinePage;
+
   /** Outliner context menu Id */
   protected String fOutlinerContextMenuId;
   /**
@@ -1624,12 +1627,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private EditorSelectionChangedListener fEditorSelectionChangedListener;
   /** The selection changed listener */
   protected AbstractSelectionChangedListener fOutlineSelectionChangedListener = new OutlineSelectionChangedListener();
-
   /** The editor's bracket matcher */
   protected DartPairMatcher fBracketMatcher = new DartPairMatcher(BRACKETS);
 
   /** This editor's encoding support */
   private DefaultEncodingSupport fEncodingSupport;
+
   /** History for structure select action */
   private SelectionHistory fSelectionHistory;
   protected CompositeActionGroup fActionGroups;
@@ -1638,6 +1641,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private FoldingActionGroup fFoldingGroup;
   private CompositeActionGroup fOpenEditorActionGroup;
+
+  /**
+   * Removes trailing whitespace on editor saves.
+   */
+  private RemoveTrailingWhitespaceAction removeTrailingWhitespaceAction;
+
   /**
    * Holds the current occurrence annotations.
    */
@@ -1668,7 +1677,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkConstantOccurrences;
-
   /**
    * Tells whether to mark field occurrences in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
@@ -1680,6 +1688,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkLocalVariableypeOccurrences;
+
   /**
    * Tells whether to mark exception occurrences in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
@@ -1695,12 +1704,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * this editor. Only valid if {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkBreakContinueTargets;
-
   /**
    * Tells whether to mark implementors in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkImplementors;
+
   /**
    * The selection used when forcing occurrence marking through code.
    */
@@ -1725,16 +1734,15 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * This editor's projection support
    */
   private ProjectionSupport fProjectionSupport;
-
   /**
    * This editor's projection model updater
    */
   private IDartFoldingStructureProvider fProjectionModelUpdater;
+
   /**
    * The override and implements indicator manager for this editor.
    */
   protected OverrideIndicatorManager fOverrideIndicatorManager;
-
   /**
    * Semantic highlighting manager , protected as of 3.3
    */
@@ -1778,8 +1786,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private final ASTCache astCache = new ASTCache();
 
   private boolean isEditableStateKnown;
-  private boolean isEditable;
 
+  private boolean isEditable;
   private OpenCallHierarchyAction openCallHierarchy;
 
   /**
@@ -2494,6 +2502,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     DartX.todo();
     // action = new CopyQualifiedNameAction(this);
     // setAction(IDartEditorActionConstants.COPY_QUALIFIED_NAME, action);
+
+    removeTrailingWhitespaceAction = new RemoveTrailingWhitespaceAction(getSourceViewer());
   }
 
   /*
@@ -3340,6 +3350,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
+  @Override
+  protected void performSave(boolean overwrite, IProgressMonitor progressMonitor) {
+    performSaveActions();
+    super.performSave(overwrite, progressMonitor);
+  }
+
   /*
    * @see org.eclipse.ui.texteditor.AbstractTextEditor#rulerContextMenuAboutToShow
    * (org.eclipse.jface.action.IMenuManager)
@@ -3976,6 +3992,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         && ((ContentOutline) part).getCurrentPage() == fOutlinePage;
   }
 
+  private boolean isRemoveTrailingWhitespaceEnabled() {
+    return PreferenceConstants.getPreferenceStore().getBoolean(
+        PreferenceConstants.EDITOR_REMOVE_TRAILING_WS);
+  }
+
   /**
    * @return <code>true</code> if Semantic Highlighting is enabled.
    */
@@ -3983,6 +4004,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     DartX.todo();
     return false;
 //    return SemanticHighlightings.isEnabled(getPreferenceStore());
+  }
+
+  private void performSaveActions() {
+    if (isRemoveTrailingWhitespaceEnabled()) {
+      try {
+        removeTrailingWhitespaceAction.run();
+      } catch (InvocationTargetException e) {
+        DartToolsPlugin.log(e);
+      }
+    }
   }
 
   /**
