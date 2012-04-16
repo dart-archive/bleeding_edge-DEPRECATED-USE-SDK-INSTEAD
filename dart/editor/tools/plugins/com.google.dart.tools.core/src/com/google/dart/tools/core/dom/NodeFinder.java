@@ -224,13 +224,6 @@ public class NodeFinder extends ASTVisitor<Void> {
       enclosingMethod = method;
       enclosingField = field;
       enclosingClass = classDef;
-//      // use current node only if it has more specific source range
-//      if (fCoveringNode == null || areParentChild(fCoveringNode, node)
-//          || fCoveringNode.getSourceInfo().getOffset() > nodeStart
-//          || fCoveringNode.getSourceInfo().getEnd() > nodeEnd) {
-//      } else {
-//        System.out.println("zzzzzzzz: " + node);
-//      }
     }
     if (fStart <= nodeStart && nodeEnd <= fEnd) {
       if (fCoveringNode == node) {

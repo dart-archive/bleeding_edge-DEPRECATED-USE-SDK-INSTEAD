@@ -81,4 +81,18 @@ public class ExecutionUtils {
     }
   }
 
+  /**
+   * Runs given {@link RunnableObjectEx} and ignores exception.
+   * 
+   * @return the {@link Object} returned by {@link RunnableObjectEx#run()}, or default value if
+   *         exception happens.
+   */
+  public static <T> T runObjectIgnore(RunnableObjectEx<T> runnable, T defaultValue) {
+    try {
+      return runnable.runObject();
+    } catch (Throwable e) {
+      return defaultValue;
+    }
+  }
+
 }

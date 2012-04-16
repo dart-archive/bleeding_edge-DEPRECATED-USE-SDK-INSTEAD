@@ -1,11 +1,12 @@
 package com.google.dart.tools.internal.corext.dom;
 
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.resolver.Element;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Find all nodes connected to a given binding or node. e.g. Declaration of a field and all
@@ -35,21 +36,15 @@ public class LinkedNodeFinder {
 
     private final Element fBinding;
 
-    private final ArrayList<DartIdentifier> fResult;
+    private final List<DartIdentifier> fResult = Lists.newArrayList();
 
-    public BindingFinder(Element binding, ArrayList<DartIdentifier> result) {
+    public BindingFinder(Element binding) {
       fBinding = getDeclaration(binding);
-      fResult = result;
     }
 
     @Override
     public Void visitIdentifier(DartIdentifier node) {
       Element binding = node.getElement();
-      // TODO(scheglov) DartC should set Element for DartIdentifier,
-      // so we would not need to ask parent
-      if (binding == null) {
-        binding = node.getParent().getElement();
-      }
       if (binding == null) {
         return null;
       }
@@ -138,9 +133,9 @@ public class LinkedNodeFinder {
    * @return Return
    */
   public static DartIdentifier[] findByBinding(DartNode root, Element binding) {
-    ArrayList<DartIdentifier> res = new ArrayList<DartIdentifier>();
-    BindingFinder nodeFinder = new BindingFinder(binding, res);
+    BindingFinder nodeFinder = new BindingFinder(binding);
     root.accept(nodeFinder);
+    List<DartIdentifier> res = nodeFinder.fResult;
     return res.toArray(new DartIdentifier[res.size()]);
   }
 
@@ -154,9 +149,7 @@ public class LinkedNodeFinder {
    * @return Return
    */
   public static DartIdentifier[] findByNode(DartNode root, DartIdentifier name) {
-    // TODO(scheglov) DartC should set Element for DartIdentifier,
-    // so we would not need to ask parent
-    Element binding = name.getParent().getElement();
+    Element binding = name.getElement();
     if (binding != null) {
       return findByBinding(root, binding);
     }

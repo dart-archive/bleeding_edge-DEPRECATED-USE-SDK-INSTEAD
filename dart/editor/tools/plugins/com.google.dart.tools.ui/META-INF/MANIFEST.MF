@@ -27,7 +27,7 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="3.6.0",
  com.google.dart.tools.search
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: com.google.dart.tools.internal.corext.refactoring.rename;x-friends:="com.google.dart.tools.ui_test",
- com.google.dart.tools.internal.corext.refactoring.util;x-friends:="com.google.dart.tools.ui_test",
+ com.google.dart.tools.internal.corext.refactoring.util;x-friends:="com.google.dart.tools.ui_test,com.google.dart.tools.ui.swtbot_test",
  com.google.dart.tools.ui,
  com.google.dart.tools.ui.actions,
  com.google.dart.tools.ui.internal.callhierarchy,
@@ -36,7 +36,7 @@ Export-Package: com.google.dart.tools.internal.corext.refactoring.rename;x-frien
  com.google.dart.tools.ui.internal.projects;x-friends:="com.google.dart.tools.deploy",
  com.google.dart.tools.ui.internal.refactoring;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.text.dart;x-friends:="com.google.dart.tools.ui_test",
- com.google.dart.tools.ui.internal.text.editor;x-friends:="com.google.dart.tools.ui_test,com.google.dart.tools.debug.ui",
+ com.google.dart.tools.ui.internal.text.editor;x-friends:="com.google.dart.tools.ui_test,com.google.dart.tools.debug.ui,com.google.dart.tools.ui.swtbot_test",
  com.google.dart.tools.ui.internal.text.functions;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.text;x-friends:="com.google.dart.tools.ui_test"
 Bundle-ActivationPolicy: lazy

@@ -149,4 +149,32 @@ public class ExecutionUtilsTest extends TestCase {
     }
   }
 
+  /**
+   * Test for {@link ExecutionUtils#runObjectIgnore(RunnableObjectEx, Object)}.
+   */
+  public void test_runObjectIgnore() throws Exception {
+    final String val = "value";
+    String result = ExecutionUtils.runObjectIgnore(new RunnableObjectEx<String>() {
+      @Override
+      public String runObject() throws Exception {
+        return val;
+      }
+    }, null);
+    assertSame(val, result);
+  }
+
+  /**
+   * Test for {@link ExecutionUtils#runObjectIgnore(RunnableObjectEx, Object)}.
+   */
+  public void test_runObjectIgnore_whenException() throws Exception {
+    String defaultValue = "def";
+    String result = ExecutionUtils.runObjectIgnore(new RunnableObjectEx<String>() {
+      @Override
+      public String runObject() throws Exception {
+        throw new Exception();
+      }
+    }, defaultValue);
+    assertSame(defaultValue, result);
+  }
+
 }
