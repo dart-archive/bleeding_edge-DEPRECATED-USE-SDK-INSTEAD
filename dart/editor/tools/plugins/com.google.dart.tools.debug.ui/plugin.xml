@@ -313,7 +313,7 @@
        <command
             categoryId="org.eclipse.ui.category.window"
             defaultHandler="com.google.dart.tools.debug.ui.launch.DartRunHandler"
-            description="%runCommandName"
+            description="Run selection"
             id="com.google.dart.tools.debug.ui.run.selection"
             name="%runCommandName">
       </command>
@@ -348,6 +348,30 @@
                   </and>
                </with>
             </visibleWhen>
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.eclipse.ui.run?after=runGroup">
+         <command
+               commandId="com.google.dart.tools.debug.ui.run.last"
+               label="%runCommandName"
+               style="push"
+               tooltip="%runDescription">
+         </command>
+         <command
+               commandId="com.google.dart.tools.debug.ui.run.selection"
+               label="%runSelectionCommandName"
+               style="push"
+               tooltip="%runSelectionDescription">
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.eclipse.ui.run?after=emptyLaunchGroup">
+         <command
+               commandId="com.google.dart.tools.debug.ui.launchDialog"
+               style="push">
          </command>
       </menuContribution>
    </extension>
@@ -399,7 +423,46 @@
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="CTRL+Z"
             platform="win32"/ -->                                
-    </extension>  
+    </extension>
+   <!--extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            id="com.google.dart.tools.debug.ui.runActionSet"
+            label="Run actions"
+            visible="true">
+            <action
+               class="com.google.dart.tools.debug.ui.launch.DartRunAction"
+               definitionId="com.google.dart.tools.debug.ui.run.selection"
+               id="com.google.dart.tools.debug.ui.run.selection.action"
+                menubarPath="org.eclipse.ui.run/runGroup"
+               label="Run selection"
+               style="push">
+         </action>
+         <action
+               class="com.google.dart.tools.debug.ui.launch.DartRunLastAction"
+               definitionId="com.google.dart.tools.debug.ui.run.last"
+               id="com.google.dart.tools.debug.ui.run.last.action"
+               label="%runCommandName"
+               menubarPath="org.eclipse.ui.run/runGroup"
+               style="push"
+               tooltip="Run last launched">
+         </action>
+         
+      </actionSet>
+      <actionSet
+            id="com.google.dart.tools.debug.ui.launchActionSet"
+            label="Manage launches"
+            visible="true">
+         <action
+               class="com.google.dart.tools.debug.ui.launch.ManageLaunchesAction"
+               definitionId="com.google.dart.tools.debug.ui.launchDialog"
+               id="com.google.dart.tools.debug.ui.launchDialog.action"
+               label="Manage Launches"
+               menubarPath="org.eclipse.ui.run/emptyLaunchGroup"
+               style="push">
+         </action>
+      </actionSet>
+   </extension-->  
 
  <!--extension
          point="org.eclipse.ui.popupMenus">
@@ -456,5 +519,6 @@
          </action>
       </actionSet>
    </extension-->
+
 
 </plugin>

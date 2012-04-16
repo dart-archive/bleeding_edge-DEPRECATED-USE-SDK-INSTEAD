@@ -15,9 +15,7 @@ package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
-import com.google.dart.tools.debug.ui.launch.DartRunAction;
 import com.google.dart.tools.debug.ui.launch.DartRunLastAction;
-import com.google.dart.tools.debug.ui.launch.ManageLaunchesAction;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
@@ -172,8 +170,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 //  private IAction newWizardAction;
 
   private DartRunLastAction dartRunLastAction;
-
-  private DartRunAction dartRunSelectionAction;
 
   private GenerateJavascriptAction deployOptimizedAction;
 
@@ -468,10 +464,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     statusLineItem = new StatusLineContributionItem("ModeContributionItem"); //$NON-NLS-1$
 
     dartRunLastAction = new DartRunLastAction(window);
-
-    dartRunSelectionAction = new DartRunAction(window, true);
-    dartRunSelectionAction.setText("Run selection");
-    dartRunSelectionAction.setToolTipText("Run the selected resource");
 
     deployOptimizedAction = new GenerateJavascriptAction(window);
 
@@ -997,10 +989,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new OpenIntroEditorAction());
 
     menu.add(new Separator());
-
-    menu.add(new DartRunLastAction(window, true));
-    menu.add(dartRunSelectionAction);
-    menu.add(new ManageLaunchesAction(window));
 
     menu.add(new Separator());
 
