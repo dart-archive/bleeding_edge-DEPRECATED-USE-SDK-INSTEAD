@@ -66,7 +66,7 @@ public class CharBufferScanner extends AbstractScanner {
 
   @Override
   protected String getString(int start, int offset) {
-    return buffer.subSequence(start, charOffset + offset).toString();
+    return buffer.subSequence(start, charOffset + 1 + offset).toString();
   }
 
   @Override

@@ -64,7 +64,7 @@ public class StringScanner extends AbstractScanner {
 
   @Override
   protected String getString(int start, int offset) {
-    return string.substring(start, charOffset + offset);
+    return string.substring(start, charOffset + 1 + offset);
   }
 
   @Override

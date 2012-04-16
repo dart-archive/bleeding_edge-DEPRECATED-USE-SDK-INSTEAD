@@ -17,211 +17,211 @@ import junit.framework.TestCase;
 
 public abstract class AbstractScannerTest extends TestCase {
   public void test_AbstractScanner_ampersand() throws Exception {
-    assertToken(TokenType.AMPERSAND, scan("&"));
+    assertToken(TokenType.AMPERSAND, "&");
   }
 
   public void test_AbstractScanner_ampersand_ampersand() throws Exception {
-    assertToken(TokenType.AMPERSAND_AMPERSAND, scan("&&"));
+    assertToken(TokenType.AMPERSAND_AMPERSAND, "&&");
   }
 
   public void test_AbstractScanner_ampersand_eq() throws Exception {
-    assertToken(TokenType.AMPERSAND_EQ, scan("&="));
+    assertToken(TokenType.AMPERSAND_EQ, "&=");
   }
 
   public void test_AbstractScanner_backping() throws Exception {
-    assertToken(TokenType.BACKPING, scan("`"));
+    assertToken(TokenType.BACKPING, "`");
   }
 
   public void test_AbstractScanner_backslash() throws Exception {
-    assertToken(TokenType.BACKSLASH, scan("\\"));
+    assertToken(TokenType.BACKSLASH, "\\");
   }
 
   public void test_AbstractScanner_bang() throws Exception {
-    assertToken(TokenType.BANG, scan("!"));
+    assertToken(TokenType.BANG, "!");
   }
 
   public void test_AbstractScanner_bang_eq() throws Exception {
-    assertToken(TokenType.BANG_EQ, scan("!="));
+    assertToken(TokenType.BANG_EQ, "!=");
   }
 
   public void test_AbstractScanner_bang_eq_eq() throws Exception {
-    assertToken(TokenType.BANG_EQ_EQ, scan("!=="));
+    assertToken(TokenType.BANG_EQ_EQ, "!==");
   }
 
   public void test_AbstractScanner_bar() throws Exception {
-    assertToken(TokenType.BAR, scan("|"));
+    assertToken(TokenType.BAR, "|");
   }
 
   public void test_AbstractScanner_bar_bar() throws Exception {
-    assertToken(TokenType.BAR_BAR, scan("||"));
+    assertToken(TokenType.BAR_BAR, "||");
   }
 
   public void test_AbstractScanner_bar_eq() throws Exception {
-    assertToken(TokenType.BAR_EQ, scan("|="));
+    assertToken(TokenType.BAR_EQ, "|=");
   }
 
   public void test_AbstractScanner_caret() throws Exception {
-    assertToken(TokenType.CARET, scan("^"));
+    assertToken(TokenType.CARET, "^");
   }
 
   public void test_AbstractScanner_caret_eq() throws Exception {
-    assertToken(TokenType.CARET_EQ, scan("^="));
+    assertToken(TokenType.CARET_EQ, "^=");
   }
 
   public void test_AbstractScanner_close_curly_bracket() throws Exception {
-    assertToken(TokenType.CLOSE_CURLY_BRACKET, scan("}"));
+    assertToken(TokenType.CLOSE_CURLY_BRACKET, "}");
   }
 
   public void test_AbstractScanner_close_paren() throws Exception {
-    assertToken(TokenType.CLOSE_PAREN, scan(")"));
+    assertToken(TokenType.CLOSE_PAREN, ")");
   }
 
   public void test_AbstractScanner_close_quare_bracket() throws Exception {
-    assertToken(TokenType.CLOSE_SQUARE_BRACKET, scan("]"));
+    assertToken(TokenType.CLOSE_SQUARE_BRACKET, "]");
   }
 
   public void test_AbstractScanner_colon() throws Exception {
-    assertToken(TokenType.COLON, scan(":"));
+    assertToken(TokenType.COLON, ":");
   }
 
   public void test_AbstractScanner_comma() throws Exception {
-    assertToken(TokenType.COMMA, scan(","));
+    assertToken(TokenType.COMMA, ",");
   }
 
   public void test_AbstractScanner_comment_multi() throws Exception {
-    assertToken(TokenType.MULTI_LINE_COMMENT, scan("/* comment */"));
+    assertToken(TokenType.MULTI_LINE_COMMENT, "/* comment */");
   }
 
   public void test_AbstractScanner_comment_nested() throws Exception {
-    assertToken(TokenType.MULTI_LINE_COMMENT, scan("/* comment /* within a */ comment */"));
+    assertToken(TokenType.MULTI_LINE_COMMENT, "/* comment /* within a */ comment */");
   }
 
   public void test_AbstractScanner_comment_single() throws Exception {
-    assertToken(TokenType.SINGLE_LINE_COMMENT, scan("// comment"));
+    assertToken(TokenType.SINGLE_LINE_COMMENT, "// comment");
   }
 
   public void test_AbstractScanner_double_both_e() throws Exception {
-    assertToken(TokenType.DOUBLE, scan("0.123e4"));
+    assertToken(TokenType.DOUBLE, "0.123e4");
   }
 
   public void test_AbstractScanner_double_both_E() throws Exception {
-    assertToken(TokenType.DOUBLE, scan("0.123E4"));
+    assertToken(TokenType.DOUBLE, "0.123E4");
   }
 
   public void test_AbstractScanner_double_fraction() throws Exception {
-    assertToken(TokenType.DOUBLE, scan(".123"));
+    assertToken(TokenType.DOUBLE, ".123");
   }
 
   public void test_AbstractScanner_double_fraction_d() throws Exception {
-    assertToken(TokenType.DOUBLE, scan(".123d"));
+    assertToken(TokenType.DOUBLE, ".123d");
   }
 
   public void test_AbstractScanner_double_fraction_D() throws Exception {
-    assertToken(TokenType.DOUBLE, scan(".123D"));
+    assertToken(TokenType.DOUBLE, ".123D");
   }
 
   public void test_AbstractScanner_double_fraction_e() throws Exception {
-    assertToken(TokenType.DOUBLE, scan(".123e4"));
+    assertToken(TokenType.DOUBLE, ".123e4");
   }
 
   public void test_AbstractScanner_double_fraction_E() throws Exception {
-    assertToken(TokenType.DOUBLE, scan(".123E4"));
+    assertToken(TokenType.DOUBLE, ".123E4");
   }
 
   public void test_AbstractScanner_double_fraction_ed() throws Exception {
-    assertToken(TokenType.DOUBLE, scan(".123e4d"));
+    assertToken(TokenType.DOUBLE, ".123e4d");
   }
 
   public void test_AbstractScanner_double_fraction_Ed() throws Exception {
-    assertToken(TokenType.DOUBLE, scan(".123E4d"));
+    assertToken(TokenType.DOUBLE, ".123E4d");
   }
 
   public void test_AbstractScanner_double_whole_d() throws Exception {
-    assertToken(TokenType.DOUBLE, scan("12d"));
+    assertToken(TokenType.DOUBLE, "12d");
   }
 
   public void test_AbstractScanner_double_whole_D() throws Exception {
-    assertToken(TokenType.DOUBLE, scan("12D"));
+    assertToken(TokenType.DOUBLE, "12D");
   }
 
   public void test_AbstractScanner_double_whole_e() throws Exception {
-    assertToken(TokenType.DOUBLE, scan("12e4"));
+    assertToken(TokenType.DOUBLE, "12e4");
   }
 
   public void test_AbstractScanner_double_whole_E() throws Exception {
-    assertToken(TokenType.DOUBLE, scan("12E4"));
+    assertToken(TokenType.DOUBLE, "12E4");
   }
 
   public void test_AbstractScanner_double_whole_ed() throws Exception {
-    assertToken(TokenType.DOUBLE, scan("12e4d"));
+    assertToken(TokenType.DOUBLE, "12e4d");
   }
 
   public void test_AbstractScanner_double_whole_Ed() throws Exception {
-    assertToken(TokenType.DOUBLE, scan("12E4d"));
+    assertToken(TokenType.DOUBLE, "12E4d");
   }
 
   public void test_AbstractScanner_eq() throws Exception {
-    assertToken(TokenType.EQ, scan("="));
+    assertToken(TokenType.EQ, "=");
   }
 
   public void test_AbstractScanner_eq_eq() throws Exception {
-    assertToken(TokenType.EQ_EQ, scan("=="));
+    assertToken(TokenType.EQ_EQ, "==");
   }
 
   public void test_AbstractScanner_eq_eq_eq() throws Exception {
-    assertToken(TokenType.EQ_EQ_EQ, scan("==="));
+    assertToken(TokenType.EQ_EQ_EQ, "===");
   }
 
   public void test_AbstractScanner_gt() throws Exception {
-    assertToken(TokenType.GT, scan(">"));
+    assertToken(TokenType.GT, ">");
   }
 
   public void test_AbstractScanner_gt_eq() throws Exception {
-    assertToken(TokenType.GT_EQ, scan(">="));
+    assertToken(TokenType.GT_EQ, ">=");
   }
 
   public void test_AbstractScanner_gt_gt() throws Exception {
-    assertToken(TokenType.GT_GT, scan(">>"));
+    assertToken(TokenType.GT_GT, ">>");
   }
 
   public void test_AbstractScanner_gt_gt_eq() throws Exception {
-    assertToken(TokenType.GT_GT_EQ, scan(">>="));
+    assertToken(TokenType.GT_GT_EQ, ">>=");
   }
 
   public void test_AbstractScanner_gt_gt_gt() throws Exception {
-    assertToken(TokenType.GT_GT_GT, scan(">>>"));
+    assertToken(TokenType.GT_GT_GT, ">>>");
   }
 
   public void test_AbstractScanner_gt_gt_gt_eq() throws Exception {
-    assertToken(TokenType.GT_GT_GT_EQ, scan(">>>="));
+    assertToken(TokenType.GT_GT_GT_EQ, ">>>=");
   }
 
   public void test_AbstractScanner_hash() throws Exception {
-    assertToken(TokenType.HASH, scan("#"));
+    assertToken(TokenType.HASH, "#");
   }
 
   public void test_AbstractScanner_hexidecimal() throws Exception {
-    assertToken(TokenType.HEXADECIMAL, scan("0x1A2B3C"));
+    assertToken(TokenType.HEXADECIMAL, "0x1A2B3C");
   }
 
   public void test_AbstractScanner_identifier() throws Exception {
-    assertToken(TokenType.IDENTIFIER, scan("identifier"));
+    assertToken(TokenType.IDENTIFIER, "identifier");
   }
 
   public void test_AbstractScanner_index() throws Exception {
-    assertToken(TokenType.INDEX, scan("[]"));
+    assertToken(TokenType.INDEX, "[]");
   }
 
   public void test_AbstractScanner_index_eq() throws Exception {
-    assertToken(TokenType.INDEX_EQ, scan("[]="));
+    assertToken(TokenType.INDEX_EQ, "[]=");
   }
 
   public void test_AbstractScanner_int() throws Exception {
-    assertToken(TokenType.INT, scan("123"));
+    assertToken(TokenType.INT, "123");
   }
 
   public void test_AbstractScanner_int_initialZero() throws Exception {
-    assertToken(TokenType.INT, scan("0123"));
+    assertToken(TokenType.INT, "0123");
   }
 
   public void test_AbstractScanner_keyword_abstract() throws Exception {
@@ -401,117 +401,136 @@ public abstract class AbstractScannerTest extends TestCase {
   }
 
   public void test_AbstractScanner_lt() throws Exception {
-    assertToken(TokenType.LT, scan("<"));
+    assertToken(TokenType.LT, "<");
   }
 
   public void test_AbstractScanner_lt_eq() throws Exception {
-    assertToken(TokenType.LT_EQ, scan("<="));
+    assertToken(TokenType.LT_EQ, "<=");
   }
 
   public void test_AbstractScanner_lt_lt() throws Exception {
-    assertToken(TokenType.LT_LT, scan("<<"));
+    assertToken(TokenType.LT_LT, "<<");
   }
 
   public void test_AbstractScanner_lt_lt_eq() throws Exception {
-    assertToken(TokenType.LT_LT_EQ, scan("<<="));
+    assertToken(TokenType.LT_LT_EQ, "<<=");
   }
 
   public void test_AbstractScanner_minus() throws Exception {
-    assertToken(TokenType.MINUS, scan("-"));
+    assertToken(TokenType.MINUS, "-");
   }
 
   public void test_AbstractScanner_minus_eq() throws Exception {
-    assertToken(TokenType.MINUS_EQ, scan("-="));
+    assertToken(TokenType.MINUS_EQ, "-=");
   }
 
   public void test_AbstractScanner_minus_minus() throws Exception {
-    assertToken(TokenType.MINUS_MINUS, scan("--"));
+    assertToken(TokenType.MINUS_MINUS, "--");
   }
 
   public void test_AbstractScanner_open_curly_bracket() throws Exception {
-    assertToken(TokenType.OPEN_CURLY_BRACKET, scan("{"));
+    assertToken(TokenType.OPEN_CURLY_BRACKET, "{");
   }
 
   public void test_AbstractScanner_open_paren() throws Exception {
-    assertToken(TokenType.OPEN_PAREN, scan("("));
+    assertToken(TokenType.OPEN_PAREN, "(");
   }
 
   public void test_AbstractScanner_open_square_bracket() throws Exception {
-    assertToken(TokenType.OPEN_SQUARE_BRACKET, scan("["));
+    assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
   }
 
   public void test_AbstractScanner_openSquareBracket() throws Exception {
-    assertToken(TokenType.OPEN_SQUARE_BRACKET, scan("["));
+    assertToken(TokenType.OPEN_SQUARE_BRACKET, "[");
   }
 
   public void test_AbstractScanner_percent() throws Exception {
-    assertToken(TokenType.PERCENT, scan("%"));
+    assertToken(TokenType.PERCENT, "%");
   }
 
   public void test_AbstractScanner_percent_eq() throws Exception {
-    assertToken(TokenType.PERCENT_EQ, scan("%="));
+    assertToken(TokenType.PERCENT_EQ, "%=");
   }
 
   public void test_AbstractScanner_period() throws Exception {
-    assertToken(TokenType.PERIOD, scan("."));
+    assertToken(TokenType.PERIOD, ".");
   }
 
   public void test_AbstractScanner_period_period() throws Exception {
-    assertToken(TokenType.PERIOD_PERIOD, scan(".."));
+    assertToken(TokenType.PERIOD_PERIOD, "..");
   }
 
   public void test_AbstractScanner_period_period_period() throws Exception {
-    assertToken(TokenType.PERIOD_PERIOD_PERIOD, scan("..."));
+    assertToken(TokenType.PERIOD_PERIOD_PERIOD, "...");
   }
 
   public void test_AbstractScanner_periodAfterNumberNotIncluded() throws Exception {
     assertTokens(
         "42.isEven()",
-        new Token(TokenType.INT, 0),
+        new StringToken(TokenType.INT, "42", 0),
         new Token(TokenType.PERIOD, 2),
-        new Token(TokenType.IDENTIFIER, 3),
+        new StringToken(TokenType.IDENTIFIER, "isEven", 3),
         new Token(TokenType.OPEN_PAREN, 9),
         new Token(TokenType.CLOSE_PAREN, 10));
   }
 
   public void test_AbstractScanner_plus() throws Exception {
-    assertToken(TokenType.PLUS, scan("+"));
+    assertToken(TokenType.PLUS, "+");
   }
 
   public void test_AbstractScanner_plus_eq() throws Exception {
-    assertToken(TokenType.PLUS_EQ, scan("+="));
+    assertToken(TokenType.PLUS_EQ, "+=");
   }
 
   public void test_AbstractScanner_plus_plus() throws Exception {
-    assertToken(TokenType.PLUS_PLUS, scan("++"));
+    assertToken(TokenType.PLUS_PLUS, "++");
   }
 
   public void test_AbstractScanner_question() throws Exception {
-    assertToken(TokenType.QUESTION, scan("?"));
+    assertToken(TokenType.QUESTION, "?");
   }
 
   public void test_AbstractScanner_semicolon() throws Exception {
-    assertToken(TokenType.SEMICOLON, scan(";"));
+    assertToken(TokenType.SEMICOLON, ";");
   }
 
   public void test_AbstractScanner_slash() throws Exception {
-    assertToken(TokenType.SLASH, scan("/"));
+    assertToken(TokenType.SLASH, "/");
   }
 
   public void test_AbstractScanner_slash_eq() throws Exception {
-    assertToken(TokenType.SLASH_EQ, scan("/="));
+    assertToken(TokenType.SLASH_EQ, "/=");
   }
 
   public void test_AbstractScanner_star() throws Exception {
-    assertToken(TokenType.STAR, scan("*"));
+    assertToken(TokenType.STAR, "*");
   }
 
   public void test_AbstractScanner_star_eq() throws Exception {
-    assertToken(TokenType.STAR_EQ, scan("*="));
+    assertToken(TokenType.STAR_EQ, "*=");
   }
 
   public void test_AbstractScanner_string_multi_double() throws Exception {
     assertToken(TokenType.STRING, scan("\"\"\"string\"\"\""));
+  }
+
+  public void test_AbstractScanner_string_multi_interpolation_block() throws Exception {
+    assertTokens(
+        "\"Hello ${name}!\"",
+        new StringToken(TokenType.STRING, "\"Hello ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION, "${", 7),
+        new StringToken(TokenType.IDENTIFIER, "name", 9),
+        new Token(TokenType.CLOSE_CURLY_BRACKET, 13),
+        new StringToken(TokenType.STRING, "!\"", 14));
+  }
+
+  public void test_AbstractScanner_string_multi_interpolation_identifier() throws Exception {
+    assertTokens( //
+        "\"Hello $name!\"",
+        new StringToken(TokenType.STRING, "\"Hello ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION, "$", 7),
+        new StringToken(TokenType.IDENTIFIER, "name", 8),
+        new StringToken(TokenType.STRING, "!\"", 12));
   }
 
   public void test_AbstractScanner_string_multi_single() throws Exception {
@@ -532,37 +551,37 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_AbstractScanner_string_simple_interpolation_block() throws Exception {
     assertTokens(
-        "\"Hello ${name}!\"",
-        new Token(TokenType.STRING, 0),
-        new Token(TokenType.STRING_INTERPOLATION, 7),
-        new Token(TokenType.IDENTIFIER, 9),
+        "'Hello ${name}!'",
+        new StringToken(TokenType.STRING, "'Hello ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION, "${", 7),
+        new StringToken(TokenType.IDENTIFIER, "name", 9),
         new Token(TokenType.CLOSE_CURLY_BRACKET, 13),
-        new Token(TokenType.STRING, 14));
+        new StringToken(TokenType.STRING, "!'", 14));
   }
 
   public void test_AbstractScanner_string_simple_interpolation_identifier() throws Exception {
     assertTokens( //
-        "\"Hello $name!\"",
-        new Token(TokenType.STRING, 0),
-        new Token(TokenType.STRING_INTERPOLATION, 7),
-        new Token(TokenType.IDENTIFIER, 8),
-        new Token(TokenType.STRING, 12));
+        "'Hello $name!'",
+        new StringToken(TokenType.STRING, "'Hello ", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION, "$", 7),
+        new StringToken(TokenType.IDENTIFIER, "name", 8),
+        new StringToken(TokenType.STRING, "!'", 12));
   }
 
   public void test_AbstractScanner_string_simple_single() throws Exception {
-    assertToken(TokenType.STRING, scan("'string'"));
+    assertToken(TokenType.STRING, "'string'");
   }
 
   public void test_AbstractScanner_tilde() throws Exception {
-    assertToken(TokenType.TILDE, scan("~"));
+    assertToken(TokenType.TILDE, "~");
   }
 
   public void test_AbstractScanner_tilde_slash() throws Exception {
-    assertToken(TokenType.TILDE_SLASH, scan("~/"));
+    assertToken(TokenType.TILDE_SLASH, "~/");
   }
 
   public void test_AbstractScanner_tilde_slash_eq() throws Exception {
-    assertToken(TokenType.TILDE_SLASH_EQ, scan("~/="));
+    assertToken(TokenType.TILDE_SLASH_EQ, "~/=");
   }
 
   protected abstract Token scan(String source);
@@ -576,9 +595,26 @@ public abstract class AbstractScannerTest extends TestCase {
   private void assertKeywordToken(String source) {
     Token token = scan(source);
     assertToken(TokenType.KEYWORD, token);
+    assertEquals(source.length(), token.getLength());
+    assertEquals(source, token.getLexeme());
     Object value = token.value();
     assertTrue(value instanceof Keyword);
     assertEquals(source, ((Keyword) value).getSyntax());
+  }
+
+  /**
+   * Assert that the token scanned from the given source has the expected type.
+   * 
+   * @param expectedType the expected type of the token
+   * @param source the source to be scanned to produce the actual token
+   */
+  private void assertToken(TokenType expectedType, String source) {
+    Token actualToken = scan(source);
+    assertNotNull(actualToken);
+    assertEquals(expectedType, actualToken.getType());
+    assertEquals(0, actualToken.getOffset());
+    assertEquals(source.length(), actualToken.getLength());
+    assertEquals(source, actualToken.getLexeme());
   }
 
   /**
@@ -603,9 +639,12 @@ public abstract class AbstractScannerTest extends TestCase {
   private void assertTokens(String source, Token... expectedTokens) {
     Token token = scan(source);
     assertNotNull(token);
-    for (Token expectedToken : expectedTokens) {
-      assertEquals(expectedToken.getType(), token.getType());
-      assertEquals(expectedToken.getOffset(), token.getOffset());
+    for (int i = 0; i < expectedTokens.length; i++) {
+      Token expectedToken = expectedTokens[i];
+      assertEquals("Wrong type for token " + i, expectedToken.getType(), token.getType());
+      assertEquals("Wrong offset for token " + i, expectedToken.getOffset(), token.getOffset());
+      assertEquals("Wrong length for token " + i, expectedToken.getLength(), token.getLength());
+      assertEquals("Wrong lexeme for token " + i, expectedToken.getLexeme(), token.getLexeme());
       token = token.getNext();
       assertNotNull(token);
     }

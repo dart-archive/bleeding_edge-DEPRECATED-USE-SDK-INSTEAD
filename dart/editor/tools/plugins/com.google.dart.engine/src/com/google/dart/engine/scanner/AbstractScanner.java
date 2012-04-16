@@ -102,7 +102,7 @@ public abstract class AbstractScanner {
   }
 
   private void appendStringToken(TokenType type, String value, int offset) {
-    tail = tail.setNext(new StringToken(type, value, offset));
+    tail = tail.setNext(new StringToken(type, value, tokenStart + offset));
   }
 
   private void appendToken(TokenType type) {
@@ -424,7 +424,7 @@ public abstract class AbstractScanner {
       next = advance();
     }
     if (!hasDigit) {
-      appendStringToken(TokenType.INT, getString(start, -1));
+      appendStringToken(TokenType.INT, getString(start, -2));
       appendToken(TokenType.PERIOD, getOffset() - 1);
       return bigSwitch(next);
     }
@@ -501,13 +501,12 @@ public abstract class AbstractScanner {
         || Character.isLetterOrDigit(next)) {
       next = advance();
     }
-    appendStringToken(TokenType.IDENTIFIER, getString(start, 0));
+    appendStringToken(TokenType.IDENTIFIER, getString(start, next < 0 ? 0 : -1));
     return next;
   }
 
   private int tokenizeInterpolatedExpression(int next, int start) throws IOException {
-    appendStringToken(TokenType.STRING, getString(start, -1), start);
-    appendStringToken(TokenType.STRING_INTERPOLATION, "${", getOffset() - 1);
+    appendStringToken(TokenType.STRING_INTERPOLATION, "${", 0);
     next = advance();
     while (next != -1) {
       if (next == '}') {
@@ -529,8 +528,7 @@ public abstract class AbstractScanner {
   }
 
   private int tokenizeInterpolatedIdentifier(int next, int start) {
-    appendStringToken(TokenType.STRING, getString(start, -1), start);
-    appendStringToken(TokenType.STRING_INTERPOLATION, "$", getOffset() - 1);
+    appendStringToken(TokenType.STRING_INTERPOLATION, "$", 0);
     beginToken();
     next = tokenizeKeywordOrIdentifier(next, false);
     beginToken();
@@ -653,6 +651,8 @@ public abstract class AbstractScanner {
     int next = advance();
     while (next != -1) {
       if (next == '$') {
+        appendStringToken(TokenType.STRING, getString(start, -1));
+        beginToken();
         next = tokenizeStringInterpolation(start);
         start = getOffset();
         continue;
@@ -791,6 +791,8 @@ public abstract class AbstractScanner {
       if (next == '\\') {
         next = advance();
       } else if (next == '$') {
+        appendStringToken(TokenType.STRING, getString(start, -1));
+        beginToken();
         next = tokenizeStringInterpolation(start);
         start = getOffset();
         continue;
