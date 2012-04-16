@@ -1,6 +1,7 @@
 package com.google.dart.tools.ui.internal.refactoring.reorg;
 
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameMethodProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
@@ -25,6 +26,7 @@ public class RenameUserInterfaceManager extends UserInterfaceManager {
 //    put(RenameCompilationUnitProcessor.class, RenameUserInterfaceStarter.class,
 //        RenameCuWizard.class);
 //    put(RenameTypeProcessor.class, RenameUserInterfaceStarter.class, RenameTypeWizard.class);
+    put(RenameFunctionProcessor.class, RenameUserInterfaceStarter.class, RenameFunctionWizard.class);
     put(RenameTypeProcessor.class, RenameUserInterfaceStarter.class, RenameTypeWizard.class);
     put(RenameFieldProcessor.class, RenameUserInterfaceStarter.class, RenameFieldWizard.class);
     put(RenameMethodProcessor.class, RenameUserInterfaceStarter.class, RenameMethodWizard.class);

@@ -3,6 +3,7 @@ package com.google.dart.tools.ui.internal.refactoring;
 import com.google.dart.core.ILocalVariable;
 import com.google.dart.core.IPackageFragment;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
@@ -10,6 +11,7 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.rename.DartRenameProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameMethodProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
@@ -96,6 +98,18 @@ public class RenameSupport {
     throw new RuntimeException("Not implemented");
 //    JavaRenameProcessor processor= new RenameCompilationUnitProcessor(unit);
 //    return new RenameSupport(processor, newName, flags);
+  }
+
+  /**
+   * Creates a new rename support for the given {@link DartFunction}.
+   * 
+   * @param field the {@link DartFunction} to be renamed, not <code>null</code>.
+   * @param newName the function's new name, not <code>null</code>.
+   * @return the {@link RenameSupport}.
+   */
+  public static RenameSupport create(DartFunction field, String newName) {
+    DartRenameProcessor processor = new RenameFunctionProcessor(field);
+    return new RenameSupport(processor, newName, 0);
   }
 
   /**

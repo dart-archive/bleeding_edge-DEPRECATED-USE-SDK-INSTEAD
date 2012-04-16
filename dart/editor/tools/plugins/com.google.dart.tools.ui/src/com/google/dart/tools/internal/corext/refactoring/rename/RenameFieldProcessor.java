@@ -187,12 +187,10 @@ public class RenameFieldProcessor extends DartRenameProcessor {
   private void addReferenceUpdates(IProgressMonitor pm) throws DartModelException {
     pm.beginTask("", references.size()); //$NON-NLS-1$
     String editName = RefactoringCoreMessages.RenameRefactoring_update_reference;
-    for (SearchMatch searchMatch : references) {
-      SourceRange matchRange = searchMatch.getSourceRange();
-      if (matchRange.getOffset() != field.getSourceRange().getOffset()) {
-        CompilationUnit cu = searchMatch.getElement().getAncestor(CompilationUnit.class);
-        addTextEdit(changeManager.get(cu), editName, createTextChange(matchRange));
-      }
+    for (SearchMatch match : references) {
+      CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
+      SourceRange matchRange = match.getSourceRange();
+      addTextEdit(changeManager.get(cu), editName, createTextChange(matchRange));
       pm.worked(1);
     }
   }
@@ -212,6 +210,7 @@ public class RenameFieldProcessor extends DartRenameProcessor {
       pm.subTask("Analyze top-level elements");
       RenameAnalyzeUtil.checkShadow_topLevel(
           result,
+          field,
           references,
           newName,
           RefactoringCoreMessages.RenameRefactoring_shadow_topLevel);

@@ -854,52 +854,32 @@ public final class RefactoringMessages extends NLS {
   public static String RenameSourceFolder_inputPage_description;
 
   public static String RenameTypeParameterWizard_defaultPageTitle;
-
   public static String RenameTypeParameterWizard_inputPage_description;
-
   public static String RenameTypeWizard_defaultPageTitle;
-
   public static String RenameTypeWizard_unexpected_exception;
-
   public static String RenameTypeWizardInputPage_description;
-
   public static String RenameTypeWizardInputPage_update_similar_elements;
-
   public static String RenameTypeWizardInputPage_update_similar_elements_configure;
-
   public static String RenameTypeWizardSimilarElementsOptionsDialog_select_strategy;
-
   public static String RenameTypeWizardSimilarElementsOptionsDialog_strategy_1;
-
   public static String RenameTypeWizardSimilarElementsOptionsDialog_strategy_2;
-
   public static String RenameTypeWizardSimilarElementsOptionsDialog_strategy_3;
-
   public static String RenameTypeWizardSimilarElementsOptionsDialog_title;
-
   public static String RenameTypeWizardSimilarElementsOptionsDialog_warning_short_names;
-
   public static String RenameTypeWizardSimilarElementsPage_change_element_name;
-
   public static String RenameTypeWizardSimilarElementsPage_change_name;
-
   public static String RenameTypeWizardSimilarElementsPage_enter_new_name;
-
   public static String RenameTypeWizardSimilarElementsPage_field_exists;
-
   public static String RenameTypeWizardSimilarElementsPage_method_exists;
-
   public static String RenameTypeWizardSimilarElementsPage_name_empty;
-
   public static String RenameTypeWizardSimilarElementsPage_name_should_start_lowercase;
-
   public static String RenameTypeWizardSimilarElementsPage_rename_to;
-
   public static String RenameTypeWizardSimilarElementsPage_restore_defaults;
-
   public static String RenameTypeWizardSimilarElementsPage_review_similar_elements;
-
   public static String RenameTypeWizardSimilarElementsPage_select_element_to_view_source;
+
+  public static String RenameFunctionWizard_defaultPageTitle;
+  public static String RenameFunctionWizardInputPage_description;
 
   public static String ReplaceInvocationsAction_dialog_title;
 

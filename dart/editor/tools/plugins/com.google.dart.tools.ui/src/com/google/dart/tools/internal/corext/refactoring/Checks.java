@@ -151,6 +151,34 @@ public class Checks {
   }
 
   /**
+   * Checks if the given name is a valid Dart function name.
+   * 
+   * @param name the Dart function name.
+   * @return a refactoring status containing the error message if the name is not a valid Dart
+   *         function name.
+   */
+  public static RefactoringStatus checkFunctionName(String name) {
+    RefactoringStatus status = checkName(name, DartConventions.validateFunctionName(name));
+    if (status.isOK() && !startsWithLowerCase(name)) {
+      return RefactoringStatus.createWarningStatus(RefactoringCoreMessages.Checks_function_names_lowercase);
+    } else {
+      return status;
+    }
+  }
+
+  /**
+   * Checks if the given name is a valid Dart package name.
+   * 
+   * @param name the Dart package name.
+   * @param context an {@link DartElement} or <code>null</code>
+   * @return a refactoring status containing the error message if the name is not a valid Dart
+   *         package name.
+   */
+//  public static RefactoringStatus checkPackageName(String name, DartElement context) {
+//  	return checkName(name, DartConventions.validatePackageName(name));
+//  }
+
+  /**
    * Checks if method will have a constructor name after renaming.
    * 
    * @param method
@@ -176,18 +204,6 @@ public class Checks {
 //                  method.getDeclaringType(),
 //                  JavaElementLabels.ALL_FULLY_QUALIFIED)}));
   }
-
-  /**
-   * Checks if the given name is a valid Dart package name.
-   * 
-   * @param name the Dart package name.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart
-   *         package name.
-   */
-//  public static RefactoringStatus checkPackageName(String name, DartElement context) {
-//  	return checkName(name, DartConventions.validatePackageName(name));
-//  }
 
   /**
    * Compare two parameter signatures.

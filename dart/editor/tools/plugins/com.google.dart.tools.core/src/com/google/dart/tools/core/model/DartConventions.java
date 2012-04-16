@@ -36,6 +36,10 @@ public final class DartConventions {
       return new MessageHolder().initForField();
     }
 
+    public static MessageHolder forFunction() {
+      return new MessageHolder().initForFunction();
+    }
+
     public static MessageHolder forMethod() {
       return new MessageHolder().initForMethod();
     }
@@ -94,6 +98,18 @@ public final class DartConventions {
       leadingOrTrailingBlanks = Messages.convention_fieldName_leadingOrTrailingBlanks;
       nullName = Messages.convention_fieldName_null;
       underscore = Messages.convention_fieldName_underscore;
+      return this;
+    }
+
+    private MessageHolder initForFunction() {
+      dollar = Messages.convention_functionName_dollar;
+      empty = Messages.convention_functionName_empty;
+      initialCase = Messages.convention_functionName_notLowercase;
+      initialChar = Messages.convention_functionName_initialChar;
+      internalChar = Messages.convention_functionName_internalChar;
+      leadingOrTrailingBlanks = Messages.convention_functionName_leadingOrTrailingBlanks;
+      nullName = Messages.convention_functionName_null;
+      underscore = Messages.convention_functionName_underscore;
       return this;
     }
 
@@ -216,6 +232,20 @@ public final class DartConventions {
    */
   public static IStatus validateFieldName(String name) {
     return validateLowerCamelCase(name, MessageHolder.forField());
+  }
+
+  /**
+   * Validate the given function name. Return a status object indicating the validity of the name.
+   * The status will have the code {@link IStatus.OK} if the name is valid as a function name, the
+   * code {@link IStatus.WARNING} if the name is discouraged, or the code {@link IStatus.ERROR} if
+   * the name is illegal. If the identifier is not valid then the status will have a message
+   * indicating why.
+   * 
+   * @param name the function name being validated
+   * @return a status object indicating the validity of the name
+   */
+  public static IStatus validateFunctionName(String name) {
+    return validateLowerCamelCase(name, MessageHolder.forFunction());
   }
 
   /**

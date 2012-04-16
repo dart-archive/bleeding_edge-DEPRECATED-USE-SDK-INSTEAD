@@ -14,8 +14,9 @@
 package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.test.util.TestProject;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
@@ -25,15 +26,15 @@ import org.eclipse.ui.PlatformUI;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Test for {@link RenameTypeProcessor}.
+ * Test for {@link RenameFunctionProcessor}.
  */
-public final class RenameTypeProcessorTest extends RefactoringTest {
+public final class RenameFunctionProcessorTest extends RefactoringTest {
   /**
-   * Uses {@link RenameSupport} to rename {@link Type}.
+   * Uses {@link RenameSupport} to rename {@link DartFunction}.
    */
-  private static void renameType(Type type, String newName) throws Exception {
+  private static void renameFunction(DartFunction function, String newName) throws Exception {
     TestProject.waitForAutoBuild();
-    RenameSupport renameSupport = RenameSupport.create(type, newName);
+    RenameSupport renameSupport = RenameSupport.create(function, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }
@@ -44,25 +45,25 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_accessors() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}");
-    Type type = findElement("Test {");
+        "test() {}",
+        "");
+    DartFunction function = findElement("test() {");
     // do check
-    RenameTypeProcessor processor = new RenameTypeProcessor(type);
-    assertEquals(RenameTypeProcessor.IDENTIFIER, processor.getIdentifier());
-    assertEquals("Test", processor.getCurrentElementName());
+    RenameFunctionProcessor processor = new RenameFunctionProcessor(function);
+    assertEquals(RenameFunctionProcessor.IDENTIFIER, processor.getIdentifier());
+    assertEquals("test", processor.getCurrentElementName());
   }
 
   public void test_badNewName_alreadyNamed() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}");
-    Type type = findElement("Test {");
+        "test() {}",
+        "");
+    DartFunction function = findElement("test() {");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameType(type, "Test");
+      renameFunction(function, "test");
       fail();
     } catch (InterruptedException e) {
     }
@@ -74,165 +75,120 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     assertEquals(source, testUnit.getSource());
   }
 
-  public void test_badNewName_shouldBeUpperCase() throws Exception {
+  public void test_badNewName_shouldBeLowerCase() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}");
-    Type type = findElement("Test {");
+        "test() {}",
+        "");
+    DartFunction function = findElement("test() {");
     // try to rename
     showStatusCancel = false;
-    renameType(type, "newName");
+    renameFunction(function, "NewName");
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "By convention, type names usually start with an uppercase letter",
+        "By convention, function names usually start with a lowercase letter",
         showStatusMessages.get(0));
     // status was warning, so rename was done
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class newName {",
-        "}");
+        "NewName() {}",
+        "");
   }
 
   public void test_OK_multipleUnits_onReference() throws Exception {
     setUnitContent(
         "Test1.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}");
+        "test() {}",
+        "");
     setUnitContent(
         "Test2.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
-        "  Test test = new Test();",
-        "}");
-    setUnitContent(
-        "Test3.dart",
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class B extends Test {",
+        "  test();",
         "}");
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "#library('test');",
         "#source('Test1.dart');",
-        "#source('Test2.dart');",
-        "#source('Test3.dart');");
+        "#source('Test2.dart');");
     // get units, because they have not library
     CompilationUnit unit1 = testProject.getUnit("Test1.dart");
     CompilationUnit unit2 = testProject.getUnit("Test2.dart");
-    CompilationUnit unit3 = testProject.getUnit("Test3.dart");
-    // find Type to rename
-    Type type = findElement(unit2, "Test test =");
+    // find Function to rename
+    DartFunction function = findElement(unit2, "test();");
     // do rename
-    renameType(type, "NewName");
+    renameFunction(function, "newName");
     assertUnitContent(
         unit1,
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class NewName {",
-        "}");
+        "newName() {}",
+        "");
     assertUnitContent(
         unit2,
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
-        "  NewName test = new NewName();",
-        "}");
-    assertUnitContent(
-        unit3,
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class B extends NewName {",
+        "  newName();",
         "}");
   }
 
   public void test_OK_singleUnit_onDeclaration() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
+        "test() {}",
         "f() {",
-        "  Test test = new Test();",
+        "  test();",
         "}",
-        "class B extends Test {",
-        "}");
-    Type type = findElement("Test {");
+        "");
+    DartFunction function = findElement("test() {");
     // do rename
-    renameType(type, "NewName");
+    renameFunction(function, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class NewName {",
-        "}",
+        "newName() {}",
         "f() {",
-        "  NewName test = new NewName();",
+        "  newName();",
         "}",
-        "class B extends NewName {",
-        "}");
+        "");
   }
 
   public void test_OK_singleUnit_onReference() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
+        "test() {}",
         "f() {",
-        "  Test test = new Test();",
+        "  test();",
         "}",
-        "class B extends Test {",
-        "}");
-    Type type = findElement("Test test =");
+        "");
+    DartFunction function = findElement("test();");
     // do rename
-    renameType(type, "NewName");
+    renameFunction(function, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class NewName {",
-        "}",
+        "newName() {}",
         "f() {",
-        "  NewName test = new NewName();",
+        "  newName();",
         "}",
-        "class B extends NewName {",
-        "}");
-  }
-
-  public void test_OK_singleUnit_onReference_inSubClass() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
-        "f() {",
-        "  Test test = new Test();",
-        "}",
-        "class B extends Test { // rename here",
-        "}");
-    Type type = findElement("Test { // rename here");
-    // do rename
-    renameType(type, "NewName");
-    assertTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class NewName {",
-        "}",
-        "f() {",
-        "  NewName test = new NewName();",
-        "}",
-        "class B extends NewName { // rename here",
-        "}");
+        "");
   }
 
   public void test_postCondition_localVariable_inMethod() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
+        "test() {}",
         "class A {",
         "  f() {",
-        "    var NewName;",
+        "    var newName;",
         "  }",
         "}",
         "");
-    Type type = findElement("Test {");
+    DartFunction function = findElement("test() {");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameType(type, "NewName");
+      renameFunction(function, "newName");
       fail();
     } catch (InterruptedException e) {
     }
@@ -240,7 +196,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "Method 'A.f()' in 'Test/Test.dart' declares variable 'NewName' which will shadow renamed type",
+        "Method 'A.f()' in 'Test/Test.dart' declares variable 'newName' which will shadow renamed function",
         showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -249,17 +205,16 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_postCondition_localVariable_inTopLevelFunction() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
+        "test() {}",
         "f() {",
-        "  var NewName;",
+        "  var newName;",
         "}",
         "");
-    Type type = findElement("Test {");
+    DartFunction function = findElement("test() {");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameType(type, "NewName");
+      renameFunction(function, "newName");
       fail();
     } catch (InterruptedException e) {
     }
@@ -267,7 +222,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(
-        "Function 'f()' in 'Test/Test.dart' declares variable 'NewName' which will shadow renamed type",
+        "Function 'f()' in 'Test/Test.dart' declares variable 'newName' which will shadow renamed function",
         showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -276,9 +231,8 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_postCondition_topLevel_class() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
-        "class NewName {",
+        "test() {}",
+        "class newName {",
         "}",
         "");
     check_postCondition_topLevel("type");
@@ -287,9 +241,8 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_postCondition_topLevel_function() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
-        "NewName() {}",
+        "test() {}",
+        "newName() {}",
         "");
     check_postCondition_topLevel("function");
   }
@@ -297,9 +250,8 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_postCondition_topLevel_functionTypeAlias() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "typedef NewName(int p);",
-        "class Test {",
-        "}",
+        "typedef newName(int p);",
+        "test() {}",
         "");
     check_postCondition_topLevel("function type alias");
   }
@@ -309,13 +261,12 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "Lib.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
         "#library('Lib');",
-        "var NewName;");
+        "var newName;");
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "#library('Test');",
         "#import('Lib.dart');",
-        "class Test {",
-        "}",
+        "test() {}",
         "");
     check_postCondition_topLevel("Lib.dart", "variable");
   }
@@ -323,9 +274,8 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_postCondition_topLevel_variable() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "var NewName;",
-        "class Test {",
-        "}",
+        "var newName;",
+        "test() {}",
         "");
     check_postCondition_topLevel("variable");
   }
@@ -333,10 +283,9 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_postCondition_type_field() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
+        "test() {}",
         "class A {",
-        "  var NewName;",
+        "  var newName;",
         "}",
         "");
     check_postCondition_typeMember("field");
@@ -345,10 +294,9 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   public void test_postCondition_type_method() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
+        "test() {}",
         "class A {",
-        "  NewName() {}",
+        "  newName() {}",
         "}",
         "");
     check_postCondition_typeMember("method");
@@ -358,13 +306,13 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     setUnitContent(
         "Test1.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}");
+        "test() {}",
+        "");
     setUnitContent(
         "Test2.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
-        "  Test test = new Test();",
+        "  test();",
         "}",
         "somethingBad");
     setTestUnitContent(
@@ -375,10 +323,10 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     // get units, because they have not library
     CompilationUnit unit1 = testProject.getUnit("Test1.dart");
     CompilationUnit unit2 = testProject.getUnit("Test2.dart");
-    Type type = findElement(unit1, "Test {");
+    DartFunction function = findElement(unit1, "test() {");
     // try to rename
     showStatusCancel = false;
-    renameType(type, "NewName");
+    renameFunction(function, "newName");
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
@@ -389,13 +337,13 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     assertUnitContent(
         unit1,
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class NewName {",
-        "}");
+        "newName() {}",
+        "");
     assertUnitContent(
         unit2,
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
-        "  NewName test = new NewName();",
+        "  newName();",
         "}",
         "somethingBad");
   }
@@ -405,11 +353,11 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   }
 
   private void check_postCondition_topLevel(String unitName, String shadowName) throws Exception {
-    Type type = findElement("Test {");
+    DartFunction function = findElement("test() {");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameType(type, "NewName");
+      renameFunction(function, "newName");
       fail();
     } catch (InterruptedException e) {
     }
@@ -420,17 +368,17 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         + unitName
         + "' in library 'Test' already declares top-level "
         + shadowName
-        + " 'NewName'", showStatusMessages.get(0));
+        + " 'newName'", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }
 
   private void check_postCondition_typeMember(String shadowName) throws Exception {
-    Type type = findElement("Test {");
+    DartFunction function = findElement("test() {");
     // try to rename
     String source = testUnit.getSource();
     try {
-      renameType(type, "NewName");
+      renameFunction(function, "newName");
       fail();
     } catch (InterruptedException e) {
     }
@@ -439,7 +387,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     assertThat(showStatusMessages).hasSize(1);
     assertEquals("Type 'A' in 'Test/Test.dart' declares "
         + shadowName
-        + " 'NewName' which will shadow renamed type", showStatusMessages.get(0));
+        + " 'newName' which will shadow renamed function", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }

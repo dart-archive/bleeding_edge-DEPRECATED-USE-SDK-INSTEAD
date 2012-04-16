@@ -193,6 +193,8 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String Checks_has_main;
 
+  public static String Checks_function_names_lowercase;
+
   public static String Checks_method_names_lowercase;
 
   public static String Checks_method_names_lowercase2;

@@ -32,6 +32,7 @@ public final class Messages extends NLS {
   public static String convention_fieldName_leadingOrTrailingBlanks;
   public static String convention_fieldName_null;
   public static String convention_fieldName_underscore;
+
   public static String convention_methodName_dollar;
   public static String convention_methodName_empty;
   public static String convention_methodName_notLowercase;
@@ -40,6 +41,16 @@ public final class Messages extends NLS {
   public static String convention_methodName_leadingOrTrailingBlanks;
   public static String convention_methodName_null;
   public static String convention_methodName_underscore;
+
+  public static String convention_functionName_dollar;
+  public static String convention_functionName_empty;
+  public static String convention_functionName_notLowercase;
+  public static String convention_functionName_initialChar;
+  public static String convention_functionName_internalChar;
+  public static String convention_functionName_leadingOrTrailingBlanks;
+  public static String convention_functionName_null;
+  public static String convention_functionName_underscore;
+
   public static String convention_parameterName_dollar;
   public static String convention_parameterName_empty;
   public static String convention_parameterName_notLowercase;

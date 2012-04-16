@@ -237,8 +237,7 @@ public class RenameAnalyzeUtil {
       visitedLibraries.add(library);
       // search in units of this library
       for (CompilationUnit unit : library.getCompilationUnits()) {
-        DartElement[] children = unit.getChildren();
-        for (DartElement element : children) {
+        for (DartElement element : unit.getChildren()) {
           if (element instanceof CompilationUnitElement
               && Objects.equal(element.getElementName(), name)) {
             return (CompilationUnitElement) element;
@@ -360,29 +359,41 @@ public class RenameAnalyzeUtil {
    */
   static void checkShadow_topLevel(
       RefactoringStatus result,
+      CompilationUnitElement renameElement,
       List<SearchMatch> references,
       String newName,
       String errorFormat) throws CoreException {
-    Set<DartLibrary> visitedLibraries = Sets.newHashSet();
-    for (SearchMatch match : references) {
-      DartElement matchElement = match.getElement();
-      CompilationUnitElement shadowElement = getTopLevelElementNamed(
-          visitedLibraries,
-          matchElement,
-          newName);
-      if (shadowElement != null) {
-        DartLibrary shadowLibrary = shadowElement.getAncestor(DartLibrary.class);
-        IPath libraryPath = shadowLibrary.getResource().getFullPath();
-        IPath resourcePath = shadowElement.getResource().getFullPath();
-        String message = Messages.format(
-            errorFormat,
-            new Object[] {
-                BasicElementLabels.getPathLabel(resourcePath, false),
-                BasicElementLabels.getPathLabel(libraryPath, false),
-                getElementTypeName(shadowElement),
-                newName,
-                getElementTypeName(matchElement)});
-        result.addFatalError(message, DartStatusContext.create(shadowElement));
+    // prepare libraries with references
+    Set<DartLibrary> libraries = Sets.newHashSet();
+    libraries.add(renameElement.getAncestor(DartLibrary.class));
+    for (SearchMatch reference : references) {
+      DartLibrary library = reference.getElement().getAncestor(DartLibrary.class);
+      libraries.add(library);
+    }
+    // visit libraries with references
+    for (DartLibrary library : libraries) {
+      // visit units of library
+      for (CompilationUnit unit : library.getCompilationUnitsInScope()) {
+        // visit top-level children of unit
+        for (DartElement unitChild : unit.getChildren()) {
+          // may be conflict with existing top-level element
+          if (unitChild instanceof CompilationUnitElement
+              && Objects.equal(unitChild.getElementName(), newName)) {
+            CompilationUnitElement shadowElement = (CompilationUnitElement) unitChild;
+            DartLibrary shadowLibrary = shadowElement.getAncestor(DartLibrary.class);
+            IPath libraryPath = shadowLibrary.getResource().getFullPath();
+            IPath resourcePath = shadowElement.getResource().getFullPath();
+            String message = Messages.format(
+                errorFormat,
+                new Object[] {
+                    BasicElementLabels.getPathLabel(resourcePath, false),
+                    BasicElementLabels.getPathLabel(libraryPath, false),
+                    getElementTypeName(shadowElement),
+                    newName,
+                    getElementTypeName(renameElement)});
+            result.addFatalError(message, DartStatusContext.create(shadowElement));
+          }
+        }
       }
     }
   }

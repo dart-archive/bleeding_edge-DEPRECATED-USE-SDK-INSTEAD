@@ -2,6 +2,7 @@ package com.google.dart.tools.internal.corext.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
@@ -1235,6 +1236,19 @@ public class RefactoringAvailabilityTester {
     return true;
   }
 
+  public static boolean isRenameAvailable(DartFunction function) throws DartModelException {
+    if (function == null) {
+      return false;
+    }
+    if (!Checks.isAvailable(function)) {
+      return false;
+    }
+//    if (isRenameProhibited(function)) {
+//      return false;
+//    }
+    return true;
+  }
+
   public static boolean isRenameAvailable(DartProject project) throws DartModelException {
     if (project == null) {
       return false;
@@ -1251,10 +1265,6 @@ public class RefactoringAvailabilityTester {
   public static boolean isRenameAvailable(DartVariableDeclaration variable)
       throws DartModelException {
     return Checks.isAvailable(variable);
-  }
-
-  public static boolean isRenameAvailable(Field field) throws DartModelException {
-    return Checks.isAvailable(field);
   }
 
 //  public static boolean isRenameAvailable(IPackageFragment fragment)
@@ -1294,6 +1304,10 @@ public class RefactoringAvailabilityTester {
 //    return true;
 //  }
 
+  public static boolean isRenameAvailable(Field field) throws DartModelException {
+    return Checks.isAvailable(field);
+  }
+
   public static boolean isRenameAvailable(IResource resource) {
     if (resource == null) {
       return false;
@@ -1306,6 +1320,10 @@ public class RefactoringAvailabilityTester {
     }
     return true;
   }
+
+//  public static boolean isRenameAvailable(ITypeParameter parameter) throws DartModelException {
+//    return Checks.isAvailable(parameter);
+//  }
 
   public static boolean isRenameAvailable(Method method) throws CoreException {
     if (method == null) {
@@ -1322,10 +1340,6 @@ public class RefactoringAvailabilityTester {
     }
     return true;
   }
-
-//  public static boolean isRenameAvailable(ITypeParameter parameter) throws DartModelException {
-//    return Checks.isAvailable(parameter);
-//  }
 
   public static boolean isRenameAvailable(Type type) throws DartModelException {
     if (type == null) {
@@ -1354,6 +1368,8 @@ public class RefactoringAvailabilityTester {
 //      case DartElement.FUNCTION_TYPE_ALIAS:
 //      case DartElement.LIBRARY:
 //        return false;
+      case DartElement.FUNCTION:
+        return isRenameAvailable((DartFunction) element);
       case DartElement.TYPE:
         return isRenameAvailable((Type) element);
       case DartElement.FIELD:

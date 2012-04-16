@@ -7,6 +7,7 @@ import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
@@ -539,6 +540,8 @@ public class RenameLinkedMode {
 //    RenameSupport renameSupport = RenameSupport.create(descriptor);
     // TODO(scheglov) create actual RenameSupport based on element type
     switch (fDartElement.getElementType()) {
+      case DartElement.FUNCTION:
+        return RenameSupport.create((DartFunction) fDartElement, newName);
       case DartElement.TYPE:
         return RenameSupport.create((Type) fDartElement, newName);
       case DartElement.FIELD:
