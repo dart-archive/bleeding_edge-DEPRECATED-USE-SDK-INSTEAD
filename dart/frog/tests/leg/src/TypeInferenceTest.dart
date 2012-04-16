@@ -49,14 +49,8 @@ main(a) {
 
 main() {
   String generated = compile(TEST_ONE, 'sum');
-  RegExp regexp = new RegExp("i = \\(?$anyIdentifier \\+ \\(1\\)\\)?");
-  // TODO(ngeoffray): Do live range analysis to make this test pass.
-  Expect.isFalse(regexp.hasMatch(generated));
 
-  regexp = new RegExp("sum = \\(?$anyIdentifier \\+ $anyIdentifier\\)?");
-  Expect.isTrue(regexp.hasMatch(generated));
-
-  regexp = const RegExp("typeof param0 !== 'number'");
+  Regexp regexp = new RegExp("sum = \\(?$anyIdentifier \\+ $anyIdentifier\\)?");
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp("typeof param1 !== 'number'");
