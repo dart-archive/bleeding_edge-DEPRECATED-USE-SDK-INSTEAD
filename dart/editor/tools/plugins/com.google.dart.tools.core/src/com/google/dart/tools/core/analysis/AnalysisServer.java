@@ -94,6 +94,9 @@ public class AnalysisServer {
    * @param libraryManager the target (VM, Dartium, JS) against which user libraries are resolved
    */
   public AnalysisServer(EditorLibraryManager libraryManager) {
+    if (libraryManager == null) {
+      throw new IllegalArgumentException();
+    }
     this.libraryManager = libraryManager;
     this.analyze = true;
     this.backgroundThread = new Thread(new Runnable() {
