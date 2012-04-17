@@ -958,6 +958,9 @@ public class DartModelManager {
    * @return <code>true</code> if the given resource should be analyzed
    */
   public boolean isAnalyzed(IResource resource) {
+    if (resource == null) {
+      return false;
+    }
     if (!resource.exists()) {
       return false;
     }
