@@ -4,6 +4,7 @@
 
 
 [ $compiler == dart2js ]
+chat/ChatServerTest: Fail # Failed invariant in closure analyzer.
 proxy/MintMakerRpcTest: Fail # TypeError: Cannot call method 'toSendPort$0' of undefined
 
 
