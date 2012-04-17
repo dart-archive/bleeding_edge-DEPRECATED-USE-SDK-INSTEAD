@@ -18,6 +18,7 @@ import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
+import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
@@ -26,11 +27,11 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionObjectInvocation;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
@@ -40,7 +41,6 @@ import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
-import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
@@ -323,13 +323,12 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   @Override
   public Void visitIdentifier(DartIdentifier node) {
-    DartNode parent = node.getParent();
-    if (parent instanceof DartParameter || parent instanceof DartField
-        || parent instanceof DartVariable) {
+    if (isNameInDeclaration(node)) {
       return null;
     }
     com.google.dart.compiler.resolver.Element element = node.getElement();
     if (element == null) {
+      DartNode parent = node.getParent();
       if (parent instanceof DartTypeNode) {
         DartNode grandparent = parent.getParent();
         if (grandparent instanceof DartNewExpression) {
@@ -920,6 +919,27 @@ public class IndexContributor extends ASTVisitor<Void> {
       }
       child = parent;
       parent = child.getParent();
+    }
+    return false;
+  }
+
+  /**
+   * Return <code>true</code> if the given identifier represents the name in a declaration of that
+   * name.
+   * 
+   * @param node the identifier being tested
+   * @return <code>true</code> if the given identifier is the name in a declaration
+   */
+  private boolean isNameInDeclaration(DartIdentifier node) {
+    DartNode parent = node.getParent();
+    if (parent instanceof DartDeclaration) {
+      return ((DartDeclaration<?>) parent).getName() == node;
+    }
+    if (parent instanceof DartFunctionExpression) {
+      return ((DartFunctionExpression) parent).getName() == node;
+    }
+    if (parent instanceof DartLabel) {
+      return ((DartLabel) parent).getLabel() == node;
     }
     return false;
   }
