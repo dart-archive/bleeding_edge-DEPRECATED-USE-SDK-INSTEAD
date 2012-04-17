@@ -25,7 +25,6 @@ import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.rules.SingleLineRule;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.jface.text.rules.WhitespaceRule;
-import org.eclipse.jface.text.rules.WordRule;
 import org.eclipse.swt.SWT;
 
 class HtmlTagScanner extends RuleBasedScanner {
@@ -43,7 +42,7 @@ class HtmlTagScanner extends RuleBasedScanner {
     rules[0] = new SingleLineRule("\"", "\"", stringToken, '\\');
     rules[1] = new SingleLineRule("'", "'", stringToken, '\\');
 
-    WordRule keywordRule = new WordRule(new WordDetector());
+    HtmlWordRule keywordRule = new HtmlWordRule(new WordDetector(), Token.UNDEFINED, true);
 
     for (String keyword : HtmlKeywords.getKeywords()) {
       keywordRule.addWord(keyword, keywordToken);

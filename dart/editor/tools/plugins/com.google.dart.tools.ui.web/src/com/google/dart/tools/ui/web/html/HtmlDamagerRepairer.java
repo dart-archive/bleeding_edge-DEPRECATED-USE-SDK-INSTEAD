@@ -27,7 +27,6 @@ import org.eclipse.jface.text.presentation.IPresentationRepairer;
 import org.eclipse.swt.custom.StyleRange;
 
 class HtmlDamagerRepairer implements IPresentationDamager, IPresentationRepairer {
-
   /** The document this object works on */
   protected IDocument fDocument;
   /** The default text attribute if non is returned as data by the current token */
@@ -58,7 +57,6 @@ class HtmlDamagerRepairer implements IPresentationDamager, IPresentationRepairer
       boolean documentPartitioningChanged) {
     if (!documentPartitioningChanged) {
       try {
-
         IRegion info = fDocument.getLineInformationOfOffset(event.getOffset());
         int start = Math.max(partition.getOffset(), info.getOffset());
 
@@ -73,9 +71,10 @@ class HtmlDamagerRepairer implements IPresentationDamager, IPresentationRepairer
         }
 
         end = Math.min(partition.getOffset() + partition.getLength(), end);
-        return new Region(start, end - start);
 
+        return new Region(start, end - start);
       } catch (BadLocationException x) {
+
       }
     }
 
@@ -115,13 +114,14 @@ class HtmlDamagerRepairer implements IPresentationDamager, IPresentationRepairer
    * @exception BadLocationException if offset is invalid in the current document
    */
   protected int endOfLineOf(int offset) throws BadLocationException {
-
     IRegion info = fDocument.getLineInformationOfOffset(offset);
+
     if (offset <= info.getOffset() + info.getLength()) {
       return info.getOffset() + info.getLength();
     }
 
     int line = fDocument.getLineOfOffset(offset);
+
     try {
       info = fDocument.getLineInformation(line + 1);
       return info.getOffset() + info.getLength();
