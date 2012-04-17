@@ -119,7 +119,7 @@ testAB_typed() {
   setup();  // Fresh constructors.
 
   A a = makeA();
-  B b = makeA();
+  B b = makeB();
 
   a.X = 100;
   Expect.equals(100, a._field);

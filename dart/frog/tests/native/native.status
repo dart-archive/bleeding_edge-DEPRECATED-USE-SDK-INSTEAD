@@ -14,8 +14,5 @@ ForeignTest: Fail # Leg only test
 [ $checked ]
 NativeCheckedFieldsFrogTest: Fail
 
-[ $compiler == dart2js && $runtime == d8 ]
-NativeClassInheritance4FrogTest: Fail
-
 [ $compiler == dartc || $runtime == drt || $runtime == ie || $runtime == chrome || $runtime == safari || $runtime == ff || $runtime == opera ]
 *: Skip
