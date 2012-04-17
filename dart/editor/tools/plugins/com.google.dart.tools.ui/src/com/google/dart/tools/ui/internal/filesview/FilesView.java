@@ -285,9 +285,13 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     if (allElementsAreResources(selection)) {
       manager.add(createFileAction);
-      manager.add(createFolderAction);
-      manager.add(createApplicationAction);
+
     }
+    if (selection.size() == 1 && selection.getFirstElement() instanceof IContainer) {
+      manager.add(createFolderAction);
+    }
+
+    manager.add(createApplicationAction);
 
     // OPEN GROUP
 
