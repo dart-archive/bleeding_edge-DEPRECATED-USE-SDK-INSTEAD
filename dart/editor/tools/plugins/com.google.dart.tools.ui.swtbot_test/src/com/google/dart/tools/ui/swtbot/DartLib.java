@@ -46,7 +46,8 @@ public class DartLib {
   public static final DartLib SLIDER_SAMPLE = new DartLib("slider", "slider_sample");
   public static final DartLib SUNFLOWER_SAMPLE = new DartLib("sunflower", "Sunflower");
   public static final DartLib TIME_SERVER_SAMPLE = new DartLib("time", "time_server");
-  public static final DartLib TOTAL_SAMPLE = new DartLib("total", "client/Total".replace('/',
+  public static final DartLib TOTAL_SAMPLE = new DartLib("total", "client/Total".replace(
+      '/',
       File.separatorChar));
   public static DartLib[] allSamples;
 

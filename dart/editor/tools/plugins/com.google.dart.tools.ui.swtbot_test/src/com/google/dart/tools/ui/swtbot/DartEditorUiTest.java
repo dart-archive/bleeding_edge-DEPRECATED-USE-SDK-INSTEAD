@@ -198,7 +198,8 @@ public class DartEditorUiTest {
 
   @Test
   public void testNewApplicationWizard_server() throws Exception {
-    DartLib dartLib = new NewApplicationHelper(bot).create("NewAppServer",
+    DartLib dartLib = new NewApplicationHelper(bot).create(
+        "NewAppServer",
         NewApplicationHelper.ContentType.SERVER);
     Performance.waitForResults(bot);
     // TODO (jwren) once we can launch server apps (see todo in DartLib.openAndLaunch), then this
@@ -208,7 +209,8 @@ public class DartEditorUiTest {
 
   @Test
   public void testNewApplicationWizard_web() throws Exception {
-    DartLib dartLib = new NewApplicationHelper(bot).create("NewAppWeb",
+    DartLib dartLib = new NewApplicationHelper(bot).create(
+        "NewAppWeb",
         NewApplicationHelper.ContentType.WEB);
     Performance.waitForResults(bot);
     openAndLaunchLibrary(dartLib, true, true);
@@ -329,7 +331,8 @@ public class DartEditorUiTest {
     }
 
     // Files view assertions
-    new FilesViewHelper(bot).assertTreeItemsEqual(dartLibSample.getNameInFilesView(),
+    new FilesViewHelper(bot).assertTreeItemsEqual(
+        dartLibSample.getNameInFilesView(),
         FilesViewHelper.SDK_TEXT);
 
     // Finally, close the library

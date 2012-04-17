@@ -48,7 +48,8 @@ public class PreferencesHelper {
 
   public void assertDefaultPreferencesSelected() {
     SWTBotCheckBox lineNumbersCheckBox = bot.checkBoxInGroup("Show line numbers", "General");
-    SWTBotCheckBox printMarginCheckBox = bot.checkBoxInGroup("Show print margin at column:",
+    SWTBotCheckBox printMarginCheckBox = bot.checkBoxInGroup(
+        "Show print margin at column:",
         "General");
 
     assertNotNull(lineNumbersCheckBox);

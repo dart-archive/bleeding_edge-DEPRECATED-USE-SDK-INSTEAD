@@ -117,7 +117,9 @@ public class SWTBotUtil {
   @SuppressWarnings("unchecked")
   public static SWTBotToolbarDropDownButton toolbarDropDownButton(SWTWorkbenchBot bot,
       final String toolTipRegex) {
-    Matcher<Widget> matcher = allOf(widgetOfType(ToolItem.class), new WithToolTip(toolTipRegex),
+    Matcher<Widget> matcher = allOf(
+        widgetOfType(ToolItem.class),
+        new WithToolTip(toolTipRegex),
         withStyle(SWT.DROP_DOWN, "SWT.DROP_DOWN"));
     return new SWTBotToolbarDropDownButton((ToolItem) bot.widget(matcher, 0), matcher);
   }
@@ -165,7 +167,8 @@ public class SWTBotUtil {
 
   @SuppressWarnings("unchecked")
   private static List<? extends Widget> toolbarDropDownButtons(SWTWorkbenchBot bot) {
-    return bot.widgets(allOf(widgetOfType(ToolItem.class),
+    return bot.widgets(allOf(
+        widgetOfType(ToolItem.class),
         withStyle(SWT.DROP_DOWN, "SWT.DROP_DOWN")));
   }
 

@@ -35,7 +35,8 @@ import java.io.File;
 public class NewApplicationHelper {
 
   public enum ContentType {
-    WEB, SERVER
+    WEB,
+    SERVER
   }
 
   private final SWTWorkbenchBot bot;

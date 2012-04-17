@@ -56,9 +56,12 @@ public class LaunchBrowserHelper {
 
     long start = System.currentTimeMillis();
     String pathFromTopLevelDir = lib.dartFile.getAbsolutePath();
-    pathFromTopLevelDir = pathFromTopLevelDir.substring(lib.dir.getAbsolutePath().length() + 1,
+    pathFromTopLevelDir = pathFromTopLevelDir.substring(
+        lib.dir.getAbsolutePath().length() + 1,
         pathFromTopLevelDir.length());
-    new FilesViewHelper(bot).contextClick(lib.dir.getName(), pathFromTopLevelDir,
+    new FilesViewHelper(bot).contextClick(
+        lib.dir.getName(),
+        pathFromTopLevelDir,
         FilesViewHelper.RUN_TEXT);
     Metric metric = Performance.LAUNCH_APP;
 
