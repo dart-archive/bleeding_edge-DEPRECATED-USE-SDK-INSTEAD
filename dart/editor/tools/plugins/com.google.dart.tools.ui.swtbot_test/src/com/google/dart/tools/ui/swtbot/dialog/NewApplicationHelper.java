@@ -16,9 +16,9 @@ package com.google.dart.tools.ui.swtbot.dialog;
 import com.google.dart.tools.ui.swtbot.DartLib;
 import com.google.dart.tools.ui.swtbot.matchers.EditorWithTitle;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
-import org.eclipse.swtbot.swt.finder.keyboard.Keystrokes;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRadio;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
@@ -36,7 +36,7 @@ public class NewApplicationHelper {
 
   public enum ContentType {
     WEB, SERVER
-  };
+  }
 
   private final SWTWorkbenchBot bot;
 
@@ -59,8 +59,14 @@ public class NewApplicationHelper {
 
     // Reference widgets and Assert content
     SWTBotText appNameField = bot.textWithLabel("Name: ");
+    assertNotNull(appNameField);
+    // By calling setFocus on this widget, we ensure that this dialog is made the top-most
+    // window before the click action happens.
+    appNameField.setFocus();
+    SWTBotUtil.waitForMainShellToDisappear(bot);
     SWTBotText appDirField = bot.textWithLabel("Directory: ");
     SWTBotButton browseButton = bot.button("Browse...");
+    SWTBotButton finishButton = bot.button("Finish");
 
     SWTBotRadio webAppRadio = bot.radioInGroup("Web application", "Create sample content");
     SWTBotRadio serverAppRadio = bot.radioInGroup("Server application", "Create sample content");
@@ -68,6 +74,7 @@ public class NewApplicationHelper {
     assertEquals("", appNameField.getText());
     assertTrue(appDirField.getText().length() > 0);
     assertNotNull(browseButton);
+    assertNotNull(finishButton);
 
     assertTrue(webAppRadio.isSelected());
     assertFalse(serverAppRadio.isSelected());
@@ -93,8 +100,8 @@ public class NewApplicationHelper {
     // Enter name of new app
     appNameField.typeText(appName);
 
-    // Press Enter and wait for the operation to complete
-    shell.pressShortcut(Keystrokes.LF);
+    // Click OK button and wait for the operation to complete
+    finishButton.click();
     lib.logFullAnalysisTime();
     EditorWithTitle matcher = new EditorWithTitle(lib.dartFile.getName());
     Performance.NEW_APP.log(bot, waitForEditor(matcher), appName);

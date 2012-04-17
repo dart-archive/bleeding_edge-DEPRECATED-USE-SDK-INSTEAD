@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.swtbot.util;
 
 import com.google.dart.tools.ui.swtbot.matchers.EditorWithTitle;
 import com.google.dart.tools.ui.swtbot.matchers.WithToolTip;
+import com.google.dart.tools.ui.swtbot.performance.Performance;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -25,6 +26,7 @@ import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.waits.WaitForEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.swt.finder.SWTBot;
+import org.eclipse.swtbot.swt.finder.waits.ICondition;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarDropDownButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
@@ -35,6 +37,8 @@ import static org.eclipse.swtbot.eclipse.finder.waits.Conditions.waitForEditor;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.withStyle;
+import static org.eclipse.swtbot.swt.finder.waits.Conditions.shellCloses;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -125,6 +129,40 @@ public class SWTBotUtil {
     return waitForEditor(new EditorWithTitle(titleRegex));
   }
 
+  public static void waitForMainShellToDisappear(SWTWorkbenchBot bot) {
+    final SWTBotShell mainShell = bot.shell("Dart Editor");
+    assertNotNull(mainShell);
+
+    try {
+      // Wait for the main shell to loose focus
+      bot.waitUntil(new ICondition() {
+
+        @Override
+        public String getFailureMessage() {
+          return "The Dart Editor shell failed to leave focus.";
+        }
+
+        @Override
+        public void init(SWTBot bot) {
+        }
+
+        @Override
+        public boolean test() throws Exception {
+          return !mainShell.isActive();
+        }
+      }, Performance.DEFAULT_TIMEOUT_MS);
+      SWTBotShell activeShell = activeShell(bot);
+
+      // If progress dialog, then wait for it to close
+      if (activeShell != null && activeShell.getText().startsWith("Launching ")) {
+        bot.waitUntil(shellCloses(activeShell), Performance.DEFAULT_TIMEOUT_MS);
+      }
+
+    } finally {
+    }
+
+  }
+
   @SuppressWarnings("unchecked")
   private static List<? extends Widget> toolbarDropDownButtons(SWTWorkbenchBot bot) {
     return bot.widgets(allOf(widgetOfType(ToolItem.class),
@@ -135,4 +173,5 @@ public class SWTBotUtil {
   private static List<? extends Widget> toolbarPushButtons(SWTWorkbenchBot bot) {
     return bot.widgets(allOf(widgetOfType(ToolItem.class), withStyle(SWT.PUSH, "SWT.PUSH")));
   }
+
 }

@@ -19,7 +19,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 
@@ -31,6 +30,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -40,7 +40,8 @@ public class FilesViewHelper {
 
   public static String SDK_TEXT = "SDK Libraries";
 
-  public static String REMOVE_FROM_EDITOR = "Remove from Editor";
+  public static String REMOVE_FROM_EDITOR_TEXT = "Remove from Editor";
+  public static String RUN_TEXT = "Run";
 
   private SWTBotTree tree;
 
@@ -72,6 +73,15 @@ public class FilesViewHelper {
     }
   }
 
+  /**
+   * This method performs a specified menu context click on a top level directory in the Files view.
+   * 
+   * @param projectLabel the name of the top level directory in the Files view that will get this
+   *          context menu click
+   * @param commandLabel the name of the action on the context menu for the specified project, an
+   *          example is {@link #REMOVE_FROM_EDITOR_TEXT}
+   * @return <code>true</code> if the click action was successful
+   */
   public boolean contextClick(String projectLabel, String commandLabel) {
     for (SWTBotTreeItem treeItem : getItems()) {
       if (treeItem.getText().equals(projectLabel)) {
@@ -81,17 +91,40 @@ public class FilesViewHelper {
     return false;
   }
 
+  /**
+   * Similar to {@link #contextClick(String, String)}, except this method allows you to specify a
+   * file or folder within the specified top level directory.
+   * 
+   * @param projectLabel the name of the top level directory in the Files view that will get this
+   *          context menu click
+   * @param filePath some path within the specified top level directory, such as
+   *          <code>folder1/folder2/file.txt</code>
+   * @param commandLabel the name of the action on the context menu for the specified project, an
+   *          example is {@link #RUN_TEXT}
+   * @return <code>true</code> if the click action was successful
+   */
+  public boolean contextClick(String projectLabel, String filePath, String commandLabel) {
+    for (SWTBotTreeItem treeItem : getItems()) {
+      if (treeItem.getText().equals(projectLabel)) {
+        treeItem.expand();
+        String[] filePaths = filePath.split(java.io.File.separator);
+        SWTBotTreeItem itemToClick = recursivelyFind(filePaths, treeItem);
+        return itemToClick.contextMenu(commandLabel).click() != null;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This method calls {@link #contextClick(String, String)} with the specified top level directory
+   * name.
+   */
   public boolean contextClick_removeFromEditor(String projectLabel) {
     int beforeCount = getItems().length;
     // Click the Remove action, if successful, wait for dialog
-    if (contextClick(projectLabel, REMOVE_FROM_EDITOR)) {
-
-      // Click OK in dialog that appears
-      SWTBotButton okButton = bot.button("OK");
-      // By calling setFocus on this widget, we ensure that this dialog is made the top-most
-      // window before the click action happens.
-      okButton.setFocus();
-      okButton.click();
+    if (contextClick(projectLabel, REMOVE_FROM_EDITOR_TEXT)) {
+      // assert that the item disappears from the view within 200 ms
+      bot.sleep(200);
       assertEquals("After removing " + projectLabel
           + ", expected one less item in the Files view, but instead there are "
           + getItems().length + " items.", beforeCount - 1, getItems().length);
@@ -101,14 +134,15 @@ public class FilesViewHelper {
     return false;
   }
 
+  /**
+   * Returns an array of {@link SWTBotTreeItem}s.
+   */
   public SWTBotTreeItem[] getItems() {
     return tree.getAllItems();
   }
 
   /**
    * Used for messages only, don't make assertions on the returned content.
-   * 
-   * @return
    */
   public String getItemsToString() {
     StringBuilder stringBuilder = new StringBuilder();
@@ -128,8 +162,32 @@ public class FilesViewHelper {
       String treeItemLabel = treeItem.getText();
       assertNotNull(treeItem);
       assertFalse(treeItemLabel.isEmpty());
-      itemCollection.add(treeItemLabel);;
+      itemCollection.add(treeItemLabel);
     }
     return itemCollection;
   }
+
+  // TODO (jwren) move this method to the SWTBotUtil class
+  private SWTBotTreeItem recursivelyFind(String[] filePaths, SWTBotTreeItem parent) {
+    assertNotNull(parent);
+    parent.expand();
+    assertTrue(parent.isExpanded());
+    assertTrue(filePaths.length > 0);
+    SWTBotTreeItem[] items = parent.getItems();
+    for (SWTBotTreeItem childTreeItem : items) {
+      if (childTreeItem.getText().equals(filePaths[0])) {
+        if (filePaths.length == 1) {
+          //base case:
+          return childTreeItem;
+        } else {
+          // recursive case:
+          return recursivelyFind(Arrays.copyOfRange(filePaths, 1, filePaths.length), childTreeItem);
+        }
+      }
+    }
+    fail("Could not find the tree element " + filePaths[0] + " under " + parent.getText()
+        + " in the Files view.");
+    return null;
+  }
+
 }

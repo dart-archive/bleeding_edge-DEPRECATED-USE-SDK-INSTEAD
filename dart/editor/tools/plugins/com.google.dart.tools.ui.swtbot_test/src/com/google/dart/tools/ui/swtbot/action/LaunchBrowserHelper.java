@@ -16,16 +16,15 @@ package com.google.dart.tools.ui.swtbot.action;
 import com.google.dart.tools.ui.swtbot.DartLib;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
 import com.google.dart.tools.ui.swtbot.performance.Performance.Metric;
+import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
 
 import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.activeShell;
-import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.toolbarDropDownButton;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarDropDownButton;
 
 import static org.eclipse.swtbot.swt.finder.waits.Conditions.shellCloses;
 
@@ -55,12 +54,12 @@ public class LaunchBrowserHelper {
 
     final SWTBotShell mainShell = bot.activeShell();
 
-    SWTBotToolbarDropDownButton launchButton = toolbarDropDownButton(bot, "Run.*");
-    // By calling setFocus on this widget, we ensure that the main shell is made the top-most
-    // shell before the click action happens.
-    launchButton.setFocus();
     long start = System.currentTimeMillis();
-    launchButton.click();
+    String pathFromTopLevelDir = lib.dartFile.getAbsolutePath();
+    pathFromTopLevelDir = pathFromTopLevelDir.substring(lib.dir.getAbsolutePath().length() + 1,
+        pathFromTopLevelDir.length());
+    new FilesViewHelper(bot).contextClick(lib.dir.getName(), pathFromTopLevelDir,
+        FilesViewHelper.RUN_TEXT);
     Metric metric = Performance.LAUNCH_APP;
 
     List<String> comments = new ArrayList<String>();
