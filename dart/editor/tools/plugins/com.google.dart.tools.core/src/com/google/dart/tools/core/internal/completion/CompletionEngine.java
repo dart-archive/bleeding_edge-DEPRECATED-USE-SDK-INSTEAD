@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -37,10 +37,13 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartReturnStatement;
+import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartStringInterpolation;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartSyntheticErrorExpression;
+import com.google.dart.compiler.ast.DartSyntheticErrorIdentifier;
+import com.google.dart.compiler.ast.DartSyntheticErrorStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -533,17 +536,33 @@ public class CompletionEngine {
         BlockCompleter block = (BlockCompleter) node;
         Stack<Mark> stack = block.getCompletionParsingContext();
         if (stack.isEmpty() || stack.peek() == Mark.Block || stack.peek() == Mark.ClassMember) {
-          // between statements: { ! } or { ! x; ! y; ! }
-          boolean isStatic = resolvedMember.getModifiers().isStatic();
-          createCompletionsForLocalVariables(block, null, resolvedMember);
           Element parentElement = resolvedMember.getElement().getEnclosingElement();
           if (parentElement instanceof ClassElement) {
+            // between statements: { ! } or { ! x; ! y; ! }
+            boolean isStatic = resolvedMember.getModifiers().isStatic();
+            createCompletionsForLocalVariables(block, null, resolvedMember);
             Type type = ((ClassElement) parentElement).getType();
             createCompletionsForPropertyAccess(null, type, false, isStatic);
             createCompletionsForMethodInvocation(null, type, false, isStatic);
             // Types are legal here but we are not proposing them since they are optional
           } else {
-            // TODO top-level element
+            // another case of error recovery producing odd AST shapes
+            // an incomplete new expr at the end of a block has a source range that terminates prior
+            // to the completion position so it is not found when searching for the completion node
+            // class XXX {XXX.fisk();}main() {main(); new !}}
+            List<DartStatement> stmts = node.getStatements();
+            if (stmts.size() > 0) {
+              DartStatement stmt = stmts.get(stmts.size() - 1);
+              if (stmt instanceof DartExprStmt) {
+                DartExpression expr = ((DartExprStmt) stmt).getExpression();
+                if (expr instanceof DartNewExpression) {
+                  if (actualCompletionPosition >= expr.getSourceInfo().getEnd()) {
+                    // { ... new ! }
+                    return ((DartNewExpression) expr).accept(this);
+                  }
+                }
+              }
+            }
           }
         } else if (stack.peek() == Mark.FunctionStatementBody) {
           if (block.getStatements().isEmpty() && block.getParent() instanceof FunctionCompleter) {
@@ -708,6 +727,20 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitIfStatement(DartIfStatement completionNode) {
+      // { if (v!) }
+      createCompletionsForLocalVariables(completionNode, null, resolvedMember);
+      boolean isStatic = resolvedMember.getModifiers().isStatic();
+      Element parentElement = resolvedMember.getElement().getEnclosingElement();
+      if (parentElement instanceof ClassElement) {
+        Type type = ((ClassElement) parentElement).getType();
+        createCompletionsForPropertyAccess(null, type, false, isStatic);
+        createCompletionsForMethodInvocation(null, type, false, isStatic);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitMethodInvocation(DartMethodInvocation completionNode) {
       if (completionNode instanceof MethodInvocationCompleter) {
         DartIdentifier functionName = completionNode.getFunctionName();
@@ -720,14 +753,6 @@ public class CompletionEngine {
           Type type = analyzeType(completionNode.getTarget());
           if (type != null) {
             createCompletionsForQualifiedMemberAccess(functionName, type, false);
-            // TODO: delete this block after confirming it is not needed
-//          } else {
-//            DartNode target = completionNode.getTarget();
-//            if (target instanceof DartPropertyAccess) {
-//              // TODO(zundel): HACK! This might be a 'this' or 'static' access: I didn't check
-//              createCompletionsForPropertyAccess(((DartPropertyAccess) target).getName(),
-//                  analyzeType(target), false, false);
-//            }
           }
         }
       }
@@ -868,6 +893,21 @@ public class CompletionEngine {
         }
       }
       return null;
+    }
+
+    @Override
+    public Void visitSyntheticErrorExpression(DartSyntheticErrorExpression node) {
+      return node.getParent().accept(this);
+    }
+
+    @Override
+    public Void visitSyntheticErrorIdentifier(DartSyntheticErrorIdentifier node) {
+      return node.getParent().accept(this);
+    }
+
+    @Override
+    public Void visitSyntheticErrorStatement(DartSyntheticErrorStatement node) {
+      return node.getParent().accept(this);
     }
 
     @Override
@@ -1587,7 +1627,7 @@ public class CompletionEngine {
       if (isMethodStatic && !fieldIsStatic || isQualifiedByThis && fieldIsStatic) {
         continue;
       }
-      if (fieldIsStatic && node.getParent() instanceof DartPropertyAccess) {
+      if (fieldIsStatic && node != null && node.getParent() instanceof DartPropertyAccess) {
         DartPropertyAccess parent = (DartPropertyAccess) node.getParent();
         if (field.getEnclosingElement() != parent.getQualifier().getElement()) {
           continue;
@@ -1660,36 +1700,7 @@ public class CompletionEngine {
     if (disallowPrivate && name.startsWith("_")) {
       return;
     }
-    try {
-      for (com.google.dart.tools.core.model.Method method : type.getMethods()) {
-        if (method.isConstructor()) {
-          if (!method.getElementName().equals(name)) {
-            // not sure why method.isFactory() doesn't work
-            continue;
-          }
-          InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-              CompletionProposal.METHOD_REF, actualCompletionPosition - offset);
-          char[] declaringTypeName = method.getDeclaringType().getElementName().toCharArray();
-          char[] methodName = name.toCharArray();
-          proposal.setDeclarationSignature(declaringTypeName);
-          proposal.setSignature(methodName);
-          proposal.setCompletion(methodName);
-          proposal.setName(methodName);
-          proposal.setIsContructor(method.isConstructor());
-          proposal.setIsGetter(false);
-          proposal.setIsSetter(false);
-          proposal.setParameterNames(getParameterNames(method));
-          proposal.setParameterTypeNames(getParameterTypeNames(method));
-          proposal.setTypeName(CharOperation.toCharArray(method.getReturnTypeName()));
-          proposal.setDeclarationTypeName(declaringTypeName);
-          setSourceLoc(proposal, node, prefix);
-          proposal.setRelevance(1);
-          requestor.setAllowsRequiredProposals(CompletionProposal.CONSTRUCTOR_INVOCATION,
-              CompletionProposal.TYPE_REF, true);
-          requestor.accept(proposal);
-        }
-      }
-    } catch (DartModelException exception) {
+    if (!isCompletionAfterDot) {
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
           CompletionProposal.TYPE_REF, actualCompletionPosition - offset);
       char[] nameChars = name.toCharArray();
@@ -1698,6 +1709,46 @@ public class CompletionEngine {
       setSourceLoc(proposal, node, prefix);
       proposal.setRelevance(1);
       requestor.accept(proposal);
+    } else {
+      try {
+        for (com.google.dart.tools.core.model.Method method : type.getMethods()) {
+          if (method.isConstructor()) {
+            if (!method.getElementName().equals(name)) {
+              // not sure why method.isFactory() doesn't work
+              continue;
+            }
+            InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+                CompletionProposal.METHOD_REF, actualCompletionPosition - offset);
+            char[] declaringTypeName = method.getDeclaringType().getElementName().toCharArray();
+            char[] methodName = name.toCharArray();
+            proposal.setDeclarationSignature(declaringTypeName);
+            proposal.setSignature(methodName);
+            proposal.setCompletion(methodName);
+            proposal.setName(methodName);
+            proposal.setIsContructor(method.isConstructor());
+            proposal.setIsGetter(false);
+            proposal.setIsSetter(false);
+            proposal.setParameterNames(getParameterNames(method));
+            proposal.setParameterTypeNames(getParameterTypeNames(method));
+            proposal.setTypeName(CharOperation.toCharArray(method.getReturnTypeName()));
+            proposal.setDeclarationTypeName(declaringTypeName);
+            setSourceLoc(proposal, node, prefix);
+            proposal.setRelevance(1);
+            requestor.setAllowsRequiredProposals(CompletionProposal.CONSTRUCTOR_INVOCATION,
+                CompletionProposal.TYPE_REF, true);
+            requestor.accept(proposal);
+          }
+        }
+      } catch (DartModelException exception) {
+        InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+            CompletionProposal.TYPE_REF, actualCompletionPosition - offset);
+        char[] nameChars = name.toCharArray();
+        proposal.setCompletion(nameChars);
+        proposal.setSignature(nameChars);
+        setSourceLoc(proposal, node, prefix);
+        proposal.setRelevance(1);
+        requestor.accept(proposal);
+      }
     }
   }
 
