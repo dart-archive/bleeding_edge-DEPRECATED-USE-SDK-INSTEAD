@@ -127,6 +127,9 @@ public class DartCompilerWarmup {
 
     @Override
     public LibrarySource getImportFor(String relPath) throws IOException {
+      if (relPath == null || relPath.isEmpty()) {
+        return null;
+      }
       return new UrlLibrarySource(getUri().resolve(relPath).normalize(), systemLibraryManager);
     }
 
@@ -142,7 +145,7 @@ public class DartCompilerWarmup {
 
     @Override
     public DartSource getSourceFor(String relPath) {
-      if (relPath != null) {
+      if (relPath != null && !relPath.isEmpty()) {
         if (relPath.equals(dartSrc.getName())) {
           return dartSrc;
         }
@@ -193,8 +196,8 @@ public class DartCompilerWarmup {
   /**
    * @see #warmUpCompiler()
    */
-  public static void warmUpCompiler(
-      CachingArtifactProvider rootProvider, DartCompilerListener listener) {
+  public static void warmUpCompiler(CachingArtifactProvider rootProvider,
+      DartCompilerListener listener) {
     EditorLibraryManager sysLibMgr = SystemLibraryManagerProvider.getSystemLibraryManager();
 
     String warmupSrcCode = "main() {print('success');}";
@@ -207,7 +210,7 @@ public class DartCompilerWarmup {
 
     try {
       CompilerConfiguration config = new DefaultCompilerConfiguration(options, sysLibMgr) {
-          @Override
+        @Override
         public CompilerMetrics getCompilerMetrics() {
           return metrics;
         }
