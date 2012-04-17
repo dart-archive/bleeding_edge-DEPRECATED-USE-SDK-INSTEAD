@@ -13,9 +13,11 @@
  */
 package com.google.dart.tools.ui.dialogs;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.update.core.UpdateCore;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -25,10 +27,14 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.Geometry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
@@ -52,6 +58,10 @@ public class AboutDartDialog extends Shell {
     createContents();
   }
 
+  protected void checkForUpdates() {
+    UpdateCore.getUpdateManager().scheduleUpdateCheck();
+  }
+
   @Override
   protected void checkSubclass() {
     // Disable the check that prevents subclassing of SWT components
@@ -61,7 +71,10 @@ public class AboutDartDialog extends Shell {
    * Create contents of the shell.
    */
   protected void createContents() {
-    setSize(394, 364);
+
+    Point size = DartCoreDebug.ENABLE_UPDATE ? new Point(394, 386) : new Point(394, 364);
+
+    setSize(size);
 
     setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
 
@@ -79,7 +92,7 @@ public class AboutDartDialog extends Shell {
     buildDetailsText.setLineSpacing(7);
     buildDetailsText.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
     buildDetailsText.setEditable(false);
-    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(buildDetailsText);
+    center(buildDetailsText);
 
     StringBuilder builder = new StringBuilder();
 
@@ -111,15 +124,37 @@ public class AboutDartDialog extends Shell {
     newLabel(SWT.NONE);
 
     Label copyrightLabel = newLabel(SWT.NONE);
-    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(copyrightLabel);
+    center(copyrightLabel);
     copyrightLabel.setText(DialogsMessages.AboutDartDialog_copyright);
 
     Label copyrightLabel2 = newLabel(SWT.NONE);
-    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(copyrightLabel2);
+    center(copyrightLabel2);
     copyrightLabel2.setText(DialogsMessages.AboutDartDialog_copyright_line2);
 
     //spacer
     newLabel(SWT.NONE);
+
+    if (DartCoreDebug.ENABLE_UPDATE) {
+
+      Button updateButton = new Button(this, SWT.PUSH);
+      updateButton.setText("Check for updates...");
+      updateButton.addSelectionListener(new SelectionListener() {
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {
+          checkForUpdates();
+        }
+
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+          checkForUpdates();
+        }
+      });
+      center(updateButton);
+
+      //spacer
+      newLabel(SWT.NONE);
+    }
 
     setLocation(getInitialLocation(getSize()));
   }
@@ -134,6 +169,10 @@ public class AboutDartDialog extends Shell {
         parentBounds.y,
         Math.min(centerPoint.y - (initialSize.y * 2 / 3), parentBounds.y + parentBounds.height
             - initialSize.y)));
+  }
+
+  private void center(Control control) {
+    GridDataFactory.fillDefaults().align(SWT.CENTER, SWT.CENTER).applyTo(control);
   }
 
   private String getVersion() {
