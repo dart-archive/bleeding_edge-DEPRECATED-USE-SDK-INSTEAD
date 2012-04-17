@@ -511,7 +511,7 @@ public abstract class AbstractScannerTest extends TestCase {
   }
 
   public void test_AbstractScanner_string_multi_double() throws Exception {
-    assertToken(TokenType.STRING, scan("\"\"\"string\"\"\""));
+    assertToken(TokenType.STRING, "\"\"\"string\"\"\"");
   }
 
   public void test_AbstractScanner_string_multi_interpolation_block() throws Exception {
@@ -534,19 +534,19 @@ public abstract class AbstractScannerTest extends TestCase {
   }
 
   public void test_AbstractScanner_string_multi_single() throws Exception {
-    assertToken(TokenType.STRING, scan("'''string'''"));
+    assertToken(TokenType.STRING, "'''string'''");
   }
 
   public void test_AbstractScanner_string_raw_double() throws Exception {
-    assertToken(TokenType.STRING, scan("@\"string\""));
+    assertToken(TokenType.STRING, "@\"string\"");
   }
 
   public void test_AbstractScanner_string_raw_single() throws Exception {
-    assertToken(TokenType.STRING, scan("@'string'"));
+    assertToken(TokenType.STRING, "@'string'");
   }
 
   public void test_AbstractScanner_string_simple_double() throws Exception {
-    assertToken(TokenType.STRING, scan("\"string\""));
+    assertToken(TokenType.STRING, "\"string\"");
   }
 
   public void test_AbstractScanner_string_simple_interpolation_block() throws Exception {
@@ -594,10 +594,22 @@ public abstract class AbstractScannerTest extends TestCase {
    */
   private void assertKeywordToken(String source) {
     Token token = scan(source);
-    assertToken(TokenType.KEYWORD, token);
+    assertNotNull(token);
+    assertEquals(TokenType.KEYWORD, token.getType());
+    assertEquals(0, token.getOffset());
     assertEquals(source.length(), token.getLength());
     assertEquals(source, token.getLexeme());
     Object value = token.value();
+    assertTrue(value instanceof Keyword);
+    assertEquals(source, ((Keyword) value).getSyntax());
+
+    token = scan(" " + source + " ");
+    assertNotNull(token);
+    assertEquals(TokenType.KEYWORD, token.getType());
+    assertEquals(1, token.getOffset());
+    assertEquals(source.length(), token.getLength());
+    assertEquals(source, token.getLexeme());
+    value = token.value();
     assertTrue(value instanceof Keyword);
     assertEquals(source, ((Keyword) value).getSyntax());
   }
@@ -615,18 +627,24 @@ public abstract class AbstractScannerTest extends TestCase {
     assertEquals(0, actualToken.getOffset());
     assertEquals(source.length(), actualToken.getLength());
     assertEquals(source, actualToken.getLexeme());
-  }
 
-  /**
-   * Assert that the token that is being tested has the expected type.
-   * 
-   * @param expectedType the expected type of the token
-   * @param actualToken the token being tested
-   */
-  private void assertToken(TokenType expectedType, Token actualToken) {
+    if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
+      // Adding space to an end-of-line comment changes the comment
+      actualToken = scan(" " + source);
+      assertNotNull(actualToken);
+      assertEquals(expectedType, actualToken.getType());
+      assertEquals(1, actualToken.getOffset());
+      assertEquals(source.length(), actualToken.getLength());
+      assertEquals(source, actualToken.getLexeme());
+      return;
+    }
+
+    actualToken = scan(" " + source + " ");
     assertNotNull(actualToken);
     assertEquals(expectedType, actualToken.getType());
-    assertEquals(0, actualToken.getOffset());
+    assertEquals(1, actualToken.getOffset());
+    assertEquals(source.length(), actualToken.getLength());
+    assertEquals(source, actualToken.getLexeme());
   }
 
   /**

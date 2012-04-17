@@ -431,7 +431,7 @@ public abstract class AbstractScanner {
     if (next == 'd' || next == 'D') {
       next = advance();
     }
-    appendStringToken(TokenType.DOUBLE, getString(start, 0));
+    appendStringToken(TokenType.DOUBLE, getString(start, next < 0 ? 0 : -1));
     return next;
   }
 
@@ -480,7 +480,7 @@ public abstract class AbstractScanner {
               ScannerErrorCode.MISSING_HEX_DIGIT,
               getOffset()));
         }
-        appendStringToken(TokenType.HEXADECIMAL, getString(start, 0));
+        appendStringToken(TokenType.HEXADECIMAL, getString(start, next < 0 ? 0 : -1));
         return next;
       }
     }
@@ -703,7 +703,7 @@ public abstract class AbstractScanner {
       } else if (next == 'e' || next == 'E') {
         return tokenizeFractionPart(next, start);
       } else {
-        appendStringToken(TokenType.INT, getString(start, 0));
+        appendStringToken(TokenType.INT, getString(start, next < 0 ? 0 : -1));
         return next;
       }
     }
