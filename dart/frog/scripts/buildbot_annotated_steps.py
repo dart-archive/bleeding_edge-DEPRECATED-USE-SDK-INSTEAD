@@ -156,6 +156,17 @@ def BuildFrog(compiler, mode, system):
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
   """
+  # TODO(efortuna): Currently we always clobber Windows builds. The VM
+  # team thinks there's a problem with dependency tracking on Windows that
+  # is leading to these VM heisenbugs. Remove this when the dependency issue has
+  # been ironed out. See bug 2124.
+  if system == 'win7':
+    for build in ['Release_', 'Debug_']:
+      for arch in ['ia32', 'x64']:
+        outdir = build + arch
+        shutil.rmtree(outdir, ignore_errors=True)
+        shutil.rmtree('frog/%s' % outdir, ignore_errors=True)
+        shutil.rmtree('runtime/%s' % outdir, ignore_errors=True)
 
   os.chdir(DART_PATH)
 
