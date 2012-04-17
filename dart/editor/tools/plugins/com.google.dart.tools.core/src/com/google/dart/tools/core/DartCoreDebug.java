@@ -14,20 +14,11 @@
 package com.google.dart.tools.core;
 
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.osgi.service.datalocation.Location;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.net.URL;
-import java.util.Properties;
 
 /**
  * Debug/Tracing options for the {@link DartCore} plugin.
  */
 public class DartCoreDebug {
-  private static final String ANALYSIS_SERVER_KEY = "experimental/analysis/server";
-
   // Debugging / Tracing options
 
   public static final boolean BUILD = isOptionTrue("debug/build");
@@ -55,88 +46,12 @@ public class DartCoreDebug {
   // Experimental functionality options.
 
   public static final boolean SERVER_DEBUGGING = isOptionTrue("experimental/serverDebugging");
-  public static final boolean ANALYSIS_SERVER = isRawOptionTrue(ANALYSIS_SERVER_KEY);
+  public static final boolean ANALYSIS_SERVER = isOptionTrue("experimental/analysis/server");
   public static final boolean NEW_INDEXER = true; //isOptionTrue("experimental/newIndexer");
   public static final boolean ENABLE_CALL_GRAPH = true; //NEW_INDEXER && isOptionTrue("experimental/callHierarchy");
   public static final boolean ENABLE_UPDATE = isOptionTrue("experimental/update");
 
-  private static Properties rawOptions;
-
-  public static File getRawOptionsFile() {
-    Location installLocation = Platform.getInstallLocation();
-    if (installLocation == null) {
-      return null;
-    }
-    URL installUrl = installLocation.getURL();
-    if (installUrl == null) {
-      return null;
-    }
-    return new File(installUrl.getFile(), ".options");
-  }
-
-  /**
-   * Set the {@link #ANALYSIS_SERVER} option and write the .options file
-   * 
-   * @return <code>true</code> if the option was set and the .options file was successfully written
-   */
-  public static boolean setAnalysisServerEnabled(boolean enabled) {
-    readRawOptions();
-    rawOptions.put(DartCore.PLUGIN_ID + "/" + ANALYSIS_SERVER_KEY, enabled ? "true" : "false");
-    return writeRawOptions();
-  }
-
   private static boolean isOptionTrue(String optionSuffix) {
     return "true".equalsIgnoreCase(Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix));
-  }
-
-  private static boolean isRawOptionTrue(String optionSuffix) {
-    readRawOptions();
-    return "true".equalsIgnoreCase(rawOptions.getProperty(DartCore.PLUGIN_ID + "/" + optionSuffix));
-  }
-
-  private static void readRawOptions() {
-    if (rawOptions != null) {
-      return;
-    }
-    rawOptions = new Properties();
-    File rawOptionsFile = getRawOptionsFile();
-    if (rawOptionsFile == null || !rawOptionsFile.exists()) {
-      return;
-    }
-    try {
-      FileReader reader = new FileReader(rawOptionsFile);
-      try {
-        rawOptions.load(reader);
-      } finally {
-        reader.close();
-      }
-    } catch (Exception e) {
-      DartCore.logError("Failed to read " + rawOptionsFile, e);
-    }
-  }
-
-  /**
-   * Write the .options file
-   * 
-   * @return <code>true</code> if the .options file was successfully written
-   */
-  private static boolean writeRawOptions() {
-    File rawOptionsFile = getRawOptionsFile();
-    if (rawOptionsFile == null) {
-      DartCore.logError("Failed to write raw options file: could not compute its location");
-      return false;
-    }
-    try {
-      FileWriter writer = new FileWriter(rawOptionsFile);
-      try {
-        rawOptions.store(writer, null);
-      } finally {
-        writer.close();
-      }
-    } catch (Exception e) {
-      DartCore.logError("Failed to write " + rawOptionsFile, e);
-      return false;
-    }
-    return true;
   }
 }
