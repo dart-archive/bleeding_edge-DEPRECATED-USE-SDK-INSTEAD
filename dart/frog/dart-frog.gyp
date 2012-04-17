@@ -3,11 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
-  'variables': {
-    # These variables are used in the creation of the .vcproj file on 
-    # Windows.
-    'cygwin_dir': '../third_party/cygwin',
-  },
   'targets': [
     {
       'target_name': 'frog',
@@ -31,7 +26,6 @@
             # this so that Windows can also run with node.js and d8. 
             '../runtime/dart-runtime.gyp:dart',
           ],
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
        }]],
       'type': 'none',
       'actions': [
@@ -78,7 +72,6 @@
             # this so that Windows can also run with node.js and d8. 
             '../runtime/dart-runtime.gyp:dart',
           ],
-          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
        }]],
       'type': 'none',
       'actions': [
