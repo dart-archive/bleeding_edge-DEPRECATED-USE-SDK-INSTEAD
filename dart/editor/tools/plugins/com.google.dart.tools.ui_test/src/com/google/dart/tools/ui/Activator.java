@@ -109,8 +109,6 @@ public class Activator extends AbstractUIPlugin implements IStartup {
       @Override
       public void run() {
         configureEclipseWindowLocation();
-        closeAllEditors();
-        closeAllViews();
       }
     });
   }
