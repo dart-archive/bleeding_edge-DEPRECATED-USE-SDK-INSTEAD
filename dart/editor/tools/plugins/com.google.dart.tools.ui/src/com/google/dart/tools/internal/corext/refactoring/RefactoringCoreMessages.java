@@ -1666,6 +1666,7 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameTopRefactoring_shadow_topLevel;
   public static String RenameTopRefactoring_shadow_typeMember;
+  public static String RenameTopRefactoring_shadow_typeMember_shadowedInSubType;
   public static String RenameTopRefactoring_shadow_variable_inMethod;
   public static String RenameTopRefactoring_shadow_variable_inFunction;
 
@@ -1816,6 +1817,12 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameTempRefactoring_only_in_methods_and_initializers;
 
   public static String RenameTempRefactoring_rename;
+
+  public static String RenameFunctionRefactoring_name;
+
+  public static String RenameFunctionTypeAliasRefactoring_name;
+
+  public static String RenameGlobalVariableRefactoring_name;
 
   public static String RenameTypeParameterProcessor_change_name;
 

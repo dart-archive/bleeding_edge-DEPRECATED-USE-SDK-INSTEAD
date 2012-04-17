@@ -40,6 +40,10 @@ public final class DartConventions {
       return new MessageHolder().initForFunction();
     }
 
+    public static MessageHolder forFunctionTypeAlias() {
+      return new MessageHolder().initForFunctionTypeAlias();
+    }
+
     public static MessageHolder forMethod() {
       return new MessageHolder().initForMethod();
     }
@@ -110,6 +114,18 @@ public final class DartConventions {
       leadingOrTrailingBlanks = Messages.convention_functionName_leadingOrTrailingBlanks;
       nullName = Messages.convention_functionName_null;
       underscore = Messages.convention_functionName_underscore;
+      return this;
+    }
+
+    private MessageHolder initForFunctionTypeAlias() {
+      dollar = Messages.convention_functionTypeAliasName_dollar;
+      empty = Messages.convention_functionTypeAliasName_empty;
+      initialCase = Messages.convention_functionTypeAliasName_notLowercase;
+      initialChar = Messages.convention_functionTypeAliasName_initialChar;
+      internalChar = Messages.convention_functionTypeAliasName_internalChar;
+      leadingOrTrailingBlanks = Messages.convention_functionTypeAliasName_leadingOrTrailingBlanks;
+      nullName = Messages.convention_functionTypeAliasName_null;
+      underscore = Messages.convention_functionTypeAliasName_underscore;
       return this;
     }
 
@@ -246,6 +262,20 @@ public final class DartConventions {
    */
   public static IStatus validateFunctionName(String name) {
     return validateLowerCamelCase(name, MessageHolder.forFunction());
+  }
+
+  /**
+   * Validate the given function type alias name. Return a status object indicating the validity of
+   * the name. The status will have the code {@link IStatus.OK} if the name is valid as a function
+   * type alias name, the code {@link IStatus.WARNING} if the name is discouraged, or the code
+   * {@link IStatus.ERROR} if the name is illegal. If the identifier is not valid then the status
+   * will have a message indicating why.
+   * 
+   * @param name the function name being validated
+   * @return a status object indicating the validity of the name
+   */
+  public static IStatus validateFunctionTypeAliasName(String name) {
+    return validateUpperCamelCase(name, MessageHolder.forFunctionTypeAlias());
   }
 
   /**
@@ -425,6 +455,42 @@ public final class DartConventions {
       return new Status(IStatus.WARNING, DartCore.PLUGIN_ID, -1, messageHolder.underscore, null);
     }
     if (!Character.isLowerCase(identifier.charAt(0))) {
+      return new Status(IStatus.WARNING, DartCore.PLUGIN_ID, -1, messageHolder.initialCase, null);
+    }
+    return DartModelStatusImpl.VERIFIED_OK;
+  }
+
+  /**
+   * Validate the given identifier, which should be upper camel case. Return a status object
+   * indicating the validity of the identifier. The status will have the code {@link IStatus.OK} if
+   * the identifier is valid, {@link IStatus.WARNING} if the identifier is discouraged, or
+   * {@link IStatus.ERROR} if the identifier is illegal. If the identifier is not valid then the
+   * status will have a message indicating why.
+   * 
+   * @param identifier the identifier being validated
+   * @param messageHolder a holder of messages explaining problems
+   * @return a status object indicating the validity of the identifier
+   */
+  private static IStatus validateUpperCamelCase(String identifier, MessageHolder messageHolder) {
+    if (identifier == null) {
+      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1, messageHolder.nullName, null);
+    }
+    String trimmed = identifier.trim();
+    if (!identifier.equals(trimmed)) {
+      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
+          messageHolder.leadingOrTrailingBlanks, null);
+    }
+    IStatus status = validateIdentifier(identifier, messageHolder);
+    if (!status.isOK()) {
+      return status;
+    }
+    if (identifier.indexOf('$') >= 0) {
+      return new Status(IStatus.WARNING, DartCore.PLUGIN_ID, -1, messageHolder.dollar, null);
+    }
+    if (identifier.indexOf('_') >= 0) {
+      return new Status(IStatus.WARNING, DartCore.PLUGIN_ID, -1, messageHolder.underscore, null);
+    }
+    if (!Character.isUpperCase(identifier.charAt(0))) {
       return new Status(IStatus.WARNING, DartCore.PLUGIN_ID, -1, messageHolder.initialCase, null);
     }
     return DartModelStatusImpl.VERIFIED_OK;

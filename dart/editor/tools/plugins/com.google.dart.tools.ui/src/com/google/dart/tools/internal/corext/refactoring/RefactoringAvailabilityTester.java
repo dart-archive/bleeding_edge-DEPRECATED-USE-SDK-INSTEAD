@@ -3,6 +3,7 @@ package com.google.dart.tools.internal.corext.refactoring;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
@@ -1249,6 +1250,19 @@ public class RefactoringAvailabilityTester {
     return true;
   }
 
+  public static boolean isRenameAvailable(DartFunctionTypeAlias type) throws DartModelException {
+    if (type == null) {
+      return false;
+    }
+    if (!Checks.isAvailable(type)) {
+      return false;
+    }
+//    if (isRenameProhibited(type)) {
+//      return false;
+//    }
+    return true;
+  }
+
   public static boolean isRenameAvailable(DartProject project) throws DartModelException {
     if (project == null) {
       return false;
@@ -1260,11 +1274,6 @@ public class RefactoringAvailabilityTester {
       return false;
     }
     return true;
-  }
-
-  public static boolean isRenameAvailable(DartVariableDeclaration variable)
-      throws DartModelException {
-    return Checks.isAvailable(variable);
   }
 
 //  public static boolean isRenameAvailable(IPackageFragment fragment)
@@ -1304,9 +1313,18 @@ public class RefactoringAvailabilityTester {
 //    return true;
 //  }
 
+  public static boolean isRenameAvailable(DartVariableDeclaration variable)
+      throws DartModelException {
+    return Checks.isAvailable(variable);
+  }
+
   public static boolean isRenameAvailable(Field field) throws DartModelException {
     return Checks.isAvailable(field);
   }
+
+//  public static boolean isRenameAvailable(ITypeParameter parameter) throws DartModelException {
+//    return Checks.isAvailable(parameter);
+//  }
 
   public static boolean isRenameAvailable(IResource resource) {
     if (resource == null) {
@@ -1320,10 +1338,6 @@ public class RefactoringAvailabilityTester {
     }
     return true;
   }
-
-//  public static boolean isRenameAvailable(ITypeParameter parameter) throws DartModelException {
-//    return Checks.isAvailable(parameter);
-//  }
 
   public static boolean isRenameAvailable(Method method) throws CoreException {
     if (method == null) {
@@ -1370,6 +1384,8 @@ public class RefactoringAvailabilityTester {
 //        return false;
       case DartElement.FUNCTION:
         return isRenameAvailable((DartFunction) element);
+      case DartElement.FUNCTION_TYPE_ALIAS:
+        return isRenameAvailable((DartFunctionTypeAlias) element);
       case DartElement.TYPE:
         return isRenameAvailable((Type) element);
       case DartElement.FIELD:

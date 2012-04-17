@@ -131,9 +131,6 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
       result.merge(analyzeAffectedCompilationUnits());
       // check for possible conflicts
       result.merge(analyzePossibleConflicts(new SubProgressMonitor(pm, 10)));
-      if (result.hasFatalError()) {
-        return result;
-      }
       // OK, create changes
       createChanges(new SubProgressMonitor(pm, 5));
       return result;
@@ -199,7 +196,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                       BasicElementLabels.getPathLabel(libraryPath, false),
                       RenameAnalyzeUtil.getElementTypeName(unitElement),
                       newName});
-              result.addFatalError(
+              result.addError(
                   message,
                   DartStatusContext.create((CompilationUnitElement) unitElement));
               return result;

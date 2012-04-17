@@ -2,7 +2,7 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchMatch;
@@ -19,27 +19,27 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import java.util.List;
 
 /**
- * {@link DartRenameProcessor} for {@link DartFunction}.
+ * {@link DartRenameProcessor} for top-level {@link DartVariableDeclaration}.
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public class RenameFunctionProcessor extends RenameTopLevelProcessor {
+public class RenameGlobalVariableProcessor extends RenameTopLevelProcessor {
 
-  public static final String IDENTIFIER = "com.google.dart.tools.ui.renameFunctionProcessor"; //$NON-NLS-1$
+  public static final String IDENTIFIER = "com.google.dart.tools.ui.renameGlobalVariableProcessor"; //$NON-NLS-1$
 
-  private final DartFunction function;
+  private final DartVariableDeclaration variable;
 
   /**
-   * @param function the {@link DartFunction} to rename, not <code>null</code>.
+   * @param variable the {@link DartVariableDeclaration} to rename, not <code>null</code>.
    */
-  public RenameFunctionProcessor(DartFunction function) {
-    super(function);
-    this.function = function;
+  public RenameGlobalVariableProcessor(DartVariableDeclaration variable) {
+    super(variable);
+    this.variable = variable;
   }
 
   @Override
   public RefactoringStatus checkNewElementName(String newName) throws CoreException {
-    RefactoringStatus result = Checks.checkFunctionName(newName);
+    RefactoringStatus result = Checks.checkVariableName(newName);
     result.merge(super.checkNewElementName(newName));
     return result;
   }
@@ -51,12 +51,12 @@ public class RenameFunctionProcessor extends RenameTopLevelProcessor {
 
   @Override
   public Object getNewElement() throws CoreException {
-    DartFunction result = null;
-    DartElement[] topLevelElements = function.getCompilationUnit().getChildren();
+    DartVariableDeclaration result = null;
+    DartElement[] topLevelElements = variable.getCompilationUnit().getChildren();
     for (DartElement element : topLevelElements) {
-      if (element instanceof DartFunction
+      if (element instanceof DartVariableDeclaration
           && Objects.equal(element.getElementName(), getNewElementName())) {
-        result = (DartFunction) element;
+        result = (DartVariableDeclaration) element;
       }
     }
     return result;
@@ -64,12 +64,12 @@ public class RenameFunctionProcessor extends RenameTopLevelProcessor {
 
   @Override
   public String getProcessorName() {
-    return RefactoringCoreMessages.RenameFunctionRefactoring_name;
+    return RefactoringCoreMessages.RenameGlobalVariableRefactoring_name;
   }
 
   @Override
   public boolean isApplicable() throws CoreException {
-    return RefactoringAvailabilityTester.isRenameAvailable(function);
+    return RefactoringAvailabilityTester.isRenameAvailable(variable);
   }
 
   @Override
@@ -78,7 +78,7 @@ public class RenameFunctionProcessor extends RenameTopLevelProcessor {
       @Override
       public List<SearchMatch> runObject() throws Exception {
         SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
-        return searchEngine.searchReferences(function, null, null, pm);
+        return searchEngine.searchReferences(variable, null, null, pm);
       }
     });
   }

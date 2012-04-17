@@ -24,7 +24,9 @@ public final class RefactoringExecutionStarter {
 
   public static void startRenameRefactoring(final DartElement element, final Shell shell)
       throws CoreException {
-    final RenameSupport support = createRenameSupport(element, null,
+    final RenameSupport support = createRenameSupport(
+        element,
+        null,
         RenameSupport.UPDATE_REFERENCES);
     if (support != null && support.preCheck().isOK()) {
       support.openDialog(shell);
@@ -289,7 +291,10 @@ public final class RefactoringExecutionStarter {
 
   public static void startRenameResourceRefactoring(final IResource resource, final Shell shell) {
     RenameResourceWizard wizard = new RenameResourceWizard(resource);
-    new RefactoringStarter().activate(wizard, shell, wizard.getWindowTitle(),
+    new RefactoringStarter().activate(
+        wizard,
+        shell,
+        wizard.getWindowTitle(),
         RefactoringSaveHelper.SAVE_ALL);
   }
 
@@ -318,7 +323,7 @@ public final class RefactoringExecutionStarter {
 //        case IJavaElement.TYPE_PARAMETER:
 //        	return RenameSupport.create((ITypeParameter) element, newName, flags);
       case DartElement.VARIABLE:
-        return RenameSupport.create((DartVariableDeclaration) element, newName, flags);
+        return RenameSupport.create((DartVariableDeclaration) element, newName);
     }
     return null;
   }

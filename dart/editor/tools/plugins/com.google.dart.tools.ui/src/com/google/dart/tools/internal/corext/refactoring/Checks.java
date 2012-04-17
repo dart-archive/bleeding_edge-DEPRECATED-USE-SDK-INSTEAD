@@ -167,6 +167,17 @@ public class Checks {
   }
 
   /**
+   * Checks if the given name is a valid Dart function type alias name.
+   * 
+   * @param name the Dart function type alias name.
+   * @return a refactoring status containing the error message if the name is not a valid Dart
+   *         function type alias name.
+   */
+  public static RefactoringStatus checkFunctionTypeAliasName(String name) {
+    return checkName(name, DartConventions.validateFunctionTypeAliasName(name));
+  }
+
+  /**
    * Checks if the given name is a valid Dart package name.
    * 
    * @param name the Dart package name.

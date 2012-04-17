@@ -1,9 +1,9 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.core.ILocalVariable;
 import com.google.dart.core.IPackageFragment;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
@@ -12,6 +12,8 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.rename.DartRenameProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionTypeAliasProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameGlobalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameMethodProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
@@ -103,12 +105,24 @@ public class RenameSupport {
   /**
    * Creates a new rename support for the given {@link DartFunction}.
    * 
-   * @param field the {@link DartFunction} to be renamed, not <code>null</code>.
+   * @param function the {@link DartFunction} to be renamed, not <code>null</code>.
    * @param newName the function's new name, not <code>null</code>.
    * @return the {@link RenameSupport}.
    */
-  public static RenameSupport create(DartFunction field, String newName) {
-    DartRenameProcessor processor = new RenameFunctionProcessor(field);
+  public static RenameSupport create(DartFunction function, String newName) {
+    DartRenameProcessor processor = new RenameFunctionProcessor(function);
+    return new RenameSupport(processor, newName, 0);
+  }
+
+  /**
+   * Creates a new rename support for the given {@link DartFunctionTypeAlias}.
+   * 
+   * @param field the {@link DartFunctionTypeAlias} to be renamed, not <code>null</code>.
+   * @param newName the new name, not <code>null</code>.
+   * @return the {@link RenameSupport}.
+   */
+  public static RenameSupport create(DartFunctionTypeAlias field, String newName) {
+    DartRenameProcessor processor = new RenameFunctionTypeAliasProcessor(field);
     return new RenameSupport(processor, newName, 0);
   }
 
@@ -132,20 +146,23 @@ public class RenameSupport {
   }
 
   /**
-   * Creates a new rename support for the given {@link ILocalVariable}.
+   * Creates a new rename support for the given {@link DartVariableDeclaration}.
    * 
-   * @param variable the {@link ILocalVariable} to be renamed.
+   * @param variable the {@link DartVariableDeclaration} to be renamed.
    * @param newName the variable's new name. <code>null</code> is a valid value indicating that no
    *          new name is provided.
-   * @param flags flags controlling additional parameters. Valid flags are
-   *          <code>UPDATE_REFERENCES</code>, or <code>NONE</code>.
    * @return the {@link RenameSupport}.
    * @throws CoreException if an unexpected error occurred while creating the {@link RenameSupport}.
    */
-  public static RenameSupport create(DartVariableDeclaration variable, String newName, int flags)
+  public static RenameSupport create(DartVariableDeclaration variable, String newName)
       throws CoreException {
-    DartRenameProcessor processor = new RenameLocalVariableProcessor(variable);
-    return new RenameSupport(processor, newName, flags);
+    DartRenameProcessor processor;
+    if (variable.isGlobal()) {
+      processor = new RenameGlobalVariableProcessor(variable);
+    } else {
+      processor = new RenameLocalVariableProcessor(variable);
+    }
+    return new RenameSupport(processor, newName, 0);
   }
 
   /**

@@ -881,6 +881,12 @@ public final class RefactoringMessages extends NLS {
   public static String RenameFunctionWizard_defaultPageTitle;
   public static String RenameFunctionWizardInputPage_description;
 
+  public static String RenameGlobalVariableWizard_defaultPageTitle;
+  public static String RenameGlobalVariableWizardInputPage_description;
+
+  public static String RenameFunctionTypeAliasWizard_defaultPageTitle;
+  public static String RenameFunctionTypeAliasWizardInputPage_description;
+
   public static String ReplaceInvocationsAction_dialog_title;
 
   public static String ReplaceInvocationsAction_label;

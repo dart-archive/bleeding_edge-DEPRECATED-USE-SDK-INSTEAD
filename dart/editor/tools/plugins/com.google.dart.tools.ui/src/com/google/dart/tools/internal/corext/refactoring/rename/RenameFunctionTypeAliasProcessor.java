@@ -2,7 +2,7 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchMatch;
@@ -19,27 +19,27 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import java.util.List;
 
 /**
- * {@link DartRenameProcessor} for {@link DartFunction}.
+ * {@link DartRenameProcessor} for {@link DartFunctionTypeAlias}.
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public class RenameFunctionProcessor extends RenameTopLevelProcessor {
+public class RenameFunctionTypeAliasProcessor extends RenameTopLevelProcessor {
 
-  public static final String IDENTIFIER = "com.google.dart.tools.ui.renameFunctionProcessor"; //$NON-NLS-1$
+  public static final String IDENTIFIER = "com.google.dart.tools.ui.renameFunctionTypeAliasProcessor"; //$NON-NLS-1$
 
-  private final DartFunction function;
+  private final DartFunctionTypeAlias type;
 
   /**
-   * @param function the {@link DartFunction} to rename, not <code>null</code>.
+   * @param type the {@link DartFunctionTypeAlias} to rename, not <code>null</code>.
    */
-  public RenameFunctionProcessor(DartFunction function) {
-    super(function);
-    this.function = function;
+  public RenameFunctionTypeAliasProcessor(DartFunctionTypeAlias type) {
+    super(type);
+    this.type = type;
   }
 
   @Override
   public RefactoringStatus checkNewElementName(String newName) throws CoreException {
-    RefactoringStatus result = Checks.checkFunctionName(newName);
+    RefactoringStatus result = Checks.checkFunctionTypeAliasName(newName);
     result.merge(super.checkNewElementName(newName));
     return result;
   }
@@ -51,12 +51,12 @@ public class RenameFunctionProcessor extends RenameTopLevelProcessor {
 
   @Override
   public Object getNewElement() throws CoreException {
-    DartFunction result = null;
-    DartElement[] topLevelElements = function.getCompilationUnit().getChildren();
+    DartFunctionTypeAlias result = null;
+    DartElement[] topLevelElements = type.getCompilationUnit().getChildren();
     for (DartElement element : topLevelElements) {
-      if (element instanceof DartFunction
+      if (element instanceof DartFunctionTypeAlias
           && Objects.equal(element.getElementName(), getNewElementName())) {
-        result = (DartFunction) element;
+        result = (DartFunctionTypeAlias) element;
       }
     }
     return result;
@@ -64,12 +64,12 @@ public class RenameFunctionProcessor extends RenameTopLevelProcessor {
 
   @Override
   public String getProcessorName() {
-    return RefactoringCoreMessages.RenameFunctionRefactoring_name;
+    return RefactoringCoreMessages.RenameFunctionTypeAliasRefactoring_name;
   }
 
   @Override
   public boolean isApplicable() throws CoreException {
-    return RefactoringAvailabilityTester.isRenameAvailable(function);
+    return RefactoringAvailabilityTester.isRenameAvailable(type);
   }
 
   @Override
@@ -78,7 +78,7 @@ public class RenameFunctionProcessor extends RenameTopLevelProcessor {
       @Override
       public List<SearchMatch> runObject() throws Exception {
         SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
-        return searchEngine.searchReferences(function, null, null, pm);
+        return searchEngine.searchReferences(type, null, null, pm);
       }
     });
   }

@@ -36,7 +36,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
    */
   private static void renameLocalVariable(DartVariableDeclaration variable, String newName)
       throws Exception {
-    RenameSupport renameSupport = RenameSupport.create(variable, newName, 0);
+    RenameSupport renameSupport = RenameSupport.create(variable, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }
