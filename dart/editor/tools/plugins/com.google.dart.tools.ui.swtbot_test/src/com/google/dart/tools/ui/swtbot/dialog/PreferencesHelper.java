@@ -25,8 +25,10 @@ import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCheckBox;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
 import org.eclipse.ui.internal.dialogs.WorkbenchPreferenceDialog;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -37,7 +39,6 @@ import static org.junit.Assert.assertTrue;
 @SuppressWarnings("restriction")
 public class PreferencesHelper {
 
-  @SuppressWarnings("unused")
   private final SWTWorkbenchBot bot;
 
   private SWTBotShell shell;
@@ -51,6 +52,10 @@ public class PreferencesHelper {
     SWTBotCheckBox printMarginCheckBox = bot.checkBoxInGroup(
         "Show print margin at column:",
         "General");
+    SWTBotText printMarginText = bot.text(0);
+    SWTBotCheckBox removeWhitespaceCheckBox = bot.checkBoxInGroup(
+        "Remove trailing whitespace on save",
+        "General");
 
     assertNotNull(lineNumbersCheckBox);
     assertFalse(lineNumbersCheckBox.isChecked());
@@ -62,7 +67,15 @@ public class PreferencesHelper {
     assertTrue(printMarginCheckBox.isEnabled());
     assertTrue(printMarginCheckBox.isVisible());
 
-    // TODO (jwren) make assertions on the rest of the default-preferences
+    assertNotNull(printMarginText);
+    assertFalse(printMarginText.isEnabled());
+    assertTrue(printMarginText.isVisible());
+    assertEquals(80, Integer.valueOf(printMarginText.getText()).intValue());
+
+    assertNotNull(removeWhitespaceCheckBox);
+    assertFalse(removeWhitespaceCheckBox.isChecked());
+    assertTrue(removeWhitespaceCheckBox.isEnabled());
+    assertTrue(removeWhitespaceCheckBox.isVisible());
   }
 
   public void close() {
@@ -72,7 +85,6 @@ public class PreferencesHelper {
     }
   }
 
-  @SuppressWarnings("restriction")
   public SWTBotShell open() {
     final SWTBotShell mainShell = activeShell(bot);
     if (shell == null) {

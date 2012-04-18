@@ -167,7 +167,6 @@ public class FilesViewHelper {
     return itemCollection;
   }
 
-  // TODO (jwren) move this method to the SWTBotUtil class
   private SWTBotTreeItem recursivelyFind(String[] filePaths, SWTBotTreeItem parent) {
     assertNotNull(parent);
     parent.expand();
