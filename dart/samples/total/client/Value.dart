@@ -123,7 +123,7 @@ class NumericValue extends Value {
 
 class BooleanValue extends NumericValue {
 
-  BooleanValue(bool b) : super(b ? 1.0 : 0.0, TYPE_BOOLEAN) { }
+  BooleanValue(bool b) : super(b ? 1.0 : 0.0, Value.TYPE_BOOLEAN) { }
 
   bool asBoolean(CellLocation location) => value != 0.0;
 
@@ -132,28 +132,28 @@ class BooleanValue extends NumericValue {
 
 class DateValue extends NumericValue {
 
-  DateValue(double date) : super(date, TYPE_DATE) { }
+  DateValue(double date) : super(date, Value.TYPE_DATE) { }
 
   String toString() => "DateValue[${value}]";
 }
 
 class DateTimeValue extends NumericValue {
 
-  DateTimeValue(double dateTime) : super(dateTime, TYPE_DATE_TIME) { }
+  DateTimeValue(double dateTime) : super(dateTime, Value.TYPE_DATE_TIME) { }
 
   String toString() => "DateTimeValue[${value}]";
 }
 
 class DoubleValue extends NumericValue {
 
-  DoubleValue(double value) : super(value, TYPE_DOUBLE) { }
+  DoubleValue(double value) : super(value, Value.TYPE_DOUBLE) { }
 
   String toString() => "DoubleValue[${value}]";
 }
 
 class TimeValue extends NumericValue {
 
-  TimeValue(double time) : super(time, TYPE_TIME) { }
+  TimeValue(double time) : super(time, Value.TYPE_TIME) { }
 
   String toString() => "TimeValue[${value}]";
 }
@@ -161,7 +161,7 @@ class TimeValue extends NumericValue {
 class StringValue extends Value {
   String _s;
 
-  StringValue(this._s) : super(TYPE_STRING) { }
+  StringValue(this._s) : super(Value.TYPE_STRING) { }
 
   // Strings are interpreted as 0.0 when used as inputs to a numeric computation
   double asDouble(CellLocation location) => 0.0;
@@ -202,7 +202,7 @@ class RefValue extends Value {
 class CellRefTokenValue extends RefValue {
   CellRefToken _crt;
 
-  CellRefTokenValue(this._crt) : super(TYPE_CELLREF) { }
+  CellRefTokenValue(this._crt) : super(Value.TYPE_CELLREF) { }
 
   CellRefToken asCellRefToken() => _crt;
 
@@ -217,7 +217,7 @@ class CellRefTokenValue extends RefValue {
 class RangeTokenValue extends RefValue {
   RangeToken _rt;
 
-  RangeTokenValue(this._rt) : super(TYPE_RANGE) {}
+  RangeTokenValue(this._rt) : super(Value.TYPE_RANGE) {}
 
   CellRefToken asCellRefToken() => _rt.startRef;
 
