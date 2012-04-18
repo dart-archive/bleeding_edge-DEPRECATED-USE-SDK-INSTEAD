@@ -17,28 +17,38 @@ package com.google.dart.tools.ui.internal.projects;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.generator.ApplicationGenerator;
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.operations.AbstractOperation;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceStatus;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.SWT;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.ide.undo.CreateFolderOperation;
 import org.eclipse.ui.ide.undo.CreateProjectOperation;
 import org.eclipse.ui.ide.undo.WorkspaceUndoUtil;
+import org.eclipse.ui.internal.ide.IDEWorkbenchMessages;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.internal.ide.StatusUtil;
 import org.eclipse.ui.internal.wizards.newresource.ResourceMessages;
@@ -67,7 +77,14 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
 
   @Override
   public boolean performFinish() {
-    createNewProject();
+
+    IPath locationPath = new Path(page.getLocationURI().getPath());
+
+    if (isNestedByAnExistingProject(locationPath)) {
+      createFolder(locationPath);
+    } else {
+      createNewProject();
+    }
 
     if (newProject == null) {
       return false;
@@ -86,6 +103,60 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
     }
 
     return true;
+  }
+
+  private void createFolder(IPath path) {
+
+    final ProjectType projectType = page.getProjectType();
+
+    IPath containerPath = path.removeLastSegments(1);
+
+    IResource container = ResourceUtil.getResource(containerPath.toFile());
+    IPath newFolderPath = container.getFullPath().append(path.lastSegment());
+
+    final IFolder newFolderHandle = IDEWorkbenchPlugin.getPluginWorkspace().getRoot().getFolder(
+        newFolderPath);
+
+    IRunnableWithProgress op = new IRunnableWithProgress() {
+      @Override
+      public void run(IProgressMonitor monitor) throws InvocationTargetException {
+        AbstractOperation op;
+        op = new CreateFolderOperation(newFolderHandle, null,
+            IDEWorkbenchMessages.WizardNewFolderCreationPage_title);
+        try {
+
+          IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
+
+          if (status.isOK() && projectType != ProjectType.NONE) {
+            createdFile = createProjectContent(newProject,
+                newFolderHandle.getLocation().toOSString(), newFolderHandle.getName(), projectType);
+          }
+
+        } catch (ExecutionException e) {
+          throw new InvocationTargetException(e);
+        } catch (CoreException e) {
+          throw new InvocationTargetException(e);
+        }
+      }
+    };
+
+    try {
+      getContainer().run(true, true, op);
+    } catch (InterruptedException e) {
+
+    } catch (InvocationTargetException e) {
+      // ExecutionExceptions are handled above, but unexpected runtime
+      // exceptions and errors may still occur.
+      IDEWorkbenchPlugin.log(getClass(), "createNewFolder()", e.getTargetException()); //$NON-NLS-1$
+      MessageDialog.open(MessageDialog.ERROR, getContainer().getShell(),
+          IDEWorkbenchMessages.WizardNewFolderCreationPage_internalErrorTitle, NLS.bind(
+              IDEWorkbenchMessages.WizardNewFolder_internalError,
+              e.getTargetException().getMessage()), SWT.SHEET);
+
+    }
+
+    newProject = newFolderHandle.getProject();
+
   }
 
   /**
@@ -127,7 +198,9 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
           IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
 
           if (status.isOK() && projectType != ProjectType.NONE) {
-            createdFile = createProjectContent(newProjectHandle, projectType);
+            createdFile = createProjectContent(newProjectHandle,
+                newProjectHandle.getLocation().toOSString(), newProjectHandle.getName(),
+                projectType);
           }
         } catch (ExecutionException e) {
           throw new InvocationTargetException(e);
@@ -181,12 +254,12 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
    * @param projectType
    * @throws CoreException
    */
-  private IFile createProjectContent(IProject project, ProjectType projectType)
-      throws CoreException {
+  private IFile createProjectContent(IProject project, String location, String name,
+      ProjectType projectType) throws CoreException {
     ApplicationGenerator generator = new ApplicationGenerator(project);
 
-    generator.setApplicationLocation(project.getLocation().toOSString());
-    generator.setApplicationName(DartIdentifierUtil.createValidIdentifier(project.getName()));
+    generator.setApplicationLocation(location);
+    generator.setApplicationName(DartIdentifierUtil.createValidIdentifier(name));
     generator.setWebApplication(projectType == ProjectType.WEB);
 
     generator.execute(new NullProgressMonitor());
@@ -203,6 +276,17 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
     command.setBuilderName(DartCore.DART_BUILDER_ID);
     description.setBuildSpec(new ICommand[] {command});
     return description;
+  }
+
+  private boolean isNestedByAnExistingProject(IPath path) {
+    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+      IPath location = project.getLocation();
+      if (location.isPrefixOf(path)) {
+        newProject = project;
+        return true;
+      }
+    }
+    return false;
   }
 
 }
