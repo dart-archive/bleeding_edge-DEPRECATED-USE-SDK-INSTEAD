@@ -216,20 +216,22 @@ def main():
   os.chdir(buildpath)
   ant_property_file = None
   sdk_zip = None
-  if 'lin' in buildos and not os.environ.get('DONT_RUN_GSUTIL_TESTS'):
-    gsutil_test = os.path.join(editorpath, 'build', './gsutilTest.py')
-    cmds = [sys.executable, gsutil_test]
-    print 'running gsutil tests'
-    sys.stdout.flush()
-    p = subprocess.Popen(cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (out_stream, err_strteam) = p.communicate()
-    if p.returncode:
-      print 'gsutil tests:'
-      print 'stdout:'
-      print str(out_stream)
-      print '*' * 40
-    print str(err_strteam)
-    print '*' * 40
+  
+  # gsutil tests
+#  if 'lin' in buildos and not os.environ.get('DONT_RUN_GSUTIL_TESTS'):
+#    gsutil_test = os.path.join(editorpath, 'build', './gsutilTest.py')
+#    cmds = [sys.executable, gsutil_test]
+#    print 'running gsutil tests'
+#    sys.stdout.flush()
+#    p = subprocess.Popen(cmds, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#    (out_stream, err_strteam) = p.communicate()
+#    if p.returncode:
+#      print 'gsutil tests:'
+#      print 'stdout:'
+#      print str(out_stream)
+#      print '*' * 40
+#    print str(err_strteam)
+#    print '*' * 40
 
   try:
     ant_property_file = tempfile.NamedTemporaryFile(suffix='.property',
@@ -249,22 +251,22 @@ def main():
     if args:
       print 'only options should be passed to this script'
       parser.print_help()
-      return 1
+      return 2
 
     if str(options.revision) == 'None':
       print 'missing revision option'
       parser.print_help()
-      return 2
+      return 3
 
     if str(options.name) == 'None':
       print 'missing builder name'
       parser.print_help()
-      return 2
+      return 4
 
     if str(options.out) == 'None':
       print 'missing output directory'
       parser.print_help()
-      return 2
+      return 5
 
     print 'buildos        = {0}'.format(buildos)
     print 'scriptdir      = {0}'.format(scriptdir)
@@ -306,7 +308,7 @@ def main():
       _PrintError('could not find the user name'
                   ' tried environment variables'
                   ' USER and USERNAME')
-      return 1
+      return 6
     build_skip_tests = os.environ.get('DART_SKIP_RUNNING_TESTS')
     sdk_environment = os.environ
     build_util = buildutil.BuildUtil(buildos, buildout, dartpath)
@@ -318,20 +320,13 @@ def main():
     else:
       to_bucket = 'gs://dart-editor-archive-testing'
       staging_bucket = 'gs://dart-editor-archive-testing-staging'
-      run_sdk_build = False
+      run_sdk_build = True
       running_on_buildbot = False
       sdk_environment['DART_LOCAL_BUILD'] = 'dart-editor-archive-testing'
-
-    sdkpath = build_util.SdkZipLocation()
 
     homegsutil = os.path.join(os.path.expanduser('~'), 'gsutil', 'gsutil')
     gsu = gsutil.GsUtil(False, homegsutil,
                         running_on_buildbot=running_on_buildbot)
-
-    #this is a hack to allow the SDK build to be run on a local machine
-    if sdk_environment.has_key('FORCE_RUN_SDK_BUILD'):
-      run_sdk_build = True
-    #end hack
 
     print '@@@BUILD_STEP dart-ide dart clients: %s@@@' % options.name
     if sdk_environment.has_key('JAVA_HOME'):
@@ -341,6 +336,15 @@ def main():
     if (run_sdk_build and
         builder_name != 'dart-editor'):
       _PrintSeparator('running the build of the Dart SDK')
+      
+      sdkpath = build_util.SdkZipLocation()
+      sdk_zip = os.path.join(sdkpath, 'dart-sdk.zip')
+      sdk_dir = os.path.join(sdkpath, 'dart-sdk')
+      
+      #clean out the old zip file
+      if (os.path.exists(sdk_zip)):
+        os.remove(sdk_zip)
+      
       dartbuildscript = os.path.join(toolspath, 'build.py')
       cmds = [sys.executable, dartbuildscript,
               '--mode=release', 'create_sdk']
@@ -353,10 +357,18 @@ def main():
         if status:
           _PrintError('the build of the SDK failed')
           return status
-        sdk_zip = _CopySdk(buildos, revision, to_bucket, sdkpath,
-                           buildroot, gsu)
       finally:
         os.chdir(cwd)
+        
+      #create zip if it does not exist
+      if (not os.path.exists(sdk_zip)):
+        if (not os.path.exists(sdk_dir)):
+          raise Exception('could not find dart-sdk directory ({0})'.format(sdk_dir))
+        localzip = ziputils.ZipUtil(sdk_zip, buildos, create_new=True)
+        localzip.AddDirectoryTree(sdk_dir, write_path='dart-sdk', mode_in='w')
+      
+      sdk_zip = _CopySdk(buildos, revision, to_bucket, sdkpath,
+                         buildroot, gsu)
 
     if builder_name == 'dart-editor':
       buildos = None
@@ -412,7 +424,7 @@ def main():
       if not found_zips:
         _PrintError('could not find any zipped up RCP files.'
                     '  The Ant build must have failed')
-        return 1
+        return 7
 
       _WriteTagFile(buildos, staging_bucket, revision, gsu)
 

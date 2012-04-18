@@ -26,7 +26,7 @@ class ZipUtil(object):
   _zipfile_name = None
   _is_windows = False
 
-  def __init__(self, zipfile_in, buildos):
+  def __init__(self, zipfile_in, buildos, create_new=False):
     """initialize the zip utilities class.
 
     Args:
@@ -35,8 +35,16 @@ class ZipUtil(object):
     Raises:
       Exception: if the files does not exist or it is not a zip file
     """
-    if not os.path.exists(zipfile_in):
-      raise Exception('zip file {0} does not exist'.format(zipfile_in))
+    if create_new:
+      if not os.path.exists(zipfile_in):
+        localzip = zipfile.ZipFile(zipfile_in, 'w')
+        localzip.writestr("readme.txt", "empty zip file")
+        localzip.close()
+      else:
+        raise Exception('zip file {0} exists'.format(zipfile_in))
+    else:
+      if not os.path.exists(zipfile_in):
+        raise Exception('zip file {0} does not exist'.format(zipfile_in))
     if not zipfile.is_zipfile(zipfile_in):
       raise Exception('{0} is not a zip file'.format(zipfile_in))
     self._zipfile_name = os.path.abspath(zipfile_in)
