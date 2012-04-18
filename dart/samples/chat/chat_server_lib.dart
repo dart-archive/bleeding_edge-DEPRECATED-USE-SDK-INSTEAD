@@ -7,35 +7,7 @@
 #import("dart:isolate");
 #import("dart:json");
 
-typedef void RequestHandler(HttpRequest request, HttpResponse response);
-
 class ChatServer extends IsolatedServer {
-  ChatServer() : super() {
-    addHandler("/",
-               (HttpRequest request, HttpResponse response) =>
-                   redirectPageHandler(
-                       request, response, "dart_client/index.html"));
-    addHandler("/js_client/index.html",
-               (HttpRequest request, HttpResponse response) =>
-                   fileHandler(request, response));
-    addHandler("/js_client/code.js",
-               (HttpRequest request, HttpResponse response) =>
-                   fileHandler(request, response));
-    addHandler("/dart_client/index.html",
-               (HttpRequest request, HttpResponse response) =>
-                   fileHandler(request, response));
-    addHandler("/out/dart_client/chat.dart.app.js",
-               (HttpRequest request, HttpResponse response) =>
-                   fileHandler(request, response));
-    addHandler("/favicon.ico",
-               (HttpRequest request, HttpResponse response) =>
-                   fileHandler(request, response, "static/favicon.ico"));
-
-    addHandler("/join", _joinHandler);
-    addHandler("/leave", _leaveHandler);
-    addHandler("/message", _messageHandler);
-    addHandler("/receive", _receiveHandler);
-  }
 }
 
 class ServerMain {
@@ -335,10 +307,6 @@ class IsolatedServer extends Isolate {
     response.outputStream.close();
   }
 
-  IsolatedServer() : super() {
-    _requestHandlers = new Map();
-  }
-
   void redirectPageHandler(HttpRequest request,
                            HttpResponse response,
                            String redirectPath) {
@@ -552,11 +520,6 @@ class IsolatedServer extends Isolate {
     };
   }
 
-  void addHandler(String path,
-                  void handler(HttpRequest request, HttpResponse response)) {
-    _requestHandlers[path] = handler;
-  }
-
   void main() {
     _logRequests = false;
     _topic = new Topic();
@@ -585,10 +548,43 @@ class IsolatedServer extends Isolate {
         _logging = message.logging;
         replyTo.send(new ChatServerStatus.starting(), null);
         _server = new HttpServer();
+        _server.defaultRequestHandler = _notFoundHandler;
+        _server.addRequestHandler(
+            (request) => request.path == "/",
+            (HttpRequest request, HttpResponse response) =>
+                redirectPageHandler(
+                    request, response, "dart_client/index.html"));
+        _server.addRequestHandler(
+            (request) => request.path == "/js_client/index.html",
+            (HttpRequest request, HttpResponse response) =>
+                fileHandler(request, response));
+        _server.addRequestHandler(
+            (request) => request.path == "/js_client/code.js",
+            (HttpRequest request, HttpResponse response) =>
+                fileHandler(request, response));
+        _server.addRequestHandler(
+            (request) => request.path == "/dart_client/index.html",
+            (HttpRequest request, HttpResponse response) =>
+                fileHandler(request, response));
+        _server.addRequestHandler(
+            (request) => request.path == "/out/dart_client/chat.dart.app.js",
+            (HttpRequest request, HttpResponse response) =>
+                fileHandler(request, response));
+        _server.addRequestHandler(
+            (request) => request.path == "/favicon.ico",
+            (HttpRequest request, HttpResponse response) =>
+                fileHandler(request, response, "static/favicon.ico"));
+
+        _server.addRequestHandler(
+            (request) => request.path == "/join", _joinHandler);
+        _server.addRequestHandler(
+            (request) => request.path == "/leave", _leaveHandler);
+        _server.addRequestHandler(
+            (request) => request.path == "/message", _messageHandler);
+        _server.addRequestHandler(
+            (request) => request.path == "/receive", _receiveHandler);
         try {
           _server.listen(_host, _port, backlog: message.backlog);
-          _server.onRequest = (HttpRequest req, HttpResponse rsp) =>
-              _requestReceivedHandler(req, rsp);
           replyTo.send(new ChatServerStatus.started(_server.port), null);
           _loggingTimer = new Timer.repeating(1000, _handleLogging);
         } catch (var e) {
@@ -608,33 +604,9 @@ class IsolatedServer extends Isolate {
     this.port.close();
   }
 
-  void _requestReceivedHandler(HttpRequest request, HttpResponse response) {
-    if (_logRequests) {
-      String method = request.method;
-      String uri = request.uri;
-      print("Request: $method $uri");
-      print("Request headers:");
-      request.headers.forEach(
-          (String name, String value) => print("$name: $value"));
-      print("Request parameters:");
-      request.queryParameters.forEach(
-          (String name, String value) => print("$name = $value"));
-      print("");
-    }
-
-    var requestHandler =_requestHandlers[request.path];
-    if (requestHandler != null) {
-      requestHandler(request, response);
-    } else {
-      print('No request handler found for ${request.path}');
-      _notFoundHandler(request, response);
-    }
-  }
-
   String _host;
   int _port;
   HttpServer _server;  // HTTP server instance.
-  Map _requestHandlers;
   bool _logRequests;
 
   Topic _topic;
