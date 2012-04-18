@@ -60,11 +60,6 @@
             sequence="M1+R">
       </key>
       <key
-            commandId="com.google.dart.tools.debug.ui.run.selection"
-            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
-            sequence="M1+M2+R">
-      </key>
-      <key
             commandId="com.google.dart.tools.ui.generateJavascript"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+M2+G">
