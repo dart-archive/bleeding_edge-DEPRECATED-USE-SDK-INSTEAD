@@ -98,8 +98,7 @@ public class SWTBotUtil {
    * Answer the editor with the specified title
    */
   public static SWTBotEclipseEditor editorWithTitle(SWTWorkbenchBot bot, String title) {
-    // TODO (danrubel) find and editor that has title starting with the specified text
-    return bot.editor(new EditorWithTitle(title)).toTextEditor();
+    return bot.editor(new EditorWithTitle(title + ".*")).toTextEditor();
   }
 
   public static Shell getShell() {
