@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.swtbot.views;
 
-import com.google.dart.tools.ui.swtbot.DartEditorUiTest;
+import com.google.dart.tools.ui.swtbot.AbstractDartEditorTest;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Tree;
@@ -49,7 +49,7 @@ public class FilesViewHelper {
 
   public FilesViewHelper(SWTWorkbenchBot bot) {
     this.bot = bot;
-    SWTBotView view = bot.viewByTitle(DartEditorUiTest.FILES_VIEW_NAME);
+    SWTBotView view = bot.viewByTitle(AbstractDartEditorTest.FILES_VIEW_NAME);
     view.show();
     assertTrue(view.isActive());
     Composite composite = (Composite) view.getWidget();

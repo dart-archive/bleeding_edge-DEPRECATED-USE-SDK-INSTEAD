@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.swtbot.app;
 
 import com.google.dart.tools.ui.swtbot.DartEditorHelper;
-import com.google.dart.tools.ui.swtbot.DartEditorUiTest;
 import com.google.dart.tools.ui.swtbot.DartLib;
 import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.conditions.ProblemsViewCount;
@@ -39,8 +38,8 @@ public class NewSimpleApp {
 
   public void create() throws Exception {
     app = new NewApplicationHelper(bot).create("SimpleApp", NewApplicationHelper.ContentType.WEB);
-    new LaunchBrowserHelper(DartEditorUiTest.bot).launch(app);
-    Performance.waitForResults(DartEditorUiTest.bot);
+    new LaunchBrowserHelper(bot).launch(app);
+    Performance.waitForResults(bot);
     try {
       app.editor.setFocus();
       modifySource(new DartEditorHelper(bot, app));
@@ -48,7 +47,7 @@ public class NewSimpleApp {
       printActiveEditorText(bot);
       throw e;
     }
-    new LaunchBrowserHelper(DartEditorUiTest.bot).launch(app);
+    new LaunchBrowserHelper(bot).launch(app);
   }
 
   public void modifySource(DartEditorHelper helper) {

@@ -14,8 +14,8 @@
 package com.google.dart.tools.ui.swtbot.dialog;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.swtbot.DartEditorUiTest;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 
 import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.activeShell;
 
@@ -81,7 +81,7 @@ public class PreferencesHelper {
         @Override
         public void run() {
           try {
-            WorkbenchPreferenceDialog.createDialogOn(DartEditorUiTest.getShell(), null).open();
+            WorkbenchPreferenceDialog.createDialogOn(SWTBotUtil.getShell(), null).open();
           } catch (Exception e) {
             DartToolsPlugin.log(e);
           }

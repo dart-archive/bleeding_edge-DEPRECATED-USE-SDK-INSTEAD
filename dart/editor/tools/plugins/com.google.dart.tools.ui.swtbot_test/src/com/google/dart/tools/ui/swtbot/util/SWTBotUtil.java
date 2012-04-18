@@ -31,6 +31,8 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarDropDownButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
 import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.hamcrest.Matcher;
 
 import static org.eclipse.swtbot.eclipse.finder.waits.Conditions.waitForEditor;
@@ -98,6 +100,18 @@ public class SWTBotUtil {
   public static SWTBotEclipseEditor editorWithTitle(SWTWorkbenchBot bot, String title) {
     // TODO (danrubel) find and editor that has title starting with the specified text
     return bot.editor(new EditorWithTitle(title)).toTextEditor();
+  }
+
+  public static Shell getShell() {
+    return SWTBotUtil.getWorkbenchWindow().getShell();
+  }
+
+  public static IWorkbenchWindow getWorkbenchWindow() {
+    IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+    if (window == null) {
+      window = PlatformUI.getWorkbench().getWorkbenchWindows()[0];
+    }
+    return window;
   }
 
   /**

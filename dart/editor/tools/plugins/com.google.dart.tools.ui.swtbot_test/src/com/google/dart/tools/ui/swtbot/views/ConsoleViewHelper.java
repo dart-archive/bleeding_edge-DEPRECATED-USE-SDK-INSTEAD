@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.swtbot.views;
 
-import com.google.dart.tools.ui.swtbot.DartEditorUiTest;
+import com.google.dart.tools.ui.swtbot.AbstractDartEditorTest;
 
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Composite;
@@ -34,7 +34,7 @@ public class ConsoleViewHelper {
   private SWTBotStyledText text;
 
   public ConsoleViewHelper(SWTBot bot) {
-    SWTBotView view = ((SWTWorkbenchBot) bot).viewByTitle(DartEditorUiTest.CONSOLE_VIEW_NAME);
+    SWTBotView view = ((SWTWorkbenchBot) bot).viewByTitle(AbstractDartEditorTest.CONSOLE_VIEW_NAME);
     view.show();
     assertTrue(view.isActive());
     Composite composite = (Composite) view.getWidget();
@@ -48,13 +48,20 @@ public class ConsoleViewHelper {
     }
   }
 
+  public void assertConsoleMatches(String consoleOutputRegex) {
+    if (!getConsoleOutput().matches(consoleOutputRegex)) {
+      fail("Expected \"" + consoleOutputRegex + "\", but found \"" + getConsoleOutput() + "\"");
+    }
+  }
+
   public void assertNoConsoleLog() {
     if (!getConsoleOutput().isEmpty()) {
       fail("Expected an empty log, but found \"" + getConsoleOutput() + "\"");
     }
   }
 
-  private String getConsoleOutput() {
+  public String getConsoleOutput() {
     return text.getText().trim();
   }
+
 }
