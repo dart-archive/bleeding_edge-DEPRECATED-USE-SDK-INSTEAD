@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -26,22 +26,27 @@ public class SearchMatch {
   /**
    * The quality of the match.
    */
-  private MatchQuality quality;
+  private final MatchQuality quality;
 
   /**
    * The kind of the match.
    */
-  private MatchKind kind;
+  private final MatchKind kind;
 
   /**
    * The element containing the source range that was matched.
    */
-  private DartElement element;
+  private final DartElement element;
 
   /**
    * The source range that was matched.
    */
-  private SourceRange sourceRange;
+  private final SourceRange sourceRange;
+
+  /**
+   * Is <code>true</code> if field or method access is done using qualifier.
+   */
+  private boolean qualified;
 
   /**
    * A comparator that can be used to sort the matches based on the names of the matched elements.
@@ -132,6 +137,20 @@ public class SearchMatch {
     return quality;
   }
 
+  /**
+   * @return the <code>true</code> if field or method access is done using qualifier.
+   */
+  public boolean isQualified() {
+    return qualified;
+  }
+
+  /**
+   * Specifies if field or method access is done using qualifier.
+   */
+  public void setQualified(boolean qualified) {
+    this.qualified = qualified;
+  }
+
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
@@ -143,6 +162,8 @@ public class SearchMatch {
     builder.append(element.getElementName());
     builder.append(", range="); //$NON-NLS-1$
     builder.append(sourceRange);
+    builder.append(", qualified="); //$NON-NLS-1$
+    builder.append(qualified);
     builder.append(")"); //$NON-NLS-1$
     return builder.toString();
   }

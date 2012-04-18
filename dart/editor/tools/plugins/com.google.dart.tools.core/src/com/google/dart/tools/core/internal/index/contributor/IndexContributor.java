@@ -377,9 +377,17 @@ public class IndexContributor extends ASTVisitor<Void> {
       Element indexElement = getElement((FieldElement) element, !isAssignedTo, isAssignedTo);
       Location location = getLocation(node);
       if (isAssignedTo) {
-        recordRelationship(indexElement, IndexConstants.IS_MODIFIED_BY, location);
+        if (isQualified(node)) {
+          recordRelationship(indexElement, IndexConstants.IS_MODIFIED_BY_QUALIFIED, location);
+        } else {
+          recordRelationship(indexElement, IndexConstants.IS_MODIFIED_BY_UNQUALIFIED, location);
+        }
       } else {
-        recordRelationship(indexElement, IndexConstants.IS_ACCESSED_BY, location);
+        if (isQualified(node)) {
+          recordRelationship(indexElement, IndexConstants.IS_ACCESSED_BY_QUALIFIED, location);
+        } else {
+          recordRelationship(indexElement, IndexConstants.IS_ACCESSED_BY_UNQUALIFIED, location);
+        }
       }
     }
     return super.visitIdentifier(node);
@@ -944,6 +952,11 @@ public class IndexContributor extends ASTVisitor<Void> {
     return false;
   }
 
+  private boolean isQualified(DartIdentifier node) {
+    return node.getParent() instanceof DartPropertyAccess
+        || node.getParent() instanceof DartMethodInvocation;
+  }
+
   /**
    * Return <code>true</code> if the given candidate matches the given target.
    * 
@@ -1114,8 +1127,9 @@ public class IndexContributor extends ASTVisitor<Void> {
       notFound("method invocation", methodName);
       return;
     }
-    recordRelationship(getElement(binding), IndexConstants.IS_REFERENCED_BY,
-        getLocation(methodName));
+    Relationship relationship = isQualified(methodName) ? IndexConstants.IS_INVOKED_BY_QUALIFIED
+        : IndexConstants.IS_INVOKED_BY_UNQUALIFIED;
+    recordRelationship(getElement(binding), relationship, getLocation(methodName));
   }
 
   /**
@@ -1130,7 +1144,7 @@ public class IndexContributor extends ASTVisitor<Void> {
       notFound("method invocation", offset, length);
       return;
     }
-    recordRelationship(getElement(binding), IndexConstants.IS_REFERENCED_BY,
+    recordRelationship(getElement(binding), IndexConstants.IS_INVOKED_BY_QUALIFIED,
         getLocation(offset, length));
   }
 

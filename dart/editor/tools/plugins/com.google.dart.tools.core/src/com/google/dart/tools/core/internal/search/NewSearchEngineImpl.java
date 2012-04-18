@@ -134,7 +134,11 @@ public class NewSearchEngineImpl implements SearchEngine {
         if (unit != null) {
           DartElement dartElement = findElement(unit, targetElement);
           SourceRange range = new SourceRangeImpl(location.getOffset(), location.getLength());
-          listener.matchFound(new SearchMatch(MatchQuality.EXACT, matchKind, dartElement, range));
+          SearchMatch match = new SearchMatch(MatchQuality.EXACT, matchKind, dartElement, range);
+          match.setQualified(relationship == IndexConstants.IS_ACCESSED_BY_QUALIFIED
+              || relationship == IndexConstants.IS_MODIFIED_BY_QUALIFIED
+              || relationship == IndexConstants.IS_INVOKED_BY_QUALIFIED);
+          listener.matchFound(match);
         }
       }
       listener.searchComplete();
@@ -480,7 +484,7 @@ public class NewSearchEngineImpl implements SearchEngine {
   @Override
   public List<SearchMatch> searchReferences(final DartFunction function, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    return gatherResults(2, new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchReferences(function, scope, filter, listener, monitor);
@@ -494,7 +498,9 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    index.getRelationships(createElement(function), IndexConstants.IS_REFERENCED_BY,
+    index.getRelationships(createElement(function), IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new RelationshipCallbackImpl(MatchKind.FUNCTION_EXECUTION, applyFilter(filter, listener)));
+    index.getRelationships(createElement(function), IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FUNCTION_EXECUTION, applyFilter(filter, listener)));
   }
 
@@ -542,16 +548,16 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    index.getRelationships(createElement(variable), IndexConstants.IS_ACCESSED_BY,
+    index.getRelationships(createElement(variable), IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FIELD_READ, applyFilter(filter, listener)));
-    index.getRelationships(createElement(variable), IndexConstants.IS_MODIFIED_BY,
+    index.getRelationships(createElement(variable), IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, applyFilter(filter, listener)));
   }
 
   @Override
   public List<SearchMatch> searchReferences(final Field field, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(2, new SearchRunner() {
+    return gatherResults(4, new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchReferences(field, scope, filter, listener, monitor);
@@ -566,16 +572,20 @@ public class NewSearchEngineImpl implements SearchEngine {
       throw new IllegalArgumentException("listener cannot be null");
     }
     Element fieldElement = createElement(field);
-    index.getRelationships(fieldElement, IndexConstants.IS_ACCESSED_BY,
+    index.getRelationships(fieldElement, IndexConstants.IS_ACCESSED_BY_QUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FIELD_READ, applyFilter(filter, listener)));
-    index.getRelationships(fieldElement, IndexConstants.IS_MODIFIED_BY,
+    index.getRelationships(fieldElement, IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        new RelationshipCallbackImpl(MatchKind.FIELD_READ, applyFilter(filter, listener)));
+    index.getRelationships(fieldElement, IndexConstants.IS_MODIFIED_BY_QUALIFIED,
+        new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, applyFilter(filter, listener)));
+    index.getRelationships(fieldElement, IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, applyFilter(filter, listener)));
   }
 
   @Override
   public List<SearchMatch> searchReferences(final Method method, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    return gatherResults(2, new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
         searchReferences(method, scope, filter, listener, monitor);
@@ -589,7 +599,9 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    index.getRelationships(createElement(method), IndexConstants.IS_REFERENCED_BY,
+    index.getRelationships(createElement(method), IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new RelationshipCallbackImpl(MatchKind.METHOD_INVOCATION, applyFilter(filter, listener)));
+    index.getRelationships(createElement(method), IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.METHOD_INVOCATION, applyFilter(filter, listener)));
   }
 

@@ -14,10 +14,9 @@
 package com.google.dart.tools.core.search;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.tools.core.index.Index;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
-import com.google.dart.tools.core.internal.index.store.IndexStore;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.search.NewSearchEngineImpl;
@@ -27,6 +26,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
@@ -41,13 +41,23 @@ import junit.framework.TestCase;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class NewSearchEngineTest extends TestCase {
   private DartLibraryImpl moneyLibrary;
 
   private InMemoryIndex index;
+
+  public void indexUnit(CompilationUnit unit) throws DartModelException {
+    index.indexResource(
+        ResourceFactory.getResource(unit),
+        unit,
+        DartCompilerUtilities.resolveUnit(unit, new ArrayList<DartCompilationError>()));
+  }
 
   @Override
   public void setUp() {
@@ -74,15 +84,21 @@ public class NewSearchEngineTest extends TestCase {
 
   public void test_SearchEngine_searchConstructorDeclarations() throws Exception {
     SearchEngine engine = createSearchEngine();
-    List<SearchMatch> matches = engine.searchConstructorDeclarations(new WorkspaceSearchScope(),
-        SearchPatternFactory.createPrefixPattern("Simpl", true), null, new NullProgressMonitor());
+    List<SearchMatch> matches = engine.searchConstructorDeclarations(
+        new WorkspaceSearchScope(),
+        SearchPatternFactory.createPrefixPattern("Simpl", true),
+        null,
+        new NullProgressMonitor());
     assertEquals(2, matches.size());
   }
 
   public void test_SearchEngine_searchImplementors() throws Exception {
     Type type = moneyLibrary.getCompilationUnit("money.dart").getType("Money");
     SearchEngine engine = createSearchEngine();
-    List<SearchMatch> matches = engine.searchImplementors(type, new WorkspaceSearchScope(), null,
+    List<SearchMatch> matches = engine.searchImplementors(
+        type,
+        new WorkspaceSearchScope(),
+        null,
         new NullProgressMonitor());
     assertEquals(2, matches.size());
   }
@@ -90,8 +106,10 @@ public class NewSearchEngineTest extends TestCase {
   public void test_SearchEngine_searchMethodDeclarations() throws Exception {
     SearchEngine engine = createSearchEngine();
     List<SearchMatch> matches = engine.searchMethodDeclarations(
-        new LibrarySearchScope(moneyLibrary), SearchPatternFactory.createPrefixPattern("ad", true),
-        null, new NullProgressMonitor());
+        new LibrarySearchScope(moneyLibrary),
+        SearchPatternFactory.createPrefixPattern("ad", true),
+        null,
+        new NullProgressMonitor());
     assertEquals(6, matches.size());
   }
 
@@ -99,7 +117,10 @@ public class NewSearchEngineTest extends TestCase {
     Type type = moneyLibrary.getCompilationUnit("simple_money.dart").getType("SimpleMoney");
     Field field = type.getField("amount");
     SearchEngine engine = createSearchEngine();
-    List<SearchMatch> matches = engine.searchReferences(field, new WorkspaceSearchScope(), null,
+    List<SearchMatch> matches = engine.searchReferences(
+        field,
+        new WorkspaceSearchScope(),
+        null,
         new NullProgressMonitor());
     assertEquals(4, matches.size());
   }
@@ -107,33 +128,37 @@ public class NewSearchEngineTest extends TestCase {
   public void test_SearchEngine_searchReferences_function() throws Exception {
     TestProject testProject = new TestProject("Test");
     try {
-      CompilationUnit unit = testProject.setUnitContent("Test.dart",
-          Joiner.on("\n").join("test() {}", "foo() {", "  test();", "}", ""));
-      index.indexResource(ResourceFactory.getResource(unit), unit,
-          DartCompilerUtilities.resolveUnit(unit, new ArrayList<DartCompilationError>()));
+      CompilationUnit unit = testProject.setUnitContent(
+          "Test.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "test() {}",
+              "foo() {",
+              "  test();",
+              "}",
+              ""));
+      indexUnit(unit);
       DartFunction function = (DartFunction) unit.getChildren()[0];
       SearchEngine engine = createSearchEngine();
-      List<SearchMatch> matches = engine.searchReferences(function, new WorkspaceSearchScope(),
-          null, new NullProgressMonitor());
+      List<SearchMatch> matches = engine.searchReferences(
+          function,
+          new WorkspaceSearchScope(),
+          null,
+          new NullProgressMonitor());
       assertEquals(1, matches.size());
+      assertFalse(matches.get(0).isQualified());
     } finally {
       testProject.dispose();
     }
   }
 
-  public void test_SearchEngine_searchReferences_method() throws Exception {
-    Type type = moneyLibrary.getCompilationUnit("simple_money.dart").getType("SimpleMoney");
-    Method method = type.getMethod("getAmount", new String[0]);
-    SearchEngine engine = createSearchEngine();
-    List<SearchMatch> matches = engine.searchReferences(method, new WorkspaceSearchScope(), null,
-        new NullProgressMonitor());
-    assertEquals(2, matches.size());
-  }
-
   public void test_SearchEngine_searchReferences_type() throws Exception {
     Type type = moneyLibrary.getCompilationUnit("simple_money.dart").getType("SimpleMoney");
     SearchEngine engine = createSearchEngine();
-    List<SearchMatch> matches = engine.searchReferences(type, new WorkspaceSearchScope(), null,
+    List<SearchMatch> matches = engine.searchReferences(
+        type,
+        new WorkspaceSearchScope(),
+        null,
         new NullProgressMonitor());
     assertEquals(20, matches.size()); // I believe that this should eventually be 17.
   }
@@ -143,14 +168,22 @@ public class NewSearchEngineTest extends TestCase {
     try {
       CompilationUnit unit = testProject.setUnitContent(
           "Test.dart",
-          Joiner.on("\n").join("int globalCount;", "", "void main() {", "  globalCount = 0;",
-              "  print(globalCount);", "}", ""));
-      index.indexResource(ResourceFactory.getResource(unit), unit,
-          DartCompilerUtilities.resolveUnit(unit, new ArrayList<DartCompilationError>()));
+          Joiner.on("\n").join(
+              "int globalCount;",
+              "",
+              "void main() {",
+              "  globalCount = 0;",
+              "  print(globalCount);",
+              "}",
+              ""));
+      indexUnit(unit);
       DartVariableDeclaration variable = (DartVariableDeclaration) unit.getChildren()[0];
       SearchEngine engine = createSearchEngine();
-      List<SearchMatch> matches = engine.searchReferences(variable, new WorkspaceSearchScope(),
-          null, new NullProgressMonitor());
+      List<SearchMatch> matches = engine.searchReferences(
+          variable,
+          new WorkspaceSearchScope(),
+          null,
+          new NullProgressMonitor());
       assertEquals(2, matches.size());
     } finally {
       testProject.dispose();
@@ -159,8 +192,10 @@ public class NewSearchEngineTest extends TestCase {
 
   public void test_SearchEngine_searchTypeDeclarations() throws Exception {
     SearchEngine engine = createSearchEngine();
-    List<SearchMatch> matches = engine.searchTypeDeclarations(new WorkspaceSearchScope(),
-        SearchPatternFactory.createPrefixPattern("Money", true), (SearchFilter) null,
+    List<SearchMatch> matches = engine.searchTypeDeclarations(
+        new WorkspaceSearchScope(),
+        SearchPatternFactory.createPrefixPattern("Money", true),
+        (SearchFilter) null,
         new NullProgressMonitor());
     assertEquals(1, matches.size());
     for (SearchMatch match : matches) {
@@ -171,25 +206,109 @@ public class NewSearchEngineTest extends TestCase {
     fail("Type Money not found");
   }
 
+  public void test_searchReferences_field() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = Joiner.on("\n").join(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {",
+          "  var test;",
+          "}",
+          "class B extends A {",
+          "  foo() {",
+          "    test = 1;",
+          "    this.test = 2;",
+          "  }",
+          "}",
+          "bar() {",
+          "  A a = new A();",
+          "  a.test = 3;",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnit(unit);
+      // find references
+      Field field = ((Type) unit.getChildren()[0]).getField("test");
+      SearchEngine engine = createSearchEngine();
+      List<SearchMatch> matches = engine.searchReferences(
+          field,
+          new WorkspaceSearchScope(),
+          null,
+          new NullProgressMonitor());
+      assertThat(matches).hasSize(3);
+      // assert "qualified"
+      Map<Integer, Boolean> expected = ImmutableMap.of(
+          source.indexOf("test = 1"),
+          false,
+          source.indexOf("test = 2"),
+          true,
+          source.indexOf("test = 3"),
+          true);
+      for (SearchMatch match : matches) {
+        int matchOffset = match.getSourceRange().getOffset();
+        assertEquals(expected.get(matchOffset).booleanValue(), match.isQualified());
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_method() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = Joiner.on("\n").join(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {",
+          "  test(var p) {}",
+          "}",
+          "class B extends A {",
+          "  foo() {",
+          "    test(1);",
+          "    this.test(2);",
+          "  }",
+          "}",
+          "bar() {",
+          "  A a = new A();",
+          "  a.test(3);",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnit(unit);
+      // find references
+      Method method = ((Type) unit.getChildren()[0]).getMethod("test", null);
+      SearchEngine engine = createSearchEngine();
+      List<SearchMatch> matches = engine.searchReferences(
+          method,
+          new WorkspaceSearchScope(),
+          null,
+          new NullProgressMonitor());
+      assertThat(matches).hasSize(3);
+      // assert "qualified"
+      Map<Integer, Boolean> expected = ImmutableMap.of(
+          source.indexOf("test(1"),
+          false,
+          source.indexOf("test(2"),
+          true,
+          source.indexOf("test(3"),
+          true);
+      for (SearchMatch match : matches) {
+        int matchOffset = match.getSourceRange().getOffset();
+        assertEquals(
+            match.toString(),
+            expected.get(matchOffset).booleanValue(),
+            match.isQualified());
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
   private SearchEngine createSearchEngine() {
     return new NewSearchEngineImpl(index);
   }
 
-  /**
-   * Access the index store associated with the specified index.
-   * 
-   * @param index the index whose index store is to be accessed
-   * @return the index store associated with the specified index
-   * @throws Exception if the index store could not be accessed
-   */
-  private IndexStore getIndexStore(Index index) throws Exception {
-    java.lang.reflect.Field field = index.getClass().getDeclaredField("indexStore");
-    field.setAccessible(true);
-    return (IndexStore) field.get(index);
-  }
-
   private boolean isType(SearchMatch match, String typeName) {
     DartElement element = match.getElement();
-    return (element instanceof Type) && typeName.equals(element.getElementName());
+    return element instanceof Type && typeName.equals(element.getElementName());
   }
 }
