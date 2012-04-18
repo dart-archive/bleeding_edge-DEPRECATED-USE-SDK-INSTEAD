@@ -802,22 +802,7 @@ def _CopySdk(buildos, revision, bucket_to, from_dir, buildroot, gsu):
     gsu.Copy(gssdkzip, gseditorlatestzip)
     _SetAcl(gseditorlatestzip, gsu)
   else:
-    if 'win' in buildos:
-      #If this is windows get the latest dart-sdk.zip from Google Storage.
-      #the windows version of creat_sdk does not create a
-      #dart-sdk.zip does not exist
-      #
-      # TODO(mrrussell): create_sdk should create an SDK and we
-      #should be consuming it
-      #
-      print '*' * 40
-      print ('could not find {0} getting {1}'
-             ' from Google Storage'.format(gssdkzip, sdkshortzip))
-      print '*' * 40
-      gsu.Copy(gseditorlatestzip, gssdkzip)
-    else:
-      #if NOT windows then fail the build
-      raise Exception('could not find dart-sdk ({0})'.format(gssdkzip))
+    raise Exception('could not find dart-sdk ({0})'.format(gssdkzip))
 
   print 'copying {0} to {1}'.format(gssdkzip, sdk_zip)
   shutil.copy2(gssdkzip, sdk_zip)
