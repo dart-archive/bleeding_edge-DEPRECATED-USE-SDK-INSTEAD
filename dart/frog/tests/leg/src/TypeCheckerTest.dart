@@ -395,11 +395,11 @@ Node parseExpression(String text) =>
 void setup() {
   compiler = new MockCompiler();
   types = compiler.types;
-  intType = lookupType(Types.INT, compiler, types);
-  doubleType = lookupType(Types.DOUBLE, compiler, types);
-  boolType = lookupType(Types.BOOL, compiler, types);
-  stringType = lookupType(Types.STRING, compiler, types);
-  objectType = lookupType(Types.OBJECT, compiler, types);
+  intType = compiler.intClass.computeType(compiler);
+  doubleType = compiler.doubleClass.computeType(compiler);
+  boolType = compiler.boolClass.computeType(compiler);
+  stringType = compiler.stringClass.computeType(compiler);
+  objectType = compiler.objectClass.computeType(compiler);
 }
 
 Type analyzeType(String text) {

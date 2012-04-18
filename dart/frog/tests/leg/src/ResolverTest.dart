@@ -59,8 +59,8 @@ main() {
   testTypeAnnotation();
   testSuperclass();
   // testVarSuperclass(); // The parser crashes with 'class Foo extends var'.
-  // testOneInterface(); // The parser does not handle interfaces.
-  // testTwoInterfaces(); // The parser does not handle interfaces.
+  // testOneInterface(); // Generates unexpected error message.
+  // testTwoInterfaces(); // Generates unexpected error message.
   testFunctionExpression();
   testNewExpression();
   testTopLevelFields();
@@ -72,7 +72,7 @@ main() {
 }
 
 testTypeVariables() {
-  testTypeResolving(visitor, text, name, expectedElements) {
+  matchResolvedTypes(visitor, text, name, expectedElements) {
     VariableDefinitions definition = parseStatement(text);
     visitor.visit(definition.type);
     InterfaceType type = visitor.mapping.getType(definition.type);
@@ -81,21 +81,22 @@ testTypeVariables() {
     int index = 0;
     Link<Type> arguments = type.arguments;
     while (!arguments.isEmpty()) {
+      Expect.equals(true, index < expectedElements.length);
       Expect.equals(expectedElements[index], arguments.head.element);
       index++;
       arguments = arguments.tail;
     }
+    Expect.equals(index, expectedElements.length);
   }
 
   MockCompiler compiler = new MockCompiler();
   ResolverVisitor visitor = compiler.resolverVisitor();
   compiler.parseScript('class Foo<T, U> {}');
-  visitor.visit(parseStatement('Foo foo;'));
   ClassElement foo = compiler.mainApp.find(buildSourceString('Foo'));
-  testTypeResolving(visitor, 'Foo<int, String> x;', 'Foo',
-                    [compiler.intClass, compiler.stringClass]);
-  testTypeResolving(visitor, 'Foo<Foo, Foo> x;', 'Foo',
-                    [foo, foo]);
+  matchResolvedTypes(visitor, 'Foo<int, String> x;', 'Foo',
+                     [compiler.intClass, compiler.stringClass]);
+  matchResolvedTypes(visitor, 'Foo<Foo, Foo> x;', 'Foo',
+                     [foo, foo]);
 
   compiler = new MockCompiler();
   compiler.parseScript('class Foo<T, U> {}');
@@ -669,10 +670,23 @@ testInitializers() {
   resolveConstructor(script, "B b = new B();", "B", "B", 2,
                      [], [MessageKind.DUPLICATE_SUPER_INITIALIZER]);
 
-  script = "class Object { Object() : super(); }";
+  script = "";
+  final String CORELIB_WITH_INVALID_OBJECT =
+      '''print(var obj) {}
+         class int {}
+         class double {}
+         class bool {}
+         class String {}
+         class num {}
+         class Function {}
+         class List {}
+         class Closure {}
+         class Null {}
+         class Dynamic {}
+         class Object { Object() : super(); }''';
   resolveConstructor(script, "Object o = new Object();", "Object", "Object", 1,
                      [], [MessageKind.SUPER_INITIALIZER_IN_OBJECT],
-                     corelib: "");
+                     corelib: CORELIB_WITH_INVALID_OBJECT);
 }
 
 map(ResolverVisitor visitor) {

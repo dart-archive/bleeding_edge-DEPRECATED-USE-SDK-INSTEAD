@@ -35,7 +35,6 @@ final String DEFAULT_HELPERLIB = @'''
   builtin$removeLast$0(receiver) {}
   index(a, index) {}
   indexSet(a, index, value) {}
-  class Closure {}
   builtin$iterator$0() {}
   builtin$next$0() {}
   builtin$hasNext$0() {}''';
@@ -46,7 +45,13 @@ final String DEFAULT_CORELIB = @'''
   class double {}
   class bool {}
   class String {}
-  class Object {}''';
+  class Object {}
+  class num {}
+  class Function {}
+  class List {}
+  class Closure {}
+  class Null {}
+  class Dynamic {}''';
 
 class MockCompiler extends Compiler {
   List<WarningMessage> warnings;
