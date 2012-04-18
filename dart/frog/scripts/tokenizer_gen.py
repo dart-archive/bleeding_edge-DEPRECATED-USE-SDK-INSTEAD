@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -69,9 +69,9 @@ class Case:
         cw.exitBlock()
       if self.includeWhitespace:
         cw.enterBlock('default:')
-        cw.enterBlock('if (isIdentifierStart(ch)) {')
+        cw.enterBlock('if (TokenizerHelpers.isIdentifierStart(ch)) {')
         cw.writeln('return this.finishIdentifier(ch);')
-        cw.exitBlock('} else if (isDigit(ch)) {')
+        cw.exitBlock('} else if (TokenizerHelpers.isDigit(ch)) {')
         cw.enterBlock()
         cw.writeln('return this.finishNumber();')
         cw.exitBlock('} else {')
@@ -129,7 +129,7 @@ class Tokenizer extends TokenizerBase {
 
 /** Static helper methods. */
 class TokenizerHelpers {
-  %(helperMethods)s
+%(helperMethods)s
 }
 '''
 
