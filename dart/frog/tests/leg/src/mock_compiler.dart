@@ -136,10 +136,6 @@ class MockCompiler extends Compiler {
     super.enqueue(work);
   }
 
-  resolve(ClassElement element) {
-    return resolver.resolveType(element);
-  }
-
   void scanBuiltinLibraries() {
     // Do nothing. The mock core library is already handled in the constructor.
   }
