@@ -19,7 +19,7 @@ class Balls {
       lastTime = Util.currentTimeMillis(),
       balls = new List<Ball>() {
     root = new Element.tag('div');
-    window.document.body.nodes.add(root);
+    document.body.nodes.add(root);
     //root.style.zIndex = 100;
     Util.abs(root);
     Util.posSize(root, 0.0, 0.0, 0.0, 0.0);

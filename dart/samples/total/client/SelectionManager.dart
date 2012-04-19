@@ -49,7 +49,7 @@ class SelectionManager {
 
   SelectionManager(this._spreadsheet, SpreadsheetPresenter presenter, Window window, this._table)
       : _selectedCell = null, _selectionCorner = null, _originRow = 0, _originColumn = 0 {
-    Document doc = window.document;
+    Document doc = document;
 
     Element spreadsheetElement = presenter.spreadsheetElement;
     _selectionDiv = new Element.tag("div");

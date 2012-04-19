@@ -73,7 +73,7 @@ class CountDownClock {
     DivElement root = new Element.tag('div');
     Util.rel(root);
     root.style.textAlign = 'center';
-    window.document.query("#canvas-content").nodes.add(root);
+    document.query("#canvas-content").nodes.add(root);
 
     double x = 0.0;
 

@@ -121,7 +121,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
 
   SpreadsheetPresenter(this._spreadsheet, this._window, this._rowShift, this._columnShift,
       this._rows, this._columns) {
-    Document doc = _window.document;
+    Document doc = document;
 
     // Must do this first
     _popupHandler = new PopupHandler(doc);
@@ -167,7 +167,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     // a 'move' function will be called if specified. On mouseUp, the 'drag' and 'undrag' functions
     // are set to null.
 
-    _window.document.on.mouseMove.add((MouseEvent e) {
+    document.on.mouseMove.add((MouseEvent e) {
       if (_drag != null) {
         _drag(e);
       } else if (_move != null) {
@@ -175,7 +175,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
       }
     });
 
-    _window.document.on.mouseUp.add((MouseEvent e) {
+    document.on.mouseUp.add((MouseEvent e) {
       if (_drag != null) {
         _dragging = false;
         _drag(e);
@@ -679,7 +679,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         ClientRect rect = elementRect.bounding;
         int startX = rect.left;
         int startY = rect.top;
-        _window.document.body.style.setProperty("cursor", "move");
+        document.body.style.setProperty("cursor", "move");
 
         _setDragFunction((MouseEvent e_) {
           int x = startX + e_.x - mouseStartX;
@@ -694,7 +694,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
         });
 
       _setUndragFunction((MouseEvent e_) {
-        _window.document.body.style.setProperty("cursor", "auto");
+        document.body.style.setProperty("cursor", "auto");
       });
     });
   }
@@ -716,7 +716,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
       int mouseStartY = e.y;
       int startX = HtmlUtils.fromPx(_resizeDragger.style.getPropertyValue("left"));
       int startY = HtmlUtils.fromPx(_resizeDragger.style.getPropertyValue("top"));
-      _window.document.body.style.setProperty("cursor", "move");
+      document.body.style.setProperty("cursor", "move");
 
       _setDragFunction((MouseEvent e_) {
         int x = startX + e_.x - mouseStartX;
@@ -755,7 +755,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
       });
 
       _setUndragFunction((MouseEvent e_) {
-        _window.document.body.style.setProperty("cursor", "auto");
+        document.body.style.setProperty("cursor", "auto");
       });
     });
 
@@ -1354,7 +1354,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
       return inDragState;
     }
 
-    _window.document.on.keyDown.add((KeyboardEvent e) {
+    document.on.keyDown.add((KeyboardEvent e) {
       if (_selectionManager.isSelectionEmpty()) {
         return;
       }
@@ -1436,7 +1436,7 @@ class SpreadsheetPresenter implements SpreadsheetListener, SelectionListener {
     }, false);
 
     // TODO: We need a way to clear the selection when the user clicks outside of the table.
-    _window.document.on.click.add((MouseEvent e) {
+    document.on.click.add((MouseEvent e) {
       // Ignore right-click and ctrl-click events
       if (e.button == 2 || (e.button == 0 && e.ctrlKey)) {
         return;

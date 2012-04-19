@@ -26,7 +26,7 @@ class ContextMenu {
   Element get parent() => _parent;
 
   ContextMenu(this._spreadsheetPresenter) {
-    Document doc = _spreadsheetPresenter.window.document;
+    Document doc = document;
     _contextMenu = new Element.tag("ul");
     _contextMenu.style.setProperty("left","0px");
     _contextMenu.style.setProperty("top", "0px");

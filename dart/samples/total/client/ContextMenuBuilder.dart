@@ -168,7 +168,7 @@ class ContextMenuBuilder {
         });
 
     Window window = _presenter.window;
-    Document doc = window.document;
+    Document doc = document;
 
     CanvasElement graphCanvas = new Element.tag("canvas");
     graphCanvas.id = "graphCanvas-${_spreadsheet.name}";

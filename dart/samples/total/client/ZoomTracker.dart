@@ -23,7 +23,7 @@ class ZoomTracker {
     _zoomElement.style.setProperty("top", "-100px");
     _zoomElement.style.setProperty("height", "0px");
     _zoomElement.style.setProperty("visibility", "hidden");
-    _window.document.body.nodes.add(_zoomElement);
+    document.body.nodes.add(_zoomElement);
     // Prepare initial state
     _zeroPoint = new Point(0, 0);
     _zoom = _getZoom();

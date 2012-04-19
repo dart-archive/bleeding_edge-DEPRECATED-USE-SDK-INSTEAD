@@ -14,9 +14,8 @@ final LOG_REQUESTS = true;
 void main() {
   HttpServer server = new HttpServer();
   
-  server.onRequest = (HttpRequest req, HttpResponse rsp) {
-    requestReceivedHandler(req, rsp);
-  };
+  server.addRequestHandler((HttpRequest request) => true, requestReceivedHandler);
+  
   server.listen(HOST, PORT);
   
   print("Serving the current time on http://${HOST}:${PORT}."); 
@@ -29,7 +28,7 @@ void requestReceivedHandler(HttpRequest request, HttpResponse response) {
 
   String htmlResponse = createHtmlResponse();
   
-  response.setHeader("Content-Type", "text/html; charset=UTF-8");
+  response.headers.set(HttpHeaders.CONTENT_TYPE, "text/html; charset=UTF-8");
   response.outputStream.writeString(htmlResponse);
   response.outputStream.close();
 }
