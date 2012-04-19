@@ -53,7 +53,9 @@ public class DefaultClause extends ASTNode {
    * @param defaultName the name of the default class associated with the interface
    * @param defaultTypeParameters the type parameters for the default class
    */
-  public DefaultClause(Identifier defaultName, TypeParameterList defaultTypeParameters) {
+  public DefaultClause(Token keyword, Identifier defaultName,
+      TypeParameterList defaultTypeParameters) {
+    this.keyword = keyword;
     this.defaultName = becomeParentOf(defaultName);
     this.defaultTypeParameters = becomeParentOf(defaultTypeParameters);
   }
@@ -119,7 +121,7 @@ public class DefaultClause extends ASTNode {
    * @param defaultTypeParameters the type parameters for the default class
    */
   public void setDefaultTypeParameters(TypeParameterList defaultTypeParameters) {
-    this.defaultTypeParameters = defaultTypeParameters;
+    this.defaultTypeParameters = becomeParentOf(defaultTypeParameters);
   }
 
   /**

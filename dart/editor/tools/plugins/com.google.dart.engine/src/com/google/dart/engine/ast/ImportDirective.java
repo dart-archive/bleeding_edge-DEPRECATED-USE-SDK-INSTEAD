@@ -173,7 +173,7 @@ public class ImportDirective extends Directive {
    * @param combinator the combinator used to control how names are imported
    */
   public void setCombinator(ImportCombinator combinator) {
-    this.combinator = combinator;
+    this.combinator = becomeParentOf(combinator);
   }
 
   /**

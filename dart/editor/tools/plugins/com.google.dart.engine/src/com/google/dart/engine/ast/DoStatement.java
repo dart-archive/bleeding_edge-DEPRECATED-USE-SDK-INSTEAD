@@ -84,6 +84,7 @@ public class DoStatement extends Statement {
     this.leftParenthesis = leftParenthesis;
     this.condition = becomeParentOf(condition);
     this.rightParenthesis = rightParenthesis;
+    this.semicolon = semicolon;
   }
 
   @Override

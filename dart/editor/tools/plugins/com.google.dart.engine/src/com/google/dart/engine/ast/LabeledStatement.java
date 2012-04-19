@@ -47,7 +47,7 @@ public class LabeledStatement extends Statement {
    * @param label the label being associated with the statement
    * @param statement the statement with which the label is being associated
    */
-  public LabeledStatement(Label label, Token colon, Statement statement) {
+  public LabeledStatement(Label label, Statement statement) {
     this.label = becomeParentOf(label);
     this.statement = becomeParentOf(statement);
   }

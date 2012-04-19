@@ -112,17 +112,6 @@ public class ConditionalExpression extends Expression {
     return elseExpression;
   }
 
-  /**
-   * Set the expression that is executed if the condition evaluates to <code>false</code> to the
-   * given expression.
-   * 
-   * @param expression the expression that is executed if the condition evaluates to
-   *          <code>false</code>
-   */
-  public void getElseExpression(Expression expression) {
-    elseExpression = becomeParentOf(expression);
-  }
-
   @Override
   public Token getEndToken() {
     return elseExpression.getEndToken();
@@ -147,17 +136,6 @@ public class ConditionalExpression extends Expression {
   }
 
   /**
-   * Set the expression that is executed if the condition evaluates to <code>true</code> to the
-   * given expression.
-   * 
-   * @param expression the expression that is executed if the condition evaluates to
-   *          <code>true</code>
-   */
-  public void getThenExpression(Expression expression) {
-    thenExpression = becomeParentOf(expression);
-  }
-
-  /**
    * Set the token used to separate the then expression from the else expression to the given token.
    * 
    * @param colon the token used to separate the then expression from the else expression
@@ -177,12 +155,34 @@ public class ConditionalExpression extends Expression {
   }
 
   /**
+   * Set the expression that is executed if the condition evaluates to <code>false</code> to the
+   * given expression.
+   * 
+   * @param expression the expression that is executed if the condition evaluates to
+   *          <code>false</code>
+   */
+  public void setElseExpression(Expression expression) {
+    elseExpression = becomeParentOf(expression);
+  }
+
+  /**
    * Set the token used to separate the condition from the then expression to the given token.
    * 
    * @param question the token used to separate the condition from the then expression
    */
   public void setQuestion(Token question) {
     this.question = question;
+  }
+
+  /**
+   * Set the expression that is executed if the condition evaluates to <code>true</code> to the
+   * given expression.
+   * 
+   * @param expression the expression that is executed if the condition evaluates to
+   *          <code>true</code>
+   */
+  public void setThenExpression(Expression expression) {
+    thenExpression = becomeParentOf(expression);
   }
 
   @Override

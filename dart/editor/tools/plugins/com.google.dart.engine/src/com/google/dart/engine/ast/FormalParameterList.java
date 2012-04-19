@@ -63,7 +63,7 @@ public class FormalParameterList extends ASTNode {
   /**
    * Initialize a newly created parameter list.
    */
-  private FormalParameterList() {
+  public FormalParameterList() {
   }
 
   /**
@@ -75,7 +75,7 @@ public class FormalParameterList extends ASTNode {
    * @param rightBracket the right square bracket
    * @param rightParenthesis the right parenthesis
    */
-  private FormalParameterList(Token leftParenthesis, List<FormalParameter> parameters,
+  public FormalParameterList(Token leftParenthesis, List<FormalParameter> parameters,
       Token leftBracket, Token rightBracket, Token rightParenthesis) {
     this.leftParenthesis = leftParenthesis;
     this.parameters.addAll(parameters);

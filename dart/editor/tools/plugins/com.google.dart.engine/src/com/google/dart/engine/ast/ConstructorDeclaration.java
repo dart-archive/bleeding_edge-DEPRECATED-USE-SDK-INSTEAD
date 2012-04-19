@@ -269,7 +269,7 @@ public class ConstructorDeclaration extends TypeMember {
    * @param parameters the parameters associated with the constructor
    */
   public void setParameters(FormalParameterList parameters) {
-    this.parameters = parameters;
+    this.parameters = becomeParentOf(parameters);
   }
 
   /**

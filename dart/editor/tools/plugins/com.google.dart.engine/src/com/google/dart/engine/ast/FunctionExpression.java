@@ -146,7 +146,7 @@ public class FunctionExpression extends Expression {
    * @param parameters the parameters associated with the function
    */
   public void setParameters(FormalParameterList parameters) {
-    this.parameters = parameters;
+    this.parameters = becomeParentOf(parameters);
   }
 
   /**

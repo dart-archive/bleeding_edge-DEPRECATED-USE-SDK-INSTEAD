@@ -145,6 +145,6 @@ public abstract class SwitchMember extends ASTNode {
    * @param label the label associated with the switch member
    */
   public void setLabel(Label label) {
-    this.label = label;
+    this.label = becomeParentOf(label);
   }
 }

@@ -178,7 +178,7 @@ public class TypeAlias extends CompilationUnitMember {
    * @param parameters the parameters associated with the function type
    */
   public void setParameters(FormalParameterList parameters) {
-    this.parameters = parameters;
+    this.parameters = becomeParentOf(parameters);
   }
 
   /**
@@ -205,7 +205,7 @@ public class TypeAlias extends CompilationUnitMember {
    * @param typeParameters the type parameters for the function type
    */
   public void setTypeParameters(TypeParameterList typeParameters) {
-    this.typeParameters = typeParameters;
+    this.typeParameters = becomeParentOf(typeParameters);
   }
 
   @Override
