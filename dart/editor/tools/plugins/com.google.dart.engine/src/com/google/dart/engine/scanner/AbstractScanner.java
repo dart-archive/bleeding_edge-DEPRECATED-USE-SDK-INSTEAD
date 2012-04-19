@@ -863,7 +863,8 @@ public abstract class AbstractScanner {
       if (peek() == '!') {
         do {
           next = advance();
-        } while (next != '\n' && next != '\r');
+        } while (next != '\n' && next != '\r' && next > 0);
+        appendStringToken(TokenType.SCRIPT_TAG, getString(tokenStart, 0));
         return next;
       }
     }

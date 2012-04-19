@@ -26,35 +26,99 @@ public enum TokenClass {
   /**
    * A value used to indicate that the token type is an additive operator.
    */
-  ADDITIVE_OPERATOR,
+  ADDITIVE_OPERATOR(12),
 
   /**
    * A value used to indicate that the token type is an assignment operator.
    */
-  ASSIGNMENT_OPERATOR,
+  ASSIGNMENT_OPERATOR(2),
+
+  /**
+   * A value used to indicate that the token type is a bitwise-and operator.
+   */
+  BITWISE_AND_OPERATOR(8),
+
+  /**
+   * A value used to indicate that the token type is a bitwise-or operator.
+   */
+  BITWISE_OR_OPERATOR(6),
+
+  /**
+   * A value used to indicate that the token type is a bitwise-xor operator.
+   */
+  BITWISE_XOR_OPERATOR(7),
+
+  /**
+   * A value used to indicate that the token type is a cascade operator.
+   */
+  CASCADE_OPERATOR(1),
+
+  /**
+   * A value used to indicate that the token type is a conditional operator.
+   */
+  CONDITIONAL_OPERATOR(3),
 
   /**
    * A value used to indicate that the token type is an equality operator.
    */
-  EQUALITY_OPERATOR,
+  EQUALITY_OPERATOR(9),
 
   /**
    * A value used to indicate that the token type is an increment operator.
    */
-  INCREMENT_OPERATOR,
+  INCREMENT_OPERATOR(14), // POSTFIX_OPERATOR
+
+  /**
+   * A value used to indicate that the token type is a logical-and operator.
+   */
+  LOGICAL_AND_OPERATOR(5),
+
+  /**
+   * A value used to indicate that the token type is a logical-or operator.
+   */
+  LOGICAL_OR_OPERATOR(4),
+
+  /**
+   * A value used to indicate that the token type is a member access operator.
+   */
+  MEMBER_ACCESS_OPERATOR(14),
 
   /**
    * A value used to indicate that the token type is a multiplicative operator.
    */
-  MULTIPLICATIVE_OPERATOR,
+  MULTIPLICATIVE_OPERATOR(13),
 
   /**
    * A value used to indicate that the token type is a relational operator.
    */
-  RELATIONAL_OPERATOR,
+  RELATIONAL_OPERATOR(10),
 
   /**
    * A value used to indicate that the token type is a shift operator.
    */
-  SHIFT_OPERATOR;
+  SHIFT_OPERATOR(11);
+
+  /**
+   * The precedence of tokens of this class, or <code>0</code> if the such tokens do not represent
+   * an operator.
+   */
+  private int precedence;
+
+  private TokenClass() {
+    this(0);
+  }
+
+  private TokenClass(int precedence) {
+    this.precedence = precedence;
+  }
+
+  /**
+   * Return the precedence of tokens of this class, or <code>0</code> if the such tokens do not
+   * represent an operator.
+   * 
+   * @return the precedence of tokens of this class
+   */
+  public int getPrecedence() {
+    return precedence;
+  }
 }

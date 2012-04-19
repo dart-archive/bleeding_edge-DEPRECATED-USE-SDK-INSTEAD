@@ -18,15 +18,11 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class <code>CompilationUnit</code> represent a compilation unit. The script tag
- * is not represented in the AST structure.
+ * Instances of the class <code>CompilationUnit</code> represent a compilation unit.
  * 
  * <pre>
  * compilationUnit ::=
- *     scriptTag? directives compilationUnitMember*
- * 
- * scriptTag ::=
- *     '#!' (~NEWLINE)* NEWLINE
+ *     {@link ScriptTag scriptTag}? directives compilationUnitMember*
  * 
  * directives ::=
  *     {@link LibraryDirective libraryDirective}? {@link ImportDirective importDirective}* {@link SourceDirective sourceDirective}* {@link ResourceDirective resourceDirective}*
@@ -42,6 +38,12 @@ import java.util.List;
  * </pre>
  */
 public class CompilationUnit extends ASTNode {
+  /**
+   * The script tag at the beginning of the compilation unit, or <code>null</code> if there is no
+   * script tag in this compilation unit.
+   */
+  private ScriptTag scriptTag;
+
   /**
    * The directives contained in this compilation unit.
    */
@@ -61,10 +63,13 @@ public class CompilationUnit extends ASTNode {
   /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
    * 
+   * @param scriptTag the script tag at the beginning of the compilation unit
    * @param directives the directives contained in this compilation unit
    * @param declarations the declarations contained in this compilation unit
    */
-  public CompilationUnit(List<Directive> directives, List<CompilationUnitMember> declarations) {
+  public CompilationUnit(ScriptTag scriptTag, List<Directive> directives,
+      List<CompilationUnitMember> declarations) {
+    this.scriptTag = becomeParentOf(scriptTag);
     this.directives.addAll(directives);
     this.declarations.addAll(declarations);
   }
@@ -79,7 +84,9 @@ public class CompilationUnit extends ASTNode {
     // TODO(brianwilkerson) Consider keeping a pointer to the first and last tokens in the token
     // stream. Doing so would resolve the issue of what to do if both directives and declarations
     // are empty.
-    if (!directives.isEmpty()) {
+    if (scriptTag != null) {
+      return scriptTag.getBeginToken();
+    } else if (!directives.isEmpty()) {
       return directives.getBeginToken();
     }
     return declarations.getBeginToken();
@@ -108,8 +115,28 @@ public class CompilationUnit extends ASTNode {
     return declarations.getEndToken();
   }
 
+  /**
+   * Return the script tag at the beginning of the compilation unit, or <code>null</code> if there
+   * is no script tag in this compilation unit.
+   * 
+   * @return the script tag at the beginning of the compilation unit
+   */
+  public ScriptTag getScriptTag() {
+    return scriptTag;
+  }
+
+  /**
+   * Set the script tag at the beginning of the compilation unit to the given script tag.
+   * 
+   * @param scriptTag the script tag at the beginning of the compilation unit
+   */
+  public void setScriptTag(ScriptTag scriptTag) {
+    this.scriptTag = becomeParentOf(scriptTag);
+  }
+
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    safelyVisitChild(scriptTag, visitor);
     directives.accept(visitor);
     declarations.accept(visitor);
   }

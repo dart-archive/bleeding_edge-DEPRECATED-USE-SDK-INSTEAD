@@ -330,6 +330,10 @@ public class ASTVisitor<R> {
     return visitStatement(node);
   }
 
+  public R visitScriptTag(ScriptTag scriptTag) {
+    return visitNode(scriptTag);
+  }
+
   public R visitSimpleFormalParameter(SimpleFormalParameter node) {
     return visitNormalFormalParameter(node);
   }

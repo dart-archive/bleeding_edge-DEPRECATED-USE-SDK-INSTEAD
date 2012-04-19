@@ -15,8 +15,16 @@ package com.google.dart.engine.scanner;
 
 import static com.google.dart.engine.scanner.TokenClass.ADDITIVE_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.ASSIGNMENT_OPERATOR;
+import static com.google.dart.engine.scanner.TokenClass.BITWISE_AND_OPERATOR;
+import static com.google.dart.engine.scanner.TokenClass.BITWISE_OR_OPERATOR;
+import static com.google.dart.engine.scanner.TokenClass.BITWISE_XOR_OPERATOR;
+import static com.google.dart.engine.scanner.TokenClass.CASCADE_OPERATOR;
+import static com.google.dart.engine.scanner.TokenClass.CONDITIONAL_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.EQUALITY_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.INCREMENT_OPERATOR;
+import static com.google.dart.engine.scanner.TokenClass.LOGICAL_AND_OPERATOR;
+import static com.google.dart.engine.scanner.TokenClass.LOGICAL_OR_OPERATOR;
+import static com.google.dart.engine.scanner.TokenClass.MEMBER_ACCESS_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.MULTIPLICATIVE_OPERATOR;
 import static com.google.dart.engine.scanner.TokenClass.NO_CLASS;
 import static com.google.dart.engine.scanner.TokenClass.RELATIONAL_OPERATOR;
@@ -29,77 +37,83 @@ import static com.google.dart.engine.scanner.TokenClass.SHIFT_OPERATOR;
 public enum TokenType {
   EOF, // marks the end of the input
 
-  KEYWORD,
-  IDENTIFIER,
   DOUBLE,
-  INT,
   HEXADECIMAL,
-  STRING,
-  SINGLE_LINE_COMMENT,
+  IDENTIFIER,
+  INT,
+  KEYWORD,
   MULTI_LINE_COMMENT,
+  SCRIPT_TAG,
+  SINGLE_LINE_COMMENT,
+  STRING,
 
-  AMPERSAND(null, "&"),
-  BACKPING(null, "`"),
-  BACKSLASH(null, "\\"),
+  AMPERSAND(BITWISE_AND_OPERATOR, "&"),
+  AMPERSAND_AMPERSAND(LOGICAL_AND_OPERATOR, "&&"),
+  AMPERSAND_EQ(ASSIGNMENT_OPERATOR, "&="),
   BANG(null, "!"),
-  BAR(null, "|"),
+  BANG_EQ(EQUALITY_OPERATOR, "!="),
+  BANG_EQ_EQ(EQUALITY_OPERATOR, "!=="),
+  BAR(BITWISE_OR_OPERATOR, "|"),
+  BAR_BAR(LOGICAL_OR_OPERATOR, "||"),
+  BAR_EQ(ASSIGNMENT_OPERATOR, "|="),
   COLON(null, ":"),
   COMMA(null, ","),
-  EQ(ASSIGNMENT_OPERATOR, "="),
-  GT(RELATIONAL_OPERATOR, ">"),
-  HASH(null, "#"),
-  OPEN_CURLY_BRACKET(null, "{"),
-  OPEN_SQUARE_BRACKET(null, "["),
-  OPEN_PAREN(null, "("),
-  LT(RELATIONAL_OPERATOR, "<"),
-  MINUS(ADDITIVE_OPERATOR, "-"),
-  PERIOD(null, "."),
-  PLUS(ADDITIVE_OPERATOR, "+"),
-  QUESTION(null, "?"),
+  CARET(BITWISE_XOR_OPERATOR, "^"),
+  CARET_EQ(ASSIGNMENT_OPERATOR, "^="),
   CLOSE_CURLY_BRACKET(null, "}"),
-  CLOSE_SQUARE_BRACKET(null, "]"),
   CLOSE_PAREN(null, ")"),
+  CLOSE_SQUARE_BRACKET(null, "]"),
+  EQ(ASSIGNMENT_OPERATOR, "="),
+  EQ_EQ(EQUALITY_OPERATOR, "=="),
+  EQ_EQ_EQ(EQUALITY_OPERATOR, "==="),
+  FUNCTION(null, "=>"),
+  GT(RELATIONAL_OPERATOR, ">"),
+  GT_EQ(RELATIONAL_OPERATOR, ">="),
+  GT_GT(SHIFT_OPERATOR, ">>"),
+  GT_GT_EQ(ASSIGNMENT_OPERATOR, ">>="),
+  GT_GT_GT(SHIFT_OPERATOR, ">>>"),
+  GT_GT_GT_EQ(ASSIGNMENT_OPERATOR, ">>>="),
+  HASH(null, "#"),
+  INDEX(null, "[]"),
+  INDEX_EQ(null, "[]="),
+  IS(RELATIONAL_OPERATOR, "is"),
+  LT(RELATIONAL_OPERATOR, "<"),
+  LT_EQ(RELATIONAL_OPERATOR, "<="),
+  LT_LT(SHIFT_OPERATOR, "<<"),
+  LT_LT_EQ(ASSIGNMENT_OPERATOR, "<<="),
+  MINUS(ADDITIVE_OPERATOR, "-"),
+  MINUS_EQ(ASSIGNMENT_OPERATOR, "-="),
+  MINUS_MINUS(INCREMENT_OPERATOR, "--"),
+  OPEN_CURLY_BRACKET(null, "{"),
+  OPEN_PAREN(MEMBER_ACCESS_OPERATOR, "("), // Not sure the type is right, but it has the right precedence
+  OPEN_SQUARE_BRACKET(MEMBER_ACCESS_OPERATOR, "["), // Not sure the type is right, but it has the right precedence
+  PERCENT(MULTIPLICATIVE_OPERATOR, "%"),
+  PERCENT_EQ(ASSIGNMENT_OPERATOR, "%="),
+  PERIOD(MEMBER_ACCESS_OPERATOR, "."),
+  PERIOD_PERIOD(CASCADE_OPERATOR, ".."),
+  PLUS(ADDITIVE_OPERATOR, "+"),
+  PLUS_EQ(ASSIGNMENT_OPERATOR, "+="),
+  PLUS_PLUS(INCREMENT_OPERATOR, "++"),
+  QUESTION(CONDITIONAL_OPERATOR, "?"),
   SEMICOLON(null, ";"),
   SLASH(MULTIPLICATIVE_OPERATOR, "/"),
-  TILDE(null, "~"),
-  STAR(MULTIPLICATIVE_OPERATOR, "*"),
-  PERCENT(MULTIPLICATIVE_OPERATOR, "%"),
-  CARET(null, "^"),
-
-  STRING_INTERPOLATION, // either '$' or '${'
-  LT_EQ(RELATIONAL_OPERATOR, "<="),
-  FUNCTION(null, "=>"),
   SLASH_EQ(ASSIGNMENT_OPERATOR, "/="),
-  PERIOD_PERIOD_PERIOD(null, "..."),
-  PERIOD_PERIOD(null, ".."),
-  EQ_EQ_EQ(EQUALITY_OPERATOR, "==="),
-  EQ_EQ(EQUALITY_OPERATOR, "=="),
-  LT_LT_EQ(ASSIGNMENT_OPERATOR, "<<="),
-  LT_LT(SHIFT_OPERATOR, "<<"),
-  GT_EQ(RELATIONAL_OPERATOR, ">="),
-  GT_GT_EQ(ASSIGNMENT_OPERATOR, ">>="),
-  GT_GT_GT_EQ(ASSIGNMENT_OPERATOR, ">>>="),
-  INDEX_EQ(null, "[]="),
-  INDEX(null, "[]"),
-  BANG_EQ_EQ(EQUALITY_OPERATOR, "!=="),
-  BANG_EQ(EQUALITY_OPERATOR, "!="),
-  AMPERSAND_AMPERSAND(null, "&&"),
-  AMPERSAND_EQ(ASSIGNMENT_OPERATOR, "&="),
-  BAR_BAR(null, "||"),
-  BAR_EQ(ASSIGNMENT_OPERATOR, "|="),
+  STAR(MULTIPLICATIVE_OPERATOR, "*"),
   STAR_EQ(ASSIGNMENT_OPERATOR, "*="),
-  PLUS_PLUS(INCREMENT_OPERATOR, "++"),
-  PLUS_EQ(ASSIGNMENT_OPERATOR, "+="),
-  MINUS_MINUS(INCREMENT_OPERATOR, "--"),
-  MINUS_EQ(ASSIGNMENT_OPERATOR, "-="),
-  TILDE_SLASH_EQ(ASSIGNMENT_OPERATOR, "~/="),
+  STRING_INTERPOLATION, // either '$' or '${'
+  TILDE(null, "~"),
   TILDE_SLASH(MULTIPLICATIVE_OPERATOR, "~/"),
-  PERCENT_EQ(ASSIGNMENT_OPERATOR, "%="),
-  GT_GT(SHIFT_OPERATOR, ">>"),
-  GT_GT_GT(SHIFT_OPERATOR, ">>>"),
-  CARET_EQ(ASSIGNMENT_OPERATOR, "^="),
-  IS(null, "is");
+  TILDE_SLASH_EQ(ASSIGNMENT_OPERATOR, "~/="),
 
+  // The following are not currently tokens in Dart, but are reserved for future use.
+
+  BACKPING(null, "`"),
+  BACKSLASH(null, "\\"),
+  PERIOD_PERIOD_PERIOD(null, "...");
+
+  /**
+   * The class of the token.
+   */
   private TokenClass tokenClass;
 
   /**
@@ -113,7 +127,7 @@ public enum TokenType {
   }
 
   private TokenType(TokenClass tokenClass, String lexeme) {
-    this.tokenClass = tokenClass;
+    this.tokenClass = tokenClass == null ? NO_CLASS : tokenClass;
     this.lexeme = lexeme;
   }
 
@@ -125,6 +139,16 @@ public enum TokenType {
    */
   public String getLexeme() {
     return lexeme;
+  }
+
+  /**
+   * Return the precedence of the token, or <code>0</code> if the token does not represent an
+   * operator.
+   * 
+   * @return the precedence of the token
+   */
+  public int getPrecedence() {
+    return tokenClass.getPrecedence();
   }
 
   /**
@@ -188,5 +212,20 @@ public enum TokenType {
    */
   public boolean isShiftOperator() {
     return tokenClass == SHIFT_OPERATOR;
+  }
+
+  /**
+   * Return <code>true</code> if this token type represents an operator that can be defined by
+   * users.
+   * 
+   * @return <code>true</code> if this token type represents an operator that can be defined by
+   *         users
+   */
+  public boolean isUserDefinableOperator() {
+    return lexeme == "==" || lexeme == "~" || lexeme == "negate" || lexeme == "[]"
+        || lexeme == "[]=" || lexeme == "*" || lexeme == "/" || lexeme == "%" || lexeme == "~/"
+        || lexeme == "+" || lexeme == "-" || lexeme == "<<" || lexeme == ">>>" || lexeme == ">>"
+        || lexeme == ">=" || lexeme == ">" || lexeme == "<=" || lexeme == "<" || lexeme == "&"
+        || lexeme == "^" || lexeme == "|";
   }
 }

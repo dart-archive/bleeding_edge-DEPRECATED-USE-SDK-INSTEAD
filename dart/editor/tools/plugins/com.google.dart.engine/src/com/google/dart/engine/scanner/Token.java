@@ -90,6 +90,15 @@ public class Token {
   }
 
   /**
+   * Return <code>true</code> if this token represents an operator that can be defined by users.
+   * 
+   * @return <code>true</code> if this token represents an operator that can be defined by users
+   */
+  public boolean isUserDefinableOperator() {
+    return type.isUserDefinableOperator();
+  }
+
+  /**
    * Set the next token in the token stream to the given token.
    * 
    * @param token the next token in the token stream

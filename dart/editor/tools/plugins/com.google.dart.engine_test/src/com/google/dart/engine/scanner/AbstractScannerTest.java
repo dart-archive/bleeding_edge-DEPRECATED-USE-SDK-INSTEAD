@@ -490,6 +490,18 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.QUESTION, "?");
   }
 
+  public void test_AbstractScanner_scriptTag_withArgs() throws Exception {
+    assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart -debug");
+  }
+
+  public void test_AbstractScanner_scriptTag_withoutSpace() throws Exception {
+    assertToken(TokenType.SCRIPT_TAG, "#!/bin/dart");
+  }
+
+  public void test_AbstractScanner_scriptTag_withSpace() throws Exception {
+    assertToken(TokenType.SCRIPT_TAG, "#! /bin/dart");
+  }
+
   public void test_AbstractScanner_semicolon() throws Exception {
     assertToken(TokenType.SEMICOLON, ";");
   }
@@ -628,8 +640,11 @@ public abstract class AbstractScannerTest extends TestCase {
     assertEquals(source.length(), actualToken.getLength());
     assertEquals(source, actualToken.getLexeme());
 
-    if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
-      // Adding space to an end-of-line comment changes the comment
+    if (expectedType == TokenType.SCRIPT_TAG) {
+      // Adding space before the script tag is not allowed, and adding text at the end changes nothing.
+      return;
+    } else if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
+      // Adding space to an end-of-line comment changes the comment.
       actualToken = scan(" " + source);
       assertNotNull(actualToken);
       assertEquals(expectedType, actualToken.getType());
