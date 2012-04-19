@@ -24,6 +24,12 @@ foo() {
 }
 """;
 
+final String TEST_FOUR = @"""
+foo() {
+  return new List().add(2);
+}
+""";
+
 main() {
   String generated = compile(TEST_ONE, 'foo');
   Expect.isTrue(generated.contains("return a.length;"));
@@ -33,4 +39,7 @@ main() {
 
   generated = compile(TEST_THREE, 'foo');
   Expect.isTrue(generated.contains("return 3;"));
+
+  generated = compile(TEST_FOUR, 'foo');
+  Expect.isTrue(generated.contains("push(2);"));
 }
