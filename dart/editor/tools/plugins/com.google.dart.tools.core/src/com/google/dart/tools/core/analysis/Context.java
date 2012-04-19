@@ -27,29 +27,30 @@ class Context {
 
   private static final Library[] NO_LIBRARIES = new Library[] {};
 
-  private final AnalysisServer server;
-
   /**
    * The libraries in this context, including imported libraries. This should only be accessed on
    * the background thread.
    */
   private final HashMap<File, Library> libraryCache;
 
-  Context(AnalysisServer server) {
-    this.server = server;
+  Context() {
     this.libraryCache = new HashMap<File, Library>();
-  }
-
-  public Collection<Library> getCachedLibraries() {
-    return libraryCache.values();
   }
 
   void cacheLibrary(Library library) {
     libraryCache.put(library.getFile(), library);
   }
 
+  void discardLibraries() {
+    libraryCache.clear();
+  }
+
   void discardLibrary(Library library) {
     libraryCache.remove(library.getFile());
+  }
+
+  Collection<Library> getCachedLibraries() {
+    return libraryCache.values();
   }
 
   /**

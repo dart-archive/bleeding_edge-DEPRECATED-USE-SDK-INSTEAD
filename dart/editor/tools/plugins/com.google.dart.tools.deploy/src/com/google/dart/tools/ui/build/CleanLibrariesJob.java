@@ -13,7 +13,13 @@
  */
 package com.google.dart.tools.ui.build;
 
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -40,13 +46,19 @@ public class CleanLibrariesJob extends Job {
       SubMonitor subMonitor = SubMonitor.convert(monitor,
           BuildMessages.CleanLibrariesJob_cleanLibrariesProgress, 100);
 
+      IWorkspace workspace = ResourcesPlugin.getWorkspace();
+      IWorkspaceRoot root = workspace.getRoot();
+
       // Refresh the workspace.
-      ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE,
-          subMonitor.newChild(50));
+      root.refreshLocal(IResource.DEPTH_INFINITE, subMonitor.newChild(50));
 
       // Clean the projects, forcing a rebuild.
-      ResourcesPlugin.getWorkspace().build(IncrementalProjectBuilder.CLEAN_BUILD,
-          subMonitor.newChild(50));
+      if (DartCoreDebug.ANALYSIS_SERVER) {
+        root.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_INFINITE);
+        SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyzeLibraries();
+      } else {
+        workspace.build(IncrementalProjectBuilder.CLEAN_BUILD, subMonitor.newChild(50));
+      }
 
       subMonitor.done();
     } catch (CoreException ex) {

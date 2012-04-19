@@ -75,7 +75,7 @@ public class AnalysisServer {
    * A context representing what is "saved on disk". Contents of this object should only be accessed
    * on the background thread.
    */
-  private final Context savedContext = new Context(this);
+  private final Context savedContext = new Context();
 
   /**
    * <code>true</code> if the background thread should continue executing analysis tasks
@@ -186,7 +186,8 @@ public class AnalysisServer {
     synchronized (queue) {
       if (!libraryFiles.contains(file)) {
         libraryFiles.add(file);
-        queueNewTask(new AnalyzeLibraryTask(this, savedContext, file));
+        // Append analysis task to the end of the queue so that any user requests take precedence
+        queueAnalyzeContext();
       }
     }
   }
@@ -243,6 +244,13 @@ public class AnalysisServer {
     }
   }
 
+  /**
+   * Called when all cached information should be discarded and all libraries reanalyzed
+   */
+  public void reanalyzeLibraries() {
+    queueNewTask(new EverythingChangedTask(this, savedContext));
+  }
+
   public void removeAnalysisListener(AnalysisListener listener) {
     int oldLen = analysisListeners.length;
     for (int i = 0; i < oldLen; i++) {
@@ -268,7 +276,6 @@ public class AnalysisServer {
       throw new IllegalArgumentException("File path must be absolute: " + file);
     }
     AnalyzeLibraryTask task = new AnalyzeLibraryTask(this, savedContext, file, callback);
-    task.setAnalyzeIfNotTracked(true);
     synchronized (queue) {
       queueNewTask(task);
     }
@@ -334,6 +341,8 @@ public class AnalysisServer {
           if (lastTask instanceof AnalyzeContextTask) {
             return;
           }
+        } else {
+          index = 0;
         }
         queue.add(index, new AnalyzeContextTask(this, savedContext));
       }

@@ -27,7 +27,6 @@ class AnalyzeLibraryTask extends Task {
   private final File libraryFile;
   private final ResolveLibraryCallback callback;
 
-  private boolean analyzeIfNotTracked;
   private long start = 0;
 
   AnalyzeLibraryTask(AnalysisServer server, Context context, File libraryFile) {
@@ -47,7 +46,7 @@ class AnalyzeLibraryTask extends Task {
 
     // Determine if the library should still be analyzed
 
-    if (!(analyzeIfNotTracked || server.isTrackedLibraryFile(libraryFile)) || !libraryFile.exists()) {
+    if (!libraryFile.exists()) {
       return;
     }
     if (start == 0) {
@@ -98,9 +97,5 @@ class AnalyzeLibraryTask extends Task {
         DartCore.logError("Exception during resolution notification", e);
       }
     }
-  }
-
-  void setAnalyzeIfNotTracked(boolean analyzeIfNotTracked) {
-    this.analyzeIfNotTracked = analyzeIfNotTracked;
   }
 }
