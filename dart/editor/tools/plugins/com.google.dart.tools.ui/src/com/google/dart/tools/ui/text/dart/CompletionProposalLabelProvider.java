@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.text.dart;
@@ -29,6 +27,7 @@ import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.StyledString;
 
 import java.util.Arrays;
 
@@ -201,6 +200,11 @@ public class CompletionProposalLabelProvider {
     }
   }
 
+  public StyledString createStyledLabel(CompletionProposal fProposal) {
+    // TODO(messick) rewrite to create styled labels from the beginning
+    return new StyledString(createLabel(fProposal));
+  }
+
   String createAnonymousTypeLabel(CompletionProposal proposal) {
     char[] declaringTypeSignature = proposal.getDeclarationSignature();
 
@@ -355,9 +359,11 @@ public class CompletionProposalLabelProvider {
     }
 
     // declaring type
-    nameBuffer.append(" - "); //$NON-NLS-1$
     String declaringType = extractDeclaringTypeFQN(methodProposal);
-    TypeLabelUtil.insertTypeLabel(declaringType, nameBuffer);
+    if (!declaringType.isEmpty()) {
+      nameBuffer.append(" - "); //$NON-NLS-1$
+      TypeLabelUtil.insertTypeLabel(declaringType, nameBuffer);
+    }
     return nameBuffer.toString();
   }
 

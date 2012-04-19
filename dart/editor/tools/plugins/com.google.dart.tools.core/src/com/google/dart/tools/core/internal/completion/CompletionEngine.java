@@ -52,6 +52,7 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
+import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.parser.ParserContext;
@@ -63,9 +64,11 @@ import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.FieldNodeElement;
 import com.google.dart.compiler.resolver.FunctionAliasElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.MethodNodeElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolutionContext;
 import com.google.dart.compiler.resolver.Resolver;
@@ -331,7 +334,11 @@ public class CompletionEngine {
               } else if (ElementKind.of(element) == ElementKind.LIBRARY) {
                 // #import('dart:html', prefix: 'html'); class X{ html.!DivElement! div; }
                 createCompletionsForLibraryPrefix(propertyName, (LibraryElement) element);
+              } else {
+                createCompletionsForQualifiedMemberAccess(propertyName, type, false);
               }
+            } else {
+              createCompletionsForQualifiedMemberAccess(propertyName, type, false);
             }
           } else {
             if (type instanceof InterfaceType) {
@@ -515,6 +522,53 @@ public class CompletionEngine {
       } else {
         // TODO top-level element
         proposeTypesForPrefix(identifier, false);
+      }
+    }
+  }
+
+  /**
+   * Collects all method and field definitions from every class in all known libraries.
+   */
+  private static class MemberElementVisitor extends ElementVisitor {
+
+    String prefix = null;
+    boolean mustIncludeStatics = true;
+    private Set<Element> elements = new HashSet<Element>();
+
+    public MemberElementVisitor(String prefix, boolean mustIncludeStatics) {
+      this.prefix = prefix; // may be null
+      this.mustIncludeStatics = mustIncludeStatics;
+    }
+
+    @Override
+    public void element(FieldNodeElement element) {
+      if (mustIncludeStatics || !element.isStatic()) {
+        add(element);
+      }
+    }
+
+    @Override
+    public void element(MethodNodeElement element) {
+      if (mustIncludeStatics || !element.isStatic()) {
+        add(element);
+      }
+    }
+
+    public Set<Element> getElements() {
+      return elements;
+    }
+
+    private void add(NodeElement element) {
+      if (filter(element.getName())) {
+        elements.add(element);
+      }
+    }
+
+    private boolean filter(String name) {
+      if (prefix == null) {
+        return true;
+      } else {
+        return name.startsWith(prefix);
       }
     }
   }
@@ -1047,6 +1101,30 @@ public class CompletionEngine {
     return posParamCount;
   }
 
+  static private List<Element> findAllElements(LibraryUnit library, String prefix) {
+    Set<Element> elemSet = findAllElements(library, prefix, new HashSet<LibraryUnit>());
+    List<Element> elements = new ArrayList<Element>(elemSet.size());
+    elements.addAll(elemSet);
+    return elements;
+  }
+
+  static private Set<Element> findAllElements(LibraryUnit library, String prefix,
+      Set<LibraryUnit> libs) {
+    if (libs.contains(library)) {
+      return new HashSet<Element>();
+    }
+    libs.add(library);
+    MemberElementVisitor visitor = new MemberElementVisitor(prefix, false);
+    for (DartUnit unit : library.getUnits()) {
+      unit.accept(visitor);
+    }
+    Set<Element> elements = visitor.getElements();
+    for (LibraryUnit lib : library.getImports()) {
+      elements.addAll(findAllElements(lib, prefix, libs));
+    }
+    return elements;
+  }
+
   static private List<Element> getAllElements(Type type) {
     Map<String, Element> map = new HashMap<String, Element>();
     List<Element> list = new ArrayList<Element>();
@@ -1560,7 +1638,15 @@ public class CompletionEngine {
       return;
     }
     InterfaceType itype = (InterfaceType) type;
-    List<Element> members = getAllElements(itype);
+    boolean includeDeclaration = true;
+    List<Element> members;
+    if (TypeKind.of(itype) == TypeKind.DYNAMIC) {
+      members = findAllElements(parsedUnit.getLibrary(), prefix);
+      includeDeclaration = false;
+    } else {
+      members = getAllElements(itype);
+    }
+    Set<String> previousNames = new HashSet<String>(members.size());
     for (Element elem : members) {
       if (!(elem instanceof MethodElement)) {
         continue;
@@ -1572,9 +1658,12 @@ public class CompletionEngine {
         continue;
       }
       String name = method.getName();
-      if (name.isEmpty()) {
+      char[][] paramTypeNames = getParameterTypeNames(method);
+      String sig = makeSig(name, paramTypeNames);
+      if (name.isEmpty() || previousNames.contains(sig)) {
         continue;
       }
+      previousNames.add(sig);
       if (prefix != null && !name.startsWith(prefix)) {
         continue;
       }
@@ -1592,7 +1681,11 @@ public class CompletionEngine {
           : CompletionProposal.METHOD_REF;
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
           kind, actualCompletionPosition - offset);
-      proposal.setDeclarationSignature(method.getEnclosingElement().getName().toCharArray());
+      if (includeDeclaration) {
+        proposal.setDeclarationSignature(method.getEnclosingElement().getName().toCharArray());
+      } else {
+        proposal.setDeclarationSignature("".toCharArray());
+      }
       proposal.setSignature(name.toCharArray());
       proposal.setCompletion(name.toCharArray());
       proposal.setName(name.toCharArray());
@@ -1600,10 +1693,12 @@ public class CompletionEngine {
       proposal.setIsGetter(isGetter);
       proposal.setIsSetter(isSetter);
       proposal.setParameterNames(getParameterNames(method));
-      proposal.setParameterTypeNames(getParameterTypeNames(method));
+      proposal.setParameterTypeNames(paramTypeNames);
       String returnTypeName = method.getReturnType().getElement().getName();
       proposal.setTypeName(returnTypeName.toCharArray());
-      proposal.setDeclarationTypeName(method.getEnclosingElement().getName().toCharArray());
+      if (includeDeclaration) {
+        proposal.setDeclarationTypeName(method.getEnclosingElement().getName().toCharArray());
+      }
       setSourceLoc(proposal, node, prefix);
       proposal.setRelevance(1);
       requestor.accept(proposal);
@@ -1617,7 +1712,15 @@ public class CompletionEngine {
     }
     String prefix = extractFilterPrefix(node);
     InterfaceType itype = (InterfaceType) type;
-    List<Element> members = getAllElements(itype);
+    boolean includeDeclaration = true;
+    List<Element> members;
+    if (TypeKind.of(itype) == TypeKind.DYNAMIC) {
+      members = findAllElements(parsedUnit.getLibrary(), prefix);
+      includeDeclaration = false;
+    } else {
+      members = getAllElements(itype);
+    }
+    Set<String> previousNames = new HashSet<String>(members.size());
     for (Element elem : members) {
       if (!(elem instanceof FieldElement)) {
         continue;
@@ -1634,12 +1737,21 @@ public class CompletionEngine {
         }
       }
       String name = field.getName();
+      String sig = name + field.getType().getElement().getName();
       if (prefix != null && !name.startsWith(prefix)) {
         continue;
       }
+      if (previousNames.contains(sig)) {
+        continue;
+      }
+      previousNames.add(sig);
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
           CompletionProposal.FIELD_REF, actualCompletionPosition - offset);
-      proposal.setDeclarationSignature(field.getEnclosingElement().getName().toCharArray());
+      if (includeDeclaration) {
+        proposal.setDeclarationSignature(field.getEnclosingElement().getName().toCharArray());
+      } else {
+        proposal.setDeclarationSignature("".toCharArray());
+      }
       proposal.setSignature(field.getType().getElement().getName().toCharArray());
       proposal.setCompletion(name.toCharArray());
       proposal.setName(name.toCharArray());
@@ -1647,7 +1759,9 @@ public class CompletionEngine {
       proposal.setIsGetter(true);
       proposal.setIsSetter(true);
       proposal.setTypeName(field.getType().getElement().getName().toCharArray());
-      proposal.setDeclarationTypeName(field.getEnclosingElement().getName().toCharArray());
+      if (includeDeclaration) {
+        proposal.setDeclarationTypeName(field.getEnclosingElement().getName().toCharArray());
+      }
       setSourceLoc(proposal, node, prefix);
       proposal.setRelevance(1);
       requestor.accept(proposal);
@@ -1947,6 +2061,17 @@ public class CompletionEngine {
     int nodeStart = node.getSourceInfo().getOffset();
     int nodeEnd = node.getSourceInfo().getLength() + nodeStart;
     return nodeStart <= completionPos && completionPos <= nodeEnd;
+  }
+
+  private String makeSig(String name, char[][] paramTypeNames) {
+    StringBuffer buf = new StringBuffer();
+    buf.append(name);
+    for (char[] ca : paramTypeNames) {
+      for (char c : ca) {
+        buf.append(c);
+      }
+    }
+    return buf.toString();
   }
 
   private void proposeClassOrInterfaceNamesForPrefix(DartIdentifier identifier, boolean isClass) {

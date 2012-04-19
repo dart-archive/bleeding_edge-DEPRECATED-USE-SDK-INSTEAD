@@ -232,6 +232,10 @@ public class CompletionEngineTest extends TestCase {
     test("class XXX {XXX.fisk();}main() {main(); new !1}}", "1+List");
   }
 
+  public void testCommentSnippets045() throws Exception {
+    test("class X{var q; f() {q.!1a!2}}", "1+future", "1+end", "2+arguments", "2+abs", "2-end");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test
