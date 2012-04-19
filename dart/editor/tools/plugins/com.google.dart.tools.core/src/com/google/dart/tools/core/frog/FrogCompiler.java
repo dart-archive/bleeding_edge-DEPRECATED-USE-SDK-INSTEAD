@@ -105,8 +105,8 @@ public class FrogCompiler {
 
     FrogCompiler compiler = new FrogCompiler();
 
-    DartCore.getConsole().clear();
-    DartCore.getConsole().println("Generating JavaScript...");
+    console.clear();
+    console.println("Generating JavaScript...");
 
     try {
       CompilationResult result = compiler.compile(library.getCorrespondingResource().getLocation(),
@@ -115,11 +115,11 @@ public class FrogCompiler {
       refreshResources(library.getCorrespondingResource());
 
       if (!result.getStdOut().isEmpty()) {
-        DartCore.getConsole().println(result.getStdOut().trim());
+        console.println(result.getStdOut().trim());
       }
 
       if (!result.getStdErr().isEmpty()) {
-        DartCore.getConsole().println(result.getStdErr().trim());
+        console.println(result.getStdErr().trim());
       }
 
       if (result.getExitCode() == 0) {
@@ -135,7 +135,7 @@ public class FrogCompiler {
         String message = fileLength + "kb";
         message += " written in " + (elapsed / 1000.0) + " seconds";
 
-        DartCore.getConsole().println(NLS.bind("Wrote {0} [{1}]", outputFile.getPath(), message));
+        console.println(NLS.bind("Wrote {0} [{1}]", outputFile.getPath(), message));
       }
 
       return result;

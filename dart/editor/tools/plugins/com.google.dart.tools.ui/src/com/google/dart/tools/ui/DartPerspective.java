@@ -71,7 +71,8 @@ public class DartPerspective implements IPerspectiveFactory {
     outputfolder.addView(DartUI.ID_PROBLEMS);
     //outputfolder.addView(IPageLayout.ID_PROBLEM_VIEW);
     //outputfolder.addPlaceholder(NewSearchUI.SEARCH_VIEW_ID);
-    outputfolder.addView(IConsoleConstants.ID_CONSOLE_VIEW);
+    outputfolder.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
+    outputfolder.addPlaceholder("com.google.dart.tools.ui.console");
     outputfolder.addPlaceholder(IPageLayout.ID_TASK_LIST);
     outputfolder.addPlaceholder(IProgressConstants.PROGRESS_VIEW_ID);
 

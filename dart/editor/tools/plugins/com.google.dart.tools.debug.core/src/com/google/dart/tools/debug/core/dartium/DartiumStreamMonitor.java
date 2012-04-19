@@ -53,7 +53,7 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
 
     buffer.append(message);
 
-    for (IStreamListener listener : listeners) {
+    for (IStreamListener listener : listeners.toArray(new IStreamListener[listeners.size()])) {
       listener.streamAppended(message, this);
     }
   }

@@ -23,7 +23,6 @@ import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
-import com.google.dart.tools.debug.ui.internal.DartUtil;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -38,12 +37,10 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
-import org.eclipse.ui.console.IConsoleConstants;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -84,7 +81,6 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
         compileJavascript(resource, monitor);
       } catch (OperationCanceledException ex) {
         // The user cancelled the launch.
-        DartCore.getConsole().println("Launch cancelled.");
 
         return;
       }
@@ -150,8 +146,6 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       try {
         if (htmlFile.getReferencedLibraries().length > 0) {
           DartLibrary library = htmlFile.getReferencedLibraries()[0];
-
-          showConsole();
 
           CompilationResult result = FrogCompiler.compileLibrary(library, monitor,
               DartCore.getConsole());
@@ -221,20 +215,6 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
           Messages.BrowserLaunchConfigurationDelegate_BrowserNotFound, e));
     }
-  }
-
-  private void showConsole() {
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
-              IConsoleConstants.ID_CONSOLE_VIEW);
-        } catch (PartInitException e) {
-          DartUtil.logError(e);
-        }
-      }
-    });
   }
 
 }

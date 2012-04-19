@@ -247,5 +247,17 @@
             file-extensions="js">
       </file-association>
    </extension>
+    <extension
+          point="org.eclipse.ui.views">
+       <view
+             allowMultiple="true"
+             category="com.google.dart.tools.ui.dart"
+             class="com.google.dart.tools.ui.console.DartConsoleView"
+             icon="icons/full/eview16/console_view.gif"
+             id="com.google.dart.tools.ui.console"
+             name="Output"
+             restorable="false">
+       </view>
+    </extension>
 
 </plugin>

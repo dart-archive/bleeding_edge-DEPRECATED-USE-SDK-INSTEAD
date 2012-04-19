@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.filesview;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.DartcBuildHandler;
 import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -49,14 +50,14 @@ public class IgnoreResourceAction extends SelectionListenerAction {
 
     @Override
     public IStatus runInWorkspace(IProgressMonitor monitor) {
-
       try {
         monitor.beginTask("Analyzing...", IProgressMonitor.UNKNOWN);
+
         new DartcBuildHandler().buildLibrariesIn(project, resource, monitor);
       } catch (CoreException e) {
-        DartCore.getConsole().print(FilesViewMessages.IgnoreResourceAction_Analyze_fail_message);
-        return Status.CANCEL_STATUS;
+        DartToolsPlugin.log(e);
 
+        return Status.CANCEL_STATUS;
       } finally {
         monitor.done();
       }

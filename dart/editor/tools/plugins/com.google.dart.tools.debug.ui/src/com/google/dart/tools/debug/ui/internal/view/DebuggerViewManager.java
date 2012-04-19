@@ -71,7 +71,6 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
           DebuggerViewManager.getDefault());
       DebugPlugin.getDefault().addDebugEventListener(DebuggerViewManager.getDefault());
       DartTextHover.addContributer(hoverHelper);
-
     }
 
     return manager;
@@ -100,13 +99,12 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
     try {
       if (launch.getLaunchConfiguration().getType().getIdentifier().startsWith("com.google")
           && launch.getLaunchMode().equals(ILaunchManager.DEBUG_MODE)) {
-
         //  add the suspend trigger listener 
         ISuspendTrigger trigger = (ISuspendTrigger) launch.getAdapter(ISuspendTrigger.class);
+
         if (trigger != null) {
           trigger.addSuspendTriggerListener(this);
         }
-
       }
     } catch (CoreException e) {
       DartUtil.logError(e);
@@ -123,7 +121,6 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
     try {
       if (launch.getLaunchConfiguration().getType().getIdentifier().startsWith("com.google") //$NON-NLS-N$
           && launch.getLaunchMode().equals(ILaunchManager.DEBUG_MODE)) {
-
         ISuspendTrigger trigger = (ISuspendTrigger) launch.getAdapter(ISuspendTrigger.class);
 
         if (trigger != null) {

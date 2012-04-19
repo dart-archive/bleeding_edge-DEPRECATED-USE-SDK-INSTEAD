@@ -64,7 +64,6 @@ import org.eclipse.ui.actions.ContributionItemFactory;
 import org.eclipse.ui.actions.NewWizardMenu;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
-import org.eclipse.ui.console.IConsoleConstants;
 import org.eclipse.ui.ide.IIDEActionConstants;
 import org.eclipse.ui.internal.IPreferenceConstants;
 import org.eclipse.ui.internal.ShowViewAction;
@@ -737,9 +736,12 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   }
 
   private void addViewActions(MenuManager menu) {
-    IViewDescriptor viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(
-        IConsoleConstants.ID_CONSOLE_VIEW);
-    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+    IViewDescriptor viewDesc;
+
+    if (DartCoreDebug.ENABLE_CALL_GRAPH) {
+      viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_CALL_HIERARCHY);
+      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+    }
 
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DebuggerView.ID);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
@@ -750,13 +752,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(IPageLayout.ID_OUTLINE);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
+//    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartConsoleView.VIEW_ID);
+//    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_PROBLEMS);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
-
-    if (DartCoreDebug.ENABLE_CALL_GRAPH) {
-      viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_CALL_HIERARCHY);
-      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
-    }
   }
 
   /**

@@ -18,7 +18,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.frog.FrogCompiler;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
 
 import org.eclipse.core.resources.IResource;
@@ -33,7 +32,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
@@ -42,10 +40,7 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
-import org.eclipse.ui.console.IConsoleConstants;
 
 /**
  * An action to create an optimized Javascript build of a Dart library.
@@ -71,8 +66,6 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
     @Override
     protected IStatus run(IProgressMonitor monitor) {
       if (DartCore.getPlugin().getCompileWithFrog()) {
-        showConsole();
-
         try {
           monitor.beginTask(
               ActionMessages.GenerateJavascriptAction_Compiling + library.getElementName(),
@@ -248,20 +241,6 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
 
   private boolean saveDirtyEditors(IWorkbenchPage page) {
     return page.saveAllEditors(false);
-  }
-
-  private void showConsole() {
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
-              IConsoleConstants.ID_CONSOLE_VIEW);
-        } catch (PartInitException e) {
-          DartToolsPlugin.log(e);
-        }
-      }
-    });
   }
 
 }
