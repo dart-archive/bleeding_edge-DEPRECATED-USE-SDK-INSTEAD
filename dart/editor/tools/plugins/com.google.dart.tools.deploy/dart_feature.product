@@ -25,8 +25,8 @@
 
    <splash
       location="com.google.dart.tools.deploy"
-      startupProgressRect="40,360,368,15"
-      startupMessageRect="40,340,368,15"
+      startupProgressRect="40,350,368,15"
+      startupMessageRect="40,330,368,15"
       startupForegroundColor="B3B3B3" />
    <launcher name="DartEditor">
       <linux icon="/com.google.dart.tools.deploy/icons/dart_48_48.xpm"/>
@@ -37,6 +37,7 @@
          <bmp/>
       </win>
    </launcher>
+
 
    <vm>
       <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6</linux>
