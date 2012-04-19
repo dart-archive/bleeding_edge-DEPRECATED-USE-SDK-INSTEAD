@@ -90,13 +90,6 @@ def GetBuildInfo():
       # TODO(jmesserly): do we want to do anything different for the second IE
       # bot? For now we're using it to track down flakiness.
       number = web_pattern.group(4)
-      
-      # TODO(efortuna): This is a temporary repurposing of one of the IE bots so
-      # that the VM team can debug the VM crash on Windows (and not have to
-      # modify the buildbot master code). Get rid of this code once it is fixed.
-      if number == '2':
-        mode = 'debug'
-        runtime = 'chrome' # Use chrome for runtime because it's the fastest.
 
   if system == 'windows':
     system = 'win7'
@@ -158,8 +151,8 @@ def BuildFrog(compiler, mode, system):
   """
   # TODO(efortuna): Currently we always clobber Windows builds. The VM
   # team thinks there's a problem with dependency tracking on Windows that
-  # is leading to these VM heisenbugs. Remove this when the dependency issue has
-  # been ironed out. See bug 2124.
+  # is leading to occasional build failures. Remove when this gyp issue has
+  # been ironed out.
   if system == 'win7':
     for build in ['Release_', 'Debug_']:
       for arch in ['ia32', 'x64']:
