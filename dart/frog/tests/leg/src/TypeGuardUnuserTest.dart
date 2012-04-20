@@ -29,6 +29,15 @@ foo(int param1, int param2) {
 }
 """;
 
+final String TEST_THREE_WITH_BAILOUT = @"""
+foo(int param1, int param2) {
+  var t;
+  for (int i = 0; i < 1; i++) {
+    t = 0 + param1 + param2;
+  }
+  return t;
+}
+""";
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
@@ -45,6 +54,12 @@ main() {
   checkNumberOfMatches(matches, 1);
 
   generated = compile(TEST_THREE, 'foo');
+  regexp = new RegExp(getNumberTypeCheck('param1'));
+  Expect.isTrue(!regexp.hasMatch(generated));
+  regexp = new RegExp(getNumberTypeCheck('param2'));
+  Expect.isTrue(!regexp.hasMatch(generated));
+
+  generated = compile(TEST_THREE_WITH_BAILOUT, 'foo');
   regexp = new RegExp(getNumberTypeCheck('param1'));
   Expect.isTrue(regexp.hasMatch(generated));
   regexp = new RegExp(getNumberTypeCheck('param2'));
