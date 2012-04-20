@@ -285,6 +285,8 @@ build system.  The PDE build system has to run under Eclipse.
         <property name="build.stage.include.dir" location="${eclipse.home}"/>
         <property name="build.dart.sdk.zip" location="${eclipse.home}/dart-sdk.zip"/>
         <property name="samples.out.dir" location="${eclipse.home}/samples"/>
+        <!-- Force SDK download to ensure we have the latest -->
+        <property name="build.download.sdk" value="true"/>
 
         <condition property="build.os" value="win32">
             <os family="windows"/>
