@@ -18,6 +18,16 @@ foo(int param0) {
 }
 """;
 
+final String TEST_TWO_WITH_BAILOUT = @"""
+foo(int param0) {
+  var t;
+  for (int i = 0; i < 1; i++) {
+    t = -param0;
+  }
+  return t;
+}
+""";
+
 final String TEST_THREE = @"""
 foo(c) {
   for (int i = 0; i < 10; i++) print(c[i]);
@@ -38,8 +48,17 @@ foo(a) {
 }
 """;
 
+final String TEST_FIVE_WITH_BAILOUT = @"""
+foo(a) {
+  for (int i = 0; i < 1; i++) {
+    a[0] = 1;
+    print(a[1]);
+  }
+}
+""";
+
 final String TEST_SIX = @"""
-main(a) {
+foo(a) {
   print(a[0]);
   while (true) {
     a[0] = a[1];
@@ -58,6 +77,13 @@ main() {
 
   generated = compile(TEST_TWO, 'foo');
   regexp = new RegExp(getNumberTypeCheck('param0'));
+  Expect.isTrue(!regexp.hasMatch(generated));
+
+  regexp = const RegExp('-param0');
+  Expect.isTrue(!regexp.hasMatch(generated));
+
+  generated = compile(TEST_TWO_WITH_BAILOUT, 'foo');
+  regexp = new RegExp(getNumberTypeCheck('param0'));
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp('-param0');
@@ -73,11 +99,17 @@ main() {
 
   generated = compile(TEST_FIVE, 'foo');
   regexp = const RegExp('a.constructor !== Array');
+  Expect.isTrue(!regexp.hasMatch(generated));
+  Expect.isTrue(generated.contains('index'));
+  Expect.isTrue(generated.contains('indexSet'));
+
+  generated = compile(TEST_FIVE_WITH_BAILOUT, 'foo');
+  regexp = const RegExp('a.constructor !== Array');
   Expect.isTrue(regexp.hasMatch(generated));
   Expect.isTrue(!generated.contains('index'));
   Expect.isTrue(!generated.contains('indexSet'));
 
-  generated = compile(TEST_FIVE, 'foo');
+  generated = compile(TEST_SIX, 'foo');
   regexp = const RegExp('a.constructor !== Array');
   Expect.isTrue(regexp.hasMatch(generated));
   Expect.isTrue(!generated.contains('index'));

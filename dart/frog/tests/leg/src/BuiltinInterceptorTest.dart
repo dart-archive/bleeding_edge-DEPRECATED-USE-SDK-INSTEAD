@@ -6,8 +6,11 @@
 
 final String TEST_ONE = @"""
 foo(String a) {
-  // index into the parameter to make sure we'll get a type guard.
-  print(a[0]);
+  // index into the parameter and move into a loop to make sure we'll get a
+  // type guard.
+  for (int i = 0; i < 1; i++) {
+    print(a[0]);
+  }
   return a.length;
 }
 """;
