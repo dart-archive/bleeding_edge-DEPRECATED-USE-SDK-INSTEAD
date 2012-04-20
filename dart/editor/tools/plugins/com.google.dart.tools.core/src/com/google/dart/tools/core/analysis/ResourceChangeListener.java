@@ -15,6 +15,7 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -31,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * Listens for resource changes and forwards them to the {@link AnalysisServer}
@@ -84,6 +86,38 @@ public class ResourceChangeListener {
     }
   }
 
+  /**
+   * This {@link ParseLibraryFileCallback} adds any sourced files discovered while parsing dart
+   * files that have directives to the {@link #sourcedFiles} {@link HashSet}, so that we can later
+   * compute the set of all loose files.
+   * 
+   * @see ResourceChangeListener#startBackgroundScan()
+   */
+  private class SourcedFilesCallback implements ParseLibraryFileCallback {
+
+    @Override
+    public void parsed(ParseLibraryFileEvent event) {
+      synchronized (sourcedFiles) {
+        sourcedFiles.addAll(event.getSourcedFiles());
+        callbackCounter--;
+        if (callbackCounter == 0) {
+          sourcedFiles.notifyAll();
+        }
+      }
+    }
+
+    @Override
+    public void parseFailed(File file) {
+      synchronized (sourcedFiles) {
+        callbackCounter--;
+        if (callbackCounter == 0) {
+          sourcedFiles.notifyAll();
+        }
+      }
+    }
+
+  }
+
   private static final int EVENT_MASK = IResourceChangeEvent.POST_CHANGE;
   private static final int DELTA_MASK = IResourceDelta.CONTENT | IResourceDelta.REPLACED;
 
@@ -126,6 +160,36 @@ public class ResourceChangeListener {
   private Listener listener;
 
   /**
+   * Used by {@link ResourceChangeListener#startBackgroundScan()} to keep track of the set all files
+   * skipped over by the analysis server because they don't have a directive at the top of the file.
+   * <p>
+   * All operations on this list should be within a synchronized block against {@link #sourcedFiles}.
+   */
+  private ArrayList<File> nonDirectiveFiles;
+
+  /**
+   * Used by {@link ResourceChangeListener#startBackgroundScan()} to keep track of the set of all
+   * dart files referenced by dart files with directives.
+   * <p>
+   * All operations on this set should be within a synchronized block against itself.
+   */
+  private HashSet<File> sourcedFiles;
+
+  /**
+   * A local {@link ParseLibraryFileCallback} used to gather the set stored in {@link #sourcedFiles}
+   */
+  private SourcedFilesCallback callback;
+
+  /**
+   * Used by {@link ResourceChangeListener#startBackgroundScan()} to keep track of the number of
+   * outstanding library files that haven't finished being analyzed yet.
+   * <p>
+   * All operations on this integer should be within a synchronized block against
+   * {@link #sourcedFiles}.
+   */
+  private int callbackCounter;
+
+  /**
    * Construct a new instance that listens for resource changes and forwards that information on to
    * the specified {@link AnalysisServer}
    */
@@ -133,6 +197,7 @@ public class ResourceChangeListener {
     this.server = server;
     this.filesToScan = new ArrayList<File>();
     this.buffer = new byte[1024];
+    this.callback = new SourcedFilesCallback();
   }
 
   /**
@@ -350,6 +415,11 @@ public class ResourceChangeListener {
     if (!DartCore.isDartLikeFileName(file.getName())) {
       return;
     }
+    // TODO look into having isAnalyzed, is there any way that this call could be faster? Calling
+    // getResource(...) so many times may be a performance bottleneck
+    if (!DartCore.isAnalyzed(ResourceUtil.getResource(file))) {
+      return;
+    }
     FileInputStream in;
     try {
       in = new FileInputStream(file);
@@ -358,9 +428,16 @@ public class ResourceChangeListener {
       return;
     }
     try {
-      // TODO (danrubel) Need to analyze libraries without directives that are unreferenced
       if (hasDirective(in)) {
         server.analyzeLibrary(file);
+        synchronized (sourcedFiles) {
+          callbackCounter++;
+        }
+        server.parseLibraryFile(file, callback);
+      } else {
+        synchronized (sourcedFiles) {
+          nonDirectiveFiles.add(file);
+        }
       }
     } catch (IOException e) {
       DartCore.logInformation("Exception while scanning file: " + file);
@@ -402,7 +479,28 @@ public class ResourceChangeListener {
 
         @Override
         public void run() {
+          nonDirectiveFiles = new ArrayList<File>();
+          sourcedFiles = new HashSet<File>();
+          callbackCounter = 0;
           scanFiles();
+          synchronized (sourcedFiles) {
+            while (callbackCounter > 0) {
+              try {
+                sourcedFiles.wait();
+              } catch (InterruptedException e) {
+              }
+            }
+          }
+          // this if statement is inserted as an optimization:
+          // if nonDirectiveFiles is empty, there is no reason to start the synchronized block
+          if (!nonDirectiveFiles.isEmpty()) {
+            synchronized (sourcedFiles) {
+              nonDirectiveFiles.removeAll(sourcedFiles);
+              for (File looseFile : nonDirectiveFiles) {
+                server.analyzeLibrary(looseFile);
+              }
+            }
+          }
         }
       }, ResourceChangeListener.class.getSimpleName());
       scanThread.start();
