@@ -25,6 +25,8 @@ import com.google.dart.tools.core.model.DartModelStatusConstants;
 
 import org.eclipse.core.resources.IResource;
 
+import java.net.URI;
+
 /**
  * The class <code>ResourceFactory</code> defines utility methods used to create {@link Resource
  * resources}.
@@ -132,7 +134,12 @@ public final class ResourceFactory {
     }
     IResource resource = compilationUnit.getUnderlyingResource();
     if (resource != null) {
-      return resource.getLocationURI().toString();
+      URI locationUri = resource.getLocationURI();
+      if (locationUri == null) {
+        throw new DartModelException(new DartModelStatusImpl(
+            DartModelStatusConstants.INVALID_RESOURCE));
+      }
+      return locationUri.toString();
     }
     throw new DartModelException(new DartModelStatusImpl(DartModelStatusConstants.INVALID_RESOURCE,
         compilationUnit));
