@@ -178,6 +178,8 @@ build system.  The PDE build system has to run under Eclipse.
 
                 <include name="time/**"/>
 
+                <include name="ui_lib/**"/>
+
                 <!-- the READMEs are out of date -->
                 <exclude name="**/README"/>
             </fileset>
