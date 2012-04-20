@@ -14,8 +14,11 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.ResourceChangeListener;
 import com.google.dart.tools.core.internal.builder.DartcBuildHandler;
 import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IProject;
@@ -91,10 +94,18 @@ public class IgnoreResourceAction extends SelectionListenerAction {
       try {
         if (DartCore.isAnalyzed(resource)) {
           DartModelManager.getInstance().addToIgnores(resource);
+          if (DartCoreDebug.ANALYSIS_SERVER) {
+            SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(
+                resource.getLocation().toFile());
+          }
         } else {
           DartModelManager.getInstance().removeFromIgnores(resource);
-          AnalyzeProjectJob analyzeProjectJob = new AnalyzeProjectJob(resource.getProject());
-          analyzeProjectJob.schedule();
+          if (DartCoreDebug.ANALYSIS_SERVER) {
+            new ResourceChangeListener(SystemLibraryManagerProvider.getDefaultAnalysisServer()).addFileToScan(resource.getLocation().toFile());
+          } else {
+            AnalyzeProjectJob analyzeProjectJob = new AnalyzeProjectJob(resource.getProject());
+            analyzeProjectJob.schedule();
+          }
         }
       } catch (IOException e) {
         MessageDialog.openError(shell, "Error Ignoring Resource", e.getMessage());
