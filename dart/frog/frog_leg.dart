@@ -9,6 +9,7 @@
 
 #import('lang.dart', prefix: 'frog');
 #import('../lib/compiler/compiler.dart', prefix: 'compiler');
+#import('../lib/compiler/implementation/filenames.dart');
 
 String relativize(Uri base, Uri uri) {
   if (base.scheme == 'file' &&
@@ -45,8 +46,8 @@ bool compile(frog.World world) {
   final showWarnings = frog.options.showWarnings;
   final allowMockCompilation = frog.options.allowMockCompilation;
   Uri cwd = new Uri(scheme: 'file', path: getCurrentDirectory());
-  Uri uri = cwd.resolve(frog.options.dartScript);
-  String frogLibDir = frog.options.libDir;
+  Uri uri = cwd.resolve(nativeToUriPath(frog.options.dartScript));
+  String frogLibDir = nativeToUriPath(frog.options.libDir);
   if (!frogLibDir.endsWith("/")) frogLibDir = "$frogLibDir/";
   Uri frogLib = new Uri(scheme: 'file', path: frogLibDir);
   Uri libraryRoot = frogLib.resolve('../../');
@@ -56,7 +57,7 @@ bool compile(frog.World world) {
     if (uri.scheme != 'file') {
       throw new IllegalArgumentException(uri);
     }
-    String source = world.files.readAll(uri.path);
+    String source = world.files.readAll(uriPathToNative(uri.path));
     world.dartBytesRead += source.length;
     sourceFiles[uri.toString()] =
       new frog.SourceFile(relativize(cwd, uri), source);
