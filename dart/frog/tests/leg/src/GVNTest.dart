@@ -6,10 +6,8 @@
 
 final String TEST_ONE = @"""
 void foo(bar) {
-  for (int i = 0; i < 1; i++) {
-    print(1 + bar);
-    print(1 + bar);
-  }
+  print(1 + bar);
+  print(1 + bar);
 }
 """;
 

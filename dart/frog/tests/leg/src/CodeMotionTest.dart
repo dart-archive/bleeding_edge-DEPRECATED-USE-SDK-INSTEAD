@@ -6,13 +6,11 @@
 
 final String TEST_ONE = @"""
 foo(int param0, int param1, bool param2) {
-  for (int i = 0; i < 1; i++) {
-    var x = param0 + 5;  // '+' is now GVNed.
-    if (param2) {
-      print(param0 + param1);
-    } else {
-      print(param0 + param1);
-    }
+  var x = param0 + 5;  // '+' is now GVNed.
+  if (param2) {
+    print(param0 + param1);
+  } else {
+    print(param0 + param1);
   }
 }
 """;
