@@ -110,42 +110,46 @@ public class AnalysisServerTest extends TestCase {
     return libFile;
   }
 
-//  public void test_AnalysisServer_idleEvent() throws Exception {
-//    TestUtilities.runWithTempDirectory(new FileOperation() {
-//      @Override
-//      public void run(File tempDir) throws Exception {
-//        test_AnalysisServer_idleEvent(tempDir);
-//      }
-//    });
-//  }
-//
-//  public void test_AnalysisServer_idleEvent(File tempDir) throws Exception {
-//    final int[] count = new int[] {0};
-//    final File libFile = setupMoneyLibrary(tempDir);
-//    setupServer();
-//    server.addAnalysisListener(new AnalysisListener() {
-//      @Override
-//      public void idle(boolean idle) {
-//        if (idle) {
-//          count[0]++;
-//          if (count[0] < 3) {
-//            server.changed(libFile);
-//          }
-//        }
-//      }
-//
-//      @Override
-//      public void parsed(AnalysisEvent event) {
-//      }
-//
-//      @Override
-//      public void resolved(AnalysisEvent event) {
-//      }
-//    });
-//    server.analyzeLibrary(libFile);
-//    listener.waitForIdle(30000);
-//    assertEquals(3, count[0]);
-//  }
+  public void test_AnalysisServer_idleEvent() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        test_AnalysisServer_idleEvent(tempDir);
+      }
+    });
+  }
+
+  public void test_AnalysisServer_idleEvent(File tempDir) throws Exception {
+    final int[] count = new int[] {0};
+    final File libFile = setupMoneyLibrary(tempDir);
+    setupServer();
+    server.addAnalysisListener(new AnalysisListener() {
+      @Override
+      public void idle(boolean idle) {
+        if (idle) {
+          count[0]++;
+          if (count[0] < 3) {
+            server.changed(libFile);
+          }
+        }
+      }
+
+      @Override
+      public void parsed(AnalysisEvent event) {
+      }
+
+      @Override
+      public void resolved(AnalysisEvent event) {
+      }
+    });
+    server.analyzeLibrary(libFile);
+    long end = System.currentTimeMillis() + 30000;
+    while (count[0] < 3) {
+      if (!listener.waitForIdle(end - System.currentTimeMillis())) {
+        fail("Expected 3 idle events, but received " + count[0]);
+      }
+    }
+  }
 
   public void test_AnalysisServer_resolveLibrary() throws Exception {
     TestUtilities.runWithTempDirectory(new FileOperation() {

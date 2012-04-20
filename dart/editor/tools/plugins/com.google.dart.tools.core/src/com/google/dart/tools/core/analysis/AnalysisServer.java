@@ -345,6 +345,7 @@ public class AnalysisServer {
           index = 0;
         }
         queue.add(index, new AnalyzeContextTask(this, savedContext));
+        queue.notifyAll();
       }
     }
   }
