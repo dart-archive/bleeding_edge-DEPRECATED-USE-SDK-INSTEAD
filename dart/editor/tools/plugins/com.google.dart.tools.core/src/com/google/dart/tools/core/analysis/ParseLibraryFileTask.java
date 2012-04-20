@@ -15,6 +15,7 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.parse;
 
@@ -29,11 +30,14 @@ class ParseLibraryFileTask extends Task {
   private final Context context;
   private final File libraryFile;
   private final UrlLibrarySource librarySource;
+  private final ParseLibraryFileCallback callback;
 
-  ParseLibraryFileTask(AnalysisServer server, Context context, File libraryFile) {
+  ParseLibraryFileTask(AnalysisServer server, Context context, File libraryFile,
+      ParseLibraryFileCallback callback) {
     this.server = server;
     this.context = context;
     this.libraryFile = libraryFile;
+    this.callback = callback;
     URI fileUri = libraryFile.toURI();
     URI shortUri = server.getLibraryManager().getShortUri(fileUri);
     URI libUri = shortUri != null ? shortUri : fileUri;
@@ -42,15 +46,25 @@ class ParseLibraryFileTask extends Task {
 
   @Override
   void perform() {
-    if (!libraryFile.exists()) {
-      return;
+    Library library = null;
+    if (libraryFile.exists()) {
+      library = context.getCachedLibrary(libraryFile);
+      if (library == null) {
+        DartUnit unit = parse(server, libraryFile, librarySource, libraryFile);
+        library = Library.fromDartUnit(server, libraryFile, librarySource, unit);
+        context.cacheLibrary(library);
+      }
     }
-    Library library = context.getCachedLibrary(libraryFile);
-    if (library != null) {
-      return;
+    if (callback != null) {
+      try {
+        if (library != null) {
+          callback.parsed(new ParseLibraryFileEvent(library));
+        } else {
+          callback.parseFailed(libraryFile);
+        }
+      } catch (Throwable e) {
+        DartCore.logError("Exception during parse notification", e);
+      }
     }
-    DartUnit unit = parse(server, libraryFile, librarySource, libraryFile);
-    library = Library.fromDartUnit(server, libraryFile, librarySource, unit);
-    context.cacheLibrary(library);
   }
 }

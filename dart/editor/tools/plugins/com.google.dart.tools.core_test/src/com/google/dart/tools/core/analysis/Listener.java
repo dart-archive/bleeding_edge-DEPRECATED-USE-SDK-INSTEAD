@@ -26,6 +26,7 @@ class Listener implements AnalysisListener {
 
   private final AnalysisServer server;
   private final Object waitForIdleLock = new Object();
+  private final HashSet<String> parsed = new HashSet<String>();
   private final HashSet<String> resolved = new HashSet<String>();
   private final StringBuilder duplicates = new StringBuilder();
 
@@ -45,6 +46,9 @@ class Listener implements AnalysisListener {
 
   @Override
   public void parsed(AnalysisEvent event) {
+    for (File file : event.getFiles()) {
+      parsed.add(file.getPath());
+    }
   }
 
   @Override
@@ -80,6 +84,10 @@ class Listener implements AnalysisListener {
     if (duplicates.length() > 0) {
       AnalysisServerTest.fail(duplicates.toString());
     }
+  }
+
+  HashSet<String> getParsed() {
+    return parsed;
   }
 
   HashSet<String> getResolved() {

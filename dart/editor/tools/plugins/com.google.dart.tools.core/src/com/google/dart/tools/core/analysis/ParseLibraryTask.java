@@ -39,7 +39,7 @@ class ParseLibraryTask extends Task {
       if (!libraryFile.exists()) {
         return;
       }
-      server.queueSubTask(new ParseLibraryFileTask(server, context, libraryFile));
+      server.queueSubTask(new ParseLibraryFileTask(server, context, libraryFile, null));
       server.queueSubTask(this);
       return;
     }

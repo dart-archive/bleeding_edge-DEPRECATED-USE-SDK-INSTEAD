@@ -245,6 +245,17 @@ public class AnalysisServer {
   }
 
   /**
+   * Parse the specified library, without adding the library to the list of libraries to be tracked.
+   * 
+   * @param file the library file (not <code>null</code>)
+   * @param callback a listener that will be notified when the library file has been parsed or
+   *          <code>null</code> if none
+   */
+  public void parseLibraryFile(File file, ParseLibraryFileCallback callback) {
+    queueNewTask(new ParseLibraryFileTask(this, savedContext, file, callback));
+  }
+
+  /**
    * Called when all cached information should be discarded and all libraries reanalyzed
    */
   public void reanalyzeLibraries() {
@@ -315,16 +326,6 @@ public class AnalysisServer {
   File[] getTrackedLibraryFiles() {
     synchronized (queue) {
       return libraryFiles.toArray(new File[libraryFiles.size()]);
-    }
-  }
-
-  /**
-   * Answer <code>true</code> if the receiver's collection of library files identified by
-   * {@link #analyzeLibrary(File)} includes the specified file.
-   */
-  boolean isTrackedLibraryFile(File file) {
-    synchronized (queue) {
-      return libraryFiles.contains(file);
     }
   }
 
@@ -411,6 +412,32 @@ public class AnalysisServer {
       return new File(base.resolve(new URI(null, null, relPath, null)).normalize().getPath());
     } catch (URISyntaxException e) {
       return null;
+    }
+  }
+
+  /**
+   * TESTING: Answer <code>true</code> if the receiver has cached information about the specified
+   * library.
+   * 
+   * @param file the library file (not <code>null</code>)
+   */
+  @SuppressWarnings("unused")
+  private boolean isLibraryFileCached(File file) {
+    synchronized (queue) {
+      return savedContext.getCachedLibrary(file) != null;
+    }
+  }
+
+  /**
+   * TESTING: Answer <code>true</code> if the receiver's collection of library files identified by
+   * {@link #analyzeLibrary(File)} includes the specified file.
+   * 
+   * @param file the library file (not <code>null</code>)
+   */
+  @SuppressWarnings("unused")
+  private boolean isLibraryFileTracked(File file) {
+    synchronized (queue) {
+      return libraryFiles.contains(file);
     }
   }
 

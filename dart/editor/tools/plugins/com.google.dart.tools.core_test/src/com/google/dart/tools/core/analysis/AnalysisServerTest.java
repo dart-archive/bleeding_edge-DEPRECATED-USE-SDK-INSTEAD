@@ -28,6 +28,7 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -66,6 +67,8 @@ public class AnalysisServerTest extends TestCase {
     }
     assertEquals(3, listener.getResolved().size());
     listener.assertNoDuplicates();
+    assertTrue(isLibraryFileTracked(libFile));
+    assertTrue(isLibraryFileCached(libFile));
     return libFile;
   }
 
@@ -91,22 +94,34 @@ public class AnalysisServerTest extends TestCase {
     return libFile;
   }
 
-  public void test_AnalysisServer_discard() throws Exception {
+  public void test_AnalysisServer_discardDirectory() throws Exception {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override
       public void run(File tempDir) throws Exception {
-        test_AnalysisServer_discard(tempDir);
+        test_AnalysisServer_discardLib(tempDir, true);
       }
     });
   }
 
-  public File test_AnalysisServer_discard(File tempDir) throws Exception {
+  public void test_AnalysisServer_discardFile() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        test_AnalysisServer_discardLib(tempDir, false);
+      }
+    });
+  }
+
+  public File test_AnalysisServer_discardLib(File tempDir, boolean discardParent) throws Exception {
     File libFile = test_AnalysisServer_analyzeLibrary(tempDir);
     listener.reset();
-    server.discard(libFile);
+    server.discard(discardParent ? libFile.getParentFile() : libFile);
     waitForIdle();
     assertEquals(0, listener.getResolved().size());
     listener.assertNoDuplicates();
+    assertFalse(isLibraryFileTracked(libFile));
+    // TODO discard cached library information
+    //assertFalse(isLibraryFileCached(libFile));
     return libFile;
   }
 
@@ -149,6 +164,68 @@ public class AnalysisServerTest extends TestCase {
         fail("Expected 3 idle events, but received " + count[0]);
       }
     }
+  }
+
+  public void test_AnalysisServer_parseLibraryFile() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        test_AnalysisServer_parseLibraryFile(tempDir);
+      }
+    });
+  }
+
+  public void test_AnalysisServer_parseLibraryFile(File tempDir) throws Exception {
+    File libFile = setupMoneyLibrary(tempDir);
+    setupServer();
+    final boolean[] parseFailed = new boolean[1];
+    final ParseLibraryFileEvent[] result = new ParseLibraryFileEvent[1];
+
+    server.parseLibraryFile(libFile, new ParseLibraryFileCallback() {
+      @Override
+      public void parsed(ParseLibraryFileEvent event) {
+        result[0] = event;
+      }
+
+      @Override
+      public void parseFailed(File file) {
+        parseFailed[0] = true;
+      }
+    });
+    waitForIdle();
+    assertFalse(parseFailed[0]);
+    assertNotNull(result[0]);
+    assertNotNull(result[0].getUnit());
+    assertEquals(1, result[0].getImportedFiles().size());
+    assertEquals(4, result[0].getSourcedFiles().size());
+    if (!listener.getParsed().contains(libFile.getPath())) {
+      fail("Expected parsed library " + libFile + " but found " + listener.getParsed());
+    }
+    assertEquals(1, listener.getParsed().size());
+    assertEquals(0, listener.getResolved().size());
+    listener.assertNoDuplicates();
+
+    listener.reset();
+    result[0] = null;
+    parseFailed[0] = false;
+    File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
+    server.parseLibraryFile(fileDoesNotExist, new ParseLibraryFileCallback() {
+      @Override
+      public void parsed(ParseLibraryFileEvent event) {
+        result[0] = event;
+      }
+
+      @Override
+      public void parseFailed(File file) {
+        parseFailed[0] = true;
+      }
+    });
+    waitForIdle();
+    assertTrue(parseFailed[0]);
+    assertNull(result[0]);
+    assertEquals(1, listener.getParsed().size());
+    assertEquals(0, listener.getResolved().size());
+    listener.assertNoDuplicates();
   }
 
   public void test_AnalysisServer_resolveLibrary() throws Exception {
@@ -218,6 +295,20 @@ public class AnalysisServerTest extends TestCase {
     if (index != null) {
       index.getOperationProcessor().stop(false);
     }
+  }
+
+  private boolean isLibraryFileCached(File libFile) throws Exception {
+    Method method = server.getClass().getDeclaredMethod("isLibraryFileCached", File.class);
+    method.setAccessible(true);
+    Object result = method.invoke(server, libFile);
+    return result instanceof Boolean && ((Boolean) result).booleanValue();
+  }
+
+  private boolean isLibraryFileTracked(File libFile) throws Exception {
+    Method method = server.getClass().getDeclaredMethod("isLibraryFileTracked", File.class);
+    method.setAccessible(true);
+    Object result = method.invoke(server, libFile);
+    return result instanceof Boolean && ((Boolean) result).booleanValue();
   }
 
   private long resolveBundledLibraries() throws URISyntaxException, InterruptedException, Exception {
