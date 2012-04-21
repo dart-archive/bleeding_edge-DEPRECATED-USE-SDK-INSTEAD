@@ -215,7 +215,7 @@ public class AnalysisServer {
       synchronized (queue) {
         libraryFiles.remove(file);
       }
-      // TODO (danrubel) cleanup cached libraries
+      queueNewTask(new DiscardLibraryTask(this, savedContext, file));
       return;
     }
 
@@ -228,7 +228,7 @@ public class AnalysisServer {
         File libraryFile = iter.next();
         if (libraryFile.getPath().startsWith(prefix)) {
           iter.remove();
-          // TODO (danrubel) cleanup cached libraries
+          queueNewTask(new DiscardLibraryTask(this, savedContext, libraryFile));
         }
       }
     }
@@ -295,6 +295,11 @@ public class AnalysisServer {
   public void stop() {
     final CountDownLatch stopped = new CountDownLatch(1);
     queueNewTask(new Task() {
+
+      @Override
+      boolean isBackgroundAnalysis() {
+        return false;
+      }
 
       @Override
       void perform() {
@@ -377,6 +382,25 @@ public class AnalysisServer {
       synchronized (queue) {
         queue.add(queueIndex, subtask);
         queueIndex++;
+      }
+    }
+  }
+
+  /**
+   * Remove any tasks related to analysis that do not have callbacks. The assumption is that
+   * analysis tasks with explicit callbacks are related to user requests and should be preserved.
+   * This should only be called from the background thread.
+   */
+  void removeAllBackgroundAnalysisTasks() {
+    if (Thread.currentThread() != backgroundThread) {
+      throw new IllegalStateException();
+    }
+    synchronized (queue) {
+      Iterator<Task> iter = queue.iterator();
+      while (iter.hasNext()) {
+        if (iter.next().isBackgroundAnalysis()) {
+          iter.remove();
+        }
       }
     }
   }

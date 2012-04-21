@@ -30,6 +30,11 @@ class ParseLibraryTask extends Task {
   }
 
   @Override
+  boolean isBackgroundAnalysis() {
+    return true;
+  }
+
+  @Override
   void perform() {
 
     // Parse the library file

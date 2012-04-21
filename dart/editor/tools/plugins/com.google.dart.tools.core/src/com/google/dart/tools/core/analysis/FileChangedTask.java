@@ -30,14 +30,9 @@ class FileChangedTask extends Task {
     this.file = file;
   }
 
-  /**
-   * Remove the library from the cached libraries along with any downstream libraries
-   */
-  void discardLibrary(Library library) {
-    context.discardLibrary(library);
-    for (Library cachedLibrary : context.getLibrariesImporting(library.getFile())) {
-      discardLibrary(cachedLibrary);
-    }
+  @Override
+  boolean isBackgroundAnalysis() {
+    return false;
   }
 
   @Override
@@ -46,7 +41,7 @@ class FileChangedTask extends Task {
     for (Library library : libraries) {
 
       // Discard the library and any downstream libraries
-      discardLibrary(library);
+      context.discardLibraryAndReferencingLibraries(library);
     }
 
     // Append analysis task to the end of the queue so that any user requests take precedence

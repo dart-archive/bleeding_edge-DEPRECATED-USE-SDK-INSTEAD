@@ -28,6 +28,7 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -114,14 +115,27 @@ public class AnalysisServerTest extends TestCase {
 
   public File test_AnalysisServer_discardLib(File tempDir, boolean discardParent) throws Exception {
     File libFile = test_AnalysisServer_analyzeLibrary(tempDir);
+
     listener.reset();
     server.discard(discardParent ? libFile.getParentFile() : libFile);
     waitForIdle();
     assertEquals(0, listener.getResolved().size());
     listener.assertNoDuplicates();
     assertFalse(isLibraryFileTracked(libFile));
-    // TODO discard cached library information
-    //assertFalse(isLibraryFileCached(libFile));
+    assertFalse(isLibraryFileCached(libFile));
+
+    listener.reset();
+    synchronized (getServerQueue()) {
+      // Queue a task that should never run
+      server.analyzeLibrary(libFile);
+      server.discard(discardParent ? libFile.getParentFile() : libFile);
+    }
+    waitForIdle();
+    assertEquals(0, listener.getResolved().size());
+    listener.assertNoDuplicates();
+    assertFalse(isLibraryFileTracked(libFile));
+    assertFalse(isLibraryFileCached(libFile));
+
     return libFile;
   }
 
@@ -295,6 +309,12 @@ public class AnalysisServerTest extends TestCase {
     if (index != null) {
       index.getOperationProcessor().stop(false);
     }
+  }
+
+  private Object getServerQueue() throws Exception {
+    Field field = server.getClass().getDeclaredField("queue");
+    field.setAccessible(true);
+    return field.get(server);
   }
 
   private boolean isLibraryFileCached(File libFile) throws Exception {

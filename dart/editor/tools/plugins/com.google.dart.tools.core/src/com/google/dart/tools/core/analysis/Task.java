@@ -19,6 +19,13 @@ package com.google.dart.tools.core.analysis;
 abstract class Task {
 
   /**
+   * Answer <code>true</code> if this task is an analysis task and does not have a callback. The
+   * assumption is that analysis tasks with explicit callbacks are related to user requests and thus
+   * are not considered "background" analysis.
+   */
+  abstract boolean isBackgroundAnalysis();
+
+  /**
    * Perform the task. This is executed in the background thread and may modify any aspect of the
    * analysis model or cached elements.
    */

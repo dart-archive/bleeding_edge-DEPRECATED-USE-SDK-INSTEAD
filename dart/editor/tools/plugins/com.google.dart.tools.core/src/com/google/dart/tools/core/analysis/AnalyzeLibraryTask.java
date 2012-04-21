@@ -42,6 +42,11 @@ class AnalyzeLibraryTask extends Task {
   }
 
   @Override
+  boolean isBackgroundAnalysis() {
+    return callback == null;
+  }
+
+  @Override
   void perform() {
 
     // Determine if the library should still be analyzed

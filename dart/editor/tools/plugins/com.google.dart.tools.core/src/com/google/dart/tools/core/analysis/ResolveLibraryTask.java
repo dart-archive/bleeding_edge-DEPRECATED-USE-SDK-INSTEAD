@@ -29,15 +29,20 @@ import java.util.Map.Entry;
  * Resolve types and references in the specified library
  */
 class ResolveLibraryTask extends Task {
+
   private final AnalysisServer server;
   private final Context context;
-
   private final Library library;
 
   ResolveLibraryTask(AnalysisServer server, Context context, Library library) {
     this.server = server;
     this.context = context;
     this.library = library;
+  }
+
+  @Override
+  boolean isBackgroundAnalysis() {
+    return true;
   }
 
   @Override

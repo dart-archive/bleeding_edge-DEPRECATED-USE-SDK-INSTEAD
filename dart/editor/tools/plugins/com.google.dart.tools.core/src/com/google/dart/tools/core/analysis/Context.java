@@ -49,6 +49,13 @@ class Context {
     libraryCache.remove(library.getFile());
   }
 
+  void discardLibraryAndReferencingLibraries(Library library) {
+    discardLibrary(library);
+    for (Library cachedLibrary : getLibrariesImporting(library.getFile())) {
+      discardLibraryAndReferencingLibraries(cachedLibrary);
+    }
+  }
+
   Collection<Library> getCachedLibraries() {
     return libraryCache.values();
   }

@@ -13,47 +13,37 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.ast.DartUnit;
-
-import static com.google.dart.tools.core.analysis.AnalysisUtility.parse;
-
 import java.io.File;
 
 /**
- * Parse a Dart source file and cache the result
+ * Remove any information cached about the library and any tasks related to analyzing the library
  */
-class ParseFileTask extends Task {
+public class DiscardLibraryTask extends Task {
+
   private final AnalysisServer server;
   private final Context context;
   private final File libraryFile;
-  private final File dartFile;
 
-  ParseFileTask(AnalysisServer server, Context context, File libraryFile, File dartFile) {
+  public DiscardLibraryTask(AnalysisServer server, Context context, File libraryFile) {
     this.server = server;
     this.context = context;
     this.libraryFile = libraryFile;
-    this.dartFile = dartFile;
   }
 
   @Override
   boolean isBackgroundAnalysis() {
-    return true;
+    return false;
   }
 
   @Override
   void perform() {
-    if (!dartFile.exists()) {
-      return;
-    }
     Library library = context.getCachedLibrary(libraryFile);
-    if (library == null) {
-      return;
+    if (library != null) {
+      context.discardLibraryAndReferencingLibraries(library);
     }
-    DartUnit dartUnit = library.getCachedUnit(dartFile);
-    if (dartUnit != null) {
-      return;
-    }
-    dartUnit = parse(server, library.getFile(), library.getLibrarySource(), dartFile);
-    library.cacheUnit(dartFile, dartUnit);
+    // Remove all pending analysis tasks as they may have been related to the dicarded library
+    server.removeAllBackgroundAnalysisTasks();
+    // Reanalyze any libraries not already cached
+    server.queueAnalyzeContext();
   }
 }

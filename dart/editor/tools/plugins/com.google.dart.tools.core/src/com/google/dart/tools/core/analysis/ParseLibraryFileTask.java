@@ -45,6 +45,11 @@ class ParseLibraryFileTask extends Task {
   }
 
   @Override
+  boolean isBackgroundAnalysis() {
+    return callback == null;
+  }
+
+  @Override
   void perform() {
     Library library = null;
     if (libraryFile.exists()) {

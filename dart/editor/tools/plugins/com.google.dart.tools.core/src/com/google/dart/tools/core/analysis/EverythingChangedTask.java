@@ -24,6 +24,11 @@ class EverythingChangedTask extends Task {
   }
 
   @Override
+  boolean isBackgroundAnalysis() {
+    return false;
+  }
+
+  @Override
   void perform() {
     context.discardLibraries();
     server.queueAnalyzeContext();
