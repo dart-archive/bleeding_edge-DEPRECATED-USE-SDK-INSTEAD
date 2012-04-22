@@ -22,8 +22,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Provides analysis of Dart code for Dart editor
@@ -141,7 +139,7 @@ public class AnalysisServer {
               }
             } else {
               synchronized (queue) {
-                if (queue.isEmpty()) {
+                if (analyze && queue.isEmpty()) {
                   try {
                     queue.wait();
                   } catch (InterruptedException e) {
@@ -293,25 +291,18 @@ public class AnalysisServer {
   }
 
   public void stop() {
-    final CountDownLatch stopped = new CountDownLatch(1);
-    queueNewTask(new Task() {
-
-      @Override
-      boolean isBackgroundAnalysis() {
-        return false;
+    boolean notify = false;
+    synchronized (queue) {
+      analyze = false;
+      queue.clear();
+      queue.notify();
+      if (!isBackgroundThreadIdle) {
+        isBackgroundThreadIdle = true;
+        notify = true;
       }
-
-      @Override
-      void perform() {
-        analyze = false;
-        // TODO (danrubel) write elements to disk
-        stopped.countDown();
-      }
-    });
-    try {
-      stopped.await(5, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      //$FALL-THROUGH$
+    }
+    if (notify) {
+      notifyIdle(true);
     }
   }
 
