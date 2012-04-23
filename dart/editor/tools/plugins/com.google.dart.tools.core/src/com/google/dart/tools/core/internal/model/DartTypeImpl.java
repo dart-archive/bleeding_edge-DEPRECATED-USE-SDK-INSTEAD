@@ -23,6 +23,7 @@ import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
@@ -267,6 +268,12 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
   }
 
   @Override
+  public DartTypeParameter[] getTypeParameters() throws DartModelException {
+    List<DartTypeParameter> list = getChildrenOfType(DartTypeParameter.class);
+    return list.toArray(new DartTypeParameter[list.size()]);
+  }
+
+  @Override
   @Deprecated
   public String getTypeQualifiedName(char separatorChar) {
     // TODO(devoncarew): remove this method
@@ -315,6 +322,12 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
   protected DartElement getHandleFromMemento(String token, MementoTokenizer tokenizer,
       WorkingCopyOwner owner) {
     switch (token.charAt(0)) {
+      case MEMENTO_DELIMITER_TYPE_PARAMETER:
+        if (!tokenizer.hasMoreTokens()) {
+          return this;
+        }
+        DartTypeParameterImpl typeParameter = new DartTypeParameterImpl(this, tokenizer.nextToken());
+        return typeParameter.getHandleFromMemento(tokenizer, owner);
       case MEMENTO_DELIMITER_FIELD:
         if (!tokenizer.hasMoreTokens()) {
           return this;

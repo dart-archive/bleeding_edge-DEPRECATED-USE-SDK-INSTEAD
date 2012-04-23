@@ -26,6 +26,7 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.FunctionAliasElement;
 import com.google.dart.compiler.resolver.LabelElement;
@@ -44,6 +45,7 @@ import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
@@ -610,11 +612,32 @@ public class BindingUtils {
    * @param variableBinding the resolved type variable used to locate the model element
    * @return the Dart model element corresponding to the resolved type variable
    */
-  public static Field getDartElement(DartLibrary library, TypeVariableElement variableBinding) {
+  public static DartTypeParameter getDartElement(DartLibrary library,
+      TypeVariableElement variableBinding) {
     if (variableBinding == null) {
       return null;
     }
-    DartCore.notYetImplemented();
+    DartTypeParameter[] typeParameters = null;
+    try {
+      EnclosingElement enclosingElement = variableBinding.getEnclosingElement();
+      if (enclosingElement instanceof FunctionAliasElement) {
+        FunctionAliasElement aliasElement = (FunctionAliasElement) enclosingElement;
+        DartFunctionTypeAlias aliasModel = getDartElement(library, aliasElement);
+        typeParameters = aliasModel.getTypeParameters();
+      } else if (enclosingElement instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) enclosingElement;
+        Type typeModel = (Type) getDartElement(library, classElement);
+        typeParameters = typeModel.getTypeParameters();
+      }
+    } catch (DartModelException exception) {
+    }
+    if (typeParameters != null) {
+      for (DartTypeParameter typeParameter : typeParameters) {
+        if (typeParameter.getElementName().equals(variableBinding.getName())) {
+          return typeParameter;
+        }
+      }
+    }
     return null;
   }
 

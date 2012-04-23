@@ -20,6 +20,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
@@ -89,6 +90,22 @@ public class DartElementLocatorTest extends TestCase {
     } finally {
       testProject.dispose();
     }
+  }
+
+  public void test_DartTypeParameter_inFunctonTypeAlias_onTypeName() throws Exception {
+    testElementLocator(new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler filler",
+        "typedef Test<A extends String>(A a);",
+        ""}, "A a", DartTypeParameter.class, "A extends String>", 1);
+  }
+
+  public void test_DartTypeParameter_inType_onTypeName() throws Exception {
+    testElementLocator(new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler filler",
+        "class Test<A> {",
+        "  f(A a) {",
+        "  }",
+        "}"}, "A a", DartTypeParameter.class, "A>", 1);
   }
 
   public void test_FieldElement_classMember() throws Exception {

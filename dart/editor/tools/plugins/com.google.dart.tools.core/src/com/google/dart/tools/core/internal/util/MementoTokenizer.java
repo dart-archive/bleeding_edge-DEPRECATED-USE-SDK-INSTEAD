@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -32,6 +32,7 @@ public class MementoTokenizer {
   public static final String METHOD = Character.toString(DartElementImpl.MEMENTO_DELIMITER_METHOD);
   public static final String PROJECT = Character.toString(DartElementImpl.MEMENTO_DELIMITER_PROJECT);
   public static final String TYPE = Character.toString(DartElementImpl.MEMENTO_DELIMITER_TYPE);
+  public static final String TYPE_PARAMETER = Character.toString(DartElementImpl.MEMENTO_DELIMITER_TYPE_PARAMETER);
   public static final String VARIABLE = Character.toString(DartElementImpl.MEMENTO_DELIMITER_VARIABLE);
 
   private final char[] memento;
@@ -62,6 +63,8 @@ public class MementoTokenizer {
         return COUNT;
       case DartElementImpl.MEMENTO_DELIMITER_FIELD:
         return FIELD;
+      case DartElementImpl.MEMENTO_DELIMITER_TYPE_PARAMETER:
+        return TYPE_PARAMETER;
       case DartElementImpl.MEMENTO_DELIMITER_FUNCTION:
         return FUNCTION;
       case DartElementImpl.MEMENTO_DELIMITER_FUNCTION_TYPE_ALIAS:
@@ -107,6 +110,7 @@ public class MementoTokenizer {
         case DartElementImpl.MEMENTO_DELIMITER_METHOD:
         case DartElementImpl.MEMENTO_DELIMITER_PROJECT:
         case DartElementImpl.MEMENTO_DELIMITER_TYPE:
+        case DartElementImpl.MEMENTO_DELIMITER_TYPE_PARAMETER:
         case DartElementImpl.MEMENTO_DELIMITER_VARIABLE:
           break loop;
       }

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
@@ -30,6 +31,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
@@ -46,6 +48,7 @@ import com.google.dart.tools.core.internal.model.info.DartFunctionInfo;
 import com.google.dart.tools.core.internal.model.info.DartFunctionTypeAliasInfo;
 import com.google.dart.tools.core.internal.model.info.DartMethodInfo;
 import com.google.dart.tools.core.internal.model.info.DartTypeInfo;
+import com.google.dart.tools.core.internal.model.info.DartTypeParameterInfo;
 import com.google.dart.tools.core.internal.model.info.DartVariableInfo;
 import com.google.dart.tools.core.internal.model.info.DeclarationElementInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
@@ -83,7 +86,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.PerformanceStats;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -115,7 +117,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      * A list containing all of the top level elements that were found while parsing the compilation
      * unit.
      */
-    private ArrayList<DartElementImpl> topLevelElements = new ArrayList<DartElementImpl>();
+    private List<DartElementImpl> topLevelElements = Lists.newArrayList();
 
     /**
      * Initialize a newly created type finder to find top level elements within the given
@@ -138,8 +140,11 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       String className = node.getClassName();
       DartTypeImpl typeImpl = new DartTypeImpl(compilationUnit, className);
       DartTypeInfo typeInfo = new DartTypeInfo();
-      ArrayList<DartElementImpl> children = new ArrayList<DartElementImpl>();
+      List<DartElementImpl> children = Lists.newArrayList();
       addNewElement(typeImpl, typeInfo);
+
+      // add DartTypeParameter elements
+      addTypeParameters(node.getTypeParameters(), typeImpl, children);
 
       boolean constructorFound = false;
       List<DartNode> members = node.getMembers();
@@ -255,15 +260,23 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       DartFunctionTypeAliasImpl aliasImpl = new DartFunctionTypeAliasImpl(compilationUnit,
           node.getName().getName());
       DartFunctionTypeAliasInfo aliasInfo = new DartFunctionTypeAliasInfo();
+      List<DartElementImpl> children = Lists.newArrayList();
+      // source range
       int start = node.getSourceInfo().getOffset();
       aliasInfo.setSourceRangeStart(start);
       aliasInfo.setSourceRangeEnd(node.getSourceInfo().getEnd() - 1);
+      // misc
       captureDartDoc(node, aliasInfo);
       aliasInfo.setNameRange(new SourceRangeImpl(node.getName()));
       aliasInfo.setReturnTypeName(extractTypeName(node.getReturnTypeNode(), false));
+      // type parameters
+      addTypeParameters(node.getTypeParameters(), aliasImpl, children);
+      // parameters
       List<DartElementImpl> parameters = getParameters(aliasImpl, node.getParameters(),
           node.getSourceInfo().getEnd());
-      aliasInfo.setChildren(parameters.toArray(new DartElementImpl[parameters.size()]));
+      children.addAll(parameters);
+      // done
+      aliasInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
       addNewElement(aliasImpl, aliasInfo);
       topLevelElements.add(aliasImpl);
       return null;
@@ -331,6 +344,29 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     }
 
     /**
+     * Adds {@link DartTypeParameterImpl} children for given {@link DartTypeParameter} nodes.
+     */
+    private void addTypeParameters(List<DartTypeParameter> typeParameterNodes,
+        DartElementImpl parent, List<DartElementImpl> children) {
+      for (com.google.dart.compiler.ast.DartTypeParameter typeParameterNode : typeParameterNodes) {
+        DartTypeParameterImpl typeParameterImpl = new DartTypeParameterImpl(parent,
+            typeParameterNode.getName().toString());
+        DartTypeParameterInfo typeParameterInfo = new DartTypeParameterInfo();
+        typeParameterInfo.setSourceRangeStart(typeParameterNode.getSourceInfo().getOffset());
+        typeParameterInfo.setSourceRangeEnd(typeParameterNode.getSourceInfo().getEnd());
+        typeParameterInfo.setNameRange(new SourceRangeImpl(typeParameterNode.getName()));
+        {
+          DartTypeNode boundType = typeParameterNode.getBound();
+          if (boundType != null) {
+            typeParameterInfo.setBoundName(boundType.getIdentifier().toString().toCharArray());
+          }
+        }
+        children.add(typeParameterImpl);
+        addNewElement(typeParameterImpl, typeParameterInfo);
+      }
+    }
+
+    /**
      * Return <code>true</code> if the given method definition is defining a constructor in a class
      * with the given name.
      * 
@@ -367,7 +403,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      * @return <code>true</code> if the method defines a constructor
      */
     private boolean processMethodDefinition(DartMethodDefinition methodNode, DartTypeImpl typeImpl,
-        String className, ArrayList<DartElementImpl> children) {
+        String className, List<DartElementImpl> children) {
       DartMethodImpl methodImpl = new DartMethodImpl(typeImpl, methodNode.getName().toString());
       DartMethodInfo methodInfo = new DartMethodInfo();
       methodInfo.setSourceRangeStart(methodNode.getSourceInfo().getOffset());
@@ -406,7 +442,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     /**
      * A list containing the function elements that were created.
      */
-    private ArrayList<DartFunctionImpl> functions = new ArrayList<DartFunctionImpl>();
+    private List<DartFunctionImpl> functions = Lists.newArrayList();
 
     /**
      * The parent of the function elements being created.
@@ -482,7 +518,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     /**
      * A list containing the function elements that were created.
      */
-    private ArrayList<DartVariableImpl> variables = new ArrayList<DartVariableImpl>();
+    private List<DartVariableImpl> variables = Lists.newArrayList();
 
     /**
      * The parent of the function elements being created.
@@ -508,7 +544,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      * 
      * @return a list containing all of the local variables that have been found
      */
-    public ArrayList<DartVariableImpl> getLocalVariables() {
+    public List<DartVariableImpl> getLocalVariables() {
       return variables;
     }
 
@@ -613,7 +649,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      */
     protected List<DartElementImpl> getParameters(DartElementImpl parent,
         List<DartParameter> parameterNodes, int visibleEnd) {
-      ArrayList<DartElementImpl> parameters = new ArrayList<DartElementImpl>();
+      List<DartElementImpl> parameters = Lists.newArrayList();
       for (DartParameter parameter : parameterNodes) {
         DartVariableImpl variableImpl = new DartVariableImpl(parent, new String(
             parameter.getParameterName().toCharArray()));
@@ -736,7 +772,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     if (types == null) {
       return CharOperation.NO_CHAR_CHAR;
     }
-    List<char[]> typeNames = new ArrayList<char[]>();
+    List<char[]> typeNames = Lists.newArrayList();
     for (DartTypeNode type : types) {
       typeNames.add(extractTypeName(type, returnStrVar));
     }
@@ -1035,7 +1071,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
    */
   @Override
   public DartElement[] findElements(DartElement element) {
-    ArrayList<DartElement> children = new ArrayList<DartElement>();
+    List<DartElement> children = Lists.newArrayList();
     while (element != null && element.getElementType() != DartElement.COMPILATION_UNIT) {
       children.add(element);
       element = element.getParent();
@@ -1294,7 +1330,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
   }
 
   public DartUnit makeConsistent(boolean resolveBindings, boolean forceProblemDetection,
-      HashMap<String, CategorizedProblem[]> problems, IProgressMonitor monitor)
+      Map<String, CategorizedProblem[]> problems, IProgressMonitor monitor)
       throws DartModelException {
     if (isConsistent()) {
       return null;
@@ -1449,7 +1485,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     DartUnit unit = null;
     try {
       unit = DartCompilerUtilities.parseSource(getElementName(), source, true,
-          new ArrayList<DartCompilationError>());
+          Lists.<DartCompilationError> newArrayList());
     } catch (Exception exception) {
       return false;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -124,6 +124,12 @@ public interface DartElement extends IAdaptable {
    * safely cast to {@link DartVariableDeclaration}.
    */
   public static int VARIABLE = 17;
+
+  /**
+   * A constant representing a type parameter. A Dart element with this type can be safely cast to
+   * {@link DartTypeParameter}.
+   */
+  public static int TYPE_PARAMETER = 19;
 
   /**
    * A constant representing a resource within a library. A Dart element with this type can be

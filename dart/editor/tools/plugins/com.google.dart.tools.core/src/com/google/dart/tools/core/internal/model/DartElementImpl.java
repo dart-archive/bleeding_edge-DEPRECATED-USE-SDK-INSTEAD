@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -59,7 +59,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    * CRITICAL! Do not use colon (:) as a delimiter. It is used in the indexer as a delimiter between
    * the memento and other information. Using it as a delimiter here would break the indexer.
    * 
-   * Suggested characters for additional delimiters: '*', ')', '}', ']', '?'
+   * Suggested characters for additional delimiters: '*', ')', '}', '?'
    */
 
   /**
@@ -141,6 +141,11 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    * The character used before the name of a variable.
    */
   public static final char MEMENTO_DELIMITER_VARIABLE = '[';
+
+  /**
+   * The character used before the name of a type parameter.
+   */
+  public static final char MEMENTO_DELIMITER_TYPE_PARAMETER = ']';
 
   /**
    * An empty array of resources.
@@ -782,6 +787,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
         case MEMENTO_DELIMITER_METHOD:
         case MEMENTO_DELIMITER_PROJECT:
         case MEMENTO_DELIMITER_TYPE:
+        case MEMENTO_DELIMITER_TYPE_PARAMETER:
           builder.append(MEMENTO_DELIMITER_ESCAPE);
       }
       builder.append(character);

@@ -18,11 +18,13 @@ import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Instances of the class <code>DartFunctionTypeAliasImpl</code>
@@ -92,9 +94,22 @@ public class DartFunctionTypeAliasImpl extends SourceReferenceImpl implements Da
   }
 
   @Override
+  public DartTypeParameter[] getTypeParameters() throws DartModelException {
+    List<DartTypeParameter> list = getChildrenOfType(DartTypeParameter.class);
+    return list.toArray(new DartTypeParameter[list.size()]);
+  }
+
+  @Override
   protected DartElement getHandleFromMemento(String token, MementoTokenizer tokenizer,
       WorkingCopyOwner owner) {
-    // Function type alias elements do not have any children.
+    switch (token.charAt(0)) {
+      case MEMENTO_DELIMITER_TYPE_PARAMETER:
+        if (!tokenizer.hasMoreTokens()) {
+          return this;
+        }
+        DartTypeParameterImpl typeParameter = new DartTypeParameterImpl(this, tokenizer.nextToken());
+        return typeParameter.getHandleFromMemento(tokenizer, owner);
+    }
     return this;
   }
 

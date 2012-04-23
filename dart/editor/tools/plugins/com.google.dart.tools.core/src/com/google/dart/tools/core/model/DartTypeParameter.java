@@ -11,20 +11,14 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.core.internal.model.info;
-
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.internal.problem.CategorizedProblem;
-
-import java.util.Map;
+package com.google.dart.tools.core.model;
 
 /**
- * Instances of the class <code>ASTHolderCUInfo</code> are used during a reconcile operation to hold
- * additional information not normally cached for a compilation unit.
+ * Represents a type parameter defined by a {@link Type}.
  */
-public class ASTHolderCUInfo extends CompilationUnitInfo {
-  public boolean resolveBindings;
-  public boolean forceProblemDetection;
-  public Map<String, CategorizedProblem[]> problems = null;
-  public DartUnit ast;
+public interface DartTypeParameter extends CompilationUnitElement, SourceReference {
+  /**
+   * @return the name of the bound type
+   */
+  public String getBoundName() throws DartModelException;
 }

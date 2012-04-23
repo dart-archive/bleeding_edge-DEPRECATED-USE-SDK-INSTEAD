@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -45,4 +45,9 @@ public interface DartFunctionTypeAlias extends CompilationUnitElement, SourceMan
    * @throws DartModelException if the return type of this function cannot be accessed
    */
   public String getReturnTypeName() throws DartModelException;
+
+  /**
+   * @return the {@link DartTypeParameter}s declared by this type
+   */
+  public DartTypeParameter[] getTypeParameters() throws DartModelException;
 }

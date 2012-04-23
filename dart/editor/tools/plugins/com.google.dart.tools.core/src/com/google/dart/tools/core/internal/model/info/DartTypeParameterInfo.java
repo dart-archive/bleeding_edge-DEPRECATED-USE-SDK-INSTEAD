@@ -13,18 +13,26 @@
  */
 package com.google.dart.tools.core.internal.model.info;
 
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.internal.problem.CategorizedProblem;
-
-import java.util.Map;
-
 /**
- * Instances of the class <code>ASTHolderCUInfo</code> are used during a reconcile operation to hold
- * additional information not normally cached for a compilation unit.
+ * The cached data shared by all equal type parameters.
  */
-public class ASTHolderCUInfo extends CompilationUnitInfo {
-  public boolean resolveBindings;
-  public boolean forceProblemDetection;
-  public Map<String, CategorizedProblem[]> problems = null;
-  public DartUnit ast;
+public class DartTypeParameterInfo extends DeclarationElementInfo {
+  /**
+   * The name of the bound type, or <code>null</code> if no have a bound type.
+   */
+  private char[] boundName;
+
+  /**
+   * @return the name of the bound type, may be <code>null</code>.
+   */
+  public char[] getBoundName() {
+    return boundName;
+  }
+
+  /**
+   * Set the name of the bound type, may be <code>null</code>.
+   */
+  public void setBoundName(char[] name) {
+    boundName = name;
+  }
 }
