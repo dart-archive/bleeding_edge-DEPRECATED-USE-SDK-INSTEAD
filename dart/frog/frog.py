@@ -33,19 +33,27 @@ HTML = '''<html>
 </html>
 '''
 
+
+# Returns the path to the Dart test runner (executes the .dart file).
+def GetDartRunner(mode, arch, component):
+  build_root = utils.GetBuildRoot(utils.GuessOS(), mode, arch)
+  if component == 'frog':
+    return os.path.join(build_root, 'frog', 'bin', 'frog')
+  else:
+    suffix = ''
+    if utils.IsWindows():
+      suffix = '.exe'
+    return os.path.join(build_root, 'dart') + suffix
+
+
 def GetDart():
   # Get the release version.
-  return utils.GetDartRunner('release', 'ia32', 'vm')
+  return GetDartRunner('release', 'ia32', 'vm')
 
 def GetD8():
   return join(dirname(GetDart()), 'd8')
 
 D8 = GetD8()
-
-# The following environment variable is needed for isolate tests to work.
-# TODO(sigmund): delete this and the 'env' parameter in 'execute' when we remove
-# dependencies to nodejs
-os.environ['NODE_MODULE_CONTEXTS'] = '1'
 
 def execute(cmd):
   """Execute a command in a subprocess. """
@@ -85,7 +93,7 @@ def parseOptions(args):
 
   # TODO(vsm): Hook in HtmlConverter.
   optionParser.add_option('--html',
-      action='store_true', help='Invoke this in the browser instead of node/d8.')
+      action='store_true', help='Invoke this in the browser instead of d8.')
   optionParser.add_option('--browser',
       default = None,
       metavar='FILE', help='The browser to use to run output HTML.')
@@ -126,22 +134,17 @@ def main(args):
 
 
 def ensureJsEngine(options):
-  proc = subprocess.Popen("node --help",
-      stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-  if proc.wait() != 0:
-    if not exists(D8):
-      print "No engine available for running JS code."
-      print "See frog/README.txt for instructions."
-      return 1
-    elif 'node' in options.js_cmd:
-      options.js_cmd = D8
+  if not exists(D8):
+    print "No engine available for running JS code."
+    print "See frog/README.txt for instructions."
+    return 1
   return 0
 
 def compileAndRun(options, args, dart):
-  nodeArgs = []
+  jsArgs = []
   for i in range(len(args)):
     if args[i].endswith('.dart'):
-      nodeArgs = args[i+1:]
+      jsArgs = args[i+1:]
       args = args[:i+1]
       break
 
@@ -157,7 +160,7 @@ def compileAndRun(options, args, dart):
       execute_output = False
       break;
 
-  if options.verbose: print "nodeArgs %s" % ' '.join(nodeArgs);
+  if options.verbose: print "jsArgs %s" % ' '.join(jsArgs);
 
   workdir = options.workdir
   cleanup = False
@@ -210,7 +213,7 @@ def compileAndRun(options, args, dart):
       if ensureJsEngine(options) != 0:
         return 1
       js_cmd = options.js_cmd
-      result = execute(js_cmd.split(' ') + [outfile] + nodeArgs)
+      result = execute(js_cmd.split(' ') + [outfile] + jsArgs)
     else:
       f = open(outhtml, 'w')
       f.write(HTML)

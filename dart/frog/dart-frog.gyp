@@ -7,13 +7,7 @@
     {
       'target_name': 'frog',
       'conditions': [
-        ['OS=="linux"', {
-          'dependencies': [
-            '../runtime/dart-runtime.gyp:dart',
-            '../third_party/v8/src/d8.gyp:d8',
-          ],
-        }],
-        ['OS=="mac"', {
+        ['OS!="win"', {
           'dependencies': [
             '../runtime/dart-runtime.gyp:dart',
             '../third_party/v8/src/d8.gyp:d8',
@@ -21,9 +15,9 @@
         }],
         ['OS=="win"', {
           'dependencies': [
-            # TODO(efortuna): Currently the Windows build only runs using the 
+            # TODO(efortuna): Currently the Windows build only runs using the
             # dart VM, so we don't depend on d8 because of v8 build issues. Fix
-            # this so that Windows can also run with node.js and d8. 
+            # this so that Windows can also run with d8.
             '../runtime/dart-runtime.gyp:dart',
           ],
        }]],
@@ -47,51 +41,6 @@
             '<(PRODUCT_DIR)',
           ],
           'message': 'Generating frog file'
-        },
-      ],
-    },
-    {
-      'target_name': 'frogsh',
-      'conditions': [
-        ['OS=="linux"', {
-          'dependencies': [
-            '../runtime/dart-runtime.gyp:dart',
-            '../third_party/v8/src/d8.gyp:d8',
-          ],
-        }],
-        ['OS=="mac"', {
-          'dependencies': [
-            '../runtime/dart-runtime.gyp:dart',
-            '../third_party/v8/src/d8.gyp:d8',
-          ],
-        }],
-        ['OS=="win"', {
-          'dependencies': [
-            # TODO(efortuna): Currently the Windows build only runs using the 
-            # dart VM, so we don't depend on d8 because of v8 build issues. Fix
-            # this so that Windows can also run with node.js and d8. 
-            '../runtime/dart-runtime.gyp:dart',
-          ],
-       }]],
-      'type': 'none',
-      'actions': [
-        {
-          'action_name': 'generate_frogsh',
-          'inputs': [
-            '<!@(["python", "scripts/list_frog_files.py"])',
-            'scripts/bootstrap/frogsh_bootstrap_wrapper.py',
-            'minfrog.dart',
-            '<(PRODUCT_DIR)/dart',
-          ],
-          'outputs': [
-            '<(PRODUCT_DIR)/frog/bin/frogsh',
-          ],
-          'action': [
-            'python',
-            'scripts/bootstrap/frogsh_bootstrap_wrapper.py',
-            '<(PRODUCT_DIR)',
-          ],
-          'message': 'Generating frogsh file'
         },
       ],
     },

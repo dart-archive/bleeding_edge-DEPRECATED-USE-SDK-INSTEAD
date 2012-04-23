@@ -160,7 +160,7 @@ class DartCompiler(object):
     binary = abspath(join(DART_PATH,
                           utils.GetBuildRoot(utils.GuessOS(),
                                              'release', 'ia32'),
-                          'frog', 'bin', 'frogsh'))
+                          'frog', 'bin', 'frog'))
     if not exists(binary):
       raise ConverterException(FROG_NOT_FOUND_ERROR % DART_PATH)
 

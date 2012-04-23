@@ -6,7 +6,7 @@
 
 """Dart frog buildbot steps
 
-Runs tests for the frog compiler (running on the vm or the self-hosting version)
+Runs tests for the frog or dart2js compiler.
 """
 
 import platform
@@ -24,7 +24,7 @@ DART_PATH = os.path.dirname(
 
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)-(debug|release)(-([a-z]+))?-?(\d*)-?(\d*)')
-FROG_BUILDER = r'(frog|frogsh)-(linux|mac|windows)-(debug|release)'
+FROG_BUILDER = r'(frog)-(linux|mac|windows)-(debug|release)'
 WEB_BUILDER = r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)(-(\d+))?'
 
 NO_COLOR_ENV = dict(os.environ)
@@ -32,7 +32,7 @@ NO_COLOR_ENV['TERM'] = 'nocolor'
 
 def GetBuildInfo():
   """Returns a tuple (compiler, runtime, mode, system, option) where:
-    - compiler: 'dart2js', 'frog', 'frogsh', or None when the builder has an
+    - compiler: 'dart2js', 'frog', or None when the builder has an
       incorrect name
     - runtime: 'd8', 'ie', 'ff', 'safari', 'chrome', 'opera'
     - mode: 'debug' or 'release'
@@ -104,8 +104,7 @@ def GetBuildInfo():
 
 
 def NeedsXterm(compiler, runtime):
-  return compiler == 'frogsh' or runtime in ['ie', 'chrome', 'safari', 'opera',
-      'ff', 'drt']
+  return runtime in ['ie', 'chrome', 'safari', 'opera', 'ff', 'drt']
 
 def TestStep(name, mode, system, compiler, runtime, targets, flags):
   print '@@@BUILD_STEP %s %s tests: %s %s@@@' % (name, compiler, runtime,
@@ -145,7 +144,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
 def BuildFrog(compiler, mode, system):
   """ build frog.
    Args:
-     - compiler: either 'dart2js', 'frog', 'frogsh' (frog self-hosted)
+     - compiler: either 'dart2js' or 'frog'
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
   """
@@ -173,7 +172,7 @@ def BuildFrog(compiler, mode, system):
 def TestFrog(compiler, runtime, mode, system, option, flags):
   """ test frog.
    Args:
-     - compiler: either 'dart2js', 'frog', or 'frogsh' (frog self-hosted)
+     - compiler: either 'dart2js' or 'frog'
      - runtime: either 'd8', or one of the browsers, see GetBuildInfo
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
@@ -196,7 +195,7 @@ def TestFrog(compiler, runtime, mode, system, option, flags):
 
     TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
 
-  elif runtime == 'd8' and compiler in ['frog', 'frogsh']:
+  elif runtime == 'd8' and compiler in ['frog']:
     TestStep("frog", mode, system, compiler, runtime, [], flags)
     TestStep("frog_extra", mode, system, compiler, runtime,
         ['frog', 'frog_native', 'peg', 'css'], flags)

@@ -14,6 +14,5 @@
     'string_base.dart',
     'string_buffer.dart',
     'string_implementation.dart',
-    'node/node.dart',
   ],
 }

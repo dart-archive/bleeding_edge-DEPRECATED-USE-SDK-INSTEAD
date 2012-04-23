@@ -56,5 +56,5 @@ lib/observable/ObservableTest: Skip
 lib/util/UtilTest: Skip
 lib/view/ViewTest: Skip
 
-[ ($compiler == frog || $compiler == frogsh) && ($runtime == d8 || $runtime == none) ]
+[ $compiler == frog && ($runtime == d8 || $runtime == none) ]
 *: Skip

@@ -69,46 +69,6 @@ EXECUTABLE = (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR |
               stat.S_IRGRP | stat.S_IXGRP |
               stat.S_IROTH | stat.S_IXOTH)
 
-def SelfHost():
-  def b(s):
-    """Adds ANSI escape-code for bold-face"""
-    return "\033[1m%s\033[0m" % s
-
-  # VM Checked/CompileAll, produces checked
-  print 'Started'
-  start = time.time()
-  RunCommand('./frog/frog.py',
-             '--vm_flags=--compile_all --enable_type_checks --enable_asserts',
-             '--', '--compile_all', '--enable_type_checks',
-             '--out=frog/minfrog', 'frog/minfrog.dart')
-  elapsed = time.time() - start
-  mode = 'in checked mode + compile all'
-  print 'Compiling minfrog on Dart VM took %s seconds %s' % (
-      b('%.1f' % elapsed), b(mode))
-  os.chmod('./frog/minfrog', EXECUTABLE)
-
-  # VM Production
-  start = time.time()
-  RunCommand('./frog/frog.py', '--', '--out=frog/minfrog', 'frog/minfrog.dart')
-  elapsed = time.time() - start
-  mode = 'in production mode'
-  print 'Compiling minfrog on Dart VM took %s seconds %s' % (
-      b('%.1f' % elapsed), b(mode))
-  os.chmod('./frog/minfrog', EXECUTABLE)
-
-  # Selfhost Production
-  start = time.time()
-  # TODO(jmesserly): --warnings_as_errors disabled until corelib is moved to
-  # new factory syntax.
-  RunCommand('./frog/minfrog', '--out=frog/minfrog', # '--warnings_as_errors',
-             'frog/minfrog.dart', 'frog/tests/hello.dart', verbose=True)
-  elapsed = time.time() - start
-  size = os.path.getsize('./frog/minfrog') / 1024
-  print 'Bootstrapping minfrog took %s seconds %s' % (b('%.1f' % elapsed),
-                                              b('in production mode'))
-  print 'Generated %s minfrog is %s kB' % (b('production'), b(size))
-
-
 def main():
   dart_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
   os.chdir(dart_dir)
@@ -116,9 +76,6 @@ def main():
   (options, args) = BuildOptions().parse_args()
 
   RunCommand('./tools/build.py', '--mode=release', 'dart2js')
-
-  if not options.leg_only:
-    SelfHost()
 
   test_cmd = ['./tools/test.py', '--report', '--timeout=30',
               '--progress=color', '--mode=release', '--checked']
@@ -129,7 +86,7 @@ def main():
     if options.leg_only:
       test_cmd.extend('--compiler=dart2js', '--runtime=d8')
     else:
-      test_cmd.append('--component=frogsh,dart2js')
+      test_cmd.extend('--compiler=frog,dart2js', '--runtime=d8')
     test_cmd.extend(args)
     RunCommand(*test_cmd, verbose=True)
   else:
@@ -144,10 +101,8 @@ def main():
       cmd = test_cmd + ['--compiler=frog', '--runtime=drt', 'client']
       RunCommand(*cmd, verbose=True)
 
-      # TODO(jimhug): Consider adding co19 back when it delivers more value
-      #   than pain.
-      # Run frogsh on most of the tests.
-      cmd = test_cmd + ['--compiler=frogsh', '--runtime=d8',
+      # Run frog on most of the tests.
+      cmd = test_cmd + ['--compiler=frog', '--runtime=d8',
                         'language', 'corelib',
                         'isolate', 'peg', 'frog', 'css', 'frog_native']
       RunCommand(*cmd, verbose=True)

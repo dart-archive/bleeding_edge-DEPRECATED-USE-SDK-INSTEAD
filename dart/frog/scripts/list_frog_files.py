@@ -4,7 +4,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # traverses frog and lists all possible sources that should be marked as
-# dependencies for building frog/frogsh.
+# dependencies for building frog.
 
 import os
 import sys

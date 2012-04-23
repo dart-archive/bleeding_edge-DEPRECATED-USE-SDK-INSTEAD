@@ -13,15 +13,7 @@ To use frog:
 1) Frog is now included in the checkout of the public repo of the bleeding_edge
    branch. The code will be located under dart/frog.
 
-2) Make sure you have 'node' in your path.
-   See http://nodejs.org/ and https://github.com/joyent/node/wiki/Installation
-   for how to install.  Notes:
-    - If using "git clone", use local disk rather than an NFS working dir,
-      as NFS will disallow "sudo make install".
-    - v0.6 is currently popular.
-   # TODO(jimhug): Move this dependency to third_party.
-
-3) From the dart/frog directory, run the presubmit script to check your
+2) From the dart/frog directory, run the presubmit script to check your
    installation is all working.
      frog$ ./presubmit.py
 
@@ -42,12 +34,10 @@ Before you submit, you should:
 
   $ ./presubmit.py
 
-3) Make sure to include any changes to frogsh in your commit.
-
 Note:
 
 If you make any changes to files under tests, you are expected to ensure that
-you don't break any of the other configurations.  If you only change the status of tests for frog or frogsh, you should be okay.  However, if you
+you don't break any of the other configurations.  If you only change the status of tests for frog, you should be okay.  However, if you
 modify any of the tests themselves, please run the tests with both vm and
 dartc configurations before checking in.
 
@@ -57,20 +47,6 @@ Details:
 You can use build.py and test.py (that are run by the presubmit script):
 
   $ ../tools/build.py --mode=release,debug
-  $ ../tools/test.py --report -t 5 -p color --mode=release --component=frog,frogsh language corelib leg
+  $ ../tools/test.py --report -t 5 -p color --mode=release --component=frog language corelib leg
 
-The 'frog' component is frog running on the VM.  The 'frogsh'
-component is from running selfhosted on node.js.
-
-To build the self-hosted compiler called frogsh (for frog self-hosted), run:
-
-  $ ./frog.py --out=frogsh --compile-only --enable_type_checks frog.dart
-
-You can also build and check the self-hosted compiler from itself by running:
-  $ ./frogsh --out=frogsh frog.dart tests/hello.dart
-This should print 'hello world'.
-
-To just run the self-hosted compiler, you can pass it a single dart file:
-
-  $ ./frogsh tests/hello.dart
-This should also print 'hello world' - without rebuilding frogsh itself.
+The 'frog' component is frog running on the VM.

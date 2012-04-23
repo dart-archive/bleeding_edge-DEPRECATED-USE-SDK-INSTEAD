@@ -13,7 +13,7 @@ OperatorTest: Skip
 StringInterpolationTest: Skip
 
 
-[ $compiler == frog || $compiler == frogsh || $runtime == drt ]
+[ $compiler == frog || $runtime == drt ]
 *: Skip
 
 [ $compiler == dart2js && $runtime == none ]

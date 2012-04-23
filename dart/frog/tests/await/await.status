@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == frogsh || $compiler == frog ]
+[ $compiler == frog ]
 *: Skip  # compiler API evolved and this code and tests are not maintained.
 
 # Not implemented yet
@@ -11,8 +11,6 @@
 #TryCatch10Test: Fail            # traps more exceptions than it should
 #WhileNormalizationTest: Skip    # normalization code is incorrect, currently
 #                                # causing test to loop forever.
-#[ $compiler == frogsh ]
-#*: Pass, Crash # Issue 1024.
 
 [ $runtime == vm || $runtime == drt || $compiler == dart2js || $runtime == none ]
 *: Skip

@@ -2,13 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ ($compiler == frog || $compiler == frogsh) && $runtime == d8 ]
+[ $compiler == frog && $runtime == d8 ]
 NativeClassInheritance4FrogTest: Fail
 NativePropertyFrogTest: Fail
 NativeMissingMethod1FrogTest: Fail # Issue 1912
 NativeWindow1FrogTest: Fail # Issue 1915
 
-[ $compiler == frog || $compiler == frogsh ]
+[ $compiler == frog ]
 ForeignTest: Fail # Leg only test
 
 [ $checked ]
