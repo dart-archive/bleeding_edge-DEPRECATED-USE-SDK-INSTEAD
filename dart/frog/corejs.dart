@@ -434,6 +434,7 @@ $defProp(Object.prototype, '$typeNameOf', (function() {
     if (name == 'Window') return 'DOMWindow';
     if (name == 'Document') return 'HTMLDocument';
     if (name == 'XMLDocument') return 'Document';
+    if (name == 'WorkerMessageEvent') return 'MessageEvent';
     return name;
   }
 
@@ -444,6 +445,9 @@ $defProp(Object.prototype, '$typeNameOf', (function() {
     // xmlVersion property, which is the empty string on HTML documents.
     if (name == 'Document' && this.xmlVersion) return 'Document';
     if (name == 'Document') return 'HTMLDocument';
+    if (name == 'HTMLTableDataCellElement') return 'HTMLTableCellElement';
+    if (name == 'HTMLTableHeaderCellElement') return 'HTMLTableCellElement';
+    if (name == 'MSStyleCSSProperties') return 'CSSStyleDeclaration';
     return name;
   }
 
