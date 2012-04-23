@@ -392,7 +392,7 @@ class WorldGenerator {
             writer.writeln('var ${type.jsname} = {};');
           }
         } else {
-          writer.writeln('${type.jsname} = ${nativeName};');
+          writer.writeln('var ${type.jsname} = ${nativeName};');
         }
       }
     }
