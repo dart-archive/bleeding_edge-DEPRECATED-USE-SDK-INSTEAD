@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
+import com.google.dart.tools.ui.dialogs.AboutDartDialog;
 import com.google.dart.tools.ui.swtbot.dialog.PreferencesHelper;
+import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
 
@@ -21,6 +23,9 @@ import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotPerspective;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotLabel;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewReference;
@@ -41,9 +46,37 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SWTBotJunit4ClassRunner.class)
 public final class InitialEditorStateTest extends AbstractDartEditorTest {
 
-  @Ignore("Not yet implemented")
+  @Ignore("Work in progress")
   @Test
   public void testInitState_aboutDialog() throws Exception {
+    new AboutDartDialog(SWTBotUtil.getShell()).open();
+
+    SWTBotShell shell = bot.activeShell();
+    shell.activate();
+
+    SWTBotLabel imageLabel = bot.label(0);
+    SWTBotLabel productNameLabel = bot.label("Dart Editor");
+    SWTBotStyledText buildDetailsText = bot.styledText(0);
+    SWTBotLabel copyrightLabel1 = bot.label(2);
+    SWTBotLabel copyrightLabel2 = bot.label(3);
+
+    assertNotNull(imageLabel);
+    assertTrue(imageLabel.getText().isEmpty());
+    assertNotNull(imageLabel.image());
+
+    assertNotNull(productNameLabel);
+    assertEquals("Dart Editor", productNameLabel.getText());
+
+    assertNotNull(buildDetailsText);
+    assertFalse(buildDetailsText.getText().isEmpty());
+    assertTrue(buildDetailsText.getText().indexOf("Dartium version ") != -1);
+
+    assertNotNull(copyrightLabel1);
+
+    assertNotNull(copyrightLabel2);
+    assertEquals("All Rights Reserved.", copyrightLabel2.getText());
+
+    shell.close();
     // TODO (jwren) once implemented, this test should assert that:
     // the dialog appears
     // correct widgets are visible and discoverable via SWTBot
@@ -84,6 +117,7 @@ public final class InitialEditorStateTest extends AbstractDartEditorTest {
     view.close();
   }
 
+  @Ignore("Old tests,Êneed to fix for the new Console")
   @Test
   public void testInitState_view_console() throws Exception {
     baseViewAssertions(AbstractDartEditorTest.CONSOLE_VIEW_NAME);
