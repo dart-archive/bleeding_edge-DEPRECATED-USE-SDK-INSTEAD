@@ -424,10 +424,14 @@ public class AnalysisServer {
       return file;
     }
     try {
-      return new File(base.resolve(new URI(null, null, relPath, null)).normalize().getPath());
+      String path = base.resolve(new URI(null, null, relPath, null)).normalize().getPath();
+      if (path != null) {
+        return new File(path);
+      }
     } catch (URISyntaxException e) {
-      return null;
+      //$FALL-THROUGH$
     }
+    return null;
   }
 
   /**

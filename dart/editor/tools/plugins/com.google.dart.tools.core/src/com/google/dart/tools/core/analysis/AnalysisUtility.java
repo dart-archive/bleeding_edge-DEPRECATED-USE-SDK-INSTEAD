@@ -27,6 +27,9 @@ import com.google.dart.compiler.UrlDartSource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
+import com.google.dart.compiler.parser.DartPrefixParser;
+import com.google.dart.compiler.parser.DartScannerParserContext;
+import com.google.dart.compiler.parser.ParserContext;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
@@ -39,6 +42,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Static utility methods
@@ -61,10 +65,13 @@ class AnalysisUtility {
   };
 
   /**
-   * Parse a single file and report the errors/warnings
+   * Parse a single file and report the errors/warnings.
+   * 
+   * @param prefixes the collection of import prefixes. If the file being parsed contains import
+   *          directives, then this collection will be updated to include any specified prefixes
    */
   static DartUnit parse(AnalysisServer server, File libraryFile, LibrarySource librarySource,
-      File sourceFile) {
+      File sourceFile, Set<String> prefixes) {
     ErrorListener errorListener = new ErrorListener(server);
     DartSource source = new UrlDartSource(sourceFile, librarySource);
 
@@ -78,7 +85,8 @@ class AnalysisUtility {
     DartUnit dartUnit = null;
     if (sourceCode != null) {
       try {
-        DartParser parser = new DartParser(source, sourceCode, errorListener);
+        ParserContext parserCtx = new DartScannerParserContext(source, sourceCode, errorListener);
+        DartParser parser = new DartPrefixParser(parserCtx, false, prefixes);
         dartUnit = parser.parseUnit(source);
       } catch (Throwable e) {
         DartCore.logError("Exception while parsing " + sourceFile.getPath(), e);

@@ -18,6 +18,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import static com.google.dart.tools.core.analysis.AnalysisUtility.parse;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * Parse a Dart source file and cache the result
@@ -53,7 +54,8 @@ class ParseFileTask extends Task {
     if (dartUnit != null) {
       return;
     }
-    dartUnit = parse(server, library.getFile(), library.getLibrarySource(), dartFile);
+    Set<String> prefixes = library.getPrefixes();
+    dartUnit = parse(server, libraryFile, library.getLibrarySource(), dartFile, prefixes);
     library.cacheUnit(dartFile, dartUnit);
   }
 }

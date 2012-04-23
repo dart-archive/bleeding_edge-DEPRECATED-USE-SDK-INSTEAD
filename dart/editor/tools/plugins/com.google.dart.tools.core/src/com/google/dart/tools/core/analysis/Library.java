@@ -26,6 +26,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * Cached information about a Dart library used internally by the {@link AnalysisServer}.
@@ -36,7 +37,7 @@ class Library {
    * Construct a new library from the unresolved dart unit that defines the library
    */
   static Library fromDartUnit(AnalysisServer server, File libFile, LibrarySource libSource,
-      DartUnit dartUnit) {
+      DartUnit dartUnit, Set<String> prefixes) {
     HashMap<String, File> imports = new HashMap<String, File>();
     HashMap<String, File> sources = new HashMap<String, File>();
     URI base = libFile.toURI();
@@ -75,12 +76,13 @@ class Library {
       }
     }
 
-    Library library = new Library(libFile, libSource, dartUnit, imports, sources);
+    Library library = new Library(libFile, libSource, dartUnit, prefixes, imports, sources);
     return library;
   }
 
   private final File libraryFile;
   private final LibrarySource librarySource;
+  private final Set<String> prefixes;
   private final HashMap<String, File> imports;
   private final HashMap<String, File> sources;
   private final HashMap<File, DartUnit> unitCache;
@@ -88,9 +90,10 @@ class Library {
   private LibraryUnit libraryUnit;
 
   private Library(File libraryFile, LibrarySource librarySource, DartUnit libraryUnit,
-      HashMap<String, File> imports, HashMap<String, File> sources) {
+      Set<String> prefixes, HashMap<String, File> imports, HashMap<String, File> sources) {
     this.libraryFile = libraryFile;
     this.librarySource = librarySource;
+    this.prefixes = prefixes;
     this.imports = imports;
     this.sources = sources;
     this.unitCache = new HashMap<File, DartUnit>();
@@ -133,6 +136,10 @@ class Library {
 
   LibraryUnit getLibraryUnit() {
     return libraryUnit;
+  }
+
+  Set<String> getPrefixes() {
+    return prefixes;
   }
 
   Collection<File> getSourceFiles() {

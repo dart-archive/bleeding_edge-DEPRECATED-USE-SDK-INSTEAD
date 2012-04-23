@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 
@@ -24,6 +25,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Resolve types and references in the specified library
@@ -80,7 +82,10 @@ class ResolveLibraryTask extends Task {
       }
       Library lib = context.getCachedLibrary(libFile);
       if (lib == null) {
-        lib = Library.fromDartUnit(server, libFile, libUnit.getSource(), libUnit.getSelfDartUnit());
+        LibrarySource librarySource = libUnit.getSource();
+        DartUnit unit = libUnit.getSelfDartUnit();
+        Set<String> prefixes = libUnit.getPrefixes();
+        lib = Library.fromDartUnit(server, libFile, librarySource, unit, prefixes);
         context.cacheLibrary(lib);
       }
       lib.cacheLibraryUnit(server, libUnit);

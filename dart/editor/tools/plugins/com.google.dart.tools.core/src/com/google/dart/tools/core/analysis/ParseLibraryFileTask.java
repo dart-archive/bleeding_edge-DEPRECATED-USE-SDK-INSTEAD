@@ -21,6 +21,8 @@ import static com.google.dart.tools.core.analysis.AnalysisUtility.parse;
 
 import java.io.File;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Parse a library source file and create the associated {@link Library}
@@ -55,8 +57,9 @@ class ParseLibraryFileTask extends Task {
     if (libraryFile.exists()) {
       library = context.getCachedLibrary(libraryFile);
       if (library == null) {
-        DartUnit unit = parse(server, libraryFile, librarySource, libraryFile);
-        library = Library.fromDartUnit(server, libraryFile, librarySource, unit);
+        Set<String> prefixes = new HashSet<String>();
+        DartUnit unit = parse(server, libraryFile, librarySource, libraryFile, prefixes);
+        library = Library.fromDartUnit(server, libraryFile, librarySource, unit, prefixes);
         context.cacheLibrary(library);
       }
     }
