@@ -83,9 +83,9 @@ subClass() {
 fieldTest() {
   String generated = compileAll(TEST_FOUR);
   Expect.isTrue(generated.contains(@"""
-$.B = function B(B_z, B_y, A_x) {
-  this.z = B_z;
-  this.y = B_y;
+$.B = function B(z, y, A_x) {
+  this.z = z;
+  this.y = y;
   this.x = A_x;
 };"""));
 }
