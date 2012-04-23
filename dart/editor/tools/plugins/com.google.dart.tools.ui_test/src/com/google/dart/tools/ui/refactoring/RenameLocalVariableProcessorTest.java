@@ -15,9 +15,11 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
+import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
@@ -36,6 +38,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
    */
   private static void renameLocalVariable(DartVariableDeclaration variable, String newName)
       throws Exception {
+    TestProject.waitForAutoBuild();
     RenameSupport renameSupport = RenameSupport.create(variable, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
@@ -80,6 +83,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.FATAL, showStatusSeverities.get(0).intValue());
     assertEquals(
         "The variable name '-notIdentifier' is not a valid identifier",
         showStatusMessages.get(0));
@@ -105,6 +109,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
     assertEquals(
         "By convention, variable names usually start with a lowercase letter",
         showStatusMessages.get(0));
@@ -229,6 +234,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
     assertEquals("Duplicate local variable 'newName'", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -252,6 +258,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
     assertEquals("Duplicate local variable 'newName'", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -288,6 +295,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
         "class B extends A {",
         "  f() {",
         "    var test = 1;",
+        "    newName = 2;",
         "  }",
         "}",
         "");
@@ -301,20 +309,32 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     }
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(
-        "Type 'A' in 'Test/Test.dart' declares field 'newName' which will be shadowed by renamed variable",
-        showStatusMessages.get(0));
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for variable declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of field 'A.newName' in '/Test/Test.dart' will be shadowed by renamed variable",
+          showStatusMessages.get(0));
+      // error for field usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of field 'A.newName' declared in '/Test/Test.dart' will be shadowed by renamed variable",
+          showStatusMessages.get(1));
+    }
     // no source changes
     assertEquals(source, testUnit.getSource());
   }
 
-  public void test_postCondition_topLevel() throws Exception {
+  public void test_postCondition_thisType_field() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "var newName;",
-        "f() {",
-        "  var test = 1;",
+        "class A {",
+        "  var newName;",
+        "  f() {",
+        "    var test = 1;",
+        "    newName = 2;",
+        "  }",
         "}",
         "");
     DartVariableDeclaration variable = findElement("test = 1;");
@@ -327,10 +347,55 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     }
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(
-        "File 'Test/Test.dart' in library 'Test' declares top-level variable 'newName' which will be shadowed by renamed variable",
-        showStatusMessages.get(0));
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for variable declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of field 'A.newName' in '/Test/Test.dart' will be shadowed by renamed variable",
+          showStatusMessages.get(0));
+      // error for field usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of field 'A.newName' declared in '/Test/Test.dart' will be shadowed by renamed variable",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_topLevel() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var newName;",
+        "f() {",
+        "  var test = 1;",
+        "  newName = 2;",
+        "}",
+        "");
+    DartVariableDeclaration variable = findElement("test = 1;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameLocalVariable(variable, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for variable declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of variable 'newName' in file 'Test/Test.dart' in library 'Test' will be shadowed by renamed variable",
+          showStatusMessages.get(0));
+      // error for field usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of variable 'newName' in file 'Test/Test.dart' in library 'Test' will be shadowed by renamed variable",
+          showStatusMessages.get(1));
+    }
     // no source changes
     assertEquals(source, testUnit.getSource());
   }
@@ -369,6 +434,7 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.FATAL, showStatusSeverities.get(0).intValue());
     assertEquals(
         "A local variable declaration or reference must be selected to activate this refactoring",
         showStatusMessages.get(0));

@@ -20,6 +20,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
+import com.google.dart.tools.core.search.SearchMatch;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
@@ -92,10 +93,10 @@ public abstract class DartStatusContext extends RefactoringStatusContext {
 //    }
 //  }
 
-  private static class DartElementSourceContext extends DartStatusContext {
+  private static class DartElementContext extends DartStatusContext {
     private final CompilationUnitElement element;
 
-    private DartElementSourceContext(CompilationUnitElement element) {
+    private DartElementContext(CompilationUnitElement element) {
       this.element = element;
     }
 
@@ -113,6 +114,26 @@ public abstract class DartStatusContext extends RefactoringStatusContext {
         }
       }
       return new SourceRangeImpl(0, 0);
+    }
+  }
+  
+  private static class DartSourceRangeContext extends DartStatusContext {
+    private final CompilationUnit unit;
+    private final SourceRange sourceRange;
+    
+    private DartSourceRangeContext(CompilationUnit unit, SourceRange sourceRange) {
+      this.unit = unit;
+      this.sourceRange = sourceRange;
+    }
+    
+    @Override
+    public CompilationUnit getCompilationUnit() {
+      return unit;
+    }
+    
+    @Override
+    public SourceRange getSourceRange() {
+      return sourceRange;
     }
   }
 
@@ -137,7 +158,19 @@ public abstract class DartStatusContext extends RefactoringStatusContext {
     if (element == null || !element.exists()) {
       return null;
     }
-    return new DartElementSourceContext(element);
+    return new DartElementContext(element);
+  }
+  
+  /**
+   * @return the {@link RefactoringStatusContext} for given {@link SearchMatch}, may be
+   *         <code>null</code> if the context cannot be created.
+   */
+  public static RefactoringStatusContext create(SearchMatch match) {
+    if (match == null || match.getElement() == null) {
+      return null;
+    }
+    CompilationUnit unit = match.getElement().getAncestor(CompilationUnit.class);
+    return new DartSourceRangeContext(unit, match.getSourceRange());
   }
 
 //  /**

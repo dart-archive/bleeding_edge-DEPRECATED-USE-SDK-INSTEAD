@@ -19,6 +19,7 @@ import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
@@ -69,6 +70,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.FATAL, showStatusSeverities.get(0).intValue());
     assertEquals("Choose another name.", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -86,6 +88,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
     assertEquals(
         "By convention, type names usually start with an uppercase letter",
         showStatusMessages.get(0));
@@ -217,14 +220,19 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "}");
   }
 
-  public void test_postCondition_localVariable_inMethod() throws Exception {
+  /**
+   * http://code.google.com/p/dart/issues/detail?id=1180
+   */
+  public void test_postCondition_field_shadowedBy_topLevel() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
+        "class Test {}",
         "class A {",
-        "  f() {",
-        "    var NewName;",
+        "  var NewName;",
+        "}",
+        "class B extends A {",
+        "  foo() {",
+        "    NewName = 1;", // will be shadowed by top-level element
         "  }",
         "}",
         "");
@@ -238,21 +246,33 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     }
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(
-        "Method 'A.f()' in 'Test/Test.dart' declares variable 'NewName' which will shadow renamed type",
-        showStatusMessages.get(0));
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for declaration in A
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed type will be shadowed by field 'A.NewName' in 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for usage in B
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of field 'A.NewName' declared in 'Test/Test.dart' will be shadowed by renamed type",
+          showStatusMessages.get(1));
+    }
     // no source changes
     assertEquals(source, testUnit.getSource());
   }
 
-  public void test_postCondition_localVariable_inTopLevelFunction() throws Exception {
+  public void test_postCondition_field_shadows_topLevel() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
-        "f() {",
+        "class Test {}",
+        "class A {",
         "  var NewName;",
+        "  foo() {",
+        "    NewName = 1;", // field of the enclosing class
+        "    new Test();",
+        "  }",
         "}",
         "");
     Type type = findElement("Test {");
@@ -265,10 +285,177 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     }
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(
-        "Function 'f()' in 'Test/Test.dart' declares variable 'NewName' which will shadow renamed type",
-        showStatusMessages.get(0));
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for shadowing declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed type will be shadowed by field 'A.NewName' in 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for shadowing usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed type will be shadowed by field 'A.NewName' in 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_localVariable_inMethod() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "}",
+        "class A {",
+        "  f() {",
+        "    var NewName;",
+        "    new Test();",
+        "  }",
+        "}",
+        "");
+    Type type = findElement("Test {");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameType(type, "NewName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for shadowing declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed type will be shadowed by variable in method 'A.f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // warning for shadowing usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed type will be shadowed by variable in method 'A.f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_localVariable_inTopLevelFunction() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "}",
+        "f() {",
+        "  var NewName;",
+        "  new Test();",
+        "}",
+        "");
+    Type type = findElement("Test {");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameType(type, "NewName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for shadowing declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed type will be shadowed by variable in function 'f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // warning for shadowing usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed type will be shadowed by variable in function 'f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  /**
+   * http://code.google.com/p/dart/issues/detail?id=1180
+   */
+  public void test_postCondition_method_shadowedBy_topLevel() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {}",
+        "class A {",
+        "  NewName() {}",
+        "}",
+        "class B extends A {",
+        "  foo() {",
+        "    NewName();", // will be shadowed by top-level element
+        "  }",
+        "}",
+        "");
+    Type type = findElement("Test {");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameType(type, "NewName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for declaration in A
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed type will be shadowed by method 'A.NewName' in 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for usage in B
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of method 'A.NewName' declared in 'Test/Test.dart' will be shadowed by renamed type",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_method_shadows_topLevel() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {}",
+        "class A {",
+        "  NewName() {}",
+        "  foo() {",
+        "    NewName();", // method of the enclosing class
+        "    new Test();",
+        "  }",
+        "}",
+        "");
+    Type type = findElement("Test {");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameType(type, "NewName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for shadowing declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed type will be shadowed by method 'A.NewName' in 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for shadowing usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed type will be shadowed by method 'A.NewName' in 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
     // no source changes
     assertEquals(source, testUnit.getSource());
   }
@@ -330,30 +517,6 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     check_postCondition_topLevel("variable");
   }
 
-  public void test_postCondition_type_field() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
-        "class A {",
-        "  var NewName;",
-        "}",
-        "");
-    check_postCondition_typeMember("field");
-  }
-
-  public void test_postCondition_type_method() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
-        "class A {",
-        "  NewName() {}",
-        "}",
-        "");
-    check_postCondition_typeMember("method");
-  }
-
   public void test_preCondition_hasCompilationErrors() throws Exception {
     setUnitContent(
         "Test1.dart",
@@ -382,6 +545,7 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
     assertEquals(
         "Code modification may not be accurate as affected resource 'Test/Test2.dart' has compile errors.",
         showStatusMessages.get(0));
@@ -416,30 +580,12 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
     assertEquals("File 'Test/"
         + unitName
         + "' in library 'Test' already declares top-level "
         + shadowName
         + " 'NewName'", showStatusMessages.get(0));
-    // no source changes
-    assertEquals(source, testUnit.getSource());
-  }
-
-  private void check_postCondition_typeMember(String shadowName) throws Exception {
-    Type type = findElement("Test {");
-    // try to rename
-    String source = testUnit.getSource();
-    try {
-      renameType(type, "NewName");
-      fail();
-    } catch (InterruptedException e) {
-    }
-    // error should be displayed
-    assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals("Type 'A' in 'Test/Test.dart' declares "
-        + shadowName
-        + " 'NewName' which will shadow renamed type", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }

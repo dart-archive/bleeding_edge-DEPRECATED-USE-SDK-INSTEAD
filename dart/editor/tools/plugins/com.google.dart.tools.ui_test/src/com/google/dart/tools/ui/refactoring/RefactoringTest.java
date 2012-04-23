@@ -16,8 +16,8 @@ package com.google.dart.tools.ui.refactoring;
 import com.google.common.collect.Lists;
 import com.google.dart.tools.ui.internal.refactoring.UserInteractions;
 
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.RefactoringStatusEntry;
 import org.eclipse.swt.widgets.Shell;
 
 import java.util.List;
@@ -29,6 +29,7 @@ public abstract class RefactoringTest extends AbstractDartTest {
 
   protected final List<String> openInformationMessages = Lists.newArrayList();
 
+  protected final List<Integer> showStatusSeverities = Lists.newArrayList();
   protected final List<String> showStatusMessages = Lists.newArrayList();
 
   protected boolean showStatusCancel;
@@ -45,7 +46,12 @@ public abstract class RefactoringTest extends AbstractDartTest {
     UserInteractions.showStatusDialog = new UserInteractions.ShowStatusDialog() {
       @Override
       public boolean open(RefactoringStatus status, Shell parent, String windowTitle) {
-        showStatusMessages.add(status.getMessageMatchingSeverity(IStatus.INFO));
+        RefactoringStatusEntry[] entries = status.getEntries();
+        for (RefactoringStatusEntry entry : entries) {
+          int severity = entry.getSeverity();
+          showStatusSeverities.add(severity);
+          showStatusMessages.add(entry.getMessage());
+        }
         return showStatusCancel;
       }
     };

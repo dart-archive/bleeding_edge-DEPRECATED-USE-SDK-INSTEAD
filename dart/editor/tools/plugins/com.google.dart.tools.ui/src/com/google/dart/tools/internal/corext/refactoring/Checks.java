@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.refactoring;
 
+import com.google.common.collect.Sets;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
@@ -30,6 +31,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class defines a set of reusable static checks methods.
@@ -122,8 +124,14 @@ public class Checks {
   public static RefactoringStatus checkCompileErrorsInAffectedFiles(List<SearchMatch> matches)
       throws DartModelException {
     RefactoringStatus result = new RefactoringStatus();
+    // prepare unique resources
+    Set<IResource> resources = Sets.newHashSet();
     for (SearchMatch match : matches) {
-      checkCompileErrorsInAffectedFile(result, match.getElement().getResource());
+      resources.add(match.getElement().getResource());
+    }
+    // add warnings for each resource with compilation error
+    for (IResource resource : resources) {
+      checkCompileErrorsInAffectedFile(result, resource);
     }
     return result;
   }

@@ -15,6 +15,7 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
+import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
@@ -66,6 +67,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
   private final CompilationUnitElement element;
   private final SourceReference elementSourceReference;
   private final String oldName;
+
   private final TextChangeManager changeManager = new TextChangeManager(true);
 
   private List<SearchMatch> references;
@@ -91,7 +93,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     RefactoringStatus result = new RefactoringStatus();
 
     if (Checks.isAlreadyNamed(element, newName)) {
-      result.addError(
+      result.addFatalError(
           RefactoringCoreMessages.RenameRefactoring_another_name,
           DartStatusContext.create(element));
       return result;
@@ -136,6 +138,9 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
       // check new name
       result.merge(checkNewElementName(getNewElementName()));
       pm.worked(1);
+      if (result.hasFatalError()) {
+        return result;
+      }
       // prepare references
       pm.setTaskName(RefactoringCoreMessages.RenameRefactoring_searching);
       references = getReferences(new SubProgressMonitor(pm, 3));
@@ -222,16 +227,59 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
               for (TypeMember typeMember : typeMembers) {
                 // may be conflict with existing TypeMember
                 if (Objects.equal(typeMember.getElementName(), newName)) {
-                  IPath resourcePath = unitElement.getResource().getFullPath();
-                  String message = Messages.format(
-                      RefactoringCoreMessages.RenameTopRefactoring_shadow_typeMember,
-                      new Object[] {
-                          type.getElementName(),
-                          BasicElementLabels.getPathLabel(resourcePath, false),
-                          RenameAnalyzeUtil.getElementTypeName(typeMember),
-                          newName,
-                          RenameAnalyzeUtil.getElementTypeName(element)});
-                  result.addWarning(message, DartStatusContext.create(typeMember));
+                  // add warning if TypeMember shadows top-level declaration
+                  {
+                    IPath resourcePath = unitElement.getResource().getFullPath();
+                    String message = Messages.format(
+                        RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_typeMember,
+                        new Object[] {
+                            RenameAnalyzeUtil.getElementTypeName(element),
+                            RenameAnalyzeUtil.getElementTypeName(typeMember),
+                            type.getElementName(),
+                            typeMember.getElementName(),
+                            BasicElementLabels.getPathLabel(resourcePath, false),});
+                    result.addWarning(message, DartStatusContext.create(typeMember));
+                  }
+                  // add error for shadowing usage
+                  {
+                    List<SearchMatch> memberRefs = RenameAnalyzeUtil.getReferences(typeMember);
+                    for (SearchMatch memberRef : memberRefs) {
+                      DartElement enclosingRefElement = memberRef.getElement();
+                      if (enclosingRefElement != null) {
+                        Type enclosingRefType = enclosingRefElement.getAncestor(Type.class);
+                        // TypeMember of this type shadows top-level element usage
+                        if (Objects.equal(enclosingRefType, type)) {
+                          IPath resourcePath = unitElement.getResource().getFullPath();
+                          String message = Messages.format(
+                              RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_typeMember,
+                              new Object[] {
+                                  RenameAnalyzeUtil.getElementTypeName(element),
+                                  RenameAnalyzeUtil.getElementTypeName(typeMember),
+                                  type.getElementName(),
+                                  typeMember.getElementName(),
+                                  BasicElementLabels.getPathLabel(resourcePath, false),});
+                          result.addError(message, DartStatusContext.create(memberRef));
+                        }
+                        // top-level element shadows TypeMember usage in sub-class
+                        // http://code.google.com/p/dart/issues/detail?id=1180
+                        if (!memberRef.isQualified()) {
+                          if (RenameAnalyzeUtil.isTypeHierarchy(enclosingRefType, type)) {
+                            IPath resourcePath = unitElement.getResource().getFullPath();
+                            String message = Messages.format(
+                                RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
+                                new Object[] {
+                                    RenameAnalyzeUtil.getElementTypeName(typeMember),
+                                    type.getElementName(),
+                                    typeMember.getElementName(),
+                                    BasicElementLabels.getPathLabel(resourcePath, false),
+                                    RenameAnalyzeUtil.getElementTypeName(element)});
+                            result.addError(message, DartStatusContext.create(memberRef));
+                          }
+                        }
+                      }
+                    }
+                  }
+                  // done
                   return result;
                 }
                 // analyze Method
@@ -241,17 +289,32 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                   for (DartVariableDeclaration variable : method.getLocalVariables()) {
                     if (Objects.equal(variable.getElementName(), newName)) {
                       IPath resourcePath = unitElement.getResource().getFullPath();
-                      String message = Messages.format(
-                          RefactoringCoreMessages.RenameTopRefactoring_shadow_variable_inMethod,
-                          new Object[] {
-                              type.getElementName(),
-                              method.getElementName(),
-                              BasicElementLabels.getPathLabel(resourcePath, false),
-                              RenameAnalyzeUtil.getElementTypeName(variable),
-                              newName,
-                              RenameAnalyzeUtil.getElementTypeName(element)});
-                      result.addWarning(message, DartStatusContext.create(variable));
-                      return result;
+                      // warning for shadowing declaration
+                      {
+                        String message = Messages.format(
+                            RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_variable_inMethod,
+                            new Object[] {
+                                RenameAnalyzeUtil.getElementTypeName(element),
+                                type.getElementName(),
+                                method.getElementName(),
+                                BasicElementLabels.getPathLabel(resourcePath, false),});
+                        result.addWarning(message, DartStatusContext.create(variable));
+                      }
+                      // error for shadowing usage
+                      for (SearchMatch match : references) {
+                        if (SourceRangeUtils.contains(
+                            variable.getVisibleRange(),
+                            match.getSourceRange().getOffset())) {
+                          String message = Messages.format(
+                              RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_variable_inMethod,
+                              new Object[] {
+                                  RenameAnalyzeUtil.getElementTypeName(element),
+                                  type.getElementName(),
+                                  method.getElementName(),
+                                  BasicElementLabels.getPathLabel(resourcePath, false),});
+                          result.addError(message, DartStatusContext.create(match));
+                        }
+                      }
                     }
                   }
                 }
@@ -264,16 +327,29 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
               for (DartVariableDeclaration variable : function.getLocalVariables()) {
                 if (Objects.equal(variable.getElementName(), newName)) {
                   IPath resourcePath = unitElement.getResource().getFullPath();
-                  String message = Messages.format(
-                      RefactoringCoreMessages.RenameTopRefactoring_shadow_variable_inFunction,
-                      new Object[] {
-                          function.getElementName(),
-                          BasicElementLabels.getPathLabel(resourcePath, false),
-                          RenameAnalyzeUtil.getElementTypeName(variable),
-                          newName,
-                          RenameAnalyzeUtil.getElementTypeName(element)});
-                  result.addWarning(message, DartStatusContext.create(variable));
-                  return result;
+                  {
+                    String message = Messages.format(
+                        RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_variable_inFunction,
+                        new Object[] {
+                            RenameAnalyzeUtil.getElementTypeName(element),
+                            function.getElementName(),
+                            BasicElementLabels.getPathLabel(resourcePath, false),});
+                    result.addWarning(message, DartStatusContext.create(variable));
+                  }
+                  // error for shadowing usage
+                  for (SearchMatch match : references) {
+                    if (SourceRangeUtils.contains(
+                        variable.getVisibleRange(),
+                        match.getSourceRange().getOffset())) {
+                      String message = Messages.format(
+                          RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_variable_inFunction,
+                          new Object[] {
+                              RenameAnalyzeUtil.getElementTypeName(element),
+                              function.getElementName(),
+                              BasicElementLabels.getPathLabel(resourcePath, false),});
+                      result.addError(message, DartStatusContext.create(match));
+                    }
+                  }
                 }
               }
             }

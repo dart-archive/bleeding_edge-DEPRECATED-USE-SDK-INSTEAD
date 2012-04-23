@@ -19,6 +19,7 @@ import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameGlobalVariableProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
@@ -70,6 +71,7 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.FATAL, showStatusSeverities.get(0).intValue());
     assertEquals("Choose another name.", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -87,6 +89,7 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
     assertEquals(
         "By convention, variable names usually start with a lowercase letter",
         showStatusMessages.get(0));
@@ -174,13 +177,19 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
         "");
   }
 
-  public void test_postCondition_localVariable_inMethod() throws Exception {
+  /**
+   * http://code.google.com/p/dart/issues/detail?id=1180
+   */
+  public void test_postCondition_field_shadowedBy_topLevel() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "var test;",
         "class A {",
-        "  f() {",
-        "    var newName;",
+        "  var newName;",
+        "}",
+        "class B extends A {",
+        "  foo() {",
+        "    newName = 1;", // will be shadowed by global variable
         "  }",
         "}",
         "");
@@ -194,20 +203,33 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
     }
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(
-        "Method 'A.f()' in 'Test/Test.dart' declares variable 'newName' which will shadow renamed variable",
-        showStatusMessages.get(0));
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for declaration in A
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed variable will be shadowed by field 'A.newName' in 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for usage in B
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of field 'A.newName' declared in 'Test/Test.dart' will be shadowed by renamed variable",
+          showStatusMessages.get(1));
+    }
     // no source changes
     assertEquals(source, testUnit.getSource());
   }
 
-  public void test_postCondition_localVariable_inTopLevelFunction() throws Exception {
+  public void test_postCondition_field_shadows_topLevel() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "var test;",
-        "f() {",
+        "class A {",
         "  var newName;",
+        "  foo() {",
+        "    newName = 1;", // field of the enclosing class
+        "    test = 2;",
+        "  }",
         "}",
         "");
     DartVariableDeclaration variable = findElement("test;");
@@ -220,10 +242,175 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
     }
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(
-        "Function 'f()' in 'Test/Test.dart' declares variable 'newName' which will shadow renamed variable",
-        showStatusMessages.get(0));
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for shadowing declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed variable will be shadowed by field 'A.newName' in 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for shadowing usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed variable will be shadowed by field 'A.newName' in 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_localVariable_inMethod() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var test;",
+        "class A {",
+        "  f() {",
+        "    var newName;",
+        "    test = 1;",
+        "  }",
+        "}",
+        "");
+    DartVariableDeclaration variable = findElement("test;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameVariable(variable, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for shadowing declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed variable will be shadowed by variable in method 'A.f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // warning for shadowing usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed variable will be shadowed by variable in method 'A.f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_localVariable_inTopLevelFunction() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var test;",
+        "f() {",
+        "  var newName;",
+        "  test = 1;",
+        "}",
+        "");
+    DartVariableDeclaration variable = findElement("test;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameVariable(variable, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for shadowing declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed variable will be shadowed by variable in function 'f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // warning for shadowing usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed variable will be shadowed by variable in function 'f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  /**
+   * http://code.google.com/p/dart/issues/detail?id=1180
+   */
+  public void test_postCondition_method_shadowedBy_topLevel() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var test;",
+        "class A {",
+        "  newName() {}",
+        "}",
+        "class B extends A {",
+        "  foo() {",
+        "    newName();", // will be shadowed by global variable
+        "  }",
+        "}",
+        "");
+    DartVariableDeclaration variable = findElement("test;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameVariable(variable, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for declaration in A
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed variable will be shadowed by method 'A.newName' in 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for usage in B
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of method 'A.newName' declared in 'Test/Test.dart' will be shadowed by renamed variable",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_method_shadows_topLevel() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var test;",
+        "class A {",
+        "  newName() {}",
+        "  foo() {",
+        "    newName();", // method of the enclosing class
+        "    test = 1;",
+        "  }",
+        "}",
+        "");
+    DartVariableDeclaration variable = findElement("test;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameVariable(variable, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for shadowing declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed variable will be shadowed by method 'A.newName' in 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for shadowing usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed variable will be shadowed by method 'A.newName' in 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
     // no source changes
     assertEquals(source, testUnit.getSource());
   }
@@ -280,28 +467,6 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
     check_postCondition_topLevel("variable");
   }
 
-  public void test_postCondition_type_field() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "var test;",
-        "class A {",
-        "  var newName;",
-        "}",
-        "");
-    check_postCondition_typeMember("field");
-  }
-
-  public void test_postCondition_type_method() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "var test;",
-        "class A {",
-        "  newName() {}",
-        "}",
-        "");
-    check_postCondition_typeMember("method");
-  }
-
   public void test_preCondition_hasCompilationErrors() throws Exception {
     setUnitContent(
         "Test1.dart",
@@ -330,6 +495,7 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
     assertEquals(
         "Code modification may not be accurate as affected resource 'Test/Test2.dart' has compile errors.",
         showStatusMessages.get(0));
@@ -364,30 +530,12 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
     assertEquals("File 'Test/"
         + unitName
         + "' in library 'Test' already declares top-level "
         + shadowName
         + " 'newName'", showStatusMessages.get(0));
-    // no source changes
-    assertEquals(source, testUnit.getSource());
-  }
-
-  private void check_postCondition_typeMember(String shadowName) throws Exception {
-    DartVariableDeclaration variable = findElement("test;");
-    // try to rename
-    String source = testUnit.getSource();
-    try {
-      renameVariable(variable, "newName");
-      fail();
-    } catch (InterruptedException e) {
-    }
-    // error should be displayed
-    assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals("Type 'A' in 'Test/Test.dart' declares "
-        + shadowName
-        + " 'newName' which will shadow renamed variable", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }

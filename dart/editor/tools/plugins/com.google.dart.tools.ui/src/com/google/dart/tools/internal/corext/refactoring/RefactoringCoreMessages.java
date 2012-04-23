@@ -1678,10 +1678,12 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameRefactoring_elementTypeName;
 
   public static String RenameTopRefactoring_shadow_topLevel;
-  public static String RenameTopRefactoring_shadow_typeMember;
-  public static String RenameTopRefactoring_shadow_typeMember_shadowedInSubType;
-  public static String RenameTopRefactoring_shadow_variable_inMethod;
-  public static String RenameTopRefactoring_shadow_variable_inFunction;
+  public static String RenameTopRefactoring_elementDecl_shadowedBy_typeMember;
+  public static String RenameTopRefactoring_elementUsage_shadowedBy_typeMember;
+  public static String RenameTopRefactoring_elementDecl_shadowedBy_variable_inMethod;
+  public static String RenameTopRefactoring_elementUsage_shadowedBy_variable_inMethod;
+  public static String RenameTopRefactoring_elementDecl_shadowedBy_variable_inFunction;
+  public static String RenameTopRefactoring_elementUsage_shadowedBy_variable_inFunction;
 
   public static String RenameJavaProjectChange_descriptor_description;
 
@@ -1702,8 +1704,11 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameLocalVariableProcessor_descriptor_description;
   public static String RenameLocalVariableProcessor_descriptor_description_short;
   public static String RenameLocalVariableProcessor_shadow_variable;
-  public static String RenameLocalVariableProcessor_shadow_superType_member;
-  public static String RenameLocalVariableProcessor_shadow_topLevel;
+  public static String RenameProcessor_typeMemberDecl_shadowedBy_element;
+  public static String RenameProcessor_typeMemberUsage_shadowedBy_element;
+  public static String RenameProcessor_topLevelDecl_shadowedBy_element;
+  public static String RenameProcessor_topLevelUsage_shadowedBy_element;
+  public static String RenameProcessor_typeMemberUsage_shadowedBy_topLevel;
 
   public static String RenameMethodInInterfaceRefactoring_already_defined;
 

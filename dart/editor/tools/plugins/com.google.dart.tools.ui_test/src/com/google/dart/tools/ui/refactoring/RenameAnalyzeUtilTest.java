@@ -19,8 +19,10 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 
@@ -63,6 +65,104 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
             RenameAnalyzeUtil.getElementTypeName(method.getLocalVariables()[0]));
       }
     }
+  }
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}.
+   */
+  public void test_getReferences_field() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var test;",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  a.test = 1;",
+        "}",
+        "");
+    check_getReferences("test;", "test = 1;", 4);
+  }
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}.
+   */
+  public void test_getReferences_function() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test() {}",
+        "f() {",
+        "  test();",
+        "}",
+        "");
+    check_getReferences("test() {}", "test();", 4);
+  }
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}. XXX
+   */
+  public void test_getReferences_functionTypeAlias() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef Test();",
+        "f() {",
+        "  Test a;",
+        "}",
+        "");
+    check_getReferences("Test();", "Test a", 4);
+  }
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}.
+   */
+  public void test_getReferences_method() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  a.test();",
+        "}",
+        "");
+    check_getReferences("test() {}", "test();", 4);
+  }
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}.
+   */
+  public void test_getReferences_null() throws Exception {
+    List<SearchMatch> references = RenameAnalyzeUtil.getReferences(null);
+    assertThat(references).isEmpty();
+  }
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}. XXX
+   */
+  public void test_getReferences_type() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {}",
+        "f() {",
+        "  Test a;",
+        "}",
+        "");
+    check_getReferences("Test {}", "Test a", 4);
+  }
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}.
+   */
+  public void test_getReferences_variable() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var test;",
+        "f() {",
+        "  test = 1;",
+        "}",
+        "");
+    check_getReferences("test;", "test = 1;", 4);
   }
 
   public void test_getSubTypes() throws Exception {
@@ -218,6 +318,51 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
     Type type = (Type) unit.getChildren()[0];
     List<TypeMember> typeMembers = RenameAnalyzeUtil.getTypeMembers(type);
     assertThat(typeMembers).contains(type.getChildren()[0], type.getChildren()[1]);
+  }
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#isTypeHierarchy(Type, Type)}.
+   */
+  public void test_isTypeHierarchy() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('Test');",
+        "#import('Lib.dart');",
+        "class A {}",
+        "class B extends A {}",
+        "class C extends B {}",
+        "");
+    TestProject.waitForAutoBuild();
+    Type typeA = getTopLevelElementNamed("A");
+    Type typeB = getTopLevelElementNamed("B");
+    Type typeC = getTopLevelElementNamed("C");
+    // A
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeA, typeA));
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeA, typeB));
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeA, typeC));
+    // B
+    assertTrue(RenameAnalyzeUtil.isTypeHierarchy(typeB, typeA));
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeB, typeB));
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeB, typeC));
+    // C
+    assertTrue(RenameAnalyzeUtil.isTypeHierarchy(typeC, typeA));
+    assertTrue(RenameAnalyzeUtil.isTypeHierarchy(typeC, typeB));
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeC, typeC));
+  }
+
+  // XXX
+  private void check_getReferences(String searchPattern, String referencePattern, int length)
+      throws Exception {
+    TestProject.waitForAutoBuild();
+    DartElement variable = findElement(searchPattern);
+    // prepare single reference
+    List<SearchMatch> references = RenameAnalyzeUtil.getReferences(variable);
+    assertThat(references).hasSize(1);
+    SearchMatch reference = references.get(0);
+    // check source range
+    SourceRange referenceRange = reference.getSourceRange();
+    assertEquals(testUnit.getSource().indexOf(referencePattern), referenceRange.getOffset());
+    assertEquals(length, referenceRange.getLength());
   }
 
   /**

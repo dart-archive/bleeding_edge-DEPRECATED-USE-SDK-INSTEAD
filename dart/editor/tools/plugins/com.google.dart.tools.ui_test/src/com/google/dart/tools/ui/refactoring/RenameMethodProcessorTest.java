@@ -16,9 +16,11 @@ package com.google.dart.tools.ui.refactoring;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.test.util.TestProject;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameMethodProcessor;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
@@ -39,7 +41,7 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
   }
 
   /**
-   * Just for coverage of {@link RenameMethodProcessor} accessors.
+   * Just for coverage of {@link RenameFieldProcessor} accessors.
    */
   public void test_accessors() throws Exception {
     setTestUnitContent(
@@ -47,7 +49,7 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "class A {",
         "  test() {}",
         "}");
-    Method method = findElement("test()");
+    Method method = findElement("test() {}");
     // do check
     RenameMethodProcessor processor = new RenameMethodProcessor(method);
     assertEquals(RenameMethodProcessor.IDENTIFIER, processor.getIdentifier());
@@ -60,7 +62,7 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "class A {",
         "  test() {}",
         "}");
-    Method method = findElement("test()");
+    Method method = findElement("test() {");
     // try to rename
     String source = testUnit.getSource();
     try {
@@ -71,6 +73,7 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.FATAL, showStatusSeverities.get(0).intValue());
     assertEquals("Choose another name.", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
@@ -81,9 +84,9 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  test() {}",
-        "  var newName;",
+        "  int newName = 2;",
         "}");
-    Method method = findElement("test()");
+    Method method = findElement("test() {}");
     // try to rename
     String source = testUnit.getSource();
     try {
@@ -94,6 +97,7 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
     assertEquals(
         "Enclosing type 'A' in 'Test/Test.dart' already declares member with name 'newName'",
         showStatusMessages.get(0));
@@ -108,7 +112,7 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "  test() {}",
         "  newName() {}",
         "}");
-    Method method = findElement("test()");
+    Method method = findElement("test() {}");
     // try to rename
     String source = testUnit.getSource();
     try {
@@ -119,6 +123,7 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
     assertEquals(
         "Enclosing type 'A' in 'Test/Test.dart' already declares member with name 'newName'",
         showStatusMessages.get(0));
@@ -132,13 +137,14 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "class A {",
         "  test() {}",
         "}");
-    Method method = findElement("test()");
+    Method method = findElement("test() {}");
     // try to rename
     showStatusCancel = false;
-    renameMethod(method, "NAME");
+    renameMethod(method, "NewName");
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
     assertEquals(
         "By convention, method names usually start with a lowercase letter",
         showStatusMessages.get(0));
@@ -146,7 +152,7 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  NAME() {}",
+        "  NewName() {}",
         "}");
   }
 
@@ -155,11 +161,11 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "Test1.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  test() {}",
-        "  bar() {}",
+        "  test(var p) {}",
+        "  int bar = 2;",
         "  f1() {",
-        "    test();",
-        "    bar();",
+        "    test(3);",
+        "    bar = 4;",
         "  }",
         "}");
     setUnitContent(
@@ -167,14 +173,14 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  A a = new A();",
-        "  a.test();",
+        "  a.test(5);",
         "}");
     setUnitContent(
         "Test3.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
         "class B extends A {",
         "  f3() {",
-        "    test();",
+        "    test(6);",
         "  }",
         "}");
     setTestUnitContent(
@@ -187,19 +193,19 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     CompilationUnit unit1 = testProject.getUnit("Test1.dart");
     CompilationUnit unit2 = testProject.getUnit("Test2.dart");
     CompilationUnit unit3 = testProject.getUnit("Test3.dart");
-    // find Method to rename
-    Method method = findElement(unit2, "test();");
+    // find Field to rename
+    Method method = findElement(unit2, "test(5);");
     // do rename
     renameMethod(method, "newName");
     assertUnitContent(
         unit1,
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  newName() {}",
-        "  bar() {}",
+        "  newName(var p) {}",
+        "  int bar = 2;",
         "  f1() {",
-        "    newName();",
-        "    bar();",
+        "    newName(3);",
+        "    bar = 4;",
         "  }",
         "}");
     assertUnitContent(
@@ -207,14 +213,14 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  A a = new A();",
-        "  a.newName();",
+        "  a.newName(5);",
         "}");
     assertUnitContent(
         unit3,
         "// filler filler filler filler filler filler filler filler filler filler",
         "class B extends A {",
         "  f3() {",
-        "    newName();",
+        "    newName(6);",
         "  }",
         "}");
   }
@@ -223,42 +229,42 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  test() {}",
-        "  bar() {}",
+        "  test(var p) {}",
+        "  int bar = 2;",
         "  f1() {",
-        "    test();",
-        "    bar();",
+        "    test(3);",
+        "    bar = 4;",
         "  }",
         "}",
         "f2() {",
         "  A a = new A();",
-        "  a.test();",
+        "  a.test(5);",
         "}",
         "class B extends A {",
         "  f3() {",
-        "    test();",
+        "    test(6);",
         "  }",
         "}");
-    Method method = findElement("test() {}");
+    Method method = findElement("test(var p) {}");
     // do rename
     renameMethod(method, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  newName() {}",
-        "  bar() {}",
+        "  newName(var p) {}",
+        "  int bar = 2;",
         "  f1() {",
-        "    newName();",
-        "    bar();",
+        "    newName(3);",
+        "    bar = 4;",
         "  }",
         "}",
         "f2() {",
         "  A a = new A();",
-        "  a.newName();",
+        "  a.newName(5);",
         "}",
         "class B extends A {",
         "  f3() {",
-        "    newName();",
+        "    newName(6);",
         "  }",
         "}");
   }
@@ -267,42 +273,42 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  test() {}",
-        "  bar() {}",
+        "  test(var p) {}",
+        "  int bar = 2;",
         "  f1() {",
-        "    test();",
-        "    bar();",
+        "    test(3);",
+        "    bar = 4;",
         "  }",
         "}",
         "f2() {",
         "  A a = new A();",
-        "  a.test(); // rename here",
+        "  a.test(5);",
         "}",
         "class B extends A {",
         "  f3() {",
-        "    test();",
+        "    test(6);",
         "  }",
         "}");
-    Method method = findElement("test(); // rename here");
+    Method method = findElement("test(5);");
     // do rename
     renameMethod(method, "newName");
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  newName() {}",
-        "  bar() {}",
+        "  newName(var p) {}",
+        "  int bar = 2;",
         "  f1() {",
-        "    newName();",
-        "    bar();",
+        "    newName(3);",
+        "    bar = 4;",
         "  }",
         "}",
         "f2() {",
         "  A a = new A();",
-        "  a.newName(); // rename here",
+        "  a.newName(5);",
         "}",
         "class B extends A {",
         "  f3() {",
-        "    newName();",
+        "    newName(6);",
         "  }",
         "}");
   }
@@ -315,10 +321,10 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "}",
         "class B extends A {",
         "  f() {",
-        "    test(); // rename here",
+        "    test();",
         "  }",
         "}");
-    Method method = findElement("test(); // rename here");
+    Method method = findElement("test();");
     // do rename
     renameMethod(method, "newName");
     assertTestUnitContent(
@@ -328,80 +334,19 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "}",
         "class B extends A {",
         "  f() {",
-        "    newName(); // rename here",
+        "    newName();",
         "  }",
         "}");
   }
 
-  public void test_postCondition_hasFieldOverride_inSubType() throws Exception {
+  public void test_postCondition_element_shadowedBy_localVariable() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  test() {}",
-        "}",
-        "class B extends A {",
-        "}",
-        "class C extends B {",
-        "  var newName;",
-        "}",
-        "");
-    Method method = findElement("test() {}");
-    // try to rename
-    String source = testUnit.getSource();
-    try {
-      renameMethod(method, "newName");
-      fail();
-    } catch (InterruptedException e) {
-    }
-    // error should be displayed
-    assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(
-        "Type 'C' in 'Test/Test.dart' declares field 'newName' which will shadow renamed method",
-        showStatusMessages.get(0));
-    // no source changes
-    assertEquals(source, testUnit.getSource());
-  }
-
-  public void test_postCondition_hasFieldOverride_inSuperType() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  var newName;",
-        "}",
-        "class B extends A {",
-        "}",
-        "class C extends B {",
-        "  test() {}",
-        "}",
-        "");
-    Method method = findElement("test() {}");
-    // try to rename
-    String source = testUnit.getSource();
-    try {
-      renameMethod(method, "newName");
-      fail();
-    } catch (InterruptedException e) {
-    }
-    // error should be displayed
-    assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(
-        "Type 'A' in 'Test/Test.dart' declares field 'newName' which will be shadowed by renamed method",
-        showStatusMessages.get(0));
-    // no source changes
-    assertEquals(source, testUnit.getSource());
-  }
-
-  public void test_postCondition_hasLocalVariableHiding_inSubType() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  test() {}",
-        "}",
-        "class B extends A {",
         "  foo() {",
         "    var newName;",
+        "    test();",
         "  }",
         "}",
         "");
@@ -415,22 +360,35 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     }
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(
-        "Method 'B.foo()' in 'Test/Test.dart' declares local variable 'newName' which will shadow renamed method",
-        showStatusMessages.get(0));
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for variable declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed method will be shadowed by variable in method 'A.foo()' in file 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for field usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed method will be shadowed by variable in method 'A.foo()' in file 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
     // no source changes
     assertEquals(source, testUnit.getSource());
   }
 
-  public void test_postCondition_hasParameterHiding_inSubType() throws Exception {
+  public void test_postCondition_element_shadowedBy_subTypeMember() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  test() {}",
         "}",
         "class B extends A {",
-        "  foo(var newName) {",
+        "}",
+        "class C extends B {",
+        "  newName() {}",
+        "  f() {",
+        "    test();",
         "  }",
         "}",
         "");
@@ -444,63 +402,141 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     }
     // error should be displayed
     assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals(
-        "Method 'B.foo()' in 'Test/Test.dart' declares parameter 'newName' which will shadow renamed method",
-        showStatusMessages.get(0));
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for sub-type method declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed method will be shadowed by method 'C.newName' in 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for field usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed method will be shadowed by method 'C.newName' in 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
     // no source changes
     assertEquals(source, testUnit.getSource());
   }
 
-  public void test_postCondition_shadowsTopLevel_class() throws Exception {
+  public void test_postCondition_element_shadowedBy_topLevel() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  test() {}",
         "}",
-        "class newName {",
+        "class B extends A {",
+        "  f() {",
+        "    test();",
+        "  }",
         "}",
+        "class newName {}",
         "");
-    check_postCondition_shadowsTopLevel("type");
+    Method method = findElement("test() {}");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameMethod(method, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for field declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of type 'newName' in file 'Test/Test.dart' in library 'Test' will be shadowed by renamed method",
+          showStatusMessages.get(0));
+      // error for type usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of method 'A.test' will be shadowed by top-level type 'newName' from 'Test/Test.dart' in library 'Test'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
   }
 
-  public void test_postCondition_shadowsTopLevel_functionTypeAlias() throws Exception {
+  public void test_postCondition_element_shadows_superTypeMember() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "typedef newName(int p);",
         "class A {",
+        "  newName() {}",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
         "  test() {}",
+        "  f() {",
+        "    newName();",
+        "  }",
         "}",
         "");
-    check_postCondition_shadowsTopLevel("function type alias");
+    Method method = findElement("test() {}");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameMethod(method, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for field declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of method 'A.newName' in 'Test/Test.dart' will be shadowed by renamed method",
+          showStatusMessages.get(0));
+      // error for super-type member usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of method 'A.newName' declared in 'Test/Test.dart' will be shadowed by renamed method",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
   }
 
-  public void test_postCondition_shadowsTopLevel_otherLibrary() throws Exception {
-    setUnitContent(
-        "Lib.dart",
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('Lib');",
-        "var newName;");
+  public void test_postCondition_element_shadows_topLevel() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('Test');",
-        "#import('Lib.dart');",
         "class A {",
         "  test() {}",
+        "  f() {",
+        "    new newName();",
+        "  }",
         "}",
+        "class newName {}",
         "");
-    check_postCondition_shadowsTopLevel("Lib.dart", "variable");
-  }
-
-  public void test_postCondition_shadowsTopLevel_variable() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "var newName;",
-        "class A {",
-        "  test() {}",
-        "}",
-        "");
-    check_postCondition_shadowsTopLevel("variable");
+    Method method = findElement("test() {}");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameMethod(method, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for field declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of type 'newName' in file 'Test/Test.dart' in library 'Test' will be shadowed by renamed method",
+          showStatusMessages.get(0));
+      // error for type usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of type 'newName' in file 'Test/Test.dart' in library 'Test' will be shadowed by renamed method",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
   }
 
   public void test_preCondition_hasCompilationErrors() throws Exception {
@@ -508,9 +544,9 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "Test1.dart",
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  test() {}",
+        "  test(var p) {}",
         "  f1() {",
-        "    test();",
+        "    test(3);",
         "  }",
         "}");
     setUnitContent(
@@ -518,7 +554,7 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  A a = new A();",
-        "  a.test();",
+        "  a.test(5);",
         "}",
         "somethingBad");
     setTestUnitContent(
@@ -529,13 +565,14 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     // get units, because they have not library
     CompilationUnit unit1 = testProject.getUnit("Test1.dart");
     CompilationUnit unit2 = testProject.getUnit("Test2.dart");
-    Method method = findElement(unit1, "test() {}");
+    Method method = findElement(unit1, "test(var p) {");
     // try to rename
     showStatusCancel = false;
     renameMethod(method, "newName");
     // warning should be displayed
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
     assertEquals(
         "Code modification may not be accurate as affected resource 'Test/Test2.dart' has compile errors.",
         showStatusMessages.get(0));
@@ -544,9 +581,9 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         unit1,
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  newName() {}",
+        "  newName(var p) {}",
         "  f1() {",
-        "    newName();",
+        "    newName(3);",
         "  }",
         "}");
     assertUnitContent(
@@ -554,34 +591,8 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "f2() {",
         "  A a = new A();",
-        "  a.newName();",
+        "  a.newName(5);",
         "}",
         "somethingBad");
-  }
-
-  private void check_postCondition_shadowsTopLevel(String shadowName) throws Exception {
-    check_postCondition_shadowsTopLevel("Test.dart", shadowName);
-  }
-
-  private void check_postCondition_shadowsTopLevel(String unitName, String shadowName)
-      throws Exception {
-    Method method = findElement("test() {}");
-    // try to rename
-    String source = testUnit.getSource();
-    try {
-      renameMethod(method, "newName");
-      fail();
-    } catch (InterruptedException e) {
-    }
-    // error should be displayed
-    assertThat(openInformationMessages).isEmpty();
-    assertThat(showStatusMessages).hasSize(1);
-    assertEquals("File 'Test/"
-        + unitName
-        + "' in library 'Test' declares top-level "
-        + shadowName
-        + " 'newName' which will shadow renamed method", showStatusMessages.get(0));
-    // no source changes
-    assertEquals(source, testUnit.getSource());
   }
 }

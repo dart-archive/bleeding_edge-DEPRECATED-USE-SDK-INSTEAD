@@ -31,7 +31,10 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
+import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
@@ -57,6 +60,7 @@ import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * {@link DartRenameProcessor} for {@link DartVariableDeclaration}.
@@ -101,9 +105,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   @Override
   public RefactoringStatus checkNewElementName(String newName) throws DartModelException {
     RefactoringStatus result = Checks.checkVariableName(newName);
-    if (!Checks.startsWithLowerCase(newName)) {
-      result.addWarning(RefactoringCoreMessages.RenameTempRefactoring_lowercase);
-    }
     return result;
   }
 
@@ -177,9 +178,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
       pm.worked(1);
       // check for possible conflicts
       result.merge(analyzePossibleConflicts(new SubProgressMonitor(pm, 10)));
-      if (result.hasFatalError()) {
-        return result;
-      }
       // OK, create changes
       createEdits();
       return result;
@@ -205,7 +203,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
               String message = Messages.format(
                   RefactoringCoreMessages.RenameLocalVariableProcessor_shadow_variable,
                   newName);
-              result.addFatalError(message, DartStatusContext.create(otherVariable));
+              result.addError(message, DartStatusContext.create(otherVariable));
               return result;
             }
           }
@@ -213,15 +211,49 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
       }
       // analyze supertypes
       pm.subTask("Analyze supertypes");
-      RenameAnalyzeUtil.checkShadow_superType_member(
-          result,
-          variable,
-          newName,
-          RefactoringCoreMessages.RenameLocalVariableProcessor_shadow_superType_member);
-      pm.worked(1);
-      if (result.hasFatalError()) {
-        return result;
+      {
+        Type enclosingType = variable.getAncestor(Type.class);
+        if (enclosingType != null) {
+          Set<Type> superTypes = RenameAnalyzeUtil.getSuperTypes(enclosingType);
+          superTypes.add(enclosingType);
+          for (Type superType : superTypes) {
+            TypeMember[] superMembers = superType.getExistingMembers(newName);
+            for (TypeMember superMember : superMembers) {
+              IPath resourcePath = superMember.getResource().getFullPath();
+              // add warning for shadowing member declaration
+              {
+                String message = Messages.format(
+                    RefactoringCoreMessages.RenameProcessor_typeMemberDecl_shadowedBy_element,
+                    new Object[] {
+                        RenameAnalyzeUtil.getElementTypeName(superMember),
+                        superType.getElementName(),
+                        superMember.getElementName(),
+                        resourcePath,
+                        RenameAnalyzeUtil.getElementTypeName(variable)});
+                result.addWarning(message, DartStatusContext.create(superMember));
+              }
+              // add error for shadowing member usage
+              List<SearchMatch> memberRefs = RenameAnalyzeUtil.getReferences(superMember);
+              for (SearchMatch memberRef : memberRefs) {
+                if (SourceRangeUtils.intersects(
+                    memberRef.getSourceRange(),
+                    variable.getVisibleRange())) {
+                  String message = Messages.format(
+                      RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
+                      new Object[] {
+                          RenameAnalyzeUtil.getElementTypeName(superMember),
+                          superType.getElementName(),
+                          superMember.getElementName(),
+                          resourcePath,
+                          RenameAnalyzeUtil.getElementTypeName(variable)});
+                  result.addError(message, DartStatusContext.create(memberRef));
+                }
+              }
+            }
+          }
+        }
       }
+      pm.worked(1);
       // analyze top-level elements
       pm.subTask("Analyze top-level elements");
       {
@@ -233,14 +265,33 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
           DartLibrary shadowLibrary = topLevelElement.getAncestor(DartLibrary.class);
           IPath libraryPath = shadowLibrary.getResource().getFullPath();
           IPath resourcePath = topLevelElement.getResource().getFullPath();
-          String message = Messages.format(
-              RefactoringCoreMessages.RenameLocalVariableProcessor_shadow_topLevel,
-              new Object[] {
-                  BasicElementLabels.getPathLabel(resourcePath, false),
-                  BasicElementLabels.getPathLabel(libraryPath, false),
-                  RenameAnalyzeUtil.getElementTypeName(topLevelElement),
-                  newName});
-          result.addFatalError(message, DartStatusContext.create(topLevelElement));
+          // add warning for shadowing element declaration
+          {
+            String message = Messages.format(
+                RefactoringCoreMessages.RenameProcessor_topLevelDecl_shadowedBy_element,
+                new Object[] {
+                    RenameAnalyzeUtil.getElementTypeName(topLevelElement),
+                    newName,
+                    BasicElementLabels.getPathLabel(resourcePath, false),
+                    BasicElementLabels.getPathLabel(libraryPath, false),
+                    RenameAnalyzeUtil.getElementTypeName(variable)});
+            result.addWarning(message, DartStatusContext.create(topLevelElement));
+          }
+          // add error for shadowing element usage
+          List<SearchMatch> refs = RenameAnalyzeUtil.getReferences(topLevelElement);
+          for (SearchMatch ref : refs) {
+            if (SourceRangeUtils.intersects(ref.getSourceRange(), variable.getVisibleRange())) {
+              String message = Messages.format(
+                  RefactoringCoreMessages.RenameProcessor_topLevelUsage_shadowedBy_element,
+                  new Object[] {
+                      RenameAnalyzeUtil.getElementTypeName(topLevelElement),
+                      newName,
+                      BasicElementLabels.getPathLabel(resourcePath, false),
+                      BasicElementLabels.getPathLabel(libraryPath, false),
+                      RenameAnalyzeUtil.getElementTypeName(variable)});
+              result.addError(message, DartStatusContext.create(ref));
+            }
+          }
         }
       }
       // OK
