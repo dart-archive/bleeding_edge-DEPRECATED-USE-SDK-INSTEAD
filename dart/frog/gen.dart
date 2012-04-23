@@ -975,7 +975,13 @@ class MethodGenerator implements TreeVisitor, CallingContext {
     if (m._provideGetter) {
       String suffix = world.gen._writePrototypePatch(m.declaringType,
           'get\$${m.jsname}', 'function() {', defWriter, false);
-      defWriter.writeln('return this.${m.jsname}.bind(this);');
+      if (m.parameters.some((p) => p.isOptional)) {
+        defWriter.writeln('var \$bound = this.${m.jsname}.bind(this);');
+        defWriter.writeln('\$bound.\$optional = this.${m.jsname}.\$optional;');
+        defWriter.writeln('return \$bound;');
+      } else {
+        defWriter.writeln('return this.${m.jsname}.bind(this);');
+      }
       defWriter.exitBlock(suffix);
       return true;
     }
