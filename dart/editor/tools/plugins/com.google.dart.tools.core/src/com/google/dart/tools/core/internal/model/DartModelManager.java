@@ -964,18 +964,7 @@ public class DartModelManager {
     if (!resource.exists()) {
       return false;
     }
-    // TODO(brianwilkerson) Re-implement this once the real semantics have been decided on.
-    ArrayList<String> patterns = getExclusionPatterns();
-    if (patterns.size() > 0) {
-      String path = resource.getLocation().toPortableString();
-      for (String pattern : patterns) {
-        // TODO(brianwilkerson) Replace this with some form of pattern matching.
-        if (path.equals(pattern) || path.startsWith(pattern + "/")) {
-          return false;
-        }
-      }
-    }
-    return true;
+    return !DartIgnoreManager.getInstance().isIgnored(resource.getLocation().toPortableString());
   }
 
   /**
@@ -1514,16 +1503,6 @@ public class DartModelManager {
 
   private IScopeContext getDefaultScope() {
     return new DefaultScope();
-  }
-
-  /**
-   * Return a list of exclusion patterns that are to be applied to determine which files are not
-   * currently being analyzed.
-   * 
-   * @return the exclusion patterns used to determine which files are not currently being analyzed
-   */
-  private ArrayList<String> getExclusionPatterns() {
-    return DartIgnoreManager.getInstance().getExclusionPatterns();
   }
 
   private Set<File> getFilesForLibrary(File libraryFile, DartUnit libraryUnit) {

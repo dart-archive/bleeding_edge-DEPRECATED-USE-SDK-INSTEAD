@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.core;
 
-import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
@@ -103,7 +103,7 @@ public class DartCoreTest extends TestCase {
     assertEquals("dart", extensions[0]);
   }
 
-  public void test_DartCore_isAnalyzed_false() {
+  public void test_DartCore_isAnalyzed_false() throws Exception {
     ArrayList<String> patterns = getExclusionPatterns();
     ArrayList<String> savedPatterns = new ArrayList<String>(patterns);
     try {
@@ -117,6 +117,7 @@ public class DartCoreTest extends TestCase {
         }
       };
       assertFalse(DartCore.isAnalyzed(file));
+      assertTrue(DartIgnoreManager.getInstance().isIgnored(file.getLocation().toPortableString()));
     } finally {
       patterns.clear();
       patterns.addAll(savedPatterns);
@@ -131,6 +132,7 @@ public class DartCoreTest extends TestCase {
       }
     };
     assertTrue(DartCore.isAnalyzed(file));
+    assertFalse(DartIgnoreManager.getInstance().isIgnored(file.getLocation().toPortableString()));
   }
 
   public void test_DartCore_isCSSLikeFileName() {
@@ -187,14 +189,9 @@ public class DartCoreTest extends TestCase {
   }
 
   @SuppressWarnings("unchecked")
-  private ArrayList<String> getExclusionPatterns() {
-    Method method;
-    try {
-      method = DartModelManager.class.getDeclaredMethod("getExclusionPatterns");
-      method.setAccessible(true);
-      return (ArrayList<String>) method.invoke(DartModelManager.getInstance());
-    } catch (Exception exception) {
-      return new ArrayList<String>();
-    }
+  private ArrayList<String> getExclusionPatterns() throws Exception {
+    Method method = DartIgnoreManager.class.getDeclaredMethod("getExclusionPatterns");
+    method.setAccessible(true);
+    return (ArrayList<String>) method.invoke(DartIgnoreManager.getInstance());
   }
 }

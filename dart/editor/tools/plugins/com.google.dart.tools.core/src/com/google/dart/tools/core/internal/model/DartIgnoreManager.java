@@ -90,6 +90,26 @@ public class DartIgnoreManager {
   }
 
   /**
+   * Return <code>true</code> if the path is included in the collection of paths to be ignored.
+   * 
+   * @param absolutePath the absolute path being tested
+   * @return <code>true</code> if the given path should be ignored
+   */
+  public boolean isIgnored(String absolutePath) {
+    // TODO(brianwilkerson) Re-implement this once the real semantics have been decided on.
+    ArrayList<String> patterns = getExclusionPatterns();
+    if (patterns.size() > 0) {
+      for (String pattern : patterns) {
+        // TODO(brianwilkerson) Replace this with some form of pattern matching.
+        if (absolutePath.equals(pattern) || absolutePath.startsWith(pattern + "/")) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Add the path for the given resource to the list of ignores.
    * 
    * @param resource the resource to ignore
