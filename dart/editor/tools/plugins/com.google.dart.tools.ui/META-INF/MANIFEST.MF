@@ -31,6 +31,7 @@ Export-Package: com.google.dart.tools.internal.corext.refactoring.rename;x-frien
  com.google.dart.tools.internal.corext.refactoring.util;x-friends:="com.google.dart.tools.ui_test,com.google.dart.tools.ui.swtbot_test",
  com.google.dart.tools.ui,
  com.google.dart.tools.ui.actions,
+ com.google.dart.tools.ui.dialogs,
  com.google.dart.tools.ui.internal.callhierarchy,
  com.google.dart.tools.ui.internal.handlers,
  com.google.dart.tools.ui.internal.intro;x-friends:="com.google.dart.tools.deploy",
