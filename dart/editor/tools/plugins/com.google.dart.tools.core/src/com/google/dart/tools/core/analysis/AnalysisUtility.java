@@ -113,7 +113,11 @@ class AnalysisUtility {
 
     Map<URI, LibraryUnit> newlyResolved = null;
     try {
-      newlyResolved = DartCompiler.analyzeLibraries(librarySource, resolvedLibs, parsedUnits,
+      // analyzeLibraries modifies map of parsed units, so pass a copy
+      HashMap<URI, DartUnit> parsedUnitsCopy = new HashMap<URI, DartUnit>(parsedUnits.size());
+      parsedUnitsCopy.putAll(parsedUnits);
+
+      newlyResolved = DartCompiler.analyzeLibraries(librarySource, resolvedLibs, parsedUnitsCopy,
           config, provider, errorListener, true);
     } catch (IOException e) {
       errorListener.onError(newIoError(librarySource, e));

@@ -35,17 +35,13 @@ public class AnalysisEvent {
   private final File libraryFile;
   private final Collection<File> files;
   private final HashMap<File, DartUnit> units;
-  private final ArrayList<DartCompilationError> errors;
+  private final ArrayList<AnalysisError> errors;
 
   public AnalysisEvent(File libraryFile) {
-    this(libraryFile, new ArrayList<DartCompilationError>());
-  }
-
-  public AnalysisEvent(File libraryFile, ArrayList<DartCompilationError> errors) {
     this.libraryFile = libraryFile;
     this.files = new ArrayList<File>();
     this.units = new HashMap<File, DartUnit>();
-    this.errors = errors;
+    this.errors = new ArrayList<AnalysisError>();
   }
 
   /**
@@ -53,7 +49,7 @@ public class AnalysisEvent {
    * 
    * @return a collection of errors (not <code>null</code>, contains no <code>null</code>s)
    */
-  public ArrayList<DartCompilationError> getErrors() {
+  public ArrayList<AnalysisError> getErrors() {
     return errors;
   }
 
@@ -99,7 +95,7 @@ public class AnalysisEvent {
       }
       File file = toFile(server, source.getUri());
       if (fileSet.contains(file)) {
-        errors.add(error);
+        errors.add(new AnalysisError(file, error));
       }
     }
   }

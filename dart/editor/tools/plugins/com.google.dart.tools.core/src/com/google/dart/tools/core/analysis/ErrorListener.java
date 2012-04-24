@@ -60,8 +60,9 @@ class ErrorListener implements DartCompilerListener {
   }
 
   void notifyParsed(File libraryFile, File sourceFile, DartUnit dartUnit) {
-    AnalysisEvent event = new AnalysisEvent(libraryFile, errors);
+    AnalysisEvent event = new AnalysisEvent(libraryFile);
     event.addFileAndDartUnit(sourceFile, dartUnit);
+    event.addErrors(server, errors);
     notifyParsed(event);
   }
 
