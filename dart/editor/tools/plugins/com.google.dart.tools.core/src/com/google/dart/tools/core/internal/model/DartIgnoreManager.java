@@ -90,9 +90,21 @@ public class DartIgnoreManager {
   }
 
   /**
+   * Return <code>true</code> if the specified file's path is included in the collection of paths to
+   * be ignored.
+   * 
+   * @param file the file being tested
+   * @return <code>true</code> if the given file should be ignored
+   */
+  public boolean isIgnored(File file) {
+    return isIgnored(file.getAbsolutePath().replace(File.separatorChar, '/'));
+  }
+
+  /**
    * Return <code>true</code> if the path is included in the collection of paths to be ignored.
    * 
-   * @param absolutePath the absolute path being tested
+   * @param absolutePath the platform independent absolute path being tested. On Windows, any '\'
+   *          must be converted to '/' before calling this method.
    * @return <code>true</code> if the given path should be ignored
    */
   public boolean isIgnored(String absolutePath) {

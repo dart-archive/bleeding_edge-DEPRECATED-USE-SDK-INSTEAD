@@ -15,7 +15,7 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -124,7 +124,8 @@ public class ResourceChangeListener {
   private final AnalysisServer server;
 
   /**
-   * A collection of files and directories to be scanned. Synchronize against this field before
+   * A collection of files and directories to be scanned. It is assumed that each element's
+   * {@link File#getPath()} will return an absolute path. Synchronize against this field before
    * accessing it.
    */
   private final ArrayList<File> filesToScan;
@@ -178,7 +179,7 @@ public class ResourceChangeListener {
   /**
    * A local {@link ParseLibraryFileCallback} used to gather the set stored in {@link #sourcedFiles}
    */
-  private SourcedFilesCallback callback;
+  private final SourcedFilesCallback callback;
 
   /**
    * Used by {@link ResourceChangeListener#startBackgroundScan()} to keep track of the number of
@@ -190,6 +191,11 @@ public class ResourceChangeListener {
   private int callbackCounter;
 
   /**
+   * The manager used to determine which files should be scanned
+   */
+  private final DartIgnoreManager ignoreManager;
+
+  /**
    * Construct a new instance that listens for resource changes and forwards that information on to
    * the specified {@link AnalysisServer}
    */
@@ -198,6 +204,7 @@ public class ResourceChangeListener {
     this.filesToScan = new ArrayList<File>();
     this.buffer = new byte[1024];
     this.callback = new SourcedFilesCallback();
+    this.ignoreManager = DartIgnoreManager.getInstance();
   }
 
   /**
@@ -415,9 +422,7 @@ public class ResourceChangeListener {
     if (!DartCore.isDartLikeFileName(file.getName())) {
       return;
     }
-    // TODO look into having isAnalyzed, is there any way that this call could be faster? Calling
-    // getResource(...) so many times may be a performance bottleneck
-    if (!DartCore.isAnalyzed(ResourceUtil.getResource(file))) {
+    if (ignoreManager.isIgnored(file)) {
       return;
     }
     FileInputStream in;
