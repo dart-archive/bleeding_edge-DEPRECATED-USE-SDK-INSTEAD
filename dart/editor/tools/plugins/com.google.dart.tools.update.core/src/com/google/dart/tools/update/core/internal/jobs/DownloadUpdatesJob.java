@@ -15,7 +15,6 @@ package com.google.dart.tools.update.core.internal.jobs;
 
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
-import com.google.dart.tools.update.core.UpdateManager;
 import com.google.dart.tools.update.core.internal.UpdateUtils;
 
 import org.eclipse.core.runtime.IPath;
@@ -34,11 +33,16 @@ import java.io.IOException;
  */
 public class DownloadUpdatesJob extends Job {
 
+  private final Revision revision;
+
   /**
    * Create an instance.
+   * 
+   * @param revision the revision to download
    */
-  public DownloadUpdatesJob() {
+  public DownloadUpdatesJob(Revision revision) {
     super(UpdateJobMessages.DownloadUpdatesJob_job_label);
+    this.revision = revision;
   }
 
   @Override
@@ -48,8 +52,7 @@ public class DownloadUpdatesJob extends Job {
     try {
       //TODO(pquitslund): sysout for testing
       System.out.println("DownloadUpdatesJob.run()"); //$NON-NLS-1$
-      Revision latest = UpdateManager.getInstance().getLatestRevision();
-      downloadRevision(latest, monitor);
+      downloadRevision(revision, monitor);
     } catch (IOException e) {
       return UpdateCore.createCancelStatus(e.getMessage());
     }

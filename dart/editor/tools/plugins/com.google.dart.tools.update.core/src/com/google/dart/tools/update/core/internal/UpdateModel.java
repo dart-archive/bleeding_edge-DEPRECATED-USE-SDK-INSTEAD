@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.update.core.internal;
 
+import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.UpdateListener;
 
@@ -51,7 +52,7 @@ public class UpdateModel {
     AVAILABLE {
       @Override
       public void notify(UpdateListener listener) {
-        listener.updateAvailable();
+        listener.updateAvailable(latestRevision);
       }
     },
     DOWNLOADING {
@@ -93,7 +94,8 @@ public class UpdateModel {
     }
   }
 
-  State state = State.UNCHECKED;
+  private State state = State.UNCHECKED;
+  private static Revision latestRevision = Revision.UNKNOWN;
 
   private final ArrayList<UpdateListener> listeners = new ArrayList<UpdateListener>();
 
@@ -168,8 +170,20 @@ public class UpdateModel {
    * @param state the new state
    */
   void enterState(State state) {
+    //TODO (pquitslund): sysout for testing
+    System.out.println(this.state + "->" + state);
     this.state = state;
     notifyListeners(state);
+  }
+
+  /**
+   * Caches a revision number for state notifications.
+   * 
+   * @param revision the latest available revision
+   */
+  @SuppressWarnings("static-access")
+  void setLatestAvailableRevision(Revision revision) {
+    this.latestRevision = revision;
   }
 
   /**

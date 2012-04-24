@@ -17,7 +17,6 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
-import com.google.dart.tools.update.core.UpdateCore;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -27,12 +26,9 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.Geometry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -58,10 +54,6 @@ public class AboutDartDialog extends Shell {
     createContents();
   }
 
-  protected void checkForUpdates() {
-    UpdateCore.getUpdateManager().scheduleUpdateCheck();
-  }
-
   @Override
   protected void checkSubclass() {
     // Disable the check that prevents subclassing of SWT components
@@ -72,7 +64,7 @@ public class AboutDartDialog extends Shell {
    */
   protected void createContents() {
 
-    Point size = DartCoreDebug.ENABLE_UPDATE ? new Point(394, 386) : new Point(394, 364);
+    Point size = DartCoreDebug.ENABLE_UPDATE ? new Point(394, 420) : new Point(394, 364);
 
     setSize(size);
 
@@ -136,21 +128,8 @@ public class AboutDartDialog extends Shell {
 
     if (DartCoreDebug.ENABLE_UPDATE) {
 
-      Button updateButton = new Button(this, SWT.PUSH);
-      updateButton.setText("Check for updates...");
-      updateButton.addSelectionListener(new SelectionListener() {
-
-        @Override
-        public void widgetDefaultSelected(SelectionEvent e) {
-          checkForUpdates();
-        }
-
-        @Override
-        public void widgetSelected(SelectionEvent e) {
-          checkForUpdates();
-        }
-      });
-      center(updateButton);
+      @SuppressWarnings("unused")
+      UpdateStatusControl updateStatus = new UpdateStatusControl(this);
 
       //spacer
       newLabel(SWT.NONE);

@@ -36,9 +36,9 @@ public class DownloadManager {
 
   private class StateChangeListener extends UpdateAdapter {
     @Override
-    public void updateAvailable() {
+    public void updateAvailable(Revision revision) {
       if (UpdateCore.isAutoDownloadEnabled() && !model.isDownloadingUpdate()) {
-        scheduleDownload();
+        scheduleDownload(revision);
       }
     }
   }
@@ -67,12 +67,24 @@ public class DownloadManager {
   }
 
   /**
+   * Check to see if there is an update staged and ready to be applied.
+   * 
+   * @return <code>true</code> if there is an update ready to be applied, <code>false</code>
+   *         otherwise
+   */
+  public boolean isUpdateStaged() {
+    Revision current = UpdateCore.getCurrentRevision();
+    Revision staged = getLatestStaged();
+    return staged.isMoreCurrentThan(current);
+  }
+
+  /**
    * Schedule an update download.
    */
-  public void scheduleDownload() {
+  public void scheduleDownload(Revision revision) {
     //don't over-schedule a download
     if (!model.isDownloadingUpdate()) {
-      doDownloadUpdate();
+      doDownloadUpdate(revision);
     }
   }
 
@@ -138,13 +150,16 @@ public class DownloadManager {
       @Override
       public void done(IJobChangeEvent event) {
         Revision latest = ((CheckForUpdatesJob) updateJob).getLatest();
+        model.setLatestAvailableRevision(latest);
         updateJob = null;
         model.enterState(State.CHECKED);
+
+        Revision staged = getLatestStaged();
         if (latest.isMoreCurrentThan(UpdateCore.getCurrentRevision())) {
-          Revision staged = getLatestStaged();
-          if (latest.isMoreCurrentThan(staged)) {
-            model.enterState(State.AVAILABLE);
-          }
+          model.enterState(State.AVAILABLE);
+        }
+        if (latest.isEqualTo(staged)) {
+          model.enterState(State.DOWNLOADED);
         }
       }
 
@@ -156,14 +171,14 @@ public class DownloadManager {
     updateJob.schedule();
   }
 
-  private void doDownloadUpdate() {
+  private void doDownloadUpdate(Revision revision) {
 
     //ensure jobs don't stack
     if (updateJob != null) {
       return;
     }
 
-    updateJob = new DownloadUpdatesJob();
+    updateJob = new DownloadUpdatesJob(revision);
     updateJob.addJobChangeListener(new JobChangeAdapter() {
 
       @Override

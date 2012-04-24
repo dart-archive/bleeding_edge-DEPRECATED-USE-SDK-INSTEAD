@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.preferences;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.editor.DartDocumentSetupParticipant;
@@ -20,6 +21,7 @@ import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
 import com.google.dart.tools.ui.text.DartTextTools;
+import com.google.dart.tools.update.core.UpdateCore;
 
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -114,6 +116,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private FontData[] fontData;
   private FontData[] baseData;
 
+  private Button autoDownloadCheck;
   private Button removeTrailingWhitespaceCheck;
 
   public DartBasePreferencePage() {
@@ -142,6 +145,10 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       editorPreferences.setValue(
           AbstractDecoratedTextEditorPreferenceConstants.EDITOR_PRINT_MARGIN_COLUMN,
           printMarginText.getText());
+    }
+
+    if (DartCoreDebug.ENABLE_UPDATE) {
+      UpdateCore.enableAutoDownload(autoDownloadCheck.getSelection());
     }
 
     PreferenceConstants.getPreferenceStore().setValue(
@@ -201,6 +208,20 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_trailing_ws_label,
         PreferencesMessages.DartBasePreferencePage_trailing_ws_details);
     GridDataFactory.fillDefaults().span(3, 1).applyTo(removeTrailingWhitespaceCheck);
+
+    if (DartCoreDebug.ENABLE_UPDATE) {
+
+      Group updateGroup = new Group(composite, SWT.NONE);
+      updateGroup.setText(PreferencesMessages.DartBasePreferencePage_update_group_label);
+      GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+          updateGroup);
+      GridLayoutFactory.fillDefaults().numColumns(3).margins(8, 8).applyTo(updateGroup);
+
+      autoDownloadCheck = createCheckBox(updateGroup,
+          PreferencesMessages.DartBasePreferencePage_auto_download_label,
+          PreferencesMessages.DartBasePreferencePage_auto_download_tooltip);
+      GridDataFactory.fillDefaults().span(3, 1).applyTo(autoDownloadCheck);
+    }
 
     Group fontGroup = new Group(composite, SWT.NONE);
     fontGroup.setText(PreferencesMessages.DartBasePreferencePage_font_group_label);
@@ -440,6 +461,10 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
     removeTrailingWhitespaceCheck.setSelection(PreferenceConstants.getPreferenceStore().getBoolean(
         PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
+
+    if (DartCoreDebug.ENABLE_UPDATE) {
+      autoDownloadCheck.setSelection(UpdateCore.isAutoDownloadEnabled());
+    }
 
     getFontData();
     getBaseData();

@@ -51,8 +51,10 @@ public interface UpdateListener {
 
   /**
    * Called when an update is available for download.
+   * 
+   * @param revision the available revision
    */
-  void updateAvailable();
+  void updateAvailable(Revision revision);
 
   /**
    * Called when an update is staged and ready to be applied.

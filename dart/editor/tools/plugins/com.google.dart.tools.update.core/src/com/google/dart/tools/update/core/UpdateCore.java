@@ -47,7 +47,7 @@ public class UpdateCore extends Plugin {
   /**
    * Auto update checking default in case unspecified by the user.
    */
-  private static final boolean AUTO_UPDATE_CHECK_DEFAULT = true; //TODO(pquitslund): enabled for testing
+  private static final boolean AUTO_UPDATE_CHECK_DEFAULT = true;
 
   /**
    * Changelog URL.

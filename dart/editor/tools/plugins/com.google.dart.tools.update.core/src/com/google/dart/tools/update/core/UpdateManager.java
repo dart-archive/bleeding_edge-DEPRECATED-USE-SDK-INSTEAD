@@ -16,6 +16,7 @@ package com.google.dart.tools.update.core;
 import com.google.dart.tools.update.core.internal.DownloadManager;
 import com.google.dart.tools.update.core.internal.UpdateModel;
 import com.google.dart.tools.update.core.internal.UpdateScheduler;
+import com.google.dart.tools.update.core.internal.jobs.InstallUpdateAction;
 
 import java.io.IOException;
 
@@ -129,7 +130,7 @@ public class UpdateManager {
    * @return <code>true</code> if an update is ready to be applied, <code>false</code> otherwise
    */
   public boolean isUpdateReadyToBeApplied() {
-    return model.isUpdateReadyToBeApplied();
+    return model.isUpdateReadyToBeApplied() || downloadManager.isUpdateStaged();
   }
 
   /**
@@ -144,8 +145,15 @@ public class UpdateManager {
   /**
    * Schedule an update download.
    */
-  public void scheduleDownload() {
-    updateScheduler.scheduleDownload();
+  public void scheduleDownload(Revision revision) {
+    updateScheduler.scheduleDownload(revision);
+  }
+
+  /**
+   * Schedule installation of a staged update.
+   */
+  public void scheduleInstall() {
+    new InstallUpdateAction().run();
   }
 
   /**

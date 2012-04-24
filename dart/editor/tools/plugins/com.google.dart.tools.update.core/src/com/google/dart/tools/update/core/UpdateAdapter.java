@@ -44,7 +44,7 @@ public class UpdateAdapter implements UpdateListener {
   }
 
   @Override
-  public void updateAvailable() {
+  public void updateAvailable(Revision revision) {
   }
 
   @Override

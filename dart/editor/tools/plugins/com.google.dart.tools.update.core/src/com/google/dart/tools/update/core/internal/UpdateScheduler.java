@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.update.core.internal;
 
+import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -87,8 +88,8 @@ public class UpdateScheduler {
   /**
    * Schedule an update download.
    */
-  public void scheduleDownload() {
-    downloadManager.scheduleDownload();
+  public void scheduleDownload(Revision revision) {
+    downloadManager.scheduleDownload(revision);
   }
 
   /**

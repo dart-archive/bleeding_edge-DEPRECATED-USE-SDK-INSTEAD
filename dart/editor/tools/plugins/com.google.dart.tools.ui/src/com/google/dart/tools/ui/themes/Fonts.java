@@ -28,6 +28,7 @@ import java.util.Map;
 public class Fonts {
 
   private static Map<Font, Font> boldMap = new HashMap<Font, Font>();
+  private static Map<Font, Font> italicMap = new HashMap<Font, Font>();
 
   /**
    * Get (or create) a bold version of the given font.
@@ -45,4 +46,22 @@ public class Fonts {
     }
     return boldFont;
   }
+
+  /**
+   * Get (or create) an italic version of the given font.
+   * 
+   * @param templateFont the font to italicize
+   * @return an italicized version of the given font
+   */
+  public static Font getItalicFont(Font templateFont) {
+    Font italicFont = italicMap.get(templateFont);
+    if (italicFont == null) {
+      FontData fontData = templateFont.getFontData()[0];
+      FontData data = new FontData(fontData.getName(), fontData.getHeight(), SWT.ITALIC);
+      italicFont = SWTUtil.getFont(templateFont.getDevice(), new FontData[] {data});
+      italicMap.put(templateFont, italicFont);
+    }
+    return italicFont;
+  }
+
 }
