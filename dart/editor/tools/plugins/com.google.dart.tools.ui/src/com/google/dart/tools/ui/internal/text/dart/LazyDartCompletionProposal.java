@@ -1,21 +1,18 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -28,6 +25,8 @@ import com.google.dart.tools.ui.text.editor.tmp.Signature;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.IContextInformation;
+import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.graphics.Image;
 
 public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
@@ -98,7 +97,7 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
 
     protected final String getCoreOption(DartProject project, String key) {
       if (project == null) {
-        return DartCore.getOption(key);
+        return JavaScriptCore.getOption(key);
       }
       return project.getOption(key, true);
     }
@@ -149,17 +148,11 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
     fProposal = proposal;
   }
 
-  /*
-   * @see ICompletionProposal#getAdditionalProposalInfo()
-   */
   @Override
   public final String getAdditionalProposalInfo() {
     return super.getAdditionalProposalInfo();
   }
 
-  /*
-   * @see ICompletionProposal#getContextInformation()
-   */
   @Override
   public final IContextInformation getContextInformation() {
     if (!fContextInformationComputed) {
@@ -168,31 +161,14 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
     return super.getContextInformation();
   }
 
-  /*
-   * @see ICompletionProposalExtension#getContextInformationPosition()
-   */
   @Override
-  public final int getContextInformationPosition() {
-    if (getContextInformation() == null) {
-      return getReplacementOffset() - 1;
-    }
-    return getReplacementOffset() + getCursorPosition();
-  }
-
-  /*
-   * @see ICompletionProposal#getDisplayString()
-   */
-  @Override
-  public final String getDisplayString() {
+  public String getDisplayString() {
     if (!fDisplayStringComputed) {
-      setDisplayString(computeDisplayString());
+      setStyledDisplayString(computeDisplayString());
     }
     return super.getDisplayString();
   }
 
-  /*
-   * @see ICompletionProposal#getImage()
-   */
   @Override
   public final Image getImage() {
     if (!fImageComputed) {
@@ -201,11 +177,8 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
     return super.getImage();
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension3# getCompletionOffset()
-   */
   @Override
-  public final int getPrefixCompletionStart(IDocument document, int completionOffset) {
+  public int getPrefixCompletionStart(IDocument document, int completionOffset) {
     return getReplacementOffset();
   }
 
@@ -269,9 +242,14 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
     return super.getSortString();
   }
 
-  /*
-   * @see ICompletionProposalExtension#getTriggerCharacters()
-   */
+  @Override
+  public StyledString getStyledDisplayString() {
+    if (!fDisplayStringComputed) {
+      setStyledDisplayString(computeDisplayString());
+    }
+    return super.getStyledDisplayString();
+  }
+
   @Override
   public final char[] getTriggerCharacters() {
     if (!fTriggerCharactersComputed) {
@@ -379,6 +357,12 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
     super.setReplacementString(replacementString);
   }
 
+  @Override
+  public void setStyledDisplayString(StyledString text) {
+    fDisplayStringComputed = true;
+    super.setStyledDisplayString(text);
+  }
+
   /**
    * Sets the trigger characters.
    * 
@@ -399,8 +383,8 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
     return getReplacementString().length();
   }
 
-  protected String computeDisplayString() {
-    return fInvocationContext.getLabelProvider().createLabel(fProposal);
+  protected StyledString computeDisplayString() {
+    return fInvocationContext.getLabelProvider().createStyledLabel(fProposal);
   }
 
   protected Image computeImage() {
@@ -415,18 +399,21 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
   protected int computeRelevance() {
     final int baseRelevance = fProposal.getRelevance() * 16;
     switch (fProposal.getKind()) {
-      case CompletionProposal.PACKAGE_REF:
-        return baseRelevance + 0;
+//      case CompletionProposal.PACKAGE_REF:
+//        return baseRelevance + 0;
       case CompletionProposal.LABEL_REF:
         return baseRelevance + 1;
       case CompletionProposal.KEYWORD:
         return baseRelevance + 2;
       case CompletionProposal.TYPE_REF:
-      case CompletionProposal.ANONYMOUS_CLASS_DECLARATION:
+//      case CompletionProposal.ANONYMOUS_CLASS_DECLARATION:
+//      case CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION:
         return baseRelevance + 3;
       case CompletionProposal.METHOD_REF:
+      case CompletionProposal.CONSTRUCTOR_INVOCATION:
       case CompletionProposal.METHOD_NAME_REFERENCE:
       case CompletionProposal.METHOD_DECLARATION:
+//      case CompletionProposal.ANNOTATION_ATTRIBUTE_REF:
         return baseRelevance + 4;
       case CompletionProposal.POTENTIAL_METHOD_DECLARATION:
         return baseRelevance + 4 /* + 99 */;
@@ -468,6 +455,10 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
     return fFormatterPrefs;
   }
 
+  protected CompletionProposal getProposal() {
+    return fProposal;
+  }
+
   /**
    * Returns the additional proposal info, or <code>null</code> if none exists.
    * 
@@ -481,18 +472,12 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
     return super.getProposalInfo();
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.AbstractDartCompletionProposal #isInJavadoc ()
-   */
+  @SuppressWarnings("deprecation")
   @Override
-  protected final boolean isInJavadoc() {
+  protected final boolean isInDartDoc() {
     return fInvocationContext.getCoreContext().isInJavadoc();
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.AbstractDartCompletionProposal #isValidPrefix
-   * (java.lang.String)
-   */
   @Override
   protected boolean isValidPrefix(String prefix) {
     if (super.isValidPrefix(prefix)) {
@@ -504,7 +489,7 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
       StringBuffer buf = new StringBuffer();
       buf.append(Signature.toCharArray(fProposal.getDeclarationSignature()));
       buf.append('.');
-      buf.append(getDisplayString());
+      buf.append(TextProcessor.deprocess(getDisplayString()));
       return isPrefix(prefix, buf.toString());
     }
 

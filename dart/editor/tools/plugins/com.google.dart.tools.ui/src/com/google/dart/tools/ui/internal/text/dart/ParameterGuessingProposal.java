@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,13 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
-import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorHighlightingSynchronizer;
-import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
@@ -46,13 +46,31 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 
 /**
- * This is a {@link com.google.dart.tools.ui.internal.text.dart.DartCompletionProposal} which
- * includes templates that represent the best guess completion for each parameter of a method.
+ * This is a {@link DartCompletionProposal} which includes templates that represent the best guess
+ * completion for each parameter of a method.
  */
 public final class ParameterGuessingProposal extends DartMethodCompletionProposal {
 
   /** Tells whether this class is in debug mode. */
-  private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/ResultCollector")); //$NON-NLS-1$//$NON-NLS-2$
+  private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.core/debug/ResultCollector")); //$NON-NLS-1$//$NON-NLS-2$
+
+  /**
+   * Creates a {@link ParameterGuessingProposal} or <code>null</code> if the core context isn't
+   * available or extended.
+   * 
+   * @param proposal the original completion proposal
+   * @param context the current context
+   * @param fillBestGuess if set, the best guess will be filled in
+   * @return a proposal or <code>null</code>
+   */
+  public static ParameterGuessingProposal createProposal(CompletionProposal proposal,
+      DartContentAssistInvocationContext context, boolean fillBestGuess) {
+    CompletionContext coreContext = context.getCoreContext();
+    if (coreContext != null && coreContext.isExtended()) {
+      return new ParameterGuessingProposal(proposal, context, coreContext, fillBestGuess);
+    }
+    return null;
+  }
 
   private ICompletionProposal[][] fChoices; // initialized by guessParameters()
   private Position[] fPositions; // initialized by guessParameters()
@@ -60,14 +78,18 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
   private IRegion fSelectedRegion; // initialized by apply()
   private IPositionUpdater fUpdater;
 
-  public ParameterGuessingProposal(CompletionProposal proposal,
-      DartContentAssistInvocationContext context) {
+  private final boolean fFillBestGuess;
+
+  private final CompletionContext fCoreContext;
+
+  private ParameterGuessingProposal(CompletionProposal proposal,
+      DartContentAssistInvocationContext context, CompletionContext coreContext,
+      boolean fillBestGuess) {
     super(proposal, context);
+    fCoreContext = coreContext;
+    fFillBestGuess = fillBestGuess;
   }
 
-  /*
-   * @see ICompletionProposalExtension#apply(IDocument, char)
-   */
   @Override
   public void apply(IDocument document, char trigger, int offset) {
     try {
@@ -126,9 +148,6 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
     }
   }
 
-  /*
-   * @see ICompletionProposal#getSelection(IDocument)
-   */
   @Override
   public Point getSelection(IDocument document) {
     if (fSelectedRegion == null) {
@@ -138,10 +157,6 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
     return new Point(fSelectedRegion.getOffset(), fSelectedRegion.getLength());
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.DartMethodCompletionProposal#
-   * computeReplacementString()
-   */
   @Override
   protected String computeReplacementString() {
 
@@ -161,16 +176,12 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
       return super.computeReplacementString();
     }
     if (DEBUG) {
-      System.err.println("Parameter Guessing: " + (System.currentTimeMillis() - millis)); //$NON-NLS-1$ 
+      System.err.println("Parameter Guessing: " + (System.currentTimeMillis() - millis)); //$NON-NLS-1$
     }
 
     return replacement;
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.DartMethodCompletionProposal #needsLinkedMode
-   * ()
-   */
   @Override
   protected boolean needsLinkedMode() {
     return false; // we handle it ourselves
@@ -179,16 +190,16 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
   /**
    * Creates the completion string. Offsets and Lengths are set to the offsets and lengths of the
    * parameters.
+   * 
+   * @return the completion string
+   * @throws DartModelException if parameter guessing failed
    */
   private String computeGuessingCompletion() throws DartModelException {
 
-    StringBuffer buffer = new StringBuffer(String.valueOf(fProposal.getName()));
+    StringBuffer buffer = new StringBuffer();
+    appendMethodNameReplacement(buffer);
 
     FormatterPrefs prefs = getFormatterPrefs();
-    if (prefs.beforeOpeningParen) {
-      buffer.append(SPACE);
-    }
-    buffer.append(LPAREN);
 
     setCursorPosition(buffer.length());
 
@@ -196,7 +207,9 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
       buffer.append(SPACE);
     }
 
-    fChoices = guessParameters();
+    char[][] parameterNames = fProposal.findParameterNames(null);
+
+    fChoices = guessParameters(parameterNames);
     int count = fChoices.length;
     int replacementOffset = getReplacementOffset();
 
@@ -213,11 +226,12 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
 
       ICompletionProposal proposal = fChoices[i][0];
       String argument = proposal.getDisplayString();
+
       Position position = fPositions[i];
       position.setOffset(replacementOffset + buffer.length());
       position.setLength(argument.length());
+
       if (proposal instanceof DartCompletionProposal) {
-        // case where we only insert a proposal.
         ((DartCompletionProposal) proposal).setReplacementOffset(replacementOffset
             + buffer.length());
       }
@@ -241,10 +255,6 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
 
       model.addLinkingListener(new ILinkedModeListener() {
 
-        /*
-         * @see org.eclipse.jface.text.link.ILinkedModeListener#left(org.eclipse.
-         * jface.text.link.LinkedModeModel, int)
-         */
         @Override
         public void left(LinkedModeModel environment, int flags) {
           ensurePositionCategoryRemoved(document);
@@ -272,14 +282,25 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
     }
   }
 
+  private DartElement[][] getAssignableElements() {
+    char[] signature = getProposal().getSignature();
+    char[][] types = Signature.getParameterTypes(signature);
+
+    DartElement[][] assignableElements = new DartElement[types.length][];
+    for (int i = 0; i < types.length; i++) {
+      assignableElements[i] = fCoreContext.getVisibleElements(new String(types[i]));
+    }
+    return assignableElements;
+  }
+
   private String getCategory() {
     return "ParameterGuessingProposal_" + toString(); //$NON-NLS-1$
   }
 
   /**
-   * Returns the currently active Dart editor, or <code>null</code> if it cannot be determined.
+   * Returns the currently active java editor, or <code>null</code> if it cannot be determined.
    * 
-   * @return the currently active Dart editor, or <code>null</code>
+   * @return the currently active java editor, or <code>null</code>
    */
   private DartEditor getDartEditor() {
     IEditorPart part = DartToolsPlugin.getActivePage().getActiveEditor();
@@ -290,52 +311,48 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
     }
   }
 
-  private String[][] getParameterSignatures() {
-    char[][] types = fProposal.getParameterTypeNames();
-    String[][] ret = new String[types.length][2];
+  private DartElement getEnclosingElement() {
+    return fCoreContext.getEnclosingElement();
+  }
 
+  private String[] getParameterTypes() {
+    char[] signature = fProposal.getSignature();
+    char[][] types = Signature.getParameterTypes(signature);
+
+    String[] ret = new String[types.length];
     for (int i = 0; i < types.length; i++) {
-      char[] type = types[i];
-      ret[i][0] = String.valueOf(Signature.getSignatureQualifier(type));
-      ret[i][1] = String.valueOf(Signature.getSignatureSimpleName(type));
+      ret[i] = new String(Signature.toCharArray(types[i]));
     }
     return ret;
   }
 
-  private ICompletionProposal[][] guessParameters() throws DartModelException {
-    // find matches in reverse order. Do this because people tend to declare the
-// variable meant for the last
-    // parameter last. That is, local variables for the last parameter in the
-// method completion are more
-    // likely to be closer to the point of code completion. As an example
-// consider a "delegation" completion:
+  private ICompletionProposal[][] guessParameters(char[][] parameterNames)
+      throws DartModelException {
+    // find matches in reverse order.  Do this because people tend to declare the variable meant for the last
+    // parameter last.  That is, local variables for the last parameter in the method completion are more
+    // likely to be closer to the point of code completion. As an example consider a "delegation" completion:
     //
-    // public void myMethod(int param1, int param2, int param3) {
-    // someOtherObject.yourMethod(param1, param2, param3);
-    // }
+    //    public void myMethod(int param1, int param2, int param3) {
+    //      someOtherObject.yourMethod(param1, param2, param3);
+    //    }
     //
-    // The other consideration is giving preference to variables that have not
-// previously been used in this
-    // code completion (which avoids
-// "someOtherObject.yourMethod(param1, param1, param1)";
+    // The other consideration is giving preference to variables that have not previously been used in this
+    // code completion (which avoids "someOtherObject.yourMethod(param1, param1, param1)";
 
-    char[][] parameterNames = fProposal.findParameterNames(null);
     int count = parameterNames.length;
     fPositions = new Position[count];
     fChoices = new ICompletionProposal[count][];
 
-    IDocument document = fInvocationContext.getDocument();
-    CompilationUnit cu = fInvocationContext.getCompilationUnit();
-    DartModelUtil.reconcile(cu);
-    String[][] parameterTypes = getParameterSignatures();
-    ParameterGuesser guesser = new ParameterGuesser(fProposal.getCompletionLocation() + 1, cu);
+    String[] parameterTypes = getParameterTypes();
+    ParameterGuesser guesser = new ParameterGuesser(getEnclosingElement());
+    DartElement[][] assignableElements = getAssignableElements();
 
     for (int i = count - 1; i >= 0; i--) {
       String paramName = new String(parameterNames[i]);
       Position position = new Position(0, 0);
 
-      ICompletionProposal[] argumentProposals = guesser.parameterProposals(parameterTypes[i][0],
-          parameterTypes[i][1], paramName, position, document);
+      ICompletionProposal[] argumentProposals = guesser.parameterProposals(parameterTypes[i],
+          paramName, position, assignableElements[i], fFillBestGuess);
       if (argumentProposals.length == 0) {
         argumentProposals = new ICompletionProposal[] {new DartCompletionProposal(paramName, 0,
             paramName.length(), null, paramName, 0)};
@@ -353,5 +370,4 @@ public final class ParameterGuessingProposal extends DartMethodCompletionProposa
     MessageDialog.openError(shell, DartTextMessages.ParameterGuessingProposal_error_msg,
         e.getMessage());
   }
-
 }

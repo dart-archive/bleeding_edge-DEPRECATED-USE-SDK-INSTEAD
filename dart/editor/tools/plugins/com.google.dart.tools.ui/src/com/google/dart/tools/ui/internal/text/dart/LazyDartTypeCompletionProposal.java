@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,18 +14,17 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.internal.corext.util.QualifiedTypeNameHistory;
 import com.google.dart.tools.ui.ContextSensitiveImportRewriteContext;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
-import com.google.dart.tools.ui.QualifiedTypeNameHistory;
 import com.google.dart.tools.ui.StubUtility;
-import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
@@ -34,7 +33,10 @@ import com.google.dart.tools.ui.text.editor.tmp.Signature;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.contentassist.IContextInformation;
+import org.eclipse.text.edits.TextEdit;
 
 /**
  * If passed compilation unit is not null, the replacement string will be seen as a qualified type
@@ -42,8 +44,8 @@ import org.eclipse.jface.text.IDocument;
  */
 public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
   /** Triggers for types. Do not modify. */
-  protected static final char[] TYPE_TRIGGERS = new char[] {'\t', '[', '(', ' '};
-  /** Triggers for types in dart doc. Do not modify. */
+  protected static final char[] TYPE_TRIGGERS = new char[] {'.', '\t', '[', '(', ' '};
+  /** Triggers for types Dart doc. Do not modify. */
   protected static final char[] JDOC_TYPE_TRIGGERS = new char[] {'#', '}', ' ', '.'};
 
   /** The compilation unit, or <code>null</code> if none is available. */
@@ -61,10 +63,6 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
     fQualifiedName = null;
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal# apply(org
-   * .eclipse.jface.text.IDocument, char, int)
-   */
   @Override
   public void apply(IDocument document, char trigger, int offset) {
     try {
@@ -78,14 +76,12 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
 
       super.apply(document, trigger, offset);
 
-      //TODO (pquitslund): implement import rewriting
-//      if (fImportRewrite != null && fImportRewrite.hasRecordedChanges()) {
-//        int oldLen = document.getLength();
-//        fImportRewrite.rewriteImports(new NullProgressMonitor()).apply(
-//            document, TextEdit.UPDATE_REGIONS);
-//        setReplacementOffset(getReplacementOffset() + document.getLength()
-//            - oldLen);
-//      }
+      if (fImportRewrite != null && fImportRewrite.hasRecordedChanges()) {
+        int oldLen = document.getLength();
+        fImportRewrite.rewriteImports(new NullProgressMonitor()).apply(document,
+            TextEdit.UPDATE_REGIONS);
+        setReplacementOffset(getReplacementOffset() + document.getLength() - oldLen);
+      }
 
       if (insertClosingParenthesis) {
         setUpLinkedMode(document, ')');
@@ -94,15 +90,11 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
       rememberSelection();
     } catch (CoreException e) {
       DartToolsPlugin.log(e);
+    } catch (BadLocationException e) {
+      DartToolsPlugin.log(e);
     }
-//    catch (BadLocationException e) {
-//      DartToolsPlugin.log(e);
-//    }
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.DartCompletionProposal# getCompletionText ()
-   */
   @Override
   public CharSequence getPrefixCompletionText(IDocument document, int completionOffset) {
     String prefix = getPrefix(document, completionOffset);
@@ -129,10 +121,6 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
     return fQualifiedName;
   }
 
-  public boolean isValidTypePrefix(String prefix) {
-    return isValidPrefix(prefix);
-  }
-
   /**
    * Returns <code>true</code> if imports may be added. The return value depends on the context and
    * preferences only and does not take into account the contents of the compilation unit or the
@@ -140,9 +128,9 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
    * are added for the proposal. For example:
    * <ul>
    * <li>when completing within the import section</li>
-   * <li>when completing informal dart doc references (e.g. within <code>&lt;code&gt;</code> tags)</li>
+   * <li>when completing informal Dart doc references (e.g. within <code>&lt;code&gt;</code> tags)</li>
    * <li>when completing a type that conflicts with an existing import</li>
-   * <li>when completing an implicitly imported type (same package, <code>java.lang</code> types)</li>
+   * <li>when completing an implicitly imported type (same library)</li>
    * </ul>
    * <p>
    * The decision whether a qualified type or the simple type name should be inserted must take into
@@ -154,17 +142,18 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
    * 
    * @return <code>true</code> if imports may be added, <code>false</code> if not
    */
+  @SuppressWarnings("deprecation")
   protected boolean allowAddingImports() {
-    if (isInJavadoc()) {
+    if (isInDartDoc()) {
       // TODO fix
-//			if (!fContext.isInJavadocFormalReference())
-//				return false;
+//      if (!fContext.isInJavadocFormalReference())
+//        return false;
       if (fProposal.getKind() == CompletionProposal.TYPE_REF
           && fInvocationContext.getCoreContext().isInJavadocText()) {
         return false;
       }
 
-      if (!isJavadocProcessingEnabled()) {
+      if (!isDartdocProcessingEnabled()) {
         return false;
       }
     }
@@ -173,10 +162,21 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
     return preferenceStore.getBoolean(PreferenceConstants.CODEASSIST_ADDIMPORT);
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal#
-   * computeProposalInfo()
-   */
+  @Override
+  protected IContextInformation computeContextInformation() {
+    char[][] typeParameters = fProposal.getParameterNames();
+    if (typeParameters == null || typeParameters.length == 0) {
+      return super.computeContextInformation();
+    }
+
+    ProposalContextInformation contextInformation = new ProposalContextInformation(fProposal);
+    if (fContextInformationPosition != 0 && fProposal.getCompletion().length == 0) {
+      contextInformation.setContextInformationPosition(fContextInformationPosition);
+    }
+    return contextInformation;
+
+  }
+
   @Override
   protected ProposalInfo computeProposalInfo() {
     if (fCompilationUnit != null) {
@@ -188,24 +188,21 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
     return super.computeProposalInfo();
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal# computeRelevance
-   * ()
-   */
   @Override
   protected int computeRelevance() {
     /*
      * There are two histories: the RHS history remembers types used for the current expected type
-     * (left hand side), while the type history remembers recently used types in general). The
-     * presence of an RHS ranking is a much more precise sign for relevance as it proves the subtype
-     * relationship between the proposed type and the expected type. The "recently used" factor (of
-     * either the RHS or general history) is less important, it should not override other relevance
-     * factors such as if the type is already imported etc.
+     * (left hand side), while the type history remembers recently used types in general).
+     * 
+     * The presence of an RHS ranking is a much more precise sign for relevance as it proves the
+     * subtype relationship between the proposed type and the expected type.
+     * 
+     * The "recently used" factor (of either the RHS or general history) is less important, it
+     * should not override other relevance factors such as if the type is already imported etc.
      */
     float rhsHistoryRank = fInvocationContext.getHistoryRelevance(getQualifiedTypeName());
-    // TODO Implement history
-    float typeHistoryRank = 0;//QualifiedTypeNameHistory.getDefault().getNormalizedPosition(
-//        getQualifiedTypeName());
+    float typeHistoryRank = QualifiedTypeNameHistory.getDefault().getNormalizedPosition(
+        getQualifiedTypeName());
 
     int recencyBoost = Math.round((rhsHistoryRank + typeHistoryRank) * 5);
     int rhsBoost = rhsHistoryRank > 0.0f ? 50 : 0;
@@ -214,29 +211,29 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
     return baseRelevance + rhsBoost + recencyBoost;
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal#
-   * computeReplacementString()
-   */
+  @SuppressWarnings("deprecation")
   @Override
   protected String computeReplacementString() {
     String replacement = super.computeReplacementString();
 
-//		/* No import rewriting ever from within the import section. */
-//		if (isImportCompletion())
-//	        return replacement;
+    /* No import rewriting ever from within the import section. */
+    if (isImportCompletion()) {
+      return replacement;
+    }
 
-    /* Always use the simple name for non-formal javadoc references to types. */
+    /* Always use the simple name for non-formal Dart doc references to types. */
     // TODO fix
     if (fProposal.getKind() == CompletionProposal.TYPE_REF
         && fInvocationContext.getCoreContext().isInJavadocText()) {
       return getSimpleTypeName();
     }
 
-    String qualifiedTypeName = replacement;
-// 		if (qualifiedTypeName.indexOf('.') == -1)
-// 			// default package - no imports needed 
-// 			return qualifiedTypeName;
+    String qualifiedTypeName = getQualifiedTypeName();
+
+    if (qualifiedTypeName.indexOf('.') == -1) {
+      // default package - no imports needed
+      return qualifiedTypeName;
+    }
 
     /*
      * If the user types in the qualification, don't force import rewriting on him - insert the
@@ -246,8 +243,7 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
     if (document != null) {
       String prefix = getPrefix(document, getReplacementOffset() + getReplacementLength());
       int dotIndex = prefix.lastIndexOf('.');
-      // match up to the last dot in order to make higher level matching still
-// work (camel case...)
+      // match up to the last dot in order to make higher level matching still work (camel case...)
       if (dotIndex != -1
           && qualifiedTypeName.toLowerCase().startsWith(
               prefix.substring(0, dotIndex + 1).toLowerCase())) {
@@ -260,29 +256,21 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
      * - use the replacement directly.
      */
     if (replacement.indexOf('.') == -1) {
-      if (isInJavadoc()) {
-        return getSimpleTypeName(); // don't use the braces added for javadoc
+      if (isInDartDoc()) {
+        return getSimpleTypeName(); // don't use the braces added for Dart doc link proposals
       }
-// link proposals
       return replacement;
     }
 
     /* Add imports if the preference is on. */
-    fImportRewrite = createImportRewrite();
+    if (fImportRewrite == null) {
+      fImportRewrite = createImportRewrite();
+    }
+    if (fImportRewrite != null) {
+      return fImportRewrite.addImport(qualifiedTypeName, fImportContext);
+    }
 
-//		if (fImportRewrite != null) {
-//			String packageName=null;
-//			try {
-//				DartElement javaElement = this.getProposalInfo().getJavaElement();
-//				 packageName=DartModelUtil.getFilePackage(javaElement);
-//			} catch (DartModelException e) {
-//				DartToolsPlugin.log(e);
-//			}
-//			return fImportRewrite.addImport(qualifiedTypeName,packageName, fImportContext);
-//		}
-
-    // fall back for the case we don't have an import rewrite (see
-// allowAddingImports)
+    // fall back for the case we don't have an import rewrite (see allowAddingImports)
 
     /* No imports for implicit imports. */
     if (fCompilationUnit != null
@@ -295,23 +283,15 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
     return qualifiedTypeName;
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal# computeSortString
-   * ()
-   */
   @Override
   protected String computeSortString() {
     // try fast sort string to avoid display string creation
-    return getQualifiedTypeName();
+    return getSimpleTypeName() + Character.MIN_VALUE + getQualifiedTypeName();
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal#
-   * computeTriggerCharacters()
-   */
   @Override
   protected char[] computeTriggerCharacters() {
-    return isInJavadoc() ? JDOC_TYPE_TRIGGERS : TYPE_TRIGGERS;
+    return isInDartDoc() ? JDOC_TYPE_TRIGGERS : TYPE_TRIGGERS;
   }
 
   protected final String getSimpleTypeName() {
@@ -335,10 +315,6 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
     return last == ';' || last == '.';
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal# isValidPrefix
-   * (java.lang.String)
-   */
   @Override
   protected boolean isValidPrefix(String prefix) {
     return isPrefix(prefix, getSimpleTypeName()) || isPrefix(prefix, getQualifiedTypeName());
@@ -351,7 +327,7 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
    */
   protected final void rememberSelection() throws DartModelException {
     Type lhs = fInvocationContext.getExpectedType();
-    Type rhs = (Type) getJavaElement();
+    Type rhs = (Type) getDartElement();
     if (lhs != null && rhs != null) {
       DartToolsPlugin.getDefault().getContentAssistHistory().remember(lhs, rhs);
     }
@@ -380,6 +356,10 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
     replacement.append(RPAREN);
   }
 
+  void setImportRewrite(ImportRewrite importRewrite) {
+    fImportRewrite = importRewrite;
+  }
+
   private ImportRewrite createImportRewrite() {
     if (fCompilationUnit != null && allowAddingImports()) {
       try {
@@ -402,19 +382,23 @@ public class LazyDartTypeCompletionProposal extends LazyDartCompletionProposal {
   }
 
   private DartUnit getASTRoot(CompilationUnit compilationUnit) {
-    return DartToolsPlugin.getDefault().getASTProvider().getAST(compilationUnit,
-        ASTProvider.WAIT_NO, new NullProgressMonitor());
+    try {
+      return DartCompilerUtilities.parseUnit(compilationUnit);
+    } catch (DartModelException ex) {
+      DartToolsPlugin.log(ex);
+      return null;
+    }
   }
 
-  private boolean isJavadocProcessingEnabled() {
+  private boolean isDartdocProcessingEnabled() {
     DartProject project = fCompilationUnit.getDartProject();
-    boolean processJavadoc;
+    boolean processDartdoc;
     if (project == null) {
-      processJavadoc = JavaScriptCore.ENABLED.equals(DartCore.getOption(JavaScriptCore.COMPILER_DOC_COMMENT_SUPPORT));
+      processDartdoc = JavaScriptCore.ENABLED.equals(JavaScriptCore.getOption(JavaScriptCore.COMPILER_DOC_COMMENT_SUPPORT));
     } else {
-      processJavadoc = JavaScriptCore.ENABLED.equals(project.getOption(
+      processDartdoc = JavaScriptCore.ENABLED.equals(project.getOption(
           JavaScriptCore.COMPILER_DOC_COMMENT_SUPPORT, true));
     }
-    return processJavadoc;
+    return processDartdoc;
   }
 }

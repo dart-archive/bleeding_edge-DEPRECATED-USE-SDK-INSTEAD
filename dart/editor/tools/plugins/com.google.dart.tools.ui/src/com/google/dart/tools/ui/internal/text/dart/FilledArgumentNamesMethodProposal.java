@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -49,9 +47,6 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
     super(proposal, context);
   }
 
-  /*
-   * @see ICompletionProposalExtension#apply(IDocument, char)
-   */
   @Override
   public void apply(IDocument document, char trigger, int offset) {
     super.apply(document, trigger, offset);
@@ -69,7 +64,7 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
         }
 
         model.forceInstall();
-        DartEditor editor = getJavaEditor();
+        DartEditor editor = getDartEditor();
         if (editor != null) {
           model.addLinkingListener(new EditorHighlightingSynchronizer(editor));
         }
@@ -92,9 +87,6 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
     }
   }
 
-  /*
-   * @see ICompletionProposal#getSelection(IDocument)
-   */
   @Override
   public Point getSelection(IDocument document) {
     if (fSelectedRegion == null) {
@@ -104,10 +96,6 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
     return new Point(fSelectedRegion.getOffset(), fSelectedRegion.getLength());
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal#
-   * computeReplacementString()
-   */
   @Override
   protected String computeReplacementString() {
 
@@ -115,17 +103,15 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
       return super.computeReplacementString();
     }
 
+    StringBuffer buffer = new StringBuffer();
+    appendMethodNameReplacement(buffer);
+
     char[][] parameterNames = fProposal.findParameterNames(null);
     int count = parameterNames.length;
     fArgumentOffsets = new int[count];
     fArgumentLengths = new int[count];
-    StringBuffer buffer = new StringBuffer(String.valueOf(fProposal.getName()));
 
     FormatterPrefs prefs = getFormatterPrefs();
-    if (prefs.beforeOpeningParen) {
-      buffer.append(SPACE);
-    }
-    buffer.append(LPAREN);
 
     setCursorPosition(buffer.length());
 
@@ -158,21 +144,17 @@ public final class FilledArgumentNamesMethodProposal extends DartMethodCompletio
     return buffer.toString();
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.DartMethodCompletionProposal #needsLinkedMode
-   * ()
-   */
   @Override
   protected boolean needsLinkedMode() {
     return false; // we handle it ourselves
   }
 
   /**
-   * Returns the currently active java editor, or <code>null</code> if it cannot be determined.
+   * Returns the currently active editor, or <code>null</code> if it cannot be determined.
    * 
-   * @return the currently active java editor, or <code>null</code>
+   * @return the currently active editor, or <code>null</code>
    */
-  private DartEditor getJavaEditor() {
+  private DartEditor getDartEditor() {
     IEditorPart part = DartToolsPlugin.getActivePage().getActiveEditor();
     if (part instanceof DartEditor) {
       return (DartEditor) part;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,29 +13,24 @@
  */
 package com.google.dart.tools.ui.text.dart;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
-import com.google.dart.tools.core.internal.completion.InternalCompletionProposal;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.problem.Problem;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.dart.DartCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.DartMethodCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.FieldProposalInfo;
-import com.google.dart.tools.ui.internal.text.dart.FilledArgumentNamesMethodProposal;
 import com.google.dart.tools.ui.internal.text.dart.GetterSetterCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.LazyDartTypeCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.MethodDeclarationCompletionProposal;
 import com.google.dart.tools.ui.internal.text.dart.MethodProposalInfo;
 import com.google.dart.tools.ui.internal.text.dart.OverrideCompletionProposal;
-import com.google.dart.tools.ui.internal.text.dart.ParameterGuessingProposal;
 import com.google.dart.tools.ui.internal.text.dart.ProposalContextInformation;
 import com.google.dart.tools.ui.internal.util.TypeFilter;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
@@ -46,18 +41,20 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
- * JavaScript UI implementation of <code>CompletionRequestor</code>. Produces
+ * Dart UI implementation of <code>CompletionRequestor</code>. Produces
  * {@link IDartCompletionProposal}s from the proposal descriptors received via the
  * <code>CompletionRequestor</code> interface.
  * <p>
@@ -66,12 +63,12 @@ import java.util.Set;
  * <pre>
  * CompilationUnit unit= ...
  * int offset= ...
- * 
+ *
  * CompletionProposalCollector collector= new CompletionProposalCollector(unit);
  * unit.codeComplete(offset, collector);
- * IDartCompletionProposal[] proposals= collector.getJavaCompletionProposals();
+ * IDartCompletionProposal[] proposals= collector.getDartCompletionProposals();
  * String errorMessage= collector.getErrorMessage();
- * 
+ *
  * &#x2f;&#x2f; display &#x2f; process proposals
  * </pre>
  * Note that after a code completion operation, the collector will store any received proposals,
@@ -80,16 +77,11 @@ import java.util.Set;
  * </p>
  * <p>
  * Clients may instantiate or subclass.
- * </p>
- * Provisional API: This class/interface is part of an interim API that is still under development
- * and expected to change significantly before reaching stability. It is being made available at
- * this early stage to solicit feedback from pioneering adopters on the understanding that any code
- * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
 public class CompletionProposalCollector extends CompletionRequestor {
 
   /** Tells whether this class is in debug mode. */
-  private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/ResultCollector")); //$NON-NLS-1$//$NON-NLS-2$
+  private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.core/debug/ResultCollector")); //$NON-NLS-1$//$NON-NLS-2$
 
   /** Triggers for method proposals without parameters. Do not modify. */
   protected final static char[] METHOD_TRIGGERS = new char[] {';', ',', '.', '\t', '[', ' '};
@@ -100,15 +92,32 @@ public class CompletionProposalCollector extends CompletionRequestor {
   /** Triggers for variables. Do not modify. */
   protected final static char[] VAR_TRIGGER = new char[] {'\t', ' ', '=', ';', '.'};
 
+  /**
+   * Returns an array containing all of the elements in the given collection. This is a compile-time
+   * type-safe alternative to {@link Collection#toArray(Object[])}.
+   * 
+   * @param collection the source collection
+   * @param clazz the type of the array elements
+   * @param <A> the type of the array elements
+   * @return an array of type <code>A</code> containing all of the elements in the given collection
+   * @throws NullPointerException if the specified collection or class is null
+   */
+  public static <A> A[] toArray(Collection<? extends A> collection, Class<A> clazz) {
+    Object array = Array.newInstance(clazz, collection.size());
+    @SuppressWarnings("unchecked")
+    A[] typedArray = collection.toArray((A[]) array);
+    return typedArray;
+  }
+
   private final CompletionProposalLabelProvider fLabelProvider = new CompletionProposalLabelProvider();
   private final ImageDescriptorRegistry fRegistry = DartToolsPlugin.getImageDescriptorRegistry();
 
-  private final List fJavaProposals = new ArrayList();
-  private final List fKeywords = new ArrayList();
-  private final Set fSuggestedMethodNames = new HashSet();
+  private final List<IDartCompletionProposal> fDartProposals = new ArrayList<IDartCompletionProposal>();
+  private final List<IDartCompletionProposal> fKeywords = new ArrayList<IDartCompletionProposal>();
+  private final Set<String> fSuggestedMethodNames = new HashSet<String>();
 
   private final CompilationUnit fCompilationUnit;
-  private final DartProject fJavaProject;
+  private final DartProject fDartProject;
   private int fUserReplacementLength;
 
   private CompletionContext fContext;
@@ -125,14 +134,27 @@ public class CompletionProposalCollector extends CompletionRequestor {
 
   /**
    * Creates a new instance ready to collect proposals. If the passed <code>CompilationUnit</code>
-   * is not contained in an {@link DartProject}, no javadoc will be available as
+   * is not contained in an {@link DartProject}, no Dart doc will be available as
    * {@link org.eclipse.jface.text.contentassist.ICompletionProposal#getAdditionalProposalInfo()
    * additional info} on the created proposals.
    * 
    * @param cu the compilation unit that the result collector will operate on
    */
   public CompletionProposalCollector(CompilationUnit cu) {
-    this(cu == null ? null : cu.getDartProject(), cu);
+    this(cu.getDartProject(), cu, false);
+  }
+
+  /**
+   * Creates a new instance ready to collect proposals. If the passed <code>CompilationUnit</code>
+   * is not contained in an {@link DartProject}, no Dart doc will be available as
+   * {@link org.eclipse.jface.text.contentassist.ICompletionProposal#getAdditionalProposalInfo()
+   * additional info} on the created proposals.
+   * 
+   * @param cu the compilation unit that the result collector will operate on
+   * @param ignoreAll <code>true</code> to ignore all kinds of completion proposals
+   */
+  public CompletionProposalCollector(CompilationUnit cu, boolean ignoreAll) {
+    this(cu.getDartProject(), cu, ignoreAll);
   }
 
   /**
@@ -142,7 +164,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
    * {@link CompletionProposalCollector#CompletionProposalCollector(CompilationUnit)} instead to get
    * all proposals.
    * <p>
-   * If the passed JavaScript project is <code>null</code>, no javadoc will be available as
+   * If the passed Dart project is <code>null</code>, no Dart doc will be available as
    * {@link org.eclipse.jface.text.contentassist.ICompletionProposal#getAdditionalProposalInfo()
    * additional info} on the created (e.g. method and type) proposals.
    * </p>
@@ -150,21 +172,25 @@ public class CompletionProposalCollector extends CompletionRequestor {
    * @param project the project that the result collector will operate on, or <code>null</code>
    */
   public CompletionProposalCollector(DartProject project) {
-    this(project, null);
+    this(project, null, false);
   }
 
-  private CompletionProposalCollector(DartProject project, CompilationUnit cu) {
-    fJavaProject = project;
+  private CompletionProposalCollector(DartProject project, CompilationUnit cu, boolean ignoreAll) {
+    super(ignoreAll);
+    fDartProject = project;
     fCompilationUnit = cu;
 
     fUserReplacementLength = -1;
+    if (!ignoreAll) {
+      setRequireExtendedContext(true);
+    }
   }
 
   /**
    * {@inheritDoc}
    * <p>
    * Subclasses may replace, but usually should not need to. Consider replacing
-   * {@linkplain #createJavaCompletionProposal(CompletionProposal) createJavaCompletionProposal}
+   * {@linkplain #createDartCompletionProposal(CompletionProposal) createDartCompletionProposal}
    * instead.
    * </p>
    */
@@ -179,11 +205,11 @@ public class CompletionProposalCollector extends CompletionRequestor {
       if (proposal.getKind() == CompletionProposal.POTENTIAL_METHOD_DECLARATION) {
         acceptPotentialMethodDeclaration(proposal);
       } else {
-        IDartCompletionProposal javaProposal = createJavaCompletionProposal(proposal);
-        if (javaProposal != null) {
-          fJavaProposals.add(javaProposal);
+        IDartCompletionProposal dartProposal = createDartCompletionProposal(proposal);
+        if (dartProposal != null) {
+          fDartProposals.add(dartProposal);
           if (proposal.getKind() == CompletionProposal.KEYWORD) {
-            fKeywords.add(javaProposal);
+            fKeywords.add(dartProposal);
           }
         }
       }
@@ -204,9 +230,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
    * {@inheritDoc}
    * <p>
    * Subclasses may extend, but usually should not need to.
-   * </p>
-   * 
-   * @see #getContext()
    */
   @Override
   public void acceptContext(CompletionContext context) {
@@ -225,7 +248,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
     }
 
     fLastProblem = null;
-    fJavaProposals.clear();
+    fDartProposals.clear();
     fKeywords.clear();
     fSuggestedMethodNames.clear();
   }
@@ -251,6 +274,15 @@ public class CompletionProposalCollector extends CompletionRequestor {
   }
 
   /**
+   * Returns the unsorted list of received proposals.
+   * 
+   * @return the unsorted list of received proposals
+   */
+  public final IDartCompletionProposal[] getDartCompletionProposals() {
+    return toArray(fDartProposals, IDartCompletionProposal.class);
+  }
+
+  /**
    * Returns an error message about any error that may have occurred during code completion, or the
    * empty string if none.
    * <p>
@@ -267,21 +299,20 @@ public class CompletionProposalCollector extends CompletionRequestor {
   }
 
   /**
-   * Returns the unsorted list of received proposals.
-   * 
-   * @return the unsorted list of received proposals
-   */
-  public final IDartCompletionProposal[] getJavaCompletionProposals() {
-    return (IDartCompletionProposal[]) fJavaProposals.toArray(new IDartCompletionProposal[fJavaProposals.size()]);
-  }
-
-  /**
    * Returns the unsorted list of received keyword proposals.
    * 
    * @return the unsorted list of received keyword proposals
    */
-  public final DartCompletionProposal[] getKeywordCompletionProposals() {
-    return (DartCompletionProposal[]) fKeywords.toArray(new DartCompletionProposal[fKeywords.size()]);
+  public final IDartCompletionProposal[] getKeywordCompletionProposals() {
+    return toArray(fKeywords, IDartCompletionProposal.class);
+  }
+
+  @Override
+  public void setIgnored(int completionProposalKind, boolean ignore) {
+    super.setIgnored(completionProposalKind, ignore);
+    if (completionProposalKind == CompletionProposal.METHOD_DECLARATION && !ignore) {
+      setRequireExtendedContext(true);
+    }
   }
 
   /**
@@ -291,7 +322,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
    * </p>
    * 
    * @param context the invocation context
-   * @see #getInvocationContext()
    */
   public void setInvocationContext(DartContentAssistInvocationContext context) {
     Assert.isNotNull(context);
@@ -323,18 +353,21 @@ public class CompletionProposalCollector extends CompletionRequestor {
   protected int computeRelevance(CompletionProposal proposal) {
     final int baseRelevance = proposal.getRelevance() * 16;
     switch (proposal.getKind()) {
-      case CompletionProposal.PACKAGE_REF:
-        return baseRelevance + 0;
+//      case CompletionProposal.PACKAGE_REF:
+//        return baseRelevance + 0;
       case CompletionProposal.LABEL_REF:
         return baseRelevance + 1;
       case CompletionProposal.KEYWORD:
         return baseRelevance + 2;
       case CompletionProposal.TYPE_REF:
-      case CompletionProposal.ANONYMOUS_CLASS_DECLARATION:
+//      case CompletionProposal.ANONYMOUS_CLASS_DECLARATION:
+//      case CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION:
         return baseRelevance + 3;
       case CompletionProposal.METHOD_REF:
+      case CompletionProposal.CONSTRUCTOR_INVOCATION:
       case CompletionProposal.METHOD_NAME_REFERENCE:
       case CompletionProposal.METHOD_DECLARATION:
+//      case CompletionProposal.ANNOTATION_ATTRIBUTE_REF:
         return baseRelevance + 4;
       case CompletionProposal.POTENTIAL_METHOD_DECLARATION:
         return baseRelevance + 4 /* + 99 */;
@@ -349,8 +382,8 @@ public class CompletionProposalCollector extends CompletionRequestor {
   }
 
   /**
-   * Creates a new JavaScript completion proposal from a core proposal. This may involve computing
-   * the display label and setting up some context.
+   * Creates a new Dart completion proposal from a core proposal. This may involve computing the
+   * display label and setting up some context.
    * <p>
    * This method is called for every proposal that will be displayed to the user, which may be
    * hundreds. Implementations should therefore defer as much work as possible: Labels should be
@@ -366,40 +399,49 @@ public class CompletionProposalCollector extends CompletionRequestor {
    * </p>
    * 
    * @param proposal the core completion proposal to create a UI proposal for
-   * @return the created JavaScript completion proposal, or <code>null</code> if no proposal should
-   *         be displayed
+   * @return the created Dart completion proposal, or <code>null</code> if no proposal should be
+   *         displayed
    */
-  protected IDartCompletionProposal createJavaCompletionProposal(CompletionProposal proposal) {
+  protected IDartCompletionProposal createDartCompletionProposal(CompletionProposal proposal) {
     switch (proposal.getKind()) {
       case CompletionProposal.KEYWORD:
         return createKeywordProposal(proposal);
-      case CompletionProposal.PACKAGE_REF:
-        return createPackageProposal(proposal);
+//      case CompletionProposal.PACKAGE_REF:
+//        return createPackageProposal(proposal);
       case CompletionProposal.TYPE_REF:
         return createTypeProposal(proposal);
-      case CompletionProposal.JAVADOC_TYPE_REF:
-        return createJavadocLinkTypeProposal(proposal);
+//      case CompletionProposal.JAVADOC_TYPE_REF:
+//        return createJavadocLinkTypeProposal(proposal);
       case CompletionProposal.FIELD_REF:
-      case CompletionProposal.JAVADOC_FIELD_REF:
+//      case CompletionProposal.JAVADOC_FIELD_REF:
+//      case CompletionProposal.JAVADOC_VALUE_REF:
         return createFieldProposal(proposal);
+//      case CompletionProposal.FIELD_REF_WITH_CASTED_RECEIVER:
+//        return createFieldWithCastedReceiverProposal(proposal);
       case CompletionProposal.METHOD_REF:
+      case CompletionProposal.CONSTRUCTOR_INVOCATION:
+//      case CompletionProposal.METHOD_REF_WITH_CASTED_RECEIVER:
       case CompletionProposal.METHOD_NAME_REFERENCE:
-      case CompletionProposal.JAVADOC_METHOD_REF:
+//      case CompletionProposal.JAVADOC_METHOD_REF:
         return createMethodReferenceProposal(proposal);
       case CompletionProposal.METHOD_DECLARATION:
         return createMethodDeclarationProposal(proposal);
+//      case CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION:
+//        return createAnonymousTypeProposal(proposal, getInvocationContext());
 //      case CompletionProposal.ANONYMOUS_CLASS_DECLARATION:
-//        return createAnonymousTypeProposal(proposal);
+//        return createAnonymousTypeProposal(proposal, null);
       case CompletionProposal.LABEL_REF:
         return createLabelProposal(proposal);
       case CompletionProposal.LOCAL_VARIABLE_REF:
       case CompletionProposal.VARIABLE_DECLARATION:
         return createLocalVariableProposal(proposal);
-      case CompletionProposal.JAVADOC_BLOCK_TAG:
-      case CompletionProposal.JAVADOC_PARAM_REF:
-        return createJavadocSimpleProposal(proposal);
-      case CompletionProposal.JAVADOC_INLINE_TAG:
-        return createJavadocInlineTagProposal(proposal);
+//      case CompletionProposal.ANNOTATION_ATTRIBUTE_REF:
+//        return createAnnotationAttributeReferenceProposal(proposal);
+//      case CompletionProposal.JAVADOC_BLOCK_TAG:
+//      case CompletionProposal.JAVADOC_PARAM_REF:
+//        return createJavadocSimpleProposal(proposal);
+//      case CompletionProposal.JAVADOC_INLINE_TAG:
+//        return createJavadocInlineTagProposal(proposal);
       case CompletionProposal.POTENTIAL_METHOD_DECLARATION:
       default:
         return null;
@@ -433,7 +475,6 @@ public class CompletionProposalCollector extends CompletionRequestor {
    * Returns the <code>CompletionContext</code> for this completion operation.
    * 
    * @return the <code>CompletionContext</code> for this completion operation
-   * @see CompletionRequestor#acceptContext(CompletionContext)
    */
   protected final CompletionContext getContext() {
     return fContext;
@@ -444,9 +485,9 @@ public class CompletionProposalCollector extends CompletionRequestor {
    * <code>null</code> for proposals that do not have a declaring type. The return value is
    * <em>not</em> <code>null</code> for proposals of the following kinds:
    * <ul>
-   * <li>FUNCTION_DECLARATION</li>
+   * <li>METHOD_DECLARATION</li>
    * <li>METHOD_NAME_REFERENCE</li>
-   * <li>FUNCTION_REF</li>
+   * <li>METHOD_REF</li>
    * <li>ANNOTATION_ATTRIBUTE_REF</li>
    * <li>POTENTIAL_METHOD_DECLARATION</li>
    * <li>ANONYMOUS_CLASS_DECLARATION</li>
@@ -457,39 +498,42 @@ public class CompletionProposalCollector extends CompletionRequestor {
    * 
    * @param proposal the completion proposal to get the declaring type for
    * @return the type signature of the declaring type, or <code>null</code> if there is none
-   * @see Signature#toCharArray(char[])
    */
-  protected String getDeclaringType(CompletionProposal proposal) {
+  protected final char[] getDeclaringType(CompletionProposal proposal) {
     switch (proposal.getKind()) {
       case CompletionProposal.METHOD_DECLARATION:
       case CompletionProposal.METHOD_NAME_REFERENCE:
-      case CompletionProposal.JAVADOC_METHOD_REF:
+//      case CompletionProposal.JAVADOC_METHOD_REF:
       case CompletionProposal.METHOD_REF:
+      case CompletionProposal.CONSTRUCTOR_INVOCATION:
+//      case CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION:
+//      case CompletionProposal.METHOD_REF_WITH_CASTED_RECEIVER:
+//      case CompletionProposal.ANNOTATION_ATTRIBUTE_REF:
       case CompletionProposal.POTENTIAL_METHOD_DECLARATION:
-      case CompletionProposal.ANONYMOUS_CLASS_DECLARATION:
+//      case CompletionProposal.ANONYMOUS_CLASS_DECLARATION:
       case CompletionProposal.FIELD_REF:
-      case CompletionProposal.JAVADOC_FIELD_REF:
-        String declaration = new String(proposal.getDeclarationSignature());
-        // special methods may not have a declaring type: methods defined on
-        // arrays etc.
-        // Currently known: class literals don't have a declaring type - use
-        // Object
-        if (declaration == null) {
-          return "java.lang.Object"; //$NON-NLS-1$
-        }
-        return declaration;
-      case CompletionProposal.PACKAGE_REF:
-        return new String(proposal.getDeclarationSignature());
-      case CompletionProposal.JAVADOC_TYPE_REF:
+//      case CompletionProposal.FIELD_REF_WITH_CASTED_RECEIVER:
+//      case CompletionProposal.JAVADOC_FIELD_REF:
+//      case CompletionProposal.JAVADOC_VALUE_REF:
+        char[] declaration = proposal.getDeclarationSignature();
+        // special methods may not have a declaring type: methods defined on arrays etc.
+        // Currently known: class literals don't have a declaring type - use Object
+//        if (declaration == null) {
+//          return "java.lang.Object".toCharArray(); //$NON-NLS-1$
+//        }
+        return Signature.toCharArray(declaration);
+//      case CompletionProposal.PACKAGE_REF:
+//        return proposal.getDeclarationSignature();
+//      case CompletionProposal.JAVADOC_TYPE_REF:
       case CompletionProposal.TYPE_REF:
-        return new String(proposal.getSignature());
+        return Signature.toCharArray(proposal.getSignature());
       case CompletionProposal.LOCAL_VARIABLE_REF:
       case CompletionProposal.VARIABLE_DECLARATION:
       case CompletionProposal.KEYWORD:
       case CompletionProposal.LABEL_REF:
-      case CompletionProposal.JAVADOC_BLOCK_TAG:
-      case CompletionProposal.JAVADOC_INLINE_TAG:
-      case CompletionProposal.JAVADOC_PARAM_REF:
+//      case CompletionProposal.JAVADOC_BLOCK_TAG:
+//      case CompletionProposal.JAVADOC_INLINE_TAG:
+//      case CompletionProposal.JAVADOC_PARAM_REF:
         return null;
       default:
         Assert.isTrue(false);
@@ -571,30 +615,33 @@ public class CompletionProposalCollector extends CompletionRequestor {
     if (isIgnored(proposal.getKind())) {
       return true;
     }
-    String declaringType = getDeclaringType(proposal);
+    char[] declaringType = getDeclaringType(proposal);
     return declaringType != null && TypeFilter.isFiltered(declaringType);
   }
 
   private void acceptPotentialMethodDeclaration(CompletionProposal proposal) {
-    if (fCompilationUnit == null) {
-      return;
-    }
-
-    String prefix = String.valueOf(proposal.getName());
-    int completionStart = proposal.getReplaceStart();
-    int completionEnd = proposal.getReplaceEnd();
-    int relevance = computeRelevance(proposal);
-
     try {
-      DartElement element = fCompilationUnit.getElementAt(proposal.getCompletionLocation() + 1);
-      if (element != null) {
-        Type type = element.getAncestor(Type.class);
-        if (type != null) {
-          GetterSetterCompletionProposal.evaluateProposals(type, prefix, completionStart,
-              completionEnd - completionStart, relevance + 1, fSuggestedMethodNames, fJavaProposals);
-          MethodDeclarationCompletionProposal.evaluateProposals(type, prefix, completionStart,
-              completionEnd - completionStart, relevance, fSuggestedMethodNames, fJavaProposals);
-        }
+      DartElement enclosingElement = null;
+      if (getContext().isExtended()) {
+        enclosingElement = getContext().getEnclosingElement();
+      } else if (fCompilationUnit != null) {
+        // kept for backward compatibility: CU is not reconciled at this moment, information is missing (bug 70005)
+        enclosingElement = fCompilationUnit.getElementAt(proposal.getCompletionLocation() + 1);
+      }
+      if (enclosingElement == null) {
+        return;
+      }
+      Type type = enclosingElement.getAncestor(Type.class);
+      if (type != null) {
+        String prefix = String.valueOf(proposal.getName());
+        int completionStart = proposal.getReplaceStart();
+        int completionEnd = proposal.getReplaceEnd();
+        int relevance = computeRelevance(proposal);
+
+        GetterSetterCompletionProposal.evaluateProposals(type, prefix, completionStart,
+            completionEnd - completionStart, relevance + 2, fSuggestedMethodNames, fDartProposals);
+        MethodDeclarationCompletionProposal.evaluateProposals(type, prefix, completionStart,
+            completionEnd - completionStart, relevance, fSuggestedMethodNames, fDartProposals);
       }
     } catch (CoreException e) {
       DartToolsPlugin.log(e);
@@ -607,93 +654,133 @@ public class CompletionProposalCollector extends CompletionRequestor {
     }
   }
 
-//  private IDartCompletionProposal createAnonymousTypeProposal(
+//  private IDartCompletionProposal createAnnotationAttributeReferenceProposal(
 //      CompletionProposal proposal) {
+//    StyledString displayString= fLabelProvider.createLabelWithTypeAndDeclaration(proposal);
+//    ImageDescriptor descriptor= fLabelProvider.createMethodImageDescriptor(proposal);
+//    String completion= String.valueOf(proposal.getCompletion());
+//    DartCompletionProposal javaProposal= new DartCompletionProposal(completion, proposal.getReplaceStart(), getLength(proposal), getImage(descriptor), displayString, computeRelevance(proposal));
+//    if (fJavaProject != null)
+//      javaProposal.setProposalInfo(new AnnotationAtttributeProposalInfo(fJavaProject, proposal));
+//    return javaProposal;
+//  }
+
+//  private IDartCompletionProposal createAnonymousTypeProposal(CompletionProposal proposal,
+//      DartContentAssistInvocationContext invocationContext) {
 //    if (fCompilationUnit == null || fJavaProject == null)
 //      return null;
 //
-//    String completion = String.valueOf(proposal.getCompletion());
-//    int start = proposal.getReplaceStart();
-//    int length = getLength(proposal);
-//    int relevance = computeRelevance(proposal);
+//    char[] declarationKey= proposal.getDeclarationKey();
+//    if (declarationKey == null)
+//      return null;
 //
-//    String label = fLabelProvider.createAnonymousTypeLabel(proposal);
+//    try {
+//      DartElement element= fJavaProject.findElement(new String(declarationKey), null);
+//      if (!(element instanceof Type))
+//        return null;
 //
-//    DartCompletionProposal javaProposal = new AnonymousTypeCompletionProposal(
-//        fJavaProject, fCompilationUnit, start, length, completion, label,
-//        String.valueOf(proposal.getDeclarationSignature()), relevance);
-//    javaProposal.setProposalInfo(new AnonymousTypeProposalInfo(fJavaProject,
-//        proposal));
-//    return javaProposal;
+//      Type type= (Type) element;
+//
+//      String completion= String.valueOf(proposal.getCompletion());
+//      int start= proposal.getReplaceStart();
+//      int length= getLength(proposal);
+//      int relevance= computeRelevance(proposal);
+//
+//      StyledString label= fLabelProvider.createAnonymousTypeLabel(proposal);
+//
+//      DartCompletionProposal javaProposal= new AnonymousTypeCompletionProposal(fJavaProject, fCompilationUnit, invocationContext, start, length, completion, label, String.valueOf(proposal
+//          .getDeclarationSignature()), type, relevance);
+//      javaProposal.setProposalInfo(new AnonymousTypeProposalInfo(fJavaProject, proposal));
+//      return javaProposal;
+//    } catch (DartModelException e) {
+//      return null;
+//    }
 //  }
 
   private IDartCompletionProposal createFieldProposal(CompletionProposal proposal) {
     String completion = String.valueOf(proposal.getCompletion());
     int start = proposal.getReplaceStart();
     int length = getLength(proposal);
-    String label = fLabelProvider.createLabel(proposal);
+    StyledString label = fLabelProvider.createStyledLabel(proposal);
     Image image = getImage(fLabelProvider.createFieldImageDescriptor(proposal));
     int relevance = computeRelevance(proposal);
 
-    DartCompletionProposal javaProposal = new DartCompletionProposal(completion, start, length,
+    @SuppressWarnings("deprecation")
+    DartCompletionProposal dartProposal = new DartCompletionProposal(completion, start, length,
         image, label, relevance, getContext().isInJavadoc(), getInvocationContext());
-    if (fJavaProject != null) {
-      javaProposal.setProposalInfo(new FieldProposalInfo(fJavaProject, proposal));
+    if (fDartProject != null) {
+      dartProposal.setProposalInfo(new FieldProposalInfo(fDartProject, proposal));
     }
 
-    javaProposal.setTriggerCharacters(VAR_TRIGGER);
+    dartProposal.setTriggerCharacters(VAR_TRIGGER);
 
-    return javaProposal;
+    return dartProposal;
   }
 
-  private IDartCompletionProposal createJavadocInlineTagProposal(CompletionProposal javadocProposal) {
-//    LazyDartCompletionProposal proposal = new JavadocInlineTagCompletionProposal(
-//        javadocProposal, getInvocationContext());
+//  /**
+//   * Creates the Java completion proposal for the JDT Core
+//   * {@link CompletionProposal#FIELD_REF_WITH_CASTED_RECEIVER} proposal.
+//   * 
+//   * @param proposal the JDT Core proposal
+//   * @return the Java completion proposal
+//   */
+//  private IDartCompletionProposal createFieldWithCastedReceiverProposal(CompletionProposal proposal) {
+//    String completion= String.valueOf(proposal.getCompletion());
+//    completion= CodeFormatterUtil.format(CodeFormatter.K_EXPRESSION, completion, 0, "\n", fJavaProject); //$NON-NLS-1$
+//    int start= proposal.getReplaceStart();
+//    int length= getLength(proposal);
+//    StyledString label= fLabelProvider.createStyledLabel(proposal);
+//    Image image= getImage(fLabelProvider.createFieldImageDescriptor(proposal));
+//    int relevance= computeRelevance(proposal);
+//
+//    DartCompletionProposal javaProposal= new DartFieldWithCastedReceiverCompletionProposal(completion, start, length, image, label, relevance, getContext().isInJavadoc(), getInvocationContext(), proposal);
+//    if (fJavaProject != null)
+//      javaProposal.setProposalInfo(new FieldProposalInfo(fJavaProject, proposal));
+//
+//    javaProposal.setTriggerCharacters(VAR_TRIGGER);
+//
+//    return javaProposal;
+//  }
+
+//  private IDartCompletionProposal createJavadocInlineTagProposal(CompletionProposal javadocProposal) {
+//    LazyDartCompletionProposal proposal= new JavadocInlineTagCompletionProposal(javadocProposal, getInvocationContext());
 //    adaptLength(proposal, javadocProposal);
 //    return proposal;
-    DartCore.notYetImplemented();
-    return null;
-  }
+//  }
 
-  private IDartCompletionProposal createJavadocLinkTypeProposal(CompletionProposal typeProposal) {
-//    LazyDartCompletionProposal proposal = new JavadocLinkTypeCompletionProposal(
-//        typeProposal, getInvocationContext());
+//  private IDartCompletionProposal createJavadocLinkTypeProposal(CompletionProposal typeProposal) {
+//    LazyDartCompletionProposal proposal= new JavadocLinkTypeCompletionProposal(typeProposal, getInvocationContext());
 //    adaptLength(proposal, typeProposal);
 //    return proposal;
-    DartCore.notYetImplemented();
-    return null;
-  }
+//  }
 
-  private IDartCompletionProposal createJavadocSimpleProposal(CompletionProposal javadocProposal) {
-    // TODO do better with javadoc proposals
-    // String completion= String.valueOf(proposal.getCompletion());
-    // int start= proposal.getReplaceStart();
-    // int length= getLength(proposal);
-    // String label= fLabelProvider.createSimpleLabel(proposal);
-    // Image image= getImage(fLabelProvider.createImageDescriptor(proposal));
-    // int relevance= computeRelevance(proposal);
-    //
-    // DartCompletionProposal javaProposal= new
-    // DartCompletionProposal(completion, start, length, image, label,
-    // relevance);
-    // if (fJavaProject != null)
-    // javaProposal.setProposalInfo(new FieldProposalInfo(fJavaProject,
-    // proposal));
-    //
-    // javaProposal.setTriggerCharacters(VAR_TRIGGER);
-    //
-    // return javaProposal;
-    LazyDartCompletionProposal proposal = new LazyDartCompletionProposal(javadocProposal,
-        getInvocationContext());
-    // adaptLength(proposal, javadocProposal);
-    return proposal;
-  }
+//  private IDartCompletionProposal createJavadocSimpleProposal(CompletionProposal javadocProposal) {
+  // TODO do better with javadoc proposals
+//    String completion= String.valueOf(proposal.getCompletion());
+//    int start= proposal.getReplaceStart();
+//    int length= getLength(proposal);
+//    String label= fLabelProvider.createSimpleLabel(proposal);
+//    Image image= getImage(fLabelProvider.createImageDescriptor(proposal));
+//    int relevance= computeRelevance(proposal);
+//
+//    DartCompletionProposal javaProposal= new DartCompletionProposal(completion, start, length, image, label, relevance);
+//    if (fJavaProject != null)
+//      javaProposal.setProposalInfo(new FieldProposalInfo(fJavaProject, proposal));
+//
+//    javaProposal.setTriggerCharacters(VAR_TRIGGER);
+//
+//    return javaProposal;
+//    LazyDartCompletionProposal proposal = new LazyDartCompletionProposal(javadocProposal,
+//        getInvocationContext());
+//    adaptLength(proposal, javadocProposal);
+//    return proposal;
+//  }
 
   private IDartCompletionProposal createKeywordProposal(CompletionProposal proposal) {
     String completion = String.valueOf(proposal.getCompletion());
     int start = proposal.getReplaceStart();
     int length = getLength(proposal);
-    String label = fLabelProvider.createSimpleLabel(proposal);
+    StyledString label = new StyledString(fLabelProvider.createSimpleLabel(proposal));//TODO(messick)
     int relevance = computeRelevance(proposal);
     return new DartCompletionProposal(completion, start, length, null, label, relevance);
   }
@@ -702,7 +789,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
     String completion = String.valueOf(proposal.getCompletion());
     int start = proposal.getReplaceStart();
     int length = getLength(proposal);
-    String label = fLabelProvider.createSimpleLabel(proposal);
+    StyledString label = new StyledString(fLabelProvider.createSimpleLabel(proposal));//TODO(messick)
     int relevance = computeRelevance(proposal);
 
     return new DartCompletionProposal(completion, start, length, null, label, relevance);
@@ -713,91 +800,63 @@ public class CompletionProposalCollector extends CompletionRequestor {
     int start = proposal.getReplaceStart();
     int length = getLength(proposal);
     Image image = getImage(fLabelProvider.createLocalImageDescriptor(proposal));
-    String label = fLabelProvider.createSimpleLabelWithType(proposal);
+    StyledString label = new StyledString(fLabelProvider.createSimpleLabelWithType(proposal));//TODO(messick)
     int relevance = computeRelevance(proposal);
-
-    final DartCompletionProposal javaProposal = new DartCompletionProposal(completion, start,
+    final DartCompletionProposal dartProposal = new DartCompletionProposal(completion, start,
         length, image, label, relevance);
-    javaProposal.setTriggerCharacters(VAR_TRIGGER);
-    return javaProposal;
+    dartProposal.setTriggerCharacters(VAR_TRIGGER);
+    return dartProposal;
   }
 
   private IDartCompletionProposal createMethodDeclarationProposal(CompletionProposal proposal) {
-    if (fCompilationUnit == null || fJavaProject == null) {
+    if (fCompilationUnit == null || fDartProject == null) {
       return null;
     }
 
     String name = String.valueOf(proposal.getName());
-//    String[] paramTypes = Signature.getParameterTypes(String.valueOf(proposal.getSignature()));
-    String[] paramTypes = toStrings(((InternalCompletionProposal) proposal).getParameterTypeNames());
-//    for (int index = 0; index < paramTypes.length; index++)
-//      paramTypes[index] = Signature.toString(paramTypes[index]);
+    String[] paramTypes = Signature.getParameterTypes(String.valueOf(proposal.getSignature()));
+    for (int index = 0; index < paramTypes.length; index++) {
+      paramTypes[index] = Signature.toString(paramTypes[index]);
+    }
     int start = proposal.getReplaceStart();
     int length = getLength(proposal);
 
-    String label = fLabelProvider.createOverrideMethodProposalLabel(proposal);
+    StyledString label = new StyledString(
+        fLabelProvider.createOverrideMethodProposalLabel(proposal));//TODO(messick)
 
-    DartCompletionProposal javaProposal = new OverrideCompletionProposal(fJavaProject,
+    DartCompletionProposal dartProposal = new OverrideCompletionProposal(fDartProject,
         fCompilationUnit, name, paramTypes, start, length, label,
         String.valueOf(proposal.getCompletion()));
-    javaProposal.setImage(getImage(fLabelProvider.createMethodImageDescriptor(proposal)));
-    javaProposal.setProposalInfo(new MethodProposalInfo(fJavaProject, proposal));
-    javaProposal.setRelevance(computeRelevance(proposal));
+    dartProposal.setImage(getImage(fLabelProvider.createMethodImageDescriptor(proposal)));
+    dartProposal.setProposalInfo(new MethodProposalInfo(fDartProject, proposal));
+    dartProposal.setRelevance(computeRelevance(proposal));
 
     fSuggestedMethodNames.add(new String(name));
-    return javaProposal;
+    return dartProposal;
   }
 
   private IDartCompletionProposal createMethodReferenceProposal(CompletionProposal methodProposal) {
-    IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
-    LazyDartCompletionProposal proposal = null;
-
-    if (preferenceStore.getBoolean(PreferenceConstants.CODEASSIST_FILL_ARGUMENT_NAMES)) {
-      String completion = String.valueOf(methodProposal.getCompletion());
-      // normal behavior if this is not a normal completion or has no parameters
-      if ((completion.length() == 0) || ((completion.length() == 1) && completion.charAt(0) == ')')
-          || methodProposal.getParameterNames().length == 0 || getContext().isInJavadoc()) {
-        proposal = new DartMethodCompletionProposal(methodProposal, getInvocationContext());
-      } else {
-        if (preferenceStore.getBoolean(PreferenceConstants.CODEASSIST_GUESS_METHOD_ARGUMENTS)) {
-          proposal = new ParameterGuessingProposal(methodProposal, getInvocationContext());
-        } else {
-          proposal = new FilledArgumentNamesMethodProposal(methodProposal, getInvocationContext());
-        }
-      }
-    }
-
-    if (proposal == null) {
-      proposal = new DartMethodCompletionProposal(methodProposal, getInvocationContext());
-    }
-
+    LazyDartCompletionProposal proposal = new DartMethodCompletionProposal(methodProposal,
+        getInvocationContext());
     adaptLength(proposal, methodProposal);
     return proposal;
   }
 
-  private IDartCompletionProposal createPackageProposal(CompletionProposal proposal) {
-    String completion = String.valueOf(proposal.getCompletion());
-    int start = proposal.getReplaceStart();
-    int length = getLength(proposal);
-    String label = fLabelProvider.createSimpleLabel(proposal);
-    Image image = getImage(fLabelProvider.createPackageImageDescriptor(proposal));
-    int relevance = computeRelevance(proposal);
-
-    return new DartCompletionProposal(completion, start, length, image, label, relevance);
-  }
+//  private IDartCompletionProposal createPackageProposal(CompletionProposal proposal) {
+//    String completion = String.valueOf(proposal.getCompletion());
+//    int start = proposal.getReplaceStart();
+//    int length = getLength(proposal);
+//    StyledString label = new StyledString(fLabelProvider.createSimpleLabel(proposal));//TODO(messick)
+//    Image image = getImage(fLabelProvider.createPackageImageDescriptor(proposal));
+//    int relevance = computeRelevance(proposal);
+//
+//    return new DartCompletionProposal(completion, start, length, image, label, relevance);
+//  }
 
   private IDartCompletionProposal createTypeProposal(CompletionProposal typeProposal) {
     LazyDartCompletionProposal proposal = new LazyDartTypeCompletionProposal(typeProposal,
         getInvocationContext());
     adaptLength(proposal, typeProposal);
     return proposal;
-  }
-
-  private String[] toStrings(char[][] chars) {
-    String[] strings = new String[chars.length];
-    for (int i = 0; i < chars.length; i++) {
-      strings[i] = new String(chars[i]);
-    }
-    return strings;
   }
 }

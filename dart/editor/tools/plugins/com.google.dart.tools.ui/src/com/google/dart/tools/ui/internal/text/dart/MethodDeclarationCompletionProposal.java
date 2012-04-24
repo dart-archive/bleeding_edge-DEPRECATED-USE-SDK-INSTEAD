@@ -1,34 +1,32 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.tools.core.formatter.CodeFormatter;
 import com.google.dart.tools.core.model.DartConventions;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.CodeGeneration;
 import com.google.dart.tools.ui.CodeGenerationSettings;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.JavaPreferencesSettings;
 import com.google.dart.tools.ui.internal.util.CodeFormatterUtil;
 import com.google.dart.tools.ui.internal.util.Strings;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
+import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
 import org.eclipse.core.runtime.Assert;
@@ -40,6 +38,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension4;
+import org.eclipse.jface.viewers.StyledString;
 
 import java.util.Collection;
 import java.util.Set;
@@ -51,8 +50,8 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
     ICompletionProposalExtension4 {
 
   public static void evaluateProposals(Type type, String prefix, int offset, int length,
-      int relevance, Set<String> suggestedMethods,
-      Collection<MethodDeclarationCompletionProposal> result) throws CoreException {
+      int relevance, Set<String> suggestedMethods, Collection<IDartCompletionProposal> result)
+      throws CoreException {
     Method[] methods = type.getMethods();
     String constructorName = type.getElementName();
     if (constructorName.length() > 0 && constructorName.startsWith(prefix)
@@ -70,34 +69,30 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
     }
   }
 
-  private static String getDisplayName(String methodName, String returnTypeSig) {
-    StringBuffer buf = new StringBuffer();
+  private static StyledString getDisplayName(String methodName, String returnTypeSig) {
+    StyledString buf = new StyledString();
     buf.append(methodName);
     buf.append('(');
     buf.append(')');
     if (returnTypeSig != null) {
-      buf.append("  "); //$NON-NLS-1$
+      buf.append(" : "); //$NON-NLS-1$
       buf.append(Signature.toString(returnTypeSig));
-      buf.append(" - "); //$NON-NLS-1$
-      buf.append(DartTextMessages.MethodCompletionProposal_method_label);
+      buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
+      buf.append(DartTextMessages.MethodCompletionProposal_method_label,
+          StyledString.QUALIFIER_STYLER);
     } else {
-      buf.append(" - "); //$NON-NLS-1$
-      buf.append(DartTextMessages.MethodCompletionProposal_constructor_label);
+      buf.append(" - ", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
+      buf.append(DartTextMessages.MethodCompletionProposal_constructor_label,
+          StyledString.QUALIFIER_STYLER);
     }
-    return buf.toString();
+    return buf;
   }
 
   private static boolean hasMethod(Method[] methods, String name) {
     for (int i = 0; i < methods.length; i++) {
       Method curr = methods[i];
-      try {
-        if (curr.getElementName().equals(name) && curr.getParameterNames().length == 0) {
-          // TODO(brianwilkerson) Because method names cannot be overloaded, the
-          // above test for the number of parameters is probably not necessary.
-          return true;
-        }
-      } catch (DartModelException exception) {
-        // Ignore and go on to the next method
+      if (curr.getElementName().equals(name)) {
+        return true;
       }
     }
     return false;
@@ -122,9 +117,8 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
     if (returnTypeSig == null) {
       setProposalInfo(new ProposalInfo(type));
 
-      ImageDescriptor desc = new DartElementImageDescriptor(
-          DartPluginImages.DESC_DART_METHOD_PUBLIC, DartElementImageDescriptor.CONSTRUCTOR,
-          DartElementImageProvider.SMALL_SIZE);
+      ImageDescriptor desc = new DartElementImageDescriptor(DartPluginImages.DESC_MISC_PUBLIC,
+          DartElementImageDescriptor.CONSTRUCTOR, DartElementImageProvider.SMALL_SIZE);
       setImage(DartToolsPlugin.getImageDescriptorRegistry().get(desc));
     } else {
       setImage(DartPluginImages.get(DartPluginImages.IMG_MISC_PRIVATE));
@@ -133,23 +127,14 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
 
   @Override
   public CharSequence getPrefixCompletionText(IDocument document, int completionOffset) {
-    return new String(); // don't let method stub proposals complete
-// incrementally
+    return new String(); // don't let method stub proposals complete incrementally
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension4# isAutoInsertable()
-   */
   @Override
   public boolean isAutoInsertable() {
     return false;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see DartTypeCompletionProposal#updateReplacementString(IDocument, char, int, ImportRewrite)
-   */
   @Override
   protected boolean updateReplacementString(IDocument document, char trigger, int offset,
       ImportRewrite impRewrite) throws CoreException, BadLocationException {
@@ -159,7 +144,9 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
 
     String[] empty = new String[0];
     String lineDelim = TextUtilities.getDefaultLineDelimiter(document);
+    @SuppressWarnings("deprecation")
     String declTypeName = fType.getTypeQualifiedName('.');
+    boolean isInterface = fType.isInterface();
 
     StringBuffer buf = new StringBuffer();
     if (addComments) {
@@ -170,30 +157,28 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
         buf.append(lineDelim);
       }
     }
-    if (fReturnTypeSig != null) {
-      buf.append("private "); //$NON-NLS-1$
-    } else {
-      buf.append("public "); //$NON-NLS-1$
-    }
 
     if (fReturnTypeSig != null) {
       buf.append(Signature.toString(fReturnTypeSig));
     }
     buf.append(' ');
     buf.append(fMethodName);
+    if (isInterface) {
+      buf.append("();"); //$NON-NLS-1$
+      buf.append(lineDelim);
+    } else {
+      buf.append("() {"); //$NON-NLS-1$
+      buf.append(lineDelim);
 
-    buf.append("() {"); //$NON-NLS-1$
-    buf.append(lineDelim);
-
-    String body = CodeGeneration.getMethodBodyContent(fType.getCompilationUnit(), declTypeName,
-        fMethodName, fReturnTypeSig == null, "", lineDelim); //$NON-NLS-1$
-    if (body != null) {
-      buf.append(body);
+      String body = CodeGeneration.getMethodBodyContent(fType.getCompilationUnit(), declTypeName,
+          fMethodName, fReturnTypeSig == null, "", lineDelim); //$NON-NLS-1$
+      if (body != null) {
+        buf.append(body);
+        buf.append(lineDelim);
+      }
+      buf.append("}"); //$NON-NLS-1$
       buf.append(lineDelim);
     }
-    buf.append("}"); //$NON-NLS-1$
-    buf.append(lineDelim);
-
     String stub = buf.toString();
 
     // use the code formatter
@@ -213,4 +198,5 @@ public class MethodDeclarationCompletionProposal extends DartTypeCompletionPropo
     setReplacementString(Strings.trimLeadingTabsAndSpaces(replacement));
     return true;
   }
+
 }

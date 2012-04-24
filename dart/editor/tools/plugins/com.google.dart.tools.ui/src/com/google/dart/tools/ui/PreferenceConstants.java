@@ -3492,7 +3492,7 @@ public class PreferenceConstants {
     store.setDefault(PreferenceConstants.CODEASSIST_ADDIMPORT, false);
     store.setDefault(PreferenceConstants.CODEASSIST_INSERT_COMPLETION, true);
     store.setDefault(PreferenceConstants.CODEASSIST_FILL_ARGUMENT_NAMES, true);
-    store.setDefault(PreferenceConstants.CODEASSIST_GUESS_METHOD_ARGUMENTS, false);
+    store.setDefault(PreferenceConstants.CODEASSIST_GUESS_METHOD_ARGUMENTS, true);
     store.setDefault(PreferenceConstants.CODEASSIST_PREFIX_COMPLETION, false);
     // can't believe embedded null is used as a delimiter
     store.setDefault(
@@ -3510,7 +3510,7 @@ public class PreferenceConstants {
     store.setDefault(PreferenceConstants.EDITOR_SMART_PASTE, true);
     store.setDefault(PreferenceConstants.EDITOR_IMPORTS_ON_PASTE, true);
     store.setDefault(PreferenceConstants.EDITOR_CLOSE_STRINGS, true);
-    store.setDefault(PreferenceConstants.EDITOR_CLOSE_BRACKETS, false);
+    store.setDefault(PreferenceConstants.EDITOR_CLOSE_BRACKETS, true);
     store.setDefault(PreferenceConstants.EDITOR_CLOSE_BRACES, true);
     store.setDefault(PreferenceConstants.EDITOR_CLOSE_JAVADOCS, true);
     store.setDefault(PreferenceConstants.EDITOR_WRAP_STRINGS, true);

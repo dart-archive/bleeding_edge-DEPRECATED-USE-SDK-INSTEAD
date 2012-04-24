@@ -66,6 +66,7 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextOperationTarget;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.ITextViewerExtension;
 import org.eclipse.jface.text.ITextViewerExtension7;
 import org.eclipse.jface.text.ITypedRegion;
@@ -89,6 +90,7 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.VerifyKeyListener;
@@ -126,7 +128,7 @@ import java.util.Map;
 import java.util.Stack;
 
 /**
- * Java specific text editor.
+ * Dart code editor.
  */
 public class CompilationUnitEditor extends DartEditor implements IDartReconcilingListener {
   class AdaptedSourceViewer extends DartSourceViewer {
@@ -137,16 +139,12 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       super(parent, verticalRuler, overviewRuler, showAnnotationsOverview, styles, store);
     }
 
-    /*
-     * @see org.eclipse.jface.text.source.SourceViewer#createFormattingContext()
-     */
     @Override
     public IFormattingContext createFormattingContext() {
       IFormattingContext context = new CommentFormattingContext();
 
       Map<String, String> preferences;
       DartElement inputDartElement = getInputDartElement();
-      // TODO remove following cast
       DartProject dartProject = inputDartElement != null ? inputDartElement.getDartProject() : null;
       if (dartProject == null) {
         preferences = new HashMap<String, String>(DartCore.getOptions());
@@ -159,9 +157,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       return context;
     }
 
-    /*
-     * @see ITextOperationTarget#doOperation(int)
-     */
     @Override
     public void doOperation(int operation) {
 
@@ -196,9 +191,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       return fContentAssistant;
     }
 
-    /*
-     * @see IWidgetTokenOwner#requestWidgetToken(IWidgetTokenKeeper)
-     */
     @Override
     public boolean requestWidgetToken(IWidgetTokenKeeper requester) {
       if (PlatformUI.getWorkbench().getHelpSystem().isContextHelpDisplayed()) {
@@ -207,9 +199,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       return super.requestWidgetToken(requester);
     }
 
-    /*
-     * @see IWidgetTokenOwnerExtension#requestWidgetToken(IWidgetTokenKeeper, int)
-     */
     @Override
     public boolean requestWidgetToken(IWidgetTokenKeeper requester, int priority) {
       if (PlatformUI.getWorkbench().getHelpSystem().isContextHelpDisplayed()) {
@@ -229,13 +218,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     private boolean fCloseStrings = true;
     private boolean fCloseAngularBrackets = true;
     private final String CATEGORY = toString();
-    private IPositionUpdater fUpdater = new ExclusivePositionUpdater(CATEGORY);
-    private Stack<BracketLevel> fBracketLevelStack = new Stack<BracketLevel>();
+    private final IPositionUpdater fUpdater = new ExclusivePositionUpdater(CATEGORY);
+    private final Stack<BracketLevel> fBracketLevelStack = new Stack<BracketLevel>();
 
-    /*
-     * @see org.eclipse.jface.text.link.ILinkedModeListener#left(org.eclipse.jface
-     * .text.link.LinkedModeModel, int)
-     */
     @Override
     public void left(LinkedModeModel environment, int flags) {
 
@@ -278,10 +263,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     }
 
-    /*
-     * @see org.eclipse.jface.text.link.ILinkedModeListener#resume(org.eclipse.jface
-     * .text.link.LinkedModeModel, int)
-     */
     @Override
     public void resume(LinkedModeModel environment, int flags) {
     }
@@ -298,22 +279,16 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       fCloseStrings = enabled;
     }
 
-    /*
-     * @see org.eclipse.jface.text.link.ILinkedModeListener#suspend(org.eclipse.jface
-     * .text.link.LinkedModeModel)
-     */
     @Override
     public void suspend(LinkedModeModel environment) {
     }
 
-    /*
-     * @see org.eclipse.swt.custom.VerifyKeyListener#verifyKey(org.eclipse.swt.events .VerifyEvent)
-     */
     @Override
     public void verifyKey(VerifyEvent event) {
 
       // early pruning to slow down normal typing as little as possible
-      if (!event.doit || getInsertMode() != SMART_INSERT) {
+      if (!event.doit || getInsertMode() != SMART_INSERT || isBlockSelectionModeEnabled()
+          && isMultilineSelection()) {
         return;
       }
       switch (event.character) {
@@ -322,7 +297,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         case '[':
         case '\'':
         case '\"':
-        case '{':
           break;
         default:
           return;
@@ -359,10 +333,9 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
           case '<':
             if (!(fCloseAngularBrackets && fCloseBrackets) || nextToken == Symbols.TokenLESSTHAN
-                || prevToken != Symbols.TokenLBRACE
-                && prevToken != Symbols.TokenRBRACE
-                && prevToken != Symbols.TokenSEMICOLON
-                //                && prevToken != Symbols.TokenSYNCHRONIZED
+                || nextToken == Symbols.TokenQUESTIONMARK || nextToken == Symbols.TokenIDENT
+                && isTypeArgumentStart(next) || prevToken != Symbols.TokenLBRACE
+                && prevToken != Symbols.TokenRBRACE && prevToken != Symbols.TokenSEMICOLON
                 && prevToken != Symbols.TokenSTATIC
                 && (prevToken != Symbols.TokenIDENT || !isAngularIntroducer(previous))
                 && prevToken != Symbols.TokenEOF) {
@@ -370,7 +343,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
             }
             break;
 
-          case '{':
           case '[':
             if (!fCloseBrackets || nextToken == Symbols.TokenIDENT || next != null
                 && next.length() > 1) {
@@ -420,9 +392,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         model.addGroup(group);
         model.forceInstall();
 
-        level.fOffset = offset;
-        level.fLength = 2;
-
         // set up position tracking for our magic peers
         if (fBracketLevelStack.size() == 1) {
           document.addPositionCategory(CATEGORY);
@@ -455,11 +424,20 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
     private boolean isAngularIntroducer(String identifier) {
       return identifier.length() > 0
-          && (Character.isUpperCase(identifier.charAt(0)) || identifier.startsWith("final") //$NON-NLS-1$
-              || identifier.startsWith("public") //$NON-NLS-1$
-              || identifier.startsWith("public") //$NON-NLS-1$
-              || identifier.startsWith("protected") //$NON-NLS-1$
-          || identifier.startsWith("private")); //$NON-NLS-1$
+          && (Character.isUpperCase(identifier.charAt(0)) || identifier.startsWith("final")); //$NON-NLS-1$
+    }
+
+    private boolean isMultilineSelection() {
+      ISelection selection = getSelectionProvider().getSelection();
+      if (selection instanceof ITextSelection) {
+        ITextSelection ts = (ITextSelection) selection;
+        return ts.getStartLine() != ts.getEndLine();
+      }
+      return false;
+    }
+
+    private boolean isTypeArgumentStart(String identifier) {
+      return identifier.length() > 0 && Character.isUpperCase(identifier.charAt(0));
     }
   }
 
@@ -491,9 +469,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       fCategory = category;
     }
 
-    /*
-     * @see org.eclipse.jface.text.IPositionUpdater#update(org.eclipse.jface.text .DocumentEvent)
-     */
     @Override
     public void update(DocumentEvent event) {
 
@@ -518,12 +493,10 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
           int end = offset + length;
 
           if (offset >= eventOffset + eventOldLength) {
-            // position comes
-            // after change - shift
+            // position comes after change - shift
             position.setOffset(offset + deltaLength);
           } else if (end <= eventOffset) {
-            // position comes way before change -
-            // leave alone
+            // position comes way before change - leave alone
           } else if (offset <= eventOffset && end >= eventOffset + eventOldLength) {
             // event completely internal to the position - adjust length
             position.setLength(length + deltaLength);
@@ -532,8 +505,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
             int newEnd = eventOffset;
             position.setLength(newEnd - offset);
           } else if (end > eventOffset + eventOldLength) {
-            // event extends from before position into it - adjust offset
-            // and length
+            // event extends from before position into it - adjust offset and length
             // offset becomes end of event, length adjusted accordingly
             int newOffset = eventOffset + eventNewLength;
             position.setOffset(newOffset);
@@ -564,11 +536,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       fSize = fStack.size();
     }
 
-    /*
-     * @see com.google.dart.tools.ui.functions.link.LinkedPositionUI.ExitPolicy#doExit
-     * (com.google.dart.tools.ui.functions.link.LinkedPositionManager,
-     * org.eclipse.swt.events.VerifyEvent, int, int)
-     */
     @Override
     public ExitFlags doExit(LinkedModeModel model, VerifyEvent event, int offset, int length) {
 
@@ -583,8 +550,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
             return new ExitFlags(ILinkedModeListener.UPDATE_CARET, false);
           }
         }
-        // when entering an anonymous class between the parenthesis', we don't
-        // want
+        // when entering an anonymous class between the parenthesis', we don't want
         // to jump after the closing parenthesis when return is pressed
         if (event.character == SWT.CR && offset > 0) {
           IDocument document = getSourceViewer().getDocument();
@@ -1485,7 +1451,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     // over positioning
     fContextMenuGroup = new CompositeActionGroup(new ActionGroup[] {
 //        fGenerateActionGroup,
-        fRefactorActionGroup,
+    fRefactorActionGroup,
 //             surroundWith,
 //             new LocalHistoryActionGroup(this,
 //             ITextEditorActionConstants.GROUP_EDIT)

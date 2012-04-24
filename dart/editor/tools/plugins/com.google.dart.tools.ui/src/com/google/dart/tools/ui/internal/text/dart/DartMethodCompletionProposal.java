@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,13 +15,17 @@ package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
+import com.google.dart.tools.ui.text.editor.tmp.Signature;
 
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.IContextInformation;
+import org.eclipse.osgi.util.TextProcessor;
 
 public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
   /** Triggers for method proposals without parameters. Do not modify. */
@@ -52,8 +56,16 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
   }
 
   @Override
+  public int getPrefixCompletionStart(IDocument document, int completionOffset) {
+    if (fProposal.getKind() == CompletionProposal.CONSTRUCTOR_INVOCATION) {
+      return fProposal.getRequiredProposals()[0].getReplaceStart();
+    }
+    return super.getPrefixCompletionStart(document, completionOffset);
+  }
+
+  @Override
   public CharSequence getPrefixCompletionText(IDocument document, int completionOffset) {
-    if (hasArgumentList()) {
+    if (hasArgumentList() || fProposal.getKind() == CompletionProposal.CONSTRUCTOR_INVOCATION) {
       String completion = String.valueOf(fProposal.getName());
       if (isCamelCaseMatching()) {
         String prefix = getPrefix(document, completionOffset);
@@ -64,11 +76,29 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
     return super.getPrefixCompletionText(document, completionOffset);
   }
 
+  /**
+   * Appends everything up to the method name including the opening parenthesis.
+   * <p>
+   * 
+   * @param buffer the string buffer
+   */
+  protected void appendMethodNameReplacement(StringBuffer buffer) {
+    if (fProposal.getKind() != CompletionProposal.CONSTRUCTOR_INVOCATION) {
+      buffer.append(fProposal.getName());
+    }
+
+    FormatterPrefs prefs = getFormatterPrefs();
+    if (prefs.beforeOpeningParen) {
+      buffer.append(SPACE);
+    }
+    buffer.append(LPAREN);
+  }
+
   @Override
   protected IContextInformation computeContextInformation() {
     // no context information for METHOD_NAME_REF proposals (e.g. for static imports)
-    // https://bugs.eclipse.org/bugs/show_bug.cgi?id=94654
-    if (fProposal.getKind() == CompletionProposal.METHOD_REF && hasParameters()
+    if ((fProposal.getKind() == CompletionProposal.METHOD_REF || fProposal.getKind() == CompletionProposal.CONSTRUCTOR_INVOCATION)
+        && hasParameters()
         && (getReplacementString().endsWith(RPAREN) || getReplacementString().length() == 0)) {
       ProposalContextInformation contextInformation = new ProposalContextInformation(fProposal);
       if (fContextInformationPosition != 0 && fProposal.getCompletion().length == 0) {
@@ -88,28 +118,17 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
     return super.computeProposalInfo();
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal#
-   * computeReplacementString()
-   */
   @Override
   protected String computeReplacementString() {
     if (!hasArgumentList()) {
       return super.computeReplacementString();
     }
 
-    if (!Character.isJavaIdentifierStart(fProposal.getName()[0])) {
-      return super.computeReplacementString();
-    }
     // we're inserting a method plus the argument list - respect formatter preferences
     StringBuffer buffer = new StringBuffer();
-    buffer.append(fProposal.getName());
+    appendMethodNameReplacement(buffer);
 
     FormatterPrefs prefs = getFormatterPrefs();
-    if (prefs.beforeOpeningParen) {
-      buffer.append(SPACE);
-    }
-    buffer.append(LPAREN);
 
     if (hasParameters()) {
       setCursorPosition(buffer.length());
@@ -118,9 +137,6 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
         buffer.append(SPACE);
       }
 
-      // don't add the trailing space, but let the user type it in himself - typing the closing paren will exit
-//			if (prefs.beforeClosingParen)
-//				buffer.append(SPACE);
     } else {
       if (prefs.inEmptyList) {
         buffer.append(SPACE);
@@ -130,12 +146,9 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
     buffer.append(RPAREN);
 
     return buffer.toString();
+
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.LazyDartCompletionProposal# computeSortString
-   * ()
-   */
   @Override
   protected String computeSortString() {
     /*
@@ -143,15 +156,14 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
      * 3) by parameter count 4) by parameter type names
      */
     char[] name = fProposal.getName();
-//    char[] parameterList = Signature.toCharArray(fProposal.getSignature(), null, null, false, false);
-    // we don't care about insane methods with >9 parameters
-    int parameterCount = fProposal.getParameterNames().length % 10;
-    StringBuffer buf = new StringBuffer(name.length + 2 /* + parameterList.length */);
+    char[] parameterList = Signature.toCharArray(fProposal.getSignature(), null, null, false, false);
+    int parameterCount = fProposal.getParameterNames().length % 10; // we don't care about insane methods with >9 parameters
+    StringBuffer buf = new StringBuffer(name.length + 2 + parameterList.length);
 
     buf.append(name);
     buf.append('\0'); // separator
     buf.append(parameterCount);
-//    buf.append(parameterList);
+    buf.append(parameterList);
     return buf.toString();
   }
 
@@ -179,6 +191,25 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
     return fFormatterPrefs;
   }
 
+  @Override
+  protected String getPrefix(IDocument document, int offset) {
+    if (fProposal.getKind() != CompletionProposal.CONSTRUCTOR_INVOCATION) {
+      return super.getPrefix(document, offset);
+    }
+
+    int replacementOffset = fProposal.getRequiredProposals()[0].getReplaceStart();
+
+    try {
+      int length = offset - replacementOffset;
+      if (length > 0) {
+        return document.get(replacementOffset, length);
+      }
+    } catch (BadLocationException x) {
+    }
+    return ""; //$NON-NLS-1$
+
+  }
+
   /**
    * Returns <code>true</code> if the argument list should be inserted by the proposal,
    * <code>false</code> if not.
@@ -194,7 +225,7 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
     boolean noOverwrite = preferenceStore.getBoolean(PreferenceConstants.CODEASSIST_INSERT_COMPLETION)
         ^ isToggleEating();
     char[] completion = fProposal.getCompletion();
-    return !isInJavadoc() && completion.length > 0
+    return !isInDartDoc() && completion.length > 0
         && (noOverwrite || completion[completion.length - 1] == ')');
   }
 
@@ -214,18 +245,30 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
     return fHasParameters;
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.text.dart.AbstractDartCompletionProposal #isValidPrefix
-   * (java.lang.String)
-   */
+  @Override
+  protected boolean isOffsetValid(int offset) {
+    if (fProposal.getKind() != CompletionProposal.CONSTRUCTOR_INVOCATION) {
+      return super.isOffsetValid(offset);
+    }
+
+    return fProposal.getRequiredProposals()[0].getReplaceStart() <= offset;
+  }
+
   @Override
   protected boolean isValidPrefix(String prefix) {
     if (super.isValidPrefix(prefix)) {
       return true;
     }
 
-    String word = getDisplayString();
-    if (isInJavadoc()) {
+    String word = TextProcessor.deprocess(getDisplayString());
+    if (fProposal.getKind() == CompletionProposal.CONSTRUCTOR_INVOCATION) {
+      int start = word.indexOf(DartElementLabels.CONCAT_STRING)
+          + DartElementLabels.CONCAT_STRING.length();
+      word = word.substring(start);
+      return isPrefix(prefix, word) || isPrefix(prefix, new String(fProposal.getName()));
+    }
+
+    if (isInDartDoc()) {
       int idx = word.indexOf("{@link "); //$NON-NLS-1$
       if (idx == 0) {
         word = word.substring(7);
@@ -244,6 +287,6 @@ public class DartMethodCompletionProposal extends LazyDartCompletionProposal {
   }
 
   private boolean computeHasParameters() throws IllegalArgumentException {
-    return fProposal.getParameterNames().length > 0;
+    return getProposal().getParameterNames().length > 0;
   }
 }

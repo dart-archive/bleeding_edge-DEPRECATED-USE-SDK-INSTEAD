@@ -1,31 +1,24 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
-import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 import com.google.dart.tools.ui.internal.text.html.BrowserInformationControl;
 import com.google.dart.tools.ui.internal.text.html.HTMLPrinter;
 import com.google.dart.tools.ui.text.DartPartitions;
@@ -53,16 +46,16 @@ import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextPresentationListener;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.ITextViewerExtension2;
+import org.eclipse.jface.text.ITextViewerExtension4;
 import org.eclipse.jface.text.ITextViewerExtension5;
 import org.eclipse.jface.text.Position;
-import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension2;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension3;
-import org.eclipse.jface.text.contentassist.ICompletionProposalExtension4;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension5;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -74,6 +67,7 @@ import org.eclipse.jface.text.link.LinkedModeUI.IExitPolicy;
 import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.osgi.util.TextProcessor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
@@ -84,6 +78,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 import org.osgi.framework.Bundle;
 
@@ -94,7 +91,7 @@ import java.net.URL;
 
 public abstract class AbstractDartCompletionProposal implements IDartCompletionProposal,
     ICompletionProposalExtension, ICompletionProposalExtension2, ICompletionProposalExtension3,
-    ICompletionProposalExtension4, ICompletionProposalExtension5, ICompletionProposalExtension6 {
+    ICompletionProposalExtension5, ICompletionProposalExtension6 {
 
   protected static final class ExitPolicy implements IExitPolicy {
 
@@ -106,11 +103,6 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
       fDocument = document;
     }
 
-    /*
-     * @see org.eclipse.wst.jsdt.internal.ui.text.link.LinkedPositionUI.ExitPolicy
-     * #doExit(org.eclipse.wst.jsdt.internal.ui.text.link.LinkedPositionManager,
-     * org.eclipse.swt.events.VerifyEvent, int, int)
-     */
     @Override
     public ExitFlags doExit(LinkedModeModel environment, VerifyEvent event, int offset, int length) {
 
@@ -126,7 +118,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
         case ';':
           return new ExitFlags(ILinkedModeListener.NONE, true);
         case SWT.CR:
-          // when entering an anonymous class as a parameter, we don't want
+          // when entering a function as a parameter, we don't want
           // to jump after the parenthesis when return is pressed
           if (offset > 0) {
             try {
@@ -200,22 +192,18 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
    * The control creator.
    */
   private static final class ControlCreator extends AbstractReusableInformationControlCreator {
-    /*
-     * @see com.google.dart.tools.ui.internal.text.dart.hover.
-     * AbstractReusableInformationControlCreator
-     * #doCreateInformationControl(org.eclipse.swt.widgets.Shell)
-     */
     @Override
     public IInformationControl doCreateInformationControl(Shell parent) {
       return new BrowserInformationControl(parent, SWT.NO_TRIM | SWT.TOOL, SWT.NONE, null);
     }
   }
 
-  protected static DartUnit getAST(DartElement sr) {
-    return ASTProvider.getASTProvider().getAST(sr, ASTProvider.WAIT_YES, null);
+  protected static boolean insertCompletion() {
+    IPreferenceStore preference = DartToolsPlugin.getDefault().getPreferenceStore();
+    return preference.getBoolean(PreferenceConstants.CODEASSIST_INSERT_COMPLETION);
   }
 
-  private static Color getBackgroundColor(StyledText text) {
+  private static Color getBackgroundColor() {
     IPreferenceStore preference = DartToolsPlugin.getDefault().getPreferenceStore();
     RGB rgb = PreferenceConverter.getColor(preference,
         PreferenceConstants.CODEASSIST_REPLACEMENT_BACKGROUND);
@@ -223,7 +211,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     return textTools.getColorManager().getColor(rgb);
   }
 
-  private static Color getForegroundColor(StyledText text) {
+  private static Color getForegroundColor() {
     IPreferenceStore preference = DartToolsPlugin.getDefault().getPreferenceStore();
     RGB rgb = PreferenceConverter.getColor(preference,
         PreferenceConstants.CODEASSIST_REPLACEMENT_FOREGROUND);
@@ -231,12 +219,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     return textTools.getColorManager().getColor(rgb);
   }
 
-  private static boolean insertCompletion() {
-    IPreferenceStore preference = DartToolsPlugin.getDefault().getPreferenceStore();
-    return preference.getBoolean(PreferenceConstants.CODEASSIST_INSERT_COMPLETION);
-  }
-
-  private String fDisplayString;
+  private StyledString fDisplayString;
   private String fReplacementString;
   private int fReplacementOffset;
   private int fReplacementLength;
@@ -244,13 +227,15 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   private Image fImage;
   private IContextInformation fContextInformation;
   private ProposalInfo fProposalInfo;
+
   private char[] fTriggerCharacters;
 
   private String fSortString;
   private int fRelevance;
-  private boolean fIsInJavadoc;
 
+  private boolean fIsInJavadoc;
   private StyleRange fRememberedStyleRange;
+
   private boolean fToggleEating;
 
   private ITextViewer fTextViewer;
@@ -270,6 +255,16 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
    */
   protected final DartContentAssistInvocationContext fInvocationContext;
 
+  /**
+   * Cache to store last validation state.
+   */
+  private boolean fIsValidated = true;
+
+  /**
+   * The text presentation listener.
+   */
+  private ITextPresentationListener fTextPresentationListener;
+
   protected AbstractDartCompletionProposal() {
     fInvocationContext = null;
   }
@@ -278,57 +273,28 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     fInvocationContext = context;
   }
 
-  /*
-   * @see ICompletionProposal#apply
-   */
   @Override
   public final void apply(IDocument document) {
     // not used any longer
     apply(document, (char) 0, getReplacementOffset() + getReplacementLength());
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension#apply
-   * (org.eclipse.jface.text.IDocument, char, int)
-   */
   @Override
   public void apply(IDocument document, char trigger, int offset) {
 
     if (isSupportingRequiredProposals()) {
-      DartX.todo("CompletionProposal must be ported from JSDT");
-      CompletionProposal coreProposal = ((MemberProposalInfo) fProposalInfo).fProposal;
+      CompletionProposal coreProposal = ((MemberProposalInfo) getProposalInfo()).fProposal;
       CompletionProposal[] requiredProposals = coreProposal.getRequiredProposals();
       for (int i = 0; requiredProposals != null && i < requiredProposals.length; i++) {
         int oldLen = document.getLength();
         if (requiredProposals[i].getKind() == CompletionProposal.TYPE_REF) {
-          LazyDartCompletionProposal proposal = new LazyDartTypeCompletionProposal(
+          LazyDartCompletionProposal proposal = createRequiredTypeCompletionProposal(
               requiredProposals[i], fInvocationContext);
           proposal.apply(document);
           setReplacementOffset(getReplacementOffset() + document.getLength() - oldLen);
-//        } else if (requiredProposals[i].getKind() == CompletionProposal.TYPE_IMPORT) {
-//          ImportCompletionProposal proposal = new ImportCompletionProposal(
-//              requiredProposals[i], fInvocationContext, coreProposal.getKind());
-//          proposal.setReplacementOffset(getReplacementOffset());
-//          proposal.apply(document);
-//          setReplacementOffset(getReplacementOffset() + document.getLength()
-//              - oldLen);
-//        } else if (requiredProposals[i].getKind() == CompletionProposal.METHOD_IMPORT) {
-//          ImportCompletionProposal proposal = new ImportCompletionProposal(
-//              requiredProposals[i], fInvocationContext, coreProposal.getKind());
-//          proposal.setReplacementOffset(getReplacementOffset());
-//          proposal.apply(document);
-//          setReplacementOffset(getReplacementOffset() + document.getLength()
-//              - oldLen);
-//        } else if (requiredProposals[i].getKind() == CompletionProposal.FIELD_IMPORT) {
-//          ImportCompletionProposal proposal = new ImportCompletionProposal(
-//              requiredProposals[i], fInvocationContext, coreProposal.getKind());
-//          proposal.setReplacementOffset(getReplacementOffset());
-//          proposal.apply(document);
-//          setReplacementOffset(getReplacementOffset() + document.getLength()
-//              - oldLen);
         } else {
           /*
-           * In 3.3 we only support the above required proposals, see
+           * we only support the above required proposals, see
            * CompletionProposal#getRequiredProposals()
            */
           Assert.isTrue(false);
@@ -337,12 +303,6 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     }
 
     try {
-      // patch replacement length
-      int delta = offset - (getReplacementOffset() + getReplacementLength());
-      if (delta > 0) {
-        setReplacementLength(getReplacementLength() + delta);
-      }
-
       boolean isSmartTrigger = isSmartTrigger(trigger);
 
       String replacement;
@@ -381,10 +341,6 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     }
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension1#apply
-   * (org.eclipse.jface.text.ITextViewer, char, int, int)
-   */
   @Override
   public void apply(ITextViewer viewer, char trigger, int stateMask, int offset) {
 
@@ -393,10 +349,9 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
       fTextViewer = viewer;
     }
 
-    // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=96059
     // don't apply the proposal if for some reason we're not valid any longer
-    if (!isInJavadoc() && !validate(document, offset, null)) {
-      setCursorPosition(offset - getReplacementOffset());
+    if (!isInDartDoc() && !validate(document, offset, null)) {
+      setCursorPosition(offset);
       if (trigger != '\0') {
         try {
           document.replace(offset, 0, String.valueOf(trigger));
@@ -412,10 +367,10 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
       return;
     }
 
-    // don't eat if not in preferences, XOR with modifier key 1 (Ctrl)
+    // don't eat if not in preferences, XOR with Ctrl
     // but: if there is a selection, replace it!
     Point selection = viewer.getSelectedRange();
-    fToggleEating = (stateMask & SWT.MOD1) != 0;
+    fToggleEating = (stateMask & SWT.CTRL) != 0;
     int newLength = selection.x + selection.y - getReplacementOffset();
     if ((insertCompletion() ^ fToggleEating) && newLength >= 0) {
       setReplacementLength(newLength);
@@ -425,19 +380,12 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     fToggleEating = false;
   }
 
-  /*
-   * @see ICompletionProposal#getAdditionalProposalInfo()
-   */
   @Override
   public String getAdditionalProposalInfo() {
     Object info = getAdditionalProposalInfo(new NullProgressMonitor());
-    return info == null ? (String) info : info.toString();
+    return info == null ? null : info.toString();
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension5#
-   * getAdditionalProposalInfo(org.eclipse.core.runtime.IProgressMonitor)
-   */
   @Override
   public Object getAdditionalProposalInfo(IProgressMonitor monitor) {
     if (getProposalInfo() != null) {
@@ -454,17 +402,11 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     return null;
   }
 
-  /*
-   * @see ICompletionProposal#getContextInformation()
-   */
   @Override
   public IContextInformation getContextInformation() {
     return fContextInformation;
   }
 
-  /*
-   * @see ICompletionProposalExtension#getContextInformationPosition()
-   */
   @Override
   public int getContextInformationPosition() {
     if (getContextInformation() == null) {
@@ -473,26 +415,35 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     return getReplacementOffset() + getCursorPosition();
   }
 
-  /*
-   * @see ICompletionProposal#getDisplayString()
+  /**
+   * Returns the java element proposed by the receiver, possibly <code>null</code>.
+   * 
+   * @return the java element proposed by the receiver, possibly <code>null</code>
    */
-  @Override
-  public String getDisplayString() {
-    return fDisplayString;
+  public DartElement getDartElement() {
+    if (getProposalInfo() != null) {
+      try {
+        return getProposalInfo().getJavaElement();
+      } catch (DartModelException x) {
+        DartToolsPlugin.log(x);
+      }
+    }
+    return null;
   }
 
-  /*
-   * @see ICompletionProposal#getImage()
-   */
+  @Override
+  public String getDisplayString() {
+    if (fDisplayString != null) {
+      return fDisplayString.getString();
+    }
+    return ""; //$NON-NLS-1$
+  }
+
   @Override
   public Image getImage() {
     return fImage;
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension3#
-   * getInformationControlCreator()
-   */
   @Override
   public IInformationControlCreator getInformationControlCreator() {
     Shell shell = DartToolsPlugin.getActiveWorkbenchShell();
@@ -506,33 +457,11 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     return fCreator;
   }
 
-  /**
-   * Returns the java element proposed by the receiver, possibly <code>null</code>.
-   * 
-   * @return the java element proposed by the receiver, possibly <code>null</code>
-   */
-  public DartElement getJavaElement() {
-    if (getProposalInfo() != null) {
-      try {
-        return getProposalInfo().getJavaElement();
-      } catch (DartModelException x) {
-        DartToolsPlugin.log(x);
-      }
-    }
-    return null;
-  }
-
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension3# getCompletionOffset()
-   */
   @Override
   public int getPrefixCompletionStart(IDocument document, int completionOffset) {
     return getReplacementOffset();
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension3# getReplacementText()
-   */
   @Override
   public CharSequence getPrefixCompletionText(IDocument document, int completionOffset) {
     if (!isCamelCaseMatching()) {
@@ -546,7 +475,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   /**
    * Gets the proposal's relevance.
    * 
-   * @return Returns a int
+   * @return Returns an int
    */
   @Override
   public int getRelevance() {
@@ -556,7 +485,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   /**
    * Gets the replacement length.
    * 
-   * @return Returns a int
+   * @return Returns an int
    */
   public int getReplacementLength() {
     return fReplacementLength;
@@ -565,7 +494,7 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   /**
    * Gets the replacement offset.
    * 
-   * @return Returns a int
+   * @return Returns an int
    */
   public int getReplacementOffset() {
     return fReplacementOffset;
@@ -580,11 +509,11 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     return fReplacementString;
   }
 
-  /*
-   * @see ICompletionProposal#getSelection
-   */
   @Override
   public Point getSelection(IDocument document) {
+    if (!fIsValidated) {
+      return null;
+    }
     return new Point(getReplacementOffset() + getCursorPosition(), 0);
   }
 
@@ -592,64 +521,51 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     return fSortString;
   }
 
-  /**
-   * Returns the styled string used to display this proposal in the list of completion proposals.
-   * This can for example be used to draw mixed colored labels.
-   * <p>
-   * <strong>Note:</strong> {@link ICompletionProposal#getDisplayString()} still needs to be
-   * correctly implemented as this method might be ignored in case of uninstalled owner draw
-   * support.
-   * </p>
-   * 
-   * @return the string builder used to display this proposal
-   */
   @Override
   public StyledString getStyledDisplayString() {
-    return new StyledString(getDisplayString());
+    return fDisplayString;
   }
 
-  /*
-   * @see ICompletionProposalExtension#getTriggerCharacters()
-   */
   @Override
   public char[] getTriggerCharacters() {
     return fTriggerCharacters;
   }
 
-  /**
-   * Returns <code>true</code> if the proposal may be automatically inserted, <code>false</code>
-   * otherwise. Automatic insertion can happen if the proposal is the only one being proposed, in
-   * which case the content assistant may decide to not prompt the user with a list of proposals,
-   * but simply insert the single proposal. A proposal may veto this behavior by returning
-   * <code>false</code> to a call to this method.
-   * 
-   * @return <code>true</code> if the proposal may be inserted automatically, <code>false</code> if
-   *         not
-   */
-  @Override
-  public boolean isAutoInsertable() {
-    return false;
-  }
-
-  /*
-   * @see ICompletionProposalExtension#isValidFor(IDocument, int)
-   */
   @Override
   public boolean isValidFor(IDocument document, int offset) {
     return validate(document, offset, null);
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension2#selected (ITextViewer,
-   * boolean)
-   */
   @Override
-  public void selected(ITextViewer viewer, boolean smartToggle) {
+  public void selected(final ITextViewer viewer, boolean smartToggle) {
+    repairPresentation(viewer);
+    fRememberedStyleRange = null;
+
     if (!insertCompletion() ^ smartToggle) {
-      updateStyle(viewer);
-    } else {
-      repairPresentation(viewer);
-      fRememberedStyleRange = null;
+      StyleRange range = createStyleRange(viewer);
+      if (range == null) {
+        return;
+      }
+
+      fRememberedStyleRange = range;
+
+      if (viewer instanceof ITextViewerExtension4) {
+        if (fTextPresentationListener == null) {
+          fTextPresentationListener = new ITextPresentationListener() {
+            @Override
+            public void applyTextPresentation(TextPresentation textPresentation) {
+              fRememberedStyleRange = createStyleRange(viewer);
+              if (fRememberedStyleRange != null) {
+                textPresentation.mergeStyleRange(fRememberedStyleRange);
+              }
+            }
+          };
+          ((ITextViewerExtension4) viewer).addTextPresentationListener(fTextPresentationListener);
+        }
+        repairPresentation(viewer);
+      } else {
+        updateStyle(viewer);
+      }
     }
   }
 
@@ -731,6 +647,10 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     fReplacementString = replacementString;
   }
 
+  public void setStyledDisplayString(StyledString text) {
+    fDisplayString = text;
+  }
+
   /**
    * Sets the trigger characters.
    * 
@@ -741,50 +661,61 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     fTriggerCharacters = triggerCharacters;
   }
 
-  /*
-   * @see java.lang.Object#toString()
-   */
   @Override
   public String toString() {
     return getDisplayString();
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension2#unselected
-   * (ITextViewer)
-   */
   @Override
   public void unselected(ITextViewer viewer) {
+    if (fTextPresentationListener != null) {
+      ((ITextViewerExtension4) viewer).removeTextPresentationListener(fTextPresentationListener);
+      fTextPresentationListener = null;
+    }
     repairPresentation(viewer);
     fRememberedStyleRange = null;
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension2#validate
-   * (org.eclipse.jface.text.IDocument, int, org.eclipse.jface.text.DocumentEvent)
-   */
   @Override
   public boolean validate(IDocument document, int offset, DocumentEvent event) {
 
-    if (offset < getReplacementOffset()) {
-      return false;
+    if (!isOffsetValid(offset)) {
+      return fIsValidated = false;
     }
 
-    boolean validated = isValidPrefix(getPrefix(document, offset));
+    fIsValidated = isValidPrefix(getPrefix(document, offset));
 
-    if (validated && event != null) {
+    if (fIsValidated && event != null) {
       // adapt replacement range to document change
       int delta = (event.fText == null ? 0 : event.fText.length()) - event.fLength;
       final int newLength = Math.max(getReplacementLength() + delta, 0);
       setReplacementLength(newLength);
     }
 
-    return validated;
+    return fIsValidated;
   }
 
   protected boolean autocloseBrackets() {
     IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
     return preferenceStore.getBoolean(PreferenceConstants.EDITOR_CLOSE_BRACKETS);
+  }
+
+  /**
+   * Creates the required type proposal.
+   * 
+   * @param completionProposal the core completion proposal
+   * @param invocationContext invocation context
+   * @return the required type completion proposal
+   */
+  protected LazyDartCompletionProposal createRequiredTypeCompletionProposal(
+      CompletionProposal completionProposal, DartContentAssistInvocationContext invocationContext) {
+    if (PreferenceConstants.getPreferenceStore().getBoolean(
+        PreferenceConstants.CODEASSIST_FILL_ARGUMENT_NAMES)) {
+      return (LazyDartCompletionProposal) new FillArgumentNamesCompletionProposalCollector(
+          invocationContext).createDartCompletionProposal(completionProposal);
+    } else {
+      return new LazyDartTypeCompletionProposal(completionProposal, invocationContext);
+    }
   }
 
   /**
@@ -827,18 +758,19 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   }
 
   /**
-   * Returns the style information for displaying HTML (Javadoc) content.
+   * Returns the style information for displaying HTML content.
    * 
    * @return the CSS styles
    */
   protected String getCSSStyles() {
     if (fgCSSStyles == null) {
       Bundle bundle = Platform.getBundle(DartToolsPlugin.getPluginId());
-      URL url = bundle.getEntry("/JavadocHoverStyleSheet.css"); //$NON-NLS-1$
+      URL url = bundle.getEntry("/DartdocHoverStyleSheet.css"); //$NON-NLS-1$
       if (url != null) {
+        BufferedReader reader = null;
         try {
           url = FileLocator.toFileURL(url);
-          BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+          reader = new BufferedReader(new InputStreamReader(url.openStream()));
           StringBuffer buffer = new StringBuffer(200);
           String line = reader.readLine();
           while (line != null) {
@@ -849,7 +781,15 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
           fgCSSStyles = buffer.toString();
         } catch (IOException ex) {
           DartToolsPlugin.log(ex);
+        } finally {
+          try {
+            if (reader != null) {
+              reader.close();
+            }
+          } catch (IOException e) {
+          }
         }
+
       }
     }
     String css = fgCSSStyles;
@@ -904,24 +844,36 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
    * @return <code>true</code> if camel case matching is enabled
    */
   protected boolean isCamelCaseMatching() {
-    DartProject project = getProject();
-    String value;
-    if (project == null) {
-      value = DartCore.getOption(JavaScriptCore.CODEASSIST_CAMEL_CASE_MATCH);
-    } else {
-      value = project.getOption(JavaScriptCore.CODEASSIST_CAMEL_CASE_MATCH, true);
-    }
-
+    String value = JavaScriptCore.getOption(JavaScriptCore.CODEASSIST_CAMEL_CASE_MATCH);
     return JavaScriptCore.ENABLED.equals(value);
   }
 
   /**
-   * Returns <code>true</code> if the proposal is within javadoc, <code>false</code> otherwise.
+   * Returns <code>true</code> if the proposal is within Dart doc, <code>false</code> otherwise.
    * 
-   * @return <code>true</code> if the proposal is within javadoc, <code>false</code> otherwise
+   * @return <code>true</code> if the proposal is within Dart doc, <code>false</code> otherwise
    */
-  protected boolean isInJavadoc() {
+  protected boolean isInDartDoc() {
     return fIsInJavadoc;
+  }
+
+  /**
+   * Tells whether the user toggled the insert mode by pressing the 'Ctrl' key.
+   * 
+   * @return <code>true</code> if the insert mode is toggled, <code>false</code> otherwise
+   */
+  protected boolean isInsertModeToggled() {
+    return fToggleEating;
+  }
+
+  /**
+   * Checks whether the given offset is valid for this proposal.
+   * 
+   * @param offset the caret offset
+   * @return <code>true</code> if the offset is valid for this proposal
+   */
+  protected boolean isOffsetValid(int offset) {
+    return getReplacementOffset() <= offset;
   }
 
   /**
@@ -946,18 +898,24 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
    * Tells whether required proposals are supported by this proposal.
    * 
    * @return <code>true</code> if required proposals are supported by this proposal
-   * @see CompletionProposal#getRequiredProposals()
    */
   protected boolean isSupportingRequiredProposals() {
-    if (fInvocationContext == null || !(fProposalInfo instanceof MemberProposalInfo)) {
+    if (fInvocationContext == null) {
       return false;
     }
 
-    DartX.todo();
-    return true;
-//    CompletionProposal proposal = ((MemberProposalInfo) fProposalInfo).fProposal;
-//    return proposal != null
-//        && (proposal.getKind() == CompletionProposal.METHOD_REF || proposal.getKind() == CompletionProposal.FIELD_REF);
+    ProposalInfo proposalInfo = getProposalInfo();
+    if (!(proposalInfo instanceof MemberProposalInfo)) {
+      return false;
+    }
+
+    CompletionProposal proposal = ((MemberProposalInfo) proposalInfo).fProposal;
+    return proposal != null
+        && (proposal.getKind() == CompletionProposal.METHOD_REF
+            || proposal.getKind() == CompletionProposal.FIELD_REF
+            || proposal.getKind() == CompletionProposal.TYPE_REF
+//          || proposal.getKind() == CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION
+        || proposal.getKind() == CompletionProposal.CONSTRUCTOR_INVOCATION);
   }
 
   protected boolean isToggleEating() {
@@ -982,8 +940,11 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     /*
      * See http://dev.eclipse.org/bugs/show_bug.cgi?id=17667 why we do not use the replacement
      * string. String word= fReplacementString;
+     * 
+     * Besides that bug we also use the display string for performance reasons, as computing the
+     * replacement string can be expensive.
      */
-    return isPrefix(prefix, getDisplayString());
+    return isPrefix(prefix, TextProcessor.deprocess(getDisplayString()));
   }
 
   protected final void replace(IDocument document, int offset, int length, String string)
@@ -994,15 +955,15 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   }
 
   protected void setDisplayString(String string) {
-    fDisplayString = string;
+    fDisplayString = new StyledString(string);
   }
 
   /**
-   * Sets the javadoc attribute.
+   * Sets the Dava doc attribute.
    * 
    * @param isInJavadoc <code>true</code> if the proposal is within javadoc
    */
-  protected void setInJavadoc(boolean isInJavadoc) {
+  protected void setInDartDoc(boolean isInJavadoc) {
     fIsInJavadoc = isInJavadoc;
   }
 
@@ -1042,9 +1003,71 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
     }
   }
 
-  private DartProject getProject() {
-    // TODO Auto-generated method stub
+  /**
+   * Creates a style range for the text viewer.
+   * 
+   * @param viewer the text viewer
+   * @return the new style range for the text viewer or <code>null</code>
+   */
+  private StyleRange createStyleRange(ITextViewer viewer) {
+    StyledText text = viewer.getTextWidget();
+    if (text == null || text.isDisposed()) {
+      return null;
+    }
+
+    int widgetCaret = text.getCaretOffset();
+
+    int modelCaret = 0;
+    if (viewer instanceof ITextViewerExtension5) {
+      ITextViewerExtension5 extension = (ITextViewerExtension5) viewer;
+      modelCaret = extension.widgetOffset2ModelOffset(widgetCaret);
+    } else {
+      IRegion visibleRegion = viewer.getVisibleRegion();
+      modelCaret = widgetCaret + visibleRegion.getOffset();
+    }
+
+    if (modelCaret >= getReplacementOffset() + getReplacementLength()) {
+      return null;
+    }
+
+    int length = getReplacementOffset() + getReplacementLength() - modelCaret;
+
+    Color foreground = getForegroundColor();
+    Color background = getBackgroundColor();
+
+    return new StyleRange(modelCaret, length, foreground, background);
+  }
+
+  @SuppressWarnings("unused")
+  private IWorkbenchSite getSite() {
+    IWorkbenchPage page = DartToolsPlugin.getActivePage();
+    if (page != null) {
+      IWorkbenchPart part = page.getActivePart();
+      if (part != null) {
+        return part.getSite();
+      }
+    }
     return null;
+  }
+
+  /**
+   * Convert a document offset to the corresponding widget offset.
+   * 
+   * @param viewer the text viewer
+   * @param documentOffset the document offset
+   * @return widget offset
+   */
+  private int getWidgetOffset(ITextViewer viewer, int documentOffset) {
+    if (viewer instanceof ITextViewerExtension5) {
+      ITextViewerExtension5 extension = (ITextViewerExtension5) viewer;
+      return extension.modelOffset2WidgetOffset(documentOffset);
+    }
+    IRegion visible = viewer.getVisibleRegion();
+    int widgetOffset = documentOffset - visible.getOffset();
+    if (widgetOffset > visible.getLength()) {
+      return -1;
+    }
+    return widgetOffset;
   }
 
   private void handleSmartTrigger(IDocument document, char trigger, int referenceOffset)
@@ -1081,21 +1104,8 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
       if (viewer instanceof ITextViewerExtension2) {
         // attempts to reduce the redraw area
         ITextViewerExtension2 viewer2 = (ITextViewerExtension2) viewer;
-
-        if (viewer instanceof ITextViewerExtension5) {
-
-          ITextViewerExtension5 extension = (ITextViewerExtension5) viewer;
-          IRegion modelRange = extension.widgetRange2ModelRange(new Region(
-              fRememberedStyleRange.start, fRememberedStyleRange.length));
-          if (modelRange != null) {
-            viewer2.invalidateTextPresentation(modelRange.getOffset(), modelRange.getLength());
-          }
-
-        } else {
-          viewer2.invalidateTextPresentation(fRememberedStyleRange.start
-              + viewer.getVisibleRegion().getOffset(), fRememberedStyleRange.length);
-        }
-
+        viewer2.invalidateTextPresentation(fRememberedStyleRange.start,
+            fRememberedStyleRange.length);
       } else {
         viewer.invalidateTextPresentation();
       }
@@ -1103,50 +1113,23 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   }
 
   private void updateStyle(ITextViewer viewer) {
-
     StyledText text = viewer.getTextWidget();
-    if (text == null || text.isDisposed()) {
-      return;
-    }
-
-    int widgetCaret = text.getCaretOffset();
-
-    int modelCaret = 0;
-    if (viewer instanceof ITextViewerExtension5) {
-      ITextViewerExtension5 extension = (ITextViewerExtension5) viewer;
-      modelCaret = extension.widgetOffset2ModelOffset(widgetCaret);
-    } else {
-      IRegion visibleRegion = viewer.getVisibleRegion();
-      modelCaret = widgetCaret + visibleRegion.getOffset();
-    }
-
-    if (modelCaret >= getReplacementOffset() + getReplacementLength()) {
-      repairPresentation(viewer);
-      return;
-    }
-
-    int offset = widgetCaret;
-    int length = getReplacementOffset() + getReplacementLength() - modelCaret;
-
-    Color foreground = getForegroundColor(text);
-    Color background = getBackgroundColor(text);
-
-    StyleRange range = text.getStyleRangeAtOffset(offset);
-    int fontStyle = range != null ? range.fontStyle : SWT.NORMAL;
-
-    repairPresentation(viewer);
-    fRememberedStyleRange = new StyleRange(offset, length, foreground, background, fontStyle);
-    if (range != null) {
-      fRememberedStyleRange.strikeout = range.strikeout;
-      fRememberedStyleRange.underline = range.underline;
+    int widgetOffset = getWidgetOffset(viewer, fRememberedStyleRange.start);
+    StyleRange range = new StyleRange(fRememberedStyleRange);
+    range.start = widgetOffset;
+    range.length = fRememberedStyleRange.length;
+    StyleRange currentRange = text.getStyleRangeAtOffset(widgetOffset);
+    if (currentRange != null) {
+      range.strikeout = currentRange.strikeout;
+      range.underline = currentRange.underline;
+      range.fontStyle = currentRange.fontStyle;
     }
 
     // http://dev.eclipse.org/bugs/show_bug.cgi?id=34754
     try {
-      text.setStyleRange(fRememberedStyleRange);
+      text.setStyleRange(range);
     } catch (IllegalArgumentException x) {
-      // catching exception as offset + length might be outside of the text
-      // widget
+      // catching exception as offset + length might be outside of the text widget
       fRememberedStyleRange = null;
     }
   }

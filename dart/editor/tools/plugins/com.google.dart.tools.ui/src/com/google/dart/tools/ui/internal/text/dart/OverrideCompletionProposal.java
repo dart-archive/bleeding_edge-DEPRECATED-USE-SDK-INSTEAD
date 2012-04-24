@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -23,26 +21,32 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension4;
+import org.eclipse.jface.viewers.StyledString;
 
-/**
- * From the Dart Guide:
- * <p>
- * A function overrides a function in a superclass if the function in the superclass has the same
- * name.
- * <p>
- * It is an error if the number of arguments is different between a function and the overriden
- * function, or if either function is static. Default arguments and variable arguments must also
- * match, or it is an error.
- */
 public class OverrideCompletionProposal extends DartTypeCompletionProposal implements
     ICompletionProposalExtension4 {
 
+//  private static String getIndentAt(IDocument document, int offset, CodeGenerationSettings settings) {
+//    try {
+//      IRegion region = document.getLineInformationOfOffset(offset);
+//      return IndentManipulation.extractIndentString(
+//          document.get(region.getOffset(), region.getLength()), settings.tabWidth,
+//          settings.indentWidth);
+//    } catch (BadLocationException e) {
+//      return ""; //$NON-NLS-1$
+//    }
+//  }
+
+  @SuppressWarnings("unused")
   private DartProject fJavaProject;
   private String fMethodName;
+
+  @SuppressWarnings("unused")
   private String[] fParamTypes;
 
   public OverrideCompletionProposal(DartProject jproject, CompilationUnit cu, String methodName,
-      String[] paramTypes, int start, int length, String displayName, String completionProposal) {
+      String[] paramTypes, int start, int length, StyledString displayName,
+      String completionProposal) {
     super(completionProposal, cu, start, length, null, displayName, 0);
     Assert.isNotNull(jproject);
     Assert.isNotNull(methodName);
@@ -61,128 +65,112 @@ public class OverrideCompletionProposal extends DartTypeCompletionProposal imple
     setReplacementString(buffer.toString());
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension3#
-   * getPrefixCompletionText(org.eclipse.jface.text.IDocument,int)
-   */
   @Override
   public CharSequence getPrefixCompletionText(IDocument document, int completionOffset) {
     return fMethodName;
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension4# isAutoInsertable()
-   */
   @Override
   public boolean isAutoInsertable() {
     return false;
   }
 
-  /*
-   * @see DartTypeCompletionProposal#updateReplacementString(IDocument,char,int, ImportRewrite)
-   */
   @Override
   protected boolean updateReplacementString(IDocument document, char trigger, int offset,
       ImportRewrite importRewrite) throws CoreException, BadLocationException {
-
-    //TODO (pquitslund): implement updateReplacementString for Overrrides
-    return super.updateReplacementString(document, trigger, offset, importRewrite);
-
-//    final IDocument buffer = new Document(document.get());
-//    int index = offset - 1;
-//    while (index >= 0 && Character.isJavaIdentifierPart(buffer.getChar(index)))
-//      index--;
-//    final int length = offset - index - 1;
-//    buffer.replace(index + 1, length, " "); //$NON-NLS-1$
-////    final ASTParser parser = ASTParser.newParser(AST.JLS3);
-////    parser.setResolveBindings(true);
-////    parser.setStatementsRecovery(true);
-////    parser.setSource(buffer.get().toCharArray());
-////    parser.setUnitName(fCompilationUnit.getResource().getFullPath().toString());
-////    parser.setProject(fCompilationUnit.getDartProject());
-////    final DartUnit unit = (DartUnit) parser.createAST(new NullProgressMonitor());
-//    final DartUnit unit = DartCompilerUtilities.resolveUnit(fCompilationUnit);
-//    ClassElement binding = null;
-//    ChildListPropertyDescriptor descriptor = null;
-//    DartNode node = NodeFinder.perform(unit, index + 1, 0);
-////    if (node instanceof AnonymousClassDeclaration) {
-////      switch (node.getParent().getNodeType()) {
-////        case DartNode.CLASS_INSTANCE_CREATION:
-////          binding = ((ClassInstanceCreation) node.getParent()).resolveTypeBinding();
-////          break;
-////      }
-////      descriptor = AnonymousClassDeclaration.BODY_DECLARATIONS_PROPERTY;
-////    } else
-//    if (node instanceof DartClass) {
-//      final DartClass declaration = ((DartClass) node);
-//      descriptor = (ChildListPropertyDescriptor) PropertyDescriptorHelper.DART_CLASS_MEMBERS;
-//      binding = declaration.getSymbol();
-//    }
-//    if (binding != null) {
-//      ASTRewrite rewrite = ASTRewrite.create(new AST());
-//      IFunctionBinding[] bindings = StubUtility2.getOverridableMethods(
-//          rewrite.getAST(), binding, true);
-//      if (bindings != null && bindings.length > 0) {
-//        List<IFunctionBinding> candidates = new ArrayList<IFunctionBinding>(bindings.length);
-//        IFunctionBinding method = null;
-//        for (index = 0; index < bindings.length; index++) {
-//          if (bindings[index].getName().equals(fMethodName)
-//              && bindings[index].getParameterTypes().length == fParamTypes.length)
-//            candidates.add(bindings[index]);
+//    Document recoveredDocument = new Document();
+//    CompilationUnit unit = getRecoveredAST(document, offset, recoveredDocument);
+//    ImportRewriteContext context;
+//    if (importRewrite != null) {
+//      context = new ContextSensitiveImportRewriteContext(unit, offset, importRewrite);
+//    } else {
+//      importRewrite = StubUtility.createImportRewrite(unit, true); // create a dummy import rewriter to have one
+//      context = new ImportRewriteContext() { // forces that all imports are fully qualified
+//        @Override
+//        public int findInContext(String qualifier, String name, int kind) {
+//          return RES_NAME_CONFLICT;
 //        }
-//        if (candidates.size() > 1) {
-//          method = Bindings.findMethodInHierarchy(binding, fMethodName,
-//              fParamTypes);
-//          if (method == null) {
-//            ITypeBinding objectType = rewrite.getAST().resolveWellKnownType(
-//                "java.lang.Object"); //$NON-NLS-1$
-//            method = Bindings.findMethodInType(objectType, fMethodName,
-//                fParamTypes);
-//          }
-//        } else if (candidates.size() == 1)
-//          method = (IFunctionBinding) candidates.get(0);
-//        if (method != null) {
-//          CodeGenerationSettings settings = JavaPreferencesSettings.getCodeGenerationSettings(fJavaProject);
-//          ListRewrite rewriter = rewrite.getListRewrite(node, descriptor);
-//          String key = method.getKey();
-//          FunctionDeclaration stub = null;
-//          for (index = 0; index < bindings.length; index++) {
-//            if (key.equals(bindings[index].getKey())) {
-//              stub = StubUtility2.createImplementationStub(fCompilationUnit,
-//                  rewrite, importRewrite, bindings[index], binding.getName(),
-//                  false, settings);
-//              if (stub != null)
-//                rewriter.insertFirst(stub, null);
-//              break;
-//            }
-//          }
-//          if (stub != null) {
-//            IDocument contents = new Document(
-//                fCompilationUnit.getBuffer().getContents());
-//            IRegion region = contents.getLineInformationOfOffset(getReplacementOffset());
-//            ITrackedNodePosition position = rewrite.track(stub);
-//            String indent = IndentManipulation.extractIndentString(
-//                contents.get(region.getOffset(), region.getLength()),
-//                settings.tabWidth, settings.indentWidth);
-//            try {
-//              rewrite.rewriteAST(contents, fJavaProject.getOptions(true)).apply(
-//                  contents, TextEdit.UPDATE_REGIONS);
-//            } catch (MalformedTreeException exception) {
-//              DartToolsPlugin.log(exception);
-//            } catch (BadLocationException exception) {
-//              DartToolsPlugin.log(exception);
-//            }
-//            setReplacementString(IndentManipulation.changeIndent(
-//                Strings.trimIndentation(
-//                    contents.get(position.getStartPosition(),
-//                        position.getLength()), settings.tabWidth,
-//                    settings.indentWidth, false), 0, settings.tabWidth,
-//                settings.indentWidth, indent,
-//                TextUtilities.getDefaultLineDelimiter(contents)));
-//          }
+//      };
+//    }
+//
+//    ITypeBinding declaringType = null;
+//    ChildListPropertyDescriptor descriptor = null;
+//    ASTNode node = NodeFinder.perform(unit, offset, 1);
+//    if (node instanceof AnonymousClassDeclaration) {
+//      declaringType = ((AnonymousClassDeclaration) node).resolveBinding();
+//      descriptor = AnonymousClassDeclaration.BODY_DECLARATIONS_PROPERTY;
+//    } else if (node instanceof AbstractTypeDeclaration) {
+//      AbstractTypeDeclaration declaration = (AbstractTypeDeclaration) node;
+//      descriptor = declaration.getBodyDeclarationsProperty();
+//      declaringType = declaration.resolveBinding();
+//    }
+//    if (declaringType != null) {
+//      ASTRewrite rewrite = ASTRewrite.create(unit.getAST());
+//      IMethodBinding methodToOverride = Bindings.findMethodInHierarchy(declaringType, fMethodName,
+//          fParamTypes);
+//      if (methodToOverride == null && declaringType.isInterface()) {
+//        methodToOverride = Bindings.findMethodInType(
+//            node.getAST().resolveWellKnownType("java.lang.Object"), fMethodName, fParamTypes); //$NON-NLS-1$
+//      }
+//      if (methodToOverride != null) {
+//        CodeGenerationSettings settings = JavaPreferencesSettings.getCodeGenerationSettings(fJavaProject);
+//        MethodDeclaration stub = StubUtility2.createImplementationStub(fCompilationUnit, rewrite,
+//            importRewrite, context, methodToOverride, declaringType.getName(), settings,
+//            declaringType.isInterface());
+//        ListRewrite rewriter = rewrite.getListRewrite(node, descriptor);
+//        rewriter.insertFirst(stub, null);
+//
+//        ITrackedNodePosition position = rewrite.track(stub);
+//        try {
+//          rewrite.rewriteAST(recoveredDocument, fJavaProject.getOptions(true)).apply(
+//              recoveredDocument);
+//
+//          String generatedCode = recoveredDocument.get(position.getStartPosition(),
+//              position.getLength());
+//          int generatedIndent = IndentManipulation.measureIndentUnits(
+//              getIndentAt(recoveredDocument, position.getStartPosition(), settings),
+//              settings.tabWidth, settings.indentWidth);
+//
+//          String indent = getIndentAt(document, getReplacementOffset(), settings);
+//          setReplacementString(IndentManipulation.changeIndent(generatedCode, generatedIndent,
+//              settings.tabWidth, settings.indentWidth, indent,
+//              TextUtilities.getDefaultLineDelimiter(document)));
+//
+//        } catch (MalformedTreeException exception) {
+//          JavaPlugin.log(exception);
+//        } catch (BadLocationException exception) {
+//          JavaPlugin.log(exception);
 //        }
 //      }
 //    }
-//    return true;
+    return true;
   }
+
+//  private CompilationUnit getRecoveredAST(IDocument document, int offset, Document recoveredDocument) {
+//    CompilationUnit ast = SharedASTProvider.getAST(fCompilationUnit,
+//        SharedASTProvider.WAIT_ACTIVE_ONLY, null);
+//    if (ast != null) {
+//      recoveredDocument.set(document.get());
+//      return ast;
+//    }
+//
+//    char[] content = document.get().toCharArray();
+//
+//    // clear prefix to avoid compile errors
+//    int index = offset - 1;
+//    while (index >= 0 && Character.isJavaIdentifierPart(content[index])) {
+//      content[index] = ' ';
+//      index--;
+//    }
+//
+//    recoveredDocument.set(new String(content));
+//
+//    final ASTParser parser = ASTParser.newParser(AST.JLS3);
+//    parser.setResolveBindings(true);
+//    parser.setStatementsRecovery(true);
+//    parser.setSource(content);
+//    parser.setUnitName(fCompilationUnit.getElementName());
+//    parser.setProject(fCompilationUnit.getJavaProject());
+//    return (CompilationUnit) parser.createAST(new NullProgressMonitor());
+//  }
 }
