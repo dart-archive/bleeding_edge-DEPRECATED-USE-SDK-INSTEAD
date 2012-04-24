@@ -6,13 +6,14 @@ import shutil
 import stat
 import sys
 
-HOME = os.path.dirname(os.path.realpath(__file__))
-HOME = os.path.join(HOME, os.pardir, os.pardir)
+HOME = os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.realpath(__file__))))
 BUILDER_NAME = os.environ.get('BUILDBOT_BUILDERNAME')
 
 END_SCRIPT = '''
-VM = '%s'
-D8 = '%s'
+VM = r'%s'
+D8 = r'%s'
+HOME = r'%s'
 if __name__ == '__main__':
   sys.exit(main(sys.argv))
 '''
@@ -32,7 +33,7 @@ def main(args):
               frog + '.bat')
 
   with open(frog, 'a+') as f:
-    f.write(END_SCRIPT % (vm, d8))
+    f.write(END_SCRIPT % (vm, d8, HOME))
 
   os.chmod(frog, stat.S_IXUSR | stat.S_IXGRP | stat.S_IRUSR |
            stat.S_IRGRP | stat.S_IWUSR)
