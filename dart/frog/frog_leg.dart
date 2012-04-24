@@ -10,42 +10,13 @@
 #import('lang.dart', prefix: 'frog');
 #import('../lib/compiler/compiler.dart', prefix: 'compiler');
 #import('../lib/compiler/implementation/filenames.dart');
-
-String relativize(Uri base, Uri uri) {
-  if (base.scheme == 'file' &&
-      base.scheme == uri.scheme &&
-      base.userInfo == uri.userInfo &&
-      base.domain == uri.domain &&
-      base.port == uri.port &&
-      uri.query == "" && uri.fragment == "") {
-    if (uri.path.startsWith(base.path)) {
-      return uri.path.substring(base.path.length);
-    }
-    List<String> uriParts = uri.path.split('/');
-    List<String> baseParts = base.path.split('/');
-    int common = 0;
-    int length = Math.min(uriParts.length, baseParts.length);
-    while (common < length && uriParts[common] == baseParts[common]) {
-      common++;
-    }
-    StringBuffer sb = new StringBuffer();
-    for (int i = common + 1; i < baseParts.length; i++) {
-      sb.add('../');
-    }
-    for (int i = common; i < uriParts.length - 1; i++) {
-      sb.add('${uriParts[i]}/');
-    }
-    sb.add('${uriParts.last()}');
-    return sb.toString();
-  }
-  return uri.toString();
-}
+#import('../lib/compiler/implementation/util/uri_extras.dart');
 
 bool compile(frog.World world) {
   final throwOnError = frog.options.throwOnErrors;
   final showWarnings = frog.options.showWarnings;
   final allowMockCompilation = frog.options.allowMockCompilation;
-  Uri cwd = new Uri(scheme: 'file', path: getCurrentDirectory());
+  Uri cwd = getCurrentDirectory();
   Uri uri = cwd.resolve(nativeToUriPath(frog.options.dartScript));
   String frogLibDir = nativeToUriPath(frog.options.libDir);
   if (!frogLibDir.endsWith("/")) frogLibDir = "$frogLibDir/";
@@ -98,10 +69,4 @@ class AbortLeg {
   final message;
   AbortLeg(this.message);
   toString() => 'Aborted due to --throw-on-error: $message';
-}
-
-String getCurrentDirectory() {
-  String dir = new File(".").fullPathSync();
-  if (dir.endsWith("/")) return dir;
-  return "$dir/";
 }
