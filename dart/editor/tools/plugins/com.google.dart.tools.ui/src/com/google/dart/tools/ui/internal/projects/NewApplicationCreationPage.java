@@ -24,6 +24,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
@@ -56,6 +57,9 @@ public class NewApplicationCreationPage extends WizardPage {
     NONE, SERVER, WEB
   }
 
+  public static final String NEW_APPPLICATION_SETTINGS = "newApplicationWizard.settings";
+  public static final String PARENT_DIR = "parentDir";
+
   private Text projectNameField;
   private Text projectLocationField;
   private String defaultLocation;
@@ -68,11 +72,11 @@ public class NewApplicationCreationPage extends WizardPage {
   public NewApplicationCreationPage() {
     super("newApplication"); //$NON-NLS-1$
     setPageComplete(false);
-    defaultLocation = getDefaultFolder();
-
     setTitle(ProjectMessages.OpenNewApplicationWizardAction_text);
     setDescription(ProjectMessages.OpenNewApplicationWizardAction_desc);
     setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/wizban/newprj_wiz.png")); //$NON-NLS-1$
+
+    defaultLocation = getParentDirectory();
   }
 
   @Override
@@ -244,6 +248,17 @@ public class NewApplicationCreationPage extends WizardPage {
 
   private IPath getLocationPath() {
     return new Path(projectLocationField.getText()).append(getProjectName());
+  }
+
+  private String getParentDirectory() {
+    IDialogSettings settings = DartToolsPlugin.getDefault()
+        .getDialogSettingsSection(NEW_APPPLICATION_SETTINGS);
+    String path = settings.get(PARENT_DIR);
+    if (path != null) {
+      return path;
+    }
+
+    return getDefaultFolder();
   }
 
   /**

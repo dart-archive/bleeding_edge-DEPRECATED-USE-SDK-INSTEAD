@@ -80,6 +80,11 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
 
     IPath locationPath = new Path(page.getLocationURI().getPath());
 
+    DartToolsPlugin.getDefault()
+        .getDialogSettingsSection(NewApplicationCreationPage.NEW_APPPLICATION_SETTINGS).put(
+            NewApplicationCreationPage.PARENT_DIR,
+            locationPath.removeLastSegments(1).toPortableString());
+
     if (isNestedByAnExistingProject(locationPath)) {
       createFolder(locationPath);
     } else {
