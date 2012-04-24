@@ -75,7 +75,7 @@ foo(a) {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  Expect.isTrue(generated.contains(@'for('));
+  Expect.isTrue(generated.contains(@'for ('));
   generated = compile(TEST_TWO, 'foo');
   Expect.isTrue(!generated.contains(@'break'));
   generated = compile(TEST_THREE, 'foo');
