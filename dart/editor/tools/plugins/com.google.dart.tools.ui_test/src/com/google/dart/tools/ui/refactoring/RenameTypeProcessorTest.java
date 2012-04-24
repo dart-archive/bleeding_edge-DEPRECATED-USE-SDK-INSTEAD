@@ -99,6 +99,150 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "}");
   }
 
+  public void test_OK_interfaceFactory_hasImpl_renameFactory() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface I factory F {",
+        "  I();",
+        "  I.named();",
+        "}",
+        "class F implements I {",
+        "  factory F() {}",
+        "  factory F.named() {}",
+        "}",
+        "f() {",
+        "  new I();",
+        "  new I.named();",
+        "}",
+        "");
+    Type type = findElement("F implements I {");
+    // do rename
+    renameType(type, "NewName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface I factory NewName {",
+        "  I();",
+        "  I.named();",
+        "}",
+        "class NewName implements I {",
+        "  factory NewName() {}",
+        "  factory NewName.named() {}",
+        "}",
+        "f() {",
+        "  new I();",
+        "  new I.named();",
+        "}",
+        "");
+  }
+
+  public void test_OK_interfaceFactory_hasImpl_renameInterface() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface I factory F {",
+        "  I();",
+        "  I.named();",
+        "}",
+        "class F implements I {",
+        "  factory F() {}",
+        "  factory F.named() {}",
+        "}",
+        "f() {",
+        "  new I();",
+        "  new I.named();",
+        "}",
+        "");
+    Type type = findElement("I factory F {");
+    // do rename
+    renameType(type, "NewName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface NewName factory F {",
+        "  NewName();",
+        "  NewName.named();",
+        "}",
+        "class F implements NewName {",
+        "  factory F() {}",
+        "  factory F.named() {}",
+        "}",
+        "f() {",
+        "  new NewName();",
+        "  new NewName.named();",
+        "}",
+        "");
+  }
+
+  public void test_OK_interfaceFactory_notImpl_renameFactory() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface I factory F {",
+        "  I();",
+        "  I.named();",
+        "}",
+        "class F { // marker",
+        "  factory I() {}",
+        "  factory I.named() {}",
+        "}",
+        "f() {",
+        "  new I();",
+        "  new I.named();",
+        "}",
+        "");
+    Type type = findElement("F { // marker");
+    // do rename
+    renameType(type, "NewName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface I factory NewName {",
+        "  I();",
+        "  I.named();",
+        "}",
+        "class NewName { // marker",
+        "  factory I() {}",
+        "  factory I.named() {}",
+        "}",
+        "f() {",
+        "  new I();",
+        "  new I.named();",
+        "}",
+        "");
+  }
+
+  public void test_OK_interfaceFactory_notImpl_renameInterface() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface I factory F {",
+        "  I();",
+        "  I.named();",
+        "}",
+        "class F {",
+        "  factory I() {}",
+        "  factory I.named() {}",
+        "}",
+        "f() {",
+        "  new I();",
+        "  new I.named();",
+        "}",
+        "");
+    Type type = findElement("I factory F {");
+    // do rename
+    renameType(type, "NewName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface NewName factory F {",
+        "  NewName();",
+        "  NewName.named();",
+        "}",
+        "class F {",
+        "  factory NewName() {}",
+        "  factory NewName.named() {}",
+        "}",
+        "f() {",
+        "  new NewName();",
+        "  new NewName.named();",
+        "}",
+        "");
+  }
+
   public void test_OK_multipleUnits_onReference() throws Exception {
     setUnitContent(
         "Test1.dart",

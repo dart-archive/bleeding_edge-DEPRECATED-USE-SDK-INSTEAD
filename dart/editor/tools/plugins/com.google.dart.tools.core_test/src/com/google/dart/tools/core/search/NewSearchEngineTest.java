@@ -306,7 +306,72 @@ public class NewSearchEngineTest extends TestCase {
     }
   }
 
-  public void test_searchReferences_type_fromConstructor() throws Exception {
+  public void test_searchReferences_type_fromConstructor_factoryImpl() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = Joiner.on("\n").join(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "interface I factory F { // marker-1",
+          "  I();",
+          "  I.named();",
+          "}",
+          "class F implements I { // marker-2",
+          "  factory F() {}",
+          "  factory F.named() {}",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnit(unit);
+      // references to "I"
+      {
+        Type typeI = (Type) unit.getChildren()[0];
+        assertTypeReferences(typeI, 1, new String[] {"I();", "I.named();", "I { // marker-2"});
+      }
+      // references to "F"
+      {
+        Type typeF = (Type) unit.getChildren()[1];
+        assertTypeReferences(typeF, 1, new String[] {"F { // marker-1", "F() {}", "F.named() {}"});
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_type_fromConstructor_factoryNoImpl() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = Joiner.on("\n").join(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "interface I factory F { // marker-1",
+          "  I();",
+          "  I.named();",
+          "}",
+          "class F {",
+          "  factory I() {}",
+          "  factory I.named() {}",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnit(unit);
+      // references to "I"
+      {
+        Type typeI = (Type) unit.getChildren()[0];
+        assertTypeReferences(
+            typeI,
+            1,
+            new String[] {"I();", "I.named();", "I() {}", "I.named() {}"});
+      }
+      // references to "F"
+      {
+        Type typeF = (Type) unit.getChildren()[1];
+        assertTypeReferences(typeF, 1, new String[] {"F { // marker-1"});
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_type_fromConstructor_simpleType() throws Exception {
     TestProject testProject = new TestProject();
     try {
       String source = Joiner.on("\n").join(
@@ -320,28 +385,35 @@ public class NewSearchEngineTest extends TestCase {
       indexUnit(unit);
       // find references
       Type type = (Type) unit.getChildren()[0];
-      SearchEngine engine = createSearchEngine();
-      List<SearchMatch> matches = engine.searchReferences(
-          type,
-          new WorkspaceSearchScope(),
-          null,
-          new NullProgressMonitor());
-      assertThat(matches).hasSize(2);
-      // validate search matches
-      Collections.sort(matches, new Comparator<SearchMatch>() {
-        @Override
-        public int compare(SearchMatch o1, SearchMatch o2) {
-          return o1.getSourceRange().getOffset() - o2.getSourceRange().getOffset();
-        }
-      });
-      assertEquals(
-          new SourceRangeImpl(source.indexOf("Test()"), 4),
-          matches.get(0).getSourceRange());
-      assertEquals(
-          new SourceRangeImpl(source.indexOf("Test.named()"), 4),
-          matches.get(1).getSourceRange());
+      assertTypeReferences(type, 4, new String[] {"Test() {}", "Test.named() {}"});
     } finally {
       testProject.dispose();
+    }
+  }
+
+  private void assertTypeReferences(Type type, int length, String[] refMarkers) throws Exception {
+    String source = type.getCompilationUnit().getSource();
+    // find references
+    SearchEngine engine = createSearchEngine();
+    List<SearchMatch> references = engine.searchReferences(
+        type,
+        new WorkspaceSearchScope(),
+        null,
+        new NullProgressMonitor());
+    // sort references
+    Collections.sort(references, new Comparator<SearchMatch>() {
+      @Override
+      public int compare(SearchMatch o1, SearchMatch o2) {
+        return o1.getSourceRange().getOffset() - o2.getSourceRange().getOffset();
+      }
+    });
+    // validate search matches
+    assertThat(references).hasSize(refMarkers.length);
+    for (int i = 0; i < refMarkers.length; i++) {
+      String refMarker = refMarkers[i];
+      int refOffset = source.indexOf(refMarker);
+      assertThat(refOffset).describedAs(refMarker).isNotEqualTo(-1);
+      assertEquals(new SourceRangeImpl(refOffset, length), references.get(i).getSourceRange());
     }
   }
 

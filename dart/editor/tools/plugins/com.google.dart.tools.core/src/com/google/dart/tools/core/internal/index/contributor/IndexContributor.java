@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.index.contributor;
 
+import com.google.common.base.Objects;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
@@ -1112,11 +1113,12 @@ public class IndexContributor extends ASTVisitor<Void> {
             getLocation(node));
       }
       // add reference from unnamed constructor name to the ClassElement
-      if (element instanceof ConstructorElement && "".equals(element.getName())
-          && node.getName() instanceof DartIdentifier
-          && element.getEnclosingElement() instanceof ClassElement) {
-        ClassElement classElement = (ClassElement) element.getEnclosingElement();
-        processTypeReference((DartIdentifier) node.getName(), classElement.getType());
+      if (element instanceof ConstructorElement && "".equals(element.getName())) {
+        ConstructorElement constructorElement = (ConstructorElement) element;
+        ClassElement classElement = constructorElement.getConstructorType();
+        if (Objects.equal(constructorElement.getRawName(), classElement.getName())) {
+          processTypeReference((DartIdentifier) node.getName(), classElement.getType());
+        }
       }
     } else {
       notFound("unqualified invocation", node);
