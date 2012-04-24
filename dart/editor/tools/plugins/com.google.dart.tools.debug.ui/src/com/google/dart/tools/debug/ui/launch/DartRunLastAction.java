@@ -58,7 +58,9 @@ public class DartRunLastAction extends DartAbstractAction {
       if (launches.size() != 0) {
 
         ILaunchConfiguration launchConfig = LaunchUtils.chooseLatest(launches);
-        launch(launchConfig);
+        if (launchConfig != null) {
+          launch(launchConfig);
+        }
 
       } else {
 
