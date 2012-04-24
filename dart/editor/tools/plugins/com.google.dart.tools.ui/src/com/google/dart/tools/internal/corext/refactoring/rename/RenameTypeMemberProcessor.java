@@ -16,17 +16,18 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
@@ -49,6 +50,7 @@ import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -67,6 +69,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   private final String oldName;
   private final TextChangeManager changeManager = new TextChangeManager(true);
 
+  private List<SearchMatch> declarations;
   private List<SearchMatch> references;
 
   /**
@@ -168,17 +171,20 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
     }
   }
 
-  private void addDeclarationUpdate() throws CoreException {
-    SourceRange nameRange = member.getNameRange();
-    CompilationUnit cu = member.getCompilationUnit();
+  private void addDeclarationUpdates(IProgressMonitor pm) throws CoreException {
     String editName = RefactoringCoreMessages.RenameRefactoring_update_declaration;
-    addTextEdit(changeManager.get(cu), editName, createTextChange(nameRange));
+    addUpdates(pm, editName, declarations);
   }
 
-  private void addReferenceUpdates(IProgressMonitor pm) throws DartModelException {
-    pm.beginTask("", references.size()); //$NON-NLS-1$
+  private void addReferenceUpdates(IProgressMonitor pm) throws CoreException {
     String editName = RefactoringCoreMessages.RenameRefactoring_update_reference;
-    for (SearchMatch match : references) {
+    addUpdates(pm, editName, references);
+  }
+
+  private void addUpdates(IProgressMonitor pm, String editName, List<SearchMatch> matches)
+      throws CoreException {
+    pm.beginTask("", matches.size()); //$NON-NLS-1$
+    for (SearchMatch match : matches) {
       CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
       SourceRange matchRange = match.getSourceRange();
       addTextEdit(changeManager.get(cu), editName, createTextChange(matchRange));
@@ -392,13 +398,12 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   }
 
   private void createChanges(IProgressMonitor pm) throws CoreException {
-    pm.beginTask(RefactoringCoreMessages.RenameRefactoring_checking, 10);
+    pm.beginTask(RefactoringCoreMessages.RenameRefactoring_checking, 12);
     changeManager.clear();
     // update declaration
-    addDeclarationUpdate();
-    pm.worked(1);
+    addDeclarationUpdates(new SubProgressMonitor(pm, 2));
     // update references
-    addReferenceUpdates(new SubProgressMonitor(pm, 9));
+    addReferenceUpdates(new SubProgressMonitor(pm, 10));
     pm.done();
   }
 
@@ -407,6 +412,37 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   }
 
   private void prepareReferences(final IProgressMonitor pm) throws CoreException {
-    references = RenameAnalyzeUtil.getReferences(member);
+    String name = member.getElementName();
+    // prepare types which have member with required name
+    Set<Type> renameTypes;
+    {
+      renameTypes = Sets.newHashSet();
+      Set<Type> checkedTypes = Sets.newHashSet();
+      LinkedList<Type> checkTypes = Lists.newLinkedList();
+      checkTypes.add(member.getDeclaringType());
+      while (!checkTypes.isEmpty()) {
+        Type type = checkTypes.removeFirst();
+        // may be already checked
+        if (checkedTypes.contains(type)) {
+          continue;
+        }
+        checkedTypes.add(type);
+        // if has member with required name, then may be its super-types and sub-types too
+        if (type.getExistingMembers(name).length != 0) {
+          renameTypes.add(type);
+          checkTypes.addAll(RenameAnalyzeUtil.getSuperTypes(type));
+          checkTypes.addAll(RenameAnalyzeUtil.getSubTypes(type));
+        }
+      }
+    }
+    // prepare all declarations and references to members
+    declarations = Lists.newArrayList();
+    references = Lists.newArrayList();
+    for (Type type : renameTypes) {
+      for (TypeMember typeMember : type.getExistingMembers(name)) {
+        declarations.add(new SearchMatch(MatchQuality.EXACT, type, typeMember.getNameRange()));
+        references.addAll(RenameAnalyzeUtil.getReferences(typeMember));
+      }
+    }
   }
 }

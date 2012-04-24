@@ -225,6 +225,100 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "}");
   }
 
+  /**
+   * When we rename method, it should be renamed in super-types and sub-types.
+   */
+  public void test_OK_renameHierarchy_onSubType() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
+        "  test() {} // marker",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  B b = new B();",
+        "  C c = new C();",
+        "  a.test();",
+        "  b.test();",
+        "  c.test();",
+        "}",
+        "");
+    Method method = findElement("test() {} // marker");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  newName() {}",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
+        "  newName() {} // marker",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  B b = new B();",
+        "  C c = new C();",
+        "  a.newName();",
+        "  b.newName();",
+        "  c.newName();",
+        "}",
+        "");
+  }
+
+  /**
+   * When we rename method, it should be renamed in super-types and sub-types.
+   */
+  public void test_OK_renameHierarchy_onSuperType() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {} // marker",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
+        "  test() {}",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  B b = new B();",
+        "  C c = new C();",
+        "  a.test();",
+        "  b.test();",
+        "  c.test();",
+        "}",
+        "");
+    Method method = findElement("test() {} // marker");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  newName() {} // marker",
+        "}",
+        "class B extends A {",
+        "}",
+        "class C extends B {",
+        "  newName() {}",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  B b = new B();",
+        "  C c = new C();",
+        "  a.newName();",
+        "  b.newName();",
+        "  c.newName();",
+        "}",
+        "");
+  }
+
   public void test_OK_singleUnit_onDeclaration() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
