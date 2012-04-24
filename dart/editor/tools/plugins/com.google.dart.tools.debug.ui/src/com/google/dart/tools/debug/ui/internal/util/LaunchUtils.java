@@ -195,6 +195,30 @@ public class LaunchUtils {
 
   }
 
+  public static List<ILaunchConfiguration> getLaunchesFor(IProject project) {
+    List<ILaunchConfiguration> launches = new ArrayList<ILaunchConfiguration>();
+
+    for (ILaunchConfiguration config : LaunchUtils.getAllLaunches()) {
+      try {
+        if (config.getMappedResources() == null) {
+          continue;
+        }
+
+        for (IResource resource : config.getMappedResources()) {
+          if (project.equals(resource.getProject())) {
+            if (!launches.contains(config)) {
+              launches.add(config);
+            }
+          }
+        }
+      } catch (CoreException exception) {
+        DartUtil.logError(exception);
+      }
+    }
+
+    return launches;
+  }
+
   /**
    * Return the best launch configuration to run for the given resource.
    * 
@@ -334,30 +358,6 @@ public class LaunchUtils {
     }
 
     return new ArrayList<ILaunchConfiguration>(configs);
-  }
-
-  private static List<ILaunchConfiguration> getLaunchesFor(IProject project) {
-    List<ILaunchConfiguration> launches = new ArrayList<ILaunchConfiguration>();
-
-    for (ILaunchConfiguration config : LaunchUtils.getAllLaunches()) {
-      try {
-        if (config.getMappedResources() == null) {
-          continue;
-        }
-
-        for (IResource resource : config.getMappedResources()) {
-          if (project.equals(resource.getProject())) {
-            if (!launches.contains(config)) {
-              launches.add(config);
-            }
-          }
-        }
-      } catch (CoreException exception) {
-        DartUtil.logError(exception);
-      }
-    }
-
-    return launches;
   }
 
   private LaunchUtils() {
