@@ -148,6 +148,38 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "}");
   }
 
+  /**
+   * When we rename {@link Type}, we should rename also its constructors and references to
+   * constructors.
+   */
+  public void test_OK_renameConstructor() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "  Test() {}",
+        "  Test.named() {}",
+        "}",
+        "f() {",
+        "  new Test();",
+        "  new Test.named();",
+        "}",
+        "");
+    Type type = findElement("Test {");
+    // do rename
+    renameType(type, "NewName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class NewName {",
+        "  NewName() {}",
+        "  NewName.named() {}",
+        "}",
+        "f() {",
+        "  new NewName();",
+        "  new NewName.named();",
+        "}",
+        "");
+  }
+
   public void test_OK_singleUnit_onDeclaration() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

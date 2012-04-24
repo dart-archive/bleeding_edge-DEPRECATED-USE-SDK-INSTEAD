@@ -157,8 +157,9 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     }
   }
 
-  protected abstract List<SearchMatch> getReferences(final IProgressMonitor pm)
-      throws CoreException;
+  protected final List<SearchMatch> getReferences(final IProgressMonitor pm) throws CoreException {
+    return RenameAnalyzeUtil.getReferences(element);
+  }
 
   private void addDeclarationUpdate() throws CoreException {
     SourceRange nameRange = elementSourceReference.getNameRange();

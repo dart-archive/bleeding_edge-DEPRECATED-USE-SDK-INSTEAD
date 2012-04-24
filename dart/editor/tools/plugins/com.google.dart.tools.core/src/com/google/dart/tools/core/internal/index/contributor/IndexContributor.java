@@ -1111,6 +1111,13 @@ public class IndexContributor extends ASTVisitor<Void> {
         recordRelationship(getElement(overridenMethodElement), IndexConstants.IS_OVERRIDDEN_BY,
             getLocation(node));
       }
+      // add reference from unnamed constructor name to the ClassElement
+      if (element instanceof ConstructorElement && "".equals(element.getName())
+          && node.getName() instanceof DartIdentifier
+          && element.getEnclosingElement() instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element.getEnclosingElement();
+        processTypeReference((DartIdentifier) node.getName(), classElement.getType());
+      }
     } else {
       notFound("unqualified invocation", node);
     }

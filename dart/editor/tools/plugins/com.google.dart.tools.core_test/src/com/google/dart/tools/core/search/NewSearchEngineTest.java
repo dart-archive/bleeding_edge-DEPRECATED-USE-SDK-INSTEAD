@@ -19,6 +19,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.search.NewSearchEngineImpl;
 import com.google.dart.tools.core.internal.search.scope.LibrarySearchScope;
 import com.google.dart.tools.core.internal.search.scope.WorkspaceSearchScope;
@@ -44,6 +45,8 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -298,6 +301,45 @@ public class NewSearchEngineTest extends TestCase {
             expected.get(matchOffset).booleanValue(),
             match.isQualified());
       }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_type_fromConstructor() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = Joiner.on("\n").join(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class Test {",
+          "  Test() {}",
+          "  Test.named() {}",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnit(unit);
+      // find references
+      Type type = (Type) unit.getChildren()[0];
+      SearchEngine engine = createSearchEngine();
+      List<SearchMatch> matches = engine.searchReferences(
+          type,
+          new WorkspaceSearchScope(),
+          null,
+          new NullProgressMonitor());
+      assertThat(matches).hasSize(2);
+      // validate search matches
+      Collections.sort(matches, new Comparator<SearchMatch>() {
+        @Override
+        public int compare(SearchMatch o1, SearchMatch o2) {
+          return o1.getSourceRange().getOffset() - o2.getSourceRange().getOffset();
+        }
+      });
+      assertEquals(
+          new SourceRangeImpl(source.indexOf("Test()"), 4),
+          matches.get(0).getSourceRange());
+      assertEquals(
+          new SourceRangeImpl(source.indexOf("Test.named()"), 4),
+          matches.get(1).getSourceRange());
     } finally {
       testProject.dispose();
     }

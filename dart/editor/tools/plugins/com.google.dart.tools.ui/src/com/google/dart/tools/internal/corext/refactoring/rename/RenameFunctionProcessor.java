@@ -16,20 +16,12 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 import com.google.common.base.Objects;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.search.SearchEngine;
-import com.google.dart.tools.core.search.SearchEngineFactory;
-import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
-import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
-import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-
-import java.util.List;
 
 /**
  * {@link DartRenameProcessor} for {@link DartFunction}.
@@ -83,16 +75,5 @@ public class RenameFunctionProcessor extends RenameTopLevelProcessor {
   @Override
   public boolean isApplicable() throws CoreException {
     return RefactoringAvailabilityTester.isRenameAvailable(function);
-  }
-
-  @Override
-  protected List<SearchMatch> getReferences(final IProgressMonitor pm) throws CoreException {
-    return ExecutionUtils.runObjectCore(new RunnableObjectEx<List<SearchMatch>>() {
-      @Override
-      public List<SearchMatch> runObject() throws Exception {
-        SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
-        return searchEngine.searchReferences(function, null, null, pm);
-      }
-    });
   }
 }
