@@ -13,6 +13,7 @@ BUILDER_NAME = os.environ.get('BUILDBOT_BUILDERNAME')
 END_SCRIPT = '''
 VM = '%s'
 D8 = '%s'
+HOME = '%s'
 if __name__ == '__main__':
   sys.exit(main(sys.argv))
 '''
@@ -32,7 +33,7 @@ def main(args):
               frog + '.bat')
 
   with open(frog, 'a+') as f:
-    f.write(END_SCRIPT % (vm, d8))
+    f.write(END_SCRIPT % (vm, d8, HOME))
 
   os.chmod(frog, stat.S_IXUSR | stat.S_IXGRP | stat.S_IRUSR |
            stat.S_IRGRP | stat.S_IWUSR)

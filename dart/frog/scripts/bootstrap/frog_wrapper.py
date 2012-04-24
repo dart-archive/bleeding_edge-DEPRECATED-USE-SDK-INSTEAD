@@ -8,13 +8,10 @@ import os
 import sys
 
 def main(args):
-  # Try to find frog.py from the current location.
-  home = os.path.join(os.curdir, 'frog.py')
-  if not os.path.exists(home):
-    home = os.path.join(os.curdir, 'frog', 'frog.py')
+  home = os.path.join(HOME, 'frog.py')
 
   if not os.path.exists(home):
-    print "Could not find frog"
+    print "Could not find .../dart/frog/frog.py"
     return 1
 
   frog_args = [ 'frog.py', '--vm=%s' % VM]
