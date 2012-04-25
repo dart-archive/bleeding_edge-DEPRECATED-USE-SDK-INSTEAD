@@ -426,6 +426,7 @@ $defProp(Object.prototype, '$typeNameOf', (function() {
   function chrome$typeNameOf() {
     var name = this.constructor.name;
     if (name == 'Window') return 'DOMWindow';
+    if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
     return name;
   }
 
