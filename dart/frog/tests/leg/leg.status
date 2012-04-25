@@ -6,7 +6,8 @@ ConstantFoldingStringTest: Fail
 RedundantPhiEliminatorTest: Fail # Fails because of hack to allow aborting loops.
 PrettyParameterTest: Fail # TODO(floitsch): investigate.
 TypeInference2Test: Fail # Issue 2577, requires liveness analysis.
-TypeInference3Test: Fail # Seems to be issue 2564.
+TypeInference4Test: Fail # Issue 2665.
+TypeInference5Test: Fail # Issue 2665.
 
 [ $compiler == dartc || $compiler == frog || $compiler == dart2js || $runtime == ie || $runtime == opera || $runtime == ff || $runtime == chrome || $runtime == safari ]
 *: Skip # Leg uses #import('dart:io'); and Leg is not self-hosted (yet).
