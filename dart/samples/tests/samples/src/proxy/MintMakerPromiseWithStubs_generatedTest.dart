@@ -7,7 +7,7 @@
 #library("MintMakerPromiseWithStubsTest_generatedTest");
 #import("dart:isolate");
 #import("../../../../proxy/promise.dart");
-#import("../../../../../lib/unittest/unittest.dart");
+#import("../../../../../tests/isolate/src/TestFramework.dart");
 
 /* class = Mint (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 10) */
 
@@ -208,55 +208,63 @@ class PurseImpl implements Purse {
 
 }
 
-_completesWithValue(Promise promise, var expected) {
-  promise.then(expectAsync1((value) {
-    Expect.equals(expected, value);
-  }));
-}
+class MintMakerPromiseWithStubsTest {
 
-main() {
-  test("MintMakerPromiseWithStubsTest", () {
+  static completesWithValue(
+      TestExpectation expect, Promise promise, var expected) {
+    promise.then(expect.runs1((value) {
+      Expect.equals(expected, value);
+    }));
+  }
+
+  static void testMain(TestExpectation expect) {
     Mint$Proxy mint = new Mint$ProxyImpl.createIsolate();
     Purse$Proxy purse = mint.createPurse(100);
-    _completesWithValue(purse.queryBalance(), 100);
+    completesWithValue(expect, purse.queryBalance(), 100);
 
     Purse$Proxy sprouted = purse.sproutPurse();
-    _completesWithValue(sprouted.queryBalance(), 0);
+    completesWithValue(expect, sprouted.queryBalance(), 0);
 
     // FIXME(benl): We should not have to manually order the calls
     // like this.
     Promise<int> result = sprouted.deposit(5, purse);
     Promise p1 = result;
-    _completesWithValue(result, 5);
+    completesWithValue(expect, result, 5);
     Promise<bool> p2 = new Promise<bool>();
     Promise<bool> p3 = new Promise<bool>();
     Promise<bool> p4 = new Promise<bool>();
     Promise<bool> p5 = new Promise<bool>();
     Promise<bool> p6 = new Promise<bool>();
-    result.addCompleteHandler(expectAsync1((unused) {
+    result.addCompleteHandler((unused) {
       Promise<int> bal1 = sprouted.queryBalance();
-      _completesWithValue(bal1, 0 + 5);
-      bal1.then(expectAsync1((unused_) => p2.complete(true)));
+      completesWithValue(expect, bal1, 0 + 5);
+      bal1.then(expect.runs1((unused_) => p2.complete(true)));
       Promise<int> bal2 = purse.queryBalance();
-      _completesWithValue(bal2, 100 - 5);
-      bal2.then(expectAsync1((unused_) => p3.complete(true)));
+      completesWithValue(expect, bal2, 100 - 5);
+      bal2.then(expect.runs1((unused_) => p3.complete(true)));
 
       result = sprouted.deposit(42, purse);
-      _completesWithValue(result, 5 + 42);
-      result.then(expectAsync1((unused__) => p4.complete(true)));
-      result.addCompleteHandler(expectAsync1((unused_) {
+      completesWithValue(expect, result, 5 + 42);
+      result.then(expect.runs1((unused__) => p4.complete(true)));
+      result.addCompleteHandler((unused_) {
         Promise<int> bal3 = sprouted.queryBalance();
-        _completesWithValue(bal3, 0 + 5 + 42);
-        bal3.then(expectAsync1((unused___) => p5.complete(true)));
+        completesWithValue(expect, bal3, 0 + 5 + 42);
+        bal3.then(expect.runs1((unused___) => p5.complete(true)));
         Promise<int> bal4 = purse.queryBalance();
-        _completesWithValue(bal4, 100 - 5 - 42);
-        bal4.then(expectAsync1((unused___) => p6.complete(true)));
-      }));
-    }));
+        completesWithValue(expect, bal4, 100 - 5 - 42);
+        bal4.then(expect.runs1((unused___) => p6.complete(true)));
+      });
+    });
     Promise<bool> done = new Promise<bool>();
     done.waitFor([p1, p2, p3, p4, p5, p6], 6);
     done.then((_) {
+      expect.succeeded();
       print("##DONE##");
     });
-  });
+  }
+
+}
+
+main() {
+  runTests([MintMakerPromiseWithStubsTest.testMain]);
 }

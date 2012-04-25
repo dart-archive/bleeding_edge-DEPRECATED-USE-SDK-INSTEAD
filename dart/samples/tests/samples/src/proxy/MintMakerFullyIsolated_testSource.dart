@@ -6,7 +6,7 @@
 #library("MintMakerFullyIsolatedTest-generatedTest");
 #import("dart:isolate");
 #import("../../../../proxy/promise.dart");
-#import("../../../../../lib/unittest/unittest.dart");
+#import("../../../../../tests/isolate/src/TestFramework.dart");
 
 interface Purse default PurseImpl{
   Purse();
@@ -248,56 +248,58 @@ class PurseImpl implements PowerfulPurse {
 
 }
 
-_completesWithValue(Promise promise, var expected) {
-  promise.then(expectAsync1((value) {
-    Expect.equals(expected, value);
-  }));
-}
+class MintMakerFullyIsolatedTest {
 
-main() {
-  test("MintMakerFullyIsolatedTest", () {
+  completesWithValue(TestExpectation expect, Promise promise, var expected) {
+    promise.then(expect.runs1((value) {
+      Expect.equals(expected, value);
+    }));
+  }
+
+  static void testMain(TestExpectation expect) {
     Mint$Proxy mint = new Mint$ProxyImpl.createIsolate();
     Purse$Proxy purse = mint.createPurse(100);
     // FIXME(benl): how do I write this?
     //PowerfulPurse$Proxy power = (PowerfulPurse$Proxy)purse;
     //expectEqualsStr("xxx", power.grab());
     Promise<int> balance = purse.queryBalance();
-    _completesWithValue(balance, 100);
+    completesWithValue(expect, balance, 100);
 
     Purse$Proxy sprouted = purse.sproutPurse();
-    _completesWithValue(sprouted.queryBalance(), 0);
+    completesWithValue(expect, sprouted.queryBalance(), 0);
 
     Promise<int> done = sprouted.deposit(5, purse);
     Promise<int> d3 = done;
-    _completesWithValue(done, 5);
+    completesWithValue(expect, done, 5);
     Promise<int> inner = new Promise<int>();
     Promise<int> inner2 = new Promise<int>();
     // FIXME(benl): it should not be necessary to wait here, I think,
     // but without this, the tests seem to execute prematurely.
     Promise<int> d1 = done.then((val) {
-      _completesWithValue(sprouted.queryBalance(), 0 + 5);
-      _completesWithValue(purse.queryBalance(), 100 - 5);
+      completesWithValue(expect, sprouted.queryBalance(), 0 + 5);
+      completesWithValue(expect, purse.queryBalance(), 100 - 5);
 
       done = sprouted.deposit(42, purse); 
-      _completesWithValue(done, 5 + 42);
+      completesWithValue(expect, done, 5 + 42);
       Promise<int> d2 = done.then((val_) {
         Promise<int> bal1 = sprouted.queryBalance();
-        _completesWithValue(bal1, 0 + 5 + 42);
-        bal1.then(expectAsync1((int value) => inner.complete(0)));
+        completesWithValue(expect, bal1, 0 + 5 + 42);
+        bal1.then(expect.runs1((int value) => inner.complete(0)));
 
         Promise<int> bal2 = purse.queryBalance();
-        _completesWithValue(bal2, 100 - 5 - 42);
-        bal2.then(expectAsync1((int value) => inner2.complete(0)));
+        completesWithValue(expect, bal2, 100 - 5 - 42);
+        bal2.then(expect.runs1((int value) => inner2.complete(0)));
         return 0;
       });
-      _completesWithValue(d2, 0);
+      completesWithValue(expect, d2, 0);
 
       return 0;
     });
-    _completesWithValue(d1, 0);
+    completesWithValue(expect, d1, 0);
     Promise<int> allDone = new Promise<int>();
     allDone.waitFor([d3, inner, inner2], 3);
     allDone.then((_) {
+      expect.succeeded();
       print("##DONE##");
     });
   }

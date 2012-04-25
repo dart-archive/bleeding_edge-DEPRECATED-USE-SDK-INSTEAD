@@ -173,9 +173,7 @@ class MintIsolate extends Isolate {
   }
 
   void main() {
-    // Note: 'super.' is needed here because the isolate library also defines a
-    // top-level port, and that port is resolved first.
-    ReceivePort receivePort = super.port;
+    ReceivePort receivePort = port;
     new MintReceiver(receivePort);
   }
 }
