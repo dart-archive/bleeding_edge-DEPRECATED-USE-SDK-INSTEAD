@@ -364,6 +364,43 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     assertEquals(source, testUnit.getSource());
   }
 
+  public void test_postCondition_thisType_typeParameter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<newName> {",
+        "  f() {",
+        "    var test = 1;",
+        "    newName v;",
+        "  }",
+        "}",
+        "");
+    DartVariableDeclaration variable = findElement("test = 1;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameLocalVariable(variable, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for variable declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of type parameter 'A.newName' in '/Test/Test.dart' will be shadowed by renamed variable",
+          showStatusMessages.get(0));
+      // error for field usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of type parameter 'A.newName' declared in '/Test/Test.dart' will be shadowed by renamed variable",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
   public void test_postCondition_topLevel() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

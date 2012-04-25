@@ -18,6 +18,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
@@ -29,6 +30,7 @@ import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionTy
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameGlobalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameMethodProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeParameterProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
 import com.google.dart.tools.internal.corext.refactoring.reorg.RenameSelectionState;
 import com.google.dart.tools.internal.corext.refactoring.tagging.INameUpdating;
@@ -156,6 +158,18 @@ public class RenameSupport {
     throw new RuntimeException("Not implemented");
 //    JavaRenameProcessor processor= new RenameJavaProjectProcessor(project);
 //    return new RenameSupport(processor, newName, flags);
+  }
+
+  /**
+   * Creates a new rename support for the given {@link DartTypeParameter}.
+   * 
+   * @param parameter the {@link DartTypeParameter} to be renamed, not <code>null</code>.
+   * @param newName the new name, not <code>null</code>.
+   * @return the {@link RenameSupport}.
+   */
+  public static RenameSupport create(DartTypeParameter parameter, String newName) {
+    DartRenameProcessor processor = new RenameTypeParameterProcessor(parameter);
+    return new RenameSupport(processor, newName, 0);
   }
 
   /**

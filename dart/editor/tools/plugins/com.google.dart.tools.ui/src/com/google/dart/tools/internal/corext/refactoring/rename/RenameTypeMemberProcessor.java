@@ -22,6 +22,7 @@ import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
@@ -316,11 +317,82 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
       // analyze [sub-]type members
       pm.subTask("Analyze subtypes");
       for (Type subType : enclosingAndSubTypes) {
+        boolean isEnclosingType = subType == enclosingType;
+        IPath resourcePath = subType.getResource().getFullPath();
+        // TypeParameter shadowed by Renamed in enclosing type
+        if (isEnclosingType) {
+          DartTypeParameter[] typeParameters = subType.getTypeParameters();
+          for (DartTypeParameter parameter : typeParameters) {
+            if (Objects.equal(parameter.getElementName(), newName)) {
+              // add warning for shadowing TypeParameter declaration
+              {
+                String message = Messages.format(
+                    RefactoringCoreMessages.RenameProcessor_typeMemberDecl_shadowedBy_element,
+                    new Object[] {
+                        RenameAnalyzeUtil.getElementTypeName(parameter),
+                        subType.getElementName(),
+                        newName,
+                        resourcePath,
+                        RenameAnalyzeUtil.getElementTypeName(member),});
+                result.addWarning(message, DartStatusContext.create(parameter));
+              }
+              // add error for shadowing TypeParameter usage
+              List<SourceRange> parameterReferences = RenameAnalyzeUtil.getReferences(parameter);
+              for (SourceRange parameterReference : parameterReferences) {
+                if (SourceRangeUtils.intersects(parameterReference, subType.getSourceRange())) {
+                  String message = Messages.format(
+                      RefactoringCoreMessages.RenameProcessor_typeMemberUsage_shadowedBy_element,
+                      new Object[] {
+                          RenameAnalyzeUtil.getElementTypeName(parameter),
+                          subType.getElementName(),
+                          newName,
+                          resourcePath,
+                          RenameAnalyzeUtil.getElementTypeName(member),});
+                  result.addError(
+                      message,
+                      DartStatusContext.create(subType.getCompilationUnit(), parameterReference));
+                }
+              }
+            }
+          }
+        }
+        // TypeParameter shadows Renamed in sub-types
+        if (!isEnclosingType) {
+          DartTypeParameter[] typeParameters = subType.getTypeParameters();
+          for (DartTypeParameter parameter : typeParameters) {
+            // add warning for shadowing member declaration
+            {
+              String message = Messages.format(
+                  RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_typeMember,
+                  new Object[] {
+                      RenameAnalyzeUtil.getElementTypeName(member),
+                      RenameAnalyzeUtil.getElementTypeName(parameter),
+                      subType.getElementName(),
+                      newName,
+                      resourcePath,});
+              result.addWarning(message, DartStatusContext.create(parameter));
+            }
+            // add error for shadowing member usage
+            for (SearchMatch reference : references) {
+              if (SourceRangeUtils.intersects(reference.getSourceRange(), subType.getSourceRange())) {
+                String message = Messages.format(
+                    RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_typeMember,
+                    new Object[] {
+                        RenameAnalyzeUtil.getElementTypeName(member),
+                        RenameAnalyzeUtil.getElementTypeName(parameter),
+                        subType.getElementName(),
+                        newName,
+                        resourcePath,});
+                result.addError(message, DartStatusContext.create(reference));
+              }
+            }
+          }
+        }
         // check for declared members of sub-types
         if (!Objects.equal(subType, enclosingType)) {
+          // analyze TypeMember children
           TypeMember[] subTypeMembers = subType.getExistingMembers(newName);
           for (TypeMember subTypeMember : subTypeMembers) {
-            IPath resourcePath = subType.getResource().getFullPath();
             // add warning for hiding Renamed declaration
             {
               String message = Messages.format(
@@ -359,7 +431,6 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
           DartVariableDeclaration[] localVariables = method.getLocalVariables();
           for (DartVariableDeclaration variable : localVariables) {
             if (variable.getElementName().equals(newName)) {
-              IPath resourcePath = subType.getResource().getFullPath();
               // add warning for hiding Renamed declaration
               {
                 String message = Messages.format(

@@ -693,6 +693,41 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     check_postCondition_topLevel("variable");
   }
 
+  public void test_postCondition_typeParameter_shadows_topLevel() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {}",
+        "class A<NewName> {",
+        "  Test f;",
+        "}",
+        "");
+    Type type = findElement("Test {");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameType(type, "NewName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for declaration in A
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed type will be shadowed by type parameter 'A.NewName' in 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for usage in B
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed type will be shadowed by type parameter 'A.NewName' in 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
   public void test_preCondition_hasCompilationErrors() throws Exception {
     setUnitContent(
         "Test1.dart",

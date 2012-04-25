@@ -137,16 +137,15 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Dart type parameter name.
+   * Checks if the given name is a valid Dart field name.
    * 
-   * @param name the Dart type parameter name.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart type
-   *         parameter name.
+   * @param name the Dart field name.
+   * @return a refactoring status containing the error message if the name is not a valid Dart field
+   *         name.
    */
-//  public static RefactoringStatus checkTypeParameterName(String name, DartElement context) {
-//  	return checkName(name, DartConventions.validateTypeVariableName(name, context));
-//  }
+  public static RefactoringStatus checkFieldName(String name) {
+    return checkName(name, DartConventions.validateFieldName(name));
+  }
 
   /**
    * Checks if the given name is a valid Dart identifier.
@@ -159,17 +158,6 @@ public class Checks {
 //  public static RefactoringStatus checkIdentifier(String name, DartElement context) {
 //    return checkName(name, DartConventions.validateIdentifier(name, context));
 //  }
-
-  /**
-   * Checks if the given name is a valid Dart field name.
-   * 
-   * @param name the Dart field name.
-   * @return a refactoring status containing the error message if the name is not a valid Dart field
-   *         name.
-   */
-  public static RefactoringStatus checkFieldName(String name) {
-    return checkName(name, DartConventions.validateFieldName(name));
-  }
 
   /**
    * Checks if the given name is a valid Dart function name.
@@ -199,18 +187,6 @@ public class Checks {
   }
 
   /**
-   * Checks if the given name is a valid Dart package name.
-   * 
-   * @param name the Dart package name.
-   * @param context an {@link DartElement} or <code>null</code>
-   * @return a refactoring status containing the error message if the name is not a valid Dart
-   *         package name.
-   */
-//  public static RefactoringStatus checkPackageName(String name, DartElement context) {
-//  	return checkName(name, DartConventions.validatePackageName(name));
-//  }
-
-  /**
    * Checks if method will have a constructor name after renaming.
    * 
    * @param method
@@ -236,6 +212,18 @@ public class Checks {
 //                  method.getDeclaringType(),
 //                  JavaElementLabels.ALL_FULLY_QUALIFIED)}));
   }
+
+  /**
+   * Checks if the given name is a valid Dart package name.
+   * 
+   * @param name the Dart package name.
+   * @param context an {@link DartElement} or <code>null</code>
+   * @return a refactoring status containing the error message if the name is not a valid Dart
+   *         package name.
+   */
+//  public static RefactoringStatus checkPackageName(String name, DartElement context) {
+//  	return checkName(name, DartConventions.validatePackageName(name));
+//  }
 
   /**
    * Compare two parameter signatures.
@@ -327,6 +315,16 @@ public class Checks {
     } else {
       return checkName(name, DartConventions.validateTypeName(name));
     }
+  }
+
+  /**
+   * Checks if the given name is a valid Dart type parameter name.
+   * 
+   * @param name the Dart type parameter name.
+   * @return a refactoring status containing the error message.
+   */
+  public static RefactoringStatus checkTypeParameterName(String name) {
+    return checkName(name, DartConventions.validateTypeParameterName(name));
   }
 
 //  //-------------- main and native method checks ------------------

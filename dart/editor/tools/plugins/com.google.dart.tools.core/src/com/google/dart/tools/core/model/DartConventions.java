@@ -60,6 +60,10 @@ public final class DartConventions {
       return new MessageHolder().initForType();
     }
 
+    public static MessageHolder forTypeParameter() {
+      return new MessageHolder().initForTypeParameter();
+    }
+
     public static MessageHolder forVariable() {
       return new MessageHolder().initForVariable();
     }
@@ -173,7 +177,17 @@ public final class DartConventions {
       internalChar = Messages.convention_typeName_internalChar;
       leadingOrTrailingBlanks = Messages.convention_typeName_leadingOrTrailingBlanks;
       nullName = Messages.convention_typeName_null;
-      // underscore = Messages.convention_typeName_underscore;
+      return this;
+    }
+
+    private MessageHolder initForTypeParameter() {
+      dollar = Messages.convention_typeParameterName_dollar;
+      empty = Messages.convention_typeParameterName_empty;
+      initialCase = Messages.convention_typeParameterName_notUppercase;
+      initialChar = Messages.convention_typeParameterName_initialChar;
+      internalChar = Messages.convention_typeParameterName_internalChar;
+      leadingOrTrailingBlanks = Messages.convention_typeParameterName_leadingOrTrailingBlanks;
+      nullName = Messages.convention_typeParameterName_null;
       return this;
     }
 
@@ -388,6 +402,20 @@ public final class DartConventions {
           Messages.convention_typeName_notUppercase, null);
     }
     return DartModelStatusImpl.VERIFIED_OK;
+  }
+
+  /**
+   * Validate the given type parameter name. Return a status object indicating the validity of the
+   * name. The status will have the code {@link IStatus.OK} if the name is valid as a type parameter
+   * name, the code {@link IStatus.WARNING} if the name is discouraged, or the code
+   * {@link IStatus.ERROR} if the name is illegal. If the identifier is not valid then the status
+   * will have a message indicating why.
+   * 
+   * @param name the name being validated
+   * @return a status object indicating the validity of the name
+   */
+  public static IStatus validateTypeParameterName(String name) {
+    return validateUpperCamelCase(name, MessageHolder.forTypeParameter());
   }
 
   /**

@@ -1622,52 +1622,30 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameEnumConstRefactoring_name;
 
-  public static String RenameFieldProcessor_descriptor_description;
-
-  public static String RenameFieldRefactoring_already_exists;
-
   public static String RenameRefactoring_another_name;
-
-  public static String RenameFieldRefactoring_another_name2;
-
-  public static String RenameRefactoring_checking;
-
-  public static String RenameFieldRefactoring_declared_in_supertype;
-
-  public static String RenameFieldRefactoring_deleted;
-
-  public static String RenameFieldRefactoring_descriptor_description_short;
-
   public static String RenameRefactoring_enclosing_type_member_already_defined;
-
-  public static String RenameFieldRefactoring_field_already_defined2;
-
-  public static String RenameFieldRefactoring_hiding;
-
-  public static String RenameFieldRefactoring_hiding2;
-
-  public static String RenameFieldRefactoring_name;
-
-  public static String RenameFieldRefactoring_overridden;
-
-  public static String RenameFieldRefactoring_overridden_or_overrides;
-
   public static String RenameRefactoring_searching;
-
-  public static String RenameFieldRefactoring_setting_rename_getter;
-
-  public static String RenameFieldRefactoring_setting_rename_settter;
-
-  public static String RenameFieldRefactoring_should_start_lowercase;
-
-  public static String RenameFieldRefactoring_should_start_lowercase2;
-
   public static String RenameRefactoring_update_declaration;
-
   public static String RenameRefactoring_update_reference;
 
+  public static String RenameFieldProcessor_descriptor_description;
+  public static String RenameFieldRefactoring_already_exists;
+  public static String RenameFieldRefactoring_another_name2;
+  public static String RenameRefactoring_checking;
+  public static String RenameFieldRefactoring_declared_in_supertype;
+  public static String RenameFieldRefactoring_deleted;
+  public static String RenameFieldRefactoring_descriptor_description_short;
+  public static String RenameFieldRefactoring_field_already_defined2;
+  public static String RenameFieldRefactoring_hiding;
+  public static String RenameFieldRefactoring_hiding2;
+  public static String RenameFieldRefactoring_name;
+  public static String RenameFieldRefactoring_overridden;
+  public static String RenameFieldRefactoring_overridden_or_overrides;
+  public static String RenameFieldRefactoring_setting_rename_getter;
+  public static String RenameFieldRefactoring_setting_rename_settter;
+  public static String RenameFieldRefactoring_should_start_lowercase;
+  public static String RenameFieldRefactoring_should_start_lowercase2;
   public static String RenameFieldRefactoring_Update_getter_occurrence;
-
   public static String RenameFieldRefactoring_Update_setter_occurrence;
 
   public static String RenameRefactoring_shadow_subType_member;
@@ -1843,32 +1821,21 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameGlobalVariableRefactoring_name;
 
   public static String RenameTypeParameterProcessor_change_name;
-
   public static String RenameTypeParameterProcessor_descriptor_description;
-
   public static String RenameTypeParameterProcessor_descriptor_description_short;
-
   public static String RenameTypeParameterProcessor_name;
-
   public static String RenameTypeParameterRefactoring_another_name;
-
   public static String RenameTypeParameterRefactoring_checking;
-
   public static String RenameTypeParameterRefactoring_class_type_parameter_already_defined;
-
   public static String RenameTypeParameterRefactoring_deleted;
-
   public static String RenameTypeParameterRefactoring_method_type_parameter_already_defined;
-
   public static String RenameTypeParameterRefactoring_searching;
-
   public static String RenameTypeParameterRefactoring_should_start_lowercase;
-
   public static String RenameTypeParameterRefactoring_type_parameter_inner_class_clash;
-
   public static String RenameTypeParameterRefactoring_update_type_parameter_declaration;
-
   public static String RenameTypeParameterRefactoring_update_type_parameter_reference;
+  public static String RenameTypeParameterRefactoring_typeParameter_already_defined;
+  public static String RenameTypeParameterProcessor_mustSelect;
 
   public static String ReferencesInBinaryContext_binaryRefsNotUpdated;
 

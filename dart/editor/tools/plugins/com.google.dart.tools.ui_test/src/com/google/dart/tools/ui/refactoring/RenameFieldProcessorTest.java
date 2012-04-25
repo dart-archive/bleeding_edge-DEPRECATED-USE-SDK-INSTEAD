@@ -502,6 +502,45 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     assertEquals(source, testUnit.getSource());
   }
 
+  public void test_postCondition_element_shadowedBy_typeParameter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var test = 1;",
+        "}",
+        "class B<newName> extends A {",
+        "  f() {",
+        "    test = 2;",
+        "  }",
+        "}",
+        "");
+    Field field = findElement("test = 1;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameField(field, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for field declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed field will be shadowed by type parameter 'B.newName' in '/Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for type usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed field will be shadowed by type parameter 'B.newName' in '/Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
   public void test_postCondition_element_shadows_superTypeMember() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -576,6 +615,43 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
       assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
       assertEquals(
           "Usage of type 'newName' in file 'Test/Test.dart' in library 'Test' will be shadowed by renamed field",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_element_shadows_typeParameter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<newName> {",
+        "  var test = 1;",
+        "  f() {",
+        "    newName v;",
+        "  }",
+        "}",
+        "");
+    Field field = findElement("test = 1;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameField(field, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for field declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of type parameter 'A.newName' in '/Test/Test.dart' will be shadowed by renamed field",
+          showStatusMessages.get(0));
+      // error for type usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of type parameter 'A.newName' declared in '/Test/Test.dart' will be shadowed by renamed field",
           showStatusMessages.get(1));
     }
     // no source changes

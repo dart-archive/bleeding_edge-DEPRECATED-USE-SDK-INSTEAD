@@ -28,6 +28,7 @@ public class TestAll {
     suite.addTestSuite(RenameFunctionProcessorTest.class);
     suite.addTestSuite(RenameGlobalVariableProcessorTest.class);
     suite.addTestSuite(RenameFunctionTypeAliasProcessorTest.class);
+    suite.addTestSuite(RenameTypeParameterProcessorTest.class);
     return suite;
   }
 }

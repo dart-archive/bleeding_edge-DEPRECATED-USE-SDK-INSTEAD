@@ -99,7 +99,7 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
   }
 
   /**
-   * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}. XXX
+   * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}.
    */
   public void test_getReferences_functionTypeAlias() throws Exception {
     setTestUnitContent(
@@ -133,12 +133,12 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
    * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}.
    */
   public void test_getReferences_null() throws Exception {
-    List<SearchMatch> references = RenameAnalyzeUtil.getReferences(null);
+    List<SearchMatch> references = RenameAnalyzeUtil.getReferences((DartElement) null);
     assertThat(references).isEmpty();
   }
 
   /**
-   * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}. XXX
+   * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}.
    */
   public void test_getReferences_type() throws Exception {
     setTestUnitContent(
@@ -350,7 +350,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
     assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeC, typeC));
   }
 
-  // XXX
   private void check_getReferences(String searchPattern, String referencePattern, int length)
       throws Exception {
     TestProject.waitForAutoBuild();

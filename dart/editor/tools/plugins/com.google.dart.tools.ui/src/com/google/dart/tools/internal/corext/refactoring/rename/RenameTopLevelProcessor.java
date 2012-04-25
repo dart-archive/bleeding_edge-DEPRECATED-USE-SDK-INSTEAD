@@ -22,6 +22,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
@@ -223,6 +224,40 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
             // analyze Type
             if (unitElement instanceof Type) {
               Type type = (Type) unitElement;
+              // analyze type parameters
+              for (DartTypeParameter typeParameter : type.getTypeParameters()) {
+                if (Objects.equal(typeParameter.getElementName(), newName)) {
+                  IPath resourcePath = unitElement.getResource().getFullPath();
+                  // warning for shadowing top-level declaration
+                  {
+                    String message = Messages.format(
+                        RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_typeMember,
+                        new Object[] {
+                            RenameAnalyzeUtil.getElementTypeName(element),
+                            RenameAnalyzeUtil.getElementTypeName(typeParameter),
+                            type.getElementName(),
+                            typeParameter.getElementName(),
+                            BasicElementLabels.getPathLabel(resourcePath, false),});
+                    result.addWarning(message, DartStatusContext.create(typeParameter));
+                  }
+                  // error for shadowing top-level usage
+                  for (SearchMatch match : references) {
+                    if (SourceRangeUtils.contains(
+                        type.getSourceRange(),
+                        match.getSourceRange().getOffset())) {
+                      String message = Messages.format(
+                          RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_typeMember,
+                          new Object[] {
+                              RenameAnalyzeUtil.getElementTypeName(element),
+                              RenameAnalyzeUtil.getElementTypeName(typeParameter),
+                              type.getElementName(),
+                              typeParameter.getElementName(),
+                              BasicElementLabels.getPathLabel(resourcePath, false),});
+                      result.addError(message, DartStatusContext.create(match));
+                    }
+                  }
+                }
+              }
               // visit type members
               List<TypeMember> typeMembers = RenameAnalyzeUtil.getTypeMembers(type);
               for (TypeMember typeMember : typeMembers) {

@@ -19,6 +19,7 @@ import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
@@ -1326,6 +1327,10 @@ public class RefactoringAvailabilityTester {
 //    return true;
 //  }
 
+  public static boolean isRenameAvailable(DartTypeParameter parameter) throws DartModelException {
+    return Checks.isAvailable(parameter);
+  }
+
   public static boolean isRenameAvailable(DartVariableDeclaration variable)
       throws DartModelException {
     return Checks.isAvailable(variable);
@@ -1334,10 +1339,6 @@ public class RefactoringAvailabilityTester {
   public static boolean isRenameAvailable(Field field) throws DartModelException {
     return Checks.isAvailable(field);
   }
-
-//  public static boolean isRenameAvailable(ITypeParameter parameter) throws DartModelException {
-//    return Checks.isAvailable(parameter);
-//  }
 
   public static boolean isRenameAvailable(IResource resource) {
     if (resource == null) {
@@ -1401,6 +1402,8 @@ public class RefactoringAvailabilityTester {
         return isRenameAvailable((DartFunctionTypeAlias) element);
       case DartElement.TYPE:
         return isRenameAvailable((Type) element);
+      case DartElement.TYPE_PARAMETER:
+        return isRenameAvailable((DartTypeParameter) element);
       case DartElement.FIELD:
         return isRenameAvailable((Field) element);
       case DartElement.METHOD:

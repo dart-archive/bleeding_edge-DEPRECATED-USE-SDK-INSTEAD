@@ -73,6 +73,7 @@ public final class Messages extends NLS {
   public static String convention_prefix_internalChar;
   public static String convention_prefix_leadingOrTrailingBlanks;
   public static String convention_prefix_null;
+
   public static String convention_typeName_dollar;
   public static String convention_typeName_empty;
   public static String convention_typeName_initialChar;
@@ -80,6 +81,15 @@ public final class Messages extends NLS {
   public static String convention_typeName_leadingOrTrailingBlanks;
   public static String convention_typeName_notUppercase;
   public static String convention_typeName_null;
+
+  public static String convention_typeParameterName_dollar;
+  public static String convention_typeParameterName_empty;
+  public static String convention_typeParameterName_initialChar;
+  public static String convention_typeParameterName_internalChar;
+  public static String convention_typeParameterName_leadingOrTrailingBlanks;
+  public static String convention_typeParameterName_notUppercase;
+  public static String convention_typeParameterName_null;
+
   public static String convention_unitName_empty;
   public static String convention_unitName_initialChar;
   public static String convention_unitName_internalChar;
