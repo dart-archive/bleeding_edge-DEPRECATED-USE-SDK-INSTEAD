@@ -22,7 +22,7 @@ String compile(String code, [String entry = 'main']) {
 }
 
 String compileAll(String code) {
-  leg.Compiler compiler = new MockCompiler();
+  MockCompiler compiler = new MockCompiler();
   Uri uri = new Uri(scheme: 'source');
   compiler.sources[uri.toString()] = code;
   compiler.runCompiler(uri);
