@@ -5,7 +5,7 @@
 #library("PromiseBasedTest");
 #import("dart:isolate");
 #import("../../../../proxy/promise.dart");
-#import("../../../../../tests/isolate/src/TestFramework.dart");
+#import("../../../../../lib/unittest/unittest.dart");
 
 class TestIsolate extends Isolate {
 
@@ -37,51 +37,47 @@ Future promiseToFuture(Promise p) {
   return c.future;
 }
 
-void test(TestExpectation expect) {
-  Proxy proxy = new Proxy.forIsolate(new TestIsolate());
-  proxy.send([42]);  // Seed the isolate.
-  Promise<int> result = new PromiseProxy<int>(proxy.call([87]));
-  Completer completer = new Completer();
-  expect.completes(promiseToFuture(result)).then((int value) {
-    //print("expect 1: $value");
-    Expect.equals(42 + 87, value);
-    completer.complete(99);
-  });
-  expect.completes(completer.future).then((int value) {
-    //print("expect 2: $value");
-    Expect.equals(99, value);
-    expect.succeeded();
-  });
-}
-
-void expandedTest(TestExpectation expect) {
-  Proxy proxy = new Proxy.forIsolate(new TestIsolate());
-  proxy.send([42]);  // Seed the isolate.
-  Promise<SendPort> sendCompleter = proxy.call([87]);
-  Promise<int> result = new Promise<int>();
-  ReceivePort receivePort = new ReceivePort();
-  receivePort.receive((var msg, SendPort _) {
-    receivePort.close();
-    //print("test completer");
-    result.complete(msg[0]);
-  });
-  sendCompleter.addCompleteHandler((SendPort port) {
-    //print("test send");
-    port.send([receivePort.toSendPort()], null);
-  });
-  Completer completer = new Completer();
-  expect.completes(promiseToFuture(result)).then((int value) {
-    //print("expect 1: $value");
-    Expect.equals(42 + 87, value);
-    completer.complete(99);
-  });
-  expect.completes(completer.future).then((int value) {
-    //print("expect 2: $value");
-    Expect.equals(99, value);
-    expect.succeeded();
-  });
-}
-
 void main() {
-  runTests([test, expandedTest]);
+  test("promise based proxies", () {
+    Proxy proxy = new Proxy.forIsolate(new TestIsolate());
+    proxy.send([42]);  // Seed the isolate.
+    Promise<int> result = new PromiseProxy<int>(proxy.call([87]));
+    Completer completer = new Completer();
+    result.then(expectAsync1((int value) {
+      //print("expect 1: $value");
+      Expect.equals(42 + 87, value);
+      completer.complete(99);
+    }));
+    completer.future.then(expectAsync1((int value) {
+      //print("expect 2: $value");
+      Expect.equals(99, value);
+    }));
+  });
+
+  test("expanded test", () {
+    Proxy proxy = new Proxy.forIsolate(new TestIsolate());
+    proxy.send([42]);  // Seed the isolate.
+    Promise<SendPort> sendCompleter = proxy.call([87]);
+    Promise<int> result = new Promise<int>();
+    ReceivePort receivePort = new ReceivePort();
+    receivePort.receive((var msg, SendPort _) {
+      receivePort.close();
+      //print("test completer");
+      result.complete(msg[0]);
+    });
+    sendCompleter.addCompleteHandler((SendPort port) {
+      //print("test send");
+      port.send([receivePort.toSendPort()], null);
+    });
+    Completer completer = new Completer();
+    promiseToFuture(result).then(expectAsync1((int value) {
+      //print("expect 1: $value");
+      Expect.equals(42 + 87, value);
+      completer.complete(99);
+    }));
+    completer.future.then(expectAsync1((int value) {
+      //print("expect 2: $value");
+      Expect.equals(99, value);
+    }));
+  });
 }
