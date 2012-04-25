@@ -51,16 +51,18 @@ public class DartUIStartup implements IStartup {
     @Override
     protected IStatus run(IProgressMonitor monitor) {
       try {
-        indexerWarmup();
-        if (DartCoreDebug.ANALYSIS_SERVER) {
-          AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-          server.addAnalysisListener(new AnalysisMarkerManager());
+        if (!getThread().isInterrupted()) {
+          indexWarmup();
+        }
+        if (!getThread().isInterrupted()) {
+          analysisWarmup();
+        }
+        if (!getThread().isInterrupted()) {
+          modelWarmup();
         }
         if (!getThread().isInterrupted()) {
           compilerWarmup();
         }
-      } catch (InterruptedException ie) {
-
       } catch (Throwable throwable) {
         // Catch any runtime exceptions that occur during warmup and log them.
         DartToolsPlugin.log("Exception occured during editor warmup", throwable);
@@ -73,6 +75,20 @@ public class DartUIStartup implements IStartup {
       return Status.OK_STATUS;
     }
 
+    /**
+     * Initialize the {@link AnalysisServer}
+     */
+    private void analysisWarmup() {
+      if (DartCoreDebug.ANALYSIS_SERVER) {
+        AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+        server.addAnalysisListener(new AnalysisMarkerManager());
+        server.start();
+      }
+    }
+
+    /**
+     * Load the DartC analysis classes
+     */
     private void compilerWarmup() {
       long start = System.currentTimeMillis();
       DartCompilerWarmup.warmUpCompiler();
@@ -82,33 +98,32 @@ public class DartUIStartup implements IStartup {
       }
     }
 
-    private void indexerWarmup() throws InterruptedException {
-      //
-      // Initialize the indexer.
-      //
-      if (!getThread().isInterrupted()) {
-        // Warm up the type cache.
-        long start = System.currentTimeMillis();
-        if (DartCoreDebug.NEW_INDEXER) {
-          InMemoryIndex.getInstance().initializeIndex();
-        } else {
-          DartIndexer.warmUpIndexer();
-        }
-        if (DartCoreDebug.WARMUP) {
-          long delta = System.currentTimeMillis() - start;
-          DartCore.logInformation("Warmup Indexer : " + delta);
-        }
+    /**
+     * Initialize the indexer.
+     */
+    private void indexWarmup() {
+      // Warm up the type cache.
+      long start = System.currentTimeMillis();
+      if (DartCoreDebug.NEW_INDEXER) {
+        InMemoryIndex.getInstance().initializeIndex();
+      } else {
+        DartIndexer.warmUpIndexer();
       }
-      //
-      // Initialize the Dart Tools Core plugin.
-      //
-      if (!getThread().isInterrupted()) {
-        long start = System.currentTimeMillis();
-        DartModelManager.getInstance().getDartModel();
-        if (DartCoreDebug.WARMUP) {
-          long delta = System.currentTimeMillis() - start;
-          DartCore.logInformation("Warmup Model : " + delta);
-        }
+      if (DartCoreDebug.WARMUP) {
+        long delta = System.currentTimeMillis() - start;
+        DartCore.logInformation("Warmup Indexer : " + delta);
+      }
+    }
+
+    /**
+     * Initialize the Dart Tools Core plugin.
+     */
+    private void modelWarmup() {
+      long start = System.currentTimeMillis();
+      DartModelManager.getInstance().getDartModel();
+      if (DartCoreDebug.WARMUP) {
+        long delta = System.currentTimeMillis() - start;
+        DartCore.logInformation("Warmup Model : " + delta);
       }
     }
   }

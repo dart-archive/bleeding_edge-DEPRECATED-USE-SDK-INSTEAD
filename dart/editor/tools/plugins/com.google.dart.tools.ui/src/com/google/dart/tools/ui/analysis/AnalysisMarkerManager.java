@@ -151,7 +151,7 @@ public class AnalysisMarkerManager implements AnalysisListener {
 
   public AnalysisMarkerManager() {
     this.queue = new ArrayList<MarkerOp>();
-    Thread thread = new Thread() {
+    Thread thread = new Thread(getClass().getSimpleName()) {
       @Override
       public void run() {
         updateMarkers();

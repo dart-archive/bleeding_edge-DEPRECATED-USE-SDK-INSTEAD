@@ -363,6 +363,7 @@ public class AnalysisServerTest extends TestCase {
     EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
     server = new AnalysisServer(libraryManager);
     listener = new Listener(server);
+    server.start();
     long start = System.currentTimeMillis();
     listener.waitForIdle(FIVE_MINUTES_MS);
     long delta = System.currentTimeMillis() - start;

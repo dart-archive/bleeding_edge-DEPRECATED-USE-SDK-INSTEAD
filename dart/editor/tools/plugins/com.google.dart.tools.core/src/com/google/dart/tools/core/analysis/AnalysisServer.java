@@ -65,9 +65,11 @@ public class AnalysisServer {
   private int queueIndex = 0;
 
   /**
-   * The background thread on which analysis tasks are performed
+   * The background thread on which analysis tasks are performed or <code>null</code> if the
+   * background process has not been started yet. Lock against {@link #queue} before accessing this
+   * field.
    */
-  private final Thread backgroundThread;
+  private Thread backgroundThread;
 
   /**
    * A context representing what is "saved on disk". Contents of this object should only be accessed
@@ -96,66 +98,6 @@ public class AnalysisServer {
       throw new IllegalArgumentException();
     }
     this.libraryManager = libraryManager;
-    this.analyze = true;
-    this.backgroundThread = new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        try {
-
-          while (analyze) {
-
-            // Get a task from the queue or null if the queue is empty
-            // and determine if the thread has changed idle state
-            Task task = null;
-            boolean notify = false;
-            synchronized (queue) {
-              if (queue.size() > 0) {
-                queueIndex = 0;
-                task = queue.remove(0);
-                if (isBackgroundThreadIdle) {
-                  isBackgroundThreadIdle = false;
-                  notify = true;
-                }
-              } else {
-                if (!isBackgroundThreadIdle) {
-                  isBackgroundThreadIdle = true;
-                  notify = true;
-                }
-              }
-            }
-
-            // Notify others if the receiver's idle state has changed
-            if (notify) {
-              notifyIdle(task == null);
-            }
-
-            // Perform the task or wait for a new task to be added to the queue
-            if (task != null) {
-              try {
-                task.perform();
-              } catch (Throwable e) {
-                DartCore.logError("Analysis Task Exception", e);
-              }
-            } else {
-              synchronized (queue) {
-                if (analyze && queue.isEmpty()) {
-                  try {
-                    queue.wait();
-                  } catch (InterruptedException e) {
-                    //$FALL-THROUGH$
-                  }
-                }
-              }
-            }
-
-          }
-        } catch (Throwable e) {
-          DartCore.logError("Analysis Server Exception", e);
-        }
-      }
-    }, getClass().getSimpleName());
-    this.backgroundThread.start();
   }
 
   public void addAnalysisListener(AnalysisListener listener) {
@@ -290,6 +232,80 @@ public class AnalysisServer {
     }
   }
 
+  /**
+   * Start the background analysis process if it has not already been started
+   */
+  public void start() {
+    synchronized (queue) {
+      if (analyze) {
+        return;
+      }
+      analyze = true;
+      backgroundThread = new Thread(new Runnable() {
+
+        @Override
+        public void run() {
+          try {
+
+            while (analyze) {
+
+              // Get a task from the queue or null if the queue is empty
+              // and determine if the thread has changed idle state
+              Task task = null;
+              boolean notify = false;
+              synchronized (queue) {
+                if (queue.size() > 0) {
+                  queueIndex = 0;
+                  task = queue.remove(0);
+                  if (isBackgroundThreadIdle) {
+                    isBackgroundThreadIdle = false;
+                    notify = true;
+                  }
+                } else {
+                  if (!isBackgroundThreadIdle) {
+                    isBackgroundThreadIdle = true;
+                    notify = true;
+                  }
+                }
+              }
+
+              // Notify others if the receiver's idle state has changed
+              if (notify) {
+                notifyIdle(task == null);
+              }
+
+              // Perform the task or wait for a new task to be added to the queue
+              if (task != null) {
+                try {
+                  task.perform();
+                } catch (Throwable e) {
+                  DartCore.logError("Analysis Task Exception", e);
+                }
+              } else {
+                synchronized (queue) {
+                  if (analyze && queue.isEmpty()) {
+                    try {
+                      queue.wait();
+                    } catch (InterruptedException e) {
+                      //$FALL-THROUGH$
+                    }
+                  }
+                }
+              }
+
+            }
+          } catch (Throwable e) {
+            DartCore.logError("Analysis Server Exception", e);
+          }
+        }
+      }, getClass().getSimpleName());
+      backgroundThread.start();
+    }
+  }
+
+  /**
+   * Stop the background analysis thread.
+   */
   public void stop() {
     boolean notify = false;
     synchronized (queue) {
