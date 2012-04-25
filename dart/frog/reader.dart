@@ -45,9 +45,16 @@ class LibraryReader {
 
   SourceFile readFile(String fullName) {
     String filename;
+
+
     if (fullName.startsWith('package:')) {
-      filename = joinPaths(dirname(options.dartScript),
-          joinPaths('packages', fullName.substring('package:'.length)));
+      String name = fullName.substring('package:'.length);
+      if (options.packageRoot !== null) {
+        filename = joinPaths(options.packageRoot, name);
+      } else {
+        filename = joinPaths(dirname(options.dartScript),
+            joinPaths('packages', name));
+      }
     } else {
       filename = _specialLibs[fullName];
     }

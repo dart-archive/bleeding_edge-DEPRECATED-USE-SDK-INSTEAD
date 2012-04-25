@@ -19,6 +19,9 @@ class FrogOptions {
   /* The top-level dart script to compile. */
   String dartScript;
 
+  /* The directory to look in for "package:" scheme URIs. */
+  String packageRoot;
+
   /** Where to place the generated code. */
   String outfile;
 
@@ -90,6 +93,8 @@ class FrogOptions {
       } else if (arg.startsWith('--libdir=')) {
         libDir = arg.substring('--libdir='.length);
         passedLibDir = true;
+      } else if (arg.startsWith('--package-root')) {
+        packageRoot = arg.substring('--package-root='.length);
       } else if (!ignoreUnrecognizedFlags) {
         print('unrecognized flag: "$arg"');
       }
