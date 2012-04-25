@@ -13,9 +13,9 @@ class CodeWriter {
   static final NEWLINE = null;       // Anything but an int, String or List.
 
   List _buf;
-  bool writeComments = true;
+  bool writeComments;
 
-  CodeWriter(): _buf = [];
+  CodeWriter(): _buf = [], writeComments = options.emitCodeComments;
 
   bool get isEmpty() => _buf.length == 0;
 
@@ -38,8 +38,8 @@ class CodeWriter {
           pendingIndent = true;
         } else if (thing is int) {
           indentation += thing;
-        } else if (thing is List) {
-          _walk(thing);
+        } else if (thing is CodeWriter) {
+          _walk(thing._buf);
         }
       }
     }
@@ -51,7 +51,7 @@ class CodeWriter {
   CodeWriter subWriter() {
     CodeWriter sub = new CodeWriter();
     sub.writeComments = writeComments;
-    _buf.add(sub._buf);   // Splice subwriter's output into this parent writer.
+    _buf.add(sub);   // Splice subwriter's output into this parent writer.
     return sub;
   }
 

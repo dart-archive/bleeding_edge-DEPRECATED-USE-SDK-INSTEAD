@@ -42,6 +42,7 @@ class FrogOptions {
   bool inferTypes = false;
   bool checkOnly = false;
   bool ignoreUnrecognizedFlags = false;
+  bool emitCodeComments = false;
 
   // Specifies non-compliant behavior where array bounds checks are
   // not implemented in generated code.
@@ -199,6 +200,10 @@ class FrogOptions {
 
       case '--unchecked':
         disableBoundsChecks = true;
+        return true;
+
+      case '--emit-code-comments':
+        emitCodeComments = true;
         return true;
     }
     return false;

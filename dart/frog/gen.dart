@@ -932,7 +932,7 @@ class MethodGenerator implements TreeVisitor, CallingContext {
     }
 
     if (needsThis) {
-      defWriter.writeln('var \$this = this; // closure support');
+      defWriter.writeln('var \$this = this;');
     }
 
     if (_usedTemps.length > 0 || _freeTemps.length > 0) {

@@ -41,6 +41,8 @@ class CoreJs {
     world.gen.markTypeUsed(world.corelib.types[typeName]);
   }
 
+  _emit(String code) => writer.writeln(code);
+
   /**
    * Generates the special operator method, e.g. $add.
    * We want to do $add(x, y) instead of x.$add(y) so it doesn't box.
@@ -111,40 +113,40 @@ class CoreJs {
     _generatedDynamicProto = true;
     ensureTypeNameOf();
     ensureDefProp();
-    writer.writeln(_DYNAMIC_FUNCTION);
+    _emit(_DYNAMIC_FUNCTION);
   }
 
   void ensureDynamicSetMetadata() {
     if (_generatedDynamicSetMetadata) return;
     _generatedDynamicSetMetadata = true;
-    writer.writeln(_DYNAMIC_SET_METADATA_FUNCTION);
+    _emit(_DYNAMIC_SET_METADATA_FUNCTION);
   }
 
   void ensureTypeNameOf() {
     if (_generatedTypeNameOf) return;
     _generatedTypeNameOf = true;
     ensureDefProp();
-    writer.writeln(_TYPE_NAME_OF_FUNCTION);
+    _emit(_TYPE_NAME_OF_FUNCTION);
   }
 
   /** Generates the $inherits function when it's first used. */
   void ensureInheritsHelper() {
     if (_generatedInherits) return;
     _generatedInherits = true;
-    writer.writeln(_INHERITS_FUNCTION);
+    _emit(_INHERITS_FUNCTION);
   }
 
   /** Generates the $defProp function when it's first used. */
   void ensureDefProp() {
     if (_generatedDefProp) return;
     _generatedDefProp = true;
-    writer.writeln(_DEF_PROP_FUNCTION);
+    _emit(_DEF_PROP_FUNCTION);
   }
 
   void ensureBind() {
     if (_generatedBind) return;
     _generatedBind = true;
-    writer.writeln(_BIND_CODE);
+    _emit(_BIND_CODE);
   }
 
   void generate(CodeWriter w) {
@@ -156,39 +158,39 @@ class CoreJs {
 
     if (useNotNullBool) {
       useThrow = true;
-      writer.writeln(_NOTNULL_BOOL_FUNCTION);
+      _emit(_NOTNULL_BOOL_FUNCTION);
     }
 
     if (useThrow) {
-      writer.writeln(_THROW_FUNCTION);
+      _emit(_THROW_FUNCTION);
     }
 
     if (useIndex) {
       markCorelibTypeUsed('NoSuchMethodException');
       ensureDefProp();
-      writer.writeln(options.disableBoundsChecks ?
+      _emit(options.disableBoundsChecks ?
         _INDEX_OPERATORS : _CHECKED_INDEX_OPERATORS);
     }
 
     if (useSetIndex) {
       markCorelibTypeUsed('NoSuchMethodException');
       ensureDefProp();
-      writer.writeln(options.disableBoundsChecks ?
+      _emit(options.disableBoundsChecks ?
         _SETINDEX_OPERATORS : _CHECKED_SETINDEX_OPERATORS);
     }
 
     if (!useIsolates) {
       if (useWrap0) {
-        writer.writeln(_EMPTY_WRAP_CALL0_FUNCTION);
+        _emit(_EMPTY_WRAP_CALL0_FUNCTION);
       }
       if (useWrap1) {
-        writer.writeln(_EMPTY_WRAP_CALL1_FUNCTION);
+        _emit(_EMPTY_WRAP_CALL1_FUNCTION);
       }
     }
 
     // Write operator helpers
     for (var opImpl in orderValuesByKeys(_usedOperators)) {
-      writer.writeln(opImpl);
+      _emit(opImpl);
     }
 
     if (world.dom != null) {
@@ -197,8 +199,8 @@ class CoreJs {
       // TODO(jmesserly): we need to find a way to avoid conflicts with other
       // generated "typeName" fields. Ideally we wouldn't be patching 'Object'
       // here.
-      writer.writeln('\$defProp(Object.prototype, "get\$typeName", '
-                     'Object.prototype.\$typeNameOf);');
+      _emit('\$defProp(Object.prototype, "get\$typeName", '
+            'Object.prototype.\$typeNameOf);');
     }
   }
 }
@@ -209,7 +211,8 @@ final String _NE_FUNCTION = @"""
 function $ne$(x, y) {
   if (x == null) return y != null;
   return (typeof(x) != 'object') ? x !== y : !x.$eq(y);
-}""";
+}
+""";
 
 /** Snippet for `$eq`. */
 final String _EQ_FUNCTION = @"""
@@ -220,7 +223,8 @@ function $eq$(x, y) {
 // TODO(jimhug): Should this or should it not match equals?
 $defProp(Object.prototype, '$eq', function(other) {
   return this === other;
-});""";
+});
+""";
 
 /** Snippet for `$bit_not`. */
 final String _BIT_NOT_FUNCTION = @"""
@@ -228,7 +232,8 @@ function $bit_not$(x) {
   if (typeof(x) == 'number') return ~x;
   if (typeof(x) == 'object') return  x.$bit_not();
   $throw(new NoSuchMethodException(x, "operator ~", []));
-}""";
+}
+""";
 
 /** Snippet for `$negate`. */
 final String _NEGATE_FUNCTION = @"""
@@ -236,7 +241,8 @@ function $negate$(x) {
   if (typeof(x) == 'number') return -x;
   if (typeof(x) == 'object') return x.$negate();
   $throw(new NoSuchMethodException(x, "operator negate", []));
-}""";
+}
+""";
 
 /** Snippet for `$add`. This relies on JS's string "+" to match Dart's. */
 final String _ADD_FUNCTION = @"""
@@ -260,7 +266,8 @@ function $add$complex$(x, y) {
 function $add$(x, y) {
   if (typeof(x) == 'number' && typeof(y) == 'number') return x + y;
   return $add$complex$(x, y);
-}""";
+}
+""";
 
 /** Snippet for `$truncdiv`. This uses `$throw`. */
 final String _TRUNCDIV_FUNCTION = @"""
@@ -278,7 +285,8 @@ function $truncdiv$(x, y) {
   } else {
     $throw(new NoSuchMethodException(x, "operator ~/", [y]));
   }
-}""";
+}
+""";
 
 /** Snippet for `$mod`. */
 final String _MOD_FUNCTION = @"""
@@ -304,7 +312,8 @@ function $mod$(x, y) {
   } else {
     $throw(new NoSuchMethodException(x, "operator %", [y]));
   }
-}""";
+}
+""";
 
 /** Code snippet for all other operators. */
 String _otherOperator(String jsname, String op) {
@@ -321,7 +330,8 @@ function $jsname\$complex\$(x, y) {
 function $jsname\$(x, y) {
   if (typeof(x) == 'number' && typeof(y) == 'number') return x $op y;
   return $jsname\$complex\$(x, y);
-}""";
+}
+""";
 }
 
 /**
@@ -460,7 +470,8 @@ $defProp(Object.prototype, '$typeNameOf', (function() {
   if (/Firefox/.test(userAgent)) return firefox$typeNameOf;
   if (/MSIE/.test(userAgent)) return ie$typeNameOf;
   return function() { return constructorNameWithFallback(this); };
-})());""";
+})());
+""";
 
 /** Snippet for `$inherits`. */
 final String _INHERITS_FUNCTION = @"""
@@ -474,14 +485,16 @@ function $inherits(child, parent) {
     child.prototype = new tmp();
     child.prototype.constructor = child;
   }
-}""";
+}
+""";
 
 /** Snippet for `$defProp`. */
 final String _DEF_PROP_FUNCTION = @"""
 function $defProp(obj, prop, value) {
   Object.defineProperty(obj, prop,
       {value: value, enumerable: false, writable: true, configurable: true});
-}""";
+}
+""";
 
 /** Snippet for `$stackTraceOf`. */
 final String _STACKTRACEOF_FUNCTION = @"""
@@ -489,7 +502,8 @@ function $stackTraceOf(e) {
   // TODO(jmesserly): we shouldn't be relying on the e.stack property.
   // Need to mangle it.
   return  (e && e.stack) ? e.stack : null;
-}""";
+}
+""";
 
 /**
  * Snippet for `$notnull_bool`. This pattern chosen because IE9 does really
@@ -499,7 +513,8 @@ final String _NOTNULL_BOOL_FUNCTION = @"""
 function $notnull_bool(test) {
   if (test === true || test === false) return test;
   $throw(new TypeError(test, 'bool'));
-}""";
+}
+""";
 
 /** Snippet for `$throw`. */
 final String _THROW_FUNCTION = @"""
@@ -511,7 +526,8 @@ function $throw(e) {
     Error.captureStackTrace(e, $throw);
   }
   throw e;
-}""";
+}
+""";
 
 /**
  * Snippet for `$index` in Object, Array, and String.  If not overridden,
@@ -536,7 +552,8 @@ $defProp(Array.prototype, '$index', function(i) {
 });
 $defProp(String.prototype, '$index', function(i) {
   return this[i];
-});""";
+});
+""";
 
 final String _CHECKED_INDEX_OPERATORS = @"""
 $defProp(Object.prototype, '$index', function(i) {
@@ -553,7 +570,8 @@ $defProp(Array.prototype, '$index', function(index) {
 });
 $defProp(String.prototype, '$index', function(i) {
   return this[i];
-});""";
+});
+""";
 
 
 
@@ -577,15 +595,18 @@ $defProp(Array.prototype, '$setindex', function(index, value) {
     throw new IndexOutOfRangeException(index);
   }
   return this[i] = value;
-});""";
+});
+""";
 
 /** Snippet for `$wrap_call$0`, in case it was not necessary. */
-final String _EMPTY_WRAP_CALL0_FUNCTION =
-    @"function $wrap_call$0(fn) { return fn; }";
+final String _EMPTY_WRAP_CALL0_FUNCTION = @"""
+function $wrap_call$0(fn) { return fn; }
+""";
 
 /** Snippet for `$wrap_call$1`, in case it was not necessary. */
-final String _EMPTY_WRAP_CALL1_FUNCTION =
-    @"function $wrap_call$1(fn) { return fn; }";
+final String _EMPTY_WRAP_CALL1_FUNCTION = @"""
+function $wrap_call$1(fn) { return fn; };
+""";
 
 /** Snippet that initializes Function.prototype.bind. */
 final String _BIND_CODE = @"""
@@ -611,4 +632,5 @@ Function.prototype.bind = Function.prototype.bind ||
       bound.$length = funcLength;
       return bound;
     }
-  };""";
+  };
+""";
