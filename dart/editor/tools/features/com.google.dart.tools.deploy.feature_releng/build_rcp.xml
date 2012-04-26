@@ -394,13 +394,25 @@ build system.  The PDE build system has to run under Eclipse.
         <copy todir="${dart.compiler.js.dir}/src-compiler">
              <fileset dir="${build.source.root}/compiler/java" />
         </copy>
-        
+
         <mkdir dir="${dart.compiler.js.dir}/third_party" />
         <copy todir="${dart.compiler.js.dir}/third_party">
             <fileset dir="${build.source.root}/third_party">
                 <include name="args4j/**" />
                 <include name="guava/**" />
                 <include name="hamcrest/**" />
+                <include name="json/**" />
+            </fileset>
+        </copy>
+
+        <property name="dart.engine.dir" 
+                  value="${build.stage.plugins}/com.google.dart.engine" />
+
+        <mkdir dir="${dart.engine.dir}/third_party" />
+        <copy todir="${dart.engine.dir}/third_party">
+            <fileset dir="${build.source.root}/third_party">
+                <include name="args4j/**" />
+                <include name="guava/**" />
                 <include name="json/**" />
             </fileset>
         </copy>
