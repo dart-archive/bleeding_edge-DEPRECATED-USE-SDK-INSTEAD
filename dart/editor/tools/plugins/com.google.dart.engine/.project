@@ -25,4 +25,11 @@
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>third-party</name>
+			<type>2</type>
+			<locationURI>DART_TRUNK/third_party</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>
