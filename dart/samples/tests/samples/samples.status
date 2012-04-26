@@ -56,5 +56,8 @@ lib/observable/ObservableTest: Skip
 lib/util/UtilTest: Skip
 lib/view/ViewTest: Skip
 
+[ $runtime == vm && $checked ]
+proxy/MintMakerFullyIsolated_generatedTest: Fail # issue 2519
+
 [ $compiler == frog && ($runtime == d8 || $runtime == none) ]
 *: Skip
