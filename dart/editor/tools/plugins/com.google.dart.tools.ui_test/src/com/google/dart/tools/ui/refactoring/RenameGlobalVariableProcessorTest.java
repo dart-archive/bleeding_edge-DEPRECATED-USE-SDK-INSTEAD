@@ -137,6 +137,32 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
         "}");
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2749
+   */
+  public void test_OK_referenceFromQualifiedInvocation() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var test;",
+        "f() {",
+        "  var server;",
+        "  server.listen(test);",
+        "}",
+        "");
+    DartVariableDeclaration variable = findElement("test;");
+    // do rename
+    renameVariable(variable, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var newName;",
+        "f() {",
+        "  var server;",
+        "  server.listen(newName);",
+        "}",
+        "");
+  }
+
   public void test_OK_singleUnit_onDeclaration() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

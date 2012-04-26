@@ -16,6 +16,7 @@ package com.google.dart.tools.core.search;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
@@ -251,6 +252,40 @@ public class NewSearchEngineTest extends TestCase {
         int matchOffset = match.getSourceRange().getOffset();
         assertEquals(expected.get(matchOffset).booleanValue(), match.isQualified());
       }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * There was bug that argument of {@link DartMethodInvocation} was not in search results.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2749
+   */
+  public void test_searchReferences_globalVarible_argumentQualifiedInvocation() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = Joiner.on("\n").join(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "var test;",
+          "f() {",
+          "  var server;",
+          "  server.listen(test);",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnit(unit);
+      // find references
+      DartVariableDeclaration variable = (DartVariableDeclaration) unit.getChildren()[0];
+      SearchEngine engine = createSearchEngine();
+      List<SearchMatch> matches = engine.searchReferences(
+          variable,
+          new WorkspaceSearchScope(),
+          null,
+          new NullProgressMonitor());
+      assertThat(matches).hasSize(1);
+      // only reference is from invocation
+      assertEquals(source.indexOf("test);"), matches.get(0).getSourceRange().getOffset());
     } finally {
       testProject.dispose();
     }

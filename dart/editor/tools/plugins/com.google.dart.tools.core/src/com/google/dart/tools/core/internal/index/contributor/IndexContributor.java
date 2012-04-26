@@ -953,9 +953,18 @@ public class IndexContributor extends ASTVisitor<Void> {
     return false;
   }
 
+  /**
+   * @return <code>true</code> if given {@link DartIdentifier} is "name" part of qualified property
+   *         access or method invocation.
+   */
   private boolean isQualified(DartIdentifier node) {
-    return node.getParent() instanceof DartPropertyAccess
-        || node.getParent() instanceof DartMethodInvocation;
+    if (node.getParent() instanceof DartPropertyAccess) {
+      return ((DartPropertyAccess) node.getParent()).getName() == node;
+    }
+    if (node.getParent() instanceof DartMethodInvocation) {
+      return ((DartMethodInvocation) node.getParent()).getFunctionName() == node;
+    }
+    return false;
   }
 
   /**
