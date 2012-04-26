@@ -5,7 +5,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "115147",
+  "webkit_revision": "115247",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
   "nacl_revision": "8353",
@@ -41,7 +41,7 @@ vars = {
   "nacl_toolchain_revision": "8169",
   "pnacl_toolchain_revision": "8169",
 
-  "libjingle_revision": "132",
+  "libjingle_revision": "135",
   "libphonenumber_revision": "425",
   "libvpx_revision": "125647",
   "lss_revision": "9",
@@ -52,7 +52,7 @@ vars = {
   "ffmpeg_hash": "f8d71c394e071249f26703669baf1093009620d7",
 
   "sfntly_revision": "128",
-  "skia_revision": "3754",
+  "skia_revision": "3761",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -308,7 +308,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@214",
+    (Var("googlecode_url") % "libyuv") + "/trunk@247",
 
   "src/third_party/mozc/session":
     (Var("googlecode_url") % "mozc") + "/trunk/src/session@83",
@@ -343,7 +343,7 @@ deps_os = {
       "/trunk/deps/reference_builds/chrome_win@89574",
 
     "src/third_party/cygwin":
-      "/trunk/deps/third_party/cygwin@66844",
+      "/trunk/deps/third_party/cygwin@133786",
 
     "src/third_party/python_26":
       "/trunk/tools/third_party/python_26@89111",
