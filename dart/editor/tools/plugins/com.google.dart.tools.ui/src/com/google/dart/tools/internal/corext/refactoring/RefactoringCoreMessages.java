@@ -1815,6 +1815,7 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameTempRefactoring_rename;
 
   public static String RenameFunctionRefactoring_name;
+  public static String RenameFunctionRefactoring_isMain;
 
   public static String RenameFunctionTypeAliasRefactoring_name;
 

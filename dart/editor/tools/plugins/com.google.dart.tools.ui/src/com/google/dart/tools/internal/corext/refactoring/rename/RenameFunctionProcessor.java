@@ -46,6 +46,11 @@ public class RenameFunctionProcessor extends RenameTopLevelProcessor {
   public RefactoringStatus checkNewElementName(String newName) throws CoreException {
     RefactoringStatus result = Checks.checkFunctionName(newName);
     result.merge(super.checkNewElementName(newName));
+    // renaming "main()" changes semantics, so we should add non-fatal error.
+    if (getCurrentElementName().equals("main")) {
+      result.addError(RefactoringCoreMessages.RenameFunctionRefactoring_isMain);
+    }
+    // done
     return result;
   }
 

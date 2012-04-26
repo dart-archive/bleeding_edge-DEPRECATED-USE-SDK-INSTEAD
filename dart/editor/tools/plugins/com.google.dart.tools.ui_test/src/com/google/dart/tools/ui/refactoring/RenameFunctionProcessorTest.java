@@ -99,6 +99,34 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
         "");
   }
 
+  /**
+   * Renaming "main()" changes semantics, so we should add non-fatal error.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2751
+   */
+  public void test_badOldName_isMain() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {}",
+        "");
+    DartFunction function = findElement("main() {");
+    // try to rename
+    showStatusCancel = false;
+    renameFunction(function, "newName");
+    // warning should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
+    assertEquals(
+        "Renaming function is main(), your application will become not runnable",
+        showStatusMessages.get(0));
+    // status was non-fatal error, so rename was done
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "newName() {}",
+        "");
+  }
+
   public void test_OK_multipleUnits_onReference() throws Exception {
     setUnitContent(
         "Test1.dart",

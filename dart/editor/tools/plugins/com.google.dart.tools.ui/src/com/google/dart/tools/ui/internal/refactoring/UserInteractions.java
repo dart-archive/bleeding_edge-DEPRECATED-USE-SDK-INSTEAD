@@ -39,10 +39,6 @@ public final class UserInteractions {
     boolean open(RefactoringStatus status, Shell parent, String windowTitle);
   }
 
-  static {
-    reset();
-  }
-
   private static OpenInformation DEFAULT_OpenInformation = new OpenInformation() {
     @Override
     public void open(Shell parent, String title, String message) {
@@ -61,6 +57,10 @@ public final class UserInteractions {
       return dialog.open() == IDialogConstants.CANCEL_ID;
     }
   };
+
+  static {
+    reset();
+  }
 
   public static OpenInformation openInformation;
   public static ShowStatusDialog showStatusDialog;
