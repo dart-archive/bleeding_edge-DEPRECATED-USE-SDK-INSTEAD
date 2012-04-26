@@ -16,3 +16,8 @@ Export-Package: com.google.dart.engine.ast,
  com.google.dart.engine.source,
  com.google.dart.engine.utilities.io,
  com.google.dart.engine.utilities.os
+Bundle-ClassPath: .,
+ third_party/args4j/2.0.12/args4j-2.0.12.jar,
+ third_party/guava/r09/guava-r09.jar,
+ third_party/json/r2_20080312/json.jar
+ 
