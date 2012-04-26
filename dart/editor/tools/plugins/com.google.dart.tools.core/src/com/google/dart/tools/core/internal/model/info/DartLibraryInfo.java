@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.core.internal.model.info;
 
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartLibraryImport;
 
 /**
  * Instances of the class <code>DartLibraryInfo</code> maintain the cached data shared by all equal
@@ -32,39 +34,32 @@ public class DartLibraryInfo extends OpenableElementInfo {
   private CompilationUnit definingCompilationUnit;
 
   /**
-   * An array containing all of the libraries that are imported by this library.
+   * All imports of this library.
    */
-  private DartLibrary[] importedLibraries = DartLibrary.EMPTY_LIBRARY_ARRAY;
+  private DartLibraryImport[] imports = DartLibraryImpl.EMPTY_IMPORT_ARRAY;
 
   /**
-   * An array containing all of the prefixes used when importing libraries into this library. There
-   * are no duplicates, but the order is not specified.
-   */
-  private String[] prefixes = new String[0];
-
-  /**
-   * Add the given library to the array of imported libraries. If the library was already in the
-   * array, then the array of imported libraries will not be modified.
+   * Add the given {@link DartLibrary} to the imported libraries. If the library was already added
+   * with same the prefix, then request will be ignored.
    * 
-   * @param library the library to be added
+   * @param library the {@link DartLibrary} to add, not <code>null</code>
+   * @param prefix the prefix used to import library, may be <code>null</code>
    */
-  public void addImport(DartLibrary library) {
+  public void addImport(DartLibrary library, String prefix) {
+    // may be no information
     if (library == null) {
       return;
     }
-    int length = importedLibraries.length;
-    if (length == 0) {
-      importedLibraries = new DartLibrary[] {library};
-    } else {
-      for (int i = 0; i < length; i++) {
-        if (importedLibraries[i].equals(library)) {
-          return; // already included
-        }
+    // may be already added
+    for (DartLibraryImport imp : imports) {
+      if (imp.equals(library, prefix)) {
+        return;
       }
-      System.arraycopy(importedLibraries, 0, importedLibraries = new DartLibrary[length + 1], 0,
-          length);
-      importedLibraries[length] = library;
     }
+    // do add
+    int length = imports.length;
+    System.arraycopy(imports, 0, imports = new DartLibraryImport[length + 1], 0, length);
+    imports[length] = new DartLibraryImport(library, prefix);
   }
 
   /**
@@ -77,13 +72,10 @@ public class DartLibraryInfo extends OpenableElementInfo {
   }
 
   /**
-   * Answer the imported libraries. Imported libraries are NOT returned as part of
-   * {@link #getChildren()}
-   * 
-   * @return an array of imported libraries (not <code>null</code>, contains no <code>null</code>s)
+   * @return the {@link DartLibraryImport}s for all imported libraries into this library
    */
-  public DartLibrary[] getImportedLibraries() {
-    return importedLibraries;
+  public DartLibraryImport[] getImports() {
+    return imports;
   }
 
   /**
@@ -96,37 +88,31 @@ public class DartLibraryInfo extends OpenableElementInfo {
   }
 
   /**
-   * Return an array containing all of the prefixes used when importing libraries into this library.
-   * There are no duplicates, but the order is not specified.
-   * 
-   * @return an array containing all of the prefixes used when importing libraries into this library
-   */
-  public String[] getPrefixes() {
-    return prefixes;
-  }
-
-  /**
    * Remove the given library from the array of imported libraries. If the library was not in the
    * array, then the array of imported libraries will not be modified.
    * 
-   * @param library the library to be added
+   * @param library the library to be removed
+   * @param prefix the prefix with which library to be removed was imported
    */
-  public void removeImport(DartLibrary library) {
+  public void removeImport(DartLibrary library, String prefix) {
+    // may be no information
     if (library == null) {
       return;
     }
-    for (int i = 0, length = importedLibraries.length; i < length; i++) {
-      DartLibrary element = importedLibraries[i];
-      if (element.equals(library)) {
+    // do remove
+    for (int i = 0; i < imports.length; i++) {
+      DartLibraryImport imp = imports[i];
+      if (imp.equals(library, prefix)) {
+        int length = imports.length;
         if (length == 1) {
-          importedLibraries = DartLibrary.EMPTY_LIBRARY_ARRAY;
+          imports = DartLibraryImpl.EMPTY_IMPORT_ARRAY;
         } else {
-          DartLibrary[] newChildren = new DartLibrary[length - 1];
-          System.arraycopy(importedLibraries, 0, newChildren, 0, i);
+          DartLibraryImport[] newChildren = new DartLibraryImport[length - 1];
+          System.arraycopy(imports, 0, newChildren, 0, i);
           if (i < length - 1) {
-            System.arraycopy(importedLibraries, i + 1, newChildren, i, length - 1 - i);
+            System.arraycopy(imports, i + 1, newChildren, i, length - 1 - i);
           }
-          importedLibraries = newChildren;
+          imports = newChildren;
         }
         break;
       }
@@ -143,32 +129,11 @@ public class DartLibraryInfo extends OpenableElementInfo {
   }
 
   /**
-   * Set the imported libraries. Imported libraries should NOT be part of the receiver's children.
-   * 
-   * @param importedLibraries the imported libraries (not <code>null</code>, contains no
-   *          <code>null</code>s)
-   */
-  public void setImportedLibraries(DartLibrary[] importedLibraries) {
-    this.importedLibraries = importedLibraries;
-  }
-
-  /**
    * Set the name of the library to the given name.
    * 
    * @param newName the name of the library
    */
   public void setName(String newName) {
     name = newName;
-  }
-
-  /**
-   * Set the prefixes used when importing libraries into this library to the given array of strings.
-   * There should not be any duplicates, but the order is not specified.
-   * 
-   * @param prefixes an array containing all of the prefixes used when importing libraries into this
-   *          library
-   */
-  public void setPrefixes(String[] prefixes) {
-    this.prefixes = prefixes;
   }
 }

@@ -23,6 +23,7 @@ public class TestAll {
 //    suite.addTestSuite(CompilationUnitImpl2Test.class);
     suite.addTestSuite(DartElementImplTest.class);
     suite.addTestSuite(DartFieldImplTest.class);
+    suite.addTestSuite(DartLibraryImportTest.class);
     suite.addTestSuite(DartLibraryImplTest.class);
     suite.addTestSuite(DartMethodImplTest.class);
     suite.addTestSuite(DartModelImplTest.class);

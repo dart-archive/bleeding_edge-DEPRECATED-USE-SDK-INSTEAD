@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -25,6 +25,7 @@ import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartLibraryImport;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.test.util.TestProject;
@@ -98,7 +99,8 @@ public class DartLibraryImplTest extends TestCase {
   private final Map<DartLibraryImpl, Collection<DartElement>> libraryChildrenWithCachedInfos = new HashMap<DartLibraryImpl, Collection<DartElement>>();
 
   public void test_DartLibraryImpl_close() throws Exception {
-    File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
+    File libraryFile = TestUtilities.getPluginRelativePath(
+        "com.google.dart.tools.core_test",
         new Path("test_data/Geometry/geometry.dart")).toFile();
     final DartLibrary library = DartCore.openLibrary(libraryFile, null);
     assertNotNull(library);
@@ -477,17 +479,20 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   public void test_DartLibraryImpl_getElementName_lib1() throws Exception {
-    assertEquals("file:" + getTempDir().getAbsolutePath() + "/lib1/lib1.dart",
+    assertEquals(
+        "file:" + getTempDir().getAbsolutePath() + "/lib1/lib1.dart",
         getDartLib1().getElementName());
   }
 
   public void test_DartLibraryImpl_getElementName_lib2() throws Exception {
-    assertEquals("file:" + getTempDir().getAbsolutePath() + "/lib2/lib2.dart",
+    assertEquals(
+        "file:" + getTempDir().getAbsolutePath() + "/lib2/lib2.dart",
         getDartLib2().getElementName());
   }
 
   public void test_DartLibraryImpl_getElementName_lib3() throws Exception {
-    assertEquals("file:" + getTempDir().getAbsolutePath() + "/lib3/lib3.dart",
+    assertEquals(
+        "file:" + getTempDir().getAbsolutePath() + "/lib3/lib3.dart",
         getDartLib3().getElementName());
   }
 
@@ -504,12 +509,14 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   public void test_DartLibraryImpl_getElementName_libEmpty() throws Exception {
-    assertEquals("file:" + getTempDir().getAbsolutePath() + "/empty/empty.dart",
+    assertEquals(
+        "file:" + getTempDir().getAbsolutePath() + "/empty/empty.dart",
         getDartLibEmpty().getElementName());
   }
 
   public void test_DartLibraryImpl_getElementName_libExternal() throws Exception {
-    assertEquals("file:" + getTempDir().getAbsolutePath() + "/libExternal/libExternal.dart",
+    assertEquals(
+        "file:" + getTempDir().getAbsolutePath() + "/libExternal/libExternal.dart",
         getDartLibExternal().getElementName());
   }
 
@@ -626,6 +633,168 @@ public class DartLibraryImplTest extends TestCase {
     DartLibrary[] importedLibraries = getDartLibHtml().getImportedLibraries();
     assertEquals(1, importedLibraries.length);
     assertEquals("dart:dom", importedLibraries[0].getElementName());
+  }
+
+  /**
+   * Test for {@link DartLibrary#getImports()}.
+   */
+  public void test_DartLibraryImpl_getImports_duplicateImport() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart');",
+              "#import('LibA.dart');",
+              "")).getResource();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      //
+      DartLibraryImport[] imports = libraryTest.getImports();
+      assertThat(imports).hasSize(1);
+      {
+        assertEquals(libraryA, imports[0].getLibrary());
+        assertEquals(null, imports[0].getPrefix());
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * Test for {@link DartLibrary#getImports()}.
+   */
+  public void test_DartLibraryImpl_getImports_oneLibrary_twoPrefixes() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart', prefix: 'aaa');",
+              "#import('LibA.dart', prefix: 'bbb');",
+              "")).getResource();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      //
+      DartLibraryImport[] imports = libraryTest.getImports();
+      assertThat(imports).hasSize(2);
+      {
+        assertEquals(libraryA, imports[0].getLibrary());
+        assertEquals("aaa", imports[0].getPrefix());
+      }
+      {
+        assertEquals(libraryA, imports[1].getLibrary());
+        assertEquals("bbb", imports[1].getPrefix());
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * Test for {@link DartLibrary#getImports()}.
+   */
+  public void test_DartLibraryImpl_getImports_twoLibraries_onePrefix() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "")).getResource();
+      IResource libResourceB = testProject.setUnitContent(
+          "LibB.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('B');",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart', prefix: 'aaa');",
+              "#import('LibB.dart', prefix: 'aaa');",
+              "")).getResource();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryB = testProject.getDartProject().getDartLibrary(libResourceB);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      //
+      DartLibraryImport[] imports = libraryTest.getImports();
+      assertThat(imports).hasSize(2);
+      {
+        assertEquals(libraryA, imports[0].getLibrary());
+        assertEquals("aaa", imports[0].getPrefix());
+      }
+      {
+        assertEquals(libraryB, imports[1].getLibrary());
+        assertEquals("aaa", imports[1].getPrefix());
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * Test for {@link DartLibrary#getImports()}.
+   */
+  public void test_DartLibraryImpl_getImports_uniquePrefixes() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "")).getResource();
+      IResource libResourceB = testProject.setUnitContent(
+          "LibB.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('B');",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart', prefix: 'aaa');",
+              "#import('LibB.dart', prefix: 'bbb');",
+              "")).getResource();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryB = testProject.getDartProject().getDartLibrary(libResourceB);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      //
+      DartLibraryImport[] imports = libraryTest.getImports();
+      assertThat(imports).hasSize(2);
+      {
+        assertEquals(libraryA, imports[0].getLibrary());
+        assertEquals("aaa", imports[0].getPrefix());
+      }
+      {
+        assertEquals(libraryB, imports[1].getLibrary());
+        assertEquals("bbb", imports[1].getPrefix());
+      }
+    } finally {
+      testProject.dispose();
+    }
   }
 
   public void test_DartLibraryImpl_hasMain_lib1() throws Exception {
@@ -767,8 +936,11 @@ public class DartLibraryImplTest extends TestCase {
     assertTrue(library.isUnreferenced());
   }
 
-  private CompilationUnitImpl assertContainsCompUnit(DartElement[] elements, String elemPath,
-      boolean inWorkspace, boolean exists) throws DartModelException {
+  private CompilationUnitImpl assertContainsCompUnit(
+      DartElement[] elements,
+      String elemPath,
+      boolean inWorkspace,
+      boolean exists) throws DartModelException {
     for (DartElement elem : elements) {
       if (elem instanceof CompilationUnitImpl && elem.getElementName().endsWith(elemPath)) {
         CompilationUnitImpl unit = (CompilationUnitImpl) elem;
@@ -885,7 +1057,7 @@ public class DartLibraryImplTest extends TestCase {
   /**
    * Assert that the info for the specified library and all children of that library have been
    * cleared.
-   *
+   * 
    * @param lib the library (not <code>null</code>)
    */
   private void assertInfoCleared(DartLibraryImpl lib, boolean expectChildInfo) {
@@ -931,7 +1103,10 @@ public class DartLibraryImplTest extends TestCase {
 
   private DartLibraryImpl getDartLib1() throws Exception {
     if (dartLib1 == null) {
-      dartLib1 = getOrCreateDartLib("lib1", new DartLibrary[] {getDartLibDom()}, "SomeClass",
+      dartLib1 = getOrCreateDartLib(
+          "lib1",
+          new DartLibrary[] {getDartLibDom()},
+          "SomeClass",
           "class SomeClass { } main() { }");
     }
     return dartLib1;
@@ -940,15 +1115,21 @@ public class DartLibraryImplTest extends TestCase {
   private DartLibraryImpl getDartLib2() throws Exception {
     if (dartLib2 == null) {
       dartLib2 = getOrCreateDartLib("lib2", new DartLibrary[] {
-          getDartLibEmpty(), getDartLib1(), getDartLib3(), getDartLibExternal()}, null, null);
+          getDartLibEmpty(),
+          getDartLib1(),
+          getDartLib3(),
+          getDartLibExternal()}, null, null);
     }
     return dartLib2;
   }
 
   private DartLibraryImpl getDartLib3() throws Exception {
     if (dartLib3 == null) {
-      dartLib3 = getOrCreateDartLib("lib3", new DartLibrary[] {getDartLibEmpty()},
-          "AnotherMissingClass", null);
+      dartLib3 = getOrCreateDartLib(
+          "lib3",
+          new DartLibrary[] {getDartLibEmpty()},
+          "AnotherMissingClass",
+          null);
     }
     return dartLib3;
   }
@@ -964,7 +1145,10 @@ public class DartLibraryImplTest extends TestCase {
 
   private DartLibraryImpl getDartLib4() throws Exception {
     if (dartLib4 == null) {
-      dartLib4 = getOrCreateDartLib("lib4", new DartLibrary[] {getDartLibDom()}, "SomeClass",
+      dartLib4 = getOrCreateDartLib(
+          "lib4",
+          new DartLibrary[] {getDartLibDom()},
+          "SomeClass",
           "class SomeClass { }");
     }
     return dartLib4;
@@ -972,7 +1156,10 @@ public class DartLibraryImplTest extends TestCase {
 
   private DartLibraryImpl getDartLib5() throws Exception {
     if (dartLib5 == null) {
-      dartLib5 = getOrCreateDartLib("lib5", new DartLibrary[] {getDartLib5a()}, "SomeClass",
+      dartLib5 = getOrCreateDartLib(
+          "lib5",
+          new DartLibrary[] {getDartLib5a()},
+          "SomeClass",
           "class SomeClass { } main() { }");
     }
     return dartLib5;
@@ -980,7 +1167,10 @@ public class DartLibraryImplTest extends TestCase {
 
   private DartLibraryImpl getDartLib5a() throws Exception {
     if (dartLib5a == null) {
-      dartLib5a = getOrCreateDartLib("lib5a", new DartLibrary[] {getDartLibHtml()}, "SomeClass2",
+      dartLib5a = getOrCreateDartLib(
+          "lib5a",
+          new DartLibrary[] {getDartLibHtml()},
+          "SomeClass2",
           "class SomeClass2 { }");
     }
     return dartLib5a;
@@ -988,7 +1178,10 @@ public class DartLibraryImplTest extends TestCase {
 
   private DartLibraryImpl getDartLib6() throws Exception {
     if (dartLib6 == null) {
-      dartLib6 = getOrCreateDartLib("lib6", new DartLibrary[] {getDartLib3()}, "SomeClass",
+      dartLib6 = getOrCreateDartLib(
+          "lib6",
+          new DartLibrary[] {getDartLib3()},
+          "SomeClass",
           "class SomeClass { } main() { }");
     }
     return dartLib6;
@@ -1015,8 +1208,11 @@ public class DartLibraryImplTest extends TestCase {
 
   private DartLibraryImpl getDartLibExternal() throws Exception {
     if (dartLibExternal == null) {
-      File libFile = getOrCreateLibFile("libExternal", new DartLibrary[] {getDartLibEmpty()},
-          "ALib5MissingClass", null);
+      File libFile = getOrCreateLibFile(
+          "libExternal",
+          new DartLibrary[] {getDartLibEmpty()},
+          "ALib5MissingClass",
+          null);
       dartLibExternal = new DartLibraryImpl(libFile);
     }
     return dartLibExternal;
@@ -1034,8 +1230,11 @@ public class DartLibraryImplTest extends TestCase {
     return DartModelManager.getInstance().getDartModel();
   }
 
-  private DartLibraryImpl getOrCreateDartLib(String libName, DartLibrary[] importLibs,
-      String className, String fileContent) throws IOException, DartModelException {
+  private DartLibraryImpl getOrCreateDartLib(
+      String libName,
+      DartLibrary[] importLibs,
+      String className,
+      String fileContent) throws IOException, DartModelException {
     File libFile = getOrCreateLibFile(libName, importLibs, className, fileContent);
     IResource libRes = ResourceUtil.getResource(libFile);
     if (libRes != null) {
@@ -1050,7 +1249,10 @@ public class DartLibraryImplTest extends TestCase {
     return (DartLibraryImpl) DartCore.openLibrary(libFile, new NullProgressMonitor());
   }
 
-  private File getOrCreateLibFile(String libName, DartLibrary[] importLibs, String className,
+  private File getOrCreateLibFile(
+      String libName,
+      DartLibrary[] importLibs,
+      String className,
       String fileContent) throws IOException {
     File libDir = new File(getTempDir(), libName);
     File libFile = new File(libDir, libName + ".dart");
@@ -1069,8 +1271,12 @@ public class DartLibraryImplTest extends TestCase {
       if (className != null) {
         sourceFiles.add(new File(libDir, className + ".dart"));
       }
-      final String content = DefaultLibrarySource.generateSource(libName, libFile, importFiles,
-          sourceFiles, null);
+      final String content = DefaultLibrarySource.generateSource(
+          libName,
+          libFile,
+          importFiles,
+          sourceFiles,
+          null);
       makeTempDir(libDir);
       createTempFile(libFile, content);
       if (fileContent != null) {

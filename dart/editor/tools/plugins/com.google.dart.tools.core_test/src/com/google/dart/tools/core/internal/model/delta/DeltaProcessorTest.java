@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -45,7 +45,8 @@ public class DeltaProcessorTest extends TestCase {
     // file-version of the "getCachedDirectives" method in the DeltaProcessor.
     DartLibrary moneyLibrary = getMoneyLibrary();
     CachedDirectives moneyCachedDirectives = getCachedDirectives(
-        computeDartSourceFromDartLibrary(moneyLibrary), (DartLibraryImpl) moneyLibrary);
+        computeDartSourceFromDartLibrary(moneyLibrary),
+        (DartLibraryImpl) moneyLibrary);
 
     assertValidMoneyLibraryCachedDirectives(moneyCachedDirectives);
   }
@@ -89,7 +90,7 @@ public class DeltaProcessorTest extends TestCase {
     // should be empty.
 
     // Make assertions concerning the library name and the size of each of the directive sets.
-    Set<String> imports = cachedDirectives.getImports();
+    Set<CachedLibraryImport> imports = cachedDirectives.getImports();
     Set<String> resources = cachedDirectives.getResources();
     Set<String> sources = cachedDirectives.getSources();
 
@@ -126,13 +127,16 @@ public class DeltaProcessorTest extends TestCase {
       LibrarySource librarySource = null;
       if (iFile != null && iFile.exists()) {
         File libFile = new File(iFile.getLocationURI());
-        librarySource = new UrlLibrarySource(iFile.getLocationURI(),
+        librarySource = new UrlLibrarySource(
+            iFile.getLocationURI(),
             SystemLibraryManagerProvider.getSystemLibraryManager());
         return new UrlDartSource(libFile, librarySource);
       }
     } catch (DartModelException e) {
       fail("Not able to compute the DartSource for this DartLibrary: "
-          + dartLibrary.getDisplayName() + " - " + e.getMessage());
+          + dartLibrary.getDisplayName()
+          + " - "
+          + e.getMessage());
     }
     fail("Not able to compute the DartSource for this DartLibrary: " + dartLibrary.getDisplayName());
     return null;
@@ -163,7 +167,9 @@ public class DeltaProcessorTest extends TestCase {
   private CachedDirectives getCachedDirectives(DartSource dartSrc, DartLibraryImpl library)
       throws Exception {
     DeltaProcessor deltaProcessor = DartModelManager.getInstance().getDeltaProcessor();
-    Method method = DeltaProcessor.class.getDeclaredMethod("getCachedDirectives", DartSource.class,
+    Method method = DeltaProcessor.class.getDeclaredMethod(
+        "getCachedDirectives",
+        DartSource.class,
         DartLibraryImpl.class);
     method.setAccessible(true);
     return (CachedDirectives) method.invoke(deltaProcessor, dartSrc, library);

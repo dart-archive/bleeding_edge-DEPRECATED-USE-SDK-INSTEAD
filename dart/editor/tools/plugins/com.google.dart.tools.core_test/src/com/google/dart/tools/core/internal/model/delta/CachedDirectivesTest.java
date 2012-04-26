@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,6 +12,8 @@
  * the License.
  */
 package com.google.dart.tools.core.internal.model.delta;
+
+import com.google.common.collect.Sets;
 
 import junit.framework.TestCase;
 
@@ -40,7 +42,7 @@ public class CachedDirectivesTest extends TestCase {
 
   public void test_CachedDirectives_CachedDirectives_non_default() {
     String name = "a";
-    Set<String> imports = set("b");
+    Set<CachedLibraryImport> imports = Sets.newHashSet(new CachedLibraryImport("bu", "bp"));
     Set<String> sources = set("c");
     Set<String> resources = set("d");
 
@@ -53,9 +55,15 @@ public class CachedDirectivesTest extends TestCase {
   }
 
   public void test_CachedDirectives_getImports() {
-    Set<String> imports = set("1", "2", "3", "4", "4");
+    Set<CachedLibraryImport> imports = Sets.newHashSet(
+        new CachedLibraryImport("1u", "1p"),
+        new CachedLibraryImport("2u", "2p"),
+        new CachedLibraryImport("3u", "3p"));
 
-    CachedDirectives cd = new CachedDirectives(EMPTY_STR, imports, CachedDirectives.EMPTY_STR_SET,
+    CachedDirectives cd = new CachedDirectives(
+        EMPTY_STR,
+        imports,
+        CachedDirectives.EMPTY_STR_SET,
         CachedDirectives.EMPTY_STR_SET);
 
     Assert.isTrue(cd.getImports().size() == imports.size());
@@ -64,7 +72,7 @@ public class CachedDirectivesTest extends TestCase {
     Assert.isTrue(imports.equals(cd.getImports()));
 
     try {
-      cd.getImports().add("2");
+      cd.getImports().add(null);
       fail("UnsupportedOperationException expected but not thrown");
     } catch (UnsupportedOperationException e) {
       // expected
@@ -74,8 +82,11 @@ public class CachedDirectivesTest extends TestCase {
   public void test_CachedDirectives_getLibraryName() {
     String libraryName = "name";
 
-    CachedDirectives cd = new CachedDirectives(libraryName, CachedDirectives.EMPTY_STR_SET,
-        CachedDirectives.EMPTY_STR_SET, CachedDirectives.EMPTY_STR_SET);
+    CachedDirectives cd = new CachedDirectives(
+        libraryName,
+        CachedDirectives.EMPTY_IMP_SET,
+        CachedDirectives.EMPTY_STR_SET,
+        CachedDirectives.EMPTY_STR_SET);
 
     Assert.isTrue(cd.getLibraryName().equals(libraryName));
     Assert.isTrue(cd.getSources().isEmpty());
@@ -83,7 +94,7 @@ public class CachedDirectivesTest extends TestCase {
     Assert.isTrue(cd.getImports().isEmpty());
 
     try {
-      cd.getImports().add("2");
+      cd.getImports().add(null);
       fail("UnsupportedOperationException expected but not thrown");
     } catch (UnsupportedOperationException e) {
       // expected
@@ -93,8 +104,11 @@ public class CachedDirectivesTest extends TestCase {
   public void test_CachedDirectives_getResources() {
     Set<String> resources = set("1", "2", "3", "4", "4");
 
-    CachedDirectives cd = new CachedDirectives(EMPTY_STR, CachedDirectives.EMPTY_STR_SET,
-        CachedDirectives.EMPTY_STR_SET, resources);
+    CachedDirectives cd = new CachedDirectives(
+        EMPTY_STR,
+        CachedDirectives.EMPTY_IMP_SET,
+        CachedDirectives.EMPTY_STR_SET,
+        resources);
 
     Assert.isTrue(cd.getImports().isEmpty());
     Assert.isTrue(cd.getSources().isEmpty());
@@ -112,7 +126,10 @@ public class CachedDirectivesTest extends TestCase {
   public void test_CachedDirectives_getSources() {
     Set<String> sources = set("1", "2", "3", "4", "4");
 
-    CachedDirectives cd = new CachedDirectives(EMPTY_STR, CachedDirectives.EMPTY_STR_SET, sources,
+    CachedDirectives cd = new CachedDirectives(
+        EMPTY_STR,
+        CachedDirectives.EMPTY_IMP_SET,
+        sources,
         CachedDirectives.EMPTY_STR_SET);
 
     Assert.isTrue(cd.getImports().isEmpty());

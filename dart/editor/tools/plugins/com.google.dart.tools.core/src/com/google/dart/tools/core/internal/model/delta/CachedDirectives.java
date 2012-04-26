@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -24,29 +24,33 @@ import java.util.Set;
  */
 public class CachedDirectives {
 
+  public static final Set<CachedLibraryImport> EMPTY_IMP_SET = Collections.unmodifiableSet(new HashSet<CachedLibraryImport>(
+      0));
   public static final Set<String> EMPTY_STR_SET = Collections.unmodifiableSet(new HashSet<String>(0));
 
   private final String libraryName;
 
-  private final Set<String> imports, sources, resources;
+  private final Set<CachedLibraryImport> imports;
+  private final Set<String> sources;
+  private final Set<String> resources;
 
   /**
    * The empty constructor for {@link CachedDirectives} creates three empty sets.
    */
   public CachedDirectives() {
-    this("", EMPTY_STR_SET, EMPTY_STR_SET, EMPTY_STR_SET);
+    this("", EMPTY_IMP_SET, EMPTY_STR_SET, EMPTY_STR_SET);
   }
 
   /**
    * This is the only constructor for a {@link CachedDirectives} object which actually has content
    * to return.
    * 
-   * @param imports some set of "import" {@link String}s
+   * @param imports some set of "import" {@link CachedLibraryImport}s
    * @param sources some set of "source" {@link String}s
    * @param resources some set of "resource" {@link String}s
    */
-  public CachedDirectives(String libraryName, Set<String> imports, Set<String> sources,
-      Set<String> resources) {
+  public CachedDirectives(String libraryName, Set<CachedLibraryImport> imports,
+      Set<String> sources, Set<String> resources) {
     this.libraryName = libraryName;
     this.imports = Collections.unmodifiableSet(imports);
     this.sources = Collections.unmodifiableSet(sources);
@@ -57,7 +61,7 @@ public class CachedDirectives {
    * Returns an unmodifiable {@link Set} which was created using the <code>imports</code>
    * constructor argument.
    */
-  public Set<String> getImports() {
+  public Set<CachedLibraryImport> getImports() {
     return imports;
   }
 

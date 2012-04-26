@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -151,13 +151,10 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public DartLibrary[] getImportedLibraries() throws DartModelException;
 
   /**
-   * Return an array containing all of the prefixes used when importing libraries into this library.
-   * There are no duplicates, but the order is not specified.
-   * 
-   * @return an array containing all of the prefixes used when importing libraries into this library
-   * @throws DartModelException if the list of prefixes could not be determined
+   * @return the {@link DartLibraryImport}s for all imported libraries into this library, may be
+   *         empty, but not <code>null</code>.
    */
-  public String[] getPrefixes() throws DartModelException;
+  public DartLibraryImport[] getImports() throws DartModelException;
 
   /**
    * Return a possibly empty list of the libraries that reference this library.

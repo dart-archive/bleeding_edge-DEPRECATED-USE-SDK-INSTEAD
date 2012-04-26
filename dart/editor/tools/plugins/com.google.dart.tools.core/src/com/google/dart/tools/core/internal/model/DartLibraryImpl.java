@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.SystemLibraryManager;
@@ -42,6 +43,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartLibraryImport;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartResource;
@@ -76,9 +78,9 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Instances of the class <code>DartLibraryImpl</code> implement an object that represents a Dart
@@ -86,6 +88,7 @@ import java.util.Map;
  */
 public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     CompilationUnitContainer {
+  public static final DartLibraryImport[] EMPTY_IMPORT_ARRAY = new DartLibraryImport[0];
   public static final DartLibraryImpl[] EMPTY_LIBRARY_ARRAY = new DartLibraryImpl[0];
 
   /**
@@ -443,9 +446,23 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   public DartLibrary[] getImportedLibraries() throws DartModelException {
     DartLibraryInfo elementInfo = (DartLibraryInfo) getElementInfo();
     if (elementInfo != null) {
-      return elementInfo.getImportedLibraries();
+      Set<DartLibrary> libraries = Sets.newHashSet();
+      for (DartLibraryImport imp : elementInfo.getImports()) {
+        libraries.add(imp.getLibrary());
+      }
+      return libraries.toArray(new DartLibrary[libraries.size()]);
     } else {
       return DartLibrary.EMPTY_LIBRARY_ARRAY;
+    }
+  }
+
+  @Override
+  public DartLibraryImport[] getImports() throws DartModelException {
+    DartLibraryInfo elementInfo = (DartLibraryInfo) getElementInfo();
+    if (elementInfo != null) {
+      return elementInfo.getImports();
+    } else {
+      return EMPTY_IMPORT_ARRAY;
     }
   }
 
@@ -457,16 +474,6 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   public LibrarySource getLibrarySourceFile() {
     // TODO (danrubel): rename this getLibrarySource()
     return sourceFile;
-  }
-
-  @Override
-  public String[] getPrefixes() throws DartModelException {
-    DartLibraryInfo elementInfo = (DartLibraryInfo) getElementInfo();
-    if (elementInfo != null) {
-      return elementInfo.getPrefixes();
-    } else {
-      return new String[0];
-    }
   }
 
   @Override
@@ -583,8 +590,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         return true;
       }
       try {
-        DartLibrary[] importedLibraries = library.getImportedLibraries();
-        for (DartLibrary importedLibrary : importedLibraries) {
+        for (DartLibrary importedLibrary : library.getImportedLibraries()) {
           if (!visited.contains(importedLibrary)) {
             visited.add(importedLibrary);
           }
@@ -675,60 +681,64 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       libraryInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
       return true;
     }
-    final ArrayList<DartLibraryImpl> importedLibraries = new ArrayList<DartLibraryImpl>();
-    final HashSet<String> prefixes = new HashSet<String>();
     final ArrayList<IResource> resourceList = new ArrayList<IResource>();
     final DartModelManager modelManager = DartModelManager.getInstance();
     unit.accept(new SafeDartNodeTraverser<Void>() {
       @Override
       public Void visitImportDirective(DartImportDirective node) {
+        // prepare "path"
         String relativePath = getRelativePath(node.getLibraryUri());
         if (relativePath == null) {
           return null;
         }
-        DartStringLiteral prefix = node.getPrefix();
-        if (prefix != null) {
-          prefixes.add(prefix.getValue());
+        // prepare "prefix"
+        String prefix = null;
+        {
+          DartStringLiteral prefixLiteral = node.getPrefix();
+          if (prefixLiteral != null) {
+            prefix = prefixLiteral.getValue();
+          }
         }
-        LibrarySource lib;
+        // prepare LibrarySource
+        LibrarySource librarySource;
         try {
-          lib = sourceFile.getImportFor(relativePath);
+          librarySource = sourceFile.getImportFor(relativePath);
         } catch (Exception exception) {
           DartCore.logError(
               "Failed to resolve import " + relativePath + " in " + sourceFile.getUri(), exception);
           return null;
         }
-        if (lib == null) {
+        if (librarySource == null) {
           DartCore.logError("Failed to resolve import " + relativePath + " in "
               + sourceFile.getUri());
           return null;
-        } else if (SystemLibraryManager.isDartUri(lib.getUri())) {
+        } else if (SystemLibraryManager.isDartUri(librarySource.getUri())) {
           // It is a bundled library.
           try {
-            if (lib.exists()) {
-              DartLibraryImpl library = new DartLibraryImpl(lib);
-              importedLibraries.add(library);
+            if (librarySource.exists()) {
+              DartLibraryImpl library = new DartLibraryImpl(librarySource);
+              libraryInfo.addImport(library, prefix);
             }
           } catch (Exception exception) {
             // The library is not valid, so we don't add it.
           }
           return null;
-        } else if (!lib.exists()) {
+        } else if (!librarySource.exists()) {
           // Don't add non-existent libraries.
           return null;
         }
 
         // Find a resource in the workspace corresponding to the imported library.
-        IResource[] libraryFiles = ResourceUtil.getResources(lib);
+        IResource[] libraryFiles = ResourceUtil.getResources(librarySource);
         if (libraryFiles != null && libraryFiles.length == 1 && libraryFiles[0] instanceof IFile) {
           IFile libFile = (IFile) libraryFiles[0];
           DartProjectImpl dartProject = modelManager.create(libFile.getProject());
-          importedLibraries.add(new DartLibraryImpl(dartProject, libFile, lib));
+          libraryInfo.addImport(new DartLibraryImpl(dartProject, libFile, librarySource), prefix);
           return null;
         }
 
         // Find an external library on disk.
-        File libFile = ResourceUtil.getFile(lib);
+        File libFile = ResourceUtil.getFile(librarySource);
         if (libFile != null) {
 //          DartLibraryImpl library = null;
 //          try {
@@ -739,7 +749,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 //                + sourceFile.getUri(), exception);
 //          }
 //          if (library == null) {
-          importedLibraries.add(new DartLibraryImpl(libFile));
+          libraryInfo.addImport(new DartLibraryImpl(libFile), prefix);
 //          } else {
 //            importedLibraries.add(library);
 //          }
@@ -849,12 +859,6 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
     if (!children.isEmpty()) {
       libraryInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
-    }
-    if (!importedLibraries.isEmpty()) {
-      libraryInfo.setImportedLibraries(importedLibraries.toArray(new DartLibraryImpl[importedLibraries.size()]));
-    }
-    if (!prefixes.isEmpty()) {
-      libraryInfo.setPrefixes(prefixes.toArray(new String[prefixes.size()]));
     }
     return true;
   }
