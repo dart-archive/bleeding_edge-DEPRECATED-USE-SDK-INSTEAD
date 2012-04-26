@@ -206,7 +206,8 @@ def TestFrog(compiler, runtime, mode, system, option, flags, bot_number=None):
     TestStep("sdk", mode, system, 'none', 'vm', ['dartdoc'], flags)
 
   else:
-    tests = ['client', 'isolate', 'frog', 'css', 'corelib', 'language'
+    tests = ['dom', 'html', 'json', 'benchmark_smoke',
+             'isolate', 'frog', 'css', 'corelib', 'language',
              'frog_native', 'peg']
 
     # TODO(efortuna): Move Mac back to DumpRenderTree when we have a more stable
@@ -228,7 +229,8 @@ def TestFrog(compiler, runtime, mode, system, option, flags, bot_number=None):
         if bot_number == '2':
           tests = ['corelib', 'language']
         else:
-          tests = ['client', 'isolate', 'frog', 'css', 'frog_native', 'peg']
+          tests = ['dom', 'html', 'json', 'benchmark_smoke',
+                   'isolate', 'frog', 'css', 'frog_native', 'peg']
       TestStep(runtime, mode, system, compiler, runtime, tests,
           flags + additional_flags)
 

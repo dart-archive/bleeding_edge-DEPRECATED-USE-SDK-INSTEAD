@@ -98,7 +98,8 @@ def main():
       # Run frogium client tests. This is a pretty quick test but
       # tends to uncover different issues due to the size/complexity
       # of the DOM APIs.
-      cmd = test_cmd + ['--compiler=frog', '--runtime=drt', 'client']
+      cmd = test_cmd + ['--compiler=frog', '--runtime=drt',
+                        'dom', 'html', 'json', 'benchmark_smoke']
       RunCommand(*cmd, verbose=True)
 
       # Run frog on most of the tests.
