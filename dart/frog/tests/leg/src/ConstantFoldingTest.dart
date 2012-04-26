@@ -37,7 +37,7 @@ main() {
       NEGATIVE_NUMBER_FOLDING, 'main', const RegExp(@"print\(1\)"));
 
   String generated = compile(NULL_EQUALS_FOLDING, 'foo');
-  RegExp regexp = const RegExp(@'eqNullB\(a\)');
+  RegExp regexp = const RegExp(@'eqNull\(a\)');
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp(@'\(?void 0\)? === b');
