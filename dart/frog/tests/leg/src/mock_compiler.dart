@@ -24,6 +24,7 @@ final String DEFAULT_HELPERLIB = @'''
   lt() {} add(var a, var b) {} sub() {} mul() {} div() {} tdiv() {} mod() {}
   neg() {} shl() {} shr() {} eq() {} le() {} gt() {} ge() {}
   or() {} and() {} not() {} eqNull(a) {} eqq() {}
+  ltB() {} leB() {} eqB() {} gtB() {} geB() {} eqNullB(a) {}
   iae(x) {throw x;} ioore(x) {throw x;}
   guard$array(x) { return x; }
   guard$num(x) { return x; }
