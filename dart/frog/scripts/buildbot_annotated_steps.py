@@ -227,10 +227,10 @@ def TestFrog(compiler, runtime, mode, system, option, flags, bot_number=None):
         additional_flags += ['-j1']
         # The IE bots are slow lately. Split up the tests they do.
         if bot_number == '2':
-          tests = ['corelib', 'language']
+          tests = ['language']
         else:
           tests = ['dom', 'html', 'json', 'benchmark_smoke',
-                   'isolate', 'frog', 'css', 'frog_native', 'peg']
+                   'isolate', 'frog', 'css', 'frog_native', 'peg', 'corelib']
       TestStep(runtime, mode, system, compiler, runtime, tests,
           flags + additional_flags)
 
