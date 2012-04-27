@@ -2,25 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-EvaluatorTest: Skip                    # TODO(jimhug): Skipped until ready to work on REPL.
-InheritanceOrderingTest: Skip          # TODO(jimhug): Fix flakiness uniformly
-PrototypePatchingTest: Skip            # TODO(jimhug): Fix flakiness uniformly
-
-
-[ $checked ]
-NativeCheckedFieldsFrogTest: Fail
-
-[ $runtime == vm || $compiler == dartc || $compiler == frog || $compiler == dart2js || ($runtime == drt && $compiler == none) ]
-Node*Test: Skip
-
 
 [ $compiler == frog || $compiler == dartc || ($runtime == drt && $compiler == none) || $compiler == dart2js ]
-FrogServerTest: Skip
-
+frog_server_test: Skip
 
 [ $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == opera || $runtime == ff ]
 *: Skip
 
-
 [ $compiler == dart2js || $compiler == dartc ]
 *: Skip
+
+[ $compiler == none ]
+*_frog_test: Skip

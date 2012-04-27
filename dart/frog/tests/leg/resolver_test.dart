@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("../../../../lib/compiler/implementation/leg.dart");
-#import("../../../../lib/compiler/implementation/elements/elements.dart");
-#import("../../../../lib/compiler/implementation/tree/tree.dart");
-#import("../../../../lib/compiler/implementation/util/util.dart");
+#import("../../../lib/compiler/implementation/leg.dart");
+#import("../../../lib/compiler/implementation/elements/elements.dart");
+#import("../../../lib/compiler/implementation/tree/tree.dart");
+#import("../../../lib/compiler/implementation/util/util.dart");
 #import("mock_compiler.dart");
 #import("parser_helper.dart");
 

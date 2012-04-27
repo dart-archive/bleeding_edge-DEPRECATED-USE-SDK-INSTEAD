@@ -6,10 +6,10 @@
 
 #import('dart:io');
 
-#import('../../../server/frog_server.dart', prefix: 'frogserver');
+#import('../../server/frog_server.dart', prefix: 'frogserver');
 
 // TODO(jmesserly): more sane way to import JSON on the VM
-#import('../../../../lib/json/json.dart');
+#import('../../../lib/json/json.dart');
 
 main() {
   // TODO(jmesserly): This test must be run from 'frog' working directory.

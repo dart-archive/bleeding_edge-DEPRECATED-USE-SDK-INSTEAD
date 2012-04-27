@@ -3,14 +3,14 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
-ClassTest: Fail
-StatementsTest: Fail
-TypedLocalsTest: Fail
+class_test: Fail
+statements_test: Fail
+typed_locals_test: Fail
 
 
 [ $mode == debug ]
-OperatorTest: Skip
-StringInterpolationTest: Skip
+operator_test: Skip
+string_interpolation_test: Skip
 
 
 [ $compiler == frog || $runtime == drt ]

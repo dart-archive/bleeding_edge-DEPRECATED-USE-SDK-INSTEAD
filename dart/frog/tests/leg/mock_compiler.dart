@@ -6,10 +6,10 @@
 
 #import("dart:uri");
 
-#import("../../../../lib/compiler/implementation/elements/elements.dart");
-#import("../../../../lib/compiler/implementation/leg.dart");
-#import("../../../../lib/compiler/implementation/tree/tree.dart");
-#import("../../../../lib/compiler/implementation/util/util.dart");
+#import("../../../lib/compiler/implementation/elements/elements.dart");
+#import("../../../lib/compiler/implementation/leg.dart");
+#import("../../../lib/compiler/implementation/tree/tree.dart");
+#import("../../../lib/compiler/implementation/util/util.dart");
 #import("parser_helper.dart");
 
 class WarningMessage {

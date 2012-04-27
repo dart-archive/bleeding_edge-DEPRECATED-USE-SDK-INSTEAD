@@ -10,10 +10,12 @@ class AwaitTestSuite extends StandardTestSuite {
   AwaitTestSuite(Map configuration)
       : super(configuration,
               "await",
-              "frog/tests/await/src",
+              "frog/tests/await",
               ["frog/tests/await/await.status"]);
 
   List<String> additionalOptions(String filename) {
     return ['$dartDir/frog/await/awaitc.dart'];
   }
+
+  bool isTestFile(String filename) => filename.endsWith("_test.dart");
 }

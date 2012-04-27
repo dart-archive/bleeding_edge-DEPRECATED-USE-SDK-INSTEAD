@@ -2,12 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-ConstantFoldingStringTest: Fail
-RedundantPhiEliminatorTest: Fail # Fails because of hack to allow aborting loops.
-PrettyParameterTest: Fail # TODO(floitsch): investigate.
-TypeInference2Test: Fail # Issue 2577, requires liveness analysis.
-TypeInference4Test: Fail # Issue 2665.
-TypeInference5Test: Fail # Issue 2665.
+constant_folding_string_test: Fail
+redundant_phi_eliminator_test: Fail # Fails because of hack to allow aborting loops.
+pretty_parameter_test: Fail # TODO(floitsch): investigate.
+type_inference2_test: Fail # Issue 2577, requires liveness analysis.
+type_inference4_test: Fail # Issue 2665.
+type_inference5_test: Fail # Issue 2665.
 
 [ $compiler == dartc || $compiler == frog || $compiler == dart2js || $runtime == ie || $runtime == opera || $runtime == ff || $runtime == chrome || $runtime == safari ]
 *: Skip # Leg uses #import('dart:io'); and Leg is not self-hosted (yet).

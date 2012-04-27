@@ -6,11 +6,11 @@
 
 #import("dart:uri");
 
-#import("../../../../lib/compiler/implementation/elements/elements.dart");
-#import("../../../../lib/compiler/implementation/tree/tree.dart");
-#import('../../../../lib/compiler/implementation/scanner/scannerlib.dart');
-#import("../../../../lib/compiler/implementation/leg.dart");
-#import("../../../../lib/compiler/implementation/util/util.dart");
+#import("../../../lib/compiler/implementation/elements/elements.dart");
+#import("../../../lib/compiler/implementation/tree/tree.dart");
+#import('../../../lib/compiler/implementation/scanner/scannerlib.dart');
+#import("../../../lib/compiler/implementation/leg.dart");
+#import("../../../lib/compiler/implementation/util/util.dart");
 
 class LoggerCanceler implements DiagnosticListener {
   void cancel([String reason, node, token, instruction]) {

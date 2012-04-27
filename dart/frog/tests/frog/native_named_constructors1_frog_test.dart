@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('X');
-#native('NativeNamedConstructors1FrogTest.js');  // Defines JS constructor 'A'.
+#native('native_named_constructors1_frog_test.js');  // Defines JS constructor 'A'.
 
 // The native class has several constructors which partition the behaviour of
 // the JS constructor function into several well-typed Dart constructors.

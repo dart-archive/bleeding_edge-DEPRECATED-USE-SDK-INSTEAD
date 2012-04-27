@@ -4,8 +4,8 @@
 
 #import('../lang.dart');
 
-#source('ParserTest.dart');
-#source('TokenizerTest.dart');
+#source('parser_test.dart');
+#source('tokenizer_test.dart');
 
 // TODO(jimhug): Replace this with proper test harness integration.
 void main() {
