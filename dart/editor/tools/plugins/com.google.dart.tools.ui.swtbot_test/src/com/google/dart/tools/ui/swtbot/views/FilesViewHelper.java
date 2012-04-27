@@ -59,8 +59,11 @@ public class FilesViewHelper {
 
   public void assertTreeItemCount(int expectedItemCount) {
     int actualItemCount = getItems().length;
-    assertEquals("Expected " + expectedItemCount + ", but found " + actualItemCount
-        + " items in the Files view: " + getItemsToString(), expectedItemCount, actualItemCount);
+    assertEquals(
+        "Expected " + expectedItemCount + ", but found " + actualItemCount
+            + " items in the Files view: " + getItemsToString(),
+        expectedItemCount,
+        actualItemCount);
   }
 
   public void assertTreeItemsEqual(String... items) {
@@ -83,8 +86,10 @@ public class FilesViewHelper {
    * @return <code>true</code> if the click action was successful
    */
   public boolean contextClick(String projectLabel, String commandLabel) {
+    tree.setFocus();
     for (SWTBotTreeItem treeItem : getItems()) {
       if (treeItem.getText().equals(projectLabel)) {
+        treeItem.setFocus();
         return treeItem.contextMenu(commandLabel).click() != null;
       }
     }
@@ -97,18 +102,19 @@ public class FilesViewHelper {
    * 
    * @param projectLabel the name of the top level directory in the Files view that will get this
    *          context menu click
-   * @param filePath some path within the specified top level directory, such as
-   *          <code>folder1/folder2/file.txt</code>
+   * @param filePath some path within the specified top level directory, such as <code>folder1 / folder2 / file.txt</code>
    * @param commandLabel the name of the action on the context menu for the specified project, an
    *          example is {@link #RUN_TEXT}
    * @return <code>true</code> if the click action was successful
    */
   public boolean contextClick(String projectLabel, String filePath, String commandLabel) {
+    tree.setFocus();
     for (SWTBotTreeItem treeItem : getItems()) {
       if (treeItem.getText().equals(projectLabel)) {
         treeItem.expand();
         String[] filePaths = filePath.split(java.io.File.separator);
         SWTBotTreeItem itemToClick = recursivelyFind(filePaths, treeItem);
+        itemToClick.setFocus();
         return itemToClick.contextMenu(commandLabel).click() != null;
       }
     }
@@ -125,9 +131,12 @@ public class FilesViewHelper {
     if (contextClick(projectLabel, REMOVE_FROM_EDITOR_TEXT)) {
       // assert that the item disappears from the view within 200 ms
       bot.sleep(200);
-      assertEquals("After removing " + projectLabel
-          + ", expected one less item in the Files view, but instead there are "
-          + getItems().length + " items.", beforeCount - 1, getItems().length);
+      assertEquals(
+          "After removing " + projectLabel
+              + ", expected one less item in the Files view, but instead there are "
+              + getItems().length + " items.",
+          beforeCount - 1,
+          getItems().length);
       return true;
     }
     assertEquals(beforeCount, getItems().length);
@@ -184,8 +193,9 @@ public class FilesViewHelper {
         }
       }
     }
-    fail("Could not find the tree element " + filePaths[0] + " under " + parent.getText()
-        + " in the Files view.");
+    fail(
+        "Could not find the tree element " + filePaths[0] + " under " + parent.getText()
+            + " in the Files view.");
     return null;
   }
 

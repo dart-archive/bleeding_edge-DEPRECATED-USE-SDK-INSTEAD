@@ -13,14 +13,17 @@
  */
 package com.google.dart.tools.ui.swtbot;
 
-import com.google.dart.tools.ui.swtbot.app.NewSimpleApp;
+import com.google.dart.tools.ui.swtbot.endtoend.AbstractEndToEndTest;
+import com.google.dart.tools.ui.swtbot.endtoend.EndToEnd001;
+import com.google.dart.tools.ui.swtbot.endtoend.EndToEnd002;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
 
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * End To End UI tests for the Dart Editor.
@@ -30,15 +33,25 @@ import org.junit.runner.RunWith;
 @RunWith(SWTBotJunit4ClassRunner.class)
 public final class EndToEndUITest extends AbstractDartEditorTest {
 
-  @Ignore("Currently with the analysis engine turned on, danrubel investigating.")
-  //Not working on Linux yet
   @Test
-  public void testEndToEnd_simpleApp() throws Exception {
-    NewSimpleApp newSimpleApp = new NewSimpleApp(bot);
-    newSimpleApp.create();
+  public void testEndToEnd_001() throws Exception {
+    EndToEnd001 endToEnd001 = new EndToEnd001(bot);
+    runEndToEndTest(endToEnd001);
+  }
+
+  // Not working on Linux yet- code completion testing bug.
+  @Test
+  public void testEndToEnd_002() throws Exception {
+    EndToEnd002 endToEnd002 = new EndToEnd002(bot);
+    runEndToEndTest(endToEnd002);
+  }
+
+  private void runEndToEndTest(AbstractEndToEndTest endToEndTest) throws Exception {
+    assertNotNull(endToEndTest);
+    endToEndTest.runTest();
     Performance.waitForResults(bot);
     new ProblemsViewHelper(bot).assertNoProblems();
-    newSimpleApp.app.close(bot);
+    endToEndTest.afterTest();
   }
 
 }

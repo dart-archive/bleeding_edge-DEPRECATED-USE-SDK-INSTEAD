@@ -17,7 +17,6 @@ import com.google.dart.tools.core.samples.SamplesTest;
 import com.google.dart.tools.ui.swtbot.performance.Performance;
 
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -48,12 +47,6 @@ public final class SamplesUITest extends AbstractDartEditorTest {
   @Test
   public void testSample_timeServer() throws Exception {
     openAndLaunchLibrary(DartLib.TIME_SERVER_SAMPLE, false, true);
-  }
-
-  @Ignore("Currently fails, SDK is not up to date with the Dart Editor, danrubel investigating.")
-  @Test
-  public void testSample_total() throws Exception {
-    openAndLaunchLibrary(DartLib.TOTAL_SAMPLE, true, false);
   }
 
   @Test

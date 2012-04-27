@@ -49,7 +49,7 @@ public abstract class AbstractDartEditorTest {
 
   public static String WELCOME_EDITOR_NAME = "Welcome";
   public static String CALLERS_VIEW_NAME = "Callers";
-  public static String CONSOLE_VIEW_NAME = "Console";
+  public static String CONSOLE_VIEW_NAME = "Output";
   public static String DEBUGGER_VIEW_NAME = "Debugger";
   public static String FILES_VIEW_NAME = "Files";
   public static String OUTLINE_VIEW_NAME = "Outline";

@@ -20,6 +20,7 @@ import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRadio;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
@@ -54,8 +55,11 @@ public class NewApplicationHelper {
   public DartLib create(String appName, ContentType contentType) {
 
     // Open wizard
-    bot.menu("File").menu("New Application...").click();
+    SWTBotMenu menu = bot.menu("File").menu("New Application...");
+    menu.setFocus();
+    menu.click();
     SWTBotShell shell = bot.activeShell();
+    shell.setFocus();
     shell.activate();
 
     // Reference widgets and Assert content
@@ -99,7 +103,8 @@ public class NewApplicationHelper {
     lib.deleteDir();
 
     // Enter name of new app
-    appNameField.typeText(appName);
+    appNameField.setFocus();
+    appNameField.setText(appName);
 
     // Click OK button and wait for the operation to complete
     finishButton.click();

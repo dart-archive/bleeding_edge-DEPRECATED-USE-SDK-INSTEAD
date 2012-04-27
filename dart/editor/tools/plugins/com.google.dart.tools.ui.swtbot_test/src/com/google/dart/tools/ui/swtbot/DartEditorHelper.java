@@ -66,28 +66,47 @@ public class DartEditorHelper {
     this.styledText = new SWTBotStyledText(widget());
   }
 
-  public void codeComplete(String proposalText) {
+  /**
+   * Code completion action with the passed proposal text, the passed boolean indicates if the
+   * completion is unique or not. This is important because the UX is different in these two cases,
+   * in instances where it is unique (<code>true</code>), a table is not presented to the user,
+   * instances where the completion is not unique (<code>false</code>), a table is presented to the
+   * user.
+   * 
+   * @param proposalText
+   * @param uniqueCompletion <code>true</code> if there is only one possible completion, and
+   *          <code>false</code> otherwise
+   */
+  public void codeComplete(String proposalText, boolean uniqueCompletion) {
     String simpleText = proposalText;
     if (simpleText.endsWith(".*")) {
       simpleText = simpleText.substring(0, simpleText.length() - 2);
     }
     simpleText = simpleText.replace("\\", "");
     long start = System.currentTimeMillis();
-    WaitForObjectCondition<SWTBotTable> autoCompleteTable = autoCompleteAppears(tableWithRow(proposalText));
-    waitUntil(autoCompleteTable);
-    Performance.CODE_COMPLETION.log(start, simpleText);
-    selectProposal(autoCompleteTable.get(0), proposalText);
+    activateAutoCompleteShell();
+    if (uniqueCompletion) {
+      Performance.CODE_COMPLETION.log(start, simpleText);
+    } else {
+      WaitForObjectCondition<SWTBotTable> autoCompleteTable = autoCompleteAppears(tableWithRow(proposalText));
+      waitUntil(autoCompleteTable);
+      Performance.CODE_COMPLETION.log(start, simpleText);
+      selectProposal(autoCompleteTable.get(0), proposalText);
+    }
   }
 
-  public void codeComplete(String insertText, String proposalText) {
+  public void codeComplete(String insertText, String proposalText, boolean uniqueCompletion) {
     editor.typeText(insertText);
-    codeComplete(proposalText);
+    codeComplete(proposalText, uniqueCompletion);
   }
 
   public SWTBotEclipseEditor editor() {
     return editor;
   }
 
+  /**
+   * Moves the cursor to the end of the line containing the passed text.
+   */
   public void moveToEndOfLineContaining(String text) {
     moveToStartOfLineContaining(text);
     editor.pressShortcut(Keystrokes.DOWN, Keystrokes.LEFT);
@@ -111,7 +130,7 @@ public class DartEditorHelper {
   }
 
   /**
-   * Save the editor and log the time for incremental compilation
+   * Save the editor and log the time for incremental compilation.
    */
   public void save(String... comments) {
     editor.save();
@@ -120,8 +139,20 @@ public class DartEditorHelper {
 
   /**
    * Type the specified text. Interpret '!' as request for code completion.
+   * <p>
+   * This method simply calls {@link DartEditorHelper#typeLine(String, boolean)} with
+   * <code>true</code>.
    */
   public void typeLine(String text) {
+    typeLine(text, true);
+  }
+
+  /**
+   * Type the specified text. Interpret '!' as request for code completion. The passed boolean
+   * should be <code>true</code> if there is only one possible completion, and <code>false</code>
+   * otherwise.
+   */
+  public void typeLine(String text, boolean uniqueCompletion) {
     editor.pressShortcut(Keystrokes.LF);
     int start = 0;
     int end = text.indexOf('!');
@@ -157,8 +188,7 @@ public class DartEditorHelper {
           end++;
         }
         proposalText += ".*";
-        codeComplete(proposalText);
-
+        codeComplete(proposalText, uniqueCompletion);
       }
       start = end;
       end = text.indexOf('!', start);

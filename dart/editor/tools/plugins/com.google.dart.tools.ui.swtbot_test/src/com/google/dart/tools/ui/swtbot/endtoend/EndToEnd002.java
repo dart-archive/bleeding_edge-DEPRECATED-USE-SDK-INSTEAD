@@ -11,10 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.swtbot.app;
+package com.google.dart.tools.ui.swtbot.endtoend;
 
 import com.google.dart.tools.ui.swtbot.DartEditorHelper;
 import com.google.dart.tools.ui.swtbot.DartLib;
+import com.google.dart.tools.ui.swtbot.EndToEndUITest;
 import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.conditions.ProblemsViewCount;
 import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
@@ -25,19 +26,26 @@ import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.printActiveEditorT
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 
 /**
- * Helper for creating a simple application named "NewTestApp"
+ * Helper class for {@link EndToEndUITest}, this test creates a new web application using
+ * {@link NewApplicationHelper}, adds some text introducing an error (missing semicolon), fixes the
+ * error, saves and exits.
  */
-public class NewSimpleApp {
+public class EndToEnd002 extends AbstractEndToEndTest {
 
-  private final SWTWorkbenchBot bot;
-  public DartLib app;
+  private DartLib app;
 
-  public NewSimpleApp(SWTWorkbenchBot bot) {
-    this.bot = bot;
+  public EndToEnd002(SWTWorkbenchBot bot) {
+    super(bot);
   }
 
-  public void create() throws Exception {
-    app = new NewApplicationHelper(bot).create("SimpleApp", NewApplicationHelper.ContentType.WEB);
+  @Override
+  public void afterTest() {
+    app.close(bot);
+  }
+
+  @Override
+  public void runTest() throws Exception {
+    app = new NewApplicationHelper(bot).create("EndToEnd002", NewApplicationHelper.ContentType.WEB);
     new LaunchBrowserHelper(bot).launch(app);
     Performance.waitForResults(bot);
     try {
@@ -50,20 +58,26 @@ public class NewSimpleApp {
     new LaunchBrowserHelper(bot).launch(app);
   }
 
-  public void modifySource(DartEditorHelper helper) {
+  private void modifySource(DartEditorHelper helper) {
     helper.moveToEndOfLineContaining("Hello");
 
-    helper.typeLine("wri!te(\"Hello Again!!\")");
+    helper.typeLine("wri!te(\"Hello Again\")");
     helper.save("error in src");
     Performance.waitForResults(bot);
     bot.waitUntil(new ProblemsViewCount(1));
 
+    helper.moveToEndOfLineContaining("write(\"Hello Again\")");
     helper.editor().typeText(";");
     helper.save();
     Performance.waitForResults(bot);
     bot.waitUntil(new ProblemsViewCount(0));
 
-    helper.typeLine("wr!ite(\"Goodbye.\");");
+    helper.typeLine("write(\"Goodbye.");
+    helper.moveToEndOfLineContaining("write(\"Goodbye.\")");
+    helper.editor().typeText(";");
+    Performance.waitForResults(bot);
+    bot.waitUntil(new ProblemsViewCount(0));
+
     helper.save();
   }
 

@@ -117,12 +117,6 @@ public final class InitialEditorStateTest extends AbstractDartEditorTest {
     view.close();
   }
 
-  @Ignore("Old tests,Êneed to fix for the new Console")
-  @Test
-  public void testInitState_view_console() throws Exception {
-    baseViewAssertions(AbstractDartEditorTest.CONSOLE_VIEW_NAME);
-  }
-
   @Test
   public void testInitState_view_debugger() throws Exception {
     bot.menu("Tools").menu(AbstractDartEditorTest.DEBUGGER_VIEW_NAME).click();
