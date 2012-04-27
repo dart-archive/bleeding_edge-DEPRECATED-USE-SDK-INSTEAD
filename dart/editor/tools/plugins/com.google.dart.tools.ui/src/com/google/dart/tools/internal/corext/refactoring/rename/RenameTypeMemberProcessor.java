@@ -62,15 +62,12 @@ import java.util.Set;
  */
 public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
 
-  private static void addTextEdit(TextChange change, String groupName, TextEdit textEdit) {
-    TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
-  }
-
   protected final TypeMember member;
+
   private final String oldName;
   private final TextChangeManager changeManager = new TextChangeManager(true);
-
   private List<SearchMatch> declarations;
+
   private List<SearchMatch> references;
 
   /**
@@ -84,7 +81,9 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
 
   @Override
   public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException {
-    return Checks.checkIfCuBroken(member);
+    RefactoringStatus result = Checks.checkIfCuBroken(member);
+    result.merge(RenameAnalyzeUtil.checkLocalElement(member));
+    return result;
   }
 
   @Override
@@ -182,13 +181,20 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
     addUpdates(pm, editName, references);
   }
 
+  private void addTextEdit(CompilationUnit unit, String groupName, TextEdit textEdit) {
+    if (unit.getResource() != null) {
+      TextChange change = changeManager.get(unit);
+      TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
+    }
+  }
+
   private void addUpdates(IProgressMonitor pm, String editName, List<SearchMatch> matches)
       throws CoreException {
     pm.beginTask("", matches.size()); //$NON-NLS-1$
     for (SearchMatch match : matches) {
       CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
       SourceRange matchRange = match.getSourceRange();
-      addTextEdit(changeManager.get(cu), editName, createTextChange(matchRange));
+      addTextEdit(cu, editName, createTextChange(matchRange));
       pm.worked(1);
     }
   }
@@ -318,7 +324,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
       pm.subTask("Analyze subtypes");
       for (Type subType : enclosingAndSubTypes) {
         boolean isEnclosingType = subType == enclosingType;
-        IPath resourcePath = subType.getResource().getFullPath();
+        IPath resourcePath = subType.getPath();
         // TypeParameter shadowed by Renamed in enclosing type
         if (isEnclosingType) {
           DartTypeParameter[] typeParameters = subType.getTypeParameters();

@@ -18,6 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.search.SearchMatch;
@@ -506,6 +507,15 @@ public class Checks {
   }
 
   /**
+   * @param element the {@link DartElement}, not <code>null</code>.
+   * @return <code>true</code> if given {@link DartElement} is defined in local {@link DartLibrary}.
+   */
+  public static boolean isLocal(DartElement element) throws DartModelException {
+    DartLibrary library = element.getAncestor(DartLibrary.class);
+    return library != null && library.isLocal();
+  }
+
+  /**
    * @param e
    * @return int Checks.IS_RVALUE if e is an rvalue Checks.IS_RVALUE_GUESSED if e is guessed as an
    *         rvalue Checks.NOT_RVALUE_VOID if e is not an rvalue because its type is void
@@ -777,6 +787,9 @@ public class Checks {
 //  }
 
   private static boolean hasCompileErrors(IResource resource) throws DartModelException {
+    if (resource == null) {
+      return false;
+    }
     try {
       IMarker[] problemMarkers = resource.findMarkers(
           DartCore.DART_PROBLEM_MARKER_TYPE,

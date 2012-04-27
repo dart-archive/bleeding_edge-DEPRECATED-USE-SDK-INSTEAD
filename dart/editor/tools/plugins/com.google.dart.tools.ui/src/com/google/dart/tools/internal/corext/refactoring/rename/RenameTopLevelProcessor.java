@@ -61,14 +61,10 @@ import java.util.Set;
  */
 public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
 
-  private static void addTextEdit(TextChange change, String groupName, TextEdit textEdit) {
-    TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
-  }
-
   private final CompilationUnitElement element;
+
   private final SourceReference elementSourceReference;
   private final String oldName;
-
   private final TextChangeManager changeManager = new TextChangeManager(true);
 
   private List<SearchMatch> references;
@@ -86,7 +82,9 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
 
   @Override
   public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException {
-    return Checks.checkIfCuBroken(element);
+    RefactoringStatus result = Checks.checkIfCuBroken(element);
+    result.merge(RenameAnalyzeUtil.checkLocalElement(element));
+    return result;
   }
 
   @Override
@@ -166,7 +164,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     SourceRange nameRange = elementSourceReference.getNameRange();
     CompilationUnit cu = element.getCompilationUnit();
     String editName = RefactoringCoreMessages.RenameRefactoring_update_declaration;
-    addTextEdit(changeManager.get(cu), editName, createTextChange(nameRange));
+    addTextEdit(cu, editName, createTextChange(nameRange));
   }
 
   private void addReferenceUpdates(IProgressMonitor pm) throws DartModelException {
@@ -175,8 +173,15 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     for (SearchMatch match : references) {
       CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
       SourceRange matchRange = match.getSourceRange();
-      addTextEdit(changeManager.get(cu), editName, createTextChange(matchRange));
+      addTextEdit(cu, editName, createTextChange(matchRange));
       pm.worked(1);
+    }
+  }
+
+  private void addTextEdit(CompilationUnit unit, String groupName, TextEdit textEdit) {
+    if (unit.getResource() != null) {
+      TextChange change = changeManager.get(unit);
+      TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
     }
   }
 

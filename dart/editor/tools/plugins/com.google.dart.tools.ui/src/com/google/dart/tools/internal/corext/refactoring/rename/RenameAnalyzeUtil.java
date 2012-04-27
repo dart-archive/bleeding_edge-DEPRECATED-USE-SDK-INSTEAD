@@ -42,12 +42,16 @@ import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
+import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.RenameProcessor;
 
 import java.util.List;
@@ -59,6 +63,28 @@ import java.util.Set;
  * @coverage dart.editor.ui.refactoring.core
  */
 public class RenameAnalyzeUtil {
+
+  /**
+   * Check that given {@link DartElement} is defined in workspace.
+   * 
+   * @param element the {@link DartElement} to check, not <code>null</code>.
+   * @return the {@link RefactoringStatus} with {@link RefactoringStatus#OK} or
+   *         {@link RefactoringStatus#ERROR}.
+   */
+  public static RefactoringStatus checkLocalElement(DartElement element) throws CoreException {
+    if (!Checks.isLocal(element)) {
+      String libraryName = element.getAncestor(DartLibrary.class).getElementName();
+      IPath elementPath = element.getPath();
+      String message = Messages.format(
+          RefactoringCoreMessages.RenameRefactoring_notLocal,
+          new Object[] {
+              RenameAnalyzeUtil.getElementTypeName(element),
+              libraryName,
+              BasicElementLabels.getPathLabel(elementPath, true)});
+      return RefactoringStatus.createErrorStatus(message);
+    }
+    return new RefactoringStatus();
+  }
 
   /**
    * @return the localized name of the {@link DartElement}.

@@ -494,6 +494,37 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
     check_postCondition_topLevel("variable");
   }
 
+  /**
+   * We should warn about renaming external elements, but allow rename.
+   */
+  public void test_preCondition_externalElement() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  print(0);",
+        "  print(1);",
+        "}",
+        "");
+    DartFunction function = findElement("print(0)");
+    // try to rename
+    showStatusCancel = false;
+    renameFunction(function, "newName");
+    // warning should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
+    assertThat(showStatusMessages.get(0)).contains(
+        "Only workspace references will be changed for function defined outside of workspace");
+    // status was non-fatal error, so rename was done
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  newName(0);",
+        "  newName(1);",
+        "}",
+        "");
+  }
+
   public void test_preCondition_hasCompilationErrors() throws Exception {
     setUnitContent(
         "Test1.dart",

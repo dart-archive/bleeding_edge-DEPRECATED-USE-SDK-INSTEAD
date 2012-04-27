@@ -26,6 +26,8 @@ import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.List;
@@ -35,6 +37,30 @@ import java.util.Set;
  * Test for {@link RenameAnalyzeUtil}.
  */
 public final class RenameAnalyzeUtilTest extends RefactoringTest {
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#checkLocalElement(DartElement)}.
+   */
+  public void test_checkLocalElement() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "Map m;",
+        "class A {}",
+        "");
+    // "Map" is local
+    {
+      Type type = findElement("Map m");
+      RefactoringStatus status = RenameAnalyzeUtil.checkLocalElement(type);
+      assertFalse(status.isOK());
+      assertTrue(status.hasError());
+    }
+    // "A" is external
+    {
+      Type type = findElement("A {}");
+      RefactoringStatus status = RenameAnalyzeUtil.checkLocalElement(type);
+      assertTrue(status.isOK());
+    }
+  }
 
   public void test_getElementTypeName() throws Exception {
     CompilationUnit unit = setTestUnitContent(

@@ -633,6 +633,37 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     assertEquals(source, testUnit.getSource());
   }
 
+  /**
+   * We should warn about renaming external elements, but allow rename.
+   */
+  public void test_preCondition_externalElement() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  Math.sin(0);",
+        "  Math.sin(1);",
+        "}",
+        "");
+    Method method = findElement("sin(0)");
+    // try to rename
+    showStatusCancel = false;
+    renameMethod(method, "newName");
+    // warning should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
+    assertThat(showStatusMessages.get(0)).contains(
+        "Only workspace references will be changed for method defined outside of workspace");
+    // status was non-fatal error, so rename was done
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  Math.newName(0);",
+        "  Math.newName(1);",
+        "}",
+        "");
+  }
+
   public void test_preCondition_hasCompilationErrors() throws Exception {
     setUnitContent(
         "Test1.dart",

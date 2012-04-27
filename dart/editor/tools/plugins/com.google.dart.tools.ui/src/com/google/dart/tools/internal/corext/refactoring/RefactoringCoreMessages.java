@@ -1622,6 +1622,7 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameEnumConstRefactoring_name;
 
+  public static String RenameRefactoring_notLocal;
   public static String RenameRefactoring_another_name;
   public static String RenameRefactoring_enclosing_type_member_already_defined;
   public static String RenameRefactoring_searching;

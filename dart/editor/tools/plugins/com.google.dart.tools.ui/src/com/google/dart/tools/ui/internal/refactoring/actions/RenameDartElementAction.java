@@ -76,7 +76,6 @@ public class RenameDartElementAction extends SelectionDispatchAction {
   }
 
   public boolean canRunInEditor() {
-    // TODO(scheglov) linked mode support
     if (RenameLinkedMode.getActiveLinkedMode() != null) {
       return true;
     }
@@ -99,7 +98,6 @@ public class RenameDartElementAction extends SelectionDispatchAction {
   }
 
   public void doRun() {
-    // TODO(scheglov) linked mode support
     RenameLinkedMode activeLinkedMode = RenameLinkedMode.getActiveLinkedMode();
     if (activeLinkedMode != null) {
       if (activeLinkedMode.isCaretInLinkedPosition()) {
@@ -118,21 +116,15 @@ public class RenameDartElementAction extends SelectionDispatchAction {
         run(element, lightweight);
         return;
       }
-      // TODO(scheglov) linked mode support
-//      else if (lightweight) {
-//        // fall back to local rename:
-//        CorrectionCommandHandler handler =
-//            new CorrectionCommandHandler(fEditor, LinkedNamesAssistProposal.ASSIST_ID, true);
-//        if (handler.doExecute()) {
-//          fEditor.setStatusLineErrorMessage(RefactoringMessages.RenameJavaElementAction_started_rename_in_file);
-//          return;
-//        }
-//      }
     } catch (CoreException e) {
-      ExceptionHandler.handle(e, RefactoringMessages.RenameJavaElementAction_name,
+      ExceptionHandler.handle(
+          e,
+          RefactoringMessages.RenameJavaElementAction_name,
           RefactoringMessages.RenameJavaElementAction_exception);
     }
-    MessageDialog.openInformation(getShell(), RefactoringMessages.RenameJavaElementAction_name,
+    MessageDialog.openInformation(
+        getShell(),
+        RefactoringMessages.RenameJavaElementAction_name,
         RefactoringMessages.RenameJavaElementAction_not_available);
   }
 
@@ -148,7 +140,9 @@ public class RenameDartElementAction extends SelectionDispatchAction {
     try {
       run(element, false);
     } catch (CoreException e) {
-      ExceptionHandler.handle(e, RefactoringMessages.RenameJavaElementAction_name,
+      ExceptionHandler.handle(
+          e,
+          RefactoringMessages.RenameJavaElementAction_name,
           RefactoringMessages.RenameJavaElementAction_exception);
     }
   }
@@ -161,7 +155,9 @@ public class RenameDartElementAction extends SelectionDispatchAction {
     if (canRunInEditor()) {
       doRun();
     } else {
-      MessageDialog.openInformation(getShell(), RefactoringMessages.RenameAction_rename,
+      MessageDialog.openInformation(
+          getShell(),
+          RefactoringMessages.RenameAction_rename,
           RefactoringMessages.RenameAction_unavailable);
     }
   }
@@ -222,8 +218,6 @@ public class RenameDartElementAction extends SelectionDispatchAction {
       return;
     }
 
-    // TODO(scheglov) linked mode support
-//    RefactoringExecutionStarter.startRenameRefactoring(element, getShell());
     if (lightweight && fEditor instanceof CompilationUnitEditor) {
       new RenameLinkedMode(element, (CompilationUnitEditor) fEditor).start();
     } else {
