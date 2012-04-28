@@ -16,26 +16,12 @@ chat/*: Skip
 
 
 [ $runtime == drt ]
-chat/ChatServerTest: Skip
-chat/HttpTest: Skip
-chat/HttpParserTest: Skip
-chat/UrlEncodingTest: Skip
-lib/layout/LayoutTest: Skip # Issue 152
-lib/touch/TouchTest: Skip # Issue 157
-ChatServerTest: Skip
-HttpTest: Skip
-HttpParserTest: Skip
-UrlEncodingTest: Skip
-#proxy/*_generatedTest: Skip
+chat/ChatServerTest: Skip # Uses dart:io
+lib/layout/LayoutTest: Fail # Issue 152
+lib/touch/TouchTest: Fail # Issue 157
 
 [ $compiler == none && $runtime == drt ]
-dartcombat/DartCombatTest: Skip # Bug 5279716
-DartCombatTest: Skip
-proxy/MintMakerFullyIsolated_generatedTest: Skip
-
-[ $compiler == none && $runtime == drt && $mode == debug ]
-swarm/SwarmTest: Skip # Issue 1617
-SwarmTest: Skip
+dartcombat/DartCombatTest: Fail # Issue 2790
 
 [ ($compiler == frog && $runtime == drt) || ($runtime == chrome || $runtime == ff || $runtime == safari)) ]
 dartcombat/DartCombatTest: Skip # passes locally but timeout on bot?
