@@ -18,3 +18,6 @@ string_interpolation_test: Skip
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $compiler == dartc || $runtime == vm ]
+cascade_precedence_test: Fail
