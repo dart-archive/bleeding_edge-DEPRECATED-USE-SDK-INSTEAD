@@ -66,14 +66,13 @@ class ListFactory<E> implements List<E> native "Array" {
 
   E last() => this[this.length-1];
 
-  List<E> getRange(int start, int rangeLength) native """
+  ListFactory<E> getRange(int start, int rangeLength) {
     if (rangeLength == 0) return [];
     if (rangeLength < 0) throw new IllegalArgumentException('length');
     if (start < 0 || start + rangeLength > this.length)
       throw new IndexOutOfRangeException(start);
-    return this.slice(start, start + rangeLength);
-  """ { throw new IllegalArgumentException('');
-        throw new IndexOutOfRangeException(0); }
+    return this._slice(start, start + rangeLength);
+  }
 
   void setRange(int start, int rangeLength, List<E> from, [int startFrom = 0]) {
     // length of 0 prevails and should not throw exceptions.
@@ -96,36 +95,34 @@ class ListFactory<E> implements List<E> native "Array" {
       this[start + i] = from[startFrom + i];
   }
 
-  void removeRange(int start, int rangeLength) native """
+  void removeRange(int start, int rangeLength) {
     if (rangeLength == 0) return;
     if (rangeLength < 0) throw new IllegalArgumentException('length');
     if (start < 0 || start + rangeLength > this.length)
       throw new IndexOutOfRangeException(start);
-    this.splice(start, rangeLength);
-  """ { throw new IllegalArgumentException('');
-        throw new IndexOutOfRangeException(0); }
+    this._splice(start, rangeLength);
+  }
 
-  void insertRange(int start, int rangeLength, [E initialValue]) native """
+  void insertRange(int start, int rangeLength, [E initialValue]) {
     if (rangeLength == 0) return;
     if (rangeLength < 0) throw new IllegalArgumentException('length');
     if (start < 0 || start > this.length)
       throw new IndexOutOfRangeException(start);
 
     // Splice in the values with a minimum of array allocations.
-    var args = new Array(rangeLength + 2);
+    var args = new ListFactory(rangeLength + 2);
     args[0] = start;
     args[1] = 0;
     for (var i = 0; i < rangeLength; i++) {
       args[i + 2] = initialValue;
     }
-    this.splice.apply(this, args);
-    """ { throw new IllegalArgumentException('');
-          throw new IndexOutOfRangeException(0); }
+    this._splice_apply(args);
+  }
 
   // Collection<E> members:
   void forEach(void f(E element)) native;
-  Collection<E> filter(bool f(E element)) native;
-  Collection map(f(E element)) native;
+  ListFactory<E> filter(bool f(E element)) native;
+  ListFactory map(f(E element)) native;
   bool every(bool f(E element)) native;
   bool some(bool f(E element)) native;
   bool isEmpty() => length == 0;
@@ -134,6 +131,11 @@ class ListFactory<E> implements List<E> native "Array" {
   Iterator<E> iterator() => new ListIterator(this);
 
   String toString() => Collections.collectionToString(this);
+
+  // Native methods.
+  ListFactory<E> _slice(start, end) native 'slice';
+  void _splice(start, length) native 'splice';
+  void _splice_apply(args) native 'this.splice.apply(this, args)';
 }
 
 // Iterator for lists.
