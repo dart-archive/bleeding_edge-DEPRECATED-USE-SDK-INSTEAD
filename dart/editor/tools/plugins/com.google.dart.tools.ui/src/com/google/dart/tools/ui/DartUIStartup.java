@@ -16,12 +16,12 @@ package com.google.dart.tools.ui;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.ResourceChangeListener;
 import com.google.dart.tools.core.indexer.DartIndexer;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerWarmup;
-import com.google.dart.tools.ui.analysis.AnalysisMarkerManager;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -81,8 +81,7 @@ public class DartUIStartup implements IStartup {
     private void analysisWarmup() {
       if (DartCoreDebug.ANALYSIS_SERVER) {
         AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-        server.addAnalysisListener(new AnalysisMarkerManager());
-        server.start();
+        new ResourceChangeListener(server).addWorkspaceToScan();
       }
     }
 

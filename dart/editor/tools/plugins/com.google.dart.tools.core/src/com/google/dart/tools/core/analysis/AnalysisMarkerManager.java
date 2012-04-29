@@ -11,27 +11,22 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.analysis;
+package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.SubSystem;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.analysis.AnalysisError;
-import com.google.dart.tools.core.analysis.AnalysisEvent;
-import com.google.dart.tools.core.analysis.AnalysisListener;
-import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.ui.actions.WorkspaceModifyOperation;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -219,21 +214,18 @@ public class AnalysisMarkerManager implements AnalysisListener {
 
       // Batch process marker operations
 
-      WorkspaceModifyOperation op = new WorkspaceModifyOperation() {
+      IWorkspaceRunnable op = new IWorkspaceRunnable() {
         @Override
-        protected void execute(IProgressMonitor monitor) throws CoreException,
-            InvocationTargetException, InterruptedException {
+        public void run(IProgressMonitor monitor) throws CoreException {
           for (MarkerOp op : todo) {
             op.perform();
           }
         }
       };
       try {
-        op.run(null);
-      } catch (InvocationTargetException e) {
-        DartToolsPlugin.log("Exception translating errors/warnings into markers", e);
-      } catch (InterruptedException e) {
-        //$FALL-THROUGH$
+        ResourcesPlugin.getWorkspace().run(op, null);
+      } catch (CoreException e) {
+        DartCore.logError("Exception translating errors/warnings into markers", e);
       }
 
       // Sleep for 1 second to allow marker operations to accumulate and be batched

@@ -15,10 +15,9 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisIndexManager;
+import com.google.dart.tools.core.analysis.AnalysisMarkerManager;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.ResourceChangeListener;
 import com.google.dart.tools.core.model.DartSdk;
 
 import java.io.File;
@@ -71,13 +70,12 @@ public class SystemLibraryManagerProvider {
       if (defaultAnalysisServer == null) {
         defaultAnalysisServer = new AnalysisServer(getAnyLibraryManager());
         defaultAnalysisServer.addAnalysisListener(new AnalysisIndexManager());
-        if (DartCoreDebug.ANALYSIS_SERVER) {
-          new ResourceChangeListener(defaultAnalysisServer).addWorkspaceToScan();
-        }
+        defaultAnalysisServer.addAnalysisListener(new AnalysisMarkerManager());
         // TODO (danrubel) merge ResourceChangeListener with delta processor
         DartCore.notYetImplemented();
         //defaultAnalysisChangeListener = new ResourceChangeListener(defaultAnalysisServer);
         //defaultAnalysisChangeListener.start();
+        defaultAnalysisServer.start();
       }
     }
     return defaultAnalysisServer;

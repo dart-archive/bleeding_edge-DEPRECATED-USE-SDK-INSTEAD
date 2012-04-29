@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.completion;
 
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.model.DartModelException;
 
@@ -361,6 +362,9 @@ public class CompletionEngineTest extends TestCase {
         !completionTests.isEmpty());
     if (DartCoreDebug.NEW_INDEXER) {
       InMemoryIndex.getInstance().initializeIndex();
+    }
+    if (DartCoreDebug.ANALYSIS_SERVER) {
+      AnalysisTestUtilities.waitForIdle(60000);
     }
     IProgressMonitor monitor = new NullProgressMonitor();
     MockLibrarySource library = new MockLibrarySource("FooLib");
