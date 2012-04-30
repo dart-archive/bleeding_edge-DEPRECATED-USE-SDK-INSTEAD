@@ -4,7 +4,7 @@
 
 #library("MintMakerPromiseTest");
 #import("dart:isolate");
-#import("../../../../proxy/promise.dart");
+#import("../../../proxy/promise.dart");
 
 interface Mint default MintImpl {
 

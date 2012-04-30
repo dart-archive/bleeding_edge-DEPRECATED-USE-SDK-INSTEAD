@@ -4,7 +4,7 @@
 
 #library("mintmakerrpctest");
 #import("dart:isolate");
-#import("../../../../proxy/proxy.dart");
+#import("../../../proxy/proxy.dart");
 
 /***
  * Background:

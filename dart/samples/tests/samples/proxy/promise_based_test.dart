@@ -4,8 +4,8 @@
 
 #library("PromiseBasedTest");
 #import("dart:isolate");
-#import("../../../../proxy/promise.dart");
-#import("../../../../../lib/unittest/unittest.dart");
+#import("../../../proxy/promise.dart");
+#import("../../../../lib/unittest/unittest.dart");
 
 class TestIsolate extends Isolate {
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("PromiseTest");
-#import("../../../../proxy/promise.dart");
+#import("../../../proxy/promise.dart");
 
 class PromiseTest {
 

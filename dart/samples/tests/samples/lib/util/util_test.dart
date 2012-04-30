@@ -5,9 +5,9 @@
 #library('util_tests');
 
 #import('dart:html');
-#import('../../../../../../lib/unittest/unittest.dart');
-#import('../../../../../../lib/unittest/html_config.dart');
-#import('../../../../../ui_lib/util/utilslib.dart');
+#import('../../../../../lib/unittest/unittest.dart');
+#import('../../../../../lib/unittest/html_config.dart');
+#import('../../../../ui_lib/util/utilslib.dart');
 
 main() {
   useHtmlConfiguration();

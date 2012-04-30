@@ -5,15 +5,15 @@
 #library('observable_tests');
 
 #import('dart:html');
-#import('../../../../../ui_lib/observable/observable.dart');
-#import('../../../../../../lib/unittest/unittest.dart');
-#import('../../../../../../lib/unittest/html_config.dart');
+#import('../../../../ui_lib/observable/observable.dart');
+#import('../../../../../lib/unittest/unittest.dart');
+#import('../../../../../lib/unittest/html_config.dart');
 
-#source('AbstractObservableTests.dart');
-#source('ChangeEventTests.dart');
-#source('EventBatchTests.dart');
-#source('ObservableListTests.dart');
-#source('ObservableValueTests.dart');
+#source('abstract_observable_tests.dart');
+#source('change_event_tests.dart');
+#source('event_batch_tests.dart');
+#source('observable_list_tests.dart');
+#source('observable_value_tests.dart');
 
 void main() {
   useHtmlConfiguration();

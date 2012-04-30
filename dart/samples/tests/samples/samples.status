@@ -16,37 +16,47 @@ chat/*: Skip
 
 
 [ $runtime == drt ]
-chat/ChatServerTest: Skip # Uses dart:io
-lib/layout/LayoutTest: Fail # Issue 152
-lib/touch/TouchTest: Fail # Issue 157
+chat/chat_server_test: Skip # Uses dart:io
+lib/layout/layout_test: Skip # Issue 152
+lib/touch/touch_test: Skip # Issue 157
 
 [ $compiler == none && $runtime == drt ]
-dartcombat/DartCombatTest: Fail # Issue 2790
+dartcombat/dartcombat_test: Fail # Issue 2790
 
 [ $compiler == none && $runtime == drt && $checked ]
-proxy/MintMakerFullyIsolated_generatedTest: Fail # type check fails, Issue 2792.
+proxy/mint_maker_fully_isolated_generated_test: Fail # type check fails, Issue 2792.
 
 [ ($compiler == frog && $runtime == drt) || ($runtime == chrome || $runtime == ff || $runtime == safari)) ]
-dartcombat/DartCombatTest: Skip # passes locally but timeout on bot?
-DartCombatTest: Skip
+dartcombat/dartcombat_test: Skip # passes locally but timeout on bot?
+dartcombat_test: Skip
 
 [ $runtime == safari ]
-PromiseBasedTest: Skip
+promise_based_test: Skip
 
 [ $runtime == vm]
-dartcombat/DartCombatTest: Skip
-DartCombatTest: Skip
-SwarmTest: Skip
-total/TotalTest: Skip
-swarm/SwarmTest: Skip
-lib/layout/LayoutTest: Skip
-lib/touch/TouchTest: Skip
-lib/observable/ObservableTest: Skip
-lib/util/UtilTest: Skip
-lib/view/ViewTest: Skip
+dartcombat/dartcombat_test: Skip
+dartcombat_test: Skip
+swarm_test: Skip
+total/total_test: Skip
+swarm/swarm_test: Skip
+lib/layout/layout_test: Skip
+lib/touch/touch_test: Skip
+lib/observable/observable_test: Skip
+lib/util/util_test: Skip
+lib/view/view_test: Skip
 
 [ $runtime == vm && $checked ]
-proxy/MintMakerFullyIsolated_generatedTest: Fail # issue 2519
+proxy/mint_maker_fully_isolated_generated_test: Fail # issue 2519
 
 [ $compiler == frog && ($runtime == d8 || $runtime == none) ]
 *: Skip
+
+[ $compiler == dart2js ]
+proxy/mint_maker_rpc_test: Fail # TypeError: Cannot call method 'toSendPort$0' of undefined
+
+[ $compiler == dart2js && $runtime == drt ]
+dartcombat/dartcombat_test: Fail
+proxy/mint_maker_rpc_test: Pass # Issue 2254.
+
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.

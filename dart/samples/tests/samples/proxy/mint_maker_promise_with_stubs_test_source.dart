@@ -6,8 +6,8 @@
 
 #library("MintMakerPromiseWithStubsTest-generatedTest");
 #import("dart:isolate");
-#import("../../../../proxy/promise.dart");
-#import("../../../../../lib/unittest/unittest.dart");
+#import("../../../proxy/promise.dart");
+#import("../../../../lib/unittest/unittest.dart");
 
 interface Mint default MintImpl {
 

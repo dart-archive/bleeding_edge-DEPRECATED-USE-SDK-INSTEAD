@@ -5,8 +5,8 @@
 // IsolateStubs=MintMakerFullyIsolatedTest.dart:Mint,Purse,PowerfulPurse
 #library("MintMakerFullyIsolatedTest_generatedTest");
 #import("dart:isolate");
-#import("../../../../proxy/promise.dart");
-#import("../../../../../lib/unittest/unittest.dart");
+#import("../../../proxy/promise.dart");
+#import("../../../../lib/unittest/unittest.dart");
 
 /* class = Purse (tests/stub-generator/src/MintMakerFullyIsolatedTest.dart/MintMakerFullyIsolatedTest.dart: 9) */
 

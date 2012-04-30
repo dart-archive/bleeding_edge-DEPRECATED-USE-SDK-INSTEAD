@@ -6,8 +6,8 @@
 
 #library("MintMakerPromiseWithStubsTest_generatedTest");
 #import("dart:isolate");
-#import("../../../../proxy/promise.dart");
-#import("../../../../../lib/unittest/unittest.dart");
+#import("../../../proxy/promise.dart");
+#import("../../../../lib/unittest/unittest.dart");
 
 /* class = Mint (tests/stub-generator/src/MintMakerPromiseWithStubsTest.dart/MintMakerPromiseWithStubsTest.dart: 10) */
 

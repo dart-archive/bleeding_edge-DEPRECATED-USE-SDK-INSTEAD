@@ -10,7 +10,7 @@
 #import("dart:io");
 #import("dart:isolate");
 #import("dart:json");
-#import("../../../../chat/chat_server_lib.dart");
+#import("../../../chat/chat_server_lib.dart");
 
 // Message to start chat test client running in an isolate.
 class ChatTestClientStart {
