@@ -38,7 +38,9 @@ final String DEFAULT_HELPERLIB = @'''
   indexSet(a, index, value) {}
   builtin$iterator$0() {}
   builtin$next$0() {}
-  builtin$hasNext$0() {}''';
+  builtin$hasNext$0() {}
+  stringConcat() {}
+  stringToString() {}''';
 
 final String DEFAULT_CORELIB = @'''
   print(var obj) {}
