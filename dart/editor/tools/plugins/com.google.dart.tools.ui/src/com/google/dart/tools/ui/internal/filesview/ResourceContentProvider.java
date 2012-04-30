@@ -120,7 +120,9 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
-        viewer.refresh();
+        if (viewer != null && !viewer.getControl().isDisposed()) {
+          viewer.refresh();
+        }
       }
     });
   }
