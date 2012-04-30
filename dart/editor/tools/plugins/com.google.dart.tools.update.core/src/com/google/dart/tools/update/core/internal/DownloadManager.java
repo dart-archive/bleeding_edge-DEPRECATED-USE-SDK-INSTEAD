@@ -66,6 +66,27 @@ public class DownloadManager {
     return UpdateUtils.getLatestRevision(UpdateCore.getUpdateUrl());
   }
 
+  
+  /**
+   * Get the latest staged revision number.
+   * 
+   * @return the latest staged revision
+   */
+  public Revision getLatestStaged() {
+    IPath updateDirPath = UpdateCore.getUpdateDirPath();
+    File dir = updateDirPath.toFile();
+    Revision latest = Revision.UNKNOWN;
+    if (dir.exists() && dir.isDirectory()) {
+      for (File file : dir.listFiles()) {
+        Revision revision = Revision.forValue(file.getName().split(".zip")[0]);
+        if (revision.isMoreCurrentThan(latest)) {
+          latest = revision;
+        }
+      }
+    }
+    return latest;
+  }
+
   /**
    * Check to see if there is an update staged and ready to be applied.
    * 
@@ -199,21 +220,6 @@ public class DownloadManager {
       }
     });
     updateJob.schedule();
-  }
-
-  private Revision getLatestStaged() {
-    IPath updateDirPath = UpdateCore.getUpdateDirPath();
-    File dir = updateDirPath.toFile();
-    Revision latest = Revision.UNKNOWN;
-    if (dir.exists() && dir.isDirectory()) {
-      for (File file : dir.listFiles()) {
-        Revision revision = Revision.forValue(file.getName().split(".zip")[0]);
-        if (revision.isMoreCurrentThan(latest)) {
-          latest = revision;
-        }
-      }
-    }
-    return latest;
   }
 
 }

@@ -16,14 +16,17 @@ package com.google.dart.tools.update.core.internal;
 import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.internal.Library;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -75,10 +78,49 @@ public class UpdateUtils {
   private static final OS OS = getOS();
 
   /**
+   * Copy the contents of one directory to another directory recursively.
+   * 
+   * @param fromDir the source
+   * @param toDir the target
+   * @param overwriteFilter a filter to determine if a given file should be overwritten in a copy
+   * @param monitor a monitor for providing progress feedback
+   * @throws IOException
+   */
+  public static void copyDirectory(File fromDir, File toDir, FileFilter overwriteFilter,
+      IProgressMonitor monitor) throws IOException {
+    for (File f : fromDir.listFiles()) {
+      File toFile = new File(toDir, f.getName());
+      if (f.isFile()) {
+        if (!toFile.exists() || overwriteFilter.accept(toFile)) {
+          copyFile(f, toFile, monitor);
+        } 
+//        else {
+//          System.out.println("skipping + " + toFile.getPath());
+//          UpdateCore.logWarning("skipping + " + toFile.getPath());
+//        }
+
+      } else {
+        if (!toFile.isDirectory()) {
+          toFile.delete();
+        }
+        if (!toFile.exists()) {
+          toFile.mkdir();
+        }
+
+        copyDirectory(f, toFile, overwriteFilter, monitor);
+      }
+    }
+
+  }
+
+  /**
    * Copy a file from one place to another, providing progress along the way.
    */
   public static void copyFile(File fromFile, File toFile, IProgressMonitor monitor)
       throws IOException {
+
+//    System.out.println("copying " + fromFile.getName());
+
     byte[] data = new byte[4096];
 
     InputStream in = new FileInputStream(fromFile);
@@ -86,8 +128,6 @@ public class UpdateUtils {
     toFile.delete();
 
     OutputStream out = new FileOutputStream(toFile);
-
-    monitor.beginTask("Copy " + fromFile.toString(), (int) fromFile.length());
 
     int count = in.read(data);
 
@@ -108,11 +148,27 @@ public class UpdateUtils {
   }
 
   /**
+   * Delete the given file. If the file is a directory, recurse and delete contents.
+   * 
+   * @param file the file to delete
+   */
+  public static void delete(File file) {
+    if (file.isFile()) {
+      file.delete();
+    } else {
+      deleteDirectory(file);
+    }
+  }
+
+  /**
    * Recurse and delete the given directory contents.
    * 
    * @param dir the directory to delete
    */
   public static void deleteDirectory(File dir) {
+    if (dir == null || !dir.exists()) {
+      return;
+    }
     for (File file : dir.listFiles()) {
       if (file.isDirectory()) {
         deleteDirectory(file);
@@ -153,6 +209,8 @@ public class UpdateUtils {
       return null;
     }
     Collections.sort(revisions);
+//    //TODO (pquitslund): for testing continuous, roll back one rev
+//    return revisions.get(revisions.size() - 2);
     return revisions.get(revisions.size() - 1);
   }
 
@@ -166,6 +224,64 @@ public class UpdateUtils {
   public static IPath getPath(Revision revision) {
     IPath updateDirPath = UpdateCore.getUpdateDirPath();
     return updateDirPath.append(revision.toString()).addFileExtension("zip");
+  }
+
+  /**
+   * Get the update directory.
+   * 
+   * @return the update directory
+   */
+  public static File getUpdateDir() {
+    IPath updateDirPath = UpdateCore.getUpdateDirPath();
+
+    File updateDir = updateDirPath.toFile();
+    if (!updateDir.exists()) {
+      updateDir.mkdirs();
+    }
+    return updateDir;
+  }
+
+  /**
+   * Get the target update install directory.
+   * 
+   * @return the install directory
+   */
+  public static File getUpdateInstallDir() {
+
+    try {
+      URL url = FileLocator.find(UpdateCore.getInstance().getBundle(), Path.EMPTY, null);
+      if (url != null) {
+        File bundle = new File(FileLocator.resolve(url).toURI());
+        //dart/plugins/XXXX.jar
+        return bundle.getParentFile().getParentFile();
+      }
+    } catch (Exception e) {
+      return null;
+    }
+
+//    //TODO (pquitslund): for local testing
+//    return new File(getUpdateTempDir().getParentFile(), "install");
+
+    return getUpdateDir().getParentFile();
+
+  }
+
+  /**
+   * Get the temporary update data directory.
+   * 
+   * @return the temporary update data directory
+   */
+  public static File getUpdateTempDir() {
+    File updateDir = getUpdateDir();
+    File tmpDir = new File(updateDir, "tmp");
+    if (!tmpDir.isDirectory()) {
+      tmpDir.delete();
+      tmpDir = new File(updateDir, "tmp");
+    }
+    if (!tmpDir.exists()) {
+      tmpDir.mkdir();
+    }
+    return tmpDir;
   }
 
   /**
@@ -215,11 +331,12 @@ public class UpdateUtils {
   }
 
   /**
-   * Unzip the a zip file, notifying the given monitor along the way.
+   * Unzip a zip file, notifying the given monitor along the way.
    */
-  public static void unzip(File zipFile, File destination, IProgressMonitor monitor)
+  public static void unzip(File zipFile, File destination, String taskName, IProgressMonitor monitor)
       throws IOException {
-    monitor.beginTask("Unzip " + zipFile.getName(), (int) zipFile.length());
+
+    monitor.beginTask(taskName, (int) zipFile.length());
 
     final int BUFFER_SIZE = 4096;
 

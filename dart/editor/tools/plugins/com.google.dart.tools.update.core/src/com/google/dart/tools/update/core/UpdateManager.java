@@ -98,6 +98,13 @@ public class UpdateManager {
   }
 
   /**
+   * Get the latest staged update.
+   */
+  public Revision getLatestStagedUpdate() {
+    return downloadManager.getLatestStaged();
+  }
+
+  /**
    * Checks to see if an update is currently being downloaded.
    * 
    * @return <code>true</code> if an update is being downloaded, <code>false</code> otherwise
@@ -153,7 +160,7 @@ public class UpdateManager {
    * Schedule installation of a staged update.
    */
   public void scheduleInstall() {
-    new InstallUpdateAction().run();
+    new InstallUpdateAction(this).run();
   }
 
   /**

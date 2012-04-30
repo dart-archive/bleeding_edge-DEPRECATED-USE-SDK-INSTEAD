@@ -126,6 +126,13 @@ public class UpdateCore extends Plugin {
   }
 
   /**
+   * Get the shared singleton instance.
+   */
+  public static UpdateCore getInstance() {
+    return PLUGIN;
+  }
+
+  /**
    * Get the directory location for locally staging updates.
    * 
    * @return

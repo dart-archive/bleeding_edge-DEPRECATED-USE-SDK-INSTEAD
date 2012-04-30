@@ -13,8 +13,25 @@
  */
 package com.google.dart.tools.update.core.internal.jobs;
 
+import com.google.dart.tools.update.core.UpdateManager;
+import com.google.dart.tools.update.core.internal.UpdateUtils;
+
+import org.eclipse.core.runtime.AssertionFailedException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * An action that installs an available Dart Editor update.
@@ -28,26 +45,63 @@ public class InstallUpdateAction extends Action {
   private static final String PROP_VMARGS = "eclipse.vmargs"; //$NON-NLS-1$
   private static final String CMD_VMARGS = "-vmargs"; //$NON-NLS-1$
 
-  private static final String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$
+  private static final String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+
+  private final UpdateManager updateManager;
+
+  private static final FileFilter UPDATE_OVERRIDE_FILTER = new FileFilter() {
+    /**
+     * Returns <code>true</code> if this file should be overwritten, <code>false</code> otherwise
+     */
+    @Override
+    public boolean accept(File file) {
+
+      //org.eclipse.equinox.simpleconfigurator/bundles.info
+      if (file.getName().equals("bundles.info")) { //$NON-NLS-1$
+        return true;
+      }
+
+      return false;
+    }
+  };
+
+  /**
+   * Create an instance.
+   */
+  public InstallUpdateAction(UpdateManager updateManager) {
+    this.updateManager = updateManager;
+  }
 
   @Override
   public void run() {
-    applyUpdate();
-    restart();
+    try {
+      applyUpdate();
+      restart();
+    } catch (Throwable th) {
+      MessageDialog.openError(getShell(), UpdateJobMessages.InstallUpdateAction_errorTitle,
+          NLS.bind(UpdateJobMessages.InstallUpdateAction_errorMessage, th.getMessage()));
+    }
   }
 
-  private void applyUpdate() {
-    //TODO (pquitslund): implement
+  private void applyUpdate() throws InvocationTargetException, InterruptedException {
+    new ProgressMonitorDialog(getShell()).run(true, false, new IRunnableWithProgress() {
+      @Override
+      public void run(IProgressMonitor monitor) throws InvocationTargetException,
+          InterruptedException {
+        try {
+          doApplyUpdate(monitor);
+        } catch (IOException e) {
+          throw new InvocationTargetException(e);
+        }
+      }
+    });
   }
 
+  //TODO (pquitslund): this step may be unnecessary if writing bundles.info suffices
   private String buildCommandLine() {
     String property = System.getProperty(PROP_VM);
     if (property == null) {
-      //TODO (pquitslund): handle error
-//      MessageDialog.openError(window.getShell(),
-//          IDEWorkbenchMessages.OpenWorkspaceAction_errorTitle,
-//          NLS.bind(IDEWorkbenchMessages.OpenWorkspaceAction_errorMessage, PROP_VM));
-      return null;
+      throw new AssertionFailedException("System property \"" + PROP_VM + "\" not set");
     }
 
     StringBuffer result = new StringBuffer(512);
@@ -61,7 +115,7 @@ public class InstallUpdateAction extends Action {
     }
 
     //TODO (pquitslund): where does this really belong?
-    result.append("-Declipse.refreshBundles=true");
+    result.append("-Declipse.refreshBundles=true"); //$NON-NLS-1$
     result.append(NEW_LINE);
 
     property = System.getProperty(PROP_COMMANDS);
@@ -78,6 +132,47 @@ public class InstallUpdateAction extends Action {
     }
 
     return result.toString();
+  }
+
+  private void cleanupTempDir(File tmpDir, IProgressMonitor monitor) {
+    File[] files = tmpDir.listFiles();
+    monitor.beginTask(UpdateJobMessages.InstallUpdateAction_cleanup_task, files.length);
+    for (File file : files) {
+      UpdateUtils.delete(file);
+      monitor.worked(1);
+    }
+    monitor.done();
+  }
+
+  private void doApplyUpdate(IProgressMonitor monitor) throws IOException {
+
+    File tmpDir = UpdateUtils.getUpdateTempDir();
+
+    SubMonitor mon = SubMonitor.convert(monitor,
+        UpdateJobMessages.InstallUpdateAction_install_task, 100);
+
+    cleanupTempDir(tmpDir, mon.newChild(3));
+
+    IPath updatePath = updateManager.getLatestStagedUpdate().getLocalPath();
+    UpdateUtils.unzip(updatePath.toFile(), tmpDir,
+        UpdateJobMessages.InstallUpdateAction_extract_task, mon.newChild(70));
+
+    File installTarget = UpdateUtils.getUpdateInstallDir();
+    //TODO (pquitslund): only necessary for testing
+    if (!installTarget.exists()) {
+      installTarget.mkdir();
+    }
+
+    //TODO (pquitslund): add progress?
+    UpdateUtils.deleteDirectory(new File(installTarget, "dart-sdk")); //$NON-NLS-1$
+    UpdateUtils.deleteDirectory(new File(installTarget, "samples")); //$NON-NLS-1$
+
+    UpdateUtils.copyDirectory(new File(tmpDir, "dart"), installTarget, UPDATE_OVERRIDE_FILTER, //$NON-NLS-1$
+        mon.newChild(27));
+  }
+
+  private Shell getShell() {
+    return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
   }
 
   private void restart() {

@@ -17,7 +17,6 @@ import com.google.dart.tools.update.core.Revision;
 import com.google.dart.tools.update.core.UpdateCore;
 import com.google.dart.tools.update.core.internal.UpdateUtils;
 
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -69,12 +68,7 @@ public class DownloadUpdatesJob extends Job {
       SubMonitor mon = SubMonitor.convert(monitor,
           UpdateJobMessages.DownloadUpdatesJob_progress_label, 100);
 
-      IPath updateDirPath = UpdateCore.getUpdateDirPath();
-
-      File updateDir = updateDirPath.toFile();
-      if (!updateDir.exists()) {
-        updateDir.mkdirs();
-      }
+      File updateDir = UpdateUtils.getUpdateDir();
 
       updateFile = new File(updateDir, revision.toString() + ".zip"); //$NON-NLS-1$
 
@@ -96,4 +90,5 @@ public class DownloadUpdatesJob extends Job {
       monitor.done();
     }
   }
+
 }

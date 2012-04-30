@@ -74,6 +74,7 @@ class UpdateStatusControl extends UpdateAdapter implements DisposeListener {
     cacheFonts();
 
     setStatus("Checking for updates...", italicFont);
+    setActionDisabled(checkFordUpdatesAction);
 
     UpdateManager updateManager = UpdateCore.getUpdateManager();
 
