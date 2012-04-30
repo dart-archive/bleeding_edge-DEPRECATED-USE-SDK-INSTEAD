@@ -242,6 +242,10 @@ public class CompletionEngineTest extends TestCase {
 //    test("#import('dart:html', prefix: 'html');f() {var x=new html.Element!1}", "1+Element");
   }
 
+  public void testCommentSnippets047() throws Exception {
+    test("f(){int x;int y=!1;}", "1+x");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test

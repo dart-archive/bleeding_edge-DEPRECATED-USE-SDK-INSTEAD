@@ -2165,8 +2165,10 @@ public class CompletionEngine {
   private void proposeVariables(DartNode completionNode, DartIdentifier identifier,
       DartClassMember<? extends DartExpression> method) {
     createCompletionsForLocalVariables(completionNode, identifier, method);
-    DartClass classDef = (DartClass) method.getParent();
-    createCompletionsForStaticVariables(identifier, classDef);
+    if (method.getParent() instanceof DartClass) {
+      DartClass classDef = (DartClass) method.getParent();
+      createCompletionsForStaticVariables(identifier, classDef);
+    }
   }
 
   private void reportResolveLibraryFailed(Collection<DartCompilationError> parseErrors) {
