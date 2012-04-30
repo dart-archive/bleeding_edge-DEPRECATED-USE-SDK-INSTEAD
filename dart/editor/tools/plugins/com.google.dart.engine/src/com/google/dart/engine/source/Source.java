@@ -21,13 +21,6 @@ import java.io.File;
  */
 public interface Source {
   /**
-   * Return the name that should be displayed to users when discussing this source.
-   * 
-   * @return the name that should be displayed to users when discussing this source
-   */
-  public String getDisplayName();
-
-  /**
    * Return the file represented by this source, or <code>null</code> if this source does not exist.
    * 
    * @return the file represented by this source
@@ -40,4 +33,12 @@ public interface Source {
    * @return <code>true</code> if this is in a system library
    */
   public boolean isInSystemLibrary();
+
+  /**
+   * Resolve the given URI relative to the location of this source.
+   * 
+   * @param uri the URI to be resolved against this source
+   * @return a source representing the resolved URI
+   */
+  public Source resolve(String uri);
 }

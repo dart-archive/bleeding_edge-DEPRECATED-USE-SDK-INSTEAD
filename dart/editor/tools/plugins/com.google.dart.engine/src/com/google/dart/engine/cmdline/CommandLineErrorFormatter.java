@@ -112,13 +112,13 @@ public class CommandLineErrorFormatter {
             escapePipe(event.getErrorCode().getErrorSeverity().toString()),
             escapePipe(event.getErrorCode().getSubSystem().toString()),
             escapePipe(event.getErrorCode().toString()),
-            escapePipe(sourceFile.getDisplayName()),
+            escapePipe(sourceFile.getFile().getAbsolutePath()),
             event.getLineNumber(),
             1 + col,
             length,
             escapePipe(event.getMessage())));
       } else {
-        String sourceName = sourceFile.getDisplayName();
+        String sourceName = sourceFile.getFile().getAbsolutePath();
         String includeFrom = getImportString(sourceFile);
         buf.append(String.format(
             "%s:%d: %s%s",
@@ -218,7 +218,7 @@ public class CommandLineErrorFormatter {
     String includeFrom = getImportString(sourceFile);
 
     if (sourceFile != null) {
-      sourceName = sourceFile.getDisplayName();
+      sourceName = sourceFile.getFile().getAbsolutePath();
     }
     outputStream.printf(
         "%s:%d:%d: %s%s\n",
