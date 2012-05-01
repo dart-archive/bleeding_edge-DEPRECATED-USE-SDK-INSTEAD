@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.generator;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.LibraryConfigurationFileImpl;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.StatusUtil;
 import com.google.dart.tools.core.model.DartConventions;
@@ -105,11 +104,12 @@ public class DartInterfaceGenerator extends DartFileGenerator {
         }
       }
     } else if (library != null) {
-      IResource lib = root.findMember(new Path(library));
-      if (lib != null) {//if mustBuildLibrary is false then lib should not legally be null
-        LibraryConfigurationFileImpl library = (LibraryConfigurationFileImpl) DartCore.create(lib);
-        library.addSource(getName() + Extensions.DOT_DART);
-      }
+      DartCore.notYetImplemented();
+//      IResource lib = root.findMember(new Path(library));
+//      if (lib != null) {//if mustBuildLibrary is false then lib should not legally be null
+//        LibraryConfigurationFileImpl library = (LibraryConfigurationFileImpl) DartCore.create(lib);
+//        library.addSource(getName() + Extensions.DOT_DART);
+//      }
     }
     monitor.done();
   }

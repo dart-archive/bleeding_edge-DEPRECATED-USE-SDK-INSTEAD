@@ -20,6 +20,7 @@ Export-Package: com.google.common.base,
  com.google.dart.compiler.resolver,
  com.google.dart.compiler.type,
  com.google.dart.compiler.util,
+ com.google.dart.compiler.util.apache,
  org.json,
  org.kohsuke.args4j
 Bundle-ActivationPolicy: lazy

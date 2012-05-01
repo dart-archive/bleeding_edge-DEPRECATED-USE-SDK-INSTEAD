@@ -27,6 +27,7 @@ import com.google.dart.tools.core.internal.search.scope.WorkspaceSearchScope;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
@@ -41,6 +42,7 @@ import static com.google.dart.tools.core.test.util.MoneyProjectUtilities.getMone
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -52,6 +54,31 @@ import java.util.List;
 import java.util.Map;
 
 public class NewSearchEngineTest extends TestCase {
+  /**
+   * Asserts that there are required number of {@link SearchMatch} with same offset and length.
+   */
+  private static void assertReferences(
+      String source,
+      List<SearchMatch> references,
+      int length,
+      String[] refMarkers) {
+    assertThat(references).hasSize(refMarkers.length);
+    // sort references
+    Collections.sort(references, new Comparator<SearchMatch>() {
+      @Override
+      public int compare(SearchMatch o1, SearchMatch o2) {
+        return o1.getSourceRange().getOffset() - o2.getSourceRange().getOffset();
+      }
+    });
+    // validate search matches
+    for (int i = 0; i < refMarkers.length; i++) {
+      String refMarker = refMarkers[i];
+      int refOffset = source.indexOf(refMarker);
+      assertThat(refOffset).describedAs(refMarker).isNotEqualTo(-1);
+      assertEquals(new SourceRangeImpl(refOffset, length), references.get(i).getSourceRange());
+    }
+  }
+
   private DartLibraryImpl moneyLibrary;
 
   private InMemoryIndex index;
@@ -208,6 +235,180 @@ public class NewSearchEngineTest extends TestCase {
       }
     }
     fail("Type Money not found");
+  }
+
+  /**
+   * Test that we can find references to {@link DartImport} for all possible elements.
+   */
+  public void test_searchReferences_DartImport_noPrefix() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      testProject.setUnitContent(
+          "Lib.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('libA');",
+              "class LibType {",
+              "  static var staticField;",
+              "}",
+              "var libVar;",
+              "libFunction() {}",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('Lib.dart');",
+              "f() {",
+              "  LibType v;",
+              "  LibType.staticField = 1;",
+              "  libVar = 0;",
+              "  libFunction();",
+              "}",
+              "")).getResource();
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      // index unit
+      CompilationUnit unit = libraryTest.getDefiningCompilationUnit();
+      indexUnit(unit);
+      // find references
+      DartImport imprt = libraryTest.getImports()[0];
+      assertEquals(null, imprt.getPrefix());
+      assertThat(imprt.getLibrary().getElementName()).endsWith("Lib.dart");
+      List<SearchMatch> references = getImportReferences(imprt);
+      assertReferences(unit.getSource(), references, 0, new String[] {
+          "LibType v;",
+          "LibType.staticField = 1;",
+          "libVar = 0;",
+          "libFunction();"});
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * Test that we can find references to {@link DartImport} even without prefix, when there are two
+   * {@link DartImport}s.
+   */
+  public void test_searchReferences_DartImport_noPrefix_twoLibraries() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      prepare_searchReferences_DartImport(testProject);
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart');",
+              "#import('LibB.dart');",
+              "f() {",
+              "  A a;",
+              "  B b;",
+              "}",
+              "")).getResource();
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      // index unit
+      CompilationUnit unit = libraryTest.getDefiningCompilationUnit();
+      indexUnit(unit);
+      // find references "A"
+      {
+        DartImport imprt = libraryTest.getImports()[0];
+        assertEquals(null, imprt.getPrefix());
+        assertThat(imprt.getLibrary().getElementName()).endsWith("LibA.dart");
+        List<SearchMatch> references = getImportReferences(imprt);
+        assertReferences(unit.getSource(), references, 0, new String[] {"A a;"});
+      }
+      // find references "B"
+      {
+        DartImport imprt = libraryTest.getImports()[1];
+        assertEquals(null, imprt.getPrefix());
+        assertThat(imprt.getLibrary().getElementName()).endsWith("LibB.dart");
+        List<SearchMatch> references = getImportReferences(imprt);
+        assertReferences(unit.getSource(), references, 0, new String[] {"B b;"});
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_DartImport_reusePrefix() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      prepare_searchReferences_DartImport(testProject);
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart', prefix: 'aaa');",
+              "#import('LibB.dart', prefix: 'aaa');",
+              "f() {",
+              "  aaa.A a;",
+              "  aaa.B b;",
+              "}",
+              "")).getResource();
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      // index unit
+      CompilationUnit unit = libraryTest.getDefiningCompilationUnit();
+      indexUnit(unit);
+      // find references "aaa.A"
+      {
+        DartImport imprt = libraryTest.getImports()[0];
+        assertEquals("aaa", imprt.getPrefix());
+        assertThat(imprt.getLibrary().getElementName()).endsWith("LibA.dart");
+        List<SearchMatch> references = getImportReferences(imprt);
+        assertReferences(unit.getSource(), references, 3, new String[] {"aaa.A a;"});
+      }
+      // find references "aaa.B"
+      {
+        DartImport imprt = libraryTest.getImports()[1];
+        assertEquals("aaa", imprt.getPrefix());
+        assertThat(imprt.getLibrary().getElementName()).endsWith("LibB.dart");
+        List<SearchMatch> references = getImportReferences(imprt);
+        assertReferences(unit.getSource(), references, 3, new String[] {"aaa.B b;"});
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchReferences_DartImport_uniquePrefixes() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      prepare_searchReferences_DartImport(testProject);
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart', prefix: 'aaa');",
+              "#import('LibB.dart', prefix: 'bbb');",
+              "f() {",
+              "  aaa.A a;",
+              "  bbb.B b;",
+              "}",
+              "")).getResource();
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      // index unit
+      CompilationUnit unit = libraryTest.getDefiningCompilationUnit();
+      indexUnit(unit);
+      // find references "aaa.A"
+      {
+        DartImport imprt = libraryTest.getImports()[0];
+        assertEquals("aaa", imprt.getPrefix());
+        List<SearchMatch> references = getImportReferences(imprt);
+        assertReferences(unit.getSource(), references, 3, new String[] {"aaa.A a;"});
+      }
+      // find references "bbb.B"
+      {
+        DartImport imprt = libraryTest.getImports()[1];
+        assertEquals("bbb", imprt.getPrefix());
+        List<SearchMatch> references = getImportReferences(imprt);
+        assertReferences(unit.getSource(), references, 3, new String[] {"bbb.B b;"});
+      }
+    } finally {
+      testProject.dispose();
+    }
   }
 
   public void test_searchReferences_field() throws Exception {
@@ -435,29 +636,37 @@ public class NewSearchEngineTest extends TestCase {
         new WorkspaceSearchScope(),
         null,
         new NullProgressMonitor());
-    // sort references
-    Collections.sort(references, new Comparator<SearchMatch>() {
-      @Override
-      public int compare(SearchMatch o1, SearchMatch o2) {
-        return o1.getSourceRange().getOffset() - o2.getSourceRange().getOffset();
-      }
-    });
-    // validate search matches
-    assertThat(references).hasSize(refMarkers.length);
-    for (int i = 0; i < refMarkers.length; i++) {
-      String refMarker = refMarkers[i];
-      int refOffset = source.indexOf(refMarker);
-      assertThat(refOffset).describedAs(refMarker).isNotEqualTo(-1);
-      assertEquals(new SourceRangeImpl(refOffset, length), references.get(i).getSourceRange());
-    }
+    assertReferences(source, references, length, refMarkers);
   }
 
   private SearchEngine createSearchEngine() {
     return new NewSearchEngineImpl(index);
   }
 
+  private List<SearchMatch> getImportReferences(DartImport imprt) throws SearchException {
+    SearchEngine engine = createSearchEngine();
+    return engine.searchReferences(imprt, new WorkspaceSearchScope(), null, new NullProgressMonitor());
+  }
+
   private boolean isType(SearchMatch match, String typeName) {
     DartElement element = match.getElement();
     return element instanceof Type && typeName.equals(element.getElementName());
+  }
+
+  private void prepare_searchReferences_DartImport(TestProject testProject) throws Exception {
+    testProject.setUnitContent(
+        "LibA.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('libA');",
+            "class A {}",
+            "")).getResource();
+    testProject.setUnitContent(
+        "LibB.dart",
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('libB');",
+            "class B {}",
+            "")).getResource();
   }
 }

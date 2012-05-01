@@ -40,6 +40,7 @@ import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
@@ -292,6 +293,20 @@ public final class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchReferences(DartImport imprt, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
+  public void searchReferences(DartImport imprt, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException {
+    DartCore.notYetImplemented();
+    throw new NotYetImplementedException();
+  }
+
+  @Override
   public List<SearchMatch> searchReferences(DartVariableDeclaration variable, SearchScope scope,
       SearchFilter filter, IProgressMonitor monitor) throws SearchException {
     DartCore.notYetImplemented();
@@ -447,7 +462,8 @@ public final class SearchEngineImpl implements SearchEngine {
       @Override
       public Location[] getValidTargets() {
         return new Location[] {
-            SyntheticLocation.ALL_CLASSES, SyntheticLocation.ALL_FUNCTION_TYPE_ALIASES,
+            SyntheticLocation.ALL_CLASSES,
+            SyntheticLocation.ALL_FUNCTION_TYPE_ALIASES,
             SyntheticLocation.ALL_INTERFACES};
       }
 

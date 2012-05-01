@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,55 +13,256 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.compiler.LibrarySource;
-import com.google.dart.compiler.UrlLibrarySource;
-import com.google.dart.tools.core.test.util.MoneyProjectUtilities;
+import com.google.common.base.Joiner;
+import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartImport;
+import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.test.util.TestProject;
 
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IResource;
 
-import java.net.URI;
+import static org.fest.assertions.Assertions.assertThat;
 
+/**
+ * Test for {@link DartImportImpl}.
+ */
 public class DartImportImplTest extends TestCase {
 
-  public void test_DartImportImplTest_1() throws Exception {
-    DartImportContainerImpl container = new DartImportContainerImpl(null);
-    DartLibraryImpl lib = (DartLibraryImpl) MoneyProjectUtilities.getMoneyLibrary();
-    DartImportImpl element = new DartImportImpl(container, lib.getLibrarySourceFile());
-    assertTrue(element.getImportName().endsWith("money.dart"));
-    IResource res = element.resource();
-    assertEquals("money.dart", res.getLocation().lastSegment());
-    res = element.getUnderlyingResource();
-    assertEquals("money.dart", res.getLocation().lastSegment());
+  /**
+   * Test for {@link DartLibrary#getImports()}.
+   */
+  public void test_duplicateImport() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart');",
+              "#import('LibA.dart');",
+              "")).getResource();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      //
+      DartImport[] imports = libraryTest.getImports();
+      assertThat(imports).hasSize(1);
+      {
+        assertEquals(libraryA, imports[0].getLibrary());
+        assertEquals(null, imports[0].getPrefix());
+      }
+    } finally {
+      testProject.dispose();
+    }
   }
 
-  public void test_DartImportImplTest_core() throws Exception {
-    DartImportContainerImpl container = new DartImportContainerImpl(null);
-    LibrarySource libSrc = new UrlLibrarySource(new URI("dart:core"));
-    DartImportImpl element = new DartImportImpl(container, libSrc);
-    assertBundledLib(element, "corelib.lib");
+  /**
+   * Test for {@link DartLibrary#getImports()}.
+   */
+  public void test_oneLibrary_twoPrefixes() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart', prefix: 'aaa');",
+              "#import('LibA.dart', prefix: 'bbb');",
+              "")).getResource();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      //
+      DartImport[] imports = libraryTest.getImports();
+      assertThat(imports).hasSize(2);
+      {
+        assertEquals(libraryA, imports[0].getLibrary());
+        assertEquals("aaa", imports[0].getPrefix());
+      }
+      {
+        assertEquals(libraryA, imports[1].getLibrary());
+        assertEquals("bbb", imports[1].getPrefix());
+      }
+    } finally {
+      testProject.dispose();
+    }
   }
 
-  public void test_DartImportImplTest_coreimpl() throws Exception {
-    DartImportContainerImpl container = new DartImportContainerImpl(null);
-    LibrarySource libSrc = new UrlLibrarySource(new URI("dart:coreimpl"));
-    DartImportImpl element = new DartImportImpl(container, libSrc);
-    assertBundledLib(element, "corelib_impl.lib");
+  public void test_twoLibraries_noPrefixes() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "")).getResource();
+      IResource libResourceB = testProject.setUnitContent(
+          "LibB.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('B');",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart');",
+              "#import('LibB.dart');",
+              "")).getResource();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryB = testProject.getDartProject().getDartLibrary(libResourceB);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      //
+      DartImport[] imports = libraryTest.getImports();
+      assertThat(imports).hasSize(2);
+      DartImport importA = imports[0];
+      DartImport importB = imports[1];
+      // Object methods
+      assertTrue(importA.equals(importA));
+      assertFalse(importA.equals(importB));
+      assertFalse(importA.equals(null));
+      assertFalse(importA.equals(this));
+      importA.hashCode();
+      // "LibA.dart"
+      {
+        assertEquals(DartElement.IMPORT, importA.getElementType());
+        assertEquals(libraryA, importA.getLibrary());
+        assertEquals(null, importA.getPrefix());
+        assertEquals("null:" + libraryA.getElementName(), importA.getElementName());
+        assertEquals(libraryTest, importA.getParent());
+        assertEquals(libraryTest.getDefiningCompilationUnit(), importA.getCompilationUnit());
+        assertEquals(null, importA.getNameRange());
+      }
+      // "LibB.dart"
+      {
+        assertEquals(libraryB, importB.getLibrary());
+        assertEquals(DartElement.IMPORT, importA.getElementType());
+        assertEquals(null, importB.getPrefix());
+        assertEquals(libraryTest.getDefiningCompilationUnit(), importA.getCompilationUnit());
+      }
+    } finally {
+      testProject.dispose();
+    }
   }
 
-  public void test_DartImportImplTest_dom() throws Exception {
-    DartImportContainerImpl container = new DartImportContainerImpl(null);
-    LibrarySource libSrc = new UrlLibrarySource(new URI("dart:dom"));
-    DartImportImpl element = new DartImportImpl(container, libSrc);
-    assertBundledLib(element, "dart_dom.lib");
+  /**
+   * Test for {@link DartLibrary#getImports()}.
+   */
+  public void test_twoLibraries_onePrefix() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "")).getResource();
+      IResource libResourceB = testProject.setUnitContent(
+          "LibB.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('B');",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart', prefix: 'aaa');",
+              "#import('LibB.dart', prefix: 'aaa');",
+              "")).getResource();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryB = testProject.getDartProject().getDartLibrary(libResourceB);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      //
+      DartImport[] imports = libraryTest.getImports();
+      assertThat(imports).hasSize(2);
+      {
+        assertEquals(libraryA, imports[0].getLibrary());
+        assertEquals("aaa", imports[0].getPrefix());
+      }
+      {
+        assertEquals(libraryB, imports[1].getLibrary());
+        assertEquals("aaa", imports[1].getPrefix());
+      }
+    } finally {
+      testProject.dispose();
+    }
   }
 
-  private void assertBundledLib(DartImportImpl element, final String expectedLibName) {
-    assertTrue(
-        "Expected getImportName() value to end with '" + expectedLibName + "': "
-            + element.getImportName(), element.getImportName().endsWith(expectedLibName));
-    assertNull(element.resource());
-    assertNull(element.getUnderlyingResource());
+  public void test_twoLibraries_twoPrefixes() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "")).getResource();
+      IResource libResourceB = testProject.setUnitContent(
+          "LibB.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('B');",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart', prefix: 'aaa');",
+              "#import('LibB.dart', prefix: 'bbb');",
+              "")).getResource();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryB = testProject.getDartProject().getDartLibrary(libResourceB);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      String sourceTest = libraryTest.getDefiningCompilationUnit().getSource();
+      //
+      DartImport[] imports = libraryTest.getImports();
+      assertThat(imports).hasSize(2);
+      DartImport importA = imports[0];
+      DartImport importB = imports[1];
+      // Object methods
+      assertTrue(importA.equals(importA));
+      assertFalse(importA.equals(importB));
+      assertFalse(importA.equals(null));
+      assertFalse(importA.equals(this));
+      importA.hashCode();
+      // "aaa" = "LibA.dart"
+      {
+        assertEquals(DartElement.IMPORT, importA.getElementType());
+        assertEquals(libraryA, importA.getLibrary());
+        assertEquals("aaa", importA.getPrefix());
+        assertEquals("aaa:" + libraryA.getElementName(), importA.getElementName());
+        assertEquals(libraryTest, importA.getParent());
+        assertEquals(libraryTest.getDefiningCompilationUnit(), importA.getCompilationUnit());
+        assertEquals(new SourceRangeImpl(sourceTest.indexOf("'aaa');"), 5), importA.getNameRange());
+      }
+      // "bbb" = "LibB.dart"
+      {
+        assertEquals(libraryB, importB.getLibrary());
+        assertEquals(DartElement.IMPORT, importA.getElementType());
+        assertEquals("bbb", importB.getPrefix());
+        assertEquals(libraryTest.getDefiningCompilationUnit(), importA.getCompilationUnit());
+      }
+    } finally {
+      testProject.dispose();
+    }
   }
 }

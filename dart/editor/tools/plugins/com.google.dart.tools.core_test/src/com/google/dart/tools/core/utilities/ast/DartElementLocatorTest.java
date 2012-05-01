@@ -20,6 +20,8 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartImport;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
@@ -30,6 +32,8 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IResource;
+
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.List;
@@ -39,7 +43,8 @@ import java.util.List;
  */
 public class DartElementLocatorTest extends TestCase {
 
-  private static void assertLocation(
+  @SuppressWarnings("unchecked")
+  private static <T extends DartElement> T assertLocation(
       CompilationUnit unit,
       String posMarker,
       Class<?> expectedElementType,
@@ -70,8 +75,10 @@ public class DartElementLocatorTest extends TestCase {
       assertTrue("Unable to find expected marker '" + expectedMarker + "'", expectedPos > 0);
       assertEquals(expectedPos, locator.getCandidateRegion().getOffset());
       assertEquals(expectedLen, locator.getCandidateRegion().getLength());
+      return (T) result;
     } else {
       assertNull(result);
+      return null;
     }
   }
 
@@ -87,6 +94,68 @@ public class DartElementLocatorTest extends TestCase {
           "Test.dart",
           Joiner.on("\n").join(sourceLines));
       assertLocation(unit, posMarker, expectedElementType, expectedMarker, expectedLen);
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * Test for {@link DartImport}.
+   */
+  public void test_DartImport() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      IResource libResourceA = testProject.setUnitContent(
+          "LibA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('libA');",
+              "class A {}",
+              "")).getResource();
+      IResource libResourceB = testProject.setUnitContent(
+          "LibB.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('libB');",
+              "class B {}",
+              "")).getResource();
+      IResource resourceTest = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('Test');",
+              "#import('LibA.dart', prefix: 'aaa');",
+              "#import('LibB.dart', prefix: 'bbb');",
+              "f() {",
+              "  aaa.A a;",
+              "  bbb.B b;",
+              "}",
+              "")).getResource();
+      DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
+      DartLibrary libraryB = testProject.getDartProject().getDartLibrary(libResourceB);
+      DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      //
+      DartImport[] imports = libraryTest.getImports();
+      assertThat(imports).hasSize(2);
+      {
+        assertEquals(libraryA, imports[0].getLibrary());
+        assertEquals("aaa", imports[0].getPrefix());
+      }
+      {
+        assertEquals(libraryB, imports[1].getLibrary());
+        assertEquals("bbb", imports[1].getPrefix());
+      }
+      // "aaa" = "libraryA"
+      {
+        DartImport imprt = assertLocation(
+            libraryTest.getDefiningCompilationUnit(),
+            "aaa.A",
+            DartImport.class,
+            "'aaa');",
+            5);
+        assertEquals(libraryA, imprt.getLibrary());
+        assertEquals("aaa", imprt.getPrefix());
+      }
     } finally {
       testProject.dispose();
     }
@@ -198,4 +267,5 @@ public class DartElementLocatorTest extends TestCase {
         "  process(aaa);",
         "}"}, "aaa);", DartVariableDeclaration.class, "aaa = 1", 3);
   }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,6 +12,8 @@
  * the License.
  */
 package com.google.dart.tools.core.search;
+
+import com.google.dart.tools.core.model.DartImport;
 
 /**
  * Instances of the enum <code>MatchKind</code> represent the kind of reference that was found when
@@ -42,6 +44,11 @@ public enum MatchKind {
    * A reference to a function type.
    */
   FUNCTION_TYPE_REFERENCE,
+
+  /**
+   * A reference to a {@link DartImport}.
+   */
+  IMPORT_REFERENCE,
 
   /**
    * A reference to a class that is implementing a specified type.

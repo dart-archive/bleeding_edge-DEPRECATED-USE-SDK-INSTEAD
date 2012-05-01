@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,7 +18,6 @@ import com.google.dart.tools.core.internal.model.delta.SimpleDelta;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
-import com.google.dart.tools.core.model.DartImportContainer;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
@@ -137,12 +136,6 @@ public class ChangeCollector {
       DartElementDelta child = children[i];
       DartElement childElement = child.getElement();
       switch (childElement.getElementType()) {
-        case DartElement.IMPORT_CONTAINER:
-          addChange((DartImportContainer) childElement, child);
-          break;
-//        case DartElement.IMPORT_DECLARATION:
-//          addChange((IImportDeclaration)childElement, child);
-//          break;
         case DartElement.TYPE:
           addChange((Type) childElement, child);
           break;
@@ -152,44 +145,6 @@ public class ChangeCollector {
           addChange((TypeMember) childElement, child);
           break;
       }
-    }
-  }
-
-  private void addChange(DartImportContainer importContainer, DartElementDelta newDelta)
-      throws DartModelException {
-    int newKind = newDelta.getKind();
-    if (newKind == DartElementDelta.CHANGED) {
-      addAffectedChildren(newDelta);
-      return;
-    }
-    SimpleDelta existingDelta = changes.get(importContainer);
-    if (existingDelta != null) {
-      switch (newKind) {
-        case DartElementDelta.ADDED:
-          if (existingDelta.getKind() == DartElementDelta.REMOVED) {
-            // REMOVED then ADDED
-            changes.remove(importContainer);
-          }
-          break;
-        case DartElementDelta.REMOVED:
-          if (existingDelta.getKind() == DartElementDelta.ADDED) {
-            // ADDED then REMOVED
-            changes.remove(importContainer);
-          }
-          break;
-      // CHANGED handled above
-      }
-    } else {
-      SimpleDelta delta = new SimpleDelta();
-      switch (newKind) {
-        case DartElementDelta.ADDED:
-          delta.added();
-          break;
-        case DartElementDelta.REMOVED:
-          delta.removed();
-          break;
-      }
-      changes.put(importContainer, delta);
     }
   }
 

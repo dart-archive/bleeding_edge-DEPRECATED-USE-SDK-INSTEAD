@@ -101,7 +101,7 @@ import com.google.dart.tools.core.internal.util.Messages;
 import com.google.dart.tools.core.internal.util.TypeUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartLibraryImport;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Method;
@@ -1354,9 +1354,9 @@ public class CompletionEngine {
     ParserContext ctx = new DartScannerParserContext(sourceFile, source, listener);
     Set<String> prefixes = new HashSet<String>();
     if (currentCompilationUnit != null) {
-      DartLibraryImport[] imports = currentCompilationUnit.getLibrary().getImports();
-      for (DartLibraryImport imp : imports) {
-        String prefix = imp.getPrefix();
+      DartImport[] imports = currentCompilationUnit.getLibrary().getImports();
+      for (DartImport imprt : imports) {
+        String prefix = imprt.getPrefix();
         if (prefix != null) {
           prefixes.add(prefix);
         }

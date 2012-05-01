@@ -15,6 +15,7 @@ package com.google.dart.tools.core.search;
 
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
@@ -276,6 +277,41 @@ public interface SearchEngine {
    * @throws SearchException if the results could not be computed
    */
   public void searchReferences(DartFunctionTypeAlias alias, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given {@link DartImport} within the given scope.
+   * Return all matches that pass the optional filter.
+   * 
+   * @param imprt the {@link DartImport} being referenced by the found matches
+   * @param scope the scope containing the {@link DartImport} declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(DartImport imprt, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Search for references to the given {@link DartImport} within the given scope.
+   * 
+   * @param imprt the {@link DartImport} being referenced by the found matches
+   * @param scope the scope containing the {@link DartImport} declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(DartImport imprt, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException;
 
   /**

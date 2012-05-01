@@ -13,10 +13,8 @@
  */
 package com.google.dart.tools.core.internal.model.info;
 
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartLibraryImport;
+import com.google.dart.tools.core.model.DartImport;
 
 /**
  * Instances of the class <code>DartLibraryInfo</code> maintain the cached data shared by all equal
@@ -36,30 +34,23 @@ public class DartLibraryInfo extends OpenableElementInfo {
   /**
    * All imports of this library.
    */
-  private DartLibraryImport[] imports = DartLibraryImpl.EMPTY_IMPORT_ARRAY;
+  private DartImport[] imports = DartImport.EMPTY_ARRAY;
 
   /**
-   * Add the given {@link DartLibrary} to the imported libraries. If the library was already added
-   * with same the prefix, then request will be ignored.
-   * 
-   * @param library the {@link DartLibrary} to add, not <code>null</code>
-   * @param prefix the prefix used to import library, may be <code>null</code>
+   * Adds the given {@link DartImport}. If the library was already added with same the prefix, then
+   * request will be ignored.
    */
-  public void addImport(DartLibrary library, String prefix) {
-    // may be no information
-    if (library == null) {
-      return;
-    }
+  public void addImport(DartImport newImport) {
     // may be already added
-    for (DartLibraryImport imp : imports) {
-      if (imp.equals(library, prefix)) {
+    for (DartImport imprt : imports) {
+      if (imprt.equals(newImport)) {
         return;
       }
     }
     // do add
     int length = imports.length;
-    System.arraycopy(imports, 0, imports = new DartLibraryImport[length + 1], 0, length);
-    imports[length] = new DartLibraryImport(library, prefix);
+    System.arraycopy(imports, 0, imports = new DartImport[length + 1], 0, length);
+    imports[length] = newImport;
   }
 
   /**
@@ -72,9 +63,9 @@ public class DartLibraryInfo extends OpenableElementInfo {
   }
 
   /**
-   * @return the {@link DartLibraryImport}s for all imported libraries into this library
+   * @return the {@link DartImport}s for all imported libraries into this library
    */
-  public DartLibraryImport[] getImports() {
+  public DartImport[] getImports() {
     return imports;
   }
 
@@ -85,38 +76,6 @@ public class DartLibraryInfo extends OpenableElementInfo {
    */
   public String getName() {
     return name;
-  }
-
-  /**
-   * Remove the given library from the array of imported libraries. If the library was not in the
-   * array, then the array of imported libraries will not be modified.
-   * 
-   * @param library the library to be removed
-   * @param prefix the prefix with which library to be removed was imported
-   */
-  public void removeImport(DartLibrary library, String prefix) {
-    // may be no information
-    if (library == null) {
-      return;
-    }
-    // do remove
-    for (int i = 0; i < imports.length; i++) {
-      DartLibraryImport imp = imports[i];
-      if (imp.equals(library, prefix)) {
-        int length = imports.length;
-        if (length == 1) {
-          imports = DartLibraryImpl.EMPTY_IMPORT_ARRAY;
-        } else {
-          DartLibraryImport[] newChildren = new DartLibraryImport[length - 1];
-          System.arraycopy(imports, 0, newChildren, 0, i);
-          if (i < length - 1) {
-            System.arraycopy(imports, i + 1, newChildren, i, length - 1 - i);
-          }
-          imports = newChildren;
-        }
-        break;
-      }
-    }
   }
 
   /**

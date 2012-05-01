@@ -23,8 +23,8 @@ public class TestAll {
 //    suite.addTestSuite(CompilationUnitImpl2Test.class);
     suite.addTestSuite(DartElementImplTest.class);
     suite.addTestSuite(DartFieldImplTest.class);
-    suite.addTestSuite(DartLibraryImportTest.class);
     suite.addTestSuite(DartLibraryImplTest.class);
+    suite.addTestSuite(DartImportImplTest.class);
     suite.addTestSuite(DartMethodImplTest.class);
     suite.addTestSuite(DartModelImplTest.class);
     suite.addTestSuite(DartModelManagerTest.class);
@@ -37,7 +37,6 @@ public class TestAll {
     suite.addTestSuite(DartIgnoreFileTest.class);
     suite.addTestSuite(SystemLibraryManagerProviderAnyTest.class);
 
-    suite.addTest(com.google.dart.tools.core.internal.model.delta.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.model.info.TestAll.suite());
     return suite;
   }

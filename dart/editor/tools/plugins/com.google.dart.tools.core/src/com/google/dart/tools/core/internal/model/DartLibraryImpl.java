@@ -25,6 +25,7 @@ import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.buffer.Buffer;
@@ -42,12 +43,13 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
 import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartLibraryImport;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartResource;
 import com.google.dart.tools.core.model.ElementChangedEvent;
+import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceUtilities;
@@ -88,7 +90,6 @@ import java.util.Set;
  */
 public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     CompilationUnitContainer {
-  public static final DartLibraryImport[] EMPTY_IMPORT_ARRAY = new DartLibraryImport[0];
   public static final DartLibraryImpl[] EMPTY_LIBRARY_ARRAY = new DartLibraryImpl[0];
 
   /**
@@ -447,8 +448,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     DartLibraryInfo elementInfo = (DartLibraryInfo) getElementInfo();
     if (elementInfo != null) {
       Set<DartLibrary> libraries = Sets.newHashSet();
-      for (DartLibraryImport imp : elementInfo.getImports()) {
-        libraries.add(imp.getLibrary());
+      for (DartImport imprt : getImports()) {
+        libraries.add(imprt.getLibrary());
       }
       return libraries.toArray(new DartLibrary[libraries.size()]);
     } else {
@@ -457,12 +458,12 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
-  public DartLibraryImport[] getImports() throws DartModelException {
-    DartLibraryInfo elementInfo = (DartLibraryInfo) getElementInfo();
-    if (elementInfo != null) {
-      return elementInfo.getImports();
+  public DartImport[] getImports() throws DartModelException {
+    DartLibraryInfo info = (DartLibraryInfo) getElementInfo();
+    if (info != null) {
+      return info.getImports();
     } else {
-      return EMPTY_IMPORT_ARRAY;
+      return DartImport.EMPTY_ARRAY;
     }
   }
 
@@ -656,7 +657,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 
   @Override
   protected boolean buildStructure(OpenableElementInfo info, final IProgressMonitor monitor,
-      Map<DartElement, DartElementInfo> newElements, final IResource underlyingResource)
+      final Map<DartElement, DartElementInfo> newElements, final IResource underlyingResource)
       throws DartModelException {
     final DartLibraryInfo libraryInfo = (DartLibraryInfo) info;
     if (sourceFile == null) {
@@ -666,8 +667,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     final ArrayList<DartElementImpl> children = new ArrayList<DartElementImpl>();
     if (libraryFile == null) {
       String relativePath = sourceFile.getName();
-      ExternalCompilationUnitImpl definingUnit = new ExternalCompilationUnitImpl(this,
-          relativePath, sourceFile.getSourceFor(relativePath));
+      CompilationUnitImpl definingUnit = new ExternalCompilationUnitImpl(this, relativePath,
+          sourceFile.getSourceFor(relativePath));
       libraryInfo.setDefiningCompilationUnit(definingUnit);
       children.add(definingUnit);
     } else {
@@ -693,10 +694,14 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         }
         // prepare "prefix"
         String prefix = null;
+        SourceRange nameRange = null;
         {
           DartStringLiteral prefixLiteral = node.getPrefix();
           if (prefixLiteral != null) {
             prefix = prefixLiteral.getValue();
+            SourceInfo prefixSourceInfo = prefixLiteral.getSourceInfo();
+            nameRange = new SourceRangeImpl(prefixSourceInfo.getOffset(),
+                prefixSourceInfo.getLength());
           }
         }
         // prepare LibrarySource
@@ -717,7 +722,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           try {
             if (librarySource.exists()) {
               DartLibraryImpl library = new DartLibraryImpl(librarySource);
-              libraryInfo.addImport(library, prefix);
+              libraryInfo.addImport(new DartImportImpl(DartLibraryImpl.this, library, prefix,
+                  nameRange));
             }
           } catch (Exception exception) {
             // The library is not valid, so we don't add it.
@@ -733,7 +739,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         if (libraryFiles != null && libraryFiles.length == 1 && libraryFiles[0] instanceof IFile) {
           IFile libFile = (IFile) libraryFiles[0];
           DartProjectImpl dartProject = modelManager.create(libFile.getProject());
-          libraryInfo.addImport(new DartLibraryImpl(dartProject, libFile, librarySource), prefix);
+          DartLibraryImpl library = new DartLibraryImpl(dartProject, libFile, librarySource);
+          libraryInfo.addImport(new DartImportImpl(DartLibraryImpl.this, library, prefix, nameRange));
           return null;
         }
 
@@ -749,7 +756,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 //                + sourceFile.getUri(), exception);
 //          }
 //          if (library == null) {
-          libraryInfo.addImport(new DartLibraryImpl(libFile), prefix);
+          DartLibraryImpl library = new DartLibraryImpl(libFile);
+          libraryInfo.addImport(new DartImportImpl(DartLibraryImpl.this, library, prefix, nameRange));
 //          } else {
 //            importedLibraries.add(library);
 //          }

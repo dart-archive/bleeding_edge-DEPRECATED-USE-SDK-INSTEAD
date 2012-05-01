@@ -20,7 +20,6 @@ import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartFieldInfo;
 import com.google.dart.tools.core.internal.model.info.DartFunctionInfo;
 import com.google.dart.tools.core.internal.model.info.DartFunctionTypeAliasInfo;
-import com.google.dart.tools.core.internal.model.info.DartImportContainerInfo;
 import com.google.dart.tools.core.internal.model.info.DartImportInfo;
 import com.google.dart.tools.core.internal.model.info.DartLibraryFolderInfo;
 import com.google.dart.tools.core.internal.model.info.DartLibraryInfo;
@@ -241,8 +240,8 @@ public class DartModelCache {
       // if max memory is infinite, set the ratio to 4d which corresponds to the
       // 256MB that Eclipse defaults to
       // (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=111299)
-      memoryRatio = maxMemory == Long.MAX_VALUE ? 4d : ((double) maxMemory) / (64 * 0x100000); // 64MB is the base memory
-                                                                                               // for most JVM
+      memoryRatio = maxMemory == Long.MAX_VALUE ? 4d : (double) maxMemory / (64 * 0x100000); // 64MB is the base memory
+                                                                                             // for most JVM
     }
     return memoryRatio;
   }
@@ -342,10 +341,6 @@ public class DartModelCache {
       }
     } else if (element instanceof DartFunctionTypeAliasImpl) {
       if (info instanceof DartFunctionTypeAliasInfo) {
-        return;
-      }
-    } else if (element instanceof DartImportContainerImpl) {
-      if (info instanceof DartImportContainerInfo) {
         return;
       }
     } else if (element instanceof DartImportImpl) {

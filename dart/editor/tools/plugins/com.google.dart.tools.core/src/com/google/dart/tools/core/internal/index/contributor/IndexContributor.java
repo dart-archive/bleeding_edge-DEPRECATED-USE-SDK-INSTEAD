@@ -47,12 +47,15 @@ import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Location;
 import com.google.dart.tools.core.index.Relationship;
@@ -61,8 +64,10 @@ import com.google.dart.tools.core.internal.index.store.IndexStore;
 import com.google.dart.tools.core.internal.index.util.ElementFactory;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 import com.google.dart.tools.core.utilities.collections.IntStack;
 import com.google.dart.tools.core.utilities.io.PrintStringWriter;
 
@@ -390,7 +395,12 @@ public class IndexContributor extends ASTVisitor<Void> {
           recordRelationship(indexElement, IndexConstants.IS_ACCESSED_BY_UNQUALIFIED, location);
         }
       }
+    } else if (element instanceof LibraryElement) {
+      LibraryElement importLibraryElement = (LibraryElement) element;
+      recordImportReference(importLibraryElement, node.getName(), node.getSourceInfo().getOffset());
     }
+    recordImportReference_noPrefix(node);
+
     return super.visitIdentifier(node);
   }
 
@@ -1193,6 +1203,46 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @param element the element describing the variable
    */
   private void processVariable(DartIdentifier node, VariableElement element) {
+  }
+
+  /**
+   * Records reference to the imported library from given location.
+   * 
+   * @param importLibraryElement the referenced {@link LibraryElement}, may be <code>null</code>
+   * @param prefix the prefix of the import, may be <code>null</code>
+   * @param offset the offset of the prefix
+   */
+  private void recordImportReference(LibraryElement importLibraryElement, String prefix, int offset) {
+    try {
+      DartLibrary importLibraryModel = BindingUtils.getDartElement(importLibraryElement);
+      for (DartImport imprt : library.getImports()) {
+        if (Objects.equal(imprt.getLibrary(), importLibraryModel)
+            && Objects.equal(imprt.getPrefix(), prefix)) {
+          String imprtId = ElementFactory.composeElementId(imprt.getElementName());
+          Element imprtElement = new Element(ResourceFactory.getResource(compilationUnit), imprtId);
+          int length = StringUtils.length(prefix);
+          Location location = getLocation(offset, length);
+          recordRelationship(imprtElement, IndexConstants.IS_REFERENCED_BY, location);
+          break;
+        }
+      }
+    } catch (Throwable e) {
+      DartCore.logError("Could not record reference to library import " + importLibraryElement, e);
+    }
+  }
+
+  /**
+   * Records {@link DartImport} reference if given {@link DartNode} references some top-level
+   * element and not qualified with import prefix.
+   */
+  private void recordImportReference_noPrefix(DartIdentifier node) {
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+    if (element != null
+        && element.getEnclosingElement() instanceof LibraryElement
+        && PropertyDescriptorHelper.getLocationInParent(node) != PropertyDescriptorHelper.DART_PROPERTY_ACCESS_NAME) {
+      LibraryElement importLibraryElement = (LibraryElement) element.getEnclosingElement();
+      recordImportReference(importLibraryElement, null, node.getSourceInfo().getOffset());
+    }
   }
 
   /**

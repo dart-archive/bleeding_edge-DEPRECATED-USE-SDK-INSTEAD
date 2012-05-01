@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,34 +13,55 @@
  */
 package com.google.dart.tools.core.internal.model;
 
-import com.google.dart.compiler.LibrarySource;
-import com.google.dart.tools.core.internal.model.info.DartElementInfo;
-import com.google.dart.tools.core.internal.model.info.DartImportInfo;
+import com.google.common.base.Objects;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartImport;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IProgressMonitor;
-
-import java.util.HashMap;
-
 /**
- * Instances of the class <code>DartImportImpl</code> implement an import within a library or
- * application file.
+ * Information about imported {@link DartLibrary}.
  */
-public class DartImportImpl extends DartElementImpl implements DartImport {
-  /**
-   * The library being imported.
-   */
-  private LibrarySource library;
+public class DartImportImpl extends SourceReferenceImpl implements DartImport {
+  private final DartLibrary library;
+  private final String prefix;
+  private final SourceRange nameRange;
 
-  public DartImportImpl(DartImportContainerImpl parent, LibrarySource library) {
+  public DartImportImpl(DartLibraryImpl parent, DartLibrary library, String prefix,
+      SourceRange nameRange) {
     super(parent);
     this.library = library;
+    this.prefix = prefix;
+    this.nameRange = nameRange;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof DartImportImpl) {
+      DartImportImpl other = (DartImportImpl) obj;
+      return Objects.equal(other.library, library) && Objects.equal(other.prefix, prefix);
+    }
+    return false;
+  }
+
+  @Override
+  public CompilationUnit getCompilationUnit() {
+    try {
+      return ((DartLibrary) getParent()).getDefiningCompilationUnit();
+    } catch (DartModelException e) {
+      DartCore.logError(e);
+      return null;
+    }
+  }
+
+  @Override
+  public String getElementName() {
+    return prefix + ":" + library.getElementName();
   }
 
   @Override
@@ -48,53 +69,35 @@ public class DartImportImpl extends DartElementImpl implements DartImport {
     return IMPORT;
   }
 
-  /**
-   * Return the name of the library that is being imported.
-   * 
-   * @return the name of the library that is being imported
-   */
-  public String getImportName() {
-    return library.getName();
+  @Override
+  public DartLibrary getLibrary() {
+    return library;
   }
 
   @Override
-  public IResource getUnderlyingResource() {
-    return ResourceUtil.getResource(library);
+  public SourceRange getNameRange() throws DartModelException {
+    return nameRange;
   }
 
   @Override
-  public IResource resource() {
-    return ResourceUtil.getResource(library);
+  public String getPrefix() {
+    return prefix;
   }
 
   @Override
-  protected DartElementInfo createElementInfo() {
-    return new DartImportInfo();
-  }
-
-  @Override
-  protected void generateInfos(DartElementInfo info,
-      HashMap<DartElement, DartElementInfo> newElements, IProgressMonitor pm)
-      throws DartModelException {
-    OpenableElementImpl openableParent = (OpenableElementImpl) getOpenableParent();
-    if (openableParent == null) {
-      return;
-    }
-    DartElementInfo openableParentInfo = DartModelManager.getInstance().getInfo(openableParent);
-    if (openableParentInfo == null) {
-      openableParent.generateInfos(openableParent.createElementInfo(), newElements, pm);
-    }
+  public int hashCode() {
+    return Objects.hashCode(library, prefix);
   }
 
   @Override
   protected DartElement getHandleFromMemento(String token, MementoTokenizer tokenizer,
       WorkingCopyOwner owner) {
-    // Import elements do not have any children.
-    return this;
+    throw new RuntimeException("Not implemented");
   }
 
   @Override
   protected char getHandleMementoDelimiter() {
-    return MEMENTO_DELIMITER_IMPORT;
+    throw new RuntimeException("Not implemented");
   }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,8 +14,23 @@
 package com.google.dart.tools.core.model;
 
 /**
- * The interface <code>DartImport</code> defines the behavior of objects representing an import
- * within a library or application file.
+ * Information about imported {@link DartLibrary}.
  */
-public interface DartImport extends DartElement {
+public interface DartImport extends DartElement, SourceReference {
+  DartImport[] EMPTY_ARRAY = new DartImport[0];
+
+  /**
+   * @return the {@link DartLibrary} defining {@link CompilationUnit}.
+   */
+  CompilationUnit getCompilationUnit();
+
+  /**
+   * @return the imported {@link DartLibrary}, not <code>null</code>.
+   */
+  DartLibrary getLibrary();
+
+  /**
+   * @return the prefix used to import library, may be <code>null</code>.
+   */
+  String getPrefix();
 }

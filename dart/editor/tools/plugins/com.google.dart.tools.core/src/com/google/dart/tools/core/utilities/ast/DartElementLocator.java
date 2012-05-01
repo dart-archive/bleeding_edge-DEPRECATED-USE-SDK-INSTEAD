@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.utilities.ast;
 
+import com.google.common.base.Objects;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.ASTVisitor;
@@ -47,6 +48,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartResource;
@@ -388,6 +390,24 @@ public class DartElementLocator extends ASTVisitor<Void> {
             }
           } else {
             findElementFor(targetElement);
+            // Import prefix is resolved into LibraryElement, so it is correct that corresponding
+            // DartElement is DartLibrary, but this is not what we (and user) wants, because
+            // it looses information. We want DartImport, it gives both DartLibrary and name.
+            if (foundElement instanceof DartLibrary) {
+              try {
+                DartImport[] imports = compilationUnit.getLibrary().getImports();
+                for (DartImport imprt : imports) {
+                  if (Objects.equal(imprt.getLibrary(), foundElement)
+                      && Objects.equal(imprt.getPrefix(), node.getName())) {
+                    foundElement = imprt;
+                    SourceRange range = imprt.getNameRange();
+                    candidateRegion = new Region(range.getOffset(), range.getLength());
+                  }
+                }
+              } catch (DartModelException e) {
+                DartCore.logError("Cannot resolve import " + foundElement.getElementName(), e);
+              }
+            }
           }
         }
         throw new DartElementFoundException();
