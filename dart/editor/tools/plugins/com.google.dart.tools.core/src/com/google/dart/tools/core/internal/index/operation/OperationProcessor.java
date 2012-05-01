@@ -16,6 +16,9 @@ package com.google.dart.tools.core.internal.index.operation;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 
+import java.text.DateFormat;
+import java.util.GregorianCalendar;
+
 /**
  * Instances of the class <code>OperationProcessor</code> process the operations on a single
  * {@link OperationQueue operation queue}. Each processor can be run one time on a single thread.
@@ -82,9 +85,12 @@ public class OperationProcessor {
     synchronized (this) {
       if (state != ProcessorState.READY) {
         // This processor is, or was, already running on a different thread.
-        throw new IllegalStateException("Operation processors can only be run one time");
+        throw new IllegalStateException("Operation processors can only be run one time"); //$NON-NLS-1$
       }
       state = ProcessorState.RUNNING;
+    }
+    if (DartCoreDebug.TRACE_INDEX_PROCESSOR) {
+      DartCore.logInformation("Started operation processor at " + DateFormat.getDateTimeInstance().format(new GregorianCalendar().getTime())); //$NON-NLS-1$
     }
     try {
       while (isRunning()) {
@@ -100,17 +106,24 @@ public class OperationProcessor {
         }
         if (operation != null) {
           if (DartCoreDebug.TRACE_INDEX_PROCESSOR) {
-            DartCore.logInformation("Operation Processor: beginning " + operation);
+            DartCore.logInformation("Operation Processor: beginning " + operation); //$NON-NLS-1$
           }
-          operation.performOperation();
+          try {
+            operation.performOperation();
+          } catch (Throwable exception) {
+            DartCore.logError("Exception in indexing operation: " + operation, exception); //$NON-NLS-1$
+          }
           if (DartCoreDebug.TRACE_INDEX_PROCESSOR) {
-            DartCore.logInformation("Operation Processor: completed " + operation);
+            DartCore.logInformation("Operation Processor: completed " + operation); //$NON-NLS-1$
           }
         }
       }
     } finally {
       synchronized (this) {
         state = ProcessorState.STOPPED;
+      }
+      if (DartCoreDebug.TRACE_INDEX_PROCESSOR) {
+        DartCore.logInformation("Stopped operation processor at " + DateFormat.getDateTimeInstance().format(new GregorianCalendar().getTime())); //$NON-NLS-1$
       }
     }
   }
