@@ -15,7 +15,7 @@ package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
-import com.google.dart.tools.debug.ui.launch.DartRunLastAction;
+import com.google.dart.tools.debug.ui.launch.DartRunAction;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
@@ -168,7 +168,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   // IDE-specific actions
 //  private IAction newWizardAction;
 
-  private DartRunLastAction dartRunLastAction;
+  private DartRunAction dartRunAction;
 
   private GenerateJavascriptAction deployOptimizedAction;
 
@@ -424,7 +424,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
       // Add the group for applications to contribute
       helpToolBar.add(new GroupMarker(IWorkbenchActionConstants.GROUP_APP));
 
-      helpToolBar.add(dartRunLastAction);
+      helpToolBar.add(dartRunAction);
 
       // Add to the cool bar manager
       coolBar.add(actionBarConfigurer.createToolBarContributionItem(helpToolBar,
@@ -462,7 +462,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     // @issue should obtain from ConfigurationItemFactory
     statusLineItem = new StatusLineContributionItem("ModeContributionItem"); //$NON-NLS-1$
 
-    dartRunLastAction = new DartRunLastAction(window);
+    dartRunAction = new DartRunAction(window);
 
     deployOptimizedAction = new GenerateJavascriptAction(window);
 

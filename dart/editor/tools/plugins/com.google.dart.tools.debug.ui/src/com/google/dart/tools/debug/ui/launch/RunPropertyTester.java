@@ -16,7 +16,9 @@ package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartLibrary;
 
 import org.eclipse.core.expressions.PropertyTester;
 import org.eclipse.core.resources.IFile;
@@ -47,7 +49,13 @@ public class RunPropertyTester extends PropertyTester {
           DartElement element = DartCore.create((IFile) o);
           if (element instanceof CompilationUnitImpl
               && ((CompilationUnitImpl) element).definesLibrary()) {
-            return true;
+            DartLibrary library = ((CompilationUnitImpl) element).getLibrary();
+            if (library instanceof DartLibraryImpl) {
+              DartLibraryImpl impl = (DartLibraryImpl) library;
+              if (impl.isBrowserApplication() || impl.isServerApplication()) {
+                return true;
+              }
+            }
           }
         }
       }

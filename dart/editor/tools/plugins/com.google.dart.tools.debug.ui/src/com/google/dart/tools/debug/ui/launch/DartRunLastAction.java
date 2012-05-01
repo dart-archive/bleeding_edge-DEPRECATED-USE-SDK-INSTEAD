@@ -62,10 +62,6 @@ public class DartRunLastAction extends DartAbstractAction {
           launch(launchConfig);
         }
 
-      } else {
-
-        DartRunAction dartRunAction = new DartRunAction(getWindow());
-        dartRunAction.run();
       }
     } catch (Throwable exception) {
       // We need to defensively show all errors coming out of here - the user needs feedback as

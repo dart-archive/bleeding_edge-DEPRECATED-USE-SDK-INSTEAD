@@ -96,9 +96,10 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
     } else {
       List<ILaunchShortcut> candidates = LaunchUtils.getApplicableLaunchShortcuts(resource);
 
-      if (candidates.size() == 0) {
-        MessageDialog.openInformation(getWindow().getShell(), "Unable to Run", "Unable to run "
-            + resource.getName() + ". Please choose a file in a library with a main() function.");
+      if (candidates.size() == 0) { // selection is neither a server or browser app
+
+        DartRunLastAction runLastAction = new DartRunLastAction();
+        runLastAction.run();
       } else {
         ISelection sel = new StructuredSelection(resource);
 

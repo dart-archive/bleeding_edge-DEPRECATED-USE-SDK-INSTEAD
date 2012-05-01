@@ -55,7 +55,7 @@
             sequence="M1+3">
       </key>
       <key
-            commandId="com.google.dart.tools.debug.ui.run.last"
+            commandId="com.google.dart.tools.debug.ui.run.selection"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+R">
       </key>

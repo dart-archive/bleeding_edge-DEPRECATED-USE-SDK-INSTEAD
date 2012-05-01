@@ -269,26 +269,6 @@
             icon="icons/obj16/debug_exc.gif">
       </view>
    </extension>
-   <extension
-         point="org.eclipse.ui.popupMenus">
-      <viewerContribution
-            id="com.google.dart.tools.debug.ui.viewerContribution"
-            targetID="com.google.dart.tools.ui.LibraryExplorer">
-         <action
-               class="com.google.dart.tools.debug.ui.launch.DartRunAction"
-               enablesFor="1"
-               id="com.google.dart.tools.debug.ui.run.selection"
-               label="Run in Browser"
-               menubarPath="additions">
-         </action>
-         <visibility>
-            <objectState
-                  name="elementType"
-                  value="com.google.dart.tools.core.model.DartElement.HTML_FILE">
-            </objectState>
-         </visibility>
-      </viewerContribution>
-   </extension>
 
    <extension
          point="org.eclipse.core.runtime.adapters">
@@ -332,6 +312,7 @@
             locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
          <command
                commandId="com.google.dart.tools.debug.ui.run.selection"
+               icon="icons/obj16/run_exc.gif"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -354,16 +335,11 @@
             allPopups="false"
             locationURI="menu:org.eclipse.ui.run?after=runGroup">
          <command
-               commandId="com.google.dart.tools.debug.ui.run.last"
+               commandId="com.google.dart.tools.debug.ui.run.selection"
+               icon="icons/obj16/run_exc.gif"
                label="%runCommandName"
                style="push"
                tooltip="%runDescription">
-         </command>
-         <command
-               commandId="com.google.dart.tools.debug.ui.run.selection"
-               label="%runSelectionCommandName"
-               style="push"
-               tooltip="%runSelectionDescription">
          </command>
       </menuContribution>
       <menuContribution
