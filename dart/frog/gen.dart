@@ -58,7 +58,7 @@ class WorldGenerator {
         // Until then, this 'analysis' just marks all the DOM types as used.
         // TODO(jimhug): Do we still need this?  Or do/can we handle this by
         // using return values?
-        if (type.library.isDom || type.isHiddenNativeType) {
+        if (type.library.isDomOrHtml || type.isHiddenNativeType) {
           if (type.isClass) type.markUsed();
         }
 

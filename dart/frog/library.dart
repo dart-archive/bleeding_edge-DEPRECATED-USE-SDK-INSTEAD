@@ -53,7 +53,7 @@ class Library extends Element {
   bool get isCoreImpl() => this == world.coreimpl;
 
   // TODO(jmesserly): we shouldn't be special casing DOM anywhere.
-  bool get isDom() => this == world.dom;
+  bool get isDomOrHtml() => this == world.dom || this == world.html;
 
   SourceSpan get span() => new SourceSpan(baseSource, 0, 0);
 
@@ -372,10 +372,6 @@ class _LibraryVisitor implements TreeVisitor {
         name = getSingleStringArg(node);
         if (library.name == null) {
           library.name = name;
-          // TODO(jimhug): Hack to get native fields for io and dom - generalize.
-          if (name == 'node' || name == 'dom') {
-            library.topType.isNative = true;
-          }
           if (seenImport || seenSource || seenResource) {
             world.error('#library must be first directive in file', node.span);
           }

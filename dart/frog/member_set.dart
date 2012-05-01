@@ -268,7 +268,7 @@ class InvokeKey {
         // e.g.
         //     foo() native 'bar';
         needsVarCall = true;
-      } else if (member.library == world.dom) {
+      } else if (member.library.isDomOrHtml) {
         // TODO(jimhug): Egregious hack for isolates + DOM - see
         // Value._maybeWrapFunction for more details.
         for (var p in member.parameters) {

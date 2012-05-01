@@ -104,6 +104,7 @@ class World {
 
   // TODO(jmesserly): we shouldn't be special casing DOM anywhere.
   Library dom;
+  Library html;
   Library isolatelib;
 
   List<Library> _todo;
@@ -472,6 +473,8 @@ class World {
 
       if (filename == 'dart:dom') {
         dom = library;
+      } else if (filename == 'dart:html') {
+        html = library;
       } else if (filename == 'dart:isolate') {
         isolatelib = library;
       }

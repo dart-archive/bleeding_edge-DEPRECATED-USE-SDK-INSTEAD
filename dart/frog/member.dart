@@ -541,12 +541,7 @@ class FieldMember extends Member {
       }
       world.gen.hasStatics = true;
       if (declaringType.isTop) {
-        if (declaringType.library.isDom) {
-          // TODO(jmesserly): this check doesn't look right.
-          return new Value(type, '$jsname', node.span);
-        } else {
-          return new Value(type, '\$globals.$jsname', node.span);
-        }
+        return new Value(type, '\$globals.$jsname', node.span);
       } else if (declaringType.isNative) {
         if (declaringType.isHiddenNativeType) {
           // TODO: Could warn at parse time.
@@ -1126,7 +1121,7 @@ class MethodMember extends Member {
     }
 
     // TODO(jmesserly): factor this better
-    if (name == 'get:typeName' && declaringType.library.isDom) {
+    if (name == 'get:typeName' && declaringType.library.isDomOrHtml) {
       world.gen.corejs.ensureTypeNameOf();
     }
 

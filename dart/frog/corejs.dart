@@ -19,6 +19,7 @@ class CoreJs {
 
   bool useWrap0 = false;
   bool useWrap1 = false;
+  bool useWrap2 = false;
   bool useIsolates = false;
 
   // These helpers had to switch to a new pattern, because they can be generated
@@ -180,12 +181,9 @@ class CoreJs {
     }
 
     if (!useIsolates) {
-      if (useWrap0) {
-        _emit(_EMPTY_WRAP_CALL0_FUNCTION);
-      }
-      if (useWrap1) {
-        _emit(_EMPTY_WRAP_CALL1_FUNCTION);
-      }
+      if (useWrap0) _emit(_EMPTY_WRAP_CALL0_FUNCTION);
+      if (useWrap1) _emit(_EMPTY_WRAP_CALL1_FUNCTION);
+      if (useWrap2) _emit(_EMPTY_WRAP_CALL2_FUNCTION);
     }
 
     // Write operator helpers
@@ -193,7 +191,7 @@ class CoreJs {
       _emit(opImpl);
     }
 
-    if (world.dom != null) {
+    if (world.dom != null || world.html != null) {
       ensureTypeNameOf();
       ensureDefProp();
       // TODO(jmesserly): we need to find a way to avoid conflicts with other
@@ -606,6 +604,11 @@ function $wrap_call$0(fn) { return fn; }
 /** Snippet for `$wrap_call$1`, in case it was not necessary. */
 final String _EMPTY_WRAP_CALL1_FUNCTION = @"""
 function $wrap_call$1(fn) { return fn; };
+""";
+
+/** Snippet for `$wrap_call$2`, in case it was not necessary. */
+final String _EMPTY_WRAP_CALL2_FUNCTION = @"""
+function $wrap_call$2(fn) { return fn; };
 """;
 
 /** Snippet that initializes Function.prototype.bind. */

@@ -651,7 +651,7 @@ class Value {
     }
 
     // TODO(jmesserly): handle when type or toType are type parameters.
-    if (toType.library == world.dom && type.library != world.dom) {
+    if (toType.library.isDomOrHtml && !type.library.isDomOrHtml) {
       // TODO(jmesserly): either remove this or make it a more first class
       // feature of our native interop. We shouldn't be checking for the DOM
       // library--any host environment (like node.js) might need this feature
@@ -659,8 +659,10 @@ class Value {
       // native code--many callbacks like List.filter are perfectly safe.
       if (arity == 0) {
         world.gen.corejs.useWrap0 = true;
-      } else {
+      } else if (arity == 1) {
         world.gen.corejs.useWrap1 = true;
+      } else if (arity == 2) {
+        world.gen.corejs.useWrap2 = true;
       }
 
       result = new Value(toType, '\$wrap_call\$$arity(${result.code})', span);
