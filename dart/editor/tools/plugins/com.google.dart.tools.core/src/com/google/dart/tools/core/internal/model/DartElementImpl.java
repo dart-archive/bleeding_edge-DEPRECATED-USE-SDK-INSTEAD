@@ -156,6 +156,19 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
   protected static final DartElementInfo NO_INFO = new DartElementInfo();
 
   /**
+   * Convert the given list of Dart elements into an array of elements.
+   * 
+   * @param elements the list of elements to be converted
+   * @return an array containing the same elements as the list in the same order
+   */
+  public static DartElement[] toArray(List<? extends DartElement> elements) {
+    if (elements.isEmpty()) {
+      return EMPTY_ARRAY;
+    }
+    return elements.toArray(new DartElement[elements.size()]);
+  }
+
+  /**
    * Initialize a newly created element to have the given parent.
    * 
    * @param parent the parent of the element

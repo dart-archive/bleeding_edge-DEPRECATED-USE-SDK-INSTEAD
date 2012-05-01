@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.model.info;
 
-import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.SourceRange;
 
@@ -26,7 +25,7 @@ public class SourceElementWithChildrenInfo extends SourceReferenceInfo {
    * Collection of handles of immediate children of this object. This is an empty array if this
    * element has no children.
    */
-  private DartElement[] children = DartElementImpl.EMPTY_ARRAY;
+  private DartElement[] children = DartElement.EMPTY_ARRAY;
 
   /**
    * The source range of the name of the declared element.
@@ -77,7 +76,7 @@ public class SourceElementWithChildrenInfo extends SourceReferenceInfo {
       DartElement element = children[i];
       if (element.equals(child)) {
         if (length == 1) {
-          children = DartElementImpl.EMPTY_ARRAY;
+          children = DartElement.EMPTY_ARRAY;
         } else {
           DartElement[] newChildren = new DartElement[length - 1];
           System.arraycopy(children, 0, newChildren, 0, i);

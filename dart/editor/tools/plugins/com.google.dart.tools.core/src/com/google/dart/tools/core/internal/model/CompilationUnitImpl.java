@@ -171,7 +171,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
                   newElements);
               fieldNode.accept(functionGatherer);
               List<DartFunctionImpl> functions = functionGatherer.getFunctions();
-              fieldInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
+              fieldInfo.setChildren(DartElementImpl.toArray(functions));
             }
           }
         } else if (member instanceof DartMethodDefinition) {
@@ -211,7 +211,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
           + node.getSourceInfo().getLength());
       captureDartDoc(node, typeInfo);
       typeInfo.setNameRange(new SourceRangeImpl(node.getName()));
-      typeInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
+      typeInfo.setChildren(DartElementImpl.toArray(children));
       topLevelElements.add(typeImpl);
       return null;
     }
@@ -242,7 +242,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
               newElements);
           fieldNode.accept(functionGatherer);
           List<DartFunctionImpl> functions = functionGatherer.getFunctions();
-          variableInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
+          variableInfo.setChildren(DartElementImpl.toArray(functions));
 
           addNewElement(variableImpl, variableInfo);
           topLevelElements.add(variableImpl);
@@ -276,7 +276,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
           node.getSourceInfo().getEnd());
       children.addAll(parameters);
       // done
-      aliasInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
+      aliasInfo.setChildren(DartElementImpl.toArray(children));
       addNewElement(aliasImpl, aliasInfo);
       topLevelElements.add(aliasImpl);
       return null;
@@ -323,7 +323,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       node.accept(functionGatherer);
       functionChildren.addAll(functionGatherer.getFunctions());
 
-      functionInfo.setChildren(functionChildren.toArray(new DartElementImpl[functionChildren.size()]));
+      functionInfo.setChildren(DartElementImpl.toArray(functionChildren));
 
       addNewElement(functionImpl, functionInfo);
       topLevelElements.add(functionImpl);
@@ -430,7 +430,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       methodNode.accept(variableGatherer);
       methodChildren.addAll(variableGatherer.getLocalVariables());
 
-      methodInfo.setChildren(methodChildren.toArray(new DartElementImpl[methodChildren.size()]));
+      methodInfo.setChildren(DartElementImpl.toArray(methodChildren));
 
       return isConstructor;
     }
@@ -506,7 +506,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       node.accept(functionGatherer);
       functionChildren.addAll(functionGatherer.getFunctions());
 
-      functionInfo.setChildren(functionChildren.toArray(new DartElementImpl[functionChildren.size()]));
+      functionInfo.setChildren(DartElementImpl.toArray(functionChildren));
 
       addNewElement(functionImpl, functionInfo);
       functions.add(functionImpl);
@@ -577,7 +577,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
             newElements);
         variable.accept(functionGatherer);
         List<DartFunctionImpl> functions = functionGatherer.getFunctions();
-        variableInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
+        variableInfo.setChildren(DartElementImpl.toArray(functions));
 
         addNewElement(variableImpl, variableInfo);
         variables.add(variableImpl);
@@ -676,7 +676,7 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
             newElements);
         parameter.accept(functionGatherer);
         List<DartFunctionImpl> functions = functionGatherer.getFunctions();
-        variableInfo.setChildren(functions.toArray(new DartElementImpl[functions.size()]));
+        variableInfo.setChildren(DartElementImpl.toArray(functions));
 
         addNewElement(variableImpl, variableInfo);
         parameters.add(variableImpl);
