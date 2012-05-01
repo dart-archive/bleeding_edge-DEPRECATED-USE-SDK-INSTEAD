@@ -20,7 +20,7 @@ import org.json.JSONObject;
 /**
  * A static utility class for working with JSON objects.
  */
-class JsonUtils {
+public class JsonUtils {
 
   public static boolean getBoolean(JSONObject object, String key) throws JSONException {
     if (object.has(key)) {

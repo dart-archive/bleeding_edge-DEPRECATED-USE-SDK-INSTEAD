@@ -88,9 +88,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       breakpointManager = new BreakpointManager(this, resourceResolver);
     }
 
-    if (DartDebugCorePlugin.SEND_MODIFIED_CSS) {
-      cssScriptManager = new CssScriptManager(this, resourceResolver);
-    }
+    cssScriptManager = new CssScriptManager(this, resourceResolver);
 
     if (DartDebugCorePlugin.SEND_MODIFIED_DART) {
       dartCodeManager = new DartCodeManager(this, resourceResolver);

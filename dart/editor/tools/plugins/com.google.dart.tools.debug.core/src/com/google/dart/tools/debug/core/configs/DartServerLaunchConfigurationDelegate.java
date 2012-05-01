@@ -16,6 +16,8 @@ package com.google.dart.tools.debug.core.configs;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.core.server.ServerDebugTarget;
+import com.google.dart.tools.debug.core.util.NetUtils;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -41,6 +43,7 @@ import java.util.Map;
  * The Dart Server Application launch configuration.
  */
 public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
+  private static final int DEFAULT_PORT_NUMBER = 5858;
 
   /**
    * Create a new DartServerLaunchConfigurationDelegate.
@@ -96,11 +99,12 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     List<String> commandsList = new ArrayList<String>();
 
+    int connectionPort = NetUtils.findUnusedPort(DEFAULT_PORT_NUMBER);
+
     commandsList.add(vmExecPath);
     commandsList.addAll(Arrays.asList(launchConfig.getVmArgumentsAsArray()));
-    if (enableDebugging) {
-      // TODO(devoncarew): add the vm debug args (--debug-brk:5858 ?)
-      //commandsList.add("--debug-brk:5858");
+    if (DartDebugCorePlugin.SERVER_DEBUGGING && enableDebugging) {
+      commandsList.add("--debug:" + connectionPort);
     }
     commandsList.add(scriptPath);
     commandsList.addAll(Arrays.asList(launchConfig.getArgumentsAsArray()));
@@ -145,8 +149,11 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     eclipseProcess.setAttribute(IProcess.ATTR_CMDLINE, generateCommandLine(commands));
 
     if (enableDebugging) {
-      // TODO(devoncarew): start up a debugging target, connection to the VM, ...
+      ServerDebugTarget debugTarget = new ServerDebugTarget(launch, eclipseProcess, connectionPort);
 
+      launch.addDebugTarget(debugTarget);
+
+      debugTarget.connect();
     }
 
     monitor.done();

@@ -29,6 +29,8 @@ import org.eclipse.debug.core.IDebugEventSetListener;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
+import java.io.IOException;
+
 /**
  * The plugin activator for the com.google.dart.tools.debug.core plugin.
  */
@@ -60,11 +62,11 @@ public class DartDebugCorePlugin extends Plugin {
   // TODO(devoncarew): remove this when the debugger supports value modification
   public static boolean VM_SUPPORTS_VALUE_MODIFICATION = false;
 
-  public static boolean SEND_MODIFIED_CSS = true;
-
   // TODO(devoncarew): the vm/webkit protocol claims to support source modification, but it does
   // not yet do anything
   public static boolean SEND_MODIFIED_DART = false;
+
+  public static boolean SERVER_DEBUGGING = DartCoreDebug.SERVER_DEBUGGING;
 
   public static final String BROWSER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.browserLaunchConfig";
 
@@ -250,9 +252,17 @@ public class DartDebugCorePlugin extends Plugin {
 
     super.start(context);
 
-//    if (LOGGING) {
-//      logDebuggerEvents();
-//    }
+    // Start the embedded web server up (use a separate thread so we don't delay application startup).
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          ResourceServerManager.getServer();
+        } catch (IOException e) {
+          logError(e);
+        }
+      }
+    });
   }
 
   @Override
