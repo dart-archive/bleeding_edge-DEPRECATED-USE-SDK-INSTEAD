@@ -16,51 +16,60 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
+import junit.framework.Assert;
+
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 class Listener implements AnalysisListener {
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-  private final AnalysisServer server;
-  private final Object waitForIdleLock = new Object();
-  private final HashSet<String> parsed = new HashSet<String>();
+  private final HashMap<String, HashSet<String>> parsed = new HashMap<String, HashSet<String>>();
   private final HashSet<String> resolved = new HashSet<String>();
   private final StringBuilder duplicates = new StringBuilder();
 
+  private final ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
+
   public Listener(AnalysisServer server) {
-    this.server = server;
     server.addAnalysisListener(this);
   }
 
   @Override
   public void idle(boolean idle) {
-    if (idle) {
-      synchronized (waitForIdleLock) {
-        waitForIdleLock.notifyAll();
-      }
-    }
   }
 
   @Override
   public void parsed(AnalysisEvent event) {
-    for (File file : event.getFiles()) {
-      parsed.add(file.getPath());
+    String libFilePath = event.getLibraryFile().getPath();
+    HashSet<String> parsedInLib = parsed.get(libFilePath);
+    if (parsedInLib == null) {
+      parsedInLib = new HashSet<String>();
+      parsed.put(libFilePath, parsedInLib);
     }
+    for (File file : event.getFiles()) {
+      if (!parsedInLib.add(file.getPath())) {
+        if (duplicates.length() > 0) {
+          duplicates.append(LINE_SEPARATOR);
+        }
+        duplicates.append("Duplicate parse: " + file + LINE_SEPARATOR + "  in " + libFilePath);
+      }
+    }
+    errors.addAll(event.getErrors());
   }
 
   @Override
   public void resolved(AnalysisEvent event) {
     String libPath = event.getLibraryFile().getPath();
     if (!resolved.add(libPath)) {
-      if (duplicates.length() == 0) {
-        duplicates.append("Duplicate library resolutions:");
+      if (duplicates.length() > 0) {
+        duplicates.append(LINE_SEPARATOR);
       }
-      duplicates.append(LINE_SEPARATOR);
-      duplicates.append(libPath);
+      duplicates.append("Duplicate resolution: " + libPath);
     }
+    errors.addAll(event.getErrors());
   }
 
   void assertBundledLibrariesResolved() throws Exception {
@@ -86,8 +95,30 @@ class Listener implements AnalysisListener {
     }
   }
 
-  HashSet<String> getParsed() {
-    return parsed;
+  void assertWasParsed(File libFile, File file) {
+    HashSet<String> parsedInLib = parsed.get(libFile.getPath());
+    if (parsedInLib == null || !parsedInLib.contains(file.getPath())) {
+      Assert.fail("Expected parsed file " + file + LINE_SEPARATOR + "  in " + libFile
+          + " but found " + (parsedInLib != null ? parsedInLib : parsed));
+    }
+  }
+
+  void assertWasResolved(File file) {
+    if (!resolved.contains(file.getPath())) {
+      Assert.fail("Expected parsed library " + file + " but found " + resolved);
+    }
+  }
+
+  ArrayList<AnalysisError> getErrors() {
+    return errors;
+  }
+
+  int getParsedCount() {
+    int count = 0;
+    for (HashSet<String> parsedInLib : parsed.values()) {
+      count += parsedInLib.size();
+    }
+    return count;
   }
 
   HashSet<String> getResolved() {
@@ -95,33 +126,9 @@ class Listener implements AnalysisListener {
   }
 
   void reset() {
+    parsed.clear();
     resolved.clear();
     duplicates.setLength(0);
-  }
-
-  /**
-   * Wait for up to the specified number of milliseconds for the analysis server associated with the
-   * receiver to be idle. If the specified number is less than or equal to zero, then this method
-   * returns immediately
-   * 
-   * @param millis the number of milliseconds to wait
-   * @return <code>true</code> if the server is idle
-   */
-  boolean waitForIdle(long millis) {
-    long endTime = System.currentTimeMillis() + millis;
-    synchronized (waitForIdleLock) {
-      while (!server.isIdle()) {
-        long delta = endTime - System.currentTimeMillis();
-        if (delta <= 0) {
-          return false;
-        }
-        try {
-          waitForIdleLock.wait(delta);
-        } catch (InterruptedException e) {
-          //$FALL-THROUGH$
-        }
-      }
-    }
-    return true;
+    errors.clear();
   }
 }

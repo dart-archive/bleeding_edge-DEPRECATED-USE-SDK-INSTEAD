@@ -53,23 +53,16 @@ class ParseLibraryFileTask extends Task {
 
   @Override
   void perform() {
-    Library library = null;
-    if (libraryFile.exists()) {
-      library = context.getCachedLibrary(libraryFile);
-      if (library == null) {
-        Set<String> prefixes = new HashSet<String>();
-        DartUnit unit = parse(server, libraryFile, librarySource, libraryFile, prefixes);
-        library = Library.fromDartUnit(server, libraryFile, librarySource, unit, prefixes);
-        context.cacheLibrary(library);
-      }
+    Library library = context.getCachedLibrary(libraryFile);
+    if (library == null) {
+      Set<String> prefixes = new HashSet<String>();
+      DartUnit unit = parse(server, libraryFile, librarySource, libraryFile, prefixes);
+      library = Library.fromDartUnit(server, libraryFile, librarySource, unit, prefixes);
+      context.cacheLibrary(library);
     }
     if (callback != null) {
       try {
-        if (library != null) {
-          callback.parsed(new ParseLibraryFileEvent(library));
-        } else {
-          callback.parseFailed(libraryFile);
-        }
+        callback.parsed(new ParseLibraryFileEvent(library));
       } catch (Throwable e) {
         DartCore.logError("Exception during parse notification", e);
       }

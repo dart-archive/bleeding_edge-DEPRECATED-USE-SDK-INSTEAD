@@ -105,17 +105,6 @@ public class ResourceChangeListener {
         }
       }
     }
-
-    @Override
-    public void parseFailed(File file) {
-      synchronized (sourcedFiles) {
-        callbackCounter--;
-        if (callbackCounter == 0) {
-          sourcedFiles.notifyAll();
-        }
-      }
-    }
-
   }
 
   private static final int EVENT_MASK = IResourceChangeEvent.POST_CHANGE;

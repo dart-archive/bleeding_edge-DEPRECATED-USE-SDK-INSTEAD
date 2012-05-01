@@ -129,13 +129,12 @@ class AnalysisUtility {
       errorListener.onError(error);
     }
 
-    if (newlyResolved != null) {
-      notifyParsedDuringResolve(server, parsedUnits, newlyResolved.values(), errorListener);
-      errorListener.notifyResolved(newlyResolved);
-    } else {
+    if (newlyResolved == null) {
       newlyResolved = new HashMap<URI, LibraryUnit>();
       newlyResolved.put(libraryFile.toURI(), new LibraryUnit(librarySource));
     }
+    notifyParsedDuringResolve(server, parsedUnits, newlyResolved.values(), errorListener);
+    errorListener.notifyResolved(newlyResolved);
     return newlyResolved;
   }
 

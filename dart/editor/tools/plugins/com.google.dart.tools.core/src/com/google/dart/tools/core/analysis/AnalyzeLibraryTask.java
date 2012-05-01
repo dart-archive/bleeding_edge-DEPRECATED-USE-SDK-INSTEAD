@@ -49,11 +49,6 @@ class AnalyzeLibraryTask extends Task {
   @Override
   void perform() {
 
-    // Determine if the library should still be analyzed
-
-    if (!libraryFile.exists()) {
-      return;
-    }
     if (start == 0) {
       start = System.currentTimeMillis();
     }

@@ -33,14 +33,12 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 public class AnalysisServerTest extends TestCase {
 
   private static final String TEST_CLASS_SIMPLE_NAME = AnalysisServerTest.class.getSimpleName();
 
-  private static final int FIVE_MINUTES_MS = 300000;
+  private static final long FIVE_MINUTES_MS = 300000;
 
   private AnalysisServer server;
 
@@ -174,7 +172,7 @@ public class AnalysisServerTest extends TestCase {
     server.analyzeLibrary(libFile);
     long end = System.currentTimeMillis() + 30000;
     while (count[0] < 3) {
-      if (!listener.waitForIdle(end - System.currentTimeMillis())) {
+      if (!AnalysisTestUtilities.waitForIdle(server, end - System.currentTimeMillis())) {
         fail("Expected 3 idle events, but received " + count[0]);
       }
     }
@@ -192,53 +190,30 @@ public class AnalysisServerTest extends TestCase {
   public void test_AnalysisServer_parseLibraryFile(File tempDir) throws Exception {
     File libFile = setupMoneyLibrary(tempDir);
     setupServer();
-    final boolean[] parseFailed = new boolean[1];
-    final ParseLibraryFileEvent[] result = new ParseLibraryFileEvent[1];
 
-    server.parseLibraryFile(libFile, new ParseLibraryFileCallback() {
-      @Override
-      public void parsed(ParseLibraryFileEvent event) {
-        result[0] = event;
-      }
-
-      @Override
-      public void parseFailed(File file) {
-        parseFailed[0] = true;
-      }
-    });
-    waitForIdle();
-    assertFalse(parseFailed[0]);
-    assertNotNull(result[0]);
-    assertNotNull(result[0].getUnit());
-    assertEquals(1, result[0].getImportedFiles().size());
-    assertEquals(4, result[0].getSourcedFiles().size());
-    if (!listener.getParsed().contains(libFile.getPath())) {
-      fail("Expected parsed library " + libFile + " but found " + listener.getParsed());
-    }
-    assertEquals(1, listener.getParsed().size());
+    listener.reset();
+    ParseLibraryFileEvent result = parseLibraryFile(libFile);
+    assertNotNull(result);
+    assertNotNull(result.getUnit());
+    assertEquals(1, result.getImportedFiles().size());
+    assertEquals(4, result.getSourcedFiles().size());
+    listener.assertWasParsed(libFile, libFile);
+    assertEquals(1, listener.getParsedCount());
     assertEquals(0, listener.getResolved().size());
+    assertEquals(0, listener.getErrors().size());
     listener.assertNoDuplicates();
 
     listener.reset();
-    result[0] = null;
-    parseFailed[0] = false;
     File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
-    server.parseLibraryFile(fileDoesNotExist, new ParseLibraryFileCallback() {
-      @Override
-      public void parsed(ParseLibraryFileEvent event) {
-        result[0] = event;
-      }
-
-      @Override
-      public void parseFailed(File file) {
-        parseFailed[0] = true;
-      }
-    });
-    waitForIdle();
-    assertTrue(parseFailed[0]);
-    assertNull(result[0]);
-    assertEquals(1, listener.getParsed().size());
+    result = parseLibraryFile(fileDoesNotExist);
+    assertNotNull(result);
+    assertNotNull(result.getUnit());
+    assertEquals(1, result.getImportedFiles().size()); // implicit import dart:core
+    assertEquals(0, result.getSourcedFiles().size());
+    listener.assertWasParsed(fileDoesNotExist, fileDoesNotExist);
+    assertEquals(1, listener.getParsedCount());
     assertEquals(0, listener.getResolved().size());
+    assertEquals(1, listener.getErrors().size());
     listener.assertNoDuplicates();
   }
 
@@ -254,19 +229,26 @@ public class AnalysisServerTest extends TestCase {
   public void test_AnalysisServer_resolveLibrary(File tempDir) throws Exception {
     File libFile = setupMoneyLibrary(tempDir);
     setupServer();
-    final LibraryUnit[] resolved = new LibraryUnit[1];
-    server.resolveLibrary(libFile, new ResolveLibraryCallback() {
-      @Override
-      public void resolved(LibraryUnit libraryUnit) {
-        resolved[0] = libraryUnit;
-      }
-    });
-    waitForIdle();
-    assertNotNull(resolved[0]);
-    if (!listener.getResolved().contains(libFile.getPath())) {
-      fail("Expected resolved library " + libFile + " but found " + listener.getResolved());
-    }
+
+    listener.reset();
+    LibraryUnit libUnit = resolveLibrary(libFile);
+    assertNotNull(libUnit);
+    listener.assertWasParsed(libFile, libFile);
+    listener.assertWasResolved(libFile);
+    assertTrue(listener.getParsedCount() > 10);
     assertEquals(3, listener.getResolved().size());
+    //assertEquals(0, listener.getErrors().size());
+    listener.assertNoDuplicates();
+
+    listener.reset();
+    File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
+    libUnit = resolveLibrary(fileDoesNotExist);
+    assertNotNull(libUnit);
+    listener.assertWasParsed(fileDoesNotExist, fileDoesNotExist);
+    listener.assertWasResolved(fileDoesNotExist);
+    assertEquals(1, listener.getParsedCount());
+    assertEquals(1, listener.getResolved().size());
+    assertEquals(1, listener.getErrors().size());
     listener.assertNoDuplicates();
   }
 
@@ -331,6 +313,25 @@ public class AnalysisServerTest extends TestCase {
     return result instanceof Boolean && ((Boolean) result).booleanValue();
   }
 
+  private ParseLibraryFileEvent parseLibraryFile(File libFile) throws InterruptedException {
+    final ParseLibraryFileEvent[] result = new ParseLibraryFileEvent[1];
+    server.parseLibraryFile(libFile, new ParseLibraryFileCallback() {
+      @Override
+      public void parsed(ParseLibraryFileEvent event) {
+        synchronized (result) {
+          result[0] = event;
+          result.notifyAll();
+        }
+      }
+    });
+    synchronized (result) {
+      if (result[0] == null) {
+        result.wait(FIVE_MINUTES_MS);
+      }
+    }
+    return result[0];
+  }
+
   private long resolveBundledLibraries() throws URISyntaxException, InterruptedException, Exception {
     listener.reset();
     resolveBundledLibraries(server);
@@ -349,6 +350,25 @@ public class AnalysisServerTest extends TestCase {
     }
   }
 
+  private LibraryUnit resolveLibrary(File libFile) throws InterruptedException {
+    final LibraryUnit[] result = new LibraryUnit[1];
+    server.resolveLibrary(libFile, new ResolveLibraryCallback() {
+      @Override
+      public void resolved(LibraryUnit libraryUnit) {
+        synchronized (result) {
+          result[0] = libraryUnit;
+          result.notifyAll();
+        }
+      }
+    });
+    synchronized (result) {
+      if (result[0] == null) {
+        result.wait(FIVE_MINUTES_MS);
+      }
+    }
+    return result[0];
+  }
+
   private File setupMoneyLibrary(File tempDir) throws IOException {
     File targetDir = new File(tempDir, TEST_CLASS_SIMPLE_NAME);
     TestUtilities.copyPluginRelativeContent("Money", targetDir);
@@ -364,12 +384,7 @@ public class AnalysisServerTest extends TestCase {
     server = new AnalysisServer(libraryManager);
     listener = new Listener(server);
     server.start();
-    long start = System.currentTimeMillis();
-    listener.waitForIdle(FIVE_MINUTES_MS);
-    long delta = System.currentTimeMillis() - start;
-    if (delta > 50) {
-      System.out.println("  " + delta + " ms waiting for analysis server to initialize");
-    }
+    AnalysisTestUtilities.waitForIdle(server, FIVE_MINUTES_MS);
   }
 
   private void setupServerAndIndex() throws Exception {
@@ -391,25 +406,32 @@ public class AnalysisServerTest extends TestCase {
    */
   private long waitForIdle() throws InterruptedException {
     final long start = System.currentTimeMillis();
-    if (!listener.waitForIdle(FIVE_MINUTES_MS)) {
+    if (!AnalysisTestUtilities.waitForIdle(server, FIVE_MINUTES_MS)) {
       fail(server.getClass().getSimpleName() + " not idle");
     }
     // In the current implementation, the index will process all background indexing
     // before answering any search request
     if (index != null) {
-      final CountDownLatch latch = new CountDownLatch(1);
+      final boolean[] complete = new boolean[1];
       Resource resource = new Resource("resource");
       Element element = new Element(resource, "element");
       Attribute attribute = Attribute.getAttribute("attribute");
       index.getAttribute(element, attribute, new AttributeCallback() {
-
         @Override
         public void hasValue(Element element, Attribute attribute, String value) {
-          latch.countDown();
+          synchronized (complete) {
+            complete[0] = true;
+            complete.notifyAll();
+          }
         }
       });
-      if (!latch.await(FIVE_MINUTES_MS, TimeUnit.MILLISECONDS)) {
-        fail(index.getClass().getSimpleName() + " not idle");
+      synchronized (complete) {
+        if (!complete[0]) {
+          complete.wait(FIVE_MINUTES_MS);
+          if (!complete[0]) {
+            fail(index.getClass().getSimpleName() + " not idle");
+          }
+        }
       }
     }
     return System.currentTimeMillis() - start;

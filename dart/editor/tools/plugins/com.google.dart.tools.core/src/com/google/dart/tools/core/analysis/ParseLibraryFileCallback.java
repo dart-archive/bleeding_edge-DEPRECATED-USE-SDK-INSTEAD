@@ -13,15 +13,12 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import java.io.File;
 
 /**
  * Used by {@link AnalysisServer#parseLibraryFile(java.io.File, ParseLibraryFileCallback)} to
  * provide asynchronous results.
  */
 public interface ParseLibraryFileCallback {
-
-  void parseFailed(File file);
 
   void parsed(ParseLibraryFileEvent event);
 

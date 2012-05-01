@@ -41,9 +41,6 @@ class ParseLibraryTask extends Task {
 
     Library library = context.getCachedLibrary(libraryFile);
     if (library == null) {
-      if (!libraryFile.exists()) {
-        return;
-      }
       server.queueSubTask(new ParseLibraryFileTask(server, context, libraryFile, null));
       server.queueSubTask(this);
       return;
