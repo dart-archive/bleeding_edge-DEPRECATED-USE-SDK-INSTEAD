@@ -14,7 +14,7 @@ foo(a) {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  Expect.isTrue(generated.contains(@'.builtin$add$1('));
-  Expect.isTrue(generated.contains(@'.builtin$removeLast$0('));
-  Expect.isTrue(generated.contains(@'.builtin$get$length('));
+  Expect.isTrue(generated.contains(@'.add$1('));
+  Expect.isTrue(generated.contains(@'.removeLast('));
+  Expect.isTrue(generated.contains(@'.get$length('));
 }

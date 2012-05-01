@@ -30,19 +30,21 @@ final String DEFAULT_HELPERLIB = @'''
   guard$num(x) { return x; }
   guard$string(x) { return x; }
   guard$stringOrArray(x) { return x; }
-  builtin$add$1(receiver, value) {}
-  builtin$get$length(var receiver) {}
-  builtin$filter$1(receiver, predicate) {}
-  builtin$removeLast$0(receiver) {}
   index(a, index) {}
   indexSet(a, index, value) {}
-  builtin$iterator$0() {}
-  builtin$next$0() {}
-  builtin$hasNext$0() {}
   setRuntimeTypeInfo(a, b) {}
   getRuntimeTypeInfo(a) {}
   stringConcat() {}
   stringToString() {}''';
+
+final String DEFAULT_INTERCEPTORSLIB = @'''
+  add$1(receiver, value) {}
+  get$length(receiver) {}
+  filter(receiver, predicate) {}
+  removeLast(receiver) {}
+  iterator(receiver) {}
+  next(receiver) {}
+  hasNext(receiver) {}''';
 
 final String DEFAULT_CORELIB = @'''
   print(var obj) {}
@@ -65,7 +67,8 @@ class MockCompiler extends Compiler {
   Node parsedTree;
 
   MockCompiler([String coreSource = DEFAULT_CORELIB,
-                String helperSource = DEFAULT_HELPERLIB])
+                String helperSource = DEFAULT_HELPERLIB,
+                String interceptorsSource = DEFAULT_INTERCEPTORSLIB])
       : warnings = [], errors = [],
         sources = new Map<String, String>(),
         super() {
@@ -73,10 +76,17 @@ class MockCompiler extends Compiler {
     var script = new Script(uri, new MockFile(coreSource));
     coreLibrary = new LibraryElement(script);
     parseScript(coreSource, coreLibrary);
+
     script = new Script(uri, new MockFile(helperSource));
     jsHelperLibrary = new LibraryElement(script);
     parseScript(helperSource, jsHelperLibrary);
+
+    script = new Script(uri, new MockFile(interceptorsSource));
+    interceptorsLibrary = new LibraryElement(script);
+    parseScript(interceptorsSource, interceptorsLibrary);
+
     scanner.importLibrary(jsHelperLibrary, coreLibrary, null);
+    scanner.importLibrary(interceptorsLibrary, coreLibrary, null);
     mainApp = mockLibrary(this, "");
     initializeSpecialClasses();
   }
