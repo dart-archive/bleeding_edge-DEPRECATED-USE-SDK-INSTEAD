@@ -39,6 +39,8 @@ final String DEFAULT_HELPERLIB = @'''
   builtin$iterator$0() {}
   builtin$next$0() {}
   builtin$hasNext$0() {}
+  setRuntimeTypeInfo(a, b) {}
+  getRuntimeTypeInfo(a) {}
   stringConcat() {}
   stringToString() {}''';
 
