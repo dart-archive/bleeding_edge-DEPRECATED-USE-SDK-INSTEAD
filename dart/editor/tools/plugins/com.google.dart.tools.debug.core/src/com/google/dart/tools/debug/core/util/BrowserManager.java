@@ -344,7 +344,7 @@ public class BrowserManager {
       }
     }
 
-    if (tabs.size() == 0) {
+    if (tabs.size() == 1) {
       return tabs.get(0);
     }
 
@@ -353,10 +353,10 @@ public class BrowserManager {
 
   private List<ChromiumTabInfo> getChromiumTabs(Process runtimeProcess, int devToolsPortNumber)
       throws IOException, CoreException {
-    // Give Chromium a maximum of 10 seconds to start up.
-    final int maxStartupDelay = 10 * 1000;
+    // Give Chromium 25 seconds to start up.
+    final int maxStartupDelay = 25 * 1000;
 
-    long startTime = System.currentTimeMillis();
+    long endTime = System.currentTimeMillis() + maxStartupDelay;
 
     while (true) {
       if (isProcessTerminated(runtimeProcess)) {
@@ -368,19 +368,20 @@ public class BrowserManager {
       try {
         List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(devToolsPortNumber);
 
-        if (tabs.size() == 0 || findTargetTab(tabs) == null) {
-          // Keep waiting - Dartium sometimes needs time to bring up the first tab.
-          continue;
-        } else {
+        if (findTargetTab(tabs) != null) {
           return tabs;
         }
       } catch (IOException exception) {
-        if ((System.currentTimeMillis() - startTime) > maxStartupDelay) {
+        if (System.currentTimeMillis() > endTime) {
           throw exception;
-        } else {
-          sleep(25);
         }
       }
+
+      if (System.currentTimeMillis() > endTime) {
+        throw new IOException("Timed out trying to connect to Dartium");
+      }
+
+      sleep(25);
     }
   }
 
