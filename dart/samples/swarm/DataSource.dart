@@ -59,7 +59,7 @@ class Sections implements Collection<Section> {
       initializeFromData(CannedData.data['user.data'], callback);
     } else {
       // TODO(jmesserly): display an error if we fail here! Silent failure bad.
-      new XMLHttpRequest.getTEMPNAME('$home/data/user.data',
+      new XMLHttpRequest.get('$home/data/user.data',
           EventBatch.wrap((request) {
         // TODO(jimhug): Nice response if get error back from server.
         // TODO(jimhug): Might be more efficient to parse request in sections.
