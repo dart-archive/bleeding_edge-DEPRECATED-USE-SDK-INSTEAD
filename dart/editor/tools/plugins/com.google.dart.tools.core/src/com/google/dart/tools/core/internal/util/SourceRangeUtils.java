@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.util;
 
+import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.SourceRange;
 
 /**
@@ -24,6 +25,13 @@ public class SourceRangeUtils {
    */
   public static boolean contains(SourceRange r, int x) {
     return r.getOffset() <= x && x < r.getOffset() + r.getLength();
+  }
+
+  /**
+   * @return the expanded instance of {@link SourceRange}, which has the same center.
+   */
+  public static SourceRange getExpanded(SourceRange s, int delta) {
+    return new SourceRangeImpl(s.getOffset() - delta, delta + s.getLength() + delta);
   }
 
   /**

@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.model;
 
+import java.net.URI;
+
 /**
  * Information about imported {@link DartLibrary}.
  */
@@ -34,4 +36,9 @@ public interface DartImport extends CompilationUnitElement, SourceReference {
    * @return the prefix used to import library, may be <code>null</code>.
    */
   String getPrefix();
+
+  /**
+   * @return the {@link SourceRange} of the imported library {@link URI}, not <code>null</code>.
+   */
+  SourceRange getUriRange();
 }

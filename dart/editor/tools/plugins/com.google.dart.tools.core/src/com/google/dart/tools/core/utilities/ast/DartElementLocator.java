@@ -45,7 +45,7 @@ import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartImport;
@@ -59,7 +59,6 @@ import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
-import java.io.File;
 import java.net.URI;
 
 /**
@@ -417,6 +416,35 @@ public class DartElementLocator extends ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitImportDirective(DartImportDirective node) {
+    DartLibrary library = compilationUnit.getLibrary();
+    try {
+      if (Objects.equal(compilationUnit, library.getDefiningCompilationUnit())) {
+        DartImport[] imports = library.getImports();
+        for (DartImport imprt : imports) {
+          // on URI of library - return defining Unit of imported Library
+          if (SourceRangeUtils.contains(imprt.getUriRange(), startOffset)) {
+            resolvedElement = null;
+            foundElement = imprt.getLibrary().getDefiningCompilationUnit();
+            throw new DartElementFoundException();
+          }
+          // on #import directive - return DartImport element
+          if (SourceRangeUtils.contains(imprt.getSourceRange(), startOffset)) {
+            resolvedElement = null;
+            foundElement = imprt;
+            SourceRange sourceRange = imprt.getSourceRange();
+            candidateRegion = new Region(sourceRange.getOffset(), sourceRange.getLength());
+            throw new DartElementFoundException();
+          }
+        }
+      }
+    } catch (DartModelException e) {
+      DartCore.logError("Cannot access imports of " + library.getElementName(), e);
+    }
+    return super.visitImportDirective(node);
+  }
+
+  @Override
   public Void visitNode(DartNode node) {
     try {
       node.visitChildren(this);
@@ -443,40 +471,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
       if (start <= startOffset && end >= endOffset) {
         wordRegion = computeInternalStringRegion(start, length);
         DartNode parent = node.getParent();
-        if (parent instanceof DartImportDirective
-            && ((DartImportDirective) parent).getLibraryUri() == node) {
-          //resolvedElement = ((DartImportDirective) parent).getElement();
-          DartLibrary library = compilationUnit.getLibrary();
-          String libraryName = node.getValue();
-          if (libraryName.startsWith("dart:")) {
-            try {
-              for (DartLibrary bundledLibrary : DartModelManager.getInstance().getDartModel().getBundledLibraries()) {
-                if (bundledLibrary.getElementName().equals(libraryName)) {
-                  foundElement = bundledLibrary.getDefiningCompilationUnit();
-                  throw new DartElementFoundException();
-                }
-              }
-            } catch (DartModelException exception) {
-              DartCore.logError("Cannot access bundled libraries", exception);
-            }
-          } else {
-            try {
-              String unitName = new File(new URI(libraryName).getPath()).getName();
-              for (DartLibrary importedLibrary : library.getImportedLibraries()) {
-                CompilationUnit importedUnit = importedLibrary.getCompilationUnit(unitName);
-                if (importedUnit != null && importedUnit.exists()) {
-                  foundElement = importedUnit;
-                  throw new DartElementFoundException();
-                }
-              }
-            } catch (DartElementFoundException exception) {
-              throw exception;
-            } catch (Exception exception) {
-              DartCore.logError("Cannot access libraries imported by " + library.getElementName(),
-                  exception);
-            }
-          }
-        } else if (parent instanceof DartSourceDirective
+        if (parent instanceof DartSourceDirective
             && ((DartSourceDirective) parent).getSourceUri() == node) {
           //resolvedElement = ((DartSourceDirective) parent).getElement();
           DartLibrary library = compilationUnit.getLibrary();

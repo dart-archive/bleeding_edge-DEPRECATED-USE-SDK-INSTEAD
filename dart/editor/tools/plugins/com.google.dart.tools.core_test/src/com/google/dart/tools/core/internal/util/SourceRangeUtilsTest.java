@@ -35,6 +35,21 @@ public class SourceRangeUtilsTest extends TestCase {
   }
 
   /**
+   * Test for {@link SourceRangeUtils#getExpanded(SourceRange, int)}.
+   */
+  public void test_getExpanded() throws Exception {
+    assertEquals(
+        new SourceRangeImpl(5, 3),
+        SourceRangeUtils.getExpanded(new SourceRangeImpl(5, 3), 0));
+    assertEquals(
+        new SourceRangeImpl(3, 7),
+        SourceRangeUtils.getExpanded(new SourceRangeImpl(5, 3), 2));
+    assertEquals(
+        new SourceRangeImpl(6, 1),
+        SourceRangeUtils.getExpanded(new SourceRangeImpl(5, 3), -1));
+  }
+
+  /**
    * Test for {@link SourceRangeUtils#intersects(SourceRange, SourceRange)}
    */
   public void test_intersects() throws Exception {

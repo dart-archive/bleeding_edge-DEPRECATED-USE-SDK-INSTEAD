@@ -27,13 +27,17 @@ import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
  * Information about imported {@link DartLibrary}.
  */
 public class DartImportImpl extends SourceReferenceImpl implements DartImport {
+  private final SourceRange sourceRange;
+  private final SourceRange uriRange;
   private final DartLibrary library;
   private final String prefix;
   private final SourceRange nameRange;
 
-  public DartImportImpl(CompilationUnitImpl parent, DartLibrary library, String prefix,
-      SourceRange nameRange) {
+  public DartImportImpl(CompilationUnitImpl parent, SourceRange sourceRange, SourceRange uriRange,
+      DartLibrary library, String prefix, SourceRange nameRange) {
     super(parent);
+    this.sourceRange = sourceRange;
+    this.uriRange = uriRange;
     this.library = library;
     this.prefix = prefix;
     this.nameRange = nameRange;
@@ -76,6 +80,16 @@ public class DartImportImpl extends SourceReferenceImpl implements DartImport {
   @Override
   public String getPrefix() {
     return prefix;
+  }
+
+  @Override
+  public SourceRange getSourceRange() throws DartModelException {
+    return sourceRange;
+  }
+
+  @Override
+  public SourceRange getUriRange() {
+    return uriRange;
   }
 
   @Override
