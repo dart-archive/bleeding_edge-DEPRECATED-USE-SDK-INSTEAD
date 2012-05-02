@@ -125,6 +125,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
               '--compiler=' + compiler,
               '--runtime=' + runtime,
               '--time',
+              '--use-sdk',
               '--report'])
 
   if user_test == 'yes':
@@ -166,7 +167,7 @@ def BuildFrog(compiler, mode, system):
 
   print '@@@BUILD_STEP build frog@@@'
 
-  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'dart2js']
+  args = [sys.executable, './tools/build.py', '--mode=' + mode, 'create_sdk']
   print 'running %s' % (' '.join(args))
   return subprocess.call(args, env=NO_COLOR_ENV)
 
