@@ -20,8 +20,8 @@ final STRING = HType.STRING;
 final READABLE_ARRAY = HType.READABLE_ARRAY;
 final MUTABLE_ARRAY = HType.MUTABLE_ARRAY;
 final EXTENDABLE_ARRAY = HType.EXTENDABLE_ARRAY;
-final NON_PRIMITIVE1 = const HNonPrimitiveType(const Type("type1"));
-final NON_PRIMITIVE2 = const HNonPrimitiveType(const Type("type2"));
+final NON_PRIMITIVE1 = const HBoundedType(const Type("type1"));
+final NON_PRIMITIVE2 = const HBoundedType(const Type("type2"));
 
 void testUnion() {
   Expect.equals(CONFLICTING, CONFLICTING.union(CONFLICTING));
