@@ -126,10 +126,12 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
         }
       }
     } catch (IOException ioe) {
-      DartDebugCorePlugin.logError(ioe);
 
-      throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          "Unable to connect debugger to the Dart VM: " + ioe.getMessage()));
+      // TODO (danrubel): Suppress exception for integration build
+//      DartDebugCorePlugin.logError(ioe);
+//
+//      throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+//          "Unable to connect debugger to the Dart VM: " + ioe.getMessage()));
     }
   }
 
