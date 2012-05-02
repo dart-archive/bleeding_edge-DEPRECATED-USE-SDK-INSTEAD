@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.projects;
 
 import com.google.dart.tools.core.generator.NewFileGenerator;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -36,6 +37,17 @@ public class CreateFileWizardPage extends WizardNewFileCreationPage {
    */
   public CreateFileWizardPage(String pageName, IStructuredSelection selection) {
     super(pageName, selection);
+  }
+
+  @Override
+  public IFile createNewFile() {
+
+    String fileName = getFileName();
+    if (fileName.indexOf(".") == -1) {
+      setFileName(fileName + ".dart");
+    }
+
+    return super.createNewFile();
   }
 
   @Override
