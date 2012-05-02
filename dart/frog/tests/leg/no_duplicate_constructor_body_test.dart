@@ -6,7 +6,7 @@
 
 final String CODE = """
 class A {
-  A(String b);
+  A(String b) { b.length; }
 }
 
 main() {
