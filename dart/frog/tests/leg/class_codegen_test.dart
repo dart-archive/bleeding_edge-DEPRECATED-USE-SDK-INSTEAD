@@ -64,16 +64,14 @@ main() {
 
 twoClasses() {
   String generated = compileAll(TEST_ONE);
-  Expect.isTrue(generated.contains("\$.A = function A() {\n};"));
-  Expect.isTrue(generated.contains("\$.B = function B() {\n};"));
+  Expect.isTrue(generated.contains(@'Isolate.$defineClass("A", "Object"'));
+  Expect.isTrue(generated.contains(@'Isolate.$defineClass("B", "Object"'));
 }
 
 subClass() {
   checkOutput(String generated) {
-    Expect.isTrue(generated.contains("\$.A = function A() {\n};"));
-    Expect.isTrue(generated.contains("\$.B = function B() {\n};"));
-    Expect.isTrue(generated.contains(@"Isolate.$inherits = function"));
-    Expect.isTrue(generated.contains(@"Isolate.$inherits($.B, $.A);"));
+    Expect.isTrue(generated.contains(@'Isolate.$defineClass("A", "Object"'));
+    Expect.isTrue(generated.contains(@'Isolate.$defineClass("B", "A"'));
   }
 
   checkOutput(compileAll(TEST_TWO));
@@ -83,11 +81,12 @@ subClass() {
 fieldTest() {
   String generated = compileAll(TEST_FOUR);
   Expect.isTrue(generated.contains(@"""
-$.B = function B(z, y, A_x) {
+Isolate.$defineClass("B", "A",
+function B(z, y, A_x) {
   this.z = z;
   this.y = y;
   this.x = A_x;
-};"""));
+},"""));
 }
 
 constructor1() {

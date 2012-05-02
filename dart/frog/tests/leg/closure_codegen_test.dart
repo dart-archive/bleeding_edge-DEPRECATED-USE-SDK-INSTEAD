@@ -52,11 +52,9 @@ closureInvocation() {
 // the closure.
 closureBailout() {
   String generated = compileAll(TEST_BAILOUT);
-  RegExp noSuchMethodRegExp = const RegExp(@'Object\.prototype\.\$call\$0');
-  bool containsNoSuchMethodAdapter = noSuchMethodRegExp.hasMatch(generated);
-  RegExp regexp = const RegExp(@'\$call\$0 = function');
+  RegExp regexp = const RegExp(@'\$call\$0: function');
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
-  checkNumberOfMatches(matches, containsNoSuchMethodAdapter ? 2 : 1);
+  checkNumberOfMatches(matches, 1);
 }
 
 main() {
