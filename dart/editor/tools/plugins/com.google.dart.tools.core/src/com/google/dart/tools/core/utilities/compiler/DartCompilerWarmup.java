@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Dart project authors.
+ * Copyright 2012 Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -30,6 +30,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
+import com.google.dart.tools.core.internal.compiler.LoggingDartCompilerListener;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
@@ -185,11 +186,7 @@ public class DartCompilerWarmup {
    */
   public static void warmUpCompiler() {
     RootArtifactProvider rootProvider = RootArtifactProvider.getInstance();
-    // TODO (danrubel) Warmup is causing subsequent compilation to fail
-    // To reproduce, uncomment the line below, launch a new instance of Dart Editor,
-    // create a new Dart application, launch in browser, JS does not run in browser.
-    // Uncomment this once the underlying problem is fixed.
-//    warmUpCompiler(rootProvider, new LoggingDartCompilerListener(true));
+    warmUpCompiler(rootProvider, new LoggingDartCompilerListener(true));
     complete = true;
   }
 
