@@ -70,7 +70,8 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
   protected void launchVM(ILaunch launch, DartLaunchConfigWrapper launchConfig,
       IProgressMonitor monitor) throws CoreException {
-    boolean enableDebugging = launchConfig.getEnableDebugging();
+    boolean enableDebugging = launchConfig.getEnableDebugging()
+        && DartDebugCorePlugin.SERVER_DEBUGGING;
 
     // Usage: dart [options] script.dart [arguments]
 
