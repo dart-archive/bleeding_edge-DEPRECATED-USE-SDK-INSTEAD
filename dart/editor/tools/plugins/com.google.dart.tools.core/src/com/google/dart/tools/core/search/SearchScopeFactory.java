@@ -21,6 +21,8 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.TypeHierarchy;
 
+import java.util.Collection;
+
 /**
  * The class <code>SearchScopeFactory</code> defines utility methods that can be used to create
  * search scopes.
@@ -42,6 +44,16 @@ public final class SearchScopeFactory {
   public static SearchScope createHierarchyScope(TypeHierarchy typeHierarchy) {
     DartCore.notYetImplemented();
     return null;
+  }
+
+  /**
+   * Create a search scope that encompasses everything in the given library.
+   * 
+   * @param library the library defining which elements are included in the scope
+   * @return the search scope that was created
+   */
+  public static SearchScope createLibraryScope(Collection<DartLibrary> libraries) {
+    return new LibrarySearchScope(libraries);
   }
 
   /**

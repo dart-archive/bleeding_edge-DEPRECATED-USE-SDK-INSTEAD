@@ -17,15 +17,27 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.search.SearchScope;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * Instances of the class <code>LibrarySearchScope</code> implement a search scope that encompasses
- * everything in a given library.
+ * everything in a given collection of libraries.
  */
 public class LibrarySearchScope implements SearchScope {
   /**
-   * The library defining which elements are included in the scope.
+   * The libraries defining which elements are included in the scope.
    */
-  private final DartLibrary library;
+  private final Collection<DartLibrary> libraries;
+
+  /**
+   * Create a search scope that encompasses everything in the given libraries.
+   * 
+   * @param libraries the libraries defining which elements are included in the scope
+   */
+  public LibrarySearchScope(Collection<DartLibrary> libraries) {
+    this.libraries = libraries;
+  }
 
   /**
    * Create a search scope that encompasses everything in the given library.
@@ -33,13 +45,27 @@ public class LibrarySearchScope implements SearchScope {
    * @param library the library defining which elements are included in the scope
    */
   public LibrarySearchScope(DartLibrary library) {
-    this.library = library;
+    this(Collections.singleton(library));
   }
 
   @Override
   public boolean encloses(DartElement element) {
     DartLibrary elementLibrary = element.getAncestor(DartLibrary.class);
-    return elementLibrary.equals(library);
+    for (DartLibrary library : libraries) {
+      if (elementLibrary.equals(library)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Return the libraries defining which elements are included in the scope.
+   * 
+   * @return the collection of libraries defining which elements are included in the scope
+   */
+  public Collection<DartLibrary> getLibraries() {
+    return libraries;
   }
 
   /**
@@ -47,8 +73,9 @@ public class LibrarySearchScope implements SearchScope {
    * 
    * @return the library defining which elements are included in the scope
    */
+  @Deprecated
   public DartLibrary getLibrary() {
-    return library;
+    return libraries.iterator().next();
   }
 
 }
