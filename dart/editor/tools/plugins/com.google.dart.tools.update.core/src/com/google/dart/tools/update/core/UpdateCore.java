@@ -35,6 +35,12 @@ import java.util.ResourceBundle;
 public class UpdateCore extends Plugin {
 
   /**
+   * A temporary flag used to determine where update and install dirs should live when debugging
+   * locally.
+   */
+  public static final boolean DEBUGGING_IN_RUNTIME_WS = System.getProperty("DEBUGGING_IN_RUNTIME_WS") != null;
+
+  /**
    * The update dir name.
    */
   private static final String UPDATES_DIR_NAME = "updates";
@@ -224,6 +230,18 @@ public class UpdateCore extends Plugin {
   public static void logWarning(String message) {
     if (PLUGIN != null) {
       PLUGIN.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message));
+    }
+  }
+
+  /**
+   * Log the given exception as a warning in the Eclipse log.
+   * 
+   * @param message the message
+   * @param exception the exception
+   */
+  public static void logWarning(String message, Throwable exception) {
+    if (PLUGIN != null) {
+      PLUGIN.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message, exception));
     }
   }
 

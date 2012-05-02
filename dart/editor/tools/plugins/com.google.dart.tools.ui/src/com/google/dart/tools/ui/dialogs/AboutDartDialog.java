@@ -17,6 +17,9 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.update.core.UpdateAdapter;
+import com.google.dart.tools.update.core.UpdateCore;
+import com.google.dart.tools.update.core.UpdateListener;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -45,6 +48,13 @@ public class AboutDartDialog extends Shell {
 
   private static final String NEW_LINE = System.getProperty("line.separator");
 
+  private final UpdateListener updateListener = new UpdateAdapter() {
+    @Override
+    public void installing() {
+      AboutDartDialog.this.close();
+    }
+  };
+
   public AboutDartDialog(Shell shell) {
     super(shell, SWT.CLOSE | SWT.TITLE);
 
@@ -52,6 +62,19 @@ public class AboutDartDialog extends Shell {
     setLayout(GridLayoutFactory.fillDefaults().spacing(0, 5).margins(0, 0).create());
 
     createContents();
+
+  }
+
+  @Override
+  public void dispose() {
+    UpdateCore.getUpdateManager().removeListener(updateListener);
+    super.dispose();
+  }
+
+  @Override
+  public void open() {
+    super.open();
+    UpdateCore.getUpdateManager().addListener(updateListener);
   }
 
   @Override

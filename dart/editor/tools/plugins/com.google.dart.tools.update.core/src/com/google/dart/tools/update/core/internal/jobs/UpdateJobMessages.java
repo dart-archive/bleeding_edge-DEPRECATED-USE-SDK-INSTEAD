@@ -25,10 +25,14 @@ public class UpdateJobMessages extends NLS {
   public static String DownloadUpdatesJob_job_label;
   public static String DownloadUpdatesJob_progress_label;
   public static String InstallUpdateAction_cleanup_task;
+  public static String InstallUpdateAction_confirm_save_msg;
+  public static String InstallUpdateAction_confirm_save_title;
+  public static String InstallUpdateAction_error_in_save;
   public static String InstallUpdateAction_errorMessage;
   public static String InstallUpdateAction_errorTitle;
   public static String InstallUpdateAction_extract_task;
   public static String InstallUpdateAction_install_task;
+  public static String InstallUpdateAction_progress_mon_title;
   static {
     // initialize resource bundle
     NLS.initializeMessages(BUNDLE_NAME, UpdateJobMessages.class);

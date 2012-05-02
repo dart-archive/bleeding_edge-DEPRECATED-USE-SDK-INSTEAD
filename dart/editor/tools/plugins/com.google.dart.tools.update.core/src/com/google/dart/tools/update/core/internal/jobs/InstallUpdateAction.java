@@ -26,6 +26,8 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import java.io.File;
@@ -74,6 +76,23 @@ public class InstallUpdateAction extends Action {
 
   @Override
   public void run() {
+
+    if (resourcesNeedSaving()) {
+
+      //prompt to save dirty editors
+      if (!MessageDialog.openConfirm(getShell(), UpdateJobMessages.InstallUpdateAction_confirm_save_title,
+          UpdateJobMessages.InstallUpdateAction_confirm_save_msg)) {
+        return;
+      }
+
+      //attempt to close dirty editors
+      if (!PlatformUI.getWorkbench().saveAllEditors(false)) {
+        MessageDialog.openError(getShell(), UpdateJobMessages.InstallUpdateAction_errorTitle,
+            UpdateJobMessages.InstallUpdateAction_error_in_save);
+        return;
+      }
+    }
+
     try {
       applyUpdate();
       restart();
@@ -84,7 +103,13 @@ public class InstallUpdateAction extends Action {
   }
 
   private void applyUpdate() throws InvocationTargetException, InterruptedException {
-    new ProgressMonitorDialog(getShell()).run(true, false, new IRunnableWithProgress() {
+
+    new ProgressMonitorDialog(getShell()) {
+      @Override
+      protected void configureShell(Shell shell) {
+        shell.setText(UpdateJobMessages.InstallUpdateAction_progress_mon_title);
+      }
+    }.run(true, false, new IRunnableWithProgress() {
       @Override
       public void run(IProgressMonitor monitor) throws InvocationTargetException,
           InterruptedException {
@@ -94,6 +119,7 @@ public class InstallUpdateAction extends Action {
           throw new InvocationTargetException(e);
         }
       }
+
     });
   }
 
@@ -101,7 +127,7 @@ public class InstallUpdateAction extends Action {
   private String buildCommandLine() {
     String property = System.getProperty(PROP_VM);
     if (property == null) {
-      throw new AssertionFailedException("System property \"" + PROP_VM + "\" not set");
+      throw new AssertionFailedException("System property \"" + PROP_VM + "\" not set"); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     StringBuffer result = new StringBuffer(512);
@@ -175,6 +201,17 @@ public class InstallUpdateAction extends Action {
     return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
   }
 
+  private boolean resourcesNeedSaving() {
+    for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+      for (IWorkbenchPage page : window.getPages()) {
+        if (page.getDirtyEditors().length > 0) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   private void restart() {
 
     String commandLine = buildCommandLine();
@@ -184,4 +221,5 @@ public class InstallUpdateAction extends Action {
 
     PlatformUI.getWorkbench().restart();
   }
+
 }

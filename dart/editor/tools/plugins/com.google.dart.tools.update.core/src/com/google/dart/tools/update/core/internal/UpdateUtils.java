@@ -259,9 +259,10 @@ public class UpdateUtils {
       return null;
     }
 
-//    //TODO (pquitslund): for local testing
-//    return new File(getUpdateTempDir().getParentFile(), "install");
-
+    if (UpdateCore.DEBUGGING_IN_RUNTIME_WS) {
+      //TODO (pquitslund): for local testing
+      return new File(getUpdateTempDir().getParentFile(), "install");
+    }
     return getUpdateDir().getParentFile();
 
   }

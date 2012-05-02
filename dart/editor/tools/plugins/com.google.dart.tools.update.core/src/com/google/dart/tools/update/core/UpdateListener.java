@@ -45,6 +45,11 @@ public interface UpdateListener {
   void downloadStarted();
 
   /**
+   * Called when an update is getting installed.
+   */
+  void installing();
+
+  /**
    * Called when an update has been applied.
    */
   void updateApplied();

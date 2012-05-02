@@ -40,6 +40,10 @@ public class UpdateAdapter implements UpdateListener {
   }
 
   @Override
+  public void installing() {
+  }
+
+  @Override
   public void updateApplied() {
   }
 

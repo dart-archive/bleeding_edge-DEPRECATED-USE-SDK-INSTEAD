@@ -20,7 +20,7 @@ import com.google.dart.tools.update.core.UpdateListener;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 
-import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Maintains state during the update process.
@@ -30,7 +30,7 @@ public class UpdateModel {
   /**
    * State enum.
    */
-  enum State {
+  public enum State {
     UNCHECKED {
       @Override
       public void notify(UpdateListener listener) {
@@ -73,6 +73,12 @@ public class UpdateModel {
         listener.downloadCancelled();
       }
     },
+    INSTALLING {
+      @Override
+      public void notify(UpdateListener listener) {
+        listener.installing();
+      }
+    },
     APPLIED {
       @Override
       public void notify(UpdateListener listener) {
@@ -95,9 +101,10 @@ public class UpdateModel {
   }
 
   private State state = State.UNCHECKED;
+
   private static Revision latestRevision = Revision.UNKNOWN;
 
-  private final ArrayList<UpdateListener> listeners = new ArrayList<UpdateListener>();
+  private final CopyOnWriteArrayList<UpdateListener> listeners = new CopyOnWriteArrayList<UpdateListener>();
 
   /**
    * Add the given update listener.
@@ -108,6 +115,18 @@ public class UpdateModel {
     if (!listeners.contains(listener)) {
       listeners.add(listener);
     }
+  }
+
+  /**
+   * Cause the model to transition to the given state (and notify listeners).
+   * 
+   * @param state the new state
+   */
+  public void enterState(State state) {
+    //TODO (pquitslund): sysout for testing
+    System.out.println(this.state + "->" + state);
+    this.state = state;
+    notifyListeners(state);
   }
 
   /**
@@ -162,18 +181,6 @@ public class UpdateModel {
    */
   public void removeListener(UpdateListener listener) {
     listeners.remove(listener);
-  }
-
-  /**
-   * Cause the model to transition to the given state (and notify listeners).
-   * 
-   * @param state the new state
-   */
-  void enterState(State state) {
-    //TODO (pquitslund): sysout for testing
-    System.out.println(this.state + "->" + state);
-    this.state = state;
-    notifyListeners(state);
   }
 
   /**
