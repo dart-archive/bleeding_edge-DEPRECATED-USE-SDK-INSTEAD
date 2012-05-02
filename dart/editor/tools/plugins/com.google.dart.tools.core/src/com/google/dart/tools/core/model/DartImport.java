@@ -16,12 +16,13 @@ package com.google.dart.tools.core.model;
 /**
  * Information about imported {@link DartLibrary}.
  */
-public interface DartImport extends DartElement, SourceReference {
+public interface DartImport extends CompilationUnitElement, SourceReference {
   DartImport[] EMPTY_ARRAY = new DartImport[0];
 
   /**
    * @return the {@link DartLibrary} defining {@link CompilationUnit}.
    */
+  @Override
   CompilationUnit getCompilationUnit();
 
   /**

@@ -665,14 +665,15 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       return true;
     }
     final ArrayList<DartElementImpl> children = new ArrayList<DartElementImpl>();
+    final CompilationUnitImpl definingUnit;
     if (libraryFile == null) {
       String relativePath = sourceFile.getName();
-      CompilationUnitImpl definingUnit = new ExternalCompilationUnitImpl(this, relativePath,
+      definingUnit = new ExternalCompilationUnitImpl(this, relativePath,
           sourceFile.getSourceFor(relativePath));
       libraryInfo.setDefiningCompilationUnit(definingUnit);
       children.add(definingUnit);
     } else {
-      CompilationUnitImpl definingUnit = new CompilationUnitImpl(DartLibraryImpl.this, libraryFile,
+      definingUnit = new CompilationUnitImpl(DartLibraryImpl.this, libraryFile,
           DefaultWorkingCopyOwner.getInstance());
       libraryInfo.setDefiningCompilationUnit(definingUnit);
       children.add(definingUnit);
@@ -722,8 +723,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           try {
             if (librarySource.exists()) {
               DartLibraryImpl library = new DartLibraryImpl(librarySource);
-              libraryInfo.addImport(new DartImportImpl(DartLibraryImpl.this, library, prefix,
-                  nameRange));
+              libraryInfo.addImport(new DartImportImpl(definingUnit, library, prefix, nameRange));
             }
           } catch (Exception exception) {
             // The library is not valid, so we don't add it.
@@ -740,7 +740,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           IFile libFile = (IFile) libraryFiles[0];
           DartProjectImpl dartProject = modelManager.create(libFile.getProject());
           DartLibraryImpl library = new DartLibraryImpl(dartProject, libFile, librarySource);
-          libraryInfo.addImport(new DartImportImpl(DartLibraryImpl.this, library, prefix, nameRange));
+          libraryInfo.addImport(new DartImportImpl(definingUnit, library, prefix, nameRange));
           return null;
         }
 
@@ -757,7 +757,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 //          }
 //          if (library == null) {
           DartLibraryImpl library = new DartLibraryImpl(libFile);
-          libraryInfo.addImport(new DartImportImpl(DartLibraryImpl.this, library, prefix, nameRange));
+          libraryInfo.addImport(new DartImportImpl(definingUnit, library, prefix, nameRange));
 //          } else {
 //            importedLibraries.add(library);
 //          }

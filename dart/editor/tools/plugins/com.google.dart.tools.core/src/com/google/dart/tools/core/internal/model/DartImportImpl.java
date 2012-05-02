@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.common.base.Objects;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -32,7 +31,7 @@ public class DartImportImpl extends SourceReferenceImpl implements DartImport {
   private final String prefix;
   private final SourceRange nameRange;
 
-  public DartImportImpl(DartLibraryImpl parent, DartLibrary library, String prefix,
+  public DartImportImpl(CompilationUnitImpl parent, DartLibrary library, String prefix,
       SourceRange nameRange) {
     super(parent);
     this.library = library;
@@ -51,12 +50,7 @@ public class DartImportImpl extends SourceReferenceImpl implements DartImport {
 
   @Override
   public CompilationUnit getCompilationUnit() {
-    try {
-      return ((DartLibrary) getParent()).getDefiningCompilationUnit();
-    } catch (DartModelException e) {
-      DartCore.logError(e);
-      return null;
-    }
+    return (CompilationUnit) getParent();
   }
 
   @Override

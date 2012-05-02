@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.common.base.Joiner;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -128,6 +129,7 @@ public class DartImportImplTest extends TestCase {
       DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
       DartLibrary libraryB = testProject.getDartProject().getDartLibrary(libResourceB);
       DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
+      CompilationUnit unitTest = libraryTest.getDefiningCompilationUnit();
       //
       DartImport[] imports = libraryTest.getImports();
       assertThat(imports).hasSize(2);
@@ -145,8 +147,9 @@ public class DartImportImplTest extends TestCase {
         assertEquals(libraryA, importA.getLibrary());
         assertEquals(null, importA.getPrefix());
         assertEquals("null:" + libraryA.getElementName(), importA.getElementName());
-        assertEquals(libraryTest, importA.getParent());
-        assertEquals(libraryTest.getDefiningCompilationUnit(), importA.getCompilationUnit());
+        assertEquals(unitTest, importA.getParent());
+        assertEquals(unitTest, importA.getCompilationUnit());
+        assertEquals(unitTest, importA.getAncestor(CompilationUnit.class));
         assertEquals(null, importA.getNameRange());
       }
       // "LibB.dart"
@@ -154,7 +157,8 @@ public class DartImportImplTest extends TestCase {
         assertEquals(libraryB, importB.getLibrary());
         assertEquals(DartElement.IMPORT, importA.getElementType());
         assertEquals(null, importB.getPrefix());
-        assertEquals(libraryTest.getDefiningCompilationUnit(), importA.getCompilationUnit());
+        assertEquals(unitTest, importA.getCompilationUnit());
+        assertEquals(unitTest, importA.getAncestor(CompilationUnit.class));
       }
     } finally {
       testProject.dispose();
@@ -232,7 +236,8 @@ public class DartImportImplTest extends TestCase {
       DartLibrary libraryA = testProject.getDartProject().getDartLibrary(libResourceA);
       DartLibrary libraryB = testProject.getDartProject().getDartLibrary(libResourceB);
       DartLibrary libraryTest = testProject.getDartProject().getDartLibrary(resourceTest);
-      String sourceTest = libraryTest.getDefiningCompilationUnit().getSource();
+      CompilationUnit unitTest = libraryTest.getDefiningCompilationUnit();
+      String sourceTest = unitTest.getSource();
       //
       DartImport[] imports = libraryTest.getImports();
       assertThat(imports).hasSize(2);
@@ -250,8 +255,8 @@ public class DartImportImplTest extends TestCase {
         assertEquals(libraryA, importA.getLibrary());
         assertEquals("aaa", importA.getPrefix());
         assertEquals("aaa:" + libraryA.getElementName(), importA.getElementName());
-        assertEquals(libraryTest, importA.getParent());
-        assertEquals(libraryTest.getDefiningCompilationUnit(), importA.getCompilationUnit());
+        assertEquals(unitTest, importA.getParent());
+        assertEquals(unitTest, importA.getCompilationUnit());
         assertEquals(new SourceRangeImpl(sourceTest.indexOf("'aaa');"), 5), importA.getNameRange());
       }
       // "bbb" = "LibB.dart"
@@ -259,7 +264,7 @@ public class DartImportImplTest extends TestCase {
         assertEquals(libraryB, importB.getLibrary());
         assertEquals(DartElement.IMPORT, importA.getElementType());
         assertEquals("bbb", importB.getPrefix());
-        assertEquals(libraryTest.getDefiningCompilationUnit(), importA.getCompilationUnit());
+        assertEquals(unitTest, importA.getCompilationUnit());
       }
     } finally {
       testProject.dispose();
