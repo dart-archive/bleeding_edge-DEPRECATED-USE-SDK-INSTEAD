@@ -26,7 +26,7 @@
         {
           'action_name': 'generate_frog',
           'inputs': [
-            '<!@(["python", "scripts/list_frog_files.py"])',
+            '<!@(["python", "../tools/list_files.py", "^([^/]*|lib/.*)\\.(dart|gypi|js)$", "."])',
             'scripts/bootstrap/frog_bootstrap_wrapper.py',
             'scripts/bootstrap/frog_wrapper.py',
             'frog.py',
