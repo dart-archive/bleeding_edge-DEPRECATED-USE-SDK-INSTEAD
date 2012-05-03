@@ -15,6 +15,7 @@
 package com.google.dart.tools.core.frog;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.internal.builder.DartBuilder;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -33,6 +34,8 @@ import org.eclipse.osgi.util.NLS;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Launch the frog process and collect stdout, stderr, and exit code information.
@@ -84,10 +87,8 @@ public class FrogCompiler {
     }
   }
 
-  private static final String FROG_COMPILER_PATH = "frog/frogc.dart";
-
   /**
-   * A static utlility method to handle the common use case for the FrogCompiler class. Compile the
+   * A static utility method to handle the common use case for the FrogCompiler class. Compile the
    * given dart library, optionally poll the given monitor to check for user cancellation, and write
    * any output to the given console.
    * 
@@ -97,50 +98,89 @@ public class FrogCompiler {
    * @throws OperationCanceledException
    */
   public static CompilationResult compileLibrary(DartLibrary library, IProgressMonitor monitor,
-      MessageConsole console) throws CoreException {
+      final MessageConsole console) throws CoreException {
     long startTime = System.currentTimeMillis();
 
     IPath path = library.getCorrespondingResource().getLocation();
-    IPath outputPath = DartBuilder.getJsAppArtifactPath(path);
 
-    FrogCompiler compiler = new FrogCompiler();
+    final IPath inputPath = library.getCorrespondingResource().getLocation();
+    final IPath outputPath = DartBuilder.getJsAppArtifactPath(path);
+
+    FrogCompiler compiler;
+
+    //compiler = new Dart2JSCompiler();
+    compiler = new FrogCompiler();
 
     console.clear();
-    console.println("Generating JavaScript...");
+    console.println("Generating JavaScript using " + compiler.getName() + "...");
 
     try {
-      CompilationResult result = compiler.compile(library.getCorrespondingResource().getLocation(),
-          outputPath, monitor);
+      CompilationResult result = compiler.compile(inputPath, outputPath, monitor);
 
       refreshResources(library.getCorrespondingResource());
 
-      if (!result.getStdOut().isEmpty()) {
-        console.println(result.getStdOut().trim());
-      }
+      displayCompilationResult(result, outputPath, startTime, console);
 
-      if (!result.getStdErr().isEmpty()) {
-        console.println(result.getStdErr().trim());
-      }
-
-      if (result.getExitCode() == 0) {
-        long elapsed = System.currentTimeMillis() - startTime;
-
-        // Trim to 1/10th of a second.
-        elapsed = (elapsed / 100) * 100;
-
-        File outputFile = outputPath.toFile();
-        // Trim to 1/10th of a kb.
-        double fileLength = ((int) (((outputFile.length() + 1023) / 1024) * 10)) / 10;
-
-        String message = fileLength + "kb";
-        message += " written in " + (elapsed / 1000.0) + " seconds";
-
-        console.println(NLS.bind("Wrote {0} [{1}]", outputFile.getPath(), message));
+      if (DartCoreDebug.ENABLE_DOUBLE_COMPILATION) {
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            runDart2JSCompile(inputPath, outputPath, console);
+          }
+        }).start();
       }
 
       return result;
     } catch (IOException ioe) {
       throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, ioe.toString(), ioe));
+    }
+  }
+
+  protected static void runDart2JSCompile(IPath inputPath, IPath outputPath, MessageConsole console) {
+    long startTime = System.currentTimeMillis();
+
+    String outName = outputPath.lastSegment() + "_";
+
+    outputPath = outputPath.removeLastSegments(1).append(outName);
+
+    FrogCompiler compiler = new Dart2JSCompiler();
+
+    console.println();
+    console.println("Generating JavaScript using " + compiler.getName() + "...");
+
+    try {
+      CompilationResult result = compiler.compile(inputPath, outputPath, new NullProgressMonitor());
+
+      displayCompilationResult(result, outputPath, startTime, console);
+    } catch (IOException ioe) {
+      DartCore.logError(ioe);
+    }
+  }
+
+  private static void displayCompilationResult(CompilationResult result, IPath outputPath,
+      long startTime, MessageConsole console) {
+    if (!result.getStdOut().isEmpty()) {
+      console.println(result.getStdOut().trim());
+    }
+
+    if (!result.getStdErr().isEmpty()) {
+      console.println(result.getStdErr().trim());
+    }
+
+    if (result.getExitCode() == 0) {
+      long elapsed = System.currentTimeMillis() - startTime;
+
+      // Trim to 1/10th of a second.
+      elapsed = (elapsed / 100) * 100;
+
+      File outputFile = outputPath.toFile();
+      // Trim to 1/10th of a kb.
+      double fileLength = ((int) (((outputFile.length() + 1023) / 1024) * 10)) / 10;
+
+      String message = fileLength + "kb";
+      message += " written in " + (elapsed / 1000.0) + " seconds";
+
+      console.println(NLS.bind("Wrote {0} [{1}]", outputFile.getPath(), message));
     }
   }
 
@@ -188,10 +228,13 @@ public class FrogCompiler {
       throws IOException {
     ProcessBuilder builder = new ProcessBuilder();
 
-    builder.command(DartSdk.getInstance().getVmExecutable().getPath(), "--new_gen_heap_size=256",
-        FROG_COMPILER_PATH, "--compile-only", "--suppress_warnings", "--no_colors", "--libdir="
-            + DartSdk.getInstance().getLibraryDirectory().getPath(),
-        "--out=" + outputPath.toOSString(), inputPath.toOSString());
+    List<String> args = new ArrayList<String>();
+
+    args.add(DartSdk.getInstance().getVmExecutable().getPath());
+    args.add("--new_gen_heap_size=256");
+    args.addAll(getCompilerArguments(inputPath, outputPath));
+
+    builder.command(args);
     builder.directory(DartSdk.getInstance().getLibraryDirectory());
     builder.redirectErrorStream(true);
 
@@ -202,8 +245,26 @@ public class FrogCompiler {
     return new CompilationResult(runner, outputPath);
   }
 
+  public String getName() {
+    return "frog";
+  }
+
   public boolean isAvailable() {
     return DartSdk.isInstalled();
+  }
+
+  protected List<String> getCompilerArguments(IPath inputPath, IPath outputPath) {
+    List<String> args = new ArrayList<String>();
+
+    args.add("frog/frogc.dart");
+    args.add("--compile-only");
+    args.add("--suppress_warnings");
+    args.add("--no_colors");
+    args.add("--libdir=" + DartSdk.getInstance().getLibraryDirectory().getPath());
+    args.add("--out=" + outputPath.toOSString());
+    args.add(inputPath.toOSString());
+
+    return args;
   }
 
 }
