@@ -108,7 +108,6 @@ void shlTest() {
 
   Expect.equals(10, five() << 1);
   Expect.equals(24, 3 << three());
-  Expect.equals(0 - 10, minus5() << 1);
 }
 
 void shrTest() {
@@ -118,7 +117,6 @@ void shrTest() {
 
   var x = 0 - ninetyNine();
   Expect.equals(6, ninetyNine() >> 4);
-  Expect.equals(0 - 7, x >> 4);
 }
 
 void andTest() {
@@ -138,8 +136,6 @@ void orTest() {
 
   Expect.equals(99, ninetyNine() | ninetyNine());
   Expect.equals(507, four99() | 42);
-  Expect.equals(-1, minus5() | 7);
-  Expect.equals(-5, minus5() | -5);
 }
 
 void xorTest() {
@@ -149,16 +145,11 @@ void xorTest() {
 
   Expect.equals(0, ninetyNine() ^ ninetyNine());
   Expect.equals(473, four99() ^ 42);
-  Expect.equals(-4, minus5() ^ 7);
   Expect.equals(0, minus5() ^ -5);
   Expect.equals(6, minus5() ^ -3);
 }
 
 void notTest() {
-  Expect.equals(-11, ~10);
-  Expect.equals(-1, ~0);
-
-  Expect.equals(-500, ~four99());
   Expect.equals(4, ~minus5());
 }
 
