@@ -153,7 +153,7 @@ module window {
         // WebKit extensions
 #if defined(LANGUAGE_JAVASCRIPT) && LANGUAGE_JAVASCRIPT
         CSSRuleList getMatchedCSSRules(in [Optional=DefaultIsUndefined] Element element,
-                                       in [Optional=DefaultIsUndefined] DOMString pseudoElement);
+                                       in [TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] DOMString pseudoElement);
 #endif
 
         attribute [Replaceable] double devicePixelRatio;
@@ -404,6 +404,7 @@ module window {
         attribute HTMLButtonElementConstructor HTMLButtonElement;
         attribute HTMLCanvasElementConstructor HTMLCanvasElement;
         attribute HTMLDListElementConstructor HTMLDListElement;
+        attribute [Conditional=DATALIST] HTMLDataListElementConstructor HTMLDataListElement;
         attribute HTMLDirectoryElementConstructor HTMLDirectoryElement;
         attribute HTMLDivElementConstructor HTMLDivElement;
         attribute HTMLEmbedElementConstructor HTMLEmbedElement;
@@ -768,7 +769,7 @@ module window {
         attribute [Conditional=BLOB|FILE_SYSTEM] FileErrorConstructor FileError;
         attribute [Conditional=BLOB] FileReaderConstructor FileReader;
 
-        attribute [Conditional=BLOB] WebKitBlobBuilderConstructor WebKitBlobBuilder;
+        attribute [Conditional=BLOB&LEGACY_WEBKIT_BLOB_BUILDER] WebKitBlobBuilderConstructor WebKitBlobBuilder;
 
         attribute [Conditional=BLOB] DOMURLConstructor webkitURL;
 

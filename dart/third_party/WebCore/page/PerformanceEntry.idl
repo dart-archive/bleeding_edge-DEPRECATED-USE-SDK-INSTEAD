@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Google Inc. All rights reserved.
+ * Copyright (C) 2012 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -30,22 +30,15 @@
 
 module window {
 
-    // See: http://dev.w3.org/2006/webapi/WebTiming/
+    // See: https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PerformanceTimeline/Overview.html
     interface [
         Conditional=WEB_TIMING,
+        Conditional=PERFORMANCE_TIMELINE,
         OmitConstructor
-    ] Performance {
-        readonly attribute PerformanceNavigation navigation;
-        readonly attribute PerformanceTiming timing;
-        readonly attribute [V8CustomGetter] MemoryInfo memory;
-
-#if defined(ENABLE_PERFORMANCE_TIMELINE) && ENABLE_PERFORMANCE_TIMELINE
-        PerformanceEntryList webkitGetEntries();
-        PerformanceEntryList webkitGetEntriesByType(in DOMString entryType);
-        PerformanceEntryList webkitGetEntriesByName(in DOMString name, in [Optional=DefaultIsNullString] DOMString entryType);
-#endif
-        // See http://www.w3.org/TR/hr-time/ for details.
-        double webkitNow();
+    ] PerformanceEntry {
+        readonly attribute DOMString name;
+        readonly attribute DOMString entryType;
+        readonly attribute double startTime;
+        readonly attribute double duration;
     };
-
 }
