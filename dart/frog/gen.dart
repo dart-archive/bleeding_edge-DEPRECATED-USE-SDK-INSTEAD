@@ -540,12 +540,12 @@ class WorldGenerator {
     // generate code for instance fields
     if (field._provideGetter &&
         !field.declaringType.isConcreteGeneric) {
-      _writePrototypePatch(field.declaringType, 'get\$${field.jsname}',
+      _writePrototypePatch(field.declaringType, field.jsnameOfGetter,
           'function() { return this.${field.jsname}; }', writer);
     }
     if (field._provideSetter &&
         !field.declaringType.isConcreteGeneric) {
-      _writePrototypePatch(field.declaringType, 'set\$${field.jsname}',
+      _writePrototypePatch(field.declaringType, field.jsnameOfSetter,
           'function(value) { return this.${field.jsname} = value; }', writer);
     }
 
@@ -974,7 +974,7 @@ class MethodGenerator implements TreeVisitor, CallingContext {
   static bool _maybeGenerateBoundGetter(MethodMember m, CodeWriter defWriter) {
     if (m._provideGetter) {
       String suffix = world.gen._writePrototypePatch(m.declaringType,
-          'get\$${m.jsname}', 'function() {', defWriter, false);
+          m.jsnameOfGetter, 'function() {', defWriter, false);
       if (m.parameters.some((p) => p.isOptional)) {
         defWriter.writeln('var f = this.${m.jsname}.bind(this);');
         defWriter.writeln('f.\$optional = this.${m.jsname}.\$optional;');

@@ -520,7 +520,6 @@ class World {
         if (usedNames.contains(name)) {
           var mset = lib._privateMembers[name];
           String uniqueName = '_${lib.jsname}${mset.jsname}';
-          mset.jsname = uniqueName;
           for (var member in mset.members) {
             member._jsname = uniqueName;
           }
@@ -548,34 +547,17 @@ class World {
    * member jsname.
    */
   avoidHazardousMemberNames() {
-    rename(jsname) {
-      if (_hazardousMemberNames.contains(jsname)) {
-        jsname = '${jsname}\$_';
-      }
-      return jsname;
-    }
-
     for (var name in _members.getKeys()) {
       var mset = _members[name];
-      bool renamed = false;
       for (var member in mset.members) {
         if (!member.isNative ||
             (member is MethodMember && member.hasNativeBody)) {
-          String oldName = member._jsname;
-          member._jsname = rename(oldName);
-          if (member._jsname != oldName) renamed = true;
+          var jsname = member._jsname;
+          if (_hazardousMemberNames.contains(jsname)) {
+            member._jsnameRoot = jsname;
+            member._jsname = '${jsname}\$_';
+          }
         }
-      }
-      // If any of the members where renamed, rename mset.
-      //
-      // If all members were renamed this makes mset.jsname consistent.  If none
-      // were renamed that means they are native methods (with names different
-      // to the Dart names), so the mset name should not be renamed to stay
-      // consistent.  If only some were renamed then the mset has no consistent
-      // calling convention, and will dispatch via a stub, so the mset name is
-      // irrelevant.
-      if (renamed) {
-        mset.jsname = rename(mset.jsname);
       }
     }
   }

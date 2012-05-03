@@ -6,18 +6,23 @@ class MemberSet {
   final String name;
   final List<Member> members;
   final bool isVar;
-  String jsname;
 
   bool _treatAsField;
   Type _returnTypeForGet;
   bool _preparedForSet = false;
   List<InvokeKey> _invokes;
 
-  MemberSet(Member member, [bool isVar=false]):
-    name = member.name, members = [member], jsname = member.jsname,
-    isVar = isVar;
+  MemberSet(Member member, [bool isVar=false])
+      : name = member.name, members = [member], isVar = isVar;
 
   toString() => '$name:${members.length}';
+
+  /**
+   * [jsname] should be called only when it is known that all the members have
+   * the same jsname.  (The name safety pass can cause members of the same
+   * MemberSet to have different jsnames.)
+   */
+  String get jsname() => members[0].jsname;
 
   void add(Member member) {
     // Only methods on classes "really exist" - so warn if we add others?
@@ -29,7 +34,9 @@ class MemberSet {
 
   bool get treatAsField() {
     if (_treatAsField == null) {
-      _treatAsField = !isVar && members.every((m) => m.isField);
+      // Must be all fields, all with the same jsname.
+      _treatAsField = !isVar &&
+          members.every((m) => m.isField && m.jsname == members[0].jsname);
     }
     return _treatAsField;
   }
@@ -68,11 +75,11 @@ class MemberSet {
     }
 
     if (_treatAsField) {
-      return new Value(_returnTypeForGet, '${target.code}.$jsname',
-        node.span);
+      return new Value(_returnTypeForGet,
+        '${target.code}.$jsname', node.span);
     } else {
-      return new Value(_returnTypeForGet, '${target.code}.get\$$jsname()',
-          node.span);
+      return new Value(_returnTypeForGet,
+        '${target.code}.${members[0].jsnameOfGetter}()', node.span);
     }
   }
 
@@ -100,7 +107,7 @@ class MemberSet {
         '${target.code}.$jsname = ${value.code}', node.span);
     } else {
       return new Value(value.type,
-        '${target.code}.set\$$jsname(${value.code})', node.span);
+        '${target.code}.${members[0].jsnameOfSetter}(${value.code})', node.span);
     }
   }
 

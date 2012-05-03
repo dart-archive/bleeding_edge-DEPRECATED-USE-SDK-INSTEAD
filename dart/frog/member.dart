@@ -87,6 +87,12 @@ class Member extends Element {
 
   Member genericMember;
 
+  // A root string for getter and setter names.  This is used e.g. to ensure
+  // that fields with the same Dart name but different jsnames (due to native
+  // name directives) still have a common getter name.  Is null when there is no
+  // renaming.
+  String _jsnameRoot;
+
   Member(String name, Type declaringType)
       : this.declaringType = declaringType,
         super(name, declaringType);
@@ -139,6 +145,10 @@ class Member extends Element {
 
   void provideGetter() {}
   void provideSetter() {}
+
+  String get jsnameOfGetter() => 'get\$$jsnameRoot';
+  String get jsnameOfSetter() => 'set\$$jsnameRoot';
+  String get jsnameRoot() => _jsnameRoot != null ? _jsnameRoot : _jsname;
 
   Member get initDelegate() {
     world.internalError('cannot have initializers', span);
@@ -880,7 +890,7 @@ class MethodMember extends Member {
       return new Value(functionType, '$type$jsname', node.span);
     }
     _provideGetter = true;
-    return new Value(functionType, '${target.code}.get\$$jsname()', node.span);
+    return new Value(functionType, '${target.code}.$jsnameOfGetter()', node.span);
   }
 
   /**
