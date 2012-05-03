@@ -125,6 +125,11 @@ public class IndexContributor extends ASTVisitor<Void> {
   private Resource compilationUnitResource;
 
   /**
+   * An element representing the compilation unit being visited.
+   */
+  private Element compilationUnitElement;
+
+  /**
    * A stack whose top element (the element with the largest index) is an element representing the
    * inner-most enclosing scope.
    */
@@ -182,6 +187,8 @@ public class IndexContributor extends ASTVisitor<Void> {
     libraryResource = getResource(library.getDefiningCompilationUnit());
     libraryElement = new Element(libraryResource, LIBRARY_ELEMENT_ID);
     compilationUnitResource = getResource(compilationUnit);
+    compilationUnitElement = new Element(compilationUnitResource,
+        ElementFactory.composeElementId(compilationUnit.getElementName()));
     if (DartCoreDebug.TRACE_INDEX_CONTRIBUTOR) {
       traceWriter = new PrintStringWriter();
       traceWriter.print("Contributions from ");
@@ -527,6 +534,27 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   /**
+   * Create a location representing the location of the given node within the inner-most element.
+   * 
+   * @param node the node representing the source range of the location
+   * @return the location that was created
+   */
+  private Location createLocation(DartNode node) {
+    return createLocation(node.getSourceInfo().getOffset(), node.getSourceInfo().getLength());
+  }
+
+  /**
+   * Create a location representing the given offset and length within the inner-most element.
+   * 
+   * @param offset the offset of the location
+   * @param length the length of the location
+   * @return the location that was created
+   */
+  private Location createLocation(int offset, int length) {
+    return new Location(peekElement(), offset, length);
+  }
+
+  /**
    * Enter a new scope represented by the given element.
    * 
    * @param element the element of the scope being entered
@@ -768,7 +796,7 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return a location representing the location of the name of the given type
    */
   private Location getLocation(DartClass node) {
-    return getLocation(peekElement(), node.getName());
+    return createLocation(node.getName());
   }
 
   /**
@@ -782,7 +810,7 @@ public class IndexContributor extends ASTVisitor<Void> {
     if (element instanceof MethodElement) {
       MethodElement method = (MethodElement) element;
       SourceInfo location = method.getNameLocation();
-      return getLocation(peekElement(), location.getOffset(), location.getLength());
+      return createLocation(location.getOffset(), location.getLength());
     }
     return null;
   }
@@ -794,7 +822,7 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return a location representing the location of the name of the given function type
    */
   private Location getLocation(DartFunctionTypeAlias node) {
-    return getLocation(peekElement(), node.getName());
+    return createLocation(node.getName());
   }
 
   /**
@@ -804,7 +832,7 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return a location representing the given identifier
    */
   private Location getLocation(DartIdentifier node) {
-    return getLocation(peekElement(), node);
+    return createLocation(node);
   }
 
   /**
@@ -814,50 +842,20 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return a location representing the location of the name of the given method
    */
   private Location getLocation(DartMethodDefinition node) {
-    return getLocation(peekElement(), node.getName());
+    return createLocation(node.getName());
   }
 
   /**
-   * Return a location representing the location of the given node within the given element.
+   * Return a location representing the location of the name of the given method.
    * 
-   * @param element the element containing the location
-   * @param node the node representing the source range of the location
-   * @return a location representing the location of the given node within the given element
+   * @param node the node representing the declaration of the method
+   * @return a location representing the location of the name of the given method
    */
-  private Location getLocation(Element element, DartNode node) {
-    if (element == null) {
-      element = libraryElement;
-    }
-    return new Location(element, node.getSourceInfo().getOffset(), node.getSourceInfo().getLength());
-  }
-
-  /**
-   * Return a location representing the location of the offset and length within the given element.
-   * 
-   * @param element the element containing the location
-   * @param offset the offset of the location
-   * @param length the length of the location
-   * @return a location representing the location of the given offset and length within the given
-   *         element
-   */
-  private Location getLocation(Element element, int offset, int length) {
-    return new Location(element, offset, length);
-  }
-
-  /**
-   * Return a location representing the given offset and length.
-   * 
-   * @param offset the offset of the location
-   * @param length the length of the location
-   * @return a location representing the given offset and length
-   */
-  private Location getLocation(int offset, int length) {
-    return getLocation(peekElement(), offset, length);
-  }
-
   private Location getLocation(InterfaceType type) {
     Element typeElement = getElement(type);
     if (typeElement == null) {
+      DartCore.logInformation("Could not get a location for the type "
+          + type.getElement().getName());
       return null;
     }
     SourceInfo info = type.getElement().getNameLocation();
@@ -1041,7 +1039,7 @@ public class IndexContributor extends ASTVisitor<Void> {
         return element;
       }
     }
-    return null;
+    return compilationUnitElement;
   }
 
   /**
@@ -1173,7 +1171,7 @@ public class IndexContributor extends ASTVisitor<Void> {
       return;
     }
     recordRelationship(getElement(binding), IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        getLocation(offset, length));
+        createLocation(offset, length));
   }
 
   private void processSupertype(DartClass node, InterfaceType binding) {
@@ -1221,7 +1219,7 @@ public class IndexContributor extends ASTVisitor<Void> {
           String imprtId = ElementFactory.composeElementId(imprt.getElementName());
           Element imprtElement = new Element(ResourceFactory.getResource(compilationUnit), imprtId);
           int length = StringUtils.length(prefix);
-          Location location = getLocation(offset, length);
+          Location location = createLocation(offset, length);
           recordRelationship(imprtElement, IndexConstants.IS_REFERENCED_BY, location);
           break;
         }
