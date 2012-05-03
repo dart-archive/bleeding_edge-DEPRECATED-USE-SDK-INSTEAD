@@ -122,9 +122,9 @@ class LeapCompiler extends Compiler {
 
   final bool throwOnError = false;
 
-  final libDir = "../../frog/leg/lib";
+  final libDir = "../..";
 
-  LeapCompiler() : super.withCurrentDirectory(".") {
+  LeapCompiler() : super() {
     fs = new HTTPFileSystem();
     tasks = [scanner, dietParser, parser, resolver, checker];
   }
@@ -133,9 +133,10 @@ class LeapCompiler extends Compiler {
 
   String get legDirectory() => libDir;
 
-  LibraryElement scanBuiltinLibrary(String filename) {
+  LibraryElement scanBuiltinLibrary(String path) {
     Uri base = new Uri.fromString(dom.window.location.toString());
-    Uri resolved = base.resolve("$libDir/$filename");
+    Uri libraryRoot = base.resolve(libDir);
+    Uri resolved = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path]);
     LibraryElement library = scanner.loadLibrary(resolved, null);
     return library;
   }
@@ -155,7 +156,7 @@ class LeapCompiler extends Compiler {
     } catch (var exception) {
       cancel("${uri.path}: $exception", node: node);
     }
-    frog.SourceFile sourceFile = new frog.SourceFile(uri.toString(), text);
+    SourceFile sourceFile = new SourceFile(uri.toString(), text);
     return new Script(uri, sourceFile);
   }
 

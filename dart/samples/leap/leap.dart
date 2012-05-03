@@ -5,15 +5,15 @@
 #library('leap');
 
 #import('dart:isolate');
+#import('dart:uri');
 
 #import('dart:dom', prefix: 'dom');
 #import('file_system_http.dart');
-#import('../../lib/uri/uri.dart');
-#import('../../frog/lang.dart', prefix: 'frog');
-#import('../../frog/leg/elements/elements.dart');
-#import('../../frog/leg/leg.dart');
-#import('../../frog/leg/tree/tree.dart');
-#import('../../lib/uri/uri.dart');
+#import('../../lib/compiler/implementation/elements/elements.dart');
+#import('../../lib/compiler/implementation/leg.dart');
+#import('../../lib/compiler/implementation/tree/tree.dart');
+#import('../../lib/compiler/implementation/source_file.dart');
+#import('../../lib/compiler/implementation/library_map.dart');
 
 #source('leap_leg.dart');
 #source('leap_script.dart');
