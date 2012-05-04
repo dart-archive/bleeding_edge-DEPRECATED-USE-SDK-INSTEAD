@@ -23,7 +23,7 @@ import com.google.dart.tools.core.internal.completion.Mark;
 import java.util.Stack;
 
 public class FieldCompleter extends DartField implements CompletionNode {
-  private static final long serialVersionUID = 1L;
+  static final long serialVersionUID = 1L;
 
   public static FieldCompleter from(DartField field) {
     return CompletionUtil.init(

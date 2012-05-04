@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,6 +19,8 @@ import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposalComputer;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.ui.texteditor.HippieProposalProcessor;
 
 import java.util.Arrays;
@@ -44,7 +46,7 @@ public final class HippieProposalComputer implements IDartCompletionProposalComp
    * org.eclipse.core.runtime.IProgressMonitor)
    */
   @Override
-  public List computeCompletionProposals(ContentAssistInvocationContext context,
+  public List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext context,
       IProgressMonitor monitor) {
     return Arrays.asList(fProcessor.computeCompletionProposals(context.getViewer(),
         context.getInvocationOffset()));
@@ -57,7 +59,7 @@ public final class HippieProposalComputer implements IDartCompletionProposalComp
    * org.eclipse.core.runtime.IProgressMonitor)
    */
   @Override
-  public List computeContextInformation(ContentAssistInvocationContext context,
+  public List<IContextInformation> computeContextInformation(ContentAssistInvocationContext context,
       IProgressMonitor monitor) {
     return Arrays.asList(fProcessor.computeContextInformation(context.getViewer(),
         context.getInvocationOffset()));

@@ -21,7 +21,7 @@ import com.google.dart.tools.core.internal.completion.Mark;
 import java.util.Stack;
 
 public class PropertyAccessCompleter extends DartPropertyAccess implements CompletionNode {
-  private static final long serialVersionUID = 1L;
+  static final long serialVersionUID = 1L;
 
   public static PropertyAccessCompleter from(DartPropertyAccess node) {
     return CompletionUtil.init(

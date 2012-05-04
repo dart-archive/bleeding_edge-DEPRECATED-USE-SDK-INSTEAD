@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -39,6 +39,9 @@ import org.eclipse.ui.IEditorPart;
  * and expected to change significantly before reaching stability. It is being made available at
  * this early stage to solicit feedback from pioneering adopters on the understanding that any code
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
+ *
+ * Implementation note: There is no need to override hashCode and equals, as we only add cached
+ * values shared across one assist invocation.
  */
 public class DartContentAssistInvocationContext extends ContentAssistInvocationContext {
   private final IEditorPart fEditor;
@@ -265,7 +268,7 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
     collector.setIgnored(CompletionProposal.METHOD_DECLARATION, true);
     collector.setIgnored(CompletionProposal.METHOD_NAME_REFERENCE, true);
     collector.setIgnored(CompletionProposal.METHOD_REF, true);
-    collector.setIgnored(CompletionProposal.PACKAGE_REF, true);
+    collector.setIgnored(CompletionProposal.LIBRARY_PREFIX, true);
     collector.setIgnored(CompletionProposal.POTENTIAL_METHOD_DECLARATION, true);
     collector.setIgnored(CompletionProposal.VARIABLE_DECLARATION, true);
     collector.setIgnored(CompletionProposal.JAVADOC_BLOCK_TAG, true);
@@ -316,9 +319,4 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
     }
     return fRHSHistory;
   }
-
-  /*
-   * Implementation note: There is no need to override hashCode and equals, as we only add cached
-   * values shared across one assist invocation.
-   */
 }

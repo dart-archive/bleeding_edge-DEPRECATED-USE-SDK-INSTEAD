@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Stack;
 
 public class NewExpressionCompleter extends DartNewExpression implements CompletionNode {
-  private static final long serialVersionUID = 1L;
+  static final long serialVersionUID = 1L;
 
   public static NewExpressionCompleter from(DartNewExpression node) {
     return CompletionUtil.init(

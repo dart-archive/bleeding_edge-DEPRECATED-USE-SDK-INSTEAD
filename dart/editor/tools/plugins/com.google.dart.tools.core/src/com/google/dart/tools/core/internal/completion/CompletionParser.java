@@ -577,11 +577,11 @@ public class CompletionParser extends DartParser {
       Object... arguments) {
     // TODO completion analysis
     peekMark();
-    if (completionToken != null) {
-      Location loc = ctx.getTokenLocation();
-      int start = loc.getBegin().getPos();
-      int end = loc.getEnd().getPos();
-    }
+//    if (completionToken != null) {
+//      Location loc = ctx.getTokenLocation();
+//      int start = loc.getBegin().getPos();
+//      int end = loc.getEnd().getPos();
+//    }
   }
 
   @Override

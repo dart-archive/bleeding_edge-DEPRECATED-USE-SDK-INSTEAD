@@ -1,21 +1,21 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.text.dart;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.IContextInformation;
 
 import java.util.List;
 
@@ -38,7 +38,8 @@ public interface IDartCompletionProposalComputer {
    * @return a list of completion proposals (element type:
    *         {@link org.eclipse.jface.text.contentassist.ICompletionProposal})
    */
-  List computeCompletionProposals(ContentAssistInvocationContext context, IProgressMonitor monitor);
+  List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext context,
+      IProgressMonitor monitor);
 
   /**
    * Returns context information objects valid at the given invocation context.
@@ -49,7 +50,8 @@ public interface IDartCompletionProposalComputer {
    * @return a list of context information objects (element type:
    *         {@link org.eclipse.jface.text.contentassist.IContextInformation})
    */
-  List computeContextInformation(ContentAssistInvocationContext context, IProgressMonitor monitor);
+  List<IContextInformation> computeContextInformation(ContentAssistInvocationContext context,
+      IProgressMonitor monitor);
 
   /**
    * Returns the reason why this computer was unable to produce any completion proposals or context

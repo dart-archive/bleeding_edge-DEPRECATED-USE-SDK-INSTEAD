@@ -399,8 +399,8 @@ public class LazyDartCompletionProposal extends AbstractDartCompletionProposal {
   protected int computeRelevance() {
     final int baseRelevance = fProposal.getRelevance() * 16;
     switch (fProposal.getKind()) {
-//      case CompletionProposal.PACKAGE_REF:
-//        return baseRelevance + 0;
+      case CompletionProposal.LIBRARY_PREFIX:
+        return baseRelevance + 0;
       case CompletionProposal.LABEL_REF:
         return baseRelevance + 1;
       case CompletionProposal.KEYWORD:

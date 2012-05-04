@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Stack;
 
 public class FunctionCompleter extends DartFunction implements CompletionNode {
-  private static final long serialVersionUID = 1L;
+  static final long serialVersionUID = 1L;
 
   public static FunctionCompleter from(DartFunction p) {
     return CompletionUtil.init(

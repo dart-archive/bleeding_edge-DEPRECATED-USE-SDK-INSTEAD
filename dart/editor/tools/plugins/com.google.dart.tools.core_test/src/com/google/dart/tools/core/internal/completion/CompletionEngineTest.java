@@ -54,11 +54,11 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCommentSnippets003() throws Exception {
     test(
-        "class Z {!1Ma!2p m = const !3Map!4();mth() {var x = new Li!5st.!6fr!7om(['a']);}}",
+        "class Z {!1Ex!2ception m = const !3Exception!4();mth() {var x = new Li!5st.!6fr!7om(['a']);}}",
         "1+void",
-        "2+Maps",
-        "3+Arrays",
-        "4+Maps",
+        "2+Exception",
+        "3+Object",
+        "4+Exception",
         "5+List",
         "6+from",
         "7+from",
@@ -295,6 +295,25 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCommentSnippets047() throws Exception {
     test("f(){int x;int y=!1;}", "1+x");
+  }
+
+  public void testCommentSnippets048() throws Exception {
+    // fails because test framework does not set compilation unit
+//    test("#import('dart:html', prefix: 'html');f() {var x=new ht!1}", "1+html");
+  }
+
+  public void testCommentSnippets049() throws Exception {
+    // fails because test framework does not set compilation unit
+//    test(
+//        "#import('dart:html', prefix: 'html');\n#import('dart:json', prefix: 'hxx');f() {var x=new !2h!1;}",
+//        "1+html", "1+hxx", "2+html", "2+hxx");
+  }
+
+  public void testCommentSnippets050() throws Exception {
+    // fails because test framework does not set compilation unit
+//    test(
+//        "class xdr {xdr();const xdr.a(a,b,c);xdr.b();f() => 3;}class xa{}k() {new x!1dr().f();const xdr.!2a(1, 2, 3);}",
+//        "1+xdr", "1+xa", "2+a", "2-b");
   }
 
   public void testCompletion_alias_field() throws Exception {

@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Stack;
 
 public class ClassCompleter extends DartClass implements CompletionNode {
-  private static final long serialVersionUID = 1L;
+  static final long serialVersionUID = 1L;
 
   public static ClassCompleter from(DartClass type) {
     return CompletionUtil.init(

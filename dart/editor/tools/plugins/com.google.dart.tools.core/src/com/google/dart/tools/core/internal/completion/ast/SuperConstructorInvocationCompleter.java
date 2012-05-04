@@ -23,7 +23,7 @@ import java.util.Stack;
 
 public class SuperConstructorInvocationCompleter extends DartSuperConstructorInvocation implements
     CompletionNode {
-  private static final long serialVersionUID = 1L;
+  static final long serialVersionUID = 1L;
 
   public static SuperConstructorInvocationCompleter from(DartSuperConstructorInvocation superInv) {
     return CompletionUtil.init(

@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -33,7 +31,7 @@ public class DartNoTypeCompletionProposalComputer extends DartCompletionProposal
   @Override
   protected CompletionProposalCollector createCollector(DartContentAssistInvocationContext context) {
     CompletionProposalCollector collector = super.createCollector(context);
-    collector.setIgnored(CompletionProposal.ANONYMOUS_CLASS_DECLARATION, false);
+    collector.setIgnored(CompletionProposal.ANONYMOUS_CLASS_DECLARATION, true);
     collector.setIgnored(CompletionProposal.FIELD_REF, false);
     collector.setIgnored(CompletionProposal.KEYWORD, false);
     collector.setIgnored(CompletionProposal.LABEL_REF, false);
@@ -41,7 +39,7 @@ public class DartNoTypeCompletionProposalComputer extends DartCompletionProposal
     collector.setIgnored(CompletionProposal.METHOD_DECLARATION, false);
     collector.setIgnored(CompletionProposal.METHOD_NAME_REFERENCE, false);
     collector.setIgnored(CompletionProposal.METHOD_REF, false);
-    collector.setIgnored(CompletionProposal.PACKAGE_REF, true);
+    collector.setIgnored(CompletionProposal.LIBRARY_PREFIX, false);
     collector.setIgnored(CompletionProposal.POTENTIAL_METHOD_DECLARATION, false);
     collector.setIgnored(CompletionProposal.VARIABLE_DECLARATION, false);
 

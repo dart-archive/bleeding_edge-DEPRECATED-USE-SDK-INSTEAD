@@ -32,15 +32,9 @@ import org.eclipse.jface.viewers.StyledString;
 import java.util.Arrays;
 
 /**
- * Provides labels for JavaScript content assist proposals. The functionality is similar to the one
- * provided by {@link org.eclipse.wst.jsdt.ui.JavaScriptElementLabels}, but based on signatures and
+ * Provides labels for Dart content assist proposals. The functionality is similar to the one
+ * provided by {@link com.google.dart.tools.ui.DartElementLabels}, but based on signatures and
  * {@link CompletionProposal}s.
- * 
- * @see Signature Provisional API: This class/interface is part of an interim API that is still
- *      under development and expected to change significantly before reaching stability. It is
- *      being made available at this early stage to solicit feedback from pioneering adopters on the
- *      understanding that any code that uses this API will almost certainly be broken (repeatedly)
- *      as the API evolves.
  */
 public class CompletionProposalLabelProvider {
 
@@ -61,6 +55,7 @@ public class CompletionProposalLabelProvider {
    * @param proposal the proposal for which to create an image descriptor
    * @return the created image descriptor, or <code>null</code> if no image is available
    */
+  @SuppressWarnings({"unused", "deprecation"})
   public ImageDescriptor createImageDescriptor(CompletionProposal proposal) {
     // char[] compUnit = proposal.getDeclarationTypeName();
     // char[] propType = proposal.getName();
@@ -101,8 +96,8 @@ public class CompletionProposalLabelProvider {
       case CompletionProposal.VARIABLE_DECLARATION:
         descriptor = DartPluginImages.DESC_OBJS_LOCAL_VARIABLE;
         break;
-      case CompletionProposal.PACKAGE_REF:
-        descriptor = DartPluginImages.DESC_OBJS_PACKAGE;
+      case CompletionProposal.LIBRARY_PREFIX:
+        descriptor = DartPluginImages.DESC_OBJS_LIBRARY;
         break;
       case CompletionProposal.KEYWORD:
       case CompletionProposal.LABEL_REF:
@@ -133,6 +128,7 @@ public class CompletionProposalLabelProvider {
    * @param proposal the completion proposal to create the display label for
    * @return the display label for <code>proposal</code>
    */
+  @SuppressWarnings("deprecation")
   public String createLabel(CompletionProposal proposal) {
     switch (proposal.getKind()) {
       case CompletionProposal.METHOD_NAME_REFERENCE:
@@ -157,8 +153,8 @@ public class CompletionProposalLabelProvider {
         return createJavadocSimpleProposalLabel(proposal);
       case CompletionProposal.JAVADOC_METHOD_REF:
         return createJavadocMethodProposalLabel(proposal);
-      case CompletionProposal.PACKAGE_REF:
-        return createPackageProposalLabel(proposal);
+      case CompletionProposal.LIBRARY_PREFIX:
+        return createLibraryPrefixProposalLabel(proposal);
       case CompletionProposal.FIELD_REF:
         return createLabelWithTypeAndDeclaration(proposal);
       case CompletionProposal.LOCAL_VARIABLE_REF:
@@ -181,7 +177,7 @@ public class CompletionProposalLabelProvider {
    * 
    * <pre>
    *   &quot;void method(int i, Strings)&quot; -&gt; &quot;int i, String s&quot;
-   *   &quot;? extends Number method(java.lang.String s, ? super Number n)&quot; -&gt; &quot;String s, Number n&quot;
+   *   &quot;? extends Number method(String s, ? super Number n)&quot; -&gt; &quot;String s, Number n&quot;
    * </pre>
    * </p>
    * 
@@ -306,6 +302,15 @@ public class CompletionProposalLabelProvider {
     return buf.toString();
   }
 
+  ImageDescriptor createLibraryImageDescriptor(CompletionProposal proposal) {
+    return decorateImageDescriptor(DartPluginImages.DESC_OBJS_LIBRARY, proposal);
+  }
+
+  String createLibraryPrefixProposalLabel(CompletionProposal proposal) {
+    Assert.isTrue(proposal.getKind() == CompletionProposal.LIBRARY_PREFIX);
+    return String.valueOf(proposal.getDeclarationSignature());
+  }
+
   ImageDescriptor createLocalImageDescriptor(CompletionProposal proposal) {
     return decorateImageDescriptor(DartPluginImages.DESC_OBJS_LOCAL_VARIABLE, proposal);
   }
@@ -391,15 +396,6 @@ public class CompletionProposalLabelProvider {
     return nameBuffer.toString();
   }
 
-  ImageDescriptor createPackageImageDescriptor(CompletionProposal proposal) {
-    return decorateImageDescriptor(DartPluginImages.DESC_OBJS_PACKAGE, proposal);
-  }
-
-  String createPackageProposalLabel(CompletionProposal proposal) {
-    Assert.isTrue(proposal.getKind() == CompletionProposal.PACKAGE_REF);
-    return String.valueOf(proposal.getDeclarationSignature());
-  }
-
   String createSimpleLabel(CompletionProposal proposal) {
     return String.valueOf(proposal.getCompletion());
   }
@@ -439,12 +435,12 @@ public class CompletionProposalLabelProvider {
   /**
    * Creates a display label for a given type proposal. The display label consists of:
    * <ul>
-   * <li>the simple type name (erased when the context is in javadoc)</li>
+   * <li>the simple type name (erased when the context is in Dart doc)</li>
    * <li>the package name</li>
    * </ul>
    * <p>
-   * Examples: A proposal for the generic type <code>java.util.List&lt;E&gt;</code>, the display
-   * label is: <code>List<E> - java.util</code>.
+   * Examples: A proposal for the generic type <code>List&lt;E&gt;</code>, the display
+   * label is: <code>List<E></code>.
    * </p>
    * 
    * @param typeProposal the method proposal to display
@@ -542,49 +538,49 @@ public class CompletionProposalLabelProvider {
     return appendParameterSignature(buffer, parameterTypes, parameterNames);
   }
 
+//  /**
+//   * Converts the display name for an array type into a variable arity display name.
+//   * <p>
+//   * Examples:
+//   * <ul>
+//   * <li>"int[]" -> "int..."</li>
+//   * <li>"Object[][]" -> "Object[]..."</li>
+//   * <li>"String" -> "String"</li>
+//   * </ul>
+//   * </p>
+//   * <p>
+//   * If <code>typeName</code> does not include the substring "[]", it is returned unchanged.
+//   * </p>
+//   * 
+//   * @param typeName the type name to convert
+//   * @return the converted type name
+//   */
+//  private char[] convertToVararg(char[] typeName) {
+//    if (typeName == null) {
+//      return typeName;
+//    }
+//    final int len = typeName.length;
+//    if (len < 2) {
+//      return typeName;
+//    }
+//
+//    if (typeName[len - 1] != ']') {
+//      return typeName;
+//    }
+//    if (typeName[len - 2] != '[') {
+//      return typeName;
+//    }
+//
+//    char[] vararg = new char[len + 1];
+//    System.arraycopy(typeName, 0, vararg, 0, len - 2);
+//    vararg[len - 2] = '.';
+//    vararg[len - 1] = '.';
+//    vararg[len] = '.';
+//    return vararg;
+//  }
+
   /**
-   * Converts the display name for an array type into a variable arity display name.
-   * <p>
-   * Examples:
-   * <ul>
-   * <li>"int[]" -> "int..."</li>
-   * <li>"Object[][]" -> "Object[]..."</li>
-   * <li>"String" -> "String"</li>
-   * </ul>
-   * </p>
-   * <p>
-   * If <code>typeName</code> does not include the substring "[]", it is returned unchanged.
-   * </p>
-   * 
-   * @param typeName the type name to convert
-   * @return the converted type name
-   */
-  private char[] convertToVararg(char[] typeName) {
-    if (typeName == null) {
-      return typeName;
-    }
-    final int len = typeName.length;
-    if (len < 2) {
-      return typeName;
-    }
-
-    if (typeName[len - 1] != ']') {
-      return typeName;
-    }
-    if (typeName[len - 2] != '[') {
-      return typeName;
-    }
-
-    char[] vararg = new char[len + 1];
-    System.arraycopy(typeName, 0, vararg, 0, len - 2);
-    vararg[len - 2] = '.';
-    vararg[len - 1] = '.';
-    vararg[len] = '.';
-    return vararg;
-  }
-
-  /**
-   * Returns the display string for a JavaScript type signature.
+   * Returns the display string for a Dart type signature.
    * 
    * @param typeSignature the type signature to create a display name for
    * @return the display name for <code>typeSignature</code>
@@ -626,6 +622,7 @@ public class CompletionProposalLabelProvider {
    * @return an image descriptor for a method proposal
    * @see Flags
    */
+  @SuppressWarnings("deprecation")
   private ImageDescriptor decorateImageDescriptor(ImageDescriptor descriptor,
       CompletionProposal proposal) {
     int adornments = 0;

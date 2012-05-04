@@ -88,6 +88,7 @@ import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.internal.completion.ScopedNameFinder.ScopedName;
 import com.google.dart.tools.core.internal.completion.ast.BlockCompleter;
 import com.google.dart.tools.core.internal.completion.ast.FunctionCompleter;
+import com.google.dart.tools.core.internal.completion.ast.IdentifierCompleter;
 import com.google.dart.tools.core.internal.completion.ast.MethodInvocationCompleter;
 import com.google.dart.tools.core.internal.completion.ast.ParameterCompleter;
 import com.google.dart.tools.core.internal.completion.ast.PropertyAccessCompleter;
@@ -102,6 +103,7 @@ import com.google.dart.tools.core.internal.util.TypeUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartImport;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Method;
@@ -112,6 +114,7 @@ import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchException;
 import com.google.dart.tools.core.search.SearchFilter;
 import com.google.dart.tools.core.search.SearchMatch;
+import com.google.dart.tools.core.search.SearchPattern;
 import com.google.dart.tools.core.search.SearchPatternFactory;
 import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.core.search.SearchScopeFactory;
@@ -127,6 +130,7 @@ import org.eclipse.core.runtime.Platform;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -282,7 +286,7 @@ public class CompletionEngine {
               type = element.getType();
             }
           }
-          createCompletionsForQualifiedMemberAccess(methodName, type, false);
+          createCompletionsForQualifiedMemberAccess(methodName, type, true, false);
         } else {
           // { x!.y } or { x.y(a!) } or { x.y(a, b, C!) }
           // TODO Consider using proposeIdentifierPrefixCompletions() here
@@ -290,7 +294,7 @@ public class CompletionEngine {
           DartClass classDef = (DartClass) resolvedMember.getParent();
           ClassElement elem = classDef.getElement();
           Type type = elem.getType();
-          createCompletionsForPropertyAccess(identifier, type, false, false);
+          createCompletionsForPropertyAccess(identifier, type, false, true, false);
         }
       }
       return null;
@@ -300,12 +304,12 @@ public class CompletionEngine {
     public Void visitNewExpression(DartNewExpression node) {
       // { new x! }
       List<SearchMatch> matches = findTypesWithPrefix(identifier);
-      if (matches == null || matches.size() == 0) {
-        return null;
-      }
+      String prefix = extractFilterPrefix(identifier);
       for (SearchMatch match : matches) {
-        String prefix = extractFilterPrefix(identifier);
-        createTypeCompletionsForConstructor(identifier, match, prefix);
+        createTypeCompletionsForConstructor(identifier, node, match, prefix);
+      }
+      if (!isCompletionAfterDot) {
+        createCompletionsForIdentifierPrefix(identifier, prefix);
       }
       return null;
     }
@@ -324,35 +328,83 @@ public class CompletionEngine {
           Type type = analyzeType(completionNode.getQualifier());
           if (type.getKind() == TypeKind.DYNAMIC || type.getKind() == TypeKind.VOID) {
             if (completionNode.getQualifier() instanceof DartIdentifier) {
-              Element element = ((DartIdentifier) completionNode.getQualifier()).getElement();
+              DartIdentifier qualNode = (DartIdentifier) completionNode.getQualifier();
+              Element element = qualNode.getElement();
               if (ElementKind.of(element) == ElementKind.CLASS) {
                 type = element.getType();
                 if (type instanceof InterfaceType) {
                   // { Array.! } or { Array.f! }
-                  createCompletionsForFactoryInvocation(propertyName, (InterfaceType) type);
-                  createCompletionsForQualifiedMemberAccess(propertyName, type, false);
+                  createCompletionsForFactoryInvocation(
+                      propertyName,
+                      completionNode,
+                      (InterfaceType) type);
+                  createCompletionsForQualifiedMemberAccess(propertyName, type, false, false);
                 }
               } else if (ElementKind.of(element) == ElementKind.LIBRARY) {
-                // #import('dart:html', prefix: 'html'); class X{ html.!DivElement! div; }
-                createCompletionsForLibraryPrefix(propertyName, (LibraryElement) element);
+                if (completionNode.getParent().getParent() instanceof DartNewExpression) {
+                  // { new html.! }
+                  DartNode prop = completionNode.getParent().getParent();
+                  prop.accept(new IdentifierCompletionProposer(propertyName));
+                } else {
+                  // #import('dart:html', prefix: 'html'); class X{ html.!DivElement! div; }
+                  createCompletionsForLibraryPrefix(propertyName, (LibraryElement) element);
+                }
               } else {
-                createCompletionsForQualifiedMemberAccess(propertyName, type, false);
+                if (completionNode.getParent().getParent() instanceof DartNewExpression) {
+                  // { new html.! }
+                  DartNode prop = completionNode.getParent().getParent();
+                  prop.accept(new IdentifierCompletionProposer(propertyName));
+                } else {
+                  if (ElementKind.of(element) == ElementKind.LIBRARY_PREFIX) {
+                    // { html.E! }
+                    String prefixToMatch = qualNode.getName();
+                    Collection<LibraryUnit> libs = parsedUnit.getLibrary().getLibrariesWithPrefix(
+                        prefixToMatch);
+                    for (LibraryUnit lib : libs) {
+                      createCompletionsForLibraryPrefix(propertyName, lib.getElement());
+                    }
+                  } else {
+                    boolean allowDynamic = false;
+                    switch (ElementKind.of(element)) {
+                      case CONSTRUCTOR:
+                      case FIELD:
+                      case METHOD:
+                      case VARIABLE:
+                        allowDynamic = true;
+                        break;
+                    }
+                    createCompletionsForQualifiedMemberAccess(
+                        propertyName,
+                        type,
+                        allowDynamic,
+                        false);
+                  }
+                }
               }
             } else {
-              createCompletionsForQualifiedMemberAccess(propertyName, type, false);
+              if (completionNode.getParent() instanceof DartNewExpression) {
+                // { new html.! }
+                DartNewExpression prop = (DartNewExpression) completionNode.getParent();
+                prop.accept(new IdentifierCompletionProposer(completionNode.getName()));
+              } else {
+                createCompletionsForQualifiedMemberAccess(propertyName, type, false, false);
+              }
             }
           } else {
             if (type instanceof InterfaceType) {
               DartNode q = completionNode.getQualifier();
               if (q instanceof DartTypeNode) {
-                createCompletionsForFactoryInvocation(propertyName, (InterfaceType) type);
+                createCompletionsForFactoryInvocation(
+                    propertyName,
+                    completionNode,
+                    (InterfaceType) type);
               } else {
-                createCompletionsForQualifiedMemberAccess(propertyName, type, false);
+                createCompletionsForQualifiedMemberAccess(propertyName, type, false, false);
               }
             } else {
               // { a.! } or { a.x! }
               boolean isInstance = completionNode.getQualifier() instanceof DartThisExpression;
-              createCompletionsForQualifiedMemberAccess(propertyName, type, isInstance);
+              createCompletionsForQualifiedMemberAccess(propertyName, type, !isInstance, isInstance);
             }
           }
         } else {
@@ -395,7 +447,7 @@ public class CompletionEngine {
         ClassElement ce = cn.getConstructorType();
         if (ce != null) {
           // TODO Restrict proposals to constructors
-          createCompletionsForMethodInvocation(identifier, ce.getType(), true, false);
+          createCompletionsForMethodInvocation(identifier, ce.getType(), true, false, false);
         }
       }
       return null;
@@ -421,7 +473,7 @@ public class CompletionEngine {
                 proposeTypesForNewParam();
                 break;
               } else {
-                proposeGenericTypeCompletions(typeCompleter);
+                proposeGenericTypeCompletions(typeCompleter, false);
                 proposeTypesForPrefix(identifier);
               }
               break;
@@ -429,7 +481,7 @@ public class CompletionEngine {
               // {for (in!t x = 0; i < 5; i++); }
             case TypeFunctionOrVariable:
               // { x; v! x; } or { v! x; }
-              proposeGenericTypeCompletions(typeCompleter);
+              proposeGenericTypeCompletions(typeCompleter, true);
               proposeIdentifierPrefixCompletions(typeCompleter);
               break;
             case FunctionLiteral:
@@ -441,7 +493,7 @@ public class CompletionEngine {
               break;
             case TypeExpression:
               // { if (x is !)}
-              proposeGenericTypeCompletions(typeCompleter);
+              proposeGenericTypeCompletions(typeCompleter, false);
               proposeTypesForPrefix(identifier);
               break;
             case ClassBody:
@@ -456,7 +508,7 @@ public class CompletionEngine {
               // class x { ! }
               // TODO check for supertype methods whose name starts with identifier
               // if found propose a new method matching its signature
-              proposeGenericTypeCompletions(typeCompleter);
+              proposeGenericTypeCompletions(typeCompleter, false);
               proposeTypesForPrefix(identifier, true);
               break;
             case TopLevelElement:
@@ -517,8 +569,8 @@ public class CompletionEngine {
       Element parentElement = resolvedMember.getElement().getEnclosingElement();
       if (parentElement instanceof ClassElement) {
         Type type = ((ClassElement) parentElement).getType();
-        createCompletionsForPropertyAccess(identifier, type, false, isStatic);
-        createCompletionsForMethodInvocation(identifier, type, false, isStatic);
+        createCompletionsForPropertyAccess(identifier, type, false, false, isStatic);
+        createCompletionsForMethodInvocation(identifier, type, false, false, isStatic);
         proposeTypesForPrefix(identifier, false);
       } else {
         // TODO top-level element
@@ -597,8 +649,8 @@ public class CompletionEngine {
             boolean isStatic = resolvedMember.getModifiers().isStatic();
             createCompletionsForLocalVariables(block, null, resolvedMember);
             Type type = ((ClassElement) parentElement).getType();
-            createCompletionsForPropertyAccess(null, type, false, isStatic);
-            createCompletionsForMethodInvocation(null, type, false, isStatic);
+            createCompletionsForPropertyAccess(null, type, false, true, isStatic);
+            createCompletionsForMethodInvocation(null, type, false, true, isStatic);
             // Types are legal here but we are not proposing them since they are optional
           } else {
             // another case of error recovery producing odd AST shapes
@@ -781,6 +833,19 @@ public class CompletionEngine {
     @Override
     public Void visitIdentifier(DartIdentifier node) {
       DartNode parent = node.getParent();
+      if (node instanceof IdentifierCompleter) {
+        if (((IdentifierCompleter) node).getCompletionParsingContext().size() > 4) {
+          DartNode ancestor = parent.getParent().getParent().getParent();
+          if (ancestor instanceof DartClassMember) {
+            DartClassMember<?> member = (DartClassMember<?>) ancestor;
+            if (member.getModifiers().isConstant()) {
+              // class X { const !; } to be continued with X.init();
+              proposeTypesForNewParam();
+              return null;
+            }
+          }
+        }
+      }
       return parent.accept(new IdentifierCompletionProposer(node));
     }
 
@@ -792,8 +857,8 @@ public class CompletionEngine {
       Element parentElement = resolvedMember.getElement().getEnclosingElement();
       if (parentElement instanceof ClassElement) {
         Type type = ((ClassElement) parentElement).getType();
-        createCompletionsForPropertyAccess(null, type, false, isStatic);
-        createCompletionsForMethodInvocation(null, type, false, isStatic);
+        createCompletionsForPropertyAccess(null, type, false, true, isStatic);
+        createCompletionsForMethodInvocation(null, type, false, true, isStatic);
       }
       return null;
     }
@@ -810,7 +875,7 @@ public class CompletionEngine {
           // { foo.! doFoo(); }
           Type type = analyzeType(completionNode.getTarget());
           if (type != null) {
-            createCompletionsForQualifiedMemberAccess(functionName, type, false);
+            createCompletionsForQualifiedMemberAccess(functionName, type, false, false);
           }
         }
       }
@@ -832,8 +897,8 @@ public class CompletionEngine {
           Element parentElement = resolvedMember.getElement().getEnclosingElement();
           if (parentElement.getKind() == ElementKind.CLASS) {
             Type type = ((ClassElement) parentElement).getType();
-            createCompletionsForPropertyAccess(synth, type, false, isStatic);
-            createCompletionsForMethodInvocation(synth, type, false, isStatic);
+            createCompletionsForPropertyAccess(synth, type, false, true, isStatic);
+            createCompletionsForMethodInvocation(synth, type, false, true, isStatic);
           }
           return null;
         }
@@ -844,8 +909,9 @@ public class CompletionEngine {
           return null;
         }
         for (SearchMatch match : matches) {
-          createTypeCompletionsForConstructor(null, match, "");
+          createTypeCompletionsForConstructor(null, node, match, "");
         }
+        createCompletionsForIdentifierPrefix(null, null);
       }
       return null;
     }
@@ -871,10 +937,11 @@ public class CompletionEngine {
             if (matches == null || matches.size() == 0) {
               return null;
             }
+            String prefix = extractFilterPrefix(typeId);
             for (SearchMatch match : matches) {
-              String prefix = extractFilterPrefix(typeId);
               createTypeCompletionsForParameterDecl(typeId, match, prefix);
             }
+            createCompletionsForIdentifierPrefix(typeId, prefix);
           } else if (typeName instanceof DartPropertyAccess) {
             DartPropertyAccess prop = (DartPropertyAccess) typeName;
             if (isCompletionAfterDot
@@ -916,7 +983,7 @@ public class CompletionEngine {
             type = element.getType();
           }
         }
-        createCompletionsForQualifiedMemberAccess(propertyName, type, false);
+        createCompletionsForQualifiedMemberAccess(propertyName, type, true, false);
       }
       return null;
     }
@@ -942,8 +1009,8 @@ public class CompletionEngine {
               if (parentElement instanceof ClassElement) {
                 Type type = ((ClassElement) parentElement).getType();
                 boolean isStatic = resolvedMember.getModifiers().isStatic();
-                createCompletionsForPropertyAccess(null, type, false, isStatic);
-                createCompletionsForMethodInvocation(null, type, false, isStatic);
+                createCompletionsForPropertyAccess(null, type, false, true, isStatic);
+                createCompletionsForMethodInvocation(null, type, false, true, isStatic);
               }
               break;
             }
@@ -1086,6 +1153,8 @@ public class CompletionEngine {
 
   private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/CompletionEngine"));
 
+  private static final String C_VOID = "void";
+
   public static char[][] createDefaultParameterNames(int length) {
     char[][] names = new char[length][];
     for (int i = 0; i < length; i++) {
@@ -1103,13 +1172,6 @@ public class CompletionEngine {
       posParamCount++;
     }
     return posParamCount;
-  }
-
-  static private List<Element> findAllElements(LibraryUnit library, String prefix) {
-    Set<Element> elemSet = findAllElements(library, prefix, new HashSet<LibraryUnit>());
-    List<Element> elements = new ArrayList<Element>(elemSet.size());
-    elements.addAll(elemSet);
-    return elements;
   }
 
   static private Set<Element> findAllElements(LibraryUnit library, String prefix,
@@ -1258,10 +1320,9 @@ public class CompletionEngine {
   private DartUnit parsedUnit;
   private CompilationUnit currentCompilationUnit;
   private CompletionMetrics metrics;
-
+  private Set<String> prefixes;
   private static final String C_EXTENDS = "extends";
   private static final String C_IMPLEMENTS = "implements";
-  private static final String C_VOID = "void";
 
   /**
    * @param options
@@ -1355,11 +1416,11 @@ public class CompletionEngine {
 
     DartCompilerListener listener = DartCompilerListener.EMPTY;
     ParserContext ctx = new DartScannerParserContext(sourceFile, source, listener);
-    Set<String> prefixes = new HashSet<String>();
+    prefixes = new HashSet<String>();
     if (currentCompilationUnit != null) {
       DartImport[] imports = currentCompilationUnit.getLibrary().getImports();
-      for (DartImport imprt : imports) {
-        String prefix = imprt.getPrefix();
+      for (DartImport imp : imports) {
+        String prefix = imp.getPrefix();
         if (prefix != null) {
           prefixes.add(prefix);
         }
@@ -1506,14 +1567,23 @@ public class CompletionEngine {
     }
   }
 
-  private void createCompletionsForFactoryInvocation(DartIdentifier memberName, InterfaceType itype) {
+  private void createCompletionsForFactoryInvocation(DartIdentifier memberName,
+      DartNode completionNode, InterfaceType itype) {
     String prefix = extractFilterPrefix(memberName);
     List<Element> members = getConstructors(itype);
     if (!isCompletionAfterDot && memberName == null) {
       return;
     }
+    boolean isConst = false;
+    if (completionNode.getParent() instanceof DartNewExpression) {
+      DartNewExpression newExpr = (DartNewExpression) completionNode.getParent();
+      isConst = newExpr.isConst();
+    }
     for (Element elem : members) {
       MethodElement method = (MethodElement) elem;
+      if (isConst && !method.getModifiers().isConstant()) {
+        continue;
+      }
       String name = method.getName();
       if (prefix != null && !name.startsWith(prefix)) {
         continue;
@@ -1538,6 +1608,27 @@ public class CompletionEngine {
       proposal.setTypeName(returnTypeName.toCharArray());
       proposal.setDeclarationTypeName(returnTypeName.toCharArray());
       setSourceLoc(proposal, memberName, prefix);
+      proposal.setRelevance(1);
+      requestor.accept(proposal);
+    }
+  }
+
+  private void createCompletionsForIdentifierPrefix(DartNode ref, String prefix) {
+    if (prefix == null) {
+      prefix = "";
+    }
+    for (String candidate : prefixes) {
+      if (!candidate.startsWith(prefix)) {
+        continue;
+      }
+      InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+          CompletionProposal.LIBRARY_PREFIX,
+          actualCompletionPosition - offset);
+//      proposal.setDeclarationSignature(libraryElement.getLibraryUnit().getName().toCharArray());
+      proposal.setSignature(candidate.toCharArray());
+      proposal.setCompletion(candidate.toCharArray());
+      proposal.setName(candidate.toCharArray());
+      setSourceLoc(proposal, ref, prefix);
       proposal.setRelevance(1);
       requestor.accept(proposal);
     }
@@ -1654,7 +1745,7 @@ public class CompletionEngine {
   }
 
   private void createCompletionsForMethodInvocation(DartIdentifier node, Type type,
-      boolean isQualifiedByThis, boolean isMethodStatic) {
+      boolean isQualifiedByThis, boolean allowDynamic, boolean isMethodStatic) {
     String prefix = extractFilterPrefix(node);
     if (TypeKind.of(type) == TypeKind.VOID) {
       return;
@@ -1663,7 +1754,10 @@ public class CompletionEngine {
     boolean includeDeclaration = true;
     List<Element> members;
     if (TypeKind.of(itype) == TypeKind.DYNAMIC) {
-      members = findAllElements(parsedUnit.getLibrary(), prefix);
+      members = findAllElements(prefix, node);
+      if (members.isEmpty() && allowDynamic) {
+        members = findAllElements(prefix, null);
+      }
       includeDeclaration = false;
     } else {
       members = getAllElements(itype);
@@ -1729,7 +1823,7 @@ public class CompletionEngine {
   }
 
   private void createCompletionsForPropertyAccess(DartIdentifier node, Type type,
-      boolean isQualifiedByThis, boolean isMethodStatic) {
+      boolean isQualifiedByThis, boolean allowDynamic, boolean isMethodStatic) {
     if (!(type instanceof InterfaceType)) {
       return;
     }
@@ -1738,7 +1832,10 @@ public class CompletionEngine {
     boolean includeDeclaration = true;
     List<Element> members;
     if (TypeKind.of(itype) == TypeKind.DYNAMIC) {
-      members = findAllElements(parsedUnit.getLibrary(), prefix);
+      members = findAllElements(prefix, node);
+      if (members.isEmpty() && allowDynamic) {
+        members = findAllElements(prefix, null);
+      }
       includeDeclaration = false;
     } else {
       members = getAllElements(itype);
@@ -1793,18 +1890,18 @@ public class CompletionEngine {
   }
 
   private void createCompletionsForQualifiedMemberAccess(DartIdentifier memberName, Type type,
-      boolean isInstance) {
+      boolean allowDynamic, boolean isInstance) {
     // At the completion point, the language allows both field and method access.
     // The parser needs more look-ahead to disambiguate. Those tokens may not have
     // been typed yet.
-    createCompletionsForPropertyAccess(memberName, type, isInstance, false);
-    createCompletionsForMethodInvocation(memberName, type, isInstance, false);
+    createCompletionsForPropertyAccess(memberName, type, isInstance, allowDynamic, false);
+    createCompletionsForMethodInvocation(memberName, type, isInstance, allowDynamic, false);
   }
 
   private void createCompletionsForStaticVariables(DartIdentifier identifier, DartClass classDef) {
     ClassElement elem = classDef.getElement();
     Type type = elem.getType();
-    createCompletionsForPropertyAccess(identifier, type, false, true);
+    createCompletionsForPropertyAccess(identifier, type, false, false, true);
   }
 
   private void createProposalsForLiterals(DartNode node, String... names) {
@@ -1822,7 +1919,8 @@ public class CompletionEngine {
     }
   }
 
-  private void createTypeCompletionsForConstructor(DartNode node, SearchMatch match, String prefix) {
+  private void createTypeCompletionsForConstructor(DartNode node, DartNewExpression newExpr,
+      SearchMatch match, String prefix) {
     DartElement element = match.getElement();
     if (!(element instanceof com.google.dart.tools.core.model.Type)) {
       return;
@@ -1839,7 +1937,50 @@ public class CompletionEngine {
     if (disallowPrivate && name.startsWith("_")) {
       return;
     }
-    if (!isCompletionAfterDot) {
+//    if (!isCompletionAfterDot && false) {
+//      InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+//          CompletionProposal.TYPE_REF, actualCompletionPosition - offset);
+//      char[] nameChars = name.toCharArray();
+//      proposal.setCompletion(nameChars);
+//      proposal.setSignature(nameChars);
+//      setSourceLoc(proposal, node, prefix);
+//      proposal.setRelevance(1);
+//      requestor.accept(proposal);
+//    } else {
+    try {
+      for (com.google.dart.tools.core.model.Method method : type.getMethods()) {
+        if (method.isConstructor()) {
+          if (newExpr.isConst() && !method.getModifiers().isConstant()) {
+            continue;
+          }
+          name = method.getElementName(); // insert named constructors, too
+          InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+              CompletionProposal.METHOD_REF,
+              actualCompletionPosition - offset);
+          char[] declaringTypeName = method.getDeclaringType().getElementName().toCharArray();
+          char[] methodName = name.toCharArray();
+          proposal.setDeclarationSignature(declaringTypeName);
+          proposal.setSignature(methodName);
+          proposal.setCompletion(methodName);
+          proposal.setName(methodName);
+          proposal.setIsContructor(method.isConstructor());
+          proposal.setIsGetter(false);
+          proposal.setIsSetter(false);
+          proposal.setParameterNames(getParameterNames(method));
+          proposal.setParameterTypeNames(getParameterTypeNames(method));
+          proposal.setTypeName(CharOperation.toCharArray(method.getReturnTypeName()));
+          proposal.setDeclarationTypeName(declaringTypeName);
+          setSourceLoc(proposal, node, prefix);
+          proposal.setRelevance(1);
+          requestor.setAllowsRequiredProposals(
+              CompletionProposal.CONSTRUCTOR_INVOCATION,
+              CompletionProposal.TYPE_REF,
+              true);
+          requestor.accept(proposal);
+        }
+      }
+    } catch (DartModelException exception) {
+      // TODO Remove this block?
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
           CompletionProposal.TYPE_REF,
           actualCompletionPosition - offset);
@@ -1849,51 +1990,8 @@ public class CompletionEngine {
       setSourceLoc(proposal, node, prefix);
       proposal.setRelevance(1);
       requestor.accept(proposal);
-    } else {
-      try {
-        for (com.google.dart.tools.core.model.Method method : type.getMethods()) {
-          if (method.isConstructor()) {
-            if (!method.getElementName().equals(name)) {
-              // not sure why method.isFactory() doesn't work
-              continue;
-            }
-            InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-                CompletionProposal.METHOD_REF,
-                actualCompletionPosition - offset);
-            char[] declaringTypeName = method.getDeclaringType().getElementName().toCharArray();
-            char[] methodName = name.toCharArray();
-            proposal.setDeclarationSignature(declaringTypeName);
-            proposal.setSignature(methodName);
-            proposal.setCompletion(methodName);
-            proposal.setName(methodName);
-            proposal.setIsContructor(method.isConstructor());
-            proposal.setIsGetter(false);
-            proposal.setIsSetter(false);
-            proposal.setParameterNames(getParameterNames(method));
-            proposal.setParameterTypeNames(getParameterTypeNames(method));
-            proposal.setTypeName(CharOperation.toCharArray(method.getReturnTypeName()));
-            proposal.setDeclarationTypeName(declaringTypeName);
-            setSourceLoc(proposal, node, prefix);
-            proposal.setRelevance(1);
-            requestor.setAllowsRequiredProposals(
-                CompletionProposal.CONSTRUCTOR_INVOCATION,
-                CompletionProposal.TYPE_REF,
-                true);
-            requestor.accept(proposal);
-          }
-        }
-      } catch (DartModelException exception) {
-        InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-            CompletionProposal.TYPE_REF,
-            actualCompletionPosition - offset);
-        char[] nameChars = name.toCharArray();
-        proposal.setCompletion(nameChars);
-        proposal.setSignature(nameChars);
-        setSourceLoc(proposal, node, prefix);
-        proposal.setRelevance(1);
-        requestor.accept(proposal);
-      }
     }
+//    }
   }
 
   private void createTypeCompletionsForGenericType(DartNode node, Type type, String prefix) {
@@ -2017,80 +2115,165 @@ public class CompletionEngine {
     return prefix.length() == 0 ? null : prefix;
   }
 
+  private DartIdentifier extractLibraryPrefixQualifier(DartNode node) {
+    if (node == null || node.getParent() == null) {
+      return null;
+    }
+    DartNode parent = node.getParent();
+    // if the AST node looks like a library qualifier and the qualifier is in the prefix set
+    // then return the library prefix, otherwise null
+    if (parent instanceof DartPropertyAccess) {
+      DartPropertyAccess prop = (DartPropertyAccess) parent;
+      DartNode qualNode = prop.getQualifier();
+      if (qualNode instanceof DartTypeNode) {
+        qualNode = ((DartTypeNode) qualNode).getIdentifier();
+      }
+      if (qualNode instanceof DartIdentifier) {
+        return (DartIdentifier) qualNode;
+      }
+    }
+    return null;
+  }
+
+  private List<Element> findAllElements(String prefix, DartNode parent) {
+    // return all elements in parsedUnit library if no prefix specified
+    // return empty collection if specified prefix is not defined for at least one library
+    // return all elements in all libraries that have a specified prefix
+    DartIdentifier qualNode = extractLibraryPrefixQualifier(parent);
+    Collection<LibraryUnit> libs;
+    if (qualNode == null) {
+      libs = Collections.singleton(parsedUnit.getLibrary());
+    } else {
+      String prefixToMatch = qualNode.getName();
+      libs = parsedUnit.getLibrary().getLibrariesWithPrefix(prefixToMatch);
+    }
+    Set<LibraryUnit> searchedLibs = new HashSet<LibraryUnit>();
+    List<Element> elements = new ArrayList<Element>();
+    for (LibraryUnit lib : libs) {
+      Set<Element> elemSet = findAllElements(lib, prefix, searchedLibs);
+      elements.addAll(elemSet);
+    }
+    return elements;
+  }
+
+  private Collection<DartLibrary> findLibrariesForQualifier(DartNode node) {
+    // return null if no prefix is specified
+    // return empty collection if specified prefix is not defined for at least one library
+    // return all libraries that have a specified prefix
+    DartIdentifier qualNode = extractLibraryPrefixQualifier(node);
+    if (qualNode == null) {
+      return null;
+    } else {
+      String qual = qualNode.getName();
+      Collection<DartLibrary> result = new HashSet<DartLibrary>();
+      DartImport[] imports;
+      try {
+        if (currentCompilationUnit == null) {
+          return null; // special case for tests
+        }
+        imports = currentCompilationUnit.getLibrary().getImports();
+      } catch (DartModelException ex) {
+        return result;
+      }
+      for (DartImport imp : imports) {
+        String prefix = imp.getPrefix();
+        if (prefix != null && prefix.equals(qual)) {
+          result.add(imp.getLibrary());
+        }
+      }
+      return result;
+    }
+  }
+
   private List<SearchMatch> findTypesWithPrefix(DartIdentifier id) {
     SearchEngine engine = SearchEngineFactory.createSearchEngine();
-    SearchScope scope = SearchScopeFactory.createWorkspaceScope();
-    GatheringSearchListener listener = new GatheringSearchListener();
+    SearchScope scope;
+    Collection<DartLibrary> libs = findLibrariesForQualifier(id);
+    if (libs == null) {
+//      if (currentCompilationUnit == null) {
+      // completion search should never use workspace scope, but tests don't set CU
+      scope = SearchScopeFactory.createWorkspaceScope();
+      // apparently, library scope does not include core lib so use workspace for now
+      // TODO figure out how to make the default search use core lib
+      // TODO should ALL searches use core lib?
+//      } else {
+//        scope = SearchScopeFactory.createLibraryScope(currentCompilationUnit.getLibrary());
+//      }
+    } else {
+      if (libs.isEmpty()) {
+        return new ArrayList<SearchMatch>(0);
+      }
+      scope = SearchScopeFactory.createLibraryScope(libs);
+    }
     String prefix = extractFilterPrefix(id);
     if (prefix == null) {
       prefix = "";
     }
+    SearchPattern pattern = SearchPatternFactory.createPrefixPattern(prefix, true);
     List<SearchMatch> matches;
     try {
       if (DartCoreDebug.NEW_INDEXER) {
         matches = engine.searchTypeDeclarations(
             scope,
-            SearchPatternFactory.createPrefixPattern(prefix, true),
+            pattern,
             (SearchFilter) null,
             new NullProgressMonitor());
       } else {
-        engine.searchTypeDeclarations(
-            scope,
-            SearchPatternFactory.createPrefixPattern(prefix, true),
-            null,
-            listener,
-            new NullProgressMonitor());
+        GatheringSearchListener listener = new GatheringSearchListener();
+        engine.searchTypeDeclarations(scope, pattern, null, listener, new NullProgressMonitor());
         matches = listener.getMatches();
       }
     } catch (SearchException ex) {
       return null;
     }
-    try {
-      int idx = 0;
-      for (com.google.dart.tools.core.model.Type localType : getCurrentCompilationUnit().getTypes()) {
-        String typeName = localType.getElementName();
-        if (typeName.startsWith(prefix)) { // this test is case sensitive
-          SearchMatch match = new SearchMatch(
-              MatchQuality.EXACT,
-              MatchKind.NOT_A_REFERENCE,
-              localType,
-              localType.getSourceRange());
-          boolean found = false;
-          for (SearchMatch foundMatch : matches) {
-            if (foundMatch.getElement().getElementName().equals(typeName)) {
-              found = true;
-              break;
+    if (libs == null) { // no prefix specified (vs undefined prefix)
+      try {
+        int idx = 0;
+        for (com.google.dart.tools.core.model.Type localType : getCurrentCompilationUnit().getTypes()) {
+          String typeName = localType.getElementName();
+          if (typeName.startsWith(prefix)) { // this test is case sensitive
+            SearchMatch match = new SearchMatch(
+                MatchQuality.EXACT,
+                MatchKind.NOT_A_REFERENCE,
+                localType,
+                localType.getSourceRange());
+            boolean found = false;
+            for (SearchMatch foundMatch : matches) {
+              if (foundMatch.getElement().getElementName().equals(typeName)) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              matches.add(idx++, match);
             }
           }
-          if (!found) {
-            matches.add(idx++, match);
-          }
         }
-      }
-      for (com.google.dart.tools.core.model.DartFunctionTypeAlias localType : getCurrentCompilationUnit().getFunctionTypeAliases()) {
-        String typeName = localType.getElementName();
-        if (typeName.startsWith(prefix)) { // this test is case sensitive
-          SearchMatch match = new SearchMatch(
-              MatchQuality.EXACT,
-              MatchKind.NOT_A_REFERENCE,
-              localType,
-              localType.getSourceRange());
-          boolean found = false;
-          for (SearchMatch foundMatch : matches) {
-            if (foundMatch.getElement().getElementName().equals(typeName)) {
-              found = true;
-              break;
+        for (com.google.dart.tools.core.model.DartFunctionTypeAlias localType : getCurrentCompilationUnit().getFunctionTypeAliases()) {
+          String typeName = localType.getElementName();
+          if (typeName.startsWith(prefix)) { // this test is case sensitive
+            SearchMatch match = new SearchMatch(
+                MatchQuality.EXACT,
+                MatchKind.NOT_A_REFERENCE,
+                localType,
+                localType.getSourceRange());
+            boolean found = false;
+            for (SearchMatch foundMatch : matches) {
+              if (foundMatch.getElement().getElementName().equals(typeName)) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              matches.add(idx++, match);
             }
           }
-          if (!found) {
-            matches.add(idx++, match);
-          }
         }
+      } catch (DartModelException ex) {
+        // no one cares
+      } catch (NullPointerException ex) {
+        // happens during tests because currentCompilationUnit is null
       }
-    } catch (DartModelException ex) {
-      // no one cares
-    } catch (NullPointerException ex) {
-      // happens during tests because currentCompilationUnit is null
     }
     return matches;
   }
@@ -2127,14 +2310,18 @@ public class CompletionEngine {
     for (SearchMatch match : matches) {
       createTypeCompletionsForTypeDecl(identifier, match, prefix, isClass, !isClass);
     }
+    createCompletionsForIdentifierPrefix(identifier, prefix);
   }
 
-  private void proposeGenericTypeCompletions(DartNode node) {
+  private void proposeGenericTypeCompletions(DartNode node, boolean includePrefixes) {
+    String prefix = extractFilterPrefix(node);
+    if (includePrefixes) {
+      createCompletionsForIdentifierPrefix(node, prefix);
+    }
     if (classElement == null) {
       // TODO Handle top-level functions
       return;
     }
-    String prefix = extractFilterPrefix(node);
     List<? extends Type> typeParams = classElement.getTypeParameters();
     for (Type type : typeParams) {
       createTypeCompletionsForGenericType(node, type, prefix);
@@ -2150,10 +2337,11 @@ public class CompletionEngine {
     for (SearchMatch match : matches) {
       createTypeCompletionsForTypeDecl(identifier, match, prefix, false, false);
     }
+    createCompletionsForIdentifierPrefix(identifier, prefix);
   }
 
   private void proposeTypesForNewParam() {
-    proposeGenericTypeCompletions(null);
+    proposeGenericTypeCompletions(null, true);
     // TODO Combine with proposeTypesForPrefix()
     List<SearchMatch> matches = findTypesWithPrefix(null);
     if (matches == null || matches.size() == 0) {
@@ -2183,6 +2371,7 @@ public class CompletionEngine {
       uniques.add(matchName);
       createTypeCompletionsForParameterDecl(identifier, match, prefix);
     }
+    createCompletionsForIdentifierPrefix(identifier, prefix);
     if (allowVoid) {
       if (prefix == null || prefix.length() == 0) {
         createProposalsForLiterals(identifier, C_VOID);

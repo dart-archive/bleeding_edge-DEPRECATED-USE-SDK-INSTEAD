@@ -32,6 +32,7 @@ import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,7 +48,7 @@ public class DartTypeCompletionProposalComputer extends DartCompletionProposalCo
    * org.eclipse.core.runtime.IProgressMonitor)
    */
   @Override
-  public List computeCompletionProposals(ContentAssistInvocationContext context,
+  public List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext context,
       IProgressMonitor monitor) {
     if (true) {
       return new ArrayList(); // TODO enable for type completions
@@ -119,7 +120,7 @@ public class DartTypeCompletionProposalComputer extends DartCompletionProposalCo
     collector.setIgnored(CompletionProposal.METHOD_DECLARATION, true);
     collector.setIgnored(CompletionProposal.METHOD_NAME_REFERENCE, true);
     collector.setIgnored(CompletionProposal.METHOD_REF, true);
-    collector.setIgnored(CompletionProposal.PACKAGE_REF, true);
+    collector.setIgnored(CompletionProposal.LIBRARY_PREFIX, true);
     collector.setIgnored(CompletionProposal.POTENTIAL_METHOD_DECLARATION, true);
     collector.setIgnored(CompletionProposal.VARIABLE_DECLARATION, true);
 

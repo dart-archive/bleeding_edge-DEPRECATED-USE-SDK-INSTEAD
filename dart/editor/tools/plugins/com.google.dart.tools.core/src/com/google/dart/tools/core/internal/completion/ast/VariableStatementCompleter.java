@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Stack;
 
 public class VariableStatementCompleter extends DartVariableStatement implements CompletionNode {
-  private static final long serialVersionUID = 1L;
+  static final long serialVersionUID = 1L;
 
   public static VariableStatementCompleter from(DartVariableStatement varStmt) {
     return CompletionUtil.init(

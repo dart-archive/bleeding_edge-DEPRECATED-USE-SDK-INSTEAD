@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.dart;
@@ -33,6 +31,8 @@ import org.eclipse.core.runtime.PerformanceStats;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.osgi.framework.Bundle;
 
 import java.util.Collections;
@@ -62,7 +62,7 @@ final class CompletionProposalComputerDescriptor {
   /** The extension schema name of the partition child elements. */
   private static final String PARTITION = "partition"; //$NON-NLS-1$
   /** Set of Java partition types. */
-  private static final Set PARTITION_SET;
+  private static final Set<String> PARTITION_SET;
   /** The name of the performance event used to trace extensions. */
   private static final String PERFORMANCE_EVENT = DartToolsPlugin.getPluginId()
       + "/perf/content_assist/extensions"; //$NON-NLS-1$
@@ -72,7 +72,7 @@ final class CompletionProposalComputerDescriptor {
    */
   private static final boolean MEASURE_PERFORMANCE = PerformanceStats.isEnabled(PERFORMANCE_EVENT);
   /**
-   * Independently of the {@link PerformanceStats} service, any operation that takes longer than *
+   * Independently of the {@link PerformanceStats} service, any operation that takes longer than * *
    * {@value} milliseconds will be flagged as an violation. This timeout does not apply to the first
    * invocation, as it may take longer due to plug-in initialization etc. See also
    * {@link #fIsReportingDelay}.
@@ -86,7 +86,7 @@ final class CompletionProposalComputerDescriptor {
   private static final String SESSION_ENDED = "sessionEnded()"; //$NON-NLS-1$
 
   static {
-    Set partitions = new HashSet();
+    Set<String> partitions = new HashSet<String>();
     partitions.add(IDocument.DEFAULT_CONTENT_TYPE);
     partitions.add(DartPartitions.DART_DOC);
     partitions.add(DartPartitions.DART_MULTI_LINE_COMMENT);
@@ -108,7 +108,7 @@ final class CompletionProposalComputerDescriptor {
   /** The activate attribute value. */
   private final boolean fActivate;
   /** The partition of the extension (element type: {@link String}). */
-  private final Set fPartitions;
+  private final Set<String> fPartitions;
   /** The configuration element of this extension. */
   private final IConfigurationElement fElement;
   /** The registry we are registered with. */
@@ -137,7 +137,7 @@ final class CompletionProposalComputerDescriptor {
    * @param registry the computer registry creating this descriptor
    */
   CompletionProposalComputerDescriptor(IConfigurationElement element,
-      CompletionProposalComputerRegistry registry, List categories)
+      CompletionProposalComputerRegistry registry, List<CompletionProposalCategory> categories)
       throws InvalidRegistryObjectException {
     Assert.isLegal(registry != null);
     Assert.isLegal(element != null);
@@ -155,7 +155,7 @@ final class CompletionProposalComputerDescriptor {
       fName = name;
     }
 
-    Set partitions = new HashSet();
+    Set<String> partitions = new HashSet<String>();
     IConfigurationElement[] children = element.getChildren(PARTITION);
     if (children.length == 0) {
       fPartitions = PARTITION_SET; // add to all partition types if no partition
@@ -180,8 +180,8 @@ final class CompletionProposalComputerDescriptor {
       categoryId = DEFAULT_CATEGORY_ID;
     }
     CompletionProposalCategory category = null;
-    for (Iterator it = categories.iterator(); it.hasNext();) {
-      CompletionProposalCategory cat = (CompletionProposalCategory) it.next();
+    for (Iterator<CompletionProposalCategory> it = categories.iterator(); it.hasNext();) {
+      CompletionProposalCategory cat = it.next();
       if (cat.getId().equals(categoryId)) {
         category = cat;
         break;
@@ -206,22 +206,22 @@ final class CompletionProposalComputerDescriptor {
    * @return the list of computed completion proposals (element type:
    *         {@link org.eclipse.jface.text.contentassist.ICompletionProposal})
    */
-  public List computeCompletionProposals(ContentAssistInvocationContext context,
-      IProgressMonitor monitor) {
+  public List<ICompletionProposal> computeCompletionProposals(
+      ContentAssistInvocationContext context, IProgressMonitor monitor) {
     if (!isEnabled()) {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
 
     IStatus status;
     try {
       IDartCompletionProposalComputer computer = getComputer();
       if (computer == null) {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
       }
 
       try {
         PerformanceStats stats = startMeter(context, computer);
-        List proposals = computer.computeCompletionProposals(context, monitor);
+        List<ICompletionProposal> proposals = computer.computeCompletionProposals(context, monitor);
         stopMeter(stats, COMPUTE_COMPLETION_PROPOSALS);
 
         if (proposals != null) {
@@ -244,7 +244,7 @@ final class CompletionProposalComputerDescriptor {
 
     fRegistry.informUser(this, status);
 
-    return Collections.EMPTY_LIST;
+    return Collections.emptyList();
   }
 
   /**
@@ -257,21 +257,21 @@ final class CompletionProposalComputerDescriptor {
    * @return the list of computed context information objects (element type:
    *         {@link org.eclipse.jface.text.contentassist.IContextInformation})
    */
-  public List computeContextInformation(ContentAssistInvocationContext context,
-      IProgressMonitor monitor) {
+  public List<IContextInformation> computeContextInformation(
+      ContentAssistInvocationContext context, IProgressMonitor monitor) {
     if (!isEnabled()) {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
 
     IStatus status;
     try {
       IDartCompletionProposalComputer computer = getComputer();
       if (computer == null) {
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
       }
 
       PerformanceStats stats = startMeter(context, computer);
-      List proposals = computer.computeContextInformation(context, monitor);
+      List<IContextInformation> proposals = computer.computeContextInformation(context, monitor);
       stopMeter(stats, COMPUTE_CONTEXT_INFORMATION);
 
       if (proposals != null) {
@@ -292,7 +292,7 @@ final class CompletionProposalComputerDescriptor {
 
     fRegistry.informUser(this, status);
 
-    return Collections.EMPTY_LIST;
+    return Collections.emptyList();
   }
 
   /**
@@ -346,7 +346,7 @@ final class CompletionProposalComputerDescriptor {
    * 
    * @return the set of partition types (element type: {@link String})
    */
-  public Set getPartitions() {
+  public Set<String> getPartitions() {
     return fPartitions;
   }
 

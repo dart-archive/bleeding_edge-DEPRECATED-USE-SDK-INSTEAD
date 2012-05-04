@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Stack;
 
 public class ParameterCompleter extends DartParameter implements CompletionNode {
-  private static final long serialVersionUID = 1L;
+  static final long serialVersionUID = 1L;
 
   public static ParameterCompleter from(DartParameter p) {
     return CompletionUtil.init(

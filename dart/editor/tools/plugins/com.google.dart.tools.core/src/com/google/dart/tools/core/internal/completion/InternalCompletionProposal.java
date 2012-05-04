@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal.completion;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
-import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
 import com.google.dart.tools.core.internal.search.scope.WorkspaceSearchScope;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.model.DartModelException;
@@ -26,6 +25,7 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchException;
+import com.google.dart.tools.core.search.SearchFilter;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.search.SearchPatternFactory;
 
@@ -181,6 +181,7 @@ public class InternalCompletionProposal extends CompletionProposal {
    * @param monitor the progress monitor, or <code>null</code> if none
    * @return the parameter names, or <code>null</code> if none or not available or not relevant
    */
+  @SuppressWarnings("deprecation")
   @Override
   public char[][] findParameterNames(IProgressMonitor monitor) {
     if (!this.parameterNamesComputed) {
@@ -979,6 +980,7 @@ public class InternalCompletionProposal extends CompletionProposal {
     this.tokenEnd = endIndex;
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public String toString() {
     StringBuffer buffer = new StringBuffer();
@@ -1011,8 +1013,8 @@ public class InternalCompletionProposal extends CompletionProposal {
           buffer.append("<CONSTRUCTOR>"); //$NON-NLS-1$
         }
         break;
-      case CompletionProposal.PACKAGE_REF:
-        buffer.append("PACKAGE_REF"); //$NON-NLS-1$
+      case CompletionProposal.LIBRARY_PREFIX:
+        buffer.append("LIBRARY_PREFIX"); //$NON-NLS-1$
         break;
       case CompletionProposal.TYPE_REF:
         buffer.append("TYPE_REF"); //$NON-NLS-1$
@@ -1209,8 +1211,8 @@ public class InternalCompletionProposal extends CompletionProposal {
     char[][] parameters = null;
     int length = paramTypeNames.length;
 
-    char[] tName = declaringTypeName;
-    Object cachedType = this.completionEngine.typeCache.get(tName);
+//    char[] tName = declaringTypeName;
+//    Object cachedType = this.completionEngine.typeCache.get(tName);
 
     Type type = null;
 //    if(cachedType != null) {
@@ -1314,17 +1316,17 @@ public class InternalCompletionProposal extends CompletionProposal {
 
   private Type findTypeNamed(String typeName) {
     SearchEngine engine = SearchEngineFactory.createSearchEngine();
-    GatheringSearchListener listener = new GatheringSearchListener();
+    List<SearchMatch> matches;
     try {
-      engine.searchTypeDeclarations(
+      matches = engine.searchTypeDeclarations(
           new WorkspaceSearchScope(),
           SearchPatternFactory.createExactPattern(typeName, true),
-          listener,
+          (SearchFilter) null,
           new NullProgressMonitor());
     } catch (SearchException ex) {
+      return null;
     }
-    List<SearchMatch> matches = listener.getMatches();
-    if (matches == null || matches.isEmpty()) {
+    if (matches.isEmpty()) {
       return null;
     }
     return (Type) matches.get(0).getElement();

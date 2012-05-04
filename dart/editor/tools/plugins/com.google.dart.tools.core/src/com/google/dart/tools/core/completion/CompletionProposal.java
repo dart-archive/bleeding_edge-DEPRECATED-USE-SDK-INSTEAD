@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -189,9 +189,7 @@ public class CompletionProposal {
    * 
    * @see #getKind()
    */
-  @Deprecated
-  // TODO Need to handle library prefixes
-  public static final int PACKAGE_REF = 8;
+  public static final int LIBRARY_PREFIX = 8;
 
   /**
    * Completion is a reference to a type. Any kind of type is allowed, including primitive types,
