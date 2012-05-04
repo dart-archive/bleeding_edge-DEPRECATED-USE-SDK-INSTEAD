@@ -355,10 +355,11 @@ public class NewSearchEngineImpl implements SearchEngine {
   public List<SearchMatch> searchConstructorDeclarations(final SearchScope scope,
       final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    final Element[] elements = createElements(scope);
+    return gatherResults(elements.length, new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
-        searchConstructorDeclarations(scope, pattern, filter, listener, monitor);
+        searchConstructorDeclarations(elements, pattern, filter, listener, monitor);
       }
     });
   }
@@ -367,25 +368,18 @@ public class NewSearchEngineImpl implements SearchEngine {
   public void searchConstructorDeclarations(SearchScope scope, SearchPattern pattern,
       SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
       throws SearchException {
-    if (listener == null) {
-      throw new IllegalArgumentException("listener cannot be null");
-    }
-    Element scopeElement = createElement(scope);
-    index.getRelationships(
-        scopeElement,
-        IndexConstants.DEFINES_CLASS,
-        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
-            applyPattern(pattern, new ConstructorConverter(listener)))));
+    searchConstructorDeclarations(createElements(scope), pattern, filter, listener, monitor);
   }
 
   @Override
   public List<SearchMatch> searchFieldDeclarations(final SearchScope scope,
       final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    final Element[] elements = createElements(scope);
+    return gatherResults(elements.length, new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
-        searchFieldDeclarations(scope, pattern, filter, listener, monitor);
+        searchFieldDeclarations(elements, pattern, filter, listener, monitor);
       }
     });
   }
@@ -394,25 +388,18 @@ public class NewSearchEngineImpl implements SearchEngine {
   public void searchFieldDeclarations(SearchScope scope, SearchPattern pattern,
       SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
       throws SearchException {
-    if (listener == null) {
-      throw new IllegalArgumentException("listener cannot be null");
-    }
-    Element scopeElement = createElement(scope);
-    index.getRelationships(
-        scopeElement,
-        IndexConstants.DEFINES_FIELD,
-        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
-            applyPattern(pattern, listener))));
+    searchFieldDeclarations(createElements(scope), pattern, filter, listener, monitor);
   }
 
   @Override
   public List<SearchMatch> searchFunctionDeclarations(final SearchScope scope,
       final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    final Element[] elements = createElements(scope);
+    return gatherResults(elements.length, new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
-        searchFunctionDeclarations(scope, pattern, filter, listener, monitor);
+        searchFunctionDeclarations(elements, pattern, filter, listener, monitor);
       }
     });
   }
@@ -421,15 +408,7 @@ public class NewSearchEngineImpl implements SearchEngine {
   public void searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
       SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
       throws SearchException {
-    if (listener == null) {
-      throw new IllegalArgumentException("listener cannot be null");
-    }
-    Element scopeElement = createElement(scope);
-    index.getRelationships(
-        scopeElement,
-        IndexConstants.DEFINES_FUNCTION,
-        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
-            applyPattern(pattern, listener))));
+    searchFunctionDeclarations(createElements(scope), pattern, filter, listener, monitor);
   }
 
   @Override
@@ -459,10 +438,11 @@ public class NewSearchEngineImpl implements SearchEngine {
   public List<SearchMatch> searchMethodDeclarations(final SearchScope scope,
       final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    final Element[] elements = createElements(scope);
+    return gatherResults(elements.length, new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
-        searchMethodDeclarations(scope, pattern, filter, listener, monitor);
+        searchMethodDeclarations(elements, pattern, filter, listener, monitor);
       }
     });
   }
@@ -471,15 +451,7 @@ public class NewSearchEngineImpl implements SearchEngine {
   public void searchMethodDeclarations(SearchScope scope, SearchPattern pattern,
       SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
       throws SearchException {
-    if (listener == null) {
-      throw new IllegalArgumentException("listener cannot be null");
-    }
-    Element scopeElement = createElement(scope);
-    index.getRelationships(
-        scopeElement,
-        IndexConstants.DEFINES_METHOD,
-        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
-            applyPattern(pattern, listener))));
+    searchMethodDeclarations(createElements(scope), pattern, filter, listener, monitor);
   }
 
   @Override
@@ -695,13 +667,13 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
-  public List<SearchMatch> searchTypeDeclarations(final SearchScope scope,
-      final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
-      throws SearchException {
-    return gatherResults(3, new SearchRunner() {
+  public List<SearchMatch> searchTypeDeclarations(SearchScope scope, final SearchPattern pattern,
+      final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
+    final Element[] elements = createElements(scope);
+    return gatherResults(elements.length * 3, new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
-        searchTypeDeclarations(scope, pattern, filter, listener, monitor);
+        searchTypeDeclarations(elements, pattern, filter, listener, monitor);
       }
     });
   }
@@ -709,17 +681,7 @@ public class NewSearchEngineImpl implements SearchEngine {
   @Override
   public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
-    if (listener == null) {
-      throw new IllegalArgumentException("listener cannot be null");
-    }
-    Element scopeElement = createElement(scope);
-    SearchListener filteredListener = applyFilter(filter, applyPattern(pattern, listener));
-    index.getRelationships(scopeElement, IndexConstants.DEFINES_CLASS,
-        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
-    index.getRelationships(scopeElement, IndexConstants.DEFINES_FUNCTION_TYPE,
-        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
-    index.getRelationships(scopeElement, IndexConstants.DEFINES_INTERFACE,
-        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
+    searchTypeDeclarations(createElements(scope), pattern, filter, listener, monitor);
   }
 
   @Override
@@ -732,10 +694,11 @@ public class NewSearchEngineImpl implements SearchEngine {
   public List<SearchMatch> searchVariableDeclarations(final SearchScope scope,
       final SearchPattern pattern, final SearchFilter filter, final IProgressMonitor monitor)
       throws SearchException {
-    return gatherResults(1, new SearchRunner() {
+    final Element[] elements = createElements(scope);
+    return gatherResults(elements.length, new SearchRunner() {
       @Override
       public void performSearch(SearchListener listener) throws SearchException {
-        searchVariableDeclarations(scope, pattern, filter, listener, monitor);
+        searchVariableDeclarations(elements, pattern, filter, listener, monitor);
       }
     });
   }
@@ -744,15 +707,7 @@ public class NewSearchEngineImpl implements SearchEngine {
   public void searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
       SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
       throws SearchException {
-    if (listener == null) {
-      throw new IllegalArgumentException("listener cannot be null");
-    }
-    Element scopeElement = createElement(scope);
-    index.getRelationships(
-        scopeElement,
-        IndexConstants.DEFINES_FUNCTION,
-        new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
-            applyPattern(pattern, listener))));
+    searchVariableDeclarations(createElements(scope), pattern, filter, listener, monitor);
   }
 
   /**
@@ -858,16 +813,22 @@ public class NewSearchEngineImpl implements SearchEngine {
         + ResourceFactory.SEPARATOR_CHAR + method.getElementName());
   }
 
-  private Element createElement(SearchScope scope) throws SearchException {
-    // TODO(brianwilkerson) Figure out how to handle scope information
-    if (scope instanceof LibrarySearchScope) {
-      return createElement(((LibrarySearchScope) scope).getLibrary());
-    }
-    return IndexConstants.UNIVERSE;
-  }
-
   private Element createElement(Type type) throws SearchException {
     return new Element(getResource(type.getCompilationUnit()), type.getElementName());
+  }
+
+  private Element[] createElements(SearchScope scope) throws SearchException {
+    // TODO(brianwilkerson) Figure out how to handle scope information in a more generic way
+    if (scope instanceof LibrarySearchScope) {
+      DartLibrary[] libraries = ((LibrarySearchScope) scope).getLibraries();
+      int count = libraries.length;
+      Element[] elements = new Element[count];
+      for (int i = 0; i < count; i++) {
+        elements[i] = createElement(libraries[i]);
+      }
+      return elements;
+    }
+    return new Element[] {IndexConstants.UNIVERSE};
   }
 
   /**
@@ -893,6 +854,92 @@ public class NewSearchEngineImpl implements SearchEngine {
       return ResourceFactory.getResource(compilationUnit);
     } catch (DartModelException exception) {
       throw new SearchException(exception);
+    }
+  }
+
+  private void searchConstructorDeclarations(Element[] elements, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    for (Element element : elements) {
+      index.getRelationships(
+          element,
+          IndexConstants.DEFINES_CLASS,
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
+              applyPattern(pattern, new ConstructorConverter(listener)))));
+    }
+  }
+
+  private void searchFieldDeclarations(Element[] elements, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    for (Element element : elements) {
+      index.getRelationships(element, IndexConstants.DEFINES_FIELD, new RelationshipCallbackImpl(
+          MatchKind.NOT_A_REFERENCE, applyFilter(filter, applyPattern(pattern, listener))));
+    }
+  }
+
+  private void searchFunctionDeclarations(Element[] elements, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    for (Element element : elements) {
+      index.getRelationships(
+          element,
+          IndexConstants.DEFINES_FUNCTION,
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
+              applyPattern(pattern, listener))));
+    }
+  }
+
+  private void searchMethodDeclarations(Element[] elements, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    for (Element element : elements) {
+      index.getRelationships(element, IndexConstants.DEFINES_METHOD, new RelationshipCallbackImpl(
+          MatchKind.NOT_A_REFERENCE, applyFilter(filter, applyPattern(pattern, listener))));
+    }
+  }
+
+  private void searchTypeDeclarations(Element[] elements, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    SearchListener filteredListener = applyFilter(filter, applyPattern(pattern, listener));
+    for (Element element : elements) {
+      index.getRelationships(element, IndexConstants.DEFINES_CLASS, new RelationshipCallbackImpl(
+          MatchKind.NOT_A_REFERENCE, filteredListener));
+      index.getRelationships(element, IndexConstants.DEFINES_FUNCTION_TYPE,
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
+      index.getRelationships(element, IndexConstants.DEFINES_INTERFACE,
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
+    }
+  }
+
+  private void searchVariableDeclarations(Element[] elements, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
+      throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    for (Element element : elements) {
+      index.getRelationships(
+          element,
+          IndexConstants.DEFINES_FUNCTION,
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
+              applyPattern(pattern, listener))));
     }
   }
 }

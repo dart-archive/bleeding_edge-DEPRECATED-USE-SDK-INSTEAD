@@ -57,6 +57,16 @@ public final class SearchScopeFactory {
   }
 
   /**
+   * Create a search scope that encompasses everything in the given libraries.
+   * 
+   * @param libraries the libraries defining which elements are included in the scope
+   * @return the search scope that was created
+   */
+  public static SearchScope createLibraryScope(DartLibrary... libraries) {
+    return new LibrarySearchScope(libraries);
+  }
+
+  /**
    * Create a search scope that encompasses everything in the given library.
    * 
    * @param library the library defining which elements are included in the scope

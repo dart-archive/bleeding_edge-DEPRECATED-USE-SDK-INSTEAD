@@ -18,7 +18,6 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.search.SearchScope;
 
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Instances of the class <code>LibrarySearchScope</code> implement a search scope that encompasses
@@ -28,7 +27,7 @@ public class LibrarySearchScope implements SearchScope {
   /**
    * The libraries defining which elements are included in the scope.
    */
-  private final Collection<DartLibrary> libraries;
+  private final DartLibrary[] libraries;
 
   /**
    * Create a search scope that encompasses everything in the given libraries.
@@ -36,6 +35,15 @@ public class LibrarySearchScope implements SearchScope {
    * @param libraries the libraries defining which elements are included in the scope
    */
   public LibrarySearchScope(Collection<DartLibrary> libraries) {
+    this(libraries.toArray(new DartLibrary[libraries.size()]));
+  }
+
+  /**
+   * Create a search scope that encompasses everything in the given libraries.
+   * 
+   * @param libraries the libraries defining which elements are included in the scope
+   */
+  public LibrarySearchScope(DartLibrary... libraries) {
     this.libraries = libraries;
   }
 
@@ -45,7 +53,7 @@ public class LibrarySearchScope implements SearchScope {
    * @param library the library defining which elements are included in the scope
    */
   public LibrarySearchScope(DartLibrary library) {
-    this(Collections.singleton(library));
+    this(new DartLibrary[] {library});
   }
 
   @Override
@@ -64,18 +72,7 @@ public class LibrarySearchScope implements SearchScope {
    * 
    * @return the collection of libraries defining which elements are included in the scope
    */
-  public Collection<DartLibrary> getLibraries() {
+  public DartLibrary[] getLibraries() {
     return libraries;
   }
-
-  /**
-   * Return the library defining which elements are included in the scope.
-   * 
-   * @return the library defining which elements are included in the scope
-   */
-  @Deprecated
-  public DartLibrary getLibrary() {
-    return libraries.iterator().next();
-  }
-
 }
