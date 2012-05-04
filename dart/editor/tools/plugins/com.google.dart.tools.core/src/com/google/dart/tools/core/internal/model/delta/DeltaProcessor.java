@@ -834,8 +834,10 @@ public class DeltaProcessor {
   private void recomputeLibrarySet(DartElement dartElement) {
     DartProjectImpl dartProject = (DartProjectImpl) dartElement.getDartProject();
     if (!projectHasRecomputedLibrarySet.contains(dartProject.getElementName())) {
-      dartProject.recomputeLibrarySet();
-      projectHasRecomputedLibrarySet.add(dartProject.getElementName());
+      if (dartProject.isOpen()) {
+        dartProject.recomputeLibrarySet();
+        projectHasRecomputedLibrarySet.add(dartProject.getElementName());
+      }
     }
   }
 
