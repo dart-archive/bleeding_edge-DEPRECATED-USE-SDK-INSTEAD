@@ -45,8 +45,6 @@ import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -437,14 +435,12 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
         handleSelectedConfigChanged();
       }
     });
-    launchesViewer.addDoubleClickListener(new IDoubleClickListener() {
-      @Override
-      public void doubleClick(DoubleClickEvent event) {
-        okPressed();
-      }
-    });
+    
     GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).hint(50, 50).applyTo(
         launchesViewer.getControl());
+
+    GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).hint(50, 50)
+        .applyTo(launchesViewer.getControl());
 
     toolBarManager.add(getCreateAction());
     toolBarManager.add(getDeleteAction());
