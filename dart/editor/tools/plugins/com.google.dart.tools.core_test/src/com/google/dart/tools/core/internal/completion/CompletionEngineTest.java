@@ -316,6 +316,42 @@ public class CompletionEngineTest extends TestCase {
 //        "1+xdr", "1+xa", "2+a", "2-b");
   }
 
+  public void testCommentSnippets051() throws Exception {
+    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
+      test(
+          "void r() {var l = new List.from(['a','b','c']);l.!1length;for (var q in l) {if (q is String) {l.!2length;}}}",
+          "1+length",
+          "2+value");
+    }
+  }
+
+  public void testCommentSnippets052() throws Exception {
+    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
+      test(
+          "void r() {var l = new List.from(['a','b','c']);l.!1length;for (int i=i;i<2;i++) {if (q is String) {l.!2length;}}}",
+          "1+length",
+          "2+value");
+    }
+  }
+
+  public void testCommentSnippets053() throws Exception {
+    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
+      test(
+          "void r() {var l = new List.from(['a','b','c']);l.!1length;while (true) {if (q is String) {l.!2length;}}}",
+          "1+length",
+          "2+value");
+    }
+  }
+
+  public void testCommentSnippets054() throws Exception {
+    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
+      test(
+          "void r() {var l = new List.from(['a','b','c']);l.!1length;do {if (q is String) {l.!2length;}}while (true);}",
+          "1+length",
+          "2+value");
+    }
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test

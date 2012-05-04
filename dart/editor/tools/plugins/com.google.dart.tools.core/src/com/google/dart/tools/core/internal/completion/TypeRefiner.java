@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartForInStatement;
 import com.google.dart.compiler.ast.DartForStatement;
@@ -41,11 +42,11 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Pseudo-SSA type analyzer. Attempt to refine the type of a variable by assuming it is defined only
- * once. If the analysis discovers another assignment then quit trying and return the base type.
- * Otherwise, if the variable is found in an is-statement to have a more specific type than the base
- * type, return the more specific type. If the variable is declared final or const but its type is
- * dynamic then return the type of the initialization value.
+ * Optimistic-SSA type analyzer. Attempt to refine the type of a variable by assuming it is defined
+ * only once. If the analysis discovers another assignment then quit trying and return the base
+ * type. Otherwise, if the variable is found in an is-statement to have a more specific type than
+ * the base type, return the more specific type. If the variable is declared final or const but its
+ * type is dynamic then return the type of the initialization value.
  * <p>
  * Loops are assumed to contain an assignment to the variable being analyzed. This is clearly
  * sub-optimal, but proper analysis requires conversion to SSA form or computation of the dominator
@@ -161,8 +162,7 @@ public class TypeRefiner extends ASTVisitor<Void> {
   @Override
   public Void visitBlock(DartBlock node) {
     if (!visitStatements(node.getStatements())) {
-      refinedType = type;
-      return null;
+      return bailout();
     }
     return visitStatement(node);
   }
@@ -174,9 +174,16 @@ public class TypeRefiner extends ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitDoWhileStatement(DartDoWhileStatement node) {
+    return bailout();
+  }
+
+  @Override
   public Void visitForInStatement(DartForInStatement node) {
-    refinedType = type;
-    return null;
+    if (immediateChild == node.getIterable() || immediateChild == node.getVariableStatement()) {
+      return visitStatement(node);
+    }
+    return bailout();
   }
 
   @Override
@@ -184,8 +191,7 @@ public class TypeRefiner extends ASTVisitor<Void> {
     if (immediateChild == node.getInit()) {
       return visitStatement(node);
     }
-    refinedType = type;
-    return null;
+    return bailout();
   }
 
   @Override
@@ -242,8 +248,10 @@ public class TypeRefiner extends ASTVisitor<Void> {
 
   @Override
   public Void visitWhileStatement(DartWhileStatement node) {
-    refinedType = type;
-    return null;
+    if (immediateChild == node.getCondition()) {
+      return visitStatement(node);
+    }
+    return bailout();
   }
 
   private Type analyze() {
@@ -252,6 +260,11 @@ public class TypeRefiner extends ASTVisitor<Void> {
       return type;
     }
     return refinedType;
+  }
+
+  private Void bailout() {
+    refinedType = type;
+    return null;
   }
 
   private int getAssignmentCountFrom(DartNode root) {
