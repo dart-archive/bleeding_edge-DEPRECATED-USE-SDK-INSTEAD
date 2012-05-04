@@ -556,7 +556,11 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return the location that was created
    */
   private Location createLocation(int offset, int length) {
-    return new Location(peekElement(), offset, length);
+    Element element = peekElement();
+    if (element == null) {
+      element = compilationUnitElement;
+    }
+    return new Location(element, offset, length);
   }
 
   /**
@@ -1050,7 +1054,7 @@ public class IndexContributor extends ASTVisitor<Void> {
         return element;
       }
     }
-    return compilationUnitElement;
+    return null;
   }
 
   /**
