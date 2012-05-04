@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,11 +14,15 @@
 package com.google.dart.tools.core.refactoring;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.ChangeDescriptor;
 import org.eclipse.ltk.core.refactoring.ContentStamp;
@@ -90,12 +94,12 @@ public class CompilationUnitChange extends TextFileChange {
     fDescriptor = descriptor;
   }
 
-//  @Override
-//  protected IDocument acquireDocument(IProgressMonitor pm) throws CoreException {
-//    pm.beginTask("", 2); //$NON-NLS-1$
-//    fCUnit.becomeWorkingCopy(new SubProgressMonitor(pm, 1));
-//    return super.acquireDocument(new SubProgressMonitor(pm, 1));
-//  }
+  @Override
+  protected IDocument acquireDocument(IProgressMonitor pm) throws CoreException {
+    pm.beginTask("", 2); //$NON-NLS-1$
+    fCUnit.becomeWorkingCopy(new SubProgressMonitor(pm, 1));
+    return super.acquireDocument(new SubProgressMonitor(pm, 1));
+  }
 
   @Override
   protected Change createUndoChange(UndoEdit edit, ContentStamp stampToRestore) {
@@ -107,21 +111,20 @@ public class CompilationUnitChange extends TextFileChange {
     }
   }
 
-//  @Override
-//  protected void releaseDocument(IDocument document, IProgressMonitor pm) throws CoreException {
-//    boolean isModified = isDocumentModified();
-//    super.releaseDocument(document, pm);
-//    try {
-//      fCUnit.discardWorkingCopy();
-//    } finally {
-//      if (isModified && !isDocumentAcquired()) {
-//        if (fCUnit.isWorkingCopy()) {
-//          fCUnit.reconcile(CompilationUnit.NO_AST, false /* don't force problem detection */,
-//              null /* use primary owner */, null /* no progress monitor */);
-//        } else {
-//          fCUnit.makeConsistent(pm);
-//        }
-//      }
-//    }
-//  }
+  @Override
+  protected void releaseDocument(IDocument document, IProgressMonitor pm) throws CoreException {
+    boolean isModified = isDocumentModified();
+    super.releaseDocument(document, pm);
+    try {
+      fCUnit.discardWorkingCopy();
+    } finally {
+      if (isModified && !isDocumentAcquired()) {
+        if (fCUnit.isWorkingCopy()) {
+          ((CompilationUnitImpl) fCUnit).reconcile(true, pm);
+        } else {
+          fCUnit.makeConsistent(pm);
+        }
+      }
+    }
+  }
 }

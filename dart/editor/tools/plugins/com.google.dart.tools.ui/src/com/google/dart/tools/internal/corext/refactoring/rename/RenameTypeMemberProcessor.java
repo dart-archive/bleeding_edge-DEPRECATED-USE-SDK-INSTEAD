@@ -215,6 +215,22 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
       Iterable<Type> enclosingAndSubTypes = Iterables.concat(
           ImmutableSet.of(enclosingType),
           subTypes);
+      // add error if will become private
+      if (!oldName.startsWith("_") && newName.startsWith("_")) {
+        DartLibrary declarationLibrary = member.getAncestor(DartLibrary.class);
+        for (SearchMatch reference : references) {
+          DartLibrary referenceLibrary = reference.getElement().getAncestor(DartLibrary.class);
+          if (!Objects.equal(referenceLibrary, declarationLibrary)) {
+            IPath referenceLibraryPath = referenceLibrary.getDefiningCompilationUnit().getResource().getFullPath();
+            String message = Messages.format(
+                RefactoringCoreMessages.RenameProcessor_willBecomePrivate,
+                new Object[] {
+                    RenameAnalyzeUtil.getElementTypeName(member),
+                    BasicElementLabels.getPathLabel(referenceLibraryPath, false),});
+            result.addError(message, DartStatusContext.create(reference));
+          }
+        }
+      }
       // analyze top-level elements
       pm.subTask("Analyze top-level elements");
       {

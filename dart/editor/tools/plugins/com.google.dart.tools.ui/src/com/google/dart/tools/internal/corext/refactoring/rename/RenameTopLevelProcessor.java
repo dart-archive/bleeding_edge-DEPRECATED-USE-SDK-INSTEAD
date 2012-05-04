@@ -196,6 +196,8 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     try {
       RefactoringStatus result = new RefactoringStatus();
       String newName = getNewElementName();
+      // check for making private
+      result.merge(RenameAnalyzeUtil.checkBecomePrivate(oldName, newName, element, references));
       // prepare libraries with references
       Set<DartLibrary> libraries = Sets.newHashSet();
       libraries.add(element.getAncestor(DartLibrary.class));

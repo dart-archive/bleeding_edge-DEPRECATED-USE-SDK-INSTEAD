@@ -44,6 +44,7 @@ import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
+import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
@@ -63,6 +64,34 @@ import java.util.Set;
  * @coverage dart.editor.ui.refactoring.core
  */
 public class RenameAnalyzeUtil {
+
+  /**
+   * If {@link DartElement} becomes private, then marks its usage places outside of declaring
+   * {@link DartLibrary} as errors.
+   */
+  public static RefactoringStatus checkBecomePrivate(
+      String oldName,
+      String newName,
+      DartElement member,
+      List<SearchMatch> references) throws CoreException {
+    RefactoringStatus result = new RefactoringStatus();
+    if (!oldName.startsWith("_") && newName.startsWith("_")) {
+      DartLibrary declarationLibrary = member.getAncestor(DartLibrary.class);
+      for (SearchMatch reference : references) {
+        DartLibrary referenceLibrary = reference.getElement().getAncestor(DartLibrary.class);
+        if (!Objects.equal(referenceLibrary, declarationLibrary)) {
+          IPath referenceLibraryPath = referenceLibrary.getDefiningCompilationUnit().getResource().getFullPath();
+          String message = Messages.format(
+              RefactoringCoreMessages.RenameProcessor_willBecomePrivate,
+              new Object[] {
+                  RenameAnalyzeUtil.getElementTypeName(member),
+                  BasicElementLabels.getPathLabel(referenceLibraryPath, false),});
+          result.addError(message, DartStatusContext.create(reference));
+        }
+      }
+    }
+    return result;
+  }
 
   /**
    * Check that given {@link DartElement} is defined in workspace.

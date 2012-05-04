@@ -1683,6 +1683,7 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameLocalVariableProcessor_descriptor_description;
   public static String RenameLocalVariableProcessor_descriptor_description_short;
   public static String RenameLocalVariableProcessor_shadow_variable;
+  public static String RenameProcessor_willBecomePrivate;
   public static String RenameProcessor_typeMemberDecl_shadowedBy_element;
   public static String RenameProcessor_typeMemberUsage_shadowedBy_element;
   public static String RenameProcessor_topLevelDecl_shadowedBy_element;

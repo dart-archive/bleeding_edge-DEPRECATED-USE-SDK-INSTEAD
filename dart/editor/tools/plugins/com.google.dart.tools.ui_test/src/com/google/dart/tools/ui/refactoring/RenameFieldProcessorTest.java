@@ -155,6 +155,90 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "}");
   }
 
+  /**
+   * When we make field private, we should warn about using outside of declaring library.
+   */
+  public void test_OK_addUnderscore_otherLibrary() throws Exception {
+    setTestUnitContent(
+        "#library('Test');",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int test = 1;",
+        "}",
+        "f1() {",
+        "  A a = new A();",
+        "  a.test = 2;",
+        "}",
+        "");
+    setUnitContent("User.dart", new String[] {
+        "#library('User');",
+        "#import('Test.dart');",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f2() {",
+        "  A a = new A();",
+        "  a.test = 3;",
+        "}",
+        ""});
+    CompilationUnit userUnit = testProject.getUnit("User.dart");
+    Field field = findElement("test = 1;");
+    // do rename
+    showStatusCancel = false;
+    renameField(field, "_newName");
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
+    assertEquals(
+        "Renamed field will become private, so will be not visible in library 'Test/User.dart'",
+        showStatusMessages.get(0));
+    assertTestUnitContent(
+        "#library('Test');",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int _newName = 1;",
+        "}",
+        "f1() {",
+        "  A a = new A();",
+        "  a._newName = 2;",
+        "}",
+        "");
+    assertUnitContent(userUnit, new String[] {
+        "#library('User');",
+        "#import('Test.dart');",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f2() {",
+        "  A a = new A();",
+        "  a._newName = 3;",
+        "}",
+        ""});
+  }
+
+  public void test_OK_addUnderscore_sameLibrary() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int test = 1;",
+        "}",
+        "f2() {",
+        "  A a = new A();",
+        "  a.test = 2;",
+        "}",
+        "");
+    Field field = findElement("test = 1;");
+    // do rename
+    renameField(field, "_newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int _newName = 1;",
+        "}",
+        "f2() {",
+        "  A a = new A();",
+        "  a._newName = 2;",
+        "}",
+        "");
+  }
+
   public void test_OK_multipleUnits_onReference() throws Exception {
     setUnitContent(
         "Test1.dart",

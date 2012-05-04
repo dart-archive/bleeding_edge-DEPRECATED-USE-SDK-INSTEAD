@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.refactoring;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.refactoring.AbstractDartTest;
 
@@ -33,15 +34,26 @@ import java.lang.reflect.Method;
  * Base for {@link DartEditor} tests.
  */
 public class AbstractDartEditorTest extends AbstractDartTest {
+  /**
+   * Opens given {@link CompilationUnit} in the {@link DartEditor}.
+   */
+  public static DartEditor openEditor(CompilationUnit unit) throws Exception {
+    return (DartEditor) IDE.openEditor(
+        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
+        (IFile) unit.getResource());
+  }
+
   protected DartEditor testEditor;
   protected ISourceViewer sourceViewer;
+
   protected StyledText textWidget;
 
-  public void openEditor(String... lines) throws Exception {
+  /**
+   * Opens {@link DartEditor} for unit <code>Test.dart</code> with given content.
+   */
+  public void openTestEditor(String... lines) throws Exception {
     setTestUnitContent(lines);
-    testEditor = (DartEditor) IDE.openEditor(
-        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
-        (IFile) testUnit.getResource());
+    testEditor = openEditor(testUnit);
     // prepare ISourceViewer and StyledText
     {
       Method method = AbstractTextEditor.class.getDeclaredMethod("getSourceViewer");
@@ -73,9 +85,7 @@ public class AbstractDartEditorTest extends AbstractDartTest {
 
   @Override
   protected void tearDown() throws Exception {
-    if (testEditor != null) {
-      testEditor.close(false);
-    }
+    PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().closeAllEditors(false);
     super.tearDown();
   }
 }

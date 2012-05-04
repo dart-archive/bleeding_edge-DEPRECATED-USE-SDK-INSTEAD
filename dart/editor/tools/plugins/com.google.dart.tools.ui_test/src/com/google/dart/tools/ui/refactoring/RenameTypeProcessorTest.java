@@ -99,6 +99,80 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "}");
   }
 
+  /**
+   * When we make type private, we should warn about using outside of declaring library.
+   */
+  public void test_OK_addUnderscore_otherLibrary() throws Exception {
+    setTestUnitContent(
+        "#library('Test');",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "}",
+        "f1() {",
+        "  new Test();",
+        "}",
+        "");
+    setUnitContent("User.dart", new String[] {
+        "#library('User');",
+        "#import('Test.dart');",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f2() {",
+        "  new Test();",
+        "}",
+        ""});
+    CompilationUnit userUnit = testProject.getUnit("User.dart");
+    Type type = findElement("Test {");
+    // do rename
+    showStatusCancel = false;
+    renameType(type, "_NewName");
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
+    assertEquals(
+        "Renamed type will become private, so will be not visible in library 'Test/User.dart'",
+        showStatusMessages.get(0));
+    assertTestUnitContent(
+        "#library('Test');",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class _NewName {",
+        "}",
+        "f1() {",
+        "  new _NewName();",
+        "}",
+        "");
+    assertUnitContent(userUnit, new String[] {
+        "#library('User');",
+        "#import('Test.dart');",
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f2() {",
+        "  new _NewName();",
+        "}",
+        ""});
+  }
+
+  public void test_OK_addUnderscore_sameLibrary() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "}",
+        "f() {",
+        "  new Test();",
+        "}",
+        "");
+    Type type = findElement("Test {");
+    // do rename
+    renameType(type, "_NewName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class _NewName {",
+        "}",
+        "f() {",
+        "  new _NewName();",
+        "}",
+        "");
+  }
+
   public void test_OK_interfaceFactory_hasImpl_renameFactory() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
