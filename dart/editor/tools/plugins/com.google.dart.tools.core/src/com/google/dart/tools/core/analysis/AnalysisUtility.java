@@ -49,7 +49,8 @@ import java.util.Set;
  */
 class AnalysisUtility {
   private static final CompilerConfiguration config = new DefaultCompilerConfiguration(
-      new CompilerOptions(), SystemLibraryManagerProvider.getSystemLibraryManager()) {
+      new CompilerOptions(),
+      SystemLibraryManagerProvider.getSystemLibraryManager()) {
     @Override
     public boolean incremental() {
       return false;
@@ -117,14 +118,22 @@ class AnalysisUtility {
       HashMap<URI, DartUnit> parsedUnitsCopy = new HashMap<URI, DartUnit>(parsedUnits.size());
       parsedUnitsCopy.putAll(parsedUnits);
 
-      newlyResolved = DartCompilerUtilities.secureAnalyzeLibraries(librarySource, resolvedLibs,
-          parsedUnitsCopy, config, provider, errorListener, true);
+      newlyResolved = DartCompilerUtilities.secureAnalyzeLibraries(
+          librarySource,
+          resolvedLibs,
+          parsedUnitsCopy,
+          config,
+          provider,
+          errorListener,
+          true);
     } catch (IOException e) {
       errorListener.onError(newIoError(librarySource, e));
     } catch (Throwable e) {
       DartCore.logError("Exception while resolving " + libraryFile.getPath(), e);
-      DartCompilationError error = new DartCompilationError(librarySource,
-          AnalysisErrorCode.RESOLUTION_FAILURE, e.getMessage());
+      DartCompilationError error = new DartCompilationError(
+          librarySource,
+          AnalysisErrorCode.RESOLUTION_FAILURE,
+          e.getMessage());
       error.setSource(librarySource);
       errorListener.onError(error);
     }
@@ -166,14 +175,18 @@ class AnalysisUtility {
   }
 
   private static DartCompilationError newIoError(Source source, IOException e) {
-    DartCompilationError event = new DartCompilationError(source, DartCompilerErrorCode.IO,
+    DartCompilationError event = new DartCompilationError(
+        source,
+        DartCompilerErrorCode.IO,
         e.getMessage());
     event.setSource(source);
     return event;
   }
 
   private static DartCompilationError newParseFailure(DartSource source, Throwable e) {
-    DartCompilationError error = new DartCompilationError(source, AnalysisErrorCode.PARSE_FAILURE,
+    DartCompilationError error = new DartCompilationError(
+        source,
+        AnalysisErrorCode.PARSE_FAILURE,
         e.getMessage());
     error.setSource(source);
     return error;

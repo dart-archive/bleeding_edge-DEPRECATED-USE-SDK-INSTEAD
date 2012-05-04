@@ -230,7 +230,8 @@ public class BindingUtils {
         }
         return null;
       } else if (parent instanceof DartMethodDefinition) {
-        com.google.dart.tools.core.model.DartFunction method = getDartElement(unit,
+        com.google.dart.tools.core.model.DartFunction method = getDartElement(
+            unit,
             (DartMethodDefinition) parent);
         if (method != null) {
           try {
@@ -242,7 +243,8 @@ public class BindingUtils {
         return null;
       } else if (parent instanceof DartFunction
           && !(parent.getParent() instanceof DartMethodDefinition)) {
-        com.google.dart.tools.core.model.DartFunction function = getDartElement(unit,
+        com.google.dart.tools.core.model.DartFunction function = getDartElement(
+            unit,
             (DartFunction) parent);
         if (function != null) {
           try {
@@ -555,14 +557,16 @@ public class BindingUtils {
         definingLibrary = library;
       }
       List<com.google.dart.tools.core.model.DartFunction> matchingFunctions = getImmediateFunctions(
-          definingLibrary, methodBinding.getName());
+          definingLibrary,
+          methodBinding.getName());
       if (matchingFunctions.size() == 1) {
         return matchingFunctions.get(0);
       }
       DartCore.notYetImplemented();
       return null;
     } else if (enclosingElement instanceof MethodElement) {
-      com.google.dart.tools.core.model.DartFunction method = getDartElement(library,
+      com.google.dart.tools.core.model.DartFunction method = getDartElement(
+          library,
           (MethodElement) enclosingElement);
       if (method == null) {
         return null;
@@ -671,7 +675,8 @@ public class BindingUtils {
     }
     if (variableBinding.getEnclosingElement() instanceof MethodElement) {
       MethodElement methodElement = (MethodElement) variableBinding.getEnclosingElement();
-      com.google.dart.tools.core.model.DartFunction functionElement = getDartElement(library,
+      com.google.dart.tools.core.model.DartFunction functionElement = getDartElement(
+          library,
           methodElement);
       if (functionElement != null) {
         try {
@@ -1119,7 +1124,10 @@ public class BindingUtils {
       for (DartLibrary importedLibrary : getAllImportedLibraries(library)) {
         URI importedLibraryUri = URIUtilities.safelyResolveDartUri(((DartLibraryImpl) importedLibrary).getLibrarySourceFile().getUri());
         if (!visitedLibraries.contains(importedLibraryUri)) {
-          DartLibrary foundLibrary = findLibrary(importedLibrary, importedLibraryUri, targetUri,
+          DartLibrary foundLibrary = findLibrary(
+              importedLibrary,
+              importedLibraryUri,
+              targetUri,
               visitedLibraries);
           if (foundLibrary != null) {
             return foundLibrary;
@@ -1202,7 +1210,8 @@ public class BindingUtils {
             return (com.google.dart.tools.core.model.DartFunction) child;
           } else if (child.getElementName().length() == 0) {
             com.google.dart.tools.core.model.DartFunction grandchild = getFunction(
-                (com.google.dart.tools.core.model.DartFunction) child, functionName);
+                (com.google.dart.tools.core.model.DartFunction) child,
+                functionName);
             if (grandchild != null) {
               return grandchild;
             }

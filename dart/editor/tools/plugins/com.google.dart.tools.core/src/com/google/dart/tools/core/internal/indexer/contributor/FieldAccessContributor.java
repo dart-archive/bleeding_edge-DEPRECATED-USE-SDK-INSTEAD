@@ -48,7 +48,8 @@ public class FieldAccessContributor extends ScopedDartContributor {
       if (fieldOrVariable instanceof Field) {
         Field field = (Field) fieldOrVariable;
         try {
-          recordRelationship(peekTarget(new SourceRangeImpl(node)),
+          recordRelationship(
+              peekTarget(new SourceRangeImpl(node)),
               new FieldLocation(field, field.getNameRange()));
         } catch (DartModelException exception) {
           // Ignored
@@ -56,7 +57,8 @@ public class FieldAccessContributor extends ScopedDartContributor {
       } else if (fieldOrVariable instanceof DartVariableDeclaration) {
         DartVariableDeclaration variable = (DartVariableDeclaration) fieldOrVariable;
         try {
-          recordRelationship(peekTarget(new SourceRangeImpl(node)), new VariableLocation(variable,
+          recordRelationship(peekTarget(new SourceRangeImpl(node)), new VariableLocation(
+              variable,
               variable.getNameRange()));
         } catch (DartModelException exception) {
           // Ignored

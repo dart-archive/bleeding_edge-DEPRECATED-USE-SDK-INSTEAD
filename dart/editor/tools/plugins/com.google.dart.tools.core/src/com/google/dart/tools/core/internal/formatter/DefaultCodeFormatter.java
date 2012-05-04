@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -140,17 +140,29 @@ public class DefaultCodeFormatter extends CodeFormatter {
       case K_JAVA_DOC:
         // https://bugs.eclipse.org/bugs/show_bug.cgi?id=102780
         // use the integrated comment formatter to format comment
-        return formatComment(kind & K_MASK, source, indentationLevel, lineSeparator,
+        return formatComment(
+            kind & K_MASK,
+            source,
+            indentationLevel,
+            lineSeparator,
             new IRegion[] {new Region(offset, length)});
         // $FALL-THROUGH$ - fall through next case when old comment formatter is
         // activated
       case K_MULTI_LINE_COMMENT:
       case K_SINGLE_LINE_COMMENT:
-        return formatComment(kind & K_MASK, source, indentationLevel, lineSeparator,
+        return formatComment(
+            kind & K_MASK,
+            source,
+            indentationLevel,
+            lineSeparator,
             new IRegion[] {new Region(offset, length)});
     }
 
-    return format(kind, source, new IRegion[] {new Region(offset, length)}, indentationLevel,
+    return format(
+        kind,
+        source,
+        new IRegion[] {new Region(offset, length)},
+        indentationLevel,
         lineSeparator);
   }
 
@@ -168,10 +180,18 @@ public class DefaultCodeFormatter extends CodeFormatter {
     boolean includeComments = (kind & F_INCLUDE_COMMENTS) != 0;
     switch (kind & K_MASK) {
       case K_CLASS_BODY_DECLARATIONS:
-        return formatClassBodyDeclarations(source, indentationLevel, lineSeparator, regions,
+        return formatClassBodyDeclarations(
+            source,
+            indentationLevel,
+            lineSeparator,
+            regions,
             includeComments);
       case K_COMPILATION_UNIT:
-        return formatCompilationUnit(source, indentationLevel, lineSeparator, regions,
+        return formatCompilationUnit(
+            source,
+            indentationLevel,
+            lineSeparator,
+            regions,
             includeComments);
       case K_EXPRESSION:
         return formatExpression(source, indentationLevel, lineSeparator, regions, includeComments);
@@ -195,14 +215,21 @@ public class DefaultCodeFormatter extends CodeFormatter {
   private TextEdit formatClassBodyDeclarations(String source, int indentationLevel,
       String lineSeparator, IRegion[] regions, boolean includeComments) {
     DartNode[] bodyDeclarations = this.codeSnippetParsingUtil.parseClassBodyDeclarations(
-        source.toCharArray(), getDefaultCompilerOptions(), true);
+        source.toCharArray(),
+        getDefaultCompilerOptions(),
+        true);
 
     if (bodyDeclarations == null) {
       // a problem occurred while parsing the source
       return null;
     }
-    return internalFormatClassBodyDeclarations(source, indentationLevel, lineSeparator,
-        bodyDeclarations, regions, includeComments);
+    return internalFormatClassBodyDeclarations(
+        source,
+        indentationLevel,
+        lineSeparator,
+        bodyDeclarations,
+        regions,
+        includeComments);
   }
 
   /*
@@ -237,10 +264,15 @@ public class DefaultCodeFormatter extends CodeFormatter {
       if (this.codeSnippetParsingUtil == null) {
         this.codeSnippetParsingUtil = new CodeSnippetParsingUtil();
       }
-      this.codeSnippetParsingUtil.parseCompilationUnit(source.toCharArray(),
-          getDefaultCompilerOptions(), true);
-      this.newCodeFormatter = new CodeFormatterVisitor(this.preferences, regions,
-          this.codeSnippetParsingUtil, true);
+      this.codeSnippetParsingUtil.parseCompilationUnit(
+          source.toCharArray(),
+          getDefaultCompilerOptions(),
+          true);
+      this.newCodeFormatter = new CodeFormatterVisitor(
+          this.preferences,
+          regions,
+          this.codeSnippetParsingUtil,
+          true);
       IRegion coveredRegion = getCoveredRegion(regions);
       int start = coveredRegion.getOffset();
       int end = start + coveredRegion.getLength();
@@ -253,7 +285,9 @@ public class DefaultCodeFormatter extends CodeFormatter {
   private TextEdit formatCompilationUnit(String source, int indentationLevel, String lineSeparator,
       IRegion[] regions, boolean includeComments) {
     DartUnit compilationUnitDeclaration = this.codeSnippetParsingUtil.parseCompilationUnit(
-        source.toCharArray(), getDefaultCompilerOptions(), true);
+        source.toCharArray(),
+        getDefaultCompilerOptions(),
+        true);
 
     if (lineSeparator != null) {
       this.preferences.line_separator = lineSeparator;
@@ -262,22 +296,32 @@ public class DefaultCodeFormatter extends CodeFormatter {
     }
     this.preferences.initial_indentation_level = indentationLevel;
 
-    this.newCodeFormatter = new CodeFormatterVisitor(this.preferences, regions,
-        this.codeSnippetParsingUtil, includeComments);
+    this.newCodeFormatter = new CodeFormatterVisitor(
+        this.preferences,
+        regions,
+        this.codeSnippetParsingUtil,
+        includeComments);
 
     return this.newCodeFormatter.format(source, compilationUnitDeclaration);
   }
 
   private TextEdit formatExpression(String source, int indentationLevel, String lineSeparator,
       IRegion[] regions, boolean includeComments) {
-    DartExpression expression = this.codeSnippetParsingUtil.parseExpression(source.toCharArray(),
-        getDefaultCompilerOptions(), true);
+    DartExpression expression = this.codeSnippetParsingUtil.parseExpression(
+        source.toCharArray(),
+        getDefaultCompilerOptions(),
+        true);
 
     if (expression == null) {
       // a problem occurred while parsing the source
       return null;
     }
-    return internalFormatExpression(source, indentationLevel, lineSeparator, expression, regions,
+    return internalFormatExpression(
+        source,
+        indentationLevel,
+        lineSeparator,
+        expression,
+        regions,
         includeComments);
   }
 
@@ -286,7 +330,10 @@ public class DefaultCodeFormatter extends CodeFormatter {
     DartCore.notYetImplemented();
     // TODO why do we use a constructor here?
     DartMethodDefinition constructorDeclaration = this.codeSnippetParsingUtil.parseStatements(
-        source.toCharArray(), getDefaultCompilerOptions(), true, false);
+        source.toCharArray(),
+        getDefaultCompilerOptions(),
+        true,
+        false);
 
     try {
       if (constructorDeclaration.getFunction().getBody().getStatements() == null) {
@@ -296,8 +343,13 @@ public class DefaultCodeFormatter extends CodeFormatter {
     } catch (NullPointerException ex) {
       return null; // a problem occured while parsing the source
     }
-    return internalFormatStatements(source, indentationLevel, lineSeparator,
-        constructorDeclaration, regions, includeComments);
+    return internalFormatStatements(
+        source,
+        indentationLevel,
+        lineSeparator,
+        constructorDeclaration,
+        regions,
+        includeComments);
   }
 
   private IRegion getCoveredRegion(IRegion[] regions) {
@@ -472,8 +524,11 @@ public class DefaultCodeFormatter extends CodeFormatter {
     }
     this.preferences.initial_indentation_level = indentationLevel;
 
-    this.newCodeFormatter = new CodeFormatterVisitor(this.preferences, regions,
-        this.codeSnippetParsingUtil, includeComments);
+    this.newCodeFormatter = new CodeFormatterVisitor(
+        this.preferences,
+        regions,
+        this.codeSnippetParsingUtil,
+        includeComments);
     return this.newCodeFormatter.format(source, bodyDeclarations);
   }
 
@@ -486,8 +541,11 @@ public class DefaultCodeFormatter extends CodeFormatter {
     }
     this.preferences.initial_indentation_level = indentationLevel;
 
-    this.newCodeFormatter = new CodeFormatterVisitor(this.preferences, regions,
-        this.codeSnippetParsingUtil, includeComments);
+    this.newCodeFormatter = new CodeFormatterVisitor(
+        this.preferences,
+        regions,
+        this.codeSnippetParsingUtil,
+        includeComments);
 
     TextEdit textEdit = this.newCodeFormatter.format(source, expression);
     return textEdit;
@@ -503,8 +561,11 @@ public class DefaultCodeFormatter extends CodeFormatter {
     }
     this.preferences.initial_indentation_level = indentationLevel;
 
-    this.newCodeFormatter = new CodeFormatterVisitor(this.preferences, regions,
-        this.codeSnippetParsingUtil, includeComments);
+    this.newCodeFormatter = new CodeFormatterVisitor(
+        this.preferences,
+        regions,
+        this.codeSnippetParsingUtil,
+        includeComments);
 
     return this.newCodeFormatter.format(source, constructorDeclaration);
   }
@@ -568,28 +629,50 @@ public class DefaultCodeFormatter extends CodeFormatter {
     PROBING_SCANNER.setSource((char[]) null);
 
     // probe for expression
-    DartExpression expression = this.codeSnippetParsingUtil.parseExpression(source.toCharArray(),
-        getDefaultCompilerOptions(), true);
+    DartExpression expression = this.codeSnippetParsingUtil.parseExpression(
+        source.toCharArray(),
+        getDefaultCompilerOptions(),
+        true);
     if (expression != null) {
-      return internalFormatExpression(source, indentationLevel, lineSeparator, expression, regions,
+      return internalFormatExpression(
+          source,
+          indentationLevel,
+          lineSeparator,
+          expression,
+          regions,
           includeComments);
     }
 
     // probe for body declarations (fields, methods, constructors)
     DartNode[] bodyDeclarations = this.codeSnippetParsingUtil.parseClassBodyDeclarations(
-        source.toCharArray(), getDefaultCompilerOptions(), true);
+        source.toCharArray(),
+        getDefaultCompilerOptions(),
+        true);
     if (bodyDeclarations != null) {
-      return internalFormatClassBodyDeclarations(source, indentationLevel, lineSeparator,
-          bodyDeclarations, regions, includeComments);
+      return internalFormatClassBodyDeclarations(
+          source,
+          indentationLevel,
+          lineSeparator,
+          bodyDeclarations,
+          regions,
+          includeComments);
     }
 
     // probe for statements
     DartMethodDefinition constructorDeclaration = this.codeSnippetParsingUtil.parseStatements(
-        source.toCharArray(), getDefaultCompilerOptions(), true, false);
+        source.toCharArray(),
+        getDefaultCompilerOptions(),
+        true,
+        false);
     try {
       if (constructorDeclaration.getFunction().getBody().getStatements() != null) {
-        return internalFormatStatements(source, indentationLevel, lineSeparator,
-            constructorDeclaration, regions, includeComments);
+        return internalFormatStatements(
+            source,
+            indentationLevel,
+            lineSeparator,
+            constructorDeclaration,
+            regions,
+            includeComments);
       }
     } catch (NullPointerException ex) {
       // fall through

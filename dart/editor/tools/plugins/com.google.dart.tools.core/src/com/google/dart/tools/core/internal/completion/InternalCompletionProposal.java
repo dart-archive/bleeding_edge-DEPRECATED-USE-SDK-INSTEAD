@@ -189,7 +189,8 @@ public class InternalCompletionProposal extends CompletionProposal {
       switch (this.completionKind) {
         case ANONYMOUS_CLASS_DECLARATION:
           try {
-            this.parameterNames = findMethodParameterNames(this.declarationTypeName,
+            this.parameterNames = findMethodParameterNames(
+                this.declarationTypeName,
                 CharOperation.lastSegment(this.declarationTypeName, '.'),
                 getParameterTypes(this.originalSignature == null ? this.signature
                     : this.originalSignature));
@@ -204,7 +205,8 @@ public class InternalCompletionProposal extends CompletionProposal {
           break;
         case ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION:
           try {
-            this.parameterNames = findConstructorParameterNames(this.declarationTypeName,
+            this.parameterNames = findConstructorParameterNames(
+                this.declarationTypeName,
                 CharOperation.lastSegment(this.declarationTypeName, '.'),
                 getParameterTypes(this.originalSignature == null ? this.signature
                     : this.originalSignature));
@@ -220,7 +222,9 @@ public class InternalCompletionProposal extends CompletionProposal {
         case METHOD_REF:
         case METHOD_REF_WITH_CASTED_RECEIVER:
           try {
-            this.parameterNames = findMethodParameterNames(this.declarationTypeName, this.name,
+            this.parameterNames = findMethodParameterNames(
+                this.declarationTypeName,
+                this.name,
                 getParameterTypes(this.originalSignature == null ? this.signature
                     : this.originalSignature));
           } catch (IllegalArgumentException e) {
@@ -234,8 +238,10 @@ public class InternalCompletionProposal extends CompletionProposal {
           break;
         case CONSTRUCTOR_INVOCATION:
           try {
-            this.parameterNames = findConstructorParameterNames(this.declarationTypeName,
-                this.name, getParameterTypes(this.originalSignature == null ? this.signature
+            this.parameterNames = findConstructorParameterNames(
+                this.declarationTypeName,
+                this.name,
+                getParameterTypes(this.originalSignature == null ? this.signature
                     : this.originalSignature));
           } catch (IllegalArgumentException e) {
             // protection for invalid signature
@@ -248,7 +254,9 @@ public class InternalCompletionProposal extends CompletionProposal {
           break;
         case METHOD_DECLARATION:
           try {
-            this.parameterNames = findMethodParameterNames(this.declarationTypeName, this.name,
+            this.parameterNames = findMethodParameterNames(
+                this.declarationTypeName,
+                this.name,
                 getParameterTypes(this.originalSignature == null ? this.signature
                     : this.originalSignature));
           } catch (IllegalArgumentException e) {
@@ -1308,8 +1316,10 @@ public class InternalCompletionProposal extends CompletionProposal {
     SearchEngine engine = SearchEngineFactory.createSearchEngine();
     GatheringSearchListener listener = new GatheringSearchListener();
     try {
-      engine.searchTypeDeclarations(new WorkspaceSearchScope(),
-          SearchPatternFactory.createExactPattern(typeName, true), listener,
+      engine.searchTypeDeclarations(
+          new WorkspaceSearchScope(),
+          SearchPatternFactory.createExactPattern(typeName, true),
+          listener,
           new NullProgressMonitor());
     } catch (SearchException ex) {
     }

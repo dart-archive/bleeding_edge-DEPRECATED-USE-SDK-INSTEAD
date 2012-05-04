@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -130,7 +130,8 @@ public abstract class WorkingCopyOwner {
       throws DartModelException {
     ExternalDartProject project = new ExternalDartProject();
     IFile libraryFile = project.getProject().getFile(name);
-    LibrarySource sourceFile = new UrlLibrarySource(new File(name).toURI(),
+    LibrarySource sourceFile = new UrlLibrarySource(
+        new File(name).toURI(),
         SystemLibraryManagerProvider.getSystemLibraryManager());
     DartLibraryImpl parent = new DartLibraryImpl(project, libraryFile, sourceFile);
     CompilationUnitImpl result = new CompilationUnitImpl(parent, libraryFile, this);

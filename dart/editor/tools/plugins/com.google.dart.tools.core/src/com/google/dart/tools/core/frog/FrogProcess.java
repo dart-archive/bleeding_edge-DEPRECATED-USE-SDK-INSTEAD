@@ -83,8 +83,12 @@ public class FrogProcess {
     ProcessBuilder builder = new ProcessBuilder();
 
     // Set the heap size to 128MB.
-    builder.command(FrogManager.getDartVmExecutablePath(), "--new_gen_heap_size=128",
-        FROG_SERVER_PATH, FrogManager.LOCALHOST_ADDRESS, Integer.toString(getPort()));
+    builder.command(
+        FrogManager.getDartVmExecutablePath(),
+        "--new_gen_heap_size=128",
+        FROG_SERVER_PATH,
+        FrogManager.LOCALHOST_ADDRESS,
+        Integer.toString(getPort()));
     builder.directory(DartSdk.getInstance().getLibraryDirectory());
     builder.redirectErrorStream(true);
 

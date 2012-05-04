@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -369,8 +369,13 @@ public abstract class OpenableElementImpl extends DartElementImpl implements Ope
 //    environment.unitToSkip = unitToSkip;
 
     // code complete
-    CompletionEngine engine = new CompletionEngine(environment, requestor,
-        project.getOptions(true), project, owner, monitor);
+    CompletionEngine engine = new CompletionEngine(
+        environment,
+        requestor,
+        project.getOptions(true),
+        project,
+        owner,
+        monitor);
     engine.complete(cu, position, 0);
 //    if (performanceStats != null) {
 //      performanceStats.endRun();
@@ -474,7 +479,10 @@ public abstract class OpenableElementImpl extends DartElementImpl implements Ope
     // build the structure of the openable (this will open the buffer if needed)
     try {
       OpenableElementInfo openableElementInfo = (OpenableElementInfo) info;
-      boolean isStructureKnown = buildStructure(openableElementInfo, monitor, newElements,
+      boolean isStructureKnown = buildStructure(
+          openableElementInfo,
+          monitor,
+          newElements,
           underlResource);
       openableElementInfo.setIsStructureKnown(isStructureKnown);
     } catch (DartModelException e) {

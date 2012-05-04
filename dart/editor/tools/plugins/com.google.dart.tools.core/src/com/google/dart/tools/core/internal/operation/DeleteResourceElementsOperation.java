@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -120,7 +120,8 @@ public class DeleteResourceElementsOperation extends MultiOperation {
       // break;
       default:
         throw new DartModelException(new DartModelStatusImpl(
-            DartModelStatusConstants.INVALID_ELEMENT_TYPES, element));
+            DartModelStatusConstants.INVALID_ELEMENT_TYPES,
+            element));
     }
     // ensure the element is closed
     if (element instanceof OpenableElement) {

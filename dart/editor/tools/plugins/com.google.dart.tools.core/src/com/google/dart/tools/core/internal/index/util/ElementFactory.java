@@ -81,7 +81,8 @@ public final class ElementFactory {
     LibraryElement libraryElement = getLibraryElement(element);
 //    long start = System.currentTimeMillis();
     CompilationUnitElement dartType = BindingUtils.getDartElement(
-        BindingUtils.getDartElement(libraryElement), element);
+        BindingUtils.getDartElement(libraryElement),
+        element);
 //    bindingTime += (System.currentTimeMillis() - start);
     if (dartType == null) {
       return null;
@@ -138,7 +139,9 @@ public final class ElementFactory {
       throws DartModelException {
 //    long start = System.currentTimeMillis();
     CompilationUnitElement field = BindingUtils.getDartElement(
-        BindingUtils.getDartElement(BindingUtils.getLibrary(element)), element, allowGetter,
+        BindingUtils.getDartElement(BindingUtils.getLibrary(element)),
+        element,
+        allowGetter,
         allowSetter);
 //    bindingTime += (System.currentTimeMillis() - start);
     if (field == null) {
@@ -150,7 +153,8 @@ public final class ElementFactory {
       return new Element(ResourceFactory.getResource(field), composeElementId(element.getName()));
     }
     return new Element(ResourceFactory.getResource(field), composeElementId(
-        getElement(parentElement), element.getName()));
+        getElement(parentElement),
+        element.getName()));
   }
 
   /**
@@ -174,7 +178,8 @@ public final class ElementFactory {
    */
   public static Element getElement(LibraryElement element) {
     String libraryId = element.getLibraryUnit().getSource().getUri().toString();
-    return new Element(new Resource(ResourceFactory.composeResourceId(libraryId, libraryId)),
+    return new Element(
+        new Resource(ResourceFactory.composeResourceId(libraryId, libraryId)),
         LIBRARY_ELEMENT_ID);
   }
 
@@ -208,7 +213,8 @@ public final class ElementFactory {
       return new Element(ResourceFactory.getResource(method), composeElementId(methodName));
     }
     return new Element(ResourceFactory.getResource(method), composeElementId(
-        getElement(parentElement), methodName));
+        getElement(parentElement),
+        methodName));
   }
 
   /**

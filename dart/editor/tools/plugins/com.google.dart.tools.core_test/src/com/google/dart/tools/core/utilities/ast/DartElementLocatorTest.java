@@ -44,12 +44,8 @@ import java.util.List;
 public class DartElementLocatorTest extends TestCase {
 
   @SuppressWarnings("unchecked")
-  private static <T extends DartElement> T assertLocation(
-      CompilationUnit unit,
-      String posMarker,
-      Class<?> expectedElementType,
-      String expectedMarker,
-      int expectedLen) throws Exception {
+  private static <T extends DartElement> T assertLocation(CompilationUnit unit, String posMarker,
+      Class<?> expectedElementType, String expectedMarker, int expectedLen) throws Exception {
     String source = unit.getSource();
     // prepare DartUnit
     DartUnit dartUnit;
@@ -84,12 +80,8 @@ public class DartElementLocatorTest extends TestCase {
     }
   }
 
-  private static void testElementLocator(
-      String[] sourceLines,
-      String posMarker,
-      Class<?> expectedElementType,
-      String expectedMarker,
-      int expectedLen) throws Exception {
+  private static void testElementLocator(String[] sourceLines, String posMarker,
+      Class<?> expectedElementType, String expectedMarker, int expectedLen) throws Exception {
     TestProject testProject = new TestProject("Test");
     try {
       CompilationUnit unit = testProject.setUnitContent(
@@ -234,110 +226,105 @@ public class DartElementLocatorTest extends TestCase {
   }
 
   public void test_DartTypeParameter_inFunctonTypeAlias_onTypeName() throws Exception {
-    testElementLocator(new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler filler",
-        "typedef Test<A extends String>(A a);",
-        ""}, "A a", DartTypeParameter.class, "A extends String>", 1);
+    testElementLocator(
+        new String[] {
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "typedef Test<A extends String>(A a);", ""},
+        "A a",
+        DartTypeParameter.class,
+        "A extends String>",
+        1);
   }
 
   public void test_DartTypeParameter_inType_onTypeName() throws Exception {
     testElementLocator(new String[] {
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "class Test<A> {",
-        "  f(A a) {",
-        "  }",
-        "}"}, "A a", DartTypeParameter.class, "A>", 1);
+        "class Test<A> {", "  f(A a) {", "  }", "}"}, "A a", DartTypeParameter.class, "A>", 1);
   }
 
   public void test_FieldElement_classMember() throws Exception {
     testElementLocator(new String[] {
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "process(x) {}",
-        "class A {",
-        "  var bbb = 1;",
-        "}",
-        "foo() {",
-        "  A a = new A();",
-        "  process(a.bbb);",
-        "}"}, "bbb);", Field.class, "bbb = 1", 3);
+        "process(x) {}", "class A {", "  var bbb = 1;", "}", "foo() {", "  A a = new A();",
+        "  process(a.bbb);", "}"}, "bbb);", Field.class, "bbb = 1", 3);
   }
 
   public void test_methodInvocation() throws Exception {
     testElementLocator(new String[] {
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "foo() {}",
-        "bar() {",
-        "  foo();",
-        "}"}, "foo();", DartFunction.class, "foo() {}", 3);
+        "foo() {}", "bar() {", "  foo();", "}"}, "foo();", DartFunction.class, "foo() {}", 3);
   }
 
   public void test_type_newExpression() throws Exception {
-    testElementLocator(new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  A() {}",
-        "}",
-        "foo() {",
-        "  A a = new A();",
-        "}"}, "A();", Method.class, "A() {}", 1);
+    testElementLocator(
+        new String[] {
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "class A {", "  A() {}", "}", "foo() {", "  A a = new A();", "}"},
+        "A();",
+        Method.class,
+        "A() {}",
+        1);
   }
 
   public void test_type_typeName() throws Exception {
     testElementLocator(new String[] {
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "class A {}",
-        "foo() {",
-        "  A a = null;",
-        "}"}, "A a =", Type.class, "A {}", 1);
+        "class A {}", "foo() {", "  A a = null;", "}"}, "A a =", Type.class, "A {}", 1);
   }
 
   public void test_VariableElement_localVariable() throws Exception {
-    testElementLocator(new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler filler",
-        "process(x) {}",
-        "foo() {",
-        "  var aaa = 1;",
-        "  process(aaa);",
-        "}"}, "aaa);", DartVariableDeclaration.class, "aaa = 1", 3);
+    testElementLocator(
+        new String[] {
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}", "foo() {", "  var aaa = 1;", "  process(aaa);", "}"},
+        "aaa);",
+        DartVariableDeclaration.class,
+        "aaa = 1",
+        3);
   }
 
   public void test_VariableElement_parameter_declaration() throws Exception {
-    testElementLocator(new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler filler",
-        "process(x) {}",
-        "foo(a, bb, ccc) {",
-        "  process(bb);",
-        "}"}, "b, ccc", DartVariableDeclaration.class, "bb, ", 2);
+    testElementLocator(
+        new String[] {
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}", "foo(a, bb, ccc) {", "  process(bb);", "}"},
+        "b, ccc",
+        DartVariableDeclaration.class,
+        "bb, ",
+        2);
   }
 
   public void test_VariableElement_parameter_reference_inClassMethod() throws Exception {
-    testElementLocator(new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler filler",
-        "process(x) {}",
-        "class A {",
-        "  foo(a, bb, ccc) {",
-        "    process(bb);",
-        "  }",
-        "}"}, "bb);", DartVariableDeclaration.class, "bb, ", 2);
+    testElementLocator(
+        new String[] {
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}", "class A {", "  foo(a, bb, ccc) {", "    process(bb);", "  }", "}"},
+        "bb);",
+        DartVariableDeclaration.class,
+        "bb, ",
+        2);
   }
 
   public void test_VariableElement_parameter_reference_inTopMethod() throws Exception {
-    testElementLocator(new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler filler",
-        "process(x) {}",
-        "foo(a, bb, ccc) {",
-        "  process(bb);",
-        "}"}, "bb);", DartVariableDeclaration.class, "bb, ", 2);
+    testElementLocator(
+        new String[] {
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}", "foo(a, bb, ccc) {", "  process(bb);", "}"},
+        "bb);",
+        DartVariableDeclaration.class,
+        "bb, ",
+        2);
   }
 
   public void test_VariableElement_topLevel() throws Exception {
-    testElementLocator(new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler filler",
-        "process(x) {}",
-        "var aaa = 1;",
-        "foo() {",
-        "  process(aaa);",
-        "}"}, "aaa);", DartVariableDeclaration.class, "aaa = 1", 3);
+    testElementLocator(
+        new String[] {
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "process(x) {}", "var aaa = 1;", "foo() {", "  process(aaa);", "}"},
+        "aaa);",
+        DartVariableDeclaration.class,
+        "aaa = 1",
+        3);
   }
 
 }

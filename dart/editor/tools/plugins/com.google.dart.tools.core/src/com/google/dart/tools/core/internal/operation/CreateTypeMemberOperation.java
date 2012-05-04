@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -171,7 +171,8 @@ public abstract class CreateTypeMemberOperation extends CreateElementInCUOperati
     // create some dummy source to generate an ast node
     StringBuffer buff = new StringBuffer();
     Type type = getType();
-    String lineSeparator = Util.getLineSeparator(source,
+    String lineSeparator = Util.getLineSeparator(
+        source,
         type == null ? null : type.getDartProject());
     buff.append(lineSeparator + " public class A {" + lineSeparator); //$NON-NLS-1$
     buff.append(source);
@@ -245,7 +246,10 @@ public abstract class CreateTypeMemberOperation extends CreateElementInCUOperati
     // break;
     String lineDelimiter = cu.findRecommendedLineSeparator();
     return IndentManipulation.changeIndent(
-        code.substring(firstNonWhiteSpace, lastNonWhiteSpace + 1), indent, tabWidth, indentWidth,
+        code.substring(firstNonWhiteSpace, lastNonWhiteSpace + 1),
+        indent,
+        tabWidth,
+        indentWidth,
         "", lineDelimiter); //$NON-NLS-1$
   }
 }

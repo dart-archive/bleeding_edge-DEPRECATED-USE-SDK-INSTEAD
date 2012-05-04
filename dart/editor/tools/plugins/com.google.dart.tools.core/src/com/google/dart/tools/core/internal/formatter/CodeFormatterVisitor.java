@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -276,13 +276,15 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   public DartNode visitArrayAccess(DartArrayAccess arrayReference) {
     final int numberOfParens = printOpenParens(arrayReference);
     arrayReference.getTarget().accept(this);
-    scribe.printNextToken(Token.LBRACK,
+    scribe.printNextToken(
+        Token.LBRACK,
         preferences.insert_space_before_opening_bracket_in_array_reference);
     if (preferences.insert_space_after_opening_bracket_in_array_reference) {
       scribe.space();
     }
     arrayReference.getKey().accept(this);
-    scribe.printNextToken(Token.RBRACK,
+    scribe.printNextToken(
+        Token.RBRACK,
         preferences.insert_space_before_closing_bracket_in_array_reference);
     printCloseParens(arrayReference, numberOfParens);
     return null;
@@ -301,7 +303,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       final List<DartExpression> expressions = arrayInitializer.getExpressions();
       if (expressions != null) {
         String array_initializer_brace_position = preferences.brace_position_for_array_initializer;
-        formatOpeningBracket(array_initializer_brace_position,
+        formatOpeningBracket(
+            array_initializer_brace_position,
             preferences.insert_space_before_opening_brace_in_array_initializer);
 
         int expressionsLength = expressions.size();
@@ -312,10 +315,14 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           if (insert_new_line_after_opening_brace) {
             scribe.printNewLine();
           }
-          arrayInitializerAlignment = scribe.createAlignment(Alignment.ARRAY_INITIALIZER,
-              preferences.alignment_for_expressions_in_array_initializer, Alignment.R_OUTERMOST,
-              expressionsLength, scribe.scanner.currentPosition,
-              preferences.continuation_indentation_for_array_initializer, true);
+          arrayInitializerAlignment = scribe.createAlignment(
+              Alignment.ARRAY_INITIALIZER,
+              preferences.alignment_for_expressions_in_array_initializer,
+              Alignment.R_OUTERMOST,
+              expressionsLength,
+              scribe.scanner.currentPosition,
+              preferences.continuation_indentation_for_array_initializer,
+              true);
 
           if (insert_new_line_after_opening_brace) {
             arrayInitializerAlignment.fragmentIndentations[0] = arrayInitializerAlignment.breakIndentationLevel;
@@ -330,7 +337,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
               }
               expressions.get(0).accept(this);
               for (int i = 1; i < expressionsLength; i++) {
-                scribe.printNextToken(Token.COMMA,
+                scribe.printNextToken(
+                    Token.COMMA,
                     preferences.insert_space_before_comma_in_array_initializer);
                 scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
                 scribe.alignFragment(arrayInitializerAlignment, i);
@@ -340,7 +348,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
                 expressions.get(i).accept(this);
                 if (i == expressionsLength - 1) {
                   if (isNextToken(Token.COMMA)) {
-                    scribe.printNextToken(Token.COMMA,
+                    scribe.printNextToken(
+                        Token.COMMA,
                         preferences.insert_space_before_comma_in_array_initializer);
                     scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
                   }
@@ -357,10 +366,14 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           // is not inside method arguments alignments
           if (scribe.currentAlignment == null
               || scribe.currentAlignment.kind != Alignment.MESSAGE_ARGUMENTS) {
-            arrayInitializerAlignment = scribe.createAlignment(Alignment.ARRAY_INITIALIZER,
-                preferences.alignment_for_expressions_in_array_initializer, Alignment.R_OUTERMOST,
-                0, scribe.scanner.currentPosition,
-                preferences.continuation_indentation_for_array_initializer, true);
+            arrayInitializerAlignment = scribe.createAlignment(
+                Alignment.ARRAY_INITIALIZER,
+                preferences.alignment_for_expressions_in_array_initializer,
+                Alignment.R_OUTERMOST,
+                0,
+                scribe.scanner.currentPosition,
+                preferences.continuation_indentation_for_array_initializer,
+                true);
             scribe.enterAlignment(arrayInitializerAlignment);
           }
           do {
@@ -377,7 +390,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
               }
               expressions.get(0).accept(this);
               if (isNextToken(Token.COMMA)) {
-                scribe.printNextToken(Token.COMMA,
+                scribe.printNextToken(
+                    Token.COMMA,
                     preferences.insert_space_before_comma_in_array_initializer);
                 scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
               }
@@ -401,7 +415,9 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
         } else if (preferences.insert_space_before_closing_brace_in_array_initializer) {
           scribe.space();
         }
-        scribe.printNextToken(Token.RBRACK, false,
+        scribe.printNextToken(
+            Token.RBRACK,
+            false,
             Scribe.PRESERVE_EMPTY_LINES_IN_CLOSING_ARRAY_INITIALIZER
                 + (arrayInitializerIndentationLevel << 16));
         if (array_initializer_brace_position.equals(DefaultCodeFormatterConstants.NEXT_LINE_SHIFTED)) {
@@ -411,24 +427,30 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
         boolean keepEmptyArrayInitializerOnTheSameLine = preferences.keep_empty_array_initializer_on_one_line;
         String array_initializer_brace_position = preferences.brace_position_for_array_initializer;
         if (keepEmptyArrayInitializerOnTheSameLine) {
-          scribe.printNextToken(Token.LBRACK,
+          scribe.printNextToken(
+              Token.LBRACK,
               preferences.insert_space_before_opening_brace_in_array_initializer);
           if (isNextToken(Token.COMMA)) {
-            scribe.printNextToken(Token.COMMA,
+            scribe.printNextToken(
+                Token.COMMA,
                 preferences.insert_space_before_comma_in_array_initializer);
             scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
           }
-          scribe.printNextToken(Token.RBRACK,
+          scribe.printNextToken(
+              Token.RBRACK,
               preferences.insert_space_between_empty_braces_in_array_initializer);
         } else {
-          formatOpeningBrace(array_initializer_brace_position,
+          formatOpeningBrace(
+              array_initializer_brace_position,
               preferences.insert_space_before_opening_brace_in_array_initializer);
           if (isNextToken(Token.COMMA)) {
-            scribe.printNextToken(Token.COMMA,
+            scribe.printNextToken(
+                Token.COMMA,
                 preferences.insert_space_before_comma_in_array_initializer);
             scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
           }
-          scribe.printNextToken(Token.RBRACK,
+          scribe.printNextToken(
+              Token.RBRACK,
               preferences.insert_space_between_empty_braces_in_array_initializer);
           if (array_initializer_brace_position.equals(DefaultCodeFormatterConstants.NEXT_LINE_SHIFTED)) {
             scribe.unIndent();
@@ -446,7 +468,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   @Override
   public DartNode visitAssertion(DartAssertion node) {
     scribe.printNextToken(Token.IDENTIFIER);
-    scribe.printNextToken(Token.LPAREN,
+    scribe.printNextToken(
+        Token.LPAREN,
         preferences.insert_space_before_opening_bracket_in_array_reference);
     if (preferences.insert_space_after_opening_paren_in_annotation) {
       scribe.space();
@@ -475,8 +498,11 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       if ((builder.realFragmentsSize() > 1 || fragmentsSize > 4) && numberOfParens == 0) {
         int scribeLine = scribe.line;
         scribe.printComment();
-        Alignment binaryExpressionAlignment = scribe.createAlignment(Alignment.BINARY_EXPRESSION,
-            preferences.alignment_for_binary_expression, Alignment.R_OUTERMOST, fragmentsSize,
+        Alignment binaryExpressionAlignment = scribe.createAlignment(
+            Alignment.BINARY_EXPRESSION,
+            preferences.alignment_for_binary_expression,
+            Alignment.R_OUTERMOST,
+            fragmentsSize,
             scribe.scanner.currentPosition);
         scribe.enterAlignment(binaryExpressionAlignment);
         boolean ok = false;
@@ -529,7 +555,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
         binaryExpression.getArg1().accept(this);
         expressionsPos &= ~EXPRESSIONS_POS_MASK;
         expressionsPos |= EXPRESSIONS_POS_BETWEEN_TWO;
-        scribe.printNextToken(binaryExpression.getOperator(),
+        scribe.printNextToken(
+            binaryExpression.getOperator(),
             preferences.insert_space_before_binary_operator,
             Scribe.PRESERVE_EMPTY_LINES_IN_BINARY_EXPRESSION);
         if (binaryExpression.getOperator() == Token.SUB && isNextToken(Token.SUB)) {
@@ -554,7 +581,9 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
 
   @Override
   public DartNode visitBlock(DartBlock node) {
-    formatBlock(node, preferences.brace_position_for_block,
+    formatBlock(
+        node,
+        preferences.brace_position_for_block,
         preferences.insert_space_before_opening_brace_in_block);
     return null;
   }
@@ -624,7 +653,9 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     conditionalExpression.getCondition().accept(this);
 
     Alignment conditionalExpressionAlignment = scribe.createAlignment(
-        Alignment.CONDITIONAL_EXPRESSION, preferences.alignment_for_conditional_expression, 2,
+        Alignment.CONDITIONAL_EXPRESSION,
+        preferences.alignment_for_conditional_expression,
+        2,
         scribe.scanner.currentPosition);
 
     scribe.enterAlignment(conditionalExpressionAlignment);
@@ -632,7 +663,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     do {
       try {
         scribe.alignFragment(conditionalExpressionAlignment, 0);
-        scribe.printNextToken(Token.CONDITIONAL,
+        scribe.printNextToken(
+            Token.CONDITIONAL,
             preferences.insert_space_before_question_in_conditional);
 
         if (preferences.insert_space_after_question_in_conditional) {
@@ -677,7 +709,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       scribe.printNextToken(Token.PERIOD);
       scribe.printNextToken(Token.IDENTIFIER);
     }
-    formatMethodArguments(node.getFunction().getParameters(),
+    formatMethodArguments(
+        node.getFunction().getParameters(),
         preferences.insert_space_before_opening_paren_in_constructor_declaration,
         preferences.insert_space_between_empty_parens_in_constructor_declaration,
         preferences.insert_space_before_closing_paren_in_constructor_declaration,
@@ -692,19 +725,22 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       scribe.printNextToken(Token.COLON, true);
       scribe.space();
       if (hasComplexInitializers(inits)) {
-        formatInitializers(inits,
+        formatInitializers(
+            inits,
             preferences.insert_space_before_comma_in_constructor_declaration_parameters,
             preferences.insert_space_after_comma_in_constructor_declaration_parameters,
             Alignment.M_FORCE | preferences.alignment_for_initializers_in_constructor_declaration);
       } else if (inits.size() > 3) {
-        formatInitializers(inits,
+        formatInitializers(
+            inits,
             preferences.insert_space_before_comma_in_constructor_declaration_parameters,
             preferences.insert_space_after_comma_in_constructor_declaration_parameters,
             preferences.alignment_for_initializers_in_constructor_declaration);
       } else {
         for (int i = 0; i < inits.size(); i++) {
           if (i > 0) {
-            scribe.printNextToken(Token.COMMA,
+            scribe.printNextToken(
+                Token.COMMA,
                 preferences.insert_space_before_comma_in_constructor_declaration_parameters);
             scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
             if (preferences.insert_space_after_comma_in_constructor_declaration_parameters) {
@@ -729,7 +765,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       }
       String constructor_declaration_brace = preferences.brace_position_for_constructor_declaration;
       formatLeftCurlyBrace(line, constructor_declaration_brace);
-      formatOpeningBrace(constructor_declaration_brace,
+      formatOpeningBrace(
+          constructor_declaration_brace,
           preferences.insert_space_before_opening_brace_in_constructor_declaration);
       final int numberOfBlankLinesAtBeginningOfMethodBody = preferences.blank_lines_at_beginning_of_method_body;
       if (numberOfBlankLinesAtBeginningOfMethodBody > 0) {
@@ -915,7 +952,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     // DartExprStmt or DartVariableStmt
     if (initializations != null) {
       if (initializations instanceof DartVariableStatement) {
-        formatLocalDeclaration((DartVariableStatement) initializations,
+        formatLocalDeclaration(
+            (DartVariableStatement) initializations,
             preferences.insert_space_before_comma_in_for_inits,
             preferences.insert_space_after_comma_in_for_inits);
       } else {
@@ -984,8 +1022,11 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     scribe.printNewLine();
     int line = scribe.line;
     // Create alignment
-    Alignment functionDeclAlignment = scribe.createAlignment(Alignment.FUNCTION_DEFINITION,
-        preferences.alignment_for_function_declaration, Alignment.R_INNERMOST, 3,
+    Alignment functionDeclAlignment = scribe.createAlignment(
+        Alignment.FUNCTION_DEFINITION,
+        preferences.alignment_for_function_declaration,
+        Alignment.R_INNERMOST,
+        3,
         scribe.scanner.currentPosition);
     scribe.enterAlignment(functionDeclAlignment);
     boolean ok = false;
@@ -1015,7 +1056,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           node.getName().accept(this);
         }
         // Format arguments
-        formatMethodArguments(node.getFunction().getParameters(),
+        formatMethodArguments(
+            node.getFunction().getParameters(),
             preferences.insert_space_before_opening_paren_in_method_declaration,
             preferences.insert_space_between_empty_parens_in_method_declaration,
             preferences.insert_space_before_closing_paren_in_method_declaration,
@@ -1049,7 +1091,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     scribe.currentAlignment = null;
     String method_declaration_brace = preferences.brace_position_for_function_declaration;
     formatLeftCurlyBrace(line, method_declaration_brace);
-    formatOpeningBrace(method_declaration_brace,
+    formatOpeningBrace(
+        method_declaration_brace,
         preferences.insert_space_before_opening_brace_in_method_declaration);
     final int numberOfBlankLinesAtBeginningOfMethodBody = preferences.blank_lines_at_beginning_of_method_body;
     if (numberOfBlankLinesAtBeginningOfMethodBody > 0) {
@@ -1101,7 +1144,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       if (!(invocation.getTarget() instanceof DartThisExpression)) {
         invocation.getTarget().accept(this);
         int alignmentMode = preferences.alignment_for_selector_in_method_invocation;
-        messageAlignment = scribe.createAlignment(Alignment.MESSAGE_SEND, alignmentMode, 1,
+        messageAlignment = scribe.createAlignment(
+            Alignment.MESSAGE_SEND,
+            alignmentMode,
+            1,
             scribe.scanner.currentPosition);
         scribe.enterAlignment(messageAlignment);
         boolean ok = false;
@@ -1142,7 +1188,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       scribe.space();
     }
     scribe.printNextToken(Token.IDENTIFIER, true); // alias name
-    formatMethodArguments(node.getParameters(),
+    formatMethodArguments(
+        node.getParameters(),
         preferences.insert_space_before_opening_paren_in_constructor_declaration,
         preferences.insert_space_between_empty_parens_in_constructor_declaration,
         preferences.insert_space_before_closing_paren_in_constructor_declaration,
@@ -1200,9 +1247,14 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           }
         }
       } else if (elseStatement == null && preferences.keep_simple_if_on_one_line) {
-        Alignment compactIfAlignment = scribe.createAlignment(Alignment.COMPACT_IF,
-            preferences.alignment_for_compact_if, Alignment.R_OUTERMOST, 1,
-            scribe.scanner.currentPosition, 1, false);
+        Alignment compactIfAlignment = scribe.createAlignment(
+            Alignment.COMPACT_IF,
+            preferences.alignment_for_compact_if,
+            Alignment.R_OUTERMOST,
+            1,
+            scribe.scanner.currentPosition,
+            1,
+            false);
         scribe.enterAlignment(compactIfAlignment);
         boolean ok = false;
         do {
@@ -1236,7 +1288,9 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
 
     if (elseStatement != null) {
       if (thenStatementIsBlock) {
-        scribe.printNextToken(Token.ELSE, preferences.insert_space_after_closing_brace_in_block,
+        scribe.printNextToken(
+            Token.ELSE,
+            preferences.insert_space_after_closing_brace_in_block,
             Scribe.PRESERVE_EMPTY_LINES_BEFORE_ELSE);
       } else {
         scribe.printNextToken(Token.ELSE, true, Scribe.PRESERVE_EMPTY_LINES_BEFORE_ELSE);
@@ -1285,8 +1339,11 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     if (preferences.insert_space_after_assignment_operator) {
       scribe.space();
     }
-    Alignment assignmentAlignment = scribe.createAlignment(Alignment.LOCAL_DECLARATION_ASSIGNMENT,
-        preferences.alignment_for_assignment, Alignment.R_OUTERMOST, 1,
+    Alignment assignmentAlignment = scribe.createAlignment(
+        Alignment.LOCAL_DECLARATION_ASSIGNMENT,
+        preferences.alignment_for_assignment,
+        Alignment.R_OUTERMOST,
+        1,
         scribe.scanner.currentPosition);
     scribe.enterAlignment(assignmentAlignment);
     boolean ok = false;
@@ -1367,8 +1424,11 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     scribe.printComment();
     int line = scribe.line;
     // Create alignment
-    Alignment methodDeclAlignment = scribe.createAlignment(Alignment.METHOD_DECLARATION,
-        preferences.alignment_for_method_declaration, Alignment.R_INNERMOST, 3,
+    Alignment methodDeclAlignment = scribe.createAlignment(
+        Alignment.METHOD_DECLARATION,
+        preferences.alignment_for_method_declaration,
+        Alignment.R_INNERMOST,
+        3,
         scribe.scanner.currentPosition);
     scribe.enterAlignment(methodDeclAlignment);
     boolean ok = false;
@@ -1410,7 +1470,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           scribe.printNextToken(Token.IDENTIFIER, true);
         }
         // Format arguments
-        formatMethodArguments(node.getFunction().getParameters(),
+        formatMethodArguments(
+            node.getFunction().getParameters(),
             preferences.insert_space_before_opening_paren_in_method_declaration,
             preferences.insert_space_between_empty_parens_in_method_declaration,
             preferences.insert_space_before_closing_paren_in_method_declaration,
@@ -1449,7 +1510,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
        */
       String method_declaration_brace = preferences.brace_position_for_method_declaration;
       formatLeftCurlyBrace(line, method_declaration_brace);
-      formatOpeningBrace(method_declaration_brace,
+      formatOpeningBrace(
+          method_declaration_brace,
           preferences.insert_space_before_opening_brace_in_method_declaration);
       final int numberOfBlankLinesAtBeginningOfMethodBody = preferences.blank_lines_at_beginning_of_method_body;
       if (numberOfBlankLinesAtBeginningOfMethodBody > 0) {
@@ -1504,7 +1566,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       if (!(invocation.getTarget() instanceof DartThisExpression)) {
         invocation.getTarget().accept(this);
         int alignmentMode = preferences.alignment_for_selector_in_method_invocation;
-        messageAlignment = scribe.createAlignment(Alignment.MESSAGE_SEND, alignmentMode, 1,
+        messageAlignment = scribe.createAlignment(
+            Alignment.MESSAGE_SEND,
+            alignmentMode,
+            1,
             scribe.scanner.currentPosition);
         scribe.enterAlignment(messageAlignment);
         boolean ok = false;
@@ -1561,7 +1626,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
 
     allocationExpression.getConstructor().accept(this);
 
-    scribe.printNextToken(Token.LPAREN,
+    scribe.printNextToken(
+        Token.LPAREN,
         preferences.insert_space_before_opening_paren_in_method_invocation);
 
     final List<DartExpression> arguments = allocationExpression.getArguments();
@@ -1570,8 +1636,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
         scribe.space();
       }
       int argumentLength = arguments.size();
-      Alignment argumentsAlignment = scribe.createAlignment(Alignment.ALLOCATION,
-          preferences.alignment_for_arguments_in_allocation_expression, argumentLength,
+      Alignment argumentsAlignment = scribe.createAlignment(
+          Alignment.ALLOCATION,
+          preferences.alignment_for_arguments_in_allocation_expression,
+          argumentLength,
           scribe.scanner.currentPosition);
       scribe.enterAlignment(argumentsAlignment);
       boolean ok = false;
@@ -1579,7 +1647,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
         try {
           for (int i = 0; i < argumentLength; i++) {
             if (i > 0) {
-              scribe.printNextToken(Token.COMMA,
+              scribe.printNextToken(
+                  Token.COMMA,
                   preferences.insert_space_before_comma_in_allocation_expression);
               scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
             }
@@ -1595,10 +1664,12 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
         }
       } while (!ok);
       scribe.exitAlignment(argumentsAlignment, true);
-      scribe.printNextToken(Token.RPAREN,
+      scribe.printNextToken(
+          Token.RPAREN,
           preferences.insert_space_before_closing_paren_in_method_invocation);
     } else {
-      scribe.printNextToken(Token.RPAREN,
+      scribe.printNextToken(
+          Token.RPAREN,
           preferences.insert_space_between_empty_parens_in_method_invocation);
     }
 
@@ -1645,7 +1716,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
 
     if (param.getFunctionParameters() != null) {
       // TODO make a new pref for pre/post spaces in function params
-      formatMethodArguments(param.getFunctionParameters(),
+      formatMethodArguments(
+          param.getFunctionParameters(),
           preferences.insert_space_before_opening_paren_in_method_declaration,
           preferences.insert_space_between_empty_parens_in_method_declaration,
           preferences.insert_space_before_closing_paren_in_method_declaration,
@@ -1766,7 +1838,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       scribe.printNextToken(Token.PERIOD);
       scribe.printNextToken(Token.IDENTIFIER);
     }
-    formatMethodArguments(sup.getArguments(),
+    formatMethodArguments(
+        sup.getArguments(),
         preferences.insert_space_before_opening_paren_in_constructor_declaration,
         preferences.insert_space_between_empty_parens_in_constructor_declaration,
         preferences.insert_space_before_closing_paren_in_constructor_declaration,
@@ -1928,7 +2001,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
         types.get(i).accept(this);
       }
       if (isClosingGenericToken()) {
-        scribe.printNextToken(CLOSING_GENERICS_EXPECTEDTOKENS,
+        scribe.printNextToken(
+            CLOSING_GENERICS_EXPECTEDTOKENS,
             preferences.insert_space_before_closing_angle_bracket_in_type_arguments);
       }
     }
@@ -1950,7 +2024,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     if (!unaryExpression.isPrefix()) {
       expr.accept(this);
     }
-    scribe.printNextToken(unaryExpression.getOperator(),
+    scribe.printNextToken(
+        unaryExpression.getOperator(),
         preferences.insert_space_before_unary_operator);
     if (preferences.insert_space_after_unary_operator) {
       scribe.space();
@@ -2033,7 +2108,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       Alignment messageAlignment = null;
       invocation.getTarget().accept(this);
       int alignmentMode = preferences.alignment_for_selector_in_method_invocation;
-      messageAlignment = scribe.createAlignment(Alignment.MESSAGE_SEND, alignmentMode, 1,
+      messageAlignment = scribe.createAlignment(
+          Alignment.MESSAGE_SEND,
+          alignmentMode,
+          1,
           scribe.scanner.currentPosition);
       scribe.enterAlignment(messageAlignment);
       boolean ok = false;
@@ -2084,7 +2162,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     scribe.space();
     vars.get(0).accept(this);
     for (int i = 1; i < vars.size(); i++) {
-      scribe.printNextToken(Token.COMMA,
+      scribe.printNextToken(
+          Token.COMMA,
           preferences.insert_space_before_comma_in_multiple_local_declarations);
       if (preferences.insert_space_after_comma_in_multiple_local_declarations) {
         scribe.space();
@@ -2241,7 +2320,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     scribe.printNextToken(Token.IDENTIFIER, true); // print type name
     List<DartTypeParameter> typeParameters = typeDef.getTypeParameters();
     if (typeParameters != null && !typeParameters.isEmpty()) {
-      scribe.printNextToken(Token.LT,
+      scribe.printNextToken(
+          Token.LT,
           preferences.insert_space_before_opening_angle_bracket_in_type_parameters);
       if (preferences.insert_space_after_opening_angle_bracket_in_type_parameters) {
         scribe.space();
@@ -2256,7 +2336,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       }
       typeParameters.get(length - 1).accept(this);
       if (isClosingGenericToken()) {
-        scribe.printNextToken(CLOSING_GENERICS_EXPECTEDTOKENS,
+        scribe.printNextToken(
+            CLOSING_GENERICS_EXPECTEDTOKENS,
             preferences.insert_space_before_closing_angle_bracket_in_type_parameters);
       }
       if (preferences.insert_space_after_closing_angle_bracket_in_type_parameters) {
@@ -2268,8 +2349,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
      */
     final DartTypeNode superclass = typeDef.getSuperclass();
     if (superclass != null) {
-      Alignment superclassAlignment = scribe.createAlignment(Alignment.SUPER_CLASS,
-          preferences.alignment_for_superclass_in_type_declaration, 2,
+      Alignment superclassAlignment = scribe.createAlignment(
+          Alignment.SUPER_CLASS,
+          preferences.alignment_for_superclass_in_type_declaration,
+          2,
           scribe.scanner.currentPosition);
       scribe.enterAlignment(superclassAlignment);
       boolean ok = false;
@@ -2294,8 +2377,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     if (superInterfaces != null) {
       int alignment_for_superinterfaces = preferences.alignment_for_superinterfaces_in_type_declaration;
       int superInterfaceLength = superInterfaces.size();
-      Alignment interfaceAlignment = scribe.createAlignment(Alignment.SUPER_INTERFACES,
-          alignment_for_superinterfaces, superInterfaceLength + 1, // implements token is first fragment
+      Alignment interfaceAlignment = scribe.createAlignment(
+          Alignment.SUPER_INTERFACES,
+          alignment_for_superinterfaces,
+          superInterfaceLength + 1, // implements token is first fragment
           scribe.scanner.currentPosition);
       scribe.enterAlignment(interfaceAlignment);
       boolean ok = false;
@@ -2306,7 +2391,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           scribe.printNextToken(Token.IDENTIFIER, true);
           for (int i = 0; i < superInterfaceLength; i++) {
             if (i > 0) {
-              scribe.printNextToken(Token.COMMA,
+              scribe.printNextToken(
+                  Token.COMMA,
                   preferences.insert_space_before_comma_in_superinterfaces);
               scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
               scribe.alignFragment(interfaceAlignment, i + 1);
@@ -2333,8 +2419,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     DartParameterizedTypeNode defaultClass = typeDef.getDefaultClass();
     if (defaultClass != null) {
       // TODO consider not reusing superclass alignment
-      Alignment defaultClassAlignment = scribe.createAlignment(Alignment.SUPER_CLASS,
-          preferences.alignment_for_superclass_in_type_declaration, 2,
+      Alignment defaultClassAlignment = scribe.createAlignment(
+          Alignment.SUPER_CLASS,
+          preferences.alignment_for_superclass_in_type_declaration,
+          2,
           scribe.scanner.currentPosition);
       scribe.enterAlignment(defaultClassAlignment);
       boolean ok = false;
@@ -2411,7 +2499,9 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
 
     DartTypeNode type = multiFieldDeclaration.getTypeNode();
     if (type == null) {
-      scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.NO_TRAILING_COMMENT,
+      scribe.printComment(
+          CodeFormatter.K_UNKNOWN,
+          Scribe.NO_TRAILING_COMMENT,
           Scribe.PRESERVE_EMPTY_LINES_KEEP_LAST_NEW_LINES_INDENTATION);
       if (scribe.scanner.peekNextToken() == Token.VAR) {
         scribe.printNextToken(Token.VAR);
@@ -2422,8 +2512,10 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
 
     final int multipleFieldDeclarationsLength = multiFieldDeclaration.getFields().size();
 
-    Alignment multiFieldDeclarationsAlignment = scribe.createAlignment(Alignment.MULTIPLE_FIELD,
-        preferences.alignment_for_multiple_fields, multipleFieldDeclarationsLength - 1,
+    Alignment multiFieldDeclarationsAlignment = scribe.createAlignment(
+        Alignment.MULTIPLE_FIELD,
+        preferences.alignment_for_multiple_fields,
+        multipleFieldDeclarationsLength - 1,
         scribe.scanner.currentPosition);
     scribe.enterAlignment(multiFieldDeclarationsAlignment);
 
@@ -2469,7 +2561,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           }
 
           if (i != length - 1) {
-            scribe.printNextToken(Token.COMMA,
+            scribe.printNextToken(
+                Token.COMMA,
                 preferences.insert_space_before_comma_in_multiple_field_declarations);
             scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
             scribe.alignFragment(multiFieldDeclarationsAlignment, i);
@@ -2579,23 +2672,28 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       final int numberOfParens = printOpenParens(currentInvocation);
       List<DartExpression> arguments = currentInvocation.getArguments();
       scribe.printNextToken(Token.IDENTIFIER); // selector
-      scribe.printNextToken(Token.LPAREN,
+      scribe.printNextToken(
+          Token.LPAREN,
           preferences.insert_space_before_opening_paren_in_method_invocation);
       if (arguments != null) {
         if (preferences.insert_space_after_opening_paren_in_method_invocation) {
           scribe.space();
         }
         int argumentLength = arguments.size();
-        Alignment argumentsAlignment = scribe.createAlignment(Alignment.MESSAGE_ARGUMENTS,
-            preferences.alignment_for_arguments_in_method_invocation, Alignment.R_OUTERMOST,
-            argumentLength, scribe.scanner.currentPosition);
+        Alignment argumentsAlignment = scribe.createAlignment(
+            Alignment.MESSAGE_ARGUMENTS,
+            preferences.alignment_for_arguments_in_method_invocation,
+            Alignment.R_OUTERMOST,
+            argumentLength,
+            scribe.scanner.currentPosition);
         scribe.enterAlignment(argumentsAlignment);
         boolean okForArguments = false;
         do {
           try {
             for (int j = 0; j < argumentLength; j++) {
               if (j > 0) {
-                scribe.printNextToken(Token.COMMA,
+                scribe.printNextToken(
+                    Token.COMMA,
                     preferences.insert_space_before_comma_in_method_invocation_arguments);
                 scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
               }
@@ -2611,10 +2709,12 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           }
         } while (!okForArguments);
         scribe.exitAlignment(argumentsAlignment, true);
-        scribe.printNextToken(Token.RPAREN,
+        scribe.printNextToken(
+            Token.RPAREN,
             preferences.insert_space_before_closing_paren_in_method_invocation);
       } else {
-        scribe.printNextToken(Token.RPAREN,
+        scribe.printNextToken(
+            Token.RPAREN,
             preferences.insert_space_between_empty_parens_in_method_invocation);
       }
       printCloseParens(currentInvocation, numberOfParens);
@@ -2623,8 +2723,11 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     int tieBreakRule = preferences.wrap_outer_expressions_when_nested
         && size - startingPositionInCascade > 2 ? Alignment.R_OUTERMOST : Alignment.R_INNERMOST;
     Alignment cascadingInvocationAlignment = scribe.createAlignment(
-        Alignment.CASCADING_MESSAGE_SEND, preferences.alignment_for_selector_in_method_invocation,
-        tieBreakRule, size, scribe.scanner.currentPosition);
+        Alignment.CASCADING_MESSAGE_SEND,
+        preferences.alignment_for_selector_in_method_invocation,
+        tieBreakRule,
+        size,
+        scribe.scanner.currentPosition);
     scribe.enterAlignment(cascadingInvocationAlignment);
     boolean ok = false;
     boolean setStartingColumn = true;
@@ -2649,7 +2752,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           if (currentInvocation instanceof DartMethodInvocation) {
             scribe.printNextToken(Token.IDENTIFIER); // selector
           }
-          scribe.printNextToken(Token.LPAREN,
+          scribe.printNextToken(
+              Token.LPAREN,
               preferences.insert_space_before_opening_paren_in_method_invocation);
           if (arguments != null) {
             if (preferences.insert_space_after_opening_paren_in_method_invocation) {
@@ -2657,8 +2761,11 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
             }
             int argumentLength = arguments.size();
             int alignmentMode = preferences.alignment_for_arguments_in_method_invocation;
-            Alignment argumentsAlignment = scribe.createAlignment(Alignment.MESSAGE_ARGUMENTS,
-                alignmentMode, Alignment.R_OUTERMOST, argumentLength,
+            Alignment argumentsAlignment = scribe.createAlignment(
+                Alignment.MESSAGE_ARGUMENTS,
+                alignmentMode,
+                Alignment.R_OUTERMOST,
+                argumentLength,
                 scribe.scanner.currentPosition);
             scribe.enterAlignment(argumentsAlignment);
             boolean okForArguments = false;
@@ -2672,7 +2779,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
               try {
                 for (int j = 0; j < argumentLength; j++) {
                   if (j > 0) {
-                    scribe.printNextToken(Token.COMMA,
+                    scribe.printNextToken(
+                        Token.COMMA,
                         preferences.insert_space_before_comma_in_method_invocation_arguments);
                     scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
                   }
@@ -2695,10 +2803,12 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
               }
             } while (!okForArguments);
             scribe.exitAlignment(argumentsAlignment, true);
-            scribe.printNextToken(Token.RPAREN,
+            scribe.printNextToken(
+                Token.RPAREN,
                 preferences.insert_space_before_closing_paren_in_method_invocation);
           } else {
-            scribe.printNextToken(Token.RPAREN,
+            scribe.printNextToken(
+                Token.RPAREN,
                 preferences.insert_space_between_empty_parens_in_method_invocation);
           }
           printCloseParens(currentInvocation, numberOfParens);
@@ -2743,9 +2853,12 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     final int FIELD = 1, METHOD = 2, TYPE = 3;
     scribe.lastNumberOfNewLines = 1;
     DartNode[] mergedNodes = nodes;// computeMergedMemberDeclarations(nodes);
-    Alignment memberAlignment = scribe.createMemberAlignment(Alignment.TYPE_MEMBERS,
+    Alignment memberAlignment = scribe.createMemberAlignment(
+        Alignment.TYPE_MEMBERS,
         preferences.align_type_members_on_columns ? Alignment.M_MULTICOLUMN
-            : Alignment.M_NO_ALIGNMENT, 4, scribe.scanner.currentPosition);
+            : Alignment.M_NO_ALIGNMENT,
+        4,
+        scribe.scanner.currentPosition);
     scribe.enterMemberAlignment(memberAlignment);
     boolean isChunkStart = false;
     boolean ok = false;
@@ -2758,7 +2871,9 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
             isChunkStart = memberAlignment.checkChunkStart(FIELD, i, scribe.scanner.currentPosition);
             format((DartFieldDefinition) member, this, isChunkStart, i == 0);
           } else if (member instanceof DartMethodDefinition) {
-            isChunkStart = memberAlignment.checkChunkStart(METHOD, i,
+            isChunkStart = memberAlignment.checkChunkStart(
+                METHOD,
+                i,
                 scribe.scanner.currentPosition);
             format((DartMethodDefinition) member, isChunkStart, i == 0);
           }
@@ -2809,9 +2924,13 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       boolean spaceAfterComma, int methodDeclarationParametersAlignment) {
 
     int argumentLength = arguments.size();
-    Alignment argumentsAlignment = scribe.createAlignment(Alignment.METHOD_ARGUMENTS,
-        methodDeclarationParametersAlignment, argumentLength, scribe.scanner.currentPosition,
-        preferences.continuation_indentation, true);
+    Alignment argumentsAlignment = scribe.createAlignment(
+        Alignment.METHOD_ARGUMENTS,
+        methodDeclarationParametersAlignment,
+        argumentLength,
+        scribe.scanner.currentPosition,
+        preferences.continuation_indentation,
+        true);
     scribe.enterAlignment(argumentsAlignment);
     boolean ok = false;
     do {
@@ -2865,7 +2984,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       }
       scribe.printNextToken(Token.IDENTIFIER); // selector
     }
-    scribe.printNextToken(Token.LPAREN,
+    scribe.printNextToken(
+        Token.LPAREN,
         preferences.insert_space_before_opening_paren_in_method_invocation);
 
     final List<DartExpression> arguments = invocation.getArguments();
@@ -2876,8 +2996,11 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       int argumentsLength = arguments.size();
       if (argumentsLength > 1) {
         int alignmentMode = preferences.alignment_for_arguments_in_method_invocation;
-        Alignment argumentsAlignment = scribe.createAlignment(Alignment.MESSAGE_ARGUMENTS,
-            alignmentMode, argumentsLength, scribe.scanner.currentPosition);
+        Alignment argumentsAlignment = scribe.createAlignment(
+            Alignment.MESSAGE_ARGUMENTS,
+            alignmentMode,
+            argumentsLength,
+            scribe.scanner.currentPosition);
         scribe.enterAlignment(argumentsAlignment);
         boolean ok = false;
         do {
@@ -2890,7 +3013,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           try {
             for (int i = 0; i < argumentsLength; i++) {
               if (i > 0) {
-                scribe.printNextToken(Token.COMMA,
+                scribe.printNextToken(
+                    Token.COMMA,
                     preferences.insert_space_before_comma_in_method_invocation_arguments);
                 scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
                 if (scribe.lastNumberOfNewLines == 1) {
@@ -2927,10 +3051,12 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       } else {
         arguments.get(0).accept(this);
       }
-      scribe.printNextToken(Token.RPAREN,
+      scribe.printNextToken(
+          Token.RPAREN,
           preferences.insert_space_before_closing_paren_in_method_invocation);
     } else {
-      scribe.printNextToken(Token.RPAREN,
+      scribe.printNextToken(
+          Token.RPAREN,
           preferences.insert_space_between_empty_parens_in_method_invocation);
     }
   }
@@ -2986,8 +3112,11 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
           scribe.space();
         }
         Alignment assignmentAlignment = scribe.createAlignment(
-            Alignment.LOCAL_DECLARATION_ASSIGNMENT, preferences.alignment_for_assignment,
-            Alignment.R_OUTERMOST, 1, scribe.scanner.currentPosition);
+            Alignment.LOCAL_DECLARATION_ASSIGNMENT,
+            preferences.alignment_for_assignment,
+            Alignment.R_OUTERMOST,
+            1,
+            scribe.scanner.currentPosition);
         scribe.enterAlignment(assignmentAlignment);
         boolean ok = false;
         do {
@@ -3016,8 +3145,11 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
         scribe.space();
       }
       int argumentLength = arguments.size();
-      Alignment argumentsAlignment = scribe.createAlignment(Alignment.METHOD_ARGUMENTS,
-          methodDeclarationParametersAlignment, argumentLength, scribe.scanner.currentPosition);
+      Alignment argumentsAlignment = scribe.createAlignment(
+          Alignment.METHOD_ARGUMENTS,
+          methodDeclarationParametersAlignment,
+          argumentLength,
+          scribe.scanner.currentPosition);
       scribe.enterAlignment(argumentsAlignment);
       boolean ok = false;
       do {
@@ -3092,7 +3224,9 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       scribe.printNewLine();
       scribe.indent();
     }
-    scribe.printNextToken(token, insertSpaceBeforeBrace,
+    scribe.printNextToken(
+        token,
+        insertSpaceBeforeBrace,
         Scribe.PRESERVE_EMPTY_LINES_IN_FORMAT_OPENING_BRACE);
     scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.UNMODIFIABLE_TRAILING_COMMENT);
   }
@@ -3163,9 +3297,12 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   }
 
   private void formatTypeMembers(DartClass typeDeclaration) {
-    Alignment memberAlignment = scribe.createMemberAlignment(Alignment.TYPE_MEMBERS,
+    Alignment memberAlignment = scribe.createMemberAlignment(
+        Alignment.TYPE_MEMBERS,
         preferences.align_type_members_on_columns ? Alignment.M_MULTICOLUMN
-            : Alignment.M_NO_ALIGNMENT, 3, scribe.scanner.currentPosition);
+            : Alignment.M_NO_ALIGNMENT,
+        3,
+        scribe.scanner.currentPosition);
     scribe.enterMemberAlignment(memberAlignment);
     List<DartNode> members = typeDeclaration.getMembers();
     boolean isChunkStart = false;
@@ -3183,12 +3320,16 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
             scribe.printNewLine();
             DartNode member = members.get(i);
             if (member instanceof DartFieldDefinition) {
-              isChunkStart = memberAlignment.checkChunkStart(Alignment.CHUNK_FIELD, i,
+              isChunkStart = memberAlignment.checkChunkStart(
+                  Alignment.CHUNK_FIELD,
+                  i,
                   scribe.scanner.currentPosition);
               DartFieldDefinition field = (DartFieldDefinition) member;
               format(field, this, isChunkStart, i == 0);
             } else if (member instanceof DartMethodDefinition) {
-              isChunkStart = memberAlignment.checkChunkStart(Alignment.CHUNK_METHOD, i,
+              isChunkStart = memberAlignment.checkChunkStart(
+                  Alignment.CHUNK_METHOD,
+                  i,
                   scribe.scanner.currentPosition);
               format((DartMethodDefinition) member, isChunkStart, i == 0);
             }
@@ -3316,8 +3457,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
   }
 
   private boolean isGuardClause(DartBlock block) {
-    return !commentStartsBlock(block.getSourceInfo().getOffset(),
-        block.getSourceInfo().getLength() + block.getSourceInfo().getOffset())
+    return !commentStartsBlock(block.getSourceInfo().getOffset(), block.getSourceInfo().getLength()
+        + block.getSourceInfo().getOffset())
         && block.getStatements() != null
         && block.getStatements().size() == 1
         && (block.getStatements().get(0) instanceof DartReturnStatement || block.getStatements().get(
@@ -3359,7 +3500,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       return;
     }
     for (int i = 0; i < numberOfParens; i++) {
-      scribe.printNextToken(Token.RPAREN,
+      scribe.printNextToken(
+          Token.RPAREN,
           preferences.insert_space_before_closing_paren_in_parenthesized_expression);
     }
   }
@@ -3370,7 +3512,8 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
       return;
     }
     for (int i = 0; i < numberOfParens; i++) {
-      scribe.printNextToken(Token.LPAREN,
+      scribe.printNextToken(
+          Token.LPAREN,
           preferences.insert_space_before_opening_paren_in_parenthesized_expression);
       if (preferences.insert_space_after_opening_paren_in_parenthesized_expression) {
         scribe.space();

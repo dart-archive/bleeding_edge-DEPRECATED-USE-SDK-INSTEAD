@@ -93,7 +93,8 @@ public class IndexResourceOperation implements IndexOperation {
           contributor.logTrace();
         }
       } catch (DartModelException exception) {
-        DartCore.logError("Could not index " + compilationUnit.getResource().getLocation(),
+        DartCore.logError(
+            "Could not index " + compilationUnit.getResource().getLocation(),
             exception);
       }
     }

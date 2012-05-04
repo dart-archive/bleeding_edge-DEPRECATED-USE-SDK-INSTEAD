@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -203,8 +203,11 @@ public abstract class DartFileGenerator extends DartElementGenerator {
         try {
           source = readExpectedContent(contentPath, substitutions);
         } catch (IOException e) {
-          throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
-              "Failed to generate source", e));
+          throw new CoreException(new Status(
+              IStatus.ERROR,
+              DartCore.PLUGIN_ID,
+              "Failed to generate source",
+              e));
         }
         if (!file.getParent().exists()) {
           IPath path = file.getFullPath().removeLastSegments(1);
@@ -303,15 +306,16 @@ public abstract class DartFileGenerator extends DartElementGenerator {
       }
       if (root.findMember(new Path("/" + projectName)) != null) { //$NON-NLS-1$
         return new Status(IStatus.WARNING, DartCore.PLUGIN_ID, MessageFormat.format(
-            GeneratorMessages.DartFileGenerator_folderWillBeCreated, new Object[] {
-                folderName, projectName}));
+            GeneratorMessages.DartFileGenerator_folderWillBeCreated,
+            new Object[] {folderName, projectName}));
       } else if (!folderName.equals("/")) { //$NON-NLS-1$
         return new Status(IStatus.WARNING, DartCore.PLUGIN_ID, MessageFormat.format(
-            GeneratorMessages.DartFileGenerator_projectFolderWillBeCreated, new Object[] {
-                folderName, projectName}));
+            GeneratorMessages.DartFileGenerator_projectFolderWillBeCreated,
+            new Object[] {folderName, projectName}));
       } else {
         return new Status(IStatus.WARNING, DartCore.PLUGIN_ID, MessageFormat.format(
-            GeneratorMessages.DartFileGenerator_projectWillBeCreated, new Object[] {projectName}));
+            GeneratorMessages.DartFileGenerator_projectWillBeCreated,
+            new Object[] {projectName}));
       }
     }
   }

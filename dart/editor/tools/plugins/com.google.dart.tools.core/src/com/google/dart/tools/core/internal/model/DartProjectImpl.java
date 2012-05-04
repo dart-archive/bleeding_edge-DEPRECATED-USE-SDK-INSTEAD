@@ -137,7 +137,8 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   public void close() throws DartModelException {
     if (DartProjectNature.hasDartNature(project)) {
       // Get cached preferences if exist
-      PerProjectInfo perProjectInfo = DartModelManager.getInstance().getPerProjectInfo(project,
+      PerProjectInfo perProjectInfo = DartModelManager.getInstance().getPerProjectInfo(
+          project,
           false);
       if (perProjectInfo != null && perProjectInfo.getPreferences() != null) {
         try {
@@ -865,7 +866,8 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     } catch (CoreException exception) {
       // This should never happen.
       DartCore.logError(
-          "Could not traverse resource structure in project " + project.getLocation(), exception);
+          "Could not traverse resource structure in project " + project.getLocation(),
+          exception);
     }
     HashSet<IFile> libraryFiles = new HashSet<IFile>(dartFiles);
     for (IFile dartFile : dartFiles) {
@@ -944,8 +946,10 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     String fileName = null;
     try {
       fileName = dartFile.getName();
-      return DartCompilerUtilities.parseSource(fileName,
-          FileUtilities.getContents(dartFile.getLocation().toFile()), null);
+      return DartCompilerUtilities.parseSource(
+          fileName,
+          FileUtilities.getContents(dartFile.getLocation().toFile()),
+          null);
     } catch (Exception exception) {
       DartCore.logInformation("Could not read and parse the file " + fileName, exception);
       // Fall through to return null.

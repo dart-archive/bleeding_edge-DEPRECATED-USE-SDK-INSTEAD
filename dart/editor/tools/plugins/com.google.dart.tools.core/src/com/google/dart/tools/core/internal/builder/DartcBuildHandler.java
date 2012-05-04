@@ -261,8 +261,10 @@ public class DartcBuildHandler {
     DartProject proj = DartCore.create(project);
     DartLibrary[] allLibraries = proj.getDartLibraries();
 
-    SubMonitor subMonitor = SubMonitor.convert(monitor,
-        "Building " + proj.getElementName() + "...", allLibraries.length * 100);
+    SubMonitor subMonitor = SubMonitor.convert(
+        monitor,
+        "Building " + proj.getElementName() + "...",
+        allLibraries.length * 100);
 
     try {
       for (DartLibrary lib : allLibraries) {
@@ -293,7 +295,8 @@ public class DartcBuildHandler {
     try {
       // # compilation units * # phases (3) 
       //     + fudge factor for bundled library such as core and dom (# classes * 3 phases)
-      monitor.beginTask("Building " + lib.getElementName(),
+      monitor.beginTask(
+          "Building " + lib.getElementName(),
           lib.getCompilationUnits().length * 2 + 630);
 
       // Delete the previous compiler output, if it exists.
@@ -313,7 +316,8 @@ public class DartcBuildHandler {
       final LibrarySource libSource = libImpl.getLibrarySourceFile();
       final CompilerMetrics metrics = new CompilerMetrics();
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
-      final CompilerConfiguration config = new DefaultCompilerConfiguration(new CompilerOptions(),
+      final CompilerConfiguration config = new DefaultCompilerConfiguration(
+          new CompilerOptions(),
           libraryManager) {
 
         @Override
@@ -375,11 +379,16 @@ public class DartcBuildHandler {
         metrics.write(ps);
         DartCore.logInformation(out.toString());
       }
-      MetricsMessenger.getSingleton().fireUpdates(config,
+      MetricsMessenger.getSingleton().fireUpdates(
+          config,
           new Path(libSource.getName()).lastSegment());
     } catch (Throwable exception) {
       if (DartCore.isAnalyzed(libResource)) {
-        BuilderUtil.createErrorMarker(libResource, 0, 0, 0,
+        BuilderUtil.createErrorMarker(
+            libResource,
+            0,
+            0,
+            0,
             "Internal compiler error: " + exception.toString());
       }
       DartCore.logError("Exception caught while building " + lib.getElementName(), exception);

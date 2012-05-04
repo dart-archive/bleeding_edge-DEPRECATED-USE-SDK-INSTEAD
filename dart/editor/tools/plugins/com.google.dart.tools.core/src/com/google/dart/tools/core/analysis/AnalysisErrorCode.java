@@ -19,7 +19,8 @@ import com.google.dart.compiler.SubSystem;
 
 enum AnalysisErrorCode implements ErrorCode {
 
-  PARSE_FAILURE("Failed to parse '%s"), RESOLUTION_FAILURE("Failed to resolve '%s");
+  PARSE_FAILURE("Failed to parse '%s"),
+  RESOLUTION_FAILURE("Failed to resolve '%s");
 
   private final ErrorSeverity severity;
   private final String message;

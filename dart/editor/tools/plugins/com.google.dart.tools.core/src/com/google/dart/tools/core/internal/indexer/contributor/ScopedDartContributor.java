@@ -130,7 +130,8 @@ public abstract class ScopedDartContributor extends DartContributor {
       return null;
     }
     com.google.dart.tools.core.model.DartFunction function = BindingUtils.getDartElement(
-        getCompilationUnit(), node);
+        getCompilationUnit(),
+        node);
     if (function == null) {
       pushTarget(null);
     } else {
@@ -160,7 +161,8 @@ public abstract class ScopedDartContributor extends DartContributor {
   @Override
   public Void visitMethodDefinition(DartMethodDefinition node) {
     com.google.dart.tools.core.model.DartFunction function = BindingUtils.getDartElement(
-        getCompilationUnit(), node);
+        getCompilationUnit(),
+        node);
     if (function instanceof Method) {
       pushTarget(new MethodLocation((Method) function, new SourceRangeImpl(node.getName())));
     } else if (function != null) {

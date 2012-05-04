@@ -520,7 +520,9 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
     if (status instanceof DartModelStatus) {
       return new DartModelException((DartModelStatus) status);
     } else {
-      return new DartModelException(new DartModelStatusImpl(status.getSeverity(), status.getCode(),
+      return new DartModelException(new DartModelStatusImpl(
+          status.getSeverity(),
+          status.getCode(),
           status.getMessage()));
     }
   }

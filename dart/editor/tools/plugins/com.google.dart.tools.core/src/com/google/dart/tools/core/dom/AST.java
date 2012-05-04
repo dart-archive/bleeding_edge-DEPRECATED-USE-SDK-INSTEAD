@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -85,7 +85,7 @@ import java.util.ArrayList;
 public class AST {
   /**
    * Create a new node with the given type.
-   *
+   * 
    * @param nodeClass the class of the node to be created
    * @return the node that was created
    */
@@ -110,8 +110,16 @@ public class AST {
     } else if (nodeClass == DartCatchBlock.class) {
       return (N) new DartCatchBlock(null, null, null);
     } else if (nodeClass == DartClass.class) {
-      return (N) new DartClass(null, null, null, new ArrayList<DartTypeNode>(),
-          new ArrayList<DartNode>(), new ArrayList<DartTypeParameter>(), null, false, Modifiers.NONE);
+      return (N) new DartClass(
+          null,
+          null,
+          null,
+          new ArrayList<DartTypeNode>(),
+          new ArrayList<DartNode>(),
+          new ArrayList<DartTypeParameter>(),
+          null,
+          false,
+          Modifiers.NONE);
     } else if (nodeClass == DartComment.class) {
       return (N) new DartComment(null, 0, 0, 0, 0, null);
     } else if (nodeClass == DartConditional.class) {
@@ -141,7 +149,10 @@ public class AST {
     } else if (nodeClass == DartFunctionObjectInvocation.class) {
       return (N) new DartFunctionObjectInvocation(null, new ArrayList<DartExpression>());
     } else if (nodeClass == DartFunctionTypeAlias.class) {
-      return (N) new DartFunctionTypeAlias(null, null, new ArrayList<DartParameter>(),
+      return (N) new DartFunctionTypeAlias(
+          null,
+          null,
+          new ArrayList<DartParameter>(),
           new ArrayList<DartTypeParameter>());
     } else if (nodeClass == DartIdentifier.class) {
       return (N) new DartIdentifier("");
@@ -174,7 +185,8 @@ public class AST {
     } else if (nodeClass == DartReturnStatement.class) {
       return (N) new DartReturnStatement(null);
     } else if (nodeClass == DartStringInterpolation.class) {
-      return (N) new DartStringInterpolation(new ArrayList<DartStringLiteral>(),
+      return (N) new DartStringInterpolation(
+          new ArrayList<DartStringLiteral>(),
           new ArrayList<DartExpression>());
     } else if (nodeClass == DartStringLiteral.class) {
       return (N) DartStringLiteral.get("");
@@ -214,7 +226,7 @@ public class AST {
 
   /**
    * Create a new node with the given type.
-   *
+   * 
    * @param nodeType the type of the node to be created
    * @return the node that was created
    */
@@ -225,7 +237,7 @@ public class AST {
 
   /**
    * Create a new block with an empty list of statements.
-   *
+   * 
    * @return the block that was created
    */
   public DartBlock newBlock() {

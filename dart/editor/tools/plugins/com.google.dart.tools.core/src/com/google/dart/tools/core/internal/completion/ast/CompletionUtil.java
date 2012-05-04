@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -20,7 +20,9 @@ class CompletionUtil {
 
   static <T extends DartNode> T init(T newNode, DartNode oldNode) {
     SourceInfo oldSourceInfo = oldNode.getSourceInfo();
-    newNode.setSourceInfo(new SourceInfo(oldSourceInfo.getSource(), oldSourceInfo.getOffset(),
+    newNode.setSourceInfo(new SourceInfo(
+        oldSourceInfo.getSource(),
+        oldSourceInfo.getOffset(),
         oldSourceInfo.getLength()));
     return newNode;
   }

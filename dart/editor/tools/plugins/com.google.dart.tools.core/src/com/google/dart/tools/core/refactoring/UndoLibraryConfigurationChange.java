@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -66,7 +66,11 @@ public class UndoLibraryConfigurationChange extends UndoTextFileChange {
   @Override
   protected Change createUndoChange(UndoEdit edit, ContentStamp stampToRestore)
       throws CoreException {
-    return new UndoLibraryConfigurationChange(getName(), libraryConfig, edit, stampToRestore,
+    return new UndoLibraryConfigurationChange(
+        getName(),
+        libraryConfig,
+        edit,
+        stampToRestore,
         getSaveMode());
   }
 }

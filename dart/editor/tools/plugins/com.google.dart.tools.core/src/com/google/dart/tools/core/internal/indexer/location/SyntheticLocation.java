@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -46,7 +46,7 @@ public class SyntheticLocation implements Location {
   /**
    * Return the instance of this class with the given identifier, or <code>null</code> if there is
    * no such instance.
-   *
+   * 
    * @param identifier the identifier used to uniquely identify the instance to be returned
    * @return the instance of this class with the given identifier
    */
@@ -61,7 +61,7 @@ public class SyntheticLocation implements Location {
 
   /**
    * Initialize a newly created synthetic location to have the given identifier.
-   *
+   * 
    * @param identifier the identifier used to uniquely identify an instance of this class
    */
   private SyntheticLocation(String identifier) {

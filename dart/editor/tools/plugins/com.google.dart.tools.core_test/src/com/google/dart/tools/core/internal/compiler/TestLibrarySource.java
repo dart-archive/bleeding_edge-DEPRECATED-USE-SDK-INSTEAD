@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -88,8 +88,12 @@ public class TestLibrarySource implements LibrarySource {
   public Reader getSourceReader() {
     if (libSource == null) {
       List<String> sources = new ArrayList<String>(new TreeSet<String>(dartSources.keySet()));
-      libSource = DefaultLibrarySource.generateSource(getName(), new File(getName()),
-          Paths.toFiles(imports), Paths.toFiles(sources), getEntryPoint());
+      libSource = DefaultLibrarySource.generateSource(
+          getName(),
+          new File(getName()),
+          Paths.toFiles(imports),
+          Paths.toFiles(sources),
+          getEntryPoint());
     }
     return new StringReader(libSource);
   }

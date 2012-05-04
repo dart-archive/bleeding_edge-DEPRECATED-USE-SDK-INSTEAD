@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -444,7 +444,10 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
         // Note that if the tree is locked, this will throw a CoreException, but
         // this is ok as this operation is modifying the tree (not read-only)
         // and a CoreException will be thrown anyway.
-        ResourcesPlugin.getWorkspace().run(this, getSchedulingRule(), IWorkspace.AVOID_UPDATE,
+        ResourcesPlugin.getWorkspace().run(
+            this,
+            getSchedulingRule(),
+            IWorkspace.AVOID_UPDATE,
             monitor);
       }
     } catch (CoreException ce) {
@@ -624,7 +627,8 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
     try {
       // we should use true to create the file locally. Only VCM should use
       // true/false
-      folder.create(forceFlag ? IResource.FORCE | IResource.KEEP_HISTORY : IResource.KEEP_HISTORY,
+      folder.create(
+          forceFlag ? IResource.FORCE | IResource.KEEP_HISTORY : IResource.KEEP_HISTORY,
           true, // local
           getSubProgressMonitor(1));
       setAttribute(HAS_MODIFIED_RESOURCE_ATTR, TRUE);
@@ -824,7 +828,9 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
   protected IProgressMonitor getSubProgressMonitor(int workAmount) {
     IProgressMonitor sub = null;
     if (progressMonitor != null) {
-      sub = new SubProgressMonitor(progressMonitor, workAmount,
+      sub = new SubProgressMonitor(
+          progressMonitor,
+          workAmount,
           SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK);
     }
     return sub;
@@ -846,7 +852,9 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
   protected void moveResources(IResource[] resources, IPath container) throws DartModelException {
     IProgressMonitor subProgressMonitor = null;
     if (progressMonitor != null) {
-      subProgressMonitor = new SubProgressMonitor(progressMonitor, resources.length,
+      subProgressMonitor = new SubProgressMonitor(
+          progressMonitor,
+          resources.length,
           SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK);
     }
     IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();

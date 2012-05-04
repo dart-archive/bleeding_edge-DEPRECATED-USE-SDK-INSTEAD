@@ -380,9 +380,11 @@ public class DartElementLocator extends ASTVisitor<Void> {
             if (variableElement.getKind() == ElementKind.PARAMETER
                 || variableElement.getKind() == ElementKind.VARIABLE) {
               resolvedElement = variableElement;
-              foundElement = BindingUtils.getDartElement(compilationUnit.getLibrary(),
+              foundElement = BindingUtils.getDartElement(
+                  compilationUnit.getLibrary(),
                   variableElement);
-              candidateRegion = new Region(variableElement.getNameLocation().getOffset(),
+              candidateRegion = new Region(
+                  variableElement.getNameLocation().getOffset(),
                   variableElement.getNameLocation().getLength());
             } else {
               foundElement = null;
@@ -606,7 +608,8 @@ public class DartElementLocator extends ASTVisitor<Void> {
     LibraryElement definingLibraryElement = BindingUtils.getLibrary(targetSymbol);
     DartLibrary definingLibrary = null;
     if (definingLibraryElement != null) {
-      definingLibrary = BindingUtils.getDartElement(compilationUnit.getLibrary(),
+      definingLibrary = BindingUtils.getDartElement(
+          compilationUnit.getLibrary(),
           definingLibraryElement);
     }
     if (definingLibrary == null) {

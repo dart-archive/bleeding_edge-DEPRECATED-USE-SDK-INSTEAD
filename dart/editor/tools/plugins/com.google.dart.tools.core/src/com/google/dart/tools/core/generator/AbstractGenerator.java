@@ -78,8 +78,11 @@ public abstract class AbstractGenerator {
         try {
           source = readExpectedContent(contentPath, substitutions);
         } catch (IOException e) {
-          throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
-              "Failed to generate source", e));
+          throw new CoreException(new Status(
+              IStatus.ERROR,
+              DartCore.PLUGIN_ID,
+              "Failed to generate source",
+              e));
         }
         try {
           File parentFile = file.getParentFile();

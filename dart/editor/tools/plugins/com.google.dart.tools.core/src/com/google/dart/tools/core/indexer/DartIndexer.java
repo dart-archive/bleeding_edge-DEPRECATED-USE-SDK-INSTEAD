@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -103,17 +103,23 @@ public class DartIndexer {
   public static DartIndexerResult getAllClasses() throws IndexTemporarilyNonOperational {
     try {
       WorkspaceIndexingDriver driver = StandardDriver.getInstance();
-      ReverseEdgesQuery query = new ReverseEdgesQuery(SyntheticLocation.ALL_CLASSES,
+      ReverseEdgesQuery query = new ReverseEdgesQuery(
+          SyntheticLocation.ALL_CLASSES,
           driver.getConfiguration().getLayer(DartLayers.ELEMENTS_BY_CATEGORY));
       driver.execute(query);
-      return new DartIndexerResult(merge(query.getSources(), getBundledClassLocations()),
+      return new DartIndexerResult(
+          merge(query.getSources(), getBundledClassLocations()),
           getFilesWithErrors());
     } catch (IndexTemporarilyNonOperational exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding all classes");
       throw exception;
     } catch (IndexTemporarilyNonOperationalUnchecked exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding all classes");
       throw exception.unwrap();
     }
@@ -130,17 +136,23 @@ public class DartIndexer {
   public static DartIndexerResult getAllInterfaces() throws IndexTemporarilyNonOperational {
     try {
       WorkspaceIndexingDriver driver = StandardDriver.getInstance();
-      ReverseEdgesQuery query = new ReverseEdgesQuery(SyntheticLocation.ALL_INTERFACES,
+      ReverseEdgesQuery query = new ReverseEdgesQuery(
+          SyntheticLocation.ALL_INTERFACES,
           driver.getConfiguration().getLayer(DartLayers.ELEMENTS_BY_CATEGORY));
       driver.execute(query);
-      return new DartIndexerResult(merge(query.getSources(), getBundledInterfaceLocations()),
+      return new DartIndexerResult(
+          merge(query.getSources(), getBundledInterfaceLocations()),
           getFilesWithErrors());
     } catch (IndexTemporarilyNonOperational exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding all interfaces");
       throw exception;
     } catch (IndexTemporarilyNonOperationalUnchecked exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding all interfaces");
       throw exception.unwrap();
     }
@@ -157,25 +169,35 @@ public class DartIndexer {
   public static DartIndexerResult getAllTypes() throws IndexTemporarilyNonOperational {
     try {
       WorkspaceIndexingDriver driver = StandardDriver.getInstance();
-      ReverseEdgesQuery classesQuery = new ReverseEdgesQuery(SyntheticLocation.ALL_CLASSES,
+      ReverseEdgesQuery classesQuery = new ReverseEdgesQuery(
+          SyntheticLocation.ALL_CLASSES,
           driver.getConfiguration().getLayer(DartLayers.ELEMENTS_BY_CATEGORY));
       driver.execute(classesQuery);
-      ReverseEdgesQuery interfacesQuery = new ReverseEdgesQuery(SyntheticLocation.ALL_INTERFACES,
+      ReverseEdgesQuery interfacesQuery = new ReverseEdgesQuery(
+          SyntheticLocation.ALL_INTERFACES,
           driver.getConfiguration().getLayer(DartLayers.ELEMENTS_BY_CATEGORY));
       driver.execute(interfacesQuery);
       ReverseEdgesQuery functionTypesQuery = new ReverseEdgesQuery(
-          SyntheticLocation.ALL_FUNCTION_TYPE_ALIASES, driver.getConfiguration().getLayer(
-              DartLayers.ELEMENTS_BY_CATEGORY));
+          SyntheticLocation.ALL_FUNCTION_TYPE_ALIASES,
+          driver.getConfiguration().getLayer(DartLayers.ELEMENTS_BY_CATEGORY));
       driver.execute(functionTypesQuery);
-      return new DartIndexerResult(merge(classesQuery.getSources(), interfacesQuery.getSources(),
-          functionTypesQuery.getSources(), getBundledClassLocations(),
-          getBundledInterfaceLocations(), getBundledFunctionTypeLocations()), getFilesWithErrors());
+      return new DartIndexerResult(merge(
+          classesQuery.getSources(),
+          interfacesQuery.getSources(),
+          functionTypesQuery.getSources(),
+          getBundledClassLocations(),
+          getBundledInterfaceLocations(),
+          getBundledFunctionTypeLocations()), getFilesWithErrors());
     } catch (IndexTemporarilyNonOperational exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding all types");
       throw exception;
     } catch (IndexTemporarilyNonOperationalUnchecked exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding all types");
       throw exception.unwrap();
     }
@@ -228,18 +250,23 @@ public class DartIndexer {
       throws IndexTemporarilyNonOperational {
     try {
       WorkspaceIndexingDriver driver = StandardDriver.getInstance();
-      ReverseEdgesQuery query = new ReverseEdgesQuery(new MethodLocation(method,
+      ReverseEdgesQuery query = new ReverseEdgesQuery(new MethodLocation(
+          method,
           method.getNameRange()), driver.getConfiguration().getLayer(DartLayers.METHOD_OVERRIDE));
       driver.execute(query);
       return new DartIndexerResult(query.getSources(), getFilesWithErrors());
     } catch (DartModelException exception) {
       throw new IndexTemporarilyNonOperational(exception);
     } catch (IndexTemporarilyNonOperational exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding overriding methods");
       throw exception;
     } catch (IndexTemporarilyNonOperationalUnchecked exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding overriding methods");
       throw exception.unwrap();
     }
@@ -273,7 +300,8 @@ public class DartIndexer {
       throws IndexTemporarilyNonOperational {
     try {
       WorkspaceIndexingDriver driver = StandardDriver.getInstance();
-      ReverseEdgesQuery query = new ReverseEdgesQuery(new FunctionLocation(function,
+      ReverseEdgesQuery query = new ReverseEdgesQuery(new FunctionLocation(
+          function,
           function.getNameRange()), driver.getConfiguration().getLayer(DartLayers.METHOD_CALLS));
       driver.execute(query);
       return new DartIndexerResult(query.getSources(), getFilesWithErrors());
@@ -358,7 +386,8 @@ public class DartIndexer {
       throws IndexTemporarilyNonOperational {
     try {
       WorkspaceIndexingDriver driver = StandardDriver.getInstance();
-      ReverseEdgesQuery query = new ReverseEdgesQuery(new FunctionTypeAliasLocation(alias,
+      ReverseEdgesQuery query = new ReverseEdgesQuery(new FunctionTypeAliasLocation(
+          alias,
           alias.getNameRange()), driver.getConfiguration().getLayer(DartLayers.TYPE_REFERENCES));
       driver.execute(query);
       return new DartIndexerResult(query.getSources(), getFilesWithErrors());
@@ -442,8 +471,8 @@ public class DartIndexer {
     try {
       WorkspaceIndexingDriver driver = StandardDriver.getInstance();
       ReverseEdgesQuery query = new ReverseEdgesQuery(
-          new FieldLocation(field, field.getNameRange()), driver.getConfiguration().getLayer(
-              DartLayers.FIELD_ACCESSES));
+          new FieldLocation(field, field.getNameRange()),
+          driver.getConfiguration().getLayer(DartLayers.FIELD_ACCESSES));
       driver.execute(query);
       return new DartIndexerResult(query.getSources(), getFilesWithErrors());
     } catch (DartModelException exception) {
@@ -526,7 +555,8 @@ public class DartIndexer {
       throws IndexTemporarilyNonOperational {
     try {
       WorkspaceIndexingDriver driver = StandardDriver.getInstance();
-      ReverseEdgesQuery query = new ReverseEdgesQuery(new MethodLocation(method,
+      ReverseEdgesQuery query = new ReverseEdgesQuery(new MethodLocation(
+          method,
           method.getNameRange()), driver.getConfiguration().getLayer(DartLayers.METHOD_CALLS));
       driver.execute(query);
       return new DartIndexerResult(query.getSources(), getFilesWithErrors());
@@ -613,18 +643,23 @@ public class DartIndexer {
   public static DartIndexerResult getReferences(Type type) throws IndexTemporarilyNonOperational {
     try {
       WorkspaceIndexingDriver driver = StandardDriver.getInstance();
-      ReverseEdgesQuery query = new ReverseEdgesQuery(new TypeLocation(type, type.getNameRange()),
+      ReverseEdgesQuery query = new ReverseEdgesQuery(
+          new TypeLocation(type, type.getNameRange()),
           driver.getConfiguration().getLayer(DartLayers.TYPE_REFERENCES));
       driver.execute(query);
       return new DartIndexerResult(query.getSources(), getFilesWithErrors());
     } catch (DartModelException exception) {
       throw new IndexTemporarilyNonOperational(exception);
     } catch (IndexTemporarilyNonOperational exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding references to the type " + type.getElementName());
       throw exception;
     } catch (IndexTemporarilyNonOperationalUnchecked exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding references to the type " + type.getElementName());
       throw exception.unwrap();
     }
@@ -686,18 +721,22 @@ public class DartIndexer {
     try {
       WorkspaceIndexingDriver driver = StandardDriver.getInstance();
       BidirectionalEdgesLayerReverseEdgesQuery query = new BidirectionalEdgesLayerReverseEdgesQuery(
-          new TypeLocation(type, type.getNameRange()), driver.getConfiguration().getLayer(
-              DartLayers.TYPE_HIERARCHY));
+          new TypeLocation(type, type.getNameRange()),
+          driver.getConfiguration().getLayer(DartLayers.TYPE_HIERARCHY));
       driver.execute(query);
       return new DartIndexerResult(query.getSources(), getFilesWithErrors());
     } catch (DartModelException exception) {
       throw new IndexTemporarilyNonOperational(exception);
     } catch (IndexTemporarilyNonOperational exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding subclasses of the type " + type.getElementName());
       throw exception;
     } catch (IndexTemporarilyNonOperationalUnchecked exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding subclasses of the type " + type.getElementName());
       throw exception.unwrap();
     }
@@ -759,18 +798,22 @@ public class DartIndexer {
     try {
       WorkspaceIndexingDriver driver = StandardDriver.getInstance();
       BidirectionalEdgesLayerForwardEdgesQuery query = new BidirectionalEdgesLayerForwardEdgesQuery(
-          new TypeLocation(type, type.getNameRange()), driver.getConfiguration().getLayer(
-              DartLayers.TYPE_HIERARCHY));
+          new TypeLocation(type, type.getNameRange()),
+          driver.getConfiguration().getLayer(DartLayers.TYPE_HIERARCHY));
       driver.execute(query);
       return new DartIndexerResult(query.getDestinations(), getFilesWithErrors());
     } catch (DartModelException exception) {
       throw new IndexTemporarilyNonOperational(exception);
     } catch (IndexTemporarilyNonOperational exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding superclasses of the type " + type.getElementName());
       throw exception;
     } catch (IndexTemporarilyNonOperationalUnchecked exception) {
-      IndexerPlugin.getLogger().trace(IndexerDebugOptions.INDEX_NOT_AVAILABLE, exception,
+      IndexerPlugin.getLogger().trace(
+          IndexerDebugOptions.INDEX_NOT_AVAILABLE,
+          exception,
           "Index not available while finding superclasses of the type " + type.getElementName());
       throw exception.unwrap();
     }

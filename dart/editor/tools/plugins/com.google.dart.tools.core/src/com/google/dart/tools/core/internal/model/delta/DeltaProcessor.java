@@ -76,7 +76,9 @@ import java.util.Set;
  */
 public class DeltaProcessor {
   public enum DirectiveType {
-    IMPORT, SRC, RES
+    IMPORT,
+    SRC,
+    RES
   }
 
   private final static int NON_DART_RESOURCE = -1;
@@ -653,7 +655,11 @@ public class DeltaProcessor {
       // DartModelOperation.setAttribute(
       // DartModelOperation.HAS_MODIFIED_RESOURCE_ATTR, null);
 
-      notifyListeners(deltaToNotify, ElementChangedEvent.POST_CHANGE, listeners, listenerMask,
+      notifyListeners(
+          deltaToNotify,
+          ElementChangedEvent.POST_CHANGE,
+          listeners,
+          listenerMask,
           listenerCount);
     }
   }
@@ -671,7 +677,11 @@ public class DeltaProcessor {
       // subsequent iteration
       reconcileDeltas = new HashMap<CompilationUnit, DartElementDelta>();
 
-      notifyListeners(deltaToNotify, ElementChangedEvent.POST_RECONCILE, listeners, listenerMask,
+      notifyListeners(
+          deltaToNotify,
+          ElementChangedEvent.POST_RECONCILE,
+          listeners,
+          listenerMask,
           listenerCount);
     }
   }

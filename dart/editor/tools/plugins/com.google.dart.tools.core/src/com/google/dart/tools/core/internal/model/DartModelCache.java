@@ -310,7 +310,8 @@ public class DartModelCache {
       case DartElement.LIBRARY:
         libraryCache.remove((DartLibraryImpl) element);
         openableCache.resetSpaceLimit(
-            (int) (DEFAULT_OPENABLE_SIZE * getMemoryRatio() * getOpenableRatio()), element);
+            (int) (DEFAULT_OPENABLE_SIZE * getMemoryRatio() * getOpenableRatio()),
+            element);
         break;
       case DartElement.COMPILATION_UNIT:
         openableCache.remove((OpenableElement) element);

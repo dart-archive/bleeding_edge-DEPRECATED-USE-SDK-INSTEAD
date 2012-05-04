@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -195,8 +195,12 @@ public class DartElementDeltaImpl extends SimpleDelta implements DartElementDelt
       return null;
     }
     if (resourceDeltas.length != resourceDeltasCounter) {
-      System.arraycopy(resourceDeltas, 0,
-          resourceDeltas = new IResourceDelta[resourceDeltasCounter], 0, resourceDeltasCounter);
+      System.arraycopy(
+          resourceDeltas,
+          0,
+          resourceDeltas = new IResourceDelta[resourceDeltasCounter],
+          0,
+          resourceDeltasCounter);
     }
     return resourceDeltas;
   }
@@ -488,8 +492,11 @@ public class DartElementDeltaImpl extends SimpleDelta implements DartElementDelt
     }
     if (resourceDeltas.length == resourceDeltasCounter) {
       // need a resize
-      System.arraycopy(resourceDeltas, 0,
-          (resourceDeltas = new IResourceDelta[resourceDeltasCounter * 2]), 0,
+      System.arraycopy(
+          resourceDeltas,
+          0,
+          (resourceDeltas = new IResourceDelta[resourceDeltasCounter * 2]),
+          0,
           resourceDeltasCounter);
     }
     resourceDeltas[resourceDeltasCounter++] = child;

@@ -235,7 +235,8 @@ public class ResourceRefreshManager {
           input.close();
         } catch (IOException exception) {
           correctlyRead = false;
-          DartCore.logError("Could not close " + timeStore.getAbsolutePath() + " after read",
+          DartCore.logError(
+              "Could not close " + timeStore.getAbsolutePath() + " after read",
               exception);
         }
       }
@@ -326,14 +327,16 @@ public class ResourceRefreshManager {
           output.flush();
         } catch (IOException exception) {
           correctlyWritten = false;
-          DartCore.logError("Could not flush " + timeStore.getAbsolutePath() + " after write",
+          DartCore.logError(
+              "Could not flush " + timeStore.getAbsolutePath() + " after write",
               exception);
         }
         try {
           output.close();
         } catch (IOException exception) {
           correctlyWritten = false;
-          DartCore.logError("Could not close " + timeStore.getAbsolutePath() + " after write",
+          DartCore.logError(
+              "Could not close " + timeStore.getAbsolutePath() + " after write",
               exception);
         }
       }

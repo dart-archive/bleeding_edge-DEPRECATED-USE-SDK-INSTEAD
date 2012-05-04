@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -266,7 +266,8 @@ public class DartCompilerUtilities {
           return parsedUnit;
         }
       };
-      final CompilerConfiguration config = new DefaultCompilerConfiguration(new CompilerOptions(),
+      final CompilerConfiguration config = new DefaultCompilerConfiguration(
+          new CompilerOptions(),
           libraryManager) {
 
         @Override
@@ -291,8 +292,15 @@ public class DartCompilerUtilities {
       };
       // All calls to DartC must be synchronized
       synchronized (compilerLock) {
-        analyzedNode = DartCompiler.analyzeDelta(delta, enclosingLibrary, coreLibrary,
-            completionNode, completionLocation, 0, config, this);
+        analyzedNode = DartCompiler.analyzeDelta(
+            delta,
+            enclosingLibrary,
+            coreLibrary,
+            completionNode,
+            completionLocation,
+            0,
+            config,
+            this);
       }
     }
   }
@@ -395,7 +403,9 @@ public class DartCompilerUtilities {
 
     private DartParser createParser() {
       if (preserveComments) {
-        return new CommentPreservingParser(CommentPreservingParser.createContext(sourceRef, source,
+        return new CommentPreservingParser(CommentPreservingParser.createContext(
+            sourceRef,
+            source,
             this), false);
       } else {
         return new DartParser(sourceRef, source, this);
@@ -443,7 +453,8 @@ public class DartCompilerUtilities {
     @Override
     public void run() throws Exception {
       final SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
-      final CompilerConfiguration config = new DefaultCompilerConfiguration(new CompilerOptions(),
+      final CompilerConfiguration config = new DefaultCompilerConfiguration(
+          new CompilerOptions(),
           libraryManager) {
 
         @Override
@@ -511,12 +522,21 @@ public class DartCompilerUtilities {
     URI unitUri = src.getUri();
     Map<URI, String> suppliedSources = new HashMap<URI, String>();
     suppliedSources.put(unitUri, sourceString);
-    DeltaAnalysisRunnable runnable = new DeltaAnalysisRunnable(library, unitUri, suppliedSources,
-        suppliedUnit, completionNode, completionLocation, parseErrors);
+    DeltaAnalysisRunnable runnable = new DeltaAnalysisRunnable(
+        library,
+        unitUri,
+        suppliedSources,
+        suppliedUnit,
+        completionNode,
+        completionLocation,
+        parseErrors);
     runnable.runSafe();
     if (runnable.exception != null) {
-      throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
-          "Failed to parse " + library.getName(), runnable.exception)));
+      throw new DartModelException(new CoreException(new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          "Failed to parse " + library.getName(),
+          runnable.exception)));
     }
     return runnable.analyzedNode;
   }
@@ -537,8 +557,11 @@ public class DartCompilerUtilities {
     ParserRunnable runnable = new ParserRunnable(sourceRef, source, preserveComments, parseErrors);
     runnable.runSafe();
     if (runnable.exception != null) {
-      throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
-          "Failed to parse " + sourceRef.getName(), runnable.exception)));
+      throw new DartModelException(new CoreException(new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          "Failed to parse " + sourceRef.getName(),
+          runnable.exception)));
     }
     return runnable.result;
   }
@@ -662,12 +685,19 @@ public class DartCompilerUtilities {
    */
   public static LibraryUnit resolveLibrary(DartLibraryImpl library, boolean forceFullAST,
       final Collection<DartCompilationError> parseErrors) throws DartModelException {
-    ResolverRunnable runnable = new ResolverRunnable(library.getLibrarySourceFile(), null, null,
-        forceFullAST, parseErrors);
+    ResolverRunnable runnable = new ResolverRunnable(
+        library.getLibrarySourceFile(),
+        null,
+        null,
+        forceFullAST,
+        parseErrors);
     runnable.runSafe();
     if (runnable.exception != null) {
-      throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
-          "Failed to parse " + library.getElementName(), runnable.exception)));
+      throw new DartModelException(new CoreException(new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          "Failed to parse " + library.getElementName(),
+          runnable.exception)));
     }
     return runnable.libraryResult;
   }
@@ -685,12 +715,18 @@ public class DartCompilerUtilities {
   public static LibraryUnit resolveLibrary(LibrarySource library,
       Collection<DartUnit> suppliedUnits, final Collection<DartCompilationError> parseErrors)
       throws DartModelException {
-    ResolverRunnable runnable = new ResolverRunnable(library, createMap(suppliedUnits), false,
+    ResolverRunnable runnable = new ResolverRunnable(
+        library,
+        createMap(suppliedUnits),
+        false,
         parseErrors);
     runnable.runSafe();
     if (runnable.exception != null) {
-      throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
-          "Failed to parse " + library.getName(), runnable.exception)));
+      throw new DartModelException(new CoreException(new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          "Failed to parse " + library.getName(),
+          runnable.exception)));
     }
     return runnable.libraryResult;
   }
@@ -756,12 +792,19 @@ public class DartCompilerUtilities {
   public static DartUnit resolveUnit(LibrarySource librarySource, URI unitUri,
       Map<URI, String> suppliedSources, final Collection<DartCompilationError> parseErrors)
       throws DartModelException {
-    ResolverRunnable runnable = new ResolverRunnable(librarySource, unitUri, suppliedSources,
-        false, parseErrors);
+    ResolverRunnable runnable = new ResolverRunnable(
+        librarySource,
+        unitUri,
+        suppliedSources,
+        false,
+        parseErrors);
     runnable.runSafe();
     if (runnable.exception != null) {
-      throw new DartModelException(new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
-          "Failed to parse " + unitUri, runnable.exception)));
+      throw new DartModelException(new CoreException(new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          "Failed to parse " + unitUri,
+          runnable.exception)));
     }
     return runnable.unitResult;
   }
@@ -775,8 +818,14 @@ public class DartCompilerUtilities {
       boolean resolveAllNewLibs) throws IOException {
     // All calls to DartC must be synchronized
     synchronized (compilerLock) {
-      return DartCompiler.analyzeLibraries(librarySource, resolvedLibs, parsedUnits, config,
-          provider, listener, resolveAllNewLibs);
+      return DartCompiler.analyzeLibraries(
+          librarySource,
+          resolvedLibs,
+          parsedUnits,
+          config,
+          provider,
+          listener,
+          resolveAllNewLibs);
     }
   }
 

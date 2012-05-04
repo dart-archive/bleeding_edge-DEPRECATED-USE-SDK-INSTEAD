@@ -55,7 +55,10 @@ public final class IProjectUtilities {
     IFile newFile = computeLinkPoint(project, file.getName());
     newFile.createLink(new Path(file.getAbsolutePath()), 0, monitor);
     if (!newFile.exists()) {
-      throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, IStatus.ERROR,
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          IStatus.ERROR,
           "Failed to create a link to " + file.getAbsolutePath() + " in " + project.getLocation(),
           null));
     }
@@ -78,7 +81,9 @@ public final class IProjectUtilities {
     if (existingResources.length == 1) {
       return existingResources[0];
     } else if (existingResources.length > 1) {
-      throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
           "Too many files representing " + file.getAbsolutePath()));
     }
     final File projectDirectory;
@@ -93,7 +98,8 @@ public final class IProjectUtilities {
       public void run(IProgressMonitor monitor) throws CoreException {
         String projectName = projectDirectory.getName();
         IProject project = getProject(workspace, projectName);
-        IProjectDescription description = createProjectDescription(project,
+        IProjectDescription description = createProjectDescription(
+            project,
             projectDirectory.toURI());
 
         monitor.beginTask("Create project " + projectName, 300); //$NON-NLS-1$
@@ -110,15 +116,20 @@ public final class IProjectUtilities {
         nature.configure();
         monitor.done();
       }
-    }, monitor);
+    },
+        monitor);
     IResource[] newResources = ResourceUtil.getResources(file);
     if (newResources.length == 1) {
       return newResources[0];
     } else if (newResources.length == 0) {
-      throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
           "No files representing " + file.getAbsolutePath()));
     }
-    throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+    throw new CoreException(new Status(
+        IStatus.ERROR,
+        DartCore.PLUGIN_ID,
         "Too many files representing " + file.getAbsolutePath()));
   }
 
@@ -205,7 +216,8 @@ public final class IProjectUtilities {
         }
       }
     } catch (CoreException exception) {
-      DartCore.logInformation("Could not get members of project " + project.getLocation(),
+      DartCore.logInformation(
+          "Could not get members of project " + project.getLocation(),
           exception);
     }
     return false;

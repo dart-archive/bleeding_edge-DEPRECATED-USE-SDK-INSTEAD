@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -30,14 +30,18 @@ public class BufferManager {
   public static Buffer createBuffer(OpenableElement owner) {
     OpenableElementImpl element = (OpenableElementImpl) owner;
     IResource resource = element.resource();
-    return new FileBuffer(resource instanceof IFile ? (IFile) resource : null, owner,
+    return new FileBuffer(
+        resource instanceof IFile ? (IFile) resource : null,
+        owner,
         element.isReadOnly());
   }
 
   public static Buffer createNullBuffer(OpenableElement owner) {
     OpenableElementImpl element = (OpenableElementImpl) owner;
     IResource resource = element.resource();
-    return new NullBuffer(resource instanceof IFile ? (IFile) resource : null, owner,
+    return new NullBuffer(
+        resource instanceof IFile ? (IFile) resource : null,
+        owner,
         element.isReadOnly());
   }
 

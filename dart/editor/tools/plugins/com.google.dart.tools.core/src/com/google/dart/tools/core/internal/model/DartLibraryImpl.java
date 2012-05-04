@@ -147,7 +147,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
    * associated with the defining compilation unit defines a top-level library.
    */
   private static final QualifiedName TOP_LEVEL_PROPERTY_NAME = new QualifiedName(
-      DartCore.PLUGIN_ID, "topLevel");
+      DartCore.PLUGIN_ID,
+      "topLevel");
 
   /**
    * Initialize a newly created library to be contained in the given project.
@@ -179,7 +180,9 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
    * @param libraryFile the library specification file (*.lib file)
    */
   public DartLibraryImpl(File libraryFile) {
-    this(DartModelManager.getInstance().getDartModel().getExternalProject(), null,
+    this(
+        DartModelManager.getInstance().getDartModel().getExternalProject(),
+        null,
         newLibrarySourceFile(libraryFile));
   }
 
@@ -199,7 +202,9 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     //
     IFile resourceFile;
     try {
-      resourceFile = IProjectUtilities.addLinkToProject(getDartProject().getProject(), file,
+      resourceFile = IProjectUtilities.addLinkToProject(
+          getDartProject().getProject(),
+          file,
           monitor);
     } catch (CoreException exception) {
       throw new DartModelException(exception);
@@ -229,7 +234,9 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     } catch (CoreException exception) {
       throw new DartModelException(exception);
     }
-    CompilationUnitImpl unit = new CompilationUnitImpl(this, unitFile,
+    CompilationUnitImpl unit = new CompilationUnitImpl(
+        this,
+        unitFile,
         DefaultWorkingCopyOwner.getInstance());
     //
     // Add the text of the directive to this library's defining file.
@@ -597,7 +604,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           }
         }
       } catch (DartModelException exception) {
-        DartCore.logError("Could not get the libraries imported by " + library.getDisplayName(),
+        DartCore.logError(
+            "Could not get the libraries imported by " + library.getDisplayName(),
             exception);
         continue;
       }
@@ -643,11 +651,13 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   public void setTopLevel(boolean topLevel) {
     if (topLevel != isTopLevel()) {
       try {
-        getDefiningResource().setPersistentProperty(TOP_LEVEL_PROPERTY_NAME,
+        getDefiningResource().setPersistentProperty(
+            TOP_LEVEL_PROPERTY_NAME,
             topLevel ? "true" : null);
         DartElementDeltaImpl delta = new DartElementDeltaImpl(this);
         delta.changed(DartElementDelta.F_TOP_LEVEL);
-        DartModelManager.getInstance().getDeltaProcessor().fire(delta,
+        DartModelManager.getInstance().getDeltaProcessor().fire(
+            delta,
             ElementChangedEvent.POST_CHANGE);
       } catch (CoreException exception) {
         // Ignore
@@ -668,12 +678,16 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     final CompilationUnitImpl definingUnit;
     if (libraryFile == null) {
       String relativePath = sourceFile.getName();
-      definingUnit = new ExternalCompilationUnitImpl(this, relativePath,
+      definingUnit = new ExternalCompilationUnitImpl(
+          this,
+          relativePath,
           sourceFile.getSourceFor(relativePath));
       libraryInfo.setDefiningCompilationUnit(definingUnit);
       children.add(definingUnit);
     } else {
-      definingUnit = new CompilationUnitImpl(DartLibraryImpl.this, libraryFile,
+      definingUnit = new CompilationUnitImpl(
+          DartLibraryImpl.this,
+          libraryFile,
           DefaultWorkingCopyOwner.getInstance());
       libraryInfo.setDefiningCompilationUnit(definingUnit);
       children.add(definingUnit);
@@ -695,11 +709,13 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           return null;
         }
         // prepare SourceRanges
-        SourceRange sourceRange = new SourceRangeImpl(node.getSourceInfo().getOffset(),
+        SourceRange sourceRange = new SourceRangeImpl(
+            node.getSourceInfo().getOffset(),
             node.getSourceInfo().getLength());
         SourceRange uriRange = sourceRange;
         if (uriNode != null) {
-          uriRange = new SourceRangeImpl(uriNode.getSourceInfo().getOffset(),
+          uriRange = new SourceRangeImpl(
+              uriNode.getSourceInfo().getOffset(),
               uriNode.getSourceInfo().getLength());
         }
         // prepare "prefix"
@@ -710,7 +726,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           if (prefixLiteral != null) {
             prefix = prefixLiteral.getValue();
             SourceInfo prefixSourceInfo = prefixLiteral.getSourceInfo();
-            nameRange = new SourceRangeImpl(prefixSourceInfo.getOffset(),
+            nameRange = new SourceRangeImpl(
+                prefixSourceInfo.getOffset(),
                 prefixSourceInfo.getLength());
           }
         }
@@ -720,7 +737,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           librarySource = sourceFile.getImportFor(relativePath);
         } catch (Exception exception) {
           DartCore.logError(
-              "Failed to resolve import " + relativePath + " in " + sourceFile.getUri(), exception);
+              "Failed to resolve import " + relativePath + " in " + sourceFile.getUri(),
+              exception);
           return null;
         }
         if (librarySource == null) {
@@ -732,8 +750,13 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           try {
             if (librarySource.exists()) {
               DartLibraryImpl library = new DartLibraryImpl(librarySource);
-              libraryInfo.addImport(new DartImportImpl(definingUnit, sourceRange, uriRange,
-                  library, prefix, nameRange));
+              libraryInfo.addImport(new DartImportImpl(
+                  definingUnit,
+                  sourceRange,
+                  uriRange,
+                  library,
+                  prefix,
+                  nameRange));
             }
           } catch (Exception exception) {
             // The library is not valid, so we don't add it.
@@ -750,8 +773,13 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           IFile libFile = (IFile) libraryFiles[0];
           DartProjectImpl dartProject = modelManager.create(libFile.getProject());
           DartLibraryImpl library = new DartLibraryImpl(dartProject, libFile, librarySource);
-          libraryInfo.addImport(new DartImportImpl(definingUnit, sourceRange, uriRange, library,
-              prefix, nameRange));
+          libraryInfo.addImport(new DartImportImpl(
+              definingUnit,
+              sourceRange,
+              uriRange,
+              library,
+              prefix,
+              nameRange));
           return null;
         }
 
@@ -768,8 +796,13 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
 //          }
 //          if (library == null) {
           DartLibraryImpl library = new DartLibraryImpl(libFile);
-          libraryInfo.addImport(new DartImportImpl(definingUnit, sourceRange, uriRange, library,
-              prefix, nameRange));
+          libraryInfo.addImport(new DartImportImpl(
+              definingUnit,
+              sourceRange,
+              uriRange,
+              library,
+              prefix,
+              nameRange));
 //          } else {
 //            importedLibraries.add(library);
 //          }
@@ -821,7 +854,9 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
             && compilationUnitFiles[0] instanceof IFile) {
           IFile unitFile = (IFile) compilationUnitFiles[0];
           if (unitFile.isAccessible()) {
-            children.add(new CompilationUnitImpl(DartLibraryImpl.this, unitFile,
+            children.add(new CompilationUnitImpl(
+                DartLibraryImpl.this,
+                unitFile,
                 DefaultWorkingCopyOwner.getInstance()));
             return null;
           }
@@ -864,14 +899,16 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
                     }
                   }
                 } catch (IOException exception) {
-                  DartCore.logInformation("Could not get contents of " + resource.getLocation(),
+                  DartCore.logInformation(
+                      "Could not get contents of " + resource.getLocation(),
                       exception);
                 }
               }
             }
             return true;
           }
-        }, 0);
+        },
+            0);
       }
     } catch (CoreException exception) {
       DartCore.logError(exception);
@@ -899,7 +936,9 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         String path = tokenizer.nextToken();
         CompilationUnitImpl unit;
         if (getDartProject().exists()) {
-          unit = new CompilationUnitImpl(this, libraryFile.getProject().getFile(new Path(path)),
+          unit = new CompilationUnitImpl(
+              this,
+              libraryFile.getProject().getFile(new Path(path)),
               owner);
         } else {
           unit = new ExternalCompilationUnitImpl(this, path);
@@ -930,7 +969,8 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           DartResourceImpl resource = new DartResourceImpl(this, new URI(resourceUri));
           return resource.getHandleFromMemento(tokenizer, owner);
         } catch (URISyntaxException exception) {
-          DartCore.logError("Illegal URI found in memento for a resource: \"" + resourceUri + "\"",
+          DartCore.logError(
+              "Illegal URI found in memento for a resource: \"" + resourceUri + "\"",
               exception);
           return null;
         }
@@ -1010,14 +1050,17 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   private boolean addDirective(String directiveName, File file, IProgressMonitor monitor)
       throws DartModelException {
     CompilationUnit libraryUnit = getDefiningCompilationUnit();
-    CompilationUnit workingCopy = libraryUnit.getWorkingCopy(DefaultWorkingCopyOwner.getInstance(),
+    CompilationUnit workingCopy = libraryUnit.getWorkingCopy(
+        DefaultWorkingCopyOwner.getInstance(),
         monitor);
     boolean hadUnsavedChanges = workingCopy.hasUnsavedChanges();
     Buffer buffer = workingCopy.getBuffer();
     String relativePath = libraryFile.getLocation().removeLastSegments(1).toFile().toURI().relativize(
         file.toURI()).getPath();
-    int insertionPoint = SourceUtilities.findInsertionPointForSource(buffer.getContents(),
-        directiveName, relativePath);
+    int insertionPoint = SourceUtilities.findInsertionPointForSource(
+        buffer.getContents(),
+        directiveName,
+        relativePath);
     // TODO(brianwilkerson) This won't add a blank line if this is the first directive of its kind.
     buffer.replace(insertionPoint, 0, directiveName + "('" + relativePath + "');"
         + SourceUtilities.LINE_SEPARATOR);
@@ -1089,12 +1132,16 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     try {
       if (sourceFile != null) {
         fileName = sourceFile.getName();
-        return DartCompilerUtilities.parseSource(fileName,
-            FileUtilities.getContents(sourceFile.getSourceReader()), null);
+        return DartCompilerUtilities.parseSource(
+            fileName,
+            FileUtilities.getContents(sourceFile.getSourceReader()),
+            null);
       }
       if (libraryFile != null && libraryFile.exists()) {
         fileName = libraryFile.getName();
-        return DartCompilerUtilities.parseSource(fileName, IFileUtilities.getContents(libraryFile),
+        return DartCompilerUtilities.parseSource(
+            fileName,
+            IFileUtilities.getContents(libraryFile),
             null);
       }
     } catch (Exception exception) {

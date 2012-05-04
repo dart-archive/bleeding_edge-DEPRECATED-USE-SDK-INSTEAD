@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -192,7 +192,8 @@ public class ResourceUtil {
     } else if (SystemLibraryManager.isDartUri(uri)) {
       return null;
     } else if (!uri.isAbsolute()) {
-      DartCore.logError("Cannot get resource associated with non-absolute URI: " + uri,
+      DartCore.logError(
+          "Cannot get resource associated with non-absolute URI: " + uri,
           new Exception());
       return null;
     }

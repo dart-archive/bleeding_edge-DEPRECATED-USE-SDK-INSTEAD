@@ -164,7 +164,8 @@ public final class SearchEngineImpl implements SearchEngine {
               }
             }
           } catch (DartModelException exception) {
-            DartCore.logError("Could not get methods defined for type " + element.getElementName(),
+            DartCore.logError(
+                "Could not get methods defined for type " + element.getElementName(),
                 exception);
           }
         }
@@ -293,8 +294,8 @@ public final class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
-  public List<SearchMatch> searchReferences(DartImport imprt, SearchScope scope, SearchFilter filter,
-      IProgressMonitor monitor) throws SearchException {
+  public List<SearchMatch> searchReferences(DartImport imprt, SearchScope scope,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException {
     DartCore.notYetImplemented();
     throw new NotYetImplementedException();
   }
@@ -462,8 +463,7 @@ public final class SearchEngineImpl implements SearchEngine {
       @Override
       public Location[] getValidTargets() {
         return new Location[] {
-            SyntheticLocation.ALL_CLASSES,
-            SyntheticLocation.ALL_FUNCTION_TYPE_ALIASES,
+            SyntheticLocation.ALL_CLASSES, SyntheticLocation.ALL_FUNCTION_TYPE_ALIASES,
             SyntheticLocation.ALL_INTERFACES};
       }
 
@@ -522,7 +522,8 @@ public final class SearchEngineImpl implements SearchEngine {
     if (workingCopies != null) {
       if (workingCopyOwner == null) {
         copies = DartModelManager.getInstance().getWorkingCopies(
-            DefaultWorkingCopyOwner.getInstance(), false);
+            DefaultWorkingCopyOwner.getInstance(),
+            false);
         if (copies == null) {
           copies = workingCopies;
         } else {
@@ -546,7 +547,8 @@ public final class SearchEngineImpl implements SearchEngine {
       copies = DartModelManager.getInstance().getWorkingCopies(workingCopyOwner, true);
     } else {
       copies = DartModelManager.getInstance().getWorkingCopies(
-          DefaultWorkingCopyOwner.getInstance(), false);
+          DefaultWorkingCopyOwner.getInstance(),
+          false);
     }
     if (copies == null) {
       return new CompilationUnit[0];
@@ -643,7 +645,9 @@ public final class SearchEngineImpl implements SearchEngine {
       SearchListener listener, IProgressMonitor monitor) throws SearchException {
     CompilationUnit[] currentWorkingCopies = getWorkingCopies();
     // TODO(brianwilkerson) Figure out how best to report progress.
-    SubMonitor progress = SubMonitor.convert(monitor, "Searching...",
+    SubMonitor progress = SubMonitor.convert(
+        monitor,
+        "Searching...",
         Math.max(100, (currentWorkingCopies.length + 1) * 2));
     //
     // Search the index for matches.
@@ -677,7 +681,8 @@ public final class SearchEngineImpl implements SearchEngine {
           ast.accept(contributor);
         } catch (DartModelException exception) {
           DartCore.logError(
-              "Could not parse " + workingCopy.getResource().getLocation().toString(), exception);
+              "Could not parse " + workingCopy.getResource().getLocation().toString(),
+              exception);
         }
         progress.worked(1);
       }
@@ -702,8 +707,11 @@ public final class SearchEngineImpl implements SearchEngine {
             quality = pattern.matches(element);
           }
           if (quality != null) {
-            listener.matchFound(new SearchMatch(quality, map(dartLocation.getReferenceKind()),
-                element, dartLocation.getSourceRange()));
+            listener.matchFound(new SearchMatch(
+                quality,
+                map(dartLocation.getReferenceKind()),
+                element,
+                dartLocation.getSourceRange()));
           }
         }
       }

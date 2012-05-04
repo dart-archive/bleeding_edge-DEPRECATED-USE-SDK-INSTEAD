@@ -140,7 +140,8 @@ public class MethodInvocationContributor extends ScopedDartContributor {
     if (function instanceof Method) {
       Method method = (Method) function;
       try {
-        recordRelationship(peekTarget(sourceRange),
+        recordRelationship(
+            peekTarget(sourceRange),
             new MethodLocation(method, method.getNameRange()));
       } catch (DartModelException exception) {
         DartCore.logError("Could not get range for method " + method.getElementName(), exception);

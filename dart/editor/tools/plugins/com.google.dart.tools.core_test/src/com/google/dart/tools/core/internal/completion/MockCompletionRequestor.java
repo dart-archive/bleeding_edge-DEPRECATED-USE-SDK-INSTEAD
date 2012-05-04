@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -38,8 +38,10 @@ class MockCompletionRequestor extends CompletionRequestor {
 
   @Override
   public void acceptContext(CompletionContext context) {
-    CompletionEngineTest.assertEquals("Expected acceptContext to be called after beginReporting",
-        1, state++);
+    CompletionEngineTest.assertEquals(
+        "Expected acceptContext to be called after beginReporting",
+        1,
+        state++);
     super.acceptContext(context);
   }
 
@@ -70,13 +72,17 @@ class MockCompletionRequestor extends CompletionRequestor {
   @Override
   public void completionFailure(Problem problem) {
     CompletionEngineTest.assertEquals(
-        "Expected completionFailure to be called after acceptContext", 2, state);
+        "Expected completionFailure to be called after acceptContext",
+        2,
+        state);
     super.completionFailure(problem);
   }
 
   @Override
   public void endReporting() {
-    CompletionEngineTest.assertEquals("Expected endReporting to be called after beginReporting", 2,
+    CompletionEngineTest.assertEquals(
+        "Expected endReporting to be called after beginReporting",
+        2,
         state++);
     super.endReporting();
   }

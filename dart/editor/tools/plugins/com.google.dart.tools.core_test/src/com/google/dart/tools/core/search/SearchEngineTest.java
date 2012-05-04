@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -35,8 +35,11 @@ public class SearchEngineTest extends TestCase {
     getMoneyProject();
     SearchEngine engine = SearchEngineFactory.createSearchEngine();
     GatheringSearchListener listener = new GatheringSearchListener();
-    engine.searchConstructorDeclarations(new WorkspaceSearchScope(),
-        SearchPatternFactory.createPrefixPattern("Simpl", true), null, listener,
+    engine.searchConstructorDeclarations(
+        new WorkspaceSearchScope(),
+        SearchPatternFactory.createPrefixPattern("Simpl", true),
+        null,
+        listener,
         new NullProgressMonitor());
     List<SearchMatch> matches = listener.getMatches();
     assertEquals(2, matches.size());
@@ -51,7 +54,11 @@ public class SearchEngineTest extends TestCase {
     Field field = type.getField("amount");
     SearchEngine engine = SearchEngineFactory.createSearchEngine();
     GatheringSearchListener listener = new GatheringSearchListener();
-    engine.searchReferences(field, new WorkspaceSearchScope(), null, listener,
+    engine.searchReferences(
+        field,
+        new WorkspaceSearchScope(),
+        null,
+        listener,
         new NullProgressMonitor());
     List<SearchMatch> matches = listener.getMatches();
     assertEquals(4, matches.size());
@@ -66,7 +73,11 @@ public class SearchEngineTest extends TestCase {
     Method method = type.getMethod("getAmount", new String[0]);
     SearchEngine engine = SearchEngineFactory.createSearchEngine();
     GatheringSearchListener listener = new GatheringSearchListener();
-    engine.searchReferences(method, new WorkspaceSearchScope(), null, listener,
+    engine.searchReferences(
+        method,
+        new WorkspaceSearchScope(),
+        null,
+        listener,
         new NullProgressMonitor());
     List<SearchMatch> matches = listener.getMatches();
     assertEquals(2, matches.size());
@@ -80,7 +91,11 @@ public class SearchEngineTest extends TestCase {
     Type type = libraries[0].getCompilationUnit("simple_money.dart").getType("SimpleMoney");
     SearchEngine engine = SearchEngineFactory.createSearchEngine();
     GatheringSearchListener listener = new GatheringSearchListener();
-    engine.searchReferences(type, new WorkspaceSearchScope(), null, listener,
+    engine.searchReferences(
+        type,
+        new WorkspaceSearchScope(),
+        null,
+        listener,
         new NullProgressMonitor());
     List<SearchMatch> matches = listener.getMatches();
     assertEquals(10, matches.size()); // I believe that this should eventually be 17.
@@ -90,8 +105,11 @@ public class SearchEngineTest extends TestCase {
     getMoneyProject();
     SearchEngine engine = SearchEngineFactory.createSearchEngine();
     GatheringSearchListener listener = new GatheringSearchListener();
-    engine.searchTypeDeclarations(new WorkspaceSearchScope(),
-        SearchPatternFactory.createPrefixPattern("Money", true), null, listener,
+    engine.searchTypeDeclarations(
+        new WorkspaceSearchScope(),
+        SearchPatternFactory.createPrefixPattern("Money", true),
+        null,
+        listener,
         new NullProgressMonitor());
     List<SearchMatch> matches = listener.getMatches();
     assertEquals(1, matches.size());

@@ -632,8 +632,10 @@ public class CompletionEngine {
                   if (nameString.indexOf('.') >= 0) {
                     return null;
                   }
-                  SyntheticIdentifier synth = new SyntheticIdentifier(nameString,
-                      actualCompletionPosition - nameString.length() + 1, nameString.length());
+                  SyntheticIdentifier synth = new SyntheticIdentifier(
+                      nameString,
+                      actualCompletionPosition - nameString.length() + 1,
+                      nameString.length());
                   method.accept(new IdentifierCompletionProposer(synth));
                 } else if (expr instanceof DartPropertyAccess) {
                   expr.accept(this);
@@ -655,7 +657,8 @@ public class CompletionEngine {
 
     @Override
     public Void visitClass(DartClass node) {
-      String classSrc = source.substring(node.getSourceInfo().getOffset(),
+      String classSrc = source.substring(
+          node.getSourceInfo().getOffset(),
           actualCompletionPosition + 1);
       int completionPos = actualCompletionPosition + 1 - node.getSourceInfo().getOffset();
       boolean beforeBrace = classSrc.indexOf('{') < 0;
@@ -1388,8 +1391,13 @@ public class CompletionEngine {
     if (resolvedNode != null) {
       long resolutionStartTime = DartCoreDebug.ENABLE_CONTENT_ASSIST_TIMING
           ? System.currentTimeMillis() : 0L;
-      analyzedNode = DartCompilerUtilities.analyzeDelta(library, source, parsedUnit, resolvedNode,
-          completionPosition, parseErrors);
+      analyzedNode = DartCompilerUtilities.analyzeDelta(
+          library,
+          source,
+          parsedUnit,
+          resolvedNode,
+          completionPosition,
+          parseErrors);
       if (metrics != null) {
         metrics.resolveLibraryTime(System.currentTimeMillis() - resolutionStartTime);
       }
@@ -1515,7 +1523,8 @@ public class CompletionEngine {
       }
       int kind = CompletionProposal.METHOD_REF;
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-          kind, actualCompletionPosition - offset);
+          kind,
+          actualCompletionPosition - offset);
       proposal.setDeclarationSignature(method.getEnclosingElement().getName().toCharArray());
       proposal.setSignature(name.toCharArray());
       proposal.setCompletion(name.toCharArray());
@@ -1589,7 +1598,8 @@ public class CompletionEngine {
           continue;
       }
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-          kind, actualCompletionPosition - offset);
+          kind,
+          actualCompletionPosition - offset);
       proposal.setDeclarationSignature(libraryElement.getLibraryUnit().getName().toCharArray());
       proposal.setSignature(typeName.toCharArray());
       proposal.setCompletion(name.toCharArray());
@@ -1624,7 +1634,8 @@ public class CompletionEngine {
       int kind = isMethod ? CompletionProposal.METHOD_REF : isGetter || isSetter
           ? CompletionProposal.FIELD_REF : CompletionProposal.LOCAL_VARIABLE_REF;
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-          kind, actualCompletionPosition - offset);
+          kind,
+          actualCompletionPosition - offset);
       proposal.setSignature(typeName.toCharArray());
       proposal.setIsGetter(isGetter);
       proposal.setIsSetter(isSetter);
@@ -1691,7 +1702,8 @@ public class CompletionEngine {
       int kind = isGetter || isSetter ? CompletionProposal.FIELD_REF
           : CompletionProposal.METHOD_REF;
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-          kind, actualCompletionPosition - offset);
+          kind,
+          actualCompletionPosition - offset);
       if (includeDeclaration) {
         proposal.setDeclarationSignature(method.getEnclosingElement().getName().toCharArray());
       } else {
@@ -1757,7 +1769,8 @@ public class CompletionEngine {
       }
       previousNames.add(sig);
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-          CompletionProposal.FIELD_REF, actualCompletionPosition - offset);
+          CompletionProposal.FIELD_REF,
+          actualCompletionPosition - offset);
       if (includeDeclaration) {
         proposal.setDeclarationSignature(field.getEnclosingElement().getName().toCharArray());
       } else {
@@ -1798,7 +1811,8 @@ public class CompletionEngine {
     String prefix = extractFilterPrefix(node);
     for (String name : names) {
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-          CompletionProposal.LOCAL_VARIABLE_REF, actualCompletionPosition - offset);
+          CompletionProposal.LOCAL_VARIABLE_REF,
+          actualCompletionPosition - offset);
       proposal.setSignature(name.toCharArray());
       proposal.setCompletion(name.toCharArray());
       proposal.setName(name.toCharArray());
@@ -1827,7 +1841,8 @@ public class CompletionEngine {
     }
     if (!isCompletionAfterDot) {
       InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-          CompletionProposal.TYPE_REF, actualCompletionPosition - offset);
+          CompletionProposal.TYPE_REF,
+          actualCompletionPosition - offset);
       char[] nameChars = name.toCharArray();
       proposal.setCompletion(nameChars);
       proposal.setSignature(nameChars);
@@ -1843,7 +1858,8 @@ public class CompletionEngine {
               continue;
             }
             InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-                CompletionProposal.METHOD_REF, actualCompletionPosition - offset);
+                CompletionProposal.METHOD_REF,
+                actualCompletionPosition - offset);
             char[] declaringTypeName = method.getDeclaringType().getElementName().toCharArray();
             char[] methodName = name.toCharArray();
             proposal.setDeclarationSignature(declaringTypeName);
@@ -1859,14 +1875,17 @@ public class CompletionEngine {
             proposal.setDeclarationTypeName(declaringTypeName);
             setSourceLoc(proposal, node, prefix);
             proposal.setRelevance(1);
-            requestor.setAllowsRequiredProposals(CompletionProposal.CONSTRUCTOR_INVOCATION,
-                CompletionProposal.TYPE_REF, true);
+            requestor.setAllowsRequiredProposals(
+                CompletionProposal.CONSTRUCTOR_INVOCATION,
+                CompletionProposal.TYPE_REF,
+                true);
             requestor.accept(proposal);
           }
         }
       } catch (DartModelException exception) {
         InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-            CompletionProposal.TYPE_REF, actualCompletionPosition - offset);
+            CompletionProposal.TYPE_REF,
+            actualCompletionPosition - offset);
         char[] nameChars = name.toCharArray();
         proposal.setCompletion(nameChars);
         proposal.setSignature(nameChars);
@@ -1890,7 +1909,8 @@ public class CompletionEngine {
       return;
     }
     InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-        CompletionProposal.TYPE_REF, actualCompletionPosition - offset);
+        CompletionProposal.TYPE_REF,
+        actualCompletionPosition - offset);
     char[] nameChars = name.toCharArray();
     proposal.setCompletion(nameChars);
     proposal.setSignature(nameChars);
@@ -1930,7 +1950,8 @@ public class CompletionEngine {
       return;
     }
     InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-        CompletionProposal.TYPE_REF, actualCompletionPosition - offset);
+        CompletionProposal.TYPE_REF,
+        actualCompletionPosition - offset);
     char[] nameChars = name.toCharArray();
     proposal.setCompletion(nameChars);
     proposal.setSignature(nameChars);
@@ -1971,7 +1992,8 @@ public class CompletionEngine {
       return;
     }
     InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
-        CompletionProposal.TYPE_REF, actualCompletionPosition - offset);
+        CompletionProposal.TYPE_REF,
+        actualCompletionPosition - offset);
     char[] nameChars = name.toCharArray();
     proposal.setIsInterface(isInterface);
     proposal.setCompletion(nameChars);
@@ -2006,12 +2028,17 @@ public class CompletionEngine {
     List<SearchMatch> matches;
     try {
       if (DartCoreDebug.NEW_INDEXER) {
-        matches = engine.searchTypeDeclarations(scope,
-            SearchPatternFactory.createPrefixPattern(prefix, true), (SearchFilter) null,
+        matches = engine.searchTypeDeclarations(
+            scope,
+            SearchPatternFactory.createPrefixPattern(prefix, true),
+            (SearchFilter) null,
             new NullProgressMonitor());
       } else {
-        engine.searchTypeDeclarations(scope,
-            SearchPatternFactory.createPrefixPattern(prefix, true), null, listener,
+        engine.searchTypeDeclarations(
+            scope,
+            SearchPatternFactory.createPrefixPattern(prefix, true),
+            null,
+            listener,
             new NullProgressMonitor());
         matches = listener.getMatches();
       }
@@ -2023,8 +2050,11 @@ public class CompletionEngine {
       for (com.google.dart.tools.core.model.Type localType : getCurrentCompilationUnit().getTypes()) {
         String typeName = localType.getElementName();
         if (typeName.startsWith(prefix)) { // this test is case sensitive
-          SearchMatch match = new SearchMatch(MatchQuality.EXACT, MatchKind.NOT_A_REFERENCE,
-              localType, localType.getSourceRange());
+          SearchMatch match = new SearchMatch(
+              MatchQuality.EXACT,
+              MatchKind.NOT_A_REFERENCE,
+              localType,
+              localType.getSourceRange());
           boolean found = false;
           for (SearchMatch foundMatch : matches) {
             if (foundMatch.getElement().getElementName().equals(typeName)) {
@@ -2040,8 +2070,11 @@ public class CompletionEngine {
       for (com.google.dart.tools.core.model.DartFunctionTypeAlias localType : getCurrentCompilationUnit().getFunctionTypeAliases()) {
         String typeName = localType.getElementName();
         if (typeName.startsWith(prefix)) { // this test is case sensitive
-          SearchMatch match = new SearchMatch(MatchQuality.EXACT, MatchKind.NOT_A_REFERENCE,
-              localType, localType.getSourceRange());
+          SearchMatch match = new SearchMatch(
+              MatchQuality.EXACT,
+              MatchKind.NOT_A_REFERENCE,
+              localType,
+              localType.getSourceRange());
           boolean found = false;
           for (SearchMatch foundMatch : matches) {
             if (foundMatch.getElement().getElementName().equals(typeName)) {

@@ -200,7 +200,10 @@ public class IndexReader {
         int locationCount = input.readInt();
         for (int k = 0; k < locationCount; k++) {
           ContributedLocation location = readContributedLocation(input);
-          index.recordRelationship(location.getContributor(), element, relationship,
+          index.recordRelationship(
+              location.getContributor(),
+              element,
+              relationship,
               location.getLocation());
         }
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -27,8 +27,13 @@ public class ParameterCompleter extends DartParameter implements CompletionNode 
 
   public static ParameterCompleter from(DartParameter p) {
     return CompletionUtil.init(
-        new ParameterCompleter(p.getName(), p.getTypeNode(), p.getFunctionParameters(),
-            p.getDefaultExpr(), p.getModifiers()), p);
+        new ParameterCompleter(
+            p.getName(),
+            p.getTypeNode(),
+            p.getFunctionParameters(),
+            p.getDefaultExpr(),
+            p.getModifiers()),
+        p);
   }
 
   private Stack<Mark> stack;

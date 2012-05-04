@@ -107,7 +107,8 @@ public class IProjectUtilitiesTest extends TestCase {
       public void run(File tempDirectory) throws Exception {
         File projectDir = createProjectDir(tempDirectory);
         createDartFile(projectDir);
-        IResource result = IProjectUtilities.createOrOpenProject(projectDir,
+        IResource result = IProjectUtilities.createOrOpenProject(
+            projectDir,
             new NullProgressMonitor());
         assertTrue(result instanceof IProject);
         IProject project = (IProject) result;
@@ -122,7 +123,8 @@ public class IProjectUtilitiesTest extends TestCase {
       public void run(File tempDirectory) throws Exception {
         File projectDir = createProjectDir(tempDirectory);
         File dartFile = createDartFile(projectDir);
-        IResource result = IProjectUtilities.createOrOpenProject(dartFile,
+        IResource result = IProjectUtilities.createOrOpenProject(
+            dartFile,
             new NullProgressMonitor());
         assertTrue(result instanceof IFile);
         IFile file = (IFile) result;

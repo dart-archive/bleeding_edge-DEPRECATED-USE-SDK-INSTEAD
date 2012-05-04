@@ -773,11 +773,8 @@ public class DartLibraryImplTest extends TestCase {
     assertTrue(library.isUnreferenced());
   }
 
-  private CompilationUnitImpl assertContainsCompUnit(
-      DartElement[] elements,
-      String elemPath,
-      boolean inWorkspace,
-      boolean exists) throws DartModelException {
+  private CompilationUnitImpl assertContainsCompUnit(DartElement[] elements, String elemPath,
+      boolean inWorkspace, boolean exists) throws DartModelException {
     for (DartElement elem : elements) {
       if (elem instanceof CompilationUnitImpl && elem.getElementName().endsWith(elemPath)) {
         CompilationUnitImpl unit = (CompilationUnitImpl) elem;
@@ -952,10 +949,7 @@ public class DartLibraryImplTest extends TestCase {
   private DartLibraryImpl getDartLib2() throws Exception {
     if (dartLib2 == null) {
       dartLib2 = getOrCreateDartLib("lib2", new DartLibrary[] {
-          getDartLibEmpty(),
-          getDartLib1(),
-          getDartLib3(),
-          getDartLibExternal()}, null, null);
+          getDartLibEmpty(), getDartLib1(), getDartLib3(), getDartLibExternal()}, null, null);
     }
     return dartLib2;
   }
@@ -1067,11 +1061,8 @@ public class DartLibraryImplTest extends TestCase {
     return DartModelManager.getInstance().getDartModel();
   }
 
-  private DartLibraryImpl getOrCreateDartLib(
-      String libName,
-      DartLibrary[] importLibs,
-      String className,
-      String fileContent) throws IOException, DartModelException {
+  private DartLibraryImpl getOrCreateDartLib(String libName, DartLibrary[] importLibs,
+      String className, String fileContent) throws IOException, DartModelException {
     File libFile = getOrCreateLibFile(libName, importLibs, className, fileContent);
     IResource libRes = ResourceUtil.getResource(libFile);
     if (libRes != null) {
@@ -1086,10 +1077,7 @@ public class DartLibraryImplTest extends TestCase {
     return (DartLibraryImpl) DartCore.openLibrary(libFile, new NullProgressMonitor());
   }
 
-  private File getOrCreateLibFile(
-      String libName,
-      DartLibrary[] importLibs,
-      String className,
+  private File getOrCreateLibFile(String libName, DartLibrary[] importLibs, String className,
       String fileContent) throws IOException {
     File libDir = new File(getTempDir(), libName);
     File libFile = new File(libDir, libName + ".dart");

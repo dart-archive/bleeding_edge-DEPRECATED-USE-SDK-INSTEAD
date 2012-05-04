@@ -89,7 +89,9 @@ public class FileGenerator extends AbstractGenerator {
 
     // If the entered file name does not have a '.', then append ".dart" to the name, then this case
     // will fall through to the isDartLikeFileName case below
-    SubMonitor subMonitor = SubMonitor.convert(monitor, GeneratorMessages.FileGenerator_message,
+    SubMonitor subMonitor = SubMonitor.convert(
+        monitor,
+        GeneratorMessages.FileGenerator_message,
         100);
 
     subMonitor.newChild(5);
@@ -195,8 +197,10 @@ public class FileGenerator extends AbstractGenerator {
           // Even though we aren't having the #resource(..) added for new HTML files, we do need the
           // new file linked into the project so that the resource change listener will be able to
           // trigger the DeltaProcessor.
-          IFile iFile = IProjectUtilities.addLinkToProject(library.getDartProject().getProject(),
-              systemFile, monitor);
+          IFile iFile = IProjectUtilities.addLinkToProject(
+              library.getDartProject().getProject(),
+              systemFile,
+              monitor);
           // Finally, create and add the new HTMLFile into the model
           HTMLFileImpl htmlFile = new HTMLFileImpl(library, iFile);
           DartLibraryInfo libraryInfo = (DartLibraryInfo) library.getElementInfo();
@@ -293,11 +297,14 @@ public class FileGenerator extends AbstractGenerator {
     if (fileName == null || fileName.isEmpty()) {
       return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, DESCRIPTION);
     } else if (containsWhitespace(fileName)) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
           GeneratorMessages.FileGenerator_whiteSpaceNotAllowed);
     } else if (getSystemFile().exists()) {
       return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, MessageFormat.format(
-          GeneratorMessages.FileGenerator_fileExists, new Object[] {getSystemFile().getName()}));
+          GeneratorMessages.FileGenerator_fileExists,
+          new Object[] {getSystemFile().getName()}));
     }
     String name = appendIfNoExtension(fileName, Extensions.DOT_DART);
     if (name.endsWith(Extensions.DOT_DART)) {

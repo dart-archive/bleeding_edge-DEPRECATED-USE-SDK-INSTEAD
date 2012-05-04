@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -35,12 +35,7 @@ public class NodeFinderTest extends TestCase {
   public void test_localVariable_onName() throws Exception {
     DartNode node = findSelectedNode("est =", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  foo() {",
-        "    var test = 1;",
-        "  }",
-        "}",
-        ""});
+        "class A {", "  foo() {", "    var test = 1;", "  }", "}", ""});
     // selected node should be "test"
     assertThat(node).isInstanceOf(DartIdentifier.class);
     assertEquals("test", ((DartIdentifier) node).getName());
@@ -49,11 +44,7 @@ public class NodeFinderTest extends TestCase {
   public void test_method_onName() throws Exception {
     DartNode node = findSelectedNode("est() {", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  test() {",
-        "  }",
-        "}",
-        ""});
+        "class A {", "  test() {", "  }", "}", ""});
     // selected node should be "test"
     assertThat(node).isInstanceOf(DartIdentifier.class);
     assertEquals("test", ((DartIdentifier) node).getName());

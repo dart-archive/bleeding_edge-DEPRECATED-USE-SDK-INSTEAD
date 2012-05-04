@@ -187,7 +187,8 @@ public class IndexContributor extends ASTVisitor<Void> {
     libraryResource = getResource(library.getDefiningCompilationUnit());
     libraryElement = new Element(libraryResource, LIBRARY_ELEMENT_ID);
     compilationUnitResource = getResource(compilationUnit);
-    compilationUnitElement = new Element(compilationUnitResource,
+    compilationUnitElement = new Element(
+        compilationUnitResource,
         ElementFactory.composeElementId(compilationUnit.getElementName()));
     if (DartCoreDebug.TRACE_INDEX_CONTRIBUTOR) {
       traceWriter = new PrintStringWriter();
@@ -225,8 +226,10 @@ public class IndexContributor extends ASTVisitor<Void> {
     if (element instanceof MethodElement) {
       // TODO(brianwilkerson) Find the real source range associated with the operator.
       DartExpression index = node.getKey();
-      processMethodInvocation(index.getSourceInfo().getOffset() - 1,
-          index.getSourceInfo().getLength() + 2, (MethodElement) element);
+      processMethodInvocation(
+          index.getSourceInfo().getOffset() - 1,
+          index.getSourceInfo().getLength() + 2,
+          (MethodElement) element);
     } else {
       notFound("array access", node);
     }
@@ -485,7 +488,9 @@ public class IndexContributor extends ASTVisitor<Void> {
       DartExpression operand = node.getArg();
       int offset;
       if (node.isPrefix()) {
-        offset = findOffset(operator, node.getSourceInfo().getOffset(),
+        offset = findOffset(
+            operator,
+            node.getSourceInfo().getOffset(),
             operand.getSourceInfo().getOffset() - 1);
       } else {
         offset = findOffset(operator, operand.getSourceInfo().getOffset()
@@ -670,7 +675,8 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given type
    */
   private Element getElement(DartClass node) {
-    return new Element(compilationUnitResource,
+    return new Element(
+        compilationUnitResource,
         ElementFactory.composeElementId(node.getClassName()));
   }
 
@@ -681,7 +687,8 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given field
    */
   private Element getElement(DartField node) {
-    return new Element(compilationUnitResource, ElementFactory.composeElementId(peekElement(),
+    return new Element(compilationUnitResource, ElementFactory.composeElementId(
+        peekElement(),
         node.getName().getName()));
   }
 
@@ -701,7 +708,8 @@ public class IndexContributor extends ASTVisitor<Void> {
       functionName = Integer.toString(unnamedFunctionCount.peek());
       unnamedFunctionCount.increment(1);
     }
-    return new Element(compilationUnitResource, ElementFactory.composeElementId(peekElement(),
+    return new Element(compilationUnitResource, ElementFactory.composeElementId(
+        peekElement(),
         functionName));
   }
 
@@ -712,7 +720,8 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given function type
    */
   private Element getElement(DartFunctionTypeAlias node) {
-    return new Element(compilationUnitResource,
+    return new Element(
+        compilationUnitResource,
         ElementFactory.composeElementId(node.getName().getName()));
   }
 
@@ -723,7 +732,8 @@ public class IndexContributor extends ASTVisitor<Void> {
    * @return an element representing the given method
    */
   private Element getElement(DartMethodDefinition node) {
-    return new Element(compilationUnitResource, ElementFactory.composeElementId(peekElement(),
+    return new Element(compilationUnitResource, ElementFactory.composeElementId(
+        peekElement(),
         toString(node.getName())));
   }
 
@@ -891,7 +901,8 @@ public class IndexContributor extends ASTVisitor<Void> {
       try {
         sourceCode = compilationUnit.getSource();
       } catch (DartModelException exception) {
-        DartCore.logError("Could not access source for " + compilationUnit.getElementName(),
+        DartCore.logError(
+            "Could not access source for " + compilationUnit.getElementName(),
             exception);
         sourceCode = MISSING_SOURCE;
       }
@@ -1052,7 +1063,9 @@ public class IndexContributor extends ASTVisitor<Void> {
     // Record the class as being contained by the workspace and the library.
     //
     if (node.isInterface()) {
-      recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_INTERFACE,
+      recordRelationship(
+          IndexConstants.UNIVERSE,
+          IndexConstants.DEFINES_INTERFACE,
           getLocation(node));
       recordRelationship(libraryElement, IndexConstants.DEFINES_INTERFACE, getLocation(node));
     } else {
@@ -1109,7 +1122,9 @@ public class IndexContributor extends ASTVisitor<Void> {
     //
     // Record the function type as being contained by the workspace and the library.
     //
-    recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_FUNCTION_TYPE,
+    recordRelationship(
+        IndexConstants.UNIVERSE,
+        IndexConstants.DEFINES_FUNCTION_TYPE,
         getLocation(node));
     recordRelationship(libraryElement, IndexConstants.DEFINES_FUNCTION_TYPE, getLocation(node));
   }
@@ -1126,7 +1141,9 @@ public class IndexContributor extends ASTVisitor<Void> {
       MethodElement methodElement = (MethodElement) element;
       MethodElement overridenMethodElement = findOverriddenMethod(methodElement);
       if (overridenMethodElement != null) {
-        recordRelationship(getElement(overridenMethodElement), IndexConstants.IS_OVERRIDDEN_BY,
+        recordRelationship(
+            getElement(overridenMethodElement),
+            IndexConstants.IS_OVERRIDDEN_BY,
             getLocation(node));
       }
       // add reference from unnamed constructor name to the ClassElement
@@ -1170,7 +1187,9 @@ public class IndexContributor extends ASTVisitor<Void> {
       notFound("method invocation", offset, length);
       return;
     }
-    recordRelationship(getElement(binding), IndexConstants.IS_INVOKED_BY_QUALIFIED,
+    recordRelationship(
+        getElement(binding),
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
         createLocation(offset, length));
   }
 

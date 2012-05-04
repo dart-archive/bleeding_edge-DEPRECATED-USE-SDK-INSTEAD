@@ -877,7 +877,8 @@ public class DartModelManager {
           CompilationUnit primaryWorkingCopy = primaryWCs[i];
           CompilationUnit workingCopy = new CompilationUnitImpl(
               (DartLibraryImpl) primaryWorkingCopy.getParent(),
-              (IFile) primaryWorkingCopy.getResource(), owner);
+              (IFile) primaryWorkingCopy.getResource(),
+              owner);
           if (!workingCopyToInfos.containsKey(workingCopy)) {
             result[index++] = primaryWorkingCopy;
           }
@@ -1282,7 +1283,8 @@ public class DartModelManager {
       List<String> paths = new ArrayList<String>(1);
       IResource[] resources = ResourceUtil.getResources(libraryFile);
       if (resources == null || resources.length != 1) {
-        throw new DartModelException(new DartModelStatusImpl(IStatus.OK,
+        throw new DartModelException(new DartModelStatusImpl(
+            IStatus.OK,
             "Too many files representing the library file " + libraryFile.getAbsolutePath()));
       }
       paths.add(resources[0].getProjectRelativePath().toPortableString());
@@ -1301,7 +1303,9 @@ public class DartModelManager {
       removeInfoAndChildren(newDartProject);
       DartLibrary[] libraries = newDartProject.getDartLibraries();
       if (libraries == null || libraries.length <= 0) {
-        throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartCore.PLUGIN_ID,
             "No libraries found while opening a new project: " + newProject.getLocation()));
       }
       //
@@ -1470,11 +1474,14 @@ public class DartModelManager {
     defaultOptionsMap.putAll(DefaultCodeFormatterConstants.getEclipseDefaultSettings());
 
     // CodeAssist settings
-    defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_VISIBILITY_CHECK,
+    defaultOptionsMap.put(
+        DartPreferenceConstants.CODEASSIST_VISIBILITY_CHECK,
         DartPreferenceConstants.DISABLED);
-    defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_DEPRECATION_CHECK,
+    defaultOptionsMap.put(
+        DartPreferenceConstants.CODEASSIST_DEPRECATION_CHECK,
         DartPreferenceConstants.DISABLED);
-    defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_IMPLICIT_QUALIFICATION,
+    defaultOptionsMap.put(
+        DartPreferenceConstants.CODEASSIST_IMPLICIT_QUALIFICATION,
         DartPreferenceConstants.DISABLED);
     defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_FIELD_PREFIXES, ""); //$NON-NLS-1$
     defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_STATIC_FIELD_PREFIXES, ""); //$NON-NLS-1$
@@ -1486,11 +1493,14 @@ public class DartModelManager {
     defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_STATIC_FINAL_FIELD_SUFFIXES, ""); //$NON-NLS-1$
     defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_LOCAL_SUFFIXES, ""); //$NON-NLS-1$
     defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_ARGUMENT_SUFFIXES, ""); //$NON-NLS-1$
-    defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_FORBIDDEN_REFERENCE_CHECK,
+    defaultOptionsMap.put(
+        DartPreferenceConstants.CODEASSIST_FORBIDDEN_REFERENCE_CHECK,
         DartPreferenceConstants.ENABLED);
-    defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_DISCOURAGED_REFERENCE_CHECK,
+    defaultOptionsMap.put(
+        DartPreferenceConstants.CODEASSIST_DISCOURAGED_REFERENCE_CHECK,
         DartPreferenceConstants.DISABLED);
-    defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_CAMEL_CASE_MATCH,
+    defaultOptionsMap.put(
+        DartPreferenceConstants.CODEASSIST_CAMEL_CASE_MATCH,
         DartPreferenceConstants.ENABLED);
 //    defaultOptionsMap.put(DartPreferenceConstants.CODEASSIST_SUGGEST_STATIC_IMPORTS,
 //        DartPreferenceConstants.ENABLED);
@@ -1647,8 +1657,10 @@ public class DartModelManager {
     }
     try {
 
-      DartUnit unit = DartCompilerUtilities.parseSource(file.getName(),
-          FileUtilities.getContents(file), null);
+      DartUnit unit = DartCompilerUtilities.parseSource(
+          file.getName(),
+          FileUtilities.getContents(file),
+          null);
       List<DartDirective> directives = unit.getDirectives();
       if (directives != null && directives.size() > 0) {
         return unit;
@@ -1665,7 +1677,8 @@ public class DartModelManager {
       }
 
     } catch (Exception exception) {
-      DartCore.logError("Could not parse a compilation unit to determine whether it is a library",
+      DartCore.logError(
+          "Could not parse a compilation unit to determine whether it is a library",
           exception);
       // Fall through to return null
     }

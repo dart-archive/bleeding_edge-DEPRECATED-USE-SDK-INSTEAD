@@ -151,8 +151,8 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public DartLibrary[] getImportedLibraries() throws DartModelException;
 
   /**
-   * @return the {@link DartImport}s for all imported libraries into this library, may be
-   *         empty, but not <code>null</code>.
+   * @return the {@link DartImport}s for all imported libraries into this library, may be empty, but
+   *         not <code>null</code>.
    */
   public DartImport[] getImports() throws DartModelException;
 

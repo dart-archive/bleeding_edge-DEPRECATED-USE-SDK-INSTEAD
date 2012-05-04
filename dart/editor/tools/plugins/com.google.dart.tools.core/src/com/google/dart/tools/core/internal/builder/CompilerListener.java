@@ -129,8 +129,10 @@ class CompilerListener implements DartCompilerListener {
         CompilationUnit compilationUnit = (CompilationUnit) element;
         if (DartCoreDebug.NEW_INDEXER) {
           try {
-            InMemoryIndex.getInstance().indexResource(ResourceFactory.getResource(compilationUnit),
-                compilationUnit, unit);
+            InMemoryIndex.getInstance().indexResource(
+                ResourceFactory.getResource(compilationUnit),
+                compilationUnit,
+                unit);
           } catch (Exception exception) {
             DartCore.logError("Could not index " + source.getUri(), exception);
           }
@@ -212,7 +214,11 @@ class CompilerListener implements DartCompilerListener {
     IResource res = getResource(error);
     if (res != null) {
       if (res.exists() && res.getProject().equals(project) && DartCore.isAnalyzed(res)) {
-        createErrorMarker(res, error.getStartPosition(), error.getLength(), error.getLineNumber(),
+        createErrorMarker(
+            res,
+            error.getStartPosition(),
+            error.getLength(),
+            error.getLineNumber(),
             error.getMessage());
       }
 //    } else {
@@ -230,8 +236,12 @@ class CompilerListener implements DartCompilerListener {
 
     if (res != null) {
       if (res.exists() && res.getProject().equals(project) && DartCore.isAnalyzed(res)) {
-        createWarningMarker(res, error.getStartPosition(), error.getLength(),
-            error.getLineNumber(), error.getMessage());
+        createWarningMarker(
+            res,
+            error.getStartPosition(),
+            error.getLength(),
+            error.getLineNumber(),
+            error.getMessage());
       }
 //    } else {
 //      createWarningMarker(getLibraryResource(), 0, 0, 1, error.getMessage());

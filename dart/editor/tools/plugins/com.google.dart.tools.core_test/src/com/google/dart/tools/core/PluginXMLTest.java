@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -23,8 +23,10 @@ import org.eclipse.team.core.Team;
 
 public class PluginXMLTest extends TestCase {
   public void test_pluginxml_builder() {
-    assertNotNull(Platform.getExtensionRegistry().getExtension(ResourcesPlugin.PI_RESOURCES,
-        ResourcesPlugin.PT_BUILDERS, DartCore.DART_BUILDER_ID));
+    assertNotNull(Platform.getExtensionRegistry().getExtension(
+        ResourcesPlugin.PI_RESOURCES,
+        ResourcesPlugin.PT_BUILDERS,
+        DartCore.DART_BUILDER_ID));
   }
 
   public void test_pluginxml_contentType_sourceFile() {

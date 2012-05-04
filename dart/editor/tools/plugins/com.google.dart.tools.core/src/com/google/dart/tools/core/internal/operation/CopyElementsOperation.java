@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -105,9 +105,11 @@ public class CopyElementsOperation extends MultiOperation {
           if (isRenamingMainType(element, dest)) {
             IPath path = element.getPath();
             String extension = path.getFileExtension();
-            return new RenameResourceElementsOperation(new DartElement[] {dest},
-                new DartElement[] {dest.getParent()}, new String[] {getNewNameFor(element) + '.'
-                    + extension}, force);
+            return new RenameResourceElementsOperation(
+                new DartElement[] {dest},
+                new DartElement[] {dest.getParent()},
+                new String[] {getNewNameFor(element) + '.' + extension},
+                force);
           } else {
             String source = getSourceFor(element);
             String lineSeparator = Util.getLineSeparator(source, element.getDartProject());
@@ -170,13 +172,15 @@ public class CopyElementsOperation extends MultiOperation {
     if (createElementInCUOperation) {
       DartElement sibling = insertBeforeElements.get(element);
       if (sibling != null) {
-        ((CreateElementInCUOperation) op).setRelativePosition(sibling,
+        ((CreateElementInCUOperation) op).setRelativePosition(
+            sibling,
             CreateElementInCUOperation.INSERT_BEFORE);
       } else if (isRename()) {
         DartElement anchor = resolveRenameAnchor(element);
         if (anchor != null) {
           // insert after so that the anchor is found before when deleted below
-          ((CreateElementInCUOperation) op).setRelativePosition(anchor,
+          ((CreateElementInCUOperation) op).setRelativePosition(
+              anchor,
               CreateElementInCUOperation.INSERT_AFTER);
         }
       }
@@ -194,7 +198,8 @@ public class CopyElementsOperation extends MultiOperation {
     }
 
     if (createElementInCUOperation && isMove() && !isRenamingMainType(element, destination)) {
-      DartModelOperation deleteOp = new DeleteElementsOperation(new DartElement[] {element},
+      DartModelOperation deleteOp = new DeleteElementsOperation(
+          new DartElement[] {element},
           this.force);
       executeNestedOperation(deleteOp, 1);
     }

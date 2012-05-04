@@ -86,8 +86,12 @@ public class OpenFileUtil {
     newFolder.createLink(new Path(file.getParentFile().getAbsolutePath()), 0, monitor);
     resource = ResourceUtil.getResource(file);
     if (!(resource instanceof IFile)) {
-      throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, IStatus.ERROR,
-          "Failed to create resource for " + file, null));
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          IStatus.ERROR,
+          "Failed to create resource for " + file,
+          null));
     }
 
     // Remove any overlapping linked folders

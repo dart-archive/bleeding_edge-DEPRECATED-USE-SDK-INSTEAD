@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -283,19 +283,37 @@ public class Scribe {
 
   public Alignment createAlignment(int kind, int mode, int tieBreakRule, int count,
       int sourceRestart) {
-    return createAlignment(kind, mode, tieBreakRule, count, sourceRestart,
-        formatter.preferences.continuation_indentation, false);
+    return createAlignment(
+        kind,
+        mode,
+        tieBreakRule,
+        count,
+        sourceRestart,
+        formatter.preferences.continuation_indentation,
+        false);
   }
 
   public Alignment createAlignment(int kind, int mode, int count, int sourceRestart,
       int continuationIndent, boolean adjust) {
-    return createAlignment(kind, mode, Alignment.R_INNERMOST, count, sourceRestart,
-        continuationIndent, adjust);
+    return createAlignment(
+        kind,
+        mode,
+        Alignment.R_INNERMOST,
+        count,
+        sourceRestart,
+        continuationIndent,
+        adjust);
   }
 
   public Alignment createAlignment(int kind, int mode, int tieBreakRule, int count,
       int sourceRestart, int continuationIndent, boolean adjust) {
-    Alignment alignment = new Alignment(kind, mode, tieBreakRule, this, count, sourceRestart,
+    Alignment alignment = new Alignment(
+        kind,
+        mode,
+        tieBreakRule,
+        this,
+        count,
+        sourceRestart,
         continuationIndent);
     // specific break indentation for message arguments inside binary
     // expressions
@@ -638,7 +656,9 @@ public class Scribe {
         if (currentEdit.length == 0 || currentEdit.offset != scannerEndPosition
             && isMeaningfulEdit(currentEdit)) {
           try {
-            edit.addChild(new ReplaceEdit(currentEdit.offset, currentEdit.length,
+            edit.addChild(new ReplaceEdit(
+                currentEdit.offset,
+                currentEdit.length,
                 currentEdit.replacement));
           } catch (MalformedTreeException ex) {
             // log exception in case of error
@@ -701,7 +721,8 @@ public class Scribe {
           case EOS:
             return;
           case WHITESPACE:
-            addDeleteEdit(scanner.getCurrentTokenStartPosition(),
+            addDeleteEdit(
+                scanner.getCurrentTokenStartPosition(),
                 scanner.getCurrentTokenEndPosition());
             currentTokenStartPosition = scanner.currentPosition;
             scannerState = scanner.getState();
@@ -875,7 +896,8 @@ public class Scribe {
             }
             break;
           case SEMICOLON:
-            print(scanner.currentPosition - scanner.startPosition,
+            print(
+                scanner.currentPosition - scanner.startPosition,
                 formatter.preferences.insert_space_before_semicolon);
             break;
           case EOS:
@@ -909,7 +931,8 @@ public class Scribe {
       while ((currentToken = scanner.getNextToken()) != Token.EOS) {
         switch (currentToken) {
           case WHITESPACE:
-            addDeleteEdit(scanner.getCurrentTokenStartPosition(),
+            addDeleteEdit(
+                scanner.getCurrentTokenStartPosition(),
                 scanner.getCurrentTokenEndPosition());
             // TODO scan for newlines, print a newline if any && hasComment
             hasComment = false;
@@ -991,7 +1014,9 @@ public class Scribe {
   }
 
   public void printNextToken(Token expectedTokenType, boolean considerSpaceIfAny) {
-    printNextToken(expectedTokenType, considerSpaceIfAny,
+    printNextToken(
+        expectedTokenType,
+        considerSpaceIfAny,
         PRESERVE_EMPTY_LINES_KEEP_LAST_NEW_LINES_INDENTATION);
   }
 
@@ -1046,7 +1071,8 @@ public class Scribe {
           case EOS:
             return;
           case WHITESPACE:
-            addDeleteEdit(scanner.getCurrentTokenStartPosition(),
+            addDeleteEdit(
+                scanner.getCurrentTokenStartPosition(),
                 scanner.getCurrentTokenEndPosition());
             currentTokenStartPosition = scanner.currentPosition;
             scannerState = scanner.getState();
@@ -1235,7 +1261,9 @@ public class Scribe {
   }
 
   void printComment() {
-    printComment(CodeFormatter.K_UNKNOWN, NO_TRAILING_COMMENT,
+    printComment(
+        CodeFormatter.K_UNKNOWN,
+        NO_TRAILING_COMMENT,
         PRESERVE_EMPTY_LINES_KEEP_LAST_NEW_LINES_INDENTATION);
   }
 
@@ -1409,7 +1437,9 @@ public class Scribe {
                 hasWhitespaces = true;
                 if (hasLineComment
                     && emptyLinesRules != PRESERVE_EMPTY_LINES_KEEP_LAST_NEW_LINES_INDENTATION) {
-                  addReplaceEdit(tokenStartPosition, whitespacesEndPosition,
+                  addReplaceEdit(
+                      tokenStartPosition,
+                      whitespacesEndPosition,
                       getPreserveEmptyLines(0, emptyLinesRules));
                 } else {
                   addDeleteEdit(tokenStartPosition, whitespacesEndPosition);
@@ -1431,7 +1461,9 @@ public class Scribe {
               } else if (lines != 0
                   && (!formatter.preferences.join_wrapped_lines
                       || formatter.preferences.number_of_empty_lines_to_preserve != 0 || blank_lines_between_import_groups > 0)) {
-                addReplaceEdit(tokenStartPosition, whitespacesEndPosition,
+                addReplaceEdit(
+                    tokenStartPosition,
+                    whitespacesEndPosition,
                     getPreserveEmptyLines(lines - 1, emptyLinesRules));
               } else {
                 useAlignmentBreakIndentation(emptyLinesRules);
@@ -2202,8 +2234,10 @@ public class Scribe {
             boolean canBeRemoved = true;
             loop : for (int i = previousOffset; i < previousOffset + previousReplacementLength; i++) {
               if (scanner.source[i] != previousReplacement.charAt(i - previousOffset)) {
-                edits[editsIndex - 1] = new OptimizedReplaceEdit(previousOffset,
-                    previousReplacementLength, previousReplacement);
+                edits[editsIndex - 1] = new OptimizedReplaceEdit(
+                    previousOffset,
+                    previousReplacementLength,
+                    previousReplacement);
                 canBeRemoved = false;
                 break loop;
               }
@@ -2224,7 +2258,9 @@ public class Scribe {
           }
         } else {
           if (replacementLength != 0) {
-            edits[editsIndex - 1] = new OptimizedReplaceEdit(previousOffset, previousLength,
+            edits[editsIndex - 1] = new OptimizedReplaceEdit(
+                previousOffset,
+                previousLength,
                 previousReplacement + replacement);
           }
         }
@@ -2235,7 +2271,9 @@ public class Scribe {
         String totalReplacement = replacement + previousReplacement;
         loop : for (int i = 0; i < previousLength + length; i++) {
           if (scanner.source[i + offset] != totalReplacement.charAt(i)) {
-            edits[editsIndex - 1] = new OptimizedReplaceEdit(offset, previousLength + length,
+            edits[editsIndex - 1] = new OptimizedReplaceEdit(
+                offset,
+                previousLength + length,
                 totalReplacement);
             canBeRemoved = false;
             break loop;
@@ -2534,7 +2572,8 @@ public class Scribe {
         if (targetAlignment.couldBreak()) {
           // do not throw the exception immediately to have a chance to reset
           // previously broken alignments (see bug 203588)
-          alignmentException = new AlignmentException(AlignmentException.LINE_TOO_LONG,
+          alignmentException = new AlignmentException(
+              AlignmentException.LINE_TOO_LONG,
               relativeDepth);
           if (insideStringConcat) {
             throw alignmentException;
@@ -2587,7 +2626,11 @@ public class Scribe {
           // check that we are on the same line
           int lineIndexForComment = Arrays.binarySearch(lineEnds, start);
           if (lineIndexForComment == index) {
-            return CharOperation.indexOf(Scanner.TAG_PREFIX, scanner.source, true, start,
+            return CharOperation.indexOf(
+                Scanner.TAG_PREFIX,
+                scanner.source,
+                true,
+                start,
                 currentLineEnd) != -1;
           }
         }
@@ -2713,7 +2756,8 @@ public class Scribe {
       if (blank_lines_between_import_groups >= 0) {
         printEmptyLines(blank_lines_between_import_groups, insertPosition);
       } else if (formatter.preferences.number_of_empty_lines_to_preserve != 0) {
-        int linesToPreserve = Math.min(count,
+        int linesToPreserve = Math.min(
+            count,
             formatter.preferences.number_of_empty_lines_to_preserve);
         printEmptyLines(linesToPreserve, insertPosition);
       } else {
@@ -5004,7 +5048,11 @@ public class Scribe {
     int currentTokenEndPosition = scanner.getCurrentTokenEndPosition() + 1;
     boolean includesLineComments = includesLineComments();
     boolean isNlsTag = false;
-    if (CharOperation.indexOf(Scanner.TAG_PREFIX, scanner.source, true, currentTokenStartPosition,
+    if (CharOperation.indexOf(
+        Scanner.TAG_PREFIX,
+        scanner.source,
+        true,
+        currentTokenStartPosition,
         currentTokenEndPosition) != -1) {
       nlsTagCounter = 0;
       isNlsTag = true;
@@ -5488,8 +5536,12 @@ public class Scribe {
     } else {
       int length = COMMENT_INDENTATIONS.length;
       if (commentIndentationLevel > length) {
-        System.arraycopy(COMMENT_INDENTATIONS, 0,
-            COMMENT_INDENTATIONS = new String[commentIndentationLevel + 10], 0, length);
+        System.arraycopy(
+            COMMENT_INDENTATIONS,
+            0,
+            COMMENT_INDENTATIONS = new String[commentIndentationLevel + 10],
+            0,
+            length);
       }
       commentIndentation = COMMENT_INDENTATIONS[commentIndentationLevel - 1];
       if (commentIndentation == null) {

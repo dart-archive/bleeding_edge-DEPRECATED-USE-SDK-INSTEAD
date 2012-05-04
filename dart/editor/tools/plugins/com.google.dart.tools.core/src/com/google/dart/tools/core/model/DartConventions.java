@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -226,22 +226,38 @@ public final class DartConventions {
    */
   public static IStatus validateCompilationUnitName(String name) {
     if (name == null) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1, Messages.convention_unitName_null,
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          -1,
+          Messages.convention_unitName_null,
           null);
     }
     String trimmed = name.trim();
     if (!name.equals(trimmed)) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
-          Messages.convention_unitName_leadingOrTrailingBlanks, null);
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          -1,
+          Messages.convention_unitName_leadingOrTrailingBlanks,
+          null);
     }
     if (!DartCore.isDartLikeFileName(name)) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
-          Messages.convention_unitName_notDartName, null);
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          -1,
+          Messages.convention_unitName_notDartName,
+          null);
     }
     int index = name.lastIndexOf('.');
     if (index < 0) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
-          Messages.convention_unitName_notDartName, null);
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          -1,
+          Messages.convention_unitName_notDartName,
+          null);
     }
     IStatus status = ResourcesPlugin.getWorkspace().validateName(name, IResource.FILE);
     if (!status.isOK()) {
@@ -334,13 +350,21 @@ public final class DartConventions {
    */
   public static IStatus validatePrefix(String prefix) {
     if (prefix == null) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1, Messages.convention_prefix_null,
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          -1,
+          Messages.convention_prefix_null,
           null);
     }
     String trimmed = prefix.trim();
     if (!prefix.equals(trimmed)) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
-          Messages.convention_prefix_leadingOrTrailingBlanks, null);
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          -1,
+          Messages.convention_prefix_leadingOrTrailingBlanks,
+          null);
     }
     IStatus status = validateIdentifier(prefix, MessageHolder.forPrefix());
     if (!status.isOK()) {
@@ -363,13 +387,21 @@ public final class DartConventions {
    */
   public static IStatus validateTypeName(String name) {
     if (name == null) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1, Messages.convention_typeName_null,
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          -1,
+          Messages.convention_typeName_null,
           null);
     }
     String trimmed = name.trim();
     if (!name.equals(trimmed)) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
-          Messages.convention_typeName_leadingOrTrailingBlanks, null);
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          -1,
+          Messages.convention_typeName_leadingOrTrailingBlanks,
+          null);
     }
     int index = name.lastIndexOf('.');
     IStatus status;
@@ -394,12 +426,20 @@ public final class DartConventions {
       return status;
     }
     if (name.indexOf('$') >= 0) {
-      return new Status(IStatus.WARNING, DartCore.PLUGIN_ID, -1,
-          Messages.convention_typeName_dollar, null);
+      return new Status(
+          IStatus.WARNING,
+          DartCore.PLUGIN_ID,
+          -1,
+          Messages.convention_typeName_dollar,
+          null);
     }
     if (!Character.isUpperCase(name.charAt(0))) {
-      return new Status(IStatus.WARNING, DartCore.PLUGIN_ID, -1,
-          Messages.convention_typeName_notUppercase, null);
+      return new Status(
+          IStatus.WARNING,
+          DartCore.PLUGIN_ID,
+          -1,
+          Messages.convention_typeName_notUppercase,
+          null);
     }
     return DartModelStatusImpl.VERIFIED_OK;
   }
@@ -439,14 +479,22 @@ public final class DartConventions {
     }
     char currentChar = identifier.charAt(0);
     if (!Character.isLetter(currentChar) && currentChar != '_' && currentChar != '$') {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
-          messageHolder.initialChar(identifier), null);
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          -1,
+          messageHolder.initialChar(identifier),
+          null);
     }
     for (int i = 1; i < length; i++) {
       currentChar = identifier.charAt(i);
       if (!Character.isLetterOrDigit(currentChar) && currentChar != '_' && currentChar != '$') {
-        return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
-            messageHolder.internalChar(identifier), null);
+        return new Status(
+            IStatus.ERROR,
+            DartCore.PLUGIN_ID,
+            -1,
+            messageHolder.internalChar(identifier),
+            null);
       }
     }
     return DartModelStatusImpl.VERIFIED_OK;
@@ -469,8 +517,12 @@ public final class DartConventions {
     }
     String trimmed = identifier.trim();
     if (!identifier.equals(trimmed)) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
-          messageHolder.leadingOrTrailingBlanks, null);
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          -1,
+          messageHolder.leadingOrTrailingBlanks,
+          null);
     }
     IStatus status = validateIdentifier(identifier, messageHolder);
     if (!status.isOK()) {
@@ -505,8 +557,12 @@ public final class DartConventions {
     }
     String trimmed = identifier.trim();
     if (!identifier.equals(trimmed)) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, -1,
-          messageHolder.leadingOrTrailingBlanks, null);
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
+          -1,
+          messageHolder.leadingOrTrailingBlanks,
+          null);
     }
     IStatus status = validateIdentifier(identifier, messageHolder);
     if (!status.isOK()) {

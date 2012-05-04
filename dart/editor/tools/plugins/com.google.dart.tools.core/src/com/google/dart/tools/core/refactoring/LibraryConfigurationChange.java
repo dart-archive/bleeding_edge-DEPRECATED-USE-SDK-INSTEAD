@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -42,7 +42,8 @@ public class LibraryConfigurationChange extends TextFileChange {
   static IFile getFile(LibraryConfigurationFile libraryConfig) throws CoreException {
     IFile file = (IFile) libraryConfig.getResource();
     if (file == null) {
-      String message = Messages.bind(Messages.change_library_has_no_file,
+      String message = Messages.bind(
+          Messages.change_library_has_no_file,
           TextProcessor.process(libraryConfig.getElementName()));
       throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, message));
     }
@@ -97,7 +98,11 @@ public class LibraryConfigurationChange extends TextFileChange {
   @Override
   protected Change createUndoChange(UndoEdit edit, ContentStamp stampToRestore) {
     try {
-      return new UndoLibraryConfigurationChange(getName(), libraryConfig, edit, stampToRestore,
+      return new UndoLibraryConfigurationChange(
+          getName(),
+          libraryConfig,
+          edit,
+          stampToRestore,
           getSaveMode());
     } catch (CoreException e) {
       DartCore.logError(e);

@@ -109,7 +109,8 @@ public final class DartDocUtilities {
     if (sourceRange != null) {
       SourceRange range = sourceRange;
 
-      String dartDoc = documentable.getOpenable().getBuffer().getText(range.getOffset(),
+      String dartDoc = documentable.getOpenable().getBuffer().getText(
+          range.getOffset(),
           range.getLength());
 
       return cleanDartDoc(dartDoc);
@@ -133,7 +134,8 @@ public final class DartDocUtilities {
     if (sourceRange != null) {
       SourceRange range = sourceRange;
 
-      String dartDoc = documentable.getOpenable().getBuffer().getText(range.getOffset(),
+      String dartDoc = documentable.getOpenable().getBuffer().getText(
+          range.getOffset(),
           range.getLength());
 
       return convertToHtml(cleanDartDoc(dartDoc));
@@ -179,7 +181,8 @@ public final class DartDocUtilities {
     } catch (Exception exception) {
       DartCore.logInformation(
           "Could not get DartDoc for element in " + compilationUnit.getElementName() + ", start = "
-              + start + ", end = " + end, exception);
+              + start + ", end = " + end,
+          exception);
     }
 
     return null;

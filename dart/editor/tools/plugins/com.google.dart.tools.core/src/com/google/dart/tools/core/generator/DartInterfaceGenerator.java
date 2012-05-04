@@ -163,14 +163,18 @@ public class DartInterfaceGenerator extends DartFileGenerator {
   private IStatus validateLibrary() {
     mustBuildLibrary = false;
     if (library == null || library.equals("")) {
-      return new Status(IStatus.WARNING, DartCore.PLUGIN_ID,
+      return new Status(
+          IStatus.WARNING,
+          DartCore.PLUGIN_ID,
           "You have not selected a Library to add this new Interface to");
     }
     IResource file = root.findMember(new Path(this.library));
     DartElement libElement = DartCore.create(file);
     if (libElement == null) {
       mustBuildLibrary = true;
-      return new Status(IStatus.WARNING, DartCore.PLUGIN_ID,
+      return new Status(
+          IStatus.WARNING,
+          DartCore.PLUGIN_ID,
           "The library you have chosen does not exist, if you continue"
               + " you will attempt to create a new Library named: " + library);
     }

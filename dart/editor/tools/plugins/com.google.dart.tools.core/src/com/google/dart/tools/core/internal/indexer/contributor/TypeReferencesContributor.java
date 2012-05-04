@@ -63,7 +63,8 @@ public class TypeReferencesContributor extends ScopedDartContributor {
     if (element instanceof Type) {
       Type type = (Type) element;
       try {
-        recordRelationship(peekTarget(new SourceRangeImpl(node)),
+        recordRelationship(
+            peekTarget(new SourceRangeImpl(node)),
             new TypeLocation(type, type.getNameRange()));
       } catch (DartModelException exception) {
         DartCore.logInformation("Could not get range for type " + type.getElementName()

@@ -95,8 +95,12 @@ public class DeltaProcessingState implements IResourceChangeListener {
         // notifications and one listener decide to change
         // any event mask of another listeners (yet not notified).
         int cloneLength = elementChangedListenerMasks.length;
-        System.arraycopy(elementChangedListenerMasks, 0,
-            elementChangedListenerMasks = new int[cloneLength], 0, cloneLength);
+        System.arraycopy(
+            elementChangedListenerMasks,
+            0,
+            elementChangedListenerMasks = new int[cloneLength],
+            0,
+            cloneLength);
         elementChangedListenerMasks[i] |= eventMask; // could be different
         return;
       }
@@ -105,10 +109,18 @@ public class DeltaProcessingState implements IResourceChangeListener {
     // original arrays and max boundary and we only add to the end.
     int length;
     if ((length = elementChangedListeners.length) == elementChangedListenerCount) {
-      System.arraycopy(elementChangedListeners, 0,
-          elementChangedListeners = new ElementChangedListener[length * 2], 0, length);
-      System.arraycopy(elementChangedListenerMasks, 0,
-          elementChangedListenerMasks = new int[length * 2], 0, length);
+      System.arraycopy(
+          elementChangedListeners,
+          0,
+          elementChangedListeners = new ElementChangedListener[length * 2],
+          0,
+          length);
+      System.arraycopy(
+          elementChangedListenerMasks,
+          0,
+          elementChangedListenerMasks = new int[length * 2],
+          0,
+          length);
     }
     elementChangedListeners[elementChangedListenerCount] = listener;
     elementChangedListenerMasks[elementChangedListenerCount] = eventMask;
@@ -143,10 +155,18 @@ public class DeltaProcessingState implements IResourceChangeListener {
     // original arrays and max boundary and we only add to the end.
     int length;
     if ((length = preResourceChangeListeners.length) == preResourceChangeListenerCount) {
-      System.arraycopy(preResourceChangeListeners, 0,
-          preResourceChangeListeners = new IResourceChangeListener[length * 2], 0, length);
-      System.arraycopy(preResourceChangeEventMasks, 0,
-          preResourceChangeEventMasks = new int[length * 2], 0, length);
+      System.arraycopy(
+          preResourceChangeListeners,
+          0,
+          preResourceChangeListeners = new IResourceChangeListener[length * 2],
+          0,
+          length);
+      System.arraycopy(
+          preResourceChangeEventMasks,
+          0,
+          preResourceChangeEventMasks = new int[length * 2],
+          0,
+          length);
     }
     preResourceChangeListeners[preResourceChangeListenerCount] = listener;
     preResourceChangeEventMasks[preResourceChangeListenerCount] = eventMask;

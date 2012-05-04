@@ -36,23 +36,47 @@ public class CompletionEngineTest extends TestCase {
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num M!4AX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
-        "1+MAX", "2+xc", "3+MAX", "3+Map", "3+Math", "4+Math"); // not sure 4+Math is correct
+        "1+MAX",
+        "2+xc",
+        "3+MAX",
+        "3+Map",
+        "3+Math",
+        "4+Math"); // not sure 4+Math is correct
   }
 
   public void testCommentSnippets002() throws Exception {
-    test("class Y {String x='hi';mth() {x.l!1ength;int n = 0;x!2.charCodeAt(n!3);}}", "1+length",
-        "2+x", "3+n");
+    test(
+        "class Y {String x='hi';mth() {x.l!1ength;int n = 0;x!2.charCodeAt(n!3);}}",
+        "1+length",
+        "2+x",
+        "3+n");
   }
 
   public void testCommentSnippets003() throws Exception {
-    test("class Z {!1Ma!2p m = const !3Map!4();mth() {var x = new Li!5st.!6fr!7om(['a']);}}",
-        "1+void", "2+Maps", "3+Arrays", "4+Maps", "5+List", "6+from", "7+from", "6-forEach",
+    test(
+        "class Z {!1Ma!2p m = const !3Map!4();mth() {var x = new Li!5st.!6fr!7om(['a']);}}",
+        "1+void",
+        "2+Maps",
+        "3+Arrays",
+        "4+Maps",
+        "5+List",
+        "6+from",
+        "7+from",
+        "6-forEach",
         "7-filter");
   }
 
   public void testCommentSnippets004() throws Exception {
-    test("class A {!1int x;!2mth() {!3in!4t y = this.!5x!6;}}", "1+void", "1+int", "2+List", "3+x",
-        "3-y", "4+int", "5+mth", "6+x");
+    test(
+        "class A {!1int x;!2mth() {!3in!4t y = this.!5x!6;}}",
+        "1+void",
+        "1+int",
+        "2+List",
+        "3+x",
+        "3-y",
+        "4+int",
+        "5+mth",
+        "6+x");
   }
 
   public void testCommentSnippets005() throws Exception {
@@ -64,8 +88,12 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets007() throws Exception {
-    test("class C {mth(Map x, !1) {}mtf(!2, Map x) {}m() {for (in!3t i=0; i<5; i++); A!4 x;}}",
-        "1+bool", "2+bool", "3+int", "4+Arrays");
+    test(
+        "class C {mth(Map x, !1) {}mtf(!2, Map x) {}m() {for (in!3t i=0; i<5; i++); A!4 x;}}",
+        "1+bool",
+        "2+bool",
+        "3+int",
+        "4+Arrays");
   }
 
   public void testCommentSnippets008() throws Exception {
@@ -74,8 +102,15 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCommentSnippets009() throws Exception {
     // space, char, eol are important
-    test("class x extends!5 !2M!3 !4implements!6 !1\n{}", "1+Map", "1-Math", "2+Maps", "3+Maps",
-        "4-Maps", "5-Maps", "6-Map");
+    test(
+        "class x extends!5 !2M!3 !4implements!6 !1\n{}",
+        "1+Map",
+        "1-Math",
+        "2+Maps",
+        "3+Maps",
+        "4-Maps",
+        "5-Maps",
+        "6-Map");
   }
 
   public void testCommentSnippets010() throws Exception {
@@ -123,8 +158,12 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets020() throws Exception {
-    test("class tst {var newt;void newf(){}test() {var newz;new!1/**/;}}", "1+newt", "1+newf",
-        "1+newz", "1-Map");
+    test(
+        "class tst {var newt;void newf(){}test() {var newz;new!1/**/;}}",
+        "1+newt",
+        "1+newf",
+        "1+newz",
+        "1-Map");
   }
 
   public void testCommentSnippets021() throws Exception {
@@ -164,17 +203,29 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets030() throws Exception {
-    test("class Bar<T extends Foo> {const Bar(!1T!2 k);T!3 m(T!4 a, T!5 b){}T!6 f = null;}", "1+T",
-        "2+T", "3+T", "4+T", "5+T", "6+T");
+    test(
+        "class Bar<T extends Foo> {const Bar(!1T!2 k);T!3 m(T!4 a, T!5 b){}T!6 f = null;}",
+        "1+T",
+        "2+T",
+        "3+T",
+        "4+T",
+        "5+T",
+        "6+T");
   }
 
   public void testCommentSnippets031() throws Exception {
-    test("class Bar<T extends Foo> {m(x){if (x is !1) return;if (x is !!!2)}}", "1+Map", "1+T",
+    test(
+        "class Bar<T extends Foo> {m(x){if (x is !1) return;if (x is !!!2)}}",
+        "1+Map",
+        "1+T",
         "2+Map");
   }
 
   public void testCommentSnippets032() throws Exception {
-    test("class Bar<T extends Fooa> {const B!1ara();}", "1+BadNumberFormatException", "1+Bara",
+    test(
+        "class Bar<T extends Fooa> {const B!1ara();}",
+        "1+BadNumberFormatException",
+        "1+Bara",
         "1-Map");
   }
 
@@ -262,7 +313,8 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCompletion_function() throws Exception {
-    test("class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1) => a.compareTo(b)); }}",
+    test(
+        "class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1) => a.compareTo(b)); }}",
         "1+String");
   }
 
@@ -329,9 +381,13 @@ public class CompletionEngineTest extends TestCase {
 
   public void testCompletion_staticField1() throws Exception {
     test(
-        // cannot complete Sunflower due to bug in test framework
+    // cannot complete Sunflower due to bug in test framework
         "class Sunflower {static final n!2um MAX_D = 300;nu!3m xc, yc;Sunflower() {x!Xc = y!Yc = MA!1 }}",
-        "1+MAX_D", "X+xc", "Y+yc", "2+num", "3+num");
+        "1+MAX_D",
+        "X+xc",
+        "Y+yc",
+        "2+num",
+        "3+num");
   }
 
   public void testCompletion_topLevelField_init1() throws Exception {
@@ -361,8 +417,9 @@ public class CompletionEngineTest extends TestCase {
   private void test(String originalSource, String... results) throws URISyntaxException,
       DartModelException {
     Collection<CompletionSpec> completionTests = CompletionSpec.from(originalSource, results);
-    assertTrue("Expected exclamation point ('!') within the source"
-        + " denoting the position at which code completion should occur",
+    assertTrue(
+        "Expected exclamation point ('!') within the source"
+            + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
     if (DartCoreDebug.NEW_INDEXER) {
       InMemoryIndex.getInstance().initializeIndex();

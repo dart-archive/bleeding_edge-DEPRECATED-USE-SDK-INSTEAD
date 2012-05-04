@@ -133,7 +133,9 @@ public class DartProjectImplTest extends TestCase {
    */
   @SuppressWarnings("unchecked")
   private List<String> getChildPaths(DartProjectImpl impl, DartProjectInfo info) throws Exception {
-    Method method = DartProjectImpl.class.getDeclaredMethod("getChildPaths", DartProjectInfo.class,
+    Method method = DartProjectImpl.class.getDeclaredMethod(
+        "getChildPaths",
+        DartProjectInfo.class,
         boolean.class);
     method.setAccessible(true);
     return (List<String>) method.invoke(impl, info, false);
@@ -150,7 +152,9 @@ public class DartProjectImplTest extends TestCase {
    */
   private void setChildPaths(DartProjectImpl impl, DartProjectInfo info, List<String> paths)
       throws Exception {
-    Method method = DartProjectImpl.class.getDeclaredMethod("setChildPaths", DartProjectInfo.class,
+    Method method = DartProjectImpl.class.getDeclaredMethod(
+        "setChildPaths",
+        DartProjectInfo.class,
         List.class);
     method.setAccessible(true);
     method.invoke(impl, info, paths);

@@ -62,8 +62,16 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
   public void codeComplete(char[] snippet, int insertion, int position,
       char[][] localVariableTypeNames, char[][] localVariableNames, int[] localVariableModifiers,
       boolean isStatic, CompletionRequestor requestor) throws DartModelException {
-    codeComplete(snippet, insertion, position, localVariableTypeNames, localVariableNames,
-        localVariableModifiers, isStatic, requestor, DefaultWorkingCopyOwner.getInstance());
+    codeComplete(
+        snippet,
+        insertion,
+        position,
+        localVariableTypeNames,
+        localVariableNames,
+        localVariableModifiers,
+        isStatic,
+        requestor,
+        DefaultWorkingCopyOwner.getInstance());
   }
 
   @Override
@@ -71,8 +79,17 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
       char[][] localVariableTypeNames, char[][] localVariableNames, int[] localVariableModifiers,
       boolean isStatic, CompletionRequestor requestor, IProgressMonitor monitor)
       throws DartModelException {
-    codeComplete(snippet, insertion, position, localVariableTypeNames, localVariableNames,
-        localVariableModifiers, isStatic, requestor, DefaultWorkingCopyOwner.getInstance(), monitor);
+    codeComplete(
+        snippet,
+        insertion,
+        position,
+        localVariableTypeNames,
+        localVariableNames,
+        localVariableModifiers,
+        isStatic,
+        requestor,
+        DefaultWorkingCopyOwner.getInstance(),
+        monitor);
   }
 
   @Override
@@ -80,8 +97,17 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
       char[][] localVariableTypeNames, char[][] localVariableNames, int[] localVariableModifiers,
       boolean isStatic, CompletionRequestor requestor, WorkingCopyOwner owner)
       throws DartModelException {
-    codeComplete(snippet, insertion, position, localVariableTypeNames, localVariableNames,
-        localVariableModifiers, isStatic, requestor, owner, null);
+    codeComplete(
+        snippet,
+        insertion,
+        position,
+        localVariableTypeNames,
+        localVariableNames,
+        localVariableModifiers,
+        isStatic,
+        requestor,
+        owner,
+        null);
   }
 
   @Override

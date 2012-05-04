@@ -196,7 +196,11 @@ public class InMemoryIndex implements Index {
    */
   @Override
   public void indexResource(Resource resource, CompilationUnit compilationUnit, DartUnit unit) {
-    queue.enqueue(new IndexResourceOperation(indexStore, resource, compilationUnit, unit,
+    queue.enqueue(new IndexResourceOperation(
+        indexStore,
+        resource,
+        compilationUnit,
+        unit,
         performanceRecorder));
   }
 
@@ -325,8 +329,10 @@ public class InMemoryIndex implements Index {
           File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
           SystemLibraryManagerProvider.getDefaultAnalysisServer().resolveLibrary(libraryFile, null);
         } else {
-          LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary(librarySource,
-              contributedUnits, parseErrors);
+          LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary(
+              librarySource,
+              contributedUnits,
+              parseErrors);
           indexBundledLibrary(libraryUnit, initializedLibraries);
         }
       } catch (URISyntaxException exception) {
@@ -369,7 +375,9 @@ public class InMemoryIndex implements Index {
       URI unitUri = unitSource.getUri();
       Resource resource = new Resource(unitUri.toString());
       String relativePath = unitSource.getRelativePath();
-      CompilationUnit compilationUnit = new ExternalCompilationUnitImpl(library, relativePath,
+      CompilationUnit compilationUnit = new ExternalCompilationUnitImpl(
+          library,
+          relativePath,
           librarySource.getSourceFor(relativePath));
       long startTime = System.currentTimeMillis();
       indexResource(resource, compilationUnit, ast);
@@ -392,8 +400,10 @@ public class InMemoryIndex implements Index {
       DartModel model = DartCore.create(ResourcesPlugin.getWorkspace().getRoot());
       for (DartProject project : model.getDartProjects()) {
         for (DartLibrary library : project.getDartLibraries()) {
-          LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary((DartLibraryImpl) library,
-              true, parseErrors);
+          LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary(
+              (DartLibraryImpl) library,
+              true,
+              parseErrors);
           // If AnalysisServer is active, then indexer receives resolved units via listener
           if (!DartCoreDebug.ANALYSIS_SERVER) {
             indexUserLibrary(libraryUnit, initializedLibraries);
@@ -426,7 +436,9 @@ public class InMemoryIndex implements Index {
       DartSource unitSource = (DartSource) ast.getSourceInfo().getSource();
       URI unitUri = unitSource.getUri();
       Resource resource = new Resource(unitUri.toString());
-      CompilationUnit compilationUnit = new CompilationUnitImpl(library, unitUri,
+      CompilationUnit compilationUnit = new CompilationUnitImpl(
+          library,
+          unitUri,
           DefaultWorkingCopyOwner.getInstance());
       // library.getCompilationUnit(unitUri);
       long startTime = System.currentTimeMillis();
@@ -452,7 +464,8 @@ public class InMemoryIndex implements Index {
         readIndexFrom(indexFile);
         return true;
       } catch (IOException exception) {
-        DartCore.logError("Could not read index file: \"" + indexFile.getAbsolutePath() + "\"",
+        DartCore.logError(
+            "Could not read index file: \"" + indexFile.getAbsolutePath() + "\"",
             exception);
       }
       try {
@@ -535,7 +548,8 @@ public class InMemoryIndex implements Index {
       }
     } catch (IOException exception) {
       successfullyWritten = false;
-      DartCore.logError("Could not write index file: \"" + indexFile.getAbsolutePath() + "\"",
+      DartCore.logError(
+          "Could not write index file: \"" + indexFile.getAbsolutePath() + "\"",
           exception);
     } finally {
       if (output != null) {

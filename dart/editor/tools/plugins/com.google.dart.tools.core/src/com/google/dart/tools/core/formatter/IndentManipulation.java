@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -235,7 +235,9 @@ public final class IndentManipulation {
     int tabWidth = getTabWidth(options);
     boolean isMixedMode = DefaultCodeFormatterConstants.MIXED.equals(options.get(DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR));
     if (isMixedMode) {
-      return getIntValue(options, DefaultCodeFormatterConstants.FORMATTER_INDENTATION_SIZE,
+      return getIntValue(
+          options,
+          DefaultCodeFormatterConstants.FORMATTER_INDENTATION_SIZE,
           tabWidth);
     }
     return tabWidth;

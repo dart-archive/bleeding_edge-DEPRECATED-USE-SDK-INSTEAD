@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -140,7 +140,9 @@ public class CreateCompilationUnitOperation extends DartModelOperation {
           }
         } else {
           throw new DartModelException(new DartModelStatusImpl(
-              DartModelStatusConstants.NAME_COLLISION, Messages.bind(Messages.status_nameCollision,
+              DartModelStatusConstants.NAME_COLLISION,
+              Messages.bind(
+                  Messages.status_nameCollision,
                   compilationUnitFile.getFullPath().toString())));
         }
       } else {

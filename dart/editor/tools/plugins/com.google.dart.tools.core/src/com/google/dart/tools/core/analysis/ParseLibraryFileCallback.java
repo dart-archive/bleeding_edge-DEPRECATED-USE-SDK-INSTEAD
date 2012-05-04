@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-
 /**
  * Used by {@link AnalysisServer#parseLibraryFile(java.io.File, ParseLibraryFileCallback)} to
  * provide asynchronous results.

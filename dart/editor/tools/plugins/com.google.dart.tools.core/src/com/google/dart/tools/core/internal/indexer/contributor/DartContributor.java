@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -195,7 +195,8 @@ public class DartContributor extends ASTVisitor<Void> implements Contributor {
       Location target) {
     DartFunction function = BindingUtils.getDartElement(compilationUnit, source);
     if (function != null) {
-      recordRelationship(new FunctionLocation(function, getSourceRange(function, (Element) null)),
+      recordRelationship(
+          new FunctionLocation(function, getSourceRange(function, (Element) null)),
           target);
     }
   }
@@ -237,10 +238,12 @@ public class DartContributor extends ASTVisitor<Void> implements Contributor {
    */
   protected void recordRelationship(DartFunctionTypeAlias source, Location target) {
     com.google.dart.tools.core.model.DartFunctionTypeAlias alias = BindingUtils.getDartElement(
-        compilationUnit, source);
+        compilationUnit,
+        source);
     if (alias != null) {
       recordRelationship(
-          new FunctionTypeAliasLocation(alias, getSourceRange(alias, (Element) null)), target);
+          new FunctionTypeAliasLocation(alias, getSourceRange(alias, (Element) null)),
+          target);
     }
   }
 
@@ -253,9 +256,11 @@ public class DartContributor extends ASTVisitor<Void> implements Contributor {
    */
   protected void recordRelationship(DartMethodDefinition source, Location target) {
     com.google.dart.tools.core.model.DartFunction function = BindingUtils.getDartElement(
-        getCompilationUnit(), source);
+        getCompilationUnit(),
+        source);
     if (function instanceof Method) {
-      Location location = new MethodLocation((Method) function, getSourceRange(function,
+      Location location = new MethodLocation((Method) function, getSourceRange(
+          function,
           (Element) null));
       recordRelationship(location, target);
     } else if (function != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -102,7 +102,8 @@ public class DartLibraryFolderImpl extends OpenableElementImpl implements DartLi
             // Create a child element for the nested folder even if the nested
             // folder doesn't contain any compilation units (directly or
             // indirectly) so that compilation units can be added to it.
-            children.add(new DartLibraryFolderImpl(DartLibraryFolderImpl.this,
+            children.add(new DartLibraryFolderImpl(
+                DartLibraryFolderImpl.this,
                 (IFolder) proxy.requestResource()));
           } else if (proxy.getType() == IResource.FILE
               && DartCore.isDartLikeFileName(proxy.getName())) {
@@ -110,12 +111,15 @@ public class DartLibraryFolderImpl extends OpenableElementImpl implements DartLi
             // TODO(brianwilkerson) This will include all .dart files, but it
             // probably ought to only include those that are contained in the
             // containing library.
-            children.add(new CompilationUnitImpl(DartLibraryFolderImpl.this,
-                (IFile) proxy.requestResource(), workingCopyOwner));
+            children.add(new CompilationUnitImpl(
+                DartLibraryFolderImpl.this,
+                (IFile) proxy.requestResource(),
+                workingCopyOwner));
           }
           return false;
         }
-      }, 0);
+      },
+          0);
     } catch (CoreException exception) {
       throw new DartModelException(exception);
     }
@@ -145,8 +149,10 @@ public class DartLibraryFolderImpl extends OpenableElementImpl implements DartLi
           return this;
         }
         String unitPath = tokenizer.nextToken();
-        CompilationUnitImpl unit = new CompilationUnitImpl(this,
-            getResource().getProject().getFile(new Path(unitPath)), owner);
+        CompilationUnitImpl unit = new CompilationUnitImpl(
+            this,
+            getResource().getProject().getFile(new Path(unitPath)),
+            owner);
         return unit.getHandleFromMemento(tokenizer, owner);
     }
     return null;

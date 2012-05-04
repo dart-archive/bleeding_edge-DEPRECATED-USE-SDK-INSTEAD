@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -121,7 +121,12 @@ public class CodeSnippetParsingUtil {
 
   public DartNode[] parseClassBodyDeclarations(char[] source, Map settings,
       boolean recordParsingInformation) {
-    return parseClassBodyDeclarations(source, 0, source.length, settings, recordParsingInformation,
+    return parseClassBodyDeclarations(
+        source,
+        0,
+        source.length,
+        settings,
+        recordParsingInformation,
         false);
   }
 
@@ -142,7 +147,8 @@ public class CodeSnippetParsingUtil {
     CommentPreservingParser parser = new CommentPreservingParser(sourceCode, listener, false);
     DartUnit compilationUnit = DartCompilerUtilities.secureParseUnit(parser, null);
     if (recordParsingInformation) {
-      recordedParsingInformation = getRecordedParsingInformation(compilationResult,
+      recordedParsingInformation = getRecordedParsingInformation(
+          compilationResult,
           extractCommentLocs(compilationUnit));
       recordedParsingInformation.updateRecordedParsingInformation(compilationResult);
     }
@@ -207,7 +213,12 @@ public class CodeSnippetParsingUtil {
 
   public DartMethodDefinition parseStatements(char[] source, Map settings,
       boolean recordParsingInformation, boolean enabledStatementRecovery) {
-    return parseStatements(source, 0, source.length, settings, recordParsingInformation,
+    return parseStatements(
+        source,
+        0,
+        source.length,
+        settings,
+        recordParsingInformation,
         enabledStatementRecovery);
   }
 
@@ -235,12 +246,18 @@ public class CodeSnippetParsingUtil {
         if (compilationResultProblems.length == problemsCount) {
           problems = compilationResultProblems;
         } else {
-          System.arraycopy(compilationResultProblems, 0,
-              problems = new CategorizedProblem[problemsCount], 0, problemsCount);
+          System.arraycopy(
+              compilationResultProblems,
+              0,
+              problems = new CategorizedProblem[problemsCount],
+              0,
+              problemsCount);
         }
       }
     }
-    return new RecordedParsingInformation(problems, compilationResult.getLineSeparatorPositions(),
+    return new RecordedParsingInformation(
+        problems,
+        compilationResult.getLineSeparatorPositions(),
         commentPositions);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, the Dart project authors.
+ * Copyright 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,10 +18,10 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.tools.core.DartCore;
 
 /**
- * Instances of the class <code>SafeDartNodeTraverser</code> implement a {@link ASTVisitor}
- * that will not throw an exception as a result of finding an incorrectly constructed AST structure.
- * In order to catch exceptions, any method that needs to visit the children of a given node should
- * use the method {@link #visitChildren(DartNode)} rather than asking the node to visit its children
+ * Instances of the class <code>SafeDartNodeTraverser</code> implement a {@link ASTVisitor} that
+ * will not throw an exception as a result of finding an incorrectly constructed AST structure. In
+ * order to catch exceptions, any method that needs to visit the children of a given node should use
+ * the method {@link #visitChildren(DartNode)} rather than asking the node to visit its children
  * directly.
  */
 public class SafeDartNodeTraverser<R> extends ASTVisitor<R> {

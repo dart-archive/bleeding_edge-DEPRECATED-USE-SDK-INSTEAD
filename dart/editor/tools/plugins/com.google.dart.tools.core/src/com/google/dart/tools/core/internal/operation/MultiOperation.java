@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -205,7 +205,11 @@ public abstract class MultiOperation extends DartModelOperation {
         } catch (DartModelException jme) {
           if (errorsCounter == errors.length) {
             // resize
-            System.arraycopy(errors, 0, (errors = new DartModelStatus[errorsCounter * 2]), 0,
+            System.arraycopy(
+                errors,
+                0,
+                (errors = new DartModelStatus[errorsCounter * 2]),
+                0,
                 errorsCounter);
           }
           errors[errorsCounter++] = jme.getDartModelStatus();
@@ -218,7 +222,11 @@ public abstract class MultiOperation extends DartModelOperation {
       } else if (errorsCounter > 1) {
         if (errorsCounter != errors.length) {
           // resize
-          System.arraycopy(errors, 0, (errors = new DartModelStatus[errorsCounter]), 0,
+          System.arraycopy(
+              errors,
+              0,
+              (errors = new DartModelStatus[errorsCounter]),
+              0,
               errorsCounter);
         }
         throw new DartModelException(DartModelStatusImpl.newMultiStatus(errors));
@@ -319,8 +327,10 @@ public abstract class MultiOperation extends DartModelOperation {
     }
 
     if (!isValid) {
-      throw new DartModelException(new DartModelStatusImpl(DartModelStatusConstants.INVALID_NAME,
-          element, newName));
+      throw new DartModelException(new DartModelStatusImpl(
+          DartModelStatusConstants.INVALID_NAME,
+          element,
+          newName));
     }
   }
 

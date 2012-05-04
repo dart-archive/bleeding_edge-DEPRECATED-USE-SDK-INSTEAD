@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -98,7 +98,8 @@ public class HTMLFileImplTest extends TestCase {
   private HTMLFileImpl createHTMLFileImpl(DartProjectImpl project, IFile file) {
     try {
       Constructor<HTMLFileImpl> constructor = HTMLFileImpl.class.getDeclaredConstructor(
-          DartLibraryImpl.class, IFile.class);
+          DartLibraryImpl.class,
+          IFile.class);
       if (constructor == null) {
         return null;
       }

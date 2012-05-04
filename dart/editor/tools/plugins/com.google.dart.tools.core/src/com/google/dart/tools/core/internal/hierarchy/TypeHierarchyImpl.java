@@ -210,7 +210,11 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
         b2 = new byte[bytes.length - j];
         System.arraycopy(bytes, j, b2, 0, bytes.length - j);
         superInterfaces[interfaceCount++] = types[new Integer(new String(b2)).intValue()];
-        System.arraycopy(superInterfaces, 0, superInterfaces = new Type[interfaceCount], 0,
+        System.arraycopy(
+            superInterfaces,
+            0,
+            superInterfaces = new Type[interfaceCount],
+            0,
             interfaceCount);
 
         typeHierarchy.cacheSuperInterfaces(types[subClass], superInterfaces);
@@ -671,8 +675,10 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
       progressMonitor = monitor;
       if (monitor != null) {
         monitor.beginTask(
-            focusType != null ? Messages.bind(Messages.hierarchy_creatingOnType,
-                focusType.getElementName()) : Messages.hierarchy_creating, 100);
+            focusType != null ? Messages.bind(
+                Messages.hierarchy_creatingOnType,
+                focusType.getElementName()) : Messages.hierarchy_creating,
+            100);
       }
       long start = -1;
       if (DEBUG) {
@@ -1634,8 +1640,11 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
     processedTypes.add(type);
     if (DartCoreDebug.NEW_INDEXER) {
       try {
-        List<SearchMatch> matches = SearchEngineFactory.createSearchEngine().searchSubtypes(type,
-            SearchScopeFactory.createWorkspaceScope(), null, null);
+        List<SearchMatch> matches = SearchEngineFactory.createSearchEngine().searchSubtypes(
+            type,
+            SearchScopeFactory.createWorkspaceScope(),
+            null,
+            null);
         for (SearchMatch match : matches) {
           DartElement element = match.getElement();
           if (element instanceof Type) {
@@ -1677,8 +1686,11 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
     if (DartCoreDebug.NEW_INDEXER) {
       try {
         ArrayList<Type> interfaceList = new ArrayList<Type>();
-        List<SearchMatch> matches = SearchEngineFactory.createSearchEngine().searchSupertypes(type,
-            SearchScopeFactory.createWorkspaceScope(), null, null);
+        List<SearchMatch> matches = SearchEngineFactory.createSearchEngine().searchSupertypes(
+            type,
+            SearchScopeFactory.createWorkspaceScope(),
+            null,
+            null);
         for (SearchMatch match : matches) {
           DartElement element = match.getElement();
           if (element instanceof Type) {

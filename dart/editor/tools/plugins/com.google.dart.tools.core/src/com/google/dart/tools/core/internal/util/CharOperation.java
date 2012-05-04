@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -2930,8 +2930,14 @@ public final class CharOperation {
       if (fSegmentStart >= fLength) {
         return false;
       }
-      if (!CharOperation.match(pattern, pSegmentStart, pSegmentEnd, filepath, fSegmentStart,
-          fSegmentEnd, isCaseSensitive)) {
+      if (!CharOperation.match(
+          pattern,
+          pSegmentStart,
+          pSegmentEnd,
+          filepath,
+          fSegmentStart,
+          fSegmentEnd,
+          isCaseSensitive)) {
         return false;
       }
 
@@ -2985,7 +2991,9 @@ public final class CharOperation {
         } else {
           fSegmentRestart++;
         }
-        fSegmentEnd = CharOperation.indexOf(pathSeparator, filepath,
+        fSegmentEnd = CharOperation.indexOf(
+            pathSeparator,
+            filepath,
             fSegmentStart = fSegmentRestart);
         if (fSegmentEnd < 0) {
           fSegmentEnd = fLength;
@@ -3009,8 +3017,14 @@ public final class CharOperation {
         continue checkSegment;
       }
       /* chech current path segment */
-      if (!CharOperation.match(pattern, pSegmentStart, pSegmentEnd, filepath, fSegmentStart,
-          fSegmentEnd, isCaseSensitive)) {
+      if (!CharOperation.match(
+          pattern,
+          pSegmentStart,
+          pSegmentEnd,
+          filepath,
+          fSegmentStart,
+          fSegmentEnd,
+          isCaseSensitive)) {
         // mismatch - restart current path segment
         pSegmentEnd = CharOperation.indexOf(pathSeparator, pattern, pSegmentStart = pSegmentRestart);
         if (pSegmentEnd < 0) {
@@ -3024,7 +3038,9 @@ public final class CharOperation {
         } else {
           fSegmentRestart++;
         }
-        fSegmentEnd = CharOperation.indexOf(pathSeparator, filepath,
+        fSegmentEnd = CharOperation.indexOf(
+            pathSeparator,
+            filepath,
             fSegmentStart = fSegmentRestart);
         if (fSegmentEnd < 0) {
           fSegmentEnd = fLength;

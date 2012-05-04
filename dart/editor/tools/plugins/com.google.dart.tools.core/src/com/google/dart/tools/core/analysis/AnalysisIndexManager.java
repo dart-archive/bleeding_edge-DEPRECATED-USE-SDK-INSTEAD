@@ -142,14 +142,17 @@ public class AnalysisIndexManager implements AnalysisListener {
         String relPath = unitSource.getRelativePath();
         compilationUnit = new ExternalCompilationUnitImpl(library, relPath, unitSource);
       } else {
-        compilationUnit = new CompilationUnitImpl(library, (IFile) res,
+        compilationUnit = new CompilationUnitImpl(
+            library,
+            (IFile) res,
             DefaultWorkingCopyOwner.getInstance());
       }
 
       try {
         index.indexResource(ResourceFactory.getResource(compilationUnit), compilationUnit, dartUnit);
       } catch (Exception exception) {
-        DartCore.logError("Could not index \"" + sourceFile + "\" in \"" + libraryFile + "\"",
+        DartCore.logError(
+            "Could not index \"" + sourceFile + "\" in \"" + libraryFile + "\"",
             exception);
       }
     }

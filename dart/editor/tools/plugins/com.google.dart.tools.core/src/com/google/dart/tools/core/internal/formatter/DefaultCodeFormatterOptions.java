@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -354,9 +354,11 @@ public class DefaultCodeFormatterOptions {
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ARGUMENTS_IN_ALLOCATION_EXPRESSION,
         getAlignment(alignment_for_arguments_in_allocation_expression));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ARGUMENTS_IN_ANNOTATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ARGUMENTS_IN_ANNOTATION,
         getAlignment(alignment_for_arguments_in_annotation));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ARGUMENTS_IN_ENUM_CONSTANT,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ARGUMENTS_IN_ENUM_CONSTANT,
         getAlignment(alignment_for_arguments_in_enum_constant));
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ARGUMENTS_IN_EXPLICIT_CONSTRUCTOR_CALL,
@@ -367,24 +369,32 @@ public class DefaultCodeFormatterOptions {
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ARGUMENTS_IN_QUALIFIED_ALLOCATION_EXPRESSION,
         getAlignment(alignment_for_arguments_in_qualified_allocation_expression));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ASSIGNMENT,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ASSIGNMENT,
         getAlignment(alignment_for_assignment));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BINARY_EXPRESSION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_BINARY_EXPRESSION,
         getAlignment(alignment_for_binary_expression));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_COMPACT_IF,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_COMPACT_IF,
         getAlignment(alignment_for_compact_if));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_CONDITIONAL_EXPRESSION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_CONDITIONAL_EXPRESSION,
         getAlignment(alignment_for_conditional_expression));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ENUM_CONSTANTS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_ENUM_CONSTANTS,
         getAlignment(alignment_for_enum_constants));
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_EXPRESSIONS_IN_ARRAY_INITIALIZER,
         getAlignment(alignment_for_expressions_in_array_initializer));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_METHOD_DECLARATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_METHOD_DECLARATION,
         getAlignment(alignment_for_method_declaration));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_METHOD_DECLARATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_METHOD_DECLARATION,
         getAlignment(alignment_for_function_declaration));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_MULTIPLE_FIELDS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_MULTIPLE_FIELDS,
         getAlignment(alignment_for_multiple_fields));
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_INITIZAIZERS_IN_CONSTRUCTOR_DECLARATION,
@@ -416,7 +426,8 @@ public class DefaultCodeFormatterOptions {
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_THROWS_CLAUSE_IN_METHOD_DECLARATION,
         getAlignment(alignment_for_throws_clause_in_method_declaration));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGN_TYPE_MEMBERS_ON_COLUMNS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_ALIGN_TYPE_MEMBERS_ON_COLUMNS,
         align_type_members_on_columns ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
     options.put(
@@ -425,106 +436,142 @@ public class DefaultCodeFormatterOptions {
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_ANONYMOUS_TYPE_DECLARATION,
         brace_position_for_anonymous_type_declaration);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_ARRAY_INITIALIZER,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_ARRAY_INITIALIZER,
         brace_position_for_array_initializer);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_BLOCK,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_BLOCK,
         brace_position_for_block);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_BLOCK_IN_CASE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_BLOCK_IN_CASE,
         brace_position_for_block_in_case);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_CONSTRUCTOR_DECLARATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_CONSTRUCTOR_DECLARATION,
         brace_position_for_constructor_declaration);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_ENUM_CONSTANT,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_ENUM_CONSTANT,
         brace_position_for_enum_constant);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_ENUM_DECLARATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_ENUM_DECLARATION,
         brace_position_for_function_declaration);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_METHOD_DECLARATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_METHOD_DECLARATION,
         brace_position_for_method_declaration);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_TYPE_DECLARATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_TYPE_DECLARATION,
         brace_position_for_type_declaration);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_SWITCH,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BRACE_POSITION_FOR_SWITCH,
         brace_position_for_switch);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_CLEAR_BLANK_LINES_IN_BLOCK_COMMENT,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_CLEAR_BLANK_LINES_IN_BLOCK_COMMENT,
         comment_clear_blank_lines_in_block_comment ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_COMMENT_CLEAR_BLANK_LINES_IN_JAVADOC_COMMENT,
         comment_clear_blank_lines_in_javadoc_comment ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_NEW_LINES_AT_BLOCK_BOUNDARIES,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_NEW_LINES_AT_BLOCK_BOUNDARIES,
         comment_new_lines_at_block_boundaries ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_NEW_LINES_AT_JAVADOC_BOUNDARIES,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_NEW_LINES_AT_JAVADOC_BOUNDARIES,
         comment_new_lines_at_javadoc_boundaries ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_BLOCK_COMMENT,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_BLOCK_COMMENT,
         comment_format_block_comment ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_HEADER,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_HEADER,
         comment_format_header ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
     options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_HTML, comment_format_html
         ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_JAVADOC_COMMENT,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_JAVADOC_COMMENT,
         comment_format_javadoc_comment ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_LINE_COMMENT,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_LINE_COMMENT,
         comment_format_line_comment ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_LINE_COMMENT_STARTING_ON_FIRST_COLUMN,
         comment_format_line_comment_starting_on_first_column ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_SOURCE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_FORMAT_SOURCE,
         comment_format_source ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_INDENT_PARAMETER_DESCRIPTION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_INDENT_PARAMETER_DESCRIPTION,
         comment_indent_parameter_description ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_INDENT_ROOT_TAGS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_INDENT_ROOT_TAGS,
         comment_indent_root_tags ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_INSERT_EMPTY_LINE_BEFORE_ROOT_TAGS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_INSERT_EMPTY_LINE_BEFORE_ROOT_TAGS,
         comment_insert_empty_line_before_root_tags ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_INSERT_NEW_LINE_FOR_PARAMETER,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_INSERT_NEW_LINE_FOR_PARAMETER,
         comment_insert_new_line_for_parameter ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_COMMENT_LINE_LENGTH,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_COMMENT_LINE_LENGTH,
         Integer.toString(comment_line_length));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_CONTINUATION_INDENTATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_CONTINUATION_INDENTATION,
         Integer.toString(continuation_indentation));
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_CONTINUATION_INDENTATION_FOR_ARRAY_INITIALIZER,
         Integer.toString(continuation_indentation_for_array_initializer));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_AFTER_IMPORTS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_AFTER_IMPORTS,
         Integer.toString(blank_lines_after_imports));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_AFTER_PACKAGE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_AFTER_PACKAGE,
         Integer.toString(blank_lines_after_package));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_FIELD,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_FIELD,
         Integer.toString(blank_lines_before_field));
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_FIRST_CLASS_BODY_DECLARATION,
         Integer.toString(blank_lines_before_first_class_body_declaration));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_IMPORTS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_IMPORTS,
         Integer.toString(blank_lines_before_imports));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_MEMBER_TYPE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_MEMBER_TYPE,
         Integer.toString(blank_lines_before_member_type));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_METHOD,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_METHOD,
         Integer.toString(blank_lines_before_method));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_NEW_CHUNK,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_NEW_CHUNK,
         Integer.toString(blank_lines_before_new_chunk));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_PACKAGE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BEFORE_PACKAGE,
         Integer.toString(blank_lines_before_package));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BETWEEN_IMPORT_GROUPS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BETWEEN_IMPORT_GROUPS,
         Integer.toString(blank_lines_between_import_groups));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BETWEEN_TYPE_DECLARATIONS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_BETWEEN_TYPE_DECLARATIONS,
         Integer.toString(blank_lines_between_type_declarations));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_AT_BEGINNING_OF_METHOD_BODY,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_BLANK_LINES_AT_BEGINNING_OF_METHOD_BODY,
         Integer.toString(blank_lines_at_beginning_of_method_body));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INDENT_STATEMENTS_COMPARE_TO_BLOCK,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INDENT_STATEMENTS_COMPARE_TO_BLOCK,
         indent_statements_compare_to_block ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INDENT_STATEMENTS_COMPARE_TO_BODY,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INDENT_STATEMENTS_COMPARE_TO_BODY,
         indent_statements_compare_to_body ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
     options.put(
@@ -543,26 +590,33 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INDENT_BODY_DECLARATIONS_COMPARE_TO_TYPE_HEADER,
         indent_body_declarations_compare_to_type_header ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INDENT_BREAKS_COMPARE_TO_CASES,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INDENT_BREAKS_COMPARE_TO_CASES,
         indent_breaks_compare_to_cases ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
     options.put(DefaultCodeFormatterConstants.FORMATTER_INDENT_EMPTY_LINES, indent_empty_lines
         ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_CASES,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_CASES,
         indent_switchstatements_compare_to_cases ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_SWITCH,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INDENT_SWITCHSTATEMENTS_COMPARE_TO_SWITCH,
         indent_switchstatements_compare_to_switch ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INDENTATION_SIZE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INDENTATION_SIZE,
         Integer.toString(indentation_size));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AFTER_ANNOTATION_ON_TYPE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AFTER_ANNOTATION_ON_TYPE,
         insert_new_line_after_annotation_on_type ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AFTER_ANNOTATION_ON_FIELD,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AFTER_ANNOTATION_ON_FIELD,
         insert_new_line_after_annotation_on_field ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AFTER_ANNOTATION_ON_METHOD,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AFTER_ANNOTATION_ON_METHOD,
         insert_new_line_after_annotation_on_method ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -581,7 +635,8 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AFTER_OPENING_BRACE_IN_ARRAY_INITIALIZER,
         insert_new_line_after_opening_brace_in_array_initializer ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AT_END_OF_FILE_IF_MISSING,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AT_END_OF_FILE_IF_MISSING,
         insert_new_line_at_end_of_file_if_missing ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -608,42 +663,52 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ANONYMOUS_TYPE_DECLARATION,
         insert_new_line_in_empty_anonymous_type_declaration ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_BLOCK,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_BLOCK,
         insert_new_line_in_empty_block ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ANNOTATION_DECLARATION,
         insert_new_line_in_empty_annotation_declaration ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ENUM_CONSTANT,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ENUM_CONSTANT,
         insert_new_line_in_empty_enum_constant ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ENUM_DECLARATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_ENUM_DECLARATION,
         insert_new_line_in_empty_enum_declaration ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_METHOD_BODY,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_METHOD_BODY,
         insert_new_line_in_empty_method_body ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_TYPE_DECLARATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_IN_EMPTY_TYPE_DECLARATION,
         insert_new_line_in_empty_type_declaration ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AFTER_LABEL,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_NEW_LINE_AFTER_LABEL,
         insert_new_line_after_label ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_AND_IN_TYPE_PARAMETER,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_AND_IN_TYPE_PARAMETER,
         insert_space_after_and_in_type_parameter ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ASSIGNMENT_OPERATOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ASSIGNMENT_OPERATOR,
         insert_space_after_assignment_operator ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_AT_IN_ANNOTATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_AT_IN_ANNOTATION,
         insert_space_after_at_in_annotation ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_AT_IN_ANNOTATION_TYPE_DECLARATION,
         insert_space_after_at_in_annotation_type_declaration ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_BINARY_OPERATOR,
         insert_space_after_binary_operator ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -654,22 +719,28 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_CLOSING_ANGLE_BRACKET_IN_TYPE_PARAMETERS,
         insert_space_after_closing_angle_bracket_in_type_parameters
             ? DartPreferenceConstants.INSERT : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_CLOSING_PAREN_IN_CAST,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_CLOSING_PAREN_IN_CAST,
         insert_space_after_closing_paren_in_cast ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_CLOSING_BRACE_IN_BLOCK,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_CLOSING_BRACE_IN_BLOCK,
         insert_space_after_closing_brace_in_block ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COLON_IN_ASSERT,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COLON_IN_ASSERT,
         insert_space_after_colon_in_assert ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COLON_IN_CASE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COLON_IN_CASE,
         insert_space_after_colon_in_case ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COLON_IN_CONDITIONAL,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COLON_IN_CONDITIONAL,
         insert_space_after_colon_in_conditional ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COLON_IN_FOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COLON_IN_FOR,
         insert_space_after_colon_in_for ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -680,7 +751,8 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_ALLOCATION_EXPRESSION,
         insert_space_after_comma_in_allocation_expression ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_ANNOTATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_ANNOTATION,
         insert_space_after_comma_in_annotation ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -707,10 +779,12 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_EXPLICIT_CONSTRUCTOR_CALL_ARGUMENTS,
         insert_space_after_comma_in_explicit_constructor_call_arguments
             ? DartPreferenceConstants.INSERT : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_FOR_INCREMENTS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_FOR_INCREMENTS,
         insert_space_after_comma_in_for_increments ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_FOR_INITS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_FOR_INITS,
         insert_space_after_comma_in_for_inits ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -741,7 +815,8 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_SUPERINTERFACES,
         insert_space_after_comma_in_superinterfaces ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_TYPE_ARGUMENTS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_COMMA_IN_TYPE_ARGUMENTS,
         insert_space_after_comma_in_type_arguments ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -752,7 +827,8 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_BRACKET_IN_ARRAY_ALLOCATION_EXPRESSION,
         insert_space_after_opening_bracket_in_array_allocation_expression
             ? DartPreferenceConstants.INSERT : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ELLIPSIS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_ELLIPSIS,
         insert_space_after_ellipsis ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -779,10 +855,12 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_ANNOTATION,
         insert_space_after_opening_paren_in_annotation ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_CAST,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_CAST,
         insert_space_after_opening_paren_in_cast ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_CATCH,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_CATCH,
         insert_space_after_opening_paren_in_catch ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -793,10 +871,12 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_ENUM_CONSTANT,
         insert_space_after_opening_paren_in_enum_constant ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_FOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_FOR,
         insert_space_after_opening_paren_in_for ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_IF,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_IF,
         insert_space_after_opening_paren_in_if ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -811,45 +891,56 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_PARENTHESIZED_EXPRESSION,
         insert_space_after_opening_paren_in_parenthesized_expression
             ? DartPreferenceConstants.INSERT : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_SWITCH,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_SWITCH,
         insert_space_after_opening_paren_in_switch ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_SYNCHRONIZED,
         insert_space_after_opening_paren_in_synchronized ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_WHILE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_OPENING_PAREN_IN_WHILE,
         insert_space_after_opening_paren_in_while ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_POSTFIX_OPERATOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_POSTFIX_OPERATOR,
         insert_space_after_postfix_operator ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_PREFIX_OPERATOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_PREFIX_OPERATOR,
         insert_space_after_prefix_operator ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_QUESTION_IN_CONDITIONAL,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_QUESTION_IN_CONDITIONAL,
         insert_space_after_question_in_conditional ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_QUESTION_IN_WILDCARD,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_QUESTION_IN_WILDCARD,
         insert_space_after_question_in_wilcard ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_SEMICOLON_IN_FOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_SEMICOLON_IN_FOR,
         insert_space_after_semicolon_in_for ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_UNARY_OPERATOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_AFTER_UNARY_OPERATOR,
         insert_space_after_unary_operator ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_AND_IN_TYPE_PARAMETER,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_AND_IN_TYPE_PARAMETER,
         insert_space_before_and_in_type_parameter ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_AT_IN_ANNOTATION_TYPE_DECLARATION,
         insert_space_before_at_in_annotation_type_declaration ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ASSIGNMENT_OPERATOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ASSIGNMENT_OPERATOR,
         insert_space_before_assignment_operator ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BINARY_OPERATOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_BINARY_OPERATOR,
         insert_space_before_binary_operator ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -880,10 +971,12 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_ANNOTATION,
         insert_space_before_closing_paren_in_annotation ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_CAST,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_CAST,
         insert_space_before_closing_paren_in_cast ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_CATCH,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_CATCH,
         insert_space_before_closing_paren_in_catch ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -894,10 +987,12 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_ENUM_CONSTANT,
         insert_space_before_closing_paren_in_enum_constant ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_FOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_FOR,
         insert_space_before_closing_paren_in_for ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_IF,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_IF,
         insert_space_before_closing_paren_in_if ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -920,22 +1015,28 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_SYNCHRONIZED,
         insert_space_before_closing_paren_in_synchronized ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_WHILE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_CLOSING_PAREN_IN_WHILE,
         insert_space_before_closing_paren_in_while ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COLON_IN_ASSERT,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COLON_IN_ASSERT,
         insert_space_before_colon_in_assert ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COLON_IN_CASE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COLON_IN_CASE,
         insert_space_before_colon_in_case ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COLON_IN_CONDITIONAL,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COLON_IN_CONDITIONAL,
         insert_space_before_colon_in_conditional ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COLON_IN_DEFAULT,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COLON_IN_DEFAULT,
         insert_space_before_colon_in_default ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COLON_IN_FOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COLON_IN_FOR,
         insert_space_before_colon_in_for ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -946,7 +1047,8 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_ALLOCATION_EXPRESSION,
         insert_space_before_comma_in_allocation_expression ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_ANNOTATION,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_ANNOTATION,
         insert_space_before_comma_in_annotation ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -977,7 +1079,8 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_FOR_INCREMENTS,
         insert_space_before_comma_in_for_increments ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_FOR_INITS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_FOR_INITS,
         insert_space_before_comma_in_for_inits ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -1016,7 +1119,8 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_COMMA_IN_PARAMETERIZED_TYPE_REFERENCE,
         insert_space_before_comma_in_parameterized_type_reference ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ELLIPSIS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_ELLIPSIS,
         insert_space_before_ellipsis ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -1043,7 +1147,8 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_BRACE_IN_ARRAY_INITIALIZER,
         insert_space_before_opening_brace_in_array_initializer ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_BRACE_IN_BLOCK,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_BRACE_IN_BLOCK,
         insert_space_before_opening_brace_in_block ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -1086,7 +1191,8 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_ANNOTATION_TYPE_MEMBER_DECLARATION,
         insert_space_before_opening_paren_in_annotation_type_member_declaration
             ? DartPreferenceConstants.INSERT : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_CATCH,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_CATCH,
         insert_space_before_opening_paren_in_catch ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -1097,10 +1203,12 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_ENUM_CONSTANT,
         insert_space_before_opening_paren_in_enum_constant ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_FOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_FOR,
         insert_space_before_opening_paren_in_for ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_IF,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_IF,
         insert_space_before_opening_paren_in_if ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -1127,7 +1235,8 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_PARENTHESIZED_EXPRESSION,
         insert_space_before_opening_paren_in_parenthesized_expression
             ? DartPreferenceConstants.INSERT : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_WHILE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_OPENING_PAREN_IN_WHILE,
         insert_space_before_opening_paren_in_while ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -1138,26 +1247,32 @@ public class DefaultCodeFormatterOptions {
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_PARENTHESIZED_EXPRESSION_IN_THROW,
         insert_space_before_parenthesized_expression_in_throw ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_POSTFIX_OPERATOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_POSTFIX_OPERATOR,
         insert_space_before_postfix_operator ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_PREFIX_OPERATOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_PREFIX_OPERATOR,
         insert_space_before_prefix_operator ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_QUESTION_IN_CONDITIONAL,
         insert_space_before_question_in_conditional ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_QUESTION_IN_WILDCARD,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_QUESTION_IN_WILDCARD,
         insert_space_before_question_in_wilcard ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_SEMICOLON,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_SEMICOLON,
         insert_space_before_semicolon ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_SEMICOLON_IN_FOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_SEMICOLON_IN_FOR,
         insert_space_before_semicolon_in_for ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_UNARY_OPERATOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_INSERT_SPACE_BEFORE_UNARY_OPERATOR,
         insert_space_before_unary_operator ? DartPreferenceConstants.INSERT
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(
@@ -1194,36 +1309,45 @@ public class DefaultCodeFormatterOptions {
             : DartPreferenceConstants.DO_NOT_INSERT);
     options.put(DefaultCodeFormatterConstants.FORMATTER_COMPACT_ELSE_IF, compact_else_if
         ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_GUARDIAN_CLAUSE_ON_ONE_LINE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_KEEP_GUARDIAN_CLAUSE_ON_ONE_LINE,
         keep_guardian_clause_on_one_line ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_ELSE_STATEMENT_ON_SAME_LINE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_KEEP_ELSE_STATEMENT_ON_SAME_LINE,
         keep_else_statement_on_same_line ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_EMPTY_ARRAY_INITIALIZER_ON_ONE_LINE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_KEEP_EMPTY_ARRAY_INITIALIZER_ON_ONE_LINE,
         keep_empty_array_initializer_on_one_line ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_SIMPLE_IF_ON_ONE_LINE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_KEEP_SIMPLE_IF_ON_ONE_LINE,
         keep_simple_if_on_one_line ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_KEEP_THEN_STATEMENT_ON_SAME_LINE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_KEEP_THEN_STATEMENT_ON_SAME_LINE,
         keep_then_statement_on_same_line ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
     options.put(
         DefaultCodeFormatterConstants.FORMATTER_NEVER_INDENT_BLOCK_COMMENTS_ON_FIRST_COLUMN,
         never_indent_block_comments_on_first_column ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_NEVER_INDENT_LINE_COMMENTS_ON_FIRST_COLUMN,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_NEVER_INDENT_LINE_COMMENTS_ON_FIRST_COLUMN,
         never_indent_line_comments_on_first_column ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_NUMBER_OF_EMPTY_LINES_TO_PRESERVE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_NUMBER_OF_EMPTY_LINES_TO_PRESERVE,
         Integer.toString(number_of_empty_lines_to_preserve));
     options.put(DefaultCodeFormatterConstants.FORMATTER_JOIN_WRAPPED_LINES, join_wrapped_lines
         ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_JOIN_LINES_IN_COMMENTS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_JOIN_LINES_IN_COMMENTS,
         join_lines_in_comments ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_PUT_EMPTY_STATEMENT_ON_NEW_LINE,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_PUT_EMPTY_STATEMENT_ON_NEW_LINE,
         put_empty_statement_on_new_line ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
     options.put(DefaultCodeFormatterConstants.FORMATTER_LINE_SPLIT, Integer.toString(page_width));
@@ -1235,15 +1359,18 @@ public class DefaultCodeFormatterOptions {
         options.put(DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR, DartPreferenceConstants.TAB);
         break;
       case MIXED:
-        options.put(DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR,
+        options.put(
+            DefaultCodeFormatterConstants.FORMATTER_TAB_CHAR,
             DefaultCodeFormatterConstants.MIXED);
         break;
     }
     options.put(DefaultCodeFormatterConstants.FORMATTER_TAB_SIZE, Integer.toString(tab_size));
-    options.put(DefaultCodeFormatterConstants.FORMATTER_USE_TABS_ONLY_FOR_LEADING_INDENTATIONS,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_USE_TABS_ONLY_FOR_LEADING_INDENTATIONS,
         use_tabs_only_for_leading_indentations ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BINARY_OPERATOR,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_WRAP_BEFORE_BINARY_OPERATOR,
         wrap_before_binary_operator ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
     options.put(DefaultCodeFormatterConstants.FORMATTER_DISABLING_TAG, disabling_tag == null
@@ -1252,7 +1379,8 @@ public class DefaultCodeFormatterOptions {
         ? Util.EMPTY_STRING : new String(enabling_tag));
     options.put(DefaultCodeFormatterConstants.FORMATTER_USE_ON_OFF_TAGS, use_tags
         ? DefaultCodeFormatterConstants.TRUE : DefaultCodeFormatterConstants.FALSE);
-    options.put(DefaultCodeFormatterConstants.FORMATTER_WRAP_OUTER_EXPRESSIONS_WHEN_NESTED,
+    options.put(
+        DefaultCodeFormatterConstants.FORMATTER_WRAP_OUTER_EXPRESSIONS_WHEN_NESTED,
         wrap_outer_expressions_when_nested ? DefaultCodeFormatterConstants.TRUE
             : DefaultCodeFormatterConstants.FALSE);
     return options;

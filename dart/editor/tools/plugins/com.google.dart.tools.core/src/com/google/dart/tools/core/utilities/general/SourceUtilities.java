@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -56,8 +56,12 @@ public final class SourceUtilities {
    * A list containing all of the directives in the order in which they must appear in a valid
    * source file.
    */
-  private static List<String> DIRECTIVES = Arrays.asList(LIBRARY_DIRECTIVE, IMPORT_DIRECTIVE,
-      SOURCE_DIRECTIVE, RESOURCE_DIRECTIVE, NATIVE_DIRECTIVE);
+  private static List<String> DIRECTIVES = Arrays.asList(
+      LIBRARY_DIRECTIVE,
+      IMPORT_DIRECTIVE,
+      SOURCE_DIRECTIVE,
+      RESOURCE_DIRECTIVE,
+      NATIVE_DIRECTIVE);
 
   /**
    * Return the offset into the given compilation unit contents at which a directive with the given

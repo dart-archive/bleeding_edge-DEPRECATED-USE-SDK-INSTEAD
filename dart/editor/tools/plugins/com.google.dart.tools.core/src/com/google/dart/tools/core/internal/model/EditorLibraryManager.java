@@ -25,10 +25,9 @@ import java.io.File;
  * @see SystemLibraryManagerProvider#getAnyLibraryManager()
  */
 public class EditorLibraryManager extends SystemLibraryManager {
- 
+
   public EditorLibraryManager(File sdkPath, String platformName) {
     super(sdkPath, platformName);
   }
 
- 
 }

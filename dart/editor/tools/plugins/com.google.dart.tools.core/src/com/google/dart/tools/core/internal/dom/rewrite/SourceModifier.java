@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -47,12 +47,18 @@ public class SourceModifier implements ISourceModifier {
   @Override
   public ReplaceEdit[] getModifications(String source) {
     List<ReplaceEdit> result = new ArrayList<ReplaceEdit>();
-    int destIndentLevel = IndentManipulation.measureIndentUnits(destinationIndent, tabWidth,
+    int destIndentLevel = IndentManipulation.measureIndentUnits(
+        destinationIndent,
+        tabWidth,
         indentWidth);
     if (destIndentLevel == sourceIndentLevel) {
       return result.toArray(new ReplaceEdit[result.size()]);
     }
-    return IndentManipulation.getChangeIndentEdits(source, sourceIndentLevel, tabWidth,
-        indentWidth, destinationIndent);
+    return IndentManipulation.getChangeIndentEdits(
+        source,
+        sourceIndentLevel,
+        tabWidth,
+        indentWidth,
+        destinationIndent);
   }
 }

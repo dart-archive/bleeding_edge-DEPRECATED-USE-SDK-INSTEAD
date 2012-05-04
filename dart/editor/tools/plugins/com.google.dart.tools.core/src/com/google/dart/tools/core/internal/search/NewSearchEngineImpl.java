@@ -85,7 +85,9 @@ public class NewSearchEngineImpl implements SearchEngine {
         try {
           for (Method method : type.getMethods()) {
             if (method.isConstructor()) {
-              SearchMatch constructorMatch = new SearchMatch(match.getQuality(), method,
+              SearchMatch constructorMatch = new SearchMatch(
+                  match.getQuality(),
+                  method,
                   method.getNameRange());
               propagateMatch(constructorMatch);
             }
@@ -243,7 +245,8 @@ public class NewSearchEngineImpl implements SearchEngine {
           try {
             return ((DartLibrary) unitElement).getDefiningCompilationUnit();
           } catch (DartModelException exception) {
-            DartCore.logError("Could not access defining compilation unit for library " + unitUri,
+            DartCore.logError(
+                "Could not access defining compilation unit for library " + unitUri,
                 exception);
           }
         }
@@ -471,9 +474,13 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    index.getRelationships(createElement(function), IndexConstants.IS_INVOKED_BY_QUALIFIED,
+    index.getRelationships(
+        createElement(function),
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FUNCTION_EXECUTION, applyFilter(filter, listener)));
-    index.getRelationships(createElement(function), IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
+    index.getRelationships(
+        createElement(function),
+        IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FUNCTION_EXECUTION, applyFilter(filter, listener)));
   }
 
@@ -498,7 +505,8 @@ public class NewSearchEngineImpl implements SearchEngine {
     index.getRelationships(
         createElement(alias),
         IndexConstants.IS_REFERENCED_BY,
-        new RelationshipCallbackImpl(MatchKind.FUNCTION_TYPE_REFERENCE, applyFilter(filter,
+        new RelationshipCallbackImpl(MatchKind.FUNCTION_TYPE_REFERENCE, applyFilter(
+            filter,
             listener)));
   }
 
@@ -519,7 +527,9 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    index.getRelationships(createElement(imprt), IndexConstants.IS_REFERENCED_BY,
+    index.getRelationships(
+        createElement(imprt),
+        IndexConstants.IS_REFERENCED_BY,
         new RelationshipCallbackImpl(MatchKind.IMPORT_REFERENCE, applyFilter(filter, listener)));
   }
 
@@ -542,9 +552,13 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    index.getRelationships(createElement(variable), IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+    index.getRelationships(
+        createElement(variable),
+        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FIELD_READ, applyFilter(filter, listener)));
-    index.getRelationships(createElement(variable), IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
+    index.getRelationships(
+        createElement(variable),
+        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, applyFilter(filter, listener)));
   }
 
@@ -566,13 +580,21 @@ public class NewSearchEngineImpl implements SearchEngine {
       throw new IllegalArgumentException("listener cannot be null");
     }
     Element fieldElement = createElement(field);
-    index.getRelationships(fieldElement, IndexConstants.IS_ACCESSED_BY_QUALIFIED,
+    index.getRelationships(
+        fieldElement,
+        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FIELD_READ, applyFilter(filter, listener)));
-    index.getRelationships(fieldElement, IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+    index.getRelationships(
+        fieldElement,
+        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FIELD_READ, applyFilter(filter, listener)));
-    index.getRelationships(fieldElement, IndexConstants.IS_MODIFIED_BY_QUALIFIED,
+    index.getRelationships(
+        fieldElement,
+        IndexConstants.IS_MODIFIED_BY_QUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, applyFilter(filter, listener)));
-    index.getRelationships(fieldElement, IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
+    index.getRelationships(
+        fieldElement,
+        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.FIELD_WRITE, applyFilter(filter, listener)));
   }
 
@@ -593,9 +615,13 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    index.getRelationships(createElement(method), IndexConstants.IS_INVOKED_BY_QUALIFIED,
+    index.getRelationships(
+        createElement(method),
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
         new RelationshipCallbackImpl(MatchKind.METHOD_INVOCATION, applyFilter(filter, listener)));
-    index.getRelationships(createElement(method), IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
+    index.getRelationships(
+        createElement(method),
+        IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.METHOD_INVOCATION, applyFilter(filter, listener)));
   }
 
@@ -616,7 +642,9 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    index.getRelationships(createElement(type), IndexConstants.IS_REFERENCED_BY,
+    index.getRelationships(
+        createElement(type),
+        IndexConstants.IS_REFERENCED_BY,
         new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
   }
 
@@ -637,9 +665,13 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    index.getRelationships(createElement(type), IndexConstants.IS_EXTENDED_BY,
+    index.getRelationships(
+        createElement(type),
+        IndexConstants.IS_EXTENDED_BY,
         new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
-    index.getRelationships(createElement(type), IndexConstants.IS_IMPLEMENTED_BY,
+    index.getRelationships(
+        createElement(type),
+        IndexConstants.IS_IMPLEMENTED_BY,
         new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
   }
 
@@ -660,9 +692,13 @@ public class NewSearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    index.getRelationships(createElement(type), IndexConstants.EXTENDS,
+    index.getRelationships(
+        createElement(type),
+        IndexConstants.EXTENDS,
         new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
-    index.getRelationships(createElement(type), IndexConstants.IMPLEMENTS,
+    index.getRelationships(
+        createElement(type),
+        IndexConstants.IMPLEMENTS,
         new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
   }
 
@@ -768,11 +804,13 @@ public class NewSearchEngineImpl implements SearchEngine {
     String functionName = function.getElementName();
     // TODO(brianwilkerson) Handle unnamed functions
     return new Element(getResource(function.getCompilationUnit()), ElementFactory.composeElementId(
-        createElement(function.getParent()), functionName));
+        createElement(function.getParent()),
+        functionName));
   }
 
   private Element createElement(DartFunctionTypeAlias alias) throws SearchException {
-    return new Element(getResource(alias.getCompilationUnit()),
+    return new Element(
+        getResource(alias.getCompilationUnit()),
         ElementFactory.composeElementId(alias.getElementName()));
   }
 
@@ -791,7 +829,8 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   private Element createElement(DartVariableDeclaration variable) throws SearchException {
-    return new Element(getResource(variable.getCompilationUnit()),
+    return new Element(
+        getResource(variable.getCompilationUnit()),
         ElementFactory.composeElementId(variable.getElementName()));
   }
 
@@ -864,11 +903,9 @@ public class NewSearchEngineImpl implements SearchEngine {
       throw new IllegalArgumentException("listener cannot be null");
     }
     for (Element element : elements) {
-      index.getRelationships(
-          element,
-          IndexConstants.DEFINES_CLASS,
-          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
-              applyPattern(pattern, new ConstructorConverter(listener)))));
+      index.getRelationships(element, IndexConstants.DEFINES_CLASS, new RelationshipCallbackImpl(
+          MatchKind.NOT_A_REFERENCE,
+          applyFilter(filter, applyPattern(pattern, new ConstructorConverter(listener)))));
     }
   }
 
@@ -880,7 +917,8 @@ public class NewSearchEngineImpl implements SearchEngine {
     }
     for (Element element : elements) {
       index.getRelationships(element, IndexConstants.DEFINES_FIELD, new RelationshipCallbackImpl(
-          MatchKind.NOT_A_REFERENCE, applyFilter(filter, applyPattern(pattern, listener))));
+          MatchKind.NOT_A_REFERENCE,
+          applyFilter(filter, applyPattern(pattern, listener))));
     }
   }
 
@@ -894,7 +932,8 @@ public class NewSearchEngineImpl implements SearchEngine {
       index.getRelationships(
           element,
           IndexConstants.DEFINES_FUNCTION,
-          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(
+              filter,
               applyPattern(pattern, listener))));
     }
   }
@@ -907,7 +946,8 @@ public class NewSearchEngineImpl implements SearchEngine {
     }
     for (Element element : elements) {
       index.getRelationships(element, IndexConstants.DEFINES_METHOD, new RelationshipCallbackImpl(
-          MatchKind.NOT_A_REFERENCE, applyFilter(filter, applyPattern(pattern, listener))));
+          MatchKind.NOT_A_REFERENCE,
+          applyFilter(filter, applyPattern(pattern, listener))));
     }
   }
 
@@ -920,10 +960,15 @@ public class NewSearchEngineImpl implements SearchEngine {
     SearchListener filteredListener = applyFilter(filter, applyPattern(pattern, listener));
     for (Element element : elements) {
       index.getRelationships(element, IndexConstants.DEFINES_CLASS, new RelationshipCallbackImpl(
-          MatchKind.NOT_A_REFERENCE, filteredListener));
-      index.getRelationships(element, IndexConstants.DEFINES_FUNCTION_TYPE,
+          MatchKind.NOT_A_REFERENCE,
+          filteredListener));
+      index.getRelationships(
+          element,
+          IndexConstants.DEFINES_FUNCTION_TYPE,
           new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
-      index.getRelationships(element, IndexConstants.DEFINES_INTERFACE,
+      index.getRelationships(
+          element,
+          IndexConstants.DEFINES_INTERFACE,
           new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
     }
   }
@@ -938,7 +983,8 @@ public class NewSearchEngineImpl implements SearchEngine {
       index.getRelationships(
           element,
           IndexConstants.DEFINES_FUNCTION,
-          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(filter,
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, applyFilter(
+              filter,
               applyPattern(pattern, listener))));
     }
   }

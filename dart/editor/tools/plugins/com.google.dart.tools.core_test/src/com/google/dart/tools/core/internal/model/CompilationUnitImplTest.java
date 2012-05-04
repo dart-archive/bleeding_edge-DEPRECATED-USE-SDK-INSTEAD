@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -27,7 +27,9 @@ public class CompilationUnitImplTest extends TestCase {
 
   public void test_CompilationUnitImpl_getChildren_nonExistant() {
     MockFile file = new MockFile(new MockProject());
-    CompilationUnitImpl cu = new CompilationUnitImpl((DartLibraryImpl) null, file,
+    CompilationUnitImpl cu = new CompilationUnitImpl(
+        (DartLibraryImpl) null,
+        file,
         DefaultWorkingCopyOwner.getInstance());
     try {
       cu.getChildren();
@@ -56,7 +58,9 @@ public class CompilationUnitImplTest extends TestCase {
   public void test_CompilationUnitImpl_getElementName() {
     String fileName = "file.dart";
     MockFile file = new MockFile(new MockProject(), fileName);
-    CompilationUnitImpl cu = new CompilationUnitImpl((DartLibraryImpl) null, file,
+    CompilationUnitImpl cu = new CompilationUnitImpl(
+        (DartLibraryImpl) null,
+        file,
         DefaultWorkingCopyOwner.getInstance());
     assertEquals(fileName, cu.getElementName());
   }
@@ -76,7 +80,9 @@ public class CompilationUnitImplTest extends TestCase {
 
   public void test_CompilationUnitImpl_getTypes_nonExistant() {
     MockFile file = new MockFile(new MockProject());
-    CompilationUnitImpl cu = new CompilationUnitImpl((DartLibraryImpl) null, file,
+    CompilationUnitImpl cu = new CompilationUnitImpl(
+        (DartLibraryImpl) null,
+        file,
         DefaultWorkingCopyOwner.getInstance());
     try {
       cu.getTypes();

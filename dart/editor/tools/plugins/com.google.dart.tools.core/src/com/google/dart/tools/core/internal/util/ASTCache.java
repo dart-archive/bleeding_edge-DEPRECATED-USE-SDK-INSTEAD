@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -107,7 +107,8 @@ public class ASTCache {
           long endParsing = System.currentTimeMillis();
           timeSpentParsing += (endParsing - startParsing);
         } catch (DartModelException exception) {
-          DartCore.logError("Could not parse compilation unit " + compilationUnit.getElementName(),
+          DartCore.logError(
+              "Could not parse compilation unit " + compilationUnit.getElementName(),
               exception);
         }
       } else {
@@ -131,7 +132,8 @@ public class ASTCache {
             }
           }
         } catch (DartModelException exception) {
-          DartCore.logError("Could not parse library " + library.getResource().getLocation(),
+          DartCore.logError(
+              "Could not parse library " + library.getResource().getLocation(),
               exception);
         }
       }

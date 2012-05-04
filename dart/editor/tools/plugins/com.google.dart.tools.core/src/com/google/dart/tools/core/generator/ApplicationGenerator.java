@@ -152,8 +152,10 @@ public class ApplicationGenerator extends AbstractGenerator {
 
   private File generateCommandLineApp(IProgressMonitor monitor, String applicationFileName)
       throws CoreException {
-    SubMonitor subMonitor = SubMonitor.convert(monitor,
-        GeneratorMessages.ApplicationGenerator_message, 100);
+    SubMonitor subMonitor = SubMonitor.convert(
+        monitor,
+        GeneratorMessages.ApplicationGenerator_message,
+        100);
 
     String className = applicationFileName.substring(0, applicationFileName.indexOf('.'));
 
@@ -170,8 +172,10 @@ public class ApplicationGenerator extends AbstractGenerator {
 
   private File generateWebApplication(IProgressMonitor monitor, String applicationFileName)
       throws CoreException {
-    SubMonitor subMonitor = SubMonitor.convert(monitor,
-        GeneratorMessages.ApplicationGenerator_message, 100);
+    SubMonitor subMonitor = SubMonitor.convert(
+        monitor,
+        GeneratorMessages.ApplicationGenerator_message,
+        100);
 
     String className = applicationFileName.substring(0, applicationFileName.indexOf('.'));
 
@@ -186,8 +190,10 @@ public class ApplicationGenerator extends AbstractGenerator {
     subMonitor.done();
 
     // html file
-    subMonitor = SubMonitor.convert(monitor,
-        GeneratorMessages.ApplicationGenerator_htmlFileMessage, 100);
+    subMonitor = SubMonitor.convert(
+        monitor,
+        GeneratorMessages.ApplicationGenerator_htmlFileMessage,
+        100);
     String htmlFileName = appendIfNoExtension(applicationName, HTML_FILENAME_EXTENSION);
     File iHtmlFile = getSystemFile(htmlFileName);
     substitutions.put("title", className);
@@ -213,7 +219,9 @@ public class ApplicationGenerator extends AbstractGenerator {
     }
     Path libraryPath = new Path(applicationLocation);
     if (!libraryPath.isAbsolute() || !libraryPath.isValidPath(applicationLocation)) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
           GeneratorMessages.ApplicationGenerator_directoryMessage);
     }
     return Status.OK_STATUS;
@@ -233,19 +241,21 @@ public class ApplicationGenerator extends AbstractGenerator {
     if (applicationName == null || applicationName.isEmpty()) {
       return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, DESCRIPTION);
     } else if (containsWhitespace(applicationName)) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
           GeneratorMessages.ApplicationGenerator_noWhiteSpace);
     }
     Path path = new Path(applicationLocation);
     if (path.append(appendIfNoExtension(applicationName, Extensions.DOT_DART)).toFile().exists()) {
       return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, MessageFormat.format(
-          GeneratorMessages.ApplicationGenerator_fileExists, new Object[] {applicationName
-              + Extensions.DOT_DART}));
+          GeneratorMessages.ApplicationGenerator_fileExists,
+          new Object[] {applicationName + Extensions.DOT_DART}));
     }
     if (path.append(appendIfNoExtension(applicationName, HTML_FILENAME_EXTENSION)).toFile().exists()) {
       return new Status(IStatus.ERROR, DartCore.PLUGIN_ID, MessageFormat.format(
-          GeneratorMessages.ApplicationGenerator_fileExists, new Object[] {applicationName
-              + HTML_FILENAME_EXTENSION}));
+          GeneratorMessages.ApplicationGenerator_fileExists,
+          new Object[] {applicationName + HTML_FILENAME_EXTENSION}));
     }
     IStatus status = DartIdentifierUtil.validateIdentifier(applicationName);
     if (status != Status.OK_STATUS) {

@@ -147,7 +147,11 @@ public class Util {
 
         // resize contents if needed
         if (totalRead + 1 + amountRequested > contents.length) {
-          System.arraycopy(contents, 0, contents = new char[totalRead + 1 + amountRequested], 0,
+          System.arraycopy(
+              contents,
+              0,
+              contents = new char[totalRead + 1 + amountRequested],
+              0,
               totalRead);
         }
 
@@ -234,8 +238,11 @@ public class Util {
       IScopeContext[] scopeContext;
       if (project != null) {
         scopeContext = new IScopeContext[] {new ProjectScope(project.getProject())};
-        lineSeparator = Platform.getPreferencesService().getString(Platform.PI_RUNTIME,
-            Platform.PREF_LINE_SEPARATOR, null, scopeContext);
+        lineSeparator = Platform.getPreferencesService().getString(
+            Platform.PI_RUNTIME,
+            Platform.PREF_LINE_SEPARATOR,
+            null,
+            scopeContext);
         if (lineSeparator != null) {
           return lineSeparator;
         }
@@ -243,8 +250,11 @@ public class Util {
 
       // line delimiter in workspace preference
       scopeContext = new IScopeContext[] {new InstanceScope()};
-      lineSeparator = Platform.getPreferencesService().getString(Platform.PI_RUNTIME,
-          Platform.PREF_LINE_SEPARATOR, null, scopeContext);
+      lineSeparator = Platform.getPreferencesService().getString(
+          Platform.PI_RUNTIME,
+          Platform.PREF_LINE_SEPARATOR,
+          null,
+          scopeContext);
       if (lineSeparator != null) {
         return lineSeparator;
       }

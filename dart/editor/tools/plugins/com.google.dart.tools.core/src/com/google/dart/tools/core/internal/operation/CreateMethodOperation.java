@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -123,7 +123,8 @@ public class CreateMethodOperation extends CreateTypeMemberOperation {
       String[] types = convertASTMethodTypesToSignatures();
       if (type.getMethod(name, types).exists()) {
         return new DartModelStatusImpl(DartModelStatusConstants.NAME_COLLISION, Messages.bind(
-            Messages.status_nameCollision, name));
+            Messages.status_nameCollision,
+            name));
       }
     }
     return DartModelStatusImpl.VERIFIED_OK;

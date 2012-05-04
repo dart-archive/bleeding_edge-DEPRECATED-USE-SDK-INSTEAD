@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -63,7 +63,8 @@ public class DartModelManagerTest extends TestCase {
   public void test_DartModelManager_getBaseLibraryName_directive() throws Exception {
     String libraryName = "library";
     DartUnit unit = new DartUnit(
-        new TestDartSource("test.dart", "#library('" + libraryName + "')"), false);
+        new TestDartSource("test.dart", "#library('" + libraryName + "')"),
+        false);
     unit.getDirectives().add(new DartLibraryDirective(DartStringLiteral.get(libraryName)));
     String result = getBaseLibraryName(unit);
     assertEquals(libraryName, result);
@@ -81,7 +82,8 @@ public class DartModelManagerTest extends TestCase {
   }
 
   public void test_DartModelManager_getFilesForLibrary() throws Exception {
-    File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
+    File libraryFile = TestUtilities.getPluginRelativePath(
+        "com.google.dart.tools.core_test",
         new Path("test_data/Geometry/geometry.dart")).toFile();
     DartUnit libraryUnit = parseLibraryFile(libraryFile);
     Set<File> fileSet = getFilesForLibrary(libraryFile, libraryUnit);
@@ -125,7 +127,8 @@ public class DartModelManagerTest extends TestCase {
   public void test_DartModelManager_getLibraryName_directive() throws Exception {
     String libraryName = "library";
     DartUnit unit = new DartUnit(
-        new TestDartSource("test.dart", "#library('" + libraryName + "')"), false);
+        new TestDartSource("test.dart", "#library('" + libraryName + "')"),
+        false);
     unit.getDirectives().add(new DartLibraryDirective(DartStringLiteral.get(libraryName)));
     String result = getLibraryName(unit);
     assertEquals(libraryName, result);
@@ -139,10 +142,12 @@ public class DartModelManagerTest extends TestCase {
   }
 
   public void test_DartModelManager_openLibrary_alreadyOpen() throws Exception {
-    final File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
+    final File libraryFile = TestUtilities.getPluginRelativePath(
+        "com.google.dart.tools.core_test",
         new Path("test_data/Geometry/geometry.dart")).toFile();
     final File nonLibraryFile = TestUtilities.getPluginRelativePath(
-        "com.google.dart.tools.core_test", new Path("test_data/Geometry/license.txt")).toFile();
+        "com.google.dart.tools.core_test",
+        new Path("test_data/Geometry/license.txt")).toFile();
     final DartLibrary[] libraryHolder = new DartLibrary[1];
     ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
       @Override
@@ -172,7 +177,8 @@ public class DartModelManagerTest extends TestCase {
   }
 
   public void test_DartModelManager_openLibrary_library() throws Exception {
-    final File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
+    final File libraryFile = TestUtilities.getPluginRelativePath(
+        "com.google.dart.tools.core_test",
         new Path("test_data/Geometry/geometry.dart")).toFile();
     assertTrue(libraryFile.exists());
     final DartLibrary[] libraryHolder = new DartLibrary[1];
@@ -199,7 +205,8 @@ public class DartModelManagerTest extends TestCase {
 
   public void test_DartModelManager_openLibrary_nonLibrary() throws Exception {
     final File nonLibraryFile = TestUtilities.getPluginRelativePath(
-        "com.google.dart.tools.core_test", new Path("test_data/Geometry/license.txt")).toFile();
+        "com.google.dart.tools.core_test",
+        new Path("test_data/Geometry/license.txt")).toFile();
     final DartLibrary[] libraryHolder = new DartLibrary[1];
     ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
       @Override
@@ -230,14 +237,16 @@ public class DartModelManagerTest extends TestCase {
 //  }
 
   public void test_DartModelManager_parseLibraryFile_valid() throws Exception {
-    File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
+    File libraryFile = TestUtilities.getPluginRelativePath(
+        "com.google.dart.tools.core_test",
         new Path("test_data/Geometry/geometry.dart")).toFile();
     DartUnit libraryUnit = parseLibraryFile(libraryFile);
     assertNotNull(libraryUnit);
   }
 
   public void test_DartModelManager_parseLibraryFile_valid2() throws Exception {
-    File libraryFile = TestUtilities.getPluginRelativePath("com.google.dart.tools.core_test",
+    File libraryFile = TestUtilities.getPluginRelativePath(
+        "com.google.dart.tools.core_test",
         new Path("test_data/UserLibrary/userLib.dart")).toFile();
     DartUnit libraryUnit = parseLibraryFile(libraryFile);
     assertNotNull(libraryUnit);
@@ -303,7 +312,9 @@ public class DartModelManagerTest extends TestCase {
   @SuppressWarnings("unchecked")
   private Set<File> getFilesForLibrary(File libraryFile, DartUnit libraryUnit) throws Exception {
     DartModelManager manager = DartModelManager.getInstance();
-    Method method = DartModelManager.class.getDeclaredMethod("getFilesForLibrary", File.class,
+    Method method = DartModelManager.class.getDeclaredMethod(
+        "getFilesForLibrary",
+        File.class,
         DartUnit.class);
     method.setAccessible(true);
     return (Set<File>) method.invoke(manager, libraryFile, libraryUnit);

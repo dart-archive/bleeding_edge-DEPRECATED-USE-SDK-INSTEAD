@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -73,14 +73,18 @@ public class DartIdentifierUtil {
     }
     // return error for the first character
     if (!isIdentifierStart(str.charAt(0))) {
-      return new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+      return new Status(
+          IStatus.ERROR,
+          DartCore.PLUGIN_ID,
           "The first character of this Dart identifer is not a valid character, Dart identifiers "
               + "must start with an alphabetic character, '_' or '$'.");
     }
     // return error for any non-first characters
     for (int i = 1; i < str.length(); i++) {
       if (!isIdentifierPart(str.charAt(i))) {
-        return new Status(IStatus.ERROR, DartCore.PLUGIN_ID,
+        return new Status(
+            IStatus.ERROR,
+            DartCore.PLUGIN_ID,
             "This Dart identifer has an invalid character, identifiers "
                 + "must include only alphanumeric characters, '_' or '$'.");
       }

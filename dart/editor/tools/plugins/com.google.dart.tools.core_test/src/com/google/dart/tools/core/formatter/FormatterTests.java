@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -142,7 +142,7 @@ public class FormatterTests extends TestCase {
     assertTrue("Failed " + failures + " of " + units.length + " tests (see console for specifics)",
         failures == 0);
   }
- */
+  */
 
   protected void assertLineEquals(String actualContents, String originalSource,
       String expectedContents) {
@@ -157,8 +157,10 @@ public class FormatterTests extends TestCase {
       assertEquals(expectedContents, originalSource);
       return;
     }
-    assertSourceEquals("Different number of length",
-        convertToIndependantLineDelimiter(expectedContents), actualContents);
+    assertSourceEquals(
+        "Different number of length",
+        convertToIndependantLineDelimiter(expectedContents),
+        actualContents);
   }
 
   protected void assertSourceEquals(String message, String expected, String actual) {
@@ -240,7 +242,8 @@ public class FormatterTests extends TestCase {
   }
 
   private IFile getOrCreateFile(String fileName) throws CoreException, IOException {
-    return getOrCreateFile(fileName,
+    return getOrCreateFile(
+        fileName,
         TestFileUtil.readResource(getClass(), "testsource/" + fileName));
   }
 
@@ -276,7 +279,12 @@ public class FormatterTests extends TestCase {
 
   private String runFormatter(CodeFormatter codeFormatter, String source, int kind,
       int indentationLevel, int offset, int length, String lineSeparator, boolean repeat) {
-    TextEdit edit = codeFormatter.format(kind, source, offset, length, indentationLevel,
+    TextEdit edit = codeFormatter.format(
+        kind,
+        source,
+        offset,
+        length,
+        indentationLevel,
         lineSeparator);//$NON-NLS-1$
     if (edit == null) {
       return null;
@@ -289,8 +297,10 @@ public class FormatterTests extends TestCase {
       }
       final String result2 = editedString(result, edit);
       if (!result.equals(result2)) {
-        assertSourceEquals("Second formatting is different from first one!",
-            convertToIndependantLineDelimiter(result), convertToIndependantLineDelimiter(result2));
+        assertSourceEquals(
+            "Second formatting is different from first one!",
+            convertToIndependantLineDelimiter(result),
+            convertToIndependantLineDelimiter(result2));
       }
     }
     try {
@@ -307,11 +317,25 @@ public class FormatterTests extends TestCase {
       assertNotNull(source);
       String result;
       if (length == -1) {
-        result = runFormatter(codeFormatter, source, kind, indentationLevel, offset,
-            source.length(), lineSeparator, true);
+        result = runFormatter(
+            codeFormatter,
+            source,
+            kind,
+            indentationLevel,
+            offset,
+            source.length(),
+            lineSeparator,
+            true);
       } else {
-        result = runFormatter(codeFormatter, source, kind, indentationLevel, offset, length,
-            lineSeparator, true);
+        result = runFormatter(
+            codeFormatter,
+            source,
+            kind,
+            indentationLevel,
+            offset,
+            length,
+            lineSeparator,
+            true);
       }
       if (result == null) {
         System.err.println("Test Failed: " + testName);
@@ -331,8 +355,16 @@ public class FormatterTests extends TestCase {
 
   private void runTest(CodeFormatter codeFormatter, String testName, String compilationUnitName,
       int kind, int indentationLevel, boolean checkNull, int offset, int length) {
-    runTest(codeFormatter, testName, compilationUnitName, kind, indentationLevel, checkNull,
-        offset, length, null);
+    runTest(
+        codeFormatter,
+        testName,
+        compilationUnitName,
+        kind,
+        indentationLevel,
+        checkNull,
+        offset,
+        length,
+        null);
   }
 
   private void runTest(CodeFormatter codeFormatter, String testName, String compilationUnitName,
@@ -346,11 +378,25 @@ public class FormatterTests extends TestCase {
       assertNotNull(outputUnit);
       String result;
       if (length == -1) {
-        result = runFormatter(codeFormatter, source, kind, indentationLevel, offset,
-            source.length(), lineSeparator, true);
+        result = runFormatter(
+            codeFormatter,
+            source,
+            kind,
+            indentationLevel,
+            offset,
+            source.length(),
+            lineSeparator,
+            true);
       } else {
-        result = runFormatter(codeFormatter, source, kind, indentationLevel, offset, length,
-            lineSeparator, true);
+        result = runFormatter(
+            codeFormatter,
+            source,
+            kind,
+            indentationLevel,
+            offset,
+            length,
+            lineSeparator,
+            true);
       }
       assertLineEquals(result, source, outputUnit.getSource(), checkNull);
     } catch (DartModelException e) {

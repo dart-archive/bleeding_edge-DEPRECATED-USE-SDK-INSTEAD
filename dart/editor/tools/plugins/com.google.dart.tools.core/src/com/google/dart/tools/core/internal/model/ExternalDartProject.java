@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -34,7 +34,8 @@ public class ExternalDartProject extends DartProjectImpl {
    * Initialize a newly created Dart project to represent the given project.
    */
   public ExternalDartProject() {
-    super(DartModelManager.getInstance().getDartModel(),
+    super(
+        DartModelManager.getInstance().getDartModel(),
         ResourcesPlugin.getWorkspace().getRoot().getProject(EXTERNAL_PROJECT_NAME));
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -233,7 +233,9 @@ public final class RewriteEventStore {
 
       DartBlock internalPlaceholder = getInternalPlaceholder();
       internalPlaceholder.setSourceInfo(new SourceInfo(
-          internalPlaceholder.getSourceInfo().getSource(), startPos, endPos - startPos));
+          internalPlaceholder.getSourceInfo().getSource(),
+          startPos,
+          endPos - startPos));
     }
 
   }
@@ -397,8 +399,14 @@ public final class RewriteEventStore {
     // internalPlaceholder.setProperty(INTERNAL_PLACEHOLDER_PROPERTY,
     // internalPlaceholder);
 
-    NodeRangeInfo copyRangeInfo = new NodeRangeInfo(parent, childProperty, first, last, copyInfo,
-        replacingNode, editGroup);
+    NodeRangeInfo copyRangeInfo = new NodeRangeInfo(
+        parent,
+        childProperty,
+        first,
+        last,
+        copyInfo,
+        replacingNode,
+        editGroup);
 
     ListRewriteEvent listEvent = getListEvent(parent, childProperty, true);
 

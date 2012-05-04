@@ -19,7 +19,8 @@ package com.google.dart.tools.core.internal.directoryset;
  * Currently, whenever there is a change the entire refresh on the Files viewer, thus other than an
  * event being passed, we don't need any information.
  * <p>
- * TODO(jwren) Add context to this event object, so that the refresh can be faster in the Files view.
+ * TODO(jwren) Add context to this event object, so that the refresh can be faster in the Files
+ * view.
  * 
  * @see DirectorySetManager
  * @see DirectorySetListener

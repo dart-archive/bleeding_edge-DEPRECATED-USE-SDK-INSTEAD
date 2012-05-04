@@ -86,12 +86,14 @@ public final class ResourceFactory {
   public static Resource getResource(CompilationUnit compilationUnit) throws DartModelException {
     if (compilationUnit == null) {
       throw new DartModelException(new DartModelStatusImpl(
-          DartModelStatusConstants.INVALID_RESOURCE, "Compilation unit is null")); //$NON-NLS-0$
+          DartModelStatusConstants.INVALID_RESOURCE,
+          "Compilation unit is null")); //$NON-NLS-0$
     }
     DartLibrary library = compilationUnit.getLibrary();
     if (library == null) {
       throw new DartModelException(new DartModelStatusImpl(
-          DartModelStatusConstants.INVALID_RESOURCE, compilationUnit,
+          DartModelStatusConstants.INVALID_RESOURCE,
+          compilationUnit,
           "No library associated with compilation unit")); //$NON-NLS-0$
     }
     CompilationUnit libraryDefiningUnit = library.getDefiningCompilationUnit();
@@ -141,7 +143,8 @@ public final class ResourceFactory {
       }
       return locationUri.toString();
     }
-    throw new DartModelException(new DartModelStatusImpl(DartModelStatusConstants.INVALID_RESOURCE,
+    throw new DartModelException(new DartModelStatusImpl(
+        DartModelStatusConstants.INVALID_RESOURCE,
         compilationUnit));
   }
 

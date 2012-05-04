@@ -293,8 +293,8 @@ public interface SearchEngine {
    *          operation cannot be canceled.
    * @throws SearchException if the results could not be computed
    */
-  public List<SearchMatch> searchReferences(DartImport imprt, SearchScope scope, SearchFilter filter,
-      IProgressMonitor monitor) throws SearchException;
+  public List<SearchMatch> searchReferences(DartImport imprt, SearchScope scope,
+      SearchFilter filter, IProgressMonitor monitor) throws SearchException;
 
   /**
    * Search for references to the given {@link DartImport} within the given scope.

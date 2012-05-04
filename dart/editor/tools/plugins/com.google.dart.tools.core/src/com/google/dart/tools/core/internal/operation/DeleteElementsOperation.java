@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -187,7 +187,8 @@ public class DeleteElementsOperation extends MultiOperation {
     DartUnit astCU = DartCompilerUtilities.parseUnit(cu, null);
     DartNode node = ((DartElementImpl) elementToRemove).findNode(astCU);
     if (node == null) {
-      Assert.isTrue(false,
+      Assert.isTrue(
+          false,
           "Failed to locate " + elementToRemove.getElementName() + " in " + cu.getElementName()); //$NON-NLS-1$//$NON-NLS-2$
     }
     ASTRewrite rewriter = ASTRewrite.create(new AST());

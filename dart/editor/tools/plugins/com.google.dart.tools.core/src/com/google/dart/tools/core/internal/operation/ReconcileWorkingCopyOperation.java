@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -92,7 +92,10 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
         problems = new HashMap<String, CategorizedProblem[]>();
       }
       resolveBindings = requestorIsActive;
-      ast = workingCopy.makeConsistent(resolveBindings, forceProblemDetection, problems,
+      ast = workingCopy.makeConsistent(
+          resolveBindings,
+          forceProblemDetection,
+          problems,
           progressMonitor);
       deltaBuilder.buildDeltas();
       if (ast != null && deltaBuilder.delta != null) {
@@ -269,10 +272,16 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
       // TODO(brianwilkerson) We don't currently have any way to get arguments,
       // severity, or id.
       Source source = error.getSource();
-      problemArray[nextIndex++] = new DefaultProblem((source == null ? ""
-          : error.getSource().getName()).toCharArray(), error.getMessage(), 0, arguments,
-          ProblemSeverities.Error, startPosition, startPosition + error.getLineNumber(),
-          error.getLineNumber(), error.getColumnNumber());
+      problemArray[nextIndex++] = new DefaultProblem(
+          (source == null ? "" : error.getSource().getName()).toCharArray(),
+          error.getMessage(),
+          0,
+          arguments,
+          ProblemSeverities.Error,
+          startPosition,
+          startPosition + error.getLineNumber(),
+          error.getLineNumber(),
+          error.getColumnNumber());
     }
     problems.put(DartCore.DART_PROBLEM_MARKER_TYPE, problemArray);
   }

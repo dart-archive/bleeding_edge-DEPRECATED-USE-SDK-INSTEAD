@@ -179,7 +179,8 @@ public class ASTRewrite {
     }
     DartBlock res = getNodeStore().createCollapsePlaceholder();
     DartCore.notYetImplemented();
-    ListRewrite listRewrite = getListRewrite(res,
+    ListRewrite listRewrite = getListRewrite(
+        res,
         (ChildListPropertyDescriptor) PropertyDescriptorHelper.DART_BLOCK_STATEMENTS);
     for (int i = 0; i < targetNodes.length; i++) {
       listRewrite.insertLast(targetNodes[i], null);
@@ -412,7 +413,9 @@ public class ASTRewrite {
     }
 
     if (property.isChildListProperty()) {
-      getListRewrite(parent, (ChildListPropertyDescriptor) property).replace(node, replacement,
+      getListRewrite(parent, (ChildListPropertyDescriptor) property).replace(
+          node,
+          replacement,
           editGroup);
     } else {
       set(parent, property, replacement, editGroup);
@@ -471,8 +474,14 @@ public class ASTRewrite {
     Map<String, String> options = typeRoot.getDartProject().getOptions(true);
 
     DartCore.notYetImplemented();
-    return internalRewriteAST(content, lineInfo, lineDelim, astRoot.getComments(), options,
-        rootNode, null);
+    return internalRewriteAST(
+        content,
+        lineInfo,
+        lineDelim,
+        astRoot.getComments(),
+        options,
+        rootNode,
+        null);
     // Last argument was: (RecoveryScannerData)
     // astRoot.getStatementsRecoveryData());
   }
@@ -520,7 +529,13 @@ public class ASTRewrite {
         ? ((DartUnit) astRoot).getComments() : null;
     Map<String, String> currentOptions = options == null ? DartCore.getOptions() : options;
     DartCore.notYetImplemented();
-    return internalRewriteAST(content, lineInfo, lineDelim, commentNodes, currentOptions, rootNode,
+    return internalRewriteAST(
+        content,
+        lineInfo,
+        lineDelim,
+        commentNodes,
+        currentOptions,
+        rootNode,
         null);
     // Last argument was: (RecoveryScannerData) ((CompilationUnit)
     // astRoot).getStatementsRecoveryData());
@@ -715,8 +730,11 @@ public class ASTRewrite {
     }
     validateIsExistingNode(node);
     validateIsCorrectAST(node);
-    CopySourceInfo info = getRewriteEventStore().markAsCopySource(node.getParent(),
-        PropertyDescriptorHelper.getLocationInParent(node), node, isMove);
+    CopySourceInfo info = getRewriteEventStore().markAsCopySource(
+        node.getParent(),
+        PropertyDescriptorHelper.getLocationInParent(node),
+        node,
+        isMove);
 
     DartNode placeholder = getNodeStore().newPlaceholderNode(node.getClass());
     if (placeholder == null) {
@@ -802,8 +820,17 @@ public class ASTRewrite {
     TargetSourceRangeComputer sourceRangeComputer = getExtendedSourceRangeComputer();
     eventStore.prepareMovedNodes(sourceRangeComputer);
 
-    ASTRewriteAnalyzer analyzer = new ASTRewriteAnalyzer(content, lineInfo, lineDelim, result,
-        eventStore, nodeStore, commentNodes, options, sourceRangeComputer, recoveryScannerData);
+    ASTRewriteAnalyzer analyzer = new ASTRewriteAnalyzer(
+        content,
+        lineInfo,
+        lineDelim,
+        result,
+        eventStore,
+        nodeStore,
+        commentNodes,
+        options,
+        sourceRangeComputer,
+        recoveryScannerData);
     analyzer.analyze(rootNode); // throws IllegalArgumentException
 
     eventStore.revertMovedNodes();

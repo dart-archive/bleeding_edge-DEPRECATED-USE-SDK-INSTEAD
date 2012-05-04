@@ -167,7 +167,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
               children.add(fieldImpl);
               addNewElement(fieldImpl, fieldInfo);
 
-              FunctionGatherer functionGatherer = new FunctionGatherer(fieldNode, fieldImpl,
+              FunctionGatherer functionGatherer = new FunctionGatherer(
+                  fieldNode,
+                  fieldImpl,
                   newElements);
               fieldNode.accept(functionGatherer);
               List<DartFunctionImpl> functions = functionGatherer.getFunctions();
@@ -175,8 +177,11 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
             }
           }
         } else if (member instanceof DartMethodDefinition) {
-          boolean isConstructor = processMethodDefinition((DartMethodDefinition) member, typeImpl,
-              className, children);
+          boolean isConstructor = processMethodDefinition(
+              (DartMethodDefinition) member,
+              typeImpl,
+              className,
+              children);
           constructorFound = constructorFound || isConstructor;
         } else {
           // This should never happen, but if it does we need to know about it.
@@ -227,7 +232,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         if (modifiers.isGetter() || modifiers.isSetter()) {
           visitMethodDefinition(fieldNode.getAccessor());
         } else {
-          DartVariableImpl variableImpl = new DartVariableImpl(compilationUnit,
+          DartVariableImpl variableImpl = new DartVariableImpl(
+              compilationUnit,
               fieldNode.getName().toString());
           DartVariableInfo variableInfo = new DartVariableInfo();
           variableInfo.setSourceRangeStart(fieldNode.getSourceInfo().getOffset());
@@ -238,7 +244,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
           variableInfo.setTypeName(extractTypeName(node.getTypeNode(), false));
           variableInfo.setModifiers(modifiers);
 
-          FunctionGatherer functionGatherer = new FunctionGatherer(fieldNode, variableImpl,
+          FunctionGatherer functionGatherer = new FunctionGatherer(
+              fieldNode,
+              variableImpl,
               newElements);
           fieldNode.accept(functionGatherer);
           List<DartFunctionImpl> functions = functionGatherer.getFunctions();
@@ -257,7 +265,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
      */
     @Override
     public Void visitFunctionTypeAlias(com.google.dart.compiler.ast.DartFunctionTypeAlias node) {
-      DartFunctionTypeAliasImpl aliasImpl = new DartFunctionTypeAliasImpl(compilationUnit,
+      DartFunctionTypeAliasImpl aliasImpl = new DartFunctionTypeAliasImpl(
+          compilationUnit,
           node.getName().getName());
       DartFunctionTypeAliasInfo aliasInfo = new DartFunctionTypeAliasInfo();
       List<DartElementImpl> children = Lists.newArrayList();
@@ -272,7 +281,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       // type parameters
       addTypeParameters(node.getTypeParameters(), aliasImpl, children);
       // parameters
-      List<DartElementImpl> parameters = getParameters(aliasImpl, node.getParameters(),
+      List<DartElementImpl> parameters = getParameters(
+          aliasImpl,
+          node.getParameters(),
           node.getSourceInfo().getEnd());
       children.addAll(parameters);
       // done
@@ -314,7 +325,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
       List<DartElementImpl> functionChildren = getParameters(functionImpl, node.getFunction());
 
-      LocalVariableGatherer variableGatherer = new LocalVariableGatherer(node, functionImpl,
+      LocalVariableGatherer variableGatherer = new LocalVariableGatherer(
+          node,
+          functionImpl,
           newElements);
       node.accept(variableGatherer);
       functionChildren.addAll(variableGatherer.getLocalVariables());
@@ -349,7 +362,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     private void addTypeParameters(List<DartTypeParameter> typeParameterNodes,
         DartElementImpl parent, List<DartElementImpl> children) {
       for (com.google.dart.compiler.ast.DartTypeParameter typeParameterNode : typeParameterNodes) {
-        DartTypeParameterImpl typeParameterImpl = new DartTypeParameterImpl(parent,
+        DartTypeParameterImpl typeParameterImpl = new DartTypeParameterImpl(
+            parent,
             typeParameterNode.getName().toString());
         DartTypeParameterInfo typeParameterInfo = new DartTypeParameterInfo();
         typeParameterInfo.setSourceRangeStart(typeParameterNode.getSourceInfo().getOffset());
@@ -414,7 +428,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       methodInfo.setModifiers(methodNode.getModifiers());
       boolean isConstructor = isConstructor(className, methodNode);
       methodInfo.setConstructor(isConstructor);
-      methodInfo.setReturnTypeName(extractTypeName(methodNode.getFunction().getReturnTypeNode(),
+      methodInfo.setReturnTypeName(extractTypeName(
+          methodNode.getFunction().getReturnTypeNode(),
           false));
       children.add(methodImpl);
       addNewElement(methodImpl, methodInfo);
@@ -425,7 +440,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       methodNode.accept(functionGatherer);
       methodChildren.addAll(functionGatherer.getFunctions());
 
-      LocalVariableGatherer variableGatherer = new LocalVariableGatherer(methodNode, methodImpl,
+      LocalVariableGatherer variableGatherer = new LocalVariableGatherer(
+          methodNode,
+          methodImpl,
           newElements);
       methodNode.accept(variableGatherer);
       methodChildren.addAll(variableGatherer.getLocalVariables());
@@ -565,7 +582,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         variableInfo.setSourceRangeStart(start);
         variableInfo.setSourceRangeEnd(start + variable.getSourceInfo().getLength() - 1);
         captureDartDoc(variable, variableInfo);
-        variableInfo.setNameRange(new SourceRangeImpl(variableName.getSourceInfo().getOffset(),
+        variableInfo.setNameRange(new SourceRangeImpl(
+            variableName.getSourceInfo().getOffset(),
             variableName.getSourceInfo().getLength()));
         variableInfo.setParameter(false);
         char[] typeName = extractTypeName(node.getTypeNode(), true);
@@ -573,7 +591,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         variableInfo.setVisibleStart(variableName.getSourceInfo().getOffset());
         variableInfo.setVisibleEnd(blockEnd);
 
-        FunctionGatherer functionGatherer = new FunctionGatherer(variable, variableImpl,
+        FunctionGatherer functionGatherer = new FunctionGatherer(
+            variable,
+            variableImpl,
             newElements);
         variable.accept(functionGatherer);
         List<DartFunctionImpl> functions = functionGatherer.getFunctions();
@@ -659,7 +679,8 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         variableInfo.setSourceRangeStart(start);
         variableInfo.setSourceRangeEnd(start + parameter.getSourceInfo().getLength() - 1);
         captureDartDoc(parameter, variableInfo);
-        variableInfo.setNameRange(new SourceRangeImpl(parameterName.getSourceInfo().getOffset(),
+        variableInfo.setNameRange(new SourceRangeImpl(
+            parameterName.getSourceInfo().getOffset(),
             parameterName.getSourceInfo().getLength()));
         variableInfo.setParameter(true);
         variableInfo.setVisibleStart(parameterName.getSourceInfo().getOffset());
@@ -672,7 +693,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         }
         variableInfo.setTypeName(typeName == null ? CharOperation.NO_CHAR : typeName);
 
-        FunctionGatherer functionGatherer = new FunctionGatherer(parameter, variableImpl,
+        FunctionGatherer functionGatherer = new FunctionGatherer(
+            parameter,
+            variableImpl,
             newElements);
         parameter.accept(functionGatherer);
         List<DartFunctionImpl> functions = functionGatherer.getFunctions();
@@ -1137,7 +1160,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
 
   @Override
   public CompilationUnit findWorkingCopy(WorkingCopyOwner workingCopyOwner) {
-    CompilationUnitImpl cu = new CompilationUnitImpl((DartLibraryImpl) getParent(), getFile(),
+    CompilationUnitImpl cu = new CompilationUnitImpl(
+        (DartLibraryImpl) getParent(),
+        getFile(),
         workingCopyOwner);
     if (workingCopyOwner == DefaultWorkingCopyOwner.getInstance()) {
       return cu;
@@ -1259,7 +1284,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     if (checkOwner && isPrimary()) {
       return this;
     }
-    return new CompilationUnitImpl((DartLibraryImpl) getParent(), getFile(),
+    return new CompilationUnitImpl(
+        (DartLibraryImpl) getParent(),
+        getFile(),
         DefaultWorkingCopyOwner.getInstance());
   }
 
@@ -1398,8 +1425,10 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       stats = PerformanceStats.getStats(DartModelManager.RECONCILE_PERF, this);
       stats.startRun(new String(getFileName()));
     }
-    ReconcileWorkingCopyOperation op = new ReconcileWorkingCopyOperation(this,
-        forceProblemDetection, workingCopyOwner);
+    ReconcileWorkingCopyOperation op = new ReconcileWorkingCopyOperation(
+        this,
+        forceProblemDetection,
+        workingCopyOwner);
     op.runOperation(monitor);
     if (ReconcileWorkingCopyOperation.PERF) {
       stats.endRun();
@@ -1484,7 +1513,10 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     String source = getSource();
     DartUnit unit = null;
     try {
-      unit = DartCompilerUtilities.parseSource(getElementName(), source, true,
+      unit = DartCompilerUtilities.parseSource(
+          getElementName(),
+          source,
+          true,
           Lists.<DartCompilationError> newArrayList());
     } catch (Exception exception) {
       return false;
@@ -1576,9 +1608,14 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       return this;
     }
     DartModelManager manager = DartModelManager.getInstance();
-    CompilationUnitImpl workingCopy = new CompilationUnitImpl((DartLibraryImpl) getParent(),
-        getFile(), workingCopyOwner);
-    PerWorkingCopyInfo perWorkingCopyInfo = manager.getPerWorkingCopyInfo(workingCopy, false, true,
+    CompilationUnitImpl workingCopy = new CompilationUnitImpl(
+        (DartLibraryImpl) getParent(),
+        getFile(),
+        workingCopyOwner);
+    PerWorkingCopyInfo perWorkingCopyInfo = manager.getPerWorkingCopyInfo(
+        workingCopy,
+        false,
+        true,
         null);
     if (perWorkingCopyInfo != null) {
       // return existing handle instead of the one created above
@@ -1625,7 +1662,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       // ensure that isOpen() is called outside the bufManager synchronized
       // block see https://bugs.eclipse.org/bugs/show_bug.cgi?id=237772
       mustSetToOriginalContent = !isPrimary()
-          && (original = new CompilationUnitImpl((DartLibraryImpl) getParent(), getFile(),
+          && (original = new CompilationUnitImpl(
+              (DartLibraryImpl) getParent(),
+              getFile(),
               DefaultWorkingCopyOwner.getInstance())).isOpen();
     }
     // synchronize to ensure that 2 threads are not putting 2 different buffers
