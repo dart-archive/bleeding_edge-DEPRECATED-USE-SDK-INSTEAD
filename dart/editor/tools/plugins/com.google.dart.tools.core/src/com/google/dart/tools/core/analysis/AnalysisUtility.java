@@ -16,7 +16,6 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
@@ -33,6 +32,7 @@ import com.google.dart.compiler.parser.ParserContext;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 
 import java.io.File;
@@ -87,7 +87,7 @@ class AnalysisUtility {
       try {
         ParserContext parserCtx = new DartScannerParserContext(source, sourceCode, errorListener);
         DartParser parser = new DartPrefixParser(parserCtx, false, prefixes);
-        dartUnit = parser.parseUnit(source);
+        dartUnit = DartCompilerUtilities.secureParseUnit(parser, source);
       } catch (Throwable e) {
         DartCore.logError("Exception while parsing " + sourceFile.getPath(), e);
         errorListener.onError(newParseFailure(source, e));
@@ -117,8 +117,8 @@ class AnalysisUtility {
       HashMap<URI, DartUnit> parsedUnitsCopy = new HashMap<URI, DartUnit>(parsedUnits.size());
       parsedUnitsCopy.putAll(parsedUnits);
 
-      newlyResolved = DartCompiler.analyzeLibraries(librarySource, resolvedLibs, parsedUnitsCopy,
-          config, provider, errorListener, true);
+      newlyResolved = DartCompilerUtilities.secureAnalyzeLibraries(librarySource, resolvedLibs,
+          parsedUnitsCopy, config, provider, errorListener, true);
     } catch (IOException e) {
       errorListener.onError(newIoError(librarySource, e));
     } catch (Throwable e) {

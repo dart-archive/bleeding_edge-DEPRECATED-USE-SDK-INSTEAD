@@ -233,7 +233,11 @@ public class DartCompilerUtilities {
 
       // Try to find the core library in the enclosing set of libraries, otherwise the typeAnalyzer
       // will be void of core types.
-      LibraryUnit coreUnit = DartCompiler.getCoreLib(enclosingLibrary.getLibraryUnit());
+      LibraryUnit coreUnit;
+      // All calls to DartC must be synchronized
+      synchronized (compilerLock) {
+        coreUnit = DartCompiler.getCoreLib(enclosingLibrary.getLibraryUnit());
+      }
       if (coreUnit == null) {
         throw new RuntimeException("Unable to locate core library");
       }
@@ -285,8 +289,11 @@ public class DartCompilerUtilities {
           return false;
         }
       };
-      analyzedNode = DartCompiler.analyzeDelta(delta, enclosingLibrary, coreLibrary,
-          completionNode, completionLocation, 0, config, this);
+      // All calls to DartC must be synchronized
+      synchronized (compilerLock) {
+        analyzedNode = DartCompiler.analyzeDelta(delta, enclosingLibrary, coreLibrary,
+            completionNode, completionLocation, 0, config, this);
+      }
     }
   }
 
@@ -383,7 +390,7 @@ public class DartCompilerUtilities {
 
     @Override
     public void run() throws Exception {
-      result = createParser().parseUnit(sourceRef);
+      result = secureParseUnit(createParser(), sourceRef);
     }
 
     private DartParser createParser() {
@@ -675,22 +682,6 @@ public class DartCompilerUtilities {
    * @return the parse result
    * @throws DartModelException if the library could not be parsed
    */
-  public static LibraryUnit resolveLibrary(DartLibraryImpl library,
-      Collection<DartUnit> suppliedUnits, final Collection<DartCompilationError> parseErrors)
-      throws DartModelException {
-    return resolveLibrary(library.getLibrarySourceFile(), suppliedUnits, parseErrors);
-  }
-
-  /**
-   * Parse the compilation units in the specified library. Any exceptions thrown by the
-   * {@link DartParser} will be logged and a {@link DartModelException} thrown.
-   * 
-   * @param library the library to be parsed (not <code>null</code>)
-   * @param parseErrors a collection to which parse errors are appended or <code>null</code> if
-   *          parse errors should be ignored
-   * @return the parse result
-   * @throws DartModelException if the library could not be parsed
-   */
   public static LibraryUnit resolveLibrary(LibrarySource library,
       Collection<DartUnit> suppliedUnits, final Collection<DartCompilationError> parseErrors)
       throws DartModelException {
@@ -776,14 +767,26 @@ public class DartCompilerUtilities {
   }
 
   /**
-   * A synchronized call to
-   * {@link DartCompiler#analyzeLibrary(LibrarySource, Map, CompilerConfiguration, DartArtifactProvider, DartCompilerListener)}
+   * A synchronized call to {@link DartCompiler#analyzeLibraries}
+   */
+  public static Map<URI, LibraryUnit> secureAnalyzeLibraries(LibrarySource librarySource,
+      Map<URI, LibraryUnit> resolvedLibs, Map<URI, DartUnit> parsedUnits,
+      CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener,
+      boolean resolveAllNewLibs) throws IOException {
+    // All calls to DartC must be synchronized
+    synchronized (compilerLock) {
+      return DartCompiler.analyzeLibraries(librarySource, resolvedLibs, parsedUnits, config,
+          provider, listener, resolveAllNewLibs);
+    }
+  }
+
+  /**
+   * A synchronized call to {@link DartCompiler#analyzeLibrary}
    */
   public static LibraryUnit secureAnalyzeLibrary(LibrarySource librarySource,
       Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
 
-    // Any calls to compiler involving artifact provider must be synchronized
     long start = System.currentTimeMillis();
     LibraryUnit unit;
     if (DartCoreDebug.ANALYSIS_SERVER && parsedUnits == null) {
@@ -819,6 +822,7 @@ public class DartCompilerUtilities {
         throw new RuntimeException("Timed out waiting for library to be resolved: " + libraryFile);
       }
     } else {
+      // All calls to DartC must be synchronized
       synchronized (compilerLock) {
         unit = DartCompiler.analyzeLibrary(librarySource, parsedUnits, config, provider, listener);
       }
@@ -835,14 +839,24 @@ public class DartCompilerUtilities {
    */
   public static void secureCompileLib(LibrarySource libSource, CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
+    long start = System.currentTimeMillis();
+    List<LibrarySource> embeddedLibraries = new ArrayList<LibrarySource>();
+    // All calls to DartC must be synchronized
     synchronized (compilerLock) {
-      // Any calls to compiler involving artifact provider must be synchronized
-      long start = System.currentTimeMillis();
-      List<LibrarySource> embeddedLibraries = new ArrayList<LibrarySource>();
       DartCompiler.compileLib(libSource, embeddedLibraries, config, provider, listener);
-      if (performanceListener != null) {
-        performanceListener.compileComplete(start, libSource.getName());
-      }
+    }
+    if (performanceListener != null) {
+      performanceListener.compileComplete(start, libSource.getName());
+    }
+  }
+
+  /**
+   * A synchronized call to {@link DartParser#parseUnit(DartSource)}
+   */
+  public static DartUnit secureParseUnit(DartParser parser, DartSource sourceRef) {
+    // All calls to DartC must be synchronized
+    synchronized (compilerLock) {
+      return parser.parseUnit(sourceRef);
     }
   }
 

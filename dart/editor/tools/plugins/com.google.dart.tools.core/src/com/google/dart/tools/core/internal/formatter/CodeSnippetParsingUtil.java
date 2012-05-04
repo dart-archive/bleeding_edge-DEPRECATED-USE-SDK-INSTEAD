@@ -23,6 +23,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.parser.CommentPreservingParser;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,7 +140,7 @@ public class CodeSnippetParsingUtil {
     };
     DartScannerParserContext ctx = new DartScannerParserContext(null, sourceCode, listener);
     CommentPreservingParser parser = new CommentPreservingParser(sourceCode, listener, false);
-    DartUnit compilationUnit = parser.parseUnit(null);
+    DartUnit compilationUnit = DartCompilerUtilities.secureParseUnit(parser, null);
     if (recordParsingInformation) {
       recordedParsingInformation = getRecordedParsingInformation(compilationResult,
           extractCommentLocs(compilationUnit));

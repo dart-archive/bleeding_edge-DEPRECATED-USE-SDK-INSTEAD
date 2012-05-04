@@ -29,10 +29,6 @@ class AnalyzeLibraryTask extends Task {
 
   private long start = 0;
 
-  AnalyzeLibraryTask(AnalysisServer server, Context context, File libraryFile) {
-    this(server, context, libraryFile, null);
-  }
-
   AnalyzeLibraryTask(AnalysisServer server, Context context, File libraryFile,
       ResolveLibraryCallback callback) {
     this.server = server;

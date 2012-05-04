@@ -1364,7 +1364,7 @@ public class CompletionEngine {
     }
     CompletionParser parser = new CompletionParser(ctx, prefixes);
     parser.setCompletionPosition(completionPosition);
-    parsedUnit = parser.parseUnit(sourceFile);
+    parsedUnit = DartCompilerUtilities.secureParseUnit(parser, sourceFile);
 
     if (parsedUnit == null) {
       return;

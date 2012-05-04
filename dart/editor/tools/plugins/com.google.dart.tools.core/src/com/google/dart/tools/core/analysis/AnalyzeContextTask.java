@@ -52,7 +52,7 @@ class AnalyzeContextTask extends Task {
     // Analyze all libraries
 
     for (File libFile : server.getTrackedLibraryFiles()) {
-      server.queueSubTask(new AnalyzeLibraryTask(server, context, libFile));
+      server.queueSubTask(new AnalyzeLibraryTask(server, context, libFile, null));
     }
   }
 }
