@@ -239,6 +239,38 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "");
   }
 
+  public void test_OK_inStringInterpolation() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int test = 1;",
+        "  f1() {",
+        "    String s = 'hello $test';",
+        "  }",
+        "}",
+        "f2() {",
+        "  A a = new A();",
+        "  String s = 'hello ${a.test}';",
+        "}",
+        "");
+    Field field = findElement("test = 1;");
+    // do rename
+    renameField(field, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int newName = 1;",
+        "  f1() {",
+        "    String s = 'hello $newName';",
+        "  }",
+        "}",
+        "f2() {",
+        "  A a = new A();",
+        "  String s = 'hello ${a.newName}';",
+        "}",
+        "");
+  }
+
   public void test_OK_multipleUnits_onReference() throws Exception {
     setUnitContent(
         "Test1.dart",

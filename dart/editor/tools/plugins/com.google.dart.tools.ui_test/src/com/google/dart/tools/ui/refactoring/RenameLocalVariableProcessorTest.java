@@ -154,6 +154,26 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     assertEquals(source, testUnit.getSource());
   }
 
+  public void test_OK_inStringInterpolation() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int test = 1;",
+        "  String s1 = 'hello $test';",
+        "  String s2 = 'hello ${test + 2}';",
+        "}");
+    DartVariableDeclaration variable = findElement("test = 1;");
+    // do rename
+    renameLocalVariable(variable, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int newName = 1;",
+        "  String s1 = 'hello $newName';",
+        "  String s2 = 'hello ${newName + 2}';",
+        "}");
+  }
+
   public void test_OK_local_onDeclaration() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
