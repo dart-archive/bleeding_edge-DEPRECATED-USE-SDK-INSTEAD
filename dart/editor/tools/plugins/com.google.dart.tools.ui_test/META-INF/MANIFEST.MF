@@ -13,8 +13,7 @@ Require-Bundle: org.eclipse.ui,
  com.google.dart.tools.core,
  com.google.dart.tools.ui,
  org.eclipse.jface.text,
- com.google.dart.tools.core_test,
- com.google.dart.indexer_test
+ com.google.dart.tools.core_test
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: com.google.dart.tools.ui.Activator
