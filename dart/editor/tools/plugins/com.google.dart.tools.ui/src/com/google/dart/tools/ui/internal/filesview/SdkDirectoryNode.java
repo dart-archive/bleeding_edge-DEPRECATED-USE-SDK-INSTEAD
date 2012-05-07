@@ -78,6 +78,11 @@ class SdkDirectoryNode {
 
       for (File child : file.listFiles()) {
         if (child.isDirectory()) {
+          // Skip the config directory - it is not a Dart library.
+          if (child.getName().equals("config")) {
+            continue;
+          }
+
           libs.add(new SdkLibraryNode(EFS.getLocalFileSystem().fromLocalFile(child)));
         }
       }
