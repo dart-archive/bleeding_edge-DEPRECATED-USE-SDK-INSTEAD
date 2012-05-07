@@ -275,7 +275,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
                 result.addWarning(message, DartStatusContext.create(superMember));
               }
               // add error for shadowing member usage
-              List<SearchMatch> memberRefs = RenameAnalyzeUtil.getReferences(superMember);
+              List<SearchMatch> memberRefs = RenameAnalyzeUtil.getReferences(superMember, null);
               for (SearchMatch memberRef : memberRefs) {
                 if (SourceRangeUtils.intersects(
                     memberRef.getSourceRange(),
@@ -320,7 +320,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
             result.addWarning(message, DartStatusContext.create(topLevelElement));
           }
           // add error for shadowing element usage
-          List<SearchMatch> refs = RenameAnalyzeUtil.getReferences(topLevelElement);
+          List<SearchMatch> refs = RenameAnalyzeUtil.getReferences(topLevelElement, null);
           for (SearchMatch ref : refs) {
             if (SourceRangeUtils.intersects(ref.getSourceRange(), variable.getVisibleRange())) {
               String message = Messages.format(

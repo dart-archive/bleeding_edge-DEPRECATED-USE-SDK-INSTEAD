@@ -1236,11 +1236,14 @@ public class IndexContributor extends ASTVisitor<Void> {
   private void recordImportReference(LibraryElement importLibraryElement, String prefix, int offset) {
     try {
       DartLibrary importLibraryModel = BindingUtils.getDartElement(importLibraryElement);
+      CompilationUnit enclosingLibraryUnit = library.getDefiningCompilationUnit();
+      Resource enclosingLibraryResource = ResourceFactory.getResource(enclosingLibraryUnit);
       for (DartImport imprt : library.getImports()) {
         if (Objects.equal(imprt.getLibrary(), importLibraryModel)
             && Objects.equal(imprt.getPrefix(), prefix)) {
-          String imprtId = ElementFactory.composeElementId(imprt.getElementName());
-          Element imprtElement = new Element(ResourceFactory.getResource(compilationUnit), imprtId);
+          String imprtId = ElementFactory.composeElementId(imprt.getPrefix() + ":"
+              + imprt.getLibrary().getElementName());
+          Element imprtElement = new Element(enclosingLibraryResource, imprtId);
           int length = StringUtils.length(prefix);
           Location location = createLocation(offset, length);
           recordRelationship(imprtElement, IndexConstants.IS_REFERENCED_BY, location);

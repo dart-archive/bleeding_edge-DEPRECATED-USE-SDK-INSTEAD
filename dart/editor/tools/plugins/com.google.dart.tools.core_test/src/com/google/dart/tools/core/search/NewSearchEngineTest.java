@@ -288,10 +288,10 @@ public class NewSearchEngineTest extends TestCase {
       CompilationUnit unit = libraryTest.getDefiningCompilationUnit();
       indexUnits(unit);
       // find references
-      DartImport dartImport = libraryTest.getImports()[0];
-      assertEquals(null, dartImport.getPrefix());
-      assertThat(dartImport.getLibrary().getElementName()).endsWith("Lib.dart");
-      List<SearchMatch> references = getImportReferences(dartImport);
+      DartImport imprt = libraryTest.getImports()[0];
+      assertEquals(null, imprt.getPrefix());
+      assertThat(imprt.getLibrary().getElementName()).endsWith("Lib.dart");
+      List<SearchMatch> references = getImportReferences(imprt);
       assertReferences(unit.getSource(), references, 0, new String[] {
           "LibType v;", "LibType.staticField = 1;", "libVar = 0;", "libFunction();"});
     } finally {
@@ -325,18 +325,18 @@ public class NewSearchEngineTest extends TestCase {
       indexUnits(unit);
       // find references "A"
       {
-        DartImport dartImport = libraryTest.getImports()[0];
-        assertEquals(null, dartImport.getPrefix());
-        assertThat(dartImport.getLibrary().getElementName()).endsWith("LibA.dart");
-        List<SearchMatch> references = getImportReferences(dartImport);
+        DartImport imprt = libraryTest.getImports()[0];
+        assertEquals(null, imprt.getPrefix());
+        assertThat(imprt.getLibrary().getElementName()).endsWith("LibA.dart");
+        List<SearchMatch> references = getImportReferences(imprt);
         assertReferences(unit.getSource(), references, 0, new String[] {"A a;"});
       }
       // find references "B"
       {
-        DartImport dartImport = libraryTest.getImports()[1];
-        assertEquals(null, dartImport.getPrefix());
-        assertThat(dartImport.getLibrary().getElementName()).endsWith("LibB.dart");
-        List<SearchMatch> references = getImportReferences(dartImport);
+        DartImport imprt = libraryTest.getImports()[1];
+        assertEquals(null, imprt.getPrefix());
+        assertThat(imprt.getLibrary().getElementName()).endsWith("LibB.dart");
+        List<SearchMatch> references = getImportReferences(imprt);
         assertReferences(unit.getSource(), references, 0, new String[] {"B b;"});
       }
     } finally {

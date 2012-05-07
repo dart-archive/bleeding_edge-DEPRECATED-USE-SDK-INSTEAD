@@ -304,6 +304,16 @@ public class Checks {
   }
 
   /**
+   * Checks if the given name is a valid Dart import prefix name.
+   * 
+   * @return a {@link RefactoringStatus} may be {@link RefactoringStatus#OK}, may be with the error
+   *         message, not <code>null</code>.
+   */
+  public static RefactoringStatus checkPrefixName(String name) {
+    return checkName(name, DartConventions.validatePrefix(name));
+  }
+
+  /**
    * Checks if the given name is a valid Dart type name.
    * 
    * @param name the Dart type name.

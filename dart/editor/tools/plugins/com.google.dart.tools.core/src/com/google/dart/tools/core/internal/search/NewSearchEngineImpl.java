@@ -816,7 +816,8 @@ public class NewSearchEngineImpl implements SearchEngine {
 
   private Element createElement(DartImport imprt) throws SearchException {
     CompilationUnit unit = imprt.getCompilationUnit();
-    return new Element(getResource(unit), imprt.getElementName());
+    return new Element(getResource(unit), imprt.getPrefix() + ":"
+        + imprt.getLibrary().getElementName());
   }
 
   private Element createElement(DartLibrary library) throws SearchException {

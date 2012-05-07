@@ -1649,6 +1649,9 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameFieldRefactoring_Update_getter_occurrence;
   public static String RenameFieldRefactoring_Update_setter_occurrence;
 
+  public static String RenameImportRefactoring_name;
+  public static String RenameImportRefactoring_duplicateTopLevels_samePrefix;
+
   public static String RenameRefactoring_shadow_subType_member;
   public static String RenameRefactoring_shadow_subType_variable;
   public static String RenameRefactoring_shadow_subType_parameter;

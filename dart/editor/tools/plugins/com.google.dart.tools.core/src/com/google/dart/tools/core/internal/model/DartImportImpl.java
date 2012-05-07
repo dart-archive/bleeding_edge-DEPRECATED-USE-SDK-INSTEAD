@@ -19,7 +19,6 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
@@ -53,13 +52,18 @@ public class DartImportImpl extends SourceReferenceImpl implements DartImport {
   }
 
   @Override
+  public boolean exists() {
+    return true;
+  }
+
+  @Override
   public CompilationUnit getCompilationUnit() {
     return (CompilationUnit) getParent();
   }
 
   @Override
   public String getElementName() {
-    return prefix + ":" + library.getElementName();
+    return prefix;
   }
 
   @Override
@@ -73,7 +77,7 @@ public class DartImportImpl extends SourceReferenceImpl implements DartImport {
   }
 
   @Override
-  public SourceRange getNameRange() throws DartModelException {
+  public SourceRange getNameRange() {
     return nameRange;
   }
 
@@ -83,7 +87,7 @@ public class DartImportImpl extends SourceReferenceImpl implements DartImport {
   }
 
   @Override
-  public SourceRange getSourceRange() throws DartModelException {
+  public SourceRange getSourceRange() {
     return sourceRange;
   }
 

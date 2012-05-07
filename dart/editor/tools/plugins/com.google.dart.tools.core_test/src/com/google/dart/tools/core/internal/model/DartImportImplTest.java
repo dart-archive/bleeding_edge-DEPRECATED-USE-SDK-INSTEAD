@@ -147,11 +147,11 @@ public class DartImportImplTest extends TestCase {
         assertEquals(DartElement.IMPORT, importA.getElementType());
         assertEquals(libraryA, importA.getLibrary());
         assertEquals(null, importA.getPrefix());
-        assertEquals("null:" + libraryA.getElementName(), importA.getElementName());
+        assertEquals(null, importA.getElementName());
+        assertEquals(null, importA.getNameRange());
         assertEquals(unitTest, importA.getParent());
         assertEquals(unitTest, importA.getCompilationUnit());
         assertEquals(unitTest, importA.getAncestor(CompilationUnit.class));
-        assertEquals(null, importA.getNameRange());
         {
           String s = "#import('LibA.dart');";
           assertEquals(
@@ -164,9 +164,11 @@ public class DartImportImplTest extends TestCase {
         assertEquals(libraryB, importB.getLibrary());
         assertEquals(DartElement.IMPORT, importA.getElementType());
         assertEquals(null, importB.getPrefix());
-        assertEquals(unitTest, importA.getCompilationUnit());
-        assertEquals(unitTest, importA.getAncestor(CompilationUnit.class));
+        assertEquals(null, importB.getElementName());
         assertEquals(null, importB.getNameRange());
+        assertEquals(unitTest, importB.getParent());
+        assertEquals(unitTest, importB.getCompilationUnit());
+        assertEquals(unitTest, importB.getAncestor(CompilationUnit.class));
         {
           String s = "#import('LibB.dart');";
           assertEquals(
@@ -268,7 +270,7 @@ public class DartImportImplTest extends TestCase {
         assertEquals(DartElement.IMPORT, importA.getElementType());
         assertEquals(libraryA, importA.getLibrary());
         assertEquals("aaa", importA.getPrefix());
-        assertEquals("aaa:" + libraryA.getElementName(), importA.getElementName());
+        assertEquals("aaa", importA.getElementName());
         assertEquals(unitTest, importA.getParent());
         assertEquals(unitTest, importA.getCompilationUnit());
         // name range

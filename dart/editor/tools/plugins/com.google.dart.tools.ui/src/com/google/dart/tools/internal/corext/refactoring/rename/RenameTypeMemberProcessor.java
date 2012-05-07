@@ -256,7 +256,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
           }
           // TypeMember shadows top-level element usage in enclosing type
           {
-            List<SearchMatch> refs = RenameAnalyzeUtil.getReferences(topLevelElement);
+            List<SearchMatch> refs = RenameAnalyzeUtil.getReferences(topLevelElement, null);
             for (SearchMatch ref : refs) {
               if (SourceRangeUtils.intersects(ref.getSourceRange(), enclosingType.getSourceRange())) {
                 String message = Messages.format(
@@ -314,7 +314,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
             }
             // add error for using hidden super-type TypeMember
             {
-              List<SearchMatch> refs = RenameAnalyzeUtil.getReferences(superTypeMember);
+              List<SearchMatch> refs = RenameAnalyzeUtil.getReferences(superTypeMember, null);
               for (SearchMatch ref : refs) {
                 for (Type subType : enclosingAndSubTypes) {
                   if (SourceRangeUtils.intersects(ref.getSourceRange(), subType.getSourceRange())) {
@@ -534,8 +534,10 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
     for (Type type : renameTypes) {
       for (TypeMember typeMember : type.getExistingMembers(name)) {
         declarations.add(new SearchMatch(MatchQuality.EXACT, type, typeMember.getNameRange()));
-        references.addAll(RenameAnalyzeUtil.getReferences(typeMember));
+        references.addAll(RenameAnalyzeUtil.getReferences(typeMember, null));
       }
     }
+    // done
+    pm.done();
   }
 }

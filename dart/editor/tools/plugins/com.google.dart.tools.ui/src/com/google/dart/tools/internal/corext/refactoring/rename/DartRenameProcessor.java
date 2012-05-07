@@ -31,7 +31,7 @@ import org.eclipse.ltk.core.refactoring.participants.SharableParticipants;
  */
 public abstract class DartRenameProcessor extends RenameProcessor implements INameUpdating {
 
-  private String fNewElementName;
+  protected String newName;
 
   @Override
   public final RefactoringStatus checkFinalConditions(
@@ -42,7 +42,7 @@ public abstract class DartRenameProcessor extends RenameProcessor implements INa
 
   @Override
   public String getNewElementName() {
-    return fNewElementName;
+    return newName;
   }
 
   /**
@@ -62,7 +62,7 @@ public abstract class DartRenameProcessor extends RenameProcessor implements INa
   @Override
   public void setNewElementName(String newName) {
     Assert.isNotNull(newName);
-    fNewElementName = newName;
+    this.newName = newName;
   }
 
   protected abstract RefactoringStatus doCheckFinalConditions(

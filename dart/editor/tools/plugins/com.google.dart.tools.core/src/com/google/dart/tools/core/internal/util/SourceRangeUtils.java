@@ -28,6 +28,13 @@ public class SourceRangeUtils {
   }
 
   /**
+   * @return the end position of given {@link SourceRange}, result of <code>offset + length</code>.
+   */
+  public static int getEnd(SourceRange r) {
+    return r.getOffset() + r.getLength();
+  }
+
+  /**
    * @return the expanded instance of {@link SourceRange}, which has the same center.
    */
   public static SourceRange getExpanded(SourceRange s, int delta) {

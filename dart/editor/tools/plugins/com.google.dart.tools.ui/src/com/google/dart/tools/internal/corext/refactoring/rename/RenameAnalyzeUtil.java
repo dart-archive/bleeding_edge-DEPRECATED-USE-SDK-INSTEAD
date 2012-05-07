@@ -22,6 +22,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.resolver.TypeVariableElement;
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -29,6 +30,7 @@ import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartTypeParameter;
@@ -52,6 +54,7 @@ import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.participants.RenameProcessor;
 
@@ -75,7 +78,7 @@ public class RenameAnalyzeUtil {
       DartElement member,
       List<SearchMatch> references) throws CoreException {
     RefactoringStatus result = new RefactoringStatus();
-    if (!oldName.startsWith("_") && newName.startsWith("_")) {
+    if (!StringUtils.startsWith(oldName, "_") && StringUtils.startsWith(newName, "_")) {
       DartLibrary declarationLibrary = member.getAncestor(DartLibrary.class);
       for (SearchMatch reference : references) {
         DartLibrary referenceLibrary = reference.getElement().getAncestor(DartLibrary.class);
@@ -125,31 +128,53 @@ public class RenameAnalyzeUtil {
   }
 
   /**
+   * @return the names of all top-level elements exported from the given {@link DartLibrary}.
+   */
+  public static Set<String> getExportedTopLevelNames(DartLibrary library) throws CoreException {
+    Set<String> names = Sets.newHashSet();
+    for (CompilationUnit unit : library.getCompilationUnits()) {
+      for (DartElement element : unit.getChildren()) {
+        if (element instanceof CompilationUnitElement) {
+          String name = element.getElementName();
+          if (isPublicName(name)) {
+            names.add(name);
+          }
+        }
+      }
+    }
+    return names;
+  }
+
+  /**
    * @return the references to the given {@link DartElement}, may be empty {@link List}, but not
    *         <code>null</code>.
    */
-  public static List<SearchMatch> getReferences(final DartElement element) throws CoreException {
+  public static List<SearchMatch> getReferences(final DartElement element, final IProgressMonitor pm)
+      throws CoreException {
     List<SearchMatch> fieldReferences = ExecutionUtils.runObjectCore(new RunnableObjectEx<List<SearchMatch>>() {
       @Override
       public List<SearchMatch> runObject() throws Exception {
         SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
+        if (element instanceof DartImport) {
+          return searchEngine.searchReferences((DartImport) element, null, null, pm);
+        }
         if (element instanceof Type) {
-          return searchEngine.searchReferences((Type) element, null, null, null);
+          return searchEngine.searchReferences((Type) element, null, null, pm);
         }
         if (element instanceof Field) {
-          return searchEngine.searchReferences((Field) element, null, null, null);
+          return searchEngine.searchReferences((Field) element, null, null, pm);
         }
         if (element instanceof Method) {
-          return searchEngine.searchReferences((Method) element, null, null, null);
+          return searchEngine.searchReferences((Method) element, null, null, pm);
         }
         if (element instanceof DartVariableDeclaration) {
-          return searchEngine.searchReferences((DartVariableDeclaration) element, null, null, null);
+          return searchEngine.searchReferences((DartVariableDeclaration) element, null, null, pm);
         }
         if (element instanceof DartFunction) {
-          return searchEngine.searchReferences((DartFunction) element, null, null, null);
+          return searchEngine.searchReferences((DartFunction) element, null, null, pm);
         }
         if (element instanceof DartFunctionTypeAlias) {
-          return searchEngine.searchReferences((DartFunctionTypeAlias) element, null, null, null);
+          return searchEngine.searchReferences((DartFunctionTypeAlias) element, null, null, pm);
         }
         return Lists.newArrayList();
       }
@@ -281,6 +306,14 @@ public class RenameAnalyzeUtil {
       }
     }
     return members;
+  }
+
+  /**
+   * @return <code>true</code> if given name has public privacy, i.e. does not starts with
+   *         underscore.
+   */
+  public static boolean isPublicName(String name) {
+    return !StringUtils.startsWith(name, "_");
   }
 
   /**

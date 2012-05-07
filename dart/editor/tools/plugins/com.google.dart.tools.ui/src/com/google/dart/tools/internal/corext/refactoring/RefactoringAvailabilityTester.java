@@ -17,6 +17,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartTypeParameter;
@@ -1277,14 +1278,11 @@ public class RefactoringAvailabilityTester {
     return true;
   }
 
-  public static boolean isRenameAvailable(DartProject project) throws DartModelException {
-    if (project == null) {
+  public static boolean isRenameAvailable(DartImport imprt) throws DartModelException {
+    if (imprt == null) {
       return false;
     }
-    if (!Checks.isAvailable(project)) {
-      return false;
-    }
-    if (!project.isConsistent()) {
+    if (!Checks.isAvailable(imprt)) {
       return false;
     }
     return true;
@@ -1326,6 +1324,19 @@ public class RefactoringAvailabilityTester {
 //    }
 //    return true;
 //  }
+
+  public static boolean isRenameAvailable(DartProject project) throws DartModelException {
+    if (project == null) {
+      return false;
+    }
+    if (!Checks.isAvailable(project)) {
+      return false;
+    }
+    if (!project.isConsistent()) {
+      return false;
+    }
+    return true;
+  }
 
   public static boolean isRenameAvailable(DartTypeParameter parameter) throws DartModelException {
     return Checks.isAvailable(parameter);
@@ -1396,6 +1407,8 @@ public class RefactoringAvailabilityTester {
 //      case DartElement.FUNCTION_TYPE_ALIAS:
 //      case DartElement.LIBRARY:
 //        return false;
+      case DartElement.IMPORT:
+        return isRenameAvailable((DartImport) element);
       case DartElement.FUNCTION:
         return isRenameAvailable((DartFunction) element);
       case DartElement.FUNCTION_TYPE_ALIAS:

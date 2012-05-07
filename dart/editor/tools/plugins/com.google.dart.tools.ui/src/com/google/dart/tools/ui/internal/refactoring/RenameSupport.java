@@ -17,6 +17,7 @@ import com.google.dart.core.IPackageFragment;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
@@ -28,6 +29,7 @@ import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProce
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionTypeAliasProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameGlobalVariableProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameImportProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameMethodProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeParameterProcessor;
@@ -142,6 +144,14 @@ public class RenameSupport {
   }
 
   /**
+   * Creates a new rename support for the given {@link DartImport}.
+   */
+  public static RenameSupport create(DartImport imprt, String newName) throws CoreException {
+    DartRenameProcessor processor = new RenameImportProcessor(imprt);
+    return new RenameSupport(processor, newName, 0);
+  }
+
+  /**
    * Creates a new rename support for the given {@link DartProject}.
    * 
    * @param project the {@link DartProject} to be renamed.
@@ -204,18 +214,6 @@ public class RenameSupport {
     return new RenameSupport(processor, newName, 0);
   }
 
-  /**
-   * Creates a new rename support for the given {@link Method}.
-   * 
-   * @param method the {@link Method} to be renamed, not <code>null</code>.
-   * @param newName the method's new name, not <code>null</code>.
-   * @return the {@link RenameSupport}.
-   */
-  public static RenameSupport create(Method method, String newName) {
-    DartRenameProcessor processor = new RenameMethodProcessor(method);
-    return new RenameSupport(processor, newName, 0);
-  }
-
 //  /**
 //   * Creates a new rename support for the given {@link RenameDartElementDescriptor}.
 //   * 
@@ -227,6 +225,18 @@ public class RenameSupport {
 //  public static RenameSupport create(RenameDartElementDescriptor descriptor) throws CoreException {
 //    return new RenameSupport(descriptor);
 //  }
+
+  /**
+   * Creates a new rename support for the given {@link Method}.
+   * 
+   * @param method the {@link Method} to be renamed, not <code>null</code>.
+   * @param newName the method's new name, not <code>null</code>.
+   * @return the {@link RenameSupport}.
+   */
+  public static RenameSupport create(Method method, String newName) {
+    DartRenameProcessor processor = new RenameMethodProcessor(method);
+    return new RenameSupport(processor, newName, 0);
+  }
 
   /**
    * Creates a new rename support for the given {@link Type}.

@@ -32,6 +32,9 @@ public interface DartImport extends CompilationUnitElement, SourceReference {
    */
   DartLibrary getLibrary();
 
+  @Override
+  SourceRange getNameRange();
+
   /**
    * @return the prefix used to import library, may be <code>null</code>.
    */

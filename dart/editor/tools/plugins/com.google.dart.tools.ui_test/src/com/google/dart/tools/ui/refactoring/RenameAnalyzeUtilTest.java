@@ -94,6 +94,26 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
   }
 
   /**
+   * Test for {@link RenameAnalyzeUtil#getExportedTopLevelNames(DartLibrary)}.
+   */
+  public void test_getExportedTopLevelNames() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('Test');",
+        "#import('Lib.dart');",
+        "class A {}",
+        "var b;",
+        "c() {}",
+        "class _D {}",
+        "");
+    TestProject.waitForAutoBuild();
+    DartLibrary library = testUnit.getLibrary();
+    //
+    Set<String> names = RenameAnalyzeUtil.getExportedTopLevelNames(library);
+    assertThat(names).containsOnly("A", "b", "c");
+  }
+
+  /**
    * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}.
    */
   public void test_getReferences_field() throws Exception {
@@ -138,6 +158,22 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
     check_getReferences("Test();", "Test a", 4);
   }
 
+  public void test_getReferences_import() throws Exception {
+    setUnitContent("Lib.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('Lib');",
+        "class A {}"});
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('Test');",
+        "#import('Lib.dart', prefix: 'test');",
+        "f() {",
+        "  new test.A();",
+        "}",
+        "");
+    check_getReferences("#import('Lib.dart", "test.A();", 4);
+  }
+
   /**
    * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}.
    */
@@ -159,7 +195,7 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
    * Test for {@link RenameAnalyzeUtil#getReferences(DartElement)}.
    */
   public void test_getReferences_null() throws Exception {
-    List<SearchMatch> references = RenameAnalyzeUtil.getReferences((DartElement) null);
+    List<SearchMatch> references = RenameAnalyzeUtil.getReferences((DartElement) null, null);
     assertThat(references).isEmpty();
   }
 
@@ -347,9 +383,49 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
   }
 
   /**
+   * Test for {@link RenameAnalyzeUtil#isPublicName(String)}.
+   */
+  public void test_isPublicName() throws Exception {
+    assertTrue(RenameAnalyzeUtil.isPublicName("name"));
+    assertTrue(RenameAnalyzeUtil.isPublicName("name_"));
+    assertTrue(RenameAnalyzeUtil.isPublicName("na_me"));
+    assertFalse(RenameAnalyzeUtil.isPublicName("_name"));
+  }
+
+  /**
    * Test for {@link RenameAnalyzeUtil#isTypeHierarchy(Type, Type)}.
    */
   public void test_isTypeHierarchy() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#library('Test');",
+        "#import('Lib.dart');",
+        "class A {}",
+        "class B extends A {}",
+        "class C extends B {}",
+        "");
+    TestProject.waitForAutoBuild();
+    Type typeA = getTopLevelElementNamed("A");
+    Type typeB = getTopLevelElementNamed("B");
+    Type typeC = getTopLevelElementNamed("C");
+    // A
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeA, typeA));
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeA, typeB));
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeA, typeC));
+    // B
+    assertTrue(RenameAnalyzeUtil.isTypeHierarchy(typeB, typeA));
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeB, typeB));
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeB, typeC));
+    // C
+    assertTrue(RenameAnalyzeUtil.isTypeHierarchy(typeC, typeA));
+    assertTrue(RenameAnalyzeUtil.isTypeHierarchy(typeC, typeB));
+    assertFalse(RenameAnalyzeUtil.isTypeHierarchy(typeC, typeC));
+  }
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#isTypeHierarchy(Type, Type)}. XXX
+   */
+  public void test_isTypeHierarchy2() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "#library('Test');",
@@ -381,7 +457,7 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
     TestProject.waitForAutoBuild();
     DartElement variable = findElement(searchPattern);
     // prepare single reference
-    List<SearchMatch> references = RenameAnalyzeUtil.getReferences(variable);
+    List<SearchMatch> references = RenameAnalyzeUtil.getReferences(variable, null);
     assertThat(references).hasSize(1);
     SearchMatch reference = references.get(0);
     // check source range

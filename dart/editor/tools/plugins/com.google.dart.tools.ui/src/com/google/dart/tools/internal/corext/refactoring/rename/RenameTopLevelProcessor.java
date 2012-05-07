@@ -15,6 +15,7 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
+import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
@@ -62,11 +63,10 @@ import java.util.Set;
 public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
 
   private final CompilationUnitElement element;
-
   private final SourceReference elementSourceReference;
-  private final String oldName;
-  private final TextChangeManager changeManager = new TextChangeManager(true);
+  protected final String oldName;
 
+  private final TextChangeManager changeManager = new TextChangeManager(true);
   private List<SearchMatch> references;
 
   /**
@@ -77,7 +77,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     this.element = element;
     this.elementSourceReference = (SourceReference) element;
     oldName = element.getElementName();
-    setNewElementName(oldName);
+    setNewElementName(StringUtils.defaultString(oldName));
   }
 
   @Override
@@ -126,6 +126,39 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     return RefactoringSaveHelper.SAVE_ALL;
   }
 
+  protected void addDeclarationUpdate() throws CoreException {
+    SourceRange nameRange = elementSourceReference.getNameRange();
+    CompilationUnit cu = element.getCompilationUnit();
+    String editName = RefactoringCoreMessages.RenameRefactoring_update_declaration;
+    addTextEdit(cu, editName, createTextChange(nameRange));
+  }
+
+  protected void addReferenceUpdate(SearchMatch match) {
+    String editName = RefactoringCoreMessages.RenameRefactoring_update_reference;
+    CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
+    SourceRange matchRange = match.getSourceRange();
+    addTextEdit(cu, editName, createTextChange(matchRange));
+  }
+
+  protected void addReferenceUpdates(IProgressMonitor pm) throws DartModelException {
+    pm.beginTask("", references.size()); //$NON-NLS-1$
+    for (SearchMatch match : references) {
+      addReferenceUpdate(match);
+      pm.worked(1);
+    }
+  }
+
+  protected final void addTextEdit(CompilationUnit unit, String groupName, TextEdit textEdit) {
+    if (unit.getResource() != null) {
+      TextChange change = changeManager.get(unit);
+      TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
+    }
+  }
+
+  protected final TextEdit createTextChange(SourceRange sourceRange) {
+    return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), getNewElementName());
+  }
+
   @Override
   protected RefactoringStatus doCheckFinalConditions(
       IProgressMonitor pm,
@@ -142,7 +175,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
       }
       // prepare references
       pm.setTaskName(RefactoringCoreMessages.RenameRefactoring_searching);
-      references = getReferences(new SubProgressMonitor(pm, 3));
+      references = RenameAnalyzeUtil.getReferences(element, new SubProgressMonitor(pm, 3));
       pm.setTaskName(RefactoringCoreMessages.RenameRefactoring_checking);
       // analyze affected units (such as warn about existing compilation errors)
       result.merge(analyzeAffectedCompilationUnits());
@@ -156,35 +189,6 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     }
   }
 
-  protected final List<SearchMatch> getReferences(final IProgressMonitor pm) throws CoreException {
-    return RenameAnalyzeUtil.getReferences(element);
-  }
-
-  private void addDeclarationUpdate() throws CoreException {
-    SourceRange nameRange = elementSourceReference.getNameRange();
-    CompilationUnit cu = element.getCompilationUnit();
-    String editName = RefactoringCoreMessages.RenameRefactoring_update_declaration;
-    addTextEdit(cu, editName, createTextChange(nameRange));
-  }
-
-  private void addReferenceUpdates(IProgressMonitor pm) throws DartModelException {
-    pm.beginTask("", references.size()); //$NON-NLS-1$
-    String editName = RefactoringCoreMessages.RenameRefactoring_update_reference;
-    for (SearchMatch match : references) {
-      CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
-      SourceRange matchRange = match.getSourceRange();
-      addTextEdit(cu, editName, createTextChange(matchRange));
-      pm.worked(1);
-    }
-  }
-
-  private void addTextEdit(CompilationUnit unit, String groupName, TextEdit textEdit) {
-    if (unit.getResource() != null) {
-      TextChange change = changeManager.get(unit);
-      TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
-    }
-  }
-
   private RefactoringStatus analyzeAffectedCompilationUnits() throws CoreException {
     RefactoringStatus result = new RefactoringStatus();
     result.merge(Checks.checkCompileErrorsInAffectedFiles(references));
@@ -195,7 +199,6 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     pm.beginTask("Analyze possible conflicts", 3);
     try {
       RefactoringStatus result = new RefactoringStatus();
-      String newName = getNewElementName();
       // check for making private
       result.merge(RenameAnalyzeUtil.checkBecomePrivate(oldName, newName, element, references));
       // prepare libraries with references
@@ -285,7 +288,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                   }
                   // add error for shadowing usage
                   {
-                    List<SearchMatch> memberRefs = RenameAnalyzeUtil.getReferences(typeMember);
+                    List<SearchMatch> memberRefs = RenameAnalyzeUtil.getReferences(typeMember, null);
                     for (SearchMatch memberRef : memberRefs) {
                       DartElement enclosingRefElement = memberRef.getElement();
                       if (enclosingRefElement != null) {
@@ -415,9 +418,5 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     // update references
     addReferenceUpdates(new SubProgressMonitor(pm, 9));
     pm.done();
-  }
-
-  private TextEdit createTextChange(SourceRange sourceRange) {
-    return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), getNewElementName());
   }
 }

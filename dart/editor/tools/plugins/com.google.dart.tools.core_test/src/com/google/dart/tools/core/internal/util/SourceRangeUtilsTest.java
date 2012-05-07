@@ -35,6 +35,13 @@ public class SourceRangeUtilsTest extends TestCase {
   }
 
   /**
+   * Test for {@link SourceRangeUtils#getEnd(SourceRange)}.
+   */
+  public void test_getEnd() throws Exception {
+    assertEquals(8, SourceRangeUtils.getEnd(new SourceRangeImpl(5, 3)));
+  }
+
+  /**
    * Test for {@link SourceRangeUtils#getExpanded(SourceRange, int)}.
    */
   public void test_getExpanded() throws Exception {
