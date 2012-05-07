@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -22,7 +22,7 @@ public class TestAll {
     suite.addTest(com.google.dart.tools.core.internal.builder.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.completion.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.directoryset.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.internal.indexer.TestAll.suite());
+    suite.addTest(com.google.dart.tools.core.internal.index.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.model.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.search.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.internal.util.TestAll.suite());

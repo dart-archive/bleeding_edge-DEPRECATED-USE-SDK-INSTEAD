@@ -8,15 +8,13 @@ Bundle-SymbolicName: com.google.dart.tools.core_test;singleton:=true
 Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: %providerName
 Require-Bundle: com.google.dart.compiler.js,
- com.google.dart.indexer,
  com.google.dart.tools.core,
  org.eclipse.core.resources,
  org.eclipse.core.runtime,
  org.eclipse.text,
  org.eclipse.jface.text,
  org.eclipse.team.core,
- org.junit,
- com.google.dart.indexer_test
+ org.junit
 Export-Package: com.google.dart.tools.core,
  com.google.dart.tools.core.samples,
  com.google.dart.tools.core.test.util,

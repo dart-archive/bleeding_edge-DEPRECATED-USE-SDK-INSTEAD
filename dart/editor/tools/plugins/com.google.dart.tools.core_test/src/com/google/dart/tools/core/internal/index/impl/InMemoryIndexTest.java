@@ -33,7 +33,7 @@ public class InMemoryIndexTest extends TestCase {
   }
 
   public void test_InMemoryIndex_getAttribute_defined() throws Exception {
-    Index index = InMemoryIndex.getInstance();
+    Index index = getIndex();
     IndexStore store = getIndexStore(index);
     Resource resource = new Resource("resource");
     Element element = new Element(resource, "element");
@@ -47,7 +47,7 @@ public class InMemoryIndexTest extends TestCase {
   }
 
   public void test_InMemoryIndex_getAttribute_undefined() throws Exception {
-    Index index = InMemoryIndex.getInstance();
+    Index index = getIndex();
     IndexStore store = getIndexStore(index);
     Resource resource = new Resource("resource");
     Element element = new Element(resource, "element");
@@ -59,7 +59,7 @@ public class InMemoryIndexTest extends TestCase {
   }
 
   public void test_InMemoryIndex_getRelationships_multiple() throws Exception {
-    Index index = InMemoryIndex.getInstance();
+    Index index = getIndex();
     IndexStore store = getIndexStore(index);
     Resource resource = new Resource("resource");
     Element element = new Element(resource, "element");
@@ -78,7 +78,7 @@ public class InMemoryIndexTest extends TestCase {
   }
 
   public void test_InMemoryIndex_getRelationships_none() throws Exception {
-    Index index = InMemoryIndex.getInstance();
+    Index index = getIndex();
     IndexStore store = getIndexStore(index);
     Resource resource = new Resource("resource");
     Element element = new Element(resource, "element");
@@ -90,7 +90,7 @@ public class InMemoryIndexTest extends TestCase {
   }
 
   public void test_InMemoryIndex_getRelationships_one() throws Exception {
-    Index index = InMemoryIndex.getInstance();
+    Index index = getIndex();
     IndexStore store = getIndexStore(index);
     Resource resource = new Resource("resource");
     Element element = new Element(resource, "element");
@@ -105,7 +105,7 @@ public class InMemoryIndexTest extends TestCase {
   }
 
   public void test_InMemoryIndex_removeResource_backward() throws Exception {
-    Index index = InMemoryIndex.getInstance();
+    Index index = getIndex();
     IndexStore store = getIndexStore(index);
     Resource resource1 = new Resource("resource1");
     Resource resource2 = new Resource("resource2");
@@ -127,7 +127,7 @@ public class InMemoryIndexTest extends TestCase {
   }
 
   public void test_InMemoryIndex_removeResource_forward() throws Exception {
-    Index index = InMemoryIndex.getInstance();
+    Index index = getIndex();
     IndexStore store = getIndexStore(index);
     Resource resource = new Resource("resource");
     Element element = new Element(resource, "element");
@@ -146,6 +146,21 @@ public class InMemoryIndexTest extends TestCase {
     assertEquals(0, locations.length);
     String result = IndexTestUtilities.getAttribute(index, element, attribute);
     assertNull(result);
+  }
+
+  private Index getIndex() {
+    final InMemoryIndex index = InMemoryIndex.getInstance();
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          index.getOperationProcessor().run();
+        } catch (Exception exception) {
+          // Ignored
+        }
+      }
+    }).start();
+    return index;
   }
 
   /**

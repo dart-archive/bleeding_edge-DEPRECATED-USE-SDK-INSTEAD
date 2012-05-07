@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.test.util;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.indexer.DartIndexerResult;
 import com.google.dart.tools.core.model.DartProject;
 
 import junit.framework.Assert;
@@ -160,24 +159,6 @@ public class TestUtilities {
     if (!type.isInstance(object)) {
       Assert.fail("Expected instanceof " + type.getName() + " but was instanceof "
           + object.getClass().getName());
-    }
-  }
-
-  /**
-   * Assert the the given indexer result does not contain any errors.
-   * 
-   * @param result the indexer result being tested
-   */
-  public static void assertNoErrors(DartIndexerResult result) {
-    IPath[] errors = result.getErrors();
-    if (errors != null && errors.length > 0) {
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.println("Unexpected errors found:");
-      for (IPath error : errors) {
-        writer.print("  ");
-        writer.println(error.toPortableString());
-      }
-      Assert.fail(writer.toString());
     }
   }
 
