@@ -54,7 +54,18 @@ public class ChromiumTabInfo {
       @Override
       public int compare(ChromiumTabInfo o1, ChromiumTabInfo o2) {
         // Sort by the tab order.
-        return o1.getWebSocketDebuggerUrl().compareTo(o2.getWebSocketDebuggerUrl());
+        String url1 = o1.getWebSocketDebuggerUrl();
+        String url2 = o2.getWebSocketDebuggerUrl();
+
+        if (url1 == url2) {
+          return 0;
+        } else if (url1 == null) {
+          return -1;
+        } else if (url2 == null) {
+          return 1;
+        } else {
+          return url1.compareTo(url2);
+        }
       }
     };
   }
