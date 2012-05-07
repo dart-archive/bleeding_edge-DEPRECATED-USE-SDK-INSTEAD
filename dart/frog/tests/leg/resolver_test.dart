@@ -113,6 +113,20 @@ testTypeVariables() {
   Expect.equals(1, compiler.errors.length);
   Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE,
                 compiler.errors[0].message.kind);
+
+  compiler = new MockCompiler();
+  compiler.parseScript('class Foo<T> {'
+                       '  Foo<T> t;'
+                       '  foo(Foo<T> f) {}'
+                       '  bar() { g(Foo<T> f) {}; g(); }'
+                       '}');
+  foo = compiler.mainApp.find(buildSourceString('Foo'));
+  compiler.resolveClass(foo);
+  foo.lookupLocalMember(buildSourceString('t')).computeType(compiler);;
+  foo.lookupLocalMember(buildSourceString('foo')).computeType(compiler);;
+  compiler.resolver.resolve(foo.lookupLocalMember(buildSourceString('bar')));
+  Expect.equals(0, compiler.warnings.length);
+  Expect.equals(0, compiler.errors.length);
 }
 
 testSuperCalls() {
