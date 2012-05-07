@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,10 +13,8 @@
  */
 package com.google.dart.tools.core.search;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.search.NewSearchEngineImpl;
-import com.google.dart.tools.core.internal.search.SearchEngineImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
@@ -29,10 +27,7 @@ public final class SearchEngineFactory {
    * Create a search engine.
    */
   public static SearchEngine createSearchEngine() {
-    if (DartCoreDebug.NEW_INDEXER) {
-      return new NewSearchEngineImpl(InMemoryIndex.getInstance());
-    }
-    return new SearchEngineImpl();
+    return new NewSearchEngineImpl(InMemoryIndex.getInstance());
   }
 
   /**
@@ -43,11 +38,8 @@ public final class SearchEngineFactory {
    *          units
    */
   public static SearchEngine createSearchEngine(CompilationUnit[] workingCopies) {
-    if (DartCoreDebug.NEW_INDEXER) {
-      // TODO(brianwilkerson) Need to figure out how to handle alternate universes.
-      return new NewSearchEngineImpl(InMemoryIndex.getInstance());
-    }
-    return new SearchEngineImpl(workingCopies);
+    // TODO(brianwilkerson) Need to figure out how to handle alternate universes.
+    return new NewSearchEngineImpl(InMemoryIndex.getInstance());
   }
 
   /**
@@ -58,11 +50,8 @@ public final class SearchEngineFactory {
    *          precedence over their original compilation units
    */
   public static SearchEngine createSearchEngine(WorkingCopyOwner workingCopyOwner) {
-    if (DartCoreDebug.NEW_INDEXER) {
-      // TODO(brianwilkerson) Need to figure out how to handle alternate universes.
-      return new NewSearchEngineImpl(InMemoryIndex.getInstance());
-    }
-    return new SearchEngineImpl(workingCopyOwner);
+    // TODO(brianwilkerson) Need to figure out how to handle alternate universes.
+    return new NewSearchEngineImpl(InMemoryIndex.getInstance());
   }
 
   /**

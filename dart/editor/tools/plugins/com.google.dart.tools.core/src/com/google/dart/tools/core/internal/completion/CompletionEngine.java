@@ -96,7 +96,6 @@ import com.google.dart.tools.core.internal.completion.ast.TypeCompleter;
 import com.google.dart.tools.core.internal.completion.ast.TypeParameterCompleter;
 import com.google.dart.tools.core.internal.model.DartFunctionTypeAliasImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.search.listener.GatheringSearchListener;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.internal.util.Messages;
 import com.google.dart.tools.core.internal.util.TypeUtil;
@@ -2212,17 +2211,11 @@ public class CompletionEngine {
     SearchPattern pattern = SearchPatternFactory.createPrefixPattern(prefix, true);
     List<SearchMatch> matches;
     try {
-      if (DartCoreDebug.NEW_INDEXER) {
-        matches = engine.searchTypeDeclarations(
-            scope,
-            pattern,
-            (SearchFilter) null,
-            new NullProgressMonitor());
-      } else {
-        GatheringSearchListener listener = new GatheringSearchListener();
-        engine.searchTypeDeclarations(scope, pattern, null, listener, new NullProgressMonitor());
-        matches = listener.getMatches();
-      }
+      matches = engine.searchTypeDeclarations(
+          scope,
+          pattern,
+          (SearchFilter) null,
+          new NullProgressMonitor());
     } catch (SearchException ex) {
       return null;
     }

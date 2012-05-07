@@ -13,12 +13,7 @@
  */
 package com.google.dart.tools.core.internal.hierarchy;
 
-import com.google.dart.indexer.exceptions.IndexTemporarilyNonOperational;
-import com.google.dart.indexer.locations.Location;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.indexer.DartIndexer;
-import com.google.dart.tools.core.indexer.DartIndexerResult;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartModelStatusImpl;
@@ -1638,39 +1633,22 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
       return;
     }
     processedTypes.add(type);
-    if (DartCoreDebug.NEW_INDEXER) {
-      try {
-        List<SearchMatch> matches = SearchEngineFactory.createSearchEngine().searchSubtypes(
-            type,
-            SearchScopeFactory.createWorkspaceScope(),
-            null,
-            null);
-        for (SearchMatch match : matches) {
-          DartElement element = match.getElement();
-          if (element instanceof Type) {
-            Type subtype = (Type) element;
-            addSubtype(type, subtype);
-            processSubtypes(subtype, processedTypes);
-          }
-        }
-      } catch (SearchException exception) {
-        DartCore.logError("Could not search for subtypes of " + type.getElementName(), exception);
-      }
-      return;
-    }
     try {
-      DartIndexerResult result = DartIndexer.getSubtypes(type);
-      for (Location location : result.getResult()) {
-        Type subtype = (Type) DartIndexer.unpackElementOrNull(location);
-        if (subtype == null) {
-          // Ignore for now.
-        } else {
+      List<SearchMatch> matches = SearchEngineFactory.createSearchEngine().searchSubtypes(
+          type,
+          SearchScopeFactory.createWorkspaceScope(),
+          null,
+          null);
+      for (SearchMatch match : matches) {
+        DartElement element = match.getElement();
+        if (element instanceof Type) {
+          Type subtype = (Type) element;
           addSubtype(type, subtype);
+          processSubtypes(subtype, processedTypes);
         }
-        processSubtypes(subtype, processedTypes);
       }
-    } catch (IndexTemporarilyNonOperational exception) {
-      DartCore.logError("Could not access subtypes of " + type.getElementName(), exception); //$NON-NLS-1$
+    } catch (SearchException exception) {
+      DartCore.logError("Could not search for subtypes of " + type.getElementName(), exception);
     }
   }
 
@@ -1683,53 +1661,30 @@ public class TypeHierarchyImpl implements ElementChangedListener, TypeHierarchy 
       return;
     }
     processedTypes.add(type);
-    if (DartCoreDebug.NEW_INDEXER) {
-      try {
-        ArrayList<Type> interfaceList = new ArrayList<Type>();
-        List<SearchMatch> matches = SearchEngineFactory.createSearchEngine().searchSupertypes(
-            type,
-            SearchScopeFactory.createWorkspaceScope(),
-            null,
-            null);
-        for (SearchMatch match : matches) {
-          DartElement element = match.getElement();
-          if (element instanceof Type) {
-            Type supertype = (Type) element;
-            if (isInterface(supertype)) {
-              interfaceList.add(supertype);
-            } else {
-              cacheSuperclass(type, supertype);
-            }
-            processSupertypes(supertype, processedTypes);
-          }
-        }
-        if (!interfaceList.isEmpty()) {
-          cacheSuperInterfaces(type, interfaceList.toArray(new Type[interfaceList.size()]));
-        }
-      } catch (SearchException exception) {
-        DartCore.logError("Could not search for supertypes of " + type.getElementName(), exception);
-      }
-      return;
-    }
     try {
       ArrayList<Type> interfaceList = new ArrayList<Type>();
-      DartIndexerResult result = DartIndexer.getSupertypes(type);
-      for (Location location : result.getResult()) {
-        Type supertype = (Type) DartIndexer.unpackElementOrNull(location);
-        if (supertype == null) {
-          // Ignore for now.
-        } else if (isInterface(supertype)) {
-          interfaceList.add(supertype);
-        } else {
-          cacheSuperclass(type, supertype);
+      List<SearchMatch> matches = SearchEngineFactory.createSearchEngine().searchSupertypes(
+          type,
+          SearchScopeFactory.createWorkspaceScope(),
+          null,
+          null);
+      for (SearchMatch match : matches) {
+        DartElement element = match.getElement();
+        if (element instanceof Type) {
+          Type supertype = (Type) element;
+          if (isInterface(supertype)) {
+            interfaceList.add(supertype);
+          } else {
+            cacheSuperclass(type, supertype);
+          }
+          processSupertypes(supertype, processedTypes);
         }
-        processSupertypes(supertype, processedTypes);
       }
       if (!interfaceList.isEmpty()) {
         cacheSuperInterfaces(type, interfaceList.toArray(new Type[interfaceList.size()]));
       }
-    } catch (IndexTemporarilyNonOperational exception) {
-      DartCore.logError("Could not access supertypes of " + type.getElementName(), exception); //$NON-NLS-1$
+    } catch (SearchException exception) {
+      DartCore.logError("Could not search for supertypes of " + type.getElementName(), exception);
     }
   }
 

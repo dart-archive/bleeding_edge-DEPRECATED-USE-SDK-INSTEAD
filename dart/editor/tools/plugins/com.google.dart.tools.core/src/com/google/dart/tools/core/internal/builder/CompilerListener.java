@@ -22,13 +22,10 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SubSystem;
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.indexer.standard.StandardDriver;
-import com.google.dart.indexer.workspace.index.IndexingTarget;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
-import com.google.dart.tools.core.internal.indexer.task.CompilationUnitIndexingTarget;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -127,18 +124,13 @@ class CompilerListener implements DartCompilerListener {
       }
       if (element instanceof CompilationUnit) {
         CompilationUnit compilationUnit = (CompilationUnit) element;
-        if (DartCoreDebug.NEW_INDEXER) {
-          try {
-            InMemoryIndex.getInstance().indexResource(
-                ResourceFactory.getResource(compilationUnit),
-                compilationUnit,
-                unit);
-          } catch (Exception exception) {
-            DartCore.logError("Could not index " + source.getUri(), exception);
-          }
-        } else {
-          StandardDriver.getInstance().enqueueTargets(
-              new IndexingTarget[] {new CompilationUnitIndexingTarget(compilationUnit, unit)});
+        try {
+          InMemoryIndex.getInstance().indexResource(
+              ResourceFactory.getResource(compilationUnit),
+              compilationUnit,
+              unit);
+        } catch (Exception exception) {
+          DartCore.logError("Could not index " + source.getUri(), exception);
         }
       } else {
         StringBuilder builder = new StringBuilder();

@@ -17,7 +17,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.ResourceChangeListener;
-import com.google.dart.tools.core.indexer.DartIndexer;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
@@ -103,11 +102,7 @@ public class DartUIStartup implements IStartup {
     private void indexWarmup() {
       // Warm up the type cache.
       long start = System.currentTimeMillis();
-      if (DartCoreDebug.NEW_INDEXER) {
-        InMemoryIndex.getInstance().initializeIndex();
-      } else {
-        DartIndexer.warmUpIndexer();
-      }
+      InMemoryIndex.getInstance().initializeIndex();
       if (DartCoreDebug.WARMUP) {
         long delta = System.currentTimeMillis() - start;
         DartCore.logInformation("Warmup Indexer : " + delta);

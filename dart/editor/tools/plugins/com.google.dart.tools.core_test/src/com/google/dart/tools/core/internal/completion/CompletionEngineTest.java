@@ -476,9 +476,7 @@ public class CompletionEngineTest extends TestCase {
         "Expected exclamation point ('!') within the source"
             + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
-    if (DartCoreDebug.NEW_INDEXER) {
-      InMemoryIndex.getInstance().initializeIndex();
-    }
+    InMemoryIndex.getInstance().initializeIndex();
     if (DartCoreDebug.ANALYSIS_SERVER) {
       AnalysisTestUtilities.waitForIdle(60000);
     }

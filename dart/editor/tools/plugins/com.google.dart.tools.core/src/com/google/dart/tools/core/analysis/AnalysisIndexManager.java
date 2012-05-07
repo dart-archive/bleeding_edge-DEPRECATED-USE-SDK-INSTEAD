@@ -17,14 +17,9 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.indexer.standard.StandardDriver;
-import com.google.dart.indexer.workspace.driver.WorkspaceIndexingDriver;
-import com.google.dart.indexer.workspace.index.IndexingTarget;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
-import com.google.dart.tools.core.internal.indexer.task.CompilationUnitIndexingTarget;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
@@ -43,7 +38,6 @@ import java.io.File;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Forwards resolved units to the indexServer for processing
@@ -51,21 +45,12 @@ import java.util.Set;
 public class AnalysisIndexManager implements AnalysisListener {
   private final InMemoryIndex index;
 
-  private final WorkspaceIndexingDriver indexServer;
-
   public AnalysisIndexManager() {
-    if (DartCoreDebug.NEW_INDEXER) {
-      index = InMemoryIndex.getInstance();
-      indexServer = null;
-    } else {
-      index = null;
-      indexServer = StandardDriver.getInstance();
-    }
+    index = InMemoryIndex.getInstance();
   }
 
   public AnalysisIndexManager(InMemoryIndex index) {
     this.index = index;
-    indexServer = null;
   }
 
   @Override
@@ -82,11 +67,7 @@ public class AnalysisIndexManager implements AnalysisListener {
    */
   @Override
   public void resolved(AnalysisEvent event) {
-    if (DartCoreDebug.NEW_INDEXER) {
-      updateNewIndex(event);
-    } else {
-      updateOldIndex(event);
-    }
+    updateNewIndex(event);
   }
 
   private void updateNewIndex(AnalysisEvent event) {
@@ -156,40 +137,5 @@ public class AnalysisIndexManager implements AnalysisListener {
             exception);
       }
     }
-  }
-
-  private void updateOldIndex(AnalysisEvent event) {
-    File libraryFile = event.getLibraryFile();
-    HashMap<File, DartUnit> units = event.getUnits();
-    IResource[] resources = ResourceUtil.getResources(libraryFile);
-    if (resources == null || resources.length != 1) {
-      DartCore.logError("Could not find compilation unit corresponding to " + libraryFile + " ("
-          + (resources == null ? "no" : resources.length) + " files found)");
-      return;
-    }
-    DartElement element = DartCore.create(resources[0]);
-    if (element instanceof CompilationUnitImpl) {
-      element = ((CompilationUnitImpl) element).getLibrary();
-    }
-    if (!(element instanceof DartLibrary)) {
-      DartCore.logError("Expected library to be associated with " + libraryFile);
-      return;
-    }
-    DartLibrary library = (DartLibrary) element;
-    Set<Entry<File, DartUnit>> entries = units.entrySet();
-
-    IndexingTarget[] indexTargets = new IndexingTarget[entries.size()];
-    int index = 0;
-    for (Entry<File, DartUnit> entry : entries) {
-      File sourceFile = entry.getKey();
-      CompilationUnit compilationUnit = library.getCompilationUnit(sourceFile.toURI());
-      if (compilationUnit == null) {
-        DartCore.logError("Expected unit associated with " + sourceFile + "\n  in " + libraryFile);
-        continue;
-      }
-      DartUnit dartUnit = entry.getValue();
-      indexTargets[index++] = new CompilationUnitIndexingTarget(compilationUnit, dartUnit);
-    }
-    indexServer.enqueueTargets(indexTargets);
   }
 }
