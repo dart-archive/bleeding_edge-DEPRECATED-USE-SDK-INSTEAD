@@ -17,14 +17,14 @@ DART_EXPORT Dart_Handle sample_extension_Init(Dart_Handle parent_library) {
   return Dart_Null();
 }
 
-void HandleError(Dart_Handle handle) {
+Dart_Handle HandleError(Dart_Handle handle) {
   if (Dart_IsError(handle)) Dart_PropagateError(handle);
+  return handle;
 }
 
 void SystemRand(Dart_NativeArguments arguments) {
   Dart_EnterScope();
-  Dart_Handle result = Dart_NewInteger(rand());
- HandleError(result);
+  Dart_Handle result = HandleError(Dart_NewInteger(rand()));
   Dart_SetReturnValue(arguments, result);
   Dart_ExitScope();
 }
@@ -32,24 +32,18 @@ void SystemRand(Dart_NativeArguments arguments) {
 void SystemSrand(Dart_NativeArguments arguments) {
   Dart_EnterScope();
   bool success = false;
-  Dart_Handle seed_object = Dart_GetNativeArgument(arguments, 0);
-  HandleError(seed_object);
+  Dart_Handle seed_object = HandleError(Dart_GetNativeArgument(arguments, 0));
   if (Dart_IsInteger(seed_object)) {
     bool fits;
-    Dart_Handle error_check =
-        Dart_IntegerFitsIntoInt64(seed_object, &fits);
-    HandleError(error_check);
+    HandleError(Dart_IntegerFitsIntoInt64(seed_object, &fits));
     if (fits) {
       int64_t seed;
-      error_check = Dart_IntegerToInt64(seed_object, &seed);
-      HandleError(error_check);
+      HandleError(Dart_IntegerToInt64(seed_object, &seed));
       srand(static_cast<unsigned>(seed));
       success = true;
     }
   }
-  Dart_Handle result = Dart_NewBoolean(success);
-  HandleError(result);
-  Dart_SetReturnValue(arguments, result);
+  Dart_SetReturnValue(arguments, HandleError(Dart_NewBoolean(success)));
   Dart_ExitScope();
 }
 
@@ -80,7 +74,7 @@ void wrappedRandomArray(Dart_Port dest_port_id,
 
       if (values != NULL) {
         Dart_CObject result;
-        result.type = Dart_CObject::kByteArray;
+        result.type = Dart_CObject::kUint8Array;
         result.value.as_byte_array.values = values;
         result.value.as_byte_array.length = length;
         Dart_PostCObject(reply_port_id, &result);
@@ -100,7 +94,7 @@ void randomArrayServicePort(Dart_NativeArguments arguments) {
   Dart_Port service_port =
       Dart_NewNativePort("RandomArrayService", wrappedRandomArray, true);
   if (service_port != kIllegalPort) {
-    Dart_Handle send_port = Dart_NewSendPort(service_port);
+    Dart_Handle send_port = HandleError(Dart_NewSendPort(service_port));
     Dart_SetReturnValue(arguments, send_port);
   }
   Dart_ExitScope();
@@ -123,8 +117,7 @@ Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
   Dart_NativeFunction result = NULL;
   Dart_EnterScope();
   const char* cname;
-  Dart_Handle check_error = Dart_StringToCString(name, &cname);
-  HandleError(check_error);
+  HandleError(Dart_StringToCString(name, &cname));
 
   for (int i=0; function_list[i].name != NULL; ++i) {
     if (strcmp(function_list[i].name, cname) == 0) {
