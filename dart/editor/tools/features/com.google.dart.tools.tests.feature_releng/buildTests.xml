@@ -57,7 +57,7 @@
                 <!-- Only include those files which end in 'Test.java', and do not 
                     start with 'Abstract'. -->
                 <fileset dir="${build.stage.plugins}/${build.test.suite}/src">
-                    <include name="com/google/dart/tools/core/TestCoreAndIndexer.java" />
+                    <include name="com/google/dart/tools/core/TestAll.java" />
                 </fileset>
             </path>
             <!-- Convert path structure for each file into the fully-qualified class
