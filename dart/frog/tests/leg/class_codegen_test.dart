@@ -81,11 +81,7 @@ subClass() {
 fieldTest() {
   String generated = compileAll(TEST_FOUR);
   Expect.isTrue(generated.contains(@"""
-Isolate.$defineClass("B", "A", function B(z, y, A_x) {
-  this.z = z;
-  this.y = y;
-  this.x = A_x;
- },"""));
+Isolate.$defineClass("B", "A", ["z", "y", "x"],"""));
 }
 
 constructor1() {
