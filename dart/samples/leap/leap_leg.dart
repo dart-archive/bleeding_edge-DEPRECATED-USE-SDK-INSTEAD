@@ -12,20 +12,21 @@ compilerIsolate(port) {
 }
 
 main() {
-  dom.document.getElementById('status').innerHTML = 'Initializing compiler';
-  final iframe = dom.document.getElementById('isolate');
+  html.document.query('#status').innerHTML = 'Initializing compiler';
+  final iframe = html.document.query('#isolate');
   setOutline(msg) {
-    dom.document.getElementById('out').innerHTML = msg;
+    html.document.query('#out').innerHTML = msg;
   }
-  dom.spawnDomIsolate(iframe.contentWindow, 'compilerIsolate').then((sendPort) {
+  html.spawnDomIsolate(iframe.contentWindow,
+                       'compilerIsolate').then((sendPort) {
     update(_) {
-      String text = dom.document.getElementById('code').innerText;
+      String text = html.document.query('#code').text;
       sendPort.call(text).then(setOutline);
-      dom.document.getElementById('status').innerHTML = 'Ready';
+      html.document.query('#status').innerHTML = 'Ready';
     }
     update(null);
-    final code = dom.document.getElementById('code');
-    code.addEventListener('DOMSubtreeModified', update);
+    final code = html.document.query('#code');
+    code.$dom_addEventListener('DOMSubtreeModified', update);
   });
 }
 
@@ -118,14 +119,13 @@ class Runner {
 }
 
 class LeapCompiler extends Compiler {
-  HTTPFileSystem fs;
+  HttpRequestCache cache;
 
   final bool throwOnError = false;
 
   final libDir = "../..";
 
-  LeapCompiler() : super() {
-    fs = new HTTPFileSystem();
+  LeapCompiler() : cache = new HttpRequestCache(), super() {
     tasks = [scanner, dietParser, parser, resolver, checker];
   }
 
@@ -134,7 +134,7 @@ class LeapCompiler extends Compiler {
   String get legDirectory() => libDir;
 
   LibraryElement scanBuiltinLibrary(String path) {
-    Uri base = new Uri.fromString(dom.window.location.toString());
+    Uri base = new Uri.fromString(html.window.location.toString());
     Uri libraryRoot = base.resolve(libDir);
     Uri resolved = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path]);
     LibraryElement library = scanner.loadLibrary(resolved, null);
@@ -152,7 +152,7 @@ class LeapCompiler extends Compiler {
   Script readScript(Uri uri, [ScriptTag node]) {
     String text = "";
     try {
-      text = fs.readAll(uri.path.toString());
+      text = cache.readAll(uri.path.toString());
     } catch (var exception) {
       cancel("${uri.path}: $exception", node: node);
     }

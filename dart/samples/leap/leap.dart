@@ -7,8 +7,8 @@
 #import('dart:isolate');
 #import('dart:uri');
 
-#import('dart:dom', prefix: 'dom');
-#import('file_system_http.dart');
+#import('dart:html', prefix: 'html');
+#import('request_cache.dart');
 #import('../../lib/compiler/implementation/elements/elements.dart');
 #import('../../lib/compiler/implementation/leg.dart');
 #import('../../lib/compiler/implementation/tree/tree.dart');
