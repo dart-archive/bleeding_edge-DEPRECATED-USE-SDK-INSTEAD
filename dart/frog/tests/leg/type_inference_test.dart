@@ -68,8 +68,8 @@ foo(a) {
 
 main() {
   String generated = compile(TEST_ONE, 'sum');
-
-  RegExp regexp = new RegExp("sum = \\(?$anyIdentifier \\+ $anyIdentifier\\)?");
+  RegExp regexp =
+      new RegExp("sum\\d+ = \\(?$anyIdentifier \\+ $anyIdentifier\\)?");
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp("typeof param1 !== 'number'");
