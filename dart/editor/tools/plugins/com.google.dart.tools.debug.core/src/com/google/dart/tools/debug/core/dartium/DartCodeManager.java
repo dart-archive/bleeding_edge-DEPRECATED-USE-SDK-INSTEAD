@@ -65,7 +65,8 @@ public class DartCodeManager implements ResourceChangeParticipant {
 
   private void uploadNewSource(String scriptId, IFile file) {
     try {
-      target.getConnection().getDebugger().setScriptSource(scriptId,
+      target.getConnection().getDebugger().setScriptSource(
+          scriptId,
           IFileUtilities.getContents(file));
     } catch (IOException e) {
       DartDebugCorePlugin.logError(e);

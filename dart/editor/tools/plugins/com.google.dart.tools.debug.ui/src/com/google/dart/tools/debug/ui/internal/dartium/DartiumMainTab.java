@@ -283,7 +283,8 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     htmlText = new Text(composite, SWT.BORDER | SWT.SINGLE);
     htmlText.addModifyListener(textModifyListener);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(400, SWT.DEFAULT).grab(true,
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(400, SWT.DEFAULT).grab(
+        true,
         false).applyTo(htmlText);
 
     htmlBrowseButton = new Button(composite, SWT.PUSH);

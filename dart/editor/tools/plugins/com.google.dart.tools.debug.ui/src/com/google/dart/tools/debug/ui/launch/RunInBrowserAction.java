@@ -85,7 +85,8 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
     private IFile file;
 
     public RunInBrowserJob(IWorkbenchPage page, IFile file) {
-      super(page.getWorkbenchWindow().getShell().getDisplay(),
+      super(
+          page.getWorkbenchWindow().getShell().getDisplay(),
           ActionMessages.OpenInBrowserAction_jobTitle);
 
       this.page = page;
@@ -209,10 +210,14 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
     DartElement element = DartCore.create(file);
 
     if (element == null) {
-      MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_unableToLaunch,
+      MessageDialog.openError(
+          window.getShell(),
+          ActionMessages.OpenInBrowserAction_unableToLaunch,
           ActionMessages.OpenInBrowserAction_notInDartLib);
     } else if (!(element instanceof HTMLFile)) {
-      MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_unableToLaunch,
+      MessageDialog.openError(
+          window.getShell(),
+          ActionMessages.OpenInBrowserAction_unableToLaunch,
           ActionMessages.OpenInBrowserAction_notAnHtmlFile);
     } else {
       // check that the js output file exists
@@ -235,7 +240,8 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
                     program.execute(file.getLocation().toOSString());
 
                   } else {
-                    MessageDialog.openError(window.getShell(),
+                    MessageDialog.openError(
+                        window.getShell(),
                         ActionMessages.OpenInBrowserAction_unableToLaunch,
                         ActionMessages.OpenInBrowserAction_couldNotOpenFile);
                   }
@@ -255,7 +261,9 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
               String editorId = IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID;
               page.openEditor(new FileEditorInput(file), editorId, true, MATCH_BOTH);
             } catch (PartInitException e) {
-              MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_title,
+              MessageDialog.openError(
+                  window.getShell(),
+                  ActionMessages.OpenInBrowserAction_title,
                   ActionMessages.OpenInBrowserAction_couldNotOpenFile);
               DartDebugCorePlugin.logError(e);
             }
@@ -263,12 +271,16 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
             MessageDialog.openError(
                 window.getShell(),
                 ActionMessages.OpenInBrowserAction_unableToLaunch,
-                NLS.bind(ActionMessages.OpenInBrowserAction_noJSFile, file.getName(),
+                NLS.bind(
+                    ActionMessages.OpenInBrowserAction_noJSFile,
+                    file.getName(),
                     library.getDisplayName()));
           }
         }
       } catch (DartModelException ex) {
-        MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_title,
+        MessageDialog.openError(
+            window.getShell(),
+            ActionMessages.OpenInBrowserAction_title,
             ActionMessages.OpenInBrowserAction_couldNotOpenFile);
         DartDebugCorePlugin.logError(ex);
       }
@@ -282,7 +294,9 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
       IFile file = null;
 
       if (files.size() == 0) {
-        MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_noFileTitle,
+        MessageDialog.openError(
+            window.getShell(),
+            ActionMessages.OpenInBrowserAction_noFileTitle,
             ActionMessages.OpenInBrowserAction_noFileMessage);
       } else if (files.size() == 1) {
         file = files.get(0);
@@ -307,7 +321,9 @@ public class RunInBrowserAction extends AbstractInstrumentedAction implements
 
       }
     } catch (DartModelException e) {
-      MessageDialog.openError(window.getShell(), ActionMessages.OpenInBrowserAction_title,
+      MessageDialog.openError(
+          window.getShell(),
+          ActionMessages.OpenInBrowserAction_title,
           ActionMessages.OpenInBrowserAction_couldNotOpenFile);
       DartDebugCorePlugin.logError(e);
     }

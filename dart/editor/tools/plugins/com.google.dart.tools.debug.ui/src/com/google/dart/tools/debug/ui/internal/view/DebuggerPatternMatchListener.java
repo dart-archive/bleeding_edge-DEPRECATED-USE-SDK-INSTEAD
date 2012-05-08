@@ -130,7 +130,11 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
         Location location = parseMatch(match);
 
         if (location != null && location.doesExist()) {
-          console.addHyperlink(new FileLink(location.getFile(), DartUI.ID_CU_EDITOR, -1, -1,
+          console.addHyperlink(new FileLink(
+              location.getFile(),
+              DartUI.ID_CU_EDITOR,
+              -1,
+              -1,
               location.getLine()), event.getOffset(), event.getLength());
         }
       }

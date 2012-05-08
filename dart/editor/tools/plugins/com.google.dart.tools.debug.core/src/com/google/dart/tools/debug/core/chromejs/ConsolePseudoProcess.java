@@ -218,7 +218,9 @@ public class ConsolePseudoProcess extends PlatformObject implements IProcess {
     if (isTerminated()) {
       return 0;
     }
-    throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+    throw new DebugException(new Status(
+        IStatus.ERROR,
+        DartDebugCorePlugin.PLUGIN_ID,
         "Process hasn't been terminated yet")); //$NON-NLS-1$
   }
 

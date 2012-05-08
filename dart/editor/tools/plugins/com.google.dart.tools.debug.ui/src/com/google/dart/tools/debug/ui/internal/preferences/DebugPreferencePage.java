@@ -104,7 +104,8 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     Label vmLabel = new Label(vmGroup, SWT.NONE);
     vmLabel.setText(DebugPreferenceMessages.DebugPreferencePage_VMPath);
     vmField = new Text(vmGroup, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, SWT.DEFAULT).grab(true,
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, SWT.DEFAULT).grab(
+        true,
         false).applyTo(vmField);
 
     Button browseVmButton = new Button(vmGroup, SWT.PUSH);

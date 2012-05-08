@@ -207,7 +207,8 @@ public class RunInServerAction extends Action implements ISelectionListener,
    * @return either Window.OK or Window.CANCEL
    */
   private int showPreferenceDialog() {
-    FilteredPreferenceDialog dialog = WorkbenchPreferenceDialog.createDialogOn(window.getShell(),
+    FilteredPreferenceDialog dialog = WorkbenchPreferenceDialog.createDialogOn(
+        window.getShell(),
         DebugPreferencePage.PAGE_ID);
 
     dialog.showOnly(new String[] {DebugPreferencePage.PAGE_ID});

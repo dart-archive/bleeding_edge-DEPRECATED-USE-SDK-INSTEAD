@@ -149,8 +149,11 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     try {
       return variableCollector.getVariables();
     } catch (InterruptedException e) {
-      throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          e.toString(), e));
+      throw new DebugException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          e.toString(),
+          e));
     }
   }
 

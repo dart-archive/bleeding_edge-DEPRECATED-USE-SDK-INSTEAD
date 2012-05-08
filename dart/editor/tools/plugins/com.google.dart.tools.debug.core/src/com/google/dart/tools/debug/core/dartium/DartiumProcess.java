@@ -81,7 +81,9 @@ class DartiumProcess extends PlatformObject implements IProcess {
     try {
       return javaProcess.exitValue();
     } catch (IllegalThreadStateException exception) {
-      throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+      throw new DebugException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
           exception.toString()));
     }
   }

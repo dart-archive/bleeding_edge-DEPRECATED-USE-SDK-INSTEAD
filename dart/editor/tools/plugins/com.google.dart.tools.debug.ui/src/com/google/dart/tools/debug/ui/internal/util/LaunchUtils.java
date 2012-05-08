@@ -74,7 +74,8 @@ public class LaunchUtils {
     IDebugModelPresentation labelProvider = DebugUITools.newDebugModelPresentation();
 
     ElementListSelectionDialog dialog = new ElementListSelectionDialog(
-        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), labelProvider);
+        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+        labelProvider);
     dialog.setElements(configList.toArray());
     dialog.setTitle("Select Dart Application");
     dialog.setMessage("&Select existing configuration:");
@@ -125,7 +126,8 @@ public class LaunchUtils {
       shortcuts = new ArrayList<ILaunchShortcut>();
 
       IExtensionPoint extensionPoint = Platform.getExtensionRegistry().getExtensionPoint(
-          IDebugUIConstants.PLUGIN_ID, IDebugUIConstants.EXTENSION_POINT_LAUNCH_SHORTCUTS);
+          IDebugUIConstants.PLUGIN_ID,
+          IDebugUIConstants.EXTENSION_POINT_LAUNCH_SHORTCUTS);
       IConfigurationElement[] infos = extensionPoint.getConfigurationElements();
 
       try {
@@ -304,7 +306,8 @@ public class LaunchUtils {
                   next = ((DartElement) next).getResource();
                 }
 
-                IResource resource = (IResource) Platform.getAdapterManager().getAdapter(next,
+                IResource resource = (IResource) Platform.getAdapterManager().getAdapter(
+                    next,
                     IResource.class);
 
                 if (resource != null) {

@@ -91,8 +91,11 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
         return getLaunchableResource(resource);
       }
     } catch (DartModelException e) {
-      DebugErrorHandler.errorDialog(null, "Error Launching " + launchTypeLabel,
-          "Unable to locate launchable resource.", e);
+      DebugErrorHandler.errorDialog(
+          null,
+          "Error Launching " + launchTypeLabel,
+          "Unable to locate launchable resource.",
+          e);
       return null;
     }
 
@@ -119,8 +122,11 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       return getLaunchableResource(res);
 
     } catch (DartModelException e) {
-      DebugErrorHandler.errorDialog(null, "Error Launching " + launchTypeLabel,
-          "Unable to locate launchable resource.", e);
+      DebugErrorHandler.errorDialog(
+          null,
+          "Error Launching " + launchTypeLabel,
+          "Unable to locate launchable resource.",
+          e);
       return null;
     }
   }
@@ -151,13 +157,18 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
           return;
         }
       } catch (DartModelException e) {
-        DebugErrorHandler.errorDialog(null, "Error Launching " + launchTypeLabel,
-            "Unable to locate launchable resource.", e);
+        DebugErrorHandler.errorDialog(
+            null,
+            "Error Launching " + launchTypeLabel,
+            "Unable to locate launchable resource.",
+            e);
         return;
       }
     }
 
-    MessageDialog.openWarning(null, "Error Launching " + launchTypeLabel,
+    MessageDialog.openWarning(
+        null,
+        "Error Launching " + launchTypeLabel,
         "Unable to locate launchable resource.");
   }
 
@@ -183,7 +194,8 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
   protected ILaunchConfiguration chooseConfiguration(List<ILaunchConfiguration> configList) {
     IDebugModelPresentation labelProvider = DebugUITools.newDebugModelPresentation();
     ElementListSelectionDialog dialog = new ElementListSelectionDialog(
-        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), labelProvider);
+        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+        labelProvider);
     dialog.setElements(configList.toArray());
     dialog.setTitle("Select Dart Application");
     dialog.setMessage("&Select existing configuration:");

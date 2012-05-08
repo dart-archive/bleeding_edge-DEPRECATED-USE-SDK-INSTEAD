@@ -12,8 +12,8 @@
  * the License.
  */
 package com.google.dart.tools.debug.core.chromejs;
-import org.eclipse.debug.core.model.IDebugTarget;
 
+import org.eclipse.debug.core.model.IDebugTarget;
 
 /**
  * The IDebugTarget implementation for the Chrome debug elements. This class provides much of the

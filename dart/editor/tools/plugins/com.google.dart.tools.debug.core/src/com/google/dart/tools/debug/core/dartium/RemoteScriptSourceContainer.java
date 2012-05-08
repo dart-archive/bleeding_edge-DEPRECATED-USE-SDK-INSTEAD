@@ -58,16 +58,22 @@ public class RemoteScriptSourceContainer extends AbstractSourceContainer {
             try {
               target.getConnection().getDebugger().populateScriptSource(script);
             } catch (IOException e) {
-              throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-                  e.toString(), e));
+              throw new CoreException(new Status(
+                  IStatus.ERROR,
+                  DartDebugCorePlugin.PLUGIN_ID,
+                  e.toString(),
+                  e));
             }
           }
 
           try {
             return new Object[] {getCreateStorageFor(script)};
           } catch (IOException e) {
-            throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-                e.toString(), e));
+            throw new CoreException(new Status(
+                IStatus.ERROR,
+                DartDebugCorePlugin.PLUGIN_ID,
+                e.toString(),
+                e));
           }
         }
       }

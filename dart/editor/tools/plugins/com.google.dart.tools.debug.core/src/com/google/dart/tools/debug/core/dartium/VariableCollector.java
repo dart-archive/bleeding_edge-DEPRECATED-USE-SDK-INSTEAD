@@ -34,12 +34,16 @@ class VariableCollector {
 
   public static VariableCollector createCollector(DartiumDebugTarget target,
       DartiumDebugVariable variable, List<WebkitRemoteObject> remoteObjects) {
-    final VariableCollector collector = new VariableCollector(target, remoteObjects.size(),
+    final VariableCollector collector = new VariableCollector(
+        target,
+        remoteObjects.size(),
         variable);
 
     for (WebkitRemoteObject obj : remoteObjects) {
       try {
-        target.getConnection().getRuntime().getProperties(obj.getObjectId(), true,
+        target.getConnection().getRuntime().getProperties(
+            obj.getObjectId(),
+            true,
             new WebkitCallback<WebkitPropertyDescriptor[]>() {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
@@ -69,7 +73,9 @@ class VariableCollector {
 
     for (WebkitRemoteObject obj : remoteObjects) {
       try {
-        target.getConnection().getRuntime().getProperties(obj.getObjectId(), true,
+        target.getConnection().getRuntime().getProperties(
+            obj.getObjectId(),
+            true,
             new WebkitCallback<WebkitPropertyDescriptor[]>() {
               @Override
               public void handleResult(WebkitResult<WebkitPropertyDescriptor[]> result) {
@@ -132,8 +138,10 @@ class VariableCollector {
   }
 
   private void createThisVariable(WebkitRemoteObject thisObject) {
-    variables.add(new DartiumDebugVariable(target,
-        WebkitPropertyDescriptor.createThisObjectDescriptor(thisObject), true));
+    variables.add(new DartiumDebugVariable(
+        target,
+        WebkitPropertyDescriptor.createThisObjectDescriptor(thisObject),
+        true));
   }
 
   private boolean isListLength(WebkitPropertyDescriptor descriptor) {

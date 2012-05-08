@@ -59,7 +59,8 @@ public class DartBreakpoint extends LineBreakpoint {
 
         marker.setAttribute(IMarker.LINE_NUMBER, line);
         marker.setAttribute(IBreakpoint.ID, getModelIdentifier());
-        marker.setAttribute(IMarker.MESSAGE,
+        marker.setAttribute(
+            IMarker.MESSAGE,
             NLS.bind("Line Breakpoint: {0} [line: {1}]", resource.getName(), line));
 
         setEnabled(true);

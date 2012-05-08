@@ -76,7 +76,8 @@ public class DartSourcePathComputerDelegate implements ISourcePathComputerDelega
 
     if (dartProject != null) {
       ProjectSourceContainer projectSourceContainer = new ProjectSourceContainer(
-          dartProject.getProject(), false);
+          dartProject.getProject(),
+          false);
       containers.add(projectSourceContainer);
     } else {
       containers.add(workspaceSourceContainer);

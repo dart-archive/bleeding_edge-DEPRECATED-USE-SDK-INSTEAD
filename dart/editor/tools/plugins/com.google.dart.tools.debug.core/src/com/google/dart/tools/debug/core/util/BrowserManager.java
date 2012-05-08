@@ -99,7 +99,9 @@ public class BrowserManager {
     File dartium = DartSdk.getInstance().getDartiumExecutable();
 
     if (dartium == null) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
           "Could not find Dartium"));
     }
 
@@ -158,8 +160,11 @@ public class BrowserManager {
 
           resourceResolver = server;
         } catch (IOException exception) {
-          throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-              "Could not launch browser - unable to start embedded server", exception));
+          throw new CoreException(new Status(
+              IStatus.ERROR,
+              DartDebugCorePlugin.PLUGIN_ID,
+              "Could not launch browser - unable to start embedded server",
+              exception));
         }
       }
     } else {
@@ -174,12 +179,17 @@ public class BrowserManager {
       devToolsPortNumber = NetUtils.findUnusedPort(DEVTOOLS_PORT_NUMBER);
 
       if (devToolsPortNumber == -1) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
             "Unable to locate an available port for the Dartium debugger"));
       }
     }
 
-    List<String> arguments = buildArgumentsList(browserLocation, url, enableDebugging,
+    List<String> arguments = buildArgumentsList(
+        browserLocation,
+        url,
+        enableDebugging,
         devToolsPortNumber);
     builder.command(arguments);
     builder.directory(new File(DartSdk.getInstance().getDartiumWorkingDirectory()));
@@ -189,7 +199,9 @@ public class BrowserManager {
     } catch (IOException e) {
       DartDebugCorePlugin.logError("Exception while starting Dartium", e);
 
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
           "Could not launch browser: " + e.toString()));
     }
 
@@ -206,7 +218,9 @@ public class BrowserManager {
       DartDebugCorePlugin.logError("Dartium stdout: " + stdout);
       DartDebugCorePlugin.logError("Dartium stderr: " + stderr);
 
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
           "Could not launch browser - process terminated on startup" + getProcessStreamMessage()));
     }
 
@@ -215,8 +229,17 @@ public class BrowserManager {
     BrowserHelper.activateApplication(dartium);
 
     if (enableDebugging) {
-      connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, runtimeProcess,
-          resourceResolver, timer, enableBreakpoints, devToolsPortNumber);
+      connectToChromiumDebug(
+          browserName,
+          launch,
+          launchConfig,
+          url,
+          monitor,
+          runtimeProcess,
+          resourceResolver,
+          timer,
+          enableBreakpoints,
+          devToolsPortNumber);
     } else {
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
     }
@@ -248,21 +271,30 @@ public class BrowserManager {
       timer.startTask("open WIP connection");
 
       if (tabs.size() == 0) {
-        throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+        throw new DebugException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
             "Unable to connect to Dartium"));
       }
 
       ChromiumTabInfo chromiumTab = findTargetTab(tabs);
 
       if (chromiumTab == null || chromiumTab.getWebSocketDebuggerUrl() == null) {
-        throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+        throw new DebugException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
             "Unable to connect to Chromium"));
       }
 
       WebkitConnection connection = new WebkitConnection(chromiumTab.getWebSocketDebuggerUrl());
 
-      DartiumDebugTarget debugTarget = new DartiumDebugTarget(browserName, connection, launch,
-          runtimeProcess, resourceResolver, enableBreakpoints);
+      DartiumDebugTarget debugTarget = new DartiumDebugTarget(
+          browserName,
+          connection,
+          launch,
+          runtimeProcess,
+          resourceResolver,
+          enableBreakpoints);
 
       monitor.worked(1);
 
@@ -275,8 +307,11 @@ public class BrowserManager {
     } catch (IOException e) {
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
 
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          e.toString(), e));
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          e.toString(),
+          e));
     }
 
     monitor.worked(1);
@@ -360,7 +395,9 @@ public class BrowserManager {
 
     while (true) {
       if (isProcessTerminated(runtimeProcess)) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
             "Could not launch browser - process terminated while trying to connect"
                 + getProcessStreamMessage()));
       }

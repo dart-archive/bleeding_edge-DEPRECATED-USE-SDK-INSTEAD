@@ -435,12 +435,12 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
         handleSelectedConfigChanged();
       }
     });
-    
+
     GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).hint(50, 50).applyTo(
         launchesViewer.getControl());
 
-    GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).hint(50, 50)
-        .applyTo(launchesViewer.getControl());
+    GridDataFactory.swtDefaults().grab(false, true).align(SWT.FILL, SWT.FILL).hint(50, 50).applyTo(
+        launchesViewer.getControl());
 
     toolBarManager.add(getCreateAction());
     toolBarManager.add(getDeleteAction());
@@ -523,8 +523,11 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
       try {
         workingCopy.doSave();
       } catch (CoreException e) {
-        DebugErrorHandler.errorDialog(getShell(), "Error Saving Launch",
-            "Unable to save launch settings: " + e.toString(), e);
+        DebugErrorHandler.errorDialog(
+            getShell(),
+            "Error Saving Launch",
+            "Unable to save launch settings: " + e.toString(),
+            e);
       }
     }
 
@@ -566,7 +569,8 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
       configNameText.setText(workingCopy.getName());
 
       currentTabGroup = LaunchConfigurationPresentationManager.getDefault().getTabGroup(
-          workingCopy, getMode());
+          workingCopy,
+          getMode());
       currentTabGroup.createTabs(this, getMode());
 
       ILaunchConfigurationTab[] tabs = currentTabGroup.getTabs();
@@ -577,8 +581,11 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
       setActiveTab(0);
     } catch (CoreException ce) {
-      DebugErrorHandler.errorDialog(getShell(), "Error Displaying Launch",
-          "Unable to display launch settings: " + ce.toString(), ce);
+      DebugErrorHandler.errorDialog(
+          getShell(),
+          "Error Displaying Launch",
+          "Unable to display launch settings: " + ce.toString(),
+          ce);
     }
   }
 
@@ -592,19 +599,30 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
       // If there is no name, complain
       if (currentName.length() < 1) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, 0,
-            Messages.ManageLaunchesDialog_Name_required_for_launch_configuration, null));
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugUIPlugin.PLUGIN_ID,
+            0,
+            Messages.ManageLaunchesDialog_Name_required_for_launch_configuration,
+            null));
       }
       try {
         mgr.isValidLaunchConfigurationName(currentName);
       } catch (IllegalArgumentException iae) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, 0,
-            iae.getMessage(), null));
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugUIPlugin.PLUGIN_ID,
+            0,
+            iae.getMessage(),
+            null));
       }
       // Otherwise, if there's already a config with the same name, complain
       if (!launchConfig.getName().equals(currentName)) {
         if (mgr.isExistingLaunchConfigurationName(currentName)) {
-          throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, 0,
+          throw new CoreException(new Status(
+              IStatus.ERROR,
+              DartDebugUIPlugin.PLUGIN_ID,
+              0,
               Messages.ManageLaunchesDialog_Launch_configuration_already_exists_with_this_name,
               null));
         }

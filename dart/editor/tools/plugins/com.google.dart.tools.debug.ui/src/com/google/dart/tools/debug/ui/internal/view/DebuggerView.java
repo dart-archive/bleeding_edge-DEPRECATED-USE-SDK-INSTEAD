@@ -114,8 +114,10 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     if (CONNECTED_IMAGE == null) {
       NOT_CONNECTED_IMAGE = DartDebugUIPlugin.getImage("obj16/debug_exc.gif");
 
-      CONNECTED_IMAGE = DartDebugUIPlugin.getImage(new DecorationOverlayIcon(NOT_CONNECTED_IMAGE,
-          DartDebugUIPlugin.getImageDescriptor("ovr16/play.png"), IDecoration.BOTTOM_RIGHT));
+      CONNECTED_IMAGE = DartDebugUIPlugin.getImage(new DecorationOverlayIcon(
+          NOT_CONNECTED_IMAGE,
+          DartDebugUIPlugin.getImageDescriptor("ovr16/play.png"),
+          IDecoration.BOTTOM_RIGHT));
     }
 
     updateConnectionStatus();

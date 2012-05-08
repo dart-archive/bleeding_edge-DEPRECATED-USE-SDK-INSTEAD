@@ -40,7 +40,9 @@ public class DartRemoteLaunchConfigurationDelegate extends LaunchConfigurationDe
   public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
     if (!ILaunchManager.DEBUG_MODE.equals(mode)) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
           "Execution mode '" + mode + "' is not supported."));
     }
 

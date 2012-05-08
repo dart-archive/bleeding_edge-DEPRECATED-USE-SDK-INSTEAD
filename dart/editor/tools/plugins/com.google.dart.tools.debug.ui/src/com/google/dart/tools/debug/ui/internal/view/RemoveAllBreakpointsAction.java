@@ -66,7 +66,9 @@ public class RemoveAllBreakpointsAction extends Action implements IBreakpointLis
     final Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 
     try {
-      PlatformUI.getWorkbench().getActiveWorkbenchWindow().run(false, false,
+      PlatformUI.getWorkbench().getActiveWorkbenchWindow().run(
+          false,
+          false,
           new IRunnableWithProgress() {
             @Override
             public void run(IProgressMonitor monitor) throws InvocationTargetException,
@@ -89,7 +91,10 @@ public class RemoveAllBreakpointsAction extends Action implements IBreakpointLis
       try {
         DebugUITools.deleteBreakpoints(breakpoints, shell, monitor);
       } catch (CoreException exception) {
-        DebugErrorHandler.errorDialog(shell, "Error Deleting Breakpoints", exception.toString(),
+        DebugErrorHandler.errorDialog(
+            shell,
+            "Error Deleting Breakpoints",
+            exception.toString(),
             exception);
       }
     }

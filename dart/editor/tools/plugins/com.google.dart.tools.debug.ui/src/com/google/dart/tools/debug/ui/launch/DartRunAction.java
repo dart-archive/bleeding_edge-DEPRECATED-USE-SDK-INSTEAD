@@ -67,7 +67,9 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
         List<ILaunchConfiguration> launches = LaunchUtils.getAllLaunches();
 
         if (launches.size() == 0) {
-          MessageDialog.openInformation(getWindow().getShell(), "Unable to Run",
+          MessageDialog.openInformation(
+              getWindow().getShell(),
+              "Unable to Run",
               "Unable to run the current selection. Please choose a file in a library with a main() function.");
         } else {
           chooseAndLaunch(launches);
@@ -82,7 +84,9 @@ public class DartRunAction extends DartAbstractAction implements IViewActionDele
       // to why their launch didn't work.
       DartUtil.logError(exception);
 
-      DebugErrorHandler.errorDialog(window.getShell(), "Error During Launch",
+      DebugErrorHandler.errorDialog(
+          window.getShell(),
+          "Error During Launch",
           "Internal error during launch - please report this using the feedback mechanism!",
           exception);
     }

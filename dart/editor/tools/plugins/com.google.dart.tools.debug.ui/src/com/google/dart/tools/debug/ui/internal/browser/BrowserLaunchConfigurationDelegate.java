@@ -73,7 +73,9 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       IResource resource = launchConfig.getApplicationResource();
 
       if (resource == null) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_HtmlFileNotFound));
       }
 
@@ -94,7 +96,9 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
           url = "http://" + url;
         }
       } catch (URISyntaxException e) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_UrlError));
       }
     }
@@ -103,18 +107,27 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       IWebBrowser browser = null;
       try {
         browser = PlatformUI.getWorkbench().getBrowserSupport().createBrowser(
-            IWorkbenchBrowserSupport.AS_EXTERNAL, "defaultBrowser", "Default Browser", "Browser");
+            IWorkbenchBrowserSupport.AS_EXTERNAL,
+            "defaultBrowser",
+            "Default Browser",
+            "Browser");
         if (browser != null) {
           browser.openURL(new URL(url));
         } else {
-          throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+          throw new CoreException(new Status(
+              IStatus.ERROR,
+              DartDebugCorePlugin.PLUGIN_ID,
               Messages.BrowserLaunchConfigurationDelegate_DefaultBrowserNotFound));
         }
       } catch (PartInitException e1) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_DefaultBrowserNotFound));
       } catch (MalformedURLException e) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
             Messages.BrowserLaunchConfigurationDelegate_UrlError));
       }
     } else {
@@ -135,10 +148,14 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     DartElement element = DartCore.create(resource);
 
     if (element == null) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID,
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugUIPlugin.PLUGIN_ID,
           Messages.BrowserLaunchShortcut_NotInLibraryErrorMessage));
     } else if (!(element instanceof HTMLFile)) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID,
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugUIPlugin.PLUGIN_ID,
           Messages.BrowserLaunchShortcut_NotHtmlFileErrorMessage));
     } else {
       HTMLFile htmlFile = (HTMLFile) element;
@@ -147,7 +164,9 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
         if (htmlFile.getReferencedLibraries().length > 0) {
           DartLibrary library = htmlFile.getReferencedLibraries()[0];
 
-          CompilationResult result = FrogCompiler.compileLibrary(library, monitor,
+          CompilationResult result = FrogCompiler.compileLibrary(
+              library,
+              monitor,
               DartCore.getConsole());
 
           if (result.getExitCode() != 0) {
@@ -162,14 +181,19 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
             throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, errMsg));
           }
         } else {
-          throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID,
+          throw new CoreException(new Status(
+              IStatus.ERROR,
+              DartDebugUIPlugin.PLUGIN_ID,
               "Unable to run " + resource.getName() + " - no Dart applications referenced."));
         }
       } catch (CoreException e) {
         DartDebugCorePlugin.logError(e);
 
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID,
-            e.toString(), e));
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugUIPlugin.PLUGIN_ID,
+            e.toString(),
+            e));
       } finally {
         monitor.done();
       }
@@ -207,13 +231,18 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
       runner.await(new NullProgressMonitor(), 500);
 
       if (runner.getExitCode() != 0) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID,
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugUIPlugin.PLUGIN_ID,
             "Could not launch browser \"" + browserName + "\" : \n\n" + runner.getStdErr()));
       }
 
     } catch (IOException e) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          Messages.BrowserLaunchConfigurationDelegate_BrowserNotFound, e));
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          Messages.BrowserLaunchConfigurationDelegate_BrowserNotFound,
+          e));
     }
   }
 

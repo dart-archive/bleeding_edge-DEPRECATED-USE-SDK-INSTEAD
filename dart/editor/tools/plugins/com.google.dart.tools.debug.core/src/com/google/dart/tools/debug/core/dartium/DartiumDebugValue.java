@@ -108,8 +108,11 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
     try {
       return variableCollector.getVariables();
     } catch (InterruptedException e) {
-      throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          e.toString(), e));
+      throw new DebugException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          e.toString(),
+          e));
     }
   }
 
@@ -154,7 +157,9 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue {
 
   private void populate() {
     if (value.hasObjectId()) {
-      variableCollector = VariableCollector.createCollector(getTarget(), variable,
+      variableCollector = VariableCollector.createCollector(
+          getTarget(),
+          variable,
           Collections.singletonList(value));
     }
   }

@@ -101,7 +101,11 @@ public class WebkitDebugger extends WebkitDomain {
   }
 
   public static enum PausedReasonType {
-    DOM, EventListener, XHR, exception, other;
+    DOM,
+    EventListener,
+    XHR,
+    exception,
+    other;
 
     /**
      * Call valueOf(); Catch exceptions in the cases of invalid enum values and return null in those
@@ -122,7 +126,9 @@ public class WebkitDebugger extends WebkitDomain {
   }
 
   public static enum PauseOnExceptionsType {
-    all, none, uncaught
+    all,
+    none,
+    uncaught
   }
 
   private static final String DEBUGGER_RESUMED = "Debugger.resumed";
@@ -211,7 +217,8 @@ public class WebkitDebugger extends WebkitDomain {
       request.put(
           "params",
           new JSONObject().put("callFrameId", callFrameId).put("expression", expression).put(
-              "objectGroup", OBJECT_GROUP_KEY).put("returnByValue", true));
+              "objectGroup",
+              OBJECT_GROUP_KEY).put("returnByValue", true));
 
       connection.sendRequest(request, new Callback() {
         @Override
@@ -361,7 +368,8 @@ public class WebkitDebugger extends WebkitDomain {
   public void setBreakpoint(WebkitScript script, int line,
       final WebkitCallback<WebkitBreakpoint> callback) throws IOException {
     try {
-      JSONObject location = new JSONObject().put("lineNumber", line).put("scriptId",
+      JSONObject location = new JSONObject().put("lineNumber", line).put(
+          "scriptId",
           script.getScriptId());
 
       JSONObject request = new JSONObject();
@@ -486,7 +494,8 @@ public class WebkitDebugger extends WebkitDomain {
       JSONObject request = new JSONObject();
 
       request.put("method", "Debugger.setScriptSource");
-      request.put("params",
+      request.put(
+          "params",
           new JSONObject().put("scriptId", scriptId).put("scriptSource", scriptSource));
 
       connection.sendRequest(request, new Callback() {

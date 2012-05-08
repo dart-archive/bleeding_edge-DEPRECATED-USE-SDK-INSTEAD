@@ -144,7 +144,10 @@ class BreakpointManager implements IBreakpointListener {
       String url = resourceResolver.getUrlForResource(breakpoint.getFile());
       int line = WebkitLocation.eclipseToWebkitLine(breakpoint.getLine());
 
-      debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(url, null, line,
+      debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(
+          url,
+          null,
+          line,
           new WebkitCallback<WebkitBreakpoint>() {
             @Override
             public void handleResult(WebkitResult<WebkitBreakpoint> result) {

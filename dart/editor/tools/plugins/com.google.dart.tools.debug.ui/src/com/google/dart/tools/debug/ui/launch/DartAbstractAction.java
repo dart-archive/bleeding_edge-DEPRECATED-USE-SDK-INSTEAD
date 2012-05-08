@@ -133,7 +133,8 @@ public abstract class DartAbstractAction extends AbstractInstrumentedAction impl
 
       // Iterate through all the launch configurations and add them to the pulldown menu.
       for (final ILaunchConfiguration config : sort(manager.getLaunchConfigurations())) {
-        Action launchAction = new Action(config.getName(),
+        Action launchAction = new Action(
+            config.getName(),
             DebugUITools.getDefaultImageDescriptor(config)) {
           @Override
           public void run() {

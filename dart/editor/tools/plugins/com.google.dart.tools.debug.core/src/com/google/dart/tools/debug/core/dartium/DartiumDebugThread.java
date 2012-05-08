@@ -253,8 +253,11 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
   }
 
   private DebugException createDebugException(IOException exception) {
-    return new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-        exception.getMessage(), exception));
+    return new DebugException(new Status(
+        IStatus.ERROR,
+        DartDebugCorePlugin.PLUGIN_ID,
+        exception.getMessage(),
+        exception));
   }
 
   private IStackFrame[] createFrames(List<WebkitCallFrame> webkitFrames) {

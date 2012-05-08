@@ -130,15 +130,19 @@ public class CreateLaunchAction extends Action implements IWorkbenchWindowPulldo
 
   protected void create(ILaunchConfigurationType configType) {
     try {
-      ILaunchConfigurationWorkingCopy wc = configType.newInstance(null,
+      ILaunchConfigurationWorkingCopy wc = configType.newInstance(
+          null,
           DebugPlugin.getDefault().getLaunchManager().generateLaunchConfigurationName("New launch"));
 
       wc.doSave();
 
       launchConfigurationDialog.selectLaunchConfiguration(wc.getName());
     } catch (CoreException exception) {
-      DebugErrorHandler.errorDialog(launchConfigurationDialog.getShell(), "Error Created Launch",
-          "Unable to create the selected launch: " + exception.toString(), exception);
+      DebugErrorHandler.errorDialog(
+          launchConfigurationDialog.getShell(),
+          "Error Created Launch",
+          "Unable to create the selected launch: " + exception.toString(),
+          exception);
     }
   }
 
@@ -147,7 +151,8 @@ public class CreateLaunchAction extends Action implements IWorkbenchWindowPulldo
 
     // Iterate through all the launch configuration types and add them to the pulldown menu.
     for (final ILaunchConfigurationType configType : sort(manager.getLaunchConfigurationTypes())) {
-      Action launchAction = new Action(configType.getName(),
+      Action launchAction = new Action(
+          configType.getName(),
           DebugUITools.getDefaultImageDescriptor(configType)) {
         @Override
         public void run() {

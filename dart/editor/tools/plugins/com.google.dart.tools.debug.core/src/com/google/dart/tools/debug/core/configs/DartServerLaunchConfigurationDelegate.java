@@ -120,8 +120,11 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     try {
       runtimeProcess = processBuilder.start();
     } catch (IOException ioe) {
-      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-          ioe.getMessage(), ioe));
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          ioe.getMessage(),
+          ioe));
     }
 
     IProcess eclipseProcess = null;
@@ -134,8 +137,11 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     if (runtimeProcess != null) {
       monitor.beginTask("Dart", IProgressMonitor.UNKNOWN);
 
-      eclipseProcess = DebugPlugin.newProcess(launch, runtimeProcess,
-          launchConfig.getApplicationName(), processAttributes);
+      eclipseProcess = DebugPlugin.newProcess(
+          launch,
+          runtimeProcess,
+          launchConfig.getApplicationName(),
+          processAttributes);
     }
 
     if (runtimeProcess == null || eclipseProcess == null) {

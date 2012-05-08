@@ -68,7 +68,9 @@ public class DartRunLastAction extends DartAbstractAction {
       // to why their launch didn't work.
       DartUtil.logError(exception);
 
-      DebugErrorHandler.errorDialog(window.getShell(), "Error During Launch",
+      DebugErrorHandler.errorDialog(
+          window.getShell(),
+          "Error During Launch",
           "Internal error during launch - please report this using the feedback mechanism!",
           exception);
     }

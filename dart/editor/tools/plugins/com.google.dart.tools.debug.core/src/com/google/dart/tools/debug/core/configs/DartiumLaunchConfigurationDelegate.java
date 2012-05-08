@@ -68,7 +68,9 @@ public class DartiumLaunchConfigurationDelegate extends LaunchConfigurationDeleg
     if (launchConfig.getShouldLaunchFile()) {
       resource = launchConfig.getApplicationResource();
       if (resource == null) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
             "HTML file could not be found"));
       }
       url = resource.getLocationURI().toString();

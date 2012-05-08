@@ -50,7 +50,8 @@ public class WebkitRuntime extends WebkitDomain {
       request.put("method", "Runtime.callFunctionOn");
       request.put(
           "params",
-          new JSONObject().put("objectId", objectId).put("functionDeclaration",
+          new JSONObject().put("objectId", objectId).put(
+              "functionDeclaration",
               "function(){return this.toString();}").put("returnByValue", true));
 
       connection.sendRequest(request, new Callback() {
@@ -86,7 +87,8 @@ public class WebkitRuntime extends WebkitDomain {
       JSONObject request = new JSONObject();
 
       request.put("method", "Runtime.getProperties");
-      request.put("params",
+      request.put(
+          "params",
           new JSONObject().put("objectId", objectId).put("ownProperties", ownProperties));
 
       connection.sendRequest(request, new Callback() {

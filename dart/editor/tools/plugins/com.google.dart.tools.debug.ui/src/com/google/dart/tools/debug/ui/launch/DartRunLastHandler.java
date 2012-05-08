@@ -41,7 +41,8 @@ public class DartRunLastHandler extends AbstractHandler {
 
   private DartRunLastAction getRunAction() {
     if (runLastAction == null) {
-      runLastAction = new DartRunLastAction(PlatformUI.getWorkbench().getActiveWorkbenchWindow(),
+      runLastAction = new DartRunLastAction(
+          PlatformUI.getWorkbench().getActiveWorkbenchWindow(),
           true);
     }
 

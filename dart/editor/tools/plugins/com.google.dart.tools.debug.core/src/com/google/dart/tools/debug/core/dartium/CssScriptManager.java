@@ -96,7 +96,8 @@ class CssScriptManager implements ResourceChangeParticipant {
 
   private void uploadNewSource(WebkitStyleSheetRef ref, IFile file) {
     try {
-      target.getConnection().getCSS().setStyleSheetText(ref.getStyleSheetId(),
+      target.getConnection().getCSS().setStyleSheetText(
+          ref.getStyleSheetId(),
           IFileUtilities.getContents(file));
     } catch (IOException e) {
       DartDebugCorePlugin.logError(e);
