@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.util.PrintStringWriter;
 
@@ -75,6 +76,8 @@ public class FeedbackReport {
     if (DartSdk.isInstalled()) {
       msg.append("Dartium installed = " + DartSdk.getInstance().isDartiumInstalled() + "\n");
     }
+
+    msg.append("AnalysisServer enabled = " + DartCoreDebug.ANALYSIS_SERVER);
 
     return msg.toString().trim();
   }
