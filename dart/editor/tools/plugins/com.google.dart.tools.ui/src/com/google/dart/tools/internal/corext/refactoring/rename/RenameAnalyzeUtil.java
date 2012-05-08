@@ -108,7 +108,7 @@ public class RenameAnalyzeUtil {
       String libraryName = element.getAncestor(DartLibrary.class).getElementName();
       IPath elementPath = element.getPath();
       String message = Messages.format(
-          RefactoringCoreMessages.RenameRefactoring_notLocal,
+          RefactoringCoreMessages.RenameProcessor_notLocal,
           new Object[] {
               RenameAnalyzeUtil.getElementTypeName(element),
               libraryName,
@@ -123,7 +123,7 @@ public class RenameAnalyzeUtil {
    */
   public static String getElementTypeName(DartElement element) {
     return Messages.format(
-        RefactoringCoreMessages.RenameRefactoring_elementTypeName,
+        RefactoringCoreMessages.RenameProcessor_elementTypeName,
         element.getElementType());
   }
 

@@ -168,12 +168,7 @@ public class Checks {
    *         function name.
    */
   public static RefactoringStatus checkFunctionName(String name) {
-    RefactoringStatus status = checkName(name, DartConventions.validateFunctionName(name));
-    if (status.isOK() && !startsWithLowerCase(name)) {
-      return RefactoringStatus.createWarningStatus(RefactoringCoreMessages.Checks_function_names_lowercase);
-    } else {
-      return status;
-    }
+    return checkName(name, DartConventions.validateFunctionName(name));
   }
 
   /**
@@ -265,12 +260,7 @@ public class Checks {
    *         method name.
    */
   public static RefactoringStatus checkMethodName(String name) {
-    RefactoringStatus status = checkName(name, DartConventions.validateMethodName(name));
-    if (status.isOK() && !startsWithLowerCase(name)) {
-      return RefactoringStatus.createWarningStatus(RefactoringCoreMessages.Checks_method_names_lowercase);
-    } else {
-      return status;
-    }
+    return checkName(name, DartConventions.validateMethodName(name));
   }
 
   /**

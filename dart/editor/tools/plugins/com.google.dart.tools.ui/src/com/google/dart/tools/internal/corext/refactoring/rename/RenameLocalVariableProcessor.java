@@ -96,7 +96,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
     initAST();
     // we should be able to find variable Node and Element
     if (variableElement == null) {
-      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.RenameTempRefactoring_must_select_local);
+      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.RenameLocalVariableProcessor_must_be_selected);
     }
     // OK
     return new RefactoringStatus();
@@ -145,7 +145,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
 
   @Override
   public String getProcessorName() {
-    return RefactoringCoreMessages.RenameTempRefactoring_rename;
+    return RefactoringCoreMessages.RenameLocalVariableProcessor_name;
   }
 
   @Override
@@ -344,7 +344,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
   private void createEdits() {
     List<TextEdit> allRenameEdits = getAllRenameEdits();
 
-    change = new CompilationUnitChange(RefactoringCoreMessages.RenameTempRefactoring_rename, unit);
+    change = new CompilationUnitChange(RefactoringCoreMessages.RenameLocalVariableProcessor_name, unit);
     MultiTextEdit rootEdit = new MultiTextEdit();
     change.setEdit(rootEdit);
     change.setKeepPreviewEdits(true);
@@ -352,7 +352,7 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
     for (TextEdit edit : allRenameEdits) {
       rootEdit.addChild(edit);
       change.addTextEditGroup(new TextEditGroup(
-          RefactoringCoreMessages.RenameTempRefactoring_changeName,
+          RefactoringCoreMessages.RenameLocalVariableProcessor_update_reference,
           edit));
     }
   }

@@ -81,7 +81,7 @@ public class DartStatusContextViewer extends TextStatusContextViewer {
               editorInput);
         }
         if (document == null) {
-          document = new Document(RefactoringMessages.JavaStatusContextViewer_no_source_available);
+          document = new Document(RefactoringMessages.DartStatusContextViewer_no_source_available);
         }
         updateTitle(cunit);
       }

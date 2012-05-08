@@ -106,7 +106,7 @@ public class RenameImportProcessor extends RenameTopLevelProcessor {
 
   @Override
   public String getProcessorName() {
-    return RefactoringCoreMessages.RenameImportRefactoring_name;
+    return RefactoringCoreMessages.RenameImportProcessor_name;
   }
 
   @Override
@@ -117,7 +117,7 @@ public class RenameImportProcessor extends RenameTopLevelProcessor {
   @Override
   protected void addDeclarationUpdate() throws CoreException {
     CompilationUnit cu = imprt.getCompilationUnit();
-    String editName = RefactoringCoreMessages.RenameRefactoring_update_declaration;
+    String editName = RefactoringCoreMessages.RenameProcessor_update_declaration;
     if (hasPrefix && willHavePrefix) {
       SourceRange nameRange = SourceRangeUtils.getExpanded(imprt.getNameRange(), -1);
       addTextEdit(cu, editName, createTextChange(nameRange));
@@ -150,7 +150,7 @@ public class RenameImportProcessor extends RenameTopLevelProcessor {
     }
     // add TextEdit
     CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
-    String editName = RefactoringCoreMessages.RenameRefactoring_update_reference;
+    String editName = RefactoringCoreMessages.RenameProcessor_update_reference;
     addTextEdit(cu, editName, textEdit);
   }
 
@@ -189,7 +189,7 @@ public class RenameImportProcessor extends RenameTopLevelProcessor {
           IPath thisLibraryPath = thisLibrary.getDefiningCompilationUnit().getResource().getFullPath();
           IPath currentLibraryPath = currentLibrary.getDefiningCompilationUnit().getResource().getFullPath();
           String message = Messages.format(
-              RefactoringCoreMessages.RenameImportRefactoring_duplicateTopLevels_samePrefix,
+              RefactoringCoreMessages.RenameImportProcessor_duplicateTopLevels_samePrefix,
               new Object[] {
                   newName,
                   BasicElementLabels.getPathLabel(thisLibraryPath, false),

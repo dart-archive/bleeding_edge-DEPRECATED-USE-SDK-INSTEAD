@@ -56,7 +56,7 @@ public class RenameFieldProcessor extends RenameTypeMemberProcessor {
 
   @Override
   public String getProcessorName() {
-    return RefactoringCoreMessages.RenameFieldRefactoring_name;
+    return RefactoringCoreMessages.RenameFieldProcessor_name;
   }
 
   @Override

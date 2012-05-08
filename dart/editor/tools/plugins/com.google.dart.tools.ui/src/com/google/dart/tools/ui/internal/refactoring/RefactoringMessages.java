@@ -19,6 +19,56 @@ import org.eclipse.osgi.util.NLS;
  * @coverage dart.editor.ui.refactoring.ui
  */
 public final class RefactoringMessages extends NLS {
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Rename factoring
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // RenameAction
+  public static String RenameAction_text;
+  public static String RenameAction_rename;
+  public static String RenameAction_unavailable;
+  // RenameDartElementAction
+  public static String RenameDartElementAction_name;
+  public static String RenameDartElementAction_exception;
+  public static String RenameDartElementAction_not_available;
+  // RefactorActionGroup
+  public static String RefactorActionGroup_no_refactoring_available;
+  // DartStatusContextViewer
+  public static String DartStatusContextViewer_no_source_available;
+  // RefactoringExecutionHelper
+  public static String RefactoringExecutionHelper_cannot_execute;
+  public static String RefactoringStarter_saving;
+  public static String RefactoringStarter_unexpected_exception;
+  // RenameInputWizardPage
+  public static String RenameRefactoringWizard_internal_error;
+  public static String RenameInputWizardPage_new_name;
+  // RenameFieldWizard
+  public static String RenameFieldWizard_defaultPageTitle;
+  public static String RenameFieldWizard_inputPage_description;
+  // RenameFunctionTypeAliasWizard
+  public static String RenameFunctionTypeAliasWizard_defaultPageTitle;
+  public static String RenameFunctionTypeAliasWizardInputPage_description;
+  // RenameFunctionWizard
+  public static String RenameFunctionWizard_defaultPageTitle;
+  public static String RenameFunctionWizardInputPage_description;
+  // RenameGlobalVariableWizard
+  public static String RenameGlobalVariableWizard_defaultPageTitle;
+  public static String RenameGlobalVariableWizardInputPage_description;
+  // RenameLocalVariableWizard
+  public static String RenameLocalVariableWizard_defaultPageTitle;
+  public static String RenameLocalVariableWizard_inputPage_description;
+  // RenameMethodWizard
+  public static String RenameMethodWizard_defaultPageTitle;
+  public static String RenameMethodWizard_inputPage_description;
+  // RenameTypeParameterWizard
+  public static String RenameTypeParameterWizard_defaultPageTitle;
+  public static String RenameTypeParameterWizard_inputPage_description;
+  // RenameTypeWizard
+  public static String RenameTypeWizard_defaultPageTitle;
+  public static String RenameTypeWizardInputPage_description;
+
+  // XXX
+  // These constants are not used yet in Dart refactoring.
+  //
 
   private static final String BUNDLE_NAME = RefactoringMessages.class.getName();
 
@@ -542,8 +592,6 @@ public final class RefactoringMessages extends NLS {
 
   public static String IntroduceParameterWizard_parameters;
 
-  public static String JavaStatusContextViewer_no_source_available;
-
   public static String JavaStatusContextViewer_no_source_found0;
 
   public static String JavaTypeCompletionProcessor_no_completion;
@@ -768,11 +816,7 @@ public final class RefactoringMessages extends NLS {
 
   public static String QualifiedNameComponent_patterns_label;
 
-  public static String RefactorActionGroup_no_refactoring_available;
-
   public static String RefactoringErrorDialogUtil_okToPerformQuestion;
-
-  public static String RefactoringExecutionHelper_cannot_execute;
 
   public static String RefactoringExecutionStarter_IntroduceParameterObject_problem_description;
 
@@ -790,19 +834,9 @@ public final class RefactoringMessages extends NLS {
 
   public static String RefactoringStarter_save_all_resources;
 
-  public static String RefactoringStarter_saving;
-
-  public static String RefactoringStarter_unexpected_exception;
-
   public static String ReferencesInBinaryStatusContextViewer_show_as_search_button;
 
   public static String ReferencesInBinaryStatusContextViewer_title;
-
-  public static String RenameAction_rename;
-
-  public static String RenameAction_text;
-
-  public static String RenameAction_unavailable;
 
   public static String RenameCuWizard_defaultPageTitle;
 
@@ -824,23 +858,11 @@ public final class RefactoringMessages extends NLS {
 
   public static String RenameFieldInputWizardPage_setter_label;
 
-  public static String RenameFieldWizard_defaultPageTitle;
-
-  public static String RenameFieldWizard_inputPage_description;
-
-  public static String RenameInputWizardPage_new_name;
-
   public static String RenameInputWizardPage_update_qualified_names;
 
   public static String RenameInputWizardPage_update_references;
 
   public static String RenameInputWizardPage_update_textual_matches;
-
-  public static String RenameJavaElementAction_exception;
-
-  public static String RenameJavaElementAction_name;
-
-  public static String RenameJavaElementAction_not_available;
 
   public static String RenameJavaElementAction_started_rename_in_file;
 
@@ -848,29 +870,17 @@ public final class RefactoringMessages extends NLS {
 
   public static String RenameJavaProject_inputPage_description;
 
-  public static String RenameLocalVariableWizard_defaultPageTitle;
-
-  public static String RenameMethodWizard_defaultPageTitle;
-
-  public static String RenameMethodWizard_inputPage_description;
-
   public static String RenamePackageWizard_defaultPageTitle;
 
   public static String RenamePackageWizard_inputPage_description;
 
   public static String RenamePackageWizard_rename_subpackages;
 
-  public static String RenameRefactoringWizard_internal_error;
-
   public static String RenameSourceFolder_defaultPageTitle;
 
   public static String RenameSourceFolder_inputPage_description;
 
-  public static String RenameTypeParameterWizard_defaultPageTitle;
-  public static String RenameTypeParameterWizard_inputPage_description;
-  public static String RenameTypeWizard_defaultPageTitle;
   public static String RenameTypeWizard_unexpected_exception;
-  public static String RenameTypeWizardInputPage_description;
   public static String RenameTypeWizardInputPage_update_similar_elements;
   public static String RenameTypeWizardInputPage_update_similar_elements_configure;
   public static String RenameTypeWizardSimilarElementsOptionsDialog_select_strategy;
@@ -890,15 +900,6 @@ public final class RefactoringMessages extends NLS {
   public static String RenameTypeWizardSimilarElementsPage_restore_defaults;
   public static String RenameTypeWizardSimilarElementsPage_review_similar_elements;
   public static String RenameTypeWizardSimilarElementsPage_select_element_to_view_source;
-
-  public static String RenameFunctionWizard_defaultPageTitle;
-  public static String RenameFunctionWizardInputPage_description;
-
-  public static String RenameGlobalVariableWizard_defaultPageTitle;
-  public static String RenameGlobalVariableWizardInputPage_description;
-
-  public static String RenameFunctionTypeAliasWizard_defaultPageTitle;
-  public static String RenameFunctionTypeAliasWizardInputPage_description;
 
   public static String ReplaceInvocationsAction_dialog_title;
 

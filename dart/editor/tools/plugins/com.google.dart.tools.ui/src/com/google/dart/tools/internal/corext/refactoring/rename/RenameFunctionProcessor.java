@@ -48,7 +48,7 @@ public class RenameFunctionProcessor extends RenameTopLevelProcessor {
     result.merge(super.checkNewElementName(newName));
     // renaming "main()" changes semantics, so we should add non-fatal error.
     if (getCurrentElementName().equals("main")) {
-      result.addError(RefactoringCoreMessages.RenameFunctionRefactoring_isMain);
+      result.addError(RefactoringCoreMessages.RenameFunctionProcessor_isMain);
     }
     // done
     return result;
@@ -74,7 +74,7 @@ public class RenameFunctionProcessor extends RenameTopLevelProcessor {
 
   @Override
   public String getProcessorName() {
-    return RefactoringCoreMessages.RenameFunctionRefactoring_name;
+    return RefactoringCoreMessages.RenameFunctionProcessor_name;
   }
 
   @Override

@@ -56,7 +56,7 @@ public class RenameMethodProcessor extends RenameTypeMemberProcessor {
 
   @Override
   public String getProcessorName() {
-    return RefactoringCoreMessages.RenameMethodRefactoring_name;
+    return RefactoringCoreMessages.RenameMethodProcessor_name;
   }
 
   @Override

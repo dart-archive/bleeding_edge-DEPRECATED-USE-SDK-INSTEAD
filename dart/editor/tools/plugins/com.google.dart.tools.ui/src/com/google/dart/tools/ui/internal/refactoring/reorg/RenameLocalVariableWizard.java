@@ -28,7 +28,7 @@ public final class RenameLocalVariableWizard extends RenameRefactoringWizard {
     super(
         refactoring,
         RefactoringMessages.RenameLocalVariableWizard_defaultPageTitle,
-        RefactoringMessages.RenameTypeParameterWizard_inputPage_description,
+        RefactoringMessages.RenameLocalVariableWizard_inputPage_description,
         DartPluginImages.DESC_WIZBAN_REFACTOR,
         DartHelpContextIds.RENAME_LOCAL_VARIABLE_WIZARD_PAGE);
   }

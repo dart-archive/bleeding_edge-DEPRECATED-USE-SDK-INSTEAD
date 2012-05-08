@@ -100,7 +100,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
     initAST();
     // we should be able to find Node and Element
     if (parameterElement == null) {
-      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.RenameTypeParameterProcessor_mustSelect);
+      return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.RenameTypeParameterProcessor_must_be_selected);
     }
     // OK
     return Checks.checkIfCuBroken(parameter);
@@ -112,7 +112,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
 
     if (Checks.isAlreadyNamed(parameter, newName)) {
       result.addFatalError(
-          RefactoringCoreMessages.RenameRefactoring_another_name,
+          RefactoringCoreMessages.RenameProcessor_another_name,
           DartStatusContext.create(parameter));
       return result;
     }
@@ -121,7 +121,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
     for (DartTypeParameter typeParameter : getTypeParameters()) {
       if (Objects.equal(typeParameter.getElementName(), newName)) {
         String message = Messages.format(
-            RefactoringCoreMessages.RenameTypeParameterRefactoring_typeParameter_already_defined,
+            RefactoringCoreMessages.RenameTypeParameterProcessor_typeParameter_already_defined,
             new Object[] {newName});
         result.addError(message, DartStatusContext.create(typeParameter));
       }
@@ -132,7 +132,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
 
   @Override
   public Change createChange(IProgressMonitor monitor) throws CoreException {
-    monitor.beginTask(RefactoringCoreMessages.RenameRefactoring_checking, 1);
+    monitor.beginTask(RefactoringCoreMessages.RenameProcessor_checking, 1);
     try {
       return change;
     } finally {
@@ -244,7 +244,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
                 // add warning for shadowing declaration
                 {
                   String message = Messages.format(
-                      RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_typeMember,
+                      RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_typeMember,
                       new Object[] {
                           RenameAnalyzeUtil.getElementTypeName(parameter),
                           RenameAnalyzeUtil.getElementTypeName(superMember),
@@ -257,7 +257,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
                 for (SourceRange reference : references) {
                   if (reference.getOffset() != parameter.getNameRange().getOffset()) {
                     String message = Messages.format(
-                        RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_typeMember,
+                        RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_typeMember,
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(parameter),
                             RenameAnalyzeUtil.getElementTypeName(superMember),
@@ -312,7 +312,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
                   // add warning for hiding TypeParameter declaration
                   {
                     String message = Messages.format(
-                        RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_variable_inMethod,
+                        RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_variable_inMethod,
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(parameter),
                             enclosingType.getElementName(),
@@ -324,7 +324,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
                   for (SourceRange reference : references) {
                     if (SourceRangeUtils.intersects(reference, variable.getVisibleRange())) {
                       String message = Messages.format(
-                          RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_variable_inMethod,
+                          RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_variable_inMethod,
                           new Object[] {
                               RenameAnalyzeUtil.getElementTypeName(parameter),
                               enclosingType.getElementName(),
@@ -389,7 +389,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
 
   private void createEdits() {
     change = new CompilationUnitChange(
-        RefactoringCoreMessages.RenameTypeParameterProcessor_change_name,
+        RefactoringCoreMessages.RenameTypeParameterProcessor_name,
         unit);
     MultiTextEdit rootEdit = new MultiTextEdit();
     change.setEdit(rootEdit);
@@ -401,8 +401,8 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
       TextEdit edit = new ReplaceEdit(offset, length, newName);
       change.addEdit(edit);
       String editName = offset == parameterNode.getSourceInfo().getOffset()
-          ? RefactoringCoreMessages.RenameRefactoring_update_declaration
-          : RefactoringCoreMessages.RenameRefactoring_update_reference;
+          ? RefactoringCoreMessages.RenameProcessor_update_declaration
+          : RefactoringCoreMessages.RenameProcessor_update_reference;
       change.addTextEditGroup(new TextEditGroup(editName, edit));
     }
   }

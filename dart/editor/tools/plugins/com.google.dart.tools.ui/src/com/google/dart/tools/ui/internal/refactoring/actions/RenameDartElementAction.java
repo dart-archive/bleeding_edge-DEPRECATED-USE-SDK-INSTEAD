@@ -119,13 +119,13 @@ public class RenameDartElementAction extends SelectionDispatchAction {
     } catch (CoreException e) {
       ExceptionHandler.handle(
           e,
-          RefactoringMessages.RenameJavaElementAction_name,
-          RefactoringMessages.RenameJavaElementAction_exception);
+          RefactoringMessages.RenameDartElementAction_name,
+          RefactoringMessages.RenameDartElementAction_exception);
     }
     MessageDialog.openInformation(
         getShell(),
-        RefactoringMessages.RenameJavaElementAction_name,
-        RefactoringMessages.RenameJavaElementAction_not_available);
+        RefactoringMessages.RenameDartElementAction_name,
+        RefactoringMessages.RenameDartElementAction_not_available);
   }
 
   @Override
@@ -142,8 +142,8 @@ public class RenameDartElementAction extends SelectionDispatchAction {
     } catch (CoreException e) {
       ExceptionHandler.handle(
           e,
-          RefactoringMessages.RenameJavaElementAction_name,
-          RefactoringMessages.RenameJavaElementAction_exception);
+          RefactoringMessages.RenameDartElementAction_name,
+          RefactoringMessages.RenameDartElementAction_exception);
     }
   }
 

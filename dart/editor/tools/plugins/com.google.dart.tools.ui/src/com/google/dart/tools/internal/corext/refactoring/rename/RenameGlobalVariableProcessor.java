@@ -69,7 +69,7 @@ public class RenameGlobalVariableProcessor extends RenameTopLevelProcessor {
 
   @Override
   public String getProcessorName() {
-    return RefactoringCoreMessages.RenameGlobalVariableRefactoring_name;
+    return RefactoringCoreMessages.RenameGlobalVariableProcessor_name;
   }
 
   @Override

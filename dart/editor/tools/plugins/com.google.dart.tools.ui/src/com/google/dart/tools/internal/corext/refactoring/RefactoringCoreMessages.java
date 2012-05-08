@@ -19,6 +19,75 @@ import org.eclipse.osgi.util.NLS;
  * @coverage dart.editor.ui.refactoring.core
  */
 public final class RefactoringCoreMessages extends NLS {
+  // Check
+  public static String Checks_cu_has_compile_errors;
+  public static String Checks_cu_not_created;
+  public static String Checks_cu_not_parsed;
+  public static String Checks_Choose_name;
+  public static String Checks_no_dot;
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Rename refactoring
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String RenameProcessor_willBecomePrivate;
+  public static String RenameProcessor_notLocal;
+  public static String RenameProcessor_elementTypeName;
+  public static String RenameProcessor_another_name;
+  public static String RenameProcessor_update_declaration;
+  public static String RenameProcessor_update_reference;
+  public static String RenameProcessor_searching;
+  public static String RenameProcessor_checking;
+  // Shadowing
+  public static String RenameProcessor_typeMemberDecl_shadowedBy_element;
+  public static String RenameProcessor_typeMemberUsage_shadowedBy_element;
+  public static String RenameProcessor_topLevelDecl_shadowedBy_element;
+  public static String RenameProcessor_topLevelUsage_shadowedBy_element;
+  public static String RenameProcessor_typeMemberUsage_shadowedBy_topLevel;
+  public static String RenameProcessor_elementDecl_shadowedBy_typeMember;
+  public static String RenameProcessor_elementUsage_shadowedBy_typeMember;
+  public static String RenameProcessor_elementDecl_shadowedBy_variable_inMethod;
+  public static String RenameProcessor_elementUsage_shadowedBy_variable_inMethod;
+  public static String RenameProcessor_elementDecl_shadowedBy_variable_inFunction;
+  public static String RenameProcessor_elementUsage_shadowedBy_variable_inFunction;
+  // Rename local variable
+  public static String RenameLocalVariableProcessor_name;
+  public static String RenameLocalVariableProcessor_must_be_selected;
+  public static String RenameLocalVariableProcessor_shadow_variable;
+  public static String RenameLocalVariableProcessor_update_reference;
+  // Rename import prefix
+  public static String RenameImportProcessor_name;
+  public static String RenameImportProcessor_duplicateTopLevels_samePrefix;
+  // Rename top-level
+  public static String RenameTopProcessor_shadow_topLevel;
+  // Rename top-level function type alias
+  public static String RenameFunctionTypeAliasProcessor_name;
+  // Rename top-level function
+  public static String RenameFunctionProcessor_name;
+  public static String RenameFunctionProcessor_isMain;
+  // Rename top-level variable
+  public static String RenameGlobalVariableProcessor_name;
+  // Rename type
+  public static String RenameTypeProcessor_name;
+  public static String RenameTypeProcessor_creating_changes;
+  // Rename type member
+  public static String RenameProcessor_enclosing_type_member_already_defined;
+  // Rename type parameter
+  public static String RenameTypeParameterProcessor_name;
+  public static String RenameTypeParameterProcessor_must_be_selected;
+  public static String RenameTypeParameterProcessor_typeParameter_already_defined;
+  // Rename type field
+  public static String RenameFieldProcessor_name;
+  // Rename type method
+  public static String RenameMethodProcessor_name;
+
+  // XXX
+  // These constants were used, but later we decided to don't use them.
+  //
+  public static String Checks_function_names_lowercase;
+  public static String Checks_method_names_lowercase;
+
+  // XXX
+  // These constants are not used yet in Dart refactoring.
+  //
 
   public static String AbstractRenameChange_Renaming;
 
@@ -192,23 +261,11 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String Checks_cannot_be_parsed;
 
-  public static String Checks_Choose_name;
-
   public static String Checks_constructor_name;
-
-  public static String Checks_cu_has_compile_errors;
 
   public static String Checks_cu_name_used;
 
-  public static String Checks_cu_not_created;
-
-  public static String Checks_cu_not_parsed;
-
   public static String Checks_has_main;
-
-  public static String Checks_function_names_lowercase;
-
-  public static String Checks_method_names_lowercase;
 
   public static String Checks_method_names_lowercase2;
 
@@ -221,8 +278,6 @@ public final class RefactoringCoreMessages extends NLS {
   public static String Checks_methodName_overrides;
 
   public static String Checks_methodName_returnTypeClash;
-
-  public static String Checks_no_dot;
 
   public static String Checks_validateEdit;
 
@@ -1622,24 +1677,15 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameEnumConstRefactoring_name;
 
-  public static String RenameRefactoring_notLocal;
-  public static String RenameRefactoring_another_name;
-  public static String RenameRefactoring_enclosing_type_member_already_defined;
-  public static String RenameRefactoring_searching;
-  public static String RenameRefactoring_update_declaration;
-  public static String RenameRefactoring_update_reference;
-
   public static String RenameFieldProcessor_descriptor_description;
   public static String RenameFieldRefactoring_already_exists;
   public static String RenameFieldRefactoring_another_name2;
-  public static String RenameRefactoring_checking;
   public static String RenameFieldRefactoring_declared_in_supertype;
   public static String RenameFieldRefactoring_deleted;
   public static String RenameFieldRefactoring_descriptor_description_short;
   public static String RenameFieldRefactoring_field_already_defined2;
   public static String RenameFieldRefactoring_hiding;
   public static String RenameFieldRefactoring_hiding2;
-  public static String RenameFieldRefactoring_name;
   public static String RenameFieldRefactoring_overridden;
   public static String RenameFieldRefactoring_overridden_or_overrides;
   public static String RenameFieldRefactoring_setting_rename_getter;
@@ -1649,23 +1695,11 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameFieldRefactoring_Update_getter_occurrence;
   public static String RenameFieldRefactoring_Update_setter_occurrence;
 
-  public static String RenameImportRefactoring_name;
-  public static String RenameImportRefactoring_duplicateTopLevels_samePrefix;
-
   public static String RenameRefactoring_shadow_subType_member;
   public static String RenameRefactoring_shadow_subType_variable;
   public static String RenameRefactoring_shadow_subType_parameter;
   public static String RenameRefactoring_shadow_superType_member;
   public static String RenameRefactoring_shadow_topLevel;
-  public static String RenameRefactoring_elementTypeName;
-
-  public static String RenameTopRefactoring_shadow_topLevel;
-  public static String RenameTopRefactoring_elementDecl_shadowedBy_typeMember;
-  public static String RenameTopRefactoring_elementUsage_shadowedBy_typeMember;
-  public static String RenameTopRefactoring_elementDecl_shadowedBy_variable_inMethod;
-  public static String RenameTopRefactoring_elementUsage_shadowedBy_variable_inMethod;
-  public static String RenameTopRefactoring_elementDecl_shadowedBy_variable_inFunction;
-  public static String RenameTopRefactoring_elementUsage_shadowedBy_variable_inFunction;
 
   public static String RenameJavaProjectChange_descriptor_description;
 
@@ -1685,13 +1719,6 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameLocalVariableProcessor_descriptor_description;
   public static String RenameLocalVariableProcessor_descriptor_description_short;
-  public static String RenameLocalVariableProcessor_shadow_variable;
-  public static String RenameProcessor_willBecomePrivate;
-  public static String RenameProcessor_typeMemberDecl_shadowedBy_element;
-  public static String RenameProcessor_typeMemberUsage_shadowedBy_element;
-  public static String RenameProcessor_topLevelDecl_shadowedBy_element;
-  public static String RenameProcessor_topLevelUsage_shadowedBy_element;
-  public static String RenameProcessor_typeMemberUsage_shadowedBy_topLevel;
 
   public static String RenameMethodInInterfaceRefactoring_already_defined;
 
@@ -1706,8 +1733,6 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameMethodProcessor_is_binary;
 
   public static String RenameMethodRefactoring_deleted;
-
-  public static String RenameMethodRefactoring_name;
 
   public static String RenameMethodRefactoring_no_binary;
 
@@ -1807,29 +1832,14 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String RenameSourceFolderRefactoring_rename;
 
-  public static String RenameTempRefactoring_changeName;
-
   public static String RenameTempRefactoring_lowercase;
 
   public static String RenameTempRefactoring_lowercase2;
 
-  public static String RenameTempRefactoring_must_select_local;
-
   public static String RenameTempRefactoring_only_in_methods_and_initializers;
 
-  public static String RenameTempRefactoring_rename;
-
-  public static String RenameFunctionRefactoring_name;
-  public static String RenameFunctionRefactoring_isMain;
-
-  public static String RenameFunctionTypeAliasRefactoring_name;
-
-  public static String RenameGlobalVariableRefactoring_name;
-
-  public static String RenameTypeParameterProcessor_change_name;
   public static String RenameTypeParameterProcessor_descriptor_description;
   public static String RenameTypeParameterProcessor_descriptor_description_short;
-  public static String RenameTypeParameterProcessor_name;
   public static String RenameTypeParameterRefactoring_another_name;
   public static String RenameTypeParameterRefactoring_checking;
   public static String RenameTypeParameterRefactoring_class_type_parameter_already_defined;
@@ -1840,8 +1850,6 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameTypeParameterRefactoring_type_parameter_inner_class_clash;
   public static String RenameTypeParameterRefactoring_update_type_parameter_declaration;
   public static String RenameTypeParameterRefactoring_update_type_parameter_reference;
-  public static String RenameTypeParameterRefactoring_typeParameter_already_defined;
-  public static String RenameTypeParameterProcessor_mustSelect;
 
   public static String ReferencesInBinaryContext_binaryRefsNotUpdated;
 
@@ -1868,8 +1876,6 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameTypeProcessor_changeCategory_type_description;
 
   public static String RenameTypeProcessor_checking_similarly_named_declarations_refactoring_conditions;
-
-  public static String RenameTypeProcessor_creating_changes;
 
   public static String RenameTypeProcessor_descriptor_description;
 
@@ -1910,8 +1916,6 @@ public final class RefactoringCoreMessages extends NLS {
   public static String RenameTypeRefactoring_member_type;
 
   public static String RenameTypeRefactoring_member_type_exists;
-
-  public static String RenameTypeRefactoring_name;
 
   public static String RenameTypeRefactoring_name_conflict1;
 

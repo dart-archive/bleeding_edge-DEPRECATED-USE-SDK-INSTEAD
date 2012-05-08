@@ -92,7 +92,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
 
     if (Checks.isAlreadyNamed(member, newName)) {
       result.addFatalError(
-          RefactoringCoreMessages.RenameRefactoring_another_name,
+          RefactoringCoreMessages.RenameProcessor_another_name,
           DartStatusContext.create(member));
       return result;
     }
@@ -104,7 +104,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
       for (TypeMember existingMember : existingMembers) {
         IPath resourcePath = enclosingType.getResource().getFullPath();
         String message = Messages.format(
-            RefactoringCoreMessages.RenameRefactoring_enclosing_type_member_already_defined,
+            RefactoringCoreMessages.RenameProcessor_enclosing_type_member_already_defined,
             new Object[] {
                 enclosingType.getElementName(),
                 BasicElementLabels.getPathLabel(resourcePath, false),
@@ -118,7 +118,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
 
   @Override
   public Change createChange(IProgressMonitor monitor) throws CoreException {
-    monitor.beginTask(RefactoringCoreMessages.RenameRefactoring_checking, 1);
+    monitor.beginTask(RefactoringCoreMessages.RenameProcessor_checking, 1);
     try {
       return new CompositeChange(getProcessorName(), changeManager.getAllChanges());
     } finally {
@@ -147,15 +147,15 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
       CheckConditionsContext context) throws CoreException {
     try {
       pm.beginTask("", 19); //$NON-NLS-1$
-      pm.setTaskName(RefactoringCoreMessages.RenameRefactoring_checking);
+      pm.setTaskName(RefactoringCoreMessages.RenameProcessor_checking);
       RefactoringStatus result = new RefactoringStatus();
       // check new name
       result.merge(checkNewElementName(getNewElementName()));
       pm.worked(1);
       // prepare references
-      pm.setTaskName(RefactoringCoreMessages.RenameRefactoring_searching);
+      pm.setTaskName(RefactoringCoreMessages.RenameProcessor_searching);
       prepareReferences(new SubProgressMonitor(pm, 3));
-      pm.setTaskName(RefactoringCoreMessages.RenameRefactoring_checking);
+      pm.setTaskName(RefactoringCoreMessages.RenameProcessor_checking);
       // analyze affected units (such as warn about existing compilation errors)
       result.merge(analyzeAffectedCompilationUnits());
       // check for possible conflicts
@@ -172,12 +172,12 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   }
 
   private void addDeclarationUpdates(IProgressMonitor pm) throws CoreException {
-    String editName = RefactoringCoreMessages.RenameRefactoring_update_declaration;
+    String editName = RefactoringCoreMessages.RenameProcessor_update_declaration;
     addUpdates(pm, editName, declarations);
   }
 
   private void addReferenceUpdates(IProgressMonitor pm) throws CoreException {
-    String editName = RefactoringCoreMessages.RenameRefactoring_update_reference;
+    String editName = RefactoringCoreMessages.RenameProcessor_update_reference;
     addUpdates(pm, editName, references);
   }
 
@@ -216,21 +216,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
           ImmutableSet.of(enclosingType),
           subTypes);
       // add error if will become private
-      if (!oldName.startsWith("_") && newName.startsWith("_")) {
-        DartLibrary declarationLibrary = member.getAncestor(DartLibrary.class);
-        for (SearchMatch reference : references) {
-          DartLibrary referenceLibrary = reference.getElement().getAncestor(DartLibrary.class);
-          if (!Objects.equal(referenceLibrary, declarationLibrary)) {
-            IPath referenceLibraryPath = referenceLibrary.getDefiningCompilationUnit().getResource().getFullPath();
-            String message = Messages.format(
-                RefactoringCoreMessages.RenameProcessor_willBecomePrivate,
-                new Object[] {
-                    RenameAnalyzeUtil.getElementTypeName(member),
-                    BasicElementLabels.getPathLabel(referenceLibraryPath, false),});
-            result.addError(message, DartStatusContext.create(reference));
-          }
-        }
-      }
+      result.merge(RenameAnalyzeUtil.checkBecomePrivate(oldName, newName, member, references));
       // analyze top-level elements
       pm.subTask("Analyze top-level elements");
       {
@@ -384,7 +370,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
             // add warning for shadowing member declaration
             {
               String message = Messages.format(
-                  RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_typeMember,
+                  RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_typeMember,
                   new Object[] {
                       RenameAnalyzeUtil.getElementTypeName(member),
                       RenameAnalyzeUtil.getElementTypeName(parameter),
@@ -397,7 +383,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
             for (SearchMatch reference : references) {
               if (SourceRangeUtils.intersects(reference.getSourceRange(), subType.getSourceRange())) {
                 String message = Messages.format(
-                    RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_typeMember,
+                    RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_typeMember,
                     new Object[] {
                         RenameAnalyzeUtil.getElementTypeName(member),
                         RenameAnalyzeUtil.getElementTypeName(parameter),
@@ -417,7 +403,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
             // add warning for hiding Renamed declaration
             {
               String message = Messages.format(
-                  RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_typeMember,
+                  RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_typeMember,
                   new Object[] {
                       RenameAnalyzeUtil.getElementTypeName(member),
                       RenameAnalyzeUtil.getElementTypeName(subTypeMember),
@@ -434,7 +420,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                 Type refEnclosingType = ref.getElement().getAncestor(Type.class);
                 if (subTypes2.contains(refEnclosingType)) {
                   String message = Messages.format(
-                      RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_typeMember,
+                      RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_typeMember,
                       new Object[] {
                           RenameAnalyzeUtil.getElementTypeName(member),
                           RenameAnalyzeUtil.getElementTypeName(subTypeMember),
@@ -455,7 +441,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
               // add warning for hiding Renamed declaration
               {
                 String message = Messages.format(
-                    RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_variable_inMethod,
+                    RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_variable_inMethod,
                     new Object[] {
                         RenameAnalyzeUtil.getElementTypeName(member),
                         subType.getElementName(),
@@ -467,7 +453,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
               for (SearchMatch match : references) {
                 if (SourceRangeUtils.intersects(match.getSourceRange(), variable.getVisibleRange())) {
                   String message = Messages.format(
-                      RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_variable_inMethod,
+                      RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_variable_inMethod,
                       new Object[] {
                           RenameAnalyzeUtil.getElementTypeName(member),
                           subType.getElementName(),
@@ -490,7 +476,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
   }
 
   private void createChanges(IProgressMonitor pm) throws CoreException {
-    pm.beginTask(RefactoringCoreMessages.RenameRefactoring_checking, 12);
+    pm.beginTask(RefactoringCoreMessages.RenameProcessor_checking, 12);
     changeManager.clear();
     // update declaration
     addDeclarationUpdates(new SubProgressMonitor(pm, 2));

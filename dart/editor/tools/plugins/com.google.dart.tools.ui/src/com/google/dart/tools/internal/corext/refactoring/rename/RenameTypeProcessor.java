@@ -59,7 +59,7 @@ public class RenameTypeProcessor extends RenameTopLevelProcessor {
 
   @Override
   public String getProcessorName() {
-    return RefactoringCoreMessages.RenameTypeRefactoring_name;
+    return RefactoringCoreMessages.RenameTypeProcessor_name;
   }
 
   @Override

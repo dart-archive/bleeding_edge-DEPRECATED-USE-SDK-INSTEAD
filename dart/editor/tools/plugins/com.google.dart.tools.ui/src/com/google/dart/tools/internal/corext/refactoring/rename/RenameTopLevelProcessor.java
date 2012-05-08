@@ -94,7 +94,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
 
     if (Checks.isAlreadyNamed(element, newName)) {
       result.addFatalError(
-          RefactoringCoreMessages.RenameRefactoring_another_name,
+          RefactoringCoreMessages.RenameProcessor_another_name,
           DartStatusContext.create(element));
       return result;
     }
@@ -104,7 +104,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
 
   @Override
   public Change createChange(IProgressMonitor monitor) throws CoreException {
-    monitor.beginTask(RefactoringCoreMessages.RenameRefactoring_checking, 1);
+    monitor.beginTask(RefactoringCoreMessages.RenameProcessor_checking, 1);
     try {
       return new CompositeChange(getProcessorName(), changeManager.getAllChanges());
     } finally {
@@ -130,12 +130,12 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
   protected void addDeclarationUpdate() throws CoreException {
     SourceRange nameRange = elementSourceReference.getNameRange();
     CompilationUnit cu = element.getCompilationUnit();
-    String editName = RefactoringCoreMessages.RenameRefactoring_update_declaration;
+    String editName = RefactoringCoreMessages.RenameProcessor_update_declaration;
     addTextEdit(cu, editName, createTextChange(nameRange));
   }
 
   protected void addReferenceUpdate(SearchMatch match) {
-    String editName = RefactoringCoreMessages.RenameRefactoring_update_reference;
+    String editName = RefactoringCoreMessages.RenameProcessor_update_reference;
     CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
     SourceRange matchRange = match.getSourceRange();
     addTextEdit(cu, editName, createTextChange(matchRange));
@@ -166,7 +166,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
       CheckConditionsContext context) throws CoreException {
     try {
       pm.beginTask("", 19); //$NON-NLS-1$
-      pm.setTaskName(RefactoringCoreMessages.RenameRefactoring_checking);
+      pm.setTaskName(RefactoringCoreMessages.RenameProcessor_checking);
       RefactoringStatus result = new RefactoringStatus();
       // check new name
       result.merge(checkNewElementName(getNewElementName()));
@@ -175,9 +175,9 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
         return result;
       }
       // prepare references
-      pm.setTaskName(RefactoringCoreMessages.RenameRefactoring_searching);
+      pm.setTaskName(RefactoringCoreMessages.RenameProcessor_searching);
       references = RenameAnalyzeUtil.getReferences(element, new SubProgressMonitor(pm, 3));
-      pm.setTaskName(RefactoringCoreMessages.RenameRefactoring_checking);
+      pm.setTaskName(RefactoringCoreMessages.RenameProcessor_checking);
       // analyze affected units (such as warn about existing compilation errors)
       result.merge(analyzeAffectedCompilationUnits());
       // check for possible conflicts
@@ -238,7 +238,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                   // warning for shadowing top-level declaration
                   {
                     String message = Messages.format(
-                        RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_typeMember,
+                        RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_typeMember,
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(element),
                             RenameAnalyzeUtil.getElementTypeName(typeParameter),
@@ -253,7 +253,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                         type.getSourceRange(),
                         match.getSourceRange().getOffset())) {
                       String message = Messages.format(
-                          RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_typeMember,
+                          RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_typeMember,
                           new Object[] {
                               RenameAnalyzeUtil.getElementTypeName(element),
                               RenameAnalyzeUtil.getElementTypeName(typeParameter),
@@ -274,7 +274,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                   {
                     IPath resourcePath = unitElement.getResource().getFullPath();
                     String message = Messages.format(
-                        RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_typeMember,
+                        RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_typeMember,
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(element),
                             RenameAnalyzeUtil.getElementTypeName(typeMember),
@@ -294,7 +294,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                         if (Objects.equal(enclosingRefType, type)) {
                           IPath resourcePath = unitElement.getResource().getFullPath();
                           String message = Messages.format(
-                              RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_typeMember,
+                              RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_typeMember,
                               new Object[] {
                                   RenameAnalyzeUtil.getElementTypeName(element),
                                   RenameAnalyzeUtil.getElementTypeName(typeMember),
@@ -335,7 +335,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                       // warning for shadowing declaration
                       {
                         String message = Messages.format(
-                            RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_variable_inMethod,
+                            RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_variable_inMethod,
                             new Object[] {
                                 RenameAnalyzeUtil.getElementTypeName(element),
                                 type.getElementName(),
@@ -349,7 +349,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                             variable.getVisibleRange(),
                             match.getSourceRange().getOffset())) {
                           String message = Messages.format(
-                              RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_variable_inMethod,
+                              RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_variable_inMethod,
                               new Object[] {
                                   RenameAnalyzeUtil.getElementTypeName(element),
                                   type.getElementName(),
@@ -372,7 +372,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                   IPath resourcePath = unitElement.getResource().getFullPath();
                   {
                     String message = Messages.format(
-                        RefactoringCoreMessages.RenameTopRefactoring_elementDecl_shadowedBy_variable_inFunction,
+                        RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_variable_inFunction,
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(element),
                             function.getElementName(),
@@ -385,7 +385,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
                         variable.getVisibleRange(),
                         match.getSourceRange().getOffset())) {
                       String message = Messages.format(
-                          RefactoringCoreMessages.RenameTopRefactoring_elementUsage_shadowedBy_variable_inFunction,
+                          RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_variable_inFunction,
                           new Object[] {
                               RenameAnalyzeUtil.getElementTypeName(element),
                               function.getElementName(),
@@ -407,7 +407,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
   }
 
   private void createChanges(IProgressMonitor pm) throws CoreException {
-    pm.beginTask(RefactoringCoreMessages.RenameRefactoring_checking, 10);
+    pm.beginTask(RefactoringCoreMessages.RenameProcessor_checking, 10);
     changeManager.clear();
     // update declaration
     addDeclarationUpdate();
@@ -424,7 +424,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
     IPath libraryPath = library.getResource().getFullPath();
     IPath resourcePath = existingElement.getResource().getFullPath();
     String message = Messages.format(
-        RefactoringCoreMessages.RenameTopRefactoring_shadow_topLevel,
+        RefactoringCoreMessages.RenameTopProcessor_shadow_topLevel,
         new Object[] {
             BasicElementLabels.getPathLabel(resourcePath, false),
             BasicElementLabels.getPathLabel(libraryPath, false),
