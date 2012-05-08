@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -98,6 +98,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.ForwardingDocumentProvider;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE.SharedImages;
 import org.eclipse.ui.texteditor.AbstractMarkerAnnotationModel;
 import org.eclipse.ui.texteditor.AnnotationPreference;
@@ -979,8 +980,9 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
   public boolean isModifiable(Object element) {
     if (element instanceof ExternalCompilationUnitEditorInput) {
       ExternalCompilationUnitEditorInput input = (ExternalCompilationUnitEditorInput) element;
-
       return input.isModifiable();
+    } else if (element instanceof FileStoreEditorInput) {
+      return false;
     } else {
       return super.isModifiable(element);
     }
@@ -990,8 +992,9 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
   public boolean isReadOnly(Object element) {
     if (element instanceof ExternalCompilationUnitEditorInput) {
       ExternalCompilationUnitEditorInput input = (ExternalCompilationUnitEditorInput) element;
-
       return !input.isModifiable();
+    } else if (element instanceof FileStoreEditorInput) {
+      return true;
     } else {
       return super.isReadOnly(element);
     }
