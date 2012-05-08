@@ -216,13 +216,13 @@ def TestFrog(compiler, runtime, mode, system, option, flags, bot_number=None):
     # isolate tests, so we're switching to use Chrome in the short term.
     if runtime == 'chrome' and system == 'linux':
       TestStep('browser', mode, system, 'frog', 'drt', tests, flags)
-      TestStep('browser_dart2js', mode, system, 'dart2js', 'drt', [], flags)
-      dart2js_flags = flags;
-      if ('--checked' in dart2js_flags):
-        dart2js_flags = list(flags)
-        dart2js_flags.remove('--checked')
-      TestStep('browser_dart2js_extra', mode, system, 'dart2js', 'drt',
-               ['leg_only', 'frog_native'], dart2js_flags)
+
+      # TODO(ngeoffray): Enable checked mode once dart2js supports type variables.
+      if not ('--checked' in flags):
+        TestStep('browser_dart2js', mode, system, 'dart2js', 'drt', [], flags)
+        TestStep('browser_dart2js_extra', mode, system, 'dart2js', 'drt',
+            ['leg_only', 'frog_native'], flags)
+
     else:
       additional_flags = []
       if system.startswith('win') and runtime == 'ie':
