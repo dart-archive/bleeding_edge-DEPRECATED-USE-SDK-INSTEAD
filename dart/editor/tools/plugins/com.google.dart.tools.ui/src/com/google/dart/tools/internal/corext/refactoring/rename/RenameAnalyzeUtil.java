@@ -264,30 +264,23 @@ public class RenameAnalyzeUtil {
    *         or any {@link DartLibrary} imported by it, which has given name. May be
    *         <code>null</code>.
    */
-  public static CompilationUnitElement getTopLevelElementNamed(
-      Set<DartLibrary> visitedLibraries,
-      DartElement reference,
-      String name) throws DartModelException {
+  public static CompilationUnitElement getTopLevelElementNamed(DartElement reference, String name)
+      throws DartModelException {
     DartLibrary library = reference.getAncestor(DartLibrary.class);
-    if (library != null && !visitedLibraries.contains(library)) {
-      visitedLibraries.add(library);
-      // search in units of this library
-      for (CompilationUnit unit : library.getCompilationUnits()) {
+    if (library != null) {
+      // search in import prefixes
+      for (DartImport dartImport : library.getImports()) {
+        if (Objects.equal(dartImport.getPrefix(), name)) {
+          return dartImport;
+        }
+      }
+      // search in contributing units of this library
+      for (CompilationUnit unit : library.getCompilationUnitsInScope()) {
         for (DartElement element : unit.getChildren()) {
           if (element instanceof CompilationUnitElement
               && Objects.equal(element.getElementName(), name)) {
             return (CompilationUnitElement) element;
           }
-        }
-      }
-      // search in imported libraries
-      for (DartLibrary importedLibrary : library.getImportedLibraries()) {
-        CompilationUnitElement element = getTopLevelElementNamed(
-            visitedLibraries,
-            importedLibrary,
-            name);
-        if (element != null) {
-          return element;
         }
       }
     }
@@ -301,6 +294,9 @@ public class RenameAnalyzeUtil {
   public static List<TypeMember> getTypeMembers(Type type) throws DartModelException {
     List<TypeMember> members = Lists.newArrayList();
     for (DartElement typeChild : type.getChildren()) {
+      if (typeChild instanceof Method && ((Method) typeChild).isImplicit()) {
+        continue;
+      }
       if (typeChild instanceof TypeMember) {
         members.add((TypeMember) typeChild);
       }

@@ -741,6 +741,49 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     check_postCondition_topLevel("function type alias");
   }
 
+  public void test_postCondition_topLevel_importPrefix() throws Exception {
+    testProject.setUnitContent(
+        "LibA.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            ""));
+    testProject.setUnitContent(
+        "LibB.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('B');",
+            ""));
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#import('LibA.dart', prefix: 'NewName');",
+        "#import('LibB.dart', prefix: 'NewName');",
+        "class Test {",
+        "}",
+        "");
+    Type type = findElement("Test {");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameType(type, "NewName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(2);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
+    assertEquals(
+        "File 'Test/Test.dart' in library 'Test' already declares top-level import prefix 'NewName'",
+        showStatusMessages.get(0));
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+    assertEquals(
+        "File 'Test/Test.dart' in library 'Test' already declares top-level import prefix 'NewName'",
+        showStatusMessages.get(1));
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
   public void test_postCondition_topLevel_otherLibrary() throws Exception {
     setUnitContent(
         "Lib.dart",

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
-import com.google.common.collect.Sets;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -331,6 +330,22 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
     assertNull(getTopLevelElementNamed("noSuchName"));
   }
 
+  public void test_getTopLevelElementNamed_import() throws Exception {
+    testProject.setUnitContent(
+        "LibA.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            ""));
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#import('LibA.dart', prefix: 'myImport');",
+        "");
+    TestProject.waitForAutoBuild();
+    assertNotNull(getTopLevelElementNamed("myImport"));
+    assertNull(getTopLevelElementNamed("noSuchName"));
+  }
+
   public void test_getTopLevelElementNamed_interface() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -379,7 +394,10 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
         "");
     Type type = (Type) unit.getChildren()[0];
     List<TypeMember> typeMembers = RenameAnalyzeUtil.getTypeMembers(type);
+    assertThat(typeMembers).hasSize(2);
     assertThat(typeMembers).contains(type.getChildren()[0], type.getChildren()[1]);
+    assertEquals("myField", typeMembers.get(0).getElementName());
+    assertEquals("myMethod", typeMembers.get(1).getElementName());
   }
 
   /**
@@ -471,9 +489,6 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
    */
   @SuppressWarnings("unchecked")
   private <T extends DartElement> T getTopLevelElementNamed(String name) throws DartModelException {
-    return (T) RenameAnalyzeUtil.getTopLevelElementNamed(
-        Sets.<DartLibrary>newHashSet(),
-        testUnit,
-        name);
+    return (T) RenameAnalyzeUtil.getTopLevelElementNamed(testUnit, name);
   }
 }

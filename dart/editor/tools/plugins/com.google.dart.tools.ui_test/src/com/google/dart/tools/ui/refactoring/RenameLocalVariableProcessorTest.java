@@ -236,6 +236,49 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
         "}");
   }
 
+  public void test_postCondition_importPrefix() throws Exception {
+    testProject.setUnitContent(
+        "LibA.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            "class A {}",
+            ""));
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "#import('LibA.dart', prefix: 'newName');",
+        "f() {",
+        "  var test = 1;",
+        "  new newName.A();",
+        "}",
+        "");
+    DartVariableDeclaration variable = findElement("test = 1;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameLocalVariable(variable, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for variable declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of import prefix 'newName' in file 'Test/Test.dart' in library 'Test' will be shadowed by renamed variable",
+          showStatusMessages.get(0));
+      // error for field usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of import prefix 'newName' in file 'Test/Test.dart' in library 'Test' will be shadowed by renamed variable",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
   public void test_postCondition_localVariable_sameDeclaredAfter() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

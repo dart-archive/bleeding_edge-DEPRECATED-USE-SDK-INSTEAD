@@ -15,7 +15,6 @@ package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
@@ -300,7 +299,6 @@ public class RenameLocalVariableProcessor extends DartRenameProcessor {
       pm.subTask("Analyze top-level elements");
       {
         CompilationUnitElement topLevelElement = RenameAnalyzeUtil.getTopLevelElementNamed(
-            Sets.<DartLibrary>newHashSet(),
             variable,
             newName);
         if (topLevelElement != null) {

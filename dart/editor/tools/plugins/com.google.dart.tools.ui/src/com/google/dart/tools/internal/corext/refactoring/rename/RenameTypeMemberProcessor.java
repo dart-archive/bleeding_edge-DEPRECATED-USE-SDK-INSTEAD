@@ -235,7 +235,6 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
       pm.subTask("Analyze top-level elements");
       {
         CompilationUnitElement topLevelElement = RenameAnalyzeUtil.getTopLevelElementNamed(
-            Sets.<DartLibrary>newHashSet(),
             member,
             newName);
         if (topLevelElement != null) {

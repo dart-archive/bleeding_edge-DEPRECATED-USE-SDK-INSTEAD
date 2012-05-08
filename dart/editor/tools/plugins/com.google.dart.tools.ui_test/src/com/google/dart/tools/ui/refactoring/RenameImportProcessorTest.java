@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
-import com.google.common.base.Joiner;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.test.util.TestProject;
@@ -266,14 +265,14 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     // prepare libraries with type "A"
     testProject.setUnitContent(
         "LibA.dart",
-        Joiner.on("\n").join(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "#library('A');",
             "class A {}",
             "")).getResource();
     testProject.setUnitContent(
         "LibB.dart",
-        Joiner.on("\n").join(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "#library('B');",
             "class A {}",
@@ -710,14 +709,14 @@ public final class RenameImportProcessorTest extends RefactoringTest {
   private void prepareUniqueLibraries() throws Exception {
     testProject.setUnitContent(
         "LibA.dart",
-        Joiner.on("\n").join(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "#library('A');",
             "class A {}",
             "")).getResource();
     testProject.setUnitContent(
         "LibB.dart",
-        Joiner.on("\n").join(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "#library('B');",
             "class B {}",
