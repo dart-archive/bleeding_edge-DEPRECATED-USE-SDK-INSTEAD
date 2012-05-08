@@ -14,9 +14,15 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import java.util.List;
+
 /**
  * A listener for VM debugging events.
  */
 public interface VmListener {
+
+  public void debuggerPaused(List<VmCallFrame> frames);
+
+  public void debuggerResumed();
 
 }

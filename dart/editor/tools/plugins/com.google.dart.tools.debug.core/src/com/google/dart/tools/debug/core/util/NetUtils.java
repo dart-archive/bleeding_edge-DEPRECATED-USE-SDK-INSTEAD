@@ -15,11 +15,31 @@ package com.google.dart.tools.debug.core.util;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.URI;
 
 /**
  * A collection of static networking utilities.
  */
 public class NetUtils {
+
+  /**
+   * Compares whether two uris are equal. This handles the case where file urls are specified
+   * slightly differently (file:/ vs file:///).
+   * 
+   * @param url1
+   * @param url2
+   * @return
+   */
+  public static boolean compareUrls(String url1, String url2) {
+    if (url1.equals(url2)) {
+      return true;
+    }
+
+    URI u1 = URI.create(url1);
+    URI u2 = URI.create(url2);
+
+    return u1.equals(u2);
+  }
 
   /**
    * Find and return an unused server socket port. Attempt to use preferredPort; if that is not

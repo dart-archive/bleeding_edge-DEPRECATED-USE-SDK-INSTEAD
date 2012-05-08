@@ -24,19 +24,12 @@ import org.json.JSONObject;
  */
 public class VmLocation {
 
-  public static int eclipseToWebkitLine(int line) {
-    return line - 1;
-  }
-
-  public static int webkitToElipseLine(int line) {
-    return line + 1;
-  }
-
   static VmLocation createFrom(JSONObject object) throws JSONException {
     VmLocation location = new VmLocation();
 
-    location.scriptId = JsonUtils.getString(object, "scriptId");
+    location.url = JsonUtils.getString(object, "url");
     location.lineNumber = JsonUtils.getInt(object, "lineNumber", -1);
+    // This field is not currently used by the VM.
     location.columnNumber = JsonUtils.getInt(object, "columnNumber", -1);
 
     return location;
@@ -46,7 +39,12 @@ public class VmLocation {
 
   private int lineNumber;
 
-  private String scriptId;
+  private String url;
+
+  public VmLocation(String url, int lineNumber) {
+    this.url = url;
+    this.lineNumber = lineNumber;
+  }
 
   VmLocation() {
 
@@ -60,23 +58,26 @@ public class VmLocation {
     return lineNumber;
   }
 
-  public String getScriptId() {
-    return scriptId;
+  public String getUrl() {
+    return url;
   }
 
   public JSONObject toJSONObject() throws JSONException {
     JSONObject object = new JSONObject();
 
-    object.put("scriptId", scriptId);
+    object.put("url", url);
     object.put("lineNumber", lineNumber);
-    object.put("columnNumber", columnNumber);
+
+    if (columnNumber != -1) {
+      object.put("columnNumber", columnNumber);
+    }
 
     return object;
   }
 
   @Override
   public String toString() {
-    return "[" + scriptId + "," + lineNumber + "," + columnNumber + "]";
+    return "[" + url + "," + lineNumber + (columnNumber == -1 ? "" : "," + columnNumber) + "]";
   }
 
 }

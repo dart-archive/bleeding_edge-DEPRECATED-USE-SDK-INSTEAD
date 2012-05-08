@@ -26,20 +26,20 @@ public class VmResult<T> {
     VmResult<T> result = new VmResult<T>();
 
     if (params.has("error")) {
-      result.setError(params.get("error"));
+      result.setError(params.getString("error"));
     }
 
     return result;
   }
 
-  private Object error;
+  private String error;
   private T result;
 
   VmResult() {
 
   }
 
-  public Object getError() {
+  public String getError() {
     return error;
   }
 
@@ -62,7 +62,7 @@ public class VmResult<T> {
     }
   }
 
-  void setError(Object error) {
+  void setError(String error) {
     this.error = error;
   }
 

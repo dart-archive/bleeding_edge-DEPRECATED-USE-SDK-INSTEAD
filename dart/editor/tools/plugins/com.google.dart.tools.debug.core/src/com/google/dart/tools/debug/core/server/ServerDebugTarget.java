@@ -16,11 +16,15 @@ package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.util.NetUtils;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -29,6 +33,7 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * An implementation of IDebugTarget for Dart VM debug connections.
@@ -40,6 +45,10 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private VmConnection connection;
 
+  private ServerDebugThread debugThread;
+
+  private boolean isPaused = true;
+
   public ServerDebugTarget(ILaunch launch, IProcess process, int connectionPort) {
     super(null);
 
@@ -50,9 +59,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public void breakpointAdded(IBreakpoint breakpoint) {
-    // TODO(devoncarew):
     if (supportsBreakpoint(breakpoint)) {
-
+      addBreakpoint((DartBreakpoint) breakpoint);
     }
   }
 
@@ -66,11 +74,19 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
-    // TODO(devoncarew):
     if (supportsBreakpoint(breakpoint)) {
+      VmBreakpoint vmBreakpoint = findBreakpoint((DartBreakpoint) breakpoint);
 
+      if (vmBreakpoint != null) {
+        try {
+          getConnection().removeBreakpoint(vmBreakpoint);
+        } catch (IOException exception) {
+          // TODO(devoncarew): display to the user
+
+          DartDebugCorePlugin.logError(exception);
+        }
+      }
     }
-
   }
 
   @Override
@@ -80,16 +96,14 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean canResume() {
-    // TODO(devoncarew):
-
-    return false;
+    return !isTerminated() && isSuspended();
   }
 
   @Override
   public boolean canSuspend() {
-    // TODO(devoncarew): implement this
+    // TODO(devoncarew): this should be factored out from the Dartium pause condition.
 
-    return false;
+    return DartDebugCorePlugin.VM_SUPPORTS_PAUSING;
   }
 
   @Override
@@ -131,14 +145,60 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     } catch (IOException ioe) {
       DartDebugCorePlugin.logError(ioe);
 
-      throw new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+      throw new DebugException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
           "Unable to connect debugger to the Dart VM: " + ioe.getMessage()));
     }
+
+    // Set up the existing breakpoints.
+    IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
+        DartDebugCorePlugin.DEBUG_MODEL_ID);
+
+    for (IBreakpoint breakpoint : breakpoints) {
+      if (supportsBreakpoint(breakpoint)) {
+        addBreakpoint((DartBreakpoint) breakpoint);
+      }
+    }
+
+    DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
+
+    // TODO(devoncarew): this it temporarily commented out to test the paused event functionality
+    //resume();
+  }
+
+  @Override
+  public void debuggerPaused(List<VmCallFrame> frames) {
+    isPaused = true;
+
+    debugThread = new ServerDebugThread(this, frames);
+
+    // or DebugEvent.BREAKPOINT?
+    debugThread.fireSuspendEvent(DebugEvent.UNSPECIFIED);
+  }
+
+  @Override
+  public void debuggerResumed() {
+    isPaused = false;
+
+    debugThread = null;
+
+    // TODO(devoncarew): fill this in from stepping info if available
+    int eventReason = DebugEvent.UNSPECIFIED;
+
+    fireResumeEvent(eventReason);
   }
 
   @Override
   public void disconnect() throws DebugException {
     throw new UnsupportedOperationException("disconnect is not supported");
+  }
+
+  @Override
+  public void fireTerminateEvent() {
+    dispose();
+
+    super.fireTerminateEvent();
   }
 
   @Override
@@ -163,9 +223,11 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public IThread[] getThreads() throws DebugException {
-    // TODO(devoncarew):
-
-    return null;
+    if (debugThread != null) {
+      return new IThread[] {debugThread};
+    } else {
+      return new IThread[0];
+    }
   }
 
   public VmConnection getVmConnection() {
@@ -174,7 +236,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean hasThreads() throws DebugException {
-    return true;
+    return debugThread != null;
   }
 
   @Override
@@ -184,9 +246,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean isSuspended() {
-    // TODO(devoncarew):
-
-    return false;
+    return isPaused;
   }
 
   @Override
@@ -197,7 +257,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   @Override
   public void resume() throws DebugException {
     try {
-      connection.sendSimpleCommand("resume");
+      connection.resume();
     } catch (IOException exception) {
       throw createDebugException(exception);
     }
@@ -216,7 +276,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   @Override
   public void suspend() throws DebugException {
     try {
-      connection.sendSimpleCommand("pause");
+      connection.pause();
     } catch (IOException exception) {
       throw createDebugException(exception);
     }
@@ -227,9 +287,56 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     process.terminate();
   }
 
+  @Override
+  protected ServerDebugTarget getTarget() {
+    return this;
+  }
+
+  private void addBreakpoint(DartBreakpoint breakpoint) {
+    if (breakpoint.isBreakpointEnabled()) {
+      String url = getUrlForResource(breakpoint.getFile());
+      int line = breakpoint.getLine();
+
+      try {
+        getConnection().setBreakpoint(url, line);
+      } catch (IOException exception) {
+        // TODO(devoncarew): display to the user
+
+        DartDebugCorePlugin.logError(exception);
+      }
+    }
+  }
+
   private DebugException createDebugException(IOException exception) {
-    return new DebugException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-        exception.getMessage(), exception));
+    return new DebugException(new Status(
+        IStatus.ERROR,
+        DartDebugCorePlugin.PLUGIN_ID,
+        exception.getMessage(),
+        exception));
+  }
+
+  private void dispose() {
+    if (DebugPlugin.getDefault() != null) {
+      DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
+    }
+  }
+
+  private VmBreakpoint findBreakpoint(DartBreakpoint breakpoint) {
+    final String url = getUrlForResource(breakpoint.getFile());
+    final int line = breakpoint.getLine();
+
+    for (VmBreakpoint bp : getConnection().getBreakpoints()) {
+      if (line == bp.getLocation().getLineNumber()
+          && url.equals(NetUtils.compareUrls(url, bp.getLocation().getUrl()))) {
+        return bp;
+      }
+    }
+
+    return null;
+  }
+
+  private String getUrlForResource(IFile file) {
+    return file.getLocation().toFile().toURI().toString();
   }
 
   private void sleep(int millis) {

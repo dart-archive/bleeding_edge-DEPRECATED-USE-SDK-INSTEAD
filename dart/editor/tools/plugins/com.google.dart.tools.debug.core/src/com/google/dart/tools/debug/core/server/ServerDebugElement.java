@@ -19,7 +19,10 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import org.eclipse.debug.core.model.DebugElement;
 import org.eclipse.debug.core.model.IDebugTarget;
 
-public class ServerDebugElement extends DebugElement {
+/**
+ * The abstract parent of all Dart VM debug elements.
+ */
+public abstract class ServerDebugElement extends DebugElement {
 
   /**
    * Create a new server debug element.

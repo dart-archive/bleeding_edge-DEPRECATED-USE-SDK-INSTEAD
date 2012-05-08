@@ -15,10 +15,23 @@
 package com.google.dart.tools.debug.core.server;
 
 /**
- * An interface to return a VM command result.
+ * The representation of a VM breakpoint.
  */
-public interface VmCallback<T> {
+public class VmBreakpoint {
+  private VmLocation location;
+  private int breakpointId;
 
-  public void handleResult(VmResult<T> result);
+  VmBreakpoint(String url, int line, int breakpointId) {
+    this.location = new VmLocation(url, line);
+    this.breakpointId = breakpointId;
+  }
+
+  public int getBreakpointId() {
+    return breakpointId;
+  }
+
+  public VmLocation getLocation() {
+    return location;
+  }
 
 }

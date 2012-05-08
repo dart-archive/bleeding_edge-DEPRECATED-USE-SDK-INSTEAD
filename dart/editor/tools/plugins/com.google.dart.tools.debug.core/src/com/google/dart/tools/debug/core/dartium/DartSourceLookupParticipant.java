@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.server.ServerDebugStackFrame;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.sourcelookup.AbstractSourceLookupParticipant;
@@ -37,6 +38,11 @@ public class DartSourceLookupParticipant extends AbstractSourceLookupParticipant
       return (String) object;
     } else if (object instanceof DartiumDebugStackFrame) {
       DartiumDebugStackFrame stackFrame = (DartiumDebugStackFrame) object;
+
+      return stackFrame.getSourceLocationPath();
+    } else if (object instanceof ServerDebugStackFrame) {
+      // TODO(devoncarew): this dramatically needs refactoring
+      ServerDebugStackFrame stackFrame = (ServerDebugStackFrame) object;
 
       return stackFrame.getSourceLocationPath();
     } else {
