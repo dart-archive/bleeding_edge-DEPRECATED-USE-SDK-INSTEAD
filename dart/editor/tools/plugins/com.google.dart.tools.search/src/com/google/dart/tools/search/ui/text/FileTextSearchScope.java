@@ -19,6 +19,7 @@ import com.google.dart.tools.search.internal.ui.Messages;
 import com.google.dart.tools.search.internal.ui.SearchMessages;
 import com.google.dart.tools.search.internal.ui.WorkingSetComparator;
 import com.google.dart.tools.search.internal.ui.text.BasicElementLabels;
+import com.google.dart.tools.search.internal.ui.text.TextSearchScopeFilter;
 import com.google.dart.tools.search.internal.ui.util.FileTypeEditor;
 
 import org.eclipse.core.resources.IResource;
@@ -236,8 +237,8 @@ public final class FileTextSearchScope extends TextSearchScope {
   public boolean contains(File file) {
 
     String name = file.getName();
-    //ignore .files (and avoid traversing into folders prefixed with a '.')
-    if (name.startsWith(".")) {
+
+    if (TextSearchScopeFilter.isFiltered(file)) {
       return false;
     }
 
@@ -254,8 +255,7 @@ public final class FileTextSearchScope extends TextSearchScope {
       return false; // all resources in a derived folder are considered to be derived, see bug 103576
     }
 
-    //ignore .files (and avoid traversing into folders prefixed with a '.')
-    if (proxy.getName().startsWith(".")) {
+    if (TextSearchScopeFilter.isFiltered(proxy)) {
       return false;
     }
 

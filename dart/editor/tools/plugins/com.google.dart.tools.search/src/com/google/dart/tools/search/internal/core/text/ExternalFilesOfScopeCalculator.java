@@ -55,12 +55,14 @@ public class ExternalFilesOfScopeCalculator {
   }
 
   private void visit(File root) throws CoreException {
-    if (root.isDirectory()) {
-      for (File file : root.listFiles()) {
-        visit(file);
+    if (textSearchScope.contains(root)) {
+      if (root.isDirectory()) {
+        for (File file : root.listFiles()) {
+          visit(file);
+        }
+      } else {
+        files.add(root);
       }
-    } else {
-      files.add(root);
     }
   }
 }
