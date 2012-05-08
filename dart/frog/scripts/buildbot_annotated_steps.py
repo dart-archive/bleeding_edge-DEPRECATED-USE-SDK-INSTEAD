@@ -217,7 +217,8 @@ def TestFrog(compiler, runtime, mode, system, option, flags, bot_number=None):
     if runtime == 'chrome' and system == 'linux':
       TestStep('browser', mode, system, 'frog', 'drt', tests, flags)
 
-      # TODO(ngeoffray): Enable checked mode once dart2js supports type variables.
+      # TODO(ngeoffray): Enable checked mode once dart2js supports type
+      # variables.
       if not ('--checked' in flags):
         TestStep('browser_dart2js', mode, system, 'dart2js', 'drt', [], flags)
         TestStep('browser_dart2js_extra', mode, system, 'dart2js', 'drt',
