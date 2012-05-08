@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,49 +18,39 @@ import com.google.dart.tools.search.ui.text.Match;
 
 import java.util.ArrayList;
 
-import org.eclipse.core.resources.IResource;
-
-
 /**
  * Element representing a line in a file
  */
 public class LineElement {
 
-  private final IResource fParent;
+  private final FileResource<?> fParent;
 
   private final int fLineNumber;
   private final int fLineStartOffset;
   private final String fLineContents;
 
-  public LineElement(IResource parent, int lineNumber, int lineStartOffset, String lineContents) {
+  public LineElement(FileResource<?> parent, int lineNumber, int lineStartOffset,
+      String lineContents) {
     fParent = parent;
     fLineNumber = lineNumber;
     fLineStartOffset = lineStartOffset;
     fLineContents = lineContents;
   }
 
-  public IResource getParent() {
-    return fParent;
-  }
-
-  public int getLine() {
-    return fLineNumber;
+  public boolean contains(int offset) {
+    return fLineStartOffset <= offset && offset < fLineStartOffset + fLineContents.length();
   }
 
   public String getContents() {
     return fLineContents;
   }
 
-  public int getOffset() {
-    return fLineStartOffset;
-  }
-
-  public boolean contains(int offset) {
-    return fLineStartOffset <= offset && offset < fLineStartOffset + fLineContents.length();
-  }
-
   public int getLength() {
     return fLineContents.length();
+  }
+
+  public int getLine() {
+    return fLineNumber;
   }
 
   public FileMatch[] getMatches(AbstractTextSearchResult result) {
@@ -85,6 +75,14 @@ public class LineElement {
       }
     }
     return count;
+  }
+
+  public int getOffset() {
+    return fLineStartOffset;
+  }
+
+  public FileResource<?> getParent() {
+    return fParent;
   }
 
 }

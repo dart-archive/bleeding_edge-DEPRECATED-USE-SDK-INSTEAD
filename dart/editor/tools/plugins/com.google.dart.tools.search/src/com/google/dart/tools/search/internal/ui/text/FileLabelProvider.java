@@ -20,6 +20,8 @@ import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchViewPage;
 import com.google.dart.tools.search.ui.text.Match;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -30,6 +32,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -82,11 +85,17 @@ public class FileLabelProvider extends LabelProvider implements IStyledLabelProv
 
   @Override
   public Image getImage(Object element) {
+    if (element instanceof FileResource<?>) {
+      element = ((FileResource<?>) element).getResource();
+    }
+    if (element instanceof File) {
+      //TODO(pquitslund): improve image fetching
+      IFileStore file = EFS.getLocalFileSystem().fromLocalFile((File) element);
+      return fLabelProvider.getImage(file);
+    }
+
     if (element instanceof LineElement) {
       return fLineMatchImage;
-    }
-    if (!(element instanceof IResource)) {
-      return null;
     }
 
     IResource resource = (IResource) element;
@@ -98,19 +107,36 @@ public class FileLabelProvider extends LabelProvider implements IStyledLabelProv
     return fOrder;
   }
 
-  @Override
-  public StyledString getStyledText(Object element) {
-    if (element instanceof LineElement) {
-      return getLineElementLabel((LineElement) element);
-    }
-
-    if (!(element instanceof IResource)) {
-      return new StyledString();
-    }
-
-    IResource resource = (IResource) element;
+  public StyledString getStyledString(File resource) {
     if (!resource.exists()) {
-      new StyledString(SearchMessages.FileLabelProvider_removed_resource_label);
+      return new StyledString(SearchMessages.FileLabelProvider_removed_resource_label);
+    }
+
+    String name = BasicElementLabels.getResourceName(resource);
+    if (fOrder == SHOW_LABEL) {
+      return getColoredLabelWithCounts(resource, new StyledString(name));
+    }
+
+    String pathString = BasicElementLabels.getParentPathLabel(resource, false);
+    if (fOrder == SHOW_LABEL_PATH) {
+      StyledString str = new StyledString(name);
+      String decorated = Messages.format(fgSeparatorFormat, new String[] {
+          str.getString(), pathString});
+
+      StyledCellLabelProvider.styleDecoratedString(decorated, StyledString.QUALIFIER_STYLER, str);
+      return getColoredLabelWithCounts(resource, str);
+    }
+
+    StyledString str = new StyledString(Messages.format(fgSeparatorFormat, new String[] {
+        pathString, name}));
+    return getColoredLabelWithCounts(resource, str);
+
+  }
+
+  public StyledString getStyledString(IResource resource) {
+
+    if (!resource.exists()) {
+      return new StyledString(SearchMessages.FileLabelProvider_removed_resource_label);
     }
 
     String name = BasicElementLabels.getResourceName(resource);
@@ -131,6 +157,28 @@ public class FileLabelProvider extends LabelProvider implements IStyledLabelProv
     StyledString str = new StyledString(Messages.format(fgSeparatorFormat, new String[] {
         pathString, name}));
     return getColoredLabelWithCounts(resource, str);
+
+  }
+
+  @Override
+  public StyledString getStyledText(Object element) {
+    if (element instanceof LineElement) {
+      return getLineElementLabel((LineElement) element);
+    }
+
+    if (element instanceof WorkspaceFile) {
+      element = ((WorkspaceFile) element).getResource();
+    }
+
+    if (element instanceof IResource) {
+      return getStyledString((IResource) element);
+    }
+
+    if (element instanceof File) {
+      return getStyledString((File) element);
+    }
+
+    return new StyledString("skipped [" + element.getClass() + "]: " + element.toString());
   }
 
   @Override

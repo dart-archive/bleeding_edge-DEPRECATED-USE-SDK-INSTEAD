@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,6 +15,11 @@ package com.google.dart.tools.search.internal.core.text;
 
 import com.google.dart.tools.search.core.text.TextSearchScope;
 
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceProxy;
+import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IPath;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,14 +28,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.IPath;
-
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceProxy;
-
-
 public class FileNamePatternSearchScope extends TextSearchScope {
+
+  private static final boolean IS_CASE_SENSITIVE_FILESYSTEM = !new File("Temp").equals(new File("temp")); //$NON-NLS-1$ //$NON-NLS-2$
 
   /**
    * Returns a scope for the given resources.
@@ -46,12 +46,38 @@ public class FileNamePatternSearchScope extends TextSearchScope {
         includeDerived), includeDerived);
   }
 
-  private static final boolean IS_CASE_SENSITIVE_FILESYSTEM = !new File("Temp").equals(new File("temp")); //$NON-NLS-1$ //$NON-NLS-2$
+  private static void addToList(ArrayList<IResource> res, IResource curr, boolean includeDerived) {
+    if (!includeDerived && curr.isDerived(IResource.CHECK_ANCESTORS)) {
+      return;
+    }
+    IPath currPath = curr.getFullPath();
+    for (int k = res.size() - 1; k >= 0; k--) {
+      IResource other = res.get(k);
+      IPath otherPath = other.getFullPath();
+      if (otherPath.isPrefixOf(currPath)) {
+        return;
+      }
+      if (currPath.isPrefixOf(otherPath)) {
+        res.remove(k);
+      }
+    }
+    res.add(curr);
+  }
+
+  private static IResource[] removeRedundantEntries(IResource[] elements, boolean includeDerived) {
+    ArrayList<IResource> res = new ArrayList<IResource>();
+    for (int i = 0; i < elements.length; i++) {
+      IResource curr = elements[i];
+      addToList(res, curr, includeDerived);
+    }
+    return res.toArray(new IResource[res.size()]);
+  }
 
   private final String fDescription;
   private final IResource[] fRootElements;
 
   private final Set<String> fFileNamePatterns;
+
   private Matcher fFileNameMatcher;
 
   private boolean fVisitDerived;
@@ -66,18 +92,22 @@ public class FileNamePatternSearchScope extends TextSearchScope {
   }
 
   /**
-   * Returns the description of the scope
+   * Adds an file name pattern to the scope.
    * 
-   * @return the description of the scope
+   * @param pattern the pattern
    */
-  public String getDescription() {
-    return fDescription;
+  public void addFileNamePattern(String pattern) {
+    if (fFileNamePatterns.add(pattern)) {
+      fFileNameMatcher = null; // clear cache
+    }
   }
 
-  public IResource[] getRoots() {
-    return fRootElements;
+  @Override
+  public boolean contains(File file) {
+    return file.isFile() && matchesFileName(file.getName());
   }
 
+  @Override
   public boolean contains(IResourceProxy proxy) {
     if (!fVisitDerived && proxy.isDerived()) {
       return false; // all resources in a derived folder are considered to be derived, see bug 103576
@@ -90,22 +120,39 @@ public class FileNamePatternSearchScope extends TextSearchScope {
   }
 
   /**
-   * Adds an file name pattern to the scope.
+   * Returns the description of the scope
    * 
-   * @param pattern the pattern
+   * @return the description of the scope
    */
-  public void addFileNamePattern(String pattern) {
-    if (fFileNamePatterns.add(pattern)) {
-      fFileNameMatcher = null; // clear cache
-    }
-  }
-
-  public void setFileNamePattern(Pattern pattern) {
-    fFileNameMatcher = pattern.matcher(""); //$NON-NLS-1$
+  public String getDescription() {
+    return fDescription;
   }
 
   public Pattern getFileNamePattern() {
     return getFileNameMatcher().pattern();
+  }
+
+  /**
+   * Returns a description for the file name patterns in the scope
+   * 
+   * @return the description of the scope
+   */
+  public String getFileNamePatternDescription() {
+    String[] ext = fFileNamePatterns.toArray(new String[fFileNamePatterns.size()]);
+    Arrays.sort(ext);
+    StringBuffer buf = new StringBuffer();
+    for (int i = 0; i < ext.length; i++) {
+      if (i > 0) {
+        buf.append(", "); //$NON-NLS-1$
+      }
+      buf.append(ext[i]);
+    }
+    return buf.toString();
+  }
+
+  @Override
+  public IResource[] getRoots() {
+    return fRootElements;
   }
 
   /**
@@ -115,6 +162,10 @@ public class FileNamePatternSearchScope extends TextSearchScope {
    */
   public boolean isIncludeDerived() {
     return fVisitDerived;
+  }
+
+  public void setFileNamePattern(Pattern pattern) {
+    fFileNameMatcher = pattern.matcher(""); //$NON-NLS-1$
   }
 
   private Matcher getFileNameMatcher() {
@@ -139,51 +190,6 @@ public class FileNamePatternSearchScope extends TextSearchScope {
    */
   private boolean matchesFileName(String fileName) {
     return getFileNameMatcher().reset(fileName).matches();
-  }
-
-  /**
-   * Returns a description for the file name patterns in the scope
-   * 
-   * @return the description of the scope
-   */
-  public String getFileNamePatternDescription() {
-    String[] ext = fFileNamePatterns.toArray(new String[fFileNamePatterns.size()]);
-    Arrays.sort(ext);
-    StringBuffer buf = new StringBuffer();
-    for (int i = 0; i < ext.length; i++) {
-      if (i > 0) {
-        buf.append(", "); //$NON-NLS-1$
-      }
-      buf.append(ext[i]);
-    }
-    return buf.toString();
-  }
-
-  private static IResource[] removeRedundantEntries(IResource[] elements, boolean includeDerived) {
-    ArrayList<IResource> res = new ArrayList<IResource>();
-    for (int i = 0; i < elements.length; i++) {
-      IResource curr = elements[i];
-      addToList(res, curr, includeDerived);
-    }
-    return res.toArray(new IResource[res.size()]);
-  }
-
-  private static void addToList(ArrayList<IResource> res, IResource curr, boolean includeDerived) {
-    if (!includeDerived && curr.isDerived(IResource.CHECK_ANCESTORS)) {
-      return;
-    }
-    IPath currPath = curr.getFullPath();
-    for (int k = res.size() - 1; k >= 0; k--) {
-      IResource other = res.get(k);
-      IPath otherPath = other.getFullPath();
-      if (otherPath.isPrefixOf(currPath)) {
-        return;
-      }
-      if (currPath.isPrefixOf(otherPath)) {
-        res.remove(k);
-      }
-    }
-    res.add(curr);
   }
 
 }

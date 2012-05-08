@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.search.internal.ui.text;
 
+import com.google.dart.tools.search.ui.ISearchQuery;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
+import com.google.dart.tools.search.ui.text.FileTextSearchScope;
 import com.google.dart.tools.search.ui.text.Match;
 
 import org.eclipse.core.resources.IProject;
@@ -22,6 +24,8 @@ import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -35,6 +39,8 @@ public class FileTreeContentProvider implements ITreeContentProvider, IFileSearc
   private FileSearchPage fPage;
   private AbstractTreeViewer fTreeViewer;
   private Map<Object, Set<Object>> fChildrenMap;
+
+  private ArrayList<File> externalRoots;
 
   FileTreeContentProvider(FileSearchPage page, AbstractTreeViewer viewer) {
     fPage = page;
@@ -105,10 +111,19 @@ public class FileTreeContentProvider implements ITreeContentProvider, IFileSearc
     if (element instanceof IProject) {
       return null;
     }
+    if (element instanceof File) {
+      File file = (File) element;
+      if (file.isDirectory()) {
+        return null;
+      }
+      return getExternalRoot(file);
+    }
+
     if (element instanceof IResource) {
       IResource resource = (IResource) element;
       return resource.getParent();
     }
+
     if (element instanceof LineElement) {
       return ((LineElement) element).getParent();
     }
@@ -117,6 +132,11 @@ public class FileTreeContentProvider implements ITreeContentProvider, IFileSearc
       FileMatch match = (FileMatch) element;
       return match.getLineElement();
     }
+
+    if (element instanceof FileResource<?>) {
+      return ((FileResource<?>) element).getResource();
+    }
+
     return null;
   }
 
@@ -136,6 +156,16 @@ public class FileTreeContentProvider implements ITreeContentProvider, IFileSearc
     return fPage.getElementLimit().intValue();
   }
 
+  private Object getExternalRoot(File file) {
+    while (file != null) {
+      file = file.getParentFile();
+      if (externalRoots.contains(file)) {
+        break;
+      }
+    }
+    return file;
+  }
+
   private boolean hasChild(Object parent, Object child) {
     Set<Object> children = fChildrenMap.get(parent);
     return children != null && children.contains(child);
@@ -152,7 +182,10 @@ public class FileTreeContentProvider implements ITreeContentProvider, IFileSearc
   private synchronized void initialize(AbstractTextSearchResult result) {
     fResult = result;
     fChildrenMap = new HashMap<Object, Set<Object>>();
-    boolean showLineMatches = !((FileSearchQuery) fResult.getQuery()).isFileNameSearch();
+
+    initializeExternalRoots(result);
+
+    boolean showLineMatches = showLineMatches();
 
     if (result != null) {
       Object[] elements = result.getElements();
@@ -160,11 +193,26 @@ public class FileTreeContentProvider implements ITreeContentProvider, IFileSearc
         if (showLineMatches) {
           Match[] matches = result.getMatches(elements[i]);
           for (int j = 0; j < matches.length; j++) {
-            insert(((FileMatch) matches[j]).getLineElement(), false);
+            insert(((FileResourceMatch) matches[j]).getLineElement(), false);
           }
         } else {
           insert(elements[i], false);
         }
+      }
+    }
+
+  }
+
+  private void initializeExternalRoots(AbstractTextSearchResult result) {
+
+    externalRoots = new ArrayList<File>();
+
+    ISearchQuery query = result.getQuery();
+    if (query instanceof FileSearchQuery) {
+      FileSearchQuery fileQuery = (FileSearchQuery) query;
+      FileTextSearchScope searchScope = fileQuery.getSearchScope();
+      for (File root : searchScope.getExternalRoots()) {
+        externalRoots.add(root);
       }
     }
   }
@@ -241,5 +289,11 @@ public class FileTreeContentProvider implements ITreeContentProvider, IFileSearc
     if (siblings != null) {
       siblings.remove(element);
     }
+  }
+
+  private boolean showLineMatches() {
+    //TODO(pquitslund): line matches are not shown (by design)
+    return false;
+//    return !((FileSearchQuery) fResult.getQuery()).isFileNameSearch();
   }
 }

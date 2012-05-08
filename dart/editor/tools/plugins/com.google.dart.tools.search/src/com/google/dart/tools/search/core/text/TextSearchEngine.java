@@ -13,16 +13,13 @@
  */
 package com.google.dart.tools.search.core.text;
 
-import com.google.dart.tools.search.internal.core.text.TextSearchVisitor;
+import com.google.dart.tools.search.internal.core.text.TextSearchExecutor;
 import com.google.dart.tools.search.internal.ui.SearchPlugin;
-
-import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 
-import org.eclipse.core.resources.IFile;
-
+import java.util.regex.Pattern;
 
 /**
  * A {@link TextSearchEngine} searches the content of a workspace file resources for matches to a
@@ -55,14 +52,10 @@ public abstract class TextSearchEngine {
    */
   public static TextSearchEngine createDefault() {
     return new TextSearchEngine() {
+      @Override
       public IStatus search(TextSearchScope scope, TextSearchRequestor requestor,
           Pattern searchPattern, IProgressMonitor monitor) {
-        return new TextSearchVisitor(requestor, searchPattern).search(scope, monitor);
-      }
-
-      public IStatus search(IFile[] scope, TextSearchRequestor requestor, Pattern searchPattern,
-          IProgressMonitor monitor) {
-        return new TextSearchVisitor(requestor, searchPattern).search(scope, monitor);
+        return new TextSearchExecutor(requestor, searchPattern).search(scope, monitor);
       }
     };
   }
@@ -78,19 +71,6 @@ public abstract class TextSearchEngine {
    * @return the status containing information about problems in resources searched.
    */
   public abstract IStatus search(TextSearchScope scope, TextSearchRequestor requestor,
-      Pattern searchPattern, IProgressMonitor monitor);
-
-  /**
-   * Uses a given search pattern to find matches in the content of workspace file resources. If a
-   * file is open in an editor, the editor buffer is searched.
-   * 
-   * @param requestor the search requestor that gets the search results
-   * @param scope the files to search in
-   * @param searchPattern The search pattern used to find matches in the file contents.
-   * @param monitor the progress monitor to use
-   * @return the status containing information about problems in resources searched.
-   */
-  public abstract IStatus search(IFile[] scope, TextSearchRequestor requestor,
       Pattern searchPattern, IProgressMonitor monitor);
 
 }

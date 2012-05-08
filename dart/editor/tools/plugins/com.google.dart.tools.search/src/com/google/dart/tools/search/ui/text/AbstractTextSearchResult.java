@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public abstract class AbstractTextSearchResult implements ISearchResult {
 
-  private static final Match[] EMPTY_ARRAY = new Match[0];
+  protected static final Match[] EMPTY_ARRAY = new Match[0];
 
   private static int compare(Match match1, Match match2) {
     int diff = match2.getOffset() - match1.getOffset();
@@ -63,7 +63,7 @@ public abstract class AbstractTextSearchResult implements ISearchResult {
     matches.add(insertIndex, match);
   }
 
-  private final Map<Object, List<Match>> fElementsToMatches;
+  protected final Map<Object, List<Match>> fElementsToMatches;
 
   private final List<ISearchResultListener> fListeners;
 

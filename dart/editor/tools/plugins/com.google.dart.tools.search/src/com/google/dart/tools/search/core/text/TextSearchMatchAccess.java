@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.search.core.text;
 
-import org.eclipse.core.resources.IFile;
+import com.google.dart.tools.search.internal.ui.text.FileResource;
+import com.google.dart.tools.search.internal.ui.text.FileResourceMatch;
+import com.google.dart.tools.search.internal.ui.text.LineElement;
 
 /**
  * A {@link TextSearchMatchAccess} gives access to a pattern match found by the
@@ -31,42 +33,19 @@ import org.eclipse.core.resources.IFile;
 public abstract class TextSearchMatchAccess {
 
   /**
+   * Creates a match object based on the given line element info.
+   * 
+   * @param lineElement the line element
+   * @return a match object
+   */
+  public abstract FileResourceMatch createMatch(LineElement lineElement);
+
+  /**
    * Returns the file the match was found in.
    * 
    * @return the file the match was found.
    */
-  public abstract IFile getFile();
-
-  /**
-   * Returns the offset of this search match.
-   * 
-   * @return the offset of this search match
-   */
-  public abstract int getMatchOffset();
-
-  /**
-   * Returns the length of this search match.
-   * 
-   * @return the length of this search match
-   */
-  public abstract int getMatchLength();
-
-  /**
-   * Returns the length of this file's content.
-   * 
-   * @return the length of this file's content.
-   */
-  public abstract int getFileContentLength();
-
-  /**
-   * Returns a character of the file's content at the given offset
-   * 
-   * @param offset the offset
-   * @return the character at the given offset
-   * @throws IndexOutOfBoundsException an {@link IndexOutOfBoundsException} is thrown when the
-   *           <code>offset</code> is negative or not less than the file content's length.
-   */
-  public abstract char getFileContentChar(int offset);
+  public abstract FileResource<?> getFile();
 
   /**
    * Returns the file's content at the given offsets.
@@ -79,5 +58,36 @@ public abstract class TextSearchMatchAccess {
    *           <code>offset + length</code> is not less than the file content's length.
    */
   public abstract String getFileContent(int offset, int length);
+
+  /**
+   * Returns a character of the file's content at the given offset
+   * 
+   * @param offset the offset
+   * @return the character at the given offset
+   * @throws IndexOutOfBoundsException an {@link IndexOutOfBoundsException} is thrown when the
+   *           <code>offset</code> is negative or not less than the file content's length.
+   */
+  public abstract char getFileContentChar(int offset);
+
+  /**
+   * Returns the length of this file's content.
+   * 
+   * @return the length of this file's content.
+   */
+  public abstract int getFileContentLength();
+
+  /**
+   * Returns the length of this search match.
+   * 
+   * @return the length of this search match
+   */
+  public abstract int getMatchLength();
+
+  /**
+   * Returns the offset of this search match.
+   * 
+   * @return the offset of this search match
+   */
+  public abstract int getMatchOffset();
 
 }

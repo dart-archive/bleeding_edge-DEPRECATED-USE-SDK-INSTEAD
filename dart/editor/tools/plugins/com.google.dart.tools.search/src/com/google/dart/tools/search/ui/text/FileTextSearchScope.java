@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -55,6 +55,7 @@ public final class FileTextSearchScope extends TextSearchScope {
    * of the scope or not.
    * 
    * @param roots the roots resources defining the scope.
+   * @param externalFileRoots the external file roots defining the scope.
    * @param fileNamePatterns file name pattern that all files have to match <code>null</code> to
    *          include all file names.
    * @param includeDerived defines if derived files and files inside derived containers are included
@@ -62,8 +63,8 @@ public final class FileTextSearchScope extends TextSearchScope {
    * @return a scope containing the resources and its children if they match the given file name
    *         patterns.
    */
-  public static FileTextSearchScope newSearchScope(IResource[] roots, String[] fileNamePatterns,
-      boolean includeDerived) {
+  public static FileTextSearchScope newSearchScope(IResource[] roots, File[] externalFileRoots,
+      String[] fileNamePatterns, boolean includeDerived) {
     roots = removeRedundantEntries(roots, includeDerived);
 
     String description;
@@ -79,7 +80,28 @@ public final class FileTextSearchScope extends TextSearchScope {
       String label = SearchMessages.FileTextSearchScope_scope_multiple;
       description = Messages.format(label, new String[] {roots[0].getName(), roots[1].getName()});
     }
-    return new FileTextSearchScope(description, roots, null, fileNamePatterns, includeDerived);
+    return new FileTextSearchScope(description, roots, null, externalFileRoots, fileNamePatterns,
+        includeDerived);
+  }
+
+  /**
+   * Returns a scope for the given root resources. The created scope contains all root resources and
+   * their children that match the given file name patterns. Depending on
+   * <code>includeDerived</code>, derived resources or resources inside a derived container are part
+   * of the scope or not.
+   * 
+   * @param roots the roots resources defining the scope.
+   * @param fileNamePatterns file name pattern that all files have to match <code>null</code> to
+   *          include all file names.
+   * @param includeDerived defines if derived files and files inside derived containers are included
+   *          in the scope.
+   * @return a scope containing the resources and its children if they match the given file name
+   *         patterns.
+   */
+  public static FileTextSearchScope newSearchScope(IResource[] roots, String[] fileNamePatterns,
+      boolean includeDerived) {
+    return newSearchScope(roots, ExternalRootSearchScopeHelper.calculateExternalRoots(roots),
+        fileNamePatterns, includeDerived);
   }
 
   /**
@@ -114,8 +136,10 @@ public final class FileTextSearchScope extends TextSearchScope {
       description = Messages.format(label,
           new String[] {workingSets[0].getLabel(), workingSets[1].getLabel()});
     }
-    FileTextSearchScope scope = new FileTextSearchScope(description, convertToResources(
-        workingSets, includeDerived), workingSets, fileNamePatterns, includeDerived);
+    IResource[] resources = convertToResources(workingSets, includeDerived);
+    FileTextSearchScope scope = new FileTextSearchScope(description, resources, workingSets,
+        ExternalRootSearchScopeHelper.calculateExternalRoots(resources), fileNamePatterns,
+        includeDerived);
     return scope;
   }
 
@@ -132,8 +156,9 @@ public final class FileTextSearchScope extends TextSearchScope {
    */
   public static FileTextSearchScope newWorkspaceScope(String[] fileNamePatterns,
       boolean includeDerived) {
-    return new FileTextSearchScope(SearchMessages.WorkspaceScope,
-        new IResource[] {ResourcesPlugin.getWorkspace().getRoot()}, null, fileNamePatterns,
+    IResource[] workspace = new IResource[] {ResourcesPlugin.getWorkspace().getRoot()};
+    return new FileTextSearchScope(SearchMessages.WorkspaceScope, workspace, null,
+        ExternalRootSearchScopeHelper.calculateExternalRoots(workspace), fileNamePatterns,
         includeDerived);
   }
 
@@ -193,16 +218,34 @@ public final class FileTextSearchScope extends TextSearchScope {
   private boolean fVisitDerived;
 
   private IWorkingSet[] fWorkingSets;
+  private final File[] externalRoots;
 
   private FileTextSearchScope(String description, IResource[] resources, IWorkingSet[] workingSets,
-      String[] fileNamePatterns, boolean visitDerived) {
+      File[] externalFiles, String[] fileNamePatterns, boolean visitDerived) {
     fDescription = description;
     fRootElements = resources;
+    this.externalRoots = externalFiles;
     fFileNamePatterns = fileNamePatterns;
     fVisitDerived = visitDerived;
     fWorkingSets = workingSets;
     fPositiveFileNameMatcher = createMatcher(fileNamePatterns, false);
     fNegativeFileNameMatcher = createMatcher(fileNamePatterns, true);
+  }
+
+  @Override
+  public boolean contains(File file) {
+
+    String name = file.getName();
+    //ignore .files (and avoid traversing into folders prefixed with a '.')
+    if (name.startsWith(".")) {
+      return false;
+    }
+
+    if (file.isFile()) {
+      return matchesFileName(name);
+    }
+
+    return true;
   }
 
   @Override
@@ -240,6 +283,11 @@ public final class FileTextSearchScope extends TextSearchScope {
    */
   public String getDescription() {
     return fDescription;
+  }
+
+  @Override
+  public File[] getExternalRoots() {
+    return externalRoots;
   }
 
   /**

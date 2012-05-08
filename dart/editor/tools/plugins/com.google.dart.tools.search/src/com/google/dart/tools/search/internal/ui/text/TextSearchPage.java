@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -635,9 +635,12 @@ public class TextSearchPage extends DialogPage implements ISearchPage /* ,IRepla
             }
           }
         } else if (curr instanceof LineElement) {
-          IResource resource = ((LineElement) curr).getParent();
-          if (resource != null && resource.isAccessible()) {
-            resources.add(resource);
+          FileResource<?> fileResource = ((LineElement) curr).getParent();
+          if (fileResource instanceof WorkspaceFile) {
+            IResource resource = ((WorkspaceFile) fileResource).getResource();
+            if (resource != null && resource.isAccessible()) {
+              resources.add(resource);
+            }
           }
         } else if (curr instanceof IAdaptable) {
           IResource resource = (IResource) ((IAdaptable) curr).getAdapter(IResource.class);

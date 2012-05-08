@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -196,15 +196,16 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
   }
 
   private volatile boolean fIsUIUpdateScheduled = false;
+
   private volatile boolean fScheduleEnsureSelection = false;
   private static final String KEY_LAYOUT = "com.google.dart.tools.search.resultpage.layout"; //$NON-NLS-1$
-
   /**
    * An empty array.
    */
   protected static final Match[] EMPTY_MATCH_ARRAY = new Match[0];
 
   private StructuredViewer fViewer;
+
   private Composite fViewerContainer;
   private Control fBusyLabel;
   private PageBook fPagebook;
@@ -212,8 +213,8 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
   private ISearchResultViewPart fViewPart;
   private Set<Object> fBatchedUpdates;
   private boolean fBatchedClearAll;
-
   private ISearchResultListener fListener;
+
   private IQueryListener fQueryListener;
   private MenuManager fMenu;
   private AbstractTextSearchResult fInput;
@@ -221,11 +222,11 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
   private CopyToClipboardAction fCopyToClipboardAction;
   private Action fShowNextAction;
   private Action fShowPreviousAction;
-
   private ExpandAllAction fExpandAllAction;
-  private CollapseAllAction fCollapseAllAction;
 
+  private CollapseAllAction fCollapseAllAction;
   private SetLayoutAction fFlatAction;
+
   private SetLayoutAction fHierarchicalAction;
   private int fCurrentLayout;
   private int fCurrentMatchIndex = 0;
@@ -233,7 +234,6 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
   private final int fSupportedLayouts;
   private SelectionProviderAdapter fViewerAdapter;
   private SelectAllAction fSelectAllAction;
-
   private Integer fElementLimit;
 
   /**
@@ -245,6 +245,7 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
    * Flag (<code>value 1</code>) denoting flat list layout.
    */
   public static final int FLAG_LAYOUT_FLAT = 1;
+
   /**
    * Flag (<code>value 2</code>) denoting tree layout.
    */
@@ -1015,9 +1016,10 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
    * @see org.eclipse.core.filebuffers.ITextFileBufferManager
    * @see IFileMatchAdapter
    */
-  protected void showMatch(Match match, int currentOffset, int currentLength, boolean activate)
+  protected void showMatch(Match match, int offset, int length, boolean activate)
       throws PartInitException {
-    showMatch(match, currentOffset, currentLength);
+    IWorkbenchPage page = getSite().getPage();
+    fEditorOpener.openAndSelect(page, match, offset, length, activate);
   }
 
   protected void updateActionStates() {

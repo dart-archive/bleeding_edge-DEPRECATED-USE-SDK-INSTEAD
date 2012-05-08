@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -16,14 +16,14 @@ package com.google.dart.tools.search.internal.ui.text;
 import com.google.dart.tools.search.internal.ui.SearchMessages;
 import com.google.dart.tools.search.internal.ui.SearchPlugin;
 import com.google.dart.tools.search.ui.NewSearchUI;
+import com.google.dart.tools.search.ui.text.Match;
 
-import java.util.HashMap;
-
-import org.eclipse.core.runtime.CoreException;
-
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -34,9 +34,10 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
-
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import java.io.File;
+import java.util.HashMap;
 
 public class EditorOpener {
 
@@ -44,8 +45,9 @@ public class EditorOpener {
 
   public IEditorPart open(IWorkbenchPage wbPage, IFile file, boolean activate)
       throws PartInitException {
-    if (NewSearchUI.reuseEditor())
+    if (NewSearchUI.reuseEditor()) {
       return showWithReuse(file, wbPage, getEditorID(file), activate);
+    }
     return showWithoutReuse(file, wbPage, getEditorID(file), activate);
   }
 
@@ -75,17 +77,70 @@ public class EditorOpener {
     return editor;
   }
 
-  private IEditorPart showWithoutReuse(IFile file, IWorkbenchPage wbPage, String editorID,
+  public void openAndSelect(IWorkbenchPage page, Match match, int offset, int length,
       boolean activate) throws PartInitException {
-    return IDE.openEditor(wbPage, file, editorID, activate);
+
+    Object resource = match.getElement();
+
+    if (resource instanceof IFile) {
+      IFile file = (IFile) resource;
+      if (offset >= 0 && length != 0) {
+        openAndSelect(page, file, offset, length, activate);
+      } else {
+        open(page, file, activate);
+      }
+    } else if (resource instanceof File) {
+      IFileStore file = EFS.getLocalFileSystem().fromLocalFile((File) resource);
+      try {
+        IEditorPart editor = IDE.openEditorOnFileStore(page, file);
+        if (editor instanceof ITextEditor) {
+          ITextEditor textEditor = (ITextEditor) editor;
+          textEditor.selectAndReveal(offset, length);
+        }
+      } catch (PartInitException e) {
+        ErrorDialog.openError(page.getWorkbenchWindow().getShell(),
+            SearchMessages.FileSearchPage_open_file_dialog_title,
+            SearchMessages.FileSearchPage_open_file_failed, e.getStatus());
+      }
+    }
+
   }
 
   private String getEditorID(IFile file) throws PartInitException {
     IEditorDescriptor desc = IDE.getEditorDescriptor(file);
-    if (desc == null)
+    if (desc == null) {
       return SearchPlugin.getDefault().getWorkbench().getEditorRegistry().findEditor(
           IEditorRegistry.SYSTEM_EXTERNAL_EDITOR_ID).getId();
+    }
     return desc.getId();
+  }
+
+  private void showWithMarker(IEditorPart editor, IFile file, int offset, int length)
+      throws PartInitException {
+    IMarker marker = null;
+    try {
+      marker = file.createMarker(NewSearchUI.SEARCH_MARKER);
+      HashMap<String, Integer> attributes = new HashMap<String, Integer>(4);
+      attributes.put(IMarker.CHAR_START, new Integer(offset));
+      attributes.put(IMarker.CHAR_END, new Integer(offset + length));
+      marker.setAttributes(attributes);
+      IDE.gotoMarker(editor, marker);
+    } catch (CoreException e) {
+      throw new PartInitException(SearchMessages.FileSearchPage_error_marker, e);
+    } finally {
+      if (marker != null) {
+        try {
+          marker.delete();
+        } catch (CoreException e) {
+          // ignore
+        }
+      }
+    }
+  }
+
+  private IEditorPart showWithoutReuse(IFile file, IWorkbenchPage wbPage, String editorID,
+      boolean activate) throws PartInitException {
+    return IDE.openEditor(wbPage, file, editorID, activate);
   }
 
   private IEditorPart showWithReuse(IFile file, IWorkbenchPage page, String editorId,
@@ -129,28 +184,6 @@ public class EditorOpener {
       fReusedEditor = null;
     }
     return editor;
-  }
-
-  private void showWithMarker(IEditorPart editor, IFile file, int offset, int length)
-      throws PartInitException {
-    IMarker marker = null;
-    try {
-      marker = file.createMarker(NewSearchUI.SEARCH_MARKER);
-      HashMap<String, Integer> attributes = new HashMap<String, Integer>(4);
-      attributes.put(IMarker.CHAR_START, new Integer(offset));
-      attributes.put(IMarker.CHAR_END, new Integer(offset + length));
-      marker.setAttributes(attributes);
-      IDE.gotoMarker(editor, marker);
-    } catch (CoreException e) {
-      throw new PartInitException(SearchMessages.FileSearchPage_error_marker, e);
-    } finally {
-      if (marker != null)
-        try {
-          marker.delete();
-        } catch (CoreException e) {
-          // ignore
-        }
-    }
   }
 
 }

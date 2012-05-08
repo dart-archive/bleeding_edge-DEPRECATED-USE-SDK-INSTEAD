@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -21,6 +21,8 @@ import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchViewPage;
 import com.google.dart.tools.search.ui.text.Match;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IAdaptable;
@@ -39,13 +41,14 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.ui.IMemento;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.actions.ActionGroup;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.ResourceTransfer;
 import org.eclipse.ui.views.navigator.NavigatorDragAdapter;
 
+import java.io.File;
 import java.util.Set;
 
 @SuppressWarnings("deprecation")
@@ -278,7 +281,7 @@ public class FileSearchPage extends AbstractTextSearchViewPage implements IAdapt
   protected void evaluateChangedElements(Match[] matches, Set changedElements) {
     if (showLineMatches()) {
       for (int i = 0; i < matches.length; i++) {
-        changedElements.add(((FileMatch) matches[i]).getLineElement());
+        changedElements.add(((FileResourceMatch) matches[i]).getLineElement());
       }
     } else {
       super.evaluateChangedElements(matches, changedElements);
@@ -323,20 +326,18 @@ public class FileSearchPage extends AbstractTextSearchViewPage implements IAdapt
           return;
         }
       }
+      if (firstElement instanceof File) {
+        IFileStore file = EFS.getLocalFileSystem().fromLocalFile((File) firstElement);
+        try {
+          IDE.openEditorOnFileStore(getSite().getPage(), file);
+        } catch (PartInitException e) {
+          ErrorDialog.openError(getSite().getShell(),
+              SearchMessages.FileSearchPage_open_file_dialog_title,
+              SearchMessages.FileSearchPage_open_file_failed, e.getStatus());
+        }
+      }
     }
     super.handleOpen(event);
-  }
-
-  @Override
-  protected void showMatch(Match match, int offset, int length, boolean activate)
-      throws PartInitException {
-    IFile file = (IFile) match.getElement();
-    IWorkbenchPage page = getSite().getPage();
-    if (offset >= 0 && length != 0) {
-      openAndSelect(page, file, offset, length, activate);
-    } else {
-      open(page, file, activate);
-    }
   }
 
   private void addDragAdapters(StructuredViewer viewer) {
@@ -360,9 +361,12 @@ public class FileSearchPage extends AbstractTextSearchViewPage implements IAdapt
   }
 
   private boolean showLineMatches() {
-    AbstractTextSearchResult input = getInput();
-    return getLayout() == FLAG_LAYOUT_TREE && input != null
-        && !((FileSearchQuery) input.getQuery()).isFileNameSearch();
+    //TODO(pquitslund): line match presentation disabled
+    return false;
+
+//    AbstractTextSearchResult input = getInput();
+//    return getLayout() == FLAG_LAYOUT_TREE && input != null
+//        && !((FileSearchQuery) input.getQuery()).isFileNameSearch();
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,11 +13,12 @@
  */
 package com.google.dart.tools.search.internal.ui.text;
 
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.osgi.util.TextProcessor;
 
-import org.eclipse.core.runtime.IPath;
-
-import org.eclipse.core.resources.IResource;
+import java.io.File;
 
 /**
  * A label provider for basic elements like paths. The label provider will make sure that the labels
@@ -25,18 +26,27 @@ import org.eclipse.core.resources.IResource;
  */
 public class BasicElementLabels {
 
-  private BasicElementLabels() {
+  /**
+   * Returns the label for a file pattern like '*.java'
+   * 
+   * @param name the pattern
+   * @return the label of the pattern.
+   */
+  public static String getFilePattern(String name) {
+    return markLTR(name, "*.?/\\:."); //$NON-NLS-1$
   }
 
   /**
-   * Adds special marks so that that the given string is readable in a BIDI environment.
+   * Returns the label of this resource's parent's path.
    * 
-   * @param string the string
-   * @param delimiters the additional delimiters
-   * @return the processed styled string
+   * @param resource the resource
+   * @param isOSPath if <code>true</code>, the path represents an OS path, if <code>false</code> it
+   *          is a workspace path.
+   * @return the label of the path to be used in the UI.
    */
-  private static String markLTR(String string, String delimiters) {
-    return TextProcessor.process(string, delimiters);
+  public static String getParentPathLabel(File resource, boolean isOSPath) {
+    Path parentPath = new Path(resource.getParentFile().getAbsolutePath());
+    return getPathLabel(parentPath, isOSPath);
   }
 
   /**
@@ -58,23 +68,13 @@ public class BasicElementLabels {
   }
 
   /**
-   * Returns the label for a file pattern like '*.java'
+   * Returns a label for a resource name.
    * 
-   * @param name the pattern
-   * @return the label of the pattern.
+   * @param resource the resource
+   * @return the label of the resource name.
    */
-  public static String getFilePattern(String name) {
-    return markLTR(name, "*.?/\\:."); //$NON-NLS-1$
-  }
-
-  /**
-   * Returns the label for a URL, URI or URL part. Example is 'http://www.x.xom/s.html#1'
-   * 
-   * @param name the URL string
-   * @return the label of the URL.
-   */
-  public static String getURLPart(String name) {
-    return markLTR(name, ":@?-#/\\:."); //$NON-NLS-1$
+  public static String getResourceName(File resource) {
+    return markLTR(resource.getName(), ":."); //$NON-NLS-1$
   }
 
   /**
@@ -98,6 +98,16 @@ public class BasicElementLabels {
   }
 
   /**
+   * Returns the label for a URL, URI or URL part. Example is 'http://www.x.xom/s.html#1'
+   * 
+   * @param name the URL string
+   * @return the label of the URL.
+   */
+  public static String getURLPart(String name) {
+    return markLTR(name, ":@?-#/\\:."); //$NON-NLS-1$
+  }
+
+  /**
    * Returns a label for a version name. Example is '1.4.1'
    * 
    * @param name the version string
@@ -105,5 +115,19 @@ public class BasicElementLabels {
    */
   public static String getVersionName(String name) {
     return markLTR(name, ":."); //$NON-NLS-1$
+  }
+
+  /**
+   * Adds special marks so that that the given string is readable in a BIDI environment.
+   * 
+   * @param string the string
+   * @param delimiters the additional delimiters
+   * @return the processed styled string
+   */
+  private static String markLTR(String string, String delimiters) {
+    return TextProcessor.process(string, delimiters);
+  }
+
+  private BasicElementLabels() {
   }
 }
