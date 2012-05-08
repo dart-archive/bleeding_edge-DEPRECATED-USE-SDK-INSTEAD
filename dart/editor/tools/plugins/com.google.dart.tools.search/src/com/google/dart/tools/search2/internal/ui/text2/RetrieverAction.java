@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -57,8 +57,6 @@ import org.eclipse.ui.model.IWorkbenchAdapter;
 
 import org.eclipse.ui.texteditor.ITextEditor;
 
-
-
 abstract public class RetrieverAction extends Action {
   public RetrieverAction() {
   }
@@ -71,7 +69,9 @@ abstract public class RetrieverAction extends Action {
     TextSearchQueryProvider provider = TextSearchQueryProvider.getPreferred();
     String searchForString = getSearchForString(page);
     if (searchForString.length() == 0) {
-      MessageDialog.openInformation(getShell(), SearchMessages.RetrieverAction_dialog_title,
+      MessageDialog.openInformation(
+          getShell(),
+          SearchMessages.RetrieverAction_dialog_title,
           SearchMessages.RetrieverAction_empty_selection);
       return;
     }
@@ -83,8 +83,11 @@ abstract public class RetrieverAction extends Action {
     } catch (OperationCanceledException ex) {
       // action cancelled
     } catch (CoreException e) {
-      ErrorDialog.openError(getShell(), SearchMessages.RetrieverAction_error_title,
-          SearchMessages.RetrieverAction_error_message, e.getStatus());
+      ErrorDialog.openError(
+          getShell(),
+          SearchMessages.RetrieverAction_error_title,
+          SearchMessages.RetrieverAction_error_message,
+          e.getStatus());
     }
   }
 

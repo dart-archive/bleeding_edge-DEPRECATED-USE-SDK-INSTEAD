@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -435,12 +435,18 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
     filler.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL));
     layout.numColumns++;
 
-    fReplaceButton = createActionButton(composite, REPLACE_ID,
-        SearchMessages.SearchDialog_replaceAction, true);
+    fReplaceButton = createActionButton(
+        composite,
+        REPLACE_ID,
+        SearchMessages.SearchDialog_replaceAction,
+        true);
     fReplaceButton.setVisible(fCurrentPage instanceof IReplacePage);
 
-    Button searchButton = createActionButton(composite, SEARCH_ID,
-        SearchMessages.SearchDialog_searchAction, true);
+    Button searchButton = createActionButton(
+        composite,
+        SEARCH_ID,
+        SearchMessages.SearchDialog_searchAction,
+        true);
     searchButton.setEnabled(fDescriptors.size() > 0);
     super.createButtonsForButtonBar(composite); // cancel button
 
@@ -582,14 +588,16 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
                   (CoreException) ex,
                   getShell(),
                   SearchMessages.Search_Error_createSearchPage_title,
-                  Messages.format(SearchMessages.Search_Error_createSearchPage_message,
+                  Messages.format(
+                      SearchMessages.Search_Error_createSearchPage_message,
                       descriptor.getLabel()));
             } else {
               ExceptionHandler.displayMessageDialog(
                   ex,
                   getShell(),
                   SearchMessages.Search_Error_createSearchPage_title,
-                  Messages.format(SearchMessages.Search_Error_createSearchPage_message,
+                  Messages.format(
+                      SearchMessages.Search_Error_createSearchPage_message,
                       descriptor.getLabel()));
             }
           }
@@ -610,7 +618,8 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
     if (page == null || page.getControl() == null) {
       Composite container = new Composite(parent, SWT.NONE);
       Label label = new Label(container, SWT.WRAP);
-      label.setText(Messages.format(SearchMessages.SearchDialog_error_pageCreationFailed,
+      label.setText(Messages.format(
+          SearchMessages.SearchDialog_error_pageCreationFailed,
           descriptor.getLabel()));
       container.setLayout(new GridLayout());
       label.setLayoutData(new GridData());
@@ -747,8 +756,12 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
 
     String message = SearchMessages.SearchPageSelectionDialog_message;
 
-    ListSelectionDialog dialog = new ListSelectionDialog(getShell(), input,
-        new ArrayContentProvider(), labelProvider, message) {
+    ListSelectionDialog dialog = new ListSelectionDialog(
+        getShell(),
+        input,
+        new ArrayContentProvider(),
+        labelProvider,
+        message) {
       @Override
       public void create() {
         super.create();

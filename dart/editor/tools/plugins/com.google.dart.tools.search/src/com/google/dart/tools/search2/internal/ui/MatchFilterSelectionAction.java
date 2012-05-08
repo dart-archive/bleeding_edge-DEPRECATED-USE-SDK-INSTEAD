@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -23,7 +23,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.window.Window;
 
-
 public class MatchFilterSelectionAction extends Action {
 
   public static final String ACTION_ID = "MatchFilterSelectionAction"; //$NON-NLS-1$
@@ -33,7 +32,9 @@ public class MatchFilterSelectionAction extends Action {
   public MatchFilterSelectionAction(AbstractTextSearchViewPage page) {
     super(SearchMessages.MatchFilterSelectionAction_label);
     setId(ACTION_ID);
-    SearchPluginImages.setImageDescriptors(this, SearchPluginImages.T_LCL,
+    SearchPluginImages.setImageDescriptors(
+        this,
+        SearchPluginImages.T_LCL,
         SearchPluginImages.IMG_LCL_SEARCH_FILTER);
     fPage = page;
   }
@@ -54,8 +55,12 @@ public class MatchFilterSelectionAction extends Action {
     boolean enableLimitConfiguration = limit != null;
     int elementLimit = limit != null ? limit.intValue() : -1;
 
-    MatchFilterSelectionDialog dialog = new MatchFilterSelectionDialog(shell,
-        enableMatchFilterConfiguration, allFilters, checkedFilters, enableLimitConfiguration,
+    MatchFilterSelectionDialog dialog = new MatchFilterSelectionDialog(
+        shell,
+        enableMatchFilterConfiguration,
+        allFilters,
+        checkedFilters,
+        enableLimitConfiguration,
         elementLimit);
     if (dialog.open() == Window.OK) {
       if (enableMatchFilterConfiguration) {

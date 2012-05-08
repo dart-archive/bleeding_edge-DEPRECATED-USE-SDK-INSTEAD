@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -155,7 +155,8 @@ public class SearchPreferencePage extends FieldEditorPreferencePage implements
   @Override
   public void createControl(Composite parent) {
     super.createControl(parent);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(),
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        getControl(),
         ISearchHelpContextIds.SEARCH_PREFERENCE_PAGE);
   }
 
@@ -176,31 +177,44 @@ public class SearchPreferencePage extends FieldEditorPreferencePage implements
 
   @Override
   protected void createFieldEditors() {
-    addField(new BooleanFieldEditor(REUSE_EDITOR, SearchMessages.SearchPreferencePage_reuseEditor,
+    addField(new BooleanFieldEditor(
+        REUSE_EDITOR,
+        SearchMessages.SearchPreferencePage_reuseEditor,
         getFieldEditorParent()));
-    addField(new BooleanFieldEditor(BRING_VIEW_TO_FRONT,
-        SearchMessages.SearchPreferencePage_bringToFront, getFieldEditorParent()));
+    addField(new BooleanFieldEditor(
+        BRING_VIEW_TO_FRONT,
+        SearchMessages.SearchPreferencePage_bringToFront,
+        getFieldEditorParent()));
 
-    fIgnorePotentialMatchesCheckbox = new BooleanFieldEditor(IGNORE_POTENTIAL_MATCHES,
-        SearchMessages.SearchPreferencePage_ignorePotentialMatches, getFieldEditorParent());
+    fIgnorePotentialMatchesCheckbox = new BooleanFieldEditor(
+        IGNORE_POTENTIAL_MATCHES,
+        SearchMessages.SearchPreferencePage_ignorePotentialMatches,
+        getFieldEditorParent());
     addField(fIgnorePotentialMatchesCheckbox);
 
-    fEmphasizedCheckbox = new BooleanFieldEditor(EMPHASIZE_POTENTIAL_MATCHES,
-        SearchMessages.SearchPreferencePage_emphasizePotentialMatches, getFieldEditorParent());
+    fEmphasizedCheckbox = new BooleanFieldEditor(
+        EMPHASIZE_POTENTIAL_MATCHES,
+        SearchMessages.SearchPreferencePage_emphasizePotentialMatches,
+        getFieldEditorParent());
     addField(fEmphasizedCheckbox);
 
-    fColorEditor = new ColorFieldEditor(POTENTIAL_MATCH_FG_COLOR,
-        SearchMessages.SearchPreferencePage_potentialMatchFgColor, getFieldEditorParent());
+    fColorEditor = new ColorFieldEditor(
+        POTENTIAL_MATCH_FG_COLOR,
+        SearchMessages.SearchPreferencePage_potentialMatchFgColor,
+        getFieldEditorParent());
     addField(fColorEditor);
 
     fEmphasizedCheckbox.setEnabled(!arePotentialMatchesIgnored(), getFieldEditorParent());
-    fColorEditor.setEnabled(!arePotentialMatchesIgnored() && arePotentialMatchesEmphasized(),
+    fColorEditor.setEnabled(
+        !arePotentialMatchesIgnored() && arePotentialMatchesEmphasized(),
         getFieldEditorParent());
 
     handleDeletedPerspectives();
     String[][] perspectiveNamesAndIds = getPerspectiveNamesAndIds();
-    ComboFieldEditor comboEditor = new ComboFieldEditor(DEFAULT_PERSPECTIVE,
-        SearchMessages.SearchPreferencePage_defaultPerspective, perspectiveNamesAndIds,
+    ComboFieldEditor comboEditor = new ComboFieldEditor(
+        DEFAULT_PERSPECTIVE,
+        SearchMessages.SearchPreferencePage_defaultPerspective,
+        perspectiveNamesAndIds,
         getFieldEditorParent());
     addField(comboEditor);
 
@@ -208,8 +222,10 @@ public class SearchPreferencePage extends FieldEditorPreferencePage implements
     TextSearchEngineRegistry reg = SearchPlugin.getDefault().getTextSearchEngineRegistry();
     String[][] engineNamesAndIds = reg.getAvailableEngines();
     if (engineNamesAndIds.length > 1) {
-      comboEditor = new ComboFieldEditor(TEXT_SEARCH_ENGINE,
-          SearchMessages.SearchPreferencePage_textSearchEngine, engineNamesAndIds,
+      comboEditor = new ComboFieldEditor(
+          TEXT_SEARCH_ENGINE,
+          SearchMessages.SearchPreferencePage_textSearchEngine,
+          engineNamesAndIds,
           getFieldEditorParent());
       addField(comboEditor);
     }
@@ -245,7 +261,8 @@ public class SearchPreferencePage extends FieldEditorPreferencePage implements
   private void updateFieldEnablement() {
     boolean arePotentialMatchesIgnored = fIgnorePotentialMatchesCheckbox.getBooleanValue();
     fEmphasizedCheckbox.setEnabled(!arePotentialMatchesIgnored, getFieldEditorParent());
-    fColorEditor.setEnabled(!arePotentialMatchesIgnored && fEmphasizedCheckbox.getBooleanValue(),
+    fColorEditor.setEnabled(
+        !arePotentialMatchesIgnored && fEmphasizedCheckbox.getBooleanValue(),
         getFieldEditorParent());
   }
 

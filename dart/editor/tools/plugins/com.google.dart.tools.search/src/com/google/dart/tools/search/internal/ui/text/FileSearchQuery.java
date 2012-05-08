@@ -259,8 +259,10 @@ public class FileSearchQuery implements ISearchQuery {
     Pattern searchPattern = getSearchPattern();
     boolean searchInBinaries = !isScopeAllFileTypes();
 
-    TextSearchResultCollector collector = new TextSearchResultCollector(textResult,
-        isFileNameSearch(), searchInBinaries);
+    TextSearchResultCollector collector = new TextSearchResultCollector(
+        textResult,
+        isFileNameSearch(),
+        searchInBinaries);
     return TextSearchEngine.create().search(fScope, collector, searchPattern, monitor);
   }
 

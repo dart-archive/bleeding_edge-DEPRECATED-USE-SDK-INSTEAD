@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,8 +18,8 @@ import org.eclipse.jface.dialogs.IDialogPage;
 
 /**
  * Interface to be implemented by contributors to the extension point
- * <code>com.google.dart.tools.search.searchPages</code>. Represents a page in the search dialog. Implemented
- * typically subclass {@link DialogPage}.
+ * <code>com.google.dart.tools.search.searchPages</code>. Represents a page in the search dialog.
+ * Implemented typically subclass {@link DialogPage}.
  * <p>
  * The search dialog calls the {@link #performAction} method when the 'Search' button is pressed.
  * </p>

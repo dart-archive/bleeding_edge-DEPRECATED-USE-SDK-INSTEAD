@@ -80,14 +80,18 @@ public class InstallUpdateAction extends Action {
     if (resourcesNeedSaving()) {
 
       //prompt to save dirty editors
-      if (!MessageDialog.openConfirm(getShell(), UpdateJobMessages.InstallUpdateAction_confirm_save_title,
+      if (!MessageDialog.openConfirm(
+          getShell(),
+          UpdateJobMessages.InstallUpdateAction_confirm_save_title,
           UpdateJobMessages.InstallUpdateAction_confirm_save_msg)) {
         return;
       }
 
       //attempt to close dirty editors
       if (!PlatformUI.getWorkbench().saveAllEditors(false)) {
-        MessageDialog.openError(getShell(), UpdateJobMessages.InstallUpdateAction_errorTitle,
+        MessageDialog.openError(
+            getShell(),
+            UpdateJobMessages.InstallUpdateAction_errorTitle,
             UpdateJobMessages.InstallUpdateAction_error_in_save);
         return;
       }
@@ -97,7 +101,9 @@ public class InstallUpdateAction extends Action {
       applyUpdate();
       restart();
     } catch (Throwable th) {
-      MessageDialog.openError(getShell(), UpdateJobMessages.InstallUpdateAction_errorTitle,
+      MessageDialog.openError(
+          getShell(),
+          UpdateJobMessages.InstallUpdateAction_errorTitle,
           NLS.bind(UpdateJobMessages.InstallUpdateAction_errorMessage, th.getMessage()));
     }
   }
@@ -174,14 +180,19 @@ public class InstallUpdateAction extends Action {
 
     File tmpDir = UpdateUtils.getUpdateTempDir();
 
-    SubMonitor mon = SubMonitor.convert(monitor,
-        UpdateJobMessages.InstallUpdateAction_install_task, 100);
+    SubMonitor mon = SubMonitor.convert(
+        monitor,
+        UpdateJobMessages.InstallUpdateAction_install_task,
+        100);
 
     cleanupTempDir(tmpDir, mon.newChild(3));
 
     IPath updatePath = updateManager.getLatestStagedUpdate().getLocalPath();
-    UpdateUtils.unzip(updatePath.toFile(), tmpDir,
-        UpdateJobMessages.InstallUpdateAction_extract_task, mon.newChild(70));
+    UpdateUtils.unzip(
+        updatePath.toFile(),
+        tmpDir,
+        UpdateJobMessages.InstallUpdateAction_extract_task,
+        mon.newChild(70));
 
     File installTarget = UpdateUtils.getUpdateInstallDir();
     //TODO (pquitslund): only necessary for testing

@@ -81,7 +81,12 @@ public final class FileTextSearchScope extends TextSearchScope {
       String label = SearchMessages.FileTextSearchScope_scope_multiple;
       description = Messages.format(label, new String[] {roots[0].getName(), roots[1].getName()});
     }
-    return new FileTextSearchScope(description, roots, null, externalFileRoots, fileNamePatterns,
+    return new FileTextSearchScope(
+        description,
+        roots,
+        null,
+        externalFileRoots,
+        fileNamePatterns,
         includeDerived);
   }
 
@@ -101,8 +106,11 @@ public final class FileTextSearchScope extends TextSearchScope {
    */
   public static FileTextSearchScope newSearchScope(IResource[] roots, String[] fileNamePatterns,
       boolean includeDerived) {
-    return newSearchScope(roots, ExternalRootSearchScopeHelper.calculateExternalRoots(roots),
-        fileNamePatterns, includeDerived);
+    return newSearchScope(
+        roots,
+        ExternalRootSearchScopeHelper.calculateExternalRoots(roots),
+        fileNamePatterns,
+        includeDerived);
   }
 
   /**
@@ -130,16 +138,22 @@ public final class FileTextSearchScope extends TextSearchScope {
       description = Messages.format(label, workingSets[0].getLabel());
     } else if (workingSets.length == 2) {
       String label = SearchMessages.FileTextSearchScope_ws_scope_double;
-      description = Messages.format(label,
+      description = Messages.format(
+          label,
           new String[] {workingSets[0].getLabel(), workingSets[1].getLabel()});
     } else {
       String label = SearchMessages.FileTextSearchScope_ws_scope_multiple;
-      description = Messages.format(label,
+      description = Messages.format(
+          label,
           new String[] {workingSets[0].getLabel(), workingSets[1].getLabel()});
     }
     IResource[] resources = convertToResources(workingSets, includeDerived);
-    FileTextSearchScope scope = new FileTextSearchScope(description, resources, workingSets,
-        ExternalRootSearchScopeHelper.calculateExternalRoots(resources), fileNamePatterns,
+    FileTextSearchScope scope = new FileTextSearchScope(
+        description,
+        resources,
+        workingSets,
+        ExternalRootSearchScopeHelper.calculateExternalRoots(resources),
+        fileNamePatterns,
         includeDerived);
     return scope;
   }
@@ -158,8 +172,12 @@ public final class FileTextSearchScope extends TextSearchScope {
   public static FileTextSearchScope newWorkspaceScope(String[] fileNamePatterns,
       boolean includeDerived) {
     IResource[] workspace = new IResource[] {ResourcesPlugin.getWorkspace().getRoot()};
-    return new FileTextSearchScope(SearchMessages.WorkspaceScope, workspace, null,
-        ExternalRootSearchScopeHelper.calculateExternalRoots(workspace), fileNamePatterns,
+    return new FileTextSearchScope(
+        SearchMessages.WorkspaceScope,
+        workspace,
+        null,
+        ExternalRootSearchScopeHelper.calculateExternalRoots(workspace),
+        fileNamePatterns,
         includeDerived);
   }
 

@@ -55,8 +55,11 @@ public class TextSearchAction extends Action {
     try {
       NewSearchUI.runQueryInBackground(newQuery());
     } catch (CoreException e) {
-      ErrorDialog.openError(shell, SearchMessages.TextSearchPage_replace_searchproblems_title,
-          SearchMessages.TextSearchPage_replace_searchproblems_message, e.getStatus());
+      ErrorDialog.openError(
+          shell,
+          SearchMessages.TextSearchPage_replace_searchproblems_title,
+          SearchMessages.TextSearchPage_replace_searchproblems_message,
+          e.getStatus());
     }
   }
 

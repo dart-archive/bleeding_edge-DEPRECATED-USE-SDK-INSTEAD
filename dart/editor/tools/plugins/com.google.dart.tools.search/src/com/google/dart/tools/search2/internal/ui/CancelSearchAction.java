@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,7 +18,6 @@ import com.google.dart.tools.search.ui.ISearchResult;
 
 import org.eclipse.jface.action.Action;
 
-
 public class CancelSearchAction extends Action {
 
   private SearchView fView;
@@ -27,7 +26,9 @@ public class CancelSearchAction extends Action {
     super(SearchMessages.CancelSearchAction_label);
     fView = view;
     setToolTipText(SearchMessages.CancelSearchAction_tooltip);
-    SearchPluginImages.setImageDescriptors(this, SearchPluginImages.T_LCL,
+    SearchPluginImages.setImageDescriptors(
+        this,
+        SearchPluginImages.T_LCL,
         SearchPluginImages.IMG_LCL_SEARCH_CANCEL);
   }
 

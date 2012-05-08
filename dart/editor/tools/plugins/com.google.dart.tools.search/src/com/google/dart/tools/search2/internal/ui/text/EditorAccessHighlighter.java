@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -59,15 +59,20 @@ public class EditorAccessHighlighter extends Highlighter {
             Map<Annotation, Position> map = getMap(mapsByAnnotationModel, matches[i]);
             if (map != null) {
               Annotation annotation = matches[i].isFiltered() ? new Annotation(
-                  SearchPlugin.FILTERED_SEARCH_ANNOTATION_TYPE, true, null) : new Annotation(
-                  SearchPlugin.SEARCH_ANNOTATION_TYPE, true, null);
+                  SearchPlugin.FILTERED_SEARCH_ANNOTATION_TYPE,
+                  true,
+                  null) : new Annotation(SearchPlugin.SEARCH_ANNOTATION_TYPE, true, null);
               fMatchesToAnnotations.put(matches[i], annotation);
               map.put(annotation, position);
             }
           }
         } catch (BadLocationException e) {
-          SearchPlugin.log(new Status(IStatus.ERROR, SearchPlugin.getID(), 0,
-              SearchMessages.EditorAccessHighlighter_error_badLocation, e));
+          SearchPlugin.log(new Status(
+              IStatus.ERROR,
+              SearchPlugin.getID(),
+              0,
+              SearchMessages.EditorAccessHighlighter_error_badLocation,
+              e));
         }
       }
     }
@@ -158,8 +163,12 @@ public class EditorAccessHighlighter extends Highlighter {
       if (doc != null) {
         position = PositionTracker.convertToCharacterPosition(position, doc);
       } else {
-        SearchPlugin.log(new Status(IStatus.ERROR, SearchPlugin.getID(), 0,
-            SearchMessages.AnnotationHighlighter_error_noDocument, null));
+        SearchPlugin.log(new Status(
+            IStatus.ERROR,
+            SearchPlugin.getID(),
+            0,
+            SearchMessages.AnnotationHighlighter_error_noDocument,
+            null));
         return null;
       }
     }

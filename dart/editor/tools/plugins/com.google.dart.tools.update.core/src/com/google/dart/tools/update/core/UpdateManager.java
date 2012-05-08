@@ -160,8 +160,8 @@ public class UpdateManager {
    * Schedule installation of a staged update.
    */
   public void scheduleInstall() {
-      model.enterState(UpdateModel.State.INSTALLING);
-      new InstallUpdateAction(this).run();
+    model.enterState(UpdateModel.State.INSTALLING);
+    new InstallUpdateAction(this).run();
   }
 
   /**

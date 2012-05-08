@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -56,7 +56,8 @@ public class SearchPlugin extends AbstractUIPlugin {
   public static final String SORTER_EXTENSION_POINT = "searchResultSorters"; //$NON-NLS-1$
 
   /**
-   * Filtered search marker type (value <code>"com.google.dart.tools.search.filteredsearchmarker"</code>).
+   * Filtered search marker type (value
+   * <code>"com.google.dart.tools.search.filteredsearchmarker"</code>).
    * 
    * @see org.eclipse.core.resources.IMarker
    */
@@ -69,7 +70,8 @@ public class SearchPlugin extends AbstractUIPlugin {
   public static final String SEARCH_ANNOTATION_TYPE = NewSearchUI.PLUGIN_ID + ".results"; //$NON-NLS-1$
 
   /**
-   * Filtered search annotation type (value <code>"com.google.dart.tools.search.filteredResults"</code>).
+   * Filtered search annotation type (value
+   * <code>"com.google.dart.tools.search.filteredResults"</code>).
    */
   public static final String FILTERED_SEARCH_ANNOTATION_TYPE = NewSearchUI.PLUGIN_ID
       + ".filteredResults"; //$NON-NLS-1$
@@ -152,8 +154,12 @@ public class SearchPlugin extends AbstractUIPlugin {
   }
 
   public static void log(Throwable e) {
-    log(new Status(IStatus.ERROR, NewSearchUI.PLUGIN_ID, INTERNAL_ERROR,
-        SearchMessages.SearchPlugin_internal_error, e));
+    log(new Status(
+        IStatus.ERROR,
+        NewSearchUI.PLUGIN_ID,
+        INTERNAL_ERROR,
+        SearchMessages.SearchPlugin_internal_error,
+        e));
   }
 
   static boolean setAutoBuilding(boolean state) {
@@ -165,7 +171,9 @@ public class SearchPlugin extends AbstractUIPlugin {
       try {
         getWorkspace().setDescription(workspaceDesc);
       } catch (CoreException ex) {
-        ExceptionHandler.handle(ex, SearchMessages.Search_Error_setDescription_title,
+        ExceptionHandler.handle(
+            ex,
+            SearchMessages.Search_Error_setDescription_title,
             SearchMessages.Search_Error_setDescription_message);
       }
     }
@@ -244,7 +252,8 @@ public class SearchPlugin extends AbstractUIPlugin {
   public List<SearchPageDescriptor> getSearchPageDescriptors() {
     if (fPageDescriptors == null) {
       IConfigurationElement[] elements = Platform.getExtensionRegistry().getConfigurationElementsFor(
-          NewSearchUI.PLUGIN_ID, SEARCH_PAGE_EXTENSION_POINT);
+          NewSearchUI.PLUGIN_ID,
+          SEARCH_PAGE_EXTENSION_POINT);
       fPageDescriptors = createSearchPageDescriptors(elements);
     }
     return fPageDescriptors;
@@ -256,7 +265,8 @@ public class SearchPlugin extends AbstractUIPlugin {
   public List<SorterDescriptor> getSorterDescriptors() {
     if (fSorterDescriptors == null) {
       IConfigurationElement[] elements = Platform.getExtensionRegistry().getConfigurationElementsFor(
-          NewSearchUI.PLUGIN_ID, SORTER_EXTENSION_POINT);
+          NewSearchUI.PLUGIN_ID,
+          SORTER_EXTENSION_POINT);
       fSorterDescriptors = createSorterDescriptors(elements);
     }
     return fSorterDescriptors;

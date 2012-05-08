@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -24,7 +24,6 @@ import org.eclipse.core.runtime.Platform;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ViewerSorter;
-
 
 /**
  * Proxy that represents a sorter.
@@ -59,11 +58,15 @@ class SorterDescriptor {
     try {
       return (ViewerSorter) fElement.createExecutableExtension(CLASS_ATTRIBUTE);
     } catch (CoreException ex) {
-      ExceptionHandler.handle(ex, SearchMessages.Search_Error_createSorter_title,
+      ExceptionHandler.handle(
+          ex,
+          SearchMessages.Search_Error_createSorter_title,
           SearchMessages.Search_Error_createSorter_message);
       return null;
     } catch (ClassCastException ex) {
-      ExceptionHandler.displayMessageDialog(ex, SearchMessages.Search_Error_createSorter_title,
+      ExceptionHandler.displayMessageDialog(
+          ex,
+          SearchMessages.Search_Error_createSorter_title,
           SearchMessages.Search_Error_createSorter_message);
       return null;
     }

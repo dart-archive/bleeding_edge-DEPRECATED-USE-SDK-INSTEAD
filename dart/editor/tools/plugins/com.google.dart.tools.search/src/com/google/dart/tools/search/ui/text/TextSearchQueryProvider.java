@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -22,11 +22,10 @@ import org.eclipse.core.resources.IResource;
 
 import org.eclipse.ui.IWorkingSet;
 
-
 /**
  * Abstract base class for text search query providers supplied via the
- * <code>com.google.dart.tools.search.textSearchQueryProvider</code> extension point. The plug-in preference
- * <code>com.google.dart.tools.search.textSearchQueryProvider<code> defines the preferred
+ * <code>com.google.dart.tools.search.textSearchQueryProvider</code> extension point. The plug-in
+ * preference <code>com.google.dart.tools.search.textSearchQueryProvider<code> defines the preferred
  * query provider. It is intended that only products choose a preferred query provider.
  */
 public abstract class TextSearchQueryProvider {
@@ -74,8 +73,8 @@ public abstract class TextSearchQueryProvider {
   /**
    * Returns the preferred query provider. The preferred query provider is typically configured by
    * the product and defined by the search plug-in preference
-   * 'com.google.dart.tools.search.textSearchQueryProvider'. It is not intended that query providers change at
-   * runtime, but clients should always use this method to access the query provider.
+   * 'com.google.dart.tools.search.textSearchQueryProvider'. It is not intended that query providers
+   * change at runtime, but clients should always use this method to access the query provider.
    * 
    * @return the preferred {@link TextSearchQueryProvider}.
    */

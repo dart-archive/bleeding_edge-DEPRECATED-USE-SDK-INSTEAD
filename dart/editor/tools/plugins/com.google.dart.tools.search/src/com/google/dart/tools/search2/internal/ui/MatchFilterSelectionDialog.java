@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -45,7 +45,6 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-
 
 /**
  * A dialog that lets users configure the active {@link MatchFilter match filters} and (optionally)
@@ -259,7 +258,8 @@ public class MatchFilterSelectionDialog extends StatusDialog {
     }
     fLimitElementCount = value;
     if (fLimitElementsCheckbox.getSelection() && value <= 0)
-      updateStatus(createStatus(IStatus.ERROR,
+      updateStatus(createStatus(
+          IStatus.ERROR,
           SearchMessages.MatchFilterSelectionDialog_error_invalid_limit));
     else
       updateStatus(createStatus(IStatus.OK, "")); //$NON-NLS-1$

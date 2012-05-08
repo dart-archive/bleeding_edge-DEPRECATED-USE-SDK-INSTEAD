@@ -42,7 +42,8 @@ public class FileNamePatternSearchScope extends TextSearchScope {
    */
   public static FileNamePatternSearchScope newSearchScope(String description,
       IResource[] resources, boolean includeDerived) {
-    return new FileNamePatternSearchScope(description, removeRedundantEntries(resources,
+    return new FileNamePatternSearchScope(description, removeRedundantEntries(
+        resources,
         includeDerived), includeDerived);
   }
 

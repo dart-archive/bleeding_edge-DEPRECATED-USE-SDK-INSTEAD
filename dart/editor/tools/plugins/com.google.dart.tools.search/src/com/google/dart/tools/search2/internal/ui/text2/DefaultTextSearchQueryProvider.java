@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -22,7 +22,6 @@ import org.eclipse.core.resources.IResource;
 
 import org.eclipse.ui.IWorkingSet;
 
-
 public class DefaultTextSearchQueryProvider extends TextSearchQueryProvider {
 
   public ISearchQuery createQuery(TextSearchInput input) {
@@ -35,19 +34,24 @@ public class DefaultTextSearchQueryProvider extends TextSearchQueryProvider {
 
   public ISearchQuery createQuery(String searchForString) {
     FileTextSearchScope scope = FileTextSearchScope.newWorkspaceScope(
-        getPreviousFileNamePatterns(), false);
+        getPreviousFileNamePatterns(),
+        false);
     return new FileSearchQuery(searchForString, false, true, scope);
   }
 
   public ISearchQuery createQuery(String selectedText, IResource[] resources) {
-    FileTextSearchScope scope = FileTextSearchScope.newSearchScope(resources,
-        getPreviousFileNamePatterns(), false);
+    FileTextSearchScope scope = FileTextSearchScope.newSearchScope(
+        resources,
+        getPreviousFileNamePatterns(),
+        false);
     return new FileSearchQuery(selectedText, false, true, scope);
   }
 
   public ISearchQuery createQuery(String selectedText, IWorkingSet[] ws) {
-    FileTextSearchScope scope = FileTextSearchScope.newSearchScope(ws,
-        getPreviousFileNamePatterns(), false);
+    FileTextSearchScope scope = FileTextSearchScope.newSearchScope(
+        ws,
+        getPreviousFileNamePatterns(),
+        false);
     return new FileSearchQuery(selectedText, false, true, scope);
   }
 

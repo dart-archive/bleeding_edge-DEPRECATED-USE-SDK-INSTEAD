@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -274,7 +274,10 @@ public class ScopePart {
 
     if (scope == ISearchPageContainer.SELECTED_PROJECTS_SCOPE) {
       if (!fCanSearchEnclosingProjects) {
-        SearchPlugin.log(new Status(IStatus.WARNING, NewSearchUI.PLUGIN_ID, IStatus.WARNING,
+        SearchPlugin.log(new Status(
+            IStatus.WARNING,
+            NewSearchUI.PLUGIN_ID,
+            IStatus.WARNING,
             "Enclosing projects scope set on search page that does not support it", null)); //$NON-NLS-1$
         scope = ISearchPageContainer.WORKSPACE_SCOPE;
       } else if (!fUseProject.isEnabled()) {
@@ -379,7 +382,8 @@ public class ScopePart {
   private boolean handleChooseWorkingSet() {
     IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
     IWorkingSetSelectionDialog dialog = workingSetManager.createWorkingSetSelectionDialog(
-        fUseSelection.getShell(), true);
+        fUseSelection.getShell(),
+        true);
 
     if (fWorkingSets != null) {
       dialog.setSelection(fWorkingSets);

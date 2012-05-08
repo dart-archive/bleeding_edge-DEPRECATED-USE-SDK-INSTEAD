@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -46,7 +46,8 @@ public class SearchPageRegistry {
     fResultClassNameToExtension = new HashMap<String, IConfigurationElement>();
     fExtensions = Platform.getExtensionRegistry().getConfigurationElementsFor(ID_EXTENSION_POINT);
     for (int i = 0; i < fExtensions.length; i++) {
-      fResultClassNameToExtension.put(fExtensions[i].getAttribute(ATTRIB_SEARCH_RESULT_CLASS),
+      fResultClassNameToExtension.put(
+          fExtensions[i].getAttribute(ATTRIB_SEARCH_RESULT_CLASS),
           fExtensions[i]);
     }
   }

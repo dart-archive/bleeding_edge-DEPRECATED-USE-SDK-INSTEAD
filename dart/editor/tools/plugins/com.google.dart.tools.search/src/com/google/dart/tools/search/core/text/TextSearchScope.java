@@ -50,8 +50,10 @@ public abstract class TextSearchScope {
    */
   public static TextSearchScope newSearchScope(IResource[] rootResources, Pattern fileNamePattern,
       boolean visitDerivedResources) {
-    FileNamePatternSearchScope scope = FileNamePatternSearchScope.newSearchScope(new String(),
-        rootResources, visitDerivedResources);
+    FileNamePatternSearchScope scope = FileNamePatternSearchScope.newSearchScope(
+        new String(),
+        rootResources,
+        visitDerivedResources);
     scope.setFileNamePattern(fileNamePattern);
     return scope;
   }

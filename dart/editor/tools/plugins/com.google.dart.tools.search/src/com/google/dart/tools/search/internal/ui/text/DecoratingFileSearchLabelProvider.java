@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -36,7 +36,8 @@ public class DecoratingFileSearchLabelProvider extends DecoratingStyledCellLabel
 
   private static final String HIGHLIGHT_BG_COLOR_NAME = "com.google.dart.tools.search.ui.match.highlight"; //$NON-NLS-1$
 
-  public static final Styler HIGHLIGHT_STYLE = StyledString.createColorRegistryStyler(null,
+  public static final Styler HIGHLIGHT_STYLE = StyledString.createColorRegistryStyler(
+      null,
       HIGHLIGHT_BG_COLOR_NAME);
 
   public DecoratingFileSearchLabelProvider(FileLabelProvider provider) {

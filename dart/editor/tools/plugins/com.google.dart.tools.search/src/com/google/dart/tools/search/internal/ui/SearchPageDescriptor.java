@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -131,7 +131,8 @@ class SearchPageDescriptor implements IPluginContribution, Comparable {
         }
       }
 
-      getDialogSettings().put(STORE_PROCESSED_PAGE_IDS,
+      getDialogSettings().put(
+          STORE_PROCESSED_PAGE_IDS,
           processedPageIds.toArray(new String[processedPageIds.size()]));
       storeEnabledPageIds();
     }
@@ -139,7 +140,8 @@ class SearchPageDescriptor implements IPluginContribution, Comparable {
   }
 
   private static void storeEnabledPageIds() {
-    getDialogSettings().put(STORE_ENABLED_PAGE_IDS,
+    getDialogSettings().put(
+        STORE_ENABLED_PAGE_IDS,
         fgEnabledPageIds.toArray(new String[fgEnabledPageIds.size()]));
   }
 
@@ -387,7 +389,8 @@ class SearchPageDescriptor implements IPluginContribution, Comparable {
       int pos = token.indexOf(':');
       if (pos != -1) {
         String extension = token.substring(0, pos);
-        int score = StringConverter.asInt(token.substring(pos + 1).trim(),
+        int score = StringConverter.asInt(
+            token.substring(pos + 1).trim(),
             ISearchPageScoreComputer.UNKNOWN);
         if (extension.equals("*")) { //$NON-NLS-1$
           fWildcardScore = score;

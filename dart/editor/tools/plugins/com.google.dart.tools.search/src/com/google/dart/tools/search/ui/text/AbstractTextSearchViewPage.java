@@ -1097,15 +1097,23 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
 
   private void createLayoutActions() {
     if (countBits(fSupportedLayouts) > 1) {
-      fFlatAction = new SetLayoutAction(this,
+      fFlatAction = new SetLayoutAction(
+          this,
           SearchMessages.AbstractTextSearchViewPage_flat_layout_label,
-          SearchMessages.AbstractTextSearchViewPage_flat_layout_tooltip, FLAG_LAYOUT_FLAT);
-      fHierarchicalAction = new SetLayoutAction(this,
+          SearchMessages.AbstractTextSearchViewPage_flat_layout_tooltip,
+          FLAG_LAYOUT_FLAT);
+      fHierarchicalAction = new SetLayoutAction(
+          this,
           SearchMessages.AbstractTextSearchViewPage_hierarchical_layout_label,
-          SearchMessages.AbstractTextSearchViewPage_hierarchical_layout_tooltip, FLAG_LAYOUT_TREE);
-      SearchPluginImages.setImageDescriptors(fFlatAction, SearchPluginImages.T_LCL,
+          SearchMessages.AbstractTextSearchViewPage_hierarchical_layout_tooltip,
+          FLAG_LAYOUT_TREE);
+      SearchPluginImages.setImageDescriptors(
+          fFlatAction,
+          SearchPluginImages.T_LCL,
           SearchPluginImages.IMG_LCL_SEARCH_FLAT_LAYOUT);
-      SearchPluginImages.setImageDescriptors(fHierarchicalAction, SearchPluginImages.T_LCL,
+      SearchPluginImages.setImageDescriptors(
+          fHierarchicalAction,
+          SearchPluginImages.T_LCL,
           SearchPluginImages.IMG_LCL_SEARCH_HIERARCHICAL_LAYOUT);
     }
   }
@@ -1356,9 +1364,11 @@ public abstract class AbstractTextSearchViewPage extends Page implements ISearch
       public void handleException(Throwable exception) {
         if (exception instanceof PartInitException) {
           PartInitException pie = (PartInitException) exception;
-          ErrorDialog.openError(getSite().getShell(),
+          ErrorDialog.openError(
+              getSite().getShell(),
               SearchMessages.DefaultSearchViewPage_show_match,
-              SearchMessages.DefaultSearchViewPage_error_no_editor, pie.getStatus());
+              SearchMessages.DefaultSearchViewPage_error_no_editor,
+              pie.getStatus());
         }
       }
 

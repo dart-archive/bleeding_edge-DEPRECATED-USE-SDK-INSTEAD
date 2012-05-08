@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -167,7 +167,8 @@ public class EditorAnnotationManager implements ISearchResultListener {
       } else if (e instanceof RemoveAllEvent) {
         removeAnnotations(result);
       } else if (e instanceof FilterUpdateEvent) {
-        Match[] matchesInEditor = getMatchesInEditor(((FilterUpdateEvent) e).getUpdatedMatches(),
+        Match[] matchesInEditor = getMatchesInEditor(
+            ((FilterUpdateEvent) e).getUpdatedMatches(),
             result);
         if (matchesInEditor != null) {
           removeAnnotations(matchesInEditor);

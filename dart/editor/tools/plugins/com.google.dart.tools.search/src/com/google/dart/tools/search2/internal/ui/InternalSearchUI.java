@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -136,7 +136,8 @@ public class InternalSearchUI {
     fSearchViewManager = new SearchViewManager(fSearchResultsManager);
 
     PlatformUI.getWorkbench().getProgressService().registerIconForFamily(
-        SearchPluginImages.DESC_VIEW_SEARCHRES, FAMILY_SEARCH);
+        SearchPluginImages.DESC_VIEW_SEARCHRES,
+        FAMILY_SEARCH);
   }
 
   public void addQuery(ISearchQuery query) {
@@ -298,8 +299,12 @@ public class InternalSearchUI {
       if (innerException instanceof CoreException) {
         return ((CoreException) innerException).getStatus();
       }
-      return new Status(IStatus.ERROR, SearchPlugin.getID(), 0,
-          SearchMessages.InternalSearchUI_error_unexpected, innerException);
+      return new Status(
+          IStatus.ERROR,
+          SearchPlugin.getID(),
+          0,
+          SearchMessages.InternalSearchUI_error_unexpected,
+          innerException);
     } catch (InterruptedException e) {
       return Status.CANCEL_STATUS;
     }

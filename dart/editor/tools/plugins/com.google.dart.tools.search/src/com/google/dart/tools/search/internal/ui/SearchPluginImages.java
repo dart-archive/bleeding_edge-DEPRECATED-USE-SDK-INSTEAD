@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -81,13 +81,17 @@ public class SearchPluginImages {
   public static final String IMG_OBJ_TEXT_SEARCH_LINE = NAME_PREFIX + "line_match.gif"; //$NON-NLS-1$
 
   // Define images
-  public static final ImageDescriptor DESC_OBJ_TSEARCH_DPDN = createManaged(T_OBJ,
+  public static final ImageDescriptor DESC_OBJ_TSEARCH_DPDN = createManaged(
+      T_OBJ,
       IMG_OBJ_TSEARCH_DPDN);
-  public static final ImageDescriptor DESC_OBJ_SEARCHMARKER = createManaged(T_OBJ,
+  public static final ImageDescriptor DESC_OBJ_SEARCHMARKER = createManaged(
+      T_OBJ,
       IMG_OBJ_SEARCHMARKER);
-  public static final ImageDescriptor DESC_OBJ_TEXT_SEARCH_LINE = createManaged(T_OBJ,
+  public static final ImageDescriptor DESC_OBJ_TEXT_SEARCH_LINE = createManaged(
+      T_OBJ,
       IMG_OBJ_TEXT_SEARCH_LINE);
-  public static final ImageDescriptor DESC_VIEW_SEARCHRES = createManaged(T_EVIEW,
+  public static final ImageDescriptor DESC_VIEW_SEARCHRES = createManaged(
+      T_EVIEW,
       IMG_VIEW_SEARCHRES);
 
   public static Image get(String key) {
@@ -109,7 +113,9 @@ public class SearchPluginImages {
   private static ImageDescriptor create(String prefix, String name,
       boolean useMissingImageDescriptor) {
     IPath path = ICONS_PATH.append(prefix).append(name);
-    return createImageDescriptor(SearchPlugin.getDefault().getBundle(), path,
+    return createImageDescriptor(
+        SearchPlugin.getDefault().getBundle(),
+        path,
         useMissingImageDescriptor);
   }
 

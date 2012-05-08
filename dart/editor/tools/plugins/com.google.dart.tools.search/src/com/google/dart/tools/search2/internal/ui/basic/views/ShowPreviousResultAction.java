@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,15 +19,15 @@ import com.google.dart.tools.search2.internal.ui.SearchMessages;
 
 import org.eclipse.jface.action.Action;
 
-
-
 public class ShowPreviousResultAction extends Action {
 
   private AbstractTextSearchViewPage fPage;
 
   public ShowPreviousResultAction(AbstractTextSearchViewPage page) {
     super(SearchMessages.ShowPreviousResultAction_label);
-    SearchPluginImages.setImageDescriptors(this, SearchPluginImages.T_LCL,
+    SearchPluginImages.setImageDescriptors(
+        this,
+        SearchPluginImages.T_LCL,
         SearchPluginImages.IMG_LCL_SEARCH_PREV);
     setToolTipText(SearchMessages.ShowPreviousResultAction_tooltip);
     fPage = page;

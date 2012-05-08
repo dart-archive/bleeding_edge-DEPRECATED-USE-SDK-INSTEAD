@@ -98,9 +98,11 @@ public class EditorOpener {
           textEditor.selectAndReveal(offset, length);
         }
       } catch (PartInitException e) {
-        ErrorDialog.openError(page.getWorkbenchWindow().getShell(),
+        ErrorDialog.openError(
+            page.getWorkbenchWindow().getShell(),
             SearchMessages.FileSearchPage_open_file_dialog_title,
-            SearchMessages.FileSearchPage_open_file_failed, e.getStatus());
+            SearchMessages.FileSearchPage_open_file_failed,
+            e.getStatus());
       }
     }
 

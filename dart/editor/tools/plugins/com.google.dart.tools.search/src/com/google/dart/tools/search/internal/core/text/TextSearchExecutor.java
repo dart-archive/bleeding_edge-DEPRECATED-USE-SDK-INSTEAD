@@ -154,8 +154,11 @@ public class TextSearchExecutor {
 
   public TextSearchExecutor(TextSearchRequestor collector, Pattern searchPattern) {
     this.collector = collector;
-    this.status = new MultiStatus(NewSearchUI.PLUGIN_ID, IStatus.OK,
-        SearchMessages.TextSearchEngine_statusMessage, null);
+    this.status = new MultiStatus(
+        NewSearchUI.PLUGIN_ID,
+        IStatus.OK,
+        SearchMessages.TextSearchEngine_statusMessage,
+        null);
 
     this.matcher = searchPattern.pattern().length() == 0 ? null
         : searchPattern.matcher(new String());
@@ -207,7 +210,8 @@ public class TextSearchExecutor {
 
     try {
       String taskName = matcher == null ? SearchMessages.TextSearchVisitor_filesearch_task_label
-          : Messages.format(SearchMessages.TextSearchVisitor_textsearch_task_label,
+          : Messages.format(
+              SearchMessages.TextSearchVisitor_textsearch_task_label,
               matcher.pattern().pattern());
       progressMonitor.beginTask(taskName, numberOfFilesToScan);
       monitorUpdateJob.setSystem(true);
@@ -234,7 +238,9 @@ public class TextSearchExecutor {
    * @return execution status
    */
   public IStatus search(TextSearchScope scope, IProgressMonitor monitor) {
-    return search(scope.evaluateFilesInScope(status), scope.evaluateExternalFilesInScope(status),
+    return search(
+        scope.evaluateFilesInScope(status),
+        scope.evaluateExternalFilesInScope(status),
         monitor);
   }
 
@@ -266,7 +272,8 @@ public class TextSearchExecutor {
       IFile file = ((IFileEditorInput) input).getFile();
       if (!result.containsKey(file)) { // take the first editor found
         ITextFileBufferManager bufferManager = FileBuffers.getTextFileBufferManager();
-        ITextFileBuffer textFileBuffer = bufferManager.getTextFileBuffer(file.getFullPath(),
+        ITextFileBuffer textFileBuffer = bufferManager.getTextFileBuffer(
+            file.getFullPath(),
             LocationKind.IFILE);
         if (textFileBuffer != null) {
           // file buffer has precedence
@@ -316,7 +323,8 @@ public class TextSearchExecutor {
     IDocument document = documentsInEditors.get(file);
     if (document == null) {
       ITextFileBufferManager bufferManager = FileBuffers.getTextFileBufferManager();
-      ITextFileBuffer textFileBuffer = bufferManager.getTextFileBuffer(file.getFullPath(),
+      ITextFileBuffer textFileBuffer = bufferManager.getTextFileBuffer(
+          file.getFullPath(),
           LocationKind.IFILE);
       if (textFileBuffer != null) {
         document = textFileBuffer.getDocument();

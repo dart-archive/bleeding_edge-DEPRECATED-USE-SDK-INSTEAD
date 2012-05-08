@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,9 +18,10 @@ import org.eclipse.ui.part.IPageBookViewPage;
 
 /**
  * Interface to be implemented by contributors to the extension point
- * <code>com.google.dart.tools.search.searchResultViewPages</code>. A <code>ISearchResultPage</code> is used
- * to show the search results for a particular class of <code>ISearchResult</code> (as specified in
- * the <code>searchResultClass</code> attribute of the extension point) in the search result view. <br>
+ * <code>com.google.dart.tools.search.searchResultViewPages</code>. A <code>ISearchResultPage</code>
+ * is used to show the search results for a particular class of <code>ISearchResult</code> (as
+ * specified in the <code>searchResultClass</code> attribute of the extension point) in the search
+ * result view. <br>
  * <p>
  * Clients may implement this interface.
  * </p>

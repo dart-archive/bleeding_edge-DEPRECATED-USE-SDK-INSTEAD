@@ -66,7 +66,6 @@ public class DownloadManager {
     return UpdateUtils.getLatestRevision(UpdateCore.getUpdateUrl());
   }
 
-  
   /**
    * Get the latest staged revision number.
    * 

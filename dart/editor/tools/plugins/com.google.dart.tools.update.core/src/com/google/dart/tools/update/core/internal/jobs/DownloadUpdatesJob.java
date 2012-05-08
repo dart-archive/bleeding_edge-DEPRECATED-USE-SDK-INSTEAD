@@ -65,8 +65,10 @@ public class DownloadUpdatesJob extends Job {
 
     try {
 
-      SubMonitor mon = SubMonitor.convert(monitor,
-          UpdateJobMessages.DownloadUpdatesJob_progress_label, 100);
+      SubMonitor mon = SubMonitor.convert(
+          monitor,
+          UpdateJobMessages.DownloadUpdatesJob_progress_label,
+          100);
 
       File updateDir = UpdateUtils.getUpdateDir();
 
@@ -74,8 +76,11 @@ public class DownloadUpdatesJob extends Job {
 
       updateFile.createNewFile();
 
-      UpdateUtils.downloadFile(revision.getUrl(), updateFile,
-          NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()), mon);
+      UpdateUtils.downloadFile(
+          revision.getUrl(),
+          updateFile,
+          NLS.bind(UpdateJobMessages.DownloadUpdatesJob_editor_rev_label, revision.toString()),
+          mon);
 
     } finally {
       if (updateFile != null) {

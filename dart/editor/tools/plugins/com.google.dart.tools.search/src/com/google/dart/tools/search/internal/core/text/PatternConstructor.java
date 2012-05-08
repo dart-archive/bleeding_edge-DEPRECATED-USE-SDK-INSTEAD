@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -19,7 +19,6 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.eclipse.jface.text.FindReplaceDocumentAdapter;
-
 
 /**
  *
@@ -294,7 +293,7 @@ public class PatternConstructor {
      * @param replaceText the replace pattern
      * @param foundText the found pattern to be replaced
      * @return a replace pattern with escaped characters substituted by the respective characters
-       */
+     */
     private String interpretReplaceEscapes(String replaceText, String foundText) {
       int length = replaceText.length();
       boolean inEscape = false;
@@ -355,7 +354,7 @@ public class PatternConstructor {
      * @param replaceText the original replace pattern
      * @param foundText the found pattern to be replaced
      * @return the new offset
-       */
+     */
     private int interpretReplaceEscape(final char ch, int i, StringBuffer buf, String replaceText,
         String foundText) {
       int length = replaceText.length();
@@ -485,7 +484,7 @@ public class PatternConstructor {
      * 
      * @param buf the output buffer
      * @param ch the character to process
-       */
+     */
     private void interpretRetainCase(StringBuffer buf, char ch) {
       if (fRetainCaseMode == RC_UPPER)
         buf.append(Character.toUpperCase(ch));

@@ -55,7 +55,9 @@ import java.util.zip.ZipInputStream;
 public class UpdateUtils {
 
   private static enum Arch {
-    x32("x86"), x64("x86_64"), UNKNOWN(null);
+    x32("x86"),
+    x64("x86_64"),
+    UNKNOWN(null);
 
     private final String qualifier;
 
@@ -65,7 +67,10 @@ public class UpdateUtils {
   }
 
   private static enum OS {
-    WIN("win32.win32"), OSX("macosx.cocoa"), LINUX("linux.gtk"), UNKNOWN(null);
+    WIN("win32.win32"),
+    OSX("macosx.cocoa"),
+    LINUX("linux.gtk"),
+    UNKNOWN(null);
 
     private final String qualifier;
 
@@ -93,7 +98,7 @@ public class UpdateUtils {
       if (f.isFile()) {
         if (!toFile.exists() || overwriteFilter.accept(toFile)) {
           copyFile(f, toFile, monitor);
-        } 
+        }
 //        else {
 //          System.out.println("skipping + " + toFile.getPath());
 //          UpdateCore.logWarning("skipping + " + toFile.getPath());
@@ -446,7 +451,8 @@ public class UpdateUtils {
 
     String str = readUrlStream(urlString);
 
-    Pattern linkPattern = Pattern.compile("<a[^>]+href=[\"']?([\"'>]+)[\"']?[^>]*>(.+?)</a>",
+    Pattern linkPattern = Pattern.compile(
+        "<a[^>]+href=[\"']?([\"'>]+)[\"']?[^>]*>(.+?)</a>",
         Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     Matcher matcher = linkPattern.matcher(str);
     ArrayList<Revision> revisions = new ArrayList<Revision>();

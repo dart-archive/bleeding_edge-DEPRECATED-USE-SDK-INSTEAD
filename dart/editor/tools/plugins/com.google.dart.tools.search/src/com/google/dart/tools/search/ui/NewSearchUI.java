@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -42,7 +42,8 @@ public class NewSearchUI {
   public static final String SEARCH_VIEW_ID = "com.google.dart.tools.search.ui.views.SearchView"; //$NON-NLS-1$
 
   /**
-   * Id of the Search action set (value <code>"com.google.dart.tools.search.searchActionSet"</code>).
+   * Id of the Search action set (value <code>"com.google.dart.tools.search.searchActionSet"</code>
+   * ).
    */
   public static final String ACTION_SET_ID = PLUGIN_ID + ".searchActionSet"; //$NON-NLS-1$
 

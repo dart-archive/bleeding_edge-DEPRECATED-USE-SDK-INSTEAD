@@ -106,8 +106,13 @@ public class TextSearchPage extends DialogPage implements ISearchPage /* ,IRepla
         boolean isRegExSearch = settings.getBoolean("isRegExSearch"); //$NON-NLS-1$
         boolean ignoreCase = settings.getBoolean("ignoreCase"); //$NON-NLS-1$
 
-        return new SearchPatternData(textPattern, !ignoreCase, isRegExSearch, fileNamePatterns,
-            scope, workingSets);
+        return new SearchPatternData(
+            textPattern,
+            !ignoreCase,
+            isRegExSearch,
+            fileNamePatterns,
+            scope,
+            workingSets);
       } catch (NumberFormatException e) {
         return null;
       }
@@ -253,7 +258,8 @@ public class TextSearchPage extends DialogPage implements ISearchPage /* ,IRepla
 
     setControl(result);
     Dialog.applyDialogFont(result);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(result,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        result,
         ISearchHelpContextIds.TEXT_SEARCH_PAGE);
   }
 
@@ -286,8 +292,11 @@ public class TextSearchPage extends DialogPage implements ISearchPage /* ,IRepla
     try {
       NewSearchUI.runQueryInBackground(newQuery());
     } catch (CoreException e) {
-      ErrorDialog.openError(getShell(), SearchMessages.TextSearchPage_replace_searchproblems_title,
-          SearchMessages.TextSearchPage_replace_searchproblems_message, e.getStatus());
+      ErrorDialog.openError(
+          getShell(),
+          SearchMessages.TextSearchPage_replace_searchproblems_title,
+          SearchMessages.TextSearchPage_replace_searchproblems_message,
+          e.getStatus());
       return false;
     }
     return true;
@@ -297,15 +306,18 @@ public class TextSearchPage extends DialogPage implements ISearchPage /* ,IRepla
   /* @Override */
   public boolean performReplace() {
     try {
-      IStatus status = NewSearchUI.runQueryInForeground(getContainer().getRunnableContext(),
+      IStatus status = NewSearchUI.runQueryInForeground(
+          getContainer().getRunnableContext(),
           newQuery());
       if (status.matches(IStatus.CANCEL)) {
         return false;
       }
       if (!status.isOK()) {
-        ErrorDialog.openError(getShell(),
+        ErrorDialog.openError(
+            getShell(),
             SearchMessages.TextSearchPage_replace_searchproblems_title,
-            SearchMessages.TextSearchPage_replace_runproblem_message, status);
+            SearchMessages.TextSearchPage_replace_runproblem_message,
+            status);
       }
 
       Display.getCurrent().asyncExec(new Runnable() {
@@ -326,8 +338,11 @@ public class TextSearchPage extends DialogPage implements ISearchPage /* ,IRepla
       });
       return true;
     } catch (CoreException e) {
-      ErrorDialog.openError(getShell(), SearchMessages.TextSearchPage_replace_searchproblems_title,
-          SearchMessages.TextSearchPage_replace_querycreationproblem_message, e.getStatus());
+      ErrorDialog.openError(
+          getShell(),
+          SearchMessages.TextSearchPage_replace_searchproblems_title,
+          SearchMessages.TextSearchPage_replace_querycreationproblem_message,
+          e.getStatus());
       return false;
     }
   }
@@ -465,8 +480,13 @@ public class TextSearchPage extends DialogPage implements ISearchPage /* ,IRepla
     ComboContentAdapter contentAdapter = new ComboContentAdapter();
     FindReplaceDocumentAdapterContentProposalProvider findProposer = new FindReplaceDocumentAdapterContentProposalProvider(
         true);
-    fPatterFieldContentAssist = new ContentAssistCommandAdapter(fPattern, contentAdapter,
-        findProposer, ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS, new char[0], true);
+    fPatterFieldContentAssist = new ContentAssistCommandAdapter(
+        fPattern,
+        contentAdapter,
+        findProposer,
+        ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS,
+        new char[0],
+        true);
     fPatterFieldContentAssist.setEnabled(fIsRegExSearch);
 
     fIsCaseSensitiveCheckbox = new Button(group, SWT.CHECK);
@@ -580,8 +600,13 @@ public class TextSearchPage extends DialogPage implements ISearchPage /* ,IRepla
     if (match != null) {
       fPreviousSearchPatterns.remove(match);
     }
-    match = new SearchPatternData(getPattern(), isCaseSensitive(), fIsRegExCheckbox.getSelection(),
-        getExtensions(), getContainer().getSelectedScope(), getContainer().getSelectedWorkingSets());
+    match = new SearchPatternData(
+        getPattern(),
+        isCaseSensitive(),
+        fIsRegExCheckbox.getSelection(),
+        getExtensions(),
+        getContainer().getSelectedScope(),
+        getContainer().getSelectedWorkingSets());
     fPreviousSearchPatterns.add(0, match);
     return match;
   }
@@ -744,8 +769,11 @@ public class TextSearchPage extends DialogPage implements ISearchPage /* ,IRepla
 
   private ISearchQuery newQuery() throws CoreException {
     SearchPatternData data = getPatternData();
-    TextSearchPageInput input = new TextSearchPageInput(data.textPattern, data.isCaseSensitive,
-        data.isRegExSearch, createTextSearchScope());
+    TextSearchPageInput input = new TextSearchPageInput(
+        data.textPattern,
+        data.isCaseSensitive,
+        data.isRegExSearch,
+        createTextSearchScope());
     return TextSearchQueryProvider.getPreferred().createQuery(input);
   }
 

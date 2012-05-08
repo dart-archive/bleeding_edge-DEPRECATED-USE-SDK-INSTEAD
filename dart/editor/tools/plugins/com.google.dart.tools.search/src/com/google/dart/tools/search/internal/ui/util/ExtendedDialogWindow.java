@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -195,7 +195,10 @@ public abstract class ExtendedDialogWindow extends TrayDialog implements IRunnab
    */
   @Override
   protected void createButtonsForButtonBar(Composite parent) {
-    fCancelButton = createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL,
+    fCancelButton = createButton(
+        parent,
+        IDialogConstants.CANCEL_ID,
+        IDialogConstants.CANCEL_LABEL,
         false);
   }
 
@@ -322,10 +325,14 @@ public abstract class ExtendedDialogWindow extends TrayDialog implements IRunnab
   }
 
   private MessageDialog createClosingDialog() {
-    MessageDialog result = new MessageDialog(getShell(),
-        SearchMessages.SearchDialogClosingDialog_title, null,
-        SearchMessages.SearchDialogClosingDialog_message, MessageDialog.QUESTION,
-        new String[] {IDialogConstants.OK_LABEL}, 0);
+    MessageDialog result = new MessageDialog(
+        getShell(),
+        SearchMessages.SearchDialogClosingDialog_title,
+        null,
+        SearchMessages.SearchDialogClosingDialog_message,
+        MessageDialog.QUESTION,
+        new String[] {IDialogConstants.OK_LABEL},
+        0);
     return result;
   }
 

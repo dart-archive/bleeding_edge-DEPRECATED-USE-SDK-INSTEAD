@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,9 +18,10 @@ import org.eclipse.jface.resource.ImageDescriptor;
 /**
  * Implementors of this interface represent the result of a search. How the results of a search are
  * structured is up to the implementor of this interface. The abstract base implementation provided
- * with {@link com.google.dart.tools.search.ui.text.AbstractTextSearchResult AbstractTextSearchResult} uses a
- * flat list of matches to represent the result of a search. Subclasses of
- * <code>SearchResultEvent</code> can be used in order to notify listeners of search result changes.
+ * with {@link com.google.dart.tools.search.ui.text.AbstractTextSearchResult
+ * AbstractTextSearchResult} uses a flat list of matches to represent the result of a search.
+ * Subclasses of <code>SearchResultEvent</code> can be used in order to notify listeners of search
+ * result changes.
  * <p>
  * To present search results to the user implementors of this interface must also provide an
  * extension for the extension point <code>com.google.dart.tools.search.searchResultViewPage</code>.
