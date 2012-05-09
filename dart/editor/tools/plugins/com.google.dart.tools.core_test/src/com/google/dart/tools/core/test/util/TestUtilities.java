@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.test.util;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.model.DartProject;
 
 import junit.framework.Assert;
@@ -357,6 +358,7 @@ public class TestUtilities {
       project.create(description, null);
       project.open(null);
     }
+    AnalysisTestUtilities.waitForAnalysis();
     DartProject dartProject = DartCore.create(project);
     // waitForJobs();
     return dartProject;
@@ -404,6 +406,7 @@ public class TestUtilities {
     }
     DartProject project = loadDartProject(targetPath);
     refreshWorkspace();
+    AnalysisTestUtilities.waitForAnalysis();
 
     return project;
   }

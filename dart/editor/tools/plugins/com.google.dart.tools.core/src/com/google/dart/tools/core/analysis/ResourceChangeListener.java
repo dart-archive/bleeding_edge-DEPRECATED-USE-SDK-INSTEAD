@@ -107,8 +107,20 @@ public class ResourceChangeListener {
     }
   }
 
-  private static final int EVENT_MASK = IResourceChangeEvent.POST_CHANGE;
+//  private static final int EVENT_MASK = IResourceChangeEvent.POST_CHANGE;
   private static final int DELTA_MASK = IResourceDelta.CONTENT | IResourceDelta.REPLACED;
+
+  /**
+   * The number of instances currently scanning for libraries
+   */
+  private static int instanceCount = 0;
+
+  /**
+   * Answer <code>true</code> if at least one instance is scanning for libraries
+   */
+  public static boolean isScanning() {
+    return instanceCount > 0;
+  }
 
   private final AnalysisServer server;
 
@@ -240,28 +252,28 @@ public class ResourceChangeListener {
    * server when changes occur
    */
   // TODO (danrubel) merge with delta processor or remove resource change listener
-  public void start() {
-    synchronized (filesToScan) {
-      if (listener != null) {
-        return;
-      }
-      listener = new Listener();
-      ResourcesPlugin.getWorkspace().addResourceChangeListener(listener, EVENT_MASK);
-    }
-  }
+//  public void start() {
+//    synchronized (filesToScan) {
+//      if (listener != null) {
+//        return;
+//      }
+//      listener = new Listener();
+//      ResourcesPlugin.getWorkspace().addResourceChangeListener(listener, EVENT_MASK);
+//    }
+//  }
 
   /**
    * Stop listening for resource changes
    */
-  public void stop() {
-    synchronized (filesToScan) {
-      if (listener == null) {
-        return;
-      }
-      ResourcesPlugin.getWorkspace().removeResourceChangeListener(listener);
-      listener = null;
-    }
-  }
+//  public void stop() {
+//    synchronized (filesToScan) {
+//      if (listener == null) {
+//        return;
+//      }
+//      ResourcesPlugin.getWorkspace().removeResourceChangeListener(listener);
+//      listener = null;
+//    }
+//  }
 
   /**
    * Scan the input stream for a directive indicating that the Dart file is a library
@@ -469,31 +481,36 @@ public class ResourceChangeListener {
         filesToScan.notifyAll();
         return;
       }
+      instanceCount++;
       scanThread = new Thread(new Runnable() {
 
         @Override
         public void run() {
-          nonDirectiveFiles = new ArrayList<File>();
-          sourcedFiles = new HashSet<File>();
-          callbackCounter = 0;
-          scanFiles();
-          synchronized (sourcedFiles) {
-            while (callbackCounter > 0) {
-              try {
-                sourcedFiles.wait();
-              } catch (InterruptedException e) {
-              }
-            }
-          }
-          // this if statement is inserted as an optimization:
-          // if nonDirectiveFiles is empty, there is no reason to start the synchronized block
-          if (!nonDirectiveFiles.isEmpty()) {
+          try {
+            nonDirectiveFiles = new ArrayList<File>();
+            sourcedFiles = new HashSet<File>();
+            callbackCounter = 0;
+            scanFiles();
             synchronized (sourcedFiles) {
-              nonDirectiveFiles.removeAll(sourcedFiles);
-              for (File looseFile : nonDirectiveFiles) {
-                server.analyzeLibrary(looseFile);
+              while (callbackCounter > 0) {
+                try {
+                  sourcedFiles.wait();
+                } catch (InterruptedException e) {
+                }
               }
             }
+            // this if statement is inserted as an optimization:
+            // if nonDirectiveFiles is empty, there is no reason to start the synchronized block
+            if (!nonDirectiveFiles.isEmpty()) {
+              synchronized (sourcedFiles) {
+                nonDirectiveFiles.removeAll(sourcedFiles);
+                for (File looseFile : nonDirectiveFiles) {
+                  server.analyzeLibrary(looseFile);
+                }
+              }
+            }
+          } finally {
+            instanceCount--;
           }
         }
       }, ResourceChangeListener.class.getSimpleName());

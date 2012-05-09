@@ -181,9 +181,7 @@ public class AnalysisServerTest extends TestCase {
     server.analyzeLibrary(libFile);
     long end = System.currentTimeMillis() + 30000;
     while (count[0] < 3) {
-      if (!AnalysisTestUtilities.waitForIdle(server, end - System.currentTimeMillis())) {
-        fail("Expected 3 idle events, but received " + count[0]);
-      }
+      AnalysisTestUtilities.waitForIdle(server, end - System.currentTimeMillis());
     }
   }
 
@@ -420,9 +418,7 @@ public class AnalysisServerTest extends TestCase {
    */
   private long waitForIdle() throws InterruptedException {
     final long start = System.currentTimeMillis();
-    if (!AnalysisTestUtilities.waitForIdle(server, FIVE_MINUTES_MS)) {
-      fail(server.getClass().getSimpleName() + " not idle");
-    }
+    AnalysisTestUtilities.waitForIdle(server, FIVE_MINUTES_MS);
     // In the current implementation, the index will process all background indexing
     // before answering any search request
     if (index != null) {

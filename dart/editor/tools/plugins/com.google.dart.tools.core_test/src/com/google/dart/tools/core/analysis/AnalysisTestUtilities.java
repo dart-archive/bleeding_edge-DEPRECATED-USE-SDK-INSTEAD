@@ -16,6 +16,8 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
+import static junit.framework.Assert.fail;
+
 public class AnalysisTestUtilities {
 
   /**
@@ -33,9 +35,8 @@ public class AnalysisTestUtilities {
    * 
    * @param server the analysis server to be tested (not <code>null</code>)
    * @param milliseconds the maximum number of milliseconds to wait
-   * @return <code>true</code> if the server is idle
    */
-  public static boolean waitForIdle(AnalysisServer server, long milliseconds) {
+  public static void waitForIdle(AnalysisServer server, long milliseconds) {
     final Object waitForIdleLock = new Object();
 
     AnalysisListener listener = new AnalysisListener() {
@@ -68,20 +69,32 @@ public class AnalysisTestUtilities {
     server.addAnalysisListener(listener);
     try {
       long endTime = System.currentTimeMillis() + milliseconds;
-      synchronized (waitForIdleLock) {
-        while (!server.isIdle()) {
-          long delta = endTime - System.currentTimeMillis();
-          if (delta <= 0) {
-            return false;
-          }
-          try {
-            waitForIdleLock.wait(delta);
-          } catch (InterruptedException e) {
-            //$FALL-THROUGH$
+      while (true) {
+        synchronized (waitForIdleLock) {
+          while (!server.isIdle()) {
+            long delta = endTime - System.currentTimeMillis();
+            if (delta <= 0) {
+              fail("AnalysisServer not idle");
+            }
+            try {
+              waitForIdleLock.wait(delta);
+            } catch (InterruptedException e) {
+              //$FALL-THROUGH$
+            }
           }
         }
+        if (!ResourceChangeListener.isScanning()) {
+          return;
+        }
+        if (System.currentTimeMillis() >= endTime) {
+          fail("AnalysisServer not idle");
+        }
+        try {
+          Thread.sleep(10);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
       }
-      return true;
     } finally {
       server.removeAnalysisListener(listener);
     }
