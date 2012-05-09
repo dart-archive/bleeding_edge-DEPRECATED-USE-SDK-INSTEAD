@@ -15,14 +15,17 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.test.util.TestProject;
+import com.google.dart.tools.internal.corext.refactoring.rename.FunctionLocalElement;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
@@ -110,6 +113,32 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
     //
     Set<String> names = RenameAnalyzeUtil.getExportedTopLevelNames(library);
     assertThat(names).containsOnly("A", "b", "c");
+  }
+
+  /**
+   * Test for {@link RenameAnalyzeUtil#getFunctionLocalElements(DartFunction)}.
+   */
+  public void test_getFunctionLocalElements() throws Exception {
+    CompilationUnit unit = setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var myVariable;",
+        "  myFunction() {};",
+        "}",
+        "");
+    DartFunction topFunction = (DartFunction) unit.getChildren()[0];
+    List<FunctionLocalElement> localElements = RenameAnalyzeUtil.getFunctionLocalElements(topFunction);
+    assertThat(localElements).hasSize(2);
+    {
+      FunctionLocalElement localElement = localElements.get(0);
+      assertThat(localElement.getElement()).isInstanceOf(DartVariableDeclaration.class);
+      assertEquals("myVariable", localElement.getElementName());
+    }
+    {
+      FunctionLocalElement localElement = localElements.get(1);
+      assertThat(localElement.getElement()).isInstanceOf(DartFunction.class);
+      assertEquals("myFunction", localElement.getElementName());
+    }
   }
 
   /**

@@ -31,7 +31,6 @@ import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartTypeParameter;
-import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
@@ -305,20 +304,22 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
             }
             // analyze variables
             for (Method method : superType.getMethods()) {
-              DartVariableDeclaration[] localVariables = method.getLocalVariables();
-              for (DartVariableDeclaration variable : localVariables) {
+              List<FunctionLocalElement> localVariables = RenameAnalyzeUtil.getFunctionLocalElements(method);
+              for (FunctionLocalElement variable : localVariables) {
                 if (variable.getElementName().equals(newName)) {
                   IPath resourcePath = method.getResource().getFullPath();
+                  CompilationUnitElement variableElement = variable.getElement();
                   // add warning for hiding TypeParameter declaration
                   {
                     String message = Messages.format(
                         RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_variable_inMethod,
                         new Object[] {
                             RenameAnalyzeUtil.getElementTypeName(parameter),
+                            RenameAnalyzeUtil.getElementTypeName(variableElement),
                             enclosingType.getElementName(),
                             method.getElementName(),
                             BasicElementLabels.getPathLabel(resourcePath, false)});
-                    result.addWarning(message, DartStatusContext.create(variable));
+                    result.addWarning(message, DartStatusContext.create(variableElement));
                   }
                   // add error for hiding TypeParameter usage
                   for (SourceRange reference : references) {
@@ -327,6 +328,7 @@ public class RenameTypeParameterProcessor extends DartRenameProcessor {
                           RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_variable_inMethod,
                           new Object[] {
                               RenameAnalyzeUtil.getElementTypeName(parameter),
+                              RenameAnalyzeUtil.getElementTypeName(variableElement),
                               enclosingType.getElementName(),
                               method.getElementName(),
                               BasicElementLabels.getPathLabel(resourcePath, false)});

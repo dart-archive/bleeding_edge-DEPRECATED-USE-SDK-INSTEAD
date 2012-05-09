@@ -498,6 +498,44 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "}");
   }
 
+  public void test_postCondition_element_shadowedBy_localFunction() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var test = 1;",
+        "  foo() {",
+        "    newName() {};",
+        "    test = 2;",
+        "  }",
+        "}",
+        "");
+    Field field = findElement("test = 1;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameField(field, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for variable declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed field will be shadowed by function in method 'A.foo()' in file 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for field usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed field will be shadowed by function in method 'A.foo()' in file 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
   public void test_postCondition_element_shadowedBy_localVariable() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

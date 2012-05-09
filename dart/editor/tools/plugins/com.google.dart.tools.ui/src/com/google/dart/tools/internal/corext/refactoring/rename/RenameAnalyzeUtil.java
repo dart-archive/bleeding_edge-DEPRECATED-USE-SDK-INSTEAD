@@ -146,6 +146,29 @@ public class RenameAnalyzeUtil {
   }
 
   /**
+   * @return the {@link FunctionLocalElement}s defined in the given {@link DartFunction}.
+   */
+  public static List<FunctionLocalElement> getFunctionLocalElements(DartFunction function)
+      throws DartModelException {
+    List<FunctionLocalElement> elements = Lists.newArrayList();
+    for (DartElement child : function.getChildren()) {
+      // local variable
+      if (child instanceof DartVariableDeclaration) {
+        DartVariableDeclaration localVariable = (DartVariableDeclaration) child;
+        elements.add(new FunctionLocalElement(localVariable));
+      }
+      // local function
+      if (child instanceof DartFunction) {
+        DartFunction localFunction = (DartFunction) child;
+        if (localFunction.isLocal()) {
+          elements.add(new FunctionLocalElement(localFunction));
+        }
+      }
+    }
+    return elements;
+  }
+
+  /**
    * @return the references to the given {@link DartElement}, may be empty {@link List}, but not
    *         <code>null</code>.
    */

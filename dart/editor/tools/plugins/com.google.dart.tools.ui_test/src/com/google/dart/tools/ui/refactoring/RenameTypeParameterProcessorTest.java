@@ -177,6 +177,43 @@ public final class RenameTypeParameterProcessorTest extends RefactoringTest {
         "}");
   }
 
+  public void test_postCondition_element_shadowedBy_localFunction() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<Test> {",
+        "  f() {",
+        "    NewName() {}",
+        "    Test v;",
+        "  }",
+        "}",
+        "");
+    DartTypeParameter parameter = findElement("Test>");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameTypeParameter(parameter, "NewName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for parameter declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed type parameter will be shadowed by function in method 'A.f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // error for super-type member usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed type parameter will be shadowed by function in method 'A.f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
   public void test_postCondition_element_shadowedBy_localVariable() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

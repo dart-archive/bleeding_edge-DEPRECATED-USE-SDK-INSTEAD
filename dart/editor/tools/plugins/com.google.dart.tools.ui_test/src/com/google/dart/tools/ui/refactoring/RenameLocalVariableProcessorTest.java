@@ -279,6 +279,30 @@ public final class RenameLocalVariableProcessorTest extends RefactoringTest {
     assertEquals(source, testUnit.getSource());
   }
 
+  public void test_postCondition_localFunction_sameDeclaredAfter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int test = 1;",
+        "  newName() {};",
+        "}");
+    DartVariableDeclaration variable = findElement("test = 1;");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameLocalVariable(variable, "newName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    assertThat(showStatusMessages).hasSize(1);
+    assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
+    assertEquals("Duplicate local function 'newName'", showStatusMessages.get(0));
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
   public void test_postCondition_localVariable_sameDeclaredAfter() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

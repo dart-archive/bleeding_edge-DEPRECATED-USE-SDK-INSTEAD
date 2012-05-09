@@ -552,6 +552,82 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
     assertEquals(source, testUnit.getSource());
   }
 
+  public void test_postCondition_localFunction_inMethod() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "}",
+        "class A {",
+        "  f() {",
+        "    NewName() {};",
+        "    new Test();",
+        "  }",
+        "}",
+        "");
+    Type type = findElement("Test {");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameType(type, "NewName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for shadowing declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed type will be shadowed by function in method 'A.f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // warning for shadowing usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed type will be shadowed by function in method 'A.f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
+  public void test_postCondition_localFunction_inTopLevelFunction() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "}",
+        "f() {",
+        "  NewName() {};",
+        "  new Test();",
+        "}",
+        "");
+    Type type = findElement("Test {");
+    // try to rename
+    String source = testUnit.getSource();
+    try {
+      renameType(type, "NewName");
+      fail();
+    } catch (InterruptedException e) {
+    }
+    // error should be displayed
+    assertThat(openInformationMessages).isEmpty();
+    {
+      assertThat(showStatusMessages).hasSize(2);
+      // warning for shadowing declaration
+      assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
+      assertEquals(
+          "Declaration of renamed type will be shadowed by function in function 'f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(0));
+      // warning for shadowing usage
+      assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(1).intValue());
+      assertEquals(
+          "Usage of renamed type will be shadowed by function in function 'f()' in file 'Test/Test.dart'",
+          showStatusMessages.get(1));
+    }
+    // no source changes
+    assertEquals(source, testUnit.getSource());
+  }
+
   public void test_postCondition_localVariable_inMethod() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

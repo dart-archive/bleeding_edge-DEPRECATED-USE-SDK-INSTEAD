@@ -30,6 +30,7 @@ import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionPr
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionTypeAliasProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameGlobalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameImportProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalFunctionProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameMethodProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeParameterProcessor;
@@ -127,7 +128,12 @@ public class RenameSupport {
    * @return the {@link RenameSupport}.
    */
   public static RenameSupport create(DartFunction function, String newName) {
-    DartRenameProcessor processor = new RenameFunctionProcessor(function);
+    DartRenameProcessor processor;
+    if (function.isLocal()) {
+      processor = new RenameLocalFunctionProcessor(function);
+    } else {
+      processor = new RenameFunctionProcessor(function);
+    }
     return new RenameSupport(processor, newName, 0);
   }
 

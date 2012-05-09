@@ -23,7 +23,6 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartTypeParameter;
-import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.Type;
@@ -435,19 +434,21 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
         }
         // check for local variables
         for (Method method : subType.getMethods()) {
-          DartVariableDeclaration[] localVariables = method.getLocalVariables();
-          for (DartVariableDeclaration variable : localVariables) {
+          List<FunctionLocalElement> localVariables = RenameAnalyzeUtil.getFunctionLocalElements(method);
+          for (FunctionLocalElement variable : localVariables) {
             if (variable.getElementName().equals(newName)) {
+              CompilationUnitElement variableElement = variable.getElement();
               // add warning for hiding Renamed declaration
               {
                 String message = Messages.format(
                     RefactoringCoreMessages.RenameProcessor_elementDecl_shadowedBy_variable_inMethod,
                     new Object[] {
                         RenameAnalyzeUtil.getElementTypeName(member),
+                        RenameAnalyzeUtil.getElementTypeName(variableElement),
                         subType.getElementName(),
                         method.getElementName(),
                         BasicElementLabels.getPathLabel(resourcePath, false)});
-                result.addWarning(message, DartStatusContext.create(variable));
+                result.addWarning(message, DartStatusContext.create(variableElement));
               }
               // add error for hiding Renamed usage
               for (SearchMatch match : references) {
@@ -456,6 +457,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
                       RefactoringCoreMessages.RenameProcessor_elementUsage_shadowedBy_variable_inMethod,
                       new Object[] {
                           RenameAnalyzeUtil.getElementTypeName(member),
+                          RenameAnalyzeUtil.getElementTypeName(variableElement),
                           subType.getElementName(),
                           method.getElementName(),
                           BasicElementLabels.getPathLabel(resourcePath, false)});
@@ -489,7 +491,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
     return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), getNewElementName());
   }
 
-  private void prepareReferences(final IProgressMonitor pm) throws CoreException {
+  private void prepareReferences(IProgressMonitor pm) throws CoreException {
     String name = member.getElementName();
     // prepare types which have member with required name
     Set<Type> renameTypes;
