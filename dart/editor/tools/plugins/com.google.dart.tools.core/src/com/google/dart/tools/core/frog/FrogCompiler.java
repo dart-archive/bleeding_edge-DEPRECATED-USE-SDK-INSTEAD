@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Launch the frog process and collect stdout, stderr, and exit code information.
@@ -108,26 +109,43 @@ public class FrogCompiler {
 
     FrogCompiler compiler;
 
-    //compiler = new Dart2JSCompiler();
+    final CountDownLatch latch;
+
+    if (DartCoreDebug.ENABLE_DOUBLE_COMPILATION) {
+      latch = new CountDownLatch(1);
+    } else {
+      latch = new CountDownLatch(0);
+    }
+
     compiler = new FrogCompiler();
 
     console.clear();
-    console.println("Generating JavaScript using " + compiler.getName() + "...");
+    console.println("Generating JavaScript...");
 
     try {
-      CompilationResult result = compiler.compile(inputPath, outputPath, monitor);
-
-      refreshResources(library.getCorrespondingResource());
-
-      displayCompilationResult(result, outputPath, startTime, console);
-
       if (DartCoreDebug.ENABLE_DOUBLE_COMPILATION) {
         new Thread(new Runnable() {
           @Override
           public void run() {
-            runDart2JSCompile(inputPath, outputPath, console);
+            try {
+              runDart2JSCompile(inputPath, outputPath, console);
+            } finally {
+              latch.countDown();
+            }
           }
         }).start();
+      }
+
+      CompilationResult result = compiler.compile(inputPath, outputPath, monitor);
+
+      refreshResources(library.getCorrespondingResource());
+
+      displayCompilationResult(compiler, result, outputPath, startTime, console);
+
+      try {
+        latch.await();
+      } catch (InterruptedException ex) {
+
       }
 
       return result;
@@ -145,26 +163,27 @@ public class FrogCompiler {
 
     FrogCompiler compiler = new Dart2JSCompiler();
 
-    console.println();
-    console.println("Generating JavaScript using " + compiler.getName() + "...");
-
     try {
       CompilationResult result = compiler.compile(inputPath, outputPath, new NullProgressMonitor());
 
-      displayCompilationResult(result, outputPath, startTime, console);
+      displayCompilationResult(compiler, result, outputPath, startTime, console);
     } catch (IOException ioe) {
       DartCore.logError(ioe);
     }
   }
 
-  private static void displayCompilationResult(CompilationResult result, IPath outputPath,
-      long startTime, MessageConsole console) {
+  private static void displayCompilationResult(FrogCompiler compiler, CompilationResult result,
+      IPath outputPath, long startTime, MessageConsole console) {
+    StringBuilder builder = new StringBuilder();
+
+    builder.append("\n" + compiler.getName() + " results:\n");
+
     if (!result.getStdOut().isEmpty()) {
-      console.println(result.getStdOut().trim());
+      builder.append(result.getStdOut().trim() + "\n");
     }
 
     if (!result.getStdErr().isEmpty()) {
-      console.println(result.getStdErr().trim());
+      builder.append(result.getStdErr().trim() + "\n");
     }
 
     if (result.getExitCode() == 0) {
@@ -180,8 +199,10 @@ public class FrogCompiler {
       String message = fileLength + "kb";
       message += " written in " + (elapsed / 1000.0) + " seconds";
 
-      console.println(NLS.bind("Wrote {0} [{1}]", outputFile.getPath(), message));
+      builder.append(NLS.bind("Wrote {0} [{1}]\n", outputFile.getPath(), message));
     }
+
+    console.print(builder.toString());
   }
 
   /**
