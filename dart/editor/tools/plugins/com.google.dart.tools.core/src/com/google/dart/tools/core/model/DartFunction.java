@@ -60,10 +60,26 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
   public String getReturnTypeName() throws DartModelException;
 
   /**
+   * @return the {@link SourceRange} in which this local function is visible, undefined if not
+   *         {@link #isLocal()} or has no name.
+   */
+  public SourceRange getVisibleRange() throws DartModelException;
+
+  /**
+   * @return <code>true</code> if this function is global (defined at the top-level of a compilation
+   *         unit)
+   */
+  public boolean isGlobal();
+
+  /**
+   * @return <code>true</code> if this function is local to a method or function
+   */
+  public boolean isLocal();
+
+  /**
    * Returns whether this function is an entry point.
    * 
    * @return whether this function is an entry point
    */
   public boolean isMain();
-
 }

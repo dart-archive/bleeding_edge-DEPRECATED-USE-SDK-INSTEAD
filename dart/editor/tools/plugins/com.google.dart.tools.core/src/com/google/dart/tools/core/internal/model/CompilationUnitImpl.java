@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.model;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartDeclaration;
@@ -508,6 +509,20 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       functionInfo.setSourceRangeStart(node.getSourceInfo().getOffset());
       functionInfo.setSourceRangeEnd(node.getSourceInfo().getOffset()
           + node.getSourceInfo().getLength());
+      // remember visibility range
+      {
+        DartNode parent = node.getParent();
+        while (parent != null) {
+          if (parent instanceof DartBlock) {
+            if (node.getName() != null) {
+              functionInfo.setVisibleStart(node.getName().getSourceInfo().getOffset());
+              functionInfo.setVisibleEnd(parent.getSourceInfo().getEnd());
+            }
+            break;
+          }
+          parent = parent.getParent();
+        }
+      }
       // There is currently no way to get the DartDoc associated with the function because there is
       // no node that is a DartDeclaration with which the comment can be associated.
       // captureDartDoc(node, functionInfo);

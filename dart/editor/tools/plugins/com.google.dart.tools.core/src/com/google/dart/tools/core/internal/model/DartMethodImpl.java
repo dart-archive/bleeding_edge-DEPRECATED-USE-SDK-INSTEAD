@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -95,6 +95,11 @@ public class DartMethodImpl extends NamedTypeMemberImpl implements Method {
   }
 
   @Override
+  public SourceRange getVisibleRange() throws DartModelException {
+    return null;
+  }
+
+  @Override
   public boolean isAbstract() {
     return getModifiers().isAbstract();
   }
@@ -119,12 +124,22 @@ public class DartMethodImpl extends NamedTypeMemberImpl implements Method {
   }
 
   @Override
+  public boolean isGlobal() {
+    return false;
+  }
+
+  @Override
   public boolean isImplicit() {
     try {
       return ((DartMethodInfo) getElementInfo()).isImplicit();
     } catch (DartModelException exception) {
       return false;
     }
+  }
+
+  @Override
+  public boolean isLocal() {
+    return false;
   }
 
   @Override

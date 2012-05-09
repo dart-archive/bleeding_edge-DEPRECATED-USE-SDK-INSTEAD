@@ -33,6 +33,7 @@ public class TestAll {
     suite.addTestSuite(DartTypeImplTest.class);
     suite.addTestSuite(DartTypeParameterImplTest.class);
     suite.addTestSuite(DartVariableImplTest.class);
+    suite.addTestSuite(DartFunctionImplTest.class);
     suite.addTestSuite(HTMLFileImplTest.class);
     suite.addTestSuite(DartIgnoreFileTest.class);
     suite.addTestSuite(SystemLibraryManagerProviderAnyTest.class);
