@@ -6,23 +6,28 @@
 <html>
   <head>
     <title>Leap Leg</title>
+    <link rel="stylesheet" type="text/css" href="leap.css" />
   </head>
   <body>
-    <h2 id="status">dart is not running</h2>
-    <script type="application/dart" src="leap.dart"></script>
-    <!-- <script src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script> -->
-    <div style="position: fixed; width: 250px; border: solid; padding: 5px;">
-      <h3>Outline</h3>
-      <section id="out" style="white-space: pre-wrap"></section>
-    </div>
+    <h2 id="status">Dart is not running</h2>
 
-    <div style=" position: absolute; left: 280px; border: solid; padding: 5px;">
+    <section id="outline">
+      <h3>Outline</h3>
+      <div id="out" style="white-space: pre-wrap"></div>
+    </section>
+
+    <section id="editor">
       <h3>Code</h3>
-      <section id="code" contenteditable="true" style="white-space: pre;"
-               >void main() {
+      <div id="code">void main() {
   print('Hello, World');
-}</section>
-    </div>
+}
+</div>
+    </section>
+
     <iframe id="isolate" style="display:none" src="isolate.html"></iframe>
+
+    <div id="popup"></div>
+
+    <script async type="application/dart" src="leap.dart"></script>
   </body>
 </html>

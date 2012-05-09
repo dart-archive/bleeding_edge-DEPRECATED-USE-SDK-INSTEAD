@@ -12,21 +12,109 @@ compilerIsolate(port) {
 }
 
 main() {
-  html.document.query('#status').innerHTML = 'Initializing compiler';
-  final iframe = html.document.query('#isolate');
+  html.document.query('#status').innerHTML = 'Initializing...';
   setOutline(msg) {
     html.document.query('#out').innerHTML = msg;
   }
-  html.spawnDomIsolate(iframe.contentWindow,
-                       'compilerIsolate').then((sendPort) {
-    update(_) {
-      String text = html.document.query('#code').text;
-      sendPort.call(text).then(setOutline);
-      html.document.query('#status').innerHTML = 'Ready';
+  final codeDiv = html.document.query('#code');
+  final popup = html.document.query('#popup');
+
+  // The port for communicating with the compiler isolate.
+  var port = null;
+
+  // Should be called when [codeDiv] has changed. For now, call it always
+  // on mouse up and key up events.
+  update() {
+    if (port === null) return;
+    port.call(codeDiv.text).then(setOutline);
+  }
+
+  hide(Element e) {
+    e.style.visibility = 'hidden';
+  }
+
+  show(Element e) {
+    e.style.visibility = 'visible';
+  }
+
+  insertTextAtPoint(Event e, String newText) {
+    e.preventDefault();
+    var selection = html.window.getSelection();
+    var range = selection.getRangeAt(0);
+    var offset = range.startOffset;
+    Text text = codeDiv.nodes[0];
+    text.insertData(offset, newText);
+    selection.setPosition(text, offset + newText.length);
+  }
+
+  // This prevents creating a new div element when hitting enter.
+  codeDiv.on.keyPress.add((Event e) {
+    if (e.keyIdentifier == 'Enter') {
+      // TODO(ahe): Is 'Enter' portable?
+      insertTextAtPoint(e, '\n');
     }
-    update(null);
-    final code = html.document.query('#code');
-    code.$dom_addEventListener('DOMSubtreeModified', update);
+  });
+
+  // Override tab key.
+  codeDiv.on.keyDown.add((Event e) {
+    if (e.keyIdentifier == 'U+0009') {
+      // TODO(ahe): Find better way to detect tab key.
+      insertTextAtPoint(e, '  ');
+    }
+  });
+
+  // Called on keyUp and mouseUp to display a marker at the current
+  // insertion point (the selection's first range). This probably
+  // needs more work before it works really well, but seems to be good
+  // enough for now.
+  handleUp(Event e) {
+    var selection = html.window.getSelection();
+    var range = selection.getRangeAt(0);
+    var rects = range.getClientRects();
+    if (rects.length < 1) {
+      hide(popup);
+      return;
+    }
+    html.ClientRect rect = rects.item(rects.length - 1);
+    if (rect.width.toInt() != 0) {
+      // This is a selection of multiple characters, not a single
+      // point of insertion.
+      hide(popup);
+      return;
+    }
+    popup.style.top = "${rect.bottom.toInt()}px";
+    popup.style.left = "${rect.right.toInt()}px";
+    // Instead of displaying this immediately, we could set up a timer
+    // event and display it later. This is a matter of getting the UX
+    // just right, for now it simply demonstrates that we know where
+    // the insertion point is (in pixels) and what the character
+    // offset is.
+    show(popup);
+    popup.text = '''Code completion here...
+Current character offset: ${range.startOffset}''';
+    // TODO(ahe): Better detection of when [codeDiv] has changed.
+    update();
+  }
+
+  codeDiv.on.keyUp.add(handleUp);
+  codeDiv.on.mouseUp.add(handleUp);
+
+  codeDiv.on.blur.add((Event e) => hide(popup));
+
+  // The event handlers are now set up. Allow editing.
+  codeDiv.contentEditable = "true";
+
+  // Creates a compiler isolate in its own iframe. This should prevent
+  // the compiler from blocking the UI.
+  html.spawnDomIsolate(html.document.query('#isolate').contentWindow,
+                       'compilerIsolate').then((sendPort) {
+    // The compiler isolate is now ready to talk. Store the port so
+    // that the update function starts requesting outlines whenever
+    // [codeDiv] changes.
+    port = sendPort;
+    // Make sure that we get an initial outline.
+    update();
+    html.document.query('#status').innerHTML = 'Ready';
   });
 }
 
