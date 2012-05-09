@@ -17,6 +17,7 @@ import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Location;
 import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.RelationshipCallback;
+import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
 
 /**
@@ -68,6 +69,11 @@ public class GetRelationshipsOperation implements IndexOperation {
       locations = indexStore.getRelationships(element, relationship);
     }
     callback.hasRelationships(element, relationship, locations);
+  }
+
+  @Override
+  public boolean removeWhenResourceRemoved(Resource resource) {
+    return false;
   }
 
   @Override

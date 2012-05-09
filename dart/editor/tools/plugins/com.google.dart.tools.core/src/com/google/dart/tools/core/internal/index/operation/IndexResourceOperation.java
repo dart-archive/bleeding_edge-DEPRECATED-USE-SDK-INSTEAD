@@ -104,6 +104,11 @@ public class IndexResourceOperation implements IndexOperation {
   }
 
   @Override
+  public boolean removeWhenResourceRemoved(Resource resource) {
+    return this.resource.equals(resource);
+  }
+
+  @Override
   public String toString() {
     return "IndexResource(" + resource + ")";
   }

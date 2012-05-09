@@ -13,8 +13,15 @@
  */
 package com.google.dart.tools.core.internal.index.operation;
 
+import com.google.dart.tools.core.index.Resource;
+
 public class NullOperation implements IndexOperation {
   @Override
   public void performOperation() {
+  }
+
+  @Override
+  public boolean removeWhenResourceRemoved(Resource resource) {
+    return false;
   }
 }

@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.index.operation;
 
+import com.google.dart.tools.core.index.Resource;
+
 /**
  * The interface <code>IndexQueryOperation</code> defines the behavior of objects used to perform
  * operations on an index.
@@ -22,4 +24,14 @@ public interface IndexOperation {
    * Perform the operation implemented by this operation.
    */
   public void performOperation();
+
+  /**
+   * Return <code>true</code> if this operation should be removed from the operation queue when the
+   * given resource has been removed.
+   * 
+   * @param resource the resource that has been removed
+   * @return <code>true</code> if this operation should be removed from the operation queue as a
+   *         result of removing the resource
+   */
+  public boolean removeWhenResourceRemoved(Resource resource);
 }

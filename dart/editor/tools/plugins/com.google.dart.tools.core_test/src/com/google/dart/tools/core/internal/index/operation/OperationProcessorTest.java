@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.index.operation;
 
+import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
@@ -29,6 +30,11 @@ public class OperationProcessorTest extends TestCase {
       @Override
       public void performOperation() {
         wasRun[0] = true;
+      }
+
+      @Override
+      public boolean removeWhenResourceRemoved(Resource resource) {
+        return false;
       }
     });
     final OperationProcessor processor = new OperationProcessor(queue);

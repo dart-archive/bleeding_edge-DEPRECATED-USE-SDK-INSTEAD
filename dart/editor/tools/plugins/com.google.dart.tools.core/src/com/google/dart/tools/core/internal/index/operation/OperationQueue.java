@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.index.operation;
 
+import com.google.dart.tools.core.index.Resource;
+
 import java.util.ArrayList;
 
 /**
@@ -76,6 +78,14 @@ public class OperationQueue {
    */
   public void enqueue(IndexOperation operation) {
     synchronized (operations) {
+      if (operation instanceof RemoveResourceOperation) {
+        Resource resource = ((RemoveResourceOperation) operation).getResource();
+        for (int i = operations.size() - 1; i >= 0; i--) {
+          if (operations.get(i).removeWhenResourceRemoved(resource)) {
+            operations.remove(i);
+          }
+        }
+      }
       operations.add(operation);
       operations.notifyAll();
     }

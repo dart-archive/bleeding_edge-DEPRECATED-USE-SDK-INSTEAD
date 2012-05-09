@@ -42,11 +42,25 @@ public class RemoveResourceOperation implements IndexOperation {
     this.resource = resource;
   }
 
+  /**
+   * Return the resource that was removed.
+   * 
+   * @return the resource that was removed
+   */
+  public Resource getResource() {
+    return resource;
+  }
+
   @Override
   public void performOperation() {
     synchronized (indexStore) {
       indexStore.removeResource(resource);
     }
+  }
+
+  @Override
+  public boolean removeWhenResourceRemoved(Resource resource) {
+    return false;
   }
 
   @Override

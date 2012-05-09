@@ -301,7 +301,10 @@ public class InMemoryIndex implements Index {
    * information about the resource is about to be re-generated.
    */
   public void removeResource(File libraryFile, File sourceFile) {
-    // TODO (danrubel): to be implemented
+    String resourceId = ResourceFactory.composeResourceId(
+        libraryFile.toURI().toString(),
+        sourceFile.toURI().toString());
+    removeResource(new Resource(resourceId));
   }
 
   /**

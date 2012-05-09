@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.index.operation;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.AttributeCallback;
 import com.google.dart.tools.core.index.Element;
+import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
 
 /**
@@ -67,6 +68,11 @@ public class GetAttributeOperation implements IndexOperation {
       value = indexStore.getAttribute(element, attribute);
     }
     callback.hasValue(element, attribute, value);
+  }
+
+  @Override
+  public boolean removeWhenResourceRemoved(Resource resource) {
+    return false;
   }
 
   @Override
