@@ -9,11 +9,14 @@ Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: %providerName
 Export-Package: com.google.dart.engine.ast,
  com.google.dart.engine.cmdline,
+ com.google.dart.engine.element,
  com.google.dart.engine.error,
  com.google.dart.engine.metrics,
+ com.google.dart.engine.parser,
  com.google.dart.engine.scanner,
  com.google.dart.engine.sdk,
  com.google.dart.engine.source,
+ com.google.dart.engine.type,
  com.google.dart.engine.utilities.io,
  com.google.dart.engine.utilities.os
 Bundle-ClassPath: .,
