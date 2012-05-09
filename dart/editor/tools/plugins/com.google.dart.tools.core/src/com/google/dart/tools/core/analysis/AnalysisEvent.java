@@ -37,9 +37,13 @@ public class AnalysisEvent {
   private final HashMap<File, DartUnit> units;
   private final ArrayList<AnalysisError> errors;
 
-  public AnalysisEvent(File libraryFile) {
+  AnalysisEvent(File libraryFile) {
+    this(libraryFile, new ArrayList<File>());
+  }
+
+  AnalysisEvent(File libraryFile, Collection<File> files) {
     this.libraryFile = libraryFile;
-    this.files = new ArrayList<File>();
+    this.files = files;
     this.units = new HashMap<File, DartUnit>();
     this.errors = new ArrayList<AnalysisError>();
   }

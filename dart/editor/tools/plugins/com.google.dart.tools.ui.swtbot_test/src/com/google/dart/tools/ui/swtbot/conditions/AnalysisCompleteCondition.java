@@ -56,6 +56,11 @@ public class AnalysisCompleteCondition implements ICondition {
     server.addAnalysisListener(new AnalysisListener() {
 
       @Override
+      public void discarded(AnalysisEvent event) {
+        // ignored
+      }
+
+      @Override
       public void idle(boolean idle) {
         isIdle = idle;
       }

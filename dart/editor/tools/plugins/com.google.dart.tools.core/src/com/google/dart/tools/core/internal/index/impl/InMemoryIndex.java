@@ -38,19 +38,24 @@ import com.google.dart.tools.core.internal.index.operation.RemoveResourceOperati
 import com.google.dart.tools.core.internal.index.persistance.IndexReader;
 import com.google.dart.tools.core.internal.index.persistance.IndexWriter;
 import com.google.dart.tools.core.internal.index.store.IndexStore;
+import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 
 import java.io.File;
@@ -189,6 +194,60 @@ public class InMemoryIndex implements Index {
   /**
    * Process the given resource within the context of the given working set in order to record the
    * data and relationships found within the resource.
+   */
+  public void indexResource(File libraryFile, File sourceFile, DartUnit dartUnit)
+      throws DartModelException {
+    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
+
+    // Get the LibrarySource
+
+    URI fileUri = libraryFile.toURI();
+    URI shortUri = libraryManager.getShortUri(fileUri);
+    URI libUri = shortUri != null ? shortUri : fileUri;
+    LibrarySource librarySource = new UrlLibrarySource(libUri, libraryManager);
+
+    // Get the DartLibrary
+
+    DartLibraryImpl library;
+    IResource resource = ResourceUtil.getResource(libraryFile);
+    if (resource == null) {
+      library = new DartLibraryImpl(librarySource);
+    } else {
+      DartElement element = DartCore.create(resource);
+      if (element instanceof CompilationUnitImpl) {
+        element = ((CompilationUnitImpl) element).getLibrary();
+      }
+      if (!(element instanceof DartLibrary)) {
+        DartCore.logError("Expected library to be associated with " + libraryFile);
+        return;
+      }
+      library = (DartLibraryImpl) element;
+    }
+
+    // Get the CompilationUnit
+
+    CompilationUnit compilationUnit;
+    IResource res = ResourceUtil.getResource(sourceFile);
+    if (res != null) {
+      compilationUnit = new CompilationUnitImpl(
+          library,
+          (IFile) res,
+          DefaultWorkingCopyOwner.getInstance());
+    } else {
+      DartSource unitSource = (DartSource) dartUnit.getSourceInfo().getSource();
+      compilationUnit = new ExternalCompilationUnitImpl(
+          library,
+          unitSource.getRelativePath(),
+          unitSource);
+    }
+
+    Resource indexResource = ResourceFactory.getResource(compilationUnit);
+    indexResource(indexResource, compilationUnit, dartUnit);
+  }
+
+  /**
+   * Process the given resource within the context of the given working set in order to record the
+   * data and relationships found within the resource.
    * 
    * @param resource the resource containing the elements defined in the compilation unit
    * @param compilationUnit the compilation unit being indexed
@@ -230,6 +289,19 @@ public class InMemoryIndex implements Index {
         }
       }
     }
+  }
+
+  /**
+   * Remove from the index all of the information associated with elements or locations in the given
+   * resource. This includes relationships between an element in the given resource and any other
+   * locations, relationships between any other elements and a location within the given resource,
+   * and any values of any attributes defined on elements in the given resource.
+   * <p>
+   * This method should be invoked when a resource is no longer part of the code base and when the
+   * information about the resource is about to be re-generated.
+   */
+  public void removeResource(File libraryFile, File sourceFile) {
+    // TODO (danrubel): to be implemented
   }
 
   /**

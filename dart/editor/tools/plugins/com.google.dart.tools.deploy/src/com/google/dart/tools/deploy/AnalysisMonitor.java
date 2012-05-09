@@ -31,6 +31,11 @@ public class AnalysisMonitor {
    * Listen for the {@link AnalysisServer} idle state
    */
   private class Listener implements AnalysisListener {
+
+    @Override
+    public void discarded(AnalysisEvent event) {
+    }
+
     @Override
     public void idle(boolean idle) {
       synchronized (lock) {

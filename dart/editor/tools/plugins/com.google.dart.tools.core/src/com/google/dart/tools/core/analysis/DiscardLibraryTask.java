@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.tools.core.DartCore;
+
 import java.io.File;
 
 /**
@@ -37,13 +39,27 @@ public class DiscardLibraryTask extends Task {
 
   @Override
   void perform() {
+    AnalysisEvent event = null;
     Library library = context.getCachedLibrary(libraryFile);
     if (library != null) {
+      event = new AnalysisEvent(libraryFile, library.getSourceFiles());
       context.discardLibraryAndReferencingLibraries(library);
     }
-    // Remove all pending analysis tasks as they may have been related to the dicarded library
+    // Remove all pending analysis tasks as they may have been related to the discarded library
     server.removeAllBackgroundAnalysisTasks();
     // Reanalyze any libraries not already cached
     server.queueAnalyzeContext();
+
+    // If any analysis has been performed on the library
+    // then notify others that the library is no longer being analyzed
+    if (event != null) {
+      for (AnalysisListener listener : server.getAnalysisListeners()) {
+        try {
+          listener.discarded(event);
+        } catch (Throwable e) {
+          DartCore.logError("Exception during discard notification", e);
+        }
+      }
+    }
   }
 }

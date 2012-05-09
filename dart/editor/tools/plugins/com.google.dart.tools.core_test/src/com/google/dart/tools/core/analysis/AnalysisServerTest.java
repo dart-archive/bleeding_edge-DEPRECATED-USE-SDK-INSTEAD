@@ -66,6 +66,7 @@ public class AnalysisServerTest extends TestCase {
     }
     assertEquals(3, listener.getResolved().size());
     listener.assertNoDuplicates();
+    listener.assertNoDiscards();
     assertTrue(isLibraryFileTracked(libFile));
     assertTrue(isLibraryFileCached(libFile));
     return libFile;
@@ -90,6 +91,7 @@ public class AnalysisServerTest extends TestCase {
     }
     assertEquals(1, listener.getResolved().size());
     listener.assertNoDuplicates();
+    listener.assertNoDiscards();
     return libFile;
   }
 
@@ -119,6 +121,7 @@ public class AnalysisServerTest extends TestCase {
     waitForIdle();
     assertEquals(0, listener.getResolved().size());
     listener.assertNoDuplicates();
+    listener.assertWasDiscarded(libFile);
     assertFalse(isLibraryFileTracked(libFile));
     assertFalse(isLibraryFileCached(libFile));
 
@@ -131,6 +134,7 @@ public class AnalysisServerTest extends TestCase {
     waitForIdle();
     assertEquals(0, listener.getResolved().size());
     listener.assertNoDuplicates();
+    listener.assertNoDiscards();
     assertFalse(isLibraryFileTracked(libFile));
     assertFalse(isLibraryFileCached(libFile));
 
@@ -151,6 +155,11 @@ public class AnalysisServerTest extends TestCase {
     final File libFile = setupMoneyLibrary(tempDir);
     setupServer();
     server.addAnalysisListener(new AnalysisListener() {
+
+      @Override
+      public void discarded(AnalysisEvent event) {
+      }
+
       @Override
       public void idle(boolean idle) {
         if (idle) {
@@ -202,6 +211,7 @@ public class AnalysisServerTest extends TestCase {
     assertEquals(0, listener.getResolved().size());
     assertEquals(0, listener.getErrors().size());
     listener.assertNoDuplicates();
+    listener.assertNoDiscards();
 
     listener.reset();
     File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
@@ -215,6 +225,7 @@ public class AnalysisServerTest extends TestCase {
     assertEquals(0, listener.getResolved().size());
     assertEquals(1, listener.getErrors().size());
     listener.assertNoDuplicates();
+    listener.assertNoDiscards();
   }
 
   public void test_AnalysisServer_resolveLibrary() throws Exception {
@@ -239,6 +250,7 @@ public class AnalysisServerTest extends TestCase {
     assertEquals(3, listener.getResolved().size());
     //assertEquals(0, listener.getErrors().size());
     listener.assertNoDuplicates();
+    listener.assertNoDiscards();
 
     listener.reset();
     File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
@@ -250,6 +262,7 @@ public class AnalysisServerTest extends TestCase {
     assertEquals(1, listener.getResolved().size());
     assertEquals(1, listener.getErrors().size());
     listener.assertNoDuplicates();
+    listener.assertNoDiscards();
   }
 
   public void test_AnalysisServer_server() throws Exception {
@@ -337,6 +350,7 @@ public class AnalysisServerTest extends TestCase {
     resolveBundledLibraries(server);
     long delta = waitForIdle();
     listener.assertNoDuplicates();
+    listener.assertNoDiscards();
     return delta;
   }
 

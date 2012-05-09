@@ -13,9 +13,19 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
 public class AnalysisTestUtilities {
+
+  /**
+   * Wait for any background analysis to be complete
+   */
+  public static void waitForAnalysis() {
+    if (DartCoreDebug.ANALYSIS_SERVER) {
+      waitForIdle(60000);
+    }
+  }
 
   /**
    * Wait up to the specified amount of time for the specified analysis server to be idle. If the
@@ -29,6 +39,12 @@ public class AnalysisTestUtilities {
     final Object waitForIdleLock = new Object();
 
     AnalysisListener listener = new AnalysisListener() {
+
+      @Override
+      public void discarded(AnalysisEvent event) {
+        // ignored
+      }
+
       @Override
       public void idle(boolean idle) {
         if (idle) {

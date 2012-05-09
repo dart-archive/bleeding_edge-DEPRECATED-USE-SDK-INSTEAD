@@ -156,6 +156,17 @@ public class AnalysisMarkerManager implements AnalysisListener {
   }
 
   @Override
+  public void discarded(AnalysisEvent event) {
+    Collection<File> allFiles = new ArrayList<File>();
+    allFiles.add(event.getLibraryFile());
+    allFiles.addAll(event.getFiles());
+    synchronized (queue) {
+      queue.add(new RemoveMarkersOp(allFiles));
+      queue.notifyAll();
+    }
+  }
+
+  @Override
   public void idle(boolean idle) {
     // ignored
   }

@@ -18,23 +18,35 @@ import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
 import junit.framework.Assert;
 
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.TreeSet;
 
 class Listener implements AnalysisListener {
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   private final HashMap<String, HashSet<String>> parsed = new HashMap<String, HashSet<String>>();
   private final HashSet<String> resolved = new HashSet<String>();
+  private final HashSet<String> discarded = new HashSet<String>();
   private final StringBuilder duplicates = new StringBuilder();
 
   private final ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
 
   public Listener(AnalysisServer server) {
     server.addAnalysisListener(this);
+  }
+
+  @Override
+  public void discarded(AnalysisEvent event) {
+    discarded.add(event.getLibraryFile().getPath());
+    for (File file : event.getFiles()) {
+      discarded.add(file.getPath());
+    }
   }
 
   @Override
@@ -89,9 +101,30 @@ class Listener implements AnalysisListener {
     }
   }
 
+  void assertNoDiscards() {
+    if (discarded.size() > 0) {
+      String errMsg = "Expected no discards, but found:";
+      for (String path : new TreeSet<String>(discarded)) {
+        errMsg += LINE_SEPARATOR + "  " + path;
+      }
+      fail(errMsg);
+    }
+  }
+
   void assertNoDuplicates() {
     if (duplicates.length() > 0) {
       AnalysisServerTest.fail(duplicates.toString());
+    }
+  }
+
+  void assertWasDiscarded(File file) {
+    if (!discarded.contains(file.getPath())) {
+      String errMsg = "Expected discard" + LINE_SEPARATOR + "  " + file.getPath();
+      errMsg += LINE_SEPARATOR + "but found:";
+      for (String path : new TreeSet<String>(discarded)) {
+        errMsg += LINE_SEPARATOR + "  " + path;
+      }
+      fail(errMsg);
     }
   }
 
@@ -128,6 +161,7 @@ class Listener implements AnalysisListener {
   void reset() {
     parsed.clear();
     resolved.clear();
+    discarded.clear();
     duplicates.setLength(0);
     errors.clear();
   }
