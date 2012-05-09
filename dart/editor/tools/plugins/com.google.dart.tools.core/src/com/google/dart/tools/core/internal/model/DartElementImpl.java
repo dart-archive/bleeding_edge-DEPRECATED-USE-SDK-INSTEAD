@@ -251,6 +251,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
     return null;
   }
 
+  @Override
   public DartElement[] getChildren() throws DartModelException {
     DartElementInfo elementInfo = getElementInfo();
     if (elementInfo != null) {
@@ -260,6 +261,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
     }
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   public <E extends DartElement> List<E> getChildrenOfType(Class<E> elementClass)
       throws DartModelException {

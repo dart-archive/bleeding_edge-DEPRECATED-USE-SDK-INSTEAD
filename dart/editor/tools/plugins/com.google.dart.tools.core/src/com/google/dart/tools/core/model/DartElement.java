@@ -20,6 +20,8 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 
+import java.util.List;
+
 /**
  * The interface <code>DartElement</code> defines the behavior of objects representing some element
  * within the Dart model. Dart model elements are exposed to clients as handles to the actual
@@ -167,6 +169,24 @@ public interface DartElement extends IAdaptable {
    * @return the first ancestor of this element that has the given type
    */
   public <E extends DartElement> E getAncestor(Class<E> ancestorClass);
+
+  /**
+   * Return the children of this element, or an empty array if there are no children.
+   * 
+   * @return the children of this element
+   * @throws DartModelException if the children of the element cannot be determined
+   */
+  public DartElement[] getChildren() throws DartModelException;
+
+  /**
+   * Return the children of this element which are of type <code>elementClass</code>.
+   * 
+   * @param elementClass the class of element to be returned
+   * @return this element's children of type elementClass
+   * @throws DartModelException if the children of the element cannot be determined
+   */
+  public <E extends DartElement> List<E> getChildrenOfType(Class<E> elementClass)
+      throws DartModelException;
 
   /**
    * Return the resource that corresponds directly to this element, or <code>null</code> if there is

@@ -125,6 +125,14 @@ public interface DartLibrary extends OpenableElement, ParentElement {
   public List<CompilationUnit> getCompilationUnitsInScope() throws DartModelException;
 
   /**
+   * @return all the {@link CompilationUnit}s that are transitively included in this library. This
+   *         is the transitive closure of all referenced Dart source files.
+   * @throws DartModelException if the transitive compilation units cannot be determined for some
+   *           reason
+   */
+  public List<CompilationUnit> getCompilationUnitsTransitively() throws DartModelException;
+
+  /**
    * Return the compilation unit that defines this library.
    * 
    * @return the compilation unit that defines this library

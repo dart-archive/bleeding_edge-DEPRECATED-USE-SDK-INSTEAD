@@ -378,6 +378,16 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   }
 
   @Override
+  public List<CompilationUnit> getCompilationUnitsTransitively() throws DartModelException {
+    Set<CompilationUnit> units = Sets.newHashSet();
+    Set<DartLibrary> libraries = Sets.newHashSet();
+
+    addCompilationUnitsTransitively(this, units, libraries);
+
+    return Lists.newArrayList(units);
+  }
+
+  @Override
   public IResource getCorrespondingResource() {
     return libraryFile;
   }
@@ -1034,6 +1044,30 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   protected IStatus validateExistence(IResource underlyingResource) {
     DartCore.notYetImplemented();
     return DartModelStatusImpl.OK_STATUS;
+  }
+
+  /**
+   * Add the transitive closure of CompilationUnits from the given library to the units list. Record
+   * already visited libraries in the libraries list.
+   * 
+   * @param library
+   * @param units
+   * @param libraries
+   * @throws DartModelException
+   */
+  private void addCompilationUnitsTransitively(DartLibrary library, Set<CompilationUnit> units,
+      Set<DartLibrary> libraries) throws DartModelException {
+    if (!libraries.contains(library)) {
+      libraries.add(this);
+
+      // add the sourced units for this library
+      Collections.addAll(units, library.getCompilationUnits());
+
+      // add units from imported libraries
+      for (DartLibrary importedLibrary : library.getImportedLibraries()) {
+        addCompilationUnitsTransitively(importedLibrary, units, libraries);
+      }
+    }
   }
 
   /**
