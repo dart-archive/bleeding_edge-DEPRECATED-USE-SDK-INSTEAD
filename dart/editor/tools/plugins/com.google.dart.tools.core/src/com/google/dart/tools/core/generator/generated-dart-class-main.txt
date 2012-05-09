@@ -1,20 +1,9 @@
 #import('dart:html');
 
-class %className%%extends%%implements% {
-
-  %className%() {
-  }
-
-  void run() {
-    write("Hello World!");
-  }
-
-  void write(String message) {
-    // the HTML library defines a global "document" variable
-    document.query('#status').innerHTML = message;
-  }
+void main() {
+  show('Hello, World!');
 }
 
-void main() {
-  new %className%().run();
+void show(String message) {
+  document.query('#status').innerHTML = message;
 }
