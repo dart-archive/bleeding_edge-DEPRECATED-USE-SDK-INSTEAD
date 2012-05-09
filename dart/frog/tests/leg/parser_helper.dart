@@ -59,7 +59,8 @@ Link<Element> parseUnit(String text, Compiler compiler,
   Uri uri = new Uri(scheme: "source");
   var script = new Script(uri, new MockFile(text));
   var unit = new CompilationUnitElement(script, library);
-  ElementListener listener = new ElementListener(compiler, unit);
+  int id = 0;
+  ElementListener listener = new ElementListener(compiler, unit, () => id++);
   PartialParser parser = new PartialParser(listener);
   compiler.withCurrentElement(unit, () => parser.parseUnit(tokens));
   return unit.topLevelElements;
