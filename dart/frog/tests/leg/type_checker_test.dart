@@ -237,6 +237,8 @@ void testMethodInvocations() {
 
 /** Tests analysis of returns (not required by the specification). */
 void testControlFlow() {
+  analyzeTopLevel("void foo() { if (true) { return; } }");
+  analyzeTopLevel("foo() { if (true) { return; } }");
   analyzeTopLevel("int foo() { if (true) { return 1; } }",
                   MessageKind.MAYBE_MISSING_RETURN);
   final bar =
