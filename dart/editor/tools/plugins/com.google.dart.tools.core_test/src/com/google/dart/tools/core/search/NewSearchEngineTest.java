@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.core.search;
 
+import static com.google.dart.tools.core.test.util.MoneyProjectUtilities.getMoneyProject;
+import static org.fest.assertions.Assertions.assertThat;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.compiler.DartCompilationError;
@@ -36,14 +39,10 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 
-import static com.google.dart.tools.core.test.util.MoneyProjectUtilities.getMoneyProject;
-
 import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
-
-import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -213,6 +212,72 @@ public class NewSearchEngineTest extends TestCase {
           new NullProgressMonitor());
       assertEquals(1, matches.size());
       assertFalse(matches.get(0).isQualified());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_SearchEngine_searchReferences_function_getter() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "int get test() {",
+          "  return 42;",
+          "}",
+          "f() {",
+          "  process(test);",
+          "}",
+          "process(x) {}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      DartFunction function = (DartFunction) unit.getChildren()[0];
+      SearchEngine engine = createSearchEngine();
+      List<SearchMatch> matches = engine.searchReferences(
+          function,
+          SearchScopeFactory.createWorkspaceScope(),
+          null,
+          new NullProgressMonitor());
+      assertThat(matches).hasSize(1);
+      // assert references
+      SearchMatch match = matches.get(0);
+      int matchOffset = match.getSourceRange().getOffset();
+      assertEquals(source.indexOf("test);"), matchOffset);
+      assertFalse(match.isQualified());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_SearchEngine_searchReferences_function_setter() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "int set test(x) {",
+          "}",
+          "f() {",
+          "  test = 42;",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      DartFunction function = (DartFunction) unit.getChildren()[0];
+      SearchEngine engine = createSearchEngine();
+      List<SearchMatch> matches = engine.searchReferences(
+          function,
+          SearchScopeFactory.createWorkspaceScope(),
+          null,
+          new NullProgressMonitor());
+      assertThat(matches).hasSize(1);
+      // assert references
+      SearchMatch match = matches.get(0);
+      int matchOffset = match.getSourceRange().getOffset();
+      assertEquals(source.indexOf("test = 42;"), matchOffset);
+      assertFalse(match.isQualified());
     } finally {
       testProject.dispose();
     }
@@ -469,6 +534,78 @@ public class NewSearchEngineTest extends TestCase {
             expected.get(matchOffset).booleanValue(),
             match.isQualified());
       }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_SearchEngine_searchReferences_method_getter() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {",
+          "  int get test() {",
+          "    return 42;",
+          "  }",
+          "}",
+          "f() {",
+          "  A a = new A();",
+          "  process(a.test);",
+          "}",
+          "process(x) {}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      Method method = ((Type) unit.getChildren()[0]).getMethod("test", null);
+      SearchEngine engine = createSearchEngine();
+      List<SearchMatch> matches = engine.searchReferences(
+          method,
+          SearchScopeFactory.createWorkspaceScope(),
+          null,
+          new NullProgressMonitor());
+      assertThat(matches).hasSize(1);
+      // assert references
+      SearchMatch match = matches.get(0);
+      int matchOffset = match.getSourceRange().getOffset();
+      assertEquals(source.indexOf("test);"), matchOffset);
+      assertTrue(match.isQualified());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_SearchEngine_searchReferences_method_setter() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {",
+          "  void set test(x) {",
+          "  }",
+          "}",
+          "f() {",
+          "  A a = new A();",
+          "  a.test = 42;",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      Method method = ((Type) unit.getChildren()[0]).getMethod("test", null);
+      SearchEngine engine = createSearchEngine();
+      List<SearchMatch> matches = engine.searchReferences(
+          method,
+          SearchScopeFactory.createWorkspaceScope(),
+          null,
+          new NullProgressMonitor());
+      assertThat(matches).hasSize(1);
+      // assert references
+      SearchMatch match = matches.get(0);
+      int matchOffset = match.getSourceRange().getOffset();
+      assertEquals(source.indexOf("test = 42;"), matchOffset);
+      assertTrue(match.isQualified());
     } finally {
       testProject.dispose();
     }

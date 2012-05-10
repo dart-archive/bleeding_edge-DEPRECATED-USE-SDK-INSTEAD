@@ -405,6 +405,12 @@ public class IndexContributor extends ASTVisitor<Void> {
           recordRelationship(indexElement, IndexConstants.IS_ACCESSED_BY_UNQUALIFIED, location);
         }
       }
+    } else if (element instanceof MethodElement) {
+      MethodElement methodElement = (MethodElement) element;
+      // record only getter/setter here, there are special handlers for explicit invocations
+      if (methodElement.getModifiers().isGetter() || methodElement.getModifiers().isSetter()) {
+        processMethodInvocation(node, (MethodElement) element);
+      }
     } else if (element instanceof LibraryElement) {
       LibraryElement importLibraryElement = (LibraryElement) element;
       recordImportReference(importLibraryElement, node.getName(), node.getSourceInfo().getOffset());

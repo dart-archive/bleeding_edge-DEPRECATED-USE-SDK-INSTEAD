@@ -127,6 +127,30 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
         "");
   }
 
+  public void test_OK_getter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int get test() {",
+        "  return 42;",
+        "}",
+        "f() {",
+        "  print(test);",
+        "}",
+        "");
+    DartFunction function = findElement("test() {");
+    // do rename
+    renameFunction(function, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int get newName() {",
+        "  return 42;",
+        "}",
+        "f() {",
+        "  print(newName);",
+        "}",
+        "");
+  }
+
   public void test_OK_multipleUnits_onReference() throws Exception {
     setUnitContent(
         "Test1.dart",
@@ -162,6 +186,28 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
         "f() {",
         "  newName();",
         "}");
+  }
+
+  public void test_OK_setter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void set test(x) {",
+        "}",
+        "f() {",
+        "  test = 42;",
+        "}",
+        "");
+    DartFunction function = findElement("test = 42;");
+    // do rename
+    renameFunction(function, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void set newName(x) {",
+        "}",
+        "f() {",
+        "  newName = 42;",
+        "}",
+        "");
   }
 
   public void test_OK_singleUnit_onDeclaration() throws Exception {

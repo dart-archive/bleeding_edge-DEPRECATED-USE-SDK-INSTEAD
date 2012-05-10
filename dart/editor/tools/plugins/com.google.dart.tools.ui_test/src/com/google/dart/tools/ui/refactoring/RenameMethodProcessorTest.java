@@ -156,6 +156,36 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "}");
   }
 
+  public void test_OK_getter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int get test() {",
+        "    return 42;",
+        "  }",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  print(a.test);",
+        "}",
+        "");
+    Method method = findElement("test() {");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int get newName() {",
+        "    return 42;",
+        "  }",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  print(a.newName);",
+        "}",
+        "");
+  }
+
   public void test_OK_multipleUnits_onReference() throws Exception {
     setUnitContent(
         "Test1.dart",
@@ -315,6 +345,34 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "  a.newName();",
         "  b.newName();",
         "  c.newName();",
+        "}",
+        "");
+  }
+
+  public void test_OK_setter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void set test(x) {",
+        "  }",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  a.test = 42;",
+        "}",
+        "");
+    Method method = findElement("test = 42;");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void set newName(x) {",
+        "  }",
+        "}",
+        "f() {",
+        "  A a = new A();",
+        "  a.newName = 42;",
         "}",
         "");
   }

@@ -378,7 +378,7 @@ public class BindingUtils {
    * @return the Dart model element corresponding to the resolved field
    */
   public static CompilationUnitElement getDartElement(DartLibrary library, FieldElement fieldBinding) {
-    return getDartElement(library, fieldBinding, false, false);
+    return getDartElement(library, fieldBinding, true, true);
   }
 
   /**
