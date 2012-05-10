@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleView;
+import org.eclipse.ui.console.IOConsole;
+import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.part.PageSite;
 import org.eclipse.ui.part.ViewPart;
@@ -43,7 +45,78 @@ import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
  */
 @SuppressWarnings("restriction")
 public class DartConsoleView extends ViewPart implements IConsoleView, IPropertyChangeListener {
+
+  private class ClearAction extends Action implements ILaunchesListener2 {
+
+    public ClearAction() {
+      super("Clear", Activator.getImageDescriptor("icons/full/eview16/rem_co.gif"));
+
+      DebugPlugin.getDefault().getLaunchManager().addLaunchListener(this);
+
+      update();
+    }
+
+    public void dispose() {
+      DebugPlugin.getDefault().getLaunchManager().removeLaunchListener(this);
+    }
+
+    @Override
+    public void launchesAdded(ILaunch[] launches) {
+      update();
+    }
+
+    @Override
+    public void launchesChanged(ILaunch[] launches) {
+      update();
+    }
+
+    @Override
+    public void launchesRemoved(ILaunch[] launches) {
+      update();
+    }
+
+    @Override
+    public void launchesTerminated(ILaunch[] launches) {
+      update();
+    }
+
+    @Override
+    public void run() {
+      Runnable r = new Runnable() {
+        @Override
+        public void run() {
+          if (console instanceof IOConsole) {
+            IOConsole ioConsole = (IOConsole) console;
+
+            ioConsole.clearConsole();
+          } else if (console instanceof MessageConsole) {
+            MessageConsole messageConsole = (MessageConsole) console;
+
+            messageConsole.clearConsole();
+          }
+        }
+      };
+
+      new Thread(r).start();
+    }
+
+    void update() {
+      if (console instanceof MessageConsole) {
+        setEnabled(true);
+      } else {
+        IProcess process = getProcess();
+
+        if (process != null) {
+          setEnabled(!process.isTerminated());
+        } else {
+          setEnabled(false);
+        }
+      }
+    }
+  }
+
   private class TerminateAction extends Action implements ILaunchesListener2 {
+
     public TerminateAction() {
       super("Terminate", Activator.getImageDescriptor("icons/full/eview16/terminate.gif"));
 
@@ -113,6 +186,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   private PageSite pageSite;
 
   private TerminateAction terminateAction;
+  private ClearAction clearAction;
 
   public DartConsoleView() {
     DartConsoleManager.getManager().consoleViewOpened(this);
@@ -123,6 +197,9 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     this.parent = parent;
 
     IToolBarManager toolbar = getViewSite().getActionBars().getToolBarManager();
+    clearAction = new ClearAction();
+    toolbar.add(clearAction);
+    toolbar.add(new Separator());
     terminateAction = new TerminateAction();
     toolbar.add(terminateAction);
     toolbar.add(new Separator("outputGroup"));
@@ -166,11 +243,13 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     updateIcon();
 
     terminateAction.update();
+    clearAction.update();
   }
 
   @Override
   public void dispose() {
     terminateAction.dispose();
+    clearAction.dispose();
 
     DartConsoleManager.getManager().consoleViewClosed(this);
 
