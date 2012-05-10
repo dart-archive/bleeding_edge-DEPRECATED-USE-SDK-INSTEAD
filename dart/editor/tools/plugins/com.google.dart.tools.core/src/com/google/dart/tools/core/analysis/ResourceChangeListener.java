@@ -110,18 +110,6 @@ public class ResourceChangeListener {
 //  private static final int EVENT_MASK = IResourceChangeEvent.POST_CHANGE;
   private static final int DELTA_MASK = IResourceDelta.CONTENT | IResourceDelta.REPLACED;
 
-  /**
-   * The number of instances currently scanning for libraries
-   */
-  private static int instanceCount = 0;
-
-  /**
-   * Answer <code>true</code> if at least one instance is scanning for libraries
-   */
-  public static boolean isScanning() {
-    return instanceCount > 0;
-  }
-
   private final AnalysisServer server;
 
   /**
@@ -481,36 +469,31 @@ public class ResourceChangeListener {
         filesToScan.notifyAll();
         return;
       }
-      instanceCount++;
       scanThread = new Thread(new Runnable() {
 
         @Override
         public void run() {
-          try {
-            nonDirectiveFiles = new ArrayList<File>();
-            sourcedFiles = new HashSet<File>();
-            callbackCounter = 0;
-            scanFiles();
+          nonDirectiveFiles = new ArrayList<File>();
+          sourcedFiles = new HashSet<File>();
+          callbackCounter = 0;
+          scanFiles();
+          synchronized (sourcedFiles) {
+            while (callbackCounter > 0) {
+              try {
+                sourcedFiles.wait();
+              } catch (InterruptedException e) {
+              }
+            }
+          }
+          // this if statement is inserted as an optimization:
+          // if nonDirectiveFiles is empty, there is no reason to start the synchronized block
+          if (!nonDirectiveFiles.isEmpty()) {
             synchronized (sourcedFiles) {
-              while (callbackCounter > 0) {
-                try {
-                  sourcedFiles.wait();
-                } catch (InterruptedException e) {
-                }
+              nonDirectiveFiles.removeAll(sourcedFiles);
+              for (File looseFile : nonDirectiveFiles) {
+                server.analyzeLibrary(looseFile);
               }
             }
-            // this if statement is inserted as an optimization:
-            // if nonDirectiveFiles is empty, there is no reason to start the synchronized block
-            if (!nonDirectiveFiles.isEmpty()) {
-              synchronized (sourcedFiles) {
-                nonDirectiveFiles.removeAll(sourcedFiles);
-                for (File looseFile : nonDirectiveFiles) {
-                  server.analyzeLibrary(looseFile);
-                }
-              }
-            }
-          } finally {
-            instanceCount--;
           }
         }
       }, ResourceChangeListener.class.getSimpleName());

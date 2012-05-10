@@ -68,31 +68,31 @@ public class AnalysisTestUtilities {
 
     server.addAnalysisListener(listener);
     try {
-      long endTime = System.currentTimeMillis() + milliseconds;
-      while (true) {
-        synchronized (waitForIdleLock) {
-          while (!server.isIdle()) {
-            long delta = endTime - System.currentTimeMillis();
-            if (delta <= 0) {
-              fail("AnalysisServer not idle");
-            }
-            try {
-              waitForIdleLock.wait(delta);
-            } catch (InterruptedException e) {
-              //$FALL-THROUGH$
-            }
+
+      // Ensure ResourceChangeListener background scanning gets time to run
+      // TODO (danrubel): Remove this once background scanning is integrated into AnalysisServer
+      synchronized (waitForIdleLock) {
+        if (server.isIdle()) {
+          try {
+            Thread.sleep(50);
+          } catch (InterruptedException e) {
+            //$FALL-THROUGH$
           }
         }
-        if (!ResourceChangeListener.isScanning()) {
-          return;
-        }
-        if (System.currentTimeMillis() >= endTime) {
-          fail("AnalysisServer not idle");
-        }
-        try {
-          Thread.sleep(10);
-        } catch (InterruptedException e) {
-          //$FALL-THROUGH$
+      }
+
+      long endTime = System.currentTimeMillis() + milliseconds;
+      synchronized (waitForIdleLock) {
+        while (!server.isIdle()) {
+          long delta = endTime - System.currentTimeMillis();
+          if (delta <= 0) {
+            fail("AnalysisServer not idle");
+          }
+          try {
+            waitForIdleLock.wait(delta);
+          } catch (InterruptedException e) {
+            //$FALL-THROUGH$
+          }
         }
       }
     } finally {
