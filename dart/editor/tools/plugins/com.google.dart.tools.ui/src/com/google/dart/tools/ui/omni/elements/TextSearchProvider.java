@@ -19,12 +19,13 @@ import com.google.dart.tools.ui.omni.OmniBoxPopup;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
+import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.widgets.Shell;
 
 /**
  * Provider for text search elements.
  */
-public class TextSearchProvider extends OmniProposalProvider {
+public class TextSearchProvider extends OmniProposalProvider implements IShellProvider {
 
   private final OmniBoxPopup omniBoxPopup;
 
@@ -64,6 +65,7 @@ public class TextSearchProvider extends OmniProposalProvider {
     return omniBoxPopup.getFilterTextExactCase();
   }
 
+  @Override
   public Shell getShell() {
     return omniBoxPopup.getShell();
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -18,6 +18,9 @@ import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.window.IShellProvider;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 
 public class HeaderElement extends OmniElement {
 
@@ -27,7 +30,7 @@ public class HeaderElement extends OmniElement {
 
   @Override
   public void execute(String text) {
-    new TextSearchAction(((TextSearchProvider) getProvider()).getShell(), text).run();
+    new TextSearchAction(getShell(), text).run();
   }
 
   @Override
@@ -43,6 +46,14 @@ public class HeaderElement extends OmniElement {
   @Override
   public String getLabel() {
     return getProvider().getName();
+  }
+
+  private Shell getShell() {
+    OmniProposalProvider proposalProvider = getProvider();
+    if (proposalProvider instanceof IShellProvider) {
+      return ((IShellProvider) proposalProvider).getShell();
+    }
+    return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
   }
 
 }

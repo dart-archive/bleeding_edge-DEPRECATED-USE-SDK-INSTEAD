@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -39,6 +39,7 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.util.Util;
 import org.eclipse.jface.viewers.ColumnWeightData;
+import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -90,7 +91,7 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   private class OmniRefreshJob extends Job {
     OmniRefreshJob() {
-      super("Omni refresher");
+      super("Refreshing searchbox results...");
     }
 
     @Override
@@ -100,7 +101,7 @@ public class OmniBoxPopup extends BasePopupDialog {
     }
   }
 
-  private class PreviousPicksProvider extends OmniProposalProvider {
+  private class PreviousPicksProvider extends OmniProposalProvider implements IShellProvider {
 
     @Override
     public OmniElement getElementForId(String id) {
@@ -126,6 +127,12 @@ public class OmniBoxPopup extends BasePopupDialog {
     public String getName() {
       return OmniBoxMessages.OmniBox_Previous;
     }
+
+    @Override
+    public Shell getShell() {
+      return OmniBoxPopup.this.getShell();
+    }
+
   }
 
   private static final int INITIAL_COUNT_PER_PROVIDER = 5;
