@@ -19,10 +19,13 @@ import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -113,6 +116,15 @@ public interface DartProject extends ParentElement, OpenableElement {
    * @return the default output location
    */
   public IPath getDefaultOutputFullPath();
+
+  /**
+   * Return the table containing the mapping between the Html files in the project which have a dart
+   * related script tag and the corresponding library definition file.
+   * 
+   * @return table of html file to library file mapping
+   * @throws CoreException
+   */
+  public HashMap<String, List<String>> getHtmlMapping() throws CoreException;
 
   /**
    * Return an array of non-Dart resources directly contained in this project. It does not
@@ -256,5 +268,16 @@ public interface DartProject extends ParentElement, OpenableElement {
    * @see #getOutputLocation()
    */
   public void setOutputLocation(IPath path, IProgressMonitor monitor) throws DartModelException;
+
+  /**
+   * Updates the html file to library mapping table
+   * 
+   * @param htmlFileName the name of the html file
+   * @param libraries the list of libraries referenced in the html file
+   * @param add true adds the entry if true, false removes the entry
+   * @throws DartModelException
+   */
+  public void updateHtmlMapping(String htmlFileName, List<String> libraries, boolean add)
+      throws DartModelException;
 
 }

@@ -26,6 +26,7 @@ import com.google.dart.tools.core.internal.model.ModelUpdater;
 import com.google.dart.tools.core.internal.model.OpenableElementImpl;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
+import com.google.dart.tools.core.internal.util.LibraryReferenceFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
@@ -34,6 +35,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
+import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -48,18 +50,19 @@ import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 /**
- * Instances of the class <code>DeltaProcessor</code> are used by <code>DartModelManager</code> to
- * convert <code>IResourceDelta</code>s into <code>DartElementDelta</code>s. It also does some
- * processing on the <code>DartElementImpl</code>s involved (e.g. setting or removing of parents
- * when elements are added or deleted from the model).
+ * Instances of the class <code>DeltaProcessor</code> are used by <code>DartModelManager</code> to convert <code>IResourceDelta</code>s into
+ * <code>DartElementDelta</code>s. It also does some processing on the <code>DartElementImpl</code>s involved (e.g. setting or
+ * removing of parents when elements are added or deleted from the model).
  * <p>
  * High level summary of what the delta processor does:
  * <ul>
@@ -598,6 +601,16 @@ public class DeltaProcessor {
         currentDelta().removed(element.getParent());
         currentDelta().removed(element);
       } else {
+        if (elementType == DartElement.HTML_FILE) {
+          try {
+            element.getDartProject().updateHtmlMapping(
+                element.getCorrespondingResource().getLocation().toPortableString(),
+                null,
+                false);
+          } catch (DartModelException e) {
+            DartCore.logError(e);
+          }
+        }
         close(element);
         removeFromParentInfo(element);
         currentDelta().removed(element);
@@ -962,6 +975,7 @@ public class DeltaProcessor {
    */
   private boolean updateCurrentDelta(IResourceDelta delta, int elementType) {
     IResource deltaRes = delta.getResource();
+    boolean buildStructure = false;
     if (DEBUG) {
       String kindStr;
       if (delta.getKind() == IResourceDelta.ADDED) {
@@ -986,7 +1000,14 @@ public class DeltaProcessor {
           new ResourceChangeListener(server).addFileToScan(file);
         }
         element = createElement(deltaRes, elementType);
+        if (DartCore.isHTMLLikeFileName(deltaRes.getName())) {
+          buildStructure = updateHtmlMapping(deltaRes);
+
+        }
         if (element == null) {
+          if (buildStructure) {
+            resetThisProjectCache((DartProjectImpl) DartCore.create(deltaRes.getProject()));
+          }
           return true;
         }
         elementAdded(element, delta);
@@ -1045,8 +1066,14 @@ public class DeltaProcessor {
             server.changed(deltaRes.getLocation().toFile());
           }
           // content or encoding has changed
+          if (DartCore.isHTMLLikeFileName(deltaRes.getName())) {
+            buildStructure = updateHtmlMapping(deltaRes);
+          }
           element = createElement(delta.getResource(), elementType);
           if (element == null) {
+            if (buildStructure) {
+              resetThisProjectCache((DartProjectImpl) DartCore.create(deltaRes.getProject()));
+            }
             return true;
           }
           recomputeLibrarySet(element);
@@ -1112,4 +1139,26 @@ public class DeltaProcessor {
     }
     return true;
   }
+
+  private boolean updateHtmlMapping(IResource htmlFile) {
+    try {
+      List<String> libraryNames = LibraryReferenceFinder.findInHTML(
+          IFileUtilities.getContents((IFile) htmlFile));
+
+      if (!libraryNames.isEmpty()) {
+        String key = htmlFile.getLocation().toPortableString();
+        DartCore.create(htmlFile.getProject()).updateHtmlMapping(key, libraryNames, true);
+        return true;
+      }
+    } catch (DartModelException e) {
+      DartCore.logError(e);
+      resetThisProjectCache((DartProjectImpl) DartCore.create(htmlFile.getProject()));
+    } catch (CoreException e) {
+      DartCore.logError(e);
+    } catch (IOException e) {
+      DartCore.logError(e);
+    }
+    return false;
+  }
+
 }

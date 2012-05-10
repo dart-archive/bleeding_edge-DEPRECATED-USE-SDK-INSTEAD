@@ -26,6 +26,7 @@ import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartLibraryInfo;
 import com.google.dart.tools.core.internal.model.info.DartProjectInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
+import com.google.dart.tools.core.internal.util.LibraryReferenceFinder;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartElement;
@@ -35,6 +36,7 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
+import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.resources.IFile;
@@ -62,6 +64,7 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -410,6 +413,54 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     return DartElement.DART_PROJECT;
   }
 
+  /**
+   * Return the mapping for the html files contained in this project. If the mapping has not been
+   * created, it will do so and return the result.
+   * 
+   * @return the table with the html file to library mapping
+   * @throws CoreException
+   */
+  @Override
+  public HashMap<String, List<String>> getHtmlMapping() throws CoreException {
+
+    HashMap<String, List<String>> htmlMapping = ((DartProjectInfo) getElementInfo())
+      .getHtmlMapping();
+
+    if (htmlMapping != null) {
+      return htmlMapping;
+    }
+
+    final HashMap<String, List<String>> mapping = new HashMap<String, List<String>>();
+
+    getProject().accept(new IResourceProxyVisitor() {
+        @Override
+      public boolean visit(IResourceProxy proxy) throws CoreException {
+        if (proxy.getType() != IResource.FILE || !DartCore.isHTMLLikeFileName(proxy.getName())) {
+          return true;
+        }
+        IResource resource = proxy.requestResource();
+        if (resource.isAccessible()) {
+          try {
+            List<String> libraryNames = LibraryReferenceFinder.findInHTML(
+                IFileUtilities.getContents((IFile) resource));
+            if (!libraryNames.isEmpty()) {
+              mapping.put(resource.getLocation().toPortableString(), libraryNames);
+            }
+          } catch (IOException exception) {
+            DartCore.logInformation(
+                "Could not get contents of " + resource.getLocation(), exception);
+          }
+        }
+
+        return true;
+      }
+    }, 0);
+
+    ((DartProjectInfo) getElementInfo()).setHtmlMapping(mapping);
+
+    return mapping;
+  }
+
   @Override
   public IResource[] getNonDartResources() throws DartModelException {
     return ((DartProjectInfo) getElementInfo()).getNonDartResources(this);
@@ -661,6 +712,19 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     PerProjectInfo perProjectInfo = getPerProjectInfo();
 
     perProjectInfo.setOutputLocation(path);
+  }
+
+  /**
+   * Update the html mapping table
+   * 
+   * @param htmlFileName the name of the html file
+   * @param libraries the list of libraries referenced in the html file
+   * @throws DartModelException
+   */
+  @Override
+  public void updateHtmlMapping(String htmlFileName, List<String> libraries, boolean add)
+      throws DartModelException {
+    ((DartProjectInfo) getElementInfo()).updateHtmlMapping(htmlFileName, libraries, add);
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.DartElement;
 import org.eclipse.core.resources.IResource;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -34,12 +35,27 @@ public class DartProjectInfo extends OpenableElementInfo {
   private List<String> childPaths = null;
 
   /**
+   * Table to store html file to library mapping
+   */
+  private HashMap<String, List<String>> htmlMapping;
+
+  /**
    * Return a list containing the project-relative paths to all children in the project.
    * 
    * @return a list containing the project-relative paths to all children in the project
    */
   public List<String> getChildPaths() {
     return childPaths;
+  }
+
+  /**
+   * Return the mapping for the html files contained in this project.
+   * 
+   * @return the table with the html files to library mapping
+   */
+
+  public HashMap<String, List<String>> getHtmlMapping() {
+    return htmlMapping;
   }
 
   public DartLibraryImpl[] getLibraries() {
@@ -68,5 +84,28 @@ public class DartProjectInfo extends OpenableElementInfo {
    */
   public void setChildPaths(List<String> paths) {
     childPaths = paths;
+  }
+
+  /**
+   * Set the html file to library mapping table
+   * 
+   * @param mapping a table with the html file to library mapping
+   */
+  public void setHtmlMapping(HashMap<String, List<String>> mapping) {
+    htmlMapping = mapping;
+  }
+
+  /**
+   * Update the mapping table on changes to the project
+   * 
+   * @param htmlFileName the name of the html file that changed
+   * @param libraries list of library references
+   */
+  public void updateHtmlMapping(String htmlFileName, List<String> libraries, boolean add) {
+    if (add) {
+      htmlMapping.put(htmlFileName, libraries);
+    } else {
+      htmlMapping.remove(htmlFileName);
+    }
   }
 }

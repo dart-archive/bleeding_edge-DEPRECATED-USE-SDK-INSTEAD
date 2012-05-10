@@ -35,7 +35,6 @@ import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartLibraryInfo;
 import com.google.dart.tools.core.internal.model.info.OpenableElementInfo;
 import com.google.dart.tools.core.internal.util.Extensions;
-import com.google.dart.tools.core.internal.util.LibraryReferenceFinder;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
@@ -63,8 +62,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceProxy;
-import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -74,7 +71,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.QualifiedName;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -85,11 +81,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Instances of the class <code>DartLibraryImpl</code> implement an object that represents a Dart
- * library.
+ * Instances of the class <code>DartLibraryImpl</code> implement an object that represents a Dart library.
  */
-public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
-    CompilationUnitContainer {
+public class DartLibraryImpl extends OpenableElementImpl
+    implements DartLibrary, CompilationUnitContainer {
   public static final DartLibraryImpl[] EMPTY_LIBRARY_ARRAY = new DartLibraryImpl[0];
 
   /**
@@ -888,40 +883,28 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
     });
 
     // find html files for library
-    try {
-      if (getDartProject().exists()) { // will not look into ExternalDartProject
+    if (getDartProject().exists()) { // will not look into ExternalDartProject
+
+      HashMap<String, List<String>> mapping;
+      try {
+        mapping = getDartProject().getHtmlMapping();
+
         final String elementName = getElementName();
-        getDartProject().getProject().accept(new IResourceProxyVisitor() {
-          @Override
-          public boolean visit(IResourceProxy proxy) throws CoreException {
-            if (proxy.getType() != IResource.FILE || !DartCore.isHTMLLikeFileName(proxy.getName())) {
-              return true;
+        final String libraryName = new Path(elementName).lastSegment().toString();
+
+        Set<String> keys = mapping.keySet();
+        for (String key : keys) {
+          List<String> libraries = mapping.get(key);
+          if (libraries.contains(libraryName) || libraries.contains(elementName)) {
+            IResource htmlFile = ResourceUtil.getResource(new File(key));
+            if (htmlFile != null & htmlFile.exists()) {
+              children.add(new HTMLFileImpl(DartLibraryImpl.this, (IFile) htmlFile));
             }
-            IResource resource = proxy.requestResource();
-            if (!resourceList.contains(resource)) {
-              if (resource.isAccessible()) {
-                try {
-                  List<String> libraryNames = LibraryReferenceFinder.findInHTML(IFileUtilities.getContents((IFile) resource));
-                  for (String libraryName : libraryNames) {
-                    if (elementName.equals(libraryName) || elementName.endsWith("/" + libraryName)) {
-                      children.add(new HTMLFileImpl(DartLibraryImpl.this, (IFile) resource));
-                      break;
-                    }
-                  }
-                } catch (IOException exception) {
-                  DartCore.logInformation(
-                      "Could not get contents of " + resource.getLocation(),
-                      exception);
-                }
-              }
-            }
-            return true;
           }
-        },
-            0);
+        }
+      } catch (CoreException e) {
+        DartCore.logError(e);
       }
-    } catch (CoreException exception) {
-      DartCore.logError(exception);
     }
 
     if (!children.isEmpty()) {
