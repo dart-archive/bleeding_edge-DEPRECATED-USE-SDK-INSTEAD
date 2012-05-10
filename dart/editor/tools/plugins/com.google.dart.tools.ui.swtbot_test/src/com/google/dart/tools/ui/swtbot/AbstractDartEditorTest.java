@@ -19,7 +19,7 @@ import com.google.dart.tools.ui.swtbot.conditions.AnalysisCompleteCondition;
 import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
 import com.google.dart.tools.ui.swtbot.conditions.CompilerWarmedUp;
 import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
 
@@ -57,8 +57,8 @@ public abstract class AbstractDartEditorTest {
 
   @AfterClass
   public static void printResults() {
-    Performance.waitForResults(bot);
-    Performance.printResults();
+    SwtBotPerformance.waitForResults(bot);
+    SwtBotPerformance.printResults_all();
   }
 
   @AfterClass
@@ -136,7 +136,7 @@ public abstract class AbstractDartEditorTest {
 
       if (!isWebApp) {
         // TODO (jwren) implement a different version of LaunchBrowerHelper for server apps, so that console output can be asserted against
-        Performance.waitForResults(bot);
+        SwtBotPerformance.waitForResults(bot);
       } else {
         new LaunchBrowserHelper(bot).launch(dartLibSample);
       }
@@ -145,7 +145,7 @@ public abstract class AbstractDartEditorTest {
       fail("Failed to open and launch " + dartLibSample.name + ", " + e.getMessage());
     }
 
-    Performance.waitForResults(bot);
+    SwtBotPerformance.waitForResults(bot);
 
     // problem assertions
     new ProblemsViewHelper(bot).assertNoProblems();

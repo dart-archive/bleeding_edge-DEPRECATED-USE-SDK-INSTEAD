@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.swtbot.conditions;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities.PerformanceListener;
 import com.google.dart.tools.ui.swtbot.DartLib;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
@@ -59,12 +59,12 @@ public final class BuildLibCondition implements ICondition {
 
       @Override
       public void analysisComplete(long start, String libName) {
-        Performance.ANALYZE.log(start, fileNameWithoutExtension(libName));
+        SwtBotPerformance.ANALYZE.log(start, fileNameWithoutExtension(libName));
       }
 
       @Override
       public void compileComplete(long start, String libName) {
-        Performance.COMPILE.log(start, fileNameWithoutExtension(libName));
+        SwtBotPerformance.COMPILE.log(start, fileNameWithoutExtension(libName));
       }
 
       private String fileNameWithoutExtension(String libName) {

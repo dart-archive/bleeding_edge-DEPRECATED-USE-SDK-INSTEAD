@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.swtbot;
 
 import com.google.dart.tools.ui.swtbot.matchers.TableItemWithText;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.SWT;
@@ -86,11 +86,11 @@ public class DartEditorHelper {
     long start = System.currentTimeMillis();
     activateAutoCompleteShell();
     if (uniqueCompletion) {
-      Performance.CODE_COMPLETION.log(start, simpleText);
+      SwtBotPerformance.CODE_COMPLETION.log(start, simpleText);
     } else {
       WaitForObjectCondition<SWTBotTable> autoCompleteTable = autoCompleteAppears(tableWithRow(proposalText));
       waitUntil(autoCompleteTable);
-      Performance.CODE_COMPLETION.log(start, simpleText);
+      SwtBotPerformance.CODE_COMPLETION.log(start, simpleText);
       selectProposal(autoCompleteTable.get(0), proposalText);
     }
   }

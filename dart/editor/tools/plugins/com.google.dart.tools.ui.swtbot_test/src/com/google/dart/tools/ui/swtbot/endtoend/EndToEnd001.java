@@ -19,7 +19,7 @@ import com.google.dart.tools.ui.swtbot.EndToEndUITest;
 import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.conditions.ProblemsViewCount;
 import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.printActiveEditorText;
 
@@ -47,7 +47,7 @@ public class EndToEnd001 extends AbstractEndToEndTest {
   public void runTest() throws Exception {
     app = new NewApplicationHelper(bot).create("EndToEnd001", NewApplicationHelper.ContentType.WEB);
     new LaunchBrowserHelper(bot).launch(app);
-    Performance.waitForResults(bot);
+    SwtBotPerformance.waitForResults(bot);
     try {
       app.editor.setFocus();
       modifySource(new DartEditorHelper(bot, app));
@@ -62,23 +62,23 @@ public class EndToEnd001 extends AbstractEndToEndTest {
     helper.moveToEndOfLineContaining("Hello");
 
     // type: write("Hello Again")
-    helper.typeLine("write(\"Hello Again");
+    helper.typeLine("show(\"Hello Again");
     helper.save("error in src");
-    Performance.waitForResults(bot);
+    SwtBotPerformance.waitForResults(bot);
     bot.waitUntil(new ProblemsViewCount(1));
 
     // type ';' after write("Hello Again")
-    helper.moveToEndOfLineContaining("write(\"Hello Again\")");
+    helper.moveToEndOfLineContaining("show(\"Hello Again\")");
     helper.editor().typeText(";");
     helper.save();
-    Performance.waitForResults(bot);
+    SwtBotPerformance.waitForResults(bot);
     bot.waitUntil(new ProblemsViewCount(0));
 
     // type: write("Goodbye.");
-    helper.typeLine("write(\"Goodbye.");
-    helper.moveToEndOfLineContaining("write(\"Goodbye.\")");
+    helper.typeLine("show(\"Goodbye.");
+    helper.moveToEndOfLineContaining("show(\"Goodbye.\")");
     helper.editor().typeText(";");
-    Performance.waitForResults(bot);
+    SwtBotPerformance.waitForResults(bot);
     bot.waitUntil(new ProblemsViewCount(0));
 
     helper.save();

@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.swtbot.action;
 
+import com.google.dart.tools.core.internal.perf.Metric;
 import com.google.dart.tools.ui.swtbot.DartLib;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
-import com.google.dart.tools.ui.swtbot.performance.Performance.Metric;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 import com.google.dart.tools.ui.swtbot.views.ProblemsViewHelper;
 
@@ -49,7 +49,7 @@ public class LaunchBrowserHelper {
    * @param title the name of the application being launched (not <code>null</code>)
    */
   public void launch(final DartLib lib) {
-    Performance.waitForResults(bot);
+    SwtBotPerformance.waitForResults(bot);
     new ProblemsViewHelper(bot).assertNoProblems();
 
     final SWTBotShell mainShell = bot.activeShell();
@@ -63,7 +63,7 @@ public class LaunchBrowserHelper {
         lib.dir.getName(),
         pathFromTopLevelDir,
         FilesViewHelper.RUN_TEXT);
-    Metric metric = Performance.LAUNCH_APP;
+    Metric metric = SwtBotPerformance.LAUNCH_APP;
 
     List<String> comments = new ArrayList<String>();
     comments.add(lib.name);
@@ -85,13 +85,13 @@ public class LaunchBrowserHelper {
         public boolean test() throws Exception {
           return !mainShell.isActive();
         }
-      }, Performance.DEFAULT_TIMEOUT_MS);
+      }, SwtBotPerformance.DEFAULT_TIMEOUT_MS);
       SWTBotShell activeShell = activeShell(bot);
 
       // If progress dialog, then wait for it to close
       if (activeShell != null && activeShell.getText().startsWith("Launching ")) {
         comments.add("progress dialog");
-        bot.waitUntil(shellCloses(activeShell), Performance.DEFAULT_TIMEOUT_MS);
+        bot.waitUntil(shellCloses(activeShell), SwtBotPerformance.DEFAULT_TIMEOUT_MS);
         activeShell = activeShell(bot);
       }
 

@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.swtbot.util;
+package com.google.dart.tools.core.utilities.general;
 
 /**
  * Utility methods for {@link StringBuilder}

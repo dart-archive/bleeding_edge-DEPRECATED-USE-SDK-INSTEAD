@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.swtbot.views;
 
 import com.google.dart.tools.ui.swtbot.AbstractDartEditorTest;
 
-import static com.google.dart.tools.ui.swtbot.util.FormattedStringBuilder.appendText;
+import static com.google.dart.tools.core.utilities.general.FormattedStringBuilder.appendText;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;

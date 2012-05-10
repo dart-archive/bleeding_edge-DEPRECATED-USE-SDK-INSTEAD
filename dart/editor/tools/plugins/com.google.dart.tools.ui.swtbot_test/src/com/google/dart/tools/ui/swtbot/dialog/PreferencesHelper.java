@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.swtbot.dialog;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 
 import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.activeShell;
@@ -116,7 +116,7 @@ public class PreferencesHelper {
         public boolean test() throws Exception {
           return !mainShell.isActive();
         }
-      }, Performance.DEFAULT_TIMEOUT_MS);
+      }, SwtBotPerformance.DEFAULT_TIMEOUT_MS);
 
       SWTBotShell activeShell = activeShell(bot);
 

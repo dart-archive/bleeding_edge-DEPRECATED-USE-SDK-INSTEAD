@@ -19,11 +19,11 @@ import com.google.dart.tools.ui.swtbot.action.LaunchBrowserHelper;
 import com.google.dart.tools.ui.swtbot.conditions.AnalysisCompleteCondition;
 import com.google.dart.tools.ui.swtbot.conditions.BuildLibCondition;
 import com.google.dart.tools.ui.swtbot.dialog.OpenLibraryHelper;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.util.AntRunner;
 import com.google.dart.tools.ui.swtbot.views.FilesViewHelper;
 
-import static com.google.dart.tools.ui.swtbot.performance.Performance.prepend;
+import static com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance.prepend;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -201,7 +201,7 @@ public class DartLib {
   public void logFullAnalysisTime(String... comments) {
     ICondition condition = DartCoreDebug.ANALYSIS_SERVER ? new AnalysisCompleteCondition()
         : new BuildLibCondition(this);
-    Performance.ANALYZE_FULL.logInBackground(condition, prepend(name, comments));
+    SwtBotPerformance.ANALYZE_FULL.logInBackground(condition, prepend(name, comments));
   }
 
   /**
@@ -212,7 +212,7 @@ public class DartLib {
     new OpenLibraryHelper(bot).open(this);
     if (!isWebApp) {
       // TODO (jwren) implement a different version of LaunchBrowerHelper for server apps, so that console output can be asserted against
-      Performance.waitForResults(bot);
+      SwtBotPerformance.waitForResults(bot);
     } else {
       new LaunchBrowserHelper(bot).launch(this);
     }

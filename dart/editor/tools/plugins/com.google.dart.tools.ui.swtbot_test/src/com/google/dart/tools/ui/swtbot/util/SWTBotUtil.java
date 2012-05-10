@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.swtbot.util;
 
 import com.google.dart.tools.ui.swtbot.matchers.EditorWithTitle;
 import com.google.dart.tools.ui.swtbot.matchers.WithToolTip;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -165,12 +165,12 @@ public class SWTBotUtil {
         public boolean test() throws Exception {
           return !mainShell.isActive();
         }
-      }, Performance.DEFAULT_TIMEOUT_MS);
+      }, SwtBotPerformance.DEFAULT_TIMEOUT_MS);
       SWTBotShell activeShell = activeShell(bot);
 
       // If progress dialog, then wait for it to close
       if (activeShell != null && activeShell.getText().startsWith("Launching ")) {
-        bot.waitUntil(shellCloses(activeShell), Performance.DEFAULT_TIMEOUT_MS);
+        bot.waitUntil(shellCloses(activeShell), SwtBotPerformance.DEFAULT_TIMEOUT_MS);
       }
 
     } finally {

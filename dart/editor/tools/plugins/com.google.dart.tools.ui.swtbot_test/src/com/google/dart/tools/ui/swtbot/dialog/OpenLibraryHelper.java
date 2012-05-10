@@ -18,7 +18,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.swtbot.DartLib;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 
 import static com.google.dart.tools.ui.swtbot.util.SWTBotUtil.editorWithTitle;
@@ -65,8 +65,8 @@ public class OpenLibraryHelper {
     });
 
     String title = lib.dartFile.getName();
-    Performance.OPEN_LIB.logInBackground(waitForEditorWithTitle(title), lib.name);
-    Performance.waitForResults(bot);
+    SwtBotPerformance.OPEN_LIB.logInBackground(waitForEditorWithTitle(title), lib.name);
+    SwtBotPerformance.waitForResults(bot);
 
     lib.editor = editorWithTitle(bot, title);
   }

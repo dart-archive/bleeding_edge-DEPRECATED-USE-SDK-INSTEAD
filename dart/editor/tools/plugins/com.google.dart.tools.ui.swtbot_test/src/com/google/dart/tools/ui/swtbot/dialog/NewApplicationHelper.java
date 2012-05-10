@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.swtbot.dialog;
 
 import com.google.dart.tools.ui.swtbot.DartLib;
 import com.google.dart.tools.ui.swtbot.matchers.EditorWithTitle;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 import com.google.dart.tools.ui.swtbot.util.SWTBotUtil;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
@@ -110,7 +110,7 @@ public class NewApplicationHelper {
     finishButton.click();
     lib.logFullAnalysisTime();
     EditorWithTitle matcher = new EditorWithTitle(lib.dartFile.getName());
-    Performance.NEW_APP.log(bot, waitForEditor(matcher), appName);
+    SwtBotPerformance.NEW_APP.log(bot, waitForEditor(matcher), appName);
     lib.editor = bot.editor(matcher).toTextEditor();
     return lib;
   }

@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.swtbot;
 
 import com.google.dart.tools.core.samples.SamplesTest;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.junit.Test;
@@ -55,7 +55,7 @@ public final class SamplesUITest extends AbstractDartEditorTest {
       @Override
       public void logParse(long elapseTime, String... comments) {
         long start = System.currentTimeMillis() - elapseTime;
-        Performance.COMPILER_PARSE.log(start, comments);
+        SwtBotPerformance.COMPILER_PARSE.log(start, comments);
       }
     }).testSamples(DartLib.getSamplesDir());
   }

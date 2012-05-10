@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.swtbot;
 
 import com.google.dart.tools.ui.swtbot.dialog.NewApplicationHelper;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.junit.Test;
@@ -33,7 +33,7 @@ public final class NewApplicationActionTest extends AbstractDartEditorTest {
     DartLib dartLib = new NewApplicationHelper(bot).create(
         "NewAppServer",
         NewApplicationHelper.ContentType.SERVER);
-    Performance.waitForResults(bot);
+    SwtBotPerformance.waitForResults(bot);
     // TODO (jwren) once we can launch server apps (see todo in DartLib.openAndLaunch), then this
     // call should be: openAndLaunchLibrary(dartLib, false, "Hello World");
     openAndLaunchLibrary(dartLib, false, false);
@@ -44,7 +44,7 @@ public final class NewApplicationActionTest extends AbstractDartEditorTest {
     DartLib dartLib = new NewApplicationHelper(bot).create(
         "NewAppWeb",
         NewApplicationHelper.ContentType.WEB);
-    Performance.waitForResults(bot);
+    SwtBotPerformance.waitForResults(bot);
     openAndLaunchLibrary(dartLib, true, true);
   }
 

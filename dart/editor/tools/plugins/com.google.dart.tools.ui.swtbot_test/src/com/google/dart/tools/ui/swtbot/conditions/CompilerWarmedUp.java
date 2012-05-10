@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.swtbot.conditions;
 
 import com.google.dart.tools.core.utilities.compiler.DartCompilerWarmup;
-import com.google.dart.tools.ui.swtbot.performance.Performance;
+import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
@@ -27,7 +27,7 @@ import org.eclipse.swtbot.swt.finder.waits.ICondition;
  */
 public class CompilerWarmedUp implements ICondition {
   public static void waitUntilWarmedUp(SWTWorkbenchBot bot) {
-    Performance.COMPILER_WARMUP.log(bot, new CompilerWarmedUp());
+    SwtBotPerformance.COMPILER_WARMUP.log(bot, new CompilerWarmedUp());
   }
 
   @Override
