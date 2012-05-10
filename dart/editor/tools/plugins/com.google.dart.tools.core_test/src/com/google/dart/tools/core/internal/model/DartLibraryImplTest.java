@@ -454,11 +454,63 @@ public class DartLibraryImplTest extends TestCase {
         List<CompilationUnit> units = libraryA.getCompilationUnitsInScope();
         assertThat(units).containsOnly(unitA);
       }
-      // "libraryA" has units of "A" and "B"
+      // "libraryB" has units of "A" and "B"
       {
         DartLibrary libraryB = testProject.getDartProject().getDartLibrary(resourceB);
         List<CompilationUnit> units = libraryB.getCompilationUnitsInScope();
         assertThat(units).containsOnly(unitA, unitB);
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * Test for {@link DartLibrary#getCompilationUnitsTransitively()}.
+   */
+  public void test_DartLibraryImpl_getCompilationUnitsTransitively() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      CompilationUnit unitC = testProject.setUnitContent(
+          "TestC.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('C');",
+              ""));
+      CompilationUnit unitB = testProject.setUnitContent(
+          "TestB.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('B');",
+              "#import('TestC.dart');",
+              ""));
+      CompilationUnit unitA = testProject.setUnitContent(
+          "TestA.dart",
+          Joiner.on("\n").join(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "#library('A');",
+              "#import('TestB.dart');",
+              ""));
+      IResource resourceA = unitA.getResource();
+      IResource resourceB = unitB.getResource();
+      IResource resourceC = unitC.getResource();
+      // "libraryA" has units "A", "B", and "C"
+      {
+        DartLibrary libraryA = testProject.getDartProject().getDartLibrary(resourceA);
+        List<CompilationUnit> units = libraryA.getCompilationUnitsTransitively();
+        assertThat(units).containsOnly(unitA, unitB, unitC);
+      }
+      // "libraryB" has units "B" and "C"
+      {
+        DartLibrary libraryB = testProject.getDartProject().getDartLibrary(resourceB);
+        List<CompilationUnit> units = libraryB.getCompilationUnitsTransitively();
+        assertThat(units).containsOnly(unitB, unitC);
+      }
+      // "libraryC" has unit "C"
+      {
+        DartLibrary libraryC = testProject.getDartProject().getDartLibrary(resourceC);
+        List<CompilationUnit> units = libraryC.getCompilationUnitsTransitively();
+        assertThat(units).containsOnly(unitC);
       }
     } finally {
       testProject.dispose();

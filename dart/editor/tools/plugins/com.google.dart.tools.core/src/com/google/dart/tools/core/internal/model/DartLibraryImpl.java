@@ -88,6 +88,31 @@ public class DartLibraryImpl extends OpenableElementImpl
   public static final DartLibraryImpl[] EMPTY_LIBRARY_ARRAY = new DartLibraryImpl[0];
 
   /**
+   * Add the transitive closure of CompilationUnits from the given library to the units list. Record
+   * already visited libraries in the libraries list.
+   * 
+   * @param library the library to process
+   * @param units the set to add CompilationUnit to
+   * @param libraries the set of visited libraries
+   * @throws DartModelException if the transitive compilation units cannot be determined for some
+   *           reason
+   */
+  private static void addCompilationUnitsTransitively(DartLibrary library,
+      Set<CompilationUnit> units, Set<DartLibrary> libraries) throws DartModelException {
+    if (!libraries.contains(library)) {
+      libraries.add(library);
+
+      // add the sourced units for this library
+      Collections.addAll(units, library.getCompilationUnits());
+
+      // add units from imported libraries
+      for (DartLibrary importedLibrary : library.getImportedLibraries()) {
+        addCompilationUnitsTransitively(importedLibrary, units, libraries);
+      }
+    }
+  }
+
+  /**
    * Answer a library source for the specified file
    * 
    * @param libraryFile the *.dart library configuration file
@@ -1027,30 +1052,6 @@ public class DartLibraryImpl extends OpenableElementImpl
   protected IStatus validateExistence(IResource underlyingResource) {
     DartCore.notYetImplemented();
     return DartModelStatusImpl.OK_STATUS;
-  }
-
-  /**
-   * Add the transitive closure of CompilationUnits from the given library to the units list. Record
-   * already visited libraries in the libraries list.
-   * 
-   * @param library
-   * @param units
-   * @param libraries
-   * @throws DartModelException
-   */
-  private void addCompilationUnitsTransitively(DartLibrary library, Set<CompilationUnit> units,
-      Set<DartLibrary> libraries) throws DartModelException {
-    if (!libraries.contains(library)) {
-      libraries.add(this);
-
-      // add the sourced units for this library
-      Collections.addAll(units, library.getCompilationUnits());
-
-      // add units from imported libraries
-      for (DartLibrary importedLibrary : library.getImportedLibraries()) {
-        addCompilationUnitsTransitively(importedLibrary, units, libraries);
-      }
-    }
   }
 
   /**
