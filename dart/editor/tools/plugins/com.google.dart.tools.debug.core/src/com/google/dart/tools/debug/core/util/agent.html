@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>agent.html</title>
+  </head>
+  <body>
+    <script>
+      window.addEventListener('message', function (event) {
+        if (event.data != '__init__') {
+          var xhr = new XMLHttpRequest();
+          
+          xhr.open('POST', '/log', true);
+          xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+          xhr.send(encodeURIComponent(event.data));    
+        }
+      }, false);
+    </script>
+  </body>
+</html>

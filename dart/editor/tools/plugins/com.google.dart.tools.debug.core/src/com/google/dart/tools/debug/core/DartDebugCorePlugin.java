@@ -180,6 +180,8 @@ public class DartDebugCorePlugin extends Plugin {
 
   private IEclipsePreferences prefs;
 
+  private IUserAgentManager userAgentManager;
+
   /**
    * Returns the path to the Browser executable, if it has been set. Otherwise, this method returns
    * the empty string.
@@ -210,6 +212,10 @@ public class DartDebugCorePlugin extends Plugin {
     }
 
     return prefs;
+  }
+
+  public IUserAgentManager getUserAgentManager() {
+    return userAgentManager;
   }
 
   /**
@@ -246,6 +252,10 @@ public class DartDebugCorePlugin extends Plugin {
     getPrefs().putBoolean(PREFS_DEFAULT_BROWSER, value);
   }
 
+  public void setUserAgentManager(IUserAgentManager userAgentManager) {
+    this.userAgentManager = userAgentManager;
+  }
+
   @Override
   public void start(BundleContext context) throws Exception {
     plugin = this;
@@ -262,7 +272,7 @@ public class DartDebugCorePlugin extends Plugin {
           logError(e);
         }
       }
-    });
+    }).start();
   }
 
   @Override

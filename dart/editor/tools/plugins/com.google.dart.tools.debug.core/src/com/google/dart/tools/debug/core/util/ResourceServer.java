@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.util;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import org.eclipse.core.resources.IFile;
@@ -23,6 +24,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,6 +35,8 @@ import java.util.concurrent.Executors;
 public class ResourceServer implements IResourceResolver {
   private ServerSocket serverSocket;
   private ExecutorService threadPool;
+
+  private Set<String> previousAgents = new HashSet<String>();
 
   /**
    * Create a ResourceServer; serve its resources from any free port.
@@ -71,7 +76,13 @@ public class ResourceServer implements IResourceResolver {
       String pathSegment = fileUri.getPath();
 
       // localhost? 127.0.0.1? serverSocket.getInetAddress().getHostAddress()?
-      URI uri = new URI("http", null, "127.0.0.1", serverSocket.getLocalPort(), pathSegment, null,
+      URI uri = new URI(
+          "http",
+          null,
+          "127.0.0.1",
+          serverSocket.getLocalPort(),
+          pathSegment,
+          null,
           null);
       return uri.toString();
     } catch (URISyntaxException e) {
@@ -92,15 +103,24 @@ public class ResourceServer implements IResourceResolver {
     }
   }
 
+  protected void loadingContentFrom(String hostAddress, String userAgent) {
+    if (!previousAgents.contains(userAgent)) {
+      previousAgents.add(userAgent);
+
+      DartCore.getConsole().println(
+          "Remote connection from " + hostAddress + " [" + userAgent + "]");
+    }
+  }
+
   private void startServer() {
     try {
       while (true) {
         Socket socket = serverSocket.accept();
 
-        threadPool.execute(new ResourceServerHandler(socket));
+        threadPool.execute(new ResourceServerHandler(this, socket));
       }
     } catch (IOException e) {
-      // The server socket was shut down by the shutdown() call.
+      // The server socket was closed by the shutdown() call.
 
     }
   }
