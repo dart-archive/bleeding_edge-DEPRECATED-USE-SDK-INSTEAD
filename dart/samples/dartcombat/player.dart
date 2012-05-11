@@ -67,32 +67,20 @@ class EnemyImpl implements Enemy {
 
   Future<int> ready() {
     Completer<int> res = new Completer<int>();
-    ReceivePort port = portToEnemy.call(
-        { "action" : MessageIds.ENEMY_IS_READY });
-    port.receive((var message, SendPort replyTo) {
-      bool success = message[0];
-      if (success) {
-        res.complete(0);
-      } else {
-        res.completeException(message[1]);
-      }
-    });
-    return res.future;
+    return portToEnemy.call({ "action" : MessageIds.ENEMY_IS_READY })
+      .transform((message) {
+         if (!message[0]) throw message[1];
+         return 0;
+       });
   }
 
   Future<int> shoot(int x, int y) {
     Completer<int> res = new Completer<int>();
-    ReceivePort port = portToEnemy.call(
-        { "action" : MessageIds.SHOOT, "args" : [x, y] });
-    port.receive((var message, SendPort replyTo) {
-      bool success = message[0];
-      if (success) {
-        res.complete(message[1][0]);
-      } else {
-        res.completeException(message[1]);
-      }
-    });
-    return res.future;
+    return portToEnemy.call({ "action" : MessageIds.SHOOT, "args" : [x, y] })
+      .transform((message) {
+         if (!message[0]) throw message[1];
+         return message[1][0];
+       });
   }
 }
 
