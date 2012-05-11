@@ -20,11 +20,10 @@ foo(int param0) {
 
 final String TEST_TWO_WITH_BAILOUT = @"""
 foo(int param0) {
-  var t;
   for (int i = 0; i < 1; i++) {
-    t = -param0;
+    param0 = -param0;
   }
-  return t;
+  return param0;
 }
 """;
 
