@@ -37,21 +37,6 @@ public class DartEditorCommandLineManager {
     return fileSet;
   }
 
-  // TODO (jwren) move this method to a different class?
-  public static void openCommandLineFilesAndFolders() {
-    if (fileSet == null || fileSet.isEmpty()) {
-      return;
-    }
-    for (File file : fileSet) {
-      // verify that this file is not null, and exists
-      if (file == null || !file.exists()) {
-        continue;
-      }
-      // TODO (jwren), remove this System.out, it is temporary and only for testing purposes
-      //System.out.println("file = " + file.toURI() + " !!!");
-    }
-  }
-
   public static void setFileSet(ArrayList<File> fileSet) {
     DartEditorCommandLineManager.fileSet = fileSet;
   }

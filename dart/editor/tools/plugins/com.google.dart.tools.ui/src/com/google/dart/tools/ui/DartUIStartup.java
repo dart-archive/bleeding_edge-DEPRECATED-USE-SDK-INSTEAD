@@ -20,13 +20,25 @@ import com.google.dart.tools.core.analysis.ResourceChangeListener;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
+import com.google.dart.tools.core.internal.perf.DartEditorCommandLineManager;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerWarmup;
+import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
+import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+
+import java.io.File;
+import java.util.ArrayList;
 
 /**
  * This early startup class is called after the main workbench window opens, and is used to warm up
@@ -61,6 +73,12 @@ public class DartUIStartup implements IStartup {
         }
         if (!getThread().isInterrupted()) {
           compilerWarmup();
+        }
+        if (!getThread().isInterrupted()) {
+          detectStartupComplete();
+        }
+        if (!getThread().isInterrupted()) {
+          openInitialFolders();
         }
       } catch (Throwable throwable) {
         // Catch any runtime exceptions that occur during warmup and log them.
@@ -97,6 +115,18 @@ public class DartUIStartup implements IStartup {
     }
 
     /**
+     * 
+     */
+    private void detectStartupComplete() {
+//      Display.getDefault().asyncExec(new Runnable() {
+//        @Override
+//        public void run() {
+//          ;
+//        }
+//      });
+    }
+
+    /**
      * Initialize the indexer.
      */
     private void indexWarmup() {
@@ -119,6 +149,48 @@ public class DartUIStartup implements IStartup {
         long delta = System.currentTimeMillis() - start;
         DartCore.logInformation("Warmup Model : " + delta);
       }
+    }
+
+    /**
+     * Loop through the files input on the command line, retrieved from
+     * {@link DartEditorCommandLineManager#getFileSet()}, and open them in the Editor appropriately.
+     */
+    private void openInitialFolders() {
+      ArrayList<File> fileSet = DartEditorCommandLineManager.getFileSet();
+      if (fileSet == null || fileSet.isEmpty()) {
+        return;
+      }
+      for (File file : fileSet) {
+        // verify that this file is not null, and exists
+        if (file == null || !file.exists()) {
+          continue;
+        }
+        final File fileToOpen = file;
+        Display.getDefault().asyncExec(new Runnable() {
+          @Override
+          public void run() {
+            IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            if (fileToOpen.isFile()) {
+              // If this File to open is a file, instead of a directory, then open the directory,
+              // and then open the file in an editor
+              String directoryToOpen = fileToOpen.getParentFile().getAbsolutePath();
+              new CreateAndRevealProjectAction(workbenchWindow, directoryToOpen).run();
+              try {
+                EditorUtility.openInEditor(ResourceUtil.getFile(fileToOpen));
+              } catch (PartInitException e) {
+                e.printStackTrace();
+              } catch (DartModelException e) {
+                e.printStackTrace();
+              }
+            } else {
+              // If this File to open is a directory, instead of a file, then just open the directory.
+              String directoryToOpen = fileToOpen.getAbsolutePath();
+              new CreateAndRevealProjectAction(workbenchWindow, directoryToOpen).run();
+            }
+          }
+        });
+      }
+
     }
   }
 
