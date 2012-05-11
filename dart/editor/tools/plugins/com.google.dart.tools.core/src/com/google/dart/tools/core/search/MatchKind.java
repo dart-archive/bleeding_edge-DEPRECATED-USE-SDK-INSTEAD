@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.search;
 
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartImport;
 
 /**
@@ -49,6 +50,11 @@ public enum MatchKind {
    * A reference to a {@link DartImport}.
    */
   IMPORT_REFERENCE,
+
+  /**
+   * A reference to a {@link CompilationUnit}.
+   */
+  FILE_REFERENCE,
 
   /**
    * A reference to a class that is implementing a specified type.

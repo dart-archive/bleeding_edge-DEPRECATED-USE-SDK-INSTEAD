@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.util.List;
@@ -383,6 +384,41 @@ public interface SearchEngine {
    * @throws SearchException if the results could not be computed
    */
   public void searchReferences(Field field, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given {@link IFile} within the given scope. Return
+   * all matches that pass the optional filter.
+   * 
+   * @param file the {@link IFile} being referenced by the found matches
+   * @param scope the scope containing the {@link IFile} declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(IFile file, SearchScope scope, SearchFilter filter,
+      IProgressMonitor monitor) throws SearchException;
+
+  /**
+   * Search for references to the given {@link IFile} within the given scope.
+   * 
+   * @param file the {@link IFile} being referenced by the found matches
+   * @param scope the scope containing the {@link IFile} declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @param monitor the progress monitor to use for reporting progress to the user. It is the
+   *          caller's responsibility to call done() on the given monitor. Accepts
+   *          <code>null,</code> indicating that no progress should be reported and that the
+   *          operation cannot be canceled.
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(IFile file, SearchScope scope, SearchFilter filter,
       SearchListener listener, IProgressMonitor monitor) throws SearchException;
 
   /**

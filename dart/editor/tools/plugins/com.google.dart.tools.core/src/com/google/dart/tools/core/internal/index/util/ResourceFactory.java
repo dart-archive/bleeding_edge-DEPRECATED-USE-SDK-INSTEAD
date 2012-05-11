@@ -23,6 +23,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatusConstants;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
 import java.net.URI;
@@ -117,6 +118,19 @@ public final class ResourceFactory {
           "No compilation unit associated with " + element.getElementName())); //$NON-NLS-0$
     }
     return getResource(unit);
+  }
+
+  /**
+   * @return the {@link Resource} representing the given {@link IFile}.
+   */
+  public static Resource getResource(IFile file) throws DartModelException {
+    if (file == null) {
+      throw new DartModelException(new DartModelStatusImpl(
+          DartModelStatusConstants.INVALID_RESOURCE,
+          "Resource is null")); //$NON-NLS-0$
+    }
+    String location = file.getLocation().toPortableString();
+    return new Resource(location);
   }
 
   /**

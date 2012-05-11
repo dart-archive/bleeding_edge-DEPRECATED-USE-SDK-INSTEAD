@@ -599,6 +599,29 @@ public class NewSearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchReferences(final IFile file, final SearchScope scope,
+      final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
+    return gatherResults(1, new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchReferences(file, scope, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
+  public void searchReferences(IFile file, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    index.getRelationships(
+        createElement(file),
+        IndexConstants.IS_REFERENCED_BY,
+        new RelationshipCallbackImpl(MatchKind.FILE_REFERENCE, applyFilter(filter, listener)));
+  }
+
+  @Override
   public List<SearchMatch> searchReferences(final Method method, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
     return gatherResults(2, new SearchRunner() {
@@ -844,6 +867,10 @@ public class NewSearchEngineImpl implements SearchEngine {
         + ResourceFactory.SEPARATOR_CHAR + field.getElementName());
   }
 
+  private Element createElement(IFile file) throws SearchException {
+    return new Element(getResource(file), "");
+  }
+
   private Element createElement(Method method) throws SearchException {
     Type type = method.getDeclaringType();
     if (type == null) {
@@ -892,6 +919,14 @@ public class NewSearchEngineImpl implements SearchEngine {
   private Resource getResource(CompilationUnit compilationUnit) throws SearchException {
     try {
       return ResourceFactory.getResource(compilationUnit);
+    } catch (DartModelException exception) {
+      throw new SearchException(exception);
+    }
+  }
+
+  private Resource getResource(IFile file) throws SearchException {
+    try {
+      return ResourceFactory.getResource(file);
     } catch (DartModelException exception) {
       throw new SearchException(exception);
     }

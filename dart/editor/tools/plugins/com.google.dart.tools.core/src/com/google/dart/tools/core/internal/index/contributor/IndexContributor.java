@@ -28,6 +28,7 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionObjectInvocation;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
@@ -36,7 +37,10 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
+import com.google.dart.compiler.ast.DartResourceDirective;
+import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
@@ -70,6 +74,9 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.bindings.BindingUtils;
 import com.google.dart.tools.core.utilities.collections.IntStack;
 import com.google.dart.tools.core.utilities.io.PrintStringWriter;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.Path;
 
 import java.util.ArrayList;
 
@@ -421,6 +428,12 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitImportDirective(DartImportDirective node) {
+    recordResourceReference(node.getLibraryUri());
+    return super.visitImportDirective(node);
+  }
+
+  @Override
   public Void visitMethodDefinition(DartMethodDefinition node) {
     if (node.getParent() instanceof DartField) {
       super.visitMethodDefinition(node);
@@ -471,6 +484,18 @@ public class IndexContributor extends ASTVisitor<Void> {
       notFound("redirect constructor invocation", node);
     }
     return super.visitRedirectConstructorInvocation(node);
+  }
+
+  @Override
+  public Void visitResourceDirective(DartResourceDirective node) {
+    recordResourceReference(node.getResourceUri());
+    return super.visitResourceDirective(node);
+  }
+
+  @Override
+  public Void visitSourceDirective(DartSourceDirective node) {
+    recordResourceReference(node.getSourceUri());
+    return super.visitSourceDirective(node);
   }
 
   @Override
@@ -1293,6 +1318,25 @@ public class IndexContributor extends ASTVisitor<Void> {
         traceWriter.print(relationship);
         traceWriter.print(" ");
         traceWriter.print(location);
+      }
+    }
+  }
+
+  private void recordResourceReference(DartStringLiteral uriLiteral) {
+    if (uriLiteral != null) {
+      try {
+        String uriString = uriLiteral.getValue();
+        IFile libraryFile = (IFile) compilationUnit.getLibrary().getCorrespondingResource();
+        if (libraryFile != null) {
+          IFile resourceFile = libraryFile.getParent().getFile(new Path(uriString));
+          if (resourceFile != null && resourceFile.exists()) {
+            Element element = new Element(ResourceFactory.getResource(resourceFile), "");
+            Location location = createLocation(uriLiteral);
+            recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+          }
+        }
+      } catch (Throwable e) {
+        DartCore.logError("Could not record resource reference " + uriLiteral, e);
       }
     }
   }
