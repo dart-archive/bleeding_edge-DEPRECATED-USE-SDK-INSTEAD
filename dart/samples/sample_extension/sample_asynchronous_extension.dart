@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("sample_extension");
+#library("sample_asynchronous_extension");
 
 #import("dart-ext:sample_extension");
 
-// The simplest way to call native code: top-level static methods.
-int systemRand() native "SystemRand";
-void systemSrand(int seed) native "SystemSrand";
-
+// A class caches the native port used to call an asynchronous extension.
 class RandomArray {
   static SendPort _port;
+
   void randomArray(int seed, int length, void callback(List result)) {
     var args = new List(2);
     args[0] = seed;
