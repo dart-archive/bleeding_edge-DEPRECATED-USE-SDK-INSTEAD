@@ -63,6 +63,10 @@ public class TextSearchScopeFilter {
     if (fileName.endsWith(".dart.js")) {
       return true;
     }
+    //dart2js-gened file (temporary)
+    if (fileName.endsWith(".dart.js_")) {
+      return true;
+    }
     return false;
   }
 }
