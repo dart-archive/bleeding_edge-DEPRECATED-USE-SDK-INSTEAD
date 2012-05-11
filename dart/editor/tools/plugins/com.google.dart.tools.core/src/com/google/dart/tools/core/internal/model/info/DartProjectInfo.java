@@ -37,7 +37,7 @@ public class DartProjectInfo extends OpenableElementInfo {
   /**
    * Table to store html file to library mapping
    */
-  private HashMap<String, List<String>> htmlMapping;
+  private HashMap<String, List<String>> htmlMapping = new HashMap<String, List<String>>();
 
   /**
    * Return a list containing the project-relative paths to all children in the project.
