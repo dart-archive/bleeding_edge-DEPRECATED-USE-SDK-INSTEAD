@@ -40,5 +40,8 @@ Export-Package: com.google.dart.tools.internal.corext.refactoring.rename;x-frien
  com.google.dart.tools.ui.internal.text.dart;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.text.editor;x-friends:="com.google.dart.tools.ui_test,com.google.dart.tools.debug.ui,com.google.dart.tools.ui.swtbot_test",
  com.google.dart.tools.ui.internal.text.functions;x-friends:="com.google.dart.tools.ui_test",
- com.google.dart.tools.ui.text;x-friends:="com.google.dart.tools.ui_test"
+ com.google.dart.tools.ui.internal.util,
+ com.google.dart.tools.ui.text;x-friends:="com.google.dart.tools.ui_test",
+ com.google.dart.tools.ui.themes,
+ com.google.dart.tools.ui.util
 Bundle-ActivationPolicy: lazy

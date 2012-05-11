@@ -246,12 +246,6 @@
             values="com.google.dart.tools.ui.internal.text.dart.ContentAssistComputerParameter"/>
       </command>
             <command
-            categoryId="org.eclipse.ui.category.window"
-            defaultHandler="com.google.dart.tools.ui.omni.OmniBoxHandler"
-            description="%command.omnibox.description"
-            id="com.google.dart.tools.ui.omnibox"
-            name="%command.omnibox.name"/>
-            <command
                   id="com.google.dart.tools.ui.BroadcastCommand"
                   name="BroadcastCommand">
             </command>
@@ -3609,24 +3603,6 @@
       <startup class="com.google.dart.tools.ui.DartUIStartup"/>
    </extension>
 
-   <extension
-         point="org.eclipse.ui.menus">
-      <menuContribution
-            locationURI="toolbar:org.eclipse.ui.trim.command2">
-         <toolbar
-               id="omni.toolbar">
-            <control
-               class="com.google.dart.tools.ui.omni.OmniBoxControlContribution">
-            </control>
-         </toolbar>
-         <toolbar
-               id="feedback.toolbar">
-            <control
-               class="com.google.dart.tools.ui.feedback.FeedbackControlContribution">
-            </control>
-         </toolbar>
-      </menuContribution>
-   </extension>
    <extension
          point="org.eclipse.ui.services">
       <sourceProvider
