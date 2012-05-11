@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.UrlLibrarySource;
+import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 
@@ -22,6 +23,7 @@ import static com.google.dart.tools.core.analysis.AnalysisUtility.parse;
 import java.io.File;
 import java.net.URI;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -54,15 +56,35 @@ class ParseLibraryFileTask extends Task {
   @Override
   void perform() {
     Library library = context.getCachedLibrary(libraryFile);
+
+    // Get the cached unit or parse the source
+
+    DartUnit unit = null;
+    if (library != null) {
+      unit = library.getResolvedUnit(libraryFile);
+    }
+    if (unit == null) {
+      unit = context.getUnresolvedUnit(libraryFile);
+      if (unit == null) {
+        Set<String> prefixes = new HashSet<String>();
+        unit = parse(server, libraryFile, librarySource, libraryFile, prefixes);
+        context.cacheUnresolvedUnit(libraryFile, unit);
+      }
+    }
+
+    // Ensure the library is built
+
     if (library == null) {
-      Set<String> prefixes = new HashSet<String>();
-      DartUnit unit = parse(server, libraryFile, librarySource, libraryFile, prefixes);
-      library = Library.fromDartUnit(server, libraryFile, librarySource, unit, prefixes);
+      List<DartDirective> directives = unit.getDirectives();
+      library = Library.fromDartUnit(server, libraryFile, librarySource, directives);
       context.cacheLibrary(library);
     }
+
+    // Notify the caller
+
     if (callback != null) {
       try {
-        callback.parsed(new ParseLibraryFileEvent(library));
+        callback.parsed(new ParseLibraryFileEvent(library, unit));
       } catch (Throwable e) {
         DartCore.logError("Exception during parse notification", e);
       }

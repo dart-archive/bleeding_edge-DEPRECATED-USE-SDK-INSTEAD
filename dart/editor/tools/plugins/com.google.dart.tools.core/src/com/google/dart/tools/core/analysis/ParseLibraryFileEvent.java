@@ -24,14 +24,16 @@ import java.util.Collection;
 public class ParseLibraryFileEvent {
 
   private final Library library;
+  private final DartUnit unit;
 
   /**
    * Construct a new instance
    * 
    * @param library the library (not <code>null</code>)
    */
-  ParseLibraryFileEvent(Library library) {
+  ParseLibraryFileEvent(Library library, DartUnit unit) {
     this.library = library;
+    this.unit = unit;
   }
 
   /**
@@ -61,6 +63,6 @@ public class ParseLibraryFileEvent {
    *         does not exist)
    */
   public DartUnit getUnit() {
-    return library.getCachedUnit(library.getFile());
+    return unit;
   }
 }

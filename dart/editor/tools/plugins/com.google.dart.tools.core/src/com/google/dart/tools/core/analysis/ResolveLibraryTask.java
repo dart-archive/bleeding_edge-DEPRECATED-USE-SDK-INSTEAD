@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.LibrarySource;
+import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 
@@ -23,9 +24,8 @@ import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 import java.io.File;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Resolve types and references in the specified library
@@ -56,16 +56,12 @@ class ResolveLibraryTask extends Task {
     // Collect resolved libraries and parsed units
 
     HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
-    HashMap<URI, DartUnit> parsedUnits = new HashMap<URI, DartUnit>();
+    HashMap<URI, DartUnit> parsedUnits = context.getUnresolvedUnits();
 
     for (Library lib : context.getCachedLibraries()) {
       LibraryUnit libUnit = lib.getLibraryUnit();
       if (libUnit != null) {
         resolvedLibs.put(libUnit.getSource().getUri(), libUnit);
-      } else {
-        for (Entry<File, DartUnit> entry : lib.getCachedUnits().entrySet()) {
-          parsedUnits.put(entry.getKey().toURI(), entry.getValue());
-        }
       }
     }
 
@@ -83,9 +79,8 @@ class ResolveLibraryTask extends Task {
       Library lib = context.getCachedLibrary(libFile);
       if (lib == null) {
         LibrarySource librarySource = libUnit.getSource();
-        DartUnit unit = libUnit.getSelfDartUnit();
-        Set<String> prefixes = libUnit.getPrefixes();
-        lib = Library.fromDartUnit(server, libFile, librarySource, unit, prefixes);
+        List<DartDirective> directives = libUnit.getSelfDartUnit().getDirectives();
+        lib = Library.fromDartUnit(server, libFile, librarySource, directives);
         context.cacheLibrary(lib);
       }
       lib.cacheLibraryUnit(server, libUnit);

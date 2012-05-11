@@ -102,6 +102,8 @@ class AnalysisUtility {
   /**
    * Resolve the specified library and any imported libraries that have not already been resolved.
    * 
+   * @param parsedUnits A collection of unresolved ASTs that should be used instead of parsing the
+   *          associated source from storage. Units are removed from this map as they are used.
    * @return a map of newly resolved libraries
    */
   static Map<URI, LibraryUnit> resolve(AnalysisServer server, Library library,
@@ -112,18 +114,21 @@ class AnalysisUtility {
     LibrarySource librarySource = library.getLibrarySource();
     provider.clearCachedArtifacts();
 
+    // analyzeLibraries modifies map of parsed units,
+    // thus we copy the map to know which units were already parsed
+    // before calling analyzeLibraries
+    HashMap<URI, DartUnit> parsedUnitsCopy = new HashMap<URI, DartUnit>(parsedUnits);
+
     Map<URI, LibraryUnit> newlyResolved = null;
     try {
-      // analyzeLibraries modifies map of parsed units, so pass a copy
-      HashMap<URI, DartUnit> parsedUnitsCopy = new HashMap<URI, DartUnit>(parsedUnits.size());
-      parsedUnitsCopy.putAll(parsedUnits);
 
       newlyResolved = DartCompilerUtilities.secureAnalyzeLibraries(
           librarySource,
           resolvedLibs,
-          parsedUnitsCopy,
+          parsedUnits,
           config,
           provider,
+          server.getLibraryManager(),
           errorListener,
           true);
     } catch (IOException e) {
@@ -142,7 +147,7 @@ class AnalysisUtility {
       newlyResolved = new HashMap<URI, LibraryUnit>();
       newlyResolved.put(libraryFile.toURI(), new LibraryUnit(librarySource));
     }
-    notifyParsedDuringResolve(server, parsedUnits, newlyResolved.values(), errorListener);
+    notifyParsedDuringResolve(server, parsedUnitsCopy, newlyResolved.values(), errorListener);
     errorListener.notifyResolved(newlyResolved);
     return newlyResolved;
   }

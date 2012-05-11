@@ -17,6 +17,7 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
+import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 
@@ -26,6 +27,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -37,17 +39,23 @@ class Library {
    * Construct a new library from the unresolved dart unit that defines the library
    */
   static Library fromDartUnit(AnalysisServer server, File libFile, LibrarySource libSource,
-      DartUnit dartUnit, Set<String> prefixes) {
+      Collection<DartDirective> directives) {
     HashMap<String, File> imports = new HashMap<String, File>();
     HashMap<String, File> sources = new HashMap<String, File>();
     URI base = libFile.toURI();
 
     // Resolve all #import and #source directives
 
-    for (DartDirective directive : dartUnit.getDirectives()) {
+    HashSet<String> prefixes = new HashSet<String>();
+    for (DartDirective directive : directives) {
       String relPath;
       if (directive instanceof DartImportDirective) {
-        relPath = ((DartImportDirective) directive).getLibraryUri().getValue();
+        DartImportDirective importDirective = (DartImportDirective) directive;
+        DartStringLiteral prefix = importDirective.getPrefix();
+        if (prefix != null) {
+          prefixes.add(prefix.getValue());
+        }
+        relPath = importDirective.getLibraryUri().getValue();
         File file = server.resolvePath(base, relPath);
         if (file == null) {
           // Resolution errors reported by ResolveLibraryTask
@@ -76,8 +84,7 @@ class Library {
       }
     }
 
-    Library library = new Library(libFile, libSource, dartUnit, prefixes, imports, sources);
-    return library;
+    return new Library(libFile, libSource, prefixes, imports, sources);
   }
 
   private final File libraryFile;
@@ -85,19 +92,18 @@ class Library {
   private final Set<String> prefixes;
   private final HashMap<String, File> imports;
   private final HashMap<String, File> sources;
-  private final HashMap<File, DartUnit> unitCache;
+  private final HashMap<File, DartUnit> resolvedUnits;
 
   private LibraryUnit libraryUnit;
 
-  private Library(File libraryFile, LibrarySource librarySource, DartUnit libraryUnit,
-      Set<String> prefixes, HashMap<String, File> imports, HashMap<String, File> sources) {
+  private Library(File libraryFile, LibrarySource librarySource, Set<String> prefixes,
+      HashMap<String, File> imports, HashMap<String, File> sources) {
     this.libraryFile = libraryFile;
     this.librarySource = librarySource;
     this.prefixes = prefixes;
     this.imports = imports;
     this.sources = sources;
-    this.unitCache = new HashMap<File, DartUnit>();
-    this.unitCache.put(libraryFile, libraryUnit);
+    this.resolvedUnits = new HashMap<File, DartUnit>();
   }
 
   void cacheLibraryUnit(AnalysisServer server, LibraryUnit libUnit) {
@@ -105,21 +111,9 @@ class Library {
     for (DartUnit dartUnit : libUnit.getUnits()) {
       File file = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
       if (file != null) {
-        cacheUnit(file, dartUnit);
+        resolvedUnits.put(file, dartUnit);
       }
     }
-  }
-
-  void cacheUnit(File file, DartUnit unit) {
-    unitCache.put(file, unit);
-  }
-
-  DartUnit getCachedUnit(File file) {
-    return unitCache.get(file);
-  }
-
-  HashMap<File, DartUnit> getCachedUnits() {
-    return unitCache;
   }
 
   File getFile() {
@@ -140,6 +134,14 @@ class Library {
 
   Set<String> getPrefixes() {
     return prefixes;
+  }
+
+  DartUnit getResolvedUnit(File file) {
+    return resolvedUnits.get(file);
+  }
+
+  HashMap<File, DartUnit> getResolvedUnits() {
+    return resolvedUnits;
   }
 
   Collection<File> getSourceFiles() {

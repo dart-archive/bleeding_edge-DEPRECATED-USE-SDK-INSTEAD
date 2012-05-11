@@ -46,16 +46,27 @@ class ParseFileTask extends Task {
     if (!dartFile.exists()) {
       return;
     }
+
+    // Don't parse sourced files without first parsing the library file
+    // because we need import prefixes for DartC to parse correctly
+
     Library library = context.getCachedLibrary(libraryFile);
     if (library == null) {
       return;
     }
-    DartUnit dartUnit = library.getCachedUnit(dartFile);
-    if (dartUnit != null) {
+
+    // Parse the file if it is not cached
+
+    DartUnit unit = library.getResolvedUnit(dartFile);
+    if (unit != null) {
+      return;
+    }
+    unit = context.getUnresolvedUnit(dartFile);
+    if (unit != null) {
       return;
     }
     Set<String> prefixes = library.getPrefixes();
-    dartUnit = parse(server, libraryFile, library.getLibrarySource(), dartFile, prefixes);
-    library.cacheUnit(dartFile, dartUnit);
+    unit = parse(server, libraryFile, library.getLibrarySource(), dartFile, prefixes);
+    context.cacheUnresolvedUnit(dartFile, unit);
   }
 }

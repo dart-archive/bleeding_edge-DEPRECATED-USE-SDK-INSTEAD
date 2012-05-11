@@ -49,7 +49,7 @@ class ParseLibraryTask extends Task {
     // Parse the files sourced by the library
 
     for (File file : library.getSourceFiles()) {
-      if (library.getCachedUnit(file) == null && file.exists()) {
+      if (context.getUnresolvedUnit(file) == null && file.exists()) {
         server.queueSubTask(new ParseFileTask(server, context, libraryFile, file));
       }
     }

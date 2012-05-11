@@ -13,9 +13,11 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,12 +35,25 @@ class Context {
    */
   private final HashMap<File, Library> libraryCache;
 
+  /**
+   * A map of URI (as needed by DartC) to parsed but unresolved unit. Units are added to this
+   * collection by {@link ParseFileTask} and {@link ParseLibraryFileTask}, and removed from this
+   * collection by {@link ResolveLibraryTask} when it calls
+   * {@link AnalysisUtility#resolve(AnalysisServer, Library, java.util.Map, java.util.Map)}
+   */
+  private final HashMap<URI, DartUnit> unresolvedUnits;
+
   Context() {
     this.libraryCache = new HashMap<File, Library>();
+    this.unresolvedUnits = new HashMap<URI, DartUnit>();
   }
 
   void cacheLibrary(Library library) {
     libraryCache.put(library.getFile(), library);
+  }
+
+  void cacheUnresolvedUnit(File file, DartUnit unit) {
+    unresolvedUnits.put(file.toURI(), unit);
   }
 
   void discardLibraries() {
@@ -119,6 +134,20 @@ class Context {
       }
     }
     return result;
+  }
+
+  /**
+   * Answer a unit that has been parsed but not resolved, or <code>null</code> if none
+   */
+  DartUnit getUnresolvedUnit(File file) {
+    return unresolvedUnits.get(file.toURI());
+  }
+
+  /**
+   * Answer units that have been parsed by not resolved.
+   */
+  HashMap<URI, DartUnit> getUnresolvedUnits() {
+    return unresolvedUnits;
   }
 
   private Library[] append(Library[] oldArray, Library library) {

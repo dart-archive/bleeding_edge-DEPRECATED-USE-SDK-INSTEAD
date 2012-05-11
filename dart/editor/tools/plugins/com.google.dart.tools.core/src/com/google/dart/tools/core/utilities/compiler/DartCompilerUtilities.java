@@ -814,8 +814,9 @@ public class DartCompilerUtilities {
    */
   public static Map<URI, LibraryUnit> secureAnalyzeLibraries(LibrarySource librarySource,
       Map<URI, LibraryUnit> resolvedLibs, Map<URI, DartUnit> parsedUnits,
-      CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener,
-      boolean resolveAllNewLibs) throws IOException {
+      CompilerConfiguration config, DartArtifactProvider provider,
+      SystemLibraryManager libraryManager, DartCompilerListener listener, boolean resolveAllNewLibs)
+      throws IOException {
     // All calls to DartC must be synchronized
     synchronized (compilerLock) {
       return DartCompiler.analyzeLibraries(
@@ -824,6 +825,7 @@ public class DartCompilerUtilities {
           parsedUnits,
           config,
           provider,
+          libraryManager,
           listener,
           resolveAllNewLibs);
     }
