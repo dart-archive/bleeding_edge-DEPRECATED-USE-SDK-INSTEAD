@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.core.server;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.webkit.JsonUtils;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -105,6 +106,42 @@ public class VmConnection {
     return breakpoints;
   }
 
+  public void getLibraryURLs(final VmCallback<List<String>> callback) throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    sendSimpleCommand("getLibraryURLs", new Callback() {
+      @Override
+      public void handleResult(JSONObject result) throws JSONException {
+        callback.handleResult(convertGetLibraryURLsResult(result));
+      }
+    });
+  }
+
+  public void getSourceURLs(String library, final VmCallback<List<String>> callback)
+      throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "getSourceURLs");
+      request.put("params", new JSONObject().put("library", library));
+
+      sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          callback.handleResult(convertGetSourceURLsResult(result));
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
   public boolean isConnected() {
     return socket != null;
   }
@@ -113,9 +150,27 @@ public class VmConnection {
     sendSimpleCommand("pause");
   }
 
-  public void removeBreakpoint(VmBreakpoint breakpoint) throws IOException {
-    // TODO(devoncarew): implement this. make the VM call, update breakpoints based on the result code
+  public void removeBreakpoint(final VmBreakpoint breakpoint) throws IOException {
+    try {
+      JSONObject request = new JSONObject();
 
+      request.put("command", "removeBreakpoint");
+      request.put("params", new JSONObject().put("breakpointId", breakpoint.getBreakpointId()));
+
+      sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject object) throws JSONException {
+          // Update the list of breakpoints based on the result code.
+          VmResult<?> result = VmResult.createFrom(object);
+
+          if (!result.isError()) {
+            breakpoints.remove(breakpoint);
+          }
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
   }
 
   public void removeListener(VmListener listener) {
@@ -123,20 +178,7 @@ public class VmConnection {
   }
 
   public void resume() throws IOException {
-    sendSimpleCommand("resume", new Callback() {
-      @Override
-      public void handleResult(JSONObject result) throws JSONException {
-        // TODO(devoncarew): right now the vm tells us a resume happened by responding w/ a success
-        // result. We probably want to change this to an explicit resumed event.
-        VmResult<String> response = VmResult.createFrom(result);
-
-        if (!response.isError()) {
-          for (VmListener listener : listeners) {
-            listener.debuggerResumed();
-          }
-        }
-      }
-    });
+    sendSimpleCommand("resume", resumeOnSuccess());
   }
 
   public void setBreakpoint(final String url, final int line) throws IOException {
@@ -164,6 +206,18 @@ public class VmConnection {
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
+  }
+
+  public void stepInto() throws IOException {
+    sendSimpleCommand("stepInto", resumeOnSuccess());
+  }
+
+  public void stepOut() throws IOException {
+    sendSimpleCommand("stepOut", resumeOnSuccess());
+  }
+
+  public void stepOver() throws IOException {
+    sendSimpleCommand("stepOver", resumeOnSuccess());
   }
 
   protected void processJson(JSONObject result) {
@@ -220,28 +274,59 @@ public class VmConnection {
     }
   }
 
-  private void handleNotification(String command, JSONObject result, JSONObject params)
+  private VmResult<List<String>> convertGetLibraryURLsResult(JSONObject object)
       throws JSONException {
-    if (command.equals(EVENT_PAUSED)) {
-      List<VmCallFrame> frames = VmCallFrame.createFrom(params.getJSONArray("callFrames"));
+    VmResult<List<String>> result = VmResult.createFrom(object);
 
-      for (VmListener listener : listeners) {
-        listener.debuggerPaused(frames);
+    if (object.has("result")) {
+      List<String> libUrls = new ArrayList<String>();
+
+      JSONArray arr = object.getJSONObject("result").getJSONArray("urls");
+
+      for (int i = 0; i < arr.length(); i++) {
+        libUrls.add(arr.getString(i));
       }
-    } else {
-      DartDebugCorePlugin.logInfo("no handler for notification: " + command);
+
+      result.setResult(libUrls);
     }
+
+    return result;
+  }
+
+  private VmResult<List<String>> convertGetSourceURLsResult(JSONObject object) throws JSONException {
+    VmResult<List<String>> result = VmResult.createFrom(object);
+
+    if (object.has("result")) {
+      List<String> libUrls = new ArrayList<String>();
+
+      JSONArray arr = object.getJSONObject("result").getJSONArray("urls");
+
+      for (int i = 0; i < arr.length(); i++) {
+        libUrls.add(arr.getString(i));
+      }
+
+      result.setResult(libUrls);
+    }
+
+    return result;
   }
 
   private void processNotification(JSONObject result) throws JSONException {
-    if (result.has("command")) {
-      String command = result.getString("command");
+    if (result.has("event")) {
+      String eventName = result.getString("event");
+      JSONObject params = result.optJSONObject("params");
 
-      if (result.has("params")) {
-        handleNotification(command, result, result.getJSONObject("params"));
+      if (eventName.equals(EVENT_PAUSED)) {
+        List<VmCallFrame> frames = VmCallFrame.createFrom(params.getJSONArray("callFrames"));
+
+        for (VmListener listener : listeners) {
+          listener.debuggerPaused(frames);
+        }
       } else {
-        handleNotification(command, result, null);
+        DartDebugCorePlugin.logInfo("no handler for notification: " + eventName);
       }
+    } else {
+      DartDebugCorePlugin.logInfo("event not understood: " + result);
     }
   }
 
@@ -319,6 +404,21 @@ public class VmConnection {
 
       c = in.read();
     }
+  }
+
+  private Callback resumeOnSuccess() {
+    return new Callback() {
+      @Override
+      public void handleResult(JSONObject result) throws JSONException {
+        VmResult<String> response = VmResult.createFrom(result);
+
+        if (!response.isError()) {
+          for (VmListener listener : listeners) {
+            listener.debuggerResumed();
+          }
+        }
+      }
+    };
   }
 
   private void send(String str) throws IOException {

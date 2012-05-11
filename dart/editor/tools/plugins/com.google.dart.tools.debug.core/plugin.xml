@@ -55,7 +55,7 @@
    <extension point="org.eclipse.debug.core.sourceLocators">
       <sourceLocator
          name="Dart Source Lookup Director"
-         class="com.google.dart.tools.debug.core.dartium.DartSourceLookupDirector"
+         class="com.google.dart.tools.debug.core.source.DartSourceLookupDirector"
          id="com.google.dart.tools.debug.core.sourceLookupDirector">
       </sourceLocator>
    </extension>

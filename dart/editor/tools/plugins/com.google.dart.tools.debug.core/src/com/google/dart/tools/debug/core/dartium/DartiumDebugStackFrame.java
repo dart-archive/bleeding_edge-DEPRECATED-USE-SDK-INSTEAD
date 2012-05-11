@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.source.ISourceLookup;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitLocation;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
@@ -37,7 +38,8 @@ import java.util.List;
  * The IStackFrame implementation for the dartium debug elements. This stack frame element
  * represents a Dart frame.
  */
-public class DartiumDebugStackFrame extends DartiumDebugElement implements IStackFrame {
+public class DartiumDebugStackFrame extends DartiumDebugElement implements IStackFrame,
+    ISourceLookup {
   private IThread thread;
   private WebkitCallFrame webkitFrame;
   private VariableCollector variableCollector = VariableCollector.empty();
@@ -121,6 +123,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return new IRegisterGroup[0];
   }
 
+  @Override
   public String getSourceLocationPath() {
     String scriptId = webkitFrame.getLocation().getScriptId();
 

@@ -11,17 +11,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.debug.core.dartium;
+package com.google.dart.tools.debug.core.source;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
-import com.google.dart.tools.debug.core.server.ServerDebugStackFrame;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.sourcelookup.AbstractSourceLookupParticipant;
 
 /**
- * Converts from a Dart debug object (in this case a DartiumDebugStackFrame) to the path of the
- * source Dart file.
+ * Converts from a Dart debug object to the path of the source Dart file.
  * <p>
  * The returned source path will either be workspace relative or be relative to a bundled library
  * identifier.
@@ -36,15 +34,10 @@ public class DartSourceLookupParticipant extends AbstractSourceLookupParticipant
   public String getSourceName(Object object) throws CoreException {
     if (object instanceof String) {
       return (String) object;
-    } else if (object instanceof DartiumDebugStackFrame) {
-      DartiumDebugStackFrame stackFrame = (DartiumDebugStackFrame) object;
+    } else if (object instanceof ISourceLookup) {
+      ISourceLookup sourceLookup = (ISourceLookup) object;
 
-      return stackFrame.getSourceLocationPath();
-    } else if (object instanceof ServerDebugStackFrame) {
-      // TODO(devoncarew): this dramatically needs refactoring
-      ServerDebugStackFrame stackFrame = (ServerDebugStackFrame) object;
-
-      return stackFrame.getSourceLocationPath();
+      return sourceLookup.getSourceLocationPath();
     } else {
       DartDebugCorePlugin.logWarning("Unhandled type " + object.getClass()
           + " in DartSourceLookupParticipant.getSourceName()");

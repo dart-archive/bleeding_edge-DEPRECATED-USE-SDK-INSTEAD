@@ -22,7 +22,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
@@ -45,9 +44,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private VmConnection connection;
 
-  private ServerDebugThread debugThread;
-
-  private boolean isPaused = true;
+  private ServerDebugThread debugThread = new ServerDebugThread(this);
 
   public ServerDebugTarget(ILaunch launch, IProcess process, int connectionPort) {
     super(null);
@@ -96,14 +93,12 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean canResume() {
-    return !isTerminated() && isSuspended();
+    return debugThread == null ? false : debugThread.canResume();
   }
 
   @Override
   public boolean canSuspend() {
-    // TODO(devoncarew): this should be factored out from the Dartium pause condition.
-
-    return DartDebugCorePlugin.VM_SUPPORTS_PAUSING;
+    return debugThread == null ? false : debugThread.canSuspend();
   }
 
   @Override
@@ -163,30 +158,36 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
     DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
 
+    // TODO(devoncarew): temporary - this is just here to exercise the getLibraryURLs call
+    try {
+      connection.getLibraryURLs(new VmCallback<List<String>>() {
+        @Override
+        public void handleResult(VmResult<List<String>> result) {
+          if (result.isError()) {
+            System.out.println("lib result error: " + result.getError());
+          } else {
+            for (String lib : result.getResult()) {
+              System.out.println("lib: " + lib);
+            }
+          }
+        }
+      });
+    } catch (IOException ioe) {
+
+    }
+
     // TODO(devoncarew): this it temporarily commented out to test the paused event functionality
     //resume();
   }
 
   @Override
   public void debuggerPaused(List<VmCallFrame> frames) {
-    isPaused = true;
-
-    debugThread = new ServerDebugThread(this, frames);
-
-    // or DebugEvent.BREAKPOINT?
-    debugThread.fireSuspendEvent(DebugEvent.UNSPECIFIED);
+    debugThread.handleDebuggerPaused(frames);
   }
 
   @Override
   public void debuggerResumed() {
-    isPaused = false;
-
-    debugThread = null;
-
-    // TODO(devoncarew): fill this in from stepping info if available
-    int eventReason = DebugEvent.UNSPECIFIED;
-
-    fireResumeEvent(eventReason);
+    debugThread.handleDebuggerResumed();
   }
 
   @Override
@@ -197,6 +198,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   @Override
   public void fireTerminateEvent() {
     dispose();
+
+    debugThread = null;
 
     super.fireTerminateEvent();
   }
@@ -223,11 +226,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public IThread[] getThreads() throws DebugException {
-    if (debugThread != null) {
-      return new IThread[] {debugThread};
-    } else {
-      return new IThread[0];
-    }
+    return new IThread[] {debugThread};
   }
 
   public VmConnection getVmConnection() {
@@ -236,7 +235,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean hasThreads() throws DebugException {
-    return debugThread != null;
+    return !isTerminated();
   }
 
   @Override
@@ -246,7 +245,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean isSuspended() {
-    return isPaused;
+    return debugThread == null ? false : debugThread.isSuspended();
   }
 
   @Override

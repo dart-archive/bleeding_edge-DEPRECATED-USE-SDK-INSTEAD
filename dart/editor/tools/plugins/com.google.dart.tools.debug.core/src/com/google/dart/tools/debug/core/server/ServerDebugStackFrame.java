@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.dartium.DartiumDebugElement;
+import com.google.dart.tools.debug.core.source.ISourceLookup;
 
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -29,7 +30,8 @@ import java.net.URI;
  * The IStackFrame implementation for the VM debug elements. This stack frame element represents a
  * Dart frame.
  */
-public class ServerDebugStackFrame extends DartiumDebugElement implements IStackFrame {
+public class ServerDebugStackFrame extends DartiumDebugElement implements IStackFrame,
+    ISourceLookup {
   private IThread thread;
   private VmCallFrame vmFrame;
 
@@ -97,6 +99,7 @@ public class ServerDebugStackFrame extends DartiumDebugElement implements IStack
     return new IRegisterGroup[0];
   }
 
+  @Override
   public String getSourceLocationPath() {
     URI uri = URI.create(vmFrame.getLocation().getUrl());
 

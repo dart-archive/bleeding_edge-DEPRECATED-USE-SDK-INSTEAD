@@ -14,12 +14,19 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -31,45 +38,42 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
   private static final ServerDebugStackFrame[] EMPTY_FRAMES = new ServerDebugStackFrame[0];
 
   private ServerDebugStackFrame[] suspendedFrames = EMPTY_FRAMES;
+  private IBreakpoint[] suspendedBreakpoints = EMPTY_BREAKPOINTS;
+
+  private boolean suspended;
+  private int expectedSuspendReason = DebugEvent.UNSPECIFIED;
+  private int expectedResumeReason = DebugEvent.UNSPECIFIED;
 
   /**
    * @param target
    */
-  public ServerDebugThread(IDebugTarget target, List<VmCallFrame> frames) {
+  public ServerDebugThread(IDebugTarget target) {
     super(target);
-
-    suspendedFrames = createFrames(frames);
   }
 
   @Override
   public boolean canResume() {
-    return getTarget().canResume();
+    return !isDisconnected() && isSuspended();
   }
 
   @Override
   public boolean canStepInto() {
-    // TODO(devoncarew):
-
-    return false;
+    return isSuspended();
   }
 
   @Override
   public boolean canStepOver() {
-    // TODO(devoncarew):
-
-    return false;
+    return isSuspended();
   }
 
   @Override
   public boolean canStepReturn() {
-    // TODO(devoncarew):
-
-    return false;
+    return isSuspended();
   }
 
   @Override
   public boolean canSuspend() {
-    return getTarget().canSuspend();
+    return DartDebugCorePlugin.VM_SUPPORTS_PAUSING && !isTerminated() && !isSuspended();
   }
 
   @Override
@@ -79,7 +83,7 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
 
   @Override
   public IBreakpoint[] getBreakpoints() {
-    return EMPTY_BREAKPOINTS;
+    return suspendedBreakpoints;
   }
 
   @Override
@@ -111,14 +115,15 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
 
   @Override
   public boolean isStepping() {
-    // TODO(devoncarew):
-
-    return false;
+    return expectedResumeReason == DebugEvent.STEP_INTO
+        || expectedResumeReason == DebugEvent.STEP_OVER
+        || expectedResumeReason == DebugEvent.STEP_RETURN
+        || expectedSuspendReason == DebugEvent.STEP_END;
   }
 
   @Override
   public boolean isSuspended() {
-    return getTarget().isSuspended();
+    return suspended;
   }
 
   @Override
@@ -128,25 +133,58 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
 
   @Override
   public void resume() throws DebugException {
-    getTarget().resume();
+    try {
+      expectedResumeReason = DebugEvent.UNSPECIFIED;
+
+      getConnection().resume();
+    } catch (IOException exception) {
+      throw createDebugException(exception);
+    }
   }
 
   @Override
   public void stepInto() throws DebugException {
-    // TODO(devoncarew):
+    expectedResumeReason = DebugEvent.STEP_END;
+    expectedSuspendReason = DebugEvent.STEP_INTO;
 
+    try {
+      getConnection().stepInto();
+    } catch (IOException exception) {
+      expectedResumeReason = DebugEvent.UNSPECIFIED;
+      expectedSuspendReason = DebugEvent.UNSPECIFIED;
+
+      throw createDebugException(exception);
+    }
   }
 
   @Override
   public void stepOver() throws DebugException {
-    // TODO(devoncarew):
+    expectedResumeReason = DebugEvent.STEP_END;
+    expectedSuspendReason = DebugEvent.STEP_OVER;
 
+    try {
+      getConnection().stepOver();
+    } catch (IOException exception) {
+      expectedResumeReason = DebugEvent.UNSPECIFIED;
+      expectedSuspendReason = DebugEvent.UNSPECIFIED;
+
+      throw createDebugException(exception);
+    }
   }
 
   @Override
   public void stepReturn() throws DebugException {
-    // TODO(devoncarew):
+    expectedResumeReason = DebugEvent.STEP_END;
+    expectedSuspendReason = DebugEvent.STEP_RETURN;
 
+    try {
+      getConnection().stepOut();
+    } catch (IOException exception) {
+      expectedResumeReason = DebugEvent.UNSPECIFIED;
+      expectedSuspendReason = DebugEvent.UNSPECIFIED;
+
+      throw createDebugException(exception);
+    }
   }
 
   @Override
@@ -159,6 +197,49 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     getTarget().terminate();
   }
 
+  protected void handleDebuggerPaused(List<VmCallFrame> frames) {
+    int reason = DebugEvent.BREAKPOINT;
+
+    if (expectedSuspendReason != DebugEvent.UNSPECIFIED) {
+      reason = expectedSuspendReason;
+      expectedSuspendReason = DebugEvent.UNSPECIFIED;
+    } else {
+      DartBreakpoint breakpoint = getBreakpointFor(frames);
+
+      if (breakpoint != null) {
+        suspendedBreakpoints = new IBreakpoint[] {breakpoint};
+        reason = DebugEvent.BREAKPOINT;
+      }
+    }
+
+    suspended = true;
+
+    suspendedFrames = createFrames(frames);
+
+    fireSuspendEvent(reason);
+  }
+
+  void handleDebuggerResumed() {
+    // clear data
+    suspended = false;
+    suspendedFrames = EMPTY_FRAMES;
+    suspendedBreakpoints = EMPTY_BREAKPOINTS;
+
+    // send event
+    int reason = expectedResumeReason;
+    expectedResumeReason = DebugEvent.UNSPECIFIED;
+
+    fireResumeEvent(reason);
+  }
+
+  private DebugException createDebugException(IOException exception) {
+    return new DebugException(new Status(
+        IStatus.ERROR,
+        DartDebugCorePlugin.PLUGIN_ID,
+        exception.getMessage(),
+        exception));
+  }
+
   private ServerDebugStackFrame[] createFrames(List<VmCallFrame> frames) {
     ServerDebugStackFrame[] result = new ServerDebugStackFrame[frames.size()];
 
@@ -167,6 +248,16 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     }
 
     return result;
+  }
+
+  private DartBreakpoint getBreakpointFor(List<VmCallFrame> frames) {
+    // TODO(devoncarew): implement
+
+    return null;
+  }
+
+  private boolean isDisconnected() {
+    return getDebugTarget().isDisconnected();
   }
 
 }
