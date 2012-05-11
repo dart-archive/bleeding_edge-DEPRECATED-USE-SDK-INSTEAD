@@ -43,7 +43,7 @@ class Conversation {
     }
     if (path.contains('..') || path.contains('%')) return notFound();
     var f = new File("./$path");
-    f.exists((bool exists) {
+    f.exists().then((bool exists) {
       if (!exists) return notFound();
       if (path.endsWith('.dart')) {
         response.headers.add(HttpHeaders.CONTENT_TYPE, "application/dart");

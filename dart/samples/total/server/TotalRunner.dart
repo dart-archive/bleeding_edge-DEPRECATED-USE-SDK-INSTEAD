@@ -52,9 +52,9 @@ class ServerRunner {
     if (foundExec == null) {
       print("No executable found on DART_EXECS:\n" + DART_EXECS);
       exitCallback(1, this);
-      return;      
+      return;
     }
-    Process dart = new Process.start(foundExec, [_serverMain]);
+    Process dart = Process.start(foundExec, [_serverMain]);
 
     dart.onExit = (int status) {
       dart.close();
