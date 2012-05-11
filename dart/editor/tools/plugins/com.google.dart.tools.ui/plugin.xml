@@ -97,27 +97,6 @@
       </factory>
       
       <factory 
-            class="org.eclipse.wst.jsdt.internal.ui.LogicalPackageAdapterFactory" 
-            adaptableType="org.eclipse.wst.jsdt.internal.ui.browsing.LogicalPackage">
-            <!-- adapter type="org.eclipse.search.ui.ISearchPageScoreComputer"/-->
-            <adapter type="org.eclipse.core.resources.mapping.ResourceMapping"/>
-      </factory>
-      
-      <factory 
-            class="org.eclipse.wst.jsdt.internal.ui.refactoring.RefactoringAdapterFactory" 
-            adaptableType="org.eclipse.wst.jsdt.internal.corext.refactoring.changes.CompilationUnitChange">
-            
-            <adapter type="org.eclipse.ltk.ui.refactoring.TextEditChangeNode"/>
-      </factory>
-      
-        <factory
-            class="org.eclipse.wst.jsdt.internal.ui.refactoring.RefactoringAdapterFactory"
-            adaptableType="org.eclipse.ltk.core.refactoring.MultiStateTextFileChange">
-            
-            <adapter type="org.eclipse.ltk.ui.refactoring.TextEditChangeNode"/>
-        </factory>
-
-      <factory 
             class="com.google.dart.tools.ui.internal.filesview.FileStoreAdapterFactory" 
             adaptableType="org.eclipse.core.filesystem.IFileStore">
             
@@ -380,23 +359,7 @@
          <showInPart id="org.eclipse.ui.views.ResourceNavigator"/>
          <actionSet id="com.google.dart.tools.ui.DartActionSet"/>
       </perspectiveExtension>
-      <perspectiveExtension targetID="org.eclipse.wst.jsdt.ui.JavaBrowsingPerspective">
-         <showInPart id="org.eclipse.wst.jsdt.ui.PackageExplorer"/>
-         <showInPart id="org.eclipse.team.ui.GenericHistoryView"/>
-         <showInPart id="org.eclipse.ui.views.ResourceNavigator"/>
-      </perspectiveExtension>
-      <perspectiveExtension targetID="org.eclipse.debug.ui.DebugPerspective">
-         <showInPart id="org.eclipse.wst.jsdt.ui.PackageExplorer"/>
-      </perspectiveExtension>
       
-   </extension>
-   <extension
-         point="org.eclipse.ui.ide.projectNatureImages">
-      <image
-            icon="$nl$/icons/full/ovr16/java_ovr.gif"
-            natureId="org.eclipse.wst.jsdt.core.jsNature"
-            id="org.eclipse.ui.javaProjectNatureImage">
-      </image>
    </extension>
    
    <extension
@@ -652,24 +615,6 @@
    <extension
          point="org.eclipse.ui.editors.annotationTypes">
       <type
-         name="org.eclipse.wst.jsdt.ui.error"
-         super="org.eclipse.ui.workbench.texteditor.error"
-         markerType="org.eclipse.wst.jsdt.core.problem"
-         markerSeverity="2">
-      </type>
-      <type
-         name="org.eclipse.wst.jsdt.ui.warning"
-         super="org.eclipse.ui.workbench.texteditor.warning"
-         markerType="org.eclipse.wst.jsdt.core.problem"
-         markerSeverity="1">
-      </type>
-      <type
-         name="org.eclipse.wst.jsdt.ui.info"
-         super="org.eclipse.ui.workbench.texteditor.info"
-         markerType="org.eclipse.wst.jsdt.core.problem"
-         markerSeverity="0">
-      </type>
-      <type
          name="com.google.dart.tools.ui.occurrences">
       </type>
       <type
@@ -678,18 +623,6 @@
    </extension>
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
-      <specification
-            annotationType="org.eclipse.wst.jsdt.ui.error"
-            annotationImageProvider="org.eclipse.wst.jsdt.internal.ui.javaeditor.JavaAnnotationImageProvider">
-      </specification>
-      <specification
-            annotationType="org.eclipse.wst.jsdt.ui.warning"
-            annotationImageProvider="org.eclipse.wst.jsdt.internal.ui.javaeditor.JavaAnnotationImageProvider">
-      </specification>
-      <specification
-            annotationType="org.eclipse.wst.jsdt.ui.info"
-            annotationImageProvider="org.eclipse.wst.jsdt.internal.ui.javaeditor.JavaAnnotationImageProvider">
-      </specification>
      <specification
             annotationType="com.google.dart.tools.ui.occurrences"
             label="%OccurrenceAnnotation.label"
@@ -737,109 +670,6 @@
             isGoToPreviousNavigationTargetKey="javaScriptIsOverrideIndicatorGoToPreviousNavigationTarget"
             isGoToPreviousNavigationTarget="false">
      </specification>
-
-      <!-- linked annotations -->
-      <!-- these are deprecated as of 3.2, do not use. -->
-     <specification
-            annotationType="org.eclipse.wst.jsdt.ui.link.master"
-            colorPreferenceValue="70,100,165"
-            colorPreferenceKey="linked.focus.color"
-            isGoToPreviousNavigationTarget="false"
-            isGoToPreviousNavigationTargetKey="linked.focus.navigation.previous"
-            showInNextPrevDropdownToolbarAction="false"
-            showInNextPrevDropdownToolbarActionKey="linked.focus.navigation.dropdown"
-            isGoToNextNavigationTarget="false"
-            isGoToNextNavigationTargetKey="linked.focus.navigation.next"
-            contributesToHeader="false"
-            overviewRulerPreferenceValue="false"
-            presentationLayer="4"
-            label="%linked.focus.label"
-            textPreferenceValue="true"
-            textPreferenceKey="linked.focus.text"
-            highlightPreferenceKey="linked.focus.highlight"
-            highlightPreferenceValue="false"
-            textStylePreferenceKey="linked.focus.text.style"
-            textStylePreferenceValue="BOX"
-            verticalRulerPreferenceKey="linked.focus.verticalruler"
-            verticalRulerPreferenceValue="false"
-            includeOnPreferencePage="false"
-            overviewRulerPreferenceKey="linked.focus.overviewruler">
-      </specification>      
-      <specification
-            annotationType="org.eclipse.wst.jsdt.ui.link.slave"
-            colorPreferenceValue="180,215,255"
-            colorPreferenceKey="linked.slave.color"
-            isGoToPreviousNavigationTarget="false"
-            isGoToPreviousNavigationTargetKey="linked.slave.navigation.previous"
-            showInNextPrevDropdownToolbarAction="false"
-            showInNextPrevDropdownToolbarActionKey="linked.slave.navigation.dropdown"
-            isGoToNextNavigationTarget="false"
-            isGoToNextNavigationTargetKey="linked.slave.navigation.next"
-            contributesToHeader="false"
-            overviewRulerPreferenceValue="false"
-            presentationLayer="4"
-            label="%linked.slave.label"
-            textPreferenceValue="false"
-            textPreferenceKey="linked.slave.text"
-            highlightPreferenceKey="linked.slave.highlight"
-            highlightPreferenceValue="true"
-            textStylePreferenceKey="linked.slave.text.style"
-            textStylePreferenceValue="NONE"
-            verticalRulerPreferenceKey="linked.slave.verticalruler"
-            verticalRulerPreferenceValue="false"
-            includeOnPreferencePage="false"
-            overviewRulerPreferenceKey="linked.slave.overviewruler">
-      </specification>      
-      <specification
-            annotationType="org.eclipse.wst.jsdt.ui.link.target"
-            colorPreferenceValue="70,100,165"
-            colorPreferenceKey="linked.target.color"
-            isGoToPreviousNavigationTarget="false"
-            isGoToPreviousNavigationTargetKey="linked.target.navigation.previous"
-            showInNextPrevDropdownToolbarAction="false"
-            showInNextPrevDropdownToolbarActionKey="linked.target.navigation.dropdown"
-            isGoToNextNavigationTarget="false"
-            isGoToNextNavigationTargetKey="linked.target.navigation.next"
-            contributesToHeader="false"
-            overviewRulerPreferenceValue="false"
-            presentationLayer="4"
-            label="%linked.target.label"
-            textPreferenceValue="true"
-            textPreferenceKey="linked.target.text"
-            highlightPreferenceKey="linked.target.highlight"
-            highlightPreferenceValue="false"
-            textStylePreferenceKey="linked.target.text.style"
-            textStylePreferenceValue="BOX"
-            verticalRulerPreferenceKey="linked.target.verticalruler"
-            verticalRulerPreferenceValue="false"
-            includeOnPreferencePage="false"
-            overviewRulerPreferenceKey="linked.target.overviewruler">
-      </specification>
-      <specification
-            annotationType="org.eclipse.wst.jsdt.ui.link.exit"
-            colorPreferenceValue="0,180,0"
-            colorPreferenceKey="linked.exit.color"
-            isGoToPreviousNavigationTarget="false"
-            isGoToPreviousNavigationTargetKey="linked.exit.navigation.previous"
-            showInNextPrevDropdownToolbarAction="false"
-            showInNextPrevDropdownToolbarActionKey="linked.exit.navigation.dropdown"
-            isGoToNextNavigationTarget="false"
-            isGoToNextNavigationTargetKey="linked.exit.navigation.next"
-            contributesToHeader="false"
-            overviewRulerPreferenceValue="false"
-            presentationLayer="4"
-            label="%linked.exit.label"
-            textPreferenceValue="true"
-            textPreferenceKey="linked.exit.text"
-            highlightPreferenceKey="linked.exit.highlight"
-            highlightPreferenceValue="false"
-            textStylePreferenceKey="linked.exit.text.style"
-            textStylePreferenceValue="IBEAM"
-            verticalRulerPreferenceKey="linked.exit.verticalruler"
-            verticalRulerPreferenceValue="false"
-            includeOnPreferencePage="false"
-            overviewRulerPreferenceKey="linked.exit.overviewruler">
-      </specification>
    </extension>
 
       <extension
@@ -2329,23 +2159,7 @@
       
    </extension>
    
-   
-   
-   <extension
-         point="org.eclipse.ui.ide.markerResolution">
-      <markerResolutionGenerator
-            markerType="org.eclipse.wst.jsdt.core.problem"
-            class="com.google.dart.tools.ui.functions.correction.CorrectionMarkerResolutionGenerator">
-      </markerResolutionGenerator>
-   </extension>
-   <extension
-         point="org.eclipse.ui.ide.markerResolution">
-      <markerResolutionGenerator
-            markerType="org.eclipse.wst.jsdt.core.buildpath_problem"
-            class="org.eclipse.wst.jsdt.internal.ui.wizards.buildpaths.UserLibraryMarkerResolutionGenerator">
-      </markerResolutionGenerator>
-   </extension>
-   
+      
    <extension point="org.eclipse.ui.ide.markerSupport">
       <markerTypeCategory name="%markerCategory.problem">
          <markerTypeReference id="org.eclipse.wst.jsdt.core.problem"/>
@@ -2417,27 +2231,6 @@
         defaultGroupingEntry="org.eclipse.wst.jsdt.ui.category.buildpath"/>
    </extension>
    
-
-   
-
-
-   
-   <extension
-         point="org.eclipse.ui.popupMenus">    
-      <objectContribution
-            objectClass="org.eclipse.wst.jsdt.internal.ui.packageview.JsGlobalScopeContainer"
-            id="org.eclipse.wst.jsdt.ui.configure.JsGlobalScopeContainer">
-         <action
-               label="%ConfigJsGlobalScopeContainer.label"
-               tooltip="%ConfigJsGlobalScopeContainer.tooltip"
-               class="org.eclipse.wst.jsdt.internal.ui.actions.ConfigureContainerAction"
-               menubarPath="additions"
-               enablesFor="1"
-               id="ConfigureContainer">
-         </action>
-      </objectContribution>
-   </extension>
-   
    <extension
       point= "com.google.dart.tools.ui.foldingStructureProviders">
       <provider
@@ -2451,18 +2244,6 @@
     <extension point="org.eclipse.core.runtime.preferences">
         <initializer class="com.google.dart.tools.ui.internal.text.DartUIPreferenceInitializer"/>
     </extension>
-
-   <extension
-         id="modelProvider"
-         name="%JavaModelProvider.name"
-         point="org.eclipse.core.resources.modelProviders">
-      <modelProvider
-            class="org.eclipse.wst.jsdt.internal.ui.model.JavaModelProvider"/>
-      <extends-model id="org.eclipse.core.resources.modelProvider"/>
-      <enablement>
-          <test property="org.eclipse.core.resources.projectNature" value="org.eclipse.wst.jsdt.core.jsNature" />
-      </enablement>
-   </extension>
 
    <extension point="org.eclipse.ui.decorators">
       <decorator
