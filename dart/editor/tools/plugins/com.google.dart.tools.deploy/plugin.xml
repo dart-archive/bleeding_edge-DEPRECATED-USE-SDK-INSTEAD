@@ -34,6 +34,15 @@
                style="push">
          </command>
       </menuContribution>
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.trim.command2">
+         <toolbar
+               id="editor.toolbar">
+            <control
+               class="com.google.dart.tools.deploy.DartEditorToolbarControlContribution">
+            </control>
+         </toolbar>
+      </menuContribution>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
@@ -260,25 +269,6 @@
        </view>
     </extension>
 
-   <extension
-         point="org.eclipse.ui.menus">
-      <menuContribution
-            locationURI="toolbar:org.eclipse.ui.trim.command2">
-         <toolbar
-               id="omni.toolbar">
-            <control
-               class="com.google.dart.tools.ui.omni.OmniBoxControlContribution">
-            </control>
-         </toolbar>
-         <toolbar
-               id="feedback.toolbar">
-            <control
-               class="com.google.dart.tools.ui.feedback.FeedbackControlContribution">
-            </control>
-         </toolbar>
-      </menuContribution>
-   </extension>
-   
    <extension
          point="org.eclipse.ui.commands">
       <command

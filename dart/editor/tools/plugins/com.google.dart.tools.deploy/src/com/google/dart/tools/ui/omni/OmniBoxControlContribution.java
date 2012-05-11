@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -46,7 +46,7 @@ import java.util.Map.Entry;
 /**
  * Contributes the omnibox toolbar control.
  */
-public class OmniBoxControlContribution extends WorkbenchWindowControlContribution {
+public class OmniBoxControlContribution {
 
   private final class Popup extends OmniBoxPopup {
 
@@ -113,8 +113,6 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
     }
   }
 
-  private static final String CONTRIB_ID = "omnibox.control";//$NON-NLS-1$
-
   /*
    * Pixel offset for popup.
    */
@@ -158,11 +156,20 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
   //used when we want to advance focus off of the text control (ideally to restore previous)
   private Control previousFocusControl;
 
-  public OmniBoxControlContribution() {
-    super(CONTRIB_ID);
+  private final WorkbenchWindowControlContribution controlContribution;
+
+  public OmniBoxControlContribution(WorkbenchWindowControlContribution controlContribution) {
+    this.controlContribution = controlContribution;
   }
 
-  @Override
+  public Control createControl(Composite parent) {
+    textControl = createTextControl(parent);
+    setWatermarkText();
+    hookupListeners();
+    CONTROL_MAP.put(getWorkbenchWindow(), this);
+    return textControl;
+  }
+
   public void dispose() {
     //Remove this control contribution from the cached control map.
     IWorkbenchWindow disposedWindow = null;
@@ -181,15 +188,6 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
     cacheFocusControl(textControl.getDisplay().getFocusControl());
     textControl.setFocus();
     clearWatermark();
-  }
-
-  @Override
-  protected Control createControl(Composite parent) {
-    textControl = createTextControl(parent);
-    setWatermarkText();
-    hookupListeners();
-    CONTROL_MAP.put(getWorkbenchWindow(), this);
-    return textControl;
   }
 
   protected void defocus() {
@@ -233,6 +231,10 @@ public class OmniBoxControlContribution extends WorkbenchWindowControlContributi
 
   private String getFilterText() {
     return textControl.getText().toLowerCase();
+  }
+
+  private IWorkbenchWindow getWorkbenchWindow() {
+    return controlContribution.getWorkbenchWindow();
   }
 
   private void handleFocusGained() {
