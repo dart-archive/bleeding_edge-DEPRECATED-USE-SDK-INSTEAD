@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -173,6 +173,9 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     // make sure we always save and restore workspace state
     configurer.setSaveAndRestore(true);
 
+    // check to see if a UI code change requires workbench reset
+    checkForWorkbenchStateReset(configurer);
+
     // register workspace adapters
     IDE.registerAdapters();
 
@@ -312,6 +315,20 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
       DartToolsPlugin.log(e);
     }
     return false;
+  }
+
+  //checks to see if a flag has been set noting that workspace layout needs to be reset
+  private void checkForWorkbenchStateReset(IWorkbenchConfigurer workbenchConfigurer) {
+    //this particular reset is necessitated by a move of plugin control contributions
+    final String NEEDS_RESET = "needsReset"; //$NON-NLS-1$
+
+    if (!Activator.getDefault().getPreferenceStore().contains(NEEDS_RESET)) {
+      Activator.getDefault().getPreferenceStore().putValue(NEEDS_RESET, IPreferenceStore.FALSE);
+
+      //set to false to ensure old state does not get re-loaded; this will be reset to true in 
+      //ApplicationWorkbenchWindowAdvisor.preWindowOpen()
+      workbenchConfigurer.setSaveAndRestore(false);
+    }
   }
 
   /**

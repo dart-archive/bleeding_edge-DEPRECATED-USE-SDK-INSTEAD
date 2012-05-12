@@ -76,6 +76,9 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
     configurer.setShowStatusLine(true);
     configurer.setShowProgressIndicator(true);
     configurer.setTitle("Dart Editor"); //$NON-NLS-1$
+
+    // make sure we always save and restore workspace state
+    configurer.getWorkbenchConfigurer().setSaveAndRestore(true);
   }
 
   private void filterUnwantedPreferenceNodes() {
