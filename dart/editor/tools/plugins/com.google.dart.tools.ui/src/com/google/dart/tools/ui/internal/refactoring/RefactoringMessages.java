@@ -65,6 +65,8 @@ public final class RefactoringMessages extends NLS {
   // RenameTypeWizard
   public static String RenameTypeWizard_defaultPageTitle;
   public static String RenameTypeWizardInputPage_description;
+  // RenameResourceParticipant
+  public static String RenameResourceParticipant_name;
 
   // XXX
   // These constants are not used yet in Dart refactoring.

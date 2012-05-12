@@ -152,8 +152,7 @@ public class NewSearchEngineImpl implements SearchEngine {
       if (elementId.equals("#library")) {
         return unit.getLibrary();
       }
-      IResource resource = unit.getResource();
-      if (resource != null && elementId.equals(resource.getLocationURI())) {
+      if (elementId.equals(unit.getElementName())) {
         return unit;
       }
       ArrayList<String> elementComponents = getComponents(elementId);
