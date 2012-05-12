@@ -5,7 +5,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "116675",
+  "webkit_revision": "116816",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
   "nacl_revision": "8557",
@@ -48,11 +48,11 @@ vars = {
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "135548",
-  "ffmpeg_hash": "a58fe277c016ec842a82a269e7162fb1e8135ca1",
+  "ffmpeg_revision": "136643",
+  "ffmpeg_hash": "5938434ce9f24585e3f1ee4016f85ac3e837ee57",
 
   "sfntly_revision": "128",
-  "skia_revision": "3891",
+  "skia_revision": "3902",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -60,7 +60,7 @@ vars = {
   "webrtc_revision": "2180",
   "jsoncpp_revision": "248",
   "nss_revision": "136057",
-  "rlz_revision": "127",
+  "rlz_revision": "128",
 }
 
 deps = {
@@ -334,6 +334,9 @@ deps = {
 
   "src/tools/deps2git":
     "/trunk/tools/deps2git@128331",
+
+  "src/third_party/webpagereplay":
+    (Var("googlecode_url") % "web-page-replay") + "/trunk@465",
 }
 
 
