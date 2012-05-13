@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Dart project authors.
+ * Copyright 2012 Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -55,7 +55,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertNotNull(specs);
     assertTrue(specs.contains("dart:core"));
     assertTrue(specs.contains("dart:coreimpl"));
-    assertTrue(specs.contains("dart:dom"));
+    assertTrue(specs.contains("dart:dom_deprecated"));
     assertTrue(specs.contains("dart:html"));
     assertTrue(specs.contains("dart:uri"));
   }

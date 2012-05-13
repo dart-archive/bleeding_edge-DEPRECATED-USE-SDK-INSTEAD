@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Library definition file for the matrix library for non-browser applications.
- * (This gets Float32Array from float32.dart, rather than #import'ing dart:dom.)
+ * Library definition file for the matrix library for non-browser
+ * applications.  (This gets Float32Array from float32.dart, rather
+ * than #import'ing dart:dom_deprecated.)
  */
 #library("matrix");
 #source("matrix4.dart");

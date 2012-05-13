@@ -1,5 +1,5 @@
 #library("dom_modify");
-#import("dart:dom");
+#import("dart:dom_deprecated");
 #import("dart:json");
 #source("Common.dart");
 #source("RunnerSuite.dart");

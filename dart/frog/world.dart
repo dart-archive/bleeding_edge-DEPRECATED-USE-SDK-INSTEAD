@@ -301,10 +301,11 @@ class World {
         final msg = 'conflicting JS name "$name" of same '
             + 'priority $existingPri: (already defined in) '
             + '${existing.span.locationText} with priority $namedPri)';
-        // We trust that conflicting native names in builtin libraries are
-        // harmless. Most cases there are no conflicts, currently isolates
-        // in coreimpl and dart:dom both define web workers to avoid adding a
-        // dependency from corelib to dart:dom.
+        // We trust that conflicting native names in builtin libraries
+        // are harmless. Most cases there are no conflicts, currently
+        // isolates in coreimpl and dart:dom_deprecated both define
+        // web workers to avoid adding a dependency from corelib to
+        // dart:dom_deprecated.
         world.info(msg, named.span, existing.span);
       } else {
         // Conflicting js name in same library. This happens because
@@ -471,7 +472,7 @@ class World {
       libraries[filename] = library;
       _todo.add(library);
 
-      if (filename == 'dart:dom') {
+      if (filename == 'dart:dom_deprecated') {
         dom = library;
       } else if (filename == 'dart:html') {
         html = library;

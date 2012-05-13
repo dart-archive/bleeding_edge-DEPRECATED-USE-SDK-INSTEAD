@@ -115,7 +115,7 @@ public class DartLibraryGenerator extends DartFileGenerator {
         List<File> importedLibs = new ArrayList<File>(imports.size());
 
 //         TODO do not automatically add the DOM to the import list in the future
-        importedLibs.add(new File("dart:dom"));
+        importedLibs.add(new File("dart:dom_deprecated"));
 
         for (DartLibrary lib : imports) {
           LibrarySource libSource = ((DartLibraryImpl) lib).getLibrarySourceFile();

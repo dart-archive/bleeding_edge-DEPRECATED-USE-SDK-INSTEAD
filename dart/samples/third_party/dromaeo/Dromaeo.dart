@@ -1,4 +1,4 @@
-#import('dart:dom');
+#import('dart:dom_deprecated');
 #import('dart:json');
 #import('Suites.dart');
 

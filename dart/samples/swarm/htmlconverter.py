@@ -29,7 +29,7 @@ LIBRARY_PATTERN = "^#library\(.*\);"
 IMPORT_SOURCE_MATCHER = re.compile(
     r"^ *(#import|#source)(\(['\"])([^'\"]*)(.*\);)", re.MULTILINE)
 DOM_IMPORT_MATCHER = re.compile(
-    r"^#import\(['\"]dart\:dom['\"].*\);", re.MULTILINE)
+    r"^#import\(['\"]dart\:dom_deprecated['\"].*\);", re.MULTILINE)
 HTML_IMPORT_MATCHER = re.compile(
     r"^#import\(['\"]dart\:html['\"].*\);", re.MULTILINE)
 

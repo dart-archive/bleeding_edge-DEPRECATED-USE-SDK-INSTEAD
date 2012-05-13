@@ -615,7 +615,7 @@ public class DartLibraryImpl extends OpenableElementImpl
   }
 
   /**
-   * Answer <code>true</code> if the receiver directly or indirectly imports the dart:dom or
+   * Answer <code>true</code> if the receiver directly or indirectly imports the dart:dom_deprecated or
    * dart:html libraries
    */
   public boolean isOrImportsBrowserLibrary() {
@@ -624,7 +624,7 @@ public class DartLibraryImpl extends OpenableElementImpl
     for (int index = 0; index < visited.size(); index++) {
       DartLibrary library = visited.get(index);
       String libraryName = library.getElementName();
-      if ("dart:html".equals(libraryName) || "dart:dom".equals(libraryName)) {
+      if ("dart:html".equals(libraryName) || "dart:dom_deprecated".equals(libraryName)) {
         return true;
       }
       try {

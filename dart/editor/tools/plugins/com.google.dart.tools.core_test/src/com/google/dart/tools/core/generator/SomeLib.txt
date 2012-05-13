@@ -1,2 +1,2 @@
 #library("SomeLib");
-#import("dart:dom");
+#import("dart:dom_deprecated");

@@ -22,7 +22,7 @@ class Suite {
       }
     };
     try {
-      // dart:dom
+      // dart:dom_deprecated
       _window.addEventListener('message', starter, false);
     } catch (NoSuchMethodException e) {
       // dart:html

@@ -556,7 +556,7 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   public void test_DartLibraryImpl_getElementName_libDom() throws Exception {
-    assertEquals("dart:dom", getDartLibDom().getElementName());
+    assertEquals("dart:dom_deprecated", getDartLibDom().getElementName());
   }
 
   public void test_DartLibraryImpl_getElementName_libEmpty() throws Exception {
@@ -623,7 +623,7 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getImportedLibraries_lib1() throws Exception {
     DartLibrary[] importedLibraries = getDartLib1().getImportedLibraries();
-    assertContainsLibImpl(importedLibraries, "dart:dom");
+    assertContainsLibImpl(importedLibraries, "dart:dom_deprecated");
     assertEquals(1, importedLibraries.length);
   }
 
@@ -683,7 +683,7 @@ public class DartLibraryImplTest extends TestCase {
   public void test_DartLibraryImpl_getImportedLibraries_libHtml() throws Exception {
     DartLibrary[] importedLibraries = getDartLibHtml().getImportedLibraries();
     assertEquals(1, importedLibraries.length);
-    assertEquals("dart:dom", importedLibraries[0].getElementName());
+    assertEquals("dart:dom_deprecated", importedLibraries[0].getElementName());
   }
 
   public void test_DartLibraryImpl_hasMain_lib1() throws Exception {
@@ -796,7 +796,7 @@ public class DartLibraryImplTest extends TestCase {
     DartLibraryImpl hackLib = assertContainsLibImpl(importedLibraries, "dart:bootstrap_hacks");
     importedLibraries = hackLib.getImportedLibraries();
     assertEquals(1, importedLibraries.length);
-    DartLibraryImpl domLib = assertContainsLibImpl(importedLibraries, "dart:dom");
+    DartLibraryImpl domLib = assertContainsLibImpl(importedLibraries, "dart:dom_deprecated");
     assertEquals(getDartLibDom(), domLib);
   }
 
@@ -1079,7 +1079,7 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   private DartLibraryImpl getDartLibDom() throws Exception {
-    return getBundledLib("dart:dom");
+    return getBundledLib("dart:dom_deprecated");
   }
 
   private DartLibraryImpl getDartLibEmpty() throws Exception {

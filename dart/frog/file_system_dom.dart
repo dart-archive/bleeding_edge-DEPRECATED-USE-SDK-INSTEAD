@@ -4,7 +4,7 @@
 
 #library('file_system_dom');
 
-#import('dart:dom');
+#import('dart:dom_deprecated');
 #import('file_system.dart');
 
 /**

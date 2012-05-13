@@ -22,7 +22,7 @@ class Suites {
   static final JOHN_RESIG = const Origin('John Resig', 'http://ejohn.org/');
 
   static final CATEGORIES = const {
-    'dom': 'DOM Core Tests (dart:dom)',
+    'dom': 'DOM Core Tests (dart:dom_deprecated)',
     'html': 'DOM Core Tests (dart:html)',
     'htmlidiomatic': 'DOM Core Tests (dart:html) Idiomatic',
     'js': 'DOM Core Tests (JavaScript)',
@@ -97,10 +97,10 @@ class Suites {
           getVariants(_CORE_SUITE_DESCRIPTIONS, variant, mapper, tags));
     }
     add('js', _jsPath, ['js']);
-    add('dart:dom', _domPath, ['dart', 'dom']);
+    add('dart:dom_deprecated', _domPath, ['dart', 'dom']);
     add('dart:html', _htmlPath, ['dart', 'html']);
     add('dart:html idiomatic', _htmlPath, ['dart', 'htmlidiomatic']);
-    add('frog dart:dom', _frogDomPath, ['frog', 'dom']);
+    add('frog dart:dom_deprecated', _frogDomPath, ['frog', 'dom']);
     add('frog dart:html', _frogHtmlPath, ['frog', 'html']);
     add('frog dart:html idiomatic', _frogHtmlIdiomaticPath,
         ['frog', 'htmlidiomatic']);

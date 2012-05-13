@@ -1,5 +1,5 @@
 #library("dom_traverse");
-#import("dart:dom");
+#import("dart:dom_deprecated");
 #import('../common/common.dart');
 #source("Common.dart");
 #source("RunnerSuite.dart");

@@ -73,7 +73,7 @@ public class SamplesTest extends TestCase {
   static {
     KNOWN_DART_LIBS.add("dart:core");
     KNOWN_DART_LIBS.add("dart:coreimpl");
-    KNOWN_DART_LIBS.add("dart:dom");
+    KNOWN_DART_LIBS.add("dart:dom_deprecated");
     KNOWN_DART_LIBS.add("dart:html");
     KNOWN_DART_LIBS.add("dart:io");
     KNOWN_DART_LIBS.add("dart:isolate");

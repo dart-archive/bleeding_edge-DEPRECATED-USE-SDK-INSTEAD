@@ -27,7 +27,7 @@ TEST1_HTML = """
 
     <!-- embed source code -->
     <script type="application/dart">
-      #import('dart:dom');
+      #import('dart:dom_deprecated');
       main() {
         window.alert('hi');
       }
@@ -61,7 +61,7 @@ TEST2_HTML = """
 
 TEST2_DART = """
 #library('test2');
-#import('dart:dom');
+#import('dart:dom_deprecated');
 main() {
   window.alert('test2!');
 }
@@ -91,7 +91,7 @@ TEST3_HTML = """
 """
 
 TEST3_DART = """
-#import('dart:dom');
+#import('dart:dom_deprecated');
 #source('test_3a.dart');
 #source('test_3b.dart');
 """
@@ -133,7 +133,7 @@ TEST4_HTML = """
 """
 
 TEST4_DART = """
-#import('dart:dom');
+#import('dart:dom_deprecated');
 #import('../samples/ui_lib/observable/observable.dart');
 
 main() {
@@ -184,7 +184,7 @@ TEST5_HTML = """
 
     <!-- embed source code -->
     <script type="application/dart">
-      #import('dart:dom');
+      #import('dart:dom_deprecated');
       main() {
         var element = document.getElementById("test5div");
         if (element == null) {

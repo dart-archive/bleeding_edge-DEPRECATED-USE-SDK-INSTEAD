@@ -15,7 +15,7 @@ class LibraryReader {
         'dart:coreimpl': joinPaths(options.libDir, 'corelib_impl.dart'),
         'dart:html': joinPaths(options.libDir,
             '../../lib/html/frog/html_frog.dart'),
-        'dart:dom': joinPaths(options.libDir,
+        'dart:dom_deprecated': joinPaths(options.libDir,
             '../../lib/dom/frog/dom_frog.dart'),
         'dart:json': joinPaths(options.libDir, '../../lib/json/json_frog.dart'),
          'dart:io': joinPaths(options.libDir,
@@ -31,7 +31,7 @@ class LibraryReader {
         'dart:coreimpl': joinPaths(options.libDir,
           'coreimpl/coreimpl_frog.dart'),
         'dart:html': joinPaths(options.libDir, 'html/html_frog.dart'),
-        'dart:dom': joinPaths(options.libDir, 'dom/dom_frog.dart'),
+        'dart:dom_deprecated': joinPaths(options.libDir, 'dom/dom_frog.dart'),
         // TODO(rnystrom): How should we handle dart:io here?
         'dart:isolate': joinPaths(options.libDir, 'isolate/isolate_frog.dart'),
         'dart:json': joinPaths(options.libDir, 'json/json_frog.dart'),
