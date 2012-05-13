@@ -135,7 +135,7 @@ public class RefactorActionGroup extends ActionGroup {
 //  //private SelectionDispatchAction fReplaceInvocationsAction;
 //  private SelectionDispatchAction fIntroduceIndirectionAction;
 //  private SelectionDispatchAction fExtractMethodAction;
-//  private SelectionDispatchAction fExtractTempAction;
+  private SelectionDispatchAction fExtractLocalAction;
 //  private SelectionDispatchAction fExtractConstantAction;
 //  private SelectionDispatchAction fExtractClassAction;
 //  private SelectionDispatchAction fIntroduceParameterAction;
@@ -181,6 +181,15 @@ public class RefactorActionGroup extends ActionGroup {
     fRenameAction = new RenameAction(editor);
     initAction(fRenameAction, selection, DartEditorActionDefinitionIds.RENAME_ELEMENT);
     editor.setAction("RenameElement", fRenameAction); //$NON-NLS-1$
+
+    fExtractLocalAction = new ExtractLocalAction(editor);
+    initUpdatingAction(
+        fExtractLocalAction,
+        provider,
+        null,
+        selection,
+        DartEditorActionDefinitionIds.EXTRACT_LOCAL_VARIABLE);
+    editor.setAction("ExtractLocalVariable", fExtractLocalAction); //$NON-NLS-1$
 
 //    fMoveAction= new MoveAction(editor);
 //    initAction(fMoveAction, selection, IJavaEditorActionDefinitionIds.MOVE_ELEMENT);
@@ -229,10 +238,6 @@ public class RefactorActionGroup extends ActionGroup {
 //    fExtractMethodAction= new ExtractMethodAction(editor);
 //    initUpdatingAction(fExtractMethodAction, provider, null, selection, IJavaEditorActionDefinitionIds.EXTRACT_METHOD);
 //    editor.setAction("ExtractMethod", fExtractMethodAction); //$NON-NLS-1$
-//
-//    fExtractTempAction= new ExtractTempAction(editor);
-//    initUpdatingAction(fExtractTempAction, provider, null, selection, IJavaEditorActionDefinitionIds.EXTRACT_LOCAL_VARIABLE);
-//    editor.setAction("ExtractLocalVariable", fExtractTempAction); //$NON-NLS-1$
 //
 //    fExtractConstantAction= new ExtractConstantAction(editor);
 //    initUpdatingAction(fExtractConstantAction, provider, null, selection, IJavaEditorActionDefinitionIds.EXTRACT_CONSTANT);
@@ -395,7 +400,7 @@ public class RefactorActionGroup extends ActionGroup {
 //    disposeAction(fModifyParametersAction, fSelectionProvider);
 //    disposeAction(fPullUpAction, fSelectionProvider);
 //    disposeAction(fPushDownAction, fSelectionProvider);
-//    disposeAction(fExtractTempAction, fSelectionProvider);
+    disposeAction(fExtractLocalAction, fSelectionProvider);
 //    disposeAction(fExtractConstantAction, fSelectionProvider);
 //    disposeAction(fIntroduceParameterAction, fSelectionProvider);
 //    disposeAction(fIntroduceParameterObjectAction, fSelectionProvider);
@@ -431,7 +436,7 @@ public class RefactorActionGroup extends ActionGroup {
 //    actionBars.setGlobalActionHandler(JdtActionConstants.MODIFY_PARAMETERS, fModifyParametersAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.PULL_UP, fPullUpAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.PUSH_DOWN, fPushDownAction);
-//    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_TEMP, fExtractTempAction);
+    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_LOCAL, fExtractLocalAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_CONSTANT, fExtractConstantAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.INTRODUCE_PARAMETER, fIntroduceParameterAction);
 //    actionBars.setGlobalActionHandler(JdtActionConstants.INTRODUCE_FACTORY, fIntroduceFactoryAction);
@@ -557,12 +562,13 @@ public class RefactorActionGroup extends ActionGroup {
         new GroupMarker(fGroupName));
     refactorSubmenu.appendToGroup(fGroupName, new Separator(GROUP_REORG));
     added += addAction(refactorSubmenu, GROUP_REORG, fRenameAction);
+    added += addAction(refactorSubmenu, GROUP_REORG, fExtractLocalAction);
 //    added += addAction(refactorSubmenu, fMoveAction);
 
     refactorSubmenu.add(new Separator(GROUP_CODING));
 //    added += addAction(refactorSubmenu, fModifyParametersAction);
 //    added += addAction(refactorSubmenu, fExtractMethodAction);
-//    added += addAction(refactorSubmenu, fExtractTempAction);
+//    added += addAction(refactorSubmenu, fExtractLocalAction);
 //    added += addAction(refactorSubmenu, fExtractConstantAction);
 //    added += addAction(refactorSubmenu, fInlineAction);
 

@@ -1,16 +1,14 @@
 /*
  * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.actions;
@@ -289,10 +287,10 @@ public class JdtActionConstants {
   public static final String RENAME = "com.google.dart.tools.ui.actions.Rename"; //$NON-NLS-1$
 
   /**
-   * Refactor menu: name of standard Extract Temp global action (value
-   * <code>"com.google.dart.tools.ui.actions.ExtractTemp"</code>).
+   * Refactor menu: name of standard Extract Local global action (value
+   * <code>"com.google.dart.tools.ui.actions.ExtractLocal"</code>).
    */
-  public static final String EXTRACT_TEMP = "com.google.dart.tools.ui.actions.ExtractTemp"; //$NON-NLS-1$
+  public static final String EXTRACT_LOCAL = "com.google.dart.tools.ui.actions.ExtractLocal"; //$NON-NLS-1$
 
   /**
    * Refactor menu: name of standard Extract Constant global action (value

@@ -967,6 +967,13 @@
             visible="false"
             id="com.google.dart.tools.ui.RefactorActionSet">
             <action
+                definitionId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
+                label="%Refactoring.extractTempAction.label"
+                retarget="true"
+                menubarPath="edit/endEdit"
+                id="com.google.dart.tools.ui.actions.ExtractLocal">
+            </action>
+            <action
                 definitionId="com.google.dart.tools.ui.edit.text.dart.rename.element"
                 label="%Refactoring.renameAction.label"
                 retarget="true"
@@ -1078,15 +1085,15 @@
                retarget="true"
                menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="org.eclipse.wst.jsdt.ui.actions.ExtractConstant">
-         </action>
+         </action>-->
          <action
-               definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.local.variable"
+               definitionId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
                label="%Refactoring.extractTempAction.label"
                retarget="true"
                menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
-               id="org.eclipse.wst.jsdt.ui.actions.ExtractTemp">
+               id="com.google.dart.tools.ui.actions.ExtractLocal">
          </action>
-         <action
+         <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.method"
                label="%Refactoring.extractMethodAction.label"
                retarget="true"
@@ -1988,7 +1995,7 @@
             name="%ActionDefinition.extractLocalVariable.name"
             description="%ActionDefinition.extractLocalVariable.description"
             categoryId="com.google.dart.tools.ui.category.refactoring"
-            id="org.eclipse.wst.jsdt.ui.edit.text.java.extract.local.variable">
+            id="com.google.dart.tools.ui.edit.text.dart.extract.local.variable">
       </command>
       <command
             name="%ActionDefinition.extractConstant.name"
@@ -3097,6 +3104,15 @@
            platform="carbon"
            sequence="COMMAND+ALT+R"
            commandId="com.google.dart.tools.ui.edit.text.dart.rename.element"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+           sequence="M2+M3+L"
+           commandId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+           platform="carbon"
+           sequence="COMMAND+ALT+L"
+           commandId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
       <!-- disable the key binding for Carbon as it conflicts with another one in the SDK -->
       <key

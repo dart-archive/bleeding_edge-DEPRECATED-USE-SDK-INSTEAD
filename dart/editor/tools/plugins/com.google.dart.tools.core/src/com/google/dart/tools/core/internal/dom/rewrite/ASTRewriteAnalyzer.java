@@ -2969,11 +2969,17 @@ public final class ASTRewriteAnalyzer {
 
   private final void voidVisit(DartNode parent, StructuralPropertyDescriptor property) {
     Object node = getOriginalValue(parent, property);
-    if (property.isChildProperty() && node != null) {
+    // TODO(scheglov)
+    if (property.isChildProperty() && node instanceof DartNode) {
       voidVisit((DartNode) node);
     } else if (property.isChildListProperty()) {
       voidVisitList((List<DartNode>) node);
     }
+//    if (property.isChildProperty() && node != null) {
+//      voidVisit((DartNode) node);
+//    } else if (property.isChildListProperty()) {
+//      voidVisitList((List<DartNode>) node);
+//    }
   }
 
   private void voidVisitList(List<DartNode> list) {

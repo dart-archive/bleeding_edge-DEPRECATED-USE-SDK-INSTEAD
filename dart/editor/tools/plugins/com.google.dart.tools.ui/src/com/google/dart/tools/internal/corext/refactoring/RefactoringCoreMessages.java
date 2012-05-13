@@ -79,6 +79,15 @@ public final class RefactoringCoreMessages extends NLS {
   // Rename type method
   public static String RenameMethodProcessor_name;
 
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Extract local variable refactoring
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String ExtractLocalRefactoring_name;
+  public static String ExtractLocalRefactoring_select_expression;
+  public static String ExtractLocalRefactoring_checking_preconditions;
+  public static String ExtractLocalRefactoring_declare_local_variable;
+  public static String ExtractLocalRefactoring_replace;
+
   // XXX
   // These constants were used, but later we decided to don't use them.
   //
@@ -711,13 +720,9 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String ExtractTempRefactoring_change_name;
 
-  public static String ExtractTempRefactoring_checking_preconditions;
-
   public static String ExtractTempRefactoring_convention;
 
   public static String ExtractTempRefactoring_declare_final;
-
-  public static String ExtractTempRefactoring_declare_local_variable;
 
   public static String ExtractTempRefactoring_descriptor_description;
 
@@ -733,8 +738,6 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String ExtractTempRefactoring_for_initializer_updater;
 
-  public static String ExtractTempRefactoring_name;
-
   public static String ExtractTempRefactoring_name_in_new;
 
   public static String ExtractTempRefactoring_name_pattern;
@@ -747,13 +750,9 @@ public final class RefactoringCoreMessages extends NLS {
 
   public static String ExtractTempRefactoring_refers_to_for_variable;
 
-  public static String ExtractTempRefactoring_replace;
-
   public static String ExtractTempRefactoring_replace_occurrences;
 
   public static String ExtractTempRefactoring_resource_in_try_with_resources;
-
-  public static String ExtractTempRefactoring_select_expression;
 
   public static String FlowAnalyzer_execution_flow;
 

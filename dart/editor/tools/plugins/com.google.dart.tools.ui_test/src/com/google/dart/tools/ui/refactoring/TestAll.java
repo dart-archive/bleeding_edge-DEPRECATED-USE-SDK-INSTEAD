@@ -20,6 +20,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ExecutionUtilsTest.class);
+    // rename
     suite.addTestSuite(RenameAnalyzeUtilTest.class);
     suite.addTestSuite(RenameLocalVariableProcessorTest.class);
     suite.addTestSuite(RenameFieldProcessorTest.class);
@@ -32,6 +33,10 @@ public class TestAll {
     suite.addTestSuite(RenameTypeParameterProcessorTest.class);
     suite.addTestSuite(RenameImportProcessorTest.class);
     suite.addTestSuite(RenameResourceParticipantTest.class);
+    // extract
+    suite.addTestSuite(ExtractUtilsTest.class);
+    suite.addTestSuite(ExtractLocalRefactoringTest.class);
+    // done
     return suite;
   }
 }

@@ -116,7 +116,6 @@ public abstract class AbstractDartTest extends TestCase {
    * Asserts that <code>Test.dart</code> has expected content.
    */
   protected final void assertTestUnitContent(String... lines) throws Exception {
-
     assertUnitContent(testUnit, lines);
   }
 

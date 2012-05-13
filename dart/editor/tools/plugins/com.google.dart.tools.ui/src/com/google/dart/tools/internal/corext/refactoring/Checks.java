@@ -14,6 +14,9 @@
 package com.google.dart.tools.internal.corext.refactoring;
 
 import com.google.common.collect.Sets;
+import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
@@ -506,21 +509,12 @@ public class Checks {
     return true;
   }
 
-  /**
-   * @param element the {@link DartElement}, not <code>null</code>.
-   * @return <code>true</code> if given {@link DartElement} is defined in local {@link DartLibrary}.
-   */
-  public static boolean isLocal(DartElement element) throws DartModelException {
-    DartLibrary library = element.getAncestor(DartLibrary.class);
-    return library != null && library.isLocal();
-  }
-
-  /**
-   * @param e
-   * @return int Checks.IS_RVALUE if e is an rvalue Checks.IS_RVALUE_GUESSED if e is guessed as an
-   *         rvalue Checks.NOT_RVALUE_VOID if e is not an rvalue because its type is void
-   *         Checks.NOT_RVALUE_MISC if e is not an rvalue for some other reason
-   */
+//  /**
+//   * @param e
+//   * @return int Checks.IS_RVALUE if e is an rvalue Checks.IS_RVALUE_GUESSED if e is guessed as an
+//   *         rvalue Checks.NOT_RVALUE_VOID if e is not an rvalue because its type is void
+//   *         Checks.NOT_RVALUE_MISC if e is not an rvalue for some other reason
+//   */
 //  public static int checkExpressionIsRValue(Expression e) {
 //  	if (e instanceof Name) {
 //  		if(!(((Name) e).resolveBinding() instanceof IVariableBinding)) {
@@ -592,20 +586,20 @@ public class Checks {
 //  	return result;
 //  }
 
-  /**
-   * Checks if the new method somehow conflicts with an already existing method in the hierarchy.
-   * The following checks are done:
-   * <ul>
-   * <li>if the new method overrides a method defined in the given type or in one of its super
-   * classes.</li>
-   * </ul>
-   * 
-   * @param type
-   * @param methodName
-   * @param returnType
-   * @param parameters
-   * @return the status
-   */
+//  /**
+//   * Checks if the new method somehow conflicts with an already existing method in the hierarchy.
+//   * The following checks are done:
+//   * <ul>
+//   * <li>if the new method overrides a method defined in the given type or in one of its super
+//   * classes.</li>
+//   * </ul>
+//   * 
+//   * @param type
+//   * @param methodName
+//   * @param returnType
+//   * @param parameters
+//   * @return the status
+//   */
 //  public static RefactoringStatus checkMethodInHierarchy(ITypeBinding type, String methodName, ITypeBinding returnType, ITypeBinding[] parameters) {
 //  	RefactoringStatus result= new RefactoringStatus();
 //  	IMethodBinding method= Bindings.findMethodInHierarchy(type, methodName, parameters);
@@ -637,15 +631,33 @@ public class Checks {
 
   //---- Selection checks --------------------------------------------------------------------
 
-//  public static boolean isExtractableExpression(DartNode[] selectedNodes, DartNode coveringNode) {
-//  	DartNode node= coveringNode;
-//  	if (isEnumCase(node))
-//  		return false;
-//  	if (selectedNodes != null && selectedNodes.length == 1)
-//  		node= selectedNodes[0];
-//  	return isExtractableExpression(node);
-//  }
-//
+  // TODO(scheglov) write JavaDoc
+  public static boolean isExtractableExpression(DartNode node) {
+    if (!(node instanceof DartExpression)) {
+      return false;
+    }
+    if (node.getElement() instanceof VariableElement) {
+      return true;
+    }
+//    if (node instanceof Name) {
+//      IBinding binding= ((Name) node).resolveBinding();
+//      return binding == null || binding instanceof IVariableBinding;
+//    }
+    return true;
+  }
+
+  // TODO(scheglov) write JavaDoc
+  public static boolean isExtractableExpression(DartNode[] selectedNodes, DartNode coveringNode) {
+    DartNode node = coveringNode;
+//    if (isEnumCase(node)) {
+//      return false;
+//    }
+    if (selectedNodes != null && selectedNodes.length == 1) {
+      node = selectedNodes[0];
+    }
+    return isExtractableExpression(node);
+  }
+
 //  public static boolean isEnumCase(DartNode node) {
 //  	if (node instanceof SwitchCase) {
 //  		final SwitchCase caze= (SwitchCase) node;
@@ -661,17 +673,16 @@ public class Checks {
 //  	}
 //  	return false;
 //  }
-//
-//  public static boolean isExtractableExpression(DartNode node) {
-//  	if (!(node instanceof Expression))
-//  		return false;
-//  	if (node instanceof Name) {
-//  		IBinding binding= ((Name) node).resolveBinding();
-//  		return binding == null || binding instanceof IVariableBinding;
-//  	}
-//  	return true;
-//  }
-//
+
+  /**
+   * @param element the {@link DartElement}, not <code>null</code>.
+   * @return <code>true</code> if given {@link DartElement} is defined in local {@link DartLibrary}.
+   */
+  public static boolean isLocal(DartElement element) throws DartModelException {
+    DartLibrary library = element.getAncestor(DartLibrary.class);
+    return library != null && library.isLocal();
+  }
+
 //  public static boolean isInsideJavadoc(DartNode node) {
 //  	do {
 //  		if (node.getNodeType() == DartNode.JAVADOC)

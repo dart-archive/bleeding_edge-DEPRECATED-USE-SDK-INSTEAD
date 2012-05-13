@@ -123,7 +123,7 @@ public interface DartHelpContextIds {
   public static final String ADD_TASK_ACTION = PREFIX + "add_task_action"; //$NON-NLS-1$
   public static final String EXTERNALIZE_STRINGS_ACTION = PREFIX + "externalize_strings_action"; //$NON-NLS-1$	
   public static final String EXTRACT_METHOD_ACTION = PREFIX + "extract_method_action"; //$NON-NLS-1$	
-  public static final String EXTRACT_TEMP_ACTION = PREFIX + "extract_temp_action"; //$NON-NLS-1$	
+  public static final String EXTRACT_LOCAL_ACTION = PREFIX + "extract_local_action"; //$NON-NLS-1$	
   public static final String PROMOTE_TEMP_TO_FIELD_ACTION = PREFIX + "promote_temp_to_field_action"; //$NON-NLS-1$	
   public static final String CONVERT_ANONYMOUS_TO_NESTED_ACTION = PREFIX
       + "convert_anonymous_to_nested_action"; //$NON-NLS-1$	
@@ -458,7 +458,7 @@ public interface DartHelpContextIds {
       + "extract_interface_temp_page_context"; //$NON-NLS-1$
   public static final String EXTRACT_METHOD_WIZARD_PAGE = PREFIX
       + "extract_method_wizard_page_context"; //$NON-NLS-1$
-  public static final String EXTRACT_TEMP_WIZARD_PAGE = PREFIX + "extract_temp_page_context"; //$NON-NLS-1$
+  public static final String EXTRACT_LOCAL_WIZARD_PAGE = PREFIX + "extract_local_page_context"; //$NON-NLS-1$
   public static final String EXTRACT_CONSTANT_WIZARD_PAGE = PREFIX
       + "extract_constant_page_context"; //$NON-NLS-1$
   public static final String INTRODUCE_PARAMETER_WIZARD_PAGE = PREFIX

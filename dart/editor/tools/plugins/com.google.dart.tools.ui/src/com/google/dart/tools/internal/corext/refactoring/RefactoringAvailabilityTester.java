@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.internal.corext.refactoring;
 
+import com.google.dart.compiler.ast.DartExprStmt;
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
@@ -25,6 +27,7 @@ import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
 import org.eclipse.core.resources.IResource;
@@ -477,15 +480,18 @@ public class RefactoringAvailabilityTester {
 //    }
 //    return isExtractSupertypeAvailable(new TypeMember[]{(TypeMember) element});
 //  }
-//
-//  public static boolean isExtractTempAvailable(DartTextSelection selection) {
-//    ASTNode[] nodes = selection.resolveSelectedNodes();
+
+  public static boolean isExtractLocalAvailable(DartTextSelection selection) {
+    DartNode[] nodes = selection.resolveSelectedNodes();
+    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer())
+        && (Checks.isExtractableExpression(nodes, selection.resolveCoveringNode()) || nodes != null
+            && nodes.length == 1 && nodes[0] instanceof DartExprStmt);
 //    return (selection.resolveInMethodBody() || selection.resolveInClassInitializer())
 //        && !selection.resolveInAnnotation()
 //        && (Checks.isExtractableExpression(nodes, selection.resolveCoveringNode()) || nodes != null
-//            && nodes.length == 1 && nodes[0] instanceof ExpressionStatement);
-//  }
-//
+//        && nodes.length == 1 && nodes[0] instanceof DartExprStmt);
+  }
+
 //  public static boolean isGeneralizeTypeAvailable(DartElement element)
 //      throws DartModelException {
 //    if (element != null && element.exists()) {

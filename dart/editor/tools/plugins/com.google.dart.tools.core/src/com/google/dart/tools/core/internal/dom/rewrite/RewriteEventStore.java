@@ -17,6 +17,7 @@ import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.dom.rewrite.TargetSourceRangeComputer;
 
@@ -733,9 +734,7 @@ public final class RewriteEventStore {
     if (nodePropertyMapper != null) {
       return nodePropertyMapper.getOriginalValue(parent, childProperty);
     }
-    DartCore.notYetImplemented();
-    // return parent.getStructuralProperty(childProperty);
-    return null;
+    return PropertyDescriptorHelper.getStructuralProperty(parent, childProperty);
   }
 
   private void assertNoOverlap(ListRewriteEvent listEvent, int indexFirst, int indexLast,

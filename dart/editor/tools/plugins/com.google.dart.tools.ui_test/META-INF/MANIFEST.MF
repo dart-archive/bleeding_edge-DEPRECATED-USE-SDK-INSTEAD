@@ -4,15 +4,16 @@ Bundle-Name: %pluginName
 Bundle-SymbolicName: com.google.dart.tools.ui_test;singleton:=true
 Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: %providerName
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
+Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources,
+ org.eclipse.jface.text,
+ org.eclipse.ui,
  org.eclipse.ltk.core.refactoring,
+ org.eclipse.ltk.ui.refactoring,
  org.junit;bundle-version="3.8.2",
  com.google.dart.compiler.js,
  com.google.dart.tools.core,
  com.google.dart.tools.ui,
- org.eclipse.jface.text,
  com.google.dart.tools.core_test
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

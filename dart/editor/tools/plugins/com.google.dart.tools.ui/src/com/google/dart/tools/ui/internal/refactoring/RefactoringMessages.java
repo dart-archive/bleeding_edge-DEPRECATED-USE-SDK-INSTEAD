@@ -68,6 +68,16 @@ public final class RefactoringMessages extends NLS {
   // RenameResourceParticipant
   public static String RenameResourceParticipant_name;
 
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // Extract local factoring
+  ///////////////////////////////////////////////////////////////////////////////////////
+  public static String ExtractLocalAction_label;
+  public static String ExtractLocalAction_dialog_title;
+  public static String ExtractLocalInputPage_enter_name;
+  public static String ExtractLocalInputPage_variable_name;
+  public static String ExtractLocalInputPage_replace_all;
+  public static String ExtractLocalWizard_defaultPageTitle;
+
   // XXX
   // These constants are not used yet in Dart refactoring.
   //
@@ -388,21 +398,9 @@ public final class RefactoringMessages extends NLS {
 
   public static String ExtractSupertypeWizard_defaultPageTitle;
 
-  public static String ExtractTempAction_extract_temp;
-
-  public static String ExtractTempAction_label;
-
   public static String ExtractTempInputPage_declare_final;
 
-  public static String ExtractTempInputPage_enter_name;
-
   public static String ExtractTempInputPage_extract_local;
-
-  public static String ExtractTempInputPage_replace_all;
-
-  public static String ExtractTempInputPage_variable_name;
-
-  public static String ExtractTempWizard_defaultPageTitle;
 
   public static String InferTypeArgumentsAction_dialog_title;
 
