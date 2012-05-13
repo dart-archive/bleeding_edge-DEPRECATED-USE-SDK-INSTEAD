@@ -27,11 +27,6 @@ public class SystemLibraryManagerProviderAnyTest extends SystemLibraryManagerPro
     testLibrary("coreimpl", "coreimpl_runtime.dart");
   }
 
-  public void test_SystemLibraryManagerProvider_dom() throws Exception {
-    // We are analyzing against the Frog dom until Dartium dom lib src is available
-    testLibrary("dom", "dom_frog.dart");
-  }
-
   public void test_SystemLibraryManagerProvider_html() throws Exception {
     testLibrary("html", "html_dartium.dart");
   }
