@@ -27,12 +27,15 @@ class ParseFileTask extends Task {
   private final AnalysisServer server;
   private final Context context;
   private final File libraryFile;
+  private final String relPath;
   private final File dartFile;
 
-  ParseFileTask(AnalysisServer server, Context context, File libraryFile, File dartFile) {
+  ParseFileTask(AnalysisServer server, Context context, File libraryFile, String relPath,
+      File dartFile) {
     this.server = server;
     this.context = context;
     this.libraryFile = libraryFile;
+    this.relPath = relPath;
     this.dartFile = dartFile;
   }
 
@@ -66,7 +69,7 @@ class ParseFileTask extends Task {
       return;
     }
     Set<String> prefixes = library.getPrefixes();
-    unit = parse(server, libraryFile, library.getLibrarySource(), dartFile, prefixes);
+    unit = parse(server, libraryFile, library.getLibrarySource(), relPath, prefixes);
     context.cacheUnresolvedUnit(dartFile, unit);
   }
 }

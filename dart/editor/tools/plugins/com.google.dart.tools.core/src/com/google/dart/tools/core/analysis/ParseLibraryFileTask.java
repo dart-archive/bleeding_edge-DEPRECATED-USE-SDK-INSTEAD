@@ -43,7 +43,7 @@ class ParseLibraryFileTask extends Task {
     this.libraryFile = libraryFile;
     this.callback = callback;
     URI fileUri = libraryFile.toURI();
-    URI shortUri = server.getLibraryManager().getShortUri(fileUri);
+    URI shortUri = server.getLibraryManager().getRelativeUri(fileUri);
     URI libUri = shortUri != null ? shortUri : fileUri;
     this.librarySource = new UrlLibrarySource(libUri, server.getLibraryManager());
   }
@@ -67,7 +67,7 @@ class ParseLibraryFileTask extends Task {
       unit = context.getUnresolvedUnit(libraryFile);
       if (unit == null) {
         Set<String> prefixes = new HashSet<String>();
-        unit = parse(server, libraryFile, librarySource, libraryFile, prefixes);
+        unit = parse(server, libraryFile, librarySource, libraryFile.getName(), prefixes);
         context.cacheUnresolvedUnit(libraryFile, unit);
       }
     }

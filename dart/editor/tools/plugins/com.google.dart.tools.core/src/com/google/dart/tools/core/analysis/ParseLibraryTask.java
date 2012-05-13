@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.analysis;
 
 import java.io.File;
+import java.util.Map.Entry;
 
 /**
  * Parse the library file and all files referenced in #source directives
@@ -48,9 +49,11 @@ class ParseLibraryTask extends Task {
 
     // Parse the files sourced by the library
 
-    for (File file : library.getSourceFiles()) {
+    for (Entry<String, File> entry : library.getRelativeSourcePathsAndFiles()) {
+      String relPath = entry.getKey();
+      File file = entry.getValue();
       if (context.getUnresolvedUnit(file) == null && file.exists()) {
-        server.queueSubTask(new ParseFileTask(server, context, libraryFile, file));
+        server.queueSubTask(new ParseFileTask(server, context, libraryFile, relPath, file));
       }
     }
   }

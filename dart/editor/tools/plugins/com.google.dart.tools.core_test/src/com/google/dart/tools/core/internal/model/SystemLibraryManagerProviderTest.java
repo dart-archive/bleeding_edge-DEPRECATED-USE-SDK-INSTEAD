@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.model;
 
 import junit.framework.TestCase;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
@@ -75,6 +76,12 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertEquals("", actual);
   }
 
+  public void test_SystemLibraryManagerProvider_revertFileUri() throws Exception {
+    assertNull(getLibraryManager().getRelativeUri(null));
+    assertNull(getLibraryManager().getRelativeUri(new URI("boo://does/not/exist.dart")));
+    assertNull(getLibraryManager().getRelativeUri(new File("doesNotExist.dart").toURI()));
+  }
+
   public void test_SystemLibraryManagerProvider_translateDoesNotExist() throws Exception {
     URI fullUri = new URI("dart://doesnotexist/some/file.dart");
     try {
@@ -103,12 +110,24 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     URI shortUri2 = getLibraryManager().getShortUri(fullUri1);
     assertEquals(shortUri, shortUri2);
 
-    URI translatedUri = getLibraryManager().translateDartUri(fullUri1);
-    assertNotNull(translatedUri);
-    String scheme = translatedUri.getScheme();
+    URI translatedUri1 = getLibraryManager().translateDartUri(fullUri1);
+    assertNotNull(translatedUri1);
+    String scheme = translatedUri1.getScheme();
     assertTrue(scheme.equals("file"));
-    assertTrue(translatedUri.getPath().endsWith("/" + libFileName));
-    URI shortUri3 = getLibraryManager().getShortUri(translatedUri);
+    assertTrue(translatedUri1.getPath().endsWith("/" + libFileName));
+    URI shortUri3 = getLibraryManager().getShortUri(translatedUri1);
     assertEquals(shortUri, shortUri3);
+
+    URI fullUri3 = getLibraryManager().getRelativeUri(translatedUri1);
+    assertEquals(fullUri1, fullUri3);
+
+    File dir = new File(translatedUri1).getParentFile();
+    URI translatedUri2 = new File(dir, "afile.dart").toURI();
+    URI fullUri4 = getLibraryManager().getRelativeUri(translatedUri2);
+    assertEquals(fullUri1.resolve("afile.dart"), fullUri4);
+
+    URI translatedUri3 = new File(new File(dir, "somedir"), "somefile.dart").toURI();
+    URI fullUri5 = getLibraryManager().getRelativeUri(translatedUri3);
+    assertEquals(fullUri1.resolve("somedir/somefile.dart"), fullUri5);
   }
 }

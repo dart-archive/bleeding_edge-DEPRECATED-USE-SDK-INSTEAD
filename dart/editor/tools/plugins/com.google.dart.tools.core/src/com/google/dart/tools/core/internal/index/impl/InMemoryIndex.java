@@ -197,14 +197,10 @@ public class InMemoryIndex implements Index {
    */
   public void indexResource(File libraryFile, File sourceFile, DartUnit dartUnit)
       throws DartModelException {
-    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
 
     // Get the LibrarySource
 
-    URI fileUri = libraryFile.toURI();
-    URI shortUri = libraryManager.getShortUri(fileUri);
-    URI libUri = shortUri != null ? shortUri : fileUri;
-    LibrarySource librarySource = new UrlLibrarySource(libUri, libraryManager);
+    LibrarySource librarySource = dartUnit.getLibrary().getSource();
 
     // Get the DartLibrary
 
@@ -226,22 +222,24 @@ public class InMemoryIndex implements Index {
 
     // Get the CompilationUnit
 
+    DartSource unitSource = (DartSource) dartUnit.getSourceInfo().getSource();
     CompilationUnit compilationUnit;
     IResource res = ResourceUtil.getResource(sourceFile);
     if (res != null) {
-      compilationUnit = new CompilationUnitImpl(
-          library,
-          (IFile) res,
-          DefaultWorkingCopyOwner.getInstance());
+      DefaultWorkingCopyOwner workingCopy = DefaultWorkingCopyOwner.getInstance();
+      compilationUnit = new CompilationUnitImpl(library, (IFile) res, workingCopy);
     } else {
-      DartSource unitSource = (DartSource) dartUnit.getSourceInfo().getSource();
-      compilationUnit = new ExternalCompilationUnitImpl(
-          library,
-          unitSource.getRelativePath(),
-          unitSource);
+      String relPath = unitSource.getRelativePath();
+      compilationUnit = new ExternalCompilationUnitImpl(library, relPath, unitSource);
     }
 
-    Resource indexResource = ResourceFactory.getResource(compilationUnit);
+    URI unitUri = unitSource.getUri();
+    Resource indexResource;
+    if (SystemLibraryManager.isDartUri(unitUri)) {
+      indexResource = new Resource(unitUri.toString());
+    } else {
+      indexResource = ResourceFactory.getResource(compilationUnit);
+    }
     indexResource(indexResource, compilationUnit, dartUnit);
   }
 

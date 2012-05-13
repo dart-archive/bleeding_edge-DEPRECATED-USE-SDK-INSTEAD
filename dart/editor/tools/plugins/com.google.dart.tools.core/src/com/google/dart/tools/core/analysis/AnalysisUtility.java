@@ -22,7 +22,6 @@ import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SystemLibraryManager;
-import com.google.dart.compiler.UrlDartSource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
@@ -68,13 +67,16 @@ class AnalysisUtility {
   /**
    * Parse a single file and report the errors/warnings.
    * 
+   * @param relPath the path to the file to be parsed relative to the library containing that file.
+   *          This path should contain '/' rather than {@link File#separatorChar}
    * @param prefixes the collection of import prefixes. If the file being parsed contains import
    *          directives, then this collection will be updated to include any specified prefixes
    */
   static DartUnit parse(AnalysisServer server, File libraryFile, LibrarySource librarySource,
-      File sourceFile, Set<String> prefixes) {
+      String relPath, Set<String> prefixes) {
     ErrorListener errorListener = new ErrorListener(server);
-    DartSource source = new UrlDartSource(sourceFile, librarySource);
+    DartSource source = librarySource.getSourceFor(relPath);
+    File sourceFile = new File(libraryFile.toURI().resolve(relPath));
 
     String sourceCode = null;
     try {

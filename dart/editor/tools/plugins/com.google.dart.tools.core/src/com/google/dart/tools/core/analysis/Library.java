@@ -28,6 +28,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -134,6 +135,10 @@ class Library {
 
   Set<String> getPrefixes() {
     return prefixes;
+  }
+
+  Set<Entry<String, File>> getRelativeSourcePathsAndFiles() {
+    return sources.entrySet();
   }
 
   DartUnit getResolvedUnit(File file) {
