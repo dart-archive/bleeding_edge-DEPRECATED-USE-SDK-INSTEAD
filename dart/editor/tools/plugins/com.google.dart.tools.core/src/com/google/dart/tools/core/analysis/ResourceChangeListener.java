@@ -411,7 +411,7 @@ public class ResourceChangeListener {
     if (!DartCore.isDartLikeFileName(file.getName())) {
       return;
     }
-    if (ignoreManager.isIgnored(file)) {
+    if (ignoreManager.isIgnored(file) || file.getName().startsWith(".")) {
       return;
     }
     FileInputStream in;
