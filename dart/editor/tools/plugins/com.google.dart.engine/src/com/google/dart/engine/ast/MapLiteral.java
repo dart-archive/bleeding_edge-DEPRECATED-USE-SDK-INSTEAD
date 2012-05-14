@@ -51,16 +51,15 @@ public class MapLiteral extends TypedLiteral {
    * Initialize a newly created map literal.
    * 
    * @param modifier the const modifier associated with this literal
-   * @param leftAngleBracket the left angle bracket
-   * @param typeArgument the type of the elements of the literal
-   * @param rightAngleBracket the right angle bracket
+   * @param typeArguments the type argument associated with this literal, or <code>null</code> if no
+   *          type arguments were declared
    * @param leftBracket the left curly bracket
    * @param entries the entries in the map
    * @param rightBracket the right curly bracket
    */
-  public MapLiteral(Token modifier, Token leftAngleBracket, TypeName typeArgument,
-      Token rightAngleBracket, Token leftBracket, List<MapLiteralEntry> entries, Token rightBracket) {
-    super(modifier, leftAngleBracket, typeArgument, rightAngleBracket);
+  public MapLiteral(Token modifier, TypeArgumentList typeArguments, Token leftBracket,
+      List<MapLiteralEntry> entries, Token rightBracket) {
+    super(modifier, typeArguments);
     this.leftBracket = leftBracket;
     this.entries.addAll(entries);
     this.rightBracket = rightBracket;
@@ -74,13 +73,14 @@ public class MapLiteral extends TypedLiteral {
   @Override
   public Token getBeginToken() {
     Token token = getModifier();
-    if (token == null) {
-      token = getLeftAngleBracket();
+    if (token != null) {
+      return token;
     }
-    if (token == null) {
-      token = leftBracket;
+    TypeArgumentList typeArguments = getTypeArguments();
+    if (typeArguments != null) {
+      return typeArguments.getBeginToken();
     }
-    return token;
+    return leftBracket;
   }
 
   @Override

@@ -51,18 +51,17 @@ public class ListLiteral extends TypedLiteral {
    * Initialize a newly created list literal.
    * 
    * @param modifier the const modifier associated with this literal
-   * @param leftAngleBracket the left angle bracket
-   * @param typeArgument the type of the elements of the literal
-   * @param rightAngleBracket the right angle bracket
+   * @param typeArguments the type argument associated with this literal, or <code>null</code> if no
+   *          type arguments were declared
    * @param leftBracket the left square bracket
    * @param elements the expressions used to compute the elements of the list
    * @param rightBracket the right square bracket
    */
-  public ListLiteral(Token modifier, Token leftAngleBracket, TypeName typeArgument,
-      Token rightAngleBracket, Token leftBracket, List<Expression> elements, Token rightBracket) {
-    super(modifier, leftAngleBracket, typeArgument, rightAngleBracket);
+  public ListLiteral(Token modifier, TypeArgumentList typeArguments, Token leftBracket,
+      List<Expression> elements, Token rightBracket) {
+    super(modifier, typeArguments);
     this.leftBracket = leftBracket;
-    elements.addAll(elements);
+    this.elements.addAll(elements);
     this.rightBracket = rightBracket;
   }
 
@@ -74,13 +73,14 @@ public class ListLiteral extends TypedLiteral {
   @Override
   public Token getBeginToken() {
     Token token = getModifier();
-    if (token == null) {
-      token = getLeftAngleBracket();
+    if (token != null) {
+      return token;
     }
-    if (token == null) {
-      token = leftBracket;
+    TypeArgumentList typeArguments = getTypeArguments();
+    if (typeArguments != null) {
+      return typeArguments.getBeginToken();
     }
-    return token;
+    return leftBracket;
   }
 
   /**

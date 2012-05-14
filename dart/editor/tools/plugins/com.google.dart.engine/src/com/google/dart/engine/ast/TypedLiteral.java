@@ -33,19 +33,10 @@ public abstract class TypedLiteral extends Literal {
   private Token modifier;
 
   /**
-   * The left angle bracket.
+   * The type argument associated with this literal, or <code>null</code> if no type arguments were
+   * declared.
    */
-  private Token leftAngleBracket;
-
-  /**
-   * The name of the type of the elements of the literal.
-   */
-  private TypeName typeArgument;
-
-  /**
-   * The right angle bracket.
-   */
-  private Token rightAngleBracket;
+  private TypeArgumentList typeArguments;
 
   /**
    * Initialize a newly created typed literal.
@@ -57,25 +48,12 @@ public abstract class TypedLiteral extends Literal {
    * Initialize a newly created typed literal.
    * 
    * @param modifier the const modifier associated with this literal
-   * @param leftAngleBracket the left angle bracket
-   * @param typeArgument the name of the type of the elements of the literal
-   * @param rightAngleBracket the right angle bracket
+   * @param typeArguments the type argument associated with this literal, or <code>null</code> if no
+   *          type arguments were declared
    */
-  public TypedLiteral(Token modifier, Token leftAngleBracket, TypeName typeArgument,
-      Token rightAngleBracket) {
+  public TypedLiteral(Token modifier, TypeArgumentList typeArguments) {
     this.modifier = modifier;
-    this.leftAngleBracket = leftAngleBracket;
-    this.typeArgument = becomeParentOf(typeArgument);
-    this.rightAngleBracket = rightAngleBracket;
-  }
-
-  /**
-   * Return the left angle bracket.
-   * 
-   * @return the left angle bracket
-   */
-  public Token getLeftAngleBracket() {
-    return leftAngleBracket;
+    this.typeArguments = becomeParentOf(typeArguments);
   }
 
   /**
@@ -88,30 +66,13 @@ public abstract class TypedLiteral extends Literal {
   }
 
   /**
-   * Return the right angle bracket.
+   * Return the type argument associated with this literal, or <code>null</code> if no type
+   * arguments were declared.
    * 
-   * @return the right angle bracket
+   * @return the type argument associated with this literal
    */
-  public Token getRightAngleBracket() {
-    return rightAngleBracket;
-  }
-
-  /**
-   * Return the name of the type of the elements of the literal.
-   * 
-   * @return the name of the type of the elements of the literal
-   */
-  public TypeName getTypeArgument() {
-    return typeArgument;
-  }
-
-  /**
-   * Set the left angle bracket to the given token.
-   * 
-   * @param bracket the left angle bracket
-   */
-  public void setLeftAngleBracket(Token bracket) {
-    leftAngleBracket = bracket;
+  public TypeArgumentList getTypeArguments() {
+    return typeArguments;
   }
 
   /**
@@ -124,25 +85,16 @@ public abstract class TypedLiteral extends Literal {
   }
 
   /**
-   * Set the right angle bracket to the given token.
+   * Set the type argument associated with this literal to the given arguments.
    * 
-   * @param bracket the right angle bracket
+   * @param typeArguments the type argument associated with this literal
    */
-  public void setRightAngleBracket(Token bracket) {
-    rightAngleBracket = bracket;
-  }
-
-  /**
-   * Set the name of the type of the elements of the literal to the given type name.
-   * 
-   * @param typeName the name of the type of the elements of the literal
-   */
-  public void setTypeArgument(TypeName typeName) {
-    typeArgument = becomeParentOf(typeName);
+  public void setTypeArguments(TypeArgumentList typeArguments) {
+    this.typeArguments = typeArguments;
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(typeArgument, visitor);
+    safelyVisitChild(typeArguments, visitor);
   }
 }

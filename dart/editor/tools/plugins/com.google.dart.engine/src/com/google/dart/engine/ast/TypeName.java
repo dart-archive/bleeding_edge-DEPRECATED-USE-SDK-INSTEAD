@@ -15,15 +15,13 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
-import java.util.List;
-
 /**
  * Instances of the class <code>TypeName</code> represent the name of a type, which can optionally
  * include type arguments.
  * 
  * <pre>
  * typeName ::=
- *     {@link Identifier identifier} ('<' typeName (',' typeName)* '>')?
+ *     {@link Identifier identifier} typeArguments?
  * </pre>
  */
 public class TypeName extends ASTNode {
@@ -33,19 +31,10 @@ public class TypeName extends ASTNode {
   private Identifier name;
 
   /**
-   * The left bracket, or <code>null</code> if there are no type arguments.
+   * The type arguments associated with the type, or <code>null</code> if there are no type
+   * arguments.
    */
-  private Token leftBracket;
-
-  /**
-   * The type arguments associated with the type.
-   */
-  private NodeList<TypeName> arguments = new NodeList<TypeName>(this);
-
-  /**
-   * The right bracket, or <code>null</code> if there are no type arguments.
-   */
-  private Token rightBracket;
+  private TypeArgumentList typeArguments;
 
   /**
    * Initialize a newly created type name.
@@ -57,29 +46,17 @@ public class TypeName extends ASTNode {
    * Initialize a newly created type name.
    * 
    * @param name the name of the type
-   * @param leftBracket the left bracket, or <code>null</code> if there are no type arguments
-   * @param arguments the type arguments associated with the type
-   * @param rightBracket the right bracket, or <code>null</code> if there are no type arguments
+   * @param typeArguments the type arguments associated with the type, or <code>null</code> if there
+   *          are no type arguments
    */
-  public TypeName(Identifier name, Token leftBracket, List<TypeName> arguments, Token rightBracket) {
+  public TypeName(Identifier name, TypeArgumentList typeArguments) {
     this.name = becomeParentOf(name);
-    this.leftBracket = leftBracket;
-    this.arguments.addAll(arguments);
-    this.rightBracket = rightBracket;
+    this.typeArguments = becomeParentOf(typeArguments);
   }
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitTypeName(this);
-  }
-
-  /**
-   * Return the type arguments associated with the type.
-   * 
-   * @return the type arguments associated with the type
-   */
-  public NodeList<TypeName> getArguments() {
-    return arguments;
   }
 
   @Override
@@ -89,19 +66,10 @@ public class TypeName extends ASTNode {
 
   @Override
   public Token getEndToken() {
-    if (rightBracket != null) {
-      return rightBracket;
+    if (typeArguments != null) {
+      return typeArguments.getEndToken();
     }
     return name.getEndToken();
-  }
-
-  /**
-   * Return the left bracket, or <code>null</code> if there are no type arguments.
-   * 
-   * @return the left bracket
-   */
-  public Token getLeftBracket() {
-    return leftBracket;
   }
 
   /**
@@ -114,21 +82,13 @@ public class TypeName extends ASTNode {
   }
 
   /**
-   * Return the right bracket, or <code>null</code> if there are no type arguments.
+   * Return the type arguments associated with the type, or <code>null</code> if there are no type
+   * arguments.
    * 
-   * @return the right bracket
+   * @return the type arguments associated with the type
    */
-  public Token getRightBracket() {
-    return rightBracket;
-  }
-
-  /**
-   * Set the left bracket to the given token.
-   * 
-   * @param bracket the left bracket
-   */
-  public void setLeftBracket(Token bracket) {
-    leftBracket = bracket;
+  public TypeArgumentList getTypeArguments() {
+    return typeArguments;
   }
 
   /**
@@ -141,17 +101,17 @@ public class TypeName extends ASTNode {
   }
 
   /**
-   * Set the right bracket to the given token.
+   * Set the type arguments associated with the type to the given type arguments.
    * 
-   * @param bracket the right bracket
+   * @param typeArguments the type arguments associated with the type
    */
-  public void setRightBracket(Token bracket) {
-    rightBracket = bracket;
+  public void setTypeArguments(TypeArgumentList typeArguments) {
+    this.typeArguments = becomeParentOf(typeArguments);
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(name, visitor);
-    arguments.accept(visitor);
+    safelyVisitChild(typeArguments, visitor);
   }
 }

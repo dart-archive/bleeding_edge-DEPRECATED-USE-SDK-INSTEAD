@@ -398,6 +398,10 @@ public class ASTVisitor<R> {
     return visitCompilationUnitMember(node);
   }
 
+  public R visitTypeArguments(TypeArgumentList node) {
+    return visitNode(node);
+  }
+
   public R visitTypeDeclaration(TypeDeclaration node) {
     return visitCompilationUnitMember(node);
   }
