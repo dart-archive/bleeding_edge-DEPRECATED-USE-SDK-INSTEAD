@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.omni;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.jface.bindings.keys.SWTKeySupport;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.util.Util;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
@@ -224,6 +225,9 @@ public class OmniBoxControlContribution {
   private Text createTextControl(Composite parent) {
     Text text = new Text(parent, SEARCH_BOX_STYLE_BITS);
     text.setToolTipText(OmniBoxMessages.OmniBoxControlContribution_control_tooltip);
+    if (Util.isLinux()) {
+      GridDataFactory.fillDefaults().indent(0, 1).grab(true, true).applyTo(text);
+    }
     // Disables the default context menu for native SWT text boxes
     text.setMenu(new Menu(parent));
     return text;

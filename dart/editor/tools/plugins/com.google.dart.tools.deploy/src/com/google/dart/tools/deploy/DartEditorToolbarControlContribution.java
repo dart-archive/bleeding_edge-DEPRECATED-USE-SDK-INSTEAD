@@ -17,6 +17,7 @@ import com.google.dart.tools.ui.feedback.FeedbackControlContribution;
 import com.google.dart.tools.ui.omni.OmniBoxControlContribution;
 
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.util.Util;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -27,7 +28,7 @@ import org.eclipse.ui.menus.WorkbenchWindowControlContribution;
  */
 public class DartEditorToolbarControlContribution extends WorkbenchWindowControlContribution {
 
-  private static final int VERTICAL_NUDGE = 1;
+  private static final int VERTICAL_NUDGE = Util.isLinux() ? 0 : 1;
 
   private FeedbackControlContribution feedbackButton;
   private OmniBoxControlContribution searchBox;
