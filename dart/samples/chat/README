@@ -43,10 +43,10 @@ $ cd samples/chat
 First step is to compile the client Dart source into JavaScript for
 the browser.
 
-$ ../../out/Release_ia32/dartc dart_client/chat.dart
+$ ../../out/Release_ia32/dart2js dart_client/chat.dart
 
-This will create the JavaScript for the Dart application in the out
-directory.
+This will create the JavaScript for the Dart application in the out.js
+file.
 
 Next step is to start the server
 

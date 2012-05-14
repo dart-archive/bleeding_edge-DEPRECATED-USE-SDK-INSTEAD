@@ -5,7 +5,7 @@
 #library("chat_stress_client.dart");
 #import("dart:io");
 #import("dart:json");
-#import("http.dart");
+#import("dart:io");
 
 
 class ChatStressClient {
@@ -21,10 +21,7 @@ class ChatStressClient {
     int port;
 
     void printServerError(HttpClientResponse response) {
-      print("Server error \"" +
-                     response.statusCode +
-                     " " +
-                     response.reasonPhrase + "\"");
+      print("Server error ${response.statusCode} ${response.reasonPhrase}");
     }
 
     void printProtocolError() {
@@ -121,7 +118,7 @@ class ChatStressClient {
       Map messageRequest = new Map();
       messageRequest["request"] = "message";
       messageRequest["sessionId"] = sessionId;
-      messageRequest["message"] = "message " + sendMessageCount;
+      messageRequest["message"] = "message $sendMessageCount";
       HttpClientConnection conn =
       httpClient.post("127.0.0.1", port, "/message");
       conn.onRequest = (HttpClientRequest request) {

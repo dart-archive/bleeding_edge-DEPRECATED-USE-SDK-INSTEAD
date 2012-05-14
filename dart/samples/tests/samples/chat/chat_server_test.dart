@@ -103,7 +103,7 @@ class ChatTestClient extends Isolate {
               Expect.equals("join", message["type"]);
             } else {
               Expect.equals("message", message["type"]);
-              Expect.equals("message " + (i - 1).toString(), message["message"]);
+              Expect.equals("message ${i - 1}", message["message"]);
             }
           }
           receiveMessageNumber = message["number"] + 1;
@@ -157,7 +157,7 @@ class ChatTestClient extends Isolate {
       Map messageRequest = new Map();
       messageRequest["request"] = "message";
       messageRequest["sessionId"] = sessionId;
-      messageRequest["message"] = "message " + sendMessageNumber;
+      messageRequest["message"] = "message $sendMessageNumber";
       HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/message");
       conn.onRequest = (HttpClientRequest request) {

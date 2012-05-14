@@ -54,7 +54,7 @@ class ServerMain {
 class User {
   User(this._handle) {
     // TODO(sgjesse) Generate more secure and unique session id's.
-    _sessionId = 'a' + ((Math.random() * 1000000).toInt()).toString();
+    _sessionId = "a${(Math.random() * 1000000).toInt()}";
     markActivity();
   }
 
@@ -534,10 +534,8 @@ class IsolatedServer extends Isolate {
     // Start timer for periodic logging.
     void _handleLogging(Timer timer) {
       if (_logging) {
-        print((_messageRate.rate).toString() +
-                       " messages/s (total " +
-                       _messageCount +
-                       " messages)");
+        print("${_messageRate.rate} messages/s "
+              "(total $_messageCount messages)");
       }
     }
 
@@ -567,7 +565,7 @@ class IsolatedServer extends Isolate {
             (HttpRequest request, HttpResponse response) =>
                 fileHandler(request, response));
         _server.addRequestHandler(
-            (request) => request.path == "/out/dart_client/chat.dart.app.js",
+            (request) => request.path == "/out.js",
             (HttpRequest request, HttpResponse response) =>
                 fileHandler(request, response));
         _server.addRequestHandler(

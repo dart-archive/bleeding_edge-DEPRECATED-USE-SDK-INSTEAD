@@ -7,16 +7,11 @@
 #import("dart:json");
 
 void main() {
-  new Chat();
+  new Chat().start();
 }
 
 class Chat {
-
-  Chat() {
-    window.on.contentLoaded.add((Event event) => ready());
-  }
-
-  void ready() {
+  void start() {
     Document doc = window.document;
     _joinButton = doc.query("#joinButton");
     _leaveButton = doc.query("#leaveButton");
@@ -144,9 +139,8 @@ class Chat {
       }
 
       int activeUsers = response["activeUsers"];
-      showStatus("$activeUsers active users (server has been running for " +
-                 formatUpTime(response["upTime"]) +
-                 ")");
+      showStatus("$activeUsers active users (server has been running for "
+                 "${formatUpTime(response["upTime"])})");
 
       int index = messages[messages.length - 1]["number"];
       _nextMessage = index + 1;
@@ -186,8 +180,8 @@ class Chat {
     hideElement(_chatSection);
     _nextMessage = 0;
     _messages.elements.clear();
-    showStatus("Welcome to dart chat sample. " +
-               "This chat service is build using Dart for both the server and the client. " +
+    showStatus("Welcome to dart chat sample. "
+               "This chat service is build using Dart for both the server and the client. "
                "Enter your handle to join.");
     _handleInput.focus();
   }
@@ -221,17 +215,17 @@ class Chat {
     ParagraphElement p = new Element.tag('p');
     String formattedTime = formatMessageTime(message["received"]);
     String from = message["from"];
-    String text = "$formattedTime $from ";
+    StringBuffer text = new StringBuffer("$formattedTime $from ");
     if (message["type"] == "join") {
-      text += "joined";
+      text.add("joined");
     } else if (message["type"] == "message") {
-      text += message["message"];
+      text.add(message["message"]);
     } else if (message["type"] == "leave") {
-      text += "left";
+      text.add("left");
     } else {
-      text += "timeout";
+      text.add("timeout");
     }
-    p.text = text;
+    p.text = text.toString();
     _messages.insertAdjacentElement('afterBegin', p);
     if (_messages.elements.length > 20) {
       _messages.elements.removeLast();
@@ -240,16 +234,16 @@ class Chat {
 
   String formatMessageTime(String received) {
     Date date = new Date.fromString(received);
-    String formattedTime = "";
-    if (date.hours < 10) formattedTime += "0";
-    formattedTime += date.hours.toString();
-    formattedTime += ":";
-    if (date.minutes < 10) formattedTime += "0";
-    formattedTime += date.minutes.toString();
-    formattedTime += ":";
-    if (date.seconds < 10) formattedTime += "0";
-    formattedTime += date.seconds.toString();
-    return formattedTime;
+    StringBuffer formattedTime = new StringBuffer();
+    if (date.hours < 10) formattedTime.add("0");
+    formattedTime.add(date.hours);
+    formattedTime.add(":");
+    if (date.minutes < 10) formattedTime.add("0");
+    formattedTime.add(date.minutes);
+    formattedTime.add(":");
+    if (date.seconds < 10) formattedTime.add("0");
+    formattedTime.add(date.seconds);
+    return formattedTime.toString();
   }
 
   String formatUpTime(int upTime) {
@@ -259,16 +253,16 @@ class Chat {
     int minutes = (upTime ~/ 60);
     upTime = upTime % 60;
     int seconds = upTime;
-    String formattedTime = "";
-    if (hours < 10) formattedTime += "0";
-    formattedTime += hours;
-    formattedTime += ":";
-    if (minutes < 10) formattedTime += "0";
-    formattedTime += minutes;
-    formattedTime += ":";
-    if (seconds < 10) formattedTime += "0";
-    formattedTime += seconds;
-    return formattedTime;
+    StringBuffer formattedTime = new StringBuffer();
+    if (hours < 10) formattedTime.add("0");
+    formattedTime.add(hours);
+    formattedTime.add(":");
+    if (minutes < 10) formattedTime.add("0");
+    formattedTime.add(minutes);
+    formattedTime.add(":");
+    if (seconds < 10) formattedTime.add("0");
+    formattedTime.add(seconds);
+    return formattedTime.toString();
   }
 
   void protocolError() {
