@@ -71,13 +71,18 @@ void setupEvents() {
   document.on.keyUp.add((e) {
     processKeyEvent(e);
   });
-  
+
   document.on.click.add((MouseEvent e) {
+    bool wasOpened = mySettings.isOpen;
+
     // If settings dialog is open close it.
     mySettings.close(e);
 
     renderPad(document.body.elements.last());
-    addPadEvents();
+    if (wasOpened) {
+      removePadEvents();
+      addPadEvents();
+    }
   });
 }
 
@@ -362,7 +367,7 @@ void main() {
   // Create our Tape UI.
   tapeUI = new TapeUI();
   element.elements.add(tapeUI.root);
-  
+
   // Create our tape controller.
   tape = new Tape();
 
