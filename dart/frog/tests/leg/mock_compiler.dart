@@ -147,10 +147,6 @@ class MockCompiler extends Compiler {
     parseUnit(text, this, library);
   }
 
-  void enqueue(WorkItem work) {
-    super.enqueue(work);
-  }
-
   void scanBuiltinLibraries() {
     // Do nothing. The mock core library is already handled in the constructor.
   }
