@@ -14,7 +14,7 @@
 package com.google.dart.tools.core.search;
 
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
-import com.google.dart.tools.core.internal.search.NewSearchEngineImpl;
+import com.google.dart.tools.core.internal.search.SearchEngineImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
@@ -27,7 +27,7 @@ public final class SearchEngineFactory {
    * Create a search engine.
    */
   public static SearchEngine createSearchEngine() {
-    return new NewSearchEngineImpl(InMemoryIndex.getInstance());
+    return new SearchEngineImpl(InMemoryIndex.getInstance());
   }
 
   /**
@@ -39,7 +39,7 @@ public final class SearchEngineFactory {
    */
   public static SearchEngine createSearchEngine(CompilationUnit[] workingCopies) {
     // TODO(brianwilkerson) Need to figure out how to handle alternate universes.
-    return new NewSearchEngineImpl(InMemoryIndex.getInstance());
+    return new SearchEngineImpl(InMemoryIndex.getInstance());
   }
 
   /**
@@ -51,7 +51,7 @@ public final class SearchEngineFactory {
    */
   public static SearchEngine createSearchEngine(WorkingCopyOwner workingCopyOwner) {
     // TODO(brianwilkerson) Need to figure out how to handle alternate universes.
-    return new NewSearchEngineImpl(InMemoryIndex.getInstance());
+    return new SearchEngineImpl(InMemoryIndex.getInstance());
   }
 
   /**

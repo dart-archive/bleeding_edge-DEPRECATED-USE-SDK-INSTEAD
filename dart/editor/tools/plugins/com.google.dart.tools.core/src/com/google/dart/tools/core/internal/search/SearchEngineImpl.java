@@ -64,10 +64,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Instances of the class <code>NewSearchEngineImpl</code> implement a search engine that uses the
+ * Instances of the class <code>SearchEngineImpl</code> implement a search engine that uses the
  * new index to obtain results.
  */
-public class NewSearchEngineImpl implements SearchEngine {
+public class SearchEngineImpl implements SearchEngine {
   /**
    * Instances of the class <code>ConstructorConverter</code> implement a listener that listens for
    * matches to classes and reports matches to all of the constructors in those classes.
@@ -349,7 +349,7 @@ public class NewSearchEngineImpl implements SearchEngine {
    * 
    * @param index the index used to respond to the search requests
    */
-  public NewSearchEngineImpl(Index index) {
+  public SearchEngineImpl(Index index) {
     this.index = index;
   }
 
