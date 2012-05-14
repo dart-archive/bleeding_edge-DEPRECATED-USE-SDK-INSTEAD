@@ -7,7 +7,7 @@ int foo(int i) {
   return 'kat';  /// 02: static type warning
 }
 
-var main() {
+main() {
   foo(42);
   foo('hest');  /// 03: static type warning
 }
