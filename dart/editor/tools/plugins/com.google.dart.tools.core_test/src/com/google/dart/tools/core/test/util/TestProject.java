@@ -24,7 +24,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
@@ -70,25 +73,30 @@ public class TestProject {
   /**
    * Creates new {@link DartProject} with given name.
    */
-  public TestProject(String projectName) throws Exception {
-    IWorkspace workspace = ResourcesPlugin.getWorkspace();
+  public TestProject(final String projectName) throws Exception {
+    final IWorkspace workspace = ResourcesPlugin.getWorkspace();
     IWorkspaceRoot root = workspace.getRoot();
     project = root.getProject(projectName);
-    // delete project
-    if (project.exists()) {
-      project.delete(true, true, null);
-    }
-    // create project
-    {
-      project.create(null);
-      project.open(null);
-    }
-    // set nature
-    {
-      IProjectDescription description = workspace.newProjectDescription(projectName);
-      description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
-      project.setDescription(description, null);
-    }
+    workspace.run(new IWorkspaceRunnable() {
+      @Override
+      public void run(IProgressMonitor monitor) throws CoreException {
+        // delete project
+        if (project.exists()) {
+          project.delete(true, true, null);
+        }
+        // create project
+        {
+          project.create(null);
+          project.open(null);
+        }
+        // set nature
+        {
+          IProjectDescription description = workspace.newProjectDescription(projectName);
+          description.setNatureIds(new String[] {DartCore.DART_PROJECT_NATURE});
+          project.setDescription(description, null);
+        }
+      }
+    }, null);
     // remember DartProject
     dartProject = DartCore.create(project);
   }
@@ -139,12 +147,18 @@ public class TestProject {
    * Creates or updates {@link IFile} with content of the given {@link InputStream}.
    */
   public IFile setFileContent(String path, InputStream inputStream) throws Exception {
-    IFile file = project.getFile(new Path(path));
-    if (file.exists()) {
-      file.setContents(inputStream, true, false, null);
-    } else {
-      file.create(inputStream, true, null);
-    }
+    final IFile file = project.getFile(new Path(path));
+    final InputStream stream = inputStream;
+    ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+      @Override
+      public void run(IProgressMonitor monitor) throws CoreException {
+        if (file.exists()) {
+          file.setContents(stream, true, false, null);
+        } else {
+          file.create(stream, true, null);
+        }
+      }
+    }, null);
     return file;
   }
 

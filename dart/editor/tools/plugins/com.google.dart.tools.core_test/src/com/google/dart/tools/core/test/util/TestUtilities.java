@@ -345,18 +345,23 @@ public class TestUtilities {
    * @throws IOException if a required file cannot be accessed
    * @throws SAXException if the .project file is not valid
    */
-  public static DartProject loadDartProject(IPath projectRootDirectory) throws CoreException,
+  public static DartProject loadDartProject(final IPath projectRootDirectory) throws CoreException,
       FileNotFoundException, IOException, SAXException {
-    String projectName = getProjectName(projectRootDirectory);
-    IWorkspace workspace = ResourcesPlugin.getWorkspace();
-    IProject project = workspace.getRoot().getProject(projectName);
+    final String projectName = getProjectName(projectRootDirectory);
+    final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+    final IProject project = workspace.getRoot().getProject(projectName);
     if (!project.exists()) {
-      IProjectDescription description = workspace.newProjectDescription(projectName);
-      if (!workspace.getRoot().getLocation().isPrefixOf(projectRootDirectory)) {
-        description.setLocation(projectRootDirectory);
-      }
-      project.create(description, null);
-      project.open(null);
+      ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+        @Override
+        public void run(IProgressMonitor monitor) throws CoreException {
+          IProjectDescription description = workspace.newProjectDescription(projectName);
+          if (!workspace.getRoot().getLocation().isPrefixOf(projectRootDirectory)) {
+            description.setLocation(projectRootDirectory);
+          }
+          project.create(description, null);
+          project.open(null);
+        }
+      }, null);
     }
     AnalysisTestUtilities.waitForAnalysis();
     DartProject dartProject = DartCore.create(project);
