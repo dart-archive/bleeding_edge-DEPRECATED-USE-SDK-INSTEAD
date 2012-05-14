@@ -423,8 +423,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   @Override
   public HashMap<String, List<String>> getHtmlMapping() throws CoreException {
 
-    HashMap<String, List<String>> htmlMapping = ((DartProjectInfo) getElementInfo())
-      .getHtmlMapping();
+    HashMap<String, List<String>> htmlMapping = ((DartProjectInfo) getElementInfo()).getHtmlMapping();
 
     if (htmlMapping != null) {
       return htmlMapping;
@@ -433,7 +432,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     final HashMap<String, List<String>> mapping = new HashMap<String, List<String>>();
 
     getProject().accept(new IResourceProxyVisitor() {
-        @Override
+      @Override
       public boolean visit(IResourceProxy proxy) throws CoreException {
         if (proxy.getType() != IResource.FILE || !DartCore.isHTMLLikeFileName(proxy.getName())) {
           return true;
@@ -441,20 +440,21 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
         IResource resource = proxy.requestResource();
         if (resource.isAccessible()) {
           try {
-            List<String> libraryNames = LibraryReferenceFinder.findInHTML(
-                IFileUtilities.getContents((IFile) resource));
+            List<String> libraryNames = LibraryReferenceFinder.findInHTML(IFileUtilities.getContents((IFile) resource));
             if (!libraryNames.isEmpty()) {
               mapping.put(resource.getLocation().toPortableString(), libraryNames);
             }
           } catch (IOException exception) {
             DartCore.logInformation(
-                "Could not get contents of " + resource.getLocation(), exception);
+                "Could not get contents of " + resource.getLocation(),
+                exception);
           }
         }
 
         return true;
       }
-    }, 0);
+    },
+        0);
 
     ((DartProjectInfo) getElementInfo()).setHtmlMapping(mapping);
 
@@ -923,6 +923,8 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
         public boolean visit(IResourceProxy proxy) throws CoreException {
           if (proxy.getType() == IResource.FILE && DartCore.isDartLikeFileName(proxy.getName())) {
             dartFiles.add((IFile) proxy.requestResource());
+          } else if (proxy.getType() == IResource.FOLDER && proxy.getName().startsWith(".")) {
+            return false;
           }
           return true;
         }
