@@ -270,6 +270,9 @@ void testControlFlow() {
                     } else { return 1; }
                   }""";
   analyzeTopLevel(fisk, MessageKind.MAYBE_MISSING_RETURN);
+  analyzeTopLevel("int foo() { while(true) { return 1; } }");
+  analyzeTopLevel("int foo() { while(true) { return 1; } return 2; }",
+                  MessageKind.UNREACHABLE_CODE);
 }
 
 testNewExpression() {
