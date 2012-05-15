@@ -43,6 +43,11 @@ class AnalyzeLibraryTask extends Task {
   }
 
   @Override
+  boolean isPriority() {
+    return false;
+  }
+
+  @Override
   void perform() {
 
     if (start == 0) {

@@ -20,7 +20,7 @@ import java.io.File;
 /**
  * Remove any information cached about the library and any tasks related to analyzing the library
  */
-public class DiscardLibraryTask extends Task {
+class DiscardLibraryTask extends Task {
 
   private final AnalysisServer server;
   private final Context context;
@@ -35,6 +35,11 @@ public class DiscardLibraryTask extends Task {
   @Override
   boolean isBackgroundAnalysis() {
     return false;
+  }
+
+  @Override
+  boolean isPriority() {
+    return true;
   }
 
   @Override

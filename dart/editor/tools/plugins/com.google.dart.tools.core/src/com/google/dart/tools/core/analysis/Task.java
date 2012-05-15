@@ -26,6 +26,12 @@ abstract class Task {
   abstract boolean isBackgroundAnalysis();
 
   /**
+   * Answer <code>true</code> if this task removes cached information and thus should be executed
+   * before other tasks
+   */
+  abstract boolean isPriority();
+
+  /**
    * Perform the task. This is executed in the background thread and may modify any aspect of the
    * analysis model or cached elements.
    */

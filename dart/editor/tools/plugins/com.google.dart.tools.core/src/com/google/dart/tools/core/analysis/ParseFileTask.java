@@ -45,6 +45,11 @@ class ParseFileTask extends Task {
   }
 
   @Override
+  boolean isPriority() {
+    return false;
+  }
+
+  @Override
   void perform() {
     if (!dartFile.exists()) {
       return;

@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.AttributeCallback;
 import com.google.dart.tools.core.index.Element;
@@ -22,6 +24,8 @@ import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileOperation;
+import com.google.dart.tools.core.test.util.FileUtilities;
+import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.core.test.util.TestUtilities;
 
 import junit.framework.TestCase;
@@ -36,11 +40,42 @@ import java.util.ArrayList;
 
 public class AnalysisServerTest extends TestCase {
 
+  private static class Resolution implements ResolveLibraryCallback {
+    private LibraryUnit result;
+
+    @Override
+    public void resolved(LibraryUnit libraryUnit) {
+      synchronized (this) {
+        result = libraryUnit;
+        notifyAll();
+      }
+    }
+
+    LibraryUnit waitForResolution() {
+      synchronized (this) {
+        if (result == null) {
+          try {
+            wait(FIVE_MINUTES_MS);
+          } catch (InterruptedException e) {
+            //$FALL-THROUGH$
+          }
+          if (result == null) {
+            fail("Timed out waiting for resolution");
+          }
+        }
+        LibraryUnit libUnit = result;
+        result = null;
+        return libUnit;
+      }
+    }
+  }
+
   private static final String TEST_CLASS_SIMPLE_NAME = AnalysisServerTest.class.getSimpleName();
 
   private static final long FIVE_MINUTES_MS = 300000;
 
   private AnalysisServer server;
+  private AnalysisServer defaultServer;
 
   private Listener listener;
 
@@ -240,7 +275,7 @@ public class AnalysisServerTest extends TestCase {
     setupServer();
 
     listener.reset();
-    LibraryUnit libUnit = resolveLibrary(libFile);
+    LibraryUnit libUnit = waitForResolution(libFile);
     assertNotNull(libUnit);
     listener.assertWasParsed(libFile, libFile);
     listener.assertWasResolved(libFile);
@@ -252,7 +287,7 @@ public class AnalysisServerTest extends TestCase {
 
     listener.reset();
     File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
-    libUnit = resolveLibrary(fileDoesNotExist);
+    libUnit = waitForResolution(fileDoesNotExist);
     assertNotNull(libUnit);
     listener.assertWasParsed(fileDoesNotExist, fileDoesNotExist);
     listener.assertWasResolved(fileDoesNotExist);
@@ -261,6 +296,56 @@ public class AnalysisServerTest extends TestCase {
     assertEquals(1, listener.getErrors().size());
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
+  }
+
+  public void test_AnalysisServer_resolveLibraryWhenBusy() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        File libFile = setupMoneyLibrary(tempDir);
+        setupServer();
+
+        DartUnit unit = waitForResolution(libFile).getSelfDartUnit();
+        assertEquals("Money", unit.getTopDeclarationNames().iterator().next());
+
+        // Simulate a busy system
+        Resolution callback = new Resolution();
+        synchronized (getServerQueue()) {
+          FileUtilities.setContents(libFile, "class A { }");
+          server.changed(libFile);
+          server.resolveLibrary(libFile, callback);
+        }
+        unit = callback.waitForResolution().getSelfDartUnit();
+        assertEquals("A", unit.getTopDeclarationNames().iterator().next());
+      }
+    });
+  }
+
+  public void test_AnalysisServer_resolveLibraryWhenBusy2() throws Exception {
+    if (!DartCoreDebug.ANALYSIS_SERVER) {
+      return;
+    }
+    setupDefaultServer();
+
+    String projName = getClass().getSimpleName() + "_createResolveDispose";
+    String libFileName = "mylib.dart";
+
+    TestProject proj = new TestProject(projName);
+    File libFile = proj.setFileContent(libFileName, "class A { }").getLocation().toFile();
+    DartUnit unit = waitForResolution(libFile).getSelfDartUnit();
+    assertEquals("A", unit.getTopDeclarationNames().iterator().next());
+
+    // Simulate a very busy system
+    Resolution callback = new Resolution();
+    synchronized (getServerQueue()) {
+      proj.dispose();
+      proj = new TestProject(projName);
+      libFile = proj.setFileContent(libFileName, "class B { }").getLocation().toFile();
+      server.resolveLibrary(libFile, callback);
+    }
+    unit = callback.waitForResolution().getSelfDartUnit();
+    assertEquals("B", unit.getTopDeclarationNames().iterator().next());
+    proj.dispose();
   }
 
   public void test_AnalysisServer_server() throws Exception {
@@ -296,7 +381,7 @@ public class AnalysisServerTest extends TestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    if (server != null) {
+    if (server != null && server != defaultServer) {
       server.stop();
     }
     if (index != null) {
@@ -362,23 +447,14 @@ public class AnalysisServerTest extends TestCase {
     }
   }
 
-  private LibraryUnit resolveLibrary(File libFile) throws InterruptedException {
-    final LibraryUnit[] result = new LibraryUnit[1];
-    server.resolveLibrary(libFile, new ResolveLibraryCallback() {
-      @Override
-      public void resolved(LibraryUnit libraryUnit) {
-        synchronized (result) {
-          result[0] = libraryUnit;
-          result.notifyAll();
-        }
-      }
-    });
-    synchronized (result) {
-      if (result[0] == null) {
-        result.wait(FIVE_MINUTES_MS);
-      }
+  private void setupDefaultServer() throws Exception {
+    if (!DartCoreDebug.ANALYSIS_SERVER) {
+      fail("Do not call this method when analysis server is not enabled");
     }
-    return result[0];
+    defaultServer = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+    server = defaultServer;
+    listener = new Listener(server);
+    AnalysisTestUtilities.waitForIdle(server, FIVE_MINUTES_MS);
   }
 
   private File setupMoneyLibrary(File tempDir) throws IOException {
@@ -445,5 +521,11 @@ public class AnalysisServerTest extends TestCase {
       }
     }
     return System.currentTimeMillis() - start;
+  }
+
+  private LibraryUnit waitForResolution(File libFile) {
+    Resolution callback = new Resolution();
+    server.resolveLibrary(libFile, callback);
+    return callback.waitForResolution();
   }
 }

@@ -29,6 +29,11 @@ class EverythingChangedTask extends Task {
   }
 
   @Override
+  boolean isPriority() {
+    return true;
+  }
+
+  @Override
   void perform() {
     context.discardLibraries();
     server.queueAnalyzeContext();

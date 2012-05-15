@@ -33,6 +33,11 @@ class AnalyzeContextTask extends Task {
   }
 
   @Override
+  boolean isPriority() {
+    return false;
+  }
+
+  @Override
   void perform() {
 
     // Parse library files

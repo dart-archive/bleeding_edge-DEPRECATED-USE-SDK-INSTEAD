@@ -36,6 +36,11 @@ class ParseLibraryTask extends Task {
   }
 
   @Override
+  boolean isPriority() {
+    return false;
+  }
+
+  @Override
   void perform() {
 
     // Parse the library file

@@ -154,8 +154,8 @@ public class AnalysisServer {
     if (file.isFile() || (!file.exists() && DartCore.isDartLikeFileName(file.getName()))) {
       synchronized (queue) {
         libraryFiles.remove(file);
+        queueNewTask(new DiscardLibraryTask(this, savedContext, file));
       }
-      queueNewTask(new DiscardLibraryTask(this, savedContext, file));
       return;
     }
 
@@ -226,10 +226,7 @@ public class AnalysisServer {
     if (!file.isAbsolute()) {
       throw new IllegalArgumentException("File path must be absolute: " + file);
     }
-    AnalyzeLibraryTask task = new AnalyzeLibraryTask(this, savedContext, file, callback);
-    synchronized (queue) {
-      queueNewTask(task);
-    }
+    queueNewTask(new AnalyzeLibraryTask(this, savedContext, file, callback));
   }
 
   /**
@@ -370,7 +367,13 @@ public class AnalysisServer {
   void queueNewTask(Task task) {
     if (analyze) {
       synchronized (queue) {
-        queue.add(0, task);
+        int index = 0;
+        if (!task.isPriority()) {
+          while (index < queue.size() && queue.get(index).isPriority()) {
+            index++;
+          }
+        }
+        queue.add(index, task);
         queueIndex++;
         queue.notifyAll();
       }

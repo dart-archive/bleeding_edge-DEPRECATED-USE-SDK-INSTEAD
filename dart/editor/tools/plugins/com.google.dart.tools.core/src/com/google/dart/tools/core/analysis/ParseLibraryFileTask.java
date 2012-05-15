@@ -54,6 +54,11 @@ class ParseLibraryFileTask extends Task {
   }
 
   @Override
+  boolean isPriority() {
+    return false;
+  }
+
+  @Override
   void perform() {
     Library library = context.getCachedLibrary(libraryFile);
 

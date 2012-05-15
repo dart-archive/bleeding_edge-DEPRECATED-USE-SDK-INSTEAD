@@ -36,6 +36,11 @@ class FileChangedTask extends Task {
   }
 
   @Override
+  boolean isPriority() {
+    return true;
+  }
+
+  @Override
   void perform() {
     Library[] libraries = context.getLibrariesContaining(file);
     for (Library library : libraries) {

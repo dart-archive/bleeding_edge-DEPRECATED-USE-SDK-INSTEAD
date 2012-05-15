@@ -48,6 +48,11 @@ class ResolveLibraryTask extends Task {
   }
 
   @Override
+  boolean isPriority() {
+    return false;
+  }
+
+  @Override
   void perform() {
     if (library.getLibraryUnit() != null) {
       return;
