@@ -118,6 +118,10 @@ class DateImplementation implements Date {
     return value.compareTo(other.value);
   }
 
+  int hashCode() {
+    return value;
+  }
+
   Date changeTimeZone(TimeZone targetTimeZone) {
     if (targetTimeZone == null) {
       targetTimeZone = new TimeZoneImplementation.local();
