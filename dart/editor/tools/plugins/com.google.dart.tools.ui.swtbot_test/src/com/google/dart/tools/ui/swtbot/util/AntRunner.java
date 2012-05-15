@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.swtbot.util;
 
+import com.google.dart.compiler.util.apache.FileUtils;
 import com.google.dart.tools.ui.swtbot.DartLib;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -20,6 +21,7 @@ import org.eclipse.core.runtime.Platform;
 import org.osgi.framework.Bundle;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -127,7 +129,8 @@ public class AntRunner {
       throw new RuntimeException("Failed to find lib/ant-launcher.jar in plugin org.apache.ant");
     }
     try {
-      return FileLocator.toFileURL(entry).getPath();
+      File file = FileUtils.toFile(FileLocator.toFileURL(entry));
+      return file.toString();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

@@ -46,7 +46,6 @@ public class EndToEnd001 extends AbstractEndToEndTest {
   @Override
   public void runTest() throws Exception {
     app = new NewApplicationHelper(bot).create("EndToEnd001", NewApplicationHelper.ContentType.WEB);
-    new LaunchBrowserHelper(bot).launch(app);
     SwtBotPerformance.waitForResults(bot);
     try {
       app.editor.setFocus();
