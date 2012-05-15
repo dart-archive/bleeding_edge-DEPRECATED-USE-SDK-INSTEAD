@@ -14,21 +14,7 @@
 package com.google.dart.engine.element;
 
 /**
- * The enumeration {@code ElementKind} defines the various kinds of elements in the element model.
+ * The interface {@code FunctionElement} defines the behavior of elements representing a function.
  */
-public enum ElementKind {
-  COMPILATION_UNIT,
-  CONSTRUCTOR,
-  FIELD,
-  FUNCTION,
-  GETTER,
-  LABEL,
-  LIBRARY,
-  METHOD,
-  PREFIX,
-  SETTER,
-  TYPE,
-  TYPE_ALIAS,
-  TYPE_VARIABLE,
-  VARIABLE;
+public interface FunctionElement extends ExecutableElement {
 }

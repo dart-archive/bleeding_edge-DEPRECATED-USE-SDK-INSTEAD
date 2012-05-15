@@ -14,13 +14,30 @@
 package com.google.dart.engine.element;
 
 /**
- * The interface <code>Element</code> defines the behavior common to all of the elements in the
- * element model. The element model is a model of the program elements that are declared with a name
- * and hence can be referenced elsewhere in the code.
+ * The interface {@code Element} defines the behavior common to all of the elements in the element
+ * model. Generally speaking, the element model is a semantic model of the program that represents
+ * things that are declared with a name and hence can be referenced elsewhere in the code.
+ * <p>
+ * There are two exceptions to the general case. First, there are elements in the element model that
+ * are created for the convenience of various kinds of analysis but that do not have any
+ * corresponding declaration within the source code. Such elements are marked as being
+ * <i>synthetic</i>. Examples of synthetic elements include
+ * <ul>
+ * <li>default constructors in classes that do not define any explicit constructors,
+ * <li>getters and setters that are induced by explicit field declarations,
+ * <li>fields that are induced by explicit declarations of getters and setters, and
+ * <li>functions representing the initialization expression for a variable.
+ * </ul>
+ * <p>
+ * Second, there are elements in the element model that do not have a name. These correspond to
+ * unnamed functions and exist in order to more accurately represent the semantic structure of the
+ * program.
  */
 public interface Element {
   /**
-   * Return the element that either physically or logically encloses this element.
+   * Return the element that either physically or logically encloses this element. This will be
+   * {@code null} if this element is a library because libraries are the top-level elements in the
+   * model.
    * 
    * @return the element that encloses this element
    */
@@ -34,6 +51,14 @@ public interface Element {
   public ElementKind getKind();
 
   /**
+   * Return the library that contains this element. This will be {@code null} if this element is a
+   * library because libraries are not contained in other libraries.
+   * 
+   * @return the library that contains this element
+   */
+  public LibraryElement getLibrary();
+
+  /**
    * Return the name of this element.
    * 
    * @return the name of this element
@@ -41,11 +66,11 @@ public interface Element {
   public String getName();
 
   /**
-   * Return <code>true</code> if this element is synthetic. A synthetic element is an element that
-   * is not represented in the source code explicitly, but is implied by the source code, such as
-   * the default constructor for a class that does not explicitly define any constructors.
+   * Return {@code true} if this element is synthetic. A synthetic element is an element that is not
+   * represented in the source code explicitly, but is implied by the source code, such as the
+   * default constructor for a class that does not explicitly define any constructors.
    * 
-   * @return <code>true</code> if this element is synthetic
+   * @return {@code true} if this element is synthetic
    */
   public boolean isSynthetic();
 }

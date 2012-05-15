@@ -16,21 +16,22 @@ package com.google.dart.engine.type;
 import com.google.dart.engine.element.Element;
 
 /**
- * The interface <code>Type</code> defines the behavior of objects representing the declared type of
+ * The interface {@code Type} defines the behavior of objects representing the declared type of
  * elements in the element model.
  */
 public interface Type {
   /**
-   * Return the element representing the declaration of this type, or <code>null</code> if the type
-   * has not, or cannot, be associated with an element. The former case will occur if the element
-   * model is not yet complete; the latter case will occur if an undefined type is referenced.
+   * Return the element representing the declaration of this type, or {@code null} if the type has
+   * not, or cannot, be associated with an element. The former case will occur if the element model
+   * is not yet complete; the latter case will occur if this object represents an undefined type.
    * 
    * @return the element representing the declaration of this type
    */
   public Element getElement();
 
   /**
-   * Return the name of this type.
+   * Return the name of this type, or {@code null} if the type does not have a name, such as when
+   * the type represents the type of an unnamed function.
    * 
    * @return the name of this type
    */

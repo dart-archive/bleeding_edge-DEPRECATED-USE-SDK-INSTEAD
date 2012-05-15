@@ -13,22 +13,18 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.type.Type;
+
 /**
- * The enumeration {@code ElementKind} defines the various kinds of elements in the element model.
+ * The interface {@code TypeVariableElement} defines the behavior of elements representing a type
+ * variable.
  */
-public enum ElementKind {
-  COMPILATION_UNIT,
-  CONSTRUCTOR,
-  FIELD,
-  FUNCTION,
-  GETTER,
-  LABEL,
-  LIBRARY,
-  METHOD,
-  PREFIX,
-  SETTER,
-  TYPE,
-  TYPE_ALIAS,
-  TYPE_VARIABLE,
-  VARIABLE;
+public interface TypeVariableElement extends Element {
+  /**
+   * Return the type representing the bound associated with this variable, or {@code null} if this
+   * variable does not have an explicit bound.
+   * 
+   * @return the type representing the bound associated with this variable
+   */
+  public Type getBound();
 }

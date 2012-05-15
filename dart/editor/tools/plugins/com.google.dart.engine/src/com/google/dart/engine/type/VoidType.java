@@ -11,24 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.element;
+package com.google.dart.engine.type;
 
 /**
- * The enumeration {@code ElementKind} defines the various kinds of elements in the element model.
+ * The interface {@code VoidType} defines the behavior of the unique object representing the type
+ * {@code void}.
  */
-public enum ElementKind {
-  COMPILATION_UNIT,
-  CONSTRUCTOR,
-  FIELD,
-  FUNCTION,
-  GETTER,
-  LABEL,
-  LIBRARY,
-  METHOD,
-  PREFIX,
-  SETTER,
-  TYPE,
-  TYPE_ALIAS,
-  TYPE_VARIABLE,
-  VARIABLE;
+public interface VoidType extends Type {
 }
