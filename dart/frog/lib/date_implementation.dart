@@ -104,6 +104,14 @@ class DateImplementation implements Date {
     return (value == other.value) && (timeZone == other.timeZone);
   }
 
+  bool operator <(Date other) => value < other.value;
+
+  bool operator <=(Date other) => value <= other.value;
+
+  bool operator >(Date other) => value > other.value;
+
+  bool operator >=(Date other) => value >= other.value;
+
   int compareTo(Date other) {
     return value.compareTo(other.value);
   }
