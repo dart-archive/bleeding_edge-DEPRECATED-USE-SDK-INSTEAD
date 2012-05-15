@@ -913,8 +913,11 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
         gsu.Copy(element, tmp_zip_name, False)
         if not os.path.exists(unzip_dir):
           os.makedirs(unzip_dir)
+          
+        # Dartium is unzipped into something like unzip_dir/dartium-win-inc-7665.7665
         dartium_zip = ziputils.ZipUtil(tmp_zip_name, buildos)
         dartium_zip.UnZip(unzip_dir)
+        
         if 'lin' in buildos:
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
@@ -923,6 +926,8 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
           zip_rel_path = 'dart/dart-sdk/chromium'
+          # remove DumpRenderTree.exe (a 31 MB savings)
+          os.remove(os.path.join(add_path, 'DumpRenderTree.exe'))
         if 'mac' in buildos:
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = os.path.join(paths[0], 'Chromium.app')
