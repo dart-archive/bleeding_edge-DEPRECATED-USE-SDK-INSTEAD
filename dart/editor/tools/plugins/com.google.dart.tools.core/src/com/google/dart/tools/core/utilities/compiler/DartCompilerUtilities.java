@@ -860,9 +860,14 @@ public class DartCompilerUtilities {
         }
       });
       synchronized (result) {
-        if (result[0] == null) {
+        long end = System.currentTimeMillis() + 30000;
+        while (result[0] == null) {
+          long delta = end - System.currentTimeMillis();
+          if (delta <= 0) {
+            break;
+          }
           try {
-            result.wait(30000);
+            result.wait(delta);
           } catch (InterruptedException e) {
             //$FALL-THROUGH$
           }
