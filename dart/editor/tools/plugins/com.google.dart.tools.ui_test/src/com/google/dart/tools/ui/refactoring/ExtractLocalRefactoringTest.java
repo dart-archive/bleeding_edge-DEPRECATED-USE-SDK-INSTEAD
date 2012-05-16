@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
+import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractLocalRefactoring;
 
 import org.eclipse.core.runtime.CoreException;
@@ -21,8 +22,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.PerformChangeOperation;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-
-import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Test for {@link ExtractLocalRefactoring}.
@@ -35,20 +34,136 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
   private ExtractLocalRefactoring refactoring;
   private RefactoringStatus refactoringStatus;
 
+  public void test_fragmentExpression_leadingNotWhitespace() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1 + 2 + 3 + 4;",
+        "}");
+    selectionStart = findOffset("+ 2");
+    selectionEnd = findOffset("3 + ") + 1;
+    // check conditions
+    createRefactoring("res");
+    assert_fatalError_selection();
+  }
+
+  public void test_fragmentExpression_leadingPartialSelection() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 111 + 2 + 3 + 4;",
+        "}");
+    selectionStart = findOffset("11 +");
+    selectionEnd = findOffset("3 +") + 3;
+    // check conditions
+    createRefactoring("res");
+    assert_fatalError_selection();
+  }
+
+  public void test_fragmentExpression_leadingWhitespace() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1 + 2 + 3 + 4;",
+        "}");
+    selectionStart = findOffset(" 2");
+    selectionEnd = findOffset("3 + ") + 1;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int res =  2 + 3;",
+        "  int a = 1 +res + 4;",
+        "}");
+  }
+
+  public void test_fragmentExpression_notAssociativeOperator() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1 - 2 - 3 - 4;",
+        "}");
+    selectionStart = findOffset("2");
+    selectionEnd = findOffset("3 - ") + 1;
+    // check conditions
+    createRefactoring("res");
+    assert_fatalError_selection();
+  }
+
+  public void test_fragmentExpression_OK() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1 + 2 + 3 + 4;",
+        "}");
+    selectionStart = findOffset("2");
+    selectionEnd = findOffset("3 + ") + 1;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int res = 2 + 3;",
+        "  int a = 1 + res + 4;",
+        "}");
+  }
+
+  public void test_fragmentExpression_trailingNotWhitespace() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1 + 2 + 3 + 4;",
+        "}");
+    selectionStart = findOffset("2");
+    selectionEnd = findOffset("3 +") + 3;
+    // check conditions
+    createRefactoring("res");
+    assert_fatalError_selection();
+  }
+
+  public void test_fragmentExpression_trailingPartialSelection() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1 + 2 + 3 + 444;",
+        "}");
+    selectionStart = findOffset("2");
+    selectionEnd = findOffset("44;");
+    // check conditions
+    createRefactoring("res");
+    assert_fatalError_selection();
+  }
+
+  public void test_fragmentExpression_trailingWhitespace() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1 + 2 + 3 + 4;",
+        "}");
+    selectionStart = findOffset("2");
+    selectionEnd = findOffset("3 + ") + 2;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int res = 2 + 3 ;",
+        "  int a = 1 + res+ 4;",
+        "}");
+  }
+
   public void test_singleExpression() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
-        "  int a = 1 + 2; // marker",
+        "  int a = 1 + 2;",
         "}");
-    selectionStart = findPattern("1", 0);
-    selectionEnd = findPattern("; // marker", 0);
+    selectionStart = findOffset("1");
+    selectionEnd = findOffset("2;") + 1;
     doSuccessfullRefactoring();
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
         "  int res = 1 + 2;",
-        "  int a = res; // marker",
+        "  int a = res;",
         "}");
   }
 
@@ -59,8 +174,8 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         "main() {",
         "  int a = f(); // marker",
         "}");
-    selectionStart = findPattern("f();", 0);
-    selectionEnd = findPattern("; // marker", 0);
+    selectionStart = findOffset("f();");
+    selectionEnd = findOffset("; // marker");
     doSuccessfullRefactoring();
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -71,14 +186,27 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         "}");
   }
 
-  public void test_singleExpression_leadingSpace() throws Exception {
+  public void test_singleExpression_leadingNotWhitespace() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 12 + 345; // marker",
+        "}");
+    selectionStart = findOffset("345") - 2;
+    selectionEnd = findOffset("; // marker");
+    // check conditions
+    createRefactoring("res");
+    assert_fatalError_selection();
+  }
+
+  public void test_singleExpression_leadingWhitespace() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
         "  int a = 1 + 2; // marker",
         "}");
-    selectionStart = findPattern(" 1", 0);
-    selectionEnd = findPattern("; // marker", 0);
+    selectionStart = findOffset(" 1");
+    selectionEnd = findOffset("; // marker");
     doSuccessfullRefactoring();
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -88,14 +216,66 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         "}");
   }
 
-  public void test_singleExpression_trailingSpace() throws Exception {
+  /**
+   * We use here knowledge how exactly <code>1 + 2 + 3 + 4</code> is parsed. We know that
+   * <code>1 + 2</code> will be separate and complete {@link DartBinaryExpression}, so can be
+   * handled as single expression.
+   */
+  public void test_singleExpression_partOfBinaryExpression() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1 + 2 + 3 + 4;",
+        "}");
+    selectionStart = findOffset("1");
+    selectionEnd = findOffset("2 + ") + 1;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int res = 1 + 2;",
+        "  int a = res + 3 + 4;",
+        "}");
+  }
+
+  public void test_singleExpression_trailingComment() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 12 /*abc*/ + 345;",
+        "}");
+    selectionStart = findOffset("12");
+    selectionEnd = findOffset("*/ + 345") + 2;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int res = 12 /*abc*/;",
+        "  int a = res + 345;",
+        "}");
+  }
+
+  public void test_singleExpression_trailingNotWhitespace() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 12 + 345; // marker",
+        "}");
+    selectionStart = findOffset("12");
+    selectionEnd = findOffset(" 345");
+    // check conditions
+    createRefactoring("res");
+    assert_fatalError_selection();
+  }
+
+  public void test_singleExpression_trailingWhitespace() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
         "  int a = 1 + 2 ; // marker",
         "}");
-    selectionStart = findPattern("1", 0);
-    selectionEnd = findPattern("; // marker", 0);
+    selectionStart = findOffset("1");
+    selectionEnd = findOffset("; // marker");
     doSuccessfullRefactoring();
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -103,6 +283,16 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         "  int res = 1 + 2 ;",
         "  int a = res; // marker",
         "}");
+  }
+
+  /**
+   * Asserts that {@link refactoringStatus} has fatal error caused by selection.
+   */
+  private void assert_fatalError_selection() {
+    assertTrue(refactoringStatus.hasFatalError());
+    assertEquals(
+        "An expression must be selected to activate this refactoring.",
+        refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL));
   }
 
   /**
@@ -119,18 +309,11 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
     // create refactoring
     createRefactoring("res");
     // OK status
-    assertTrue(refactoringStatus.isOK());
+    if (!refactoringStatus.isOK()) {
+      fail(refactoringStatus.toString());
+    }
     // perform change
     performRefactoringChange();
-  }
-
-  /**
-   * @return the offset of the given "pattern" in {@link #testUnit}, adjusted to the given "delta".
-   */
-  private int findPattern(String pattern, int delta) throws Exception {
-    int offset = testUnit.getSource().indexOf(pattern);
-    assertThat(offset).as(pattern).isNotEqualTo(-1);
-    return offset + delta;
   }
 
   private void performRefactoringChange() throws CoreException {

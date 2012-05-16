@@ -18,22 +18,32 @@ import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartLiteral;
+import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartTypedLiteral;
 import com.google.dart.compiler.ast.DartUnaryExpression;
+import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.parser.DartScanner;
+import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.buffer.Buffer;
+import com.google.dart.tools.core.internal.model.SourceRangeImpl;
+import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
-import com.google.dart.tools.ui.internal.text.SelectionAnalyzer;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jface.text.Document;
+import org.eclipse.jface.text.IDocument;
 
 /**
  * Extract Local Variable (from selected expression inside method or initializer).
@@ -41,55 +51,19 @@ import org.eclipse.core.runtime.Assert;
  * @coverage dart.editor.ui.refactoring.core
  */
 public class ExtractUtils {
+
   /**
    * The default end-of-line marker for the current platform. This value should (almost) never be
    * used directly. The end-of-line marker should always be queried from {@link Buffer} because it
-   * can differ from the platform default in some situations. The only exception is if code is being
-   * constructed for a new file, in which case there is no {@link Buffer} to ask.
+   * can differ from the platform default in some situations.
    */
   public static final String DEFAULT_END_OF_LINE = System.getProperty("line.separator", "\n");
 
-  public static boolean covers(SourceRange sourceRange, DartNode astNode) {
-    return covers(sourceRange, SourceRangeFactory.create(astNode));
-  }
-
-  public static boolean covers(SourceRange thisRange, SourceRange otherRange) {
-    return thisRange.getOffset() <= otherRange.getOffset()
-        && getEndInclusive(thisRange) >= getEndInclusive(otherRange);
-  }
-
-  public static int getEndExclusive(SourceRange sourceRange) {
-    return sourceRange.getOffset() + sourceRange.getLength();
-  }
-
-  public static int getEndInclusive(SourceRange sourceRange) {
-    return getEndExclusive(sourceRange) - 1;
-  }
-
   /**
-   * @return the line prefix consisting of spaces and tabs on the left from the given
-   *         {@link DartNode}.
+   * @return <code>true</code> if given {@link SourceRange} covers given {@link DartNode}.
    */
-  public static String getNodePrefix(Buffer buffer, DartNode node) {
-    int endIndex = node.getSourceInfo().getOffset();
-    int startIndex = getNodePrefixStartIndex(buffer, node);
-    return buffer.getText(startIndex, endIndex - startIndex);
-  }
-
-  /**
-   * @return the index of the last space or tab on the left from the given {@link DartNode}.
-   */
-  public static int getNodePrefixStartIndex(Buffer buffer, DartNode node) {
-    int endIndex = node.getSourceInfo().getOffset();
-    int startIndex = endIndex;
-    while (true) {
-      char c = buffer.getChar(startIndex - 1);
-      if (c != ' ' && c != '\t') {
-        break;
-      }
-      startIndex--;
-    }
-    return startIndex;
+  public static boolean covers(SourceRange r, DartNode node) {
+    return SourceRangeUtils.covers(r, new SourceRangeImpl(node));
   }
 
   /**
@@ -151,7 +125,10 @@ public class ExtractUtils {
 
       @Override
       public String visitExpression(DartExpression node) {
-        // TODO(scheglov) variables as DartIdentifier
+        Element element = node.getElement();
+        if (element != null) {
+          return getTypeSource(element.getType());
+        }
         return null;
       }
 
@@ -170,6 +147,15 @@ public class ExtractUtils {
       public String visitLiteral(DartLiteral node) {
         Type literalType = node.getType();
         return getTypeSource(literalType);
+      }
+
+      @Override
+      public String visitNewExpression(DartNewExpression node) {
+        if (node.getElement() != null) {
+          Type instanceType = node.getType();
+          return getTypeSource(instanceType);
+        }
+        return null;
       }
 
       @Override
@@ -192,78 +178,187 @@ public class ExtractUtils {
     });
   }
 
-  public static boolean isSingleNodeSelected(
-      SelectionAnalyzer sa,
-      SourceRange range,
-      CompilationUnit cu) throws DartModelException {
-    return sa.getSelectedNodes().length == 1
-        && !rangeIncludesNonWhitespaceOutsideNode(range, sa.getFirstSelectedNode(), cu);
-  }
-
-  static boolean rangeIncludesNonWhitespaceOutsideRange(
-      SourceRange selection,
-      SourceRange nodes,
-      Buffer buffer) {
-    if (!covers(selection, nodes)) {
-      return false;
-    }
-
-    //TODO: skip leading comments. Consider that leading line comment must be followed by newline!
-    if (!isJustWhitespace(selection.getOffset(), nodes.getOffset(), buffer)) {
-      return true;
-    }
-    if (!isJustWhitespaceOrComment(nodes.getOffset() + nodes.getLength(), selection.getOffset()
-        + selection.getLength(), buffer)) {
+  /**
+   * @return <code>true</code> if given {@link DartBinaryExpression} uses associative operator and
+   *         its arguments are not {@link DartBinaryExpression} or are also associative.
+   */
+  public static boolean isAssociative(DartBinaryExpression expression) {
+    if (isAssociativeOperator(expression.getOperator())) {
+      DartExpression arg1 = expression.getArg1();
+      DartExpression arg2 = expression.getArg2();
+      if (arg1 instanceof DartBinaryExpression && !isAssociative((DartBinaryExpression) arg1)) {
+        return false;
+      }
+      if (arg2 instanceof DartBinaryExpression && !isAssociative((DartBinaryExpression) arg2)) {
+        return false;
+      }
       return true;
     }
     return false;
   }
 
-  private static String getTypeSource(Type returnType) {
-    String typeSource = returnType.toString();
+  public static boolean rangeEndsBetween(SourceRange range, DartNode first, DartNode next) {
+    int pos = SourceRangeUtils.getEnd(range);
+    return first.getSourceInfo().getEnd() <= pos && pos <= next.getSourceInfo().getOffset();
+  }
+
+  public static boolean rangeStartsBetween(SourceRange range, DartNode first, DartNode next) {
+    int pos = range.getOffset();
+    return first.getSourceInfo().getEnd() <= pos && pos <= next.getSourceInfo().getOffset();
+  }
+
+  private static String getTypeSource(Type type) {
+    String typeSource = type.toString();
     typeSource = StringUtils.replace(typeSource, "<dynamic>", "Dynamic");
     typeSource = StringUtils.replace(typeSource, "<Dynamic>", "");
     typeSource = StringUtils.replace(typeSource, "<Dynamic, Dynamic>", "");
     return typeSource;
   }
 
-  private static boolean isJustWhitespace(int start, int end, Buffer buffer) {
-    if (start == end) {
-      return true;
-    }
-    Assert.isTrue(start <= end);
-    return 0 == buffer.getText(start, end - start).trim().length();
+  /**
+   * @return <code>true</code> if given operator {@link Token} is associative.
+   */
+  private static boolean isAssociativeOperator(Token operator) {
+    return operator == Token.ADD || operator == Token.MUL || operator == Token.BIT_XOR
+        || operator == Token.BIT_OR || operator == Token.BIT_AND || operator == Token.OR
+        || operator == Token.AND;
   }
 
-  private static boolean isJustWhitespaceOrComment(int start, int end, Buffer buffer) {
-    if (start == end) {
-      return true;
+  private final CompilationUnit unit;
+
+  private final Buffer buffer;
+
+  private final DartUnit unitNode;
+
+  private String endOfLine;
+
+  public ExtractUtils(CompilationUnit unit) throws DartModelException {
+    this.unit = unit;
+    this.buffer = unit.getBuffer();
+    this.unitNode = DartCompilerUtilities.resolveUnit(unit);
+  }
+
+  /**
+   * @return the EOL to use for this {@link CompilationUnit}.
+   */
+  public String getEndOfLine() {
+    if (endOfLine == null) {
+      endOfLine = ExecutionUtils.runObjectIgnore(new RunnableObjectEx<String>() {
+        @Override
+        public String runObject() throws Exception {
+          // find first EOL
+          IDocument document = new Document(buffer.getContents());
+          int numberOfLines = document.getNumberOfLines();
+          for (int i = 0; i < numberOfLines; i++) {
+            String delimiter = document.getLineDelimiter(i);
+            if (delimiter != null) {
+              return delimiter;
+            }
+          }
+          // no EOL, use default
+          return DEFAULT_END_OF_LINE;
+        }
+      }, DEFAULT_END_OF_LINE);
     }
-    Assert.isTrue(start <= end);
-    String trimmedText = buffer.getText(start, end - start).trim();
-    if (0 == trimmedText.length()) {
-      return true;
-    } else {
-      // TODO(scheglov) support comment
+    return endOfLine;
+  }
+
+  /**
+   * @return the line prefix consisting of spaces and tabs on the left from the given
+   *         {@link DartNode}.
+   */
+  public String getNodePrefix(DartNode node) {
+    int endIndex = node.getSourceInfo().getOffset();
+    int startIndex = getNodePrefixStartIndex(node);
+    return buffer.getText(startIndex, endIndex - startIndex);
+  }
+
+  /**
+   * @return the given range of text from {@link Buffer}.
+   */
+  public String getText(int offset, int length) {
+    return buffer.getText(offset, length);
+  }
+
+  /**
+   * @return the resolved {@link DartUnit}.
+   */
+  public DartUnit getUnitNode() {
+    return unitNode;
+  }
+
+  public boolean rangeIncludesNonWhitespaceOutsideNode(SourceRange range, DartNode node)
+      throws DartModelException {
+    return rangeIncludesNonWhitespaceOutsideRange(range, SourceRangeFactory.create(node));
+  }
+
+  public boolean rangeIncludesNonWhitespaceOutsideRange(SourceRange selection, SourceRange node) {
+    // selection should cover node
+    if (!SourceRangeUtils.covers(selection, node)) {
       return false;
-//      IScanner scanner = ToolFactory.createScanner(false, false, false, null);
-//      scanner.setSource(trimmedText.toCharArray());
-//      try {
-//        return scanner.getNextToken() == ITerminalSymbols.TokenNameEOF;
-//      } catch (InvalidInputException e) {
-//        return false;
-//      }
     }
+    // non-whitespace between selection start and node start
+    if (!isJustWhitespace(selection.getOffset(), node.getOffset())) {
+      return true;
+    }
+    // non-whitespace after node
+    if (!isJustWhitespaceOrComment(node.getOffset() + node.getLength(), selection.getOffset()
+        + selection.getLength())) {
+      return true;
+    }
+    // only whitespace in selection around node
+    return false;
   }
 
-  private static boolean rangeIncludesNonWhitespaceOutsideNode(
-      SourceRange range,
-      DartNode node,
-      CompilationUnit cu) throws DartModelException {
-    return rangeIncludesNonWhitespaceOutsideRange(
-        range,
-        SourceRangeFactory.create(node),
-        cu.getBuffer());
+  /**
+   * @return the index of the last space or tab on the left from the given {@link DartNode}.
+   */
+  private int getNodePrefixStartIndex(DartNode node) {
+    int endIndex = node.getSourceInfo().getOffset();
+    int startIndex = endIndex;
+    while (true) {
+      char c = buffer.getChar(startIndex - 1);
+      if (c != ' ' && c != '\t') {
+        break;
+      }
+      startIndex--;
+    }
+    return startIndex;
+  }
+
+  /**
+   * @return <code>true</code> if selection range contains only whitespace.
+   */
+  private boolean isJustWhitespace(int start, int end) {
+    if (start == end) {
+      return true;
+    }
+    Assert.isTrue(start <= end);
+    return getText(start, end - start).trim().length() == 0;
+  }
+
+  /**
+   * @return <code>true</code> if selection range contains only whitespace or comments
+   */
+  private boolean isJustWhitespaceOrComment(int start, int end) {
+    if (start == end) {
+      return true;
+    }
+    // prepare text
+    Assert.isTrue(start <= end);
+    final String trimmedText = buffer.getText(start, end - start).trim();
+    // may be whitespace
+    if (trimmedText.isEmpty()) {
+      return true;
+    }
+    // may be comment
+    return ExecutionUtils.runObjectIgnore(new RunnableObjectEx<Boolean>() {
+      @Override
+      public Boolean runObject() throws Exception {
+        DartScanner scanner = new DartScanner(trimmedText);
+        return scanner.next() == Token.EOS;
+      }
+    }, false).booleanValue();
   }
 
 }

@@ -15,6 +15,8 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.test.util.TestProject;
@@ -25,10 +27,30 @@ import org.eclipse.swt.widgets.Display;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Abstract base for any Dart test which uses {@link TestProject}.
  */
 public abstract class AbstractDartTest extends TestCase {
+  /**
+   * @return {@link DartNode} which has required offset and type.
+   */
+  public static <E extends DartNode> E findNode(DartNode root, final int offset, final Class<E> clazz) {
+    final AtomicReference<E> result = new AtomicReference<E>();
+    root.accept(new ASTVisitor<Void>() {
+      @Override
+      @SuppressWarnings("unchecked")
+      public Void visitNode(DartNode node) {
+        if (node.getSourceInfo().getOffset() == offset && clazz.isInstance(node)) {
+          result.set((E) node);
+        }
+        return super.visitNode(node);
+      }
+    });
+    return result.get();
+  }
+
   /**
    * Waits given number of milliseconds and runs events loop every 1 millisecond. At least one
    * events loop will be executed.
@@ -68,11 +90,19 @@ public abstract class AbstractDartTest extends TestCase {
   @SuppressWarnings("unchecked")
   protected static <T extends DartElement> T findElement(CompilationUnit unit, String search)
       throws Exception {
-    int index = unit.getSource().indexOf(search);
-    assertThat(index).isNotEqualTo(-1);
-    DartElement[] elements = unit.codeSelect(index, 0);
+    int offset = findOffset(unit, search);
+    DartElement[] elements = unit.codeSelect(offset, 0);
     assertThat(elements).hasSize(1);
     return (T) elements[0];
+  }
+
+  /**
+   * @return the offset of given <code>search</code> string. Fails test if not found.
+   */
+  protected static int findOffset(CompilationUnit unit, String search) throws Exception {
+    int offset = unit.getSource().indexOf(search);
+    assertThat(offset).isNotEqualTo(-1);
+    return offset;
   }
 
   /**
@@ -125,6 +155,14 @@ public abstract class AbstractDartTest extends TestCase {
    */
   protected final <T extends DartElement> T findElement(String search) throws Exception {
     return findElement(testUnit, search);
+  }
+
+  /**
+   * @return the offset of given <code>search</code> string in {@link testUnit}. Fails test if not
+   *         found.
+   */
+  protected final int findOffset(String search) throws Exception {
+    return findOffset(testUnit, search);
   }
 
   /**

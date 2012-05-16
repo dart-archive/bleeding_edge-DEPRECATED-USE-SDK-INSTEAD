@@ -35,6 +35,24 @@ public class SourceRangeUtilsTest extends TestCase {
   }
 
   /**
+   * Test for {@link SourceRangeUtils#covers(SourceRange, SourceRange)}
+   */
+  public void test_covers() throws Exception {
+    SourceRange thisRange = new SourceRangeImpl(5, 10);
+    // ends before
+    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(0, 3)));
+    // starts after
+    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(20, 3)));
+    // only intersects
+    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(0, 10)));
+    assertFalse(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(10, 10)));
+    // covers
+    assertTrue(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(5, 10)));
+    assertTrue(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(6, 9)));
+    assertTrue(SourceRangeUtils.covers(thisRange, new SourceRangeImpl(6, 8)));
+  }
+
+  /**
    * Test for {@link SourceRangeUtils#getEnd(SourceRange)}.
    */
   public void test_getEnd() throws Exception {

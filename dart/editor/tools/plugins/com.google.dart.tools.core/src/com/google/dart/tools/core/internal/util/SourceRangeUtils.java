@@ -28,6 +28,14 @@ public class SourceRangeUtils {
   }
 
   /**
+   * @return <code>true</code> if <code>thisRange</code> covers <code>otherRange</code>.
+   */
+  public static boolean covers(SourceRange thisRange, SourceRange otherRange) {
+    return thisRange.getOffset() <= otherRange.getOffset()
+        && getEnd(thisRange) >= getEnd(otherRange);
+  }
+
+  /**
    * @return the end position of given {@link SourceRange}, result of <code>offset + length</code>.
    */
   public static int getEnd(SourceRange r) {
@@ -48,4 +56,5 @@ public class SourceRangeUtils {
     return contains(a, b.getOffset()) || contains(a, b.getOffset() + b.getLength() - 1)
         || contains(b, a.getOffset());
   }
+
 }
