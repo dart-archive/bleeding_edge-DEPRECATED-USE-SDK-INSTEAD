@@ -18,6 +18,7 @@ import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.UrlDartSource;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.generator.ApplicationGenerator;
 import com.google.dart.tools.core.generator.FileGenerator;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
@@ -109,6 +110,7 @@ public class RootArtifactProviderTest extends TestCase {
     tempDir = TestUtilities.createTempDirectory();
     appCount++;
 
+    AnalysisTestUtilities.waitForAnalysis();
     IProject project = (IProject) IProjectUtilities.createOrOpenProject(
         tempDir,
         new NullProgressMonitor());
