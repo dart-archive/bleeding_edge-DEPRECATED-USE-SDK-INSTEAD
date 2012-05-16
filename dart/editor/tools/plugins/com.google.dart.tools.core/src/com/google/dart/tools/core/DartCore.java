@@ -137,6 +137,12 @@ public class DartCore extends Plugin {
   private static final String[] DART_GENERATED_FILE_EXTENSIONS = {"api", "deps", "js", "map"};
 
   /**
+   * Cached extensions for image files.
+   */
+  private static final String[] IMAGE_FILE_EXTENSIONS = {
+      "bmp", "gif", "jpeg", "jpg", "png", "raw", "thm", "tif", "tiff"};
+
+  /**
    * The shared message console instance.
    */
   private static final MessageConsole CONSOLE = new MessageConsoleImpl();
@@ -514,6 +520,16 @@ public class DartCore extends Plugin {
    */
   public static boolean isHTMLLikeFileName(String fileName) {
     return isLikeFileName(fileName, HTML_FILE_EXTENSIONS);
+  }
+
+  /**
+   * Return <code>true</code> if the given file name's extension is an image-like extension.
+   * 
+   * @param fileName the file name being tested
+   * @return <code>true</code> if the given file name's extension is an image-like extension
+   */
+  public static boolean isImageLikeFileName(String fileName) {
+    return isLikeFileName(fileName, IMAGE_FILE_EXTENSIONS);
   }
 
   /**

@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.search.internal.ui.text;
 
+import com.google.dart.tools.core.DartCore;
+
 import org.eclipse.core.resources.IResourceProxy;
 
 import java.io.File;
@@ -67,6 +69,8 @@ public class TextSearchScopeFilter {
     if (fileName.endsWith(".dart.js_")) {
       return true;
     }
-    return false;
+
+    return DartCore.isImageLikeFileName(fileName);
   }
+
 }
