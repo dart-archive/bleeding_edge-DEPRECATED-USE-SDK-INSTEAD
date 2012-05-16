@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -20,7 +20,6 @@ import org.eclipse.jface.resource.DeviceResourceException;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.TextLayout;
@@ -57,6 +56,10 @@ public class OmniEntry {
     event.detail &= ~SWT.FOREGROUND;
   }
 
+  public OmniElement getElement() {
+    return element;
+  }
+
   public void measure(Event event, TextLayout textLayout, ResourceManager resourceManager,
       TextStyle boldStyle) {
     Table table = ((TableItem) event.item).getParent();
@@ -86,7 +89,7 @@ public class OmniEntry {
   }
 
   public void paint(Event event, TextLayout textLayout, ResourceManager resourceManager,
-      TextStyle boldStyle, Color grayColor) {
+      TextStyle boldStyle, TextStyle grayStyle) {
     final Table table = ((TableItem) event.item).getParent();
     textLayout.setFont(table.getFont());
     switch (event.index) {
@@ -104,17 +107,27 @@ public class OmniEntry {
           event.gc.drawImage(image, event.x + xNudge, event.y + 1);
         } else {
           //a lighter gray
-
           event.gc.setForeground(OmniBoxColors.SEARCH_ENTRY_HEADER_TEXT);
         }
 
         textLayout.setText(label);
+
+        //match emphasis
         if (boldStyle != null) {
           for (int i = 0; i < elementMatchRegions.length; i++) {
             int[] matchRegion = elementMatchRegions[i];
             textLayout.setStyle(boldStyle, matchRegion[0], matchRegion[1]);
           }
         }
+        //details emphasis
+        if (grayStyle != null) {
+          int detailOffset = element.getDetailOffset();
+          if (detailOffset != -1) {
+            textLayout.setStyle(grayStyle, detailOffset, label.length() - 1);
+          }
+
+        }
+
         Rectangle availableBounds = ((TableItem) event.item).getTextBounds(event.index);
         Rectangle requiredBounds = textLayout.getBounds();
         int imageWidth = image == null ? 0 : image.getBounds().width;

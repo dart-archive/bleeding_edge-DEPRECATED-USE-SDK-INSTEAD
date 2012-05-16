@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -24,6 +24,9 @@ public abstract class OmniElement {
   private static final int[][] EMPTY_INDICES = new int[0][0];
   private final OmniProposalProvider provider;
 
+  private boolean duplicate;
+  protected int detailOffset = -1;
+
   /**
    * Create an element.
    * 
@@ -36,9 +39,27 @@ public abstract class OmniElement {
 
   /**
    * Executes the associated action for this element.
+   * 
    * @param text the current string in the search box
    */
   public abstract void execute(String text);
+
+  /**
+   * Returns a detailed label (used for disambiguating duplicate matches)
+   */
+  public String getDetailedLabel() {
+    return getLabel();
+  }
+
+  /**
+   * Get the offset of the detail portion of this element's label (if there is one). The default
+   * value is <code>-1</code>.
+   * 
+   * @return the detail offset, or <code>-1</code> if there is none.
+   */
+  public int getDetailOffset() {
+    return detailOffset;
+  }
 
   /**
    * Returns the id for this element. The id has to be unique within the OmniProposalProvider that
@@ -106,6 +127,13 @@ public abstract class OmniElement {
   }
 
   /**
+   * Check if this element has been marked a duplicate (requiring disambiguation in the UI).
+   */
+  public boolean isDuplicate() {
+    return duplicate;
+  }
+
+  /**
    * @param filter
    * @return
    */
@@ -157,4 +185,12 @@ public abstract class OmniElement {
     }
     return null;
   }
+
+  /**
+   * Flag this element as a duplicate requiring disambiguation in the UI.
+   */
+  public void setIsDuplicate(boolean isDuplicate) {
+    this.duplicate = isDuplicate;
+  }
+
 }

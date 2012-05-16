@@ -459,6 +459,9 @@ public class OmniBoxPopup extends BasePopupDialog {
     } else {
       boldStyle = null;
     }
+    final TextStyle grayStyle = new TextStyle(table.getFont(),
+        OmniBoxColors.SEARCH_ENTRY_ITEM_TEXT, null);
+
     Listener listener = new Listener() {
       @Override
       public void handleEvent(Event event) {
@@ -469,8 +472,7 @@ public class OmniBoxPopup extends BasePopupDialog {
               entry.measure(event, textLayout, resourceManager, boldStyle);
               break;
             case SWT.PaintItem:
-              entry.paint(event, textLayout, resourceManager, boldStyle,
-                  OmniBoxColors.SEARCH_ENTRY_ITEM_TEXT);
+              entry.paint(event, textLayout, resourceManager, boldStyle, grayStyle);
               break;
             case SWT.EraseItem:
               entry.erase(event);
@@ -798,6 +800,25 @@ public class OmniBoxPopup extends BasePopupDialog {
     return false;
   }
 
+  private void markDuplicates(List<OmniEntry>[] entries) {
+
+    final HashMap<String, OmniElement> seen = new HashMap<String, OmniElement>();
+    OmniElement current;
+
+    for (List<OmniEntry> entrySets : entries) {
+      for (OmniEntry entry : entrySets) {
+        current = entry.element;
+        OmniElement previous = seen.get(current.getLabel());
+        if (previous != null) {
+          previous.setIsDuplicate(true);
+          current.setIsDuplicate(true);
+        } else {
+          seen.put(current.getLabel(), current);
+        }
+      }
+    }
+  }
+
   private void refreshInternal(final String filter) {
     //an empty filter indicates a new query, meaning we need to clear caches
     if (filter.length() == 0) {
@@ -880,6 +901,9 @@ public class OmniBoxPopup extends BasePopupDialog {
     //}
     table.removeAll();
 
+    //elements flagged as duplicates get rendered with disambiguating details
+    markDuplicates(entries);
+
     TableItem[] items = table.getItems();
     int selectionIndex = -1;
     int index = 0;
@@ -913,6 +937,7 @@ public class OmniBoxPopup extends BasePopupDialog {
           item.setData(entry);
           item.setText(0, entry.provider.getName());
           item.setText(1, entry.element.getLabel());
+
           if (Util.isWpf()) {
             item.setImage(1, entry.getImage(entry.element, resourceManager));
           }
