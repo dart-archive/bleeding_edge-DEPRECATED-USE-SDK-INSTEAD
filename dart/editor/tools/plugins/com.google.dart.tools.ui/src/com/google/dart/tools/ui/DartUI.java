@@ -125,21 +125,6 @@ public final class DartUI {
   public static final String ID_SNIPPET_EDITOR = "com.google.dart.tools.ui.SnippetEditor"; //$NON-NLS-1$
 
   /**
-   * The view part id of the Libraries view (value
-   * <code>"com.google.dart.tools.ui.LibraryExplorer"</code>).
-   * <p>
-   * When this id is used to access a view part with <code>IWorkbenchPage.findView</code> or
-   * <code>showView</code>, the returned <code>IViewPart</code> can be safely cast to an
-   * <code>ILibrariesViewPart</code>.
-   * </p>
-   * 
-   * @see ILibrariesViewPart
-   * @see org.eclipse.ui.IWorkbenchPage#findView(java.lang.String)
-   * @see org.eclipse.ui.IWorkbenchPage#showView(java.lang.String)
-   */
-  public static final String ID_LIBRARIES = "com.google.dart.tools.ui.LibraryExplorer"; //$NON-NLS-1$
-
-  /**
    * The view part id of the Problems view (value
    * <code>"com.google.dart.tools.ui.ProblemsView"</code>).
    */

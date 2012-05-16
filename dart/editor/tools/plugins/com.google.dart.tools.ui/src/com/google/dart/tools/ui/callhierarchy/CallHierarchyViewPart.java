@@ -320,7 +320,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
       return new IShowInTargetList() {
         @Override
         public String[] getShowInTargetIds() {
-          return new String[] {DartUI.ID_FILE_VIEW, DartUI.ID_LIBRARIES};
+          return new String[] {DartUI.ID_FILE_VIEW};
         }
       };
     }

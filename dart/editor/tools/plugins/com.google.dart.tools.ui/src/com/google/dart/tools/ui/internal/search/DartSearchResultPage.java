@@ -25,7 +25,6 @@ import com.google.dart.tools.search.ui.text.AbstractTextSearchResult;
 import com.google.dart.tools.search.ui.text.AbstractTextSearchViewPage;
 import com.google.dart.tools.search.ui.text.Match;
 import com.google.dart.tools.ui.DartElementLabels;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.text.editor.CompositeActionGroup;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
@@ -278,8 +277,7 @@ public class DartSearchResultPage extends AbstractTextSearchViewPage implements 
   private static final String KEY_LIMIT_ENABLED = "org.eclipse.jdt.search.resultpage.limit_enabled"; //$NON-NLS-1$
   private static final String KEY_SORTING = "org.eclipse.jdt.search.resultpage.sorting"; //$NON-NLS-1$
 
-  private static final String[] SHOW_IN_TARGETS = new String[] {DartUI.ID_LIBRARIES
-  /* , DartUI.ID_RES_NAV */};
+  private static final String[] SHOW_IN_TARGETS = new String[] {};
 
   private static final String TRUE = "TRUE"; //$NON-NLS-1$
   private NewSearchViewActionGroup actionGroup;

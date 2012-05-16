@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -20,8 +20,6 @@ import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.projects.CreateFileWizard;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
-import com.google.dart.tools.ui.wizard.NewFileWizard;
-import com.google.dart.tools.ui.wizard.NewFileWizardPage;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ISelection;
@@ -36,9 +34,6 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
 /**
  * Action that opens the new file wizard.
- * 
- * @see NewFileWizard
- * @see NewFileWizardPage
  */
 public class OpenNewFileWizardAction extends AbstractOpenWizardAction implements IWorkbenchAction,
     ISelectionListener, ISelectionChangedListener {

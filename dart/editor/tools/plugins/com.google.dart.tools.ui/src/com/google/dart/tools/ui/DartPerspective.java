@@ -89,7 +89,6 @@ public class DartPerspective implements IPerspectiveFactory {
     layout.addShowViewShortcut(IPageLayout.ID_PROBLEM_VIEW);
     layout.addShowViewShortcut(IPageLayout.ID_TASK_LIST);
     layout.addShowViewShortcut(IPageLayout.ID_PROJECT_EXPLORER);
-    layout.addShowViewShortcut(DartUI.ID_LIBRARIES);
     layout.addShowViewShortcut(METRICS_VIEW_ID);
 
     // new actions - wizards

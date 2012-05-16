@@ -30,7 +30,6 @@ import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.core.utilities.ast.NameOccurrencesFinder;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -1957,8 +1956,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           if (PlatformUI.getWorkbench().getViewRegistry().find(explorerViewID) == null) {
             explorerViewID = IPageLayout.ID_PROJECT_EXPLORER;
           }
-          return new String[] {
-              explorerViewID, DartUI.ID_LIBRARIES, IPageLayout.ID_OUTLINE, IPageLayout.ID_RES_NAV};
+          return new String[] {explorerViewID, IPageLayout.ID_OUTLINE, IPageLayout.ID_RES_NAV};
         }
 
       };

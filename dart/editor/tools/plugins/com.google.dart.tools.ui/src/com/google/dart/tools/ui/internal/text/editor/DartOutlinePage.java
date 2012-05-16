@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -29,7 +29,6 @@ import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.ProblemsLabelDecorator.ProblemsLabelChangedEvent;
@@ -1046,7 +1045,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
           if (PlatformUI.getWorkbench().getViewRegistry().find(explorerViewID) == null) {
             explorerViewID = IPageLayout.ID_PROJECT_EXPLORER;
           }
-          return new String[] {explorerViewID, DartUI.ID_LIBRARIES};
+          return new String[] {explorerViewID};
 
         }
 

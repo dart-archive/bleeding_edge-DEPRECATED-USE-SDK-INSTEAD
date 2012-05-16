@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.cleanup.preference;
@@ -25,7 +23,6 @@ import com.google.dart.tools.ui.internal.dialogs.fields.IDialogFieldListener;
 import com.google.dart.tools.ui.internal.dialogs.fields.LayoutUtil;
 import com.google.dart.tools.ui.internal.dialogs.fields.SelectionButtonDialogField;
 import com.google.dart.tools.ui.internal.preferences.PreferencesMessages;
-import com.google.dart.tools.ui.wizard.IStatusChangeListener;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -236,21 +233,6 @@ public abstract class PropertyAndPreferencePage extends PreferencePage implement
 
   protected Map<String, Object> getData() {
     return fData;
-  }
-
-  /**
-   * Returns a new status change listener that calls {@link #setPreferenceContentStatus(IStatus)}
-   * when the status has changed
-   * 
-   * @return The new listener
-   */
-  protected IStatusChangeListener getNewStatusChangedListener() {
-    return new IStatusChangeListener() {
-      @Override
-      public void statusChanged(IStatus status) {
-        setPreferenceContentStatus(status);
-      }
-    };
   }
 
   protected IStatus getPreferenceContentStatus() {

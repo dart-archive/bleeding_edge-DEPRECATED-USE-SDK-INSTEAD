@@ -377,15 +377,6 @@
             id="com.google.dart.tools.ui.internal.metricsView">
       </view>
       
-      <!-- TODO Update the icon from Josh/Luke -->
-      <view
-            name="%libraryViewName"
-            icon="$nl$/icons/full/eview16/package.gif"
-            category="com.google.dart.tools.ui.dart"
-            class="com.google.dart.tools.ui.internal.libraryview.LibraryExplorerPart"
-            id="com.google.dart.tools.ui.LibraryExplorer">
-      </view>
-      
       <!-- Errors view -->
     
       <view
@@ -416,30 +407,6 @@
       </view>
    </extension>
 
-   <extension
-         point="org.eclipse.ui.newWizards">
-       <category
-             id="com.google.dart.category"
-             name="Dart">
-       </category>
-       <wizard
-             category="com.google.dart.category"
-             class="com.google.dart.tools.ui.wizard.NewFileWizard"
-             finalPerspective="com.google.dart.tools.ui.DartPerspective"
-             icon="icons/full/obj16/library_obj.gif"
-             id="com.google.dart.file.wizard"
-             name="%NewFileWizard">
-       </wizard>
-       <wizard
-             category="com.google.dart.category"
-             class="com.google.dart.tools.ui.wizard.NewApplicationWizard"
-             finalPerspective="com.google.dart.tools.ui.DartPerspective"
-             icon="icons/full/obj16/library_obj.gif"
-             id="com.google.dart.library1.wizard"
-             name="%NewLibraryWizard">
-       </wizard>
-   </extension>
-   
    <extension
          point="org.eclipse.ui.propertyPages">
       <page
