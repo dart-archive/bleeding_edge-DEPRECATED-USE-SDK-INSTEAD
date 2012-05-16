@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.completion;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartModelException;
 
 import junit.framework.TestCase;
@@ -32,6 +33,8 @@ import java.util.Collection;
  * what we have to deal with today.
  */
 public class CompletionEngineTest extends TestCase {
+
+  private static boolean analysisCleared = false;
 
   public void testCommentSnippets001() throws Exception {
     test(
@@ -476,6 +479,10 @@ public class CompletionEngineTest extends TestCase {
         "Expected exclamation point ('!') within the source"
             + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
+    if (DartCoreDebug.ANALYSIS_SERVER && !analysisCleared) {
+      analysisCleared = true;
+      SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyzeLibraries();
+    }
     InMemoryIndex.getInstance().initializeIndex();
     if (DartCoreDebug.ANALYSIS_SERVER) {
       AnalysisTestUtilities.waitForIdle(60000);

@@ -46,7 +46,7 @@ public class DartCoreDebug {
   // Experimental functionality options.
 
   public static final boolean SERVER_DEBUGGING = isOptionTrue("experimental/serverDebugging");
-  public static final boolean ANALYSIS_SERVER = isOptionTrue("experimental/analysis/server");
+  public static final boolean ANALYSIS_SERVER = true; //isOptionTrue("experimental/analysis/server");
   public static final boolean ENABLE_CALL_GRAPH = true; //NEW_INDEXER && isOptionTrue("experimental/callHierarchy");
   public static final boolean ENABLE_UPDATE = isOptionTrue("experimental/update");
   public static final boolean ENABLE_DOUBLE_COMPILATION = true;
