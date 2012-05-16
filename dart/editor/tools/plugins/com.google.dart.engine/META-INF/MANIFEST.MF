@@ -17,6 +17,7 @@ Export-Package: com.google.dart.engine.ast,
  com.google.dart.engine.sdk,
  com.google.dart.engine.source,
  com.google.dart.engine.type,
+ com.google.dart.engine.utilities.collection,
  com.google.dart.engine.utilities.io,
  com.google.dart.engine.utilities.os
 Bundle-ClassPath: .,
