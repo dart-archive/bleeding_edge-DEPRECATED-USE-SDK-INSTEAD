@@ -17,6 +17,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
@@ -29,12 +30,22 @@ import static org.fest.assertions.Assertions.assertThat;
  * Test for {@link RenameTypeProcessor}.
  */
 public final class RenameTypeProcessorTest extends RefactoringTest {
+  private static boolean renameUnit = false;
+
   /**
    * Uses {@link RenameSupport} to rename {@link Type}.
    */
   private static void renameType(Type type, String newName) throws Exception {
     TestProject.waitForAutoBuild();
     RenameSupport renameSupport = RenameSupport.create(type, newName);
+    // we rename type Test in unit Test.dart and usually don't want to rename unit
+    {
+      RenameTypeProcessor renameTypeProcessor = ReflectionUtils.invokeMethod(
+          renameSupport,
+          "getDartRenameProcessor()");
+      renameTypeProcessor.setRenameUnit(renameUnit);
+    }
+    // do rename
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }
@@ -396,6 +407,65 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "  new NewName.named();",
         "}",
         "");
+  }
+
+  public void test_OK_renameUnit_whenNotCorrespondingType() throws Exception {
+    renameUnit = true;
+    CompilationUnit unit = setUnitContent("SomeName.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "}",
+        ""});
+    Type type = findElement(unit, "Test {");
+    // do rename
+    renameType(type, "NewName");
+    // still same unit
+    assertTrue(unit.exists());
+    assertUnitContent(unit, new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class NewName {",
+        "}",
+        ""});
+  }
+
+  public void test_OK_renameUnit_whenSameNameAsType() throws Exception {
+    renameUnit = true;
+    CompilationUnit unit = setUnitContent("Test.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Test {",
+        "}",
+        ""});
+    Type type = findElement(unit, "Test {");
+    // do rename
+    renameType(type, "NewName");
+    unit = testProject.getUnit("NewName.dart");
+    assertNotNull(unit);
+    assertTrue(unit.exists());
+    assertUnitContent(unit, new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class NewName {",
+        "}",
+        ""});
+  }
+
+  public void test_OK_renameUnit_whenUnderscoreType() throws Exception {
+    renameUnit = true;
+    CompilationUnit unit = setUnitContent("old_type_name.dart", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class OldTypeName {",
+        "}",
+        ""});
+    Type type = findElement(unit, "OldTypeName {");
+    // do rename
+    renameType(type, "NewTypeName");
+    unit = testProject.getUnit("new_type_name.dart");
+    assertNotNull(unit);
+    assertTrue(unit.exists());
+    assertUnitContent(unit, new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class NewTypeName {",
+        "}",
+        ""});
   }
 
   public void test_OK_singleUnit_onDeclaration() throws Exception {
@@ -995,6 +1065,12 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
         "  NewName test = new NewName();",
         "}",
         "somethingBad");
+  }
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    renameUnit = false;
   }
 
   private void check_postCondition_topLevel(String shadowName) throws Exception {

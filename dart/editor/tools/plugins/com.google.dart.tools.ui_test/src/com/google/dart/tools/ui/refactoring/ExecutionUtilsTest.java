@@ -14,16 +14,20 @@
 package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 
 import junit.framework.TestCase;
 
 import org.eclipse.core.runtime.CoreException;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Test for {@link ExecutionUtils}.
  */
 public class ExecutionUtilsTest extends TestCase {
+
   /**
    * Test for {@link ExecutionUtils#propagate(Throwable)}.
    */
@@ -82,6 +86,28 @@ public class ExecutionUtilsTest extends TestCase {
         System.clearProperty(key);
       }
     }
+  }
+
+  /**
+   * Test for {@link ExecutionUtils#runIgnore(RunnableEx)}.
+   */
+  public void test_runIgnore() throws Exception {
+    // no exception
+    final AtomicBoolean executed = new AtomicBoolean();
+    ExecutionUtils.runIgnore(new RunnableEx() {
+      @Override
+      public void run() throws Exception {
+        executed.set(true);
+      }
+    });
+    assertTrue(executed.get());
+    // with exception
+    ExecutionUtils.runIgnore(new RunnableEx() {
+      @Override
+      public void run() throws Exception {
+        throw new Exception();
+      }
+    });
   }
 
   /**

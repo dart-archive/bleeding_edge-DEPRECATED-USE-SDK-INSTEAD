@@ -69,6 +69,16 @@ public class ExecutionUtils {
   }
 
   /**
+   * Runs given {@link RunnableEx} and ignores exception.
+   */
+  public static void runIgnore(RunnableEx runnable) {
+    try {
+      runnable.run();
+    } catch (Throwable e) {
+    }
+  }
+
+  /**
    * Runs given {@link RunnableObjectEx} and re-throws exception.
    * 
    * @return the {@link Object} returned by {@link RunnableObjectEx#run()}.

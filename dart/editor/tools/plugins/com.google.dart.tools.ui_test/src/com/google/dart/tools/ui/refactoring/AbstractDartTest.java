@@ -36,7 +36,10 @@ public abstract class AbstractDartTest extends TestCase {
   /**
    * @return {@link DartNode} which has required offset and type.
    */
-  public static <E extends DartNode> E findNode(DartNode root, final int offset, final Class<E> clazz) {
+  public static <E extends DartNode> E findNode(
+      DartNode root,
+      final int offset,
+      final Class<E> clazz) {
     final AtomicReference<E> result = new AtomicReference<E>();
     root.accept(new ASTVisitor<Void>() {
       @Override
@@ -196,6 +199,7 @@ public abstract class AbstractDartTest extends TestCase {
   protected void tearDown() throws Exception {
     testProject.dispose();
     testProject = null;
+    testUnit = null;
   }
 
 }

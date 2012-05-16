@@ -13,13 +13,24 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
+import com.google.common.collect.Lists;
+import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.participants.ProcessorBasedRefactoring;
+
+import java.util.List;
 
 /**
  * {@link DartRenameProcessor} for {@link Type}.
@@ -30,7 +41,76 @@ public class RenameTypeProcessor extends RenameTopLevelProcessor {
 
   public static final String IDENTIFIER = "com.google.dart.tools.ui.renameTypeProcessor"; //$NON-NLS-1$
 
+  @SuppressWarnings("restriction")
+  private static List<Change> getRenameUnitChange(
+      final CompilationUnit unit,
+      final String newUnitName) {
+    final List<Change> changes = Lists.newArrayList();
+    ExecutionUtils.runIgnore(new RunnableEx() {
+      @Override
+      public void run() throws Exception {
+        IResource unitResource = unit.getUnderlyingResource();
+        if (RefactoringAvailabilityTester.isRenameAvailable(unitResource)) {
+          org.eclipse.ltk.internal.core.refactoring.resource.RenameResourceProcessor resourceProcessor = new org.eclipse.ltk.internal.core.refactoring.resource.RenameResourceProcessor(
+              unitResource);
+          if (resourceProcessor.isApplicable()) {
+            resourceProcessor.setNewResourceName(newUnitName + ".dart");
+            ProcessorBasedRefactoring refactoring = new ProcessorBasedRefactoring(resourceProcessor);
+            RefactoringStatus status = refactoring.checkAllConditions(new NullProgressMonitor());
+            if (status.isOK()) {
+              Change resourceChange = refactoring.createChange(new NullProgressMonitor());
+              changes.add(resourceChange);
+            }
+          }
+        }
+      }
+    });
+    return changes;
+  }
+
+  /**
+   * @return the name of {@link CompilationUnit} which corresponds to given {@link Type} name.
+   */
+  private static String getUnitNameForType(String typeName) {
+    StringBuilder unitName = new StringBuilder();
+    char[] typeChars = typeName.toCharArray();
+    boolean notUpperCase = false;
+    for (int i = 0; i < typeChars.length; i++) {
+      char c = typeChars[i];
+      if (Character.isUpperCase(c)) {
+        if (notUpperCase) {
+          unitName.append('_');
+        }
+        notUpperCase = false;
+      }
+      if (!Character.isUpperCase(c)) {
+        notUpperCase = true;
+      }
+      unitName.append(Character.toLowerCase(c));
+    }
+    return unitName.toString();
+  }
+
+  /**
+   * @return the unit name for given new type name, may be <code>null</code> if old names of unit
+   *         and type were not corresponding each other according to Dart conventions.
+   */
+  private static String getUnitNameForTypeName(
+      String oldUnitName,
+      String oldTypeName,
+      String newTypeName) {
+    if (oldTypeName.equals(oldUnitName)) {
+      return newTypeName;
+    }
+    if (getUnitNameForType(oldTypeName).equals(oldUnitName)) {
+      return getUnitNameForType(newTypeName);
+    }
+    return null;
+  }
+
   private final Type type;
+
+  private boolean renameUnit;
 
   /**
    * @param type the {@link Type} to rename, not <code>null</code>.
@@ -65,5 +145,28 @@ public class RenameTypeProcessor extends RenameTopLevelProcessor {
   @Override
   public boolean isApplicable() throws CoreException {
     return RefactoringAvailabilityTester.isRenameAvailable(type);
+  }
+
+  /**
+   * Specifies if enclosing {@link CompilationUnit} should be renamed, if its old name corresponds
+   * to the old name of renaming {@link Type}.
+   */
+  public void setRenameUnit(boolean renameUnit) {
+    this.renameUnit = renameUnit;
+  }
+
+  @Override
+  protected List<Change> contributeAdditionalChanges() {
+    if (renameUnit) {
+      CompilationUnit unit = type.getCompilationUnit();
+      String oldUnitName = StringUtils.removeEnd(unit.getElementName(), ".dart");
+      String oldTypeName = oldName;
+      String newTypeName = newName;
+      String newUnitName = getUnitNameForTypeName(oldUnitName, oldTypeName, newTypeName);
+      if (newUnitName != null) {
+        return getRenameUnitChange(unit, newUnitName);
+      }
+    }
+    return super.contributeAdditionalChanges();
   }
 }

@@ -14,6 +14,8 @@
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
@@ -52,6 +54,7 @@ import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -105,7 +108,15 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
   public Change createChange(IProgressMonitor monitor) throws CoreException {
     monitor.beginTask(RefactoringCoreMessages.RenameProcessor_checking, 1);
     try {
-      return new CompositeChange(getProcessorName(), changeManager.getAllChanges());
+      List<Change> changesList = Lists.<Change>newArrayList();
+      // add unit changes
+      Change[] renameUnitChanges = changeManager.getAllChanges();
+      Collections.addAll(changesList, renameUnitChanges);
+      // additional changes
+      changesList.addAll(contributeAdditionalChanges());
+      // wrap into CompositeChange
+      Change[] changesArray = changesList.toArray(new Change[changesList.size()]);
+      return new CompositeChange(getProcessorName(), changesArray);
     } finally {
       monitor.done();
     }
@@ -153,6 +164,13 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
       TextChange change = changeManager.get(unit);
       TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
     }
+  }
+
+  /**
+   * @return additional {@link Change} to apply during rename, may be empty {@link List}.
+   */
+  protected List<Change> contributeAdditionalChanges() {
+    return ImmutableList.of();
   }
 
   protected final TextEdit createTextChange(SourceRange sourceRange) {
