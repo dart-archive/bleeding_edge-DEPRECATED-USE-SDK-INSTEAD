@@ -158,24 +158,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
     DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
 
-    // TODO(devoncarew): temporary - this is just here to exercise the getLibraryURLs call
-    try {
-      connection.getLibraryURLs(new VmCallback<List<String>>() {
-        @Override
-        public void handleResult(VmResult<List<String>> result) {
-          if (result.isError()) {
-            System.out.println("lib result error: " + result.getError());
-          } else {
-            for (String lib : result.getResult()) {
-              System.out.println("lib: " + lib);
-            }
-          }
-        }
-      });
-    } catch (IOException ioe) {
-
-    }
-
     // TODO(devoncarew): this it temporarily commented out to test the paused event functionality
     //resume();
   }

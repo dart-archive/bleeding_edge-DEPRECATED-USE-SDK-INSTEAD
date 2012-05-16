@@ -27,7 +27,7 @@ public class VmLocation {
   static VmLocation createFrom(JSONObject object) throws JSONException {
     VmLocation location = new VmLocation();
 
-    location.url = JsonUtils.getString(object, "url");
+    location.url = VmUtils.vmUrlToEclipse(JsonUtils.getString(object, "url"));
     location.lineNumber = JsonUtils.getInt(object, "lineNumber", -1);
     // This field is not currently used by the VM.
     location.columnNumber = JsonUtils.getInt(object, "columnNumber", -1);

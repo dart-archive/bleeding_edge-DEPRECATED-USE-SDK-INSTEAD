@@ -45,6 +45,7 @@ public class VmConnection {
   }
 
   private static final String EVENT_PAUSED = "paused";
+  private static final String EVENT_BREAKPOINTRESOLVED = "breakpointResolved";
 
   private static Charset UTF8 = Charset.forName("UTF-8");
 
@@ -142,6 +143,19 @@ public class VmConnection {
     }
   }
 
+  public void getStackTrace(final VmCallback<List<VmCallFrame>> callback) throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    sendSimpleCommand("getStackTrace", new Callback() {
+      @Override
+      public void handleResult(JSONObject result) throws JSONException {
+        callback.handleResult(convertGetStackTraceResult(result));
+      }
+    });
+  }
+
   public boolean isConnected() {
     return socket != null;
   }
@@ -186,7 +200,9 @@ public class VmConnection {
       JSONObject request = new JSONObject();
 
       request.put("command", "setBreakpoint");
-      request.put("params", new JSONObject().put("url", url).put("line", line));
+      request.put(
+          "params",
+          new JSONObject().put("url", VmUtils.eclipseUrlToVm(url)).put("line", line));
 
       sendRequest(request, new Callback() {
         @Override
@@ -284,7 +300,7 @@ public class VmConnection {
       JSONArray arr = object.getJSONObject("result").getJSONArray("urls");
 
       for (int i = 0; i < arr.length(); i++) {
-        libUrls.add(arr.getString(i));
+        libUrls.add(VmUtils.vmUrlToEclipse(arr.getString(i)));
       }
 
       result.setResult(libUrls);
@@ -302,7 +318,7 @@ public class VmConnection {
       JSONArray arr = object.getJSONObject("result").getJSONArray("urls");
 
       for (int i = 0; i < arr.length(); i++) {
-        libUrls.add(arr.getString(i));
+        libUrls.add(VmUtils.vmUrlToEclipse(arr.getString(i)));
       }
 
       result.setResult(libUrls);
@@ -311,17 +327,65 @@ public class VmConnection {
     return result;
   }
 
+  private VmResult<List<VmCallFrame>> convertGetStackTraceResult(JSONObject object)
+      throws JSONException {
+    VmResult<List<VmCallFrame>> result = VmResult.createFrom(object);
+
+    if (object.has("result")) {
+      // object.getJSONObject("result")
+      List<VmCallFrame> frames = VmCallFrame.createFrom(object.getJSONArray("result"));
+
+      result.setResult(frames);
+    }
+
+    return result;
+  }
+
+  private void handleBreakpointResolved(int breakpointId, String url, int line) {
+    VmBreakpoint breakpoint = null;
+
+    synchronized (breakpoints) {
+      for (VmBreakpoint bp : breakpoints) {
+        if (bp.getBreakpointId() == breakpointId) {
+          breakpoint = bp;
+
+          break;
+        }
+      }
+    }
+
+    // TODO(devoncarew): notify anyone?
+    if (breakpoint == null) {
+      VmBreakpoint bp = new VmBreakpoint(url, line, breakpointId);
+
+      breakpoints.add(bp);
+    } else {
+      // TODO(devoncarew): ensure that line == bp.line?
+
+    }
+  }
+
   private void processNotification(JSONObject result) throws JSONException {
     if (result.has("event")) {
       String eventName = result.getString("event");
       JSONObject params = result.optJSONObject("params");
 
       if (eventName.equals(EVENT_PAUSED)) {
+        // { "event": "paused", "params": { "callFrames" : [  { "functionName": "main" , "location": { "url": "file:///Users/devoncarew/tools/eclipse_37/eclipse/samples/time/time_server.dart", "lineNumber": 15 }}]}}
+
         List<VmCallFrame> frames = VmCallFrame.createFrom(params.getJSONArray("callFrames"));
 
         for (VmListener listener : listeners) {
           listener.debuggerPaused(frames);
         }
+      } else if (eventName.equals(EVENT_BREAKPOINTRESOLVED)) {
+        // { "event": "breakpointResolved", "params": {"breakpointId": 2, "url": "file:///Users/devoncarew/tools/eclipse_37/eclipse/samples/time/time_server.dart", "line": 19 }}
+
+        int breakpointId = params.optInt("breakpointId");
+        String url = VmUtils.vmUrlToEclipse(params.optString("url"));
+        int line = params.optInt("line");
+
+        handleBreakpointResolved(breakpointId, url, line);
       } else {
         DartDebugCorePlugin.logInfo("no handler for notification: " + eventName);
       }
