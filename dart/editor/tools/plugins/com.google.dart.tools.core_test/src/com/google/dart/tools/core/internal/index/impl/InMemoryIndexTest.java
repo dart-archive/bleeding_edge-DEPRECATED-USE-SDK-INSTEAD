@@ -75,6 +75,16 @@ public class InMemoryIndexTest extends TestCase {
 
     Location[] locations = IndexTestUtilities.getRelationships(index, element, relationship);
     assertEquals(3, locations.length);
+
+    // Assert that regenerating and storing the same information twice does not cause duplicate results
+
+    store.regenerateResource(resource);
+    store.recordRelationship(resource, element, relationship, location1);
+    store.recordRelationship(resource, element, relationship, location2);
+    store.recordRelationship(resource, element, relationship, location3);
+
+    locations = IndexTestUtilities.getRelationships(index, element, relationship);
+    assertEquals(3, locations.length);
   }
 
   public void test_InMemoryIndex_getRelationships_none() throws Exception {
