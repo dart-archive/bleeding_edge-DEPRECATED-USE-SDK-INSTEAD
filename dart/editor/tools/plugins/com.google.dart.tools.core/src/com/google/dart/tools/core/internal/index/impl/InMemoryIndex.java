@@ -29,6 +29,7 @@ import com.google.dart.tools.core.index.Index;
 import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.RelationshipCallback;
 import com.google.dart.tools.core.index.Resource;
+import com.google.dart.tools.core.internal.index.operation.ClearIndexOperation;
 import com.google.dart.tools.core.internal.index.operation.GetAttributeOperation;
 import com.google.dart.tools.core.internal.index.operation.GetRelationshipsOperation;
 import com.google.dart.tools.core.internal.index.operation.IndexResourceOperation;
@@ -142,6 +143,19 @@ public class InMemoryIndex implements Index {
   }
 
   /**
+   * Remove all of the information from this index and re-initialize it to have information about
+   * the bundled libraries.
+   */
+  public void clear() {
+    queue.enqueue(new ClearIndexOperation(indexStore, new Runnable() {
+      @Override
+      public void run() {
+        initializeBundledLibraries();
+      }
+    }));
+  }
+
+  /**
    * Asynchronously invoke the given callback with the value of the given attribute that is
    * associated with the given element, or <code>null</code> if there is no value for the attribute.
    * 
@@ -234,13 +248,15 @@ public class InMemoryIndex implements Index {
     }
 
     URI unitUri = unitSource.getUri();
-    Resource indexResource;
+    Resource indexerResource;
     if (SystemLibraryManager.isDartUri(unitUri)) {
-      indexResource = new Resource(unitUri.toString());
+      indexerResource = new Resource(ResourceFactory.composeResourceId(
+          librarySource.getUri().toString(),
+          unitUri.toString()));
     } else {
-      indexResource = ResourceFactory.getResource(compilationUnit);
+      indexerResource = ResourceFactory.getResource(compilationUnit);
     }
-    indexResource(indexResource, compilationUnit, dartUnit);
+    indexResource(indexerResource, compilationUnit, dartUnit);
   }
 
   /**
@@ -273,13 +289,8 @@ public class InMemoryIndex implements Index {
       indexStore.clear();
       if (!initializeIndexFrom(getIndexFile())) {
         indexStore.clear();
-        if (!initializeIndexFrom(getInitialIndexFile())) {
-          indexStore.clear();
-          if (!indexBundledLibraries()) {
-            indexStore.clear();
-            return;
-          }
-          writeIndexTo(getInitialIndexFile());
+        if (!initializeBundledLibraries()) {
+          return;
         }
         if (!indexUserLibraries()) {
           indexStore.clear();
@@ -342,6 +353,15 @@ public class InMemoryIndex implements Index {
     }
   }
 
+  /**
+   * Return the file in which the state of the index is to be stored between sessions.
+   * 
+   * @return the file in which the state of the index is to be stored
+   */
+  private File getIndexFile() {
+    return new File(DartCore.getPlugin().getStateLocation().toFile(), INDEX_FILE);
+  }
+
 //  /**
 //   * Return the index file with the given name.
 //   * 
@@ -351,15 +371,6 @@ public class InMemoryIndex implements Index {
 //  private File getIndexFile(String fileName) {
 //    return new File(DartCore.getPlugin().getStateLocation().toFile(), fileName);
 //  }
-
-  /**
-   * Return the file in which the state of the index is to be stored between sessions.
-   * 
-   * @return the file in which the state of the index is to be stored
-   */
-  private File getIndexFile() {
-    return new File(DartCore.getPlugin().getStateLocation().toFile(), INDEX_FILE);
-  }
 
   /**
    * Return the file containing the initial state of the index. This file should be considered to be
@@ -523,6 +534,27 @@ public class InMemoryIndex implements Index {
       // library.getImportedLibrary(importedLibrary.getSource().getUri());
       indexUserLibrary(importedLibrary, initializedLibraries);
     }
+  }
+
+  /**
+   * Initialize this index to contain information about the bundled libraries. The index store is
+   * expected to have been cleared before invoking this method.
+   * 
+   * @return {@code true} if the bundled libraries were successfully indexed
+   */
+  private boolean initializeBundledLibraries() {
+    synchronized (indexStore) {
+      hasBeenInitialized = true;
+      if (!initializeIndexFrom(getInitialIndexFile())) {
+        indexStore.clear();
+        if (!indexBundledLibraries()) {
+          indexStore.clear();
+          return false;
+        }
+        writeIndexTo(getInitialIndexFile());
+      }
+    }
+    return true;
   }
 
   /**
