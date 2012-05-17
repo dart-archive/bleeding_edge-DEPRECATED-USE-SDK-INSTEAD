@@ -70,7 +70,8 @@ public abstract class AbstractScanner {
   private IntList lineStarts = new IntList();
 
   /**
-   * A list, treated something like a stack, of
+   * A list, treated something like a stack, of tokens representing the beginning of a matched pair.
+   * It is used to pair the end tokens with the begin tokens.
    */
   private List<BeginToken> groupingStack = new ArrayList<BeginToken>();
 
