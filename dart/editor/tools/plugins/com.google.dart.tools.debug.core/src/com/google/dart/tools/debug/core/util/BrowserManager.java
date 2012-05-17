@@ -428,7 +428,7 @@ public class BrowserManager {
    * @return the user data directory path
    */
   private String getCreateUserDataDirectoryPath() {
-    String dataDirPath = System.getProperty("user.home") + File.separator + ".dartChromeSettings";
+    String dataDirPath = System.getProperty("user.home") + File.separator + ".dartiumSettings";
 
     File dataDir = new File(dataDirPath);
 
