@@ -430,9 +430,9 @@ def main():
 
     sys.stdout.flush()
 
-    _PrintSeparator('Running the tests')
     if not build_skip_tests:
-      ant_status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
+      _PrintSeparator('Running the tests')
+      junit_status = ant.RunAnt('../com.google.dart.tools.tests.feature_releng',
                               'buildTests.xml',
                               revision, options.name, buildroot, buildout,
                               editorpath, buildos,
@@ -440,13 +440,13 @@ def main():
       properties = _ReadPropertyFile(buildos, ant_property_file.name)
       if buildos:
         _UploadTestHtml(buildout, to_bucket, revision, buildos, gsu)
-      if ant_status:
+      if junit_status:
         if properties['build.runtime']:
           #if there is a build.runtime and the status is not
           #zero see if there are any *.log entries
           _PrintErrorLog(properties['build.runtime'])
     else:
-      ant_status = 0
+      junit_status = 0
 
     if buildos:
       found_zips = _FindRcpZipFiles(buildout)
@@ -458,7 +458,7 @@ def main():
       if _ShouldMoveToLatest(staging_bucket, revision, gsu):
         _MoveContinuousToLatest(staging_bucket, to_bucket, revision, gsu)
         _CleanupStaging(staging_bucket, revision, gsu)
-    return ant_status
+    return junit_status
   finally:
     if ant_property_file is not None:
       print 'cleaning up temp file {0}'.format(ant_property_file.name)
@@ -657,7 +657,7 @@ def _CleanupStaging(bucket_stage, svnid, gsu):
     svnid: the svn revison
     gsu: the gsutil object
   """
-  print '_CLeanupStaging({0}, {1}, gsu'.format(bucket_stage, svnid)
+  print '_CleanupStaging({0}, {1}, gsu'.format(bucket_stage, svnid)
   tag_file_re = re.compile('^.+done-(\d+)-([lwm].+)')
   tag_template = '{0}/tags/done-{1}-*'
   stage_template = '{0}/staging/{1}/{2}/*'
@@ -926,8 +926,10 @@ def _InstallDartium(buildroot, buildout, buildos, gsu):
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
           zip_rel_path = 'dart/dart-sdk/chromium'
-          # remove DumpRenderTree.exe (a 31 MB savings)
+          # remove extra files
           os.remove(os.path.join(add_path, 'DumpRenderTree.exe'))
+          os.remove(os.path.join(add_path, 'mini_installer.exe'))
+          os.remove(os.path.join(add_path, 'sync_unit_tests.exe'))
         if 'mac' in buildos:
           paths = glob.glob(os.path.join(unzip_dir, 'dartium-*'))
           add_path = os.path.join(paths[0], 'Chromium.app')
