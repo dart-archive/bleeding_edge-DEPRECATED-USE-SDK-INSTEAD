@@ -89,15 +89,15 @@ public abstract class AbstractScannerTest extends TestCase {
   }
 
   public void test_AbstractScanner_comment_multi() throws Exception {
-    assertToken(TokenType.MULTI_LINE_COMMENT, "/* comment */");
+    assertComment(TokenType.MULTI_LINE_COMMENT, "/* comment */");
   }
 
   public void test_AbstractScanner_comment_nested() throws Exception {
-    assertToken(TokenType.MULTI_LINE_COMMENT, "/* comment /* within a */ comment */");
+    assertComment(TokenType.MULTI_LINE_COMMENT, "/* comment /* within a */ comment */");
   }
 
   public void test_AbstractScanner_comment_single() throws Exception {
-    assertToken(TokenType.SINGLE_LINE_COMMENT, "// comment");
+    assertComment(TokenType.SINGLE_LINE_COMMENT, "// comment");
   }
 
   public void test_AbstractScanner_double_both_e() throws Exception {
@@ -598,6 +598,19 @@ public abstract class AbstractScannerTest extends TestCase {
 
   protected abstract Token scan(String source);
 
+  private void assertComment(TokenType commentType, String source) throws Exception {
+    Token token = scan(source);
+    assertNotNull(token);
+    assertEquals(TokenType.EOF, token.getType());
+
+    Token comment = token.getPrecedingComments();
+    assertNotNull(comment);
+    assertEquals(commentType, comment.getType());
+    assertEquals(0, comment.getOffset());
+    assertEquals(source.length(), comment.getLength());
+    assertEquals(source, comment.getLexeme());
+  }
+
   /**
    * Assert that when scanned the given source contains a single keyword token with the same lexeme
    * as the original source.
@@ -632,34 +645,36 @@ public abstract class AbstractScannerTest extends TestCase {
    * @param expectedType the expected type of the token
    * @param source the source to be scanned to produce the actual token
    */
-  private void assertToken(TokenType expectedType, String source) {
-    Token actualToken = scan(source);
-    assertNotNull(actualToken);
-    assertEquals(expectedType, actualToken.getType());
-    assertEquals(0, actualToken.getOffset());
-    assertEquals(source.length(), actualToken.getLength());
-    assertEquals(source, actualToken.getLexeme());
+  private Token assertToken(TokenType expectedType, String source) {
+    Token originalToken = scan(source);
+    assertNotNull(originalToken);
+    assertEquals(expectedType, originalToken.getType());
+    assertEquals(0, originalToken.getOffset());
+    assertEquals(source.length(), originalToken.getLength());
+    assertEquals(source, originalToken.getLexeme());
 
     if (expectedType == TokenType.SCRIPT_TAG) {
       // Adding space before the script tag is not allowed, and adding text at the end changes nothing.
-      return;
+      return originalToken;
     } else if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
       // Adding space to an end-of-line comment changes the comment.
-      actualToken = scan(" " + source);
-      assertNotNull(actualToken);
-      assertEquals(expectedType, actualToken.getType());
-      assertEquals(1, actualToken.getOffset());
-      assertEquals(source.length(), actualToken.getLength());
-      assertEquals(source, actualToken.getLexeme());
-      return;
+      Token tokenWithSpaces = scan(" " + source);
+      assertNotNull(tokenWithSpaces);
+      assertEquals(expectedType, tokenWithSpaces.getType());
+      assertEquals(1, tokenWithSpaces.getOffset());
+      assertEquals(source.length(), tokenWithSpaces.getLength());
+      assertEquals(source, tokenWithSpaces.getLexeme());
+      return originalToken;
     }
 
-    actualToken = scan(" " + source + " ");
-    assertNotNull(actualToken);
-    assertEquals(expectedType, actualToken.getType());
-    assertEquals(1, actualToken.getOffset());
-    assertEquals(source.length(), actualToken.getLength());
-    assertEquals(source, actualToken.getLexeme());
+    Token tokenWithSpaces = scan(" " + source + " ");
+    assertNotNull(tokenWithSpaces);
+    assertEquals(expectedType, tokenWithSpaces.getType());
+    assertEquals(1, tokenWithSpaces.getOffset());
+    assertEquals(source.length(), tokenWithSpaces.getLength());
+    assertEquals(source, tokenWithSpaces.getLexeme());
+
+    return originalToken;
   }
 
   /**

@@ -16,8 +16,11 @@ package com.google.dart.engine.scanner;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.collection.IntList;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The abstract class <code>AbstractScanner</code> implements a scanner for Dart code. Subclasses
@@ -47,9 +50,29 @@ public abstract class AbstractScanner {
   private Token tail;
 
   /**
+   * The first token in the list of comment tokens found since the last non-comment token.
+   */
+  private Token firstComment;
+
+  /**
+   * The last token in the list of comment tokens found since the last non-comment token.
+   */
+  private Token lastComment;
+
+  /**
    * The index of the first character of the current token.
    */
   private int tokenStart;
+
+  /**
+   * A list containing the offsets of the first character of each line in the source code.
+   */
+  private IntList lineStarts = new IntList();
+
+  /**
+   * A list, treated something like a stack, of
+   */
+  private List<BeginToken> groupingStack = new ArrayList<BeginToken>();
 
   /**
    * A non-breaking space, which is allowed by this scanner as a white-space character.
@@ -68,10 +91,32 @@ public abstract class AbstractScanner {
     tokens = new Token(TokenType.EOF, -1);
     tail = tokens;
     tokenStart = -1;
+    lineStarts.add(0);
   }
 
+  /**
+   * Return an array containing the offsets of the first character of each line in the source code.
+   * 
+   * @return an array containing the offsets of the first character of each line in the source code
+   */
+  public int[] getLineStarts() {
+    return lineStarts.toArray();
+  }
+
+  /**
+   * Return the zero (0) if the scanner has not yet scanned the source code, and the length of the
+   * source code if the source code has been scanned.
+   * 
+   * @return the current offset of the scanner in the source
+   */
   public abstract int getOffset();
 
+  /**
+   * Scan the source code to produce a list of tokens representing the source.
+   * 
+   * @return the first token in the list of tokens that were produced
+   * @throws IOException if the source code cannot be read
+   */
   public Token tokenize() throws IOException {
     int next = advance();
     while (next != -1) {
@@ -87,30 +132,111 @@ public abstract class AbstractScanner {
 
   protected abstract int peek();
 
+  private void appendBeginToken(TokenType type) {
+    BeginToken token;
+    if (firstComment == null) {
+      token = new BeginToken(type, tokenStart);
+    } else {
+      token = new BeginTokenWithComment(type, tokenStart, firstComment);
+      firstComment = null;
+      lastComment = null;
+    }
+    tail = tail.setNext(token);
+    groupingStack.add(token);
+  }
+
+  private void appendCommentToken(TokenType type, String value) {
+    if (firstComment == null) {
+      firstComment = new StringToken(type, value, tokenStart);
+      lastComment = firstComment;
+    } else {
+      lastComment = lastComment.setNext(new StringToken(type, value, tokenStart));
+    }
+  }
+
+  private void appendEndToken(TokenType type, TokenType beginType) {
+    Token token;
+    if (firstComment == null) {
+      token = new Token(type, tokenStart);
+    } else {
+      token = new TokenWithComment(type, tokenStart, firstComment);
+      firstComment = null;
+      lastComment = null;
+    }
+    tail = tail.setNext(token);
+    int last = groupingStack.size() - 1;
+    if (last >= 0) {
+      BeginToken begin = groupingStack.get(last);
+      if (begin.getType() == beginType) {
+        begin.setEndToken(token);
+        groupingStack.remove(last);
+      }
+    }
+  }
+
   private void appendEofToken() {
-    tail = tail.setNext(new Token(TokenType.EOF, getOffset()));
-    // EOF points to itself so there's always infinite look-ahead.
+    if (firstComment == null) {
+      tail = tail.setNext(new Token(TokenType.EOF, getOffset()));
+    } else {
+      tail = tail.setNext(new TokenWithComment(TokenType.EOF, getOffset(), firstComment));
+      firstComment = null;
+      lastComment = null;
+    }
+    // The EOF token points to itself so that there is always infinite look-ahead.
     tail.setNext(tail);
+    if (!groupingStack.isEmpty()) {
+      // TODO(brianwilkerson) Fix the ungrouped tokens?
+    }
   }
 
   private void appendKeywordToken(Keyword keyword) {
-    tail = tail.setNext(new KeywordToken(keyword, tokenStart));
+    if (firstComment == null) {
+      tail = tail.setNext(new KeywordToken(keyword, tokenStart));
+    } else {
+      tail = tail.setNext(new KeywordTokenWithComment(keyword, tokenStart, firstComment));
+      firstComment = null;
+      lastComment = null;
+    }
   }
 
   private void appendStringToken(TokenType type, String value) {
-    tail = tail.setNext(new StringToken(type, value, tokenStart));
+    if (firstComment == null) {
+      tail = tail.setNext(new StringToken(type, value, tokenStart));
+    } else {
+      tail = tail.setNext(new StringTokenWithComment(type, value, tokenStart, firstComment));
+      firstComment = null;
+      lastComment = null;
+    }
   }
 
   private void appendStringToken(TokenType type, String value, int offset) {
-    tail = tail.setNext(new StringToken(type, value, tokenStart + offset));
+    if (firstComment == null) {
+      tail = tail.setNext(new StringToken(type, value, tokenStart + offset));
+    } else {
+      tail = tail.setNext(new StringTokenWithComment(type, value, tokenStart + offset, firstComment));
+      firstComment = null;
+      lastComment = null;
+    }
   }
 
   private void appendToken(TokenType type) {
-    tail = tail.setNext(new Token(type, tokenStart));
+    if (firstComment == null) {
+      tail = tail.setNext(new Token(type, tokenStart));
+    } else {
+      tail = tail.setNext(new TokenWithComment(type, tokenStart, firstComment));
+      firstComment = null;
+      lastComment = null;
+    }
   }
 
   private void appendToken(TokenType type, int offset) {
-    tail = tail.setNext(new Token(type, offset));
+    if (firstComment == null) {
+      tail = tail.setNext(new Token(type, offset));
+    } else {
+      tail = tail.setNext(new TokenWithComment(type, offset, firstComment));
+      firstComment = null;
+      lastComment = null;
+    }
   }
 
   private void beginToken() {
@@ -119,8 +245,18 @@ public abstract class AbstractScanner {
 
   private int bigSwitch(int next) throws IOException {
     beginToken();
-    if (next == '\t' || next == '\n' || next == '\r' || next == ' ') {
-      //appendWhiteSpace(next);
+
+    if (next == '\r') {
+      next = advance();
+      if (next == '\n') {
+        next = advance();
+      }
+      recordStartOfLine();
+      return next;
+    } else if (next == '\n') {
+      recordStartOfLine();
+      return advance();
+    } else if (next == '\t' || next == ' ') {
       return advance();
     }
 
@@ -194,12 +330,12 @@ public abstract class AbstractScanner {
     }
 
     if (next == '(') {
-      appendToken(TokenType.OPEN_PAREN);
+      appendBeginToken(TokenType.OPEN_PAREN);
       return advance();
     }
 
     if (next == ')') {
-      appendToken(TokenType.CLOSE_PAREN);
+      appendEndToken(TokenType.CLOSE_PAREN, TokenType.OPEN_PAREN);
       return advance();
     }
 
@@ -224,7 +360,7 @@ public abstract class AbstractScanner {
     }
 
     if (next == ']') {
-      appendToken(TokenType.CLOSE_SQUARE_BRACKET);
+      appendEndToken(TokenType.CLOSE_SQUARE_BRACKET, TokenType.OPEN_SQUARE_BRACKET);
       return advance();
     }
 
@@ -234,12 +370,12 @@ public abstract class AbstractScanner {
     }
 
     if (next == '{') {
-      appendToken(TokenType.OPEN_CURLY_BRACKET);
+      appendBeginToken(TokenType.OPEN_CURLY_BRACKET);
       return advance();
     }
 
     if (next == '}') {
-      appendToken(TokenType.CLOSE_CURLY_BRACKET);
+      appendEndToken(TokenType.CLOSE_CURLY_BRACKET, TokenType.OPEN_CURLY_BRACKET);
       return advance();
     }
 
@@ -301,6 +437,13 @@ public abstract class AbstractScanner {
    */
   private Source getSource() {
     return source;
+  }
+
+  /**
+   * Record the fact that we are at the beginning of a new line in the source.
+   */
+  private void recordStartOfLine() {
+    lineStarts.add(getOffset());
   }
 
   private int select(char choice, TokenType yesType, TokenType noType) throws IOException {
@@ -593,14 +736,14 @@ public abstract class AbstractScanner {
             getSource(),
             ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
             getOffset()));
-        appendStringToken(TokenType.MULTI_LINE_COMMENT, getString(tokenStart, 0));
+        appendCommentToken(TokenType.MULTI_LINE_COMMENT, getString(tokenStart, 0));
         return next;
       } else if ('*' == next) {
         next = advance();
         if ('/' == next) {
           --nesting;
           if (0 == nesting) {
-            appendStringToken(TokenType.MULTI_LINE_COMMENT, getString(tokenStart, 0));
+            appendCommentToken(TokenType.MULTI_LINE_COMMENT, getString(tokenStart, 0));
             return advance();
           } else {
             next = advance();
@@ -715,7 +858,7 @@ public abstract class AbstractScanner {
     if (next == ']') {
       return select('=', TokenType.INDEX_EQ, TokenType.INDEX);
     } else {
-      appendToken(TokenType.OPEN_SQUARE_BRACKET);
+      appendBeginToken(TokenType.OPEN_SQUARE_BRACKET);
       return next;
     }
   }
@@ -756,7 +899,7 @@ public abstract class AbstractScanner {
     while (true) {
       next = advance();
       if ('\n' == next || '\r' == next || -1 == next) {
-        appendStringToken(TokenType.SINGLE_LINE_COMMENT, getString(tokenStart, 0));
+        appendCommentToken(TokenType.SINGLE_LINE_COMMENT, getString(tokenStart, 0));
         return next;
       }
     }

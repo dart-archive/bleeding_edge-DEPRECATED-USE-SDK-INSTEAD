@@ -81,6 +81,17 @@ public class Token {
   }
 
   /**
+   * Return the first comment in the list of comments that precede this token, or {@code null} if
+   * there are no comments preceding this token. Additional comments can be reached by following the
+   * token stream using {@link #getNext()} until {@code null} is returned.
+   * 
+   * @return the first comment in the list of comments that precede this token
+   */
+  public Token getPrecedingComments() {
+    return null;
+  }
+
+  /**
    * Return the type of the token.
    * 
    * @return the type of the token

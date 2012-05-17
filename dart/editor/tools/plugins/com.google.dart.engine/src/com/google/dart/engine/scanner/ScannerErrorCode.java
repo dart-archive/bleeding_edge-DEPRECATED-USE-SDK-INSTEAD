@@ -58,6 +58,6 @@ public enum ScannerErrorCode implements ErrorCode {
 
   @Override
   public boolean needsRecompilation() {
-    return false;
+    return true;
   }
 }

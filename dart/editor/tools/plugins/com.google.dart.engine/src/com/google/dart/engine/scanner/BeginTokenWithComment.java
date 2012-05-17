@@ -14,34 +14,30 @@
 package com.google.dart.engine.scanner;
 
 /**
- * Instances of the class <code>StringToken</code> represent a token whose value is independent of
- * it's type.
+ * Instances of the class {@code BeginTokenWithComment} represent a begin token that is preceded by
+ * comments.
  */
-public class StringToken extends Token {
+public class BeginTokenWithComment extends BeginToken {
   /**
-   * The lexeme represented by this token.
+   * The first comment in the list of comments that precede this token.
    */
-  final String value;
+  private Token precedingComment;
 
   /**
-   * Initialize a newly created token to represent a token of the given type with the given value.
+   * Initialize a newly created token to have the given type and offset and to be preceded by the
+   * comments reachable from the given comment.
    * 
    * @param type the type of the token
-   * @param value the lexeme represented by this token
    * @param offset the offset from the beginning of the file to the first character in the token
+   * @param precedingComment the first comment in the list of comments that precede this token
    */
-  public StringToken(TokenType type, String value, int offset) {
+  public BeginTokenWithComment(TokenType type, int offset, Token precedingComment) {
     super(type, offset);
-    this.value = value;
+    this.precedingComment = precedingComment;
   }
 
   @Override
-  public String getLexeme() {
-    return value;
-  }
-
-  @Override
-  public String value() {
-    return value;
+  public Token getPrecedingComments() {
+    return precedingComment;
   }
 }
