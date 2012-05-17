@@ -112,7 +112,7 @@ public class IProjectUtilitiesTest extends TestCase {
             new NullProgressMonitor());
         assertTrue(result instanceof IProject);
         IProject project = (IProject) result;
-        project.delete(true, new NullProgressMonitor());
+        TestUtilities.deleteProject(project);
       }
     });
   }

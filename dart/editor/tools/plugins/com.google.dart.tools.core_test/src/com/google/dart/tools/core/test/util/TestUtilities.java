@@ -272,11 +272,44 @@ public class TestUtilities {
       project.getProject().getWorkspace().run(new IWorkspaceRunnable() {
         @Override
         public void run(IProgressMonitor monitor) throws CoreException {
-          project.getProject().delete(true, true, null);
+          deleteProject(project.getProject());
         }
       }, null);
     } catch (CoreException exception) {
       // DartCore.getLogger().logError(exception, "Could not delete the project " + project.getElementName()); //$NON-NLS-1$
+    }
+  }
+
+  /**
+   * Call project.delete() in a loop. If we get a failure, run a GC to try and clean up dangling
+   * references to the files. Bail out after MAX_FAILURES tries.
+   * <p>
+   * This utility method exists because of issues deleting resources in windows when there are open
+   * file handles to those resources.
+   * 
+   * @param project the project to delete
+   * @throws CoreException if an exception occured while deleting the project
+   */
+  public static void deleteProject(IProject project) throws CoreException {
+    final int MAX_FAILURES = 10;
+
+    int failureCount = 0;
+
+    while (true) {
+      try {
+        project.delete(true, true, null);
+
+        return;
+      } catch (CoreException ce) {
+        failureCount++;
+
+        if (failureCount >= MAX_FAILURES) {
+          throw ce;
+        }
+
+        Runtime.getRuntime().gc();
+        Runtime.getRuntime().runFinalization();
+      }
     }
   }
 

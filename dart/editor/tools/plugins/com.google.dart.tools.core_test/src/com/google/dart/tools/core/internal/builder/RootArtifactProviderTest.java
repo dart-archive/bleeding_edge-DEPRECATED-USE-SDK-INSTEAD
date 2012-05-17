@@ -83,7 +83,7 @@ public class RootArtifactProviderTest extends TestCase {
     writeArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
     assertArtifact(source1, "", RANDOM_EXT1, RANDOM_CONTENT1);
     assertArtifact(source2, "", RANDOM_EXT2, RANDOM_CONTENT2);
-    unit1.getLibrary().getDartProject().getProject().delete(true, true, new NullProgressMonitor());
+    TestUtilities.deleteProject(unit1.getLibrary().getDartProject().getProject());
     assertArtifact(source1, "", RANDOM_EXT1, null);
     assertArtifact(source2, "", RANDOM_EXT2, null);
   }

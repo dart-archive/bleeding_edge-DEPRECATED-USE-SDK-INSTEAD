@@ -167,12 +167,7 @@ public class DartModelManagerTest extends TestCase {
       }, null);
       assertEquals(library, libraryHolder[0]);
     } finally {
-      ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-        @Override
-        public void run(IProgressMonitor monitor) throws CoreException {
-          ((DartProject) parent).getProject().delete(true, true, monitor);
-        }
-      }, null);
+      TestUtilities.deleteProject((DartProject) parent);
     }
   }
 
@@ -194,12 +189,7 @@ public class DartModelManagerTest extends TestCase {
     try {
       assertValidLibrary(library);
     } finally {
-      ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-        @Override
-        public void run(IProgressMonitor monitor) throws CoreException {
-          ((DartProject) parent).getProject().delete(true, true, monitor);
-        }
-      }, null);
+      TestUtilities.deleteProject((DartProject) parent);
     }
   }
 
@@ -220,12 +210,7 @@ public class DartModelManagerTest extends TestCase {
     try {
       assertValidLibrary(library);
     } finally {
-      ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-        @Override
-        public void run(IProgressMonitor monitor) throws CoreException {
-          ((DartProject) parent).getProject().delete(true, true, monitor);
-        }
-      }, null);
+      TestUtilities.deleteProject((DartProject) parent);
     }
   }
 

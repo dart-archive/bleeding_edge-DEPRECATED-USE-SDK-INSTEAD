@@ -59,31 +59,6 @@ public class TestProject {
     }
   }
 
-  private static void deleteProject(IProject project) throws CoreException {
-    final int MAX_FAILURES = 10;
-
-    int failureCount = 0;
-
-    // Call project.delete() in a loop. If we get a failure, run a GC to try and clean up
-    // dangling references to the files. Bail out after MAX_FAILURES tries.
-    while (true) {
-      try {
-        project.delete(true, true, null);
-
-        return;
-      } catch (CoreException ce) {
-        failureCount++;
-
-        if (failureCount >= MAX_FAILURES) {
-          throw ce;
-        }
-
-        Runtime.getRuntime().gc();
-        Runtime.getRuntime().runFinalization();
-      }
-    }
-  }
-
   private final IProject project;
 
   private final DartProject dartProject;
@@ -107,7 +82,7 @@ public class TestProject {
       public void run(IProgressMonitor monitor) throws CoreException {
         // delete project
         if (project.exists()) {
-          project.delete(true, true, null);
+          TestUtilities.deleteProject(project);
         }
         // create project
         {
@@ -130,7 +105,7 @@ public class TestProject {
    * Disposes allocated resources and deletes project.
    */
   public void dispose() throws Exception {
-    deleteProject(project);
+    TestUtilities.deleteProject(project);
   }
 
   /**
