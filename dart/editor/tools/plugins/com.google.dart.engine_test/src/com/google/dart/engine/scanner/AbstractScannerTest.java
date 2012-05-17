@@ -637,6 +637,8 @@ public abstract class AbstractScannerTest extends TestCase {
     value = token.value();
     assertTrue(value instanceof Keyword);
     assertEquals(source, ((Keyword) value).getSyntax());
+
+    assertEquals(TokenType.EOF, token.getNext().getType());
   }
 
   /**
@@ -673,6 +675,8 @@ public abstract class AbstractScannerTest extends TestCase {
     assertEquals(1, tokenWithSpaces.getOffset());
     assertEquals(source.length(), tokenWithSpaces.getLength());
     assertEquals(source, tokenWithSpaces.getLexeme());
+
+    assertEquals(TokenType.EOF, originalToken.getNext().getType());
 
     return originalToken;
   }
