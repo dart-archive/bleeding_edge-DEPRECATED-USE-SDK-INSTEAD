@@ -126,6 +126,10 @@ public class SamplesTest extends TestCase {
    * @return <code>true</code> if the referenced file exists, else <code>false</code>
    */
   private boolean verifyRelativePath(File file, String relPath) {
+    if (relPath.startsWith("dart:") || relPath.startsWith("package:")) {
+      return true;
+    }
+
     IPath dirPath = new Path(file.getPath()).removeLastSegments(1);
     final File referencedFile = dirPath.append(relPath).toFile();
     if (!referencedFile.exists()) {
