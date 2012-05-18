@@ -50,12 +50,12 @@ class AnalysisUtility {
   private static final CompilerConfiguration config = new DefaultCompilerConfiguration(
       new CompilerOptions(),
       SystemLibraryManagerProvider.getSystemLibraryManager()) {
-    @Override
+      @Override
     public boolean incremental() {
       return false;
     }
 
-    @Override
+      @Override
     public boolean resolveDespiteParseErrors() {
       return true;
     }
@@ -169,7 +169,7 @@ class AnalysisUtility {
       DartCore.logError("Non absolute path: " + file);
       return null;
     }
-    if (SystemLibraryManager.isDartUri(uri)) {
+    if (SystemLibraryManager.isDartUri(uri) || SystemLibraryManager.isPackageUri(uri)) {
       URI resolveUri = server.getLibraryManager().resolveDartUri(uri);
       if (resolveUri == null) {
         DartCore.logError("Failed to resolve: " + uri);
@@ -203,8 +203,8 @@ class AnalysisUtility {
    * Notify listeners of source files that were parsed during resolution
    * 
    * @param parsedUnits the units that were parsed prior to the resolve (not <code>null</code>)
-   * @param newlyResolved the newly resolved library units (not <code>null</code>, contains no
-   *          <code>null</code>s)
+   * @param newlyResolved the newly resolved library units (not <code>null</code>, contains no <code>null
+   *          </code>s)
    * @param errorListener the error listener used during resolution (not <code>null</code>)
    */
   private static void notifyParsedDuringResolve(AnalysisServer server,
