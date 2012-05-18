@@ -17,6 +17,7 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.resolve;
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
@@ -89,6 +90,15 @@ class ResolveLibraryTask extends Task {
         context.cacheLibrary(lib);
       }
       lib.cacheLibraryUnit(server, libUnit);
+    }
+
+    // If the expected library was not resolved then log an error and insert a placeholder
+    // so that we don't try to continually resolve a library which cannot be resolved
+
+    if (library.getLibraryUnit() == null) {
+      DartCore.logError("Failed to resolve " + library.getFile());
+      LibraryUnit libUnit = new LibraryUnit(library.getLibrarySource());
+      library.cacheLibraryUnit(server, libUnit);
     }
   }
 }
