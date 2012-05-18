@@ -16,8 +16,12 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>PropertyAccess</code> represent an access of a property of an
+ * Instances of the class <code>PropertyAccess</code> represent the access of a property of an
  * object.
+ * <p>
+ * Note, however, that accesses to properties of objects can also be represented as
+ * {@link PrefixedIdentifier prefixed identifier} nodes in cases where the target is also a simple
+ * identifier.
  * 
  * <pre>
  * propertyAccess ::=

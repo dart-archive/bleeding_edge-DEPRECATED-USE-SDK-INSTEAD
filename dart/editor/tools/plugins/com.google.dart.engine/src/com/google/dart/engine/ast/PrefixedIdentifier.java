@@ -16,7 +16,9 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>PrefixedIdentifier</code> represent an identifier that is prefixed.
+ * Instances of the class <code>PrefixedIdentifier</code> represent either an identifier that is
+ * prefixed or an access to an object property where the target of the property access is a simple
+ * identifier.
  * 
  * <pre>
  * prefixedIdentifier ::=
