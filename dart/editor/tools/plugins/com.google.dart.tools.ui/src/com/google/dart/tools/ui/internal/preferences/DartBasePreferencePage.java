@@ -19,7 +19,6 @@ import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.util.CleanLibrariesJob;
-import com.google.dart.tools.update.core.UpdateCore;
 
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -90,9 +89,10 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
           printMarginText.getText());
     }
 
-    if (DartCoreDebug.ENABLE_UPDATE) {
-      UpdateCore.enableAutoDownload(autoDownloadCheck.getSelection());
-    }
+//TODO(pquitslund): re-enable/move to rcp-only contributed update preference page
+//    if (DartCoreDebug.ENABLE_UPDATE) {
+//      UpdateCore.enableAutoDownload(autoDownloadCheck.getSelection());
+//    }
 
     PreferenceConstants.getPreferenceStore().setValue(
         PreferenceConstants.EDITOR_REMOVE_TRAILING_WS, removeTrailingWhitespaceCheck.getSelection());
@@ -170,13 +170,13 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
     Group packageGroup = new Group(composite, SWT.NONE);
     packageGroup.setText(PreferencesMessages.DartBasePreferencePage_Package_Title);
-    GridDataFactory.fillDefaults()
-        .grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(packageGroup);
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        packageGroup);
     GridLayoutFactory.fillDefaults().numColumns(2).margins(8, 8).applyTo(packageGroup);
 
     packageRootDir = new Text(packageGroup, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(350, SWT.DEFAULT)
-        .grab(true, false).applyTo(packageRootDir);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(350, SWT.DEFAULT).grab(true,
+        false).applyTo(packageRootDir);
 
     Button selectPackageDirButton = new Button(packageGroup, SWT.PUSH);
     selectPackageDirButton.setText(PreferencesMessages.DartBasePreferencePage_Browse);
@@ -184,7 +184,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
     GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(selectPackageDirButton);
     selectPackageDirButton.addSelectionListener(new SelectionAdapter() {
-        @Override
+      @Override
       public void widgetSelected(SelectionEvent e) {
         handleBrowseButton();
       }
@@ -226,9 +226,10 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     removeTrailingWhitespaceCheck.setSelection(PreferenceConstants.getPreferenceStore().getBoolean(
         PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
 
-    if (DartCoreDebug.ENABLE_UPDATE) {
-      autoDownloadCheck.setSelection(UpdateCore.isAutoDownloadEnabled());
-    }
+//TODO(pquitslund): re-enable/move to rcp-only contributed update preference page
+//    if (DartCoreDebug.ENABLE_UPDATE) {
+//      autoDownloadCheck.setSelection(UpdateCore.isAutoDownloadEnabled());
+//    }
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {

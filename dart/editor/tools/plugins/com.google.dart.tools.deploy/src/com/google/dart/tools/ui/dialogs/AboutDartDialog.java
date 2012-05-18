@@ -96,7 +96,7 @@ public class AboutDartDialog extends Shell {
     Label graphic = newLabel(SWT.SHADOW_NONE | SWT.CENTER);
     GridDataFactory.fillDefaults().grab(true, true).align(SWT.FILL, SWT.FILL).hint(316, 416).applyTo(
         graphic);
-    graphic.setImage(DartToolsPlugin.getImageDescriptorRegistry().get(ABOUT_IMG_DESC));
+    graphic.setImage(DartToolsPlugin.getImage(ABOUT_IMG_DESC));
 
     Label productNameLabel = newLabel(SWT.BOLD);
     productNameLabel.setFont(JFaceResources.getBannerFont());
