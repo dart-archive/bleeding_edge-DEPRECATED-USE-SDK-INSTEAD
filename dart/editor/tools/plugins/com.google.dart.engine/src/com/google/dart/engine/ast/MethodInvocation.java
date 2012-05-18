@@ -15,20 +15,16 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
-import java.util.List;
-
 /**
  * Instances of the class <code>MethodInvocation</code> represent the invocation of either a
- * function or a method. Invocations of getters and setters are represented by
- * {@link PropertyAccess property access} nodes.
+ * function or a method. Invocations of functions resulting from evaluating an expression are
+ * represented by {@link FunctionExpressionInvocation function expression invocation} nodes.
+ * Invocations of getters and setters are represented by either {@link PrefixedIdentifier prefixed
+ * identifier} or {@link PropertyAccess property access} nodes.
  * 
  * <pre>
  * methodInvoction ::=
- *     ({@link Expression target} '.')? {@link SimpleIdentifier methodName} '(' argumentList? ')'
- *
- * argumentList:
- *     {@link NamedExpression namedArgument} (',' {@link NamedExpression namedArgument})*
- *   | {@link Expression expressionList} (',' {@link NamedExpression namedArgument})*
+ *     ({@link Expression target} '.')? {@link SimpleIdentifier methodName} {@link ArgumentList argumentList}
  * </pre>
  */
 public class MethodInvocation extends Expression {
@@ -50,19 +46,9 @@ public class MethodInvocation extends Expression {
   private SimpleIdentifier methodName;
 
   /**
-   * The left parenthesis.
+   * The list of arguments to the method.
    */
-  private Token leftParenthesis;
-
-  /**
-   * The expressions producing the values of the arguments to the method.
-   */
-  private NodeList<Expression> arguments = new NodeList<Expression>(this);
-
-  /**
-   * The right parenthesis.
-   */
-  private Token rightParenthesis;
+  private ArgumentList argumentList;
 
   /**
    * Initialize a newly created method invocation.
@@ -76,18 +62,14 @@ public class MethodInvocation extends Expression {
    * @param target the expression producing the object on which the method is defined
    * @param period the period that separates the target from the method name
    * @param methodName the name of the method being invoked
-   * @param leftParenthesis the left parenthesis
-   * @param arguments the expressions producing the values of the arguments to the method
-   * @param rightParenthesis the right parenthesis
+   * @param argumentList the list of arguments to the method
    */
   public MethodInvocation(Expression target, Token period, SimpleIdentifier methodName,
-      Token leftParenthesis, List<Expression> arguments, Token rightParenthesis) {
+      ArgumentList argumentList) {
     this.target = becomeParentOf(target);
     this.period = period;
     this.methodName = becomeParentOf(methodName);
-    this.leftParenthesis = leftParenthesis;
-    this.arguments.addAll(arguments);
-    this.rightParenthesis = rightParenthesis;
+    this.argumentList = becomeParentOf(argumentList);
   }
 
   @Override
@@ -96,12 +78,12 @@ public class MethodInvocation extends Expression {
   }
 
   /**
-   * Return the expressions producing the values of the arguments to the method.
+   * Return the list of arguments to the method.
    * 
-   * @return the expressions producing the values of the arguments to the method
+   * @return the list of arguments to the method
    */
-  public NodeList<Expression> getArguments() {
-    return arguments;
+  public ArgumentList getArgumentList() {
+    return argumentList;
   }
 
   @Override
@@ -114,16 +96,7 @@ public class MethodInvocation extends Expression {
 
   @Override
   public Token getEndToken() {
-    return rightParenthesis;
-  }
-
-  /**
-   * Return the left parenthesis.
-   * 
-   * @return the left parenthesis
-   */
-  public Token getLeftParenthesis() {
-    return leftParenthesis;
+    return argumentList.getEndToken();
   }
 
   /**
@@ -146,15 +119,6 @@ public class MethodInvocation extends Expression {
   }
 
   /**
-   * Return the right parenthesis.
-   * 
-   * @return the right parenthesis
-   */
-  public Token getRightParenthesis() {
-    return rightParenthesis;
-  }
-
-  /**
    * Return the expression producing the object on which the method is defined, or <code>null</code>
    * if there is no target (that is, the target is implicitly <code>this</code>).
    * 
@@ -165,12 +129,12 @@ public class MethodInvocation extends Expression {
   }
 
   /**
-   * Set the left parenthesis to the given token.
+   * Set the list of arguments to the method to the given list.
    * 
-   * @param parenthesis the left parenthesis
+   * @param argumentList the list of arguments to the method
    */
-  public void setLeftParenthesis(Token parenthesis) {
-    leftParenthesis = parenthesis;
+  public void setArgumentList(ArgumentList argumentList) {
+    this.argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -192,15 +156,6 @@ public class MethodInvocation extends Expression {
   }
 
   /**
-   * Set the right parenthesis to the given token.
-   * 
-   * @param parenthesis the right parenthesis
-   */
-  public void setRightParenthesis(Token parenthesis) {
-    rightParenthesis = parenthesis;
-  }
-
-  /**
    * Set the expression producing the object on which the method is defined to the given expression.
    * 
    * @param expression the expression producing the object on which the method is defined
@@ -213,6 +168,6 @@ public class MethodInvocation extends Expression {
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(target, visitor);
     safelyVisitChild(methodName, visitor);
-    arguments.accept(visitor);
+    safelyVisitChild(argumentList, visitor);
   }
 }

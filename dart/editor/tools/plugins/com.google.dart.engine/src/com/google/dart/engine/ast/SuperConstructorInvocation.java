@@ -15,15 +15,13 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
-import java.util.List;
-
 /**
  * Instances of the class <code>SuperConstructorInvocation</code> represent the invocation of a
  * superclass' constructor from within a constructor's initialization list.
  * 
  * <pre>
  * superInvocation ::=
- *     'super' ('.' {@link SimpleIdentifier name})? arguments
+ *     'super' ('.' {@link SimpleIdentifier name})? {@link ArgumentList argumentList}
  * </pre>
  */
 public class SuperConstructorInvocation extends ConstructorInitializer {
@@ -45,19 +43,9 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
   private SimpleIdentifier constructorName;
 
   /**
-   * The left parenthesis.
+   * The list of arguments to the constructor.
    */
-  private Token leftParenthesis;
-
-  /**
-   * The expressions producing the values of the arguments to the constructor.
-   */
-  private NodeList<Expression> arguments = new NodeList<Expression>(this);
-
-  /**
-   * The right parenthesis.
-   */
-  private Token rightParenthesis;
+  private ArgumentList argumentList;
 
   /**
    * Initialize a newly created super invocation to invoke the inherited constructor with the given
@@ -73,18 +61,14 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
    * @param keyword the token for the 'super' keyword
    * @param period the token for the period before the name of the constructor that is being invoked
    * @param constructorName the name of the constructor that is being invoked
-   * @param leftParenthesis the left parenthesis
-   * @param arguments the expressions producing the values of the arguments to the constructor
-   * @param rightParenthesis the right parenthesis
+   * @param argumentList the list of arguments to the constructor
    */
   public SuperConstructorInvocation(Token keyword, Token period, SimpleIdentifier constructorName,
-      Token leftParenthesis, List<Expression> arguments, Token rightParenthesis) {
+      ArgumentList argumentList) {
     this.keyword = keyword;
     this.period = period;
     this.constructorName = becomeParentOf(constructorName);
-    this.leftParenthesis = leftParenthesis;
-    this.arguments.addAll(arguments);
-    this.rightParenthesis = rightParenthesis;
+    this.argumentList = becomeParentOf(argumentList);
   }
 
   @Override
@@ -93,12 +77,12 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
   }
 
   /**
-   * Return the expressions producing the values of the arguments to the constructor.
+   * Return the list of arguments to the constructor.
    * 
-   * @return the expressions producing the values of the arguments to the constructor
+   * @return the list of arguments to the constructor
    */
-  public NodeList<Expression> getArguments() {
-    return arguments;
+  public ArgumentList getArgumentList() {
+    return argumentList;
   }
 
   @Override
@@ -118,7 +102,7 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
 
   @Override
   public Token getEndToken() {
-    return rightParenthesis;
+    return argumentList.getEndToken();
   }
 
   /**
@@ -128,15 +112,6 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
    */
   public Token getKeyword() {
     return keyword;
-  }
-
-  /**
-   * Return the left parenthesis.
-   * 
-   * @return the left parenthesis
-   */
-  public Token getLeftParenthesis() {
-    return leftParenthesis;
   }
 
   /**
@@ -150,12 +125,12 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
   }
 
   /**
-   * Return the right parenthesis.
+   * Set the list of arguments to the constructor to the given list.
    * 
-   * @return the right parenthesis
+   * @param argumentList the list of arguments to the constructor
    */
-  public Token getRightParenthesis() {
-    return rightParenthesis;
+  public void setArgumentList(ArgumentList argumentList) {
+    this.argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -177,15 +152,6 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
   }
 
   /**
-   * Set the left parenthesis to the given token.
-   * 
-   * @param parenthesis the left parenthesis
-   */
-  public void setLeftParenthesis(Token parenthesis) {
-    leftParenthesis = parenthesis;
-  }
-
-  /**
    * Set the token for the period before the name of the constructor that is being invoked to the
    * given token.
    * 
@@ -195,18 +161,9 @@ public class SuperConstructorInvocation extends ConstructorInitializer {
     this.period = period;
   }
 
-  /**
-   * Set the right parenthesis to the given token.
-   * 
-   * @param parenthesis the right parenthesis
-   */
-  public void setRightParenthesis(Token parenthesis) {
-    rightParenthesis = parenthesis;
-  }
-
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(constructorName, visitor);
-    arguments.accept(visitor);
+    safelyVisitChild(argumentList, visitor);
   }
 }

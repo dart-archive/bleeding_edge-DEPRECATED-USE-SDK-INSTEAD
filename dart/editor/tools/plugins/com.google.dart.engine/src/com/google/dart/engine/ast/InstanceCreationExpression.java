@@ -15,19 +15,13 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
-import java.util.List;
-
 /**
  * Instances of the class <code>InstanceCreationExpression</code> represent an instance creation
  * expression.
  * 
  * <pre>
  * newExpression ::=
- *     ('new' | 'const') {@link TypeName type} ('.' {@link SimpleIdentifier identifier})? '(' argumentList? ')'
- *
- * argumentList:
- *     {@link NamedExpression namedArgument} (',' {@link NamedExpression namedArgument})*
- *   | {@link Expression expressionList} (',' {@link NamedExpression namedArgument})*
+ *     ('new' | 'const') {@link TypeName type} ('.' {@link SimpleIdentifier identifier})? {@link ArgumentList argumentList}
  * </pre>
  */
 public class InstanceCreationExpression extends Expression {
@@ -54,19 +48,9 @@ public class InstanceCreationExpression extends Expression {
   private SimpleIdentifier identifier;
 
   /**
-   * The left parenthesis.
+   * The list of arguments to the constructor.
    */
-  private Token leftParenthesis;
-
-  /**
-   * The expressions producing the values of the arguments to the constructor.
-   */
-  private NodeList<Expression> arguments = new NodeList<Expression>(this);
-
-  /**
-   * The right parenthesis.
-   */
-  private Token rightParenthesis;
+  private ArgumentList argumentList;
 
   /**
    * Initialize a newly created instance creation expression.
@@ -81,20 +65,15 @@ public class InstanceCreationExpression extends Expression {
    * @param type the name of the type of the object to be created
    * @param period the period that separates the type from the constructor name
    * @param identifier the name of the constructor to be invoked
-   * @param leftParenthesis the left parenthesis
-   * @param arguments the expressions producing the values of the arguments to the constructor
-   * @param rightParenthesis the right parenthesis
+   * @param argumentList the list of arguments to the constructor
    */
   public InstanceCreationExpression(Token keyword, TypeName type, Token period,
-      SimpleIdentifier identifier, Token leftParenthesis, List<Expression> arguments,
-      Token rightParenthesis) {
+      SimpleIdentifier identifier, ArgumentList argumentList) {
     this.keyword = keyword;
     this.type = becomeParentOf(type);
     this.period = period;
     this.identifier = becomeParentOf(identifier);
-    this.leftParenthesis = leftParenthesis;
-    this.arguments.addAll(arguments);
-    this.rightParenthesis = rightParenthesis;
+    this.argumentList = becomeParentOf(argumentList);
   }
 
   @Override
@@ -103,12 +82,12 @@ public class InstanceCreationExpression extends Expression {
   }
 
   /**
-   * Return the expressions producing the values of the arguments to the constructor.
+   * Return the list of arguments to the constructor.
    * 
-   * @return the expressions producing the values of the arguments to the constructor
+   * @return the list of arguments to the constructor
    */
-  public NodeList<Expression> getArguments() {
-    return arguments;
+  public ArgumentList getArgumentList() {
+    return argumentList;
   }
 
   @Override
@@ -118,7 +97,7 @@ public class InstanceCreationExpression extends Expression {
 
   @Override
   public Token getEndToken() {
-    return rightParenthesis;
+    return argumentList.getEndToken();
   }
 
   /**
@@ -141,15 +120,6 @@ public class InstanceCreationExpression extends Expression {
   }
 
   /**
-   * Return the left parenthesis.
-   * 
-   * @return the left parenthesis
-   */
-  public Token getLeftParenthesis() {
-    return leftParenthesis;
-  }
-
-  /**
    * Return the period that separates the type from the constructor name, or <code>null</code> if
    * the unnamed constructor is to be invoked.
    * 
@@ -160,21 +130,21 @@ public class InstanceCreationExpression extends Expression {
   }
 
   /**
-   * Return the right parenthesis.
-   * 
-   * @return the right parenthesis
-   */
-  public Token getRightParenthesis() {
-    return rightParenthesis;
-  }
-
-  /**
    * Return the name of the type of the object to be created.
    * 
    * @return the name of the type of the object to be created
    */
   public TypeName getType() {
     return type;
+  }
+
+  /**
+   * Set the list of arguments to the constructor to the given list.
+   * 
+   * @param argumentList the list of arguments to the constructor
+   */
+  public void setArgumentList(ArgumentList argumentList) {
+    this.argumentList = becomeParentOf(argumentList);
   }
 
   /**
@@ -196,30 +166,12 @@ public class InstanceCreationExpression extends Expression {
   }
 
   /**
-   * Set the left parenthesis to the given token.
-   * 
-   * @param parenthesis the left parenthesis
-   */
-  public void setLeftParenthesis(Token parenthesis) {
-    leftParenthesis = parenthesis;
-  }
-
-  /**
    * Set the period that separates the type from the constructor name to the given token.
    * 
    * @param period the period that separates the type from the constructor name
    */
   public void setPeriod(Token period) {
     this.period = period;
-  }
-
-  /**
-   * Set the right parenthesis to the given token.
-   * 
-   * @param parenthesis the right parenthesis
-   */
-  public void setRightParenthesis(Token parenthesis) {
-    rightParenthesis = parenthesis;
   }
 
   /**
@@ -235,6 +187,6 @@ public class InstanceCreationExpression extends Expression {
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(type, visitor);
     safelyVisitChild(identifier, visitor);
-    arguments.accept(visitor);
+    safelyVisitChild(argumentList, visitor);
   }
 }
