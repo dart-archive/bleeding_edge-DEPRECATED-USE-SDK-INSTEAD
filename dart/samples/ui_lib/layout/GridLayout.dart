@@ -456,11 +456,10 @@ class GridLayout extends ViewLayout {
   }
 
   num _getGridContentSize() {
-    switch (_dimension) {
-      case Dimension.WIDTH:
-        return _gridWidth;
-      case Dimension.HEIGHT:
-        return _gridHeight;
+    if (_dimension == Dimension.WIDTH) {
+      return _gridWidth;
+    } else if (_dimension == Dimension.HEIGHT) {
+      return _gridHeight;
     }
   }
 
@@ -491,16 +490,14 @@ class GridLayout extends ViewLayout {
 
     int start, span;
     List<GridTrack> tracks;
-    switch (_dimension) {
-      case Dimension.WIDTH:
-        start = childLayout.column - 1;
-        span = childLayout.columnSpan;
-        tracks = _columnTracks;
-        break;
-      case Dimension.HEIGHT:
-        start = childLayout.row - 1;
-        span = childLayout.rowSpan;
-        tracks = _rowTracks;
+    if (_dimension == Dimension.WIDTH) {
+      start = childLayout.column - 1;
+      span = childLayout.columnSpan;
+      tracks = _columnTracks;
+    } else if (_dimension == Dimension.HEIGHT) {
+      start = childLayout.row - 1;
+      span = childLayout.rowSpan;
+      tracks = _rowTracks;
     }
 
     assert(start >= 0 && span >= 1);

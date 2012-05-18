@@ -179,37 +179,32 @@ class ViewLayout {
 
   int measureContent(ViewLayout parent, Dimension dimension,
                      [ContentSizeMode mode = null]) {
-    switch (dimension) {
-      case Dimension.WIDTH:
-        return measureWidth(parent, mode);
-      case Dimension.HEIGHT:
-        return measureHeight(parent, mode);
+    if (dimension == Dimension.WIDTH) {
+      return measureWidth(parent, mode);
+    } else if (dimension == Dimension.HEIGHT) {
+      return measureHeight(parent, mode);
     }
   }
 
   int measureWidth(ViewLayout parent, ContentSizeMode mode) {
     final style = layoutParams.style.value;
-    switch (mode) {
-      case ContentSizeMode.MIN:
-        return _styleToPixels(
-            style.minWidth, currentWidth, parent.currentWidth);
-
-      case ContentSizeMode.MAX:
-        return _styleToPixels(
-            style.maxWidth, currentWidth, parent.currentWidth);
+    if (mode == ContentSizeMode.MIN) {
+      return _styleToPixels(
+          style.minWidth, currentWidth, parent.currentWidth);
+    } else if (mode == ContentSizeMode.MAX) {
+      return _styleToPixels(
+          style.maxWidth, currentWidth, parent.currentWidth);
     }
   }
 
   int measureHeight(ViewLayout parent, ContentSizeMode mode) {
     final style = layoutParams.style.value;
-    switch (mode) {
-      case ContentSizeMode.MIN:
-        return _styleToPixels(
-            style.minHeight, currentHeight, parent.currentHeight);
-
-      case ContentSizeMode.MAX:
-        return _styleToPixels(
-            style.maxHeight, currentHeight, parent.currentHeight);
+    if (mode == ContentSizeMode.MIN) {
+      return _styleToPixels(
+          style.minHeight, currentHeight, parent.currentHeight);
+    } else if (mode == ContentSizeMode.MAX) {
+      return _styleToPixels(
+          style.maxHeight, currentHeight, parent.currentHeight);
     }
   }
 
