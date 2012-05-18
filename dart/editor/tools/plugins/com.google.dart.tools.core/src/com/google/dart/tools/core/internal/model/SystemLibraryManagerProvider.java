@@ -31,6 +31,7 @@ public class SystemLibraryManagerProvider {
   private static EditorLibraryManager ANY_LIBRARY_MANAGER;
 
   private static AnalysisServer defaultAnalysisServer;
+  private static AnalysisMarkerManager markerManager;
 
   //private static ResourceChangeListener defaultAnalysisChangeListener;
 
@@ -74,7 +75,8 @@ public class SystemLibraryManagerProvider {
       if (defaultAnalysisServer == null) {
         defaultAnalysisServer = new AnalysisServer(getAnyLibraryManager());
         defaultAnalysisServer.addAnalysisListener(new AnalysisIndexManager());
-        defaultAnalysisServer.addAnalysisListener(new AnalysisMarkerManager());
+        markerManager = new AnalysisMarkerManager();
+        defaultAnalysisServer.addAnalysisListener(markerManager);
         // TODO (danrubel) merge ResourceChangeListener with delta processor
         DartCore.notYetImplemented();
         //defaultAnalysisChangeListener = new ResourceChangeListener(defaultAnalysisServer);
@@ -98,6 +100,8 @@ public class SystemLibraryManagerProvider {
   public static void stop() {
     synchronized (lock) {
       if (defaultAnalysisServer != null) {
+        markerManager.stop();
+        markerManager = null;
         //defaultAnalysisChangeListener.stop();
         //defaultAnalysisChangeListener = null;
         defaultAnalysisServer.stop();

@@ -144,8 +144,14 @@ public class AnalysisMarkerManager implements AnalysisListener {
    */
   private final ArrayList<MarkerOp> queue;
 
+  /**
+   * A flag indicating whether markers should be updated.
+   */
+  private boolean updateMarkers;
+
   public AnalysisMarkerManager() {
     this.queue = new ArrayList<MarkerOp>();
+    this.updateMarkers = true;
     Thread thread = new Thread(getClass().getSimpleName()) {
       @Override
       public void run() {
@@ -202,11 +208,19 @@ public class AnalysisMarkerManager implements AnalysisListener {
     }
   }
 
+  public void stop() {
+    updateMarkers = false;
+    // Ensure background thread exits the wait
+    synchronized (queue) {
+      queue.notifyAll();
+    }
+  }
+
   /**
    * Called on the background thread to update markers by performing queued marker operations
    */
   private void updateMarkers() {
-    while (true) {
+    while (updateMarkers) {
 
       // Wait for new marker operations
 
@@ -234,7 +248,9 @@ public class AnalysisMarkerManager implements AnalysisListener {
         }
       };
       try {
-        ResourcesPlugin.getWorkspace().run(op, null);
+        if (updateMarkers) {
+          ResourcesPlugin.getWorkspace().run(op, null);
+        }
       } catch (CoreException e) {
         DartCore.logError("Exception translating errors/warnings into markers", e);
       }
