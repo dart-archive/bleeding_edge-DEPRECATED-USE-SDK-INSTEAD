@@ -35,6 +35,7 @@ import java.util.List;
  * 
  * documentationComment ::=
  *     '/**' (CHARACTER | {@link CommentReference commentReference})* '&star;/'
+ *   | ('///' (CHARACTER - EOL)* EOL)+
  * </pre>
  */
 public class Comment extends ASTNode {
@@ -62,44 +63,48 @@ public class Comment extends ASTNode {
   /**
    * Create a block comment.
    * 
+   * @param tokens the tokens representing the comment
    * @return the block comment that was created
    */
-  public static Comment createBlockComment(Token token) {
-    return new Comment(token, CommentType.BLOCK, null);
+  public static Comment createBlockComment(Token[] tokens) {
+    return new Comment(tokens, CommentType.BLOCK, null);
   }
 
   /**
    * Create a documentation comment.
    * 
+   * @param tokens the tokens representing the comment
    * @return the documentation comment that was created
    */
-  public static Comment createDocumentationComment(Token token) {
-    return new Comment(token, CommentType.DOCUMENTATION, new ArrayList<CommentReference>());
+  public static Comment createDocumentationComment(Token[] tokens) {
+    return new Comment(tokens, CommentType.DOCUMENTATION, new ArrayList<CommentReference>());
   }
 
   /**
    * Create a documentation comment.
    * 
+   * @param tokens the tokens representing the comment
    * @param references the references embedded within the documentation comment
    * @return the documentation comment that was created
    */
-  public static Comment createDocumentationComment(Token token, List<CommentReference> references) {
-    return new Comment(token, CommentType.DOCUMENTATION, references);
+  public static Comment createDocumentationComment(Token[] tokens, List<CommentReference> references) {
+    return new Comment(tokens, CommentType.DOCUMENTATION, references);
   }
 
   /**
    * Create an end-of-line comment.
    * 
+   * @param tokens the tokens representing the comment
    * @return the end-of-line comment that was created
    */
-  public static Comment createEndOfLineComment(Token token) {
-    return new Comment(token, CommentType.END_OF_LINE, null);
+  public static Comment createEndOfLineComment(Token[] tokens) {
+    return new Comment(tokens, CommentType.END_OF_LINE, null);
   }
 
   /**
-   * The token representing the comment.
+   * The tokens representing the comment.
    */
-  private Token token;
+  private Token[] tokens;
 
   /**
    * The type of the comment.
@@ -115,12 +120,12 @@ public class Comment extends ASTNode {
   /**
    * Initialize a newly created comment.
    * 
-   * @param token the token representing the comment
+   * @param tokens the tokens representing the comment
    * @param type the type of the comment
    * @param references the references embedded within the documentation comment
    */
-  private Comment(Token token, CommentType type, List<CommentReference> references) {
-    this.token = token;
+  private Comment(Token[] tokens, CommentType type, List<CommentReference> references) {
+    this.tokens = tokens;
     this.type = type;
     this.references.addAll(references);
   }
@@ -132,12 +137,12 @@ public class Comment extends ASTNode {
 
   @Override
   public Token getBeginToken() {
-    return token;
+    return tokens[0];
   }
 
   @Override
   public Token getEndToken() {
-    return token;
+    return tokens[tokens.length - 1];
   }
 
   /**
