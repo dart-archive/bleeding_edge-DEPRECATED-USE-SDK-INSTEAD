@@ -139,7 +139,8 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     SystemLibraryManagerProvider.getAnyLibraryManager()
         .setPackageRoot(new File(System.getProperty("user.home")));
 
-    final URI fullUri1 = getLibraryManager().expandRelativeDartUri(new URI(uriString));
+    final URI fullUri1 = getLibraryManager()
+        .expandRelativeDartUri(new URI("package", null, "/" + libFileName, null));
     assertNotNull(fullUri1);
     assertEquals("package", fullUri1.getScheme());
     assertTrue(fullUri1.getPath(), (fullUri1.getHost() + fullUri1.getPath()).endsWith(libFileName));
