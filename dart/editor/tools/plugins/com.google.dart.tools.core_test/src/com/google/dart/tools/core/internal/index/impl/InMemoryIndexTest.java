@@ -40,8 +40,10 @@ public class InMemoryIndexTest extends TestCase {
     Attribute attribute = Attribute.getAttribute("attribute");
     String value = "value";
 
-    store.clear();
-    store.recordAttribute(element, attribute, value);
+    synchronized (store) {
+      store.clear();
+      store.recordAttribute(element, attribute, value);
+    }
 
     assertEquals(value, IndexTestUtilities.getAttribute(index, element, attribute));
   }
@@ -53,7 +55,10 @@ public class InMemoryIndexTest extends TestCase {
     Element element = new Element(resource, "element");
     Attribute attribute = Attribute.getAttribute("attribute");
 
-    store.clear();
+    synchronized (store) {
+      store.clear();
+    }
+
     String result = IndexTestUtilities.getAttribute(index, element, attribute);
     assertNull(result);
   }
@@ -68,20 +73,24 @@ public class InMemoryIndexTest extends TestCase {
     Location location2 = new Location(element, 45, 14);
     Location location3 = new Location(element, 67, 14);
 
-    store.clear();
-    store.recordRelationship(resource, element, relationship, location1);
-    store.recordRelationship(resource, element, relationship, location2);
-    store.recordRelationship(resource, element, relationship, location3);
+    synchronized (store) {
+      store.clear();
+      store.recordRelationship(resource, element, relationship, location1);
+      store.recordRelationship(resource, element, relationship, location2);
+      store.recordRelationship(resource, element, relationship, location3);
+    }
 
     Location[] locations = IndexTestUtilities.getRelationships(index, element, relationship);
     assertEquals(3, locations.length);
 
     // Assert that regenerating and storing the same information twice does not cause duplicate results
 
-    store.regenerateResource(resource);
-    store.recordRelationship(resource, element, relationship, location1);
-    store.recordRelationship(resource, element, relationship, location2);
-    store.recordRelationship(resource, element, relationship, location3);
+    synchronized (store) {
+      store.regenerateResource(resource);
+      store.recordRelationship(resource, element, relationship, location1);
+      store.recordRelationship(resource, element, relationship, location2);
+      store.recordRelationship(resource, element, relationship, location3);
+    }
 
     locations = IndexTestUtilities.getRelationships(index, element, relationship);
     assertEquals(3, locations.length);
@@ -94,7 +103,10 @@ public class InMemoryIndexTest extends TestCase {
     Element element = new Element(resource, "element");
     Relationship relationship = Relationship.getRelationship("relationship");
 
-    store.clear();
+    synchronized (store) {
+      store.clear();
+    }
+
     Location[] locations = IndexTestUtilities.getRelationships(index, element, relationship);
     assertEquals(0, locations.length);
   }
@@ -107,8 +119,10 @@ public class InMemoryIndexTest extends TestCase {
     Relationship relationship = Relationship.getRelationship("relationship");
     Location location = new Location(element, 23, 14);
 
-    store.clear();
-    store.recordRelationship(resource, element, relationship, location);
+    synchronized (store) {
+      store.clear();
+      store.recordRelationship(resource, element, relationship, location);
+    }
 
     Location[] locations = IndexTestUtilities.getRelationships(index, element, relationship);
     assertEquals(1, locations.length);
@@ -125,11 +139,12 @@ public class InMemoryIndexTest extends TestCase {
     Location location1 = new Location(element1, 100, 6);
     Location location2 = new Location(element2, 100, 6);
 
-    store.clear();
-    store.recordRelationship(resource1, element1, relationship, location1);
-    store.recordRelationship(resource1, element1, relationship, location2);
-
-    store.removeResource(resource2);
+    synchronized (store) {
+      store.clear();
+      store.recordRelationship(resource1, element1, relationship, location1);
+      store.recordRelationship(resource1, element1, relationship, location2);
+      store.removeResource(resource2);
+    }
 
     Location[] locations = IndexTestUtilities.getRelationships(index, element1, relationship);
     assertEquals(1, locations.length);
@@ -143,14 +158,15 @@ public class InMemoryIndexTest extends TestCase {
     Element element = new Element(resource, "element");
     Relationship relationship = Relationship.getRelationship("relationship");
     Location firstLocation = new Location(element, 100, 6);
-
-    store.clear();
-    store.recordRelationship(resource, element, relationship, firstLocation);
     Attribute attribute = Attribute.getAttribute("attribute");
     String value = "value";
-    store.recordAttribute(element, attribute, value);
 
-    store.removeResource(resource);
+    synchronized (store) {
+      store.clear();
+      store.recordRelationship(resource, element, relationship, firstLocation);
+      store.recordAttribute(element, attribute, value);
+      store.removeResource(resource);
+    }
 
     Location[] locations = IndexTestUtilities.getRelationships(index, element, relationship);
     assertEquals(0, locations.length);
