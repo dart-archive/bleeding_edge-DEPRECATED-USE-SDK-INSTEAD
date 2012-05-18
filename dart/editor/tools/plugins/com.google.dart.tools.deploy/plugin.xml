@@ -21,11 +21,6 @@
                icon="$nl$/icons/full/etool16/newfile_wiz.gif"
                style="push">
          </command>
-         <command
-               commandId="com.google.dart.tools.ui.application.new"
-               icon="$nl$/icons/full/dart16/library_new.png"
-               style="push">
-         </command>
       </menuContribution>
       <menuContribution
             locationURI="menu:file?after=open.ext">
@@ -46,12 +41,6 @@
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
-      <key
-            commandId="com.google.dart.tools.ui.application.new"
-            contextId="org.eclipse.ui.contexts.window"
-            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
-            sequence="M1+M2+N">
-      </key>
       <key
             commandId="com.google.dart.tools.ui.folder.open"
             contextId="org.eclipse.ui.contexts.window"

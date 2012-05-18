@@ -701,6 +701,11 @@
             class="com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage"
             id="com.google.dart.tools.ui.preferences.DartBasePreferencePage">
       </page>
+      <page
+            class="com.google.dart.tools.ui.internal.preferences.FontPreferencePage"
+            id="com.google.dart.tools.ui.fontOptionsPage"
+            name="Font">
+      </page>
    </extension>
    
    <extension
@@ -1464,14 +1469,6 @@
             id="com.google.dart.tools.ui.file.new"
             name="%Command.newFile.name">
       </command>
-      <command
-            categoryId="org.eclipse.ui.category.file"
-            defaultHandler="com.google.dart.tools.ui.internal.handlers.NewApplicationHandler"
-            description="%Command.newApplication.description"
-            id="com.google.dart.tools.ui.application.new"
-            name="%Command.newApplication.name">
-      </command>
-      
 <!-- edit -->
       <command
             name="%ActionDefinition.selectEnclosing.name"
@@ -3376,21 +3373,6 @@
                priorityLevel="workbench">
          </variable>
       </sourceProvider>
-   </extension>
-   <extension
-         point="org.eclipse.ui.handlers">
-      <handler
-            class="com.google.dart.tools.ui.internal.handlers.NewFileHandler"
-            commandId="com.google.dart.tools.ui.file.new">
-         <enabledWhen>
-            <with
-                  variable="com.google.dart.tools.ui.newFile.active">
-               <equals
-                     value="ENABLED">
-               </equals>
-            </with>
-         </enabledWhen>
-      </handler>
    </extension>
 
    <extension

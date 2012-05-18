@@ -22,7 +22,7 @@ import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
-import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
+import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
@@ -88,7 +88,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
       if (treeViewer != null) {
-        if (DartBasePreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
           updateTreeFont();
           treeViewer.refresh();
         }
@@ -423,7 +423,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   }
 
   protected void updateTreeFont() {
-    Font newFont = JFaceResources.getFont(DartBasePreferencePage.BASE_FONT_KEY);
+    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
     Font oldFont = treeViewer.getTree().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     treeViewer.getTree().setFont(font);

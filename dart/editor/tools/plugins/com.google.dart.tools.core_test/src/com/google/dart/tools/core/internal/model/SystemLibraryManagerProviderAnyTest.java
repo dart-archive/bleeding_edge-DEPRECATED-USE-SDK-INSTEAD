@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import java.io.File;
+
 public class SystemLibraryManagerProviderAnyTest extends SystemLibraryManagerProviderTest {
 
   public void test_SystemLibraryManagerProvider_builtin() throws Exception {
@@ -41,6 +43,11 @@ public class SystemLibraryManagerProviderAnyTest extends SystemLibraryManagerPro
 
   public void test_SystemLibraryManagerProvider_json() throws Exception {
     testLibrary("json", "json.dart");
+  }
+
+  public void test_SystemLibraryManagerProvider_package() throws Exception {
+    String fileName = "ui" + File.separator + "lib.dart";
+    testPackage(fileName, "package:" + fileName);
   }
 
   public void test_SystemLibraryManagerProvider_uri() throws Exception {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -97,6 +97,8 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_auto_download_label;
 
   public static String DartBasePreferencePage_auto_download_tooltip;
+
+  public static String DartBasePreferencePage_Browse;
 
   public static String DartBasePreferencePage_description;
   public static String DartBasePreferencePage_doubleclick_action;
@@ -763,6 +765,8 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_show_print_margin_tooltip;
   public static String DartBasePreferencePage_editor_preferences;
   public static String DartBasePreferencePage_general;
+
+  public static String DartBasePreferencePage_Package_Title;
   public static String DartBasePreferencePage_select;
   public static String DartBasePreferencePage_text_font;
 

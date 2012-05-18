@@ -53,17 +53,17 @@ public class DartSourcePathComputerDelegate implements ISourcePathComputerDelega
 
     SystemLibraryManager libraryManager = SystemLibraryManagerProvider.getSystemLibraryManager();
 
-    URI domUri = libraryManager.translateDartUri(URI.create("dart://dom/dart_dom.lib"));
+    URI domUri = libraryManager.resolveDartUri(URI.create("dart://dom/dart_dom.lib"));
     IPath path = new Path(domUri.getPath()).removeLastSegments(1);
     DirectorySourceContainer domContainer = new DirectorySourceContainer(path, true);
     containers.add(domContainer);
 
-    URI coreUri = libraryManager.translateDartUri(URI.create("dart://core/corelib.lib"));
+    URI coreUri = libraryManager.resolveDartUri(URI.create("dart://core/corelib.lib"));
     IPath coreUriPath = new Path(coreUri.getPath()).removeLastSegments(1);
     DirectorySourceContainer coreContainer = new DirectorySourceContainer(coreUriPath, true);
     containers.add(coreContainer);
 
-    URI coreImplUri = libraryManager.translateDartUri(URI.create("dart://core/corelib_impl.lib"));
+    URI coreImplUri = libraryManager.resolveDartUri(URI.create("dart://core/corelib_impl.lib"));
     IPath coreImplPath = new Path(coreImplUri.getPath()).removeLastSegments(1);
     DirectorySourceContainer coreImplContainer = new DirectorySourceContainer(coreImplPath, true);
     containers.add(coreImplContainer);

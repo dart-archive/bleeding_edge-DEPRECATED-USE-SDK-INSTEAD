@@ -17,7 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
+import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.themes.Fonts;
 
@@ -131,7 +131,7 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
   }
 
   void updateFont(Font font) {
-    Font newFont = JFaceResources.getFont(DartBasePreferencePage.BASE_FONT_KEY);
+    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
     boldFont = SWTUtil.changeFontSize(boldFont, newFont);
   }
 

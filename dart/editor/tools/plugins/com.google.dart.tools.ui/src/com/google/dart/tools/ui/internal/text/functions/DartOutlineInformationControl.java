@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -26,7 +26,7 @@ import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.OverrideIndicatorLabelDecorator;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.StandardDartElementContentProvider;
-import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
+import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.util.StringMatcher;
@@ -612,7 +612,7 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 
     treeViewer.getTree().addKeyListener(getKeyAdapter());
 
-    Font newFont = JFaceResources.getFont(DartBasePreferencePage.BASE_FONT_KEY);
+    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
     Font oldFont = treeViewer.getTree().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     treeViewer.getTree().setFont(font);

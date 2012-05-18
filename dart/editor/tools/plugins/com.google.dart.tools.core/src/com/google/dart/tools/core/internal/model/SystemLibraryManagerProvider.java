@@ -56,6 +56,10 @@ public class SystemLibraryManagerProvider {
         DartCore.logInformation("Reading bundled libraries from " + sdkDir);
 
         ANY_LIBRARY_MANAGER = new EditorLibraryManager(sdkDir, "any");
+        String packageRoot = DartCore.getPlugin().getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, "");
+        if (packageRoot != null && !packageRoot.isEmpty()) {
+          ANY_LIBRARY_MANAGER.setPackageRoot(new File(packageRoot));
+        }
 
       }
     }

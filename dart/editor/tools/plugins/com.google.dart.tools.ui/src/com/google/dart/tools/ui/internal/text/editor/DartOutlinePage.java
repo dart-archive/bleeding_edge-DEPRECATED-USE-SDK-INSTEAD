@@ -34,7 +34,7 @@ import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.ProblemsLabelDecorator.ProblemsLabelChangedEvent;
 import com.google.dart.tools.ui.internal.actions.AbstractToggleLinkingAction;
 import com.google.dart.tools.ui.internal.libraryview.LibraryExplorerContentProvider;
-import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
+import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
@@ -105,10 +105,10 @@ import java.util.Vector;
 /**
  * The content outline page of the Dart editor. The viewer implements a proprietary update mechanism
  * based on model deltas. It does not react to domain changes. Publishes its context menu under
- * <code>DartToolsPlugin.getDefault().getPluginId() + ".outline"</code>.
+ * <code>DartToolsPlugin.getDefault().getPluginId() + &quot;.outline&quot;</code>.
  */
-public class DartOutlinePage extends Page implements IContentOutlinePage, IAdaptable,
-    IPostSelectionProvider {
+public class DartOutlinePage extends Page
+    implements IContentOutlinePage, IAdaptable, IPostSelectionProvider {
 
   /**
    * This action toggles whether this Java Outline page links its selection to the active editor.
@@ -534,7 +534,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     }
 
     protected void updateTreeFont() {
-      Font newFont = JFaceResources.getFont(DartBasePreferencePage.BASE_FONT_KEY);
+      Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
       Font oldFont = getTree().getFont();
       Font font = SWTUtil.changeFontSize(oldFont, newFont);
       getTree().setFont(font);
@@ -783,7 +783,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     @Override
     public void propertyChange(PropertyChangeEvent event) {
       if (fOutlineViewer != null) {
-        if (DartBasePreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
           fOutlineViewer.updateTreeFont();
         }
       }

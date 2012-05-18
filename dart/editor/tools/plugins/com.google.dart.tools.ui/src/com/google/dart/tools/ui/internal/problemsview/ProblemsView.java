@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.problemsview;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage;
+import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -433,7 +433,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
     @Override
     public void propertyChange(PropertyChangeEvent event) {
       if (tableViewer != null) {
-        if (DartBasePreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
+        if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
           updateTableFont();
         }
       }
@@ -1008,7 +1008,7 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
   }
 
   protected void updateTableFont() {
-    Font newFont = JFaceResources.getFont(DartBasePreferencePage.BASE_FONT_KEY);
+    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
     Font oldFont = tableViewer.getTable().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     tableViewer.getTable().setFont(font);

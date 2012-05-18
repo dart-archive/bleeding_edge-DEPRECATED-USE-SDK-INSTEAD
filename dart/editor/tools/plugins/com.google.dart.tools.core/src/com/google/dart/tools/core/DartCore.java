@@ -112,6 +112,11 @@ public class DartCore extends Plugin {
   public static final String EXTENSION_JS = "js";
 
   /**
+   * Preference for the packages root directory
+   */
+  public static final String PACKAGE_ROOT_DIR_PREFERENCE = "package root";
+
+  /**
    * Cached extensions for CSS files.
    */
   private static final String[] CSS_FILE_EXTENSIONS = {"css"};

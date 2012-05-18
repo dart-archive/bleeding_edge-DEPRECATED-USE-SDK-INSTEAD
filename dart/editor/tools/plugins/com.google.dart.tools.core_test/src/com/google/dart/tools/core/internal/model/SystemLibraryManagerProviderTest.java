@@ -61,7 +61,8 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     assertTrue(specs.contains("dart:uri"));
   }
 
-  public void test_SystemLibraryManagerProvider_getAllLibrarySpecs_no_duplicates() throws Exception {
+  public void test_SystemLibraryManagerProvider_getAllLibrarySpecs_no_duplicates()
+      throws Exception {
     EditorLibraryManager libraryManager = getLibraryManager();
     Collection<String> specs = libraryManager.getAllLibrarySpecs();
     Collection<String> visited = new HashSet<String>();
@@ -85,7 +86,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
   public void test_SystemLibraryManagerProvider_translateDoesNotExist() throws Exception {
     URI fullUri = new URI("dart://doesnotexist/some/file.dart");
     try {
-      URI translatedURI = getLibraryManager().translateDartUri(fullUri);
+      URI translatedURI = getLibraryManager().resolveDartUri(fullUri);
       fail("Expected translate " + fullUri + " to fail, but returned " + translatedURI);
     } catch (RuntimeException e) {
       String message = e.getMessage();
@@ -96,8 +97,8 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
 
   protected abstract EditorLibraryManager getLibraryManager();
 
-  protected void testLibrary(String shortLibName, String libFileName) throws URISyntaxException,
-      AssertionError {
+  protected void testLibrary(String shortLibName, String libFileName)
+      throws URISyntaxException, AssertionError {
     final URI shortUri = new URI("dart:" + shortLibName);
 
     final URI fullUri1 = getLibraryManager().expandRelativeDartUri(shortUri);
@@ -110,7 +111,7 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     URI shortUri2 = getLibraryManager().getShortUri(fullUri1);
     assertEquals(shortUri, shortUri2);
 
-    URI translatedUri1 = getLibraryManager().translateDartUri(fullUri1);
+    URI translatedUri1 = getLibraryManager().resolveDartUri(fullUri1);
     assertNotNull(translatedUri1);
     String scheme = translatedUri1.getScheme();
     assertTrue(scheme.equals("file"));
@@ -129,5 +130,29 @@ public abstract class SystemLibraryManagerProviderTest extends TestCase {
     URI translatedUri3 = new File(new File(dir, "somedir"), "somefile.dart").toURI();
     URI fullUri5 = getLibraryManager().getRelativeUri(translatedUri3);
     assertEquals(fullUri1.resolve("somedir/somefile.dart"), fullUri5);
+  }
+
+  protected void testPackage(String libFileName, String uriString)
+      throws AssertionError, URISyntaxException {
+
+    File packageRoot = SystemLibraryManagerProvider.getAnyLibraryManager().getPackageRoot();
+    SystemLibraryManagerProvider.getAnyLibraryManager()
+        .setPackageRoot(new File(System.getProperty("user.home")));
+
+    final URI fullUri1 = getLibraryManager().expandRelativeDartUri(new URI(uriString));
+    assertNotNull(fullUri1);
+    assertEquals("package", fullUri1.getScheme());
+    assertTrue(fullUri1.getPath(), (fullUri1.getHost() + fullUri1.getPath()).endsWith(libFileName));
+
+    URI translatedUri = getLibraryManager().resolveDartUri(fullUri1);
+    assertNotNull(translatedUri);
+    String scheme = translatedUri.getScheme();
+    assertTrue(scheme.equals("file"));
+    assertTrue(translatedUri.getPath().endsWith("/" + libFileName));
+    URI shortUri3 = getLibraryManager().getShortUri(translatedUri);
+    assertEquals(new URI(uriString), shortUri3);
+
+    SystemLibraryManagerProvider.getAnyLibraryManager().setPackageRoot(packageRoot);
+
   }
 }
