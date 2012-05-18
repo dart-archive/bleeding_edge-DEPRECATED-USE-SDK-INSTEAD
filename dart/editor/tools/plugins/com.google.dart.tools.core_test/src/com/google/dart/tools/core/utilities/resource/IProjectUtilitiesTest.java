@@ -128,7 +128,7 @@ public class IProjectUtilitiesTest extends TestCase {
             new NullProgressMonitor());
         assertTrue(result instanceof IFile);
         IFile file = (IFile) result;
-        file.getProject().delete(true, new NullProgressMonitor());
+        TestUtilities.deleteProject(file.getProject());
       }
     });
   }
