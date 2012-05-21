@@ -15,12 +15,19 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
 
+import java.util.List;
+
 /**
  * Instances of the class <code>ImportDirective</code> represent an import directive.
  * 
  * <pre>
  * importDirective ::=
- *     '#' 'import' '(' {@link StringLiteral libraryUri} (',' {@link ImportCombinator importCombinator})? ')' ';'
+ *     '#import' '(' {@link StringLiteral libraryUri} (',' {@link ImportExportCombinator importExportCombinator})?
+ *     (',' combinator )* (',' {@link ImportPrefixCombinator importPrefixCombinator})? ')' ';'
+ * 
+ * combinator ::=
+ *     {@link ImportHideCombinator importHideCombinator}
+ *   | {@link ImportShowCombinator importShowCombinator}
  * </pre>
  */
 public class ImportDirective extends Directive {
@@ -45,10 +52,9 @@ public class ImportDirective extends Directive {
   private StringLiteral libraryUri;
 
   /**
-   * The combinator used to control how names are imported, or <code>null</code> if there is no
-   * combinator.
+   * The combinators used to control how names are imported.
    */
-  private ImportCombinator combinator;
+  private NodeList<ImportCombinator> combinators = new NodeList<ImportCombinator>(this);
 
   /**
    * The right parenthesis.
@@ -73,17 +79,18 @@ public class ImportDirective extends Directive {
    * @param keyword the token representing the 'import' keyword
    * @param leftParenthesis the left parenthesis
    * @param libraryUri the URI of the library being imported
-   * @param combinator the combinator used to control how names are imported
+   * @param combinators the combinators used to control how names are imported
    * @param rightParenthesis the right parenthesis
    * @param semicolon the semicolon terminating the statement
    */
   public ImportDirective(Token hash, Token keyword, Token leftParenthesis,
-      StringLiteral libraryUri, ImportCombinator combinator, Token rightParenthesis, Token semicolon) {
+      StringLiteral libraryUri, List<ImportCombinator> combinators, Token rightParenthesis,
+      Token semicolon) {
     this.hash = hash;
     this.keyword = keyword;
     this.leftParenthesis = leftParenthesis;
     this.libraryUri = becomeParentOf(libraryUri);
-    this.combinator = becomeParentOf(combinator);
+    this.combinators.addAll(combinators);
     this.rightParenthesis = rightParenthesis;
     this.semicolon = semicolon;
   }
@@ -99,13 +106,12 @@ public class ImportDirective extends Directive {
   }
 
   /**
-   * Return the combinator used to control how names are imported, or <code>null</code> if there is
-   * no combinator.
+   * Return the combinators used to control how names are imported.
    * 
-   * @return the combinator used to control how names are imported
+   * @return the combinators used to control how names are imported
    */
-  public ImportCombinator getCombinator() {
-    return combinator;
+  public NodeList<ImportCombinator> getCombinators() {
+    return combinators;
   }
 
   @Override
@@ -168,15 +174,6 @@ public class ImportDirective extends Directive {
   }
 
   /**
-   * Set the combinator used to control how names are imported to the given combinator.
-   * 
-   * @param combinator the combinator used to control how names are imported
-   */
-  public void setCombinator(ImportCombinator combinator) {
-    this.combinator = becomeParentOf(combinator);
-  }
-
-  /**
    * Set the hash mark introducing the directive to the given token.
    * 
    * @param hash the hash mark introducing the directive
@@ -233,6 +230,6 @@ public class ImportDirective extends Directive {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(libraryUri, visitor);
-    safelyVisitChild(combinator, visitor);
+    combinators.accept(visitor);
   }
 }

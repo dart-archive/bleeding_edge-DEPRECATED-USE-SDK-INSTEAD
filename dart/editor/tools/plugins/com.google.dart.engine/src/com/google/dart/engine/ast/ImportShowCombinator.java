@@ -26,9 +26,9 @@ import com.google.dart.engine.scanner.Token;
  */
 public class ImportShowCombinator extends ImportCombinator {
   /**
-   * The list of names that are imported from the library.
+   * The list of names from the library that are made visible by this combinator.
    */
-  private ListLiteral visibleNames;
+  private ListLiteral shownNames;
 
   /**
    * Initialize a newly created import show combinator.
@@ -43,11 +43,11 @@ public class ImportShowCombinator extends ImportCombinator {
    * @param comma the comma introducing the combinator
    * @param keyword the comma introducing the combinator
    * @param colon the colon separating the keyword from the following literal
-   * @param visibleNames the list of names that are imported from the library
+   * @param shownNames the list of names from the library that are made visible by this combinator
    */
-  public ImportShowCombinator(Token comma, Token keyword, Token colon, ListLiteral visibleNames) {
+  public ImportShowCombinator(Token comma, Token keyword, Token colon, ListLiteral shownNames) {
     super(comma, keyword, colon);
-    this.visibleNames = visibleNames;
+    this.shownNames = shownNames;
   }
 
   @Override
@@ -57,29 +57,30 @@ public class ImportShowCombinator extends ImportCombinator {
 
   @Override
   public Token getEndToken() {
-    return visibleNames.getEndToken();
+    return shownNames.getEndToken();
   }
 
   /**
-   * Return the list of names that are imported from the library.
+   * Return the list of names from the library that are made visible by this combinator.
    * 
-   * @return the list of names that are imported from the library
+   * @return the list of names from the library that are made visible by this combinator
    */
-  public ListLiteral getVisibleNames() {
-    return visibleNames;
+  public ListLiteral getShownNames() {
+    return shownNames;
   }
 
   /**
-   * Set the list of names that are imported from the library to the given list.
+   * Set the list of names from the library that are made visible by this combinator to the given
+   * list.
    * 
-   * @param visibleNames the list of names that are imported from the library
+   * @param shownNames the list of names from the library that are made visible by this combinator
    */
-  public void setVisibleNames(ListLiteral visibleNames) {
-    this.visibleNames = becomeParentOf(visibleNames);
+  public void setShownNames(ListLiteral shownNames) {
+    this.shownNames = becomeParentOf(shownNames);
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(visibleNames, visitor);
+    safelyVisitChild(shownNames, visitor);
   }
 }

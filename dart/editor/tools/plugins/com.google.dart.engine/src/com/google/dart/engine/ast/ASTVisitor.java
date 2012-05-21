@@ -201,6 +201,14 @@ public class ASTVisitor<R> {
     return visitDirective(node);
   }
 
+  public R visitImportExportCombinator(ImportExportCombinator node) {
+    return visitImportCombinator(node);
+  }
+
+  public R visitImportHideCombinator(ImportHideCombinator node) {
+    return visitImportCombinator(node);
+  }
+
   public R visitImportPrefixCombinator(ImportPrefixCombinator node) {
     return visitImportCombinator(node);
   }
@@ -217,6 +225,10 @@ public class ASTVisitor<R> {
     return visitExpression(node);
   }
 
+//  public R visitNativeDirective(NativeDirective node) {
+//    return visitDirective(node);
+//  }
+
   public R visitIntegerLiteral(IntegerLiteral node) {
     return visitLiteral(node);
   }
@@ -224,10 +236,6 @@ public class ASTVisitor<R> {
   public R visitInterfaceDeclaration(InterfaceDeclaration node) {
     return visitTypeDeclaration(node);
   }
-
-//  public R visitNativeDirective(NativeDirective node) {
-//    return visitDirective(node);
-//  }
 
   public R visitInterfaceExtendsClause(InterfaceExtendsClause node) {
     return visitNode(node);
@@ -277,6 +285,10 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
+//  public R visitNativeFunctionBody(NativeFunctionBody node) {
+//    return visitFunctionBody(node);
+//  }
+
   public R visitMethodDeclaration(MethodDeclaration node) {
     return visitTypeMember(node);
   }
@@ -284,10 +296,6 @@ public class ASTVisitor<R> {
   public R visitMethodInvocation(MethodInvocation node) {
     return visitNode(node);
   }
-
-//  public R visitNativeFunctionBody(NativeFunctionBody node) {
-//    return visitFunctionBody(node);
-//  }
 
   public R visitNamedExpression(NamedExpression node) {
     return visitExpression(node);
