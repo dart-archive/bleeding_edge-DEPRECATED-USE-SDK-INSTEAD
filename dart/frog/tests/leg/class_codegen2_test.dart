@@ -72,6 +72,16 @@ main() {
 }
 """;
 
+final String TEST_FOUR = @"""
+class A { foo() => 499; }
+
+foo(f) { f(); }
+
+main() {
+  foo(new A().foo);
+}
+""";
+
 main() {
   // At some point Dart2js generated bad object literals with dangling commas:
   // { a: true, }. Make sure this doesn't happen again.
@@ -83,5 +93,8 @@ main() {
   Expect.isFalse(danglingComma.hasMatch(generated));
 
   generated = compileAll(TEST_THREE);
+  Expect.isFalse(danglingComma.hasMatch(generated));
+
+  generated = compileAll(TEST_FOUR);
   Expect.isFalse(danglingComma.hasMatch(generated));
 }
