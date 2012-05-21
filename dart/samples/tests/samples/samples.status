@@ -57,6 +57,7 @@ proxy/mint_maker_rpc_test: Fail # TypeError: Cannot call method 'toSendPort$0' o
 [ $compiler == dart2js && $runtime == drt ]
 dartcombat/dartcombat_test: Fail
 proxy/mint_maker_rpc_test: Pass # Issue 2254.
+swarm/swarm_test: Fail
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
