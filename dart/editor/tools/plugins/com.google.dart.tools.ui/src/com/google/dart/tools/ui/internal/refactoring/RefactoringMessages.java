@@ -67,6 +67,9 @@ public final class RefactoringMessages extends NLS {
   public static String RenameTypeWizardInputPage_description;
   // RenameResourceParticipant
   public static String RenameResourceParticipant_name;
+  // DeleteResourceParticipant
+  public static String DeleteResourceParticipant_name;
+  public static String DeleteResourceParticipant_remove_reference;
 
   ///////////////////////////////////////////////////////////////////////////////////////
   // Extract local factoring

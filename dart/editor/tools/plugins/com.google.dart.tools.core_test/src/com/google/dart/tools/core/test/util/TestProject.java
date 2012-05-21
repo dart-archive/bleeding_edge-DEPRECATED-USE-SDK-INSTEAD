@@ -16,6 +16,7 @@ package com.google.dart.tools.core.test.util;
 
 import com.google.common.io.CharStreams;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
@@ -57,6 +58,7 @@ public class TestProject {
       } catch (Throwable e) {
       }
     }
+    AnalysisTestUtilities.waitForAnalysis();
   }
 
   private final IProject project;

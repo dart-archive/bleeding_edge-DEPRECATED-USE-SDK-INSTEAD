@@ -33,6 +33,8 @@ public class TestAll {
     suite.addTestSuite(RenameFunctionTypeAliasProcessorTest.class);
     suite.addTestSuite(RenameTypeParameterProcessorTest.class);
     suite.addTestSuite(RenameImportProcessorTest.class);
+    // participants
+    suite.addTestSuite(DeleteResourceParticipantTest.class);
     suite.addTestSuite(RenameResourceParticipantTest.class);
     // extract
     suite.addTestSuite(ExtractUtilsTest.class);

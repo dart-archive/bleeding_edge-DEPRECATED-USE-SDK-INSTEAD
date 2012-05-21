@@ -13,47 +13,47 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
+import com.google.common.base.Joiner;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.test.util.TestProject;
+import com.google.dart.tools.internal.corext.refactoring.rename.DeleteResourceParticipant;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.PerformChangeOperation;
-import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-import org.eclipse.ltk.core.refactoring.resource.RenameResourceDescriptor;
+import org.eclipse.ltk.core.refactoring.participants.DeleteRefactoring;
 
 /**
- * Test for {@link RenameResourceParticipant}.
+ * Test for {@link DeleteResourceParticipant}.
  */
-public final class RenameResourceParticipantTest extends RefactoringTest {
+public final class DeleteResourceParticipantTest extends RefactoringTest {
   /**
-   * Asserts that file was renamed to the given name.
+   * Asserts that file was deleted.
    */
-  private static void assertFileWasRenamed(IFile file, String newName) {
+  private static void assertFileWasDeleted(IFile file) {
     assertFalse(file.exists());
-    assertTrue(file.getParent().getFile(new Path(newName)).exists());
   }
 
   /**
    * Uses {@link RenameSupport} to rename {@link DartVariableDeclaration}.
    */
-  private static void renameFile(IFile file, String newName) throws Exception {
+  @SuppressWarnings("restriction")
+  private static void deleteFile(IFile file) throws Exception {
     TestProject.waitForAutoBuild();
+    // prepare status
     IProgressMonitor pm = new NullProgressMonitor();
     RefactoringStatus status = new RefactoringStatus();
     // create Refactoring
-    RenameResourceDescriptor refactoringDescriptor = new RenameResourceDescriptor();
-    refactoringDescriptor.setResourcePath(file.getFullPath());
-    refactoringDescriptor.setNewName(newName);
-    refactoringDescriptor.setUpdateReferences(true);
-    Refactoring refactoring = refactoringDescriptor.createRefactoring(status);
+    DeleteRefactoring refactoring = new DeleteRefactoring(
+        new org.eclipse.ltk.internal.core.refactoring.resource.DeleteResourcesProcessor(
+            new IResource[] {file}));
     // execute Refactoring
     status.merge(refactoring.checkAllConditions(pm));
     Change change = refactoring.createChange(pm);
@@ -67,7 +67,7 @@ public final class RenameResourceParticipantTest extends RefactoringTest {
    * Just for coverage of {@link RenameResourceParticipant} accessors.
    */
   public void test_accessors() throws Exception {
-    RenameResourceParticipant participant = new RenameResourceParticipant();
+    DeleteResourceParticipant participant = new DeleteResourceParticipant();
     // initialize(Object) requires IFile
     {
       Object notFile = new Object();
@@ -88,13 +88,12 @@ public final class RenameResourceParticipantTest extends RefactoringTest {
         "");
     assertTrue(targetFile.exists());
     // do rename
-    renameFile(targetFile, "newName.dart");
+    deleteFile(targetFile);
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "#library('Test');",
-        "#import('newName.dart');",
         "");
-    assertFileWasRenamed(targetFile, "newName.dart");
+    assertFileWasDeleted(targetFile);
   }
 
   public void test_OK_inResource() throws Exception {
@@ -106,13 +105,12 @@ public final class RenameResourceParticipantTest extends RefactoringTest {
         "");
     assertTrue(targetFile.exists());
     // do rename
-    renameFile(targetFile, "newName.txt");
+    deleteFile(targetFile);
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "#library('Test');",
-        "#resource('newName.txt');",
         "");
-    assertFileWasRenamed(targetFile, "newName.txt");
+    assertFileWasDeleted(targetFile);
   }
 
   public void test_OK_inSource() throws Exception {
@@ -124,13 +122,33 @@ public final class RenameResourceParticipantTest extends RefactoringTest {
         "");
     assertTrue(targetFile.exists());
     // do rename
-    renameFile(targetFile, "newName.dart");
+    deleteFile(targetFile);
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "#library('Test');",
-        "#source('newName.dart');",
         "");
-    assertFileWasRenamed(targetFile, "newName.dart");
+    assertFileWasDeleted(targetFile);
+  }
+
+  public void test_OK_inSource_spaces_slashR_slashN() throws Exception {
+    IFile targetFile = (IFile) testProject.setUnitContent("target.dart", "").getResource();
+    setTestUnitContent(Joiner.on("\r\n").join(
+        new String[] {
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('Test');",
+            "#source('target.dart'); \t ",
+            "// trailing comment",
+            ""}));
+    assertTrue(targetFile.exists());
+    // do rename
+    deleteFile(targetFile);
+    assertTestUnitContent(Joiner.on("\r\n").join(
+        new String[] {
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('Test');",
+            "// trailing comment",
+            ""}));
+    assertFileWasDeleted(targetFile);
   }
 
   public void test_OK_noReferences() throws Exception {
@@ -141,11 +159,11 @@ public final class RenameResourceParticipantTest extends RefactoringTest {
         "");
     assertTrue(targetFile.exists());
     // do rename
-    renameFile(targetFile, "newName.dart");
+    deleteFile(targetFile);
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "#library('Test');",
         "");
-    assertFileWasRenamed(targetFile, "newName.dart");
+    assertFileWasDeleted(targetFile);
   }
 }
