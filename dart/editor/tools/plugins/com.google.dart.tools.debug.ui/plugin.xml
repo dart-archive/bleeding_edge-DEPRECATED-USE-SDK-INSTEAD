@@ -172,7 +172,7 @@
       <shortcut
             class="com.google.dart.tools.debug.ui.internal.server.DartServerLaunchShortcut"
             id="com.google.dart.tools.debug.ui.serverLaunchShortcut"
-            label="Dart Server Application"
+            label="Dart Command-line Application"
             icon="icons/obj16/osprc_obj.png"
             modes="run">
          <configurationType

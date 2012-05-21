@@ -74,7 +74,7 @@ public class NewApplicationHelper {
     SWTBotButton finishButton = bot.button("Finish");
 
     SWTBotRadio webAppRadio = bot.radioInGroup("Web application", "Create sample content");
-    SWTBotRadio serverAppRadio = bot.radioInGroup("Server application", "Create sample content");
+    SWTBotRadio serverAppRadio = bot.radioInGroup("Command-line application", "Create sample content");
 
     assertEquals("", appNameField.getText());
     assertTrue(appDirField.getText().length() > 0);

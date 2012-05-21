@@ -142,11 +142,11 @@ public class NewApplicationCreationPage extends WizardPage {
     GridDataFactory.fillDefaults().span(3, 1).grab(true, false).indent(0, 10).applyTo(contentGroup);
     GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(contentGroup);
 
+    serverButton = new Button(contentGroup, SWT.RADIO);
+    serverButton.setText("Command-line application");
+
     webButton = new Button(contentGroup, SWT.RADIO);
     webButton.setText("Web application");
-
-    serverButton = new Button(contentGroup, SWT.RADIO);
-    serverButton.setText("Server application");
 
     webButton.setSelection(true);
 
@@ -251,8 +251,8 @@ public class NewApplicationCreationPage extends WizardPage {
   }
 
   private String getParentDirectory() {
-    IDialogSettings settings = DartToolsPlugin.getDefault()
-        .getDialogSettingsSection(NEW_APPPLICATION_SETTINGS);
+    IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
+        NEW_APPPLICATION_SETTINGS);
     String path = settings.get(PARENT_DIR);
     if (path != null) {
       return path;

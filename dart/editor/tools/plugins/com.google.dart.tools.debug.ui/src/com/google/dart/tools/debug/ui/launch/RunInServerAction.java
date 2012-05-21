@@ -52,7 +52,6 @@ import java.io.File;
  * 
  * @deprecated
  */
-
 @Deprecated
 @SuppressWarnings("restriction")
 public class RunInServerAction extends Action implements ISelectionListener,
@@ -63,10 +62,10 @@ public class RunInServerAction extends Action implements ISelectionListener,
   public RunInServerAction(IWorkbenchWindow window) {
     this.window = window;
 
-    setText("Launch in Dart Server");
+    setText("Launch Command-line App");
     setId(DartToolsPlugin.PLUGIN_ID + ".runServerAction");
-    setDescription("Launch in Dart Server");
-    setToolTipText("Launch in Dart Server");
+    setDescription("Launch in Command-line App");
+    setToolTipText("Launch in Command-line App");
     setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/dart16/run_server.png"));
 
     setEnabled(false);
