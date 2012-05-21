@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="com.google.dart.eclipse.wizards.projects"
+            name="Dart">
+      </category>
+      
+      <wizard
+            canFinishEarly="false"
+            category="com.google.dart.eclipse.wizards.projects"
+            class="com.google.dart.eclipse.wizards.DartProjectWizard"
+            finalPerspective="com.google.dart.tools.ui.DartPerspective"
+            icon="icons/newprj_wiz.gif"
+            id="com.google.dart.eclipse.wizards.project.mainwiz"
+            name="Dart Project"
+            project="true">
+            <description>
+               Create a new Dart project
+            </description>
+      </wizard>
+   </extension>
+
+</plugin>
