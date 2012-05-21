@@ -127,9 +127,6 @@ class DateImplementation implements Date {
     return new Date.fromEpoch(value, targetTimeZone);
   }
 
-  String get timeZoneName() { throw "Unimplemented"; }
-  Duration get timeZoneOffset() { throw "Unimplemented"; }
-
   int get year() native
   '''return this.isUtc() ? this._asJs().getUTCFullYear() :
     this._asJs().getFullYear();''' {
