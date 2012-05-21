@@ -30,6 +30,11 @@ import java.util.List;
  */
 public class ClassDeclaration extends TypeDeclaration {
   /**
+   * The 'abstract' keyword, or <code>null</code> if the keyword was absent.
+   */
+  private Token abstractKeyword;
+
+  /**
    * The extends clause for the class, or <code>null</code> if the class does not extend any other
    * class.
    */
@@ -51,6 +56,7 @@ public class ClassDeclaration extends TypeDeclaration {
    * Initialize a newly created class declaration.
    * 
    * @param comment the documentation comment associated with this member
+   * @param abstractKeyword the 'abstract' keyword, or <code>null</code> if the keyword was absent
    * @param keyword the token representing the 'class' keyword
    * @param name the name of the class being declared
    * @param typeParameters the type parameters for the class
@@ -60,11 +66,12 @@ public class ClassDeclaration extends TypeDeclaration {
    * @param members the members defined by the class
    * @param rightBracket the right curly bracket
    */
-  public ClassDeclaration(Comment comment, Token keyword, SimpleIdentifier name,
-      TypeParameterList typeParameters, ClassExtendsClause classExtendsClause,
-      ImplementsClause implementsClause, Token leftBracket, List<TypeMember> members,
-      Token rightBracket) {
+  public ClassDeclaration(Comment comment, Token abstractKeyword, Token keyword,
+      SimpleIdentifier name, TypeParameterList typeParameters,
+      ClassExtendsClause classExtendsClause, ImplementsClause implementsClause, Token leftBracket,
+      List<TypeMember> members, Token rightBracket) {
     super(comment, keyword, name, typeParameters, leftBracket, members, rightBracket);
+    this.abstractKeyword = abstractKeyword;
     this.classExtendsClause = becomeParentOf(classExtendsClause);
     this.implementsClause = becomeParentOf(implementsClause);
   }
@@ -72,6 +79,15 @@ public class ClassDeclaration extends TypeDeclaration {
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitClassDeclaration(this);
+  }
+
+  /**
+   * Return the 'abstract' keyword, or <code>null</code> if the keyword was absent.
+   * 
+   * @return the 'abstract' keyword
+   */
+  public Token getAbstractKeyword() {
+    return abstractKeyword;
   }
 
   /**
@@ -92,6 +108,15 @@ public class ClassDeclaration extends TypeDeclaration {
    */
   public ImplementsClause getImplementsClause() {
     return implementsClause;
+  }
+
+  /**
+   * Set the 'abstract' keyword to the given keyword.
+   * 
+   * @param abstractKeyword the 'abstract' keyword
+   */
+  public void setAbstractKeyword(Token abstractKeyword) {
+    this.abstractKeyword = abstractKeyword;
   }
 
   /**
