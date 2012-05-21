@@ -1,3 +1,6 @@
+# When adding a new dependency, please update the top-level .gitignore file
+# to list the dependency's destination directory.
+
 vars = {
   # Use this googlecode_url variable only if there is an internal mirror for it.
   # If you do not know, use the full path while defining your new deps entry.
@@ -5,10 +8,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "117456",
+  "webkit_revision": "117602",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8626",
+  "nacl_revision": "8655",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "8228",  # native_client/DEPS: tools_rev
@@ -52,14 +55,14 @@ vars = {
   "ffmpeg_hash": "4ece657f9dad6a37e7b7e3584eb8887aad4dc499",
 
   "sfntly_revision": "128",
-  "skia_revision": "3987",
+  "skia_revision": "3995",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "11582",
+  "v8_revision": "11594",
   "webrtc_revision": "2180",
   "jsoncpp_revision": "248",
-  "nss_revision": "136057",
+  "nss_revision": "138040",
   "rlz_revision": "128",
 }
 
@@ -121,7 +124,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@37",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1384",
+    (Var("googlecode_url") % "gyp") + "/trunk@1386",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -180,7 +183,7 @@ deps = {
     (Var("googlecode_url") % "bidichecker") + "/trunk/lib@4",
 
   "src/third_party/v8-i18n":
-    (Var("googlecode_url") % "v8-i18n") + "/trunk@67",
+    (Var("googlecode_url") % "v8-i18n") + "/trunk@90",
 
   # When roll to another webgl conformance tests revision, please goto
   # chrome/test/gpu and run generate_webgl_conformance_test_list.py.
