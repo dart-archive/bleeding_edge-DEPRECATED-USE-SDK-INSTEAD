@@ -16,11 +16,6 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.index.Attribute;
-import com.google.dart.tools.core.index.AttributeCallback;
-import com.google.dart.tools.core.index.Element;
-import com.google.dart.tools.core.index.Resource;
-import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.test.util.FileOperation;
@@ -34,9 +29,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 
 public class AnalysisServerTest extends TestCase {
 
@@ -79,8 +73,6 @@ public class AnalysisServerTest extends TestCase {
 
   private Listener listener;
 
-  private InMemoryIndex index;
-
   public void test_AnalysisServer_analyzeLibrary() throws Exception {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override
@@ -94,6 +86,8 @@ public class AnalysisServerTest extends TestCase {
       InterruptedException {
     File libFile = setupMoneyLibrary(tempDir);
     setupServer();
+    assertTrackedLibraryFiles();
+
     server.analyzeLibrary(libFile);
     waitForIdle();
     if (!listener.getResolved().contains(libFile.getPath())) {
@@ -102,7 +96,7 @@ public class AnalysisServerTest extends TestCase {
     assertEquals(3, listener.getResolved().size());
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
-    assertTrue(isLibraryFileTracked(libFile));
+    assertTrackedLibraryFiles(libFile);
     assertTrue(isLibraryFileCached(libFile));
     return libFile;
   }
@@ -150,6 +144,7 @@ public class AnalysisServerTest extends TestCase {
 
   public File test_AnalysisServer_discardLib(File tempDir, boolean discardParent) throws Exception {
     File libFile = test_AnalysisServer_analyzeLibrary(tempDir);
+    assertTrackedLibraryFiles(libFile);
 
     listener.reset();
     server.discard(discardParent ? libFile.getParentFile() : libFile);
@@ -157,7 +152,7 @@ public class AnalysisServerTest extends TestCase {
     assertEquals(0, listener.getResolved().size());
     listener.assertNoDuplicates();
     listener.assertWasDiscarded(libFile);
-    assertFalse(isLibraryFileTracked(libFile));
+    assertTrackedLibraryFiles();
     assertFalse(isLibraryFileCached(libFile));
 
     listener.reset();
@@ -170,7 +165,7 @@ public class AnalysisServerTest extends TestCase {
     assertEquals(0, listener.getResolved().size());
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
-    assertFalse(isLibraryFileTracked(libFile));
+    assertTrackedLibraryFiles();
     assertFalse(isLibraryFileCached(libFile));
 
     return libFile;
@@ -348,35 +343,88 @@ public class AnalysisServerTest extends TestCase {
     proj.dispose();
   }
 
-  public void test_AnalysisServer_server() throws Exception {
-    setupServer();
-    long delta = resolveBundledLibraries();
-    listener.assertBundledLibrariesResolved();
-    System.out.println("  " + delta + " ms to resolve all sdk libraries");
-    delta = resolveBundledLibraries();
-    // Increasing this test from 10 to 100 ms - we can get valid values larger then 10.
-    if (delta > 100) {
-      fail("Expected libraries to be cached, but took " + delta + " ms");
-    }
-    int resolveCount = listener.getResolved().size();
-    if (resolveCount > 0) {
-      fail("Expected libraries to be cached, but resolved " + resolveCount + " libraries");
-    }
+  public void test_AnalysisServer_scan() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        test_AnalysisServer_scan(tempDir);
+      }
+    });
   }
 
-  public void test_AnalysisServer_serverAndIndex() throws Exception {
-    setupServerAndIndex();
-    long delta = resolveBundledLibraries();
-    listener.assertBundledLibrariesResolved();
-    System.out.println("  " + delta + " ms to resolve and index all sdk libraries");
-    delta = resolveBundledLibraries();
-    if (delta > 100) {
-      fail("Expected libraries to be cached, but took " + delta + " ms");
+  public void test_AnalysisServer_scan(File tempDir) throws Exception {
+    File libFile = setupMoneyLibrary(tempDir);
+    File sourcedFile = new File(libFile.getParent(), "currency.dart");
+    setupServer();
+    assertTrackedLibraryFiles();
+
+    listener.reset();
+    server.scan(sourcedFile);
+    waitForIdle();
+    assertTrackedLibraryFiles(sourcedFile);
+    assertEquals(3, listener.getResolved().size());
+    listener.assertNoDuplicates();
+    listener.assertNoDiscards();
+
+    listener.reset();
+    synchronized (getServerQueue()) {
+      server.scan(libFile);
+      server.discard(libFile);
     }
-    int resolveCount = listener.getResolved().size();
-    if (resolveCount > 0) {
-      fail("Expected libraries to be cached, but resolved " + resolveCount + " libraries");
-    }
+    waitForIdle();
+    assertTrackedLibraryFiles(libFile);
+    assertEquals(1, listener.getResolved().size());
+    listener.assertNoDuplicates();
+    listener.assertWasDiscarded(sourcedFile);
+  }
+
+  public void test_AnalysisServer_scanAndIndex() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        test_AnalysisServer_scanAndIndex(tempDir);
+      }
+    });
+  }
+
+  public void test_AnalysisServer_scanAndIndex(File tempDir) throws Exception {
+    File libFile = setupMoneyLibrary(tempDir);
+    File sourcedFile = new File(libFile.getParent(), "currency.dart");
+    setupServer();
+    assertTrackedLibraryFiles();
+
+//    final InMemoryIndex index = InMemoryIndex.newInstanceForTesting();
+//    new Thread(getClass().getSimpleName() + " scanAndIndex") {
+//      @Override
+//      public void run() {
+//        index.getOperationProcessor().run();
+//      };
+//    }.start();
+//    server.addAnalysisListener(new AnalysisIndexManager(index));
+//    assertEquals(0, index.getRelationshipCount());
+//
+//    Resource libResource = new Resource(composeResourceId(
+//        libFile.toURI().toString(),
+//        libFile.toURI().toString()));
+//    libElement = new Element(libResource, "#library");
+
+    listener.reset();
+    server.scan(tempDir);
+    waitForIdle();
+    assertTrackedLibraryFiles(libFile);
+    assertEquals(3, listener.getResolved().size());
+    listener.assertNoDuplicates();
+    listener.assertNoDiscards();
+
+    listener.reset();
+    server.scan(sourcedFile);
+    waitForIdle();
+    assertTrackedLibraryFiles(libFile);
+    assertEquals(0, listener.getResolved().size());
+    listener.assertNoDuplicates();
+    listener.assertNoDiscards();
+
+//    index.shutdown();
   }
 
   @Override
@@ -384,9 +432,33 @@ public class AnalysisServerTest extends TestCase {
     if (server != null && server != defaultServer) {
       server.stop();
     }
-    if (index != null) {
-      index.getOperationProcessor().stop(false);
+  }
+
+  private void assertTrackedLibraryFiles(File... expected) throws Exception {
+    File[] actual = getTrackedLibraryFiles();
+    if (actual.length == expected.length) {
+      HashSet<File> files = new HashSet<File>();
+      files.addAll(Arrays.asList(actual));
+      if (actual.length == files.size()) {
+        for (File file : expected) {
+          if (!files.remove(file)) {
+            break;
+          }
+        }
+      }
+      if (files.size() == 0) {
+        return;
+      }
     }
+    String msg = "Expected:";
+    for (File file : expected) {
+      msg += "\n   " + file;
+    }
+    msg += "\nbut found:";
+    for (File file : actual) {
+      msg += "\n   " + file;
+    }
+    fail(msg);
   }
 
   private Object getServerQueue() throws Exception {
@@ -395,15 +467,15 @@ public class AnalysisServerTest extends TestCase {
     return field.get(server);
   }
 
-  private boolean isLibraryFileCached(File libFile) throws Exception {
-    Method method = server.getClass().getDeclaredMethod("isLibraryFileCached", File.class);
+  private File[] getTrackedLibraryFiles() throws Exception {
+    Method method = server.getClass().getDeclaredMethod("getTrackedLibraryFiles");
     method.setAccessible(true);
-    Object result = method.invoke(server, libFile);
-    return result instanceof Boolean && ((Boolean) result).booleanValue();
+    Object result = method.invoke(server);
+    return (File[]) result;
   }
 
-  private boolean isLibraryFileTracked(File libFile) throws Exception {
-    Method method = server.getClass().getDeclaredMethod("isLibraryFileTracked", File.class);
+  private boolean isLibraryFileCached(File libFile) throws Exception {
+    Method method = server.getClass().getDeclaredMethod("isLibraryFileCached", File.class);
     method.setAccessible(true);
     Object result = method.invoke(server, libFile);
     return result instanceof Boolean && ((Boolean) result).booleanValue();
@@ -426,25 +498,6 @@ public class AnalysisServerTest extends TestCase {
       }
     }
     return result[0];
-  }
-
-  private long resolveBundledLibraries() throws URISyntaxException, InterruptedException, Exception {
-    listener.reset();
-    resolveBundledLibraries(server);
-    long delta = waitForIdle();
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
-    return delta;
-  }
-
-  private void resolveBundledLibraries(AnalysisServer server) throws URISyntaxException {
-    EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
-    ArrayList<String> librarySpecs = new ArrayList<String>(libraryManager.getAllLibrarySpecs());
-    for (String urlSpec : librarySpecs) {
-      URI libraryUri = new URI(urlSpec);
-      File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
-      server.resolveLibrary(libraryFile, null);
-    }
   }
 
   private void setupDefaultServer() throws Exception {
@@ -475,18 +528,6 @@ public class AnalysisServerTest extends TestCase {
     AnalysisTestUtilities.waitForIdle(server, FIVE_MINUTES_MS);
   }
 
-  private void setupServerAndIndex() throws Exception {
-    setupServer();
-    index = InMemoryIndex.newInstanceForTesting();
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        index.getOperationProcessor().run();
-      }
-    }, "AnalysisServerTest :: Index Operation Processor").start(); //$NON-NLS-0$
-    server.addAnalysisListener(new AnalysisIndexManager(index));
-  }
-
   /**
    * Wait for the server and index under test to finish background processing
    * 
@@ -495,31 +536,6 @@ public class AnalysisServerTest extends TestCase {
   private long waitForIdle() throws InterruptedException {
     final long start = System.currentTimeMillis();
     AnalysisTestUtilities.waitForIdle(server, FIVE_MINUTES_MS);
-    // In the current implementation, the index will process all background indexing
-    // before answering any search request
-    if (index != null) {
-      final boolean[] complete = new boolean[1];
-      Resource resource = new Resource("resource");
-      Element element = new Element(resource, "element");
-      Attribute attribute = Attribute.getAttribute("attribute");
-      index.getAttribute(element, attribute, new AttributeCallback() {
-        @Override
-        public void hasValue(Element element, Attribute attribute, String value) {
-          synchronized (complete) {
-            complete[0] = true;
-            complete.notifyAll();
-          }
-        }
-      });
-      synchronized (complete) {
-        if (!complete[0]) {
-          complete.wait(FIVE_MINUTES_MS);
-          if (!complete[0]) {
-            fail(index.getClass().getSimpleName() + " not idle");
-          }
-        }
-      }
-    }
     return System.currentTimeMillis() - start;
   }
 

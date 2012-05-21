@@ -230,6 +230,13 @@ public class AnalysisServer {
   }
 
   /**
+   * Recursively scan the specified directory for libraries to analyze
+   */
+  public void scan(File file) {
+    queueNewTask(new LibraryScanTask(this, savedContext, file));
+  }
+
+  /**
    * Start the background analysis process if it has not already been started
    */
   public void start() {
@@ -463,19 +470,6 @@ public class AnalysisServer {
   private boolean isLibraryFileCached(File file) {
     synchronized (queue) {
       return savedContext.getCachedLibrary(file) != null;
-    }
-  }
-
-  /**
-   * TESTING: Answer <code>true</code> if the receiver's collection of library files identified by
-   * {@link #analyzeLibrary(File)} includes the specified file.
-   * 
-   * @param file the library file (not <code>null</code>)
-   */
-  @SuppressWarnings("unused")
-  private boolean isLibraryFileTracked(File file) {
-    synchronized (queue) {
-      return libraryFiles.contains(file);
     }
   }
 

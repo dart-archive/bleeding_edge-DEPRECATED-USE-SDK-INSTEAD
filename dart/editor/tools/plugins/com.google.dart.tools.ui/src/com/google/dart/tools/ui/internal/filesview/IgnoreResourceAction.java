@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.ResourceChangeListener;
 import com.google.dart.tools.core.internal.builder.DartcBuildHandler;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
@@ -33,6 +32,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.actions.SelectionListenerAction;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 
@@ -101,7 +101,8 @@ public class IgnoreResourceAction extends SelectionListenerAction {
         } else {
           DartModelManager.getInstance().removeFromIgnores(resource);
           if (DartCoreDebug.ANALYSIS_SERVER) {
-            new ResourceChangeListener(SystemLibraryManagerProvider.getDefaultAnalysisServer()).addFileToScan(resource.getLocation().toFile());
+            File file = resource.getLocation().toFile();
+            SystemLibraryManagerProvider.getDefaultAnalysisServer().scan(file);
           } else {
             AnalyzeProjectJob analyzeProjectJob = new AnalyzeProjectJob(resource.getProject());
             analyzeProjectJob.schedule();

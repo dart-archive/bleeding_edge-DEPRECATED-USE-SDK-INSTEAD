@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal.model.delta;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.ResourceChangeListener;
 import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -60,9 +59,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Instances of the class <code>DeltaProcessor</code> are used by <code>DartModelManager</code> to convert <code>IResourceDelta</code>s into
- * <code>DartElementDelta</code>s. It also does some processing on the <code>DartElementImpl</code>s involved (e.g. setting or
- * removing of parents when elements are added or deleted from the model).
+ * Instances of the class <code>DeltaProcessor</code> are used by <code>DartModelManager</code> to
+ * convert <code>IResourceDelta</code>s into <code>DartElementDelta</code>s. It also does some
+ * processing on the <code>DartElementImpl</code>s involved (e.g. setting or removing of parents
+ * when elements are added or deleted from the model).
  * <p>
  * High level summary of what the delta processor does:
  * <ul>
@@ -997,7 +997,7 @@ public class DeltaProcessor {
           File file = deltaRes.getLocation().toFile();
           AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
           server.changed(file);
-          new ResourceChangeListener(server).addFileToScan(file);
+          server.scan(file);
         }
         element = createElement(deltaRes, elementType);
         if (DartCore.isHTMLLikeFileName(deltaRes.getName())) {
@@ -1142,8 +1142,7 @@ public class DeltaProcessor {
 
   private boolean updateHtmlMapping(IResource htmlFile) {
     try {
-      List<String> libraryNames = LibraryReferenceFinder.findInHTML(
-          IFileUtilities.getContents((IFile) htmlFile));
+      List<String> libraryNames = LibraryReferenceFinder.findInHTML(IFileUtilities.getContents((IFile) htmlFile));
 
       if (!libraryNames.isEmpty()) {
         String key = htmlFile.getLocation().toPortableString();

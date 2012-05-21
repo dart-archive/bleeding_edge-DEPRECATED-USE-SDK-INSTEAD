@@ -67,6 +67,31 @@ public class DartIgnoreManager {
   private ArrayList<String> exclusionPatterns;
 
   /**
+   * Add the specified path to the list of ignores. Callers are responsible for deleting any
+   * existing markers on ignored resources.
+   * 
+   * @param absolutePath the platform independent absolute path being tested. On Windows, any '\'
+   *          must be converted to '/' before calling this method.
+   */
+  public void addToIgnores(File file) throws IOException {
+    addToIgnores(file.getAbsolutePath().replace(File.separatorChar, '/'));
+  }
+
+  /**
+   * Add the specified path to the list of ignores. Callers are responsible for deleting any
+   * existing markers on ignored resources.
+   * 
+   * @param absolutePath the platform independent absolute path being tested. On Windows, any '\'
+   *          must be converted to '/' before calling this method.
+   */
+  public void addToIgnores(String absolutePath) throws IOException {
+    DartIgnoreFile ignoreFile = loadIgnoreFile();
+    ignoreFile.add(absolutePath);
+    cacheExclusions(ignoreFile);
+    ignoreFile.store();
+  }
+
+  /**
    * Return a list of exclusion patterns that are to be applied to determine which files are not
    * currently being analyzed.
    * 
@@ -129,14 +154,7 @@ public class DartIgnoreManager {
    * @throws CoreException if there was an error deleting markers
    */
   protected void addToIgnores(IResource resource) throws IOException, CoreException {
-
-    DartIgnoreFile ignoreFile = loadIgnoreFile();
-    String path = getPathPattern(resource);
-
-    ignoreFile.add(path);
-    cacheExclusions(ignoreFile);
-    ignoreFile.store();
-
+    addToIgnores(getPathPattern(resource));
     resource.deleteMarkers(null /* all types */, true, IResource.DEPTH_INFINITE);
   }
 

@@ -85,12 +85,14 @@ class Library {
       }
     }
 
-    return new Library(libFile, libSource, prefixes, imports, sources);
+    boolean hasDirectives = directives.size() > 0;
+    return new Library(libFile, libSource, prefixes, hasDirectives, imports, sources);
   }
 
   private final File libraryFile;
   private final LibrarySource librarySource;
   private final Set<String> prefixes;
+  private final boolean hasDirectives;
   private final HashMap<String, File> imports;
   private final HashMap<String, File> sources;
   private final HashMap<File, DartUnit> resolvedUnits;
@@ -98,10 +100,11 @@ class Library {
   private LibraryUnit libraryUnit;
 
   private Library(File libraryFile, LibrarySource librarySource, Set<String> prefixes,
-      HashMap<String, File> imports, HashMap<String, File> sources) {
+      boolean hasDirectives, HashMap<String, File> imports, HashMap<String, File> sources) {
     this.libraryFile = libraryFile;
     this.librarySource = librarySource;
     this.prefixes = prefixes;
+    this.hasDirectives = hasDirectives;
     this.imports = imports;
     this.sources = sources;
     this.resolvedUnits = new HashMap<File, DartUnit>();
@@ -151,5 +154,9 @@ class Library {
 
   Collection<File> getSourceFiles() {
     return sources.values();
+  }
+
+  boolean hasDirectives() {
+    return hasDirectives;
   }
 }
