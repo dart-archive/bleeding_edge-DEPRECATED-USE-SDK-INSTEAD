@@ -14,6 +14,7 @@
 package com.google.dart.tools.internal.corext.refactoring.code;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
@@ -23,11 +24,15 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
+import com.google.dart.tools.internal.corext.refactoring.rename.FunctionLocalElement;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 import com.google.dart.tools.ui.internal.text.Selection;
 import com.google.dart.tools.ui.internal.text.SelectionAnalyzer;
 
@@ -44,6 +49,7 @@ import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Extract Local Variable (from selected expression inside method or initializer).
@@ -150,6 +156,8 @@ public class ExtractLocalRefactoring extends Refactoring {
   private SelectionAnalyzer selectionAnalyzer;
 
   private DartExpression rootExpression;
+
+  private Set<String> excludedVariableNames;
 
   public ExtractLocalRefactoring(CompilationUnit unit, int selectionStart, int selectionLength) {
     Assert.isTrue(selectionStart >= 0);
@@ -340,6 +348,27 @@ public class ExtractLocalRefactoring extends Refactoring {
     }
     // invalid selection
     return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.ExtractLocalRefactoring_select_expression);
+  }
+
+  // TODO(scheglov) work in progress
+  @SuppressWarnings("unused")
+  private Set<String> getExcludedVariableNames() throws DartModelException {
+    if (excludedVariableNames == null) {
+      excludedVariableNames = Sets.newHashSet();
+      DartElement[] elements = unit.codeSelect(selectionStart, 0);
+      if (elements.length == 1) {
+        Method enclosingMethod = elements[0].getAncestor(Method.class);
+        if (enclosingMethod != null) {
+          List<FunctionLocalElement> localElements = RenameAnalyzeUtil.getFunctionLocalElements(enclosingMethod);
+          for (FunctionLocalElement variable : localElements) {
+            if (SourceRangeUtils.contains(variable.getVisibleRange(), selectionStart)) {
+              excludedVariableNames.add(variable.getElementName());
+            }
+          }
+        }
+      }
+    }
+    return excludedVariableNames;
   }
 
   private boolean selectionIncludesNonWhitespaceOutsideOperands(List<DartExpression> operands) {

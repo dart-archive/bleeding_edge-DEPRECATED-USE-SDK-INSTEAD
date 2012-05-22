@@ -186,6 +186,31 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         "}");
   }
 
+  public void test_singleExpression_getter() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int get foo() => 42;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  int b = 1 + a.foo; // marker",
+        "}");
+    selectionStart = findOffset("a.foo;");
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int get foo() => 42;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  int res = a.foo;",
+        "  int b = 1 + res; // marker",
+        "}");
+  }
+
   public void test_singleExpression_leadingNotWhitespace() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

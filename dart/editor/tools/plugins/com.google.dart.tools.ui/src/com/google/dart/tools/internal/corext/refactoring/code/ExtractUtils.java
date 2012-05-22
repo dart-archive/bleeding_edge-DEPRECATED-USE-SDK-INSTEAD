@@ -126,6 +126,13 @@ public class ExtractUtils {
       @Override
       public String visitExpression(DartExpression node) {
         Element element = node.getElement();
+        // may be getter
+        if (element instanceof MethodElement && element.getModifiers().isGetter()) {
+          MethodElement methodElement = (MethodElement) element;
+          Type returnType = methodElement.getReturnType();
+          return getTypeSource(returnType);
+        }
+        // some other expression
         if (element != null) {
           return getTypeSource(element.getType());
         }
@@ -224,6 +231,7 @@ public class ExtractUtils {
         || operator == Token.AND;
   }
 
+  @SuppressWarnings("unused")
   private final CompilationUnit unit;
 
   private final Buffer buffer;

@@ -231,6 +231,16 @@ public final class ExtractUtilsTest extends AbstractDartTest {
         ""});
   }
 
+  public void test_getType_getter() throws Exception {
+    assertType("int", new String[] {
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class MyClass {",
+        "  int get foo() => 42;",
+        "}",
+        "var x = new MyClass().foo;",
+        ""});
+  }
+
   public void test_getType_literal_bool_false() throws Exception {
     assertTypeSimple("bool", "false");
   }
