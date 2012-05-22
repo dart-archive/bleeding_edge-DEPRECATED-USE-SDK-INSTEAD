@@ -801,12 +801,7 @@ public class DartCore extends Plugin {
    * Return the package root preference
    */
   public String getPackageRootPref() {
-    String packageRoot = DartCore.getPlugin()
-        .getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, ""); //$NON-NLS-1$
-    if (packageRoot.isEmpty()) {
-      return null;
-    }
-    return packageRoot;
+    return DartCore.getPlugin().getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, null);
   }
 
   public IEclipsePreferences getPrefs() {
