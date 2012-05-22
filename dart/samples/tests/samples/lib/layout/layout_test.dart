@@ -35,7 +35,7 @@ main() {
   useHtmlConfiguration();
   addGridStyles('400px', '400px');
 
-  asyncTest('Spec Example 1', 1, () {
+  test('Spec Example 1', () {
     verifyExample('1 Adaptive Layouts', {
       'title': [0, 0, 144, 24],
       'score': [0, 376, 144, 24],
@@ -45,7 +45,7 @@ main() {
     });
   });
 
-  asyncTest('Spec Example 2a', 1, () {
+  test('Spec Example 2a', () {
     verifyExample('2a Source Independence: Portrait', {
       'title': [0, 0, 144, 24],
       'score': [0, 24, 144, 24],
@@ -55,7 +55,7 @@ main() {
     });
   });
 
-  asyncTest('Spec Example 2b', 1, () {
+  test('Spec Example 2b', () {
     verifyExample('2b Source Independence: Landscape', {
       'title': [0, 0, 144, 24],
       'score': [0, 376, 144, 24],
@@ -65,7 +65,7 @@ main() {
     });
   });
 
-  asyncTest('Spec Example 3', 1, () {
+  test('Spec Example 3', () {
     verifyExample('3 Grid Layering of Elements', {
       'lower-label': [0, 0, 204, 24],
       'track': [204, 0, 144, 24],
@@ -76,38 +76,38 @@ main() {
     });
   });
 
-  asyncTest('Spec Example 5', 1, () {
+  test('Spec Example 5', () {
     verifyExample('5 Grid Lines', {
       'item1': [125, 0, 275, 400],
     });
   });
 
-  asyncTest('Spec Example 6', 1, () {
+  test('Spec Example 6', () {
     verifyExample('6 Grid Lines', {
       'item1': [125, 0, 275, 400],
     });
   });
 
-  asyncTest('Spec Example 7', 1, () {
+  test('Spec Example 7', () {
     verifyExample('7 Grid Cells', {
       'item2': [0, 50, 125, 24],
       'item3': [-19, 326, 144, 24],
     });
   });
 
-  asyncTest('Spec Example 11a', 1, () {
+  test('Spec Example 11a', () {
     verifyExample('11a Starting and Ending Grid Lines', {
       'item': [0, 0, 400, 400],
     });
   });
 
-  asyncTest('Spec Example 11b', 1, () {
+  test('Spec Example 11b', () {
     verifyExample('11b Starting and Ending Grid Lines', {
       'item': [0, 0, 400, 400],
     });
   });
 
-  asyncTest('Spec Example 12', 1, () {
+  test('Spec Example 12', () {
     verifyExample('12 Repeating Columns and Rows', {
       'col2': [10, 0, 88, 400],
       'col4': [108, 0, 87, 400],
@@ -116,7 +116,7 @@ main() {
     });
   });
 
-  asyncTest('Spec Example 17', 1, () {
+  test('Spec Example 17', () {
     verifyExample('17 Anonymous Grid Cells', {
       'header': [0, 0, 400, 24],
       'main': [0, 24, 400, 352],
@@ -124,7 +124,7 @@ main() {
     });
   });
 
-  asyncTest('Spec Example 20', 1, () {
+  test('Spec Example 20', () {
     verifyExample('20 Implicit Columns and Rows', {
       'A': [0, 0, 104, 24],
       'B': [104, 0, 104, 44],
@@ -132,14 +132,14 @@ main() {
     });
   });
 
-  asyncTest('Spec Example 22', 1, () {
+  test('Spec Example 22', () {
     verifyExample('22 Grid Item Alignment', {
       'A': [0, 0, 104, 24],
       'B': [296, 376, 104, 24],
     });
   });
 
-  asyncTest('Spec Example 23', 1, () {
+  test('Spec Example 23', () {
     verifyExample('23 Drawing Order of Grid Items', {
       'A': [0, 376, 400, 24],
       'B': [0, 0, 200, 200],
@@ -158,10 +158,7 @@ usingGrid(String example, void test_(View grid)) {
   grid.addToDocument(document.body);
   window.setTimeout(() {
     test_(grid);
-    window.setTimeout(() {
-      grid.removeFromDocument();
-      callbackDone();
-    }, 0);
+    window.setTimeout(expectAsync0(() { grid.removeFromDocument(); }), 0);
   }, 0); 
 }
 
@@ -175,13 +172,13 @@ verifyGrid(String example, [Map expected = null]) {
     final values = expected[name];
     final node = document.body.query('#$name');
     Expect.isNotNull(node);
-    node.rect.then((rect) {
+    node.rect.then(expectAsync0((rect) {
       final offset = rect.offset;
       Expect.equals(values[0], offset.left);
       Expect.equals(values[1], offset.top);
       Expect.equals(values[2], offset.width);
       Expect.equals(values[3], offset.height);
-    });
+    }));
   }
 }
 
