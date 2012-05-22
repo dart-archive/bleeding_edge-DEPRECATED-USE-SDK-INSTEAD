@@ -52,7 +52,7 @@ public class PreferencesHelper {
     SWTBotCheckBox printMarginCheckBox = bot.checkBoxInGroup(
         "Show print margin at column:",
         "General");
-    SWTBotText printMarginText = bot.text(0);
+    SWTBotText printMarginText = bot.text(1);
     SWTBotCheckBox removeWhitespaceCheckBox = bot.checkBoxInGroup(
         "Remove trailing whitespace on save",
         "General");
@@ -76,6 +76,8 @@ public class PreferencesHelper {
     assertFalse(removeWhitespaceCheckBox.isChecked());
     assertTrue(removeWhitespaceCheckBox.isEnabled());
     assertTrue(removeWhitespaceCheckBox.isVisible());
+
+    // TODO more assertions needed for the rest of the widgets in the preferences dialog
   }
 
   public void close() {
