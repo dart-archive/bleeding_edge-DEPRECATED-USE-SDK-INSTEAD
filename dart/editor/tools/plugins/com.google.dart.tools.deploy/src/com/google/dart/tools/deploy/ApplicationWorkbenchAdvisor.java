@@ -23,6 +23,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DeployConsolePatternMatcher;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
+import com.google.dart.tools.ui.internal.preferences.DartKeyBindingPersistence;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.IFileTree;
@@ -54,12 +55,15 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferenceConstants;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.activities.IActivityManager;
 import org.eclipse.ui.application.IWorkbenchConfigurer;
 import org.eclipse.ui.application.IWorkbenchWindowConfigurer;
 import org.eclipse.ui.application.WorkbenchAdvisor;
 import org.eclipse.ui.application.WorkbenchWindowAdvisor;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
@@ -71,6 +75,7 @@ import org.eclipse.ui.internal.ide.IDEWorkbenchActivityHelper;
 import org.eclipse.ui.internal.ide.IDEWorkbenchMessages;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.internal.ide.undo.WorkspaceUndoMonitor;
+import org.eclipse.ui.keys.IBindingService;
 import org.osgi.framework.Bundle;
 
 import java.net.URL;
@@ -85,7 +90,7 @@ import java.net.URL;
  * Note: This class replaces <code>org.eclipse.ui.internal.Workbench</code>.
  * </p>
  */
-@SuppressWarnings("restriction")
+@SuppressWarnings({"restriction", "deprecation"})
 public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
   private class FontPropertyChangeListener implements IPropertyChangeListener {
@@ -277,7 +282,12 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
       if (DartCoreDebug.ANALYSIS_SERVER) {
         new AnalysisMonitor(SystemLibraryManagerProvider.getDefaultAnalysisServer()).start();
       }
-
+      IWorkbench workbench = PlatformUI.getWorkbench();
+      IActivityManager act = workbench.getActivitySupport().getActivityManager();
+      IBindingService bind = (IBindingService) workbench.getService(IBindingService.class);
+      ICommandService cmd = (ICommandService) workbench.getService(ICommandService.class);
+      DartKeyBindingPersistence persist = new DartKeyBindingPersistence(act, bind, cmd);
+      persist.restoreBindingPreferences();
     } finally {// Resume background jobs after we startup
       Job.getJobManager().resume();
     }
@@ -517,10 +527,8 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
     // tab style setting
     PlatformUI.getPreferenceStore().setValue(
         IWorkbenchPreferenceConstants.SHOW_TRADITIONAL_STYLE_TABS, false);
-
     // auto-refresh setting
     Preferences preferences = ResourcesPlugin.getPlugin().getPluginPreferences();
-
     preferences.setValue(ResourcesPlugin.PREF_AUTO_REFRESH, true);
   }
 

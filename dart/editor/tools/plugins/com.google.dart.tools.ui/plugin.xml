@@ -706,6 +706,11 @@
             id="com.google.dart.tools.ui.fontOptionsPage"
             name="Font">
       </page>
+      <page
+            name="%dartKeysPrefName"
+            class="com.google.dart.tools.ui.internal.preferences.DartKeyBindingPreferencePage"
+            id="com.google.dart.tools.ui.preferences.DartKeyBindingPreferencePage">
+      </page>
    </extension>
    
    <extension
@@ -2056,7 +2061,7 @@
             name="%ActionDefinition.open.structure.name"
             description="%ActionDefinition.open.structure.description"
             categoryId="org.eclipse.ui.category.navigate"
-            id="org.eclipse.wst.jsdt.ui.navigate.java.open.structure">
+            id="com.google.dart.tools.ui.edit.text.dart.open.structure">
       </command>
       <command
             name="%ActionDefinition.openType.name"
@@ -2958,7 +2963,7 @@
       <key
             sequence="M1+F3"
             contextId="com.google.dart.tools.ui.dartEditorScope"
-            commandId="org.eclipse.wst.jsdt.ui.navigate.java.open.structure"
+            commandId="com.google.dart.tools.ui.edit.text.dart.open.structure"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
       <key
             sequence="M3+O"

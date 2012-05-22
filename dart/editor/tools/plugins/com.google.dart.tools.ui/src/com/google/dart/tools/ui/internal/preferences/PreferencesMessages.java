@@ -769,12 +769,31 @@ public final class PreferencesMessages extends NLS {
   public static String DartBasePreferencePage_Package_Title;
   public static String DartBasePreferencePage_select;
   public static String DartBasePreferencePage_text_font;
-
   public static String DartBasePreferencePage_trailing_ws_details;
-
   public static String DartBasePreferencePage_trailing_ws_label;
-
   public static String DartBasePreferencePage_update_group_label;
+
+  public static String DartKeyBindingPref_Export;
+  public static String DartKeyBindingPref_Import;
+  public static String DartKeyBindingPref_ToEmacs;
+  public static String DartKeyBindingPref_ChooseExportFile;
+  public static String DartKeyBindingPref_ExportTitle;
+  public static String DartKeyBindingPref_ConfirmReplace;
+  public static String DartKeyBindingPref_CouldNotExport;
+  public static String DartKeyBindingPref_ChooseImportFile;
+  public static String DartKeyBindingPref_ImportTitle;
+  public static String DartKeyBindingPref_FileReadError;
+  public static String DartKeyBindingPref_CouldNotLoad;
+  public static String DartKeyBindingPref_ChooseFile;
+  public static String DartKeyBindingPref_ResetBindings;
+  public static String DartKeyBindingPref_ConfirmReset;
+  public static String DartKeyBindingPref_Reset;
+  public static String DartKeyBindingPref_Emacs;
+  public static String DartKeyBindingPref_Title;
+  public static String DartKeyBindingPref_Modify;
+  public static String DartKeyBindingPref_ToFile;
+  public static String DartKeyBindingPref_FromFile;
+  public static String DartKeyBindingPref_ToDefaults;
 
   public static String CodeAssistConfigurationBlock_matchCamelCase_label;
   public static String ComplianceConfigurationBlock_version16;

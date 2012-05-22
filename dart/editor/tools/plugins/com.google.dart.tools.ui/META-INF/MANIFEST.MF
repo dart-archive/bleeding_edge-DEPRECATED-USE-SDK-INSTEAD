@@ -36,6 +36,7 @@ Export-Package: com.google.dart.tools.internal.corext.dom;x-friends:="com.google
  com.google.dart.tools.ui.internal.callhierarchy,
  com.google.dart.tools.ui.internal.handlers,
  com.google.dart.tools.ui.internal.intro;x-friends:="com.google.dart.tools.deploy",
+ com.google.dart.tools.ui.internal.preferences,
  com.google.dart.tools.ui.internal.projects;x-friends:="com.google.dart.tools.deploy",
  com.google.dart.tools.ui.internal.refactoring;x-friends:="com.google.dart.tools.ui_test",
  com.google.dart.tools.ui.internal.refactoring.actions;x-friends:="com.google.dart.tools.ui_test",
