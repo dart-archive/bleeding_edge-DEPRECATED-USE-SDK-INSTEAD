@@ -149,6 +149,21 @@ public class TestProject {
    * Creates or updates {@link IFile} with content of the given {@link InputStream}.
    */
   public IFile setFileContent(String path, InputStream inputStream) throws Exception {
+    final IFile file = setFileContentWithoutWaitingForAnalysis(path, inputStream);
+    AnalysisTestUtilities.waitForAnalysis();
+    return file;
+  }
+
+  /**
+   * Creates or updates with {@link String} content of the {@link IFile}.
+   */
+  public IFile setFileContent(String path, String content) throws Exception {
+    InputStream inputStream = new ByteArrayInputStream(content.getBytes());
+    return setFileContent(path, inputStream);
+  }
+
+  public IFile setFileContentWithoutWaitingForAnalysis(String path, InputStream inputStream)
+      throws Exception {
     final IFile file = project.getFile(new Path(path));
     final InputStream stream = inputStream;
     ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
@@ -164,12 +179,10 @@ public class TestProject {
     return file;
   }
 
-  /**
-   * Creates or updates with {@link String} content of the {@link IFile}.
-   */
-  public IFile setFileContent(String path, String content) throws Exception {
+  public IFile setFileContentWithoutWaitingForAnalysis(String path, String content)
+      throws Exception {
     InputStream inputStream = new ByteArrayInputStream(content.getBytes());
-    return setFileContent(path, inputStream);
+    return setFileContentWithoutWaitingForAnalysis(path, inputStream);
   }
 
   /**

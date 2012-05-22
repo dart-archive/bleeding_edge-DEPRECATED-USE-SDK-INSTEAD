@@ -335,7 +335,7 @@ public class AnalysisServerTest extends TestCase {
     synchronized (getServerQueue()) {
       proj.dispose();
       proj = new TestProject(projName);
-      libFile = proj.setFileContent(libFileName, "class B { }").getLocation().toFile();
+      libFile = proj.setFileContentWithoutWaitingForAnalysis(libFileName, "class B { }").getLocation().toFile();
       server.resolveLibrary(libFile, callback);
     }
     unit = callback.waitForResolution().getSelfDartUnit();

@@ -19,8 +19,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    // TODO(devoncarew): this test fails intermittently - re-enable when it is fixed.
-    //suite.addTestSuite(DartElementLocatorTest.class);
+    suite.addTestSuite(DartElementLocatorTest.class);
     return suite;
   }
 }
