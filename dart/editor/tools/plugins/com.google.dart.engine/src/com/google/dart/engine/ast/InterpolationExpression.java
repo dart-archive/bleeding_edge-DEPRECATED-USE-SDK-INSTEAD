@@ -124,6 +124,14 @@ public class InterpolationExpression extends InterpolationElement {
     return rightBracket;
   }
 
+  @Override
+  public boolean isConstant() {
+    // TODO(brianwilkerson) Interpolated strings are constants only if all of the expressions are
+    // compile-time constants that evaluate to a numeric, string or boolean value or to null. This
+    // method needs to be implemented to reflect those semantics.
+    return false;
+  }
+
   /**
    * Set the dollar sign used to introduce the expression to the given token.
    * 

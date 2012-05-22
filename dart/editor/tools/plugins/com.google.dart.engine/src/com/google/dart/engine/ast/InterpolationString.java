@@ -69,6 +69,11 @@ public class InterpolationString extends InterpolationElement {
     return contents;
   }
 
+  @Override
+  public boolean isConstant() {
+    return true;
+  }
+
   /**
    * Set the characters that will be added to the string to those in the given string.
    * 

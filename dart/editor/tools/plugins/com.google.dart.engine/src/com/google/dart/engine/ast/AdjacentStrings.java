@@ -26,7 +26,7 @@ import java.util.List;
  *     {@link StringLiteral string} {@link StringLiteral string}+
  * </pre>
  */
-public class AdjacentStrings extends Expression {
+public class AdjacentStrings extends StringLiteral {
   /**
    * The strings that are implicitly concatenated.
    */
@@ -63,6 +63,16 @@ public class AdjacentStrings extends Expression {
    */
   public NodeList<StringLiteral> getStrings() {
     return strings;
+  }
+
+  @Override
+  public boolean isConstant() {
+    for (StringLiteral string : strings) {
+      if (!string.isConstant()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override

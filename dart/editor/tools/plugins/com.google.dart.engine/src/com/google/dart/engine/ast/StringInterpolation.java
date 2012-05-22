@@ -26,7 +26,7 @@ import java.util.List;
  *   | '"' {@link InterpolationElement interpolationElement}* '"'
  * </pre>
  */
-public class StringInterpolation extends Literal {
+public class StringInterpolation extends StringLiteral {
   /**
    * The elements that will be composed to produce the resulting string.
    */
@@ -69,6 +69,16 @@ public class StringInterpolation extends Literal {
   @Override
   public Token getEndToken() {
     return elements.getEndToken();
+  }
+
+  @Override
+  public boolean isConstant() {
+    for (InterpolationElement element : elements) {
+      if (!element.isConstant()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override

@@ -13,140 +13,15 @@
  */
 package com.google.dart.engine.ast;
 
-import com.google.dart.engine.scanner.Token;
-
 /**
- * Instances of the class <code>StringLiteral</code> represent a string literal expression that does
- * not contain any interpolations.
+ * Instances of the class <code>StringLiteral</code> represent a string literal expression.
  * 
  * <pre>
  * stringLiteral ::=
- *     rawStringLiteral
- *   | simpleStringLiteral
- *
- * rawStringLiteral ::=
- *     '@' simpleStringLiteral
- *
- * simpleStringLiteral ::=
- *     multiLineStringLiteral
- *   | singleLineStringLiteral
- *
- * multiLineStringLiteral ::=
- *     "'''" characters "'''"
- *   | '"""' characters '"""'
- *
- * singleLineStringLiteral ::=
- *     "'" characters "'"
- *     '"' characters '"'
+ *     {@link SimpleStringLiteral simpleStringLiteral}
+ *   | {@link AdjacentStrings adjacentStrings}
+ *   | {@link StringInterpolation stringInterpolation}
  * </pre>
  */
-public class StringLiteral extends Literal {
-  /**
-   * The token representing the literal.
-   */
-  private Token literal;
-
-  /**
-   * The value of the literal.
-   */
-  private String value;
-
-  /**
-   * Initialize a newly created string literal.
-   */
-  public StringLiteral() {
-  }
-
-  /**
-   * Initialize a newly created string literal.
-   * 
-   * @param literal the token representing the literal
-   * @param value the value of the literal
-   */
-  public StringLiteral(Token literal, String value) {
-    this.literal = literal;
-    this.value = value;
-  }
-
-  @Override
-  public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitStringLiteral(this);
-  }
-
-  @Override
-  public Token getBeginToken() {
-    return literal;
-  }
-
-  @Override
-  public Token getEndToken() {
-    return literal;
-  }
-
-  /**
-   * Return the token representing the literal.
-   * 
-   * @return the token representing the literal
-   */
-  public Token getLiteral() {
-    return literal;
-  }
-
-  /**
-   * Return the value of the literal.
-   * 
-   * @return the value of the literal
-   */
-  public String getValue() {
-    return value;
-  }
-
-  @Override
-  public boolean isConstant() {
-    return true;
-  }
-
-  /**
-   * Return <code>true</code> if this string literal is a multi-line string.
-   * 
-   * @return <code>true</code> if this string literal is a multi-line string
-   */
-  public boolean isMultiline() {
-    if (value.length() < 6) {
-      return false;
-    }
-    return value.endsWith("\"\"\"") || value.endsWith("'''");
-  }
-
-  /**
-   * Return <code>true</code> if this string literal is a raw string.
-   * 
-   * @return <code>true</code> if this string literal is a raw string
-   */
-  public boolean isRaw() {
-    return value.charAt(0) == '@';
-  }
-
-  /**
-   * Set the token representing the literal to the given token.
-   * 
-   * @param literal the token representing the literal
-   */
-  public void setLiteral(Token literal) {
-    this.literal = literal;
-  }
-
-  /**
-   * Set the value of the literal to the given string.
-   * 
-   * @param string the value of the literal
-   */
-  public void setValue(String string) {
-    value = string;
-  }
-
-  @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
-    // There are no children to visit.
-  }
+public abstract class StringLiteral extends Literal {
 }

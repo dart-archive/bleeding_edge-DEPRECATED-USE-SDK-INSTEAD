@@ -24,4 +24,12 @@ package com.google.dart.engine.ast;
  * </pre>
  */
 public abstract class InterpolationElement extends ASTNode {
+  /**
+   * Return <code>true</code> if this element is a valid element within a compile-time constant
+   * string.
+   * 
+   * @return <code>true</code> if this element is a valid element within a compile-time constant
+   *         string
+   */
+  public abstract boolean isConstant();
 }

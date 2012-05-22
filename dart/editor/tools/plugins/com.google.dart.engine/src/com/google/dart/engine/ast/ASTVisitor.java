@@ -18,7 +18,7 @@ package com.google.dart.engine.ast;
  */
 public class ASTVisitor<R> {
   public R visitAdjacentStrings(AdjacentStrings node) {
-    return visitExpression(node);
+    return visitStringLiteral(node);
   }
 
   public R visitArgumentList(ArgumentList node) {
@@ -358,6 +358,10 @@ public class ASTVisitor<R> {
     return visitIdentifier(node);
   }
 
+  public R visitSingleStringLiteral(SimpleStringLiteral node) {
+    return visitStringLiteral(node);
+  }
+
   public R visitSourceDirective(SourceDirective node) {
     return visitDirective(node);
   }
@@ -367,7 +371,7 @@ public class ASTVisitor<R> {
   }
 
   public R visitStringInterpolation(StringInterpolation node) {
-    return visitLiteral(node);
+    return visitStringLiteral(node);
   }
 
   public R visitStringLiteral(StringLiteral node) {
