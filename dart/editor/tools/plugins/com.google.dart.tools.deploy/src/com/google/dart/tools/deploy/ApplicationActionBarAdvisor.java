@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.deploy;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 import com.google.dart.tools.debug.ui.launch.DartRunAction;
 import com.google.dart.tools.ui.DartUI;
@@ -738,10 +737,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private void addViewActions(MenuManager menu) {
     IViewDescriptor viewDesc;
 
-    if (DartCoreDebug.ENABLE_CALL_GRAPH) {
-      viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_CALL_HIERARCHY);
-      menu.add(new AccessibleShowViewAction(window, viewDesc, false));
-    }
+    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_CALL_HIERARCHY);
+    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DebuggerView.ID);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));

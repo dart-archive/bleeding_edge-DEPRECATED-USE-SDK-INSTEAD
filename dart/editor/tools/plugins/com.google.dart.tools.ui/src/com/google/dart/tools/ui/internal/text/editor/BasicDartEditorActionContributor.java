@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
@@ -152,9 +151,7 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
     IMenuManager navigateMenu = menu.findMenuUsingPath(IWorkbenchActionConstants.M_NAVIGATE);
     if (navigateMenu != null) {
       navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, fOpenDeclaration);
-      if (DartCoreDebug.ENABLE_CALL_GRAPH) {
-        navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, fOpenCallHierarchy);
-      }
+      navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, fOpenCallHierarchy);
       navigateMenu.appendToGroup(IWorkbenchActionConstants.SHOW_EXT, fShowOutline);
       //navigateMenu.appendToGroup(IWorkbenchActionConstants.SHOW_EXT, fOpenHierarchy);
     }

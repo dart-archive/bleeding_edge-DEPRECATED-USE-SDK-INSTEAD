@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.callhierarchy;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -76,9 +75,6 @@ public class OpenCallHierarchyAction extends SelectionDispatchAction {
 
   @Override
   public void run(IStructuredSelection selection) {
-    if (!DartCoreDebug.ENABLE_CALL_GRAPH) {
-      return;
-    }
     List<?> elements = selection.toList();
     if (!CallHierarchy.arePossibleInputElements(elements)) {
       elements = Collections.EMPTY_LIST;
@@ -94,9 +90,6 @@ public class OpenCallHierarchyAction extends SelectionDispatchAction {
 
   @Override
   public void run(ITextSelection selection) {
-    if (!DartCoreDebug.ENABLE_CALL_GRAPH) {
-      return;
-    }
     CompilationUnit input = SelectionConverter.getInputAsCompilationUnit(editor);
     if (!ActionUtil.isProcessable(getShell(), input)) {
       return;

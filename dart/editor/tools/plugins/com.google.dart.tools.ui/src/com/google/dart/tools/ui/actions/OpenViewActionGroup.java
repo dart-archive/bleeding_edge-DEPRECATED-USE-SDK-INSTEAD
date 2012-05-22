@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -205,10 +204,8 @@ public class OpenViewActionGroup extends ActionGroup {
     super.fillContextMenu(menu);
 //		if (!fIsTypeHiararchyViewerOwner)
 //			appendToGroup(menu, fOpenTypeHierarchy);
-    if (DartCoreDebug.ENABLE_CALL_GRAPH) {
-      if (!fIsCallHiararchyViewerOwner) {
-        appendToGroup(menu, fOpenCallHierarchy);
-      }
+    if (!fIsCallHiararchyViewerOwner) {
+      appendToGroup(menu, fOpenCallHierarchy);
     }
 
 //    if (fShowShowInMenu) {
