@@ -491,6 +491,32 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
         "}");
   }
 
+  public void test_OK_singleUnit_onReference_targetTypePropagated() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "}",
+        "f2() {",
+        "  var a = new A();",
+        "  a.test();",
+        "}",
+        "");
+    Method method = findElement("test();");
+    // do rename
+    renameMethod(method, "newName");
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  newName() {}",
+        "}",
+        "f2() {",
+        "  var a = new A();",
+        "  a.newName();",
+        "}",
+        "");
+  }
+
   public void test_postCondition_element_shadowedBy_localVariable() throws Exception {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

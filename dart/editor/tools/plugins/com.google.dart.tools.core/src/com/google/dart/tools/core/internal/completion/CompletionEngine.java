@@ -70,8 +70,6 @@ import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.MethodNodeElement;
 import com.google.dart.compiler.resolver.NodeElement;
-import com.google.dart.compiler.resolver.ResolutionContext;
-import com.google.dart.compiler.resolver.Resolver;
 import com.google.dart.compiler.resolver.Scope;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.FunctionType;
@@ -1484,24 +1482,6 @@ public class CompletionEngine {
       if (resolvedClass != null) {
         classElement = resolvedClass.getElement();
       }
-    }
-    context.reset();
-    Resolver resolver = new Resolver(context, unitScope, typeProvider);
-
-    ResolutionContext resolutionContext = new ResolutionContext(unitScope, context, typeProvider);
-    if (classElement != null) {
-      resolutionContext = resolutionContext.extend(classElement);
-    }
-    NodeElement member = resolvedMember == null ? classElement : resolvedMember.getElement();
-    try {
-      resolver.resolveMember(classElement, member, resolutionContext);
-    } catch (AssertionError ex) {
-      // Expected if completing an extends or implements clause of type declaration
-    } catch (NullPointerException ex) {
-      // Expected if completing an extends or implements clause of type declaration
-    } catch (Throwable ex) {
-      DartCore.logError(ex);
-      ex.printStackTrace();
     }
     requestor.beginReporting();
     requestor.acceptContext(new InternalCompletionContext());
