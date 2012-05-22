@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.ui.internal.dialogs;
 
+import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 
 import org.eclipse.core.runtime.CoreException;
@@ -21,7 +22,6 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.debug.internal.ui.IInternalDebugUIConstants;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
@@ -44,7 +44,6 @@ import java.util.Comparator;
 /**
  * An action used to create a new launch configuration.
  */
-@SuppressWarnings("restriction")
 public class CreateLaunchAction extends Action implements IWorkbenchWindowPulldownDelegate2,
     IMenuCreator {
   private Menu menu;
@@ -54,11 +53,11 @@ public class CreateLaunchAction extends Action implements IWorkbenchWindowPulldo
    * Create a new CreateLaunchAction.
    */
   public CreateLaunchAction(ManageLaunchesDialog launchConfigurationDialog) {
-    super("New", IAction.AS_DROP_DOWN_MENU);
+    super("Create new launch", IAction.AS_DROP_DOWN_MENU);
 
     this.launchConfigurationDialog = launchConfigurationDialog;
 
-    setImageDescriptor(DebugUITools.getImageDescriptor(IInternalDebugUIConstants.IMG_ELCL_NEW_CONFIG));
+    setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_create.png"));
 
     setMenuCreator(this);
   }
@@ -152,7 +151,7 @@ public class CreateLaunchAction extends Action implements IWorkbenchWindowPulldo
     // Iterate through all the launch configuration types and add them to the pulldown menu.
     for (final ILaunchConfigurationType configType : sort(manager.getLaunchConfigurationTypes())) {
       Action launchAction = new Action(
-          configType.getName(),
+          "New " + configType.getName(),
           DebugUITools.getDefaultImageDescriptor(configType)) {
         @Override
         public void run() {

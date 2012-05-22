@@ -130,7 +130,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     // Dartium settings group
     group = new Group(composite, SWT.NONE);
-    group.setText("Dartium settings:");
+    group.setText("Dartium settings");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
     GridLayoutFactory.swtDefaults().numColumns(2).applyTo(group);
 

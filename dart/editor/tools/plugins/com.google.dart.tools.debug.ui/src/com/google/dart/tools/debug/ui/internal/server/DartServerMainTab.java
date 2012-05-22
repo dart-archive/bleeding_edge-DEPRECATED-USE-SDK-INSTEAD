@@ -74,7 +74,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
     // Application settings group
     Group group = new Group(composite, SWT.NONE);
-    group.setText("Application:");
+    group.setText("Application");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
     GridLayoutFactory.swtDefaults().numColumns(3).extendedMargins(0, 0, 0, 4).applyTo(group);
 
@@ -113,7 +113,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
     // VM settings group
     group = new Group(composite, SWT.NONE);
-    group.setText("VM settings:");
+    group.setText("VM settings");
     GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
     GridLayoutFactory.swtDefaults().numColumns(2).extendedMargins(0, 0, 0, 4).applyTo(group);
 
