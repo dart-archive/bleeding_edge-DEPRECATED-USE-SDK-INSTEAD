@@ -282,6 +282,10 @@ public class FrogCompiler {
     args.add("--suppress_warnings");
     args.add("--no_colors");
     args.add("--libdir=" + DartSdk.getInstance().getLibraryDirectory().getPath());
+    String packageRoot = DartCore.getPlugin().getPackageRootPref();
+    if (packageRoot != null) {
+      args.add("--package-root=" + packageRoot);
+    }
     args.add("--out=" + outputPath.toOSString());
     args.add(inputPath.toOSString());
 

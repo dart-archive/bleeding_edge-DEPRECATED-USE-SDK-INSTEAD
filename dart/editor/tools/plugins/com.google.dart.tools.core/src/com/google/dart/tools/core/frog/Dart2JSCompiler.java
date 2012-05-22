@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.core.frog;
 
+import com.google.dart.tools.core.DartCore;
+
 import org.eclipse.core.runtime.IPath;
 
 import java.util.ArrayList;
@@ -44,6 +46,11 @@ public class Dart2JSCompiler extends FrogCompiler {
     args.add("--no-colors");
     args.add("--suppress-warnings");
     //args.add("--library-root=" + DartSdk.getInstance().getLibraryDirectory().getPath());
+
+    String packageRoot = DartCore.getPlugin().getPackageRootPref();
+    if (packageRoot != null) {
+      args.add("--package-root=" + packageRoot);
+    }
     args.add("--out=" + outputPath.toOSString());
     args.add(inputPath.toOSString());
 

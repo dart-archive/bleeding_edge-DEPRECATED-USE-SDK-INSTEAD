@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.core.configs;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -107,9 +108,14 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     if (DartDebugCorePlugin.SERVER_DEBUGGING && enableDebugging) {
       commandsList.add("--debug:" + connectionPort);
     }
+
+    String packageRoot = DartCore.getPlugin().getPackageRootPref();
+    if (packageRoot != null) {
+      commandsList.add("--package-root=" + packageRoot);
+    }
+
     commandsList.add(scriptPath);
     commandsList.addAll(Arrays.asList(launchConfig.getArgumentsAsArray()));
-
     String[] commands = commandsList.toArray(new String[commandsList.size()]);
     ProcessBuilder processBuilder = new ProcessBuilder(commands);
 

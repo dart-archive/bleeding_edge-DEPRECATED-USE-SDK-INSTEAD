@@ -148,6 +148,12 @@ public class BrowserManager {
       env.put("DART_FLAGS", "--enable-checked-mode");
     }
 
+    // TODO(keertip): pass in pref value for --package-root if set, when supported
+//    String packageRoot = DartCore.getPlugin().getPackageRootPref();
+//    if (packageRoot != null) {
+//      env.put("DART_PACKAGE_ROOT",packageRoot);
+//    }
+
     IResourceResolver resourceResolver = null;
 
     if (enableDebugging) {
