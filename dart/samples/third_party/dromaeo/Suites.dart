@@ -28,6 +28,7 @@ class Suites {
     'js': 'DOM Core Tests (JavaScript)',
     'dart': 'DOM Core Tests (dart)',
     'frog': 'DOM Core Tests (frog)',
+    'dart2js': 'DOM Core Tests (dart2js)',
   };
 
   static final _CORE_SUITE_DESCRIPTIONS = const [
@@ -74,16 +75,11 @@ class Suites {
 
   // Mappings from original path to Dart-specific variants.
   static _jsPath(path) => path;
-  static _domPath(path) => path.replaceFirst('.html', '-dom.html');
-  static _htmlPath(path) => path.replaceFirst('.html', '-html.html');
-  static _htmlIdiomaticPath(path) =>
-      path.replaceFirst('.html', '-htmlidiomatic.html');
-  static _frogDomPath(path) =>
-      'frog/${path.replaceFirst(".html", "-dom-js.html")}';
-  static _frogHtmlPath(path) =>
-      'frog/${path.replaceFirst(".html", "-html-js.html")}';
-  static _frogHtmlIdiomaticPath(path) =>
-      'frog/${path.replaceFirst(".html", "-htmlidiomatic-js.html")}';
+  static _nativeMapper(lib) =>
+      ((path) => path.replaceFirst('.html', '-$lib.html'));
+  static _compiledMapper(lib, compiler) =>
+      ((path) =>
+       '$compiler/${path.replaceFirst(".html", "-dom-js.html")}');
 
   static var _SUITE_DESCRIPTIONS;
 
@@ -96,14 +92,20 @@ class Suites {
       _SUITE_DESCRIPTIONS.addAll(
           getVariants(_CORE_SUITE_DESCRIPTIONS, variant, mapper, tags));
     }
+    // Add original JS versions.
     add('js', _jsPath, ['js']);
-    add('dart:dom_deprecated', _domPath, ['dart', 'dom']);
-    add('dart:html', _htmlPath, ['dart', 'html']);
-    add('dart:html idiomatic', _htmlPath, ['dart', 'htmlidiomatic']);
-    add('frog dart:dom_deprecated', _frogDomPath, ['frog', 'dom']);
-    add('frog dart:html', _frogHtmlPath, ['frog', 'html']);
-    add('frog dart:html idiomatic', _frogHtmlIdiomaticPath,
-        ['frog', 'htmlidiomatic']);
+    // Add native Dart versions.
+    for (var version in ['dom', 'html', 'htmlidiomatic']) {
+      add('dart:$version', _nativeMapper(version), ['dart', version]);
+    }
+    // Add Dart compiled-to JS versions.
+    for (var compiler in ['frog', 'dart2js']) {
+      for (var version in ['dom', 'html', 'htmlidiomatic']) {
+        add('$compiler:$version',
+            _compiledMapper(version, compiler),
+            [compiler, version]);
+      }
+    }
     return _SUITE_DESCRIPTIONS;
   }
 

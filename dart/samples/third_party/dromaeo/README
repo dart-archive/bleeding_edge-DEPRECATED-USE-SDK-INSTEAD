@@ -1,8 +1,12 @@
 This is a port of the Dromaeo benchmark (http://dromaeo.com/) to Dart.
 See the attached LICENSE file in this directory.
 
-To run:
-(1) Execute ./generate_frog_tests.sh to create frog variants.
-(2) Use a Dartium chrome binary to open index.html in this
-directory.
-(3) Alternatively, use a standard browser to open index-js.html?js|frog in this directory.
+To run: 
+
+(1) Execute python ./generate_dart2js_tests.py to create frog
+and dart2js variants.
+
+(2) Use a Dartium chrome binary to open index.html in this directory.
+
+(3) Alternatively, use a standard browser to open
+index-js.html?js|frog|dart2js in this directory.

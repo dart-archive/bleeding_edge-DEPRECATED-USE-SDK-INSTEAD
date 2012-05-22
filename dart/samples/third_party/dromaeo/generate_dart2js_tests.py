@@ -15,14 +15,19 @@ TOOLS_PATH = os.path.join(DART_PATH, 'tools')
 sys.path.append(TOOLS_PATH)
 import utils
 
-def Compile(source, target):
+EXECUTABLE_MAP = {
+    'frog': 'frogc',
+    'dart2js': 'dart2js'
+}
+
+def Compile(source, target, compiler):
+  executable = EXECUTABLE_MAP[compiler]
   binary = os.path.abspath(os.path.join(DART_PATH,
                                         utils.GetBuildRoot(utils.GuessOS(),
                                                            'release', 'ia32'),
-                                        'dart-sdk', 'bin', 'frogc'))
+                                        'dart-sdk', 'bin', executable))
 
-  cmd = [binary, '--compile-only',
-         '--out=' + target]
+  cmd = [binary, '--out=' + target]
   cmd.append(source)
   print 'Executing: ' + ' '.join(cmd)
   if platform.system() == "Windows":    
@@ -30,11 +35,11 @@ def Compile(source, target):
   else:
     subprocess.call(cmd)
 
-def HtmlConvert(infile):
+def HtmlConvert(infile, compiler):
   (head, tail) = os.path.split(infile)
 
   if head == 'tests':
-    outdir = 'frog'
+    outdir = compiler
     os.chdir('tests')
     if not os.path.exists(outdir):
       os.makedirs(outdir)
@@ -52,10 +57,12 @@ def HtmlConvert(infile):
   for line in infile:
     result = re.search(pattern, line)
     if result:
-      dartname = result.group(1) + '.dart'
-      jsname = os.path.join(outdir, dartname + '.js')
-      Compile(dartname, jsname)
-      script = '<script type="text/javascript" src="%s">' % (dartname + '.js')
+      testname = result.group(1)
+      dartname = testname + '.dart'
+      jsname = '%s.%s.js' % (testname, compiler)
+      outname = os.path.join(outdir, jsname)
+      Compile(dartname, outname, compiler)
+      script = '<script type="text/javascript" src="%s">' % jsname
       outfile.write(re.sub(pattern, script, line))
     else:
       outfile.write(line)
@@ -67,7 +74,8 @@ def HtmlConvert(infile):
 tests = glob.glob('tests/dom-*-*.html')
 
 for test in tests:
-  HtmlConvert(test)
+  HtmlConvert(test, 'frog')
+  HtmlConvert(test, 'dart2js')
 
 # Frog compile driver to index-js.html.
-HtmlConvert('index.html')
+HtmlConvert('index.html', 'frog')
