@@ -797,6 +797,18 @@ public class DartCore extends Plugin {
     return DartSdk.isInstalled();
   }
 
+  /**
+   * Return the package root preference
+   */
+  public String getPackageRootPref() {
+    String packageRoot = DartCore.getPlugin()
+        .getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, ""); //$NON-NLS-1$
+    if (packageRoot.isEmpty()) {
+      return null;
+    }
+    return packageRoot;
+  }
+
   public IEclipsePreferences getPrefs() {
     if (prefs == null) {
       prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
