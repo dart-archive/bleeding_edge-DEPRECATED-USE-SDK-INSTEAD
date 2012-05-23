@@ -19,7 +19,7 @@
 // String: ROMAN
 
 typedef void NumericFunction(CellLocation location, List<Value> stack, int top, int nargs);
-typedef double AggregateFunction(double, double);
+typedef double AggregateFunction(double accum, double value);
 
 // A built-in function, encapsulating the function name, number of arguments, output datatype,
 class SpreadsheetFunction {
