@@ -14,6 +14,7 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.internal.perf.DartEditorCommandLineManager;
+import com.google.dart.tools.core.internal.perf.Performance;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
@@ -37,6 +38,10 @@ public class DartIDEApplication implements IApplication {
 
     try {
       parseApplicationArgs();
+
+      // Now that the start time of the Editor has been recorded from the command line, we can
+      // record the time taken to start the Application
+      Performance.TIME_TO_START_APP.log(DartEditorCommandLineManager.getStartTime());
 
       int returnCode = PlatformUI.createAndRunWorkbench(display, new ApplicationWorkbenchAdvisor(
           processor));
@@ -83,9 +88,26 @@ public class DartIDEApplication implements IApplication {
     // if we find the PERF_FLAG at any point, set DartPerformance.MEASURE_PERFORMANCE to true
     // for all other arguments, add the argument as a java.io.File, if it is a file that exists,
     // and isn't in the set already
-    for (String arg : args) {
+    for (int i = 0; i < args.length; i++) {
+      String arg = args[i];
       if (arg.equals(DartEditorCommandLineManager.PERF_FLAG)) {
         DartEditorCommandLineManager.MEASURE_PERFORMANCE = true;
+        // Now record the start time
+        if (i + 1 < args.length) {
+          // if there is at least one more 
+          String nextArg = args[i + 1];
+          try {
+            long startTime = Long.valueOf(nextArg);
+            DartEditorCommandLineManager.setStartTime(startTime);
+            i++;
+          } catch (NumberFormatException e) {
+            System.err.println("Could not retrieve milliseconds from epoch time from command "
+                + "line, the value should be passed after the \""
+                + DartEditorCommandLineManager.PERF_FLAG + "\" flag, recording the start time "
+                + "of the Dart Editor *now*- at the application init time.");
+            DartEditorCommandLineManager.setStartTime(System.currentTimeMillis());
+          }
+        }
       } else if (arg.length() > 0 && arg.charAt(0) != '-') {
         File file = new File(arg);
         if (fileSet.contains(file)) {
@@ -114,5 +136,4 @@ public class DartIDEApplication implements IApplication {
     }
     DartEditorCommandLineManager.setFileSet(fileSet);
   }
-
 }

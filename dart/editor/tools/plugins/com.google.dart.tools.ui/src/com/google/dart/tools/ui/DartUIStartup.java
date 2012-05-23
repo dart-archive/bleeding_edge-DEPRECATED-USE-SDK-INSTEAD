@@ -15,11 +15,14 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.AnalysisEvent;
+import com.google.dart.tools.core.analysis.AnalysisListener;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.perf.DartEditorCommandLineManager;
+import com.google.dart.tools.core.internal.perf.Performance;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerWarmup;
@@ -79,7 +82,10 @@ public class DartUIStartup implements IStartup {
           detectStartupComplete();
         }
         if (!getThread().isInterrupted()) {
-          openInitialFolders();
+          openInitialFilesAndFolders();
+        }
+        if (!getThread().isInterrupted()) {
+          printPerformanceNumbers();
         }
       } catch (Throwable throwable) {
         // Catch any runtime exceptions that occur during warmup and log them.
@@ -121,12 +127,9 @@ public class DartUIStartup implements IStartup {
      * 
      */
     private void detectStartupComplete() {
-//      Display.getDefault().asyncExec(new Runnable() {
-//        @Override
-//        public void run() {
-//          ;
-//        }
-//      });
+      if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
+        Performance.TIME_TO_STARTUP.log(DartEditorCommandLineManager.getStartTime());
+      }
     }
 
     /**
@@ -158,7 +161,7 @@ public class DartUIStartup implements IStartup {
      * Loop through the files input on the command line, retrieved from
      * {@link DartEditorCommandLineManager#getFileSet()}, and open them in the Editor appropriately.
      */
-    private void openInitialFolders() {
+    private void openInitialFilesAndFolders() {
       ArrayList<File> fileSet = DartEditorCommandLineManager.getFileSet();
       if (fileSet == null || fileSet.isEmpty()) {
         return;
@@ -193,11 +196,111 @@ public class DartUIStartup implements IStartup {
           }
         });
       }
-
     }
+
+    /**
+     * 
+     */
+    private void printPerformanceNumbers() {
+      if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
+        // wait for analysis is finished
+        waitForAnalysis();
+        // record the final performance number, and print key:value results in an asyncExec, to
+        // ensure that the UI thread is not busy
+        Display.getDefault().asyncExec(new Runnable() {
+          @Override
+          public void run() {
+            Performance.TIME_TO_STARTUP_PLUS_ANALYSIS.log(DartEditorCommandLineManager.getStartTime());
+            Performance.printResults_keyValue();
+          }
+        });
+      }
+    }
+
+    /**
+     * Wait for any background analysis to be complete
+     */
+    private void waitForAnalysis() {
+      if (DartCoreDebug.ANALYSIS_SERVER) {
+        waitForIdle(SystemLibraryManagerProvider.getDefaultAnalysisServer(), 120000); // 2 minutes
+      }
+    }
+
+    /**
+     * Wait up to the specified amount of time for the specified analysis server to be idle. If the
+     * specified number is less than or equal to zero, then this method returns immediately.
+     * 
+     * @param server the analysis server to be tested (not <code>null</code>)
+     * @param milliseconds the maximum number of milliseconds to wait
+     */
+    private void waitForIdle(AnalysisServer server, long milliseconds) {
+      final Object waitForIdleLock = new Object();
+
+      AnalysisListener listener = new AnalysisListener() {
+
+        @Override
+        public void discarded(AnalysisEvent event) {
+          // ignored
+        }
+
+        @Override
+        public void idle(boolean idle) {
+          if (idle) {
+            synchronized (waitForIdleLock) {
+              waitForIdleLock.notifyAll();
+            }
+          }
+        }
+
+        @Override
+        public void parsed(AnalysisEvent event) {
+          // ignored
+        }
+
+        @Override
+        public void resolved(AnalysisEvent event) {
+          // ignored
+        }
+      };
+
+      server.addAnalysisListener(listener);
+      try {
+
+        // Ensure ResourceChangeListener background scanning gets time to run
+        // TODO (danrubel): Remove this once background scanning is integrated into AnalysisServer
+        synchronized (waitForIdleLock) {
+          if (server.isIdle()) {
+            try {
+              Thread.sleep(50);
+            } catch (InterruptedException e) {
+              //$FALL-THROUGH$
+            }
+          }
+        }
+
+        long endTime = System.currentTimeMillis() + milliseconds;
+        synchronized (waitForIdleLock) {
+          while (!server.isIdle()) {
+            long delta = endTime - System.currentTimeMillis();
+            if (delta <= 0) {
+              System.err.println("Stopped waiting for the analysis server.");
+            }
+            try {
+              waitForIdleLock.wait(delta);
+            } catch (InterruptedException e) {
+              //$FALL-THROUGH$
+            }
+          }
+        }
+      } finally {
+        server.removeAnalysisListener(listener);
+      }
+    }
+
   }
 
   private static StartupJob startupJob;
+
   private static final Object startupSync = new Object();
 
   public static void cancelStartup() {

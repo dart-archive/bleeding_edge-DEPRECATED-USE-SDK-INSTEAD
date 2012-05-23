@@ -66,7 +66,11 @@ public class Metric {
   }
 
   public void printAverage() {
-    long resultAverage = resultTotal / resultCount;
+    // compute average, being careful of division by zero
+    long resultAverage = 0;
+    if (resultCount != 0) {
+      resultAverage = resultTotal / resultCount;
+    }
     StringBuilder line = new StringBuilder();
     appendLong(line, resultCount, 5);
     line.append(' ');
@@ -81,6 +85,19 @@ public class Metric {
     line.append(" ms ");
     appendLong(line, resultLow, Performance.NUM_COL_WIDTH);
     line.append(" ms ");
+    System.out.println(line);
+  }
+
+  public void printKeyValue() {
+    // compute average, being careful of division by zero
+    long resultAverage = 0;
+    if (resultCount != 0) {
+      resultAverage = resultTotal / resultCount;
+    }
+    StringBuilder line = new StringBuilder();
+    line.append(name);
+    line.append(":");
+    line.append(resultAverage);
     System.out.println(line);
   }
 }

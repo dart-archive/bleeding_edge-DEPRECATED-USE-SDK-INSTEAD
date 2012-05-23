@@ -25,6 +25,8 @@ public class DartEditorCommandLineManager {
 
   public static String PERF_FLAG = "-perf";
 
+  private static long startTime;
+
   /**
    * This boolean is set to <code>true</code> if and only if the {@value #PERF_FLAG} is passed as a
    * command line argument to the Dart Editor.
@@ -37,8 +39,16 @@ public class DartEditorCommandLineManager {
     return fileSet;
   }
 
+  public static long getStartTime() {
+    return startTime;
+  }
+
   public static void setFileSet(ArrayList<File> fileSet) {
     DartEditorCommandLineManager.fileSet = fileSet;
+  }
+
+  public static void setStartTime(long startTime) {
+    DartEditorCommandLineManager.startTime = startTime;
   }
 
   private DartEditorCommandLineManager() {

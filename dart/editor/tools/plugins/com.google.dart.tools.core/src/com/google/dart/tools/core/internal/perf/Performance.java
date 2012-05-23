@@ -45,7 +45,13 @@ public class Performance {
 
   public static final List<Result> allResults = new ArrayList<Result>(20);
   public static final int DEFAULT_TIMEOUT_MS = 180000; // 3 minutes
-  public static final int NUM_COL_WIDTH = 7;;
+  public static final int NUM_COL_WIDTH = 7;
+
+  public static final Metric TIME_TO_START_APP = new Metric("Time_to_start_DartIDEApp", 100);
+  public static final Metric TIME_TO_STARTUP = new Metric("Time_to_startup", 100);
+  public static final Metric TIME_TO_STARTUP_PLUS_ANALYSIS = new Metric(
+      "Time_to_startup_plus_analysis",
+      100);
 
   /**
    * Append the specified {@link String} to an array of {@link String}
@@ -98,6 +104,17 @@ public class Performance {
     for (Metric metric : getMetricsWithResults()) {
       metric.printAverage();
     }
+  }
+
+  /**
+   * Echo all the results in the form of key:value pairs.
+   */
+  public static void printResults_keyValue() {
+    System.out.println("==========================================================================");
+    for (Metric metric : getMetricsWithResults()) {
+      metric.printKeyValue();
+    }
+    System.out.println("==========================================================================");
   }
 
   protected static Collection<Metric> getMetricsWithResults() {
