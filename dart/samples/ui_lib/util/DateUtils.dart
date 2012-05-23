@@ -55,12 +55,12 @@ class DateUtils {
     int zoneOffset = Math.parseInt(parts[5]) ~/ 100;
 
     // Pretend it's a UTC time
-    Date result = new Date.withTimeZone(
-        year, month, day, hours, minutes, seconds, 0, new TimeZone.utc());
+    Date result = new Date(
+        year, month, day, hours, minutes, seconds, 0, isUtc: true);
     // Shift it to the proper zone, but it's still a UTC time
     result = result.subtract(new Duration(hours: zoneOffset));
     // Then render it as a local time
-    return result.changeTimeZone(new TimeZone.local());
+    return result.toLocal();
   }
 
   /** Parse a string like: 2011-07-19T22:03:04.000Z */
@@ -75,12 +75,9 @@ class DateUtils {
       }
     }
 
-    TimeZone zone;
-    if (text.endsWith('Z')) {
+    bool isUtc = text.endsWith('Z');
+    if (isUtc) {
       text = text.substring(0, text.length - 1);
-      zone = new TimeZone.utc();
-    } else {
-      zone = new TimeZone.local();
     }
 
     final parts = text.split('T');
@@ -99,7 +96,7 @@ class DateUtils {
       milliseconds = Math.parseInt(seconds[1]);
     }
 
-    return new Date.withTimeZone(
+    return new Date(
         Math.parseInt(date[0]),
         Math.parseInt(date[1]),
         Math.parseInt(date[2]),
@@ -107,7 +104,7 @@ class DateUtils {
         Math.parseInt(time[1]),
         Math.parseInt(seconds[0]),
         milliseconds,
-        zone);
+        isUtc: isUtc);
   }
 
   /**

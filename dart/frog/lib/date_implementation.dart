@@ -14,11 +14,13 @@ class DateImplementation implements Date {
                               int hours = 0,
                               int minutes = 0,
                               int seconds = 0,
-                              int milliseconds = 0]) {
+                              int milliseconds = 0,
+                              bool isUtc = false]) {
     return new DateImplementation.withTimeZone(
         years, month, day,
         hours, minutes, seconds, milliseconds,
-        new TimeZoneImplementation.local());
+        isUtc ? const TimeZoneImplementation.utc()
+              : new TimeZoneImplementation.local());
   }
 
   DateImplementation.withTimeZone(int years,
@@ -84,24 +86,25 @@ class DateImplementation implements Date {
       }
       // TODO(floitsch): we should not need to test against the empty string.
       bool isUtc = (match[8] !== null) && (match[8] != "");
-      TimeZone timezone = isUtc ? const TimeZone.utc() : new TimeZone.local();
       int epochValue = _valueFromDecomposed(
           years, month, day, hours, minutes, seconds, milliseconds, isUtc);
       if (epochValue === null) {
         throw new IllegalArgumentException(formattedString);
       }
       if (addOneMillisecond) epochValue++;
-      return new DateImplementation.fromEpoch(epochValue, timezone);
+      return new DateImplementation.fromEpoch(epochValue, isUtc);
     } else {
       throw new IllegalArgumentException(formattedString);
     }
   }
 
-  const DateImplementation.fromEpoch(this.value, this.timeZone);
+  DateImplementation.fromEpoch(this.value, [bool isUtc = false])
+      : this.timeZone = isUtc ? const TimeZoneImplementation.utc()
+                              : new TimeZoneImplementation.local();
 
   bool operator ==(other) {
-    if (!(other is DateImplementation)) return false;
-    return (value == other.value) && (timeZone == other.timeZone);
+    if (other is !DateImplementation) return false;
+    return (value == other.value);
   }
 
   bool operator <(Date other) => value < other.value;
@@ -120,11 +123,21 @@ class DateImplementation implements Date {
     return value;
   }
 
+  Date toLocal() {
+    if (isUtc()) return changeTimeZone(new TimeZoneImplementation.local());
+    return this;
+  }
+
+  Date toUtc() {
+    if (isUtc()) return this;
+    return changeTimeZone(const TimeZoneImplementation.utc());
+  }
+
   Date changeTimeZone(TimeZone targetTimeZone) {
     if (targetTimeZone == null) {
       targetTimeZone = new TimeZoneImplementation.local();
     }
-    return new Date.fromEpoch(value, targetTimeZone);
+    return new Date.fromEpoch(value, targetTimeZone.isUtc);
   }
 
   String get timeZoneName() { throw "Unimplemented"; }
@@ -184,11 +197,6 @@ class DateImplementation implements Date {
     var day = this.isUtc() ? this._asJs().getUTCDay() : this._asJs().getDay();
     return (day + 6) % 7;''';
 
-  // TODO(jimhug): Could this please be getters?
-  bool isLocalTime() {
-    return !timeZone.isUtc;
-  }
-
   bool isUtc() {
     return timeZone.isUtc;
   }
@@ -230,13 +238,13 @@ class DateImplementation implements Date {
     // Adds the [duration] to this Date instance.
   Date add(Duration duration) {
     return new DateImplementation.fromEpoch(value + duration.inMilliseconds,
-                                            timeZone);
+                                            timeZone.isUtc);
   }
 
   // Subtracts the [duration] from this Date instance.
   Date subtract(Duration duration) {
     return new DateImplementation.fromEpoch(value - duration.inMilliseconds,
-                                            timeZone);
+                                            timeZone.isUtc);
   }
 
   // Returns a [Duration] with the difference of [this] and [other].
@@ -282,7 +290,7 @@ class TimeZoneImplementation implements TimeZone {
   const TimeZoneImplementation.local() : this.isUtc = false;
 
   bool operator ==(other) {
-    if (!(other is TimeZoneImplementation)) return false;
+    if (other is !TimeZoneImplementation) return false;
     return isUtc == other.isUtc;
   }
 
