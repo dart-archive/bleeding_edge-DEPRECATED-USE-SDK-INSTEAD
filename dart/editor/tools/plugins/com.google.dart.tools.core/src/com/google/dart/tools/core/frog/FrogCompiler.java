@@ -117,7 +117,7 @@ public class FrogCompiler {
       latch = new CountDownLatch(0);
     }
 
-    compiler = new FrogCompiler();
+    compiler = new Dart2JSCompiler();
 
     console.clear();
     console.println("Generating JavaScript...");
@@ -128,7 +128,7 @@ public class FrogCompiler {
           @Override
           public void run() {
             try {
-              runDart2JSCompile(inputPath, outputPath, console);
+              runFrogCompile(inputPath, outputPath, console);
             } finally {
               latch.countDown();
             }
@@ -154,14 +154,14 @@ public class FrogCompiler {
     }
   }
 
-  protected static void runDart2JSCompile(IPath inputPath, IPath outputPath, MessageConsole console) {
+  protected static void runFrogCompile(IPath inputPath, IPath outputPath, MessageConsole console) {
     long startTime = System.currentTimeMillis();
 
     String outName = outputPath.lastSegment() + "_";
 
     outputPath = outputPath.removeLastSegments(1).append(outName);
 
-    FrogCompiler compiler = new Dart2JSCompiler();
+    FrogCompiler compiler = new FrogCompiler();
 
     try {
       CompilationResult result = compiler.compile(inputPath, outputPath, new NullProgressMonitor());
