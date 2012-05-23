@@ -125,8 +125,7 @@ public class DartLaunchConfigWrapper {
 
   public boolean getCheckedMode() {
     try {
-      // TODO(devoncarew): change this to default to true when our samples are fixed 
-      return launchConfig.getAttribute(VM_CHECKED_MODE, false);
+      return launchConfig.getAttribute(VM_CHECKED_MODE, true);
     } catch (CoreException e) {
       DartDebugCorePlugin.logError(e);
 
@@ -272,7 +271,6 @@ public class DartLaunchConfigWrapper {
   public String[] getVmArgumentsAsArray() {
     List<String> args = new ArrayList<String>();
 
-    // use --enable-checked-mode instead of --enable-asserts and --enable-type-checks
     if (getCheckedMode()) {
       args.add("--enable-checked-mode");
     }
