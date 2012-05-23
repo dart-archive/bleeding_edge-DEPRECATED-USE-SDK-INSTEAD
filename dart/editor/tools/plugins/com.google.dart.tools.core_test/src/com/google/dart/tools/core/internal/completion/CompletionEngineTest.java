@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.completion;
 
+import com.google.common.base.Joiner;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
@@ -233,21 +234,15 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets033() throws Exception {
-    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
-      test("t1() {var x;if (x is List) {x.!1add(3);}}", "1+add", "1+length");
-    }
+    test("t1() {var x;if (x is List) {x.!1add(3);}}", "1+add", "1+length");
   }
 
   public void testCommentSnippets034() throws Exception {
-    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
-      test("t2() {var q=[0],z=q.!1length;q.!2isEmpty();}", "1+length", "2+isEmpty");
-    }
+    test("t2() {var q=[0],z=q.!1length;q.!2isEmpty();}", "1+length", "2+isEmpty");
   }
 
   public void testCommentSnippets035() throws Exception {
-    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
-      test("t3() {var x=new List(), y=x.!1length();x.!2isEmpty();}", "1+length", "2+isEmpty");
-    }
+    test("t3() {var x=new List(), y=x.!1length();x.!2isEmpty();}", "1+length", "2+isEmpty");
   }
 
   public void testCommentSnippets036() throws Exception {
@@ -320,39 +315,65 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets051() throws Exception {
-    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
-      test(
-          "void r() {var l = new List.from(['a','b','c']);l.!1length;for (var q in l) {if (q is String) {l.!2length;}}}",
-          "1+length",
-          "2+value");
-    }
+    String source = Joiner.on("\n").join(
+        "void r() {",
+        "  var l = new List.from(['a','b','c']);",
+        "  l.!1length;",
+        "  for (var v in l) {",
+        "    if (v is String) {",
+        "      v.!2length;",
+        "      v.!3getKeys;",
+        "    }",
+        "  }",
+        "}");
+    test(source, "1+length", "2+length", "3-getKeys");
   }
 
   public void testCommentSnippets052() throws Exception {
-    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
-      test(
-          "void r() {var l = new List.from(['a','b','c']);l.!1length;for (int i=i;i<2;i++) {if (q is String) {l.!2length;}}}",
-          "1+length",
-          "2+value");
-    }
+    String source = Joiner.on("\n").join(
+        "void r() {",
+        "  List<String> values = ['a','b','c'];",
+        "  for (var v in values) {",
+        "    v.!1toUpperCase;",
+        "    v.!2getKeys;",
+        "  }",
+        "}");
+    test(source, "1+toUpperCase", "2-getKeys");
   }
 
   public void testCommentSnippets053() throws Exception {
-    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
-      test(
-          "void r() {var l = new List.from(['a','b','c']);l.!1length;while (true) {if (q is String) {l.!2length;}}}",
-          "1+length",
-          "2+value");
-    }
+    String source = Joiner.on("\n").join(
+        "void r() {",
+        "  var v;",
+        "  while (v is String) {",
+        "    v.!1toUpperCase;",
+        "    v.!2getKeys;",
+        "  }",
+        "}");
+    test(source, "1+toUpperCase", "2-getKeys");
   }
 
   public void testCommentSnippets054() throws Exception {
-    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT) {
-      test(
-          "void r() {var l = new List.from(['a','b','c']);l.!1length;do {if (q is String) {l.!2length;}}while (true);}",
-          "1+length",
-          "2+value");
-    }
+    String source = Joiner.on("\n").join(
+        "void r() {",
+        "  var v;",
+        "  for (; v is String; v.!1isEmpty) {",
+        "    v.!2toUpperCase;",
+        "    v.!3getKeys;",
+        "  }",
+        "}");
+    test(source, "1+isEmpty", "2+toUpperCase", "3-getKeys");
+  }
+
+  public void testCommentSnippets055() throws Exception {
+    String source = Joiner.on("\n").join(
+        "void r() {",
+        "  String v;",
+        "  if (v is Object) {",
+        "    v.!1toUpperCase;",
+        "  }",
+        "}");
+    test(source, "1+toUpperCase");
   }
 
   public void testCompletion_alias_field() throws Exception {

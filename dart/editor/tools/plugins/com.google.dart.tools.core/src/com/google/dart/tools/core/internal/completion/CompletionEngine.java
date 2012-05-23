@@ -59,8 +59,6 @@ import com.google.dart.compiler.parser.ParserContext;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
-import com.google.dart.compiler.resolver.CoreTypeProvider;
-import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
@@ -75,7 +73,6 @@ import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
-import com.google.dart.compiler.type.TypeAnalyzer;
 import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -1309,9 +1306,7 @@ public class CompletionEngine {
   private int actualCompletionPosition;
   private int offset;
   private String source;
-  private ErrorRecordingContext context = new ErrorRecordingContext();
   private DartClassMember<? extends DartExpression> resolvedMember;
-  private CoreTypeProvider typeProvider;
   private ClassNodeElement classElement;
   private boolean isCompletionAfterDot;
   private DartUnit parsedUnit;
@@ -1468,8 +1463,6 @@ public class CompletionEngine {
       }
       return;
     }
-    Scope unitScope = parsedUnit.getLibrary().getElement().getScope();
-    typeProvider = new CoreTypeProviderImplementation(unitScope, DartCompilerListener.EMPTY);
 
     classElement = null;
     if (resolvedMember != null) {
@@ -1514,30 +1507,7 @@ public class CompletionEngine {
   }
 
   private Type analyzeType(DartNode target) {
-    InterfaceType currentType;
-    if (classElement != null) {
-      currentType = classElement.getType();
-    } else {
-      currentType = null;
-    }
-    Type type = TypeAnalyzer.analyze(target, typeProvider, context, currentType);
-    if (TypeKind.of(type) == TypeKind.VOID || TypeKind.of(type) == TypeKind.DYNAMIC) {
-      if (target instanceof DartIdentifier) {
-        Element element = ((DartIdentifier) target).getElement();
-        if (element != null) {
-          // TODO Remove after verifying correct AST
-          type = element.getType();
-        }
-      }
-    }
-    if (DartCoreDebug.ENABLE_TYPE_REFINEMENT && target instanceof DartIdentifier) {
-      Type newType = TypeRefiner.refineType((DartIdentifier) target, type, typeProvider);
-      // TODO newType should not be null but can be currently
-      if (newType != null && TypeKind.of(newType) != TypeKind.DYNAMIC) {
-        type = newType;
-      }
-    }
-    return type;
+    return target.getType();
   }
 
   private void checkCancel() {

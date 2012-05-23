@@ -679,17 +679,54 @@ public class SearchEngineTest extends TestCase {
     }
   }
 
-  public void test_SearchEngine_searchReferences_method_targetTypePropagate() throws Exception {
+  /**
+   * Type of "target" is propagate from value in variable declaration.
+   */
+  public void test_SearchEngine_searchReferences_method_typePropagate_declaration()
+      throws Exception {
     TestProject testProject = new TestProject();
     try {
       String source = buildSource(
           "// filler filler filler filler filler filler filler filler filler filler",
           "class A {",
-          "  test() {}",
+          "  test(var p) {}",
           "}",
           "bar() {",
           "  var a = new A();",
           "  a.test(1);",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      Method method = ((Type) unit.getChildren()[0]).getMethod("test", null);
+      List<SearchMatch> matches = getMethodReferences(method);
+      assertThat(matches).hasSize(1);
+      // assert references
+      SearchMatch match = matches.get(0);
+      int matchOffset = match.getSourceRange().getOffset();
+      assertEquals(source.indexOf("test(1);"), matchOffset);
+      assertTrue(match.isQualified());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  /**
+   * Type of "target" is propagate from the type of "is Type" condition.
+   */
+  public void test_SearchEngine_searchReferences_method_typePropagate_isType() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {",
+          "  test(var p) {}",
+          "}",
+          "bar(var v) {",
+          "  if (v is A) {",
+          "    v.test(1);",
+          "  }",
           "}",
           "");
       CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
