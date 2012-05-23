@@ -18,8 +18,8 @@ import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.error.SubSystem;
 
 /**
- * The enumeration <code>ParserErrorCode</code> defines the error codes used for errors detected by
- * the parser.
+ * The enumeration {@code ParserErrorCode} defines the error codes used for errors detected by the
+ * parser.
  * <p>
  * The convention in this file (with some exceptions) is that the enumeration name matches at least
  * the beginning default English translation of the message.
@@ -40,10 +40,9 @@ public enum ParserErrorCode implements ErrorCode {
 //  DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
 //  DEPRECATED_USE_OF_FACTORY_KEYWORD(ErrorSeverity.WARNING,
 //      "Deprecated use of the 'factory' keyword: use 'default' instead"),
-  DIRECTIVE_OUT_OF_ORDER("Directive out of order");
+  DIRECTIVE_OUT_OF_ORDER("Directive out of order"),
 //  DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
 //  DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
-//  EXPECTED_ARRAY_OR_MAP_LITERAL("Expected array or map literal"),
 //  EXPECTED_CASE_OR_DEFAULT("Expected 'case' or 'default'"),
 //  EXPECTED_CLASS_DECLARATION_LBRACE("Expected '{' in class or interface declaration"),
 //  EXPECTED_COMMA_OR_RIGHT_BRACE("Expected ',' or '}'"),
@@ -52,6 +51,7 @@ public enum ParserErrorCode implements ErrorCode {
 //  EXPECTED_EXTENDS("Expected 'extends'"),
 //  EXPECTED_IDENTIFIER("Expected identifier"),
 //  EXPECTED_LEFT_PAREN("'(' expected"),
+  EXPECTED_LIST_OR_MAP_LITERAL("Expected list or map literal");
 //  EXPECTED_PERIOD_OR_LEFT_BRACKET("Expected '.' or '['"),
 //  EXPECTED_PREFIX_KEYWORD("Expected 'prefix' after comma"),
 //  EXPECTED_PREFIX_IDENTIFIER("Prefix string can only contain valid identifier characters"),

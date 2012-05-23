@@ -650,7 +650,7 @@ public abstract class AbstractScanner {
   }
 
   private int tokenizeInterpolatedExpression(int next, int start) throws IOException {
-    appendStringToken(TokenType.STRING_INTERPOLATION, "${", 0);
+    appendStringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "${", 0);
     next = advance();
     while (next != -1) {
       if (next == '}') {
@@ -672,7 +672,7 @@ public abstract class AbstractScanner {
   }
 
   private int tokenizeInterpolatedIdentifier(int next, int start) {
-    appendStringToken(TokenType.STRING_INTERPOLATION, "$", 0);
+    appendStringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 0);
     beginToken();
     next = tokenizeKeywordOrIdentifier(next, false);
     beginToken();

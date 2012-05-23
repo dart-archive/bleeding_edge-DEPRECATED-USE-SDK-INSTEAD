@@ -523,14 +523,14 @@ public abstract class AbstractScannerTest extends TestCase {
   }
 
   public void test_AbstractScanner_string_multi_double() throws Exception {
-    assertToken(TokenType.STRING, "\"\"\"string\"\"\"");
+    assertToken(TokenType.STRING, "\"\"\"multi-line\nstring\"\"\"");
   }
 
   public void test_AbstractScanner_string_multi_interpolation_block() throws Exception {
     assertTokens(
         "\"Hello ${name}!\"",
         new StringToken(TokenType.STRING, "\"Hello ", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION, "${", 7),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "${", 7),
         new StringToken(TokenType.IDENTIFIER, "name", 9),
         new Token(TokenType.CLOSE_CURLY_BRACKET, 13),
         new StringToken(TokenType.STRING, "!\"", 14));
@@ -540,7 +540,7 @@ public abstract class AbstractScannerTest extends TestCase {
     assertTokens( //
         "\"Hello $name!\"",
         new StringToken(TokenType.STRING, "\"Hello ", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION, "$", 7),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 7),
         new StringToken(TokenType.IDENTIFIER, "name", 8),
         new StringToken(TokenType.STRING, "!\"", 12));
   }
@@ -561,21 +561,37 @@ public abstract class AbstractScannerTest extends TestCase {
     assertToken(TokenType.STRING, "\"string\"");
   }
 
+  public void test_AbstractScanner_string_simple_escapedDollar() throws Exception {
+    assertToken(TokenType.STRING, "'a\\$b'");
+  }
+
   public void test_AbstractScanner_string_simple_interpolation_block() throws Exception {
     assertTokens(
         "'Hello ${name}!'",
         new StringToken(TokenType.STRING, "'Hello ", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION, "${", 7),
+        new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "${", 7),
         new StringToken(TokenType.IDENTIFIER, "name", 9),
         new Token(TokenType.CLOSE_CURLY_BRACKET, 13),
         new StringToken(TokenType.STRING, "!'", 14));
+  }
+
+  public void test_AbstractScanner_string_simple_interpolation_firstAndLast() throws Exception {
+    assertTokens( //
+        "'$greeting $name'",
+        new StringToken(TokenType.STRING, "'", 0),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 1),
+        new StringToken(TokenType.IDENTIFIER, "greeting", 2),
+        new StringToken(TokenType.STRING, " ", 10),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 11),
+        new StringToken(TokenType.IDENTIFIER, "name", 12),
+        new StringToken(TokenType.STRING, "'", 16));
   }
 
   public void test_AbstractScanner_string_simple_interpolation_identifier() throws Exception {
     assertTokens( //
         "'Hello $name!'",
         new StringToken(TokenType.STRING, "'Hello ", 0),
-        new StringToken(TokenType.STRING_INTERPOLATION, "$", 7),
+        new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "$", 7),
         new StringToken(TokenType.IDENTIFIER, "name", 8),
         new StringToken(TokenType.STRING, "!'", 12));
   }

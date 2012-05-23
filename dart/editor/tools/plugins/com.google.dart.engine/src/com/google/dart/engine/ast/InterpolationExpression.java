@@ -27,13 +27,8 @@ import com.google.dart.engine.scanner.Token;
  */
 public class InterpolationExpression extends InterpolationElement {
   /**
-   * The dollar sign used to introduce the expression.
-   */
-  private Token dollarSign;
-
-  /**
-   * The left curly bracket, or <code>null</code> if the expression is an identifier without
-   * brackets.
+   * The token used to introduce the interpolation expression; either '$' if the expression is a
+   * simple identifier or '${' if the expression is a full expression.
    */
   private Token leftBracket;
 
@@ -57,14 +52,11 @@ public class InterpolationExpression extends InterpolationElement {
   /**
    * Initialize a newly created interpolation expression.
    * 
-   * @param dollarSign the dollar sign used to introduce the expression
    * @param leftBracket the left curly bracket
    * @param expression the expression to be evaluated for the value to be converted into a string
    * @param rightBracket the right curly bracket
    */
-  public InterpolationExpression(Token dollarSign, Token leftBracket, Expression expression,
-      Token rightBracket) {
-    this.dollarSign = dollarSign;
+  public InterpolationExpression(Token leftBracket, Expression expression, Token rightBracket) {
     this.leftBracket = leftBracket;
     this.expression = becomeParentOf(expression);
     this.rightBracket = rightBracket;
@@ -77,16 +69,7 @@ public class InterpolationExpression extends InterpolationElement {
 
   @Override
   public Token getBeginToken() {
-    return dollarSign;
-  }
-
-  /**
-   * Return the dollar sign used to introduce the expression.
-   * 
-   * @return the dollar sign used to introduce the expression
-   */
-  public Token getDollarSign() {
-    return dollarSign;
+    return leftBracket;
   }
 
   @Override
@@ -130,15 +113,6 @@ public class InterpolationExpression extends InterpolationElement {
     // compile-time constants that evaluate to a numeric, string or boolean value or to null. This
     // method needs to be implemented to reflect those semantics.
     return false;
-  }
-
-  /**
-   * Set the dollar sign used to introduce the expression to the given token.
-   * 
-   * @param dollarSign the dollar sign used to introduce the expression
-   */
-  public void setDollarSign(Token dollarSign) {
-    this.dollarSign = dollarSign;
   }
 
   /**

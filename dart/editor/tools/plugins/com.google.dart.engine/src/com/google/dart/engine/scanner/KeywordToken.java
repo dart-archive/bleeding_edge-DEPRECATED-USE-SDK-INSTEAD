@@ -33,6 +33,15 @@ public class KeywordToken extends Token {
     this.keyword = keyword;
   }
 
+  /**
+   * Return the keyword being represented by this token.
+   * 
+   * @return the keyword being represented by this token
+   */
+  public Keyword getKeyword() {
+    return keyword;
+  }
+
   @Override
   public String getLexeme() {
     return keyword.getSyntax();
