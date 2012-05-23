@@ -16,14 +16,14 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.scanner.Token;
 
 /**
- * Instances of the class <code>SimpleFormalParameter</code> represent a simple formal parameter.
+ * Instances of the class <code>FieldFormalParameter</code> represent a field formal parameter.
  * 
  * <pre>
- * simpleFormalParameter ::=
- *     ('final' {@link TypeName type} | 'var' | {@link TypeName type})? {@link SimpleIdentifier identifier}
+ * fieldFormalParameter ::=
+ *     ('final' {@link TypeName type} | 'const' {@link TypeName type} | 'var' | {@link TypeName type})? 'this' '.' {@link SimpleIdentifier identifier}
  * </pre>
  */
-public class SimpleFormalParameter extends NormalFormalParameter {
+public class FieldFormalParameter extends NormalFormalParameter {
   /**
    * The token representing either the 'final', 'const' or 'var' keyword, or <code>null</code> if no
    * keyword was used.
@@ -37,6 +37,16 @@ public class SimpleFormalParameter extends NormalFormalParameter {
   private TypeName type;
 
   /**
+   * The token representing the 'this' keyword.
+   */
+  private Token thisToken;
+
+  /**
+   * The token representing the period.
+   */
+  private Token period;
+
+  /**
    * The name of the parameter being declared.
    */
   private SimpleIdentifier identifier;
@@ -44,7 +54,7 @@ public class SimpleFormalParameter extends NormalFormalParameter {
   /**
    * Initialize a newly created formal parameter.
    */
-  public SimpleFormalParameter() {
+  public FieldFormalParameter() {
   }
 
   /**
@@ -52,17 +62,22 @@ public class SimpleFormalParameter extends NormalFormalParameter {
    * 
    * @param keyword the token representing either the 'final', 'const' or 'var' keyword
    * @param type the name of the declared type of the parameter
+   * @param thisToken the token representing the 'this' keyword
+   * @param period the token representing the period
    * @param identifier the name of the parameter being declared
    */
-  public SimpleFormalParameter(Token keyword, TypeName type, SimpleIdentifier identifier) {
+  public FieldFormalParameter(Token keyword, TypeName type, Token thisToken, Token period,
+      SimpleIdentifier identifier) {
     this.keyword = keyword;
     this.type = becomeParentOf(type);
+    this.thisToken = thisToken;
+    this.period = period;
     this.identifier = becomeParentOf(identifier);
   }
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
-    return visitor.visitSimpleFormalParameter(this);
+    return visitor.visitFieldFormalParameter(this);
   }
 
   @Override
@@ -72,7 +87,7 @@ public class SimpleFormalParameter extends NormalFormalParameter {
     } else if (type != null) {
       return type.getBeginToken();
     }
-    return identifier.getBeginToken();
+    return thisToken;
   }
 
   @Override
@@ -96,6 +111,24 @@ public class SimpleFormalParameter extends NormalFormalParameter {
    */
   public Token getKeyword() {
     return keyword;
+  }
+
+  /**
+   * Return the token representing the period.
+   * 
+   * @return the token representing the period
+   */
+  public Token getPeriod() {
+    return period;
+  }
+
+  /**
+   * Return the token representing the 'this' keyword.
+   * 
+   * @return the token representing the 'this' keyword
+   */
+  public Token getThisToken() {
+    return thisToken;
   }
 
   /**
@@ -124,6 +157,24 @@ public class SimpleFormalParameter extends NormalFormalParameter {
    */
   public void setKeyword(Token keyword) {
     this.keyword = keyword;
+  }
+
+  /**
+   * Set the token representing the period to the given token.
+   * 
+   * @param period the token representing the period
+   */
+  public void setPeriod(Token period) {
+    this.period = period;
+  }
+
+  /**
+   * Set the token representing the 'this' keyword to the given token.
+   * 
+   * @param thisToken the token representing the 'this' keyword
+   */
+  public void setThisToken(Token thisToken) {
+    this.thisToken = thisToken;
   }
 
   /**

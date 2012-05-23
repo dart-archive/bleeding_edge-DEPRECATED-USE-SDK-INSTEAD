@@ -150,15 +150,6 @@ public class ConstructorDeclaration extends TypeMember {
     return colon;
   }
 
-  /**
-   * Set the token for the colon before the initializers to the given token.
-   * 
-   * @param colon the token for the colon before the initializers
-   */
-  public void getColon(Token colon) {
-    this.colon = colon;
-  }
-
   @Override
   public Token getEndToken() {
     if (body != null) {
@@ -217,15 +208,6 @@ public class ConstructorDeclaration extends TypeMember {
   }
 
   /**
-   * Set the token for the period before the constructor name to the given token.
-   * 
-   * @param period the token for the period before the constructor name
-   */
-  public void getPeriod(Token period) {
-    this.period = period;
-  }
-
-  /**
    * Return the type of object being created. This can be different than the type in which the
    * constructor is being declared if the constructor is the implementation of a factory
    * constructor.
@@ -243,6 +225,15 @@ public class ConstructorDeclaration extends TypeMember {
    */
   public void setBody(FunctionBody functionBody) {
     body = becomeParentOf(functionBody);
+  }
+
+  /**
+   * Set the token for the colon before the initializers to the given token.
+   * 
+   * @param colon the token for the colon before the initializers
+   */
+  public void setColon(Token colon) {
+    this.colon = colon;
   }
 
   /**
@@ -270,6 +261,15 @@ public class ConstructorDeclaration extends TypeMember {
    */
   public void setParameters(FormalParameterList parameters) {
     this.parameters = becomeParentOf(parameters);
+  }
+
+  /**
+   * Set the token for the period before the constructor name to the given token.
+   * 
+   * @param period the token for the period before the constructor name
+   */
+  public void setPeriod(Token period) {
+    this.period = period;
   }
 
   /**

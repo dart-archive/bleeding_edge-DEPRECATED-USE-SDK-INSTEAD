@@ -28,7 +28,7 @@ import java.util.List;
  *     forInitializerStatement ';' {@link Expression expression}? ';' {@link Expression expressionList}?
  *
  * forInitializerStatement ::=
- *     {@link InitializedFormalParameter initializedVariableDeclaration}
+ *     {@link NamedFormalParameter initializedVariableDeclaration}
  *   | {@link Expression expression}?
  * </pre>
  */
@@ -46,7 +46,7 @@ public class ForStatement extends Statement {
   /**
    * The declaration of the loop variables, or <code>null</code> if there are no variables.
    */
-  private InitializedFormalParameter variable;
+  private NamedFormalParameter variable;
 
   /**
    * The semicolon separating the initializer and the condition.
@@ -97,7 +97,7 @@ public class ForStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  public ForStatement(Token forKeyword, Token leftParenthesis, InitializedFormalParameter variable,
+  public ForStatement(Token forKeyword, Token leftParenthesis, NamedFormalParameter variable,
       Token leftSeparator, Expression condition, Token rightSeparator, List<Expression> updaters,
       Token rightParenthesis, Statement body) {
     this.forKeyword = forKeyword;
@@ -203,7 +203,7 @@ public class ForStatement extends Statement {
    * 
    * @return the declaration of the loop variable, or <code>null</code> if there is no variable
    */
-  public InitializedFormalParameter getVariable() {
+  public NamedFormalParameter getVariable() {
     return variable;
   }
 
@@ -276,7 +276,7 @@ public class ForStatement extends Statement {
    * @param parameter the declaration of the loop variable, or <code>null</code> if there is no
    *          variable
    */
-  public void setVariable(InitializedFormalParameter parameter) {
+  public void setVariable(NamedFormalParameter parameter) {
     variable = becomeParentOf(parameter);
   }
 

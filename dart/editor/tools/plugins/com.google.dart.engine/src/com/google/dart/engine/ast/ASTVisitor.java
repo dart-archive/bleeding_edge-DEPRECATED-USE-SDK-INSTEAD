@@ -145,6 +145,10 @@ public class ASTVisitor<R> {
     return visitTypeMember(node);
   }
 
+  public R visitFieldFormalParameter(FieldFormalParameter node) {
+    return visitNormalFormalParameter(node);
+  }
+
   public R visitForEachStatement(ForEachStatement node) {
     return visitStatement(node);
   }
@@ -179,6 +183,10 @@ public class ASTVisitor<R> {
 
   public R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     return visitExpression(node);
+  }
+
+  public R visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    return visitNormalFormalParameter(node);
   }
 
   public R visitIdentifier(Identifier node) {
@@ -217,17 +225,9 @@ public class ASTVisitor<R> {
     return visitImportCombinator(node);
   }
 
-  public R visitInitializedFormalParameter(InitializedFormalParameter node) {
-    return visitSimpleFormalParameter(node);
-  }
-
   public R visitInstanceCreationExpression(InstanceCreationExpression node) {
     return visitExpression(node);
   }
-
-//  public R visitNativeDirective(NativeDirective node) {
-//    return visitDirective(node);
-//  }
 
   public R visitIntegerLiteral(IntegerLiteral node) {
     return visitLiteral(node);
@@ -285,10 +285,6 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
-//  public R visitNativeFunctionBody(NativeFunctionBody node) {
-//    return visitFunctionBody(node);
-//  }
-
   public R visitMethodDeclaration(MethodDeclaration node) {
     return visitTypeMember(node);
   }
@@ -304,6 +300,14 @@ public class ASTVisitor<R> {
   public R visitNamedFormalParameter(NamedFormalParameter node) {
     return visitFormalParameter(node);
   }
+
+//  public R visitNativeDirective(NativeDirective node) {
+//    return visitDirective(node);
+//  }
+//
+//  public R visitNativeFunctionBody(NativeFunctionBody node) {
+//    return visitFunctionBody(node);
+//  }
 
   public R visitNode(ASTNode node) {
     node.visitChildren(this);
