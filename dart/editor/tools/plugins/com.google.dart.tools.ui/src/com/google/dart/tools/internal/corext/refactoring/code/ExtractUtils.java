@@ -13,21 +13,12 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.code;
 
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
-import com.google.dart.compiler.ast.DartInvocation;
-import com.google.dart.compiler.ast.DartLiteral;
-import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartParenthesizedExpression;
-import com.google.dart.compiler.ast.DartTypedLiteral;
-import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
-import com.google.dart.compiler.resolver.Element;
-import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.buffer.Buffer;
@@ -74,115 +65,12 @@ public class ExtractUtils {
     if (expression == null) {
       return null;
     }
-    return expression.accept(new ASTVisitor<String>() {
-      @Override
-      public String visitBinaryExpression(DartBinaryExpression node) {
-        DartExpression arg1 = node.getArg1();
-        DartExpression arg2 = node.getArg2();
-        String type1 = getTypeSource(arg1);
-        String type2 = getTypeSource(arg2);
-        if (type1 != null && type2 != null) {
-          switch (node.getOperator()) {
-            case NE:
-            case EQ:
-            case NE_STRICT:
-            case EQ_STRICT:
-            case LT:
-            case GT:
-            case LTE:
-            case GTE:
-            case AND:
-            case OR:
-              return "bool";
-            case ADD:
-            case SUB:
-            case MUL:
-            case DIV:
-              if (type1.equals("int") && type2.equals("int")) {
-                return type1;
-              }
-              if (type1.equals("double") && type2.equals("int")) {
-                return type1;
-              }
-              if (type1.equals("int") && type2.equals("double")) {
-                return type2;
-              }
-              if (type1.equals("double") && type2.equals("double")) {
-                return type1;
-              }
-              return null;
-            case BIT_AND:
-            case BIT_OR:
-            case BIT_XOR:
-            case SAR:
-            case SHL:
-            case MOD:
-              return "int";
-          }
-        }
-        return null;
-      }
-
-      @Override
-      public String visitExpression(DartExpression node) {
-        Element element = node.getElement();
-        // may be getter
-        if (element instanceof MethodElement && element.getModifiers().isGetter()) {
-          MethodElement methodElement = (MethodElement) element;
-          Type returnType = methodElement.getReturnType();
-          return getTypeSource(returnType);
-        }
-        // some other expression
-        if (element != null) {
-          return getTypeSource(element.getType());
-        }
-        return null;
-      }
-
-      @Override
-      public String visitInvocation(DartInvocation node) {
-        Element element = node.getElement();
-        if (element instanceof MethodElement) {
-          MethodElement methodElement = (MethodElement) element;
-          Type returnType = methodElement.getReturnType();
-          return getTypeSource(returnType);
-        }
-        return null;
-      }
-
-      @Override
-      public String visitLiteral(DartLiteral node) {
-        Type literalType = node.getType();
-        return getTypeSource(literalType);
-      }
-
-      @Override
-      public String visitNewExpression(DartNewExpression node) {
-        if (node.getElement() != null) {
-          Type instanceType = node.getType();
-          return getTypeSource(instanceType);
-        }
-        return null;
-      }
-
-      @Override
-      public String visitParenthesizedExpression(DartParenthesizedExpression node) {
-        DartExpression expr = node.getExpression();
-        return getTypeSource(expr);
-      }
-
-      @Override
-      public String visitTypedLiteral(DartTypedLiteral node) {
-        Type literalType = node.getType();
-        return getTypeSource(literalType);
-      }
-
-      @Override
-      public String visitUnaryExpression(DartUnaryExpression node) {
-        DartExpression arg = node.getArg();
-        return getTypeSource(arg);
-      }
-    });
+    Type type = expression.getType();
+    String typeSource = getTypeSource(type);
+    if ("Dynamic".equals(typeSource)) {
+      return null;
+    }
+    return typeSource;
   }
 
   /**

@@ -154,7 +154,7 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_binaryExpression_DIV_int_int() throws Exception {
-    assertTypeSimple("int", "1 / 2");
+    assertTypeSimple("double", "1 / 2");
   }
 
   public void test_getType_binaryExpression_EQ() throws Exception {
@@ -217,6 +217,10 @@ public final class ExtractUtilsTest extends AbstractDartTest {
     assertTypeSimple(null, "'1' - 2");
   }
 
+  public void test_getType_binaryExpression_TRUNC_int_int() throws Exception {
+    assertTypeSimple("int", "1 ~/ 2");
+  }
+
   public void test_getType_binaryExpression_unknownArg1() throws Exception {
     assertType(null, new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -225,7 +229,7 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_binaryExpression_unknownArg2() throws Exception {
-    assertType(null, new String[] {
+    assertType("num", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
         "var x = 1 + unknown;",
         ""});
@@ -297,7 +301,7 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_newExpression_unknownConstructor() throws Exception {
-    assertType(null, new String[] {
+    assertType("MyClass", new String[] {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class MyClass {",
         "}",
