@@ -15,6 +15,8 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.AnalysisDebug;
 import com.google.dart.tools.core.analysis.AnalysisIndexManager;
 import com.google.dart.tools.core.analysis.AnalysisMarkerManager;
 import com.google.dart.tools.core.analysis.AnalysisServer;
@@ -32,6 +34,7 @@ public class SystemLibraryManagerProvider {
 
   private static AnalysisServer defaultAnalysisServer;
   private static AnalysisMarkerManager markerManager;
+  private static AnalysisDebug analysisDebug;
 
   //private static ResourceChangeListener defaultAnalysisChangeListener;
 
@@ -57,7 +60,9 @@ public class SystemLibraryManagerProvider {
         DartCore.logInformation("Reading bundled libraries from " + sdkDir);
 
         ANY_LIBRARY_MANAGER = new EditorLibraryManager(sdkDir, "any");
-        String packageRoot = DartCore.getPlugin().getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, "");
+        String packageRoot = DartCore.getPlugin().getPrefs().get(
+            DartCore.PACKAGE_ROOT_DIR_PREFERENCE,
+            "");
         if (packageRoot != null && !packageRoot.isEmpty()) {
           ANY_LIBRARY_MANAGER.setPackageRoot(new File(packageRoot));
         }
@@ -77,10 +82,10 @@ public class SystemLibraryManagerProvider {
         defaultAnalysisServer.addAnalysisListener(new AnalysisIndexManager());
         markerManager = new AnalysisMarkerManager();
         defaultAnalysisServer.addAnalysisListener(markerManager);
-        // TODO (danrubel) merge ResourceChangeListener with delta processor
-        DartCore.notYetImplemented();
-        //defaultAnalysisChangeListener = new ResourceChangeListener(defaultAnalysisServer);
-        //defaultAnalysisChangeListener.start();
+        if (DartCoreDebug.DEBUG_ANALYSIS) {
+          analysisDebug = new AnalysisDebug();
+          defaultAnalysisServer.addAnalysisListener(analysisDebug);
+        }
         defaultAnalysisServer.start();
       }
     }
@@ -100,10 +105,12 @@ public class SystemLibraryManagerProvider {
   public static void stop() {
     synchronized (lock) {
       if (defaultAnalysisServer != null) {
+        if (analysisDebug != null) {
+          analysisDebug.stop();
+          analysisDebug = null;
+        }
         markerManager.stop();
         markerManager = null;
-        //defaultAnalysisChangeListener.stop();
-        //defaultAnalysisChangeListener = null;
         defaultAnalysisServer.stop();
         defaultAnalysisServer = null;
       }

@@ -23,6 +23,7 @@ public class DartCoreDebug {
 
   public static final boolean BUILD = isOptionTrue("debug/build");
   public static final boolean DARTLIB = isOptionTrue("debug/dartlib");
+  public static final boolean DEBUG_ANALYSIS = isOptionTrue("debug/analysis/server");
   public static final boolean DEBUG_INDEX_CONTRIBUTOR = isOptionTrue("debug/index/contributor");
   public static final boolean METRICS = isOptionTrue("debug/metrics");
   public static final boolean WARMUP = isOptionTrue("debug/warmup");
