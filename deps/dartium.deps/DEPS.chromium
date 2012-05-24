@@ -8,10 +8,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "118012",
+  "webkit_revision": "118325",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8655",
+  "nacl_revision": "8670",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "8228",  # native_client/DEPS: tools_rev
@@ -55,7 +55,7 @@ vars = {
   "ffmpeg_hash": "9b8f7bea0a9b919b15a53e1bad56f251e41b558b",
 
   "sfntly_revision": "128",
-  "skia_revision": "4015",
+  "skia_revision": "4036",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -77,7 +77,7 @@ deps = {
     (Var("googlecode_url") % "google-url") + "/trunk@175",
 
   "src/seccompsandbox":
-    (Var("googlecode_url") % "seccompsandbox") + "/trunk@178",
+    (Var("googlecode_url") % "seccompsandbox") + "/trunk@186",
 
   "src/sdch/open-vcdiff":
     (Var("googlecode_url") % "open-vcdiff") + "/trunk@42",
@@ -124,7 +124,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@37",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1386",
+    (Var("googlecode_url") % "gyp") + "/trunk@1391",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -336,7 +336,7 @@ deps = {
     "/trunk/tools/deps2git@128331",
 
   "src/third_party/webpagereplay":
-    (Var("googlecode_url") % "web-page-replay") + "/trunk@465",
+    (Var("googlecode_url") % "web-page-replay") + "/trunk@468",
 }
 
 
