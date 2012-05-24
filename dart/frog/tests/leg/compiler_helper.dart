@@ -17,7 +17,8 @@ String compile(String code, [String entry = 'main']) {
   compiler.parseScript(code);
   lego.Element element = compiler.mainApp.find(buildSourceString(entry));
   if (element === null) return null;
-  String generated = new leg.WorkItem(element, null).run(compiler);
+  leg.WorkItem work = new leg.WorkItem(element, null);
+  String generated = work.run(compiler, compiler.enqueuer.codegen);
   return generated;
 }
 
