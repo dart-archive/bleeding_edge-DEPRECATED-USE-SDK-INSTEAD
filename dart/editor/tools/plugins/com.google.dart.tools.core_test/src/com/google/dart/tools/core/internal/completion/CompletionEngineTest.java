@@ -317,16 +317,13 @@ public class CompletionEngineTest extends TestCase {
   public void testCommentSnippets051() throws Exception {
     String source = Joiner.on("\n").join(
         "void r() {",
-        "  var l = new List.from(['a','b','c']);",
-        "  l.!1length;",
-        "  for (var v in l) {",
-        "    if (v is String) {",
-        "      v.!2length;",
-        "      v.!3getKeys;",
-        "    }",
+        "  var v;",
+        "  if (v is String) {",
+        "    v.!1length;",
+        "    v.!2getKeys;",
         "  }",
         "}");
-    test(source, "1+length", "2+length", "3-getKeys");
+    test(source, "1+length", "2-getKeys");
   }
 
   public void testCommentSnippets052() throws Exception {
