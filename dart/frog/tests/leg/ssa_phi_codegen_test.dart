@@ -86,7 +86,7 @@ main() {
   Expect.isTrue(regexp.hasMatch(generated));
   // Check that a store just after the declaration of the local
   // only generates one instruction.
-  regexp = const RegExp(@"var val = 42");
+  regexp = const RegExp(@"val = 42");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_FOUR, 'foo');

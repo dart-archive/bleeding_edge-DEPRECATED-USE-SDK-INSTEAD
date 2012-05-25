@@ -45,7 +45,8 @@ main() {
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 0);
 
-  regexp = const RegExp("return c;");
+  // TODO(ngeoffray): Put back 'c' once we have liveness analysis.
+  regexp = const RegExp("return c0;");
   Expect.isTrue(regexp.hasMatch(generated));
 
   generated = compile(TEST_TWO, 'foo');
