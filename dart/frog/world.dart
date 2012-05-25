@@ -371,7 +371,7 @@ class World {
       if (success) {
         var code = world.getGeneratedCode();
         var outfile = options.outfile;
-        if (!outfile.endsWith('.js') && !outfile.endswith('.js_')) {
+        if (!outfile.endsWith('.js') && !outfile.endsWith('.js_')) {
           // Add in #! to invoke node.js on files with non-js
           // extensions. Treat both '.js' and '.js_' as JS extensions
           // to work around http://dartbug.com/3231.
