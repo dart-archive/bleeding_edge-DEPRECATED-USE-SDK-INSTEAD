@@ -431,7 +431,7 @@ public class AnalysisServer {
     if (relPath == null) {
       return null;
     }
-    if (SystemLibraryManager.isDartSpec(relPath)) {
+    if (SystemLibraryManager.isDartSpec(relPath) || SystemLibraryManager.isPackageSpec(relPath)) {
       URI relativeUri;
       try {
         relativeUri = new URI(relPath);
