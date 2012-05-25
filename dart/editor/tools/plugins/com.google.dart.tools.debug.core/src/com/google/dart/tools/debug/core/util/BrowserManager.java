@@ -156,26 +156,18 @@ public class BrowserManager {
 
     IResourceResolver resourceResolver = null;
 
-    if (enableDebugging) {
-      // Start the embedded web server. It is used to serve files from our workspace.
-      if (file != null) {
-        try {
-          ResourceServer server = ResourceServerManager.getServer();
+    // Start the embedded web server. It is used to serve files from our workspace.
+    if (file != null) {
+      try {
+        resourceResolver = ResourceServerManager.getServer();
 
-          url = server.getUrlForResource(file);
-
-          resourceResolver = server;
-        } catch (IOException exception) {
-          throw new CoreException(new Status(
-              IStatus.ERROR,
-              DartDebugCorePlugin.PLUGIN_ID,
-              "Could not launch browser - unable to start embedded server",
-              exception));
-        }
-      }
-    } else {
-      if (file != null) {
-        url = file.getLocationURI().toString();
+        url = resourceResolver.getUrlForResource(file);
+      } catch (IOException exception) {
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            "Could not launch browser - unable to start embedded server",
+            exception));
       }
     }
 

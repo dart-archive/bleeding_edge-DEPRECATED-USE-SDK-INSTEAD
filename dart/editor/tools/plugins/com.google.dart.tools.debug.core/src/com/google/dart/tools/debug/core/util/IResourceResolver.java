@@ -14,21 +14,21 @@
 
 package com.google.dart.tools.debug.core.util;
 
-import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 
 /**
- * A resolver class used to convert from IFiles to urls.
+ * A resolver class used to convert from IResources to urls.
  * 
  * @see ResourceServer
  */
 public interface IResourceResolver {
 
   /**
-   * Given an IFile, return the corresponding URL.
+   * Given an IResource, return the corresponding URL.
    * 
-   * @param file
+   * @param resource
    * @return
    */
-  public String getUrlForResource(IFile file);
+  public String getUrlForResource(IResource resource);
 
 }

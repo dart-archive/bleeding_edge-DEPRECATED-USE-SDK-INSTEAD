@@ -17,7 +17,7 @@ package com.google.dart.tools.debug.core.util;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
-import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -61,7 +61,7 @@ public class ResourceServer implements IResourceResolver {
       public void run() {
         startServer();
       }
-    }).start();
+    }, "Web Server Dispatch").start();
   }
 
   public int getPort() {
@@ -69,9 +69,9 @@ public class ResourceServer implements IResourceResolver {
   }
 
   @Override
-  public String getUrlForResource(IFile file) {
+  public String getUrlForResource(IResource resource) {
     try {
-      URI fileUri = file.getLocation().toFile().toURI();
+      URI fileUri = resource.getLocation().toFile().toURI();
 
       String pathSegment = fileUri.getPath();
 

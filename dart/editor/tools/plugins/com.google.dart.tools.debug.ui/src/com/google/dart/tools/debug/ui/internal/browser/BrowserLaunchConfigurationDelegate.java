@@ -22,6 +22,8 @@ import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.core.util.ResourceServer;
+import com.google.dart.tools.debug.core.util.ResourceServerManager;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 
 import org.eclipse.core.resources.IResource;
@@ -87,7 +89,20 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
         return;
       }
 
-      url = resource.getLocationURI().toString();
+      try {
+        // This returns just a plain file: url.
+        //url = resource.getLocationURI().toString();
+
+        ResourceServer server = ResourceServerManager.getServer();
+
+        url = server.getUrlForResource(resource);
+      } catch (IOException ioe) {
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            "Could not launch browser - unable to start embedded server",
+            ioe));
+      }
     } else {
       url = launchConfig.getUrl();
       try {

@@ -119,12 +119,15 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
   @Override
   public void launchRemoved(ILaunch launch) {
     try {
-      if (launch.getLaunchConfiguration().getType().getIdentifier().startsWith("com.google")
-          && launch.getLaunchMode().equals(ILaunchManager.DEBUG_MODE)) {
-        ISuspendTrigger trigger = (ISuspendTrigger) launch.getAdapter(ISuspendTrigger.class);
+      if (launch != null && launch.getLaunchConfiguration() != null
+          && launch.getLaunchMode() != null) {
+        if (launch.getLaunchConfiguration().getType().getIdentifier().startsWith("com.google")
+            && launch.getLaunchMode().equals(ILaunchManager.DEBUG_MODE)) {
+          ISuspendTrigger trigger = (ISuspendTrigger) launch.getAdapter(ISuspendTrigger.class);
 
-        if (trigger != null) {
-          trigger.removeSuspendTriggerListener(this);
+          if (trigger != null) {
+            trigger.removeSuspendTriggerListener(this);
+          }
         }
       }
     } catch (CoreException e) {
