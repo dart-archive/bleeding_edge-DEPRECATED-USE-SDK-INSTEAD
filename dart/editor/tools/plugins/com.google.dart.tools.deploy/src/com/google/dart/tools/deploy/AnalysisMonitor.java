@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.deploy;
 
-import com.google.dart.tools.core.analysis.AnalysisEvent;
 import com.google.dart.tools.core.analysis.AnalysisListener;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 
@@ -30,12 +29,7 @@ public class AnalysisMonitor {
   /**
    * Listen for the {@link AnalysisServer} idle state
    */
-  private class Listener implements AnalysisListener {
-
-    @Override
-    public void discarded(AnalysisEvent event) {
-    }
-
+  private class Listener extends AnalysisListener.Empty {
     @Override
     public void idle(boolean idle) {
       synchronized (lock) {
@@ -46,14 +40,6 @@ public class AnalysisMonitor {
           job.schedule(500);
         }
       }
-    }
-
-    @Override
-    public void parsed(AnalysisEvent event) {
-    }
-
-    @Override
-    public void resolved(AnalysisEvent event) {
     }
   }
 

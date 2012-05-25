@@ -39,13 +39,7 @@ public class AnalysisTestUtilities {
   public static void waitForIdle(AnalysisServer server, long milliseconds) {
     final Object waitForIdleLock = new Object();
 
-    AnalysisListener listener = new AnalysisListener() {
-
-      @Override
-      public void discarded(AnalysisEvent event) {
-        // ignored
-      }
-
+    AnalysisListener listener = new AnalysisListener.Empty() {
       @Override
       public void idle(boolean idle) {
         if (idle) {
@@ -54,33 +48,10 @@ public class AnalysisTestUtilities {
           }
         }
       }
-
-      @Override
-      public void parsed(AnalysisEvent event) {
-        // ignored
-      }
-
-      @Override
-      public void resolved(AnalysisEvent event) {
-        // ignored
-      }
     };
 
     server.addAnalysisListener(listener);
     try {
-
-      // Ensure ResourceChangeListener background scanning gets time to run
-      // TODO (danrubel): Remove this once background scanning is integrated into AnalysisServer
-      synchronized (waitForIdleLock) {
-        if (server.isIdle()) {
-          try {
-            Thread.sleep(50);
-          } catch (InterruptedException e) {
-            //$FALL-THROUGH$
-          }
-        }
-      }
-
       long endTime = System.currentTimeMillis() + milliseconds;
       synchronized (waitForIdleLock) {
         while (!server.isIdle()) {

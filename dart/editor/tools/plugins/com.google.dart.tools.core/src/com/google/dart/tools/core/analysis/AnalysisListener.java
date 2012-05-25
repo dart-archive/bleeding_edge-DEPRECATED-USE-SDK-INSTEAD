@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.analysis;
 
-
 /**
  * Notified when analysis is performed
  * 
@@ -21,6 +20,27 @@ package com.google.dart.tools.core.analysis;
  * @see AnalysisServer#removeAnalysisListener(AnalysisListener)
  */
 public interface AnalysisListener {
+
+  /**
+   * Implementation of {@link AnalysisListener} which does nothing.
+   */
+  public static class Empty implements AnalysisListener {
+    @Override
+    public void discarded(AnalysisEvent event) {
+    }
+
+    @Override
+    public void idle(boolean idle) {
+    }
+
+    @Override
+    public void parsed(AnalysisEvent event) {
+    }
+
+    @Override
+    public void resolved(AnalysisEvent event) {
+    }
+  };
 
   /**
    * Called when the server is no longer analyzing a library
