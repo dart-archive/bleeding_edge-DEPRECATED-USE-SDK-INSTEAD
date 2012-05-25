@@ -48,10 +48,6 @@ hooks = [
   },
   {
     "pattern": ".",
-    "action": ["python", "dart/tools/generate_projects.py", "client"],
-  },
-  {
-    "pattern": ".",
     "action": ["python", "dart/tools/generate_projects.py", "language"],
   },
   {
