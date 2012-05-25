@@ -23,6 +23,9 @@ import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.contributor.IndexConstants;
 import com.google.dart.tools.core.internal.index.util.ElementFactory;
 import com.google.dart.tools.core.internal.index.util.ResourceFactory;
+import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.search.listener.FilteredSearchListener;
@@ -58,14 +61,15 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Instances of the class <code>SearchEngineImpl</code> implement a search engine that uses the
- * new index to obtain results.
+ * Instances of the class <code>SearchEngineImpl</code> implement a search engine that uses the new
+ * index to obtain results.
  */
 public class SearchEngineImpl implements SearchEngine {
   /**
@@ -215,11 +219,11 @@ public class SearchEngineImpl implements SearchEngine {
         DartCore.logError("Invalid resource id found " + resourceId);
         return null;
       }
+      String libraryUri = resourceComponents.get(0);
       String unitUri = resourceComponents.get(1);
       if (unitUri.startsWith("dart:")) {
-        String libraryUri = resourceComponents.get(0);
         try {
-          ExternalCompilationUnitImpl unit = com.google.dart.tools.core.internal.model.DartModelManager.getInstance().getDartModel().getBundledCompilationUnit(
+          ExternalCompilationUnitImpl unit = DartModelManager.getInstance().getDartModel().getBundledCompilationUnit(
               new URI(libraryUri));
           if (unit != null) {
             int index = unitUri.lastIndexOf('/');
@@ -234,8 +238,7 @@ public class SearchEngineImpl implements SearchEngine {
       if (unitFiles == null) {
         return null;
       } else if (unitFiles.length == 0) {
-        DartCore.logError("No files linked to URI " + unitUri);
-        return null;
+        return searchForUnit(libraryUri, unitUri);
       } else if (unitFiles.length == 1) {
         DartElement unitElement = DartCore.create(unitFiles[0]);
         if (unitElement instanceof CompilationUnit) {
@@ -251,13 +254,11 @@ public class SearchEngineImpl implements SearchEngine {
         }
         return null;
       }
-      String libraryUri = resourceComponents.get(0);
       IFile[] libraryFiles = getFilesForUri(libraryUri);
       if (libraryFiles == null) {
         return null;
       } else if (libraryFiles.length == 0) {
-        DartCore.logError("No files linked to URI " + libraryUri);
-        return null;
+        return searchForUnit(libraryUri, unitUri);
       } else if (libraryFiles.length > 1) {
         DartCore.logError("Multiple files linked to URI's " + libraryUri + " and " + unitUri);
         return null;
@@ -321,6 +322,21 @@ public class SearchEngineImpl implements SearchEngine {
       } catch (URISyntaxException exception) {
         DartCore.logError("Invalid URI stored in resource id " + uri, exception);
       }
+      return null;
+    }
+
+    private CompilationUnit searchForUnit(String libraryUri, String unitUri) {
+      try {
+        DartLibraryImpl libraryImpl = new DartLibraryImpl(new File(new URI(libraryUri)));
+        for (CompilationUnit unit : libraryImpl.getCompilationUnits()) {
+          if (((CompilationUnitImpl) unit).getSourceRef().getUri().toString().equals(unitUri)) {
+            return unit;
+          }
+        }
+      } catch (Exception exception) {
+        // Fall through to report an error and return null
+      }
+      DartCore.logError("No files linked to URI " + unitUri);
       return null;
     }
   }
