@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.ui.internal.presentation;
 
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugVariable;
+import com.google.dart.tools.debug.core.server.ServerDebugVariable;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.DebuggerEditorInput;
@@ -154,6 +155,16 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
       } else {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
       }
+    } else if (element instanceof ServerDebugVariable) {
+      ServerDebugVariable variable = (ServerDebugVariable) element;
+
+      if (variable.isThisObject()) {
+        return DartDebugUIPlugin.getImage("obj16/this_obj.gif");
+      } else if (variable.isListValue()) {
+        return DartDebugUIPlugin.getImage("obj16/object_obj.png");
+      } else {
+        return DartDebugUIPlugin.getImage("obj16/object_obj.png");
+      }
     } else {
       return null;
     }
@@ -169,7 +180,6 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
    * for the toString call to get back with the value.
    */
   public String getValueText(DartiumDebugValue value) throws DebugException {
-
     boolean isPrimitive = value.isPrimitive();
     boolean isArray = value.isList();
 

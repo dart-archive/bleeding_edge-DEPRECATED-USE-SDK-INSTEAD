@@ -35,6 +35,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO(devoncarew): implement the getLibraries command
+
+// TODO(devoncarew): implement getLibraryProperties
+
 /**
  * A low level interface to the Dart VM debugger protocol.
  */
@@ -107,20 +111,7 @@ public class VmConnection {
     return breakpoints;
   }
 
-  public void getLibraryURLs(final VmCallback<List<String>> callback) throws IOException {
-    if (callback == null) {
-      throw new IllegalArgumentException("a callback is required");
-    }
-
-    sendSimpleCommand("getLibraryURLs", new Callback() {
-      @Override
-      public void handleResult(JSONObject result) throws JSONException {
-        callback.handleResult(convertGetLibraryURLsResult(result));
-      }
-    });
-  }
-
-  public void getSourceURLs(String library, final VmCallback<List<String>> callback)
+  public void getClassProperties(final int classId, final VmCallback<VmClass> callback)
       throws IOException {
     if (callback == null) {
       throw new IllegalArgumentException("a callback is required");
@@ -129,13 +120,59 @@ public class VmConnection {
     try {
       JSONObject request = new JSONObject();
 
-      request.put("command", "getSourceURLs");
-      request.put("params", new JSONObject().put("library", library));
+      request.put("command", "getClassProperties");
+      request.put("params", new JSONObject().put("classId", classId));
 
       sendRequest(request, new Callback() {
         @Override
         public void handleResult(JSONObject result) throws JSONException {
-          callback.handleResult(convertGetSourceURLsResult(result));
+          callback.handleResult(convertGetClassPropertiesResult(classId, result));
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
+  public void getObjectProperties(final int objectId, final VmCallback<VmObject> callback)
+      throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "getObjectProperties");
+      request.put("params", new JSONObject().put("objectId", objectId));
+
+      sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          callback.handleResult(convertGetObjectPropertiesResult(objectId, result));
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
+  public void getScriptURLs(int libraryId, final VmCallback<List<String>> callback)
+      throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "getScriptURLs");
+      request.put("params", new JSONObject().put("libraryId", libraryId));
+
+      sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          callback.handleResult(convertGetScriptURLsResult(result));
         }
       });
     } catch (JSONException exception) {
@@ -290,26 +327,31 @@ public class VmConnection {
     }
   }
 
-  private VmResult<List<String>> convertGetLibraryURLsResult(JSONObject object)
+  private VmResult<VmClass> convertGetClassPropertiesResult(int classId, JSONObject object)
       throws JSONException {
-    VmResult<List<String>> result = VmResult.createFrom(object);
+    VmResult<VmClass> result = VmResult.createFrom(object);
 
     if (object.has("result")) {
-      List<String> libUrls = new ArrayList<String>();
-
-      JSONArray arr = object.getJSONObject("result").getJSONArray("urls");
-
-      for (int i = 0; i < arr.length(); i++) {
-        libUrls.add(VmUtils.vmUrlToEclipse(arr.getString(i)));
-      }
-
-      result.setResult(libUrls);
+      result.setResult(VmClass.createFrom(object.getJSONObject("result")));
+      result.getResult().setClassId(classId);
     }
 
     return result;
   }
 
-  private VmResult<List<String>> convertGetSourceURLsResult(JSONObject object) throws JSONException {
+  private VmResult<VmObject> convertGetObjectPropertiesResult(int objectId, JSONObject object)
+      throws JSONException {
+    VmResult<VmObject> result = VmResult.createFrom(object);
+
+    if (object.has("result")) {
+      result.setResult(VmObject.createFrom(object.getJSONObject("result")));
+      result.getResult().setObjectId(objectId);
+    }
+
+    return result;
+  }
+
+  private VmResult<List<String>> convertGetScriptURLsResult(JSONObject object) throws JSONException {
     VmResult<List<String>> result = VmResult.createFrom(object);
 
     if (object.has("result")) {
@@ -332,7 +374,6 @@ public class VmConnection {
     VmResult<List<VmCallFrame>> result = VmResult.createFrom(object);
 
     if (object.has("result")) {
-      // object.getJSONObject("result")
       List<VmCallFrame> frames = VmCallFrame.createFrom(object.getJSONArray("result"));
 
       result.setResult(frames);

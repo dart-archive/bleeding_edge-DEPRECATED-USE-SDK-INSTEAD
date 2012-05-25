@@ -158,8 +158,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
     DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
 
-    // TODO(devoncarew): this it temporarily commented out to test the paused event functionality
-    //resume();
+    resume();
   }
 
   @Override

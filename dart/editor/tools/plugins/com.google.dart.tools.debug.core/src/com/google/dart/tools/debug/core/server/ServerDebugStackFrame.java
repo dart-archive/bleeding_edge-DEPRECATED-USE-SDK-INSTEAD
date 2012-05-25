@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.debug.core.server;
 
-import com.google.dart.tools.debug.core.dartium.DartiumDebugElement;
 import com.google.dart.tools.debug.core.source.ISourceLookup;
 
 import org.eclipse.debug.core.DebugException;
@@ -25,23 +24,25 @@ import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * The IStackFrame implementation for the VM debug elements. This stack frame element represents a
  * Dart frame.
  */
-public class ServerDebugStackFrame extends DartiumDebugElement implements IStackFrame,
-    ISourceLookup {
+public class ServerDebugStackFrame extends ServerDebugElement implements IStackFrame, ISourceLookup {
   private IThread thread;
   private VmCallFrame vmFrame;
+  private List<ServerDebugVariable> locals;
 
   public ServerDebugStackFrame(IDebugTarget target, IThread thread, VmCallFrame vmFrame) {
     super(target);
 
     this.thread = thread;
     this.vmFrame = vmFrame;
-
-    //fillInDartiumVariables();
+    this.locals = createFrom(vmFrame);
   }
 
   @Override
@@ -117,9 +118,7 @@ public class ServerDebugStackFrame extends DartiumDebugElement implements IStack
 
   @Override
   public IVariable[] getVariables() throws DebugException {
-    // TODO(devoncarew):
-
-    return new IVariable[0];
+    return locals.toArray(new IVariable[locals.size()]);
   }
 
   @Override
@@ -177,4 +176,23 @@ public class ServerDebugStackFrame extends DartiumDebugElement implements IStack
     getThread().terminate();
   }
 
+  private List<ServerDebugVariable> createFrom(VmCallFrame frame) {
+    if (frame.getLocals() == null) {
+      return Collections.emptyList();
+    } else {
+      List<ServerDebugVariable> variables = new ArrayList<ServerDebugVariable>();
+
+      for (VmVariable var : frame.getLocals()) {
+        ServerDebugVariable serverVariable = new ServerDebugVariable(getTarget(), var);
+
+        // TODO(devoncarew): this can cause getObjectProperties to be called after a resume, which
+        // VM does not like.
+        //serverVariable.fillInValueFieldsAsync();
+
+        variables.add(serverVariable);
+      }
+
+      return variables;
+    }
+  }
 }

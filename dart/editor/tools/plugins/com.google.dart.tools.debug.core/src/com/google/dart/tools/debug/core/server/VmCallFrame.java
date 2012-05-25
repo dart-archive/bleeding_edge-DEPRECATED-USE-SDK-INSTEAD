@@ -43,6 +43,7 @@ public class VmCallFrame {
 
     frame.functionName = JsonUtils.getString(object, "functionName");
     frame.location = VmLocation.createFrom(object.getJSONObject("location"));
+    frame.locals = VmVariable.createFrom(object.optJSONArray("locals"));
 
     return frame;
   }
@@ -51,11 +52,17 @@ public class VmCallFrame {
 
   private VmLocation location;
 
+  private List<VmVariable> locals;
+
   /**
    * Name of the Dart function called on this call frame.
    */
   public String getFunctionName() {
     return functionName;
+  }
+
+  public List<VmVariable> getLocals() {
+    return locals;
   }
 
   /**

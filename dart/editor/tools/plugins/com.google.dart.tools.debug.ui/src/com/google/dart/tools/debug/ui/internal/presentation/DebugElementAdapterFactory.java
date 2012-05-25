@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.ui.internal.presentation;
 
 import com.google.dart.tools.debug.core.dartium.DartiumDebugVariable;
+import com.google.dart.tools.debug.core.server.ServerDebugVariable;
 
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.IAdapterManager;
@@ -33,10 +34,13 @@ public class DebugElementAdapterFactory implements IAdapterFactory {
     IAdapterManager manager = Platform.getAdapterManager();
 
     DebugElementAdapterFactory factory = new DebugElementAdapterFactory();
+
     manager.registerAdapters(factory, DartiumDebugVariable.class);
+    manager.registerAdapters(factory, ServerDebugVariable.class);
   }
 
-  private DartiumVariableLabelProvider variableLabelProvider = new DartiumVariableLabelProvider();
+  private DartiumVariableLabelProvider dartiumLabelProvider = new DartiumVariableLabelProvider();
+  private ServerVariableLabelProvider serverLabelProvider = new ServerVariableLabelProvider();
 
   public DebugElementAdapterFactory() {
 
@@ -47,7 +51,13 @@ public class DebugElementAdapterFactory implements IAdapterFactory {
   public Object getAdapter(Object adaptableObject, Class adapterType) {
     if (adaptableObject instanceof DartiumDebugVariable) {
       if (adapterType == IElementLabelProvider.class) {
-        return variableLabelProvider;
+        return dartiumLabelProvider;
+      }
+    }
+
+    if (adaptableObject instanceof ServerDebugVariable) {
+      if (adapterType == IElementLabelProvider.class) {
+        return serverLabelProvider;
       }
     }
 
