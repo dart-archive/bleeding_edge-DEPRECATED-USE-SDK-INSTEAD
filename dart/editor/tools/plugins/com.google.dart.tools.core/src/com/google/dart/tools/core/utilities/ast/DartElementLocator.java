@@ -425,16 +425,20 @@ public class DartElementLocator extends ASTVisitor<Void> {
         DartImport[] imports = library.getImports();
         for (DartImport imprt : imports) {
           // on URI of library - return defining Unit of imported Library
-          if (SourceRangeUtils.contains(imprt.getUriRange(), startOffset)) {
+          SourceRange uriRange = imprt.getUriRange();
+          if (SourceRangeUtils.contains(uriRange, startOffset)) {
             resolvedElement = null;
             foundElement = imprt.getLibrary().getDefiningCompilationUnit();
+            wordRegion = new Region(uriRange.getOffset(), uriRange.getLength());
+            candidateRegion = new Region(0, 0);
             throw new DartElementFoundException();
           }
           // on #import directive - return DartImport element
-          if (SourceRangeUtils.contains(imprt.getSourceRange(), startOffset)) {
+          SourceRange sourceRange = imprt.getSourceRange();
+          if (SourceRangeUtils.contains(sourceRange, startOffset)) {
             resolvedElement = null;
             foundElement = imprt;
-            SourceRange sourceRange = imprt.getSourceRange();
+            wordRegion = new Region(sourceRange.getOffset(), sourceRange.getLength());
             candidateRegion = new Region(sourceRange.getOffset(), sourceRange.getLength());
             throw new DartElementFoundException();
           }
