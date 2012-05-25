@@ -370,11 +370,14 @@ class World {
     if (options.outfile != null) {
       if (success) {
         var code = world.getGeneratedCode();
-        if (!options.outfile.endsWith('.js')) {
-          // Add in #! to invoke node.js on files with non-js extensions
+        var outfile = options.outfile;
+        if (!outfile.endsWith('.js') && !outfile.endswith('.js_')) {
+          // Add in #! to invoke node.js on files with non-js
+          // extensions. Treat both '.js' and '.js_' as JS extensions
+          // to work around http://dartbug.com/3231.
           code = '#!/usr/bin/env node\n${code}';
         }
-        world.files.writeString(options.outfile, code);
+        world.files.writeString(outfile, code);
       } else {
         // Throw here so we get a non-zero exit code when running.
         // TODO(jmesserly): make this an alert when compiling for the browser?
