@@ -13,10 +13,15 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.compiler.LibrarySource;
+import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.internal.model.ExternalDartProject;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.problem.CategorizedProblem;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -1428,7 +1433,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
    * @param setContents tells whether to read and set the contents to the new CU
    * @return the fake compilation unit
    */
-  private CompilationUnit createFakeCompiltationUnit(IStorageEditorInput editorInput,
+  private CompilationUnit createFakeCompilationUnit(IStorageEditorInput editorInput,
       boolean setContents) {
     try {
       final IStorage storage = editorInput.getStorage();
@@ -1527,7 +1532,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
    * @param editorInput the URI editor input
    * @return the fake compilation unit
    */
-  private CompilationUnit createFakeCompiltationUnit(IURIEditorInput editorInput) {
+  private CompilationUnit createFakeCompilationUnit(IURIEditorInput editorInput) {
     try {
       final URI uri = editorInput.getURI();
       final IFileStore fileStore = EFS.getStore(uri);
@@ -1552,7 +1557,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       // cpEntries = new
       // IIncludePathEntry[]{JavaRuntime.getDefaultJREContainerEntry()};
 
-      final CompilationUnit cu = woc.newWorkingCopy(fileStore.getName(), getProgressMonitor());
+      final CompilationUnitImpl cu = createWorkingCopy(uri, fileStore.getName(), woc);
 
       if (!isModifiable(editorInput)) {
         DartModelUtil.reconcile(cu);
@@ -1573,11 +1578,35 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
    */
   private CompilationUnit createFakeCompiltationUnit(Object element, boolean setContents) {
     if (element instanceof IStorageEditorInput) {
-      return createFakeCompiltationUnit((IStorageEditorInput) element, setContents);
+      return createFakeCompilationUnit((IStorageEditorInput) element, setContents);
     } else if (element instanceof IURIEditorInput) {
-      return createFakeCompiltationUnit((IURIEditorInput) element);
+      return createFakeCompilationUnit((IURIEditorInput) element);
     }
     return null;
+  }
+
+/**
+   * Create a new working copy for the file being edited. This is a replacement for the method
+   * {@link WorkingCopyOwner#newWorkingCopy(String, IProgressMonitor) that allows us to use the URI
+   * of the file being edited rather than synthesizing one from the current working directory and
+   * the file name (which produces invalid URI's).
+   * 
+   * @param uri the URI of the file being edited
+   * @param fileName the name of the file being edited
+   * @param owner the working copy owner to be associated with the working copy
+   * @return the working copy that was created
+   * @throws DartModelException
+   */
+  private CompilationUnitImpl createWorkingCopy(URI uri, String fileName, WorkingCopyOwner owner)
+      throws DartModelException {
+    ExternalDartProject project = new ExternalDartProject();
+    IFile libraryFile = project.getProject().getFile(fileName);
+    LibrarySource sourceFile = new UrlLibrarySource(uri,
+        SystemLibraryManagerProvider.getSystemLibraryManager());
+    DartLibraryImpl parent = new DartLibraryImpl(project, libraryFile, sourceFile);
+    final CompilationUnitImpl cu = new CompilationUnitImpl(parent, libraryFile, owner);
+    cu.becomeWorkingCopy(owner.getProblemRequestor(cu), getProgressMonitor());
+    return cu;
   }
 
   /**
