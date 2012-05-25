@@ -135,6 +135,7 @@ class ResourceServerHandler implements Runnable {
   private static final String TYPE_PLAIN = "text/plain";
   private static final String TYPE_CSS = "text/css";
   private static final String TYPE_JS = "text/javascript";
+  private static final String TYPE_DART = "application/dart";
   private static final String TYPE_XML = "text/xml";
 
   private static final String TYPE_JPEG = "image/jpeg";
@@ -151,7 +152,7 @@ class ResourceServerHandler implements Runnable {
     contentMappings.put("js", TYPE_JS);
     contentMappings.put("xml", TYPE_XML);
 
-    contentMappings.put("dart", TYPE_PLAIN);
+    contentMappings.put("dart", TYPE_DART);
 
     contentMappings.put("jpeg", TYPE_JPEG);
     contentMappings.put("jpg", TYPE_JPEG);
@@ -160,6 +161,8 @@ class ResourceServerHandler implements Runnable {
   }
 
   private static final String CRLF = "\r\n";
+
+  private static byte[] AGENT_CONTENT;
 
   /**
    * Special resources to serve - i.e. non-workspace resources.
@@ -301,14 +304,9 @@ class ResourceServerHandler implements Runnable {
     Date date = new Date(javaFile.lastModified());
     response.headers.put("Last-Modified", HttpResponse.RFC_1123_DATE_FORMAT.format(date));
 
-    // Content-Type: text/html; charset=UTF-8
+    // Content-Type: text/html[; charset=UTF-8]
     String contentType = getContentType(getFileExtension(javaFile.getName()));
-
-//      if (contentType.startsWith("text/")) {
-//        response.headers.put("Content-Type", contentType + "; charset=" + file.getCharset());
-//      } else {
     response.headers.put("Content-Type", contentType);
-//      }
 
     // Cache-control: no-cache
     response.headers.put("Cache-control", "no-cache");
@@ -470,13 +468,23 @@ class ResourceServerHandler implements Runnable {
     }
   }
 
-  private byte[] getJSAgentContent() throws IOException {
-    return ByteStreams.toByteArray(ResourceServer.class.getResourceAsStream("agent.js"));
+  private byte[] getJSAgentContent() {
+    if (AGENT_CONTENT == null) {
+      try {
+        AGENT_CONTENT = ByteStreams.toByteArray(ResourceServer.class.getResourceAsStream("agent.js"));
+      } catch (IOException e) {
+        DartDebugCorePlugin.logError(e);
+
+        AGENT_CONTENT = new byte[0];
+      }
+    }
+
+    return AGENT_CONTENT;
   }
 
   private String getPathFor(HTMLFile htmlFile) throws IOException {
     try {
-      String url = resourceServer.getUrlForResource((IFile) htmlFile.getCorrespondingResource());
+      String url = resourceServer.getUrlForResource(htmlFile.getCorrespondingResource());
 
       return URI.create(url).getPath();
     } catch (DartModelException ex) {
