@@ -41,7 +41,9 @@ public class DartIDEApplication implements IApplication {
 
       // Now that the start time of the Editor has been recorded from the command line, we can
       // record the time taken to start the Application
-      Performance.TIME_TO_START_APP.log(DartEditorCommandLineManager.getStartTime());
+      if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
+        Performance.TIME_TO_START_APP.log(DartEditorCommandLineManager.getStartTime());
+      }
 
       int returnCode = PlatformUI.createAndRunWorkbench(display, new ApplicationWorkbenchAdvisor(
           processor));
@@ -92,6 +94,7 @@ public class DartIDEApplication implements IApplication {
       String arg = args[i];
       if (arg.equals(DartEditorCommandLineManager.PERF_FLAG)) {
         DartEditorCommandLineManager.MEASURE_PERFORMANCE = true;
+        boolean failedToGetStartTime = false;
         // Now record the start time
         if (i + 1 < args.length) {
           // if there is at least one more 
@@ -101,12 +104,17 @@ public class DartIDEApplication implements IApplication {
             DartEditorCommandLineManager.setStartTime(startTime);
             i++;
           } catch (NumberFormatException e) {
-            System.err.println("Could not retrieve milliseconds from epoch time from command "
-                + "line, the value should be passed after the \""
-                + DartEditorCommandLineManager.PERF_FLAG + "\" flag, recording the start time "
-                + "of the Dart Editor *now*- at the application init time.");
-            DartEditorCommandLineManager.setStartTime(System.currentTimeMillis());
+            failedToGetStartTime = true;
           }
+        } else {
+          failedToGetStartTime = true;
+        }
+        if (failedToGetStartTime) {
+          System.err.println("Could not retrieve milliseconds from epoch time from command "
+              + "line, the value should be passed after the \""
+              + DartEditorCommandLineManager.PERF_FLAG + "\" flag, recording the start time "
+              + "of the Dart Editor *now*- at the application init time.");
+          DartEditorCommandLineManager.setStartTime(System.currentTimeMillis());
         }
       } else if (arg.length() > 0 && arg.charAt(0) != '-') {
         File file = new File(arg);
