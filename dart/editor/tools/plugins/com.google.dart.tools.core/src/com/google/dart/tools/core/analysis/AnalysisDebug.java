@@ -10,6 +10,7 @@ public class AnalysisDebug implements AnalysisListener {
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
   private final StringBuilder message = new StringBuilder(20000);
   private boolean debug;
+  private long lastIdleTime;
 
   public AnalysisDebug() {
     start();
@@ -29,10 +30,18 @@ public class AnalysisDebug implements AnalysisListener {
 
   @Override
   public void idle(boolean idle) {
+    String msg;
+    if (idle) {
+      long elapseTime = System.currentTimeMillis() - lastIdleTime;
+      msg = "true " + elapseTime + " ms";
+    } else {
+      lastIdleTime = System.currentTimeMillis();
+      msg = "false";
+    }
     synchronized (message) {
       message.append(ANALYSIS_PREFIX);
       message.append("idle ");
-      message.append(idle);
+      message.append(msg);
       message.append(LINE_SEPARATOR);
       message.notifyAll();
     }
@@ -82,6 +91,7 @@ public class AnalysisDebug implements AnalysisListener {
    */
   private void start() {
     debug = true;
+    lastIdleTime = System.currentTimeMillis();
     new Thread(getClass().getSimpleName()) {
       @Override
       public void run() {
