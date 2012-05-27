@@ -26,7 +26,6 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartElementLabelProvider;
-import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
@@ -40,7 +39,6 @@ import com.google.dart.tools.ui.internal.text.IProductConstants;
 import com.google.dart.tools.ui.internal.text.ProductProperties;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
-import com.google.dart.tools.ui.internal.viewsupport.AppearanceAwareLabelProvider;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
 import com.google.dart.tools.ui.internal.viewsupport.SourcePositionComparator;
 import com.google.dart.tools.ui.internal.viewsupport.StatusBarUpdater;
@@ -83,6 +81,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.OpenAndLinkWithEditorHelper;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.model.IWorkbenchAdapter;
 import org.eclipse.ui.model.WorkbenchAdapter;
@@ -107,38 +106,29 @@ import java.util.Vector;
  * based on model deltas. It does not react to domain changes. Publishes its context menu under
  * <code>DartToolsPlugin.getDefault().getPluginId() + &quot;.outline&quot;</code>.
  */
-public class DartOutlinePage extends Page
-    implements IContentOutlinePage, IAdaptable, IPostSelectionProvider {
+public class DartOutlinePage extends Page implements IContentOutlinePage, IAdaptable,
+    IPostSelectionProvider {
 
   /**
    * This action toggles whether this Java Outline page links its selection to the active editor.
    */
   public class ToggleLinkingAction extends AbstractToggleLinkingAction {
-
-    DartOutlinePage fJavaOutlinePage;
-
-    /**
-     * Constructs a new action.
-     * 
-     * @param outlinePage the Java outline page
-     */
-    public ToggleLinkingAction(DartOutlinePage outlinePage) {
+    public ToggleLinkingAction() {
       boolean isLinkingEnabled = PreferenceConstants.getPreferenceStore().getBoolean(
           PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE);
       setChecked(isLinkingEnabled);
-      fJavaOutlinePage = outlinePage;
+      fOpenAndLinkWithEditorHelper.setLinkWithEditor(isLinkingEnabled);
     }
 
-    /**
-     * Runs the action.
-     */
     @Override
     public void run() {
+      final boolean isChecked = isChecked();
       PreferenceConstants.getPreferenceStore().setValue(
-          PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE, isChecked());
-      if (isChecked() && fEditor != null) {
+          PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE, isChecked);
+      if (isChecked && fEditor != null) {
         fEditor.synchronizeOutlinePage(fEditor.computeHighlightRangeSourceReference(), false);
       }
+      fOpenAndLinkWithEditorHelper.setLinkWithEditor(isChecked);
     }
   }
 
@@ -154,7 +144,7 @@ public class DartOutlinePage extends Page
      * field is used to communicate between <code>internalExpandToLevel</code> and
      * <code>reuseTreeItem</code>.
      */
-    private Item fReusedExpandedItem;
+//    private Item fReusedExpandedItem;
     private boolean fReorderedMembers;
     private boolean fForceFireSelectionChanged;
 
@@ -269,7 +259,7 @@ public class DartOutlinePage extends Page
       if (node instanceof Item) {
         Item i = (Item) node;
         if (i.getData() instanceof DartElement) {
-          DartElement je = (DartElement) i.getData();
+//          DartElement je = (DartElement) i.getData();
           DartX.todo(); // looking for synthetic model items (lib,app?)
 //          if (je.getElementType() == DartElement.IMPORT_CONTAINER
 //              || isInnerType(je)) {
@@ -303,9 +293,9 @@ public class DartOutlinePage extends Page
       Item[] c = getChildren(item);
       if (c != null && c.length > 0) {
 
-        if (getExpanded(item)) {
-          fReusedExpandedItem = item;
-        }
+//        if (getExpanded(item)) {
+//          fReusedExpandedItem = item;
+//        }
 
         for (int k = 0; k < c.length; k++) {
           if (c[k].getData() != null) {
@@ -319,7 +309,7 @@ public class DartOutlinePage extends Page
       updatePlus(item, element);
       internalExpandToLevel(item, ALL_LEVELS);
 
-      fReusedExpandedItem = null;
+//      fReusedExpandedItem = null;
       fForceFireSelectionChanged = true;
     }
 
@@ -815,6 +805,7 @@ public class DartOutlinePage extends Page
 
   private IPropertyChangeListener fPropertyChangeListener;
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
+  private OpenAndLinkWithEditorHelper fOpenAndLinkWithEditorHelper;
 
   /**
    * Custom filter action group.
@@ -880,9 +871,9 @@ public class DartOutlinePage extends Page
 
     Tree tree = new Tree(parent, SWT.MULTI);
 
-    AppearanceAwareLabelProvider lprovider = new AppearanceAwareLabelProvider(
-        AppearanceAwareLabelProvider.DEFAULT_TEXTFLAGS | DartElementLabels.F_APP_TYPE_SIGNATURE
-            | DartElementLabels.ALL_CATEGORY, AppearanceAwareLabelProvider.DEFAULT_IMAGEFLAGS);
+//    AppearanceAwareLabelProvider lprovider = new AppearanceAwareLabelProvider(
+//        AppearanceAwareLabelProvider.DEFAULT_TEXTFLAGS | DartElementLabels.F_APP_TYPE_SIGNATURE
+//            | DartElementLabels.ALL_CATEGORY, AppearanceAwareLabelProvider.DEFAULT_IMAGEFLAGS);
 
     fOutlineViewer = new DartOutlineViewer(tree);
     ColoredViewersManager.install(fOutlineViewer);
@@ -961,6 +952,30 @@ public class DartOutlinePage extends Page
     DartX.todo();
 //    fCustomFiltersActionGroup = new CustomFiltersActionGroup(
 //        "com.google.dart.tools.ui.JavaOutlinePage", fOutlineViewer); //$NON-NLS-1$
+
+    fOpenAndLinkWithEditorHelper = new OpenAndLinkWithEditorHelper(fOutlineViewer) {
+
+      @Override
+      protected void activate(ISelection selection) {
+        fEditor.doSelectionChanged(selection);
+        getSite().getPage().activate(fEditor);
+      }
+
+      @Override
+      protected void linkToEditor(ISelection selection) {
+        fEditor.doSelectionChanged(selection);
+
+      }
+
+      @Override
+      protected void open(ISelection selection, boolean activate) {
+        fEditor.doSelectionChanged(selection);
+        if (activate) {
+          getSite().getPage().activate(fEditor);
+        }
+      }
+
+    };
 
     registerToolbarActions(actionBars);
 
@@ -1195,7 +1210,7 @@ public class DartOutlinePage extends Page
 
     DartToolsPlugin.createStandardGroups(menu);
 
-    IStructuredSelection selection = (IStructuredSelection) getSelection();
+//    IStructuredSelection selection = (IStructuredSelection) getSelection();
     DartX.todo();
     //fActionGroups.setContext(new ActionContext(selection));
     //fActionGroups.fillContextMenu(menu);
@@ -1287,14 +1302,13 @@ public class DartOutlinePage extends Page
 //        fOutlineViewer, dragListeners));
   }
 
-  /**
-   * Checks whether a given Java element is an inner type.
-   * 
-   * @param element the java element
-   * @return <code>true</code> iff the given element is an inner type
-   */
-  private boolean isInnerType(DartElement element) {
-
+//  /**
+//   * Checks whether a given Java element is an inner type.
+//   * 
+//   * @param element the java element
+//   * @return <code>true</code> iff the given element is an inner type
+//   */
+//  private boolean isInnerType(DartElement element) {
 //    if (element != null && element.getElementType() == DartElement.TYPE) {
 //      Type type = (Type) element;
 //      try {
@@ -1307,9 +1321,8 @@ public class DartOutlinePage extends Page
 //        }
 //      }
 //    }
-
-    return false;
-  }
+//    return false;
+//  }
 
   private void registerToolbarActions(IActionBars actionBars) {
     IToolBarManager toolBarManager = actionBars.getToolBarManager();
@@ -1325,10 +1338,10 @@ public class DartOutlinePage extends Page
 //    IMenuManager viewMenuManager = actionBars.getMenuManager();
 //    viewMenuManager.add(new Separator("EndFilterGroup")); //$NON-NLS-1$
 //
-//    fToggleLinkingAction = new ToggleLinkingAction(this);
+//    fToggleLinkingAction = new ToggleLinkingAction();
 //    viewMenuManager.add(new ClassOnlyAction());
 //    viewMenuManager.add(fToggleLinkingAction);
-
+    new ToggleLinkingAction().run(); // initialize to enable linking; not visible to users
     toolBarManager.add(new CollapseAllAction(getOutlineViewer()));
 
     DartX.todo();

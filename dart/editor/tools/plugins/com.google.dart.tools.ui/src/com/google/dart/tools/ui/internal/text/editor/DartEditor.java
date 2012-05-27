@@ -193,6 +193,7 @@ import java.util.Map;
 /**
  * Dart specific text editor.
  */
+@SuppressWarnings({"unused", "deprecation"})
 public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     IViewPartInputProvider {
 
@@ -1000,16 +1001,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   /**
-   * Updates the selection in the editor's widget with the selection of the outline page.
-   */
-  class OutlineSelectionChangedListener extends AbstractSelectionChangedListener {
-    @Override
-    public void selectionChanged(SelectionChangedEvent event) {
-      doSelectionChanged(event);
-    }
-  }
-
-  /**
    * Internal activation listener.
    */
   private class ActivationListener implements IWindowListener {
@@ -1023,10 +1014,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           && isActivePart()) {
         fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
         try {
-          updateOccurrenceAnnotations(
-              (ITextSelection) fForcedMarkOccurrencesSelection,
-              DartToolsPlugin.getDefault().getASTProvider().getAST(getInputDartElement(),
-                  ASTProvider.WAIT_NO, getProgressMonitor()));
+          DartElement input = getInputDartElement();
+          if (input != null) {
+            updateOccurrenceAnnotations(
+                (ITextSelection) fForcedMarkOccurrencesSelection,
+                DartToolsPlugin.getDefault().getASTProvider().getAST(input, ASTProvider.WAIT_NO,
+                    getProgressMonitor()));
+          }
         } catch (Exception ex) {
           // ignore it
         }
@@ -1624,8 +1618,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * The editor selection changed listener.
    */
   private EditorSelectionChangedListener fEditorSelectionChangedListener;
-  /** The selection changed listener */
-  protected AbstractSelectionChangedListener fOutlineSelectionChangedListener = new OutlineSelectionChangedListener();
   /** The editor's bracket matcher */
   protected DartPairMatcher fBracketMatcher = new DartPairMatcher(BRACKETS);
 
@@ -1743,7 +1735,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   protected OverrideIndicatorManager fOverrideIndicatorManager;
   /**
-   * Semantic highlighting manager , protected as of 3.3
+   * Semantic highlighting manager
    */
   protected SemanticHighlightingManager fSemanticManager;
 
@@ -2185,7 +2177,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   public void outlinePageClosed() {
     if (fOutlinePage != null) {
-      fOutlineSelectionChangedListener.uninstall(fOutlinePage);
       fOutlinePage = null;
       resetHighlightRange();
     }
@@ -2207,7 +2198,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       /*
        * If the element is an CompilationUnit this unit is either the input of this editor or not
        * being displayed. In both cases, nothing should happened.
-       * (http://dev.eclipse.org/bugs/show_bug.cgi?id=5128)
        */
       return;
     }
@@ -2219,9 +2209,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       setSelection(reference, true);
       // set outliner selection
       if (fOutlinePage != null) {
-        fOutlineSelectionChangedListener.uninstall(fOutlinePage);
         fOutlinePage.select(reference);
-        fOutlineSelectionChangedListener.install(fOutlinePage);
       }
     }
   }
@@ -2259,9 +2247,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
           setHighlightRange(range.getOffset(), range.getLength(), true);
           if (fOutlinePage != null) {
-            fOutlineSelectionChangedListener.uninstall(fOutlinePage);
             fOutlinePage.select((SourceReference) element);
-            fOutlineSelectionChangedListener.install(fOutlinePage);
           }
 
           return;
@@ -2619,7 +2605,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   protected DartOutlinePage createOutlinePage() {
     DartOutlinePage page = new DartOutlinePage(fOutlinerContextMenuId, this);
-    fOutlineSelectionChangedListener.install(page);
     setOutlinePageInput(page, getEditorInput());
     return page;
   }
@@ -2707,11 +2692,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return viewer;
   }
 
-  protected void doSelectionChanged(SelectionChangedEvent event) {
+  protected void doSelectionChanged(ISelection selection) {
 
     SourceReference reference = null;
 
-    ISelection selection = event.getSelection();
     Iterator<?> iter = ((IStructuredSelection) selection).iterator();
     while (iter.hasNext()) {
       Object o = iter.next();
@@ -2736,8 +2720,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return;
     }
 
-    DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(getInputDartElement(),
-        ASTProvider.WAIT_ACTIVE_ONLY, getProgressMonitor());
+    DartElement inputElement = getInputDartElement();
+    if (inputElement == null) {
+      return;
+    }
+
+    DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(inputElement,
+        ASTProvider.WAIT_NO, getProgressMonitor());
     if (ast != null) {
       fForcedMarkOccurrencesSelection = textSelection;
       updateOccurrenceAnnotations((ITextSelection) textSelection, ast);
@@ -3038,7 +3027,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         return;
       }
 
-      if (isJavaEditorHoverProperty(property)) {
+      if (isEditorHoverProperty(property)) {
         updateHoverBehavior();
       }
 
@@ -3191,9 +3180,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#initializeEditor()
-   */
   @Override
   protected void initializeEditor() {
     IPreferenceStore store = createCombinedPreferenceStore(null);
@@ -3212,9 +3198,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     fMarkBreakContinueTargets = store.getBoolean(PreferenceConstants.EDITOR_MARK_BREAK_CONTINUE_TARGETS);
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor# initializeKeyBindingScopes()
-   */
   @Override
   protected void initializeKeyBindingScopes() {
     setKeyBindingScopes(new String[] {"com.google.dart.tools.ui.dartViewScope"}); //$NON-NLS-1$
@@ -3254,10 +3237,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     SelectionListenerWithASTManager.getDefault().addListener(this, fPostSelectionListenerWithAST);
     if (forceUpdate && getSelectionProvider() != null) {
       fForcedMarkOccurrencesSelection = getSelectionProvider().getSelection();
-      updateOccurrenceAnnotations(
-          (ITextSelection) fForcedMarkOccurrencesSelection,
-          DartToolsPlugin.getDefault().getASTProvider().getAST(getInputDartElement(),
-              ASTProvider.WAIT_NO, getProgressMonitor()));
+      DartElement input = getInputDartElement();
+      if (input != null) {
+        updateOccurrenceAnnotations(
+            (ITextSelection) fForcedMarkOccurrencesSelection,
+            DartToolsPlugin.getDefault().getASTProvider().getAST(getInputDartElement(),
+                ASTProvider.WAIT_NO, getProgressMonitor()));
+      }
     }
 
     if (fOccurrencesFinderJobCanceler == null) {
@@ -3314,9 +3300,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         || getBoolean(store, preference.getTextPreferenceKey());
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractTextEditor#performRevert()
-   */
   @Override
   protected void performRevert() {
     ProjectionViewer projectionViewer = (ProjectionViewer) getSourceViewer();
@@ -3354,10 +3337,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     super.performSave(overwrite, progressMonitor);
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractTextEditor#rulerContextMenuAboutToShow
-   * (org.eclipse.jface.action.IMenuManager)
-   */
   @Override
   protected void rulerContextMenuAboutToShow(IMenuManager menu) {
     super.rulerContextMenuAboutToShow(menu);
@@ -3426,10 +3405,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     fOutlinerContextMenuId = menuId;
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractTextEditor#setPreferenceStore(org.eclipse
-   * .jface.preference.IPreferenceStore)
-   */
   @Override
   protected void setPreferenceStore(IPreferenceStore store) {
     super.setPreferenceStore(store);
@@ -3553,10 +3528,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   protected void synchronizeOutlinePage(SourceReference element, boolean checkIfOutlinePageActive) {
     if (fOutlinePage != null && element != null
-        && !(checkIfOutlinePageActive && isJavaOutlinePageActive())) {
-      fOutlineSelectionChangedListener.uninstall(fOutlinePage);
+        && !(checkIfOutlinePageActive && isOutlinePageActive())) {
       fOutlinePage.select(element);
-      fOutlineSelectionChangedListener.install(fOutlinePage);
     }
   }
 
@@ -3589,14 +3562,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#updateMarkerViews
-   * (org.eclipse.jface.text.source.Annotation)
-   */
   @Override
   protected void updateMarkerViews(Annotation annotation) {
     if (annotation instanceof IJavaAnnotation) {
-      Iterator e = ((IJavaAnnotation) annotation).getOverlaidIterator();
+      Iterator<?> e = ((IJavaAnnotation) annotation).getOverlaidIterator();
       if (e != null) {
         while (e.hasNext()) {
           Object o = e.next();
@@ -3658,7 +3627,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     CompilationUnit input = getInputDartElement().getAncestor(CompilationUnit.class);
     DartElementLocator locator = new DartElementLocator(input, selection.getOffset(),
         selection.getOffset() + selection.getLength(), true);
-    DartElement selectedModelNode = locator.searchWithin(astRoot);
+    /* DartElement selectedModelNode = */locator.searchWithin(astRoot);
     Element selectedNode = locator.getResolvedElement();
 
 //    if (fMarkExceptions || fMarkTypeOccurrences) {
@@ -3720,7 +3689,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 //      }
 //    }
 
-    if (matches == null && selectedModelNode != null && selectedNode != null) {
+    if (matches == null && selectedNode != null) {
       NameOccurrencesFinder finder = new NameOccurrencesFinder(selectedNode);
       finder.searchWithin(astRoot);
       matches = finder.getMatches();
@@ -3749,9 +3718,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractTextEditor#updatePropertyDependentActions ()
-   */
   @Override
   protected void updatePropertyDependentActions() {
     super.updatePropertyDependentActions();
@@ -3980,11 +3946,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return isEditable;
   }
 
-  private boolean isJavaEditorHoverProperty(String property) {
+  private boolean isEditorHoverProperty(String property) {
     return PreferenceConstants.EDITOR_TEXT_HOVER_MODIFIERS.equals(property);
   }
 
-  private boolean isJavaOutlinePageActive() {
+  private boolean isOutlinePageActive() {
     IWorkbenchPart part = getActivePart();
     return part instanceof ContentOutline
         && ((ContentOutline) part).getCurrentPage() == fOutlinePage;

@@ -32,9 +32,11 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
+import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
@@ -286,12 +288,15 @@ public class DartElementLocator extends ASTVisitor<Void> {
         wordRegion = new Region(start, length);
         DartNode parent = node.getParent();
         Element targetElement = node.getElement();
-        // target of "new X()" is not just type, it is constructor
-        if (parent instanceof DartTypeNode) {
+        // target of "new X()" or "new X.a()" is not just a type, it is a constructor
+        if (parent instanceof DartTypeNode || parent instanceof DartPropertyAccess) {
           DartNode grandparent = parent.getParent();
           if (grandparent instanceof DartNewExpression) {
             targetElement = ((DartNewExpression) grandparent).getElement();
           }
+        } else if (parent instanceof DartRedirectConstructorInvocation
+            || parent instanceof DartSuperConstructorInvocation) {
+          targetElement = parent.getElement();
         }
         // analyze "targetElement"
         if (targetElement == null) {
@@ -377,9 +382,9 @@ public class DartElementLocator extends ASTVisitor<Void> {
         } else {
           if (targetElement instanceof VariableElement) {
             VariableElement variableElement = (VariableElement) targetElement;
+            resolvedElement = variableElement;
             if (variableElement.getKind() == ElementKind.PARAMETER
                 || variableElement.getKind() == ElementKind.VARIABLE) {
-              resolvedElement = variableElement;
               foundElement = BindingUtils.getDartElement(
                   compilationUnit.getLibrary(),
                   variableElement);
@@ -646,4 +651,5 @@ public class DartElementLocator extends ASTVisitor<Void> {
     }
     return uri;
   }
+
 }
