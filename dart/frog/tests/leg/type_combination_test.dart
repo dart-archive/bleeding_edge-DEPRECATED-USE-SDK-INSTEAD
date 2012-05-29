@@ -20,8 +20,8 @@ final STRING = HType.STRING;
 final READABLE_ARRAY = HType.READABLE_ARRAY;
 final MUTABLE_ARRAY = HType.MUTABLE_ARRAY;
 final EXTENDABLE_ARRAY = HType.EXTENDABLE_ARRAY;
-final NON_PRIMITIVE1 = const HBoundedType(const Type("type1"));
-final NON_PRIMITIVE2 = const HBoundedType(const Type("type2"));
+final NON_PRIMITIVE1 = const HBoundedType.nonNull(const Type("type1"));
+final NON_PRIMITIVE2 = const HBoundedType.nonNull(const Type("type2"));
 final POTENTIAL_ARRAY =
     const HBoundedPotentialPrimitiveArray(const Type('type 3'), true);
 final POTENTIAL_STRING =
@@ -810,7 +810,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(NON_PRIMITIVE1));
   Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(NON_PRIMITIVE2));
   Expect.equals(POTENTIAL_ARRAY, POTENTIAL_ARRAY.intersection(POTENTIAL_ARRAY));
-  Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(POTENTIAL_STRING));
+  Expect.equals(NULL, POTENTIAL_ARRAY.intersection(POTENTIAL_STRING));
   Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(BOOLEAN_OR_NULL));
   Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(NUMBER_OR_NULL));
   Expect.equals(CONFLICTING, POTENTIAL_ARRAY.intersection(INTEGER_OR_NULL));
@@ -831,7 +831,7 @@ void testIntersection() {
   Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(EXTENDABLE_ARRAY));
   Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(NON_PRIMITIVE1));
   Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(NON_PRIMITIVE2));
-  Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(POTENTIAL_ARRAY));
+  Expect.equals(NULL, POTENTIAL_STRING.intersection(POTENTIAL_ARRAY));
   Expect.equals(POTENTIAL_STRING, POTENTIAL_STRING.intersection(POTENTIAL_STRING));
   Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(BOOLEAN_OR_NULL));
   Expect.equals(CONFLICTING, POTENTIAL_STRING.intersection(NUMBER_OR_NULL));
