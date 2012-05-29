@@ -62,7 +62,7 @@ proxy/mint_maker_rpc_test: Pass # Issue 2254.
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $runtime == chrome && $system == mac ]
+[ $compiler == dart2js && $runtime == chrome && $system == macos ]
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails</td
 
 [ $runtime == opera ]
