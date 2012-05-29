@@ -74,6 +74,7 @@ import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
+import com.google.dart.compiler.type.Types;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.completion.CompletionMetrics;
@@ -1507,7 +1508,11 @@ public class CompletionEngine {
   }
 
   private Type analyzeType(DartNode target) {
-    return target.getType();
+    Type type = target.getType();
+    if (type != null) {
+      return type;
+    }
+    return Types.newDynamicType();
   }
 
   private void checkCancel() {
