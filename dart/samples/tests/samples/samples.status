@@ -14,9 +14,10 @@ chat/*: Skip
 [ $arch == arm ]
 *: Skip
 
+[ $browser ]
+chat/chat_server_test: Skip # Uses dart:io
 
 [ $runtime == drt ]
-chat/chat_server_test: Skip # Uses dart:io
 lib/layout/layout_test: Skip # Issue 152
 lib/touch/touch_test: Skip # Issue 157
 
@@ -60,3 +61,6 @@ proxy/mint_maker_rpc_test: Pass # Issue 2254.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $compiler == dart2js && $runtime == chrome && $system == mac ]
+lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails</td
