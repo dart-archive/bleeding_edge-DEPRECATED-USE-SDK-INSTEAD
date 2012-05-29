@@ -594,7 +594,8 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
 
       // Only update the .children file if the specified was in the .children file to be removed,
       // or if the children file doesn't exist yet.
-      if (foundAndRemoved || !getChildrenFile().exists()) {
+      File childrenFile = getChildrenFile();
+      if (foundAndRemoved || childrenFile == null || !childrenFile.exists()) {
         // Write out the new contents to the .children file
         setChildPaths(projectInfo, childPaths);
 
@@ -796,7 +797,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     }
     childPaths = new ArrayList<String>();
     File file = getChildrenFile();
-    if (recomputeLibrarySet || !file.exists()) {
+    if (recomputeLibrarySet || file == null || !file.exists()) {
       computeChildPaths(childPaths);
       return childPaths;
     }
@@ -875,6 +876,9 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   protected void setChildPaths(DartProjectInfo info, List<String> paths) {
     info.setChildPaths(paths);
     File file = getChildrenFile();
+    if (file == null) {
+      return;
+    }
     FileWriter fileWriter = null;
     try {
       fileWriter = new FileWriter(file);
@@ -981,14 +985,23 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   }
 
   /**
-   * Return the file that contains the project-relative paths of the children of the project. The
-   * file might not exist.
+   * Return the file that contains the project-relative paths of the children of the project, or
+   * <code>null</code> if the location of the file cannot be determined, such as when the project no
+   * longer exists. Even if non-<code>null</code>, the returned file might not exist.
    * 
    * @return the file that contains the paths to the project's children
    */
   private File getChildrenFile() {
     // new File(DartCore.getPlugin().getStateLocation().append(getProject().getName()).append(CHILDREN_FILE_NAME).toOSString());
-    return new File(getProject().getLocation().append(CHILDREN_FILE_NAME).toOSString());
+    IProject project = getProject();
+    if (project == null) {
+      return null;
+    }
+    IPath location = project.getLocation();
+    if (location == null) {
+      return null;
+    }
+    return new File(location.append(CHILDREN_FILE_NAME).toOSString());
   }
 
   private String getRelativePath(DartStringLiteral literal) {
