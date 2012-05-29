@@ -21,3 +21,6 @@ string_interpolation_test: Skip
 
 [ $compiler == dartc || $runtime == vm ]
 cascade_precedence_test: Fail
+
+[ $runtime == opera ]
+*: Skip
