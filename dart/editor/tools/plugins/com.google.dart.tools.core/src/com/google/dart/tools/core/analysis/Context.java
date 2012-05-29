@@ -17,17 +17,25 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 /**
  * The context (saved on disk, editor buffer, refactoring) in which analysis occurs.
  */
 class Context {
 
+  private static final String END_CACHE_TAG = "</end-cache>";
+
   private static final Library[] NO_LIBRARIES = new Library[] {};
+
+  private AnalysisServer server;
 
   /**
    * The libraries in this context, including imported libraries. This should only be accessed on
@@ -43,7 +51,8 @@ class Context {
    */
   private final HashMap<URI, DartUnit> unresolvedUnits;
 
-  Context() {
+  Context(AnalysisServer server) {
+    this.server = server;
     this.libraryCache = new HashMap<File, Library>();
     this.unresolvedUnits = new HashMap<URI, DartUnit>();
   }
@@ -80,6 +89,19 @@ class Context {
    */
   Library getCachedLibrary(File file) {
     return libraryCache.get(file);
+  }
+
+  /**
+   * Answer a resolved or unresolved unit, or <code>null</code> if none
+   */
+  DartUnit getCachedUnit(Library library, File dartFile) {
+    if (library != null) {
+      DartUnit unit = library.getResolvedUnit(dartFile);
+      if (unit != null) {
+        return unit;
+      }
+    }
+    return getUnresolvedUnit(dartFile);
   }
 
   /**
@@ -148,6 +170,39 @@ class Context {
    */
   HashMap<URI, DartUnit> getUnresolvedUnits() {
     return unresolvedUnits;
+  }
+
+  /**
+   * Reload cached libraries
+   */
+  void readCache(LineNumberReader reader) throws IOException {
+    while (true) {
+      String filePath = reader.readLine();
+      if (filePath == null) {
+        throw new IOException("Expected " + END_CACHE_TAG + " but found EOF");
+      }
+      if (filePath.equals(END_CACHE_TAG)) {
+        break;
+      }
+      File libraryFile = new File(filePath);
+      Library lib = Library.readCache(server, libraryFile, reader);
+      libraryCache.put(libraryFile, lib);
+    }
+  }
+
+  /**
+   * Write information for each cached library. Don't include unresolved libraries so that listeners
+   * will be notified when the cache is reloaded.
+   */
+  void writeCache(PrintWriter writer) {
+    for (Entry<File, Library> entry : libraryCache.entrySet()) {
+      Library library = entry.getValue();
+      if (library.hasBeenResolved()) {
+        writer.println(entry.getKey().getPath());
+        library.writeCache(writer);
+      }
+    }
+    writer.println(END_CACHE_TAG);
   }
 
   private Library[] append(Library[] oldArray, Library library) {

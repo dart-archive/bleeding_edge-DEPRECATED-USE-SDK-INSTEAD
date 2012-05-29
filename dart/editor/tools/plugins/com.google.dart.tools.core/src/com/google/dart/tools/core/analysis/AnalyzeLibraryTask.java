@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
@@ -57,7 +58,8 @@ class AnalyzeLibraryTask extends Task {
     // Parse the library file
 
     Library library = context.getCachedLibrary(libraryFile);
-    if (library == null) {
+    DartUnit unit = context.getCachedUnit(library, libraryFile);
+    if (library == null || unit == null) {
       server.queueSubTask(new ParseLibraryTask(server, context, libraryFile));
       server.queueSubTask(this);
       return;

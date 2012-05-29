@@ -13,15 +13,16 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.parse;
+import static com.google.dart.tools.core.analysis.AnalysisUtility.toLibrarySource;
 
 import java.io.File;
-import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +34,9 @@ class ParseLibraryFileTask extends Task {
   private final AnalysisServer server;
   private final Context context;
   private final File libraryFile;
+
   private final UrlLibrarySource librarySource;
+
   private final ParseLibraryFileCallback callback;
 
   ParseLibraryFileTask(AnalysisServer server, Context context, File libraryFile,
@@ -42,10 +45,7 @@ class ParseLibraryFileTask extends Task {
     this.context = context;
     this.libraryFile = libraryFile;
     this.callback = callback;
-    URI fileUri = libraryFile.toURI();
-    URI shortUri = server.getLibraryManager().getRelativeUri(fileUri);
-    URI libUri = shortUri != null ? shortUri : fileUri;
-    this.librarySource = new UrlLibrarySource(libUri, server.getLibraryManager());
+    this.librarySource = toLibrarySource(server, libraryFile);
   }
 
   @Override
@@ -64,16 +64,17 @@ class ParseLibraryFileTask extends Task {
 
     // Get the cached unit or parse the source
 
-    DartUnit unit = null;
-    if (library != null) {
-      unit = library.getResolvedUnit(libraryFile);
-    }
+    DartUnit unit = context.getCachedUnit(library, libraryFile);
     if (unit == null) {
-      unit = context.getUnresolvedUnit(libraryFile);
-      if (unit == null) {
-        Set<String> prefixes = new HashSet<String>();
-        unit = parse(server, libraryFile, librarySource, libraryFile.getName(), prefixes);
-        context.cacheUnresolvedUnit(libraryFile, unit);
+      Set<String> prefixes = new HashSet<String>();
+      ErrorListener errorListener = new ErrorListener(server);
+      DartSource source = librarySource.getSourceFor(libraryFile.getName());
+
+      unit = parse(libraryFile, source, prefixes, errorListener);
+
+      context.cacheUnresolvedUnit(libraryFile, unit);
+      if (library == null || library.shouldNotify) {
+        errorListener.notifyParsed(libraryFile, libraryFile, unit);
       }
     }
 

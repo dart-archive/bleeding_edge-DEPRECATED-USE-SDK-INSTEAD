@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -184,12 +185,7 @@ public class AnalysisServerTest extends TestCase {
     final int[] count = new int[] {0};
     final File libFile = setupMoneyLibrary(tempDir);
     setupServer();
-    server.addAnalysisListener(new AnalysisListener() {
-
-      @Override
-      public void discarded(AnalysisEvent event) {
-      }
-
+    server.addAnalysisListener(new AnalysisListener.Empty() {
       @Override
       public void idle(boolean idle) {
         if (idle) {
@@ -199,19 +195,10 @@ public class AnalysisServerTest extends TestCase {
           }
         }
       }
-
-      @Override
-      public void parsed(AnalysisEvent event) {
-      }
-
-      @Override
-      public void resolved(AnalysisEvent event) {
-      }
     });
     server.analyzeLibrary(libFile);
-    long end = System.currentTimeMillis() + 30000;
     while (count[0] < 3) {
-      AnalysisTestUtilities.waitForIdle(server, end - System.currentTimeMillis());
+      waitForIdle();
     }
   }
 
@@ -277,6 +264,15 @@ public class AnalysisServerTest extends TestCase {
     assertTrue(listener.getParsedCount() > 10);
     assertEquals(3, listener.getResolved().size());
     //assertEquals(0, listener.getErrors().size());
+    listener.assertNoDuplicates();
+    listener.assertNoDiscards();
+
+    // assert that resolved unit has been cached
+    listener.reset();
+    LibraryUnit libUnit2 = waitForResolution(libFile);
+    assertTrue(libUnit == libUnit2);
+    assertEquals(0, listener.getResolved().size());
+    assertEquals(0, listener.getErrors().size());
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
 
@@ -427,6 +423,130 @@ public class AnalysisServerTest extends TestCase {
 //    index.shutdown();
   }
 
+  public void test_AnalysisServer_stop() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        File libFile = setupMoneyLibrary(tempDir);
+        setupServer();
+
+        final boolean[] latch = new boolean[1];
+        server.resolveLibrary(libFile, new ResolveLibraryCallback() {
+          @Override
+          public void resolved(LibraryUnit libraryUnit) {
+            try {
+              synchronized (latch) {
+                latch[0] = true;
+                latch.notifyAll();
+              }
+              Thread.sleep(100);
+            } catch (InterruptedException e) {
+              //$FALL-THROUGH$
+            }
+          }
+        });
+        synchronized (latch) {
+          if (!latch[0]) {
+            latch.wait(FIVE_MINUTES_MS);
+          }
+        }
+
+        server.stop();
+        assertTrue(server.isIdle());
+      }
+    });
+  }
+
+  public void test_AnalysisServer_write_read_0() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        File libFile = setupMoneyLibrary(tempDir);
+        setupServer();
+        assertEquals(0, listener.getResolved().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        assertTrackedLibraryFiles();
+        assertFalse(isLibraryFileCached(libFile));
+
+        File cacheFile = new File(libFile.getParentFile(), "analysis.cache");
+
+        server.stop();
+        server.writeCache(cacheFile);
+        setupServer(cacheFile);
+
+        assertTrackedLibraryFiles();
+        assertFalse(isLibraryFileCached(libFile));
+      }
+    });
+  }
+
+  public void test_AnalysisServer_write_read_1() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        File libFile = test_AnalysisServer_analyzeLibrary(tempDir);
+
+        assertTrackedLibraryFiles(libFile);
+        assertTrue(isLibraryFileCached(libFile));
+
+        File cacheFile = new File(libFile.getParentFile(), "analysis.cache");
+
+        server.stop();
+        server.writeCache(cacheFile);
+        setupServer(cacheFile);
+
+        assertTrackedLibraryFiles(libFile);
+        assertTrue(isLibraryFileCached(libFile));
+      }
+    });
+  }
+
+  public void test_AnalysisServer_write_read_bad() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        File libFile = setupMoneyLibrary(tempDir);
+        setupServer();
+
+        // Cannot write cache while server is still running
+
+        File cacheFile = new File(libFile.getParentFile(), "analysis.cache");
+        try {
+          server.writeCache(cacheFile);
+          fail("should not be able to write cache while server is still running");
+        } catch (IllegalStateException e) {
+          //$FALL-THROUGH$
+        }
+
+        // Cannot read cache while server is still running
+
+        try {
+          server.readCache(cacheFile);
+          fail("should not be able to read cache while server is still running");
+        } catch (IllegalStateException e) {
+          //$FALL-THROUGH$
+        }
+
+        server.stop();
+
+        // Cannot read null or non-existant cache file... returns false
+
+        assertFalse(server.readCache(null));
+        assertFalse(cacheFile.exists());
+        assertFalse(server.readCache(cacheFile));
+
+        // Cannot read empty or incomptable version cache file... returns false
+
+        FileUtilities.setContents(cacheFile, "");
+        assertFalse(server.readCache(cacheFile));
+        FileUtilities.setContents(cacheFile, "nothing");
+        assertFalse(server.readCache(cacheFile));
+      }
+    });
+  }
+
   @Override
   protected void tearDown() throws Exception {
     if (server != null && server != defaultServer) {
@@ -461,10 +581,11 @@ public class AnalysisServerTest extends TestCase {
     fail(msg);
   }
 
-  private Object getServerQueue() throws Exception {
+  @SuppressWarnings("unchecked")
+  private ArrayList<Task> getServerQueue() throws Exception {
     Field field = server.getClass().getDeclaredField("queue");
     field.setAccessible(true);
-    return field.get(server);
+    return (ArrayList<Task>) field.get(server);
   }
 
   private File[] getTrackedLibraryFiles() throws Exception {
@@ -507,7 +628,7 @@ public class AnalysisServerTest extends TestCase {
     defaultServer = SystemLibraryManagerProvider.getDefaultAnalysisServer();
     server = defaultServer;
     listener = new Listener(server);
-    AnalysisTestUtilities.waitForIdle(server, FIVE_MINUTES_MS);
+    waitForIdle();
   }
 
   private File setupMoneyLibrary(File tempDir) throws IOException {
@@ -521,11 +642,20 @@ public class AnalysisServerTest extends TestCase {
   }
 
   private void setupServer() throws Exception {
+    setupServer(null);
+  }
+
+  private void setupServer(File cacheFile) throws Exception {
     EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
     server = new AnalysisServer(libraryManager);
+    if (cacheFile != null) {
+      if (!server.readCache(cacheFile)) {
+        fail("Failed to read cached from " + cacheFile);
+      }
+    }
     listener = new Listener(server);
     server.start();
-    AnalysisTestUtilities.waitForIdle(server, FIVE_MINUTES_MS);
+    waitForIdle();
   }
 
   /**

@@ -15,7 +15,6 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisEvent;
 import com.google.dart.tools.core.analysis.AnalysisListener;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
@@ -29,8 +28,6 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerWarmup;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -70,9 +67,6 @@ public class DartUIStartup implements IStartup {
           indexWarmup();
         }
         if (!getThread().isInterrupted()) {
-          analysisWarmup();
-        }
-        if (!getThread().isInterrupted()) {
           modelWarmup();
         }
         if (!getThread().isInterrupted()) {
@@ -97,18 +91,6 @@ public class DartUIStartup implements IStartup {
       }
 
       return Status.OK_STATUS;
-    }
-
-    /**
-     * Initialize the {@link AnalysisServer}
-     */
-    private void analysisWarmup() {
-      if (DartCoreDebug.ANALYSIS_SERVER) {
-        AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-        for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-          server.scan(project.getLocation().toFile());
-        }
-      }
     }
 
     /**
@@ -236,13 +218,7 @@ public class DartUIStartup implements IStartup {
     private void waitForIdle(AnalysisServer server, long milliseconds) {
       final Object waitForIdleLock = new Object();
 
-      AnalysisListener listener = new AnalysisListener() {
-
-        @Override
-        public void discarded(AnalysisEvent event) {
-          // ignored
-        }
-
+      AnalysisListener listener = new AnalysisListener.Empty() {
         @Override
         public void idle(boolean idle) {
           if (idle) {
@@ -250,16 +226,6 @@ public class DartUIStartup implements IStartup {
               waitForIdleLock.notifyAll();
             }
           }
-        }
-
-        @Override
-        public void parsed(AnalysisEvent event) {
-          // ignored
-        }
-
-        @Override
-        public void resolved(AnalysisEvent event) {
-          // ignored
         }
       };
 

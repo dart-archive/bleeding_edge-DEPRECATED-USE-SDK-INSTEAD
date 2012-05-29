@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartUnit;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.parse;
@@ -65,16 +66,20 @@ class ParseFileTask extends Task {
 
     // Parse the file if it is not cached
 
-    DartUnit unit = library.getResolvedUnit(dartFile);
-    if (unit != null) {
-      return;
-    }
-    unit = context.getUnresolvedUnit(dartFile);
+    DartUnit unit = context.getCachedUnit(library, dartFile);
     if (unit != null) {
       return;
     }
     Set<String> prefixes = library.getPrefixes();
-    unit = parse(server, libraryFile, library.getLibrarySource(), relPath, prefixes);
+    ErrorListener errorListener = new ErrorListener(server);
+    File sourceFile = new File(libraryFile.toURI().resolve(relPath));
+    DartSource source = library.getLibrarySource().getSourceFor(relPath);
+
+    unit = parse(sourceFile, source, prefixes, errorListener);
+
     context.cacheUnresolvedUnit(dartFile, unit);
+    if (library.shouldNotify) {
+      errorListener.notifyParsed(libraryFile, sourceFile, unit);
+    }
   }
 }

@@ -25,6 +25,8 @@ import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 import java.io.File;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +37,7 @@ class ResolveLibraryTask extends Task {
 
   private final AnalysisServer server;
   private final Context context;
+
   private final Library library;
 
   ResolveLibraryTask(AnalysisServer server, Context context, Library library) {
@@ -70,26 +73,68 @@ class ResolveLibraryTask extends Task {
         resolvedLibs.put(libUnit.getSource().getUri(), libUnit);
       }
     }
+    ErrorListener errorListener = new ErrorListener(server);
+
+    // Calling #resolve(...) modifies map of parsed units,
+    // thus we copy the map to know which units were already parsed before calling resolve
+
+    HashSet<URI> parsedUnitURIs = new HashSet<URI>(parsedUnits.keySet());
 
     // Resolve
 
-    Map<URI, LibraryUnit> newlyResolved = resolve(server, library, resolvedLibs, parsedUnits);
-
-    // Cache the resolved libraries
+    Map<URI, LibraryUnit> newlyResolved = resolve(
+        server.getLibraryManager(),
+        library.getFile(),
+        library.getLibrarySource(),
+        resolvedLibs,
+        parsedUnits,
+        errorListener);
 
     for (LibraryUnit libUnit : newlyResolved.values()) {
-      File libFile = toFile(server, libUnit.getSource().getUri());
-      if (libFile == null) {
+
+      // Cache the resolved libraries
+
+      LibrarySource librarySource = libUnit.getSource();
+      File libraryFile = toFile(server, librarySource.getUri());
+      if (libraryFile == null) {
         continue;
       }
-      Library lib = context.getCachedLibrary(libFile);
-      if (lib == null) {
-        LibrarySource librarySource = libUnit.getSource();
+      Library library = context.getCachedLibrary(libraryFile);
+      if (library == null) {
         List<DartDirective> directives = libUnit.getSelfDartUnit().getDirectives();
-        lib = Library.fromDartUnit(server, libFile, librarySource, directives);
-        context.cacheLibrary(lib);
+        library = Library.fromDartUnit(server, libraryFile, librarySource, directives);
+        context.cacheLibrary(library);
       }
-      lib.cacheLibraryUnit(server, libUnit);
+      library.cacheLibraryUnit(server, libUnit);
+
+      // If this is a library whose state is being reloaded, then skip notifications
+
+      if (!library.shouldNotify) {
+        continue;
+      }
+
+      // Notify listeners about units that were parsed during the resolution process
+
+      AnalysisEvent event = null;
+      Iterator<DartUnit> iter = libUnit.getUnits().iterator();
+      while (iter.hasNext()) {
+        DartUnit dartUnit = iter.next();
+        URI dartUnitUri = dartUnit.getSourceInfo().getSource().getUri();
+        File dartFile = toFile(server, dartUnitUri);
+        if (!parsedUnitURIs.contains(dartFile.toURI())) {
+          if (event == null) {
+            event = new AnalysisEvent(libraryFile);
+          }
+          event.addFileAndDartUnit(dartFile, dartUnit);
+        }
+      }
+      if (event != null) {
+        errorListener.notifyParsed(event);
+      }
+
+      // Notify listeners about libraries that were resolved
+
+      errorListener.notifyResolved(libraryFile, libUnit);
     }
 
     // If the expected library was not resolved then log an error and insert a placeholder

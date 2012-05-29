@@ -23,10 +23,8 @@ import com.google.dart.tools.core.DartCore;
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
 
 class ErrorListener implements DartCompilerListener {
   private final AnalysisServer server;
@@ -66,31 +64,23 @@ class ErrorListener implements DartCompilerListener {
     notifyParsed(event);
   }
 
-  void notifyResolved(Map<URI, LibraryUnit> newLibs) {
-    for (LibraryUnit libUnit : newLibs.values()) {
-
-      File libFile = toFile(server, libUnit.getSource().getUri());
-      if (libFile == null) {
-        continue;
+  void notifyResolved(File libFile, LibraryUnit libUnit) {
+    AnalysisEvent event = new AnalysisEvent(libFile);
+    Iterator<DartUnit> iter = libUnit.getUnits().iterator();
+    while (iter.hasNext()) {
+      DartUnit dartUnit = iter.next();
+      File dartFile = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
+      if (dartFile != null) {
+        event.addFileAndDartUnit(dartFile, dartUnit);
       }
+    }
+    event.addErrors(server, errors);
 
-      AnalysisEvent event = new AnalysisEvent(libFile);
-      Iterator<DartUnit> iter = libUnit.getUnits().iterator();
-      while (iter.hasNext()) {
-        DartUnit dartUnit = iter.next();
-        File dartFile = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
-        if (dartFile != null) {
-          event.addFileAndDartUnit(dartFile, dartUnit);
-        }
-      }
-      event.addErrors(server, errors);
-
-      for (AnalysisListener listener : server.getAnalysisListeners()) {
-        try {
-          listener.resolved(event);
-        } catch (Throwable e) {
-          DartCore.logError("Exception during resolved notification", e);
-        }
+    for (AnalysisListener listener : server.getAnalysisListeners()) {
+      try {
+        listener.resolved(event);
+      } catch (Throwable e) {
+        DartCore.logError("Exception during resolved notification", e);
       }
     }
   }

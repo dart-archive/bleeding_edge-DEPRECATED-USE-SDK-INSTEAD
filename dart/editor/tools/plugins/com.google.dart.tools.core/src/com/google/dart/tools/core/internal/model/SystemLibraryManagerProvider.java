@@ -22,6 +22,9 @@ import com.google.dart.tools.core.analysis.AnalysisMarkerManager;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.model.DartSdk;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
+
 import java.io.File;
 
 /**
@@ -86,6 +89,11 @@ public class SystemLibraryManagerProvider {
           analysisDebug = new AnalysisDebug();
           defaultAnalysisServer.addAnalysisListener(analysisDebug);
         }
+        if (!defaultAnalysisServer.readCache()) {
+          for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+            defaultAnalysisServer.scan(project.getLocation().toFile());
+          }
+        }
         defaultAnalysisServer.start();
       }
     }
@@ -112,6 +120,7 @@ public class SystemLibraryManagerProvider {
         markerManager.stop();
         markerManager = null;
         defaultAnalysisServer.stop();
+        defaultAnalysisServer.writeCache();
         defaultAnalysisServer = null;
       }
     }

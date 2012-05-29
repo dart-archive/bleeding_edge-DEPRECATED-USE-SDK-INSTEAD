@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.analysis;
 
+import com.google.dart.compiler.ast.DartUnit;
+
 import java.io.File;
 import java.util.Map.Entry;
 
@@ -46,7 +48,8 @@ class ParseLibraryTask extends Task {
     // Parse the library file
 
     Library library = context.getCachedLibrary(libraryFile);
-    if (library == null) {
+    DartUnit unit = context.getCachedUnit(library, libraryFile);
+    if (library == null || unit == null) {
       server.queueSubTask(new ParseLibraryFileTask(server, context, libraryFile, null));
       server.queueSubTask(this);
       return;
@@ -57,9 +60,7 @@ class ParseLibraryTask extends Task {
     for (Entry<String, File> entry : library.getRelativeSourcePathsAndFiles()) {
       String relPath = entry.getKey();
       File file = entry.getValue();
-      if (context.getUnresolvedUnit(file) == null && file.exists()) {
-        server.queueSubTask(new ParseFileTask(server, context, libraryFile, relPath, file));
-      }
+      server.queueSubTask(new ParseFileTask(server, context, libraryFile, relPath, file));
     }
   }
 }

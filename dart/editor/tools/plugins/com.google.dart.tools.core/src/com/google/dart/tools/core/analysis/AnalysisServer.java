@@ -17,7 +17,13 @@ import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -27,6 +33,9 @@ import java.util.Iterator;
  * Provides analysis of Dart code for Dart editor
  */
 public class AnalysisServer {
+
+  private static final String CACHE_FILE_VERSION_TAG = "v1";
+  private static final String END_LIBRARIES_TAG = "</end-libraries>";
 
   private static PerformanceListener performanceListener;
 
@@ -75,7 +84,7 @@ public class AnalysisServer {
    * A context representing what is "saved on disk". Contents of this object should only be accessed
    * on the background thread.
    */
-  private final Context savedContext = new Context();
+  private final Context savedContext = new Context(this);
 
   /**
    * <code>true</code> if the background thread should continue executing analysis tasks
@@ -175,7 +184,7 @@ public class AnalysisServer {
   }
 
   /**
-   * Answer <code>true</code> if the recevier does not have any queued tasks and the receiver's
+   * Answer <code>true</code> if the receiver does not have any queued tasks and the receiver's
    * background thread is waiting for new tasks to be queued.
    */
   public boolean isIdle() {
@@ -193,6 +202,70 @@ public class AnalysisServer {
    */
   public void parseLibraryFile(File file, ParseLibraryFileCallback callback) {
     queueNewTask(new ParseLibraryFileTask(this, savedContext, file, callback));
+  }
+
+  /**
+   * Reload the cached information from the previous session. This method must be called before
+   * {@link #start()} has been called when the server is not yet running.
+   * 
+   * @return <code>true</code> if the cached information was successfully loaded, else
+   *         <code>false</code>
+   */
+  public boolean readCache() {
+    try {
+      return readCache(getAnalysisStateFile());
+    } catch (IOException e) {
+      DartCore.logError("Failed to read analysis cache: " + getAnalysisStateFile(), e);
+      reanalyzeLibraries();
+      return false;
+    }
+  }
+
+  /**
+   * Reload the cached information from the specified file. This method must be called before
+   * {@link #start()} has been called when the server is not yet running.
+   * 
+   * @return <code>true</code> if the cached information was successfully loaded, else
+   *         <code>false</code>
+   */
+  public boolean readCache(File cacheFile) throws IOException {
+    if (analyze) {
+      throw new IllegalStateException();
+    }
+    if (cacheFile == null || !cacheFile.isFile()) {
+      return false;
+    }
+    LineNumberReader reader;
+    try {
+      reader = new LineNumberReader(new BufferedReader(new FileReader(cacheFile)));
+    } catch (FileNotFoundException e) {
+      DartCore.logError("Failed to open analysis cache: " + cacheFile);
+      return false;
+    }
+    try {
+      if (!CACHE_FILE_VERSION_TAG.equals(reader.readLine())) {
+        return false;
+      }
+      while (true) {
+        String path = reader.readLine();
+        if (path == null) {
+          throw new IOException("Expected " + END_LIBRARIES_TAG + " but found EOF");
+        }
+        if (path.equals(END_LIBRARIES_TAG)) {
+          break;
+        }
+        libraryFiles.add(new File(path));
+      }
+      savedContext.readCache(reader);
+      queueAnalyzeContext();
+    } finally {
+      try {
+        reader.close();
+      } catch (IOException e) {
+        DartCore.logError("Failed to close analysis cache: " + cacheFile);
+      }
+    }
+    return true;
   }
 
   /**
@@ -298,6 +371,20 @@ public class AnalysisServer {
               }
 
             }
+
+            // Ensure #stop method is unblocked and notify others that idle state has changed
+            boolean notify = false;
+            synchronized (queue) {
+              if (!isBackgroundThreadIdle) {
+                isBackgroundThreadIdle = true;
+                notify = true;
+                queue.notifyAll();
+              }
+            }
+            if (notify) {
+              notifyIdle(true);
+            }
+
           } catch (Throwable e) {
             DartCore.logError("Analysis Server Exception", e);
           }
@@ -308,21 +395,63 @@ public class AnalysisServer {
   }
 
   /**
-   * Stop the background analysis thread.
+   * Signal the background analysis thread to stop and block until it does or 5 seconds have passed.
    */
   public void stop() {
-    boolean notify = false;
     synchronized (queue) {
       analyze = false;
       queue.clear();
-      queue.notify();
-      if (!isBackgroundThreadIdle) {
-        isBackgroundThreadIdle = true;
-        notify = true;
+      queue.notifyAll();
+      long end = System.currentTimeMillis() + 5000;
+      while (!isBackgroundThreadIdle) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          DartCore.logError("Gave up waiting for " + getClass().getSimpleName() + " to stop");
+          break;
+        }
+        try {
+          queue.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
       }
     }
-    if (notify) {
-      notifyIdle(true);
+  }
+
+  /**
+   * Write the cached information to the file used to store analysis state between sessions. This
+   * method must be called after {@link #stop()} has been called when the server is not running.
+   * 
+   * @return <code>true</code> if successful, else false
+   */
+  public boolean writeCache() {
+    try {
+      writeCache(getAnalysisStateFile());
+      return true;
+    } catch (IOException e) {
+      DartCore.logError("Failed to write analysis cache: " + getAnalysisStateFile(), e);
+      return false;
+    }
+  }
+
+  /**
+   * Write the cached information to the specified file. This method must be called after
+   * {@link #stop()} has been called when the server is not running.
+   */
+  public void writeCache(File cacheFile) throws IOException {
+    if (analyze) {
+      throw new IllegalStateException();
+    }
+    PrintWriter writer = new PrintWriter(cacheFile);
+    try {
+      writer.println(CACHE_FILE_VERSION_TAG);
+      for (File libFile : libraryFiles) {
+        writer.println(libFile.getPath());
+      }
+      writer.println(END_LIBRARIES_TAG);
+      savedContext.writeCache(writer);
+    } finally {
+      writer.close();
     }
   }
 
@@ -458,6 +587,10 @@ public class AnalysisServer {
       //$FALL-THROUGH$
     }
     return null;
+  }
+
+  private File getAnalysisStateFile() {
+    return new File(DartCore.getPlugin().getStateLocation().toFile(), "analysis.cache");
   }
 
   /**

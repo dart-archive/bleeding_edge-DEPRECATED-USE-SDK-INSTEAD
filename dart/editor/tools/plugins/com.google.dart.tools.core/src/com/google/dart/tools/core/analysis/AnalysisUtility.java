@@ -17,11 +17,13 @@ import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerErrorCode;
+import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.UrlLibrarySource;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
@@ -37,9 +39,7 @@ import com.google.dart.tools.core.utilities.io.FileUtilities;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,12 +50,12 @@ class AnalysisUtility {
   private static final CompilerConfiguration config = new DefaultCompilerConfiguration(
       new CompilerOptions(),
       SystemLibraryManagerProvider.getSystemLibraryManager()) {
-      @Override
+    @Override
     public boolean incremental() {
       return false;
     }
 
-      @Override
+    @Override
     public boolean resolveDespiteParseErrors() {
       return true;
     }
@@ -65,39 +65,33 @@ class AnalysisUtility {
   };
 
   /**
-   * Parse a single file and report the errors/warnings.
+   * Parse a single file.
    * 
    * @param relPath the path to the file to be parsed relative to the library containing that file.
    *          This path should contain '/' rather than {@link File#separatorChar}
    * @param prefixes the collection of import prefixes. If the file being parsed contains import
    *          directives, then this collection will be updated to include any specified prefixes
+   * @param listener the analysis listener (not <code>null</code>)
    */
-  static DartUnit parse(AnalysisServer server, File libraryFile, LibrarySource librarySource,
-      String relPath, Set<String> prefixes) {
-    ErrorListener errorListener = new ErrorListener(server);
-    DartSource source = librarySource.getSourceFor(relPath);
-    File sourceFile = new File(libraryFile.toURI().resolve(relPath));
-
+  static DartUnit parse(File sourceFile, DartSource source, Set<String> prefixes,
+      DartCompilerListener listener) {
     String sourceCode = null;
     try {
       sourceCode = FileUtilities.getContents(sourceFile);
     } catch (IOException e) {
-      errorListener.onError(newIoError(source, e));
+      listener.onError(newIoError(source, e));
     }
-
     DartUnit dartUnit = null;
     if (sourceCode != null) {
       try {
-        ParserContext parserCtx = new DartScannerParserContext(source, sourceCode, errorListener);
+        ParserContext parserCtx = new DartScannerParserContext(source, sourceCode, listener);
         DartParser parser = new DartPrefixParser(parserCtx, false, prefixes);
         dartUnit = DartCompilerUtilities.secureParseUnit(parser, source);
       } catch (Throwable e) {
         DartCore.logError("Exception while parsing " + sourceFile.getPath(), e);
-        errorListener.onError(newParseFailure(source, e));
+        listener.onError(newParseFailure(source, e));
       }
     }
-
-    errorListener.notifyParsed(libraryFile, sourceFile, dartUnit);
     return dartUnit != null ? dartUnit : new DartUnit(source, false);
   }
 
@@ -108,29 +102,20 @@ class AnalysisUtility {
    *          associated source from storage. Units are removed from this map as they are used.
    * @return a map of newly resolved libraries
    */
-  static Map<URI, LibraryUnit> resolve(AnalysisServer server, Library library,
-      Map<URI, LibraryUnit> resolvedLibs, Map<URI, DartUnit> parsedUnits) {
-    ErrorListener errorListener = new ErrorListener(server);
+  static Map<URI, LibraryUnit> resolve(SystemLibraryManager libraryManager, File libraryFile,
+      LibrarySource librarySource, Map<URI, LibraryUnit> resolvedLibs,
+      Map<URI, DartUnit> parsedUnits, DartCompilerListener errorListener) {
 
-    File libraryFile = library.getFile();
-    LibrarySource librarySource = library.getLibrarySource();
     provider.clearCachedArtifacts();
-
-    // analyzeLibraries modifies map of parsed units,
-    // thus we copy the map to know which units were already parsed
-    // before calling analyzeLibraries
-    HashMap<URI, DartUnit> parsedUnitsCopy = new HashMap<URI, DartUnit>(parsedUnits);
-
     Map<URI, LibraryUnit> newlyResolved = null;
     try {
-
       newlyResolved = DartCompilerUtilities.secureAnalyzeLibraries(
           librarySource,
           resolvedLibs,
           parsedUnits,
           config,
           provider,
-          server.getLibraryManager(),
+          libraryManager,
           errorListener,
           true);
     } catch (IOException e) {
@@ -149,8 +134,6 @@ class AnalysisUtility {
       newlyResolved = new HashMap<URI, LibraryUnit>();
       newlyResolved.put(libraryFile.toURI(), new LibraryUnit(librarySource));
     }
-    notifyParsedDuringResolve(server, parsedUnitsCopy, newlyResolved.values(), errorListener);
-    errorListener.notifyResolved(newlyResolved);
     return newlyResolved;
   }
 
@@ -181,6 +164,27 @@ class AnalysisUtility {
     return null;
   }
 
+  /**
+   * Answer the {@link LibrarySource} for the specified library file
+   * 
+   * @return the library source (not <code>null</code>)
+   */
+  static UrlLibrarySource toLibrarySource(AnalysisServer server, File libraryFile) {
+    URI libUri = toLibraryUri(server, libraryFile);
+    return new UrlLibrarySource(libUri, server.getLibraryManager());
+  }
+
+  /**
+   * Answer the "file:" or "dart:" URI for the specified library file
+   * 
+   * @return the library URI (not <code>null</code>)
+   */
+  static URI toLibraryUri(AnalysisServer server, File libraryFile) {
+    URI fileUri = libraryFile.toURI();
+    URI shortUri = server.getLibraryManager().getRelativeUri(fileUri);
+    return shortUri != null ? shortUri : fileUri;
+  }
+
   private static DartCompilationError newIoError(Source source, IOException e) {
     DartCompilationError event = new DartCompilationError(
         source,
@@ -197,35 +201,5 @@ class AnalysisUtility {
         e.getMessage());
     error.setSource(source);
     return error;
-  }
-
-  /**
-   * Notify listeners of source files that were parsed during resolution
-   * 
-   * @param parsedUnits the units that were parsed prior to the resolve (not <code>null</code>)
-   * @param newlyResolved the newly resolved library units (not <code>null</code>, contains no <code>null
-   *          </code>s)
-   * @param errorListener the error listener used during resolution (not <code>null</code>)
-   */
-  private static void notifyParsedDuringResolve(AnalysisServer server,
-      Map<URI, DartUnit> parsedUnits, Collection<LibraryUnit> newlyResolved,
-      ErrorListener errorListener) {
-    for (LibraryUnit libUnit : newlyResolved) {
-      AnalysisEvent event = null;
-      Iterator<DartUnit> iter = libUnit.getUnits().iterator();
-      while (iter.hasNext()) {
-        DartUnit dartUnit = iter.next();
-        File dartFile = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
-        if (parsedUnits.get(dartFile.toURI()) == null) {
-          if (event == null) {
-            event = new AnalysisEvent(toFile(server, libUnit.getSource().getUri()));
-          }
-          event.addFileAndDartUnit(dartFile, dartUnit);
-        }
-      }
-      if (event != null) {
-        errorListener.notifyParsed(event);
-      }
-    }
   }
 }
