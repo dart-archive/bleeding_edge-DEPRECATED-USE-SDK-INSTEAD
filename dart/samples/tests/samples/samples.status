@@ -68,8 +68,13 @@ lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9
 [ $compiler == dart2js && $runtime == chrome && $system == windows ]
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails</td
 
+[ $compiler == dart2js && $runtime == ff ]
+lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails</td
+swarm/swarm_test: Skip # Timeout
+lib/layout/layout_test: Skip # Timeout
+lib/observable/observable_test: Skip # Timeout
+
 [ $runtime == opera ]
 *: Skip
 
 [ $compiler == dart2js && $runtime == ff ]
-*: Skip # Issue 2615
