@@ -54,7 +54,7 @@ proxy/mint_maker_fully_isolated_generated_test: Fail # issue 2519
 [ $compiler == dart2js ]
 proxy/mint_maker_rpc_test: Fail # TypeError: Cannot call method 'toSendPort$0' of undefined
 
-[ $compiler == dart2js && $runtime == drt ]
+[ $compiler == dart2js && $browser ]
 dartcombat/dartcombat_test: Skip
 proxy/mint_maker_rpc_test: Pass # Issue 2254.
 
