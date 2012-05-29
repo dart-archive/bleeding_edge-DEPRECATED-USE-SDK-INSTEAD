@@ -680,11 +680,13 @@ public class DartLibraryImplTest extends TestCase {
     assertEquals(1, importedLibraries.length);
   }
 
-  public void test_DartLibraryImpl_getImportedLibraries_libHtml() throws Exception {
-    DartLibrary[] importedLibraries = getDartLibHtml().getImportedLibraries();
-    assertEquals(1, importedLibraries.length);
-    assertEquals("dart:dom_deprecated", importedLibraries[0].getElementName());
-  }
+  // TODO(devoncarew): temporarily disabling this test
+  // The imports of the html library are changing from dom_deprecated to isolate and nativewrappers.
+//  public void test_DartLibraryImpl_getImportedLibraries_libHtml() throws Exception {
+//    DartLibrary[] importedLibraries = getDartLibHtml().getImportedLibraries();
+//    assertEquals(1, importedLibraries.length);
+//    assertEquals("dart:dom_deprecated", importedLibraries[0].getElementName());
+//  }
 
   public void test_DartLibraryImpl_hasMain_lib1() throws Exception {
     DartLibraryImpl lib = getDartLib1();
