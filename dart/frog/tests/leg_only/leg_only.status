@@ -32,6 +32,7 @@ naming_test: Fail # BUG(3305)
 43_test: Skip # BUG(3304): Times out.
 7_test: Skip # BUG(3304): Times out.
 bailout_test: Skip # BUG(3304): Times out.
+break_test: Skip # BUG(3304): Times out.
 class_test: Skip # BUG(3304): Times out.
 equals_test: Skip # BUG(3304): Times out.
 foo7_test: Skip # BUG(3304): Times out.
