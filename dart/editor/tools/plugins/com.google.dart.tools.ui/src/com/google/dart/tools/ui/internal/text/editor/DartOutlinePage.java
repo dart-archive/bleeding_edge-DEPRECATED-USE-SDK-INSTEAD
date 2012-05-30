@@ -140,6 +140,13 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
   protected class DartOutlineViewer extends TreeViewer {
 
     /**
+     * The maximum number of top-level items in a tree that will be fully expanded. Above this size
+     * the tree is not expanded. The value was chosen to completely fill the outline on a large
+     * screen.
+     */
+    private static final int MAX_AUTOEXPAND_SIZE = 200;
+
+    /**
      * Indicates an item which has been reused. At the point of its reuse it has been expanded. This
      * field is used to communicate between <code>internalExpandToLevel</code> and
      * <code>reuseTreeItem</code>.
@@ -196,6 +203,14 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       } else {
         // just for now
         refresh(true);
+      }
+    }
+
+    @Override
+    protected void createChildren(final Widget widget) {
+      super.createChildren(widget);
+      if (widget instanceof Control && getItemCount((Control) widget) > MAX_AUTOEXPAND_SIZE) {
+        setAutoExpandLevel(0);
       }
     }
 
