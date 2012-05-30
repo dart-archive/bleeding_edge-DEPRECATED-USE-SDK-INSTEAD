@@ -14,7 +14,7 @@ class RandomArray {
     var args = new List(2);
     args[0] = seed;
     args[1] = length;
-    _getPort().call(args).then((result) {
+    _servicePort.call(args).then((result) {
       if (result != null) {
         callback(result);
       } else {
@@ -23,12 +23,12 @@ class RandomArray {
     });
   }
 
-  SendPort _getPort() {
+  SendPort get _servicePort() {
     if (_port == null) {
-      _port = _getServerPort();
+      _port = _newServicePort();
     }
     return _port;
   }
 
-  SendPort _getServerPort() native "RandomArray_ServicePort";
+  SendPort _newServicePort() native "RandomArray_ServicePort";
 }
