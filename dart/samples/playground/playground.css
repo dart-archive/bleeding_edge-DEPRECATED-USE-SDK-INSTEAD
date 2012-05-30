@@ -1,0 +1,55 @@
+/* Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file. */
+
+#playground textarea,
+#playground pre,
+#playground .output,
+#playground .errors {
+  font-family: Monaco, 'Courier New', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+  font-size: 1em;
+}
+
+#playground { 
+  position: relative; 
+  margin: -.62em 0 1em -.31em;
+}
+#playground textarea {
+  width: 100%;
+  background-color: #ffc;
+  padding-top: 7px;
+  padding-left: 7px;
+  border: solid 1px #999;  
+  box-shadow: 0 1px 1px #ccc;
+  -moz-box-shadow: 0 1px 1px #ccc;
+  -webkit-box-shadow: 0 1px 1px #ccc;
+}
+#playground .run {
+  text-transform: uppercase;
+  font-weight: bold;
+  position: relative;
+  right: -.82em;
+}
+#playground .expand span {
+  display: inline-block;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  background: url(/doc/play/pop_out-16.png);
+}
+
+#playground .output { color: #00a; }
+#playground .errors { color: #a00; }
+#playground .output,
+#playground .errors {
+  width: 100%;
+  overflow: auto;
+}
+
+#playground.large, #playground.gadget { margin: 0; }
+#playground.small textarea { height: 140px; }
+#playground.large textarea { height: 200px; }
+#playground.gadget textarea { height: 200px; }
+#playground.large .expand { display: none; }
+#playground.large .run { right: 0; }
+#playground.large .run, #playground.gadget .run { right: 0; }

@@ -1,0 +1,49 @@
+<!-- Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+  <head>
+    <title>Dartium Playground</title>
+    <link rel="stylesheet" type="text/css" href="playground.css"></link>
+  </head>
+  <body>
+    <p></p>
+    <div id="playground" class="large">
+    <h1>
+      <img src="dart.png" width="5%"></img>
+      Dartium Playground
+    </h1>
+    <p></p>
+      <b>Enter Dart Code: </b>
+    <p></p>
+    <textarea id="code" class="large">
+#import('dart:html');
+void main() {
+  final message = 'Hello from Dart!';
+  document.body.nodes.add(new Element.html('<div>$message</div>'));
+
+  print('Open the Dev Tools Console to see this.');
+}
+    </textarea>
+  </div>
+
+  <b>Hit Run to execute isolated in the frame below: </b>
+  <input id="button" type="button" class="run" value="Run"></input>
+  <p></p>
+  <div id="output">
+    <iframe id="iframe" height="200" width="100%"></iframe>
+  </div>
+  <p></p>
+  <b>Open the Console (from the Tools menu) to see runtime output and errors.</b>
+
+  <script type="application/dart" src="playground.dart"></script>
+  <script type="text/javascript">
+  if (window.navigator.webkitStartDart) {
+    window.navigator.webkitStartDart();
+  } else {
+    document.body.innerHTML = 'To run this sample, please download Dartium at <a href="http://www.dartlang.org/dartium/">http://www.dartlang.org/dartium</a>.';
+  }
+  </script>
+</body>
+</html>
