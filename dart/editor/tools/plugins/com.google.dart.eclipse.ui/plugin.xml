@@ -22,5 +22,14 @@
             </description>
       </wizard>
    </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="com.google.dart.tools.ui.edit.text.dart.show.outline"
+            contextId="com.google.dart.tools.ui.dartEditorScope"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+O">
+      </key>
+   </extension>
 
 </plugin>
