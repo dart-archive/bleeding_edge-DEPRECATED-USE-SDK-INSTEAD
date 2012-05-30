@@ -7,11 +7,9 @@ class_test: Fail
 statements_test: Fail
 typed_locals_test: Fail
 
-
 [ $mode == debug ]
 operator_test: Skip
 string_interpolation_test: Skip
-
 
 [ $compiler == frog ]
 *: Skip
@@ -27,3 +25,21 @@ cascade_precedence_test: Fail
 
 [ $compiler == dart2js && $runtime == ff ]
 *: Skip # Issue 2615
+
+[ $compiler == dart2js && $runtime == ie ]
+12_test: Skip # BUG(3304): Times out.
+33_test: Skip # BUG(3304): Times out.
+43_test: Skip # BUG(3304): Times out.
+7_test: Skip # BUG(3304): Times out.
+bailout_test: Skip # BUG(3304): Times out.
+class_test: Skip # BUG(3304): Times out.
+equals_test: Skip # BUG(3304): Times out.
+foo7_test: Skip # BUG(3304): Times out.
+function_parameters_test: Skip # BUG(3304): Times out.
+literals_test: Skip # BUG(3304): Times out.
+locals_test: Skip # BUG(3304): Times out.
+not_equals_test: Skip # BUG(3304): Times out.
+phi_test: Skip # BUG(3304): Times out.
+regression_2913_test: Skip # BUG(3304): Times out.
+send_test: Skip # BUG(3304): Times out.
+to_string_test: Skip # BUG(3304): Times out.
