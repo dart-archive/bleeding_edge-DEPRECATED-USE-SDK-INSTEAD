@@ -44,3 +44,6 @@ regression_2913_test: Skip # BUG(3304): Times out.
 send_test: Skip # BUG(3304): Times out.
 to_string_test: Skip # BUG(3304): Times out.
 naming_test: Fail # BUG(3305)
+
+[ $compiler == dart2js && $runtime == safari ]
+naming_test: Fail # BUG(3305)
