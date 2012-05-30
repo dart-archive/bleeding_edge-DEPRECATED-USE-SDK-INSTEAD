@@ -63,13 +63,13 @@ proxy/mint_maker_rpc_test: Pass # Issue 2254.
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
-lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails</td
+lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
 [ $compiler == dart2js && $runtime == chrome && $system == windows ]
-lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails</td
+lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
 [ $compiler == dart2js && $runtime == ff ]
-lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails</td
+lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 swarm/swarm_test: Skip # Timeout
 lib/layout/layout_test: Skip # Timeout
 lib/observable/observable_test: Skip # Timeout
@@ -84,3 +84,9 @@ proxy/mint_maker_fully_isolated_generated_test: Skip # BUG(3304): Times out.
 proxy/mint_maker_promise_with_stubs_generated_test: Skip # BUG(3304): Times out.
 proxy/promise_based_test: Skip # BUG(3304): Times out.
 swarm/swarm_test: Skip # BUG(3304): Times out.
+
+[ $compiler == dart2js && $runtime == safari ]
+lib/layout/layout_test: Fail
+lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
+lib/view/view_test: Fail
+swarm/swarm_test: Fail # Expectation: BackButton. Caught Instance of 'TypeError'
