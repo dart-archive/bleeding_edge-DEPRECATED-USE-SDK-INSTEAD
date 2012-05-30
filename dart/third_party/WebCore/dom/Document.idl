@@ -141,7 +141,7 @@ module core {
         boolean            queryCommandIndeterm(in [Optional=DefaultIsUndefined] DOMString command);
         boolean            queryCommandState(in [Optional=DefaultIsUndefined] DOMString command);
         boolean            queryCommandSupported(in [Optional=DefaultIsUndefined] DOMString command);
-        DOMString          queryCommandValue(in [Optional=DefaultIsUndefined] DOMString command);
+        [TreatReturnedNullStringAs=False] DOMString queryCommandValue(in [Optional=DefaultIsUndefined] DOMString command);
 
         // Moved down from HTMLDocument
 
@@ -253,9 +253,7 @@ module core {
         [V8EnabledAtRuntime] void webkitExitFullscreen();
 #endif
 
-#if defined(ENABLE_CSS_REGIONS) && ENABLE_CSS_REGIONS
         WebKitNamedFlow webkitGetFlowByName(in DOMString name);
-#endif
 
 #if !defined(LANGUAGE_OBJECTIVE_C) || !LANGUAGE_OBJECTIVE_C
         // Event handler DOM attributes

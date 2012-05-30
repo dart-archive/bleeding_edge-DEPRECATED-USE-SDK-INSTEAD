@@ -29,7 +29,6 @@ module svg {
     interface [
         Conditional=SVG,
         ObjCProtocol,
-        SuppressToJSObject,
         OmitConstructor
     ] SVGTests {
         readonly attribute SVGStringList requiredFeatures;

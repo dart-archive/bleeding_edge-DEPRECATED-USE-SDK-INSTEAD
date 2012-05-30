@@ -29,10 +29,9 @@ module storage {
         Conditional=INDEXED_DATABASE
     ] IDBObjectStore {
         readonly attribute [TreatReturnedNullStringAs=Null] DOMString name;
-        readonly attribute IDBAny keyPath;
+        readonly attribute [TreatReturnedNullStringAs=Null] DOMString keyPath;
         readonly attribute DOMStringList indexNames;
         readonly attribute IDBTransaction transaction;
-        readonly attribute boolean autoIncrement;
 
         [CallWith=ScriptExecutionContext] IDBRequest put(in SerializedScriptValue value, in [Optional] IDBKey key)
             raises (IDBDatabaseException);
@@ -59,8 +58,6 @@ module storage {
         [CallWith=ScriptExecutionContext] IDBRequest openCursor(in IDBKey key, in unsigned short direction)
             raises (IDBDatabaseException);
 
-        IDBIndex createIndex(in DOMString name, in DOMString[] keyPath, in [Optional] Dictionary options)
-            raises (IDBDatabaseException);
         IDBIndex createIndex(in DOMString name, in DOMString keyPath, in [Optional] Dictionary options)
             raises (IDBDatabaseException);
         IDBIndex index(in DOMString name)

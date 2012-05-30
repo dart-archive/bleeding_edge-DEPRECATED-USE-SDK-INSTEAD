@@ -29,7 +29,6 @@ module svg {
     interface [
         Conditional=SVG,
         ObjCProtocol,
-        SuppressToJSObject,
         OmitConstructor
     ] SVGURIReference {
         readonly attribute SVGAnimatedString href;

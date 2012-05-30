@@ -53,10 +53,6 @@ module window {
         boolean scrollAnimatorEnabled() raises(DOMException);
         void setCSSExclusionsEnabled(in boolean enabled) raises(DOMException);
         void setMediaPlaybackRequiresUserGesture(in boolean enabled) raises(DOMException);
-        void setEditingBehavior(in DOMString behavior) raises(DOMException);
-        void setFixedPositionCreatesStackingContext(in boolean creates) raises(DOMException);
-        void setSyncXHRInDocumentsEnabled(in boolean enabled) raises(DOMException);
-        void setJavaScriptProfilingEnabled(in boolean creates) raises(DOMException);
     };
 }
 

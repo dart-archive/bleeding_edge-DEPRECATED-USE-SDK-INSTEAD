@@ -26,8 +26,6 @@ module html {
 
         readonly attribute DOMString type;
 
-        readonly attribute HTMLCollection elements;
-
         readonly attribute boolean         willValidate;
         readonly attribute ValidityState   validity;
         readonly attribute DOMString       validationMessage;

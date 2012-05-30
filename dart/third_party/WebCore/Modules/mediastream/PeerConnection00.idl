@@ -35,7 +35,6 @@ module p2p {
         ActiveDOMObject,
         Constructor(in DOMString serverConfiguration, in [Callback] IceCallback iceCallback),
         CallWith=ScriptExecutionContext,
-        ConstructorRaisesException,
         EventTarget
     ] PeerConnection00 {
         SessionDescription createOffer(in [Optional] Dictionary mediaHints)

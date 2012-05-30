@@ -387,7 +387,7 @@ module window {
         attribute EntityConstructor Entity;
         attribute EntityReferenceConstructor EntityReference;
         attribute ProcessingInstructionConstructor ProcessingInstruction;
-        attribute [Conditional=SHADOW_DOM, V8EnabledPerContext=shadowDOM] ShadowRootConstructor WebKitShadowRoot;
+        attribute [Conditional=SHADOW_DOM, V8EnabledAtRuntime=shadowDOM] ShadowRootConstructor WebKitShadowRoot;
 
         attribute DOMSelectionConstructor Selection;
         attribute DOMWindowConstructor Window;
@@ -552,7 +552,7 @@ module window {
 
         attribute WebKitCSSKeyframeRuleConstructor WebKitCSSKeyframeRule;
         attribute WebKitCSSKeyframesRuleConstructor WebKitCSSKeyframesRule;
-        attribute [Conditional=CSS_REGIONS] WebKitCSSRegionRuleConstructor WebKitCSSRegionRule;
+        attribute WebKitCSSRegionRuleConstructor WebKitCSSRegionRule;
 
         attribute WebKitCSSMatrixConstructor WebKitCSSMatrix; // Usable with the new operator
 
@@ -708,8 +708,7 @@ module window {
         attribute SVGUnitTypesConstructor SVGUnitTypes;
         attribute SVGUseElementConstructor SVGUseElement;
         attribute SVGViewElementConstructor SVGViewElement;
-        attribute SVGViewSpecConstructor SVGViewSpec;
-        attribute SVGZoomAndPanConstructor SVGZoomAndPan;
+//      attribute SVGViewSpecConstructor SVGViewSpec;
 
         attribute SVGAnimateColorElementConstructor SVGAnimateColorElement;
         attribute SVGAnimateElementConstructor SVGAnimateElement;
