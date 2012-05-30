@@ -24,7 +24,7 @@ cascade_precedence_test: Fail
 *: Skip
 
 [ $compiler == dart2js && $runtime == ff ]
-*: Skip # Issue 2615
+naming_test: Fail # BUG(3305)
 
 [ $compiler == dart2js && $runtime == ie ]
 12_test: Skip # BUG(3304): Times out.
