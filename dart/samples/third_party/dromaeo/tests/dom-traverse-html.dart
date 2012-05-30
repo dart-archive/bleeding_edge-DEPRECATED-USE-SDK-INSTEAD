@@ -31,12 +31,12 @@ void main() {
       document.body.$dom_appendChild(div);
     })
     .test('firstChild', () {
-      final nodes = document.body.nodes;
+      final nodes = document.body.$dom_childNodes;
       final nl = nodes.length;
 
       for (int i = 0; i < num; i++) {
         for (int j = 0; j < nl; j++) {
-          Node cur = nodes[j];
+          Node cur = nodes.item(j);
           while (cur !== null) {
             cur = cur.$dom_firstChild;
           }
@@ -45,12 +45,12 @@ void main() {
       }
     })
     .test('lastChild', () {
-      final nodes = document.body.nodes;
+      final nodes = document.body.$dom_childNodes;
       final nl = nodes.length;
 
       for (int i = 0; i < num; i++) {
         for (int j = 0; j < nl; j++) {
-          Node cur = nodes[j];
+          Node cur = nodes.item(j);
           while (cur !== null) {
             cur = cur.$dom_lastChild;
           }
@@ -78,9 +78,9 @@ void main() {
     })
     .test('childNodes', () {
       for (int i = 0; i < num; i++) {
-        final nodes = document.body.nodes;
+        final nodes = document.body.$dom_childNodes;
         for (int j = 0; j < nodes.length; j++) {
-          ret = nodes[j];
+          ret = nodes.item(j);
         }
       }
     })
