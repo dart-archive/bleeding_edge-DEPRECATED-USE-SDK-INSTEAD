@@ -62,7 +62,7 @@ public class DartIgnoreManager {
 
   /**
    * A list of exclusion patterns that are to be applied to determine which files are not currently
-   * being analyzed.
+   * being analyzed, or <code>null</code> if the patterns have not yet been read from disk.
    */
   private ArrayList<String> exclusionPatterns;
 
@@ -100,16 +100,13 @@ public class DartIgnoreManager {
   public ArrayList<String> getExclusionPatterns() {
     // TODO(brianwilkerson) Re-implement this once the real semantics have been decided on.
     if (exclusionPatterns == null) {
-
       exclusionPatterns = new ArrayList<String>();
-
       try {
         DartIgnoreFile ignoreFile = loadIgnoreFile();
         exclusionPatterns.addAll(ignoreFile.getPatterns());
       } catch (IOException exception) {
         DartCore.logInformation("Could not read ignore file from workspace", exception);
       }
-
     }
     return exclusionPatterns;
   }
@@ -174,7 +171,11 @@ public class DartIgnoreManager {
   }
 
   private void cacheExclusions(DartIgnoreFile ignoreFile) {
-    exclusionPatterns.clear();
+    if (exclusionPatterns == null) {
+      exclusionPatterns = new ArrayList<String>();
+    } else {
+      exclusionPatterns.clear();
+    }
     exclusionPatterns.addAll(ignoreFile.getPatterns());
   }
 }
