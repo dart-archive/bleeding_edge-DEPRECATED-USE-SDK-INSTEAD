@@ -71,7 +71,6 @@ public class DartKeyBindingPreferencePage extends PreferencePage implements
 
   public DartKeyBindingPreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
-    setDescription(PreferencesMessages.DartKeyBindingPref_Title);
     noDefaultAndApplyButton();
   }
 

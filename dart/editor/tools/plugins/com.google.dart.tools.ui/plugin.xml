@@ -704,7 +704,7 @@
       <page
             class="com.google.dart.tools.ui.internal.preferences.FontPreferencePage"
             id="com.google.dart.tools.ui.fontOptionsPage"
-            name="Font">
+            name="%dartFontsPrefName">
       </page>
       <page
             name="%dartKeysPrefName"

@@ -61,20 +61,18 @@ import java.util.Map;
 /**
  * Preference page for fonts in the editor
  */
+@SuppressWarnings("restriction")
 public class FontPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
   private static final String SAMPLE_CODE = "  void run() {\n    write('Hello, world!');\n  }";
 
-  public static final String
-      FONT_PREF_PAGE_ID = "com.google.dart.tools.ui.preferences.FontPreferencePage"; //$NON-NLS-1$
+  public static final String FONT_PREF_PAGE_ID = "com.google.dart.tools.ui.preferences.FontPreferencePage"; //$NON-NLS-1$
 
 //public static final String EDITOR_FONT_KEY = JFaceResources.TEXT_FONT; //"org.eclipse.jface.textfont";
   public static final String EDITOR_FONT_KEY = PreferenceConstants.EDITOR_TEXT_FONT;
-  public static final String
-      EDITOR_DEFAULT_FONT_KEY = "com.google.dart.tools.ui.editors.textfont.default";
+  public static final String EDITOR_DEFAULT_FONT_KEY = "com.google.dart.tools.ui.editors.textfont.default";
   public static final String BASE_FONT_KEY = "com.google.dart.tools.ui.editors.basefont";
-  public static final String
-      BASE_DEFAULT_FONT_KEY = "com.google.dart.tools.ui.editors.basefont.default";
+  public static final String BASE_DEFAULT_FONT_KEY = "com.google.dart.tools.ui.editors.basefont.default";
 
   private static final int SZ_SMALL = 10;
   private static final int SZ_MEDIUM = 11;
@@ -144,14 +142,14 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
   protected Control createContents(Composite parent) {
     Composite composite = new Composite(parent, SWT.NONE);
 
-    GridDataFactory.fillDefaults()
-        .grab(true, false).indent(0, 10).align(SWT.FILL, SWT.BEGINNING).applyTo(composite);
+    GridDataFactory.fillDefaults().grab(true, false).indent(0, 10).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        composite);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
 
     Group fontGroup = new Group(composite, SWT.NONE);
-    //   fontGroup.setText(PreferencesMessages.DartBasePreferencePage_font_group_label);
-    GridDataFactory.fillDefaults()
-        .grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(fontGroup);
+    fontGroup.setText(PreferencesMessages.DartBasePreferencePage_font_group_label);
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        fontGroup);
     GridLayoutFactory.fillDefaults().numColumns(5).margins(8, 8).applyTo(fontGroup);
 
     // font scaling
@@ -164,7 +162,7 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
     smallFontsButton.setFont(getSmallFont());
     smallFontsButton.setLayoutData(new GridData(SWT.BEGINNING, SWT.END, false, false));
     smallFontsButton.addSelectionListener(new SelectionAdapter() {
-        @Override
+      @Override
       public void widgetSelected(SelectionEvent e) {
         updateFont(smallFontsButton.getFont());
       }
@@ -175,7 +173,7 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
     mediumFontsButton.setFont(getMediumFont());
     mediumFontsButton.setLayoutData(new GridData(SWT.BEGINNING, SWT.END, false, false));
     mediumFontsButton.addSelectionListener(new SelectionAdapter() {
-        @Override
+      @Override
       public void widgetSelected(SelectionEvent e) {
         updateFont(mediumFontsButton.getFont());
       }
@@ -186,7 +184,7 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
     largeFontsButton.setFont(getLargeFont());
     largeFontsButton.setLayoutData(new GridData(SWT.BEGINNING, SWT.END, false, false));
     largeFontsButton.addSelectionListener(new SelectionAdapter() {
-        @Override
+      @Override
       public void widgetSelected(SelectionEvent e) {
         updateFont(largeFontsButton.getFont());
       }
@@ -197,15 +195,15 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
     xlFontsButton.setFont(getXlFont());
     xlFontsButton.setLayoutData(new GridData(SWT.BEGINNING, SWT.END, false, false));
     xlFontsButton.addSelectionListener(new SelectionAdapter() {
-        @Override
+      @Override
       public void widgetSelected(SelectionEvent e) {
         updateFont(xlFontsButton.getFont());
       }
     });
 
     Composite sep = new Composite(fontGroup, SWT.NONE);
-    GridDataFactory.fillDefaults()
-        .span(5, 1).align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(sep);
+    GridDataFactory.fillDefaults().span(5, 1).align(SWT.FILL, SWT.CENTER).grab(true, false).applyTo(
+        sep);
     GridLayoutFactory.fillDefaults().margins(50, 10).applyTo(sep);
     Label sepl = new Label(sep, SWT.SEPARATOR | SWT.HORIZONTAL);
     GridDataFactory.fillDefaults().grab(true, false).applyTo(sepl);
@@ -223,7 +221,7 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
     GridDataFactory.fillDefaults().grab(false, true).applyTo(selectFontButton);
     selectFontButton.setText(PreferencesMessages.DartBasePreferencePage_code_font_select_label);
     selectFontButton.addSelectionListener(new SelectionAdapter() {
-        @Override
+      @Override
       public void widgetSelected(SelectionEvent e) {
         chooseCodeFont();
       }
@@ -233,7 +231,7 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
     GridDataFactory.fillDefaults().grab(false, true).applyTo(resetButton);
     resetButton.setText(PreferencesMessages.DartBasePreferencePage_reset_button_label);
     resetButton.addSelectionListener(new SelectionAdapter() {
-        @Override
+      @Override
       public void widgetSelected(SelectionEvent e) {
         resetFonts();
       }
@@ -302,8 +300,7 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
     return 0;
   }
 
-  private int findScaledCodeFontSize(
-      int oldCodeFontSize, int oldBaseFontSize, int newBaseFontSize) {
+  private int findScaledCodeFontSize(int oldCodeFontSize, int oldBaseFontSize, int newBaseFontSize) {
     int oldCodeIndex = findFontIndex(oldCodeFontSize);
     int oldBaseIndex = findFontIndex(oldBaseFontSize);
     int newBaseIndex = findFontIndex(newBaseFontSize);
@@ -360,8 +357,8 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
 
   private SourceViewerConfiguration getSourceViewerConfiguration() {
     DartTextTools textTools = DartToolsPlugin.getDefault().getJavaTextTools();
-    return new DartSourceViewerConfiguration(
-        textTools.getColorManager(), getPreferenceStore(), null, DartPartitions.DART_PARTITIONING);
+    return new DartSourceViewerConfiguration(textTools.getColorManager(), getPreferenceStore(),
+        null, DartPartitions.DART_PARTITIONING);
   }
 
   private Font getXlFont() {

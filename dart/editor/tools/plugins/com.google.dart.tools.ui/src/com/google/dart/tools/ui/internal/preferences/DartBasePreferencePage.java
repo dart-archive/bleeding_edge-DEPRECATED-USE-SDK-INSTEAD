@@ -36,7 +36,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -63,7 +62,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
-    setDescription(PreferencesMessages.DartBasePreferencePage_editor_preferences);
     noDefaultAndApplyButton();
   }
 
@@ -120,6 +118,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         composite);
     GridLayoutFactory.fillDefaults().spacing(0, 8).margins(0, 10).applyTo(composite);
 
+    // General
     Group generalGroup = new Group(composite, SWT.NONE);
     generalGroup.setText(PreferencesMessages.DartBasePreferencePage_general);
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
@@ -152,22 +151,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_trailing_ws_details);
     GridDataFactory.fillDefaults().span(3, 1).applyTo(removeTrailingWhitespaceCheck);
 
-    if (DartCoreDebug.ENABLE_UPDATE) {
-
-      Group updateGroup = new Group(composite, SWT.NONE);
-      updateGroup.setText(PreferencesMessages.DartBasePreferencePage_update_group_label);
-      GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
-          updateGroup);
-      GridLayoutFactory.fillDefaults().numColumns(3).margins(8, 8).applyTo(updateGroup);
-
-      autoDownloadCheck = createCheckBox(updateGroup,
-          PreferencesMessages.DartBasePreferencePage_auto_download_label,
-          PreferencesMessages.DartBasePreferencePage_auto_download_tooltip);
-      GridDataFactory.fillDefaults().span(3, 1).applyTo(autoDownloadCheck);
-    }
-
-    new Label(composite, SWT.NONE);
-
+    // Package: preferences
     Group packageGroup = new Group(composite, SWT.NONE);
     packageGroup.setText(PreferencesMessages.DartBasePreferencePage_Package_Title);
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
@@ -189,6 +173,20 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         handleBrowseButton();
       }
     });
+
+    // Update preferences
+    if (DartCoreDebug.ENABLE_UPDATE) {
+      Group updateGroup = new Group(composite, SWT.NONE);
+      updateGroup.setText(PreferencesMessages.DartBasePreferencePage_update_group_label);
+      GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+          updateGroup);
+      GridLayoutFactory.fillDefaults().numColumns(3).margins(8, 8).applyTo(updateGroup);
+
+      autoDownloadCheck = createCheckBox(updateGroup,
+          PreferencesMessages.DartBasePreferencePage_auto_download_label,
+          PreferencesMessages.DartBasePreferencePage_auto_download_tooltip);
+      GridDataFactory.fillDefaults().span(3, 1).applyTo(autoDownloadCheck);
+    }
 
     initFromPrefs();
 
