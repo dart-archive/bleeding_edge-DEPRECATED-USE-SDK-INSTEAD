@@ -1,4 +1,4 @@
-#import('dart:dom_deprecated');
+#import('dart:html');
 #import('dart:json');
 #import('Suites.dart');
 
@@ -31,7 +31,7 @@ class SuiteController {
 
     final meanAsString = mean.toStringAsFixed(2);
     final errorAsString = error.toStringAsFixed(2);
-    final HTMLElement progressDisplay = _element.nextSibling.nextSibling;
+    final Element progressDisplay = _element.nextNode.nextNode;
     progressDisplay.innerHTML +=
         '<li><b>${testName}:</b>' +
         '${meanAsString}<small> runs/s &#177;${errorAsString}%<small></li>';
@@ -49,8 +49,8 @@ class SuiteController {
     final done = percent >= 100.0;
     String info = '';
     if (done) {
-      final parent = _element.parentNode;
-      parent.setAttribute('class', '${parent.getAttribute("class")} done');
+      final parent = _element.parent;
+      parent.attributes['class'] = '${parent.attributes["class"]} done';
       final mean = Math.pow(_meanProduct, 1.0 / _nTests).toStringAsFixed(2);
       info = '<span>${mean} runs/s</span>';
     }
@@ -61,7 +61,7 @@ class SuiteController {
 
   _init() {
     final div = _createDiv('result-item');
-    div.appendChild(_element);
+    div.nodes.add(_element);
     final description = _suiteDescription.description;
     final originUrl = _suiteDescription.origin.url;
     final testUrl = 'tests/${_suiteDescription.file}';
@@ -71,14 +71,14 @@ class SuiteController {
         '<ol class="results"></ol>';
     // Reread the element, as the previous wrapper get disconnected thanks
     // to .innerHTML update above.
-    _element = div.firstChild;
+    _element = div.nodes[0];
 
-    document.getElementById('main').appendChild(div);
+    document.query('#main').nodes.add(div);
   }
 
-  HTMLDivElement _createDiv(String clazz) {
-    final div = document.createElement('div');
-    div.setAttribute('class', clazz);
+  DivElement _createDiv(String clazz) {
+    final div = new DivElement();
+    div.attributes['class'] = clazz;
     return div;
   }
 }
@@ -91,8 +91,7 @@ class Dromaeo {
       : _suiteControllers = new List<SuiteController>()
   {
     _handler = _createHandler();
-    window.addEventListener(
-        'message',
+    window.on.message.add(
         (MessageEvent event) {
           try {
             final response = JSON.parse(event.data);
@@ -120,18 +119,18 @@ class Dromaeo {
     }
 
     // TODO(antonm): create Re-run tests href.
-    final HTMLElement suiteNameElement = _byId('overview').firstChild;
+    final Element suiteNameElement = _byId('overview').nodes[0];
     final category = Suites.getCategory(tags);
     if (category != null) {
       suiteNameElement.innerHTML = category;
     }
     _css(_byId('tests'), 'display', 'none');
     for (SuiteDescription suite in Suites.getSuites(tags)) {
-      final iframe = document.createElement('iframe');
+      final iframe = new IFrameElement();
       _css(iframe, 'height', '1px');
       _css(iframe, 'width', '1px');
       iframe.src = 'tests/${suite.file}';
-      document.body.appendChild(iframe);
+      document.body.nodes.add(iframe);
 
       _suiteControllers.add(new SuiteController(suite, iframe));
     }
@@ -192,7 +191,7 @@ class Dromaeo {
             _suiteControllers[currentSuite].start();
             return running;
           }
-          document.body.setAttribute('class', 'alldone');
+          document.body.attributes['class'] = 'alldone';
           return done;
 
         default:
@@ -212,8 +211,8 @@ class Dromaeo {
     element.style.setProperty(property, value, '');
   }
 
-  HTMLElement _byId(String id) {
-    return document.getElementById(id);
+  Element _byId(String id) {
+    return document.query('#$id');
   }
 
   int get _suitesTotal() {
