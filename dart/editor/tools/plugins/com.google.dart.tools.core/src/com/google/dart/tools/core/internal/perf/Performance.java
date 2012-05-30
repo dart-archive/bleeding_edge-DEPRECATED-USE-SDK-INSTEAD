@@ -47,11 +47,13 @@ public class Performance {
   public static final int DEFAULT_TIMEOUT_MS = 180000; // 3 minutes
   public static final int NUM_COL_WIDTH = 7;
 
-  public static final Metric TIME_TO_START_APP = new Metric("Time_to_start_DartIDEApp", 100);
-  public static final Metric TIME_TO_STARTUP = new Metric("Time_to_startup", 100);
-  public static final Metric TIME_TO_STARTUP_PLUS_ANALYSIS = new Metric(
-      "Time_to_startup_plus_analysis",
+  public static final Metric TIME_TO_START_ECLIPSE = new Metric("Time_to_start_eclipse", 100);
+  public static final Metric TIME_TO_START_UI = new Metric("Time_to_start_ui", 100);
+  public static final Metric TIME_TO_OPEN = new Metric("Time_to_open", 100);
+  public static final Metric TIME_TO_ANALYSIS_COMPLETE = new Metric(
+      "Time_to_analysis_complete",
       100);
+  public static final Metric TIME_TO_INDEX_COMPLETE = new Metric("Time_to_indexing_complete", 100);
 
   /**
    * Append the specified {@link String} to an array of {@link String}

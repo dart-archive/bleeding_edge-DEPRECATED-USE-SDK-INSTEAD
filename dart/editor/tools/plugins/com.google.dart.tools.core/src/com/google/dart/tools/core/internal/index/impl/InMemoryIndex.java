@@ -26,12 +26,14 @@ import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.AttributeCallback;
 import com.google.dart.tools.core.index.Element;
 import com.google.dart.tools.core.index.Index;
+import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.index.Relationship;
 import com.google.dart.tools.core.index.RelationshipCallback;
 import com.google.dart.tools.core.index.Resource;
 import com.google.dart.tools.core.internal.index.operation.ClearIndexOperation;
 import com.google.dart.tools.core.internal.index.operation.GetAttributeOperation;
 import com.google.dart.tools.core.internal.index.operation.GetRelationshipsOperation;
+import com.google.dart.tools.core.internal.index.operation.IndexOperation;
 import com.google.dart.tools.core.internal.index.operation.IndexResourceOperation;
 import com.google.dart.tools.core.internal.index.operation.OperationProcessor;
 import com.google.dart.tools.core.internal.index.operation.OperationQueue;
@@ -298,6 +300,27 @@ public class InMemoryIndex implements Index {
         }
       }
     }
+  }
+
+  /**
+   * Asynchronously invoke the given {@link NotifyCallback} when the operation is performed in the
+   * queue.
+   * 
+   * @param callback the callback that will be invoked when the operation is reached in the queue
+   */
+  public void notify(final NotifyCallback callback) {
+    queue.enqueue(new IndexOperation() {
+
+      @Override
+      public void performOperation() {
+        callback.done();
+      }
+
+      @Override
+      public boolean removeWhenResourceRemoved(Resource resource) {
+        return false;
+      }
+    });
   }
 
   /**

@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisListener;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
@@ -106,11 +107,12 @@ public class DartUIStartup implements IStartup {
     }
 
     /**
-     * 
+     * If {@link DartEditorCommandLineManager#MEASURE_PERFORMANCE} is <code>true</code>, then record
+     * the {@link Performance#TIME_TO_START_UI} metric.
      */
     private void detectStartupComplete() {
       if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
-        Performance.TIME_TO_STARTUP.log(DartEditorCommandLineManager.getStartTime());
+        Performance.TIME_TO_START_UI.log(DartEditorCommandLineManager.getStartTime());
       }
     }
 
@@ -144,19 +146,19 @@ public class DartUIStartup implements IStartup {
      * {@link DartEditorCommandLineManager#getFileSet()}, and open them in the Editor appropriately.
      */
     private void openInitialFilesAndFolders() {
-      ArrayList<File> fileSet = DartEditorCommandLineManager.getFileSet();
+      final ArrayList<File> fileSet = DartEditorCommandLineManager.getFileSet();
       if (fileSet == null || fileSet.isEmpty()) {
         return;
       }
-      for (File file : fileSet) {
-        // verify that this file is not null, and exists
-        if (file == null || !file.exists()) {
-          continue;
-        }
-        final File fileToOpen = file;
-        Display.getDefault().asyncExec(new Runnable() {
-          @Override
-          public void run() {
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          for (File file : fileSet) {
+            // verify that this file is not null, and exists
+            if (file == null || !file.exists()) {
+              continue;
+            }
+            final File fileToOpen = file;
             IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
             if (fileToOpen.isFile()) {
               // If this File to open is a file, instead of a directory, then open the directory,
@@ -176,27 +178,41 @@ public class DartUIStartup implements IStartup {
               new CreateAndRevealProjectAction(workbenchWindow, directoryToOpen).run();
             }
           }
-        });
-      }
+          if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
+            Performance.TIME_TO_OPEN.log(DartEditorCommandLineManager.getStartTime());
+          }
+        }
+      });
     }
 
     /**
-     * 
+     * Print the performance numbers, if {@link DartEditorCommandLineManager#MEASURE_PERFORMANCE} is
+     * <code>true</code>.
      */
     private void printPerformanceNumbers() {
-      if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
-        // wait for analysis is finished
-        waitForAnalysis();
-        // record the final performance number, and print key:value results in an asyncExec, to
-        // ensure that the UI thread is not busy
-        Display.getDefault().asyncExec(new Runnable() {
-          @Override
-          public void run() {
-            Performance.TIME_TO_STARTUP_PLUS_ANALYSIS.log(DartEditorCommandLineManager.getStartTime());
-            Performance.printResults_keyValue();
-          }
-        });
+      if (!DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
+        return;
       }
+      // wait for analysis is finished
+      waitForAnalysis();
+      // record the final performance number, and print key:value results in an asyncExec, to
+      // ensure that the UI thread is not busy
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          Performance.TIME_TO_ANALYSIS_COMPLETE.log(DartEditorCommandLineManager.getStartTime());
+          InMemoryIndex.getInstance().notify(new NotifyCallback() {
+            @Override
+            public void done() {
+              Performance.TIME_TO_INDEX_COMPLETE.log(DartEditorCommandLineManager.getStartTime());
+              Performance.printResults_keyValue();
+              if (DartEditorCommandLineManager.KILL_AFTER_PERF) {
+                System.exit(0);
+              }
+            }
+          });
+        }
+      });
     }
 
     /**

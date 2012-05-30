@@ -25,6 +25,8 @@ public class DartEditorCommandLineManager {
 
   public static String PERF_FLAG = "-perf";
 
+  public static String KILL_AFTER_PERF_FLAG = "-kill-after-perf";
+
   private static long startTime;
 
   /**
@@ -32,6 +34,14 @@ public class DartEditorCommandLineManager {
    * command line argument to the Dart Editor.
    */
   public static boolean MEASURE_PERFORMANCE = false;
+
+  /**
+   * This boolean is set to <code>true</code> if and only if {@value #PERF_FLAG} and
+   * {@link #KILL_AFTER_PERF_FLAG} are passed as a command line arguments into the Dart Editor. If
+   * set to <code>true</code>, then the Editor is killed after all the performance numbers have been
+   * printed to the command line.
+   */
+  public static boolean KILL_AFTER_PERF = false;
 
   private static ArrayList<File> fileSet = null;
 

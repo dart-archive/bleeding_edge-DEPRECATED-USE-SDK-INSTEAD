@@ -42,7 +42,7 @@ public class DartIDEApplication implements IApplication {
       // Now that the start time of the Editor has been recorded from the command line, we can
       // record the time taken to start the Application
       if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
-        Performance.TIME_TO_START_APP.log(DartEditorCommandLineManager.getStartTime());
+        Performance.TIME_TO_START_ECLIPSE.log(DartEditorCommandLineManager.getStartTime());
       }
 
       int returnCode = PlatformUI.createAndRunWorkbench(display, new ApplicationWorkbenchAdvisor(
@@ -115,6 +115,13 @@ public class DartIDEApplication implements IApplication {
               + DartEditorCommandLineManager.PERF_FLAG + "\" flag, recording the start time "
               + "of the Dart Editor *now*- at the application init time.");
           DartEditorCommandLineManager.setStartTime(System.currentTimeMillis());
+        }
+        for (int j = 0; j < args.length; j++) {
+          String arg2 = args[j];
+          if (arg2.equals(DartEditorCommandLineManager.KILL_AFTER_PERF_FLAG)) {
+            DartEditorCommandLineManager.KILL_AFTER_PERF = true;
+            break;
+          }
         }
       } else if (arg.length() > 0 && arg.charAt(0) != '-') {
         File file = new File(arg);
