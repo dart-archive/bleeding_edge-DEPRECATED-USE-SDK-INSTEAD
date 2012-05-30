@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2011 Google Inc. All rights reserved.
- * Copyright (C) 2012 Motorola Mobility Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,19 +23,14 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-module html {
+module window {
     interface [
-        Conditional=BLOB,
-        Constructor,
-        JSGenerateToNativeObject,
-        JSGenerateToJSObject,
-        JSNoStaticTables,
-        InterfaceName=URL
-    ] DOMURL {
-#if defined(ENABLE_MEDIA_STREAM) && ENABLE_MEDIA_STREAM
-        [CallWith=ScriptExecutionContext,TreatReturnedNullStringAs=Null] static DOMString createObjectURL(in MediaStream stream);
-#endif
-        [CallWith=ScriptExecutionContext,TreatReturnedNullStringAs=Null] static DOMString createObjectURL(in Blob blob);
-        [CallWith=ScriptExecutionContext] static void revokeObjectURL(in DOMString url);
+        Conditional=WEB_INTENTS,
+    ] DeliveredIntent : Intent {
+        readonly attribute MessagePortArray ports;
+
+        [TreatReturnedNullStringAs=Null] DOMString getExtra(in DOMString key);
+        void postResult(in SerializedScriptValue result);
+        void postFailure(in SerializedScriptValue result);
     };
 }

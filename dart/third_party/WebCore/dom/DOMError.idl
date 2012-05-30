@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2011 Google Inc. All rights reserved.
- * Copyright (C) 2012 Motorola Mobility Inc.
+ * Copyright (C) 2007 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -11,6 +10,9 @@
  * 2.  Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
+ * 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
+ *     its contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -24,19 +26,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-module html {
-    interface [
-        Conditional=BLOB,
-        Constructor,
-        JSGenerateToNativeObject,
-        JSGenerateToJSObject,
-        JSNoStaticTables,
-        InterfaceName=URL
-    ] DOMURL {
-#if defined(ENABLE_MEDIA_STREAM) && ENABLE_MEDIA_STREAM
-        [CallWith=ScriptExecutionContext,TreatReturnedNullStringAs=Null] static DOMString createObjectURL(in MediaStream stream);
-#endif
-        [CallWith=ScriptExecutionContext,TreatReturnedNullStringAs=Null] static DOMString createObjectURL(in Blob blob);
-        [CallWith=ScriptExecutionContext] static void revokeObjectURL(in DOMString url);
-    };
+module core {
+  interface [
+    ] DOMError {
+        readonly attribute DOMString name;
+  };
+
 }
