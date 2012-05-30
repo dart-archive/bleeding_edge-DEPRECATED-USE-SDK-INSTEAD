@@ -204,7 +204,9 @@ class ResourceServerHandler implements Runnable {
 
       HttpHeader header = parseHeader(in);
 
-      if (header != null && isAllowableConnection(socket, header)) {
+      if (header == null) {
+        safeClose(socket);
+      } else if (isAllowableConnection(socket, header)) {
         HttpResponse response;
 
         if (HttpHeader.METHOD_GET.equals(header.method)
