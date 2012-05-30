@@ -102,12 +102,20 @@ public class DartConsoleManager implements IConsoleListener {
   }
 
   protected void warnOfContentChange(final IConsole console) {
+    if (console == null) {
+      return;
+    }
+
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
         boolean found = false;
 
         for (DartConsoleView view : consoleViews) {
+          if (view == null) {
+            continue;
+          }
+
           if (console.equals(view.getConsole())) {
             found = true;
 
