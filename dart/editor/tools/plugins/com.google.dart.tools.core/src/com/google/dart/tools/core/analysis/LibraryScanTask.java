@@ -83,15 +83,16 @@ public class LibraryScanTask extends Task {
 
       // If over the scan threshold, then mark the root to be ignored and abort the scan
 
-      if (bytesOfCode > SCAN_BYTE_THRESHOLD || System.currentTimeMillis() > scanEndThreshold) {
-        try {
-          ignoreManager.addToIgnores(rootFile);
-        } catch (IOException e) {
-          DartCore.logError("Failed to ignore " + rootFile, e);
-        }
-        server.discard(rootFile);
-        return;
-      }
+      // TODO(devoncarew): temporarily disabling the analysis threshold
+//      if (bytesOfCode > SCAN_BYTE_THRESHOLD || System.currentTimeMillis() > scanEndThreshold) {
+//        try {
+//          ignoreManager.addToIgnores(rootFile);
+//        } catch (IOException e) {
+//          DartCore.logError("Failed to ignore " + rootFile, e);
+//        }
+//        server.discard(rootFile);
+//        return;
+//      }
     }
 
     // Parse libraries to determine sourced files
