@@ -147,11 +147,14 @@ public class NameOccurrencesFinderTest extends TestCase {
             "  S();",
             "  S.s(x);",
             "}",
+            "int tf!6(var xx) => xx * xx + 42 - !7tf(xx-1);",
             "class R extends S {",
             "  R.a() : this.!1b();",
             "  R.b() : super.s!2(1);",
             "  var q = new Map<St!5ring, Object!3>();",
             "  var w = new Map<String, !4Dynamic>();",
+            "  var zz = t!8f(y);",
+            "  var z2 = tf((xx!9) => 11);",
             "}"),
         // 1 redirect constructor
         "1+b();",
@@ -165,7 +168,21 @@ public class NameOccurrencesFinderTest extends TestCase {
         "4+Dynamic>",
         // 5 multiple generic type ref
         "5+String, O",
-        "5+String, D"
+        "5+String, D",
+        // 6 top-level function def
+        "6+tf(var",
+        "6+tf(xx",
+        "6+tf(y",
+        // 7 top-level function ref in top-level func
+        "7+tf(var",
+        "7+tf(xx",
+        "7+tf(y",
+        // 8 top-level function def in class method
+        "8+tf(var",
+        "8+tf(xx",
+        "8+tf(y",
+        // not finding parameter
+        "9-xx) =>"
     // end of tests
     );
   }

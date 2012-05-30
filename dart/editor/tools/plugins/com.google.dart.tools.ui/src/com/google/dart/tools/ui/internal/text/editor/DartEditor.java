@@ -3627,6 +3627,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     CompilationUnit input = getInputDartElement().getAncestor(CompilationUnit.class);
     DartElementLocator locator = new DartElementLocator(input, selection.getOffset(),
         selection.getOffset() + selection.getLength(), true);
+    try {
+      if (astRoot.getLibrary() == null) {
+        // if astRoot is from ExternalCompilationUnit then it needs to be resolved; it is apparently not cached
+        astRoot = DartCompilerUtilities.resolveUnit(input); // TODO clean up astRoot
+      }
+    } catch (DartModelException e) {
+      DartToolsPlugin.log(e);
+    }
     /* DartElement selectedModelNode = */locator.searchWithin(astRoot);
     Element selectedNode = locator.getResolvedElement();
 
@@ -3711,9 +3719,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     if (DartCoreDebug.ENABLE_MARK_OCCURRENCES) {
       fOccurrencesFinderJob = new OccurrencesFinderJob(document, positions, selection);
-      fOccurrencesFinderJob.setPriority(Job.DECORATE);
-      fOccurrencesFinderJob.setSystem(true);
-      fOccurrencesFinderJob.schedule();
+//      fOccurrencesFinderJob.setPriority(Job.DECORATE);
+//      fOccurrencesFinderJob.setSystem(true);
+//      fOccurrencesFinderJob.schedule();
       fOccurrencesFinderJob.run(new NullProgressMonitor());
     }
   }

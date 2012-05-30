@@ -29,8 +29,6 @@ import com.google.dart.compiler.resolver.Element;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO should continue to work work after code is edited
-// TODO should not stop working for no apparent reason
 public class NameOccurrencesFinder extends ASTVisitor<Void> {
 
   private Element target;
@@ -55,10 +53,13 @@ public class NameOccurrencesFinder extends ASTVisitor<Void> {
   public Void visitIdentifier(DartIdentifier node) {
     try {
       if (node.getElement() == target) {
-        addMatch(node);
+        if (!(node.getParent() instanceof DartTypeNode && node.getParent().getParent() instanceof DartNewExpression)) {
+          addMatch(node);
+          return null;
+        }
       }
     } catch (UnsupportedOperationException ex) {
-      return null; // apparently directives do not have elements
+      // fall through; apparently directives do not have elements
     }
     return super.visitIdentifier(node);
   }
