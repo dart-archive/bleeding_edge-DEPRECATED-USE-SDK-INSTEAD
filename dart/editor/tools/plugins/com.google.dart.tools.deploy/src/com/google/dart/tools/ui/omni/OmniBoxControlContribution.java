@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.omni;
 
+import com.google.dart.tools.deploy.Activator;
+
 import org.eclipse.core.commands.Command;
 import org.eclipse.jface.bindings.keys.SWTKeySupport;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -60,8 +62,12 @@ public class OmniBoxControlContribution {
      */
     @Override
     public boolean close() {
-      setWatermarkText();
-      defocus();
+      try {
+        setWatermarkText();
+        defocus();
+      } catch (Throwable th) {
+        Activator.logError(th);
+      }
       return simpleClose();
     }
 
