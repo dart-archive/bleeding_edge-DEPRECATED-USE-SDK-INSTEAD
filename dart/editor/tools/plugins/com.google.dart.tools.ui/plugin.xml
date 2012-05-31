@@ -2751,7 +2751,12 @@
             id="com.google.dart.tools.dartAcceleratorConfiguration"
             name="Dart Development">
       </scheme>
-      
+
+       <key
+           commandId="org.eclipse.jdt.ui.edit.text.java.correction.assist.proposals"
+           sequence="M1+1"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
+           contextId="org.eclipse.ui.contexts.dialogAndWindow" />
       <!-- key
             commandId="....correction.assist.proposals"
             sequence="M1+1"
@@ -3428,6 +3433,13 @@
               </with>
             </enablement>
       </deleteParticipant>
+   </extension>
+    
+   <extension
+         point="com.google.dart.tools.ui.quickAssistProcessors">
+      <quickAssistProcessor
+            class="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"
+            id="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"/>
    </extension>
 
 </plugin>

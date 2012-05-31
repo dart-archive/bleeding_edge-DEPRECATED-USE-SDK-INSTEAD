@@ -19,6 +19,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingStrategy;
+import com.google.dart.tools.ui.internal.text.correction.DartCorrectionAssistant;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistProcessor;
 import com.google.dart.tools.ui.internal.text.dart.DartAutoIndentStrategy;
 import com.google.dart.tools.ui.internal.text.dart.DartCodeScanner;
@@ -119,12 +120,14 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     IPreferenceStore generalTextStore = EditorsUI.getPreferenceStore();
     if (javaTextTools.getCorePreferenceStore() == null) {
       return new ChainedPreferenceStore(new IPreferenceStore[] {
-          javaTextTools.getPreferenceStore(), generalTextStore});
+          javaTextTools.getPreferenceStore(),
+          generalTextStore});
     }
 
     return new ChainedPreferenceStore(new IPreferenceStore[] {
         javaTextTools.getPreferenceStore(),
-        new PreferencesAdapter(javaTextTools.getCorePreferenceStore()), generalTextStore});
+        new PreferencesAdapter(javaTextTools.getCorePreferenceStore()),
+        generalTextStore});
   }
 
   private DartTextTools fJavaTextTools;
@@ -244,7 +247,9 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
           new SmartSemicolonAutoEditStrategy(partitioning),
           new DartAutoIndentStrategy(partitioning, getProject(), sourceViewer)};
     } else {
-      return new IAutoEditStrategy[] {new DartAutoIndentStrategy(partitioning, getProject(),
+      return new IAutoEditStrategy[] {new DartAutoIndentStrategy(
+          partitioning,
+          getProject(),
           sourceViewer)};
     }
   }
@@ -255,9 +260,12 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
   @Override
   public String[] getConfiguredContentTypes(ISourceViewer sourceViewer) {
     return new String[] {
-        IDocument.DEFAULT_CONTENT_TYPE, DartPartitions.DART_DOC,
-        DartPartitions.DART_MULTI_LINE_COMMENT, DartPartitions.DART_SINGLE_LINE_COMMENT,
-        DartPartitions.DART_STRING, DartPartitions.DART_MULTI_LINE_STRING};
+        IDocument.DEFAULT_CONTENT_TYPE,
+        DartPartitions.DART_DOC,
+        DartPartitions.DART_MULTI_LINE_COMMENT,
+        DartPartitions.DART_SINGLE_LINE_COMMENT,
+        DartPartitions.DART_STRING,
+        DartPartitions.DART_MULTI_LINE_STRING};
   }
 
   /*
@@ -317,23 +325,33 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
 
       assistant.setRestoreCompletionProposalSize(getSettings("completion_proposal_size")); //$NON-NLS-1$
 
-      IContentAssistProcessor javaProcessor = new DartCompletionProcessor(getEditor(), assistant,
+      IContentAssistProcessor javaProcessor = new DartCompletionProcessor(
+          getEditor(),
+          assistant,
           IDocument.DEFAULT_CONTENT_TYPE);
       assistant.setContentAssistProcessor(javaProcessor, IDocument.DEFAULT_CONTENT_TYPE);
 
-      ContentAssistProcessor singleLineProcessor = new DartCompletionProcessor(getEditor(),
-          assistant, DartPartitions.DART_SINGLE_LINE_COMMENT);
-      assistant.setContentAssistProcessor(singleLineProcessor,
+      ContentAssistProcessor singleLineProcessor = new DartCompletionProcessor(
+          getEditor(),
+          assistant,
+          DartPartitions.DART_SINGLE_LINE_COMMENT);
+      assistant.setContentAssistProcessor(
+          singleLineProcessor,
           DartPartitions.DART_SINGLE_LINE_COMMENT);
 
-      ContentAssistProcessor stringProcessor = new DartCompletionProcessor(getEditor(), assistant,
+      ContentAssistProcessor stringProcessor = new DartCompletionProcessor(
+          getEditor(),
+          assistant,
           DartPartitions.DART_STRING);
       assistant.setContentAssistProcessor(stringProcessor, DartPartitions.DART_STRING);
       assistant.setContentAssistProcessor(stringProcessor, DartPartitions.DART_MULTI_LINE_STRING);
 
-      ContentAssistProcessor multiLineProcessor = new DartCompletionProcessor(getEditor(),
-          assistant, DartPartitions.DART_MULTI_LINE_COMMENT);
-      assistant.setContentAssistProcessor(multiLineProcessor,
+      ContentAssistProcessor multiLineProcessor = new DartCompletionProcessor(
+          getEditor(),
+          assistant,
+          DartPartitions.DART_MULTI_LINE_COMMENT);
+      assistant.setContentAssistProcessor(
+          multiLineProcessor,
           DartPartitions.DART_MULTI_LINE_COMMENT);
 
       // ContentAssistProcessor javadocProcessor = new
@@ -361,13 +379,16 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
   @Override
   public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
     final MultiPassContentFormatter formatter = new MultiPassContentFormatter(
-        getConfiguredDocumentPartitioning(sourceViewer), IDocument.DEFAULT_CONTENT_TYPE);
+        getConfiguredDocumentPartitioning(sourceViewer),
+        IDocument.DEFAULT_CONTENT_TYPE);
 
     formatter.setMasterStrategy(new DartFormattingStrategy());
     formatter.setSlaveStrategy(new CommentFormattingStrategy(), DartPartitions.DART_DOC);
-    formatter.setSlaveStrategy(new CommentFormattingStrategy(),
+    formatter.setSlaveStrategy(
+        new CommentFormattingStrategy(),
         DartPartitions.DART_SINGLE_LINE_COMMENT);
-    formatter.setSlaveStrategy(new CommentFormattingStrategy(),
+    formatter.setSlaveStrategy(
+        new CommentFormattingStrategy(),
         DartPartitions.DART_MULTI_LINE_COMMENT);
 
     return formatter;
@@ -385,7 +406,8 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    * @see SourceViewerConfiguration#getDoubleClickStrategy(ISourceViewer, String)
    */
   @Override
-  public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer,
+  public ITextDoubleClickStrategy getDoubleClickStrategy(
+      ISourceViewer sourceViewer,
       String contentType) {
     if (DartPartitions.DART_DOC.equals(contentType)) {
       return new DartDocDoubleClickStrategy();
@@ -413,7 +435,8 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    *          the Dart element
    * @return an information presenter
    */
-  public IInformationPresenter getHierarchyPresenter(ISourceViewer sourceViewer,
+  public IInformationPresenter getHierarchyPresenter(
+      ISourceViewer sourceViewer,
       boolean doCodeResolve) {
     return null;
     // // Do not create hierarchy presenter if there's no CU.
@@ -522,10 +545,12 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
   public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer, boolean doCodeResolve) {
     InformationPresenter presenter;
     if (doCodeResolve) {
-      presenter = new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer,
+      presenter = new InformationPresenter(getOutlinePresenterControlCreator(
+          sourceViewer,
           DartEditorActionDefinitionIds.OPEN_STRUCTURE));
     } else {
-      presenter = new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer,
+      presenter = new InformationPresenter(getOutlinePresenterControlCreator(
+          sourceViewer,
           DartEditorActionDefinitionIds.SHOW_OUTLINE));
     }
     presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
@@ -595,16 +620,15 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     return reconciler;
   }
 
-  /*
-   * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getQuickAssistAssistant
-   * (org.eclipse.jface.text.source.ISourceViewer)
-   */
   @Override
   public IQuickAssistAssistant getQuickAssistAssistant(ISourceViewer sourceViewer) {
-    return super.getQuickAssistAssistant(sourceViewer);
-    // if (getEditor() != null)
-    // return new JavaCorrectionAssistant(getEditor());
-    // return null;
+    ITextEditor editor = getEditor();
+    if (editor != null) {
+      DartCorrectionAssistant assistant = new DartCorrectionAssistant(editor);
+      assistant.setRestoreCompletionProposalSize(getSettings("quick_assist_proposal_size")); //$NON-NLS-1$
+      return assistant;
+    }
+    return null;
   }
 
   /*
@@ -618,7 +642,9 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     if (editor != null && editor.isEditable()) {
 
       DartCompositeReconcilingStrategy strategy = new DartCompositeReconcilingStrategy(
-          sourceViewer, editor, getConfiguredDocumentPartitioning(sourceViewer));
+          sourceViewer,
+          editor,
+          getConfiguredDocumentPartitioning(sourceViewer));
       DartReconciler reconciler = new DartReconciler(editor, strategy, false);
       reconciler.setIsIncrementalReconciler(false);
       reconciler.setIsAllowedToModifyDocument(false);
@@ -844,7 +870,10 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
       public IInformationControl createInformationControl(Shell parent) {
         int shellStyle = SWT.RESIZE | SWT.TOOL;
         int style = SWT.V_SCROLL | SWT.H_SCROLL;
-        return new DefaultInformationControl(parent, shellStyle, style,
+        return new DefaultInformationControl(
+            parent,
+            shellStyle,
+            style,
             new HTMLTextPresenter(false));
       }
     };
@@ -859,7 +888,8 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    * @param commandId the ID of the command that opens this control
    * @return an information control creator
    */
-  private IInformationControlCreator getOutlinePresenterControlCreator(ISourceViewer sourceViewer,
+  private IInformationControlCreator getOutlinePresenterControlCreator(
+      ISourceViewer sourceViewer,
       final String commandId) {
     return new IInformationControlCreator() {
       @Override
@@ -926,13 +956,21 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
   private void initializeScanners() {
     Assert.isTrue(isNewSetup());
     fCodeScanner = new DartCodeScanner(getColorManager(), fPreferenceStore);
-    fMultilineCommentScanner = new DartCommentScanner(getColorManager(), fPreferenceStore,
+    fMultilineCommentScanner = new DartCommentScanner(
+        getColorManager(),
+        fPreferenceStore,
         IDartColorConstants.JAVA_MULTI_LINE_COMMENT);
-    fSinglelineCommentScanner = new DartCommentScanner(getColorManager(), fPreferenceStore,
+    fSinglelineCommentScanner = new DartCommentScanner(
+        getColorManager(),
+        fPreferenceStore,
         IDartColorConstants.JAVA_SINGLE_LINE_COMMENT);
-    fStringScanner = new SingleTokenDartScanner(getColorManager(), fPreferenceStore,
+    fStringScanner = new SingleTokenDartScanner(
+        getColorManager(),
+        fPreferenceStore,
         IDartColorConstants.JAVA_STRING);
-    fMultilineStringScanner = new DartMultilineStringScanner(getColorManager(), fPreferenceStore,
+    fMultilineStringScanner = new DartMultilineStringScanner(
+        getColorManager(),
+        fPreferenceStore,
         IDartColorConstants.DART_MULTI_LINE_STRING);
     fJavaDocScanner = new DartDocScanner(getColorManager(), fPreferenceStore);
   }

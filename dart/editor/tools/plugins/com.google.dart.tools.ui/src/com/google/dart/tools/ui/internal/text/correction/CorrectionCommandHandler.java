@@ -28,8 +28,6 @@ import org.eclipse.ui.keys.IBindingService;
 
 /**
  * Handler to be used to run a quick fix or assist by keyboard shortcut
- * <p>
- * TODO(scheglov) restore this class, make it not abstract
  */
 public class CorrectionCommandHandler extends AbstractHandler {
 
@@ -90,8 +88,12 @@ public class CorrectionCommandHandler extends AbstractHandler {
     return null;
   }
 
-  private ICompletionProposal findCorrection(String id, boolean isAssist, ITextSelection selection,
-      CompilationUnit cu, IAnnotationModel model) {
+  private ICompletionProposal findCorrection(
+      String id,
+      boolean isAssist,
+      ITextSelection selection,
+      CompilationUnit cu,
+      IAnnotationModel model) {
     // TODO(scheglov) restore this
 //    AssistContext context = new AssistContext(cu, fEditor.getViewer(), fEditor,
 //        selection.getOffset(), selection.getLength());

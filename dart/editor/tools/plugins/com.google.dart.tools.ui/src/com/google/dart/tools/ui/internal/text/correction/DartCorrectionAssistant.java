@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
+import com.google.common.collect.Lists;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 
 import org.eclipse.core.runtime.Assert;
@@ -33,6 +35,7 @@ import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
 import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPreferenceConstants;
@@ -40,10 +43,17 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import java.util.List;
+
 public class DartCorrectionAssistant extends QuickAssistAssistant {
 
-//  public static int collectQuickFixableAnnotations(ITextEditor editor, int invocationLocation,
-//      boolean goToClosest, ArrayList<Annotation> resultingAnnotations) throws BadLocationException {
+  public static int collectQuickFixableAnnotations(
+      ITextEditor editor,
+      int invocationLocation,
+      boolean goToClosest,
+      List<Annotation> resultingAnnotations) throws BadLocationException {
+    // TODO(scheglov) restore this later
+    return invocationLocation;
 //    IAnnotationModel model = DartUI.getDocumentProvider().getAnnotationModel(
 //        editor.getEditorInput());
 //    if (model == null) {
@@ -97,7 +107,7 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
 //      }
 //      return invocationLocation;
 //    }
-//  }
+  }
 
   /**
    * Computes and returns the invocation offset given a new position, the initial offset and the
@@ -132,8 +142,10 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
   private static void ensureUpdatedAnnotations(ITextEditor editor) {
     Object inputElement = editor.getEditorInput().getAdapter(DartElement.class);
     if (inputElement instanceof CompilationUnit) {
-      ASTProvider.getASTProvider().getAST((CompilationUnit) inputElement,
-          ASTProvider.WAIT_ACTIVE_ONLY, null);
+      ASTProvider.getASTProvider().getAST(
+          (CompilationUnit) inputElement,
+          ASTProvider.WAIT_ACTIVE_ONLY,
+          null);
     }
   }
 
@@ -154,7 +166,10 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
     return offset == start || offset == end || offset > start && offset < end; // make sure to handle 0-length ranges
   }
 
-  private static int processAnnotation(Annotation annot, Position pos, int invocationLocation,
+  private static int processAnnotation(
+      Annotation annot,
+      Position pos,
+      int invocationLocation,
       int bestOffset) {
     int posBegin = pos.offset;
     int posEnd = posBegin + pos.length;
@@ -185,12 +200,6 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
   private QuickAssistLightBulbUpdater fLightBulbUpdater;
 
   private boolean fIsCompletionActive;
-
-  /*
-   * @see org.eclipse.jface.text.quickassist.QuickAssistAssistant#showPossibleQuickAssists()
-   * 
-   * @since 3.2
-   */
 
   private boolean fIsProblemLocationAvailable;
 
@@ -274,48 +283,51 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
   @Override
   public String showPossibleQuickAssists() {
     // TODO(scheglov) enable later
-//    boolean isReinvoked = false;
-//    fIsProblemLocationAvailable = false;
-//
-//    if (fIsCompletionActive) {
-//      if (isUpdatedOffset()) {
-//        isReinvoked = true;
-//        restorePosition();
-//        hide();
-//        fIsProblemLocationAvailable = true;
-//      }
-//    }
-//
-//    fPosition = null;
-//    fCurrentAnnotations = null;
-//
-//    if (fViewer == null || fViewer.getDocument() == null) {
-//      // Let superclass deal with this
-//      return super.showPossibleQuickAssists();
-//    }
-//
-//    ArrayList<Annotation> resultingAnnotations = new ArrayList<Annotation>(20);
-//    try {
-//      Point selectedRange = fViewer.getSelectedRange();
-//      int currOffset = selectedRange.x;
-//      int currLength = selectedRange.y;
-//      boolean goToClosest = currLength == 0 && !isReinvoked;
-//
-//      int newOffset = collectQuickFixableAnnotations(fEditor, currOffset, goToClosest,
-//          resultingAnnotations);
-//      if (newOffset != currOffset) {
-//        storePosition(currOffset, currLength);
-//        fViewer.setSelectedRange(newOffset, 0);
-//        fViewer.revealRange(newOffset, 0);
-//        fIsProblemLocationAvailable = true;
-//        if (fIsCompletionActive) {
-//          hide();
-//        }
-//      }
-//    } catch (BadLocationException e) {
-//      DartToolsPlugin.log(e);
-//    }
-//    fCurrentAnnotations = resultingAnnotations.toArray(new Annotation[resultingAnnotations.size()]);
+    boolean isReinvoked = false;
+    fIsProblemLocationAvailable = false;
+
+    if (fIsCompletionActive) {
+      if (isUpdatedOffset()) {
+        isReinvoked = true;
+        restorePosition();
+        hide();
+        fIsProblemLocationAvailable = true;
+      }
+    }
+
+    fPosition = null;
+    fCurrentAnnotations = null;
+
+    if (fViewer == null || fViewer.getDocument() == null) {
+      // Let superclass deal with this
+      return super.showPossibleQuickAssists();
+    }
+
+    List<Annotation> resultingAnnotations = Lists.newArrayList();
+    try {
+      Point selectedRange = fViewer.getSelectedRange();
+      int currOffset = selectedRange.x;
+      int currLength = selectedRange.y;
+      boolean goToClosest = currLength == 0 && !isReinvoked;
+
+      int newOffset = collectQuickFixableAnnotations(
+          fEditor,
+          currOffset,
+          goToClosest,
+          resultingAnnotations);
+      if (newOffset != currOffset) {
+        storePosition(currOffset, currLength);
+        fViewer.setSelectedRange(newOffset, 0);
+        fViewer.revealRange(newOffset, 0);
+        fIsProblemLocationAvailable = true;
+        if (fIsCompletionActive) {
+          hide();
+        }
+      }
+    } catch (BadLocationException e) {
+      DartToolsPlugin.log(e);
+    }
+    fCurrentAnnotations = resultingAnnotations.toArray(new Annotation[resultingAnnotations.size()]);
 
     return super.showPossibleQuickAssists();
   }
@@ -329,9 +341,6 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
     super.uninstall();
   }
 
-  /*
-   * @see org.eclipse.jface.text.contentassist.ContentAssistant#possibleCompletionsClosed()
-   */
   @Override
   protected void possibleCompletionsClosed() {
     super.possibleCompletionsClosed();
@@ -343,7 +352,8 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
       @Override
       public IInformationControl createInformationControl(Shell parent) {
         // TODO(scheglov) not sure what exactly message
-        return new DefaultInformationControl(parent,
+        return new DefaultInformationControl(
+            parent,
             "DartToolsPlugin.getAdditionalInfoAffordanceString()");
 //        return new DefaultInformationControl(parent,
 //            DartToolsPlugin.getAdditionalInfoAffordanceString());

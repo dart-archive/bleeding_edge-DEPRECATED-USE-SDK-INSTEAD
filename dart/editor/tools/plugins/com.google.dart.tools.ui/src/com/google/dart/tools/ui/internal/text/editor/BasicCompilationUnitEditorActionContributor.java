@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.editor;
@@ -68,25 +66,29 @@ public class BasicCompilationUnitEditorActionContributor extends BasicDartEditor
 
   public BasicCompilationUnitEditorActionContributor() {
 
-    fRetargetContentAssist = new RetargetAction(JdtActionConstants.CONTENT_ASSIST,
+    fRetargetContentAssist = new RetargetAction(
+        JdtActionConstants.CONTENT_ASSIST,
         DartEditorMessages.ContentAssistProposal_label);
     fRetargetContentAssist.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
     fRetargetContentAssist.setImageDescriptor(DartPluginImages.DESC_ELCL_CODE_ASSIST);
     fRetargetContentAssist.setDisabledImageDescriptor(DartPluginImages.DESC_DLCL_CODE_ASSIST);
     markAsPartListener(fRetargetContentAssist);
 
-    fContentAssist = new RetargetTextEditorAction(DartEditorMessages.getBundleForConstructedKeys(),
+    fContentAssist = new RetargetTextEditorAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
         "ContentAssistProposal."); //$NON-NLS-1$
     fContentAssist.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
     fContentAssist.setImageDescriptor(DartPluginImages.DESC_ELCL_CODE_ASSIST);
     fContentAssist.setDisabledImageDescriptor(DartPluginImages.DESC_DLCL_CODE_ASSIST);
 
     fContextInformation = new RetargetTextEditorAction(
-        DartEditorMessages.getBundleForConstructedKeys(), "ContentAssistContextInformation."); //$NON-NLS-1$
+        DartEditorMessages.getBundleForConstructedKeys(),
+        "ContentAssistContextInformation."); //$NON-NLS-1$
     fContextInformation.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
 
     fQuickAssistAction = new RetargetTextEditorAction(
-        DartEditorMessages.getBundleForConstructedKeys(), "CorrectionAssistProposal."); //$NON-NLS-1$
+        DartEditorMessages.getBundleForConstructedKeys(),
+        "CorrectionAssistProposal."); //$NON-NLS-1$
     fQuickAssistAction.setActionDefinitionId(ITextEditorActionDefinitionIds.QUICK_ASSIST);
 
     //fChangeEncodingAction = new RetargetTextEditorAction(
@@ -188,14 +190,18 @@ public class BasicCompilationUnitEditorActionContributor extends BasicDartEditor
     //    ITextEditorActionConstants.CHANGE_ENCODING));
 
     IActionBars actionBars = getActionBars();
-    actionBars.setGlobalActionHandler(JdtActionConstants.SHIFT_RIGHT,
+    actionBars.setGlobalActionHandler(
+        JdtActionConstants.SHIFT_RIGHT,
         getAction(textEditor, "ShiftRight")); //$NON-NLS-1$
-    actionBars.setGlobalActionHandler(JdtActionConstants.SHIFT_LEFT,
+    actionBars.setGlobalActionHandler(
+        JdtActionConstants.SHIFT_LEFT,
         getAction(textEditor, "ShiftLeft")); //$NON-NLS-1$
 
-    actionBars.setGlobalActionHandler(IDEActionFactory.ADD_TASK.getId(),
+    actionBars.setGlobalActionHandler(
+        IDEActionFactory.ADD_TASK.getId(),
         getAction(textEditor, IDEActionFactory.ADD_TASK.getId()));
-    actionBars.setGlobalActionHandler(IDEActionFactory.BOOKMARK.getId(),
+    actionBars.setGlobalActionHandler(
+        IDEActionFactory.BOOKMARK.getId(),
         getAction(textEditor, IDEActionFactory.BOOKMARK.getId()));
   }
 }

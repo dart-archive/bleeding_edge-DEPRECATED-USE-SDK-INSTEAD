@@ -13,11 +13,23 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
+import com.google.common.collect.Lists;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
-import com.google.dart.tools.ui.internal.text.dart.DartCompletionProposal;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.text.dart.CompletionProposalComparator;
+import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
+import com.google.dart.tools.ui.text.dart.IProblemLocation;
+import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
 
+import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.contentassist.ContentAssistEvent;
 import org.eclipse.jface.text.contentassist.ICompletionListener;
@@ -25,41 +37,46 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.quickassist.IQuickAssistInvocationContext;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
+import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 public class DartCorrectionProcessor implements
     org.eclipse.jface.text.quickassist.IQuickAssistProcessor {
 
-//  private static class SafeAssistCollector extends SafeCorrectionProcessorAccess {
-//    private final IInvocationContext fContext;
-//    private final IProblemLocation[] fLocations;
-//    private final Collection<IDartCompletionProposal> fProposals;
-//
-//    public SafeAssistCollector(IInvocationContext context, IProblemLocation[] locations,
-//        Collection<DartCompletionProposal> proposals) {
-//      fContext = context;
-//      fLocations = locations;
-//      fProposals = proposals;
-//    }
-//
-//    @Override
-//    public void safeRun(ContributedProcessorDescriptor desc) throws Exception {
-//      IQuickAssistProcessor curr = (IQuickAssistProcessor) desc.getProcessor(
-//          fContext.getCompilationUnit(), IQuickAssistProcessor.class);
-//      if (curr != null) {
-//        DartCompletionProposal[] res = curr.getAssists(fContext, fLocations);
-//        if (res != null) {
-//          for (int k = 0; k < res.length; k++) {
-//            fProposals.add(res[k]);
-//          }
-//        }
-//      }
-//    }
-//  }
+  private static class SafeAssistCollector extends SafeCorrectionProcessorAccess {
+    private final IInvocationContext fContext;
+    private final IProblemLocation[] fLocations;
+    private final Collection<IDartCompletionProposal> fProposals;
+
+    public SafeAssistCollector(IInvocationContext context, IProblemLocation[] locations,
+        Collection<IDartCompletionProposal> proposals) {
+      fContext = context;
+      fLocations = locations;
+      fProposals = proposals;
+    }
+
+    @Override
+    public void safeRun(ContributedProcessorDescriptor desc) throws Exception {
+      IQuickAssistProcessor curr = (IQuickAssistProcessor) desc.getProcessor(
+          fContext.getCompilationUnit(),
+          IQuickAssistProcessor.class);
+      if (curr != null) {
+        IDartCompletionProposal[] res = curr.getAssists(fContext, fLocations);
+        if (res != null) {
+          for (int k = 0; k < res.length; k++) {
+            fProposals.add(res[k]);
+          }
+        }
+      }
+    }
+  }
 //  private static class SafeCorrectionCollector extends SafeCorrectionProcessorAccess {
 //    private final IInvocationContext fContext;
 //    private final Collection<DartCompletionProposal> fProposals;
@@ -89,71 +106,80 @@ public class DartCorrectionProcessor implements
 //      fLocations = locations;
 //    }
 //  }
-//
-//  private static abstract class SafeCorrectionProcessorAccess implements ISafeRunnable {
-//    private MultiStatus fMulti = null;
-//    private ContributedProcessorDescriptor fDescriptor;
-//
-//    public IStatus getStatus() {
-//      if (fMulti == null) {
-//        return Status.OK_STATUS;
-//      }
-//      return fMulti;
-//    }
-//
-//    @Override
-//    public void handleException(Throwable exception) {
-//      if (fMulti == null) {
-//        fMulti = new MultiStatus(DartUI.ID_PLUGIN, IStatus.OK,
-//            CorrectionMessages.JavaCorrectionProcessor_error_status, null);
-//      }
-//      fMulti.merge(new Status(IStatus.ERROR, DartUI.ID_PLUGIN, IStatus.ERROR,
-//          CorrectionMessages.JavaCorrectionProcessor_error_status, exception));
-//    }
-//
-//    public void process(ContributedProcessorDescriptor desc) {
-//      fDescriptor = desc;
-//      SafeRunner.run(this);
-//    }
-//
-//    public void process(ContributedProcessorDescriptor[] desc) {
-//      for (int i = 0; i < desc.length; i++) {
-//        fDescriptor = desc[i];
-//        SafeRunner.run(this);
-//      }
-//    }
-//
-//    @Override
-//    public void run() throws Exception {
-//      safeRun(fDescriptor);
-//    }
-//
-//    protected abstract void safeRun(ContributedProcessorDescriptor processor) throws Exception;
-//
-//  }
-//  private static class SafeHasAssist extends SafeCorrectionProcessorAccess {
-//    private final IInvocationContext fContext;
-//    private boolean fHasAssists;
-//
-//    public SafeHasAssist(IInvocationContext context) {
-//      fContext = context;
-//      fHasAssists = false;
-//    }
-//
-//    public boolean hasAssists() {
-//      return fHasAssists;
-//    }
-//
-//    @Override
-//    public void safeRun(ContributedProcessorDescriptor desc) throws Exception {
-//      IQuickAssistProcessor processor = (IQuickAssistProcessor) desc.getProcessor(
-//          fContext.getCompilationUnit(), IQuickAssistProcessor.class);
-//      if (processor != null && processor.hasAssists(fContext)) {
-//        fHasAssists = true;
-//      }
-//    }
-//  }
-//
+
+  private static abstract class SafeCorrectionProcessorAccess implements ISafeRunnable {
+    private MultiStatus fMulti = null;
+    private ContributedProcessorDescriptor fDescriptor;
+
+    public IStatus getStatus() {
+      if (fMulti == null) {
+        return Status.OK_STATUS;
+      }
+      return fMulti;
+    }
+
+    @Override
+    public void handleException(Throwable exception) {
+      if (fMulti == null) {
+        fMulti = new MultiStatus(
+            DartUI.ID_PLUGIN,
+            IStatus.OK,
+            CorrectionMessages.JavaCorrectionProcessor_error_status,
+            null);
+      }
+      fMulti.merge(new Status(
+          IStatus.ERROR,
+          DartUI.ID_PLUGIN,
+          IStatus.ERROR,
+          CorrectionMessages.JavaCorrectionProcessor_error_status,
+          exception));
+    }
+
+    public void process(ContributedProcessorDescriptor desc) {
+      fDescriptor = desc;
+      SafeRunner.run(this);
+    }
+
+    public void process(List<ContributedProcessorDescriptor> desc) {
+      for (ContributedProcessorDescriptor descriptor : desc) {
+        fDescriptor = descriptor;
+        SafeRunner.run(this);
+      }
+    }
+
+    @Override
+    public void run() throws Exception {
+      safeRun(fDescriptor);
+    }
+
+    protected abstract void safeRun(ContributedProcessorDescriptor processor) throws Exception;
+
+  }
+
+  private static class SafeHasAssist extends SafeCorrectionProcessorAccess {
+    private final IInvocationContext fContext;
+    private boolean fHasAssists;
+
+    public SafeHasAssist(IInvocationContext context) {
+      fContext = context;
+      fHasAssists = false;
+    }
+
+    public boolean hasAssists() {
+      return fHasAssists;
+    }
+
+    @Override
+    public void safeRun(ContributedProcessorDescriptor desc) throws Exception {
+      IQuickAssistProcessor processor = (IQuickAssistProcessor) desc.getProcessor(
+          fContext.getCompilationUnit(),
+          IQuickAssistProcessor.class);
+      if (processor != null && processor.hasAssists(fContext)) {
+        fHasAssists = true;
+      }
+    }
+  }
+
 //  private static class SafeHasCorrections extends SafeCorrectionProcessorAccess {
 //    private final CompilationUnit fCu;
 //    private final int fProblemId;
@@ -180,22 +206,24 @@ public class DartCorrectionProcessor implements
 //  }
 //
 //  private static final String QUICKFIX_PROCESSOR_CONTRIBUTION_ID = "quickFixProcessors"; //$NON-NLS-1$
-//
-//  private static final String QUICKASSIST_PROCESSOR_CONTRIBUTION_ID = "quickAssistProcessors"; //$NON-NLS-1$
-//
-//  private static ContributedProcessorDescriptor[] fgContributedAssistProcessors = null;
-//
+
+  private static final String QUICKASSIST_PROCESSOR_CONTRIBUTION_ID = "quickAssistProcessors"; //$NON-NLS-1$
+
+  private static List<ContributedProcessorDescriptor> fgContributedAssistProcessors = null;
+
 //  private static ContributedProcessorDescriptor[] fgContributedCorrectionProcessors = null;
-//
-//  public static IStatus collectAssists(IInvocationContext context, IProblemLocation[] locations,
-//      Collection<DartCompletionProposal> proposals) {
-//    ContributedProcessorDescriptor[] processors = getAssistProcessors();
-//    SafeAssistCollector collector = new SafeAssistCollector(context, locations, proposals);
-//    collector.process(processors);
-//
-//    return collector.getStatus();
-//  }
-//
+
+  public static IStatus collectAssists(
+      IInvocationContext context,
+      IProblemLocation[] locations,
+      Collection<IDartCompletionProposal> proposals) {
+    List<ContributedProcessorDescriptor> processors = getAssistProcessors();
+    SafeAssistCollector collector = new SafeAssistCollector(context, locations, proposals);
+    collector.process(processors);
+
+    return collector.getStatus();
+  }
+
 //  public static IStatus collectCorrections(IInvocationContext context,
 //      IProblemLocation[] locations, Collection<DartCompletionProposal> proposals) {
 //    ContributedProcessorDescriptor[] processors = getCorrectionProcessors();
@@ -211,18 +239,22 @@ public class DartCorrectionProcessor implements
 //    return collector.getStatus();
 //  }
 
-  public static IStatus collectProposals(IInvocationContext context, IAnnotationModel model,
-      Annotation[] annotations, boolean addQuickFixes, boolean addQuickAssists,
-      Collection<DartCompletionProposal> proposals) {
+  public static IStatus collectProposals(
+      IInvocationContext context,
+      IAnnotationModel model,
+      Annotation[] annotations,
+      boolean addQuickFixes,
+      boolean addQuickAssists,
+      Collection<IDartCompletionProposal> proposals) {
+    List<ProblemLocation> problems = Lists.newArrayList();
+
     // TODO(scheglov) restore later
-//    ArrayList<ProblemLocation> problems = new ArrayList<ProblemLocation>();
-//
 //    // collect problem locations and corrections from marker annotations
 //    for (int i = 0; i < annotations.length; i++) {
 //      Annotation curr = annotations[i];
 //      ProblemLocation problemLocation = null;
-//      if (curr instanceof IDartAnnotation) {
-//        problemLocation = getProblemLocation((IDartAnnotation) curr, model);
+//      if (curr instanceof IJavaAnnotation) {
+//        problemLocation = getProblemLocation((IJavaAnnotation) curr, model);
 //        if (problemLocation != null) {
 //          problems.add(problemLocation);
 //        }
@@ -231,46 +263,53 @@ public class DartCorrectionProcessor implements
 //        collectMarkerProposals((SimpleMarkerAnnotation) curr, proposals);
 //      }
 //    }
-//    MultiStatus resStatus = null;
-//
-//    IProblemLocation[] problemLocations = problems.toArray(new IProblemLocation[problems.size()]);
+    MultiStatus resStatus = null;
+
+    IProblemLocation[] problemLocations = problems.toArray(new IProblemLocation[problems.size()]);
 //    if (addQuickFixes) {
 //      IStatus status = collectCorrections(context, problemLocations, proposals);
 //      if (!status.isOK()) {
-//        resStatus = new MultiStatus(DartUI.ID_PLUGIN, IStatus.ERROR,
-//            CorrectionMessages.JavaCorrectionProcessor_error_quickfix_message, null);
+//        resStatus = new MultiStatus(
+//            DartUI.ID_PLUGIN,
+//            IStatus.ERROR,
+//            CorrectionMessages.JavaCorrectionProcessor_error_quickfix_message,
+//            null);
 //        resStatus.add(status);
 //      }
 //    }
-//    if (addQuickAssists) {
-//      IStatus status = collectAssists(context, problemLocations, proposals);
-//      if (!status.isOK()) {
-//        if (resStatus == null) {
-//          resStatus = new MultiStatus(DartUI.ID_PLUGIN, IStatus.ERROR,
-//              CorrectionMessages.JavaCorrectionProcessor_error_quickassist_message, null);
-//        }
-//        resStatus.add(status);
-//      }
-//    }
-//    if (resStatus != null) {
-//      return resStatus;
-//    }
+
+    if (addQuickAssists) {
+      IStatus status = collectAssists(context, problemLocations, proposals);
+      if (!status.isOK()) {
+        if (resStatus == null) {
+          resStatus = new MultiStatus(
+              DartUI.ID_PLUGIN,
+              IStatus.ERROR,
+              CorrectionMessages.JavaCorrectionProcessor_error_quickassist_message,
+              null);
+        }
+        resStatus.add(status);
+      }
+    }
+    if (resStatus != null) {
+      return resStatus;
+    }
     return Status.OK_STATUS;
   }
 
-//  public static boolean hasAssists(IInvocationContext context) {
-//    ContributedProcessorDescriptor[] processors = getAssistProcessors();
-//    SafeHasAssist collector = new SafeHasAssist(context);
-//
-//    for (int i = 0; i < processors.length; i++) {
-//      collector.process(processors[i]);
-//      if (collector.hasAssists()) {
-//        return true;
-//      }
-//    }
-//    return false;
-//  }
-//
+  public static boolean hasAssists(IInvocationContext context) {
+    List<ContributedProcessorDescriptor> processors = getAssistProcessors();
+    SafeHasAssist collector = new SafeHasAssist(context);
+
+    for (ContributedProcessorDescriptor processor : processors) {
+      collector.process(processor);
+      if (collector.hasAssists()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 //  public static boolean hasCorrections(Annotation annotation) {
 //    if (annotation instanceof IDartAnnotation) {
 //      IDartAnnotation dartAnnotation = (IDartAnnotation) annotation;
@@ -317,15 +356,16 @@ public class DartCorrectionProcessor implements
 //      }
 //    }
 //  }
-//
-//  private static ContributedProcessorDescriptor[] getAssistProcessors() {
-//    if (fgContributedAssistProcessors == null) {
-//      fgContributedAssistProcessors = getProcessorDescriptors(
-//          QUICKASSIST_PROCESSOR_CONTRIBUTION_ID, false);
-//    }
-//    return fgContributedAssistProcessors;
-//  }
-//
+
+  private static List<ContributedProcessorDescriptor> getAssistProcessors() {
+    if (fgContributedAssistProcessors == null) {
+      fgContributedAssistProcessors = getProcessorDescriptors(
+          QUICKASSIST_PROCESSOR_CONTRIBUTION_ID,
+          false);
+    }
+    return fgContributedAssistProcessors;
+  }
+
 //  private static ContributedProcessorDescriptor[] getCorrectionProcessors() {
 //    if (fgContributedCorrectionProcessors == null) {
 //      fgContributedCorrectionProcessors = getProcessorDescriptors(
@@ -378,27 +418,29 @@ public class DartCorrectionProcessor implements
 //    }
 //    return null;
 //  }
-//
-//  private static ContributedProcessorDescriptor[] getProcessorDescriptors(String contributionId,
-//      boolean testMarkerTypes) {
-//    IConfigurationElement[] elements = Platform.getExtensionRegistry().getConfigurationElementsFor(
-//        DartUI.ID_PLUGIN, contributionId);
-//    ArrayList<ContributedProcessorDescriptor> res = new ArrayList<ContributedProcessorDescriptor>(
-//        elements.length);
-//
-//    for (int i = 0; i < elements.length; i++) {
-//      ContributedProcessorDescriptor desc = new ContributedProcessorDescriptor(elements[i],
-//          testMarkerTypes);
-//      IStatus status = desc.checkSyntax();
-//      if (status.isOK()) {
-//        res.add(desc);
-//      } else {
-//        DartToolsPlugin.log(status);
-//      }
-//    }
-//    return res.toArray(new ContributedProcessorDescriptor[res.size()]);
-//  }
-//
+
+  private static List<ContributedProcessorDescriptor> getProcessorDescriptors(
+      String contributionId,
+      boolean testMarkerTypes) {
+    IConfigurationElement[] elements = Platform.getExtensionRegistry().getConfigurationElementsFor(
+        DartUI.ID_PLUGIN,
+        contributionId);
+    List<ContributedProcessorDescriptor> res = Lists.newArrayList();
+
+    for (IConfigurationElement element : elements) {
+      ContributedProcessorDescriptor desc = new ContributedProcessorDescriptor(
+          element,
+          testMarkerTypes);
+      IStatus status = desc.checkSyntax();
+      if (status.isOK()) {
+        res.add(desc);
+      } else {
+        DartToolsPlugin.log(status);
+      }
+    }
+    return res;
+  }
+
 //  private static boolean hasCorrections(IMarker marker) {
 //    if (marker == null || !marker.exists()) {
 //      return false;
@@ -448,7 +490,8 @@ public class DartCorrectionProcessor implements
             return CorrectionMessages.JavaCorrectionProcessor_go_to_original_using_menu;
           } else {
             return Messages.format(
-                CorrectionMessages.JavaCorrectionProcessor_go_to_original_using_key, key);
+                CorrectionMessages.JavaCorrectionProcessor_go_to_original_using_key,
+                key);
           }
         } else if (fAssistant.isProblemLocationAvailable()) {
           String key = getQuickAssistBinding();
@@ -456,7 +499,8 @@ public class DartCorrectionProcessor implements
             return CorrectionMessages.JavaCorrectionProcessor_go_to_closest_using_menu;
           } else {
             return Messages.format(
-                CorrectionMessages.JavaCorrectionProcessor_go_to_closest_using_key, key);
+                CorrectionMessages.JavaCorrectionProcessor_go_to_closest_using_key,
+                key);
           }
         } else {
           return ""; //$NON-NLS-1$
@@ -471,28 +515,14 @@ public class DartCorrectionProcessor implements
     });
   }
 
-  /*
-   * @see org.eclipse.jface.text.quickassist.IQuickAssistProcessor#canAssist(org.eclipse.jface.text.
-   * quickassist.IQuickAssistInvocationContext)
-   * 
-   * @since 3.2
-   */
   @Override
   public boolean canAssist(IQuickAssistInvocationContext invocationContext) {
-    // TODO(scheglov) restore later
-//    if (invocationContext instanceof IInvocationContext) {
-//      return hasAssists((IInvocationContext) invocationContext);
-//    }
+    if (invocationContext instanceof IInvocationContext) {
+      return hasAssists((IInvocationContext) invocationContext);
+    }
     return false;
   }
 
-  /*
-   * @see
-   * org.eclipse.jface.text.quickassist.IQuickAssistProcessor#canFix(org.eclipse.jface.text.source
-   * .Annotation)
-   * 
-   * @since 3.2
-   */
   @Override
   public boolean canFix(Annotation annotation) {
     // TODO(scheglov) restore later
@@ -503,49 +533,54 @@ public class DartCorrectionProcessor implements
   /*
    * @see IContentAssistProcessor#computeCompletionProposals(ITextViewer, int)
    */
+  @SuppressWarnings("unchecked")
   @Override
   public ICompletionProposal[] computeQuickAssistProposals(
       IQuickAssistInvocationContext quickAssistContext) {
+    ISourceViewer viewer = quickAssistContext.getSourceViewer();
+    int documentOffset = quickAssistContext.getOffset();
+
+    IEditorPart part = fAssistant.getEditor();
+
+    CompilationUnit cu = DartUI.getWorkingCopyManager().getWorkingCopy(part.getEditorInput());
+    IAnnotationModel model = DartUI.getDocumentProvider().getAnnotationModel(part.getEditorInput());
+
+    AssistContext context = null;
+    if (cu != null) {
+      int length = viewer != null ? viewer.getSelectedRange().y : 0;
+      context = new AssistContext(cu, viewer, part, documentOffset, length);
+    }
+
+    Annotation[] annotations = fAssistant.getAnnotationsAtOffset();
+
+    fErrorMessage = null;
+
+    ICompletionProposal[] res = null;
+    if (model != null && context != null && annotations != null) {
+      List<IDartCompletionProposal> proposals = Lists.newArrayList();
+      IStatus status = collectProposals(
+          context,
+          model,
+          annotations,
+          true,
+          !fAssistant.isUpdatedOffset(),
+          proposals);
+      res = proposals.toArray(new ICompletionProposal[proposals.size()]);
+      if (!status.isOK()) {
+        fErrorMessage = status.getMessage();
+        DartToolsPlugin.log(status);
+      }
+    }
+
     // TODO(scheglov) restore later
-    return new ICompletionProposal[0];
-//    ISourceViewer viewer = quickAssistContext.getSourceViewer();
-//    int documentOffset = quickAssistContext.getOffset();
-//
-//    IEditorPart part = fAssistant.getEditor();
-//
-//    CompilationUnit cu = DartUI.getWorkingCopyManager().getWorkingCopy(part.getEditorInput());
-//    IAnnotationModel model = DartUI.getDocumentProvider().getAnnotationModel(part.getEditorInput());
-//
-//    AssistContext context = null;
-//    if (cu != null) {
-//      int length = viewer != null ? viewer.getSelectedRange().y : 0;
-//      context = new AssistContext(cu, viewer, part, documentOffset, length);
-//    }
-//
-//    Annotation[] annotations = fAssistant.getAnnotationsAtOffset();
-//
-//    fErrorMessage = null;
-//
-//    ICompletionProposal[] res = null;
-//    if (model != null && context != null && annotations != null) {
-//      ArrayList<DartCompletionProposal> proposals = new ArrayList<DartCompletionProposal>(10);
-//      IStatus status = collectProposals(context, model, annotations, true,
-//          !fAssistant.isUpdatedOffset(), proposals);
-//      res = proposals.toArray(new ICompletionProposal[proposals.size()]);
-//      if (!status.isOK()) {
-//        fErrorMessage = status.getMessage();
-//        DartToolsPlugin.log(status);
-//      }
-//    }
-//
 //    if (res == null || res.length == 0) {
 //      return new ICompletionProposal[] {new ChangeCorrectionProposal(
 //          CorrectionMessages.NoCorrectionProposal_description, new NullChange(""), 0, null)}; //$NON-NLS-1$
 //    }
-//    if (res.length > 1) {
-//      Arrays.sort(res, new CompletionProposalComparator());
-//    }
-//    return res;
+    if (res.length > 1) {
+      Arrays.sort(res, new CompletionProposalComparator());
+    }
+    return res;
   }
 
   /*
