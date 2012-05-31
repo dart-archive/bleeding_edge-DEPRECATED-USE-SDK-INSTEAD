@@ -8,10 +8,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "118780",
+  "webkit_revision": "119013",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8712",
+  "nacl_revision": "8733",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "8673",  # native_client/DEPS: tools_rev
@@ -45,22 +45,22 @@ vars = {
   "pnacl_toolchain_revision": "8612",
 
   "libjingle_revision": "145",
-  "libphonenumber_revision": "425",
+  "libphonenumber_revision": "456",
   "libvpx_revision": "134182",
   "lss_revision": "9",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "138127",
-  "ffmpeg_hash": "9b8f7bea0a9b919b15a53e1bad56f251e41b558b",
+  "ffmpeg_revision": "139693",
+  "ffmpeg_hash": "2f1df8e260506e962880128d8ada14032aa9058a",
 
   "sfntly_revision": "128",
-  "skia_revision": "4057",
+  "skia_revision": "4062",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_revision": "11674",
-  "webrtc_revision": "2291",
+  "webrtc_revision": "2326",
   "jsoncpp_revision": "248",
   "nss_revision": "138140",
   "rlz_revision": "128",
@@ -121,7 +121,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@40",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1402",
+    (Var("googlecode_url") % "gyp") + "/trunk@1404",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -189,7 +189,7 @@ deps = {
 
   # We should use the same software_rendering_list.json for all branches.
   "src/chrome/browser/resources/software_rendering_list":
-    "/trunk/deps/gpu/software_rendering_list@135645",
+    "/trunk/deps/gpu/software_rendering_list@139585",
 
   # We run these layout tests as UI tests. Since many of the buildbots that
   # run layout tests do NOT have access to the LayoutTest directory, we need
@@ -278,7 +278,7 @@ deps = {
     "/trunk/deps/third_party/yasm/patched-yasm@134927",
 
   "src/third_party/libjpeg_turbo":
-    "/trunk/deps/third_party/libjpeg_turbo@136524",
+    "/trunk/deps/third_party/libjpeg_turbo@139642",
 
   "src/third_party/flac":
     "/trunk/deps/third_party/flac@120197",
@@ -330,7 +330,7 @@ deps = {
     "/trunk/deps/third_party/undoview@119694",
 
   "src/tools/deps2git":
-    "/trunk/tools/deps2git@128331",
+    "/trunk/tools/deps2git@139377",
 
   "src/third_party/webpagereplay":
     (Var("googlecode_url") % "web-page-replay") + "/trunk@468",
@@ -443,6 +443,14 @@ deps_os = {
 
     "src/third_party/gold":
       "/trunk/deps/third_party/gold@124239",
+  },
+  "android": {
+    "src/third_party/freetype":
+      Var("chromium_git") + "/chromium/src/third_party/freetype.git" +
+      "@1f74e4e7ad3ca4163b4578fc30da26a165dd55e7",
+
+    "src/third_party/aosp":
+      "/trunk/deps/third_party/aosp@122156",
   },
 }
 
