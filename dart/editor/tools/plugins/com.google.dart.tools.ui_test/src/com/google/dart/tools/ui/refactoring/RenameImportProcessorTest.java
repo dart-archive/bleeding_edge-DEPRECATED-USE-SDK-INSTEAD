@@ -653,6 +653,7 @@ public final class RenameImportProcessorTest extends RefactoringTest {
         "}",
         "something bad",
         "");
+    waitForErrorMarker(testUnit);
     DartImport imprt = findElement("#import('LibA.dart");
     // try to rename
     showStatusCancel = false;

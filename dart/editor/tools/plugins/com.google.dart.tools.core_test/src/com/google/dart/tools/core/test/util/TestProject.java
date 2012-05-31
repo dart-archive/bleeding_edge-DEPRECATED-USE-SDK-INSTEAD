@@ -17,6 +17,8 @@ package com.google.dart.tools.core.test.util;
 import com.google.common.io.CharStreams;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
+import com.google.dart.tools.core.index.NotifyCallback;
+import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartProject;
 
@@ -30,13 +32,12 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.jobs.IJobManager;
-import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Helper for creating, manipulating and disposing temporary {@link DartProject}.
@@ -47,18 +48,30 @@ public class TestProject {
    * Wait for auto-build notification to occur, that is for the auto-build to finish.
    */
   public static void waitForAutoBuild() {
-    while (true) {
-      try {
-        IJobManager jobManager = Job.getJobManager();
-        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
-        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
-        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
-        jobManager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
-        break;
-      } catch (Throwable e) {
-      }
-    }
+//    while (true) {
+//      try {
+//        IJobManager jobManager = Job.getJobManager();
+//        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
+//        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
+//        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
+//        jobManager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+//        break;
+//      } catch (Throwable e) {
+//      }
+//    }
     AnalysisTestUtilities.waitForAnalysis();
+    try {
+      final CountDownLatch latch = new CountDownLatch(1);
+      InMemoryIndex.getInstance().notify(new NotifyCallback() {
+        @Override
+        public void done() {
+          latch.countDown();
+        }
+      });
+      latch.await();
+    } catch (Throwable e) {
+      e.printStackTrace();
+    }
   }
 
   private final IProject project;

@@ -462,26 +462,14 @@ public final class RenameFunctionTypeAliasProcessorTest extends RefactoringTest 
   }
 
   public void test_preCondition_hasCompilationErrors() throws Exception {
-    setUnitContent(
-        "Test1.dart",
+    setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "typedef Test();",
-        "");
-    setUnitContent(
-        "Test2.dart",
-        "// filler filler filler filler filler filler filler filler filler filler",
         "f(Test test) {",
         "}",
         "somethingBad");
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('test');",
-        "#source('Test1.dart');",
-        "#source('Test2.dart');");
-    // get units, because they have not library
-    CompilationUnit unit1 = testProject.getUnit("Test1.dart");
-    CompilationUnit unit2 = testProject.getUnit("Test2.dart");
-    DartFunctionTypeAlias functionTypeAlias = findElement(unit1, "Test();");
+    waitForErrorMarker(testUnit);
+    DartFunctionTypeAlias functionTypeAlias = findElement("Test();");
     // try to rename
     showStatusCancel = false;
     renameType(functionTypeAlias, "NewName");
@@ -490,17 +478,12 @@ public final class RenameFunctionTypeAliasProcessorTest extends RefactoringTest 
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(RefactoringStatus.WARNING, showStatusSeverities.get(0).intValue());
     assertEquals(
-        "Code modification may not be accurate as affected resource 'Test/Test2.dart' has compile errors.",
+        "Code modification may not be accurate as affected resource 'Test/Test.dart' has compile errors.",
         showStatusMessages.get(0));
     // status was warning, so rename was done
-    assertUnitContent(
-        unit1,
+    assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "typedef NewName();",
-        "");
-    assertUnitContent(
-        unit2,
-        "// filler filler filler filler filler filler filler filler filler filler",
         "f(NewName test) {",
         "}",
         "somethingBad");

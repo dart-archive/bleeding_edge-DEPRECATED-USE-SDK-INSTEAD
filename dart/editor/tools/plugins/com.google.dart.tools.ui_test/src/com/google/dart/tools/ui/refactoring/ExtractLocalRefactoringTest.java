@@ -14,8 +14,11 @@
 package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.compiler.ast.DartBinaryExpression;
+import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractLocalRefactoring;
 
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -33,6 +36,54 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
   private int selectionEnd;
   private ExtractLocalRefactoring refactoring;
   private RefactoringStatus refactoringStatus;
+
+  public void test_bad_sameVariable_after() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1 + 2;",
+        "  var res;",
+        "}");
+    selectionStart = findOffset("1");
+    selectionEnd = findOffset("2;") + 1;
+    // check conditions
+    createRefactoring("res");
+    assert_warning_alreadyDefined();
+    // use checkLocalName() - conflicting name
+    {
+      refactoringStatus = refactoring.checkLocalName("res");
+      assert_warning_alreadyDefined();
+    }
+    // use checkLocalName() - unique name
+    {
+      refactoringStatus = refactoring.checkLocalName("uniqueName");
+      assertTrue(refactoringStatus.isOK());
+    }
+  }
+
+  public void test_bad_sameVariable_before() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var res;",
+        "  int a = 1 + 2;",
+        "}");
+    selectionStart = findOffset("1");
+    selectionEnd = findOffset("2;") + 1;
+    // check conditions
+    createRefactoring("res");
+    assert_warning_alreadyDefined();
+    // use checkLocalName() - conflicting name
+    {
+      refactoringStatus = refactoring.checkLocalName("res");
+      assert_warning_alreadyDefined();
+    }
+    // use checkLocalName() - unique name
+    {
+      refactoringStatus = refactoring.checkLocalName("uniqueName");
+      assertTrue(refactoringStatus.isOK());
+    }
+  }
 
   public void test_fragmentExpression_leadingNotWhitespace() throws Exception {
     setTestUnitContent(
@@ -320,17 +371,24 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL));
   }
 
+  private void assert_warning_alreadyDefined() {
+    assertTrue(refactoringStatus.hasWarning());
+    assertEquals(
+        "A variable with name 'res' is already defined in the visible scope.",
+        refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.WARNING));
+  }
+
   /**
    * Creates refactoring and checks all conditions.
    */
-  private void createRefactoring(String tempName) throws CoreException {
+  private void createRefactoring(String tempName) throws Exception {
     int selectionLength = selectionEnd - selectionStart;
     refactoring = new ExtractLocalRefactoring(testUnit, selectionStart, selectionLength);
     refactoring.setLocalName(tempName);
     refactoringStatus = refactoring.checkAllConditions(pm);
   }
 
-  private void doSuccessfullRefactoring() throws CoreException {
+  private void doSuccessfullRefactoring() throws Exception {
     // create refactoring
     createRefactoring("res");
     // OK status
@@ -341,10 +399,16 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
     performRefactoringChange();
   }
 
-  private void performRefactoringChange() throws CoreException {
-    Change change = refactoring.createChange(pm);
-    change.initializeValidationData(pm);
-    new PerformChangeOperation(change).run(pm);
+  private void performRefactoringChange() throws Exception {
+    TestProject.waitForAutoBuild();
+    ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+      @Override
+      public void run(IProgressMonitor monitor) throws CoreException {
+        Change change = refactoring.createChange(pm);
+        change.initializeValidationData(pm);
+        new PerformChangeOperation(change).run(pm);
+      }
+    }, null);
+    TestProject.waitForAutoBuild();
   }
-
 }

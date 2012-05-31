@@ -17,22 +17,28 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBinaryExpression;
+import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
+import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.rename.FunctionLocalElement;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.Messages;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.internal.text.Selection;
 import com.google.dart.tools.ui.internal.text.SelectionAnalyzer;
 
@@ -175,6 +181,12 @@ public class ExtractLocalRefactoring extends Refactoring {
     try {
       pm.beginTask(RefactoringCoreMessages.ExtractLocalRefactoring_checking_preconditions, 4);
       RefactoringStatus result = new RefactoringStatus();
+      // check variable name
+      if (getExcludedVariableNames().contains(localName)) {
+        result.addWarning(Messages.format(
+            RefactoringCoreMessages.ExtractTempRefactoring_another_variable,
+            localName));
+      }
       // XXX
       MultiTextEdit rootEdit = new MultiTextEdit();
       change.setEdit(rootEdit);
@@ -237,15 +249,13 @@ public class ExtractLocalRefactoring extends Refactoring {
   }
 
   public RefactoringStatus checkLocalName(String newName) {
-    return new RefactoringStatus();
-    // TODO(scheglov)
-//    RefactoringStatus status = Checks.checkTempName(newName, fCu);
-//    if (Arrays.asList(getExcludedVariableNames()).contains(newName)) {
-//      status.addWarning(Messages.format(
-//          RefactoringCoreMessages.ExtractTempRefactoring_another_variable,
-//          newName));
-//    }
-//    return status;
+    RefactoringStatus status = Checks.checkVariableName(newName);
+    if (getExcludedVariableNames().contains(newName)) {
+      status.addWarning(Messages.format(
+          RefactoringCoreMessages.ExtractTempRefactoring_another_variable,
+          newName));
+    }
+    return status;
   }
 
   @Override
@@ -350,23 +360,31 @@ public class ExtractLocalRefactoring extends Refactoring {
     return RefactoringStatus.createFatalErrorStatus(RefactoringCoreMessages.ExtractLocalRefactoring_select_expression);
   }
 
-  // TODO(scheglov) work in progress
-  @SuppressWarnings("unused")
-  private Set<String> getExcludedVariableNames() throws DartModelException {
+  private Set<String> getExcludedVariableNames() {
     if (excludedVariableNames == null) {
       excludedVariableNames = Sets.newHashSet();
-      DartElement[] elements = unit.codeSelect(selectionStart, 0);
-      if (elements.length == 1) {
-        Method enclosingMethod = elements[0].getAncestor(Method.class);
-        if (enclosingMethod != null) {
-          List<FunctionLocalElement> localElements = RenameAnalyzeUtil.getFunctionLocalElements(enclosingMethod);
-          for (FunctionLocalElement variable : localElements) {
-            if (SourceRangeUtils.contains(variable.getVisibleRange(), selectionStart)) {
-              excludedVariableNames.add(variable.getElementName());
+      ExecutionUtils.runIgnore(new RunnableEx() {
+        @Override
+        public void run() throws Exception {
+          DartElement element = unit.getElementAt(selectionStart);
+          DartNode enclosingNode = NodeFinder.perform(unitNode, selectionStart, 0);
+          DartBlock enclosingBlock = ASTNodes.getParent(enclosingNode, DartBlock.class);
+          if (element != null && enclosingBlock != null) {
+            SourceRange newVariableVisibleRange = new SourceRangeImpl(
+                selectionStart,
+                enclosingBlock.getSourceInfo().getEnd());
+            DartFunction enclosingFunction = element.getAncestor(DartFunction.class);
+            if (enclosingFunction != null) {
+              List<FunctionLocalElement> localElements = RenameAnalyzeUtil.getFunctionLocalElements(enclosingFunction);
+              for (FunctionLocalElement variable : localElements) {
+                if (SourceRangeUtils.intersects(newVariableVisibleRange, variable.getVisibleRange())) {
+                  excludedVariableNames.add(variable.getElementName());
+                }
+              }
             }
           }
         }
-      }
+      });
     }
     return excludedVariableNames;
   }

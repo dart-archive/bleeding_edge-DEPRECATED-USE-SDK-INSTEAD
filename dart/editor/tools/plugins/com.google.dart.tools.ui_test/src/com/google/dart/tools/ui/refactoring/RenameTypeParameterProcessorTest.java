@@ -408,6 +408,7 @@ public final class RenameTypeParameterProcessorTest extends RefactoringTest {
         "  Test f;",
         "}",
         "something bad");
+    waitForErrorMarker(testUnit);
     DartTypeParameter parameter = findElement("Test>");
     // try to rename
     showStatusCancel = false;
