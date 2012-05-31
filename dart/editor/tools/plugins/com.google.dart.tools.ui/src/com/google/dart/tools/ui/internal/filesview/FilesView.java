@@ -96,6 +96,11 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
   }
 
+  /**
+   * A constant for the Link with Editor memento.
+   */
+  private static final String LINK_WITH_EDITOR_ID = "linkWithEditor";
+
   private static boolean allElementsAreProjects(IStructuredSelection selection) {
     for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
       Object selectedElement = iterator.next();
@@ -119,10 +124,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private TreeViewer treeViewer;
 
   private IMemento memento;
-  /**
-   * A final static String for the Link with Editor momento.
-   */
-  private static final String LINK_WITH_EDITOR_ID = "linkWithEditor";
   private LinkWithEditorAction linkWithEditorAction;
   private MoveResourceAction moveAction;
   private RenameResourceAction renameAction;
@@ -164,7 +165,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   public void createPartControl(Composite parent) {
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new ResourceContentProvider());
-    resourceLabelProvider = new ResourceLabelProvider(treeViewer.getTree().getFont());
+    resourceLabelProvider = new ResourceLabelProvider();
     treeViewer.setLabelProvider(new DecoratingStyledCellLabelProvider(resourceLabelProvider,
         new ProblemsLabelDecorator(), null));
     treeViewer.setComparator(new FilesViewerComparator());
@@ -427,7 +428,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     Font oldFont = treeViewer.getTree().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     treeViewer.getTree().setFont(font);
-    resourceLabelProvider.updateFont(font);
   }
 
   Shell getShell() {
