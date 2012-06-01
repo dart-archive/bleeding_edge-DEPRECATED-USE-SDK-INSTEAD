@@ -307,7 +307,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
     for (VmBreakpoint bp : getConnection().getBreakpoints()) {
       if (line == bp.getLocation().getLineNumber()
-          && url.equals(NetUtils.compareUrls(url, bp.getLocation().getUrl()))) {
+          && NetUtils.compareUrls(url, bp.getLocation().getUrl())) {
         return bp;
       }
     }

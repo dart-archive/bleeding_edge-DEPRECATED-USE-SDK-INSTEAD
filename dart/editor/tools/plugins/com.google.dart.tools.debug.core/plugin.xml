@@ -6,7 +6,7 @@
       <launchConfigurationType
             delegate="com.google.dart.tools.debug.core.configs.DartServerLaunchConfigurationDelegate"
             id="com.google.dart.tools.debug.core.serverLaunchConfig"
-            modes="run"
+            modes="run,debug"
             name="%launchconfig.server.name"
             sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
             sourcePathComputerId="com.google.dart.tools.debug.core.sourcePathComputer">

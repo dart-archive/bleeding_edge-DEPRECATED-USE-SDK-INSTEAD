@@ -66,8 +66,6 @@ public class DartDebugCorePlugin extends Plugin {
   // not yet do anything
   public static boolean SEND_MODIFIED_DART = false;
 
-  public static boolean SERVER_DEBUGGING = DartCoreDebug.SERVER_DEBUGGING;
-
   public static final String BROWSER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.browserLaunchConfig";
 
   public static final String REMOTE_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.remoteLaunchConfig";

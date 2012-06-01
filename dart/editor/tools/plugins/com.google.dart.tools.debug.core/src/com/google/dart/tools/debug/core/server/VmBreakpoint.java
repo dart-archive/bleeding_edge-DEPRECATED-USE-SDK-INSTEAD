@@ -34,4 +34,9 @@ public class VmBreakpoint {
     return location;
   }
 
+  @Override
+  public String toString() {
+    return "[breakpoint " + getBreakpointId() + "," + getLocation() + "]";
+  }
+
 }

@@ -71,8 +71,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
   protected void launchVM(ILaunch launch, DartLaunchConfigWrapper launchConfig,
       IProgressMonitor monitor) throws CoreException {
-    boolean enableDebugging = launchConfig.getEnableDebugging()
-        && DartDebugCorePlugin.SERVER_DEBUGGING;
+    boolean enableDebugging = launchConfig.getEnableDebugging();
 
     // Usage: dart [options] script.dart [arguments]
 
@@ -105,7 +104,7 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
 
     commandsList.add(vmExecPath);
     commandsList.addAll(Arrays.asList(launchConfig.getVmArgumentsAsArray()));
-    if (DartDebugCorePlugin.SERVER_DEBUGGING && enableDebugging) {
+    if (enableDebugging) {
       commandsList.add("--debug:" + connectionPort);
     }
 

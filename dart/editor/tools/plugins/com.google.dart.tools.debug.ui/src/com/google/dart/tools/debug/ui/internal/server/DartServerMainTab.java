@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.debug.ui.internal.server;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog;
@@ -127,17 +126,15 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
       }
     });
 
-    if (DartCoreDebug.SERVER_DEBUGGING) {
-      enableDebuggingButton = new Button(group, SWT.CHECK);
-      enableDebuggingButton.setText("Enable debugging");
-      GridDataFactory.swtDefaults().span(2, 1).applyTo(enableDebuggingButton);
-      enableDebuggingButton.addSelectionListener(new SelectionAdapter() {
-        @Override
-        public void widgetSelected(SelectionEvent e) {
-          notifyPanelChanged();
-        }
-      });
-    }
+    enableDebuggingButton = new Button(group, SWT.CHECK);
+    enableDebuggingButton.setText("Enable debugging");
+    GridDataFactory.swtDefaults().span(2, 1).applyTo(enableDebuggingButton);
+    enableDebuggingButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        notifyPanelChanged();
+      }
+    });
 
     label = new Label(group, SWT.NONE);
     label.setText("Heap (MB):");
