@@ -8,7 +8,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "119013",
+  "webkit_revision": "119146",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
   "nacl_revision": "8733",
@@ -55,11 +55,11 @@ vars = {
   "ffmpeg_hash": "2f1df8e260506e962880128d8ada14032aa9058a",
 
   "sfntly_revision": "128",
-  "skia_revision": "4062",
+  "skia_revision": "4088",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "11674",
+  "v8_revision": "11689",
   "webrtc_revision": "2326",
   "jsoncpp_revision": "248",
   "nss_revision": "138140",
@@ -118,7 +118,7 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@37",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@40",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@45",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1404",
@@ -278,7 +278,7 @@ deps = {
     "/trunk/deps/third_party/yasm/patched-yasm@134927",
 
   "src/third_party/libjpeg_turbo":
-    "/trunk/deps/third_party/libjpeg_turbo@139642",
+    "/trunk/deps/third_party/libjpeg_turbo@139754",
 
   "src/third_party/flac":
     "/trunk/deps/third_party/flac@120197",
@@ -539,7 +539,8 @@ hooks = [
     "action": ["python", "src/build/win/setup_cygwin_mount.py", "--win-only"],
   },
   {
-    # Update LASTCHANGE.
+    # Update LASTCHANGE. This is also run by export_tarball.py in
+    # src/tools/export_tarball - please keep them in sync.
     "pattern": ".",
     "action": ["python", "src/build/util/lastchange.py",
                "-o", "src/build/util/LASTCHANGE"],
