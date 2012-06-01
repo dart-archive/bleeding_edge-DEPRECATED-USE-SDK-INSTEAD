@@ -31,6 +31,17 @@ import java.io.InputStream;
  */
 public class CreateFileWizardPage extends WizardNewFileCreationPage {
 
+  private static final String[] dartKeywords = {
+      "break", "case", "catch", "class", "const", "continue", "default", "do", "else", "extends",
+      "false", "final", "finally", "for", "if", "in", "is", "new", "null", "return", "super",
+      "switch", "this", "throw", "true", "try", "var", "void", "while",
+
+      // Pseudo keywords:
+      "abstract", "assert", "call",
+      //"Dynamic",
+      "factory", "get", "implements", "import", "interface", "library", "native", "negate",
+      "operator", "set", "source", "static", "typedef"};
+
   /**
    * @param pageName
    * @param selection
@@ -69,7 +80,6 @@ public class CreateFileWizardPage extends WizardNewFileCreationPage {
     } catch (CoreException e) {
       // fall through
     }
-
     return generator.getStream();
   }
 
@@ -79,4 +89,35 @@ public class CreateFileWizardPage extends WizardNewFileCreationPage {
     return Status.OK_STATUS;
   }
 
+  @Override
+  protected boolean validatePage() {
+    boolean workspaceValidation = super.validatePage();
+    if (!workspaceValidation) {
+      return workspaceValidation;
+    }
+    // Else, no problems were discovered by the Eclipse-resource framework
+    String keyword = isADartKeyword(getFileName());
+    if (keyword != null) {
+      setErrorMessage("'" + keyword + "' is a Dart keyword.");
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Returns <code>null</code> if the passed String is not a Dart keyword, or the keyword if it is a
+   * Dart keyword.
+   * 
+   * @param str the String to test against
+   * @return <code>null</code> if the passed String is not a Dart keyword, or the keyword if it is a
+   *         Dart keyword
+   */
+  private String isADartKeyword(String str) {
+    for (String keyword : dartKeywords) {
+      if (str.equalsIgnoreCase(keyword)) {
+        return keyword;
+      }
+    }
+    return null;
+  }
 }
