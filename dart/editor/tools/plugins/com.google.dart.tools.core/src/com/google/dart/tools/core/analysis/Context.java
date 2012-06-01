@@ -67,10 +67,16 @@ class Context {
 
   void discardLibraries() {
     libraryCache.clear();
+    unresolvedUnits.clear();
   }
 
   void discardLibrary(Library library) {
-    libraryCache.remove(library.getFile());
+    File libraryFile = library.getFile();
+    libraryCache.remove(libraryFile);
+    unresolvedUnits.remove(libraryFile.toURI());
+    for (File sourcedFile : library.getSourceFiles()) {
+      unresolvedUnits.remove(sourcedFile.toURI());
+    }
   }
 
   void discardLibraryAndReferencingLibraries(Library library) {
@@ -101,7 +107,7 @@ class Context {
         return unit;
       }
     }
-    return getUnresolvedUnit(dartFile);
+    return unresolvedUnits.get(dartFile.toURI());
   }
 
   /**
@@ -156,13 +162,6 @@ class Context {
       }
     }
     return result;
-  }
-
-  /**
-   * Answer a unit that has been parsed but not resolved, or <code>null</code> if none
-   */
-  DartUnit getUnresolvedUnit(File file) {
-    return unresolvedUnits.get(file.toURI());
   }
 
   /**
