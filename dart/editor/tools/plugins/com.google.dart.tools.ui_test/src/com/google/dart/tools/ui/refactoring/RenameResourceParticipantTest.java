@@ -13,11 +13,9 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
-import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.test.util.TestProject;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -42,7 +40,7 @@ public final class RenameResourceParticipantTest extends RefactoringTest {
   }
 
   /**
-   * Uses {@link RenameSupport} to rename {@link DartVariableDeclaration}.
+   * Renames given {@link IFile}.
    */
   private static void renameFile(IFile file, String newName) throws Exception {
     TestProject.waitForAutoBuild();

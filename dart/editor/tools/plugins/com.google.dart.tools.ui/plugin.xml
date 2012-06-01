@@ -3418,6 +3418,18 @@
               </with>
             </enablement>
       </renameParticipant>
+      <renameParticipant
+          class="com.google.dart.tools.internal.corext.refactoring.rename.RenameProjectParticipant"
+          id="com.google.dart.tools.internal.corext.refactoring.rename.RenameProjectParticipant"
+            name="Rename Dart project folder on disk">
+            <enablement>
+              <with variable="affectedNatures">
+                <iterate operator="or">
+                  <equals value="com.google.dart.tools.core.dartNature"/>
+                </iterate>
+              </with>
+            </enablement>
+      </renameParticipant>
    </extension>
    <extension
          point="org.eclipse.ltk.core.refactoring.deleteParticipants">

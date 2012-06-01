@@ -65,6 +65,8 @@ public final class RefactoringMessages extends NLS {
   // RenameTypeWizard
   public static String RenameTypeWizard_defaultPageTitle;
   public static String RenameTypeWizardInputPage_description;
+  // RenameProjectParticipant
+  public static String RenameProjectParticipant_name;
   // RenameResourceParticipant
   public static String RenameResourceParticipant_name;
   // DeleteResourceParticipant
