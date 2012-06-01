@@ -34,6 +34,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @coverage dart.editor.ui.correction
+ */
 public final class ContributedProcessorDescriptor {
 
   private final IConfigurationElement fConfigurationElement;

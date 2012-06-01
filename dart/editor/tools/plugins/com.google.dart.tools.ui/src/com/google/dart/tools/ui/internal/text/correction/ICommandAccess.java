@@ -16,6 +16,8 @@ package com.google.dart.tools.ui.internal.text.correction;
 /**
  * Correction proposals implement this interface to by invokable by a command. (e.g. keyboard
  * shortcut)
+ * 
+ * @coverage dart.editor.ui.correction
  */
 public interface ICommandAccess {
 
@@ -23,7 +25,7 @@ public interface ICommandAccess {
    * Returns the id of the command that should invoke this correction proposal
    * 
    * @return the id of the command. This id must start with
-   *         {@link CorrectionCommandInstaller#COMMAND_PREFIX} to be recognixes as correction
+   *         {@link CorrectionCommandInstaller#COMMAND_PREFIX} to be recognized as a correction
    *         command.
    */
   String getCommandId();

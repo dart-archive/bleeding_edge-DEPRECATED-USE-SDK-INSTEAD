@@ -65,6 +65,8 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * <p>
  * The proposal takes care of the preview of the changes as proposal information.
  * </p>
+ * 
+ * @coverage dart.editor.ui.correction
  */
 public class CUCorrectionProposal extends ChangeCorrectionProposal {
 

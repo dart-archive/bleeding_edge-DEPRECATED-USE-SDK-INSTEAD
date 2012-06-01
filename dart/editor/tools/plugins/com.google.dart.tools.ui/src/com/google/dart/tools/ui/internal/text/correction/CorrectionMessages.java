@@ -17,10 +17,17 @@ import org.eclipse.osgi.util.NLS;
 
 /**
  * Helper class to get NLSed messages.
+ * 
+ * @coverage dart.editor.ui.correction
  */
 public final class CorrectionMessages extends NLS {
 
   private static final String BUNDLE_NAME = CorrectionMessages.class.getName();
+
+  // strings which we use in Dart
+  public static String QuickAssistProcessor_exchangeOperands;
+
+  // TODO(scheglov) original strings
 
   public static String FixCorrectionProposal_WarningAdditionalProposalInfo;
 
@@ -311,7 +318,6 @@ public final class CorrectionMessages extends NLS {
   public static String AdvancedQuickAssistProcessor_splitAndCondition_description;
   public static String AdvancedQuickAssistProcessor_joinWithOr_description;
   public static String AdvancedQuickAssistProcessor_splitOrCondition_description;
-  public static String AdvancedQuickAssistProcessor_exchangeOperands_description;
   public static String AddTypeParameterProposal_method_label;
   public static String AddTypeParameterProposal_type_label;
   static {

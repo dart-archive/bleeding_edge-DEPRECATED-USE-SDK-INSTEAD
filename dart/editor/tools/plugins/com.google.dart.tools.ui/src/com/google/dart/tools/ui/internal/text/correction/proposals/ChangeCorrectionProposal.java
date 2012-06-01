@@ -54,6 +54,8 @@ import org.eclipse.ui.IEditorPart;
  * Implementation of a Java completion proposal to be used for quick fix and quick assist proposals
  * that invoke a {@link Change}. The proposal offers a proposal information but no context
  * information.
+ * 
+ * @coverage dart.editor.ui.correction
  */
 public class ChangeCorrectionProposal implements IDartCompletionProposal, ICommandAccess,
     ICompletionProposalExtension5, ICompletionProposalExtension6 {

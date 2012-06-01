@@ -13,21 +13,19 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.bindings.TriggerSequence;
-import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
 
 /**
  * Handler to be used to run a quick fix or assist by keyboard shortcut
+ * 
+ * @coverage dart.editor.ui.correction
  */
 public class CorrectionCommandHandler extends AbstractHandler {
 
@@ -45,15 +43,15 @@ public class CorrectionCommandHandler extends AbstractHandler {
     return null;
   }
 
-  private final DartEditor fEditor;
-  private final String fId;
-
-  private final boolean fIsAssist;
+//  private final DartEditor fEditor;
+//  private final String fId;
+//
+//  private final boolean fIsAssist;
 
   public CorrectionCommandHandler(DartEditor editor, String id, boolean isAssist) {
-    fEditor = editor;
-    fId = id;
-    fIsAssist = isAssist;
+//    fEditor = editor;
+//    fId = id;
+//    fIsAssist = isAssist;
   }
 
   /**
@@ -88,13 +86,13 @@ public class CorrectionCommandHandler extends AbstractHandler {
     return null;
   }
 
-  private ICompletionProposal findCorrection(
-      String id,
-      boolean isAssist,
-      ITextSelection selection,
-      CompilationUnit cu,
-      IAnnotationModel model) {
-    // TODO(scheglov) restore this
+  // TODO(scheglov) restore this
+//  private ICompletionProposal findCorrection(
+//      String id,
+//      boolean isAssist,
+//      ITextSelection selection,
+//      CompilationUnit cu,
+//      IAnnotationModel model) {
 //    AssistContext context = new AssistContext(cu, fEditor.getViewer(), fEditor,
 //        selection.getOffset(), selection.getLength());
 //    Collection<DartCompletionProposal> proposals = new ArrayList<DartCompletionProposal>(10);
@@ -121,8 +119,8 @@ public class CorrectionCommandHandler extends AbstractHandler {
 //        }
 //      }
 //    }
-    return null;
-  }
+//    return null;
+//  }
 
 //  private Annotation[] getAnnotations(int offset, boolean goToClosest) throws BadLocationException {
 //    ArrayList<Annotation> resultingAnnotations = new ArrayList<Annotation>();

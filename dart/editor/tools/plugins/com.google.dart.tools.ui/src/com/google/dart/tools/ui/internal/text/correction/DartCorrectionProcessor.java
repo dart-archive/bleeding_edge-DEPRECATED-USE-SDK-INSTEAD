@@ -47,6 +47,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * @coverage dart.editor.ui.correction
+ */
 public class DartCorrectionProcessor implements
     org.eclipse.jface.text.quickassist.IQuickAssistProcessor {
 

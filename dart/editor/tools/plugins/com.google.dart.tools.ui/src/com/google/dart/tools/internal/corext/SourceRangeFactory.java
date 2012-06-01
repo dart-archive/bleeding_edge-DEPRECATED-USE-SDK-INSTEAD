@@ -15,6 +15,7 @@ package com.google.dart.tools.internal.corext;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.SourceRange;
 
@@ -26,6 +27,16 @@ public class SourceRangeFactory {
 
   public static SourceRange create(DartNode node) {
     return new SourceRangeImpl(node);
+  }
+
+  public static SourceRange forStartEnd(HasSourceInfo startInfo, HasSourceInfo endInfo) {
+    int start = startInfo.getSourceInfo().getOffset();
+    int end = endInfo.getSourceInfo().getEnd();
+    return forStartEnd(start, end);
+  }
+
+  public static SourceRange forStartEnd(int start, int end) {
+    return new SourceRangeImpl(start, end - start);
   }
 
 }

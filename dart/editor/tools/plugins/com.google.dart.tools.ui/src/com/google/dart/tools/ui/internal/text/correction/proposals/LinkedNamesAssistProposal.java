@@ -59,6 +59,8 @@ import java.util.Comparator;
 
 /**
  * A template proposal.
+ * 
+ * @coverage dart.editor.ui.correction
  */
 public class LinkedNamesAssistProposal implements IDartCompletionProposal,
     ICompletionProposalExtension2, ICompletionProposalExtension6, ICommandAccess {
@@ -77,7 +79,10 @@ public class LinkedNamesAssistProposal implements IDartCompletionProposal,
     @Override
     public ExitFlags doExit(LinkedModeModel model, VerifyEvent event, int offset, int length) {
       if (length == 0 && (event.character == SWT.BS || event.character == SWT.DEL)) {
-        LinkedPosition position = model.findPosition(new LinkedPosition(fDocument, offset, 0,
+        LinkedPosition position = model.findPosition(new LinkedPosition(
+            fDocument,
+            offset,
+            0,
             LinkedPositionGroup.NO_STOP));
         if (position != null) {
           if (event.character == SWT.BS) {
@@ -130,10 +135,14 @@ public class LinkedNamesAssistProposal implements IDartCompletionProposal,
       Point seletion = viewer.getSelectedRange();
 
       // get full ast
-      DartUnit root = ASTProvider.getASTProvider().getAST(fContext.getCompilationUnit(),
-          ASTProvider.WAIT_YES, null);
+      DartUnit root = ASTProvider.getASTProvider().getAST(
+          fContext.getCompilationUnit(),
+          ASTProvider.WAIT_YES,
+          null);
 
-      DartNode nameNode = NodeFinder.perform(root, fNode.getSourceInfo().getOffset(),
+      DartNode nameNode = NodeFinder.perform(
+          root,
+          fNode.getSourceInfo().getOffset(),
           fNode.getSourceInfo().getLength());
       final int pos = fNode.getSourceInfo().getOffset();
 
@@ -175,8 +184,11 @@ public class LinkedNamesAssistProposal implements IDartCompletionProposal,
       LinkedPositionGroup group = new LinkedPositionGroup();
       for (int i = 0; i < sameNodes.length; i++) {
         DartNode elem = sameNodes[i];
-        group.addPosition(new LinkedPosition(document, elem.getSourceInfo().getOffset(),
-            elem.getSourceInfo().getLength(), i));
+        group.addPosition(new LinkedPosition(
+            document,
+            elem.getSourceInfo().getOffset(),
+            elem.getSourceInfo().getLength(),
+            i));
       }
 
       LinkedModeModel model = new LinkedModeModel();
@@ -195,8 +207,10 @@ public class LinkedNamesAssistProposal implements IDartCompletionProposal,
       ui.enter();
 
       if (fValueSuggestion != null) {
-        document.replace(nameNode.getSourceInfo().getOffset(),
-            nameNode.getSourceInfo().getLength(), fValueSuggestion);
+        document.replace(
+            nameNode.getSourceInfo().getOffset(),
+            nameNode.getSourceInfo().getLength(),
+            fValueSuggestion);
         IRegion selectedRegion = ui.getSelectedRegion();
         seletion = new Point(selectedRegion.getOffset(), fValueSuggestion.length());
       }
@@ -227,7 +241,8 @@ public class LinkedNamesAssistProposal implements IDartCompletionProposal,
   public String getDisplayString() {
     String shortCutString = CorrectionCommandHandler.getShortCutString(getCommandId());
     if (shortCutString != null) {
-      return Messages.format(CorrectionMessages.ChangeCorrectionProposal_name_with_shortcut,
+      return Messages.format(
+          CorrectionMessages.ChangeCorrectionProposal_name_with_shortcut,
           new String[] {fLabel, shortCutString});
     }
     return fLabel;
@@ -255,9 +270,11 @@ public class LinkedNamesAssistProposal implements IDartCompletionProposal,
     String shortCutString = CorrectionCommandHandler.getShortCutString(getCommandId());
     if (shortCutString != null) {
       String decorated = Messages.format(
-          CorrectionMessages.ChangeCorrectionProposal_name_with_shortcut, new String[] {
-              fLabel, shortCutString});
-      return StyledCellLabelProvider.styleDecoratedString(decorated, StyledString.QUALIFIER_STYLER,
+          CorrectionMessages.ChangeCorrectionProposal_name_with_shortcut,
+          new String[] {fLabel, shortCutString});
+      return StyledCellLabelProvider.styleDecoratedString(
+          decorated,
+          StyledString.QUALIFIER_STYLER,
           str);
     }
     return str;

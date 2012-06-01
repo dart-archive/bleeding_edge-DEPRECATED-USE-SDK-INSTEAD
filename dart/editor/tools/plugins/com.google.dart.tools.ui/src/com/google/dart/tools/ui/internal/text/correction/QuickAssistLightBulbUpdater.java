@@ -24,7 +24,6 @@ import com.google.dart.tools.ui.internal.viewsupport.ISelectionListenerWithAST;
 import com.google.dart.tools.ui.internal.viewsupport.SelectionListenerWithASTManager;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationAccessExtension;
@@ -44,7 +43,7 @@ import org.eclipse.ui.texteditor.AnnotationPreference;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- *
+ * @coverage dart.editor.ui.correction
  */
 public class QuickAssistLightBulbUpdater {
 
@@ -140,7 +139,9 @@ public class QuickAssistLightBulbUpdater {
         if (cu != null) {
           installSelectionListener();
           Point point = fViewer.getSelectedRange();
-          DartUnit astRoot = ASTProvider.getASTProvider().getAST(cu, ASTProvider.WAIT_ACTIVE_ONLY,
+          DartUnit astRoot = ASTProvider.getASTProvider().getAST(
+              cu,
+              ASTProvider.WAIT_ACTIVE_ONLY,
               null);
           if (astRoot != null) {
             doSelectionChanged(point.x, point.y, astRoot);
@@ -200,9 +201,9 @@ public class QuickAssistLightBulbUpdater {
     return null;
   }
 
-  private IDocument getDocument() {
-    return DartUI.getDocumentProvider().getDocument(fEditor.getEditorInput());
-  }
+//  private IDocument getDocument() {
+//    return DartUI.getDocumentProvider().getDocument(fEditor.getEditorInput());
+//  }
 
   /**
    * Tests if there is already a quick fix light bulb on the current line

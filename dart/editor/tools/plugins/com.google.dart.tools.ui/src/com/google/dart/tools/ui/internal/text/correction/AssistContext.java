@@ -28,6 +28,9 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.TextInvocationContext;
 import org.eclipse.ui.IEditorPart;
 
+/**
+ * @coverage dart.editor.ui.correction
+ */
 public class AssistContext extends TextInvocationContext implements IInvocationContext {
 
   private final CompilationUnit fCompilationUnit;

@@ -21,8 +21,9 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
@@ -33,84 +34,26 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
+import org.eclipse.text.edits.TextEdit;
 
-import java.util.Collection;
 import java.util.List;
 
+/**
+ * Standard {@link IQuickAssistProcessor} for Dart.
+ * 
+ * @coverage dart.editor.ui.correction
+ */
 public class QuickAssistProcessor implements IQuickAssistProcessor {
-
-  static boolean noErrorsAtLocation(IProblemLocation[] locations) {
-    if (locations != null) {
-      for (int i = 0; i < locations.length; i++) {
-        IProblemLocation location = locations[i];
-        if (location.isError()) {
-          return false;
-//          if (DartCore.DART_PROBLEM_MARKER_TYPE.equals(location.getMarkerType())
-//              && DartCore.getOptionForConfigurableSeverity(location.getProblemId()) != null) {
-//            // continue (only drop out for severe (non-optional) errors)
-//          } else {
-//            return false;
-//          }
-        }
-      }
-    }
-    return true;
+  private static ReplaceEdit createReplaceEdit(SourceRange range, String text) {
+    return new ReplaceEdit(range.getOffset(), range.getLength(), text);
   }
 
-  private static boolean getExchangeOperandsProposals(
-      IInvocationContext context,
-      DartNode node,
-      Collection<ICommandAccess> proposals) {
-    // check that user invokes quick assist on infix expression
-    if (!(node instanceof DartBinaryExpression)) {
-      return false;
-    }
-    DartBinaryExpression binaryExpression = (DartBinaryExpression) node;
-    // prepare operator position
-    int offset = isOperatorSelected(
-        binaryExpression,
-        context.getSelectionOffset(),
-        context.getSelectionLength());
-    if (offset == -1) {
-      return false;
-    }
-    // we could produce quick assist
-    if (proposals == null) {
-      return true;
-    }
-    // add correction proposal
-    String label = CorrectionMessages.AdvancedQuickAssistProcessor_exchangeOperands_description;
-    Image image = DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
-    CompilationUnit unit = context.getCompilationUnit();
-    CompilationUnitChange change = new CompilationUnitChange(label, unit);
-    MultiTextEdit rootEdit = new MultiTextEdit();
-    change.setEdit(rootEdit);
-    // fill CompilationUnitChange
-    try {
-      DartExpression arg1 = binaryExpression.getArg1();
-      DartExpression arg2 = binaryExpression.getArg2();
-      SourceRange range1 = SourceRangeFactory.create(arg1);
-      SourceRange range2 = SourceRangeFactory.create(arg2);
-      change.addEdit(new ReplaceEdit(
-          range1.getOffset(),
-          range1.getLength(),
-          unit.getBuffer().getText(range2.getOffset(), range2.getLength())));
-      change.addEdit(new ReplaceEdit(
-          range2.getOffset(),
-          range2.getLength(),
-          unit.getBuffer().getText(range1.getOffset(), range1.getLength())));
-    } catch (Throwable e) {
-      DartToolsPlugin.log(e);
-      return false;
-    }
-    // add proposal
-    proposals.add(new CUCorrectionProposal(label, unit, change, offset, image));
-    return true;
-  }
-
-  private static int isOperatorSelected(DartBinaryExpression infixExpression, int offset, int length) {
-    DartNode left = infixExpression.getArg1();
-    DartNode right = infixExpression.getArg2();
+  private static int isOperatorSelected(
+      DartBinaryExpression binaryExpression,
+      int offset,
+      int length) {
+    DartNode left = binaryExpression.getArg1();
+    DartNode right = binaryExpression.getArg2();
     if (isSelectingOperator(left, right, offset, length)) {
       return left.getSourceInfo().getEnd();
     }
@@ -122,32 +65,124 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     if (offset >= n1.getSourceInfo().getEnd() && offset + length <= n2.getSourceInfo().getOffset()) {
       return true;
     }
-//    // or exactly select the node (but not with infix expressions)
-//    if (n1.getStartPosition() == offset && ASTNodes.getExclusiveEnd(n2) == offset + length) {
-//      if (n1 instanceof InfixExpression || n2 instanceof InfixExpression) {
-//        return false;
-//      }
-//      return true;
-//    }
+    // or exactly select the node (but not with infix expressions)
+    if (offset == n1.getSourceInfo().getOffset() && offset + length == n2.getSourceInfo().getEnd()) {
+      if (n1 instanceof DartBinaryExpression || n2 instanceof DartBinaryExpression) {
+        return false;
+      }
+      return true;
+    }
+    // invalid selection (part of node, etc)
     return false;
   }
 
+  private static boolean noErrorsAtLocation(IProblemLocation[] locations) {
+    if (locations != null) {
+      for (IProblemLocation location : locations) {
+        if (location.isError()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  private final List<ICommandAccess> proposals = Lists.newArrayList();
+  private int selectionOffset;
+  private int selectionLength;
+  private CompilationUnit unit;
+  private DartNode node;
+  private final List<TextEdit> textEdits = Lists.newArrayList();
+
   @Override
-  public IDartCompletionProposal[] getAssists(
+  public synchronized IDartCompletionProposal[] getAssists(
       IInvocationContext context,
       IProblemLocation[] locations) throws CoreException {
-    DartNode coveringNode = context.getCoveringNode();
-    if (coveringNode != null) {
-      List<ICommandAccess> resultingCollections = Lists.newArrayList();
+    proposals.clear();
+    unit = context.getCompilationUnit();
+    selectionOffset = context.getSelectionOffset();
+    selectionLength = context.getSelectionLength();
+    node = context.getCoveringNode();
+    if (node != null) {
+      textEdits.clear();
       boolean noErrorsAtLocation = noErrorsAtLocation(locations);
-
       if (noErrorsAtLocation) {
-//        boolean problemsAtLocation = locations.length != 0;
-        getExchangeOperandsProposals(context, coveringNode, resultingCollections);
+        ExecutionUtils.runIgnore(new RunnableEx() {
+          @Override
+          public void run() throws Exception {
+            addExchangeOperandsProposal();
+          }
+        });
       }
-      return resultingCollections.toArray(new IDartCompletionProposal[resultingCollections.size()]);
     }
-    return null;
+    return proposals.toArray(new IDartCompletionProposal[proposals.size()]);
+  }
+
+  @Override
+  public boolean hasAssists(IInvocationContext context) throws CoreException {
+    return true;
+  }
+
+  private boolean addExchangeOperandsProposal() throws Exception {
+    // check that user invokes quick assist on binary expression
+    if (!(node instanceof DartBinaryExpression)) {
+      return false;
+    }
+    DartBinaryExpression binaryExpression = (DartBinaryExpression) node;
+    // prepare operator position
+    int offset = isOperatorSelected(binaryExpression, selectionOffset, selectionLength);
+    if (offset == -1) {
+      return false;
+    }
+    // add TextEdit-s
+    {
+      DartExpression arg1 = binaryExpression.getArg1();
+      DartExpression arg2 = binaryExpression.getArg2();
+      // find "wide" enclosing binary expression with same operator
+      while (binaryExpression.getParent() instanceof DartBinaryExpression) {
+        DartBinaryExpression newBinaryExpression = (DartBinaryExpression) binaryExpression.getParent();
+        if (newBinaryExpression.getOperator() != binaryExpression.getOperator()) {
+          break;
+        }
+        binaryExpression = newBinaryExpression;
+      }
+      // exchange parts of "wide" expression parts
+      SourceRange range1 = SourceRangeFactory.forStartEnd(binaryExpression, arg1);
+      SourceRange range2 = SourceRangeFactory.forStartEnd(arg2, binaryExpression);
+      textEdits.add(createReplaceEdit(range1, getSource(range2)));
+      textEdits.add(createReplaceEdit(range2, getSource(range1)));
+    }
+    // add proposal
+    addUnitCorrectionProposal(
+        CorrectionMessages.QuickAssistProcessor_exchangeOperands,
+        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    return true;
+  }
+
+  private void addUnitCorrectionProposal(String label, Image image) {
+    // prepare change
+    CompilationUnitChange change = new CompilationUnitChange(label, unit);
+    change.setEdit(new MultiTextEdit());
+    // add edits
+    for (TextEdit textEdit : textEdits) {
+      change.addEdit(textEdit);
+    }
+    // add proposal
+    proposals.add(new CUCorrectionProposal(label, unit, change, 1, image));
+  }
+
+  /**
+   * @return the part of {@link #unit} source.
+   */
+  private String getSource(int offset, int length) throws Exception {
+    return unit.getBuffer().getText(offset, length);
+  }
+
+  /**
+   * @return the part of {@link #unit} source.
+   */
+  private String getSource(SourceRange range) throws Exception {
+    return getSource(range.getOffset(), range.getLength());
   }
 
 //  private static class RefactoringCorrectionProposal extends CUCorrectionProposal {
@@ -555,11 +590,6 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
 //    resultingCollections.add(proposal);
 //    return true;
 //  }
-
-  @Override
-  public boolean hasAssists(IInvocationContext context) throws CoreException {
-    return false;
-  }
 
 //  private static void addExceptionToThrows(
 //      AST ast,

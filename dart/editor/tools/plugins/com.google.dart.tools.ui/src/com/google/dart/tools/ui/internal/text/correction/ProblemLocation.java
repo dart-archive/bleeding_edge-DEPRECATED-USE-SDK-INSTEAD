@@ -23,6 +23,9 @@ import com.google.dart.tools.ui.internal.text.editor.DartMarkerAnnotation;
 import com.google.dart.tools.ui.internal.text.editor.IJavaAnnotation;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 
+/**
+ * @coverage dart.editor.ui.correction
+ */
 public class ProblemLocation implements IProblemLocation {
 
   private final int fId;

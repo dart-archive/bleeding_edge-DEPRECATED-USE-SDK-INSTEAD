@@ -28,6 +28,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * @coverage dart.editor.ui.correction
+ */
 public class CorrectionCommandInstaller {
 
   /**

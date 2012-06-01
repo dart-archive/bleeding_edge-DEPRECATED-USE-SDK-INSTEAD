@@ -103,8 +103,9 @@ public abstract class AbstractDartTest extends TestCase {
    * @return the offset of given <code>search</code> string. Fails test if not found.
    */
   protected static int findOffset(CompilationUnit unit, String search) throws Exception {
-    int offset = unit.getSource().indexOf(search);
-    assertThat(offset).isNotEqualTo(-1);
+    String source = unit.getSource();
+    int offset = source.indexOf(search);
+    assertThat(offset).describedAs(source).isNotEqualTo(-1);
     return offset;
   }
 
