@@ -47,7 +47,7 @@ class DiscardLibraryTask extends Task {
     AnalysisEvent event = null;
     Library library = context.getCachedLibrary(libraryFile);
     if (library != null) {
-      event = new AnalysisEvent(libraryFile, library.getSourceFiles());
+      event = new AnalysisEvent(libraryFile, library.getSourceFiles(), AnalysisError.NONE);
       context.discardLibraryAndReferencingLibraries(library);
     }
     // Remove all pending analysis tasks as they may have been related to the discarded library

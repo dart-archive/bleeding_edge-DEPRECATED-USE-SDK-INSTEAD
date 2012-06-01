@@ -16,8 +16,6 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 
-import junit.framework.Assert;
-
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -128,17 +126,24 @@ class Listener implements AnalysisListener {
     }
   }
 
-  void assertWasParsed(File libFile, File file) {
-    HashSet<String> parsedInLib = parsed.get(libFile.getPath());
+  void assertWasNotParsed(File libraryFile, File file) {
+    HashSet<String> parsedInLib = parsed.get(libraryFile.getPath());
+    if (parsedInLib != null && parsedInLib.contains(file.getPath())) {
+      fail("Did not expect parse notification for " + file + "  in " + libraryFile);
+    }
+  }
+
+  void assertWasParsed(File libraryFile, File file) {
+    HashSet<String> parsedInLib = parsed.get(libraryFile.getPath());
     if (parsedInLib == null || !parsedInLib.contains(file.getPath())) {
-      Assert.fail("Expected parsed file " + file + LINE_SEPARATOR + "  in " + libFile
+      fail("Expected parse notification for " + file + LINE_SEPARATOR + "  in " + libraryFile
           + " but found " + (parsedInLib != null ? parsedInLib : parsed));
     }
   }
 
-  void assertWasResolved(File file) {
-    if (!resolved.contains(file.getPath())) {
-      Assert.fail("Expected parsed library " + file + " but found " + resolved);
+  void assertWasResolved(File libraryFile) {
+    if (!resolved.contains(libraryFile.getPath())) {
+      fail("Expected resolved notification for " + libraryFile + " but found " + resolved);
     }
   }
 

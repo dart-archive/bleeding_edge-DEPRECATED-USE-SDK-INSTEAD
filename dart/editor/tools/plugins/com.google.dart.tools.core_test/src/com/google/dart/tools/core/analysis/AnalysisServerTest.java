@@ -28,42 +28,16 @@ import junit.framework.TestCase;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 
 public class AnalysisServerTest extends TestCase {
 
-  private static class Resolution implements ResolveLibraryCallback {
-    private LibraryUnit result;
-
-    @Override
-    public void resolved(LibraryUnit libraryUnit) {
-      synchronized (this) {
-        result = libraryUnit;
-        notifyAll();
-      }
-    }
-
-    LibraryUnit waitForResolution() {
-      synchronized (this) {
-        if (result == null) {
-          try {
-            wait(FIVE_MINUTES_MS);
-          } catch (InterruptedException e) {
-            //$FALL-THROUGH$
-          }
-          if (result == null) {
-            fail("Timed out waiting for resolution");
-          }
-        }
-        LibraryUnit libUnit = result;
-        result = null;
-        return libUnit;
-      }
-    }
-  }
+  private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   private static final String TEST_CLASS_SIMPLE_NAME = AnalysisServerTest.class.getSimpleName();
 
@@ -89,7 +63,7 @@ public class AnalysisServerTest extends TestCase {
     setupServer();
     assertTrackedLibraryFiles();
 
-    server.analyzeLibrary(libFile);
+    server.analyze(libFile);
     waitForIdle();
     if (!listener.getResolved().contains(libFile.getPath())) {
       fail("Expected resolved library " + libFile + " but found " + listener.getResolved());
@@ -106,23 +80,18 @@ public class AnalysisServerTest extends TestCase {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override
       public void run(File tempDir) throws Exception {
-        test_AnalysisServer_changed(tempDir);
+        File libFile = test_AnalysisServer_analyzeLibrary(tempDir);
+        listener.reset();
+        server.changed(libFile);
+        waitForIdle();
+        if (!listener.getResolved().contains(libFile.getPath())) {
+          fail("Expected resolved library " + libFile + " but found " + listener.getResolved());
+        }
+        assertEquals(1, listener.getResolved().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
       }
     });
-  }
-
-  public File test_AnalysisServer_changed(File tempDir) throws Exception {
-    File libFile = test_AnalysisServer_analyzeLibrary(tempDir);
-    listener.reset();
-    server.changed(libFile);
-    waitForIdle();
-    if (!listener.getResolved().contains(libFile.getPath())) {
-      fail("Expected resolved library " + libFile + " but found " + listener.getResolved());
-    }
-    assertEquals(1, listener.getResolved().size());
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
-    return libFile;
   }
 
   public void test_AnalysisServer_discardDirectory() throws Exception {
@@ -159,7 +128,7 @@ public class AnalysisServerTest extends TestCase {
     listener.reset();
     synchronized (getServerQueue()) {
       // Queue a task that should never run
-      server.analyzeLibrary(libFile);
+      server.analyze(libFile);
       server.discard(discardParent ? libFile.getParentFile() : libFile);
     }
     waitForIdle();
@@ -176,143 +145,290 @@ public class AnalysisServerTest extends TestCase {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override
       public void run(File tempDir) throws Exception {
-        test_AnalysisServer_idleEvent(tempDir);
-      }
-    });
-  }
-
-  public void test_AnalysisServer_idleEvent(File tempDir) throws Exception {
-    final int[] count = new int[] {0};
-    final File libFile = setupMoneyLibrary(tempDir);
-    setupServer();
-    server.addAnalysisListener(new AnalysisListener.Empty() {
-      @Override
-      public void idle(boolean idle) {
-        if (idle) {
-          count[0]++;
-          if (count[0] < 3) {
-            server.changed(libFile);
+        final int[] count = new int[] {0};
+        final File libFile = setupMoneyLibrary(tempDir);
+        setupServer();
+        server.addAnalysisListener(new AnalysisListener.Empty() {
+          @Override
+          public void idle(boolean idle) {
+            if (idle) {
+              count[0]++;
+              if (count[0] < 3) {
+                server.changed(libFile);
+              }
+            }
           }
+        });
+        server.analyze(libFile);
+        while (count[0] < 3) {
+          waitForIdle();
         }
       }
     });
-    server.analyzeLibrary(libFile);
-    while (count[0] < 3) {
-      waitForIdle();
-    }
   }
 
-  public void test_AnalysisServer_parseLibraryFile() throws Exception {
+  public void test_AnalysisServer_parse() throws Exception {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override
       public void run(File tempDir) throws Exception {
-        test_AnalysisServer_parseLibraryFile(tempDir);
+        File libFile = setupMoneyLibrary(tempDir);
+        File currencyFile = new File(libFile.getParent(), "currency.dart");
+        File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
+        setupServer();
+
+        listener.reset();
+        DartUnit unit = server.parse(libFile, libFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(unit, "Money");
+        listener.assertWasParsed(libFile, libFile);
+        assertEquals(1, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        unit = server.parse(libFile, currencyFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(unit, "Currency");
+        listener.assertWasParsed(libFile, currencyFile);
+        assertEquals(1, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        unit = server.parse(libFile, fileDoesNotExist, FIVE_MINUTES_MS);
+        assertNoTopDeclaration(unit);
+        listener.assertWasParsed(libFile, fileDoesNotExist);
+        assertEquals(1, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(1, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        unit = server.parse(libFile, libFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(unit, "Money");
+        assertEquals(0, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        unit = server.parse(libFile, currencyFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(unit, "Currency");
+        assertEquals(0, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        unit = server.parse(libFile, fileDoesNotExist, FIVE_MINUTES_MS);
+        assertNoTopDeclaration(unit);
+        assertEquals(0, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
       }
     });
   }
 
-  public void test_AnalysisServer_parseLibraryFile(File tempDir) throws Exception {
-    File libFile = setupMoneyLibrary(tempDir);
-    setupServer();
-
-    listener.reset();
-    ParseLibraryFileEvent result = parseLibraryFile(libFile);
-    assertNotNull(result);
-    assertNotNull(result.getUnit());
-    assertEquals(1, result.getImportedFiles().size());
-    assertEquals(4, result.getSourcedFiles().size());
-    listener.assertWasParsed(libFile, libFile);
-    assertEquals(1, listener.getParsedCount());
-    assertEquals(0, listener.getResolved().size());
-    assertEquals(0, listener.getErrors().size());
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
-
-    listener.reset();
-    File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
-    result = parseLibraryFile(fileDoesNotExist);
-    assertNotNull(result);
-    assertNotNull(result.getUnit());
-    assertEquals(1, result.getImportedFiles().size()); // implicit import dart:core
-    assertEquals(0, result.getSourcedFiles().size());
-    listener.assertWasParsed(fileDoesNotExist, fileDoesNotExist);
-    assertEquals(1, listener.getParsedCount());
-    assertEquals(0, listener.getResolved().size());
-    assertEquals(1, listener.getErrors().size());
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
-  }
-
-  public void test_AnalysisServer_resolveLibrary() throws Exception {
+  public void test_AnalysisServer_parse2() throws Exception {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override
       public void run(File tempDir) throws Exception {
-        test_AnalysisServer_resolveLibrary(tempDir);
+        File libFile = setupMoneyLibrary(tempDir);
+        File currencyFile = new File(libFile.getParent(), "currency.dart");
+        setupServer();
+
+        listener.reset();
+        DartUnit unit = server.parse(libFile, currencyFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(unit, "Currency");
+        listener.assertWasParsed(libFile, currencyFile);
+        listener.assertWasParsed(libFile, libFile);
+        assertEquals(2, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        unit = server.parse(libFile, currencyFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(unit, "Currency");
+        assertEquals(0, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
       }
     });
   }
 
-  public void test_AnalysisServer_resolveLibrary(File tempDir) throws Exception {
-    File libFile = setupMoneyLibrary(tempDir);
-    setupServer();
+  public void test_AnalysisServer_parseDoesNotExist() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        File libFile = setupMoneyLibrary(tempDir);
+        File currencyFile = new File(libFile.getParent(), "currency.dart");
+        File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
+        setupServer();
 
-    listener.reset();
-    LibraryUnit libUnit = waitForResolution(libFile);
-    assertNotNull(libUnit);
-    listener.assertWasParsed(libFile, libFile);
-    listener.assertWasResolved(libFile);
-    assertTrue(listener.getParsedCount() > 10);
-    assertEquals(3, listener.getResolved().size());
-    //assertEquals(0, listener.getErrors().size());
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
+        listener.reset();
+        DartUnit unit = server.parse(fileDoesNotExist, fileDoesNotExist, FIVE_MINUTES_MS);
+        assertNoTopDeclaration(unit);
+        listener.assertWasParsed(fileDoesNotExist, fileDoesNotExist);
+        assertEquals(1, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(1, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
 
-    // assert that resolved unit has been cached
-    listener.reset();
-    LibraryUnit libUnit2 = waitForResolution(libFile);
-    assertTrue(libUnit == libUnit2);
-    assertEquals(0, listener.getResolved().size());
-    assertEquals(0, listener.getErrors().size());
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
+        listener.reset();
+        unit = server.parse(fileDoesNotExist, libFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(unit, "Money");
+        listener.assertWasParsed(fileDoesNotExist, libFile);
+        assertEquals(1, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
 
-    listener.reset();
-    File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
-    libUnit = waitForResolution(fileDoesNotExist);
-    assertNotNull(libUnit);
-    listener.assertWasParsed(fileDoesNotExist, fileDoesNotExist);
-    listener.assertWasResolved(fileDoesNotExist);
-    assertEquals(1, listener.getParsedCount());
-    assertEquals(1, listener.getResolved().size());
-    assertEquals(1, listener.getErrors().size());
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
+        listener.reset();
+        unit = server.parse(fileDoesNotExist, currencyFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(unit, "Currency");
+        listener.assertWasParsed(fileDoesNotExist, currencyFile);
+        assertEquals(1, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        unit = server.parse(fileDoesNotExist, fileDoesNotExist, FIVE_MINUTES_MS);
+        assertNoTopDeclaration(unit);
+        assertEquals(0, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        unit = server.parse(fileDoesNotExist, libFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(unit, "Money");
+        assertEquals(0, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+      }
+    });
   }
 
-  public void test_AnalysisServer_resolveLibraryWhenBusy() throws Exception {
+  public void test_AnalysisServer_parseResolutionErrors() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        File aFile = new File(tempDir, "a.dart");
+        FileUtilities.setContents(aFile, "#source('b.dart');" + LINE_SEPARATOR
+            + "class A extends C { foo() { x } }");
+        File bFile = new File(tempDir, "b.dart");
+        FileUtilities.setContents(bFile, "class B { D f1; E f2; F f3; G f4; }");
+        setupServer();
+
+        listener.reset();
+        server.resolve(aFile, FIVE_MINUTES_MS);
+        assertEquals(7, listener.getErrors().size());
+
+        listener.reset();
+        DartUnit unit = server.parse(aFile, aFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(unit, "A");
+        assertEquals(0, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        unit = server.parse(aFile, bFile, FIVE_MINUTES_MS);
+        assertTopDeclarationExists(unit, "B");
+        assertEquals(0, listener.getParsedCount());
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+      }
+    });
+  }
+
+  public void test_AnalysisServer_resolve() throws Exception {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override
       public void run(File tempDir) throws Exception {
         File libFile = setupMoneyLibrary(tempDir);
         setupServer();
 
-        DartUnit unit = waitForResolution(libFile).getSelfDartUnit();
+        listener.reset();
+        LibraryUnit libUnit = server.resolve(libFile, FIVE_MINUTES_MS);
+        assertNotNull(libUnit);
+        listener.assertWasParsed(libFile, libFile);
+        listener.assertWasResolved(libFile);
+        assertTrue(listener.getParsedCount() > 10);
+        assertEquals(3, listener.getResolved().size());
+        //assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        // assert that resolved unit has been cached
+        listener.reset();
+        LibraryUnit libUnit2 = server.resolve(libFile, FIVE_MINUTES_MS);
+        assertTrue(libUnit == libUnit2);
+        assertEquals(0, listener.getResolved().size());
+        assertEquals(0, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
+        libUnit = server.resolve(fileDoesNotExist, FIVE_MINUTES_MS);
+        assertNotNull(libUnit);
+        listener.assertWasParsed(fileDoesNotExist, fileDoesNotExist);
+        listener.assertWasResolved(fileDoesNotExist);
+        assertEquals(1, listener.getParsedCount());
+        assertEquals(1, listener.getResolved().size());
+        assertEquals(2, listener.getErrors().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+      }
+    });
+  }
+
+  public void test_AnalysisServer_resolveWhenBusy() throws Exception {
+    TestUtilities.runWithTempDirectory(new FileOperation() {
+      @Override
+      public void run(File tempDir) throws Exception {
+        File libFile = setupMoneyLibrary(tempDir);
+        setupServer();
+
+        DartUnit unit = server.resolve(libFile, FIVE_MINUTES_MS).getSelfDartUnit();
         assertEquals("Money", unit.getTopDeclarationNames().iterator().next());
 
         // Simulate a busy system
-        Resolution callback = new Resolution();
+        ResolveCallback.Sync callback = new ResolveCallback.Sync();
         synchronized (getServerQueue()) {
           FileUtilities.setContents(libFile, "class A { }");
           server.changed(libFile);
-          server.resolveLibrary(libFile, callback);
+          server.resolve(libFile, callback);
         }
-        unit = callback.waitForResolution().getSelfDartUnit();
+        unit = callback.waitForResolve(FIVE_MINUTES_MS).getSelfDartUnit();
         assertEquals("A", unit.getTopDeclarationNames().iterator().next());
       }
     });
   }
 
-  public void test_AnalysisServer_resolveLibraryWhenBusy2() throws Exception {
+  public void test_AnalysisServer_resolveWhenBusy2() throws Exception {
     if (!DartCoreDebug.ANALYSIS_SERVER) {
       return;
     }
@@ -323,18 +439,18 @@ public class AnalysisServerTest extends TestCase {
 
     TestProject proj = new TestProject(projName);
     File libFile = proj.setFileContent(libFileName, "class A { }").getLocation().toFile();
-    DartUnit unit = waitForResolution(libFile).getSelfDartUnit();
+    DartUnit unit = server.resolve(libFile, FIVE_MINUTES_MS).getSelfDartUnit();
     assertEquals("A", unit.getTopDeclarationNames().iterator().next());
 
     // Simulate a very busy system
-    Resolution callback = new Resolution();
+    ResolveCallback.Sync callback = new ResolveCallback.Sync();
     synchronized (getServerQueue()) {
       proj.dispose();
       proj = new TestProject(projName);
       libFile = proj.setFileContentWithoutWaitingForAnalysis(libFileName, "class B { }").getLocation().toFile();
-      server.resolveLibrary(libFile, callback);
+      server.resolve(libFile, callback);
     }
-    unit = callback.waitForResolution().getSelfDartUnit();
+    unit = callback.waitForResolve(FIVE_MINUTES_MS).getSelfDartUnit();
     assertEquals("B", unit.getTopDeclarationNames().iterator().next());
     proj.dispose();
   }
@@ -343,84 +459,74 @@ public class AnalysisServerTest extends TestCase {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override
       public void run(File tempDir) throws Exception {
-        test_AnalysisServer_scan(tempDir);
+        File libFile = setupMoneyLibrary(tempDir);
+        File sourcedFile = new File(libFile.getParent(), "currency.dart");
+        setupServer();
+        assertTrackedLibraryFiles();
+
+        listener.reset();
+        server.scan(sourcedFile);
+        waitForIdle();
+        assertTrackedLibraryFiles(sourcedFile);
+        assertEquals(3, listener.getResolved().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        synchronized (getServerQueue()) {
+          server.scan(libFile);
+          server.discard(libFile);
+        }
+        waitForIdle();
+        assertTrackedLibraryFiles(libFile);
+        assertEquals(1, listener.getResolved().size());
+        listener.assertNoDuplicates();
+        listener.assertWasDiscarded(sourcedFile);
       }
     });
-  }
-
-  public void test_AnalysisServer_scan(File tempDir) throws Exception {
-    File libFile = setupMoneyLibrary(tempDir);
-    File sourcedFile = new File(libFile.getParent(), "currency.dart");
-    setupServer();
-    assertTrackedLibraryFiles();
-
-    listener.reset();
-    server.scan(sourcedFile);
-    waitForIdle();
-    assertTrackedLibraryFiles(sourcedFile);
-    assertEquals(3, listener.getResolved().size());
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
-
-    listener.reset();
-    synchronized (getServerQueue()) {
-      server.scan(libFile);
-      server.discard(libFile);
-    }
-    waitForIdle();
-    assertTrackedLibraryFiles(libFile);
-    assertEquals(1, listener.getResolved().size());
-    listener.assertNoDuplicates();
-    listener.assertWasDiscarded(sourcedFile);
   }
 
   public void test_AnalysisServer_scanAndIndex() throws Exception {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override
       public void run(File tempDir) throws Exception {
-        test_AnalysisServer_scanAndIndex(tempDir);
+        File libFile = setupMoneyLibrary(tempDir);
+        File sourcedFile = new File(libFile.getParent(), "currency.dart");
+        setupServer();
+        assertTrackedLibraryFiles();
+
+        //    final InMemoryIndex index = InMemoryIndex.newInstanceForTesting();
+        //    new Thread(getClass().getSimpleName() + " scanAndIndex") {
+        //      @Override
+        //      public void run() {
+        //        index.getOperationProcessor().run();
+        //      };
+        //    }.start();
+        //    server.addAnalysisListener(new AnalysisIndexManager(index));
+        //    assertEquals(0, index.getRelationshipCount());
+        //
+        //    Resource libResource = new Resource(composeResourceId(
+        //        libFile.toURI().toString(),
+        //        libFile.toURI().toString()));
+        //    libElement = new Element(libResource, "#library");
+
+        listener.reset();
+        server.scan(tempDir);
+        waitForIdle();
+        assertTrackedLibraryFiles(libFile);
+        assertEquals(3, listener.getResolved().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
+
+        listener.reset();
+        server.scan(sourcedFile);
+        waitForIdle();
+        assertTrackedLibraryFiles(libFile);
+        assertEquals(0, listener.getResolved().size());
+        listener.assertNoDuplicates();
+        listener.assertNoDiscards();
       }
     });
-  }
-
-  public void test_AnalysisServer_scanAndIndex(File tempDir) throws Exception {
-    File libFile = setupMoneyLibrary(tempDir);
-    File sourcedFile = new File(libFile.getParent(), "currency.dart");
-    setupServer();
-    assertTrackedLibraryFiles();
-
-//    final InMemoryIndex index = InMemoryIndex.newInstanceForTesting();
-//    new Thread(getClass().getSimpleName() + " scanAndIndex") {
-//      @Override
-//      public void run() {
-//        index.getOperationProcessor().run();
-//      };
-//    }.start();
-//    server.addAnalysisListener(new AnalysisIndexManager(index));
-//    assertEquals(0, index.getRelationshipCount());
-//
-//    Resource libResource = new Resource(composeResourceId(
-//        libFile.toURI().toString(),
-//        libFile.toURI().toString()));
-//    libElement = new Element(libResource, "#library");
-
-    listener.reset();
-    server.scan(tempDir);
-    waitForIdle();
-    assertTrackedLibraryFiles(libFile);
-    assertEquals(3, listener.getResolved().size());
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
-
-    listener.reset();
-    server.scan(sourcedFile);
-    waitForIdle();
-    assertTrackedLibraryFiles(libFile);
-    assertEquals(0, listener.getResolved().size());
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
-
-//    index.shutdown();
   }
 
   public void test_AnalysisServer_stop() throws Exception {
@@ -431,7 +537,7 @@ public class AnalysisServerTest extends TestCase {
         setupServer();
 
         final boolean[] latch = new boolean[1];
-        server.resolveLibrary(libFile, new ResolveLibraryCallback() {
+        server.resolve(libFile, new ResolveCallback() {
           @Override
           public void resolved(LibraryUnit libraryUnit) {
             try {
@@ -473,7 +579,7 @@ public class AnalysisServerTest extends TestCase {
         File cacheFile = new File(libFile.getParentFile(), "analysis.cache");
 
         server.stop();
-        server.writeCache(cacheFile);
+        writeCache(cacheFile);
         setupServer(cacheFile);
 
         assertTrackedLibraryFiles();
@@ -494,7 +600,7 @@ public class AnalysisServerTest extends TestCase {
         File cacheFile = new File(libFile.getParentFile(), "analysis.cache");
 
         server.stop();
-        server.writeCache(cacheFile);
+        writeCache(cacheFile);
         setupServer(cacheFile);
 
         assertTrackedLibraryFiles(libFile);
@@ -514,7 +620,7 @@ public class AnalysisServerTest extends TestCase {
 
         File cacheFile = new File(libFile.getParentFile(), "analysis.cache");
         try {
-          server.writeCache(cacheFile);
+          writeCache(cacheFile);
           fail("should not be able to write cache while server is still running");
         } catch (IllegalStateException e) {
           //$FALL-THROUGH$
@@ -523,7 +629,7 @@ public class AnalysisServerTest extends TestCase {
         // Cannot read cache while server is still running
 
         try {
-          server.readCache(cacheFile);
+          readCache(cacheFile);
           fail("should not be able to read cache while server is still running");
         } catch (IllegalStateException e) {
           //$FALL-THROUGH$
@@ -533,16 +639,16 @@ public class AnalysisServerTest extends TestCase {
 
         // Cannot read null or non-existant cache file... returns false
 
-        assertFalse(server.readCache(null));
+        assertFalse(readCache(null));
         assertFalse(cacheFile.exists());
-        assertFalse(server.readCache(cacheFile));
+        assertFalse(readCache(cacheFile));
 
         // Cannot read empty or incomptable version cache file... returns false
 
         FileUtilities.setContents(cacheFile, "");
-        assertFalse(server.readCache(cacheFile));
+        assertFalse(readCache(cacheFile));
         FileUtilities.setContents(cacheFile, "nothing");
-        assertFalse(server.readCache(cacheFile));
+        assertFalse(readCache(cacheFile));
       }
     });
   }
@@ -551,6 +657,22 @@ public class AnalysisServerTest extends TestCase {
   protected void tearDown() throws Exception {
     if (server != null && server != defaultServer) {
       server.stop();
+    }
+  }
+
+  private void assertNoTopDeclaration(DartUnit unit) {
+    assertNotNull(unit);
+    Set<String> actualNames = unit.getTopDeclarationNames();
+    if (actualNames.size() != 0) {
+      fail("Expected no top level declarations, but found " + actualNames);
+    }
+  }
+
+  private void assertTopDeclarationExists(DartUnit unit, String expectedName) {
+    assertNotNull(unit);
+    Set<String> actualNames = unit.getTopDeclarationNames();
+    if (!actualNames.contains(expectedName)) {
+      fail("Expected " + expectedName + " but found " + actualNames);
     }
   }
 
@@ -596,29 +718,23 @@ public class AnalysisServerTest extends TestCase {
   }
 
   private boolean isLibraryFileCached(File libFile) throws Exception {
-    Method method = server.getClass().getDeclaredMethod("isLibraryFileCached", File.class);
+    Method method = server.getClass().getDeclaredMethod("isLibraryCached", File.class);
     method.setAccessible(true);
     Object result = method.invoke(server, libFile);
     return result instanceof Boolean && ((Boolean) result).booleanValue();
   }
 
-  private ParseLibraryFileEvent parseLibraryFile(File libFile) throws InterruptedException {
-    final ParseLibraryFileEvent[] result = new ParseLibraryFileEvent[1];
-    server.parseLibraryFile(libFile, new ParseLibraryFileCallback() {
-      @Override
-      public void parsed(ParseLibraryFileEvent event) {
-        synchronized (result) {
-          result[0] = event;
-          result.notifyAll();
-        }
-      }
-    });
-    synchronized (result) {
-      if (result[0] == null) {
-        result.wait(FIVE_MINUTES_MS);
-      }
+  private boolean readCache(File cacheFile) throws Exception {
+    // server.readCache(cacheFile)
+    Method method = server.getClass().getDeclaredMethod("readCache", File.class);
+    method.setAccessible(true);
+    Object result;
+    try {
+      result = method.invoke(server, cacheFile);
+    } catch (InvocationTargetException e) {
+      throw (Exception) e.getCause();
     }
-    return result[0];
+    return (Boolean) result;
   }
 
   private void setupDefaultServer() throws Exception {
@@ -649,7 +765,7 @@ public class AnalysisServerTest extends TestCase {
     EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
     server = new AnalysisServer(libraryManager);
     if (cacheFile != null) {
-      if (!server.readCache(cacheFile)) {
+      if (!readCache(cacheFile)) {
         fail("Failed to read cached from " + cacheFile);
       }
     }
@@ -669,9 +785,14 @@ public class AnalysisServerTest extends TestCase {
     return System.currentTimeMillis() - start;
   }
 
-  private LibraryUnit waitForResolution(File libFile) {
-    Resolution callback = new Resolution();
-    server.resolveLibrary(libFile, callback);
-    return callback.waitForResolution();
+  private void writeCache(File cacheFile) throws Exception {
+    // server.writeCache(cacheFile);
+    Method method = server.getClass().getDeclaredMethod("writeCache", File.class);
+    method.setAccessible(true);
+    try {
+      method.invoke(server, cacheFile);
+    } catch (InvocationTargetException e) {
+      throw (Exception) e.getCause();
+    }
   }
 }

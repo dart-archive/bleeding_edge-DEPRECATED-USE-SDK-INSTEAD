@@ -60,7 +60,7 @@ class ParseLibraryTask extends Task {
     for (Entry<String, File> entry : library.getRelativeSourcePathsAndFiles()) {
       String relPath = entry.getKey();
       File file = entry.getValue();
-      server.queueSubTask(new ParseFileTask(server, context, libraryFile, relPath, file));
+      server.queueSubTask(new ParseFileTask(server, context, libraryFile, relPath, file, null));
     }
   }
 }

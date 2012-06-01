@@ -26,12 +26,12 @@ class AnalyzeLibraryTask extends Task {
   private final AnalysisServer server;
   private final Context context;
   private final File libraryFile;
-  private final ResolveLibraryCallback callback;
+  private final ResolveCallback callback;
 
   private long start = 0;
 
   AnalyzeLibraryTask(AnalysisServer server, Context context, File libraryFile,
-      ResolveLibraryCallback callback) {
+      ResolveCallback callback) {
     this.server = server;
     this.context = context;
     this.libraryFile = libraryFile;

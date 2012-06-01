@@ -24,6 +24,8 @@ import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,12 +40,12 @@ class ResolveLibraryTask extends Task {
   private final AnalysisServer server;
   private final Context context;
 
-  private final Library library;
+  private final Library rootLibrary;
 
   ResolveLibraryTask(AnalysisServer server, Context context, Library library) {
     this.server = server;
     this.context = context;
-    this.library = library;
+    this.rootLibrary = library;
   }
 
   @Override
@@ -58,7 +60,7 @@ class ResolveLibraryTask extends Task {
 
   @Override
   void perform() {
-    if (library.getLibraryUnit() != null) {
+    if (rootLibrary.getLibraryUnit() != null) {
       return;
     }
 
@@ -84,15 +86,15 @@ class ResolveLibraryTask extends Task {
 
     Map<URI, LibraryUnit> newlyResolved = resolve(
         server.getLibraryManager(),
-        library.getFile(),
-        library.getLibrarySource(),
+        rootLibrary.getFile(),
+        rootLibrary.getLibrarySource(),
         resolvedLibs,
         parsedUnits,
         errorListener);
 
     for (LibraryUnit libUnit : newlyResolved.values()) {
 
-      // Cache the resolved libraries
+      // Cache the resolved library
 
       LibrarySource librarySource = libUnit.getSource();
       File libraryFile = toFile(server, librarySource.getUri());
@@ -107,43 +109,59 @@ class ResolveLibraryTask extends Task {
       }
       library.cacheLibraryUnit(server, libUnit);
 
+      // Collect the errors and warnings for this library
+
+      Collection<AnalysisError> newErrors = AnalysisError.NONE;
+      for (AnalysisError error : errorListener.getErrors()) {
+        if (libraryFile.equals(error.getLibraryFile())) {
+          if (newErrors == AnalysisError.NONE) {
+            newErrors = new ArrayList<AnalysisError>();
+          }
+          newErrors.add(error);
+        }
+      }
+
       // If this is a library whose state is being reloaded, then skip notifications
 
       if (!library.shouldNotify) {
         continue;
       }
 
-      // Notify listeners about units that were parsed during the resolution process
+      // Notify listeners about units that were parsed, if any, during the resolution process
+      // and notify listeners that the library was resolved
 
-      AnalysisEvent event = null;
+      AnalysisEvent parseEvent = null;
+      AnalysisEvent resolutionEvent = new AnalysisEvent(libraryFile, newErrors);
       Iterator<DartUnit> iter = libUnit.getUnits().iterator();
       while (iter.hasNext()) {
         DartUnit dartUnit = iter.next();
-        URI dartUnitUri = dartUnit.getSourceInfo().getSource().getUri();
-        File dartFile = toFile(server, dartUnitUri);
-        if (!parsedUnitURIs.contains(dartFile.toURI())) {
-          if (event == null) {
-            event = new AnalysisEvent(libraryFile);
-          }
-          event.addFileAndDartUnit(dartFile, dartUnit);
+        File dartFile = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
+        if (dartFile == null) {
+          continue;
         }
+        if (!parsedUnitURIs.contains(dartFile.toURI())) {
+          if (parseEvent == null) {
+            // Do not report errors during this notification because they will be reported
+            // as part of the resolution notification
+            parseEvent = new AnalysisEvent(libraryFile);
+          }
+          parseEvent.addFileAndDartUnit(dartFile, dartUnit);
+        }
+        resolutionEvent.addFileAndDartUnit(dartFile, dartUnit);
       }
-      if (event != null) {
-        errorListener.notifyParsed(event);
+      if (parseEvent != null) {
+        parseEvent.notifyParsed(server);
       }
-
-      // Notify listeners about libraries that were resolved
-
-      errorListener.notifyResolved(libraryFile, libUnit);
+      resolutionEvent.notifyResolved(server);
     }
 
     // If the expected library was not resolved then log an error and insert a placeholder
     // so that we don't try to continually resolve a library which cannot be resolved
 
-    if (library.getLibraryUnit() == null) {
-      DartCore.logError("Failed to resolve " + library.getFile());
-      LibraryUnit libUnit = new LibraryUnit(library.getLibrarySource());
-      library.cacheLibraryUnit(server, libUnit);
+    if (rootLibrary.getLibraryUnit() == null) {
+      DartCore.logError("Failed to resolve " + rootLibrary.getFile());
+      LibraryUnit libUnit = new LibraryUnit(rootLibrary.getLibrarySource());
+      rootLibrary.cacheLibraryUnit(server, libUnit);
     }
   }
 }

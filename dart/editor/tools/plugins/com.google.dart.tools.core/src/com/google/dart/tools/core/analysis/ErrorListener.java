@@ -16,27 +16,57 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.tools.core.DartCore;
 
 import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collection;
 
 class ErrorListener implements DartCompilerListener {
   private final AnalysisServer server;
-  private final ArrayList<DartCompilationError> errors = new ArrayList<DartCompilationError>();
+  private Collection<AnalysisError> errors = AnalysisError.NONE;
 
   ErrorListener(AnalysisServer server) {
     this.server = server;
   }
 
+  public Collection<AnalysisError> getErrors() {
+    return errors;
+  }
+
   @Override
-  public void onError(DartCompilationError err) {
-    errors.add(err);
+  public void onError(DartCompilationError compilationError) {
+
+    // TODO (danrubel) where to report errors with no source?
+    Source source = compilationError.getSource();
+    if (source == null) {
+      return;
+    }
+
+    // TODO (danrubel): Where to report errors that do not map to a file
+    File dartFile = toFile(server, source.getUri());
+    if (dartFile == null) {
+      return;
+    }
+
+    File libraryFile;
+    if (source instanceof DartSource) {
+      // TODO (danrubel): Where to report errors that do not map to a library
+      libraryFile = toFile(server, ((DartSource) source).getLibrary().getUri());
+      if (libraryFile == null) {
+        return;
+      }
+    } else {
+      libraryFile = dartFile;
+    }
+
+    if (errors == AnalysisError.NONE) {
+      errors = new ArrayList<AnalysisError>();
+    }
+    errors.add(new AnalysisError(libraryFile, dartFile, compilationError));
   }
 
   @Override
@@ -45,43 +75,5 @@ class ErrorListener implements DartCompilerListener {
 
   @Override
   public void unitCompiled(DartUnit unit) {
-  }
-
-  void notifyParsed(AnalysisEvent event) {
-    for (AnalysisListener listener : server.getAnalysisListeners()) {
-      try {
-        listener.parsed(event);
-      } catch (Throwable e) {
-        DartCore.logError("Exception during parsed notification", e);
-      }
-    }
-  }
-
-  void notifyParsed(File libraryFile, File sourceFile, DartUnit dartUnit) {
-    AnalysisEvent event = new AnalysisEvent(libraryFile);
-    event.addFileAndDartUnit(sourceFile, dartUnit);
-    event.addErrors(server, errors);
-    notifyParsed(event);
-  }
-
-  void notifyResolved(File libFile, LibraryUnit libUnit) {
-    AnalysisEvent event = new AnalysisEvent(libFile);
-    Iterator<DartUnit> iter = libUnit.getUnits().iterator();
-    while (iter.hasNext()) {
-      DartUnit dartUnit = iter.next();
-      File dartFile = toFile(server, dartUnit.getSourceInfo().getSource().getUri());
-      if (dartFile != null) {
-        event.addFileAndDartUnit(dartFile, dartUnit);
-      }
-    }
-    event.addErrors(server, errors);
-
-    for (AnalysisListener listener : server.getAnalysisListeners()) {
-      try {
-        listener.resolved(event);
-      } catch (Throwable e) {
-        DartCore.logError("Exception during resolved notification", e);
-      }
-    }
   }
 }

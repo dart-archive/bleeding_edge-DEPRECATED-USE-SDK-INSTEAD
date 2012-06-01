@@ -54,7 +54,7 @@ public class CleanLibrariesJob extends Job {
       // Clean the projects, forcing a rebuild.
       if (DartCoreDebug.ANALYSIS_SERVER) {
         root.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_INFINITE);
-        SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyzeLibraries();
+        SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
       } else {
         workspace.build(IncrementalProjectBuilder.CLEAN_BUILD, subMonitor.newChild(50));
       }

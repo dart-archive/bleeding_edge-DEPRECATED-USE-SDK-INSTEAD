@@ -37,10 +37,10 @@ class ParseLibraryFileTask extends Task {
 
   private final UrlLibrarySource librarySource;
 
-  private final ParseLibraryFileCallback callback;
+  private final ParseCallback callback;
 
   ParseLibraryFileTask(AnalysisServer server, Context context, File libraryFile,
-      ParseLibraryFileCallback callback) {
+      ParseCallback callback) {
     this.server = server;
     this.context = context;
     this.libraryFile = libraryFile;
@@ -65,7 +65,7 @@ class ParseLibraryFileTask extends Task {
     // Get the cached unit or parse the source
 
     DartUnit unit = context.getCachedUnit(library, libraryFile);
-    if (unit == null) {
+    if (unit == null || library == null) {
       Set<String> prefixes = new HashSet<String>();
       ErrorListener errorListener = new ErrorListener(server);
       DartSource source = librarySource.getSourceFor(libraryFile.getName());
@@ -74,7 +74,9 @@ class ParseLibraryFileTask extends Task {
 
       context.cacheUnresolvedUnit(libraryFile, unit);
       if (library == null || library.shouldNotify) {
-        errorListener.notifyParsed(libraryFile, libraryFile, unit);
+        AnalysisEvent event = new AnalysisEvent(libraryFile, errorListener.getErrors());
+        event.addFileAndDartUnit(libraryFile, unit);
+        event.notifyParsed(server);
       }
     }
 
@@ -90,7 +92,7 @@ class ParseLibraryFileTask extends Task {
 
     if (callback != null) {
       try {
-        callback.parsed(new ParseLibraryFileEvent(library, unit));
+        callback.parsed(unit);
       } catch (Throwable e) {
         DartCore.logError("Exception during parse notification", e);
       }

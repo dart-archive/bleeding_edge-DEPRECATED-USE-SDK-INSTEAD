@@ -499,7 +499,7 @@ public class CompletionEngineTest extends TestCase {
         !completionTests.isEmpty());
     if (DartCoreDebug.ANALYSIS_SERVER && !analysisCleared) {
       analysisCleared = true;
-      SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyzeLibraries();
+      SystemLibraryManagerProvider.getDefaultAnalysisServer().reanalyze();
     }
     InMemoryIndex.getInstance().initializeIndex();
     if (DartCoreDebug.ANALYSIS_SERVER) {

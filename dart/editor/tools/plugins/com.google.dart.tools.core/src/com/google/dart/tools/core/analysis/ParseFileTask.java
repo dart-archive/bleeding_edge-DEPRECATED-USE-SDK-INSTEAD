@@ -15,8 +15,7 @@ package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartUnit;
-
-import static com.google.dart.tools.core.analysis.AnalysisUtility.parse;
+import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
 import java.util.Set;
@@ -30,14 +29,16 @@ class ParseFileTask extends Task {
   private final File libraryFile;
   private final String relPath;
   private final File dartFile;
+  private final ParseCallback callback;
 
   ParseFileTask(AnalysisServer server, Context context, File libraryFile, String relPath,
-      File dartFile) {
+      File dartFile, ParseCallback callback) {
     this.server = server;
     this.context = context;
     this.libraryFile = libraryFile;
     this.relPath = relPath;
     this.dartFile = dartFile;
+    this.callback = callback;
   }
 
   @Override
@@ -52,34 +53,55 @@ class ParseFileTask extends Task {
 
   @Override
   void perform() {
-    if (!dartFile.exists()) {
-      return;
-    }
 
     // Don't parse sourced files without first parsing the library file
     // because we need import prefixes for DartC to parse correctly
 
     Library library = context.getCachedLibrary(libraryFile);
-    if (library == null) {
+    if (library != null) {
+      parse(library);
       return;
     }
 
+    server.queueSubTask(new ParseLibraryFileTask(server, context, libraryFile, new ParseCallback() {
+      @Override
+      public void parsed(DartUnit unit) {
+        Library library = context.getCachedLibrary(libraryFile);
+        if (library != null) {
+          parse(library);
+          return;
+        }
+        throw new RuntimeException("Failed to parse library: " + libraryFile);
+      }
+    }));
+  }
+
+  private void parse(Library library) {
     // Parse the file if it is not cached
 
     DartUnit unit = context.getCachedUnit(library, dartFile);
-    if (unit != null) {
-      return;
+    if (unit == null) {
+      Set<String> prefixes = library.getPrefixes();
+      ErrorListener errorListener = new ErrorListener(server);
+      DartSource source = library.getLibrarySource().getSourceFor(relPath);
+
+      unit = AnalysisUtility.parse(dartFile, source, prefixes, errorListener);
+      context.cacheUnresolvedUnit(dartFile, unit);
+      if (library.shouldNotify) {
+        AnalysisEvent event = new AnalysisEvent(libraryFile, errorListener.getErrors());
+        event.addFileAndDartUnit(dartFile, unit);
+        event.notifyParsed(server);
+      }
     }
-    Set<String> prefixes = library.getPrefixes();
-    ErrorListener errorListener = new ErrorListener(server);
-    File sourceFile = new File(libraryFile.toURI().resolve(relPath));
-    DartSource source = library.getLibrarySource().getSourceFor(relPath);
 
-    unit = parse(sourceFile, source, prefixes, errorListener);
+    // Notify the caller
 
-    context.cacheUnresolvedUnit(dartFile, unit);
-    if (library.shouldNotify) {
-      errorListener.notifyParsed(libraryFile, sourceFile, unit);
+    if (callback != null) {
+      try {
+        callback.parsed(unit);
+      } catch (Throwable e) {
+        DartCore.logError("Exception during parse notification", e);
+      }
     }
   }
 }

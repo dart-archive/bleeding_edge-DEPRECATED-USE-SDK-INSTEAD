@@ -14,6 +14,8 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.SystemLibraryManager;
+import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 
@@ -124,11 +126,11 @@ public class AnalysisServer {
 
   /**
    * Analyze the specified library, and keep that analysis current by tracking any changes. Also see
-   * {@link #resolveLibrary(File, ResolveLibraryCallback)}.
+   * {@link #resolve(File, ResolveCallback)}.
    * 
    * @param file the library file (not <code>null</code>)
    */
-  public void analyzeLibrary(File file) {
+  public void analyze(File file) {
     if (!file.isAbsolute()) {
       throw new IllegalArgumentException("File path must be absolute: " + file);
     }
@@ -194,14 +196,38 @@ public class AnalysisServer {
   }
 
   /**
-   * Parse the specified library, without adding the library to the list of libraries to be tracked.
+   * Parse the specified file, without adding the library to the list of libraries to be tracked.
    * 
-   * @param file the library file (not <code>null</code>)
+   * @param libraryFile the library containing the dart file to be parsed (not <code>null</code>)
+   * @param dartFile the dart file to be parsed (not <code>null</code>). This may be the same as the
+   *          libraryFile.
+   * @param milliseconds the number of milliseconds to wait for the file to be parsed.
+   * @return the parsed dart unit or <code>null</code> if the file was not parsed within the
+   *         specified amount of time. This unit may or may not be resolved.
+   * @throws RuntimeException if the parse takes longer than the specified time
+   */
+  public DartUnit parse(File libraryFile, File dartFile, long milliseconds) {
+    ParseCallback.Sync callback = new ParseCallback.Sync();
+    parse(libraryFile, dartFile, callback);
+    DartUnit result = callback.waitForParse(milliseconds);
+    if (result == null) {
+      throw new RuntimeException("Timed out waiting for parse: " + dartFile + " in " + libraryFile);
+    }
+    return result;
+  }
+
+  /**
+   * Parse the specified file, without adding the library to the list of libraries to be tracked.
+   * 
+   * @param libraryFile the library containing the dart file to be parsed (not <code>null</code>)
+   * @param dartFile the dart file to be parsed (not <code>null</code>). This may be the same as the
+   *          libraryFile
    * @param callback a listener that will be notified when the library file has been parsed or
    *          <code>null</code> if none
    */
-  public void parseLibraryFile(File file, ParseLibraryFileCallback callback) {
-    queueNewTask(new ParseLibraryFileTask(this, savedContext, file, callback));
+  public void parse(File libraryFile, File dartFile, ParseCallback callback) {
+    String relPath = libraryFile.toURI().relativize(dartFile.toURI()).getPath();
+    queueNewTask(new ParseFileTask(this, savedContext, libraryFile, relPath, dartFile, callback));
   }
 
   /**
@@ -216,62 +242,15 @@ public class AnalysisServer {
       return readCache(getAnalysisStateFile());
     } catch (IOException e) {
       DartCore.logError("Failed to read analysis cache: " + getAnalysisStateFile(), e);
-      reanalyzeLibraries();
+      reanalyze();
       return false;
     }
-  }
-
-  /**
-   * Reload the cached information from the specified file. This method must be called before
-   * {@link #start()} has been called when the server is not yet running.
-   * 
-   * @return <code>true</code> if the cached information was successfully loaded, else
-   *         <code>false</code>
-   */
-  public boolean readCache(File cacheFile) throws IOException {
-    if (analyze) {
-      throw new IllegalStateException();
-    }
-    if (cacheFile == null || !cacheFile.isFile()) {
-      return false;
-    }
-    LineNumberReader reader;
-    try {
-      reader = new LineNumberReader(new BufferedReader(new FileReader(cacheFile)));
-    } catch (FileNotFoundException e) {
-      DartCore.logError("Failed to open analysis cache: " + cacheFile);
-      return false;
-    }
-    try {
-      if (!CACHE_FILE_VERSION_TAG.equals(reader.readLine())) {
-        return false;
-      }
-      while (true) {
-        String path = reader.readLine();
-        if (path == null) {
-          throw new IOException("Expected " + END_LIBRARIES_TAG + " but found EOF");
-        }
-        if (path.equals(END_LIBRARIES_TAG)) {
-          break;
-        }
-        libraryFiles.add(new File(path));
-      }
-      savedContext.readCache(reader);
-      queueAnalyzeContext();
-    } finally {
-      try {
-        reader.close();
-      } catch (IOException e) {
-        DartCore.logError("Failed to close analysis cache: " + cacheFile);
-      }
-    }
-    return true;
   }
 
   /**
    * Called when all cached information should be discarded and all libraries reanalyzed
    */
-  public void reanalyzeLibraries() {
+  public void reanalyze() {
     queueNewTask(new EverythingChangedTask(this, savedContext));
   }
 
@@ -288,14 +267,33 @@ public class AnalysisServer {
   }
 
   /**
-   * Resolve the specified library. Similar to {@link #analyzeLibrary(File)}, but does not add the
-   * library to the list of libraries to be tracked.
+   * Resolve the specified library. Similar to {@link #analyze(File)}, but does not add the library
+   * to the list of libraries to be tracked.
+   * 
+   * @param milliseconds the number of milliseconds to wait for the library to be resolved.
+   * @param file the library file (not <code>null</code>).
+   * @return the resolved library (not <code>null</code>)
+   * @throws RuntimeException if the resolution takes longer than the specified time
+   */
+  public LibraryUnit resolve(File libraryFile, long milliseconds) {
+    ResolveCallback.Sync callback = new ResolveCallback.Sync();
+    resolve(libraryFile, callback);
+    LibraryUnit result = callback.waitForResolve(milliseconds);
+    if (result == null) {
+      throw new RuntimeException("Timed out waiting for library to be resolved: " + libraryFile);
+    }
+    return result;
+  }
+
+  /**
+   * Resolve the specified library. Similar to {@link #analyze(File)}, but does not add the library
+   * to the list of libraries to be tracked.
    * 
    * @param file the library file (not <code>null</code>)
    * @param callback a listener that will be notified when the library has been resolved or
    *          <code>null</code> if none
    */
-  public void resolveLibrary(File file, ResolveLibraryCallback callback) {
+  public void resolve(File file, ResolveCallback callback) {
     if (!file.isAbsolute()) {
       throw new IllegalArgumentException("File path must be absolute: " + file);
     }
@@ -434,27 +432,6 @@ public class AnalysisServer {
     }
   }
 
-  /**
-   * Write the cached information to the specified file. This method must be called after
-   * {@link #stop()} has been called when the server is not running.
-   */
-  public void writeCache(File cacheFile) throws IOException {
-    if (analyze) {
-      throw new IllegalStateException();
-    }
-    PrintWriter writer = new PrintWriter(cacheFile);
-    try {
-      writer.println(CACHE_FILE_VERSION_TAG);
-      for (File libFile : libraryFiles) {
-        writer.println(libFile.getPath());
-      }
-      writer.println(END_LIBRARIES_TAG);
-      savedContext.writeCache(writer);
-    } finally {
-      writer.close();
-    }
-  }
-
   AnalysisListener[] getAnalysisListeners() {
     return analysisListeners;
   }
@@ -464,7 +441,7 @@ public class AnalysisServer {
   }
 
   /**
-   * Answer the library files identified by {@link #analyzeLibrary(File)}
+   * Answer the library files identified by {@link #analyze(File)}
    * 
    * @return an array of files (not <code>null</code>, contains no <code>null</code>s)
    */
@@ -600,7 +577,7 @@ public class AnalysisServer {
    * @param file the library file (not <code>null</code>)
    */
   @SuppressWarnings("unused")
-  private boolean isLibraryFileCached(File file) {
+  private boolean isLibraryCached(File file) {
     synchronized (queue) {
       return savedContext.getCachedLibrary(file) != null;
     }
@@ -613,6 +590,74 @@ public class AnalysisServer {
       } catch (Throwable e) {
         DartCore.logError("Exception during idle notification", e);
       }
+    }
+  }
+
+  /**
+   * Reload the cached information from the specified file. This method must be called before
+   * {@link #start()} has been called when the server is not yet running.
+   * 
+   * @return <code>true</code> if the cached information was successfully loaded, else
+   *         <code>false</code>
+   */
+  private boolean readCache(File cacheFile) throws IOException {
+    if (analyze) {
+      throw new IllegalStateException();
+    }
+    if (cacheFile == null || !cacheFile.isFile()) {
+      return false;
+    }
+    LineNumberReader reader;
+    try {
+      reader = new LineNumberReader(new BufferedReader(new FileReader(cacheFile)));
+    } catch (FileNotFoundException e) {
+      DartCore.logError("Failed to open analysis cache: " + cacheFile);
+      return false;
+    }
+    try {
+      if (!CACHE_FILE_VERSION_TAG.equals(reader.readLine())) {
+        return false;
+      }
+      while (true) {
+        String path = reader.readLine();
+        if (path == null) {
+          throw new IOException("Expected " + END_LIBRARIES_TAG + " but found EOF");
+        }
+        if (path.equals(END_LIBRARIES_TAG)) {
+          break;
+        }
+        libraryFiles.add(new File(path));
+      }
+      savedContext.readCache(reader);
+      queueAnalyzeContext();
+    } finally {
+      try {
+        reader.close();
+      } catch (IOException e) {
+        DartCore.logError("Failed to close analysis cache: " + cacheFile);
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Write the cached information to the specified file. This method must be called after
+   * {@link #stop()} has been called when the server is not running.
+   */
+  private void writeCache(File cacheFile) throws IOException {
+    if (analyze) {
+      throw new IllegalStateException();
+    }
+    PrintWriter writer = new PrintWriter(cacheFile);
+    try {
+      writer.println(CACHE_FILE_VERSION_TAG);
+      for (File libFile : libraryFiles) {
+        writer.println(libFile.getPath());
+      }
+      writer.println(END_LIBRARIES_TAG);
+      savedContext.writeCache(writer);
+    } finally {
+      writer.close();
     }
   }
 }

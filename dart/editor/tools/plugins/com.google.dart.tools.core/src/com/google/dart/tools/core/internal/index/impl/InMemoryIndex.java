@@ -434,7 +434,7 @@ public class InMemoryIndex implements Index {
         UrlLibrarySource librarySource = new UrlLibrarySource(libraryUri, libraryManager);
         if (DartCoreDebug.ANALYSIS_SERVER) {
           File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
-          SystemLibraryManagerProvider.getDefaultAnalysisServer().resolveLibrary(libraryFile, null);
+          SystemLibraryManagerProvider.getDefaultAnalysisServer().resolve(libraryFile, null);
         } else {
           LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary(
               librarySource,

@@ -16,17 +16,22 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.compiler.DartCompilationError;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * A {@link File} {@link DartCompilationError} pair
  */
 public class AnalysisError {
+  public static final Collection<AnalysisError> NONE = Collections.emptyList();
 
-  private final File file;
+  private final File libraryFile;
+  private final File dartFile;
   private final DartCompilationError error;
 
-  public AnalysisError(File file, DartCompilationError error) {
-    this.file = file;
+  public AnalysisError(File libraryFile, File dartFile, DartCompilationError error) {
+    this.libraryFile = libraryFile;
+    this.dartFile = dartFile;
     this.error = error;
   }
 
@@ -34,7 +39,11 @@ public class AnalysisError {
     return error;
   }
 
-  public File getFile() {
-    return file;
+  public File getDartFile() {
+    return dartFile;
+  }
+
+  public File getLibraryFile() {
+    return libraryFile;
   }
 }

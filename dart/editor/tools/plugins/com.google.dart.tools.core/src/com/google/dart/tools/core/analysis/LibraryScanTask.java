@@ -123,11 +123,11 @@ public class LibraryScanTask extends Task {
     // Analyze libraries and remaining loose files
 
     for (Library lib : librariesToAnalyze) {
-      server.analyzeLibrary(lib.getFile());
+      server.analyze(lib.getFile());
     }
     for (File file : looseFiles) {
       if (context.getLibrariesContaining(file).length == 0) {
-        server.analyzeLibrary(file);
+        server.analyze(file);
       }
     }
   }

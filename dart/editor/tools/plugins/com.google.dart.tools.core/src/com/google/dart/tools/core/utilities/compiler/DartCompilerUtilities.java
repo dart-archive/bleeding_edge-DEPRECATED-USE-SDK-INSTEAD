@@ -35,7 +35,6 @@ import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.analysis.ResolveLibraryCallback;
 import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.cache.LRUCache;
@@ -848,35 +847,8 @@ public class DartCompilerUtilities {
 
       File libraryFile = new File(libraryUri.getPath());
       AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-      final LibraryUnit[] result = new LibraryUnit[1];
-      server.resolveLibrary(libraryFile, new ResolveLibraryCallback() {
 
-        @Override
-        public void resolved(LibraryUnit libraryUnit) {
-          synchronized (result) {
-            result[0] = libraryUnit;
-            result.notifyAll();
-          }
-        }
-      });
-      synchronized (result) {
-        long end = System.currentTimeMillis() + 30000;
-        while (result[0] == null) {
-          long delta = end - System.currentTimeMillis();
-          if (delta <= 0) {
-            break;
-          }
-          try {
-            result.wait(delta);
-          } catch (InterruptedException e) {
-            //$FALL-THROUGH$
-          }
-        }
-        unit = result[0];
-      }
-      if (unit == null) {
-        throw new RuntimeException("Timed out waiting for library to be resolved: " + libraryFile);
-      }
+      unit = server.resolve(libraryFile, 30000);
     } else {
       // All calls to DartC must be synchronized
       synchronized (compilerLock) {

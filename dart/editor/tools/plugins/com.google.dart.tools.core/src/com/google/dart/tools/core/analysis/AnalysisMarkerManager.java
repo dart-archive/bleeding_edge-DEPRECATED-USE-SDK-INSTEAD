@@ -40,9 +40,9 @@ public class AnalysisMarkerManager implements AnalysisListener {
    * Adds markers for the specified errors and warnings
    */
   private class AddMarkersOp extends MarkerOp {
-    private final ArrayList<AnalysisError> errors;
+    private final Collection<AnalysisError> errors;
 
-    AddMarkersOp(ArrayList<AnalysisError> errors) {
+    AddMarkersOp(Collection<AnalysisError> errors) {
       this.errors = errors;
     }
 
@@ -97,7 +97,7 @@ public class AnalysisMarkerManager implements AnalysisListener {
     @Override
     void perform() {
       for (AnalysisError error : errors) {
-        createMarker(error.getFile(), error.getCompilationError());
+        createMarker(error.getDartFile(), error.getCompilationError());
       }
     }
   }
@@ -185,7 +185,7 @@ public class AnalysisMarkerManager implements AnalysisListener {
   public void parsed(final AnalysisEvent event) {
     synchronized (queue) {
       queue.add(new RemoveMarkersOp(event.getFiles()));
-      ArrayList<AnalysisError> errors = event.getErrors();
+      Collection<AnalysisError> errors = event.getErrors();
       if (errors.size() > 0) {
         queue.add(new AddMarkersOp(errors));
       }
@@ -200,7 +200,7 @@ public class AnalysisMarkerManager implements AnalysisListener {
   @Override
   public void resolved(final AnalysisEvent event) {
     synchronized (queue) {
-      ArrayList<AnalysisError> errors = event.getErrors();
+      Collection<AnalysisError> errors = event.getErrors();
       if (errors.size() > 0) {
         queue.add(new AddMarkersOp(errors));
         queue.notifyAll();

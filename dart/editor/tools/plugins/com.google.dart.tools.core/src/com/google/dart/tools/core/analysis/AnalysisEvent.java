@@ -13,17 +13,13 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
-
-import static com.google.dart.tools.core.analysis.AnalysisUtility.toFile;
+import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 
 /**
  * Collected analysis information.
@@ -35,17 +31,21 @@ public class AnalysisEvent {
   private final File libraryFile;
   private final Collection<File> files;
   private final HashMap<File, DartUnit> units;
-  private final ArrayList<AnalysisError> errors;
+  private Collection<AnalysisError> errors;
 
   AnalysisEvent(File libraryFile) {
-    this(libraryFile, new ArrayList<File>());
+    this(libraryFile, new ArrayList<File>(), AnalysisError.NONE);
   }
 
-  AnalysisEvent(File libraryFile, Collection<File> files) {
+  AnalysisEvent(File libraryFile, Collection<AnalysisError> errors) {
+    this(libraryFile, new ArrayList<File>(), errors);
+  }
+
+  AnalysisEvent(File libraryFile, Collection<File> files, Collection<AnalysisError> errors) {
     this.libraryFile = libraryFile;
     this.files = files;
     this.units = new HashMap<File, DartUnit>();
-    this.errors = new ArrayList<AnalysisError>();
+    this.errors = errors;
   }
 
   /**
@@ -53,7 +53,7 @@ public class AnalysisEvent {
    * 
    * @return a collection of errors (not <code>null</code>, contains no <code>null</code>s)
    */
-  public ArrayList<AnalysisError> getErrors() {
+  public Collection<AnalysisError> getErrors() {
     return errors;
   }
 
@@ -82,30 +82,28 @@ public class AnalysisEvent {
     return units;
   }
 
-  /**
-   * Add errors reported on the analyzed files, discarding all other errors
-   */
-  void addErrors(AnalysisServer server, Collection<DartCompilationError> newErrors) {
-    if (newErrors.size() == 0) {
-      return;
-    }
-    // TODO (danrubel) revisit whether error filtering should be removed from AnalysisServer
-    HashSet<File> fileSet = new HashSet<File>(files);
-    for (DartCompilationError error : newErrors) {
-      Source source = error.getSource();
-      if (source == null) {
-        // TODO (danrubel) where to report errors with no source?
-        continue;
-      }
-      File file = toFile(server, source.getUri());
-      if (fileSet.contains(file)) {
-        errors.add(new AnalysisError(file, error));
+  void addFileAndDartUnit(File file, DartUnit unit) {
+    files.add(file);
+    units.put(file, unit);
+  }
+
+  void notifyParsed(AnalysisServer server) {
+    for (AnalysisListener listener : server.getAnalysisListeners()) {
+      try {
+        listener.parsed(this);
+      } catch (Throwable e) {
+        DartCore.logError("Exception during parsed notification", e);
       }
     }
   }
 
-  void addFileAndDartUnit(File file, DartUnit unit) {
-    files.add(file);
-    units.put(file, unit);
+  void notifyResolved(AnalysisServer server) {
+    for (AnalysisListener listener : server.getAnalysisListeners()) {
+      try {
+        listener.resolved(this);
+      } catch (Throwable e) {
+        DartCore.logError("Exception during resolved notification", e);
+      }
+    }
   }
 }
