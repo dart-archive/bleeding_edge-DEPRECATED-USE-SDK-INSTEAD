@@ -302,6 +302,14 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     manager.add(OpenFolderHandler.createCommandAction(getSite().getWorkbenchWindow()));
 
+    // Close folder action (aka Remove from Editor)
+    if (!selection.isEmpty() && allElementsAreResources(selection)) {
+      // Remove, iff non-empty selection, all elements are IResources
+      if (allElementsAreProjects(selection)) {
+        manager.add(hideContainerAction);
+      }
+    }
+
     // EDIT GROUP
 
     if (!selection.isEmpty() && allElementsAreResources(selection)) {
@@ -338,17 +346,6 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       manager.add(deleteAction);
 
     }
-
-    if (!selection.isEmpty() && allElementsAreResources(selection)) {
-
-      // Remove, iff non-empty selection, all elements are IResources
-
-      manager.add(new Separator());
-      if (allElementsAreProjects(selection)) {
-        manager.add(hideContainerAction);
-      }
-    }
-
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {
