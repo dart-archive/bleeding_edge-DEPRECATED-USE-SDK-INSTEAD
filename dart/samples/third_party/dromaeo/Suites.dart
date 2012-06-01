@@ -95,7 +95,7 @@ class Suites {
     // Add original JS versions.
     add('js', _jsPath, ['js']);
     // Add native Dart versions.
-    for (var version in ['dom', 'html', 'htmlidiomatic']) {
+    for (var version in ['html', 'htmlidiomatic']) {
       add('dart:$version', _nativeMapper(version), ['dart', version]);
     }
     // Add Dart compiled-to JS versions.

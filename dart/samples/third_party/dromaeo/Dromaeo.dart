@@ -113,9 +113,9 @@ class Dromaeo {
       tags = splitUrl[1];
     } else if (window.navigator.userAgent.contains('(Dart)')) {
       // TODO(vsm): Update when we change Dart VM detection.
-      tags = 'js|dart|frog';
+      tags = 'js|dart&html';
     } else {
-      tags = 'js|frog';
+      tags = 'js|dart2js&html';
     }
 
     // TODO(antonm): create Re-run tests href.
