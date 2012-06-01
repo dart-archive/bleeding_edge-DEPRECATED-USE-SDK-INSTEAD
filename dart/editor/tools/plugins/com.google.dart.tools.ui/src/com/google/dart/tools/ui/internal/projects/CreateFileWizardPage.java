@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.projects;
 
+import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.tools.core.generator.NewFileGenerator;
 
 import org.eclipse.core.resources.IFile;
@@ -30,17 +31,6 @@ import java.io.InputStream;
  * The wizard page for CreateNewFileWizard
  */
 public class CreateFileWizardPage extends WizardNewFileCreationPage {
-
-  private static final String[] dartKeywords = {
-      "break", "case", "catch", "class", "const", "continue", "default", "do", "else", "extends",
-      "false", "final", "finally", "for", "if", "in", "is", "new", "null", "return", "super",
-      "switch", "this", "throw", "true", "try", "var", "void", "while",
-
-      // Pseudo keywords:
-      "abstract", "assert", "call",
-      //"Dynamic",
-      "factory", "get", "implements", "import", "interface", "library", "native", "negate",
-      "operator", "set", "source", "static", "typedef"};
 
   /**
    * @param pageName
@@ -113,9 +103,10 @@ public class CreateFileWizardPage extends WizardNewFileCreationPage {
    *         Dart keyword
    */
   private String isADartKeyword(String str) {
-    for (String keyword : dartKeywords) {
-      if (str.equalsIgnoreCase(keyword)) {
-        return keyword;
+    for (Keyword keyword : Keyword.values()) {
+      String syntax = keyword.getSyntax();
+      if (str.equalsIgnoreCase(syntax)) {
+        return syntax;
       }
     }
     return null;
