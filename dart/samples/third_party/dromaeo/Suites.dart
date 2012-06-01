@@ -79,7 +79,7 @@ class Suites {
       ((path) => path.replaceFirst('.html', '-$lib.html'));
   static _compiledMapper(lib, compiler) =>
       ((path) =>
-       '$compiler/${path.replaceFirst(".html", "-dom-js.html")}');
+       '$compiler/${path.replaceFirst(".html", "-$lib-js.html")}');
 
   static var _SUITE_DESCRIPTIONS;
 
