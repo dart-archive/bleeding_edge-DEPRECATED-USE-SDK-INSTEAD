@@ -18,6 +18,7 @@ JUnit - in third_party/junit
 Oauth - in samples/third_party/oauth2client
 weberknecht - in third_party/weberknecht
 fest - in third_party/fest
+mockito - in third_party/mockito
 
 The libraries may have their own licenses; we recommend you read them,
 as their terms may differ from the terms below.
