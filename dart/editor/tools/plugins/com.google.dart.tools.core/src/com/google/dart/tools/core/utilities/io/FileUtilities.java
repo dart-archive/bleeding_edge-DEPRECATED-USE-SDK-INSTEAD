@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,6 +12,8 @@
  * the License.
  */
 package com.google.dart.tools.core.utilities.io;
+
+import com.google.common.io.CharStreams;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -240,34 +242,25 @@ public class FileUtilities {
    * @throws IOException if the file contents could not be read
    */
   public static String getContents(File file) throws IOException {
-    FileReader fileReader = null;
-    try {
-      fileReader = new FileReader(file);
-      BufferedReader reader = new BufferedReader(fileReader);
-      return getContents(reader);
-    } finally {
-      if (fileReader != null) {
-        fileReader.close();
-      }
-    }
+    Reader fileReader = new FileReader(file);
+    BufferedReader reader = new BufferedReader(fileReader);
+    return getContents(reader);
   }
 
   /**
-   * Return the contents of the given reader, interpreted as a string. The client is responsible for
-   * closing the reader.
+   * Return the contents of the given reader, interpreted as a string. The {@link Reader} will be
+   * closed.
    * 
    * @param reader the reader whose contents are to be returned
    * @return the contents of the given reader, interpreted as a string
    * @throws IOException if the reader could not be read
    */
   public static String getContents(Reader reader) throws IOException {
-    StringBuilder builder = new StringBuilder();
-    int nextChar = reader.read();
-    while (nextChar >= 0) {
-      builder.append((char) nextChar);
-      nextChar = reader.read();
+    try {
+      return CharStreams.toString(reader);
+    } finally {
+      reader.close();
     }
-    return builder.toString();
   }
 
   /**
