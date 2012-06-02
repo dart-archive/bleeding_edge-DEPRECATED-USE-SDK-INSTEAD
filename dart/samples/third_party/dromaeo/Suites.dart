@@ -21,6 +21,7 @@ class SuiteDescription {
 
 class Suites {
   static final JOHN_RESIG = const Origin('John Resig', 'http://ejohn.org/');
+  static final DART_TEAM = const Origin('Dart Team', 'http://dartlang.org/');
 
   static final CATEGORIES = const {
     // Platform tags
@@ -73,7 +74,16 @@ class Suites {
           'Traversing a DOM structure',
           const ['traverse'],
           _CORE_TEST_OPTIONS),
-  ];
+      const SuiteDescription(
+          'image-dissoc.html',
+          'Dissociated Image',
+          DART_TEAM,
+          'Creating image out of best-fit patches',
+          const ['image'],
+          const [const ['js', const ['']],
+                 const ['frog', const ['html']],
+                 const ['dart2js', const ['html']]]),
+    ];
 
   // Mappings from original path to actual path given platform/library.
   static _getHtmlPathForVariant(platform, lib, path) {

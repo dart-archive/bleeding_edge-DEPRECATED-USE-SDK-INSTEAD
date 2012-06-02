@@ -521,51 +521,55 @@ class JsonStringifier {
   }
 
   void _stringify(final object) {
-    switch (true) {
-      case object is num:
-        // TODO: use writeOn.
-        _sb.add(_numberToString(object));
-        return;
+    if (object is num) {
+      _sb.add(_numberToString(object));
+      return;
+    }
 
-      case object === true:
-        _sb.add('true');
-        return;
+    if (object === true) {
+      _sb.add('true');
+      return;
+    }
 
-      case object === false:
-        _sb.add('false');
-        return;
+    if (object === false) {
+      _sb.add('false');
+      return;
+    }
 
-      case object === null:
-        _sb.add('null');
-        return;
+    if (object === null) {
+      _sb.add('null');
+      return;
+    }
 
-      case object is String:
-        _sb.add('"');
-        _escape(_sb, object);
-        _sb.add('"');
-        return;
+    if (object is String) {
+      _sb.add('"');
+      _escape(_sb, object);
+      _sb.add('"');
+      return;
+    }
 
-      case object is List:
-        _checkCycle(object);
-        List a = object;
-        _sb.add('[');
-        if (a.length > 0) {
-          _stringify(a[0]);
-        }
-        // TODO: switch to Iterables.
-        for (int i = 1; i < a.length; i++) {
-          _sb.add(',');
-          _stringify(a[i]);
-        }
-        _sb.add(']');
-        return;
+    if (object is List) {
+      _checkCycle(object);
+      List a = object;
+      _sb.add('[');
+      if (a.length > 0) {
+        _stringify(a[0]);
+      }
+      // TODO: switch to Iterables.
+      for (int i = 1; i < a.length; i++) {
+        _sb.add(',');
+        _stringify(a[i]);
+      }
+      _sb.add(']');
+      return;
+    }
 
-      case object is Map:
-        _checkCycle(object);
-        Map<String, Object> m = object;
-        _sb.add('{');
-        int counter = m.length;
-        m.forEach((String key, Object value) {
+    if (object is Map) {
+      _checkCycle(object);
+      Map<String, Object> m = object;
+      _sb.add('{');
+      int counter = m.length;
+      m.forEach((String key, Object value) {
           _stringify(key);
           _sb.add(':');
           _stringify(value);
@@ -574,11 +578,10 @@ class JsonStringifier {
             _sb.add(',');
           }
         });
-        _sb.add('}');
-        return;
-
-      default:
-        throw const JsonUnsupportedObjectType();
+      _sb.add('}');
+      return;
     }
+
+    throw const JsonUnsupportedObjectType();
   }
 }
