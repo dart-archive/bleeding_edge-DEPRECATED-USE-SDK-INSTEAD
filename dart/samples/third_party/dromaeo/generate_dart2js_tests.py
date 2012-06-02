@@ -71,8 +71,7 @@ def HtmlConvert(infile, compiler):
     os.chdir('..')
 
 # Frog compile individual dom and html tests into tests/frog.
-tests = (glob.glob('tests/dom-*-*.html') +
-         glob.glob('tests/image-*-html.html'))
+tests = glob.glob('tests/dom-*-*.html')
 
 for test in tests:
   HtmlConvert(test, 'frog')
