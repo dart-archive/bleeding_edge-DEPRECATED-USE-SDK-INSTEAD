@@ -290,6 +290,7 @@
         <copy todir="${com.google.dart.core.tests}/third_party">
             <fileset dir="${build.source.root}/third_party">
                 <include name="fest/**" />
+                <include name="mockito/**" />
             </fileset>
         </copy>
 

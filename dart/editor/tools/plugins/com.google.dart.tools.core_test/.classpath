@@ -4,6 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry exported="true" kind="lib" path="third_party/fest/fest-util-1.1.6.jar" sourcepath="third_party/fest/fest-util-1.1.6-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="third_party/fest/fest-assert-1.4.jar" sourcepath="third_party/fest/fest-assert-1.4-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="third_party/mockito/1.9.0/mockito-all-1.9.0.jar"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

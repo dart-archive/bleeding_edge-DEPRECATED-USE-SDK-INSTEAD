@@ -22,9 +22,8 @@ import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
 import com.google.dart.tools.ui.text.dart.IQuickAssistProcessor;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test for {@link QuickAssistProcessor}.
@@ -92,19 +91,11 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
   }
 
   public void test_exchangeBinaryExpressionArguments_wrong_errorAtLocation() throws Exception {
-    IProblemLocation problemLocation = (IProblemLocation) Proxy.newProxyInstance(
-        getClass().getClassLoader(),
-        new Class[] {IProblemLocation.class},
-        new InvocationHandler() {
-          @Override
-          public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (method.getName().equals("isError")) {
-              return true;
-            }
-            return null;
-          }
-        });
+    // prepare IProblemLocation stub
+    IProblemLocation problemLocation = mock(IProblemLocation.class);
+    when(problemLocation.isError()).thenReturn(true);
     problemLocations = new IProblemLocation[] {problemLocation};
+    // run proposal
     assert_exchangeBinaryExpressionArguments_wrong("1 + unknown", "+ unknown", 0);
   }
 
