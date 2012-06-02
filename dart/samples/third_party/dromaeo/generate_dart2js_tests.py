@@ -30,7 +30,7 @@ def Compile(source, target, compiler):
   cmd = [binary, '--out=' + target]
   cmd.append(source)
   print 'Executing: ' + ' '.join(cmd)
-  if platform.system() == "Windows":    
+  if platform.system() == "Windows":
     subprocess.call(cmd, shell=True)
   else:
     subprocess.call(cmd)
@@ -77,5 +77,5 @@ for test in tests:
   HtmlConvert(test, 'frog')
   HtmlConvert(test, 'dart2js')
 
-# Frog compile driver to index-js.html.
-HtmlConvert('index.html', 'frog')
+# Compile driver to index-js.html.
+HtmlConvert('index.html', 'dart2js')

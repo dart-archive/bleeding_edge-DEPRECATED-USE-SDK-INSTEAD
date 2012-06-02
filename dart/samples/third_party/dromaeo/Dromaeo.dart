@@ -8,9 +8,9 @@ main() {
 
 class SuiteController {
   final SuiteDescription _suiteDescription;
-  final HTMLIFrameElement _suiteIframe;
+  final IFrameElement _suiteIframe;
 
-  HTMLDivElement _element;
+  DivElement _element;
   double _meanProduct;
   int _nTests;
 
