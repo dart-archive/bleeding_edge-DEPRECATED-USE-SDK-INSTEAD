@@ -38,8 +38,9 @@ class CompletionSpec {
   static Collection<CompletionSpec> from(String originalSource, String[] validationStrings) {
     Map<Character, CompletionSpec> tests = new HashMap<Character, CompletionSpec>();
     String modifiedSource = originalSource;
+    int modifiedPosition = 0;
     while (true) {
-      int index = modifiedSource.indexOf('!');
+      int index = modifiedSource.indexOf('!', modifiedPosition);
       if (index < 0) {
         break;
       }
@@ -50,6 +51,8 @@ class CompletionSpec {
         CompletionSpec test = new CompletionSpec(id);
         tests.put(id, test);
         test.completionPoint = index;
+      } else {
+        modifiedPosition = index + 1;
       }
       modifiedSource = modifiedSource.substring(0, index) + modifiedSource.substring(index + n);
     }
@@ -65,7 +68,7 @@ class CompletionSpec {
       String value = result.substring(2);
       CompletionSpec test = tests.get(id);
       if (test == null) {
-        throw new IllegalStateException("Invliad completion result id: " + id + " for: " + result);
+        throw new IllegalStateException("Invalid completion result id: " + id + " for: " + result);
       }
       test.source = modifiedSource;
       if (sign == '+') {
