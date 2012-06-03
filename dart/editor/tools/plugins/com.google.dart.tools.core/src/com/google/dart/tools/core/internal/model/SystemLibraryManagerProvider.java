@@ -91,7 +91,7 @@ public class SystemLibraryManagerProvider {
         }
         if (!defaultAnalysisServer.readCache()) {
           for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-            defaultAnalysisServer.scan(project.getLocation().toFile());
+            defaultAnalysisServer.scan(project.getLocation().toFile(), true);
           }
         }
         defaultAnalysisServer.start();

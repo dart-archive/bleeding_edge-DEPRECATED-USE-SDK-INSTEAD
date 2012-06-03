@@ -102,7 +102,7 @@ public class IgnoreResourceAction extends SelectionListenerAction {
           DartModelManager.getInstance().removeFromIgnores(resource);
           if (DartCoreDebug.ANALYSIS_SERVER) {
             File file = resource.getLocation().toFile();
-            SystemLibraryManagerProvider.getDefaultAnalysisServer().scan(file);
+            SystemLibraryManagerProvider.getDefaultAnalysisServer().scan(file, true);
           } else {
             AnalyzeProjectJob analyzeProjectJob = new AnalyzeProjectJob(resource.getProject());
             analyzeProjectJob.schedule();

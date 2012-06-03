@@ -37,6 +37,7 @@ public class LibraryScanTask extends Task {
   private final AnalysisServer server;
   private final Context context;
   private final File rootFile;
+  private final boolean fullScan;
   private final ArrayList<File> filesToScan = new ArrayList<File>(200);
   private final HashSet<File> libraryFiles = new HashSet<File>(50);
   private final HashSet<File> looseFiles = new HashSet<File>(200);
@@ -48,10 +49,11 @@ public class LibraryScanTask extends Task {
   private long bytesOfCode = 0;
   private long scanEndThreshold = 0;
 
-  LibraryScanTask(AnalysisServer server, Context context, File rootFile) {
+  LibraryScanTask(AnalysisServer server, Context context, File rootFile, boolean fullScan) {
     this.server = server;
     this.context = context;
     this.rootFile = rootFile;
+    this.fullScan = fullScan;
     this.filesToScan.add(rootFile);
     this.ignoreManager = DartIgnoreManager.getInstance();
   }
@@ -83,16 +85,17 @@ public class LibraryScanTask extends Task {
 
       // If over the scan threshold, then mark the root to be ignored and abort the scan
 
-      // TODO(devoncarew): temporarily disabling the analysis threshold
-//      if (bytesOfCode > SCAN_BYTE_THRESHOLD || System.currentTimeMillis() > scanEndThreshold) {
-//        try {
-//          ignoreManager.addToIgnores(rootFile);
-//        } catch (IOException e) {
-//          DartCore.logError("Failed to ignore " + rootFile, e);
-//        }
-//        server.discard(rootFile);
-//        return;
-//      }
+      if (!fullScan) {
+        if (bytesOfCode > SCAN_BYTE_THRESHOLD || System.currentTimeMillis() > scanEndThreshold) {
+          try {
+            ignoreManager.addToIgnores(rootFile);
+          } catch (IOException e) {
+            DartCore.logError("Failed to ignore " + rootFile, e);
+          }
+          server.discard(rootFile);
+          return;
+        }
+      }
     }
 
     // Parse libraries to determine sourced files

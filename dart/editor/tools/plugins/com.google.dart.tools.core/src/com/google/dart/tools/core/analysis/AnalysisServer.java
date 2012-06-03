@@ -301,10 +301,18 @@ public class AnalysisServer {
   }
 
   /**
-   * Recursively scan the specified directory for libraries to analyze
+   * Scan the specified file or recursively scan the specified directory for libraries to analyze.
+   * If the fullScan parameter is <code>false</code> and the scan takes too long or includes too
+   * many bytes of Dart source code, then the scan will stop and the specified folder marked so that
+   * it will not be analyzed.
+   * 
+   * @param file the file or directory of files to scan (not <code>null</code>)
+   * @param fullScan <code>true</code> if the scan should recurse infinitely deep and for however
+   *          long the scan takes or <code>false</code> if the scan should stop once the time or
+   *          size threshold has been reached.
    */
-  public void scan(File file) {
-    queueNewTask(new LibraryScanTask(this, savedContext, file));
+  public void scan(File file, boolean fullScan) {
+    queueNewTask(new LibraryScanTask(this, savedContext, file, fullScan));
   }
 
   /**

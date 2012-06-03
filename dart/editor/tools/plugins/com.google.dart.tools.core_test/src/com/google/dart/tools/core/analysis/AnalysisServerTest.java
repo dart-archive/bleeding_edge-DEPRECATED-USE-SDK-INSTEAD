@@ -465,7 +465,7 @@ public class AnalysisServerTest extends TestCase {
         assertTrackedLibraryFiles();
 
         listener.reset();
-        server.scan(sourcedFile);
+        server.scan(sourcedFile, false);
         waitForIdle();
         assertTrackedLibraryFiles(sourcedFile);
         assertEquals(3, listener.getResolved().size());
@@ -474,7 +474,7 @@ public class AnalysisServerTest extends TestCase {
 
         listener.reset();
         synchronized (getServerQueue()) {
-          server.scan(libFile);
+          server.scan(libFile, false);
           server.discard(libFile);
         }
         waitForIdle();
@@ -511,7 +511,7 @@ public class AnalysisServerTest extends TestCase {
         //    libElement = new Element(libResource, "#library");
 
         listener.reset();
-        server.scan(tempDir);
+        server.scan(tempDir, false);
         waitForIdle();
         assertTrackedLibraryFiles(libFile);
         assertEquals(3, listener.getResolved().size());
@@ -519,7 +519,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        server.scan(sourcedFile);
+        server.scan(sourcedFile, false);
         waitForIdle();
         assertTrackedLibraryFiles(libFile);
         assertEquals(0, listener.getResolved().size());

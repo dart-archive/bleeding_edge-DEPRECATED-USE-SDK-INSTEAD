@@ -997,7 +997,7 @@ public class DeltaProcessor {
           File file = deltaRes.getLocation().toFile();
           AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
           server.changed(file);
-          server.scan(file);
+          server.scan(file, false);
         }
         element = createElement(deltaRes, elementType);
         if (DartCore.isHTMLLikeFileName(deltaRes.getName())) {
