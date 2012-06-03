@@ -26,6 +26,8 @@ public final class CorrectionMessages extends NLS {
 
   // strings which we use in Dart
   public static String QuickAssistProcessor_exchangeOperands;
+  public static String QuickAssistProcessor_addTypeAnnotation;
+  public static String QuickAssistProcessor_removeTypeAnnotation;
 
   // TODO(scheglov) original strings
 

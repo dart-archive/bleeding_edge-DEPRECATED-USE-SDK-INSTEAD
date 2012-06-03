@@ -16,11 +16,19 @@ package com.google.dart.tools.ui.internal.text.correction;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartVariable;
+import com.google.dart.compiler.ast.DartVariableStatement;
+import com.google.dart.compiler.common.HasSourceInfo;
+import com.google.dart.compiler.type.Type;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.internal.corext.dom.ASTNodes;
+import com.google.dart.tools.internal.corext.refactoring.code.ExtractUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -110,7 +118,9 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
         ExecutionUtils.runIgnore(new RunnableEx() {
           @Override
           public void run() throws Exception {
-            addExchangeOperandsProposal();
+            addProposal_exchangeOperands();
+            addProposal_addTypeAnnotation();
+            addProposal_removeTypeAnnotation();
           }
         });
       }
@@ -123,7 +133,51 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     return true;
   }
 
-  private boolean addExchangeOperandsProposal() throws Exception {
+  private boolean addProposal_addTypeAnnotation() throws Exception {
+    Type type = null;
+    HasSourceInfo typeStart = null;
+    HasSourceInfo typeEnd = null;
+    // try local variable
+    {
+      DartVariableStatement statement = ASTNodes.getAncestor(node, DartVariableStatement.class);
+      if (statement != null && statement.getTypeNode() == null) {
+        List<DartVariable> variables = statement.getVariables();
+        if (variables.size() == 1) {
+          DartVariable variable = variables.get(0);
+          type = variable.getElement().getType();
+          typeStart = statement;
+          typeEnd = variable;
+        }
+      }
+    }
+    // try top-level field
+    {
+      DartFieldDefinition fieldDefinition = ASTNodes.getAncestor(node, DartFieldDefinition.class);
+      if (fieldDefinition != null && fieldDefinition.getTypeNode() == null) {
+        List<DartField> fields = fieldDefinition.getFields();
+        if (fields.size() == 1) {
+          DartField field = fields.get(0);
+          type = field.getElement().getType();
+          typeStart = fieldDefinition;
+          typeEnd = field;
+        }
+      }
+    }
+    // add edit
+    if (type != null && type.isInferred() && typeStart != null && typeEnd != null) {
+      String typeSource = ExtractUtils.getTypeSource(type);
+      textEdits.add(createReplaceEdit(
+          SourceRangeFactory.forStartStart(typeStart, typeEnd),
+          typeSource + " "));
+    }
+    // add proposal
+    addUnitCorrectionProposal(
+        CorrectionMessages.QuickAssistProcessor_addTypeAnnotation,
+        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    return true;
+  }
+
+  private boolean addProposal_exchangeOperands() throws Exception {
     // check that user invokes quick assist on binary expression
     if (!(node instanceof DartBinaryExpression)) {
       return false;
@@ -159,6 +213,42 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
     return true;
   }
 
+  private boolean addProposal_removeTypeAnnotation() throws Exception {
+    HasSourceInfo typeStart = null;
+    HasSourceInfo typeEnd = null;
+    // try local variable
+    {
+      DartVariableStatement statement = ASTNodes.getAncestor(node, DartVariableStatement.class);
+      if (statement != null && statement.getTypeNode() != null) {
+        DartVariable variable = statement.getVariables().get(0);
+        typeStart = statement.getTypeNode();
+        typeEnd = variable;
+      }
+    }
+    // try top-level field
+    {
+      DartFieldDefinition fieldDefinition = ASTNodes.getAncestor(node, DartFieldDefinition.class);
+      if (fieldDefinition != null && fieldDefinition.getTypeNode() != null) {
+        DartField field = fieldDefinition.getFields().get(0);
+        typeStart = fieldDefinition;
+        typeEnd = field;
+      }
+    }
+    // add edit
+    if (typeStart != null && typeEnd != null) {
+      SourceRange typeRange = SourceRangeFactory.forStartStart(typeStart, typeEnd);
+      textEdits.add(createReplaceEdit(typeRange, "var "));
+    }
+    // add proposal
+    addUnitCorrectionProposal(
+        CorrectionMessages.QuickAssistProcessor_removeTypeAnnotation,
+        DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE));
+    return true;
+  }
+
+  /**
+   * Adds new {@link CUCorrectionProposal} using {@link #unit} and {@link #textEdits}.
+   */
   private void addUnitCorrectionProposal(String label, Image image) {
     // prepare change
     CompilationUnitChange change = new CompilationUnitChange(label, unit);
@@ -168,7 +258,9 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
       change.addEdit(textEdit);
     }
     // add proposal
-    proposals.add(new CUCorrectionProposal(label, unit, change, 1, image));
+    if (!textEdits.isEmpty()) {
+      proposals.add(new CUCorrectionProposal(label, unit, change, 1, image));
+    }
   }
 
   /**

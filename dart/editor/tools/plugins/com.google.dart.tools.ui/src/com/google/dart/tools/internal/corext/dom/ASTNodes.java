@@ -533,6 +533,18 @@ public class ASTNodes {
 //  }
 
   /**
+   * @return the {@link DartNode} of given {@link Class} which is given {@link DartNode} itself, or
+   *         one of its parents.
+   */
+  @SuppressWarnings("unchecked")
+  public static <E extends DartNode> E getAncestor(DartNode node, Class<E> enclosingClass) {
+    while (node != null && !enclosingClass.isInstance(node)) {
+      node = node.getParent();
+    };
+    return (E) node;
+  }
+
+  /**
    * Returns the closest ancestor of <code>node</code> that is an instance of
    * <code>parentClass</code>, or <code>null</code> if none.
    * <p>

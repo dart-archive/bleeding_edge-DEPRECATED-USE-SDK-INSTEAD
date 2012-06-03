@@ -29,14 +29,26 @@ public class SourceRangeFactory {
     return new SourceRangeImpl(node);
   }
 
-  public static SourceRange forStartEnd(HasSourceInfo startInfo, HasSourceInfo endInfo) {
-    int start = startInfo.getSourceInfo().getOffset();
-    int end = endInfo.getSourceInfo().getEnd();
+  /**
+   * @return the {@link SourceRange} which start at start of "a" and ends at end of "b".
+   */
+  public static SourceRange forStartEnd(HasSourceInfo a, HasSourceInfo b) {
+    int start = a.getSourceInfo().getOffset();
+    int end = b.getSourceInfo().getEnd();
     return forStartEnd(start, end);
   }
 
   public static SourceRange forStartEnd(int start, int end) {
     return new SourceRangeImpl(start, end - start);
+  }
+
+  /**
+   * @return the {@link SourceRange} which start at start of "a" and ends at start of "b".
+   */
+  public static SourceRange forStartStart(HasSourceInfo a, HasSourceInfo b) {
+    int start = a.getSourceInfo().getOffset();
+    int end = b.getSourceInfo().getOffset();
+    return forStartEnd(start, end);
   }
 
 }

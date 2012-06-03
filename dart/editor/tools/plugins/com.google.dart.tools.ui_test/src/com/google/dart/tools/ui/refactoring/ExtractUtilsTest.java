@@ -326,7 +326,7 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_null() throws Exception {
-    assertSame(null, ExtractUtils.getTypeSource(null));
+    assertSame(null, ExtractUtils.getTypeSource((DartExpression) null));
   }
 
   public void test_getType_propertyAccess() throws Exception {

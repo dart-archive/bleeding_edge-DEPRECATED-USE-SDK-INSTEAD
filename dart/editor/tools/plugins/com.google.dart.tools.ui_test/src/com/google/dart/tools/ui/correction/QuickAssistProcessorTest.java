@@ -41,19 +41,75 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
   }
 
   private IProblemLocation problemLocations[] = NO_PROBLEMS;
+  private int selectionLength = 0;
+
+  public void test_addTypeAnnotation_classField_OK_int() throws Exception {
+    assert_addTypeAnnotation_classField("var v = 1;", " = 1", "int v = 1;");
+  }
+
+  public void test_addTypeAnnotation_local_OK_int() throws Exception {
+    assert_addTypeAnnotation_localVariable("var v = 1;", " = 1", "int v = 1;");
+  }
+
+  public void test_addTypeAnnotation_local_OK_List() throws Exception {
+    assert_addTypeAnnotation_localVariable(
+        "var v = new List<String>();",
+        " = new",
+        "List<String> v = new List<String>();");
+  }
+
+  public void test_addTypeAnnotation_local_OK_onInitializer() throws Exception {
+    assert_addTypeAnnotation_localVariable("var v = 123;", "23;", "int v = 123;");
+  }
+
+  public void test_addTypeAnnotation_local_OK_onName() throws Exception {
+    assert_addTypeAnnotation_localVariable("var abc = 1;", "bc ", "int abc = 1;");
+  }
+
+  public void test_addTypeAnnotation_local_OK_onVar() throws Exception {
+    assert_addTypeAnnotation_localVariable("var v = 1;", "var ", "int v = 1;");
+  }
+
+  public void test_addTypeAnnotation_local_wrong_multiple() throws Exception {
+    String source = "var a = 1, b = '';";
+    assert_addTypeAnnotation_localVariable(source, "var ", source);
+  }
+
+  public void test_addTypeAnnotation_local_wrong_null() throws Exception {
+    String source = "var v = null;";
+    assert_addTypeAnnotation_localVariable(source, " = null", source);
+  }
+
+  public void test_addTypeAnnotation_local_wrong_unknown() throws Exception {
+    String source = "var v = unknownVar;";
+    assert_addTypeAnnotation_localVariable(source, " = unknown", source);
+  }
+
+  public void test_addTypeAnnotation_topLevelField_OK_int() throws Exception {
+    assert_addTypeAnnotation_topLevelField("var v = 1;", " = 1", "int v = 1;");
+  }
+
+  public void test_addTypeAnnotation_topLevelField_OK_onVar() throws Exception {
+    assert_addTypeAnnotation_topLevelField("var v = 1;", "var", "int v = 1;");
+  }
+
+  public void test_addTypeAnnotation_topLevelField_wrong_multiple() throws Exception {
+    String source = "var a = 1, b = '';";
+    assert_addTypeAnnotation_topLevelField(source, "var ", source);
+  }
 
   /**
    * We should go up only until we have same operator.
    */
   public void test_exchangeBinaryExpressionArguments_OK_extended_mixOperator_1() throws Exception {
-    assert_exchangeBinaryExpressionArguments_success("1 * 2 * 3 + 4", "* 2", 0, "2 * 3 * 1 + 4");
+    assert_exchangeBinaryExpressionArguments_success("1 * 2 * 3 + 4", "* 2", "2 * 3 * 1 + 4");
   }
 
   /**
    * We should go up only until we have same operator.
    */
   public void test_exchangeBinaryExpressionArguments_OK_extended_mixOperator_2() throws Exception {
-    assert_exchangeBinaryExpressionArguments_success("1 + 2 - 3 + 4", "+ 2", 0, "2 + 1 - 3 + 4");
+    assert_exchangeBinaryExpressionArguments_success("1 + 2 - 3 + 4", "+ 2", "2 + 1 - 3 + 4");
   }
 
   /**
@@ -62,7 +118,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
    */
   public void test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterFirst()
       throws Exception {
-    assert_exchangeBinaryExpressionArguments_success("1 + 2 + 3", "+ 2", 0, "2 + 3 + 1");
+    assert_exchangeBinaryExpressionArguments_success("1 + 2 + 3", "+ 2", "2 + 3 + 1");
   }
 
   /**
@@ -71,23 +127,25 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
    */
   public void test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterSecond()
       throws Exception {
-    assert_exchangeBinaryExpressionArguments_success("1 + 2 + 3", "+ 3", 0, "3 + 1 + 2");
+    assert_exchangeBinaryExpressionArguments_success("1 + 2 + 3", "+ 3", "3 + 1 + 2");
   }
 
   public void test_exchangeBinaryExpressionArguments_OK_simple_afterOperator() throws Exception {
-    assert_exchangeBinaryExpressionArguments_success("1 + 2", " 2", 0, "2 + 1");
+    assert_exchangeBinaryExpressionArguments_success("1 + 2", " 2", "2 + 1");
   }
 
   public void test_exchangeBinaryExpressionArguments_OK_simple_beforeOperator() throws Exception {
-    assert_exchangeBinaryExpressionArguments_success("1 + 2", "+ 2", 0, "2 + 1");
+    assert_exchangeBinaryExpressionArguments_success("1 + 2", "+ 2", "2 + 1");
   }
 
   public void test_exchangeBinaryExpressionArguments_OK_simple_fullSelection() throws Exception {
-    assert_exchangeBinaryExpressionArguments_success("1 + 2", "1 + 2", 5, "2 + 1");
+    selectionLength = 5;
+    assert_exchangeBinaryExpressionArguments_success("1 + 2", "1 + 2", "2 + 1");
   }
 
   public void test_exchangeBinaryExpressionArguments_OK_simple_withLength() throws Exception {
-    assert_exchangeBinaryExpressionArguments_success("1 + 2", "+ 2", 2, "2 + 1");
+    selectionLength = 2;
+    assert_exchangeBinaryExpressionArguments_success("1 + 2", "+ 2", "2 + 1");
   }
 
   public void test_exchangeBinaryExpressionArguments_wrong_errorAtLocation() throws Exception {
@@ -96,64 +154,193 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     when(problemLocation.isError()).thenReturn(true);
     problemLocations = new IProblemLocation[] {problemLocation};
     // run proposal
-    assert_exchangeBinaryExpressionArguments_wrong("1 + unknown", "+ unknown", 0);
+    assert_exchangeBinaryExpressionArguments_wrong("1 + unknown", "+ unknown");
   }
 
   public void test_exchangeBinaryExpressionArguments_wrong_extraLength() throws Exception {
-    assert_exchangeBinaryExpressionArguments_wrong("111 + 222", "+ 222", 3);
+    selectionLength = 3;
+    assert_exchangeBinaryExpressionArguments_wrong("111 + 222", "+ 222");
   }
 
   public void test_exchangeBinaryExpressionArguments_wrong_onOperand() throws Exception {
-    assert_exchangeBinaryExpressionArguments_wrong("111 + 222", "11 +", 0);
+    assert_exchangeBinaryExpressionArguments_wrong("111 + 222", "11 +");
   }
 
   public void test_exchangeBinaryExpressionArguments_wrong_selectionWithBinary() throws Exception {
-    assert_exchangeBinaryExpressionArguments_wrong("1 + 2 + 3", "1 + 2 + 3", 9);
+    selectionLength = 9;
+    assert_exchangeBinaryExpressionArguments_wrong("1 + 2 + 3", "1 + 2 + 3");
+  }
+
+  public void test_removeTypeAnnotation_classField_OK() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int v = 1;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var v = 1;",
+        "}");
+    assert_removeTypeAnnotation(initial, "int ", expected);
+  }
+
+  public void test_removeTypeAnnotation_local_OK_multiple() throws Exception {
+    assert_removeTypeAnnotation_localVariable("int a = 1, b = 2;", "int ", "var a = 1, b = 2;");
+  }
+
+  public void test_removeTypeAnnotation_local_OK_single() throws Exception {
+    assert_removeTypeAnnotation_localVariable("int v = 1;", "int ", "var v = 1;");
+  }
+
+  public void test_removeTypeAnnotation_topLevelField_OK() throws Exception {
+    assert_removeTypeAnnotation("int v = 1;", "int ", "var v = 1;");
   }
 
   @Override
   protected void tearDown() throws Exception {
+    waitEventLoop(0);
     super.tearDown();
     waitEventLoop(0);
   }
 
-  /**
-   * Validates {@link CorrectionMessages#QuickAssistProcessor_exchangeOperands}.
-   */
+  private void assert_addTypeAnnotation(
+      String initialSource,
+      String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionMessages.QuickAssistProcessor_addTypeAnnotation,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_addTypeAnnotation_classField(
+      String initialDeclaration,
+      String offsetPattern,
+      String expectedDeclaration) throws Exception {
+    String initialSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  " + initialDeclaration,
+        "}",
+        "");
+    String expectedSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  " + expectedDeclaration,
+        "}",
+        "");
+    assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_addTypeAnnotation_localVariable(
+      String initialStatement,
+      String offsetPattern,
+      String expectedStatement) throws Exception {
+    String initialSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  " + initialStatement,
+        "}",
+        "");
+    String expectedSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  " + expectedStatement,
+        "}",
+        "");
+    assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_addTypeAnnotation_topLevelField(
+      String initialDeclaration,
+      String offsetPattern,
+      String expectedDeclaration) throws Exception {
+    String initialSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        initialDeclaration,
+        "");
+    String expectedSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        expectedDeclaration,
+        "");
+    assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
+  }
+
   private void assert_exchangeBinaryExpressionArguments_success(
       String initialExpression,
       String offsetPattern,
-      int length,
       String expectedExpression) throws Exception {
-    // set initial source
     String initialSource = "var v = " + initialExpression + ";";
+    String expectedSource = "var v = " + expectedExpression + ";";
+    assert_runProcessor(
+        CorrectionMessages.QuickAssistProcessor_exchangeOperands,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_exchangeBinaryExpressionArguments_wrong(
+      String expression,
+      String offsetPattern) throws Exception {
+    assert_exchangeBinaryExpressionArguments_success(expression, offsetPattern, expression);
+  }
+
+  private void assert_removeTypeAnnotation(
+      String initialSource,
+      String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        CorrectionMessages.QuickAssistProcessor_removeTypeAnnotation,
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_removeTypeAnnotation_localVariable(
+      String initialStatement,
+      String offsetPattern,
+      String expectedStatement) throws Exception {
+    String initialSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  " + initialStatement,
+        "}",
+        "");
+    String expectedSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  " + expectedStatement,
+        "}",
+        "");
+    assert_removeTypeAnnotation(initialSource, offsetPattern, expectedSource);
+  }
+
+  /**
+   * Asserts that running proposal with given name produces expected source.
+   */
+  private void assert_runProcessor(
+      String proposalName,
+      String initialSource,
+      String offsetPattern,
+      String expectedSource) throws Exception {
+    // set initial source
     setTestUnitContent(initialSource);
     // just to get coverage
     PROCESSOR.hasAssists(null);
     // prepare proposals
     int offset = findOffset(offsetPattern);
-    AssistContext context = new AssistContext(testUnit, offset, length);
+    AssistContext context = new AssistContext(testUnit, offset, selectionLength);
     IDartCompletionProposal[] proposals = PROCESSOR.getAssists(context, problemLocations);
     // find and apply required proposal
     String result = initialSource;
     for (IDartCompletionProposal proposal : proposals) {
-      if (isProposal(proposal, CorrectionMessages.QuickAssistProcessor_exchangeOperands)) {
+      if (isProposal(proposal, proposalName)) {
         result = ((CUCorrectionProposal) proposal).getPreviewContent();
       }
     }
     // assert result
-    String expectedSource = "var v = " + expectedExpression + ";";
     assertEquals(expectedSource, result);
-  }
-
-  private void assert_exchangeBinaryExpressionArguments_wrong(
-      String expression,
-      String offsetPattern,
-      int offsetDelta) throws Exception {
-    assert_exchangeBinaryExpressionArguments_success(
-        expression,
-        offsetPattern,
-        offsetDelta,
-        expression);
   }
 }

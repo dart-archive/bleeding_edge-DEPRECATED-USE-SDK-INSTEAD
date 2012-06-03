@@ -74,6 +74,17 @@ public class ExtractUtils {
   }
 
   /**
+   * @return the source of the given {@link Type}.
+   */
+  public static String getTypeSource(Type type) {
+    String typeSource = type.toString();
+    typeSource = StringUtils.replace(typeSource, "<dynamic>", "Dynamic");
+    typeSource = StringUtils.replace(typeSource, "<Dynamic>", "");
+    typeSource = StringUtils.replace(typeSource, "<Dynamic, Dynamic>", "");
+    return typeSource;
+  }
+
+  /**
    * @return <code>true</code> if given {@link DartBinaryExpression} uses associative operator and
    *         its arguments are not {@link DartBinaryExpression} or are also associative.
    */
@@ -100,14 +111,6 @@ public class ExtractUtils {
   public static boolean rangeStartsBetween(SourceRange range, DartNode first, DartNode next) {
     int pos = range.getOffset();
     return first.getSourceInfo().getEnd() <= pos && pos <= next.getSourceInfo().getOffset();
-  }
-
-  private static String getTypeSource(Type type) {
-    String typeSource = type.toString();
-    typeSource = StringUtils.replace(typeSource, "<dynamic>", "Dynamic");
-    typeSource = StringUtils.replace(typeSource, "<Dynamic>", "");
-    typeSource = StringUtils.replace(typeSource, "<Dynamic, Dynamic>", "");
-    return typeSource;
   }
 
   /**
