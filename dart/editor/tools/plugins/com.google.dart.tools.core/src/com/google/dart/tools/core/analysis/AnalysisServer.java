@@ -464,20 +464,18 @@ public class AnalysisServer {
    * {@link AnalyzeContextTask} to the end of the queue if it has not already been added.
    */
   void queueAnalyzeContext() {
-    if (analyze) {
-      synchronized (queue) {
-        int index = queue.size() - 1;
-        if (index >= 0) {
-          Task lastTask = queue.get(index);
-          if (lastTask instanceof AnalyzeContextTask) {
-            return;
-          }
-        } else {
-          index = 0;
+    synchronized (queue) {
+      int index = queue.size() - 1;
+      if (index >= 0) {
+        Task lastTask = queue.get(index);
+        if (lastTask instanceof AnalyzeContextTask) {
+          return;
         }
-        queue.add(index, new AnalyzeContextTask(this, savedContext));
-        queue.notifyAll();
+      } else {
+        index = 0;
       }
+      queue.add(index, new AnalyzeContextTask(this, savedContext));
+      queue.notifyAll();
     }
   }
 
