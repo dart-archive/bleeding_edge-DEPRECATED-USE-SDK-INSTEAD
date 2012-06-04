@@ -30,9 +30,9 @@ class BuildUtil(object):
     self._buildos = buildos
     self._buildout = buildout
     self._dartpath = dartpath
-    self._sdk_paths = {'macos': os.path.join('xcodebuild', 'Release_ia32'),
-                       'win32': os.path.join('Release_ia32', 'dart-sdk'),
-                       'linux': os.path.join('out', 'Release_ia32')}
+    self._sdk_paths = {'macos': os.path.join('xcodebuild', 'ReleaseIA32'),
+                       'win32': os.path.join('ReleaseIA32', 'dart-sdk'),
+                       'linux': os.path.join('out', 'ReleaseIA32')}
 
   def SdkZipLocation(self):
     """Return the location of the sdk zip file."""
