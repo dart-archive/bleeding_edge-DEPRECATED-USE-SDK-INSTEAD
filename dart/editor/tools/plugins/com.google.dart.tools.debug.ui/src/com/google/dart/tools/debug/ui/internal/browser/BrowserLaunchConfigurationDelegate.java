@@ -14,8 +14,8 @@
 package com.google.dart.tools.debug.ui.internal.browser;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.frog.FrogCompiler;
-import com.google.dart.tools.core.frog.FrogCompiler.CompilationResult;
+import com.google.dart.tools.core.frog.Dart2JSCompiler;
+import com.google.dart.tools.core.frog.Dart2JSCompiler.CompilationResult;
 import com.google.dart.tools.core.frog.ProcessRunner;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -179,7 +179,7 @@ public class BrowserLaunchConfigurationDelegate extends LaunchConfigurationDeleg
         if (htmlFile.getReferencedLibraries().length > 0) {
           DartLibrary library = htmlFile.getReferencedLibraries()[0];
 
-          CompilationResult result = FrogCompiler.compileLibrary(
+          CompilationResult result = Dart2JSCompiler.compileLibrary(
               library,
               monitor,
               DartCore.getConsole());

@@ -15,7 +15,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.frog.FrogCompiler;
+import com.google.dart.tools.core.frog.Dart2JSCompiler;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
@@ -71,7 +71,7 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
               ActionMessages.GenerateJavascriptAction_Compiling + library.getElementName(),
               IProgressMonitor.UNKNOWN);
 
-          FrogCompiler.compileLibrary(library, monitor, DartCore.getConsole());
+          Dart2JSCompiler.compileLibrary(library, monitor, DartCore.getConsole());
 
           return Status.OK_STATUS;
         } catch (OperationCanceledException exception) {

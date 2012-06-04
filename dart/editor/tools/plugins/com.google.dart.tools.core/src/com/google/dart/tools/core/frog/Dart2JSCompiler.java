@@ -15,16 +15,164 @@
 package com.google.dart.tools.core.frog;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.MessageConsole;
+import com.google.dart.tools.core.internal.builder.DartBuilder;
+import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartSdk;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.osgi.util.NLS;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Launch the dart2js process and collect stdout, stderr, and exit code information.
  */
-public class Dart2JSCompiler extends FrogCompiler {
+public class Dart2JSCompiler {
+
+  public static class CompilationResult {
+    private ProcessRunner runner;
+    private IPath outputPath;
+
+    CompilationResult(ProcessRunner runner, IPath outputPath) {
+      this.runner = runner;
+      this.outputPath = outputPath;
+    }
+
+    public String getAllOutput() {
+      StringBuilder builder = new StringBuilder();
+
+      if (!getStdOut().isEmpty()) {
+        builder.append(getStdOut().trim() + "\n");
+      }
+
+      if (!getStdErr().isEmpty()) {
+        builder.append(getStdErr());
+      }
+
+      return builder.toString().trim();
+    }
+
+    public int getExitCode() {
+      return runner.getExitCode();
+    }
+
+    public IPath getOutputPath() {
+      return outputPath;
+    }
+
+    public String getStdErr() {
+      return runner.getStdErr();
+    }
+
+    public String getStdOut() {
+      return runner.getStdOut();
+    }
+
+    @Override
+    public String toString() {
+      return "dart2js result=" + getExitCode();
+    }
+  }
+
+  /**
+   * A static utility method to handle the common use case for the Dart2JSCompiler class. Compile
+   * the given dart library, optionally poll the given monitor to check for user cancellation, and
+   * write any output to the given console.
+   * 
+   * @param library
+   * @param monitor
+   * @param console
+   * @throws OperationCanceledException
+   */
+  public static CompilationResult compileLibrary(DartLibrary library, IProgressMonitor monitor,
+      final MessageConsole console) throws CoreException {
+    long startTime = System.currentTimeMillis();
+
+    IPath path = library.getCorrespondingResource().getLocation();
+
+    final IPath inputPath = library.getCorrespondingResource().getLocation();
+    final IPath outputPath = DartBuilder.getJsAppArtifactPath(path);
+
+    Dart2JSCompiler compiler = new Dart2JSCompiler();
+
+    console.clear();
+    console.println("Running dart2js...");
+
+    try {
+      CompilationResult result = compiler.compile(inputPath, outputPath, monitor);
+
+      refreshResources(library.getCorrespondingResource());
+
+      displayCompilationResult(compiler, result, outputPath, startTime, console);
+      return result;
+    } catch (IOException ioe) {
+      throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, ioe.toString(), ioe));
+    }
+  }
+
+  private static void displayCompilationResult(Dart2JSCompiler compiler, CompilationResult result,
+      IPath outputPath, long startTime, MessageConsole console) {
+    StringBuilder builder = new StringBuilder();
+
+    if (!result.getStdOut().isEmpty()) {
+      builder.append(result.getStdOut().trim() + "\n");
+    }
+
+    if (!result.getStdErr().isEmpty()) {
+      builder.append(result.getStdErr().trim() + "\n");
+    }
+
+    if (result.getExitCode() == 0) {
+      long elapsed = System.currentTimeMillis() - startTime;
+
+      // Trim to 1/10th of a second.
+      elapsed = (elapsed / 100) * 100;
+
+      File outputFile = outputPath.toFile();
+      // Trim to 1/10th of a kb.
+      double fileLength = ((int) (((outputFile.length() + 1023) / 1024) * 10)) / 10;
+
+      String message = fileLength + "kb";
+      message += " written in " + (elapsed / 1000.0) + " seconds";
+
+      builder.append(NLS.bind("Wrote {0} [{1}]\n", outputFile.getPath(), message));
+    }
+
+    console.print(builder.toString());
+  }
+
+  /**
+   * Dart2js creates java.io.Files; we need to tell the workspace about the new / changed resources.
+   * 
+   * @param correspondingResource
+   * @throws CoreException
+   */
+  private static void refreshResources(IResource resource) throws CoreException {
+    IContainer container;
+    if (resource == null) {
+      return;
+    }
+
+    if (resource instanceof IContainer) {
+      container = (IContainer) resource;
+    } else {
+      container = resource.getParent();
+    }
+
+    container.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+  }
 
   /**
    * Create a new Dart2JSCompiler.
@@ -33,12 +181,47 @@ public class Dart2JSCompiler extends FrogCompiler {
 
   }
 
-  @Override
+  /**
+   * Run dart2js as a process to compile the given input file to the given output file. If an
+   * IProgressMonitor is passed in, it is polled to see if the user cancelled the compile operation.
+   * The progress monitor is not used for any other purpose.
+   * 
+   * @param inputPath
+   * @param outputPath
+   * @param monitor
+   * @return
+   * @throws IOException
+   * @throws OperationCanceledException if the user cancelled the operation
+   */
+  public CompilationResult compile(IPath inputPath, IPath outputPath, IProgressMonitor monitor)
+      throws IOException {
+    ProcessBuilder builder = new ProcessBuilder();
+
+    List<String> args = new ArrayList<String>();
+
+    args.add(DartSdk.getInstance().getVmExecutable().getPath());
+    args.add("--new_gen_heap_size=256");
+    args.addAll(getCompilerArguments(inputPath, outputPath));
+
+    builder.command(args);
+    builder.directory(DartSdk.getInstance().getLibraryDirectory());
+    builder.redirectErrorStream(true);
+
+    ProcessRunner runner = new ProcessRunner(builder);
+
+    runner.runSync(monitor);
+
+    return new CompilationResult(runner, outputPath);
+  }
+
   public String getName() {
     return "dart2js";
   }
 
-  @Override
+  public boolean isAvailable() {
+    return DartSdk.isInstalled();
+  }
+
   protected List<String> getCompilerArguments(IPath inputPath, IPath outputPath) {
     List<String> args = new ArrayList<String>();
 
