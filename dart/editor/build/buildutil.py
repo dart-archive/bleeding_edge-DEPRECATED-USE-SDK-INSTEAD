@@ -17,7 +17,7 @@ class BuildUtil(object):
   _buildos = None
   _dartpath = None
   _sdkpath = None
-  _pathending = 'Release_ia32'
+  _pathending = 'ReleaseIA32'
 
   def __init__(self, buildos, buildout, dartpath):
     """Initialize this class.
