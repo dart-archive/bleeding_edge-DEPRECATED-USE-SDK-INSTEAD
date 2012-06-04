@@ -65,6 +65,10 @@ public class LinkWithEditorAction extends PartEventAction implements ISelectionC
     page.addPartListener(this);
   }
 
+  public void dispose() {
+    page.removePartListener(this);
+  }
+
   public boolean getLinkWithEditor() {
     return isChecked();
   }
@@ -124,10 +128,6 @@ public class LinkWithEditorAction extends PartEventAction implements ISelectionC
         partActivated(part);
       }
     }
-  }
-
-  void dispose() {
-    page.removePartListener(this);
   }
 
   private Object getCurrentSelection() {

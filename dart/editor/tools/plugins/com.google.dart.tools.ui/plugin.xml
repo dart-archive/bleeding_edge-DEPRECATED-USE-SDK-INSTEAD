@@ -398,6 +398,16 @@
       </view>
 
       <view
+            allowMultiple="false"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.ui.internal.appsview.AppsView"
+            icon="icons/full/obj16/file_folder.gif"
+            id="com.google.dart.tools.ui.AppsView"
+            name="Apps"
+            restorable="true">
+      </view>
+
+      <view
             name="%callHierarchyViewName"
             icon="$nl$/icons/full/eview16/call_hierarchy.gif"
             category="com.google.dart.tools.ui.dart"

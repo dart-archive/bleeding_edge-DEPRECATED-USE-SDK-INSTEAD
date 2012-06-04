@@ -167,6 +167,16 @@ public final class DartUI {
   public static final String ID_FILE_EXPLORER = "com.google.dart.tools.ui.FileExplorer"; //$NON-NLS-1$
 
   /**
+   * The view part id of the Apps view (value <code>"com.google.dart.tools.ui.AppsView"</code>).
+   */
+  public static final String ID_APPS_VIEW = "com.google.dart.tools.ui.AppsView"; //$NON-NLS-1$
+
+  /**
+   * The view part id of the Console view (value <code>"com.google.dart.tools.ui.console"</code>).
+   */
+  public static final String ID_CONSOLE_VIEW = "com.google.dart.tools.ui.console"; //$NON-NLS-1$
+
+  /**
    * The view part id of the Files view (value <code>"com.google.dart.tools.ui.FilesView"</code> ).
    */
   public static final String ID_FILE_VIEW = "com.google.dart.tools.ui.FilesView"; //$NON-NLS-1$

@@ -42,7 +42,6 @@ public class DartPerspective implements IPerspectiveFactory {
   public DartPerspective() {
   }
 
-  @SuppressWarnings("deprecation")
   @Override
   public void createInitialLayout(IPageLayout layout) {
     String editorArea = layout.getEditorArea();
@@ -51,14 +50,7 @@ public class DartPerspective implements IPerspectiveFactory {
     IFolderLayout topLeft = layout.createFolder(TL, IPageLayout.LEFT, 0.25f, editorArea);
 
     topLeft.addView(DartUI.ID_FILE_EXPLORER);
-//TODO (pquitslund): deprecated libaries view support    
-//    {
-//      topLeft.addView(DartUI.ID_LIBRARIES);
-//    }
-
-    // Prevent users from closing the Library Explorer View
-    // layout.getViewLayout(DartUI.ID_LIBRARIES).setCloseable(false);
-    topLeft.addPlaceholder(IPageLayout.ID_RES_NAV);
+    topLeft.addPlaceholder(DartUI.ID_APPS_VIEW);
 
     // Bottom left: Outline view and Property Sheet view
     IPlaceholderFolderLayout outlinefolder = layout.createPlaceholderFolder(OUTLINE_FOLDER,
@@ -69,10 +61,9 @@ public class DartPerspective implements IPerspectiveFactory {
     // Bottom right: info views
     IFolderLayout outputfolder = layout.createFolder(BR, IPageLayout.BOTTOM, 0.75f, editorArea);
     outputfolder.addView(DartUI.ID_PROBLEMS);
-    //outputfolder.addView(IPageLayout.ID_PROBLEM_VIEW);
     //outputfolder.addPlaceholder(NewSearchUI.SEARCH_VIEW_ID);
     outputfolder.addPlaceholder(IConsoleConstants.ID_CONSOLE_VIEW);
-    outputfolder.addPlaceholder("com.google.dart.tools.ui.console");
+    outputfolder.addPlaceholder(DartUI.ID_CONSOLE_VIEW);
     outputfolder.addPlaceholder(IPageLayout.ID_TASK_LIST);
     outputfolder.addPlaceholder(IProgressConstants.PROGRESS_VIEW_ID);
 
@@ -96,8 +87,5 @@ public class DartPerspective implements IPerspectiveFactory {
     layout.addNewWizardShortcut(WIZARD_NEW_FOLDER);
     layout.addNewWizardShortcut(WIZARD_NEW_FILE);
     layout.addNewWizardShortcut(WIZARD_NEW_TEXT);
-
-    // 'Window' > 'Open Perspective' contributions
-    //layout.addPerspectiveShortcut(IDebugUIConstants_ID_DEBUG_PERSPECTIVE);
   }
 }
