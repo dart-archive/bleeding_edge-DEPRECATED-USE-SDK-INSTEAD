@@ -58,14 +58,11 @@ public enum Keyword {
   FACTORY("factory", true),
   GET("get", true),
   IMPLEMENTS("implements", true),
-  IMPORT("import", true),
   INTERFACE("interface", true),
-  LIBRARY("library", true),
   NATIVE("native", true),
   NEGATE("negate", true),
   OPERATOR("operator", true),
   SET("set", true),
-  SOURCE("source", true),
   STATIC("static", true),
   TYPEDEF("typedef", true);
 

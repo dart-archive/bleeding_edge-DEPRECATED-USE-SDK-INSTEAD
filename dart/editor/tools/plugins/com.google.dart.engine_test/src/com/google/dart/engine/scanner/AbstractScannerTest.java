@@ -304,10 +304,6 @@ public abstract class AbstractScannerTest extends TestCase {
     assertKeywordToken("implements");
   }
 
-  public void test_AbstractScanner_keyword_import() throws Exception {
-    assertKeywordToken("import");
-  }
-
   public void test_AbstractScanner_keyword_in() throws Exception {
     assertKeywordToken("in");
   }
@@ -318,10 +314,6 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_AbstractScanner_keyword_is() throws Exception {
     assertKeywordToken("is");
-  }
-
-  public void test_AbstractScanner_keyword_library() throws Exception {
-    assertKeywordToken("library");
   }
 
   public void test_AbstractScanner_keyword_native() throws Exception {
@@ -350,10 +342,6 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_AbstractScanner_keyword_set() throws Exception {
     assertKeywordToken("set");
-  }
-
-  public void test_AbstractScanner_keyword_source() throws Exception {
-    assertKeywordToken("source");
   }
 
   public void test_AbstractScanner_keyword_static() throws Exception {
