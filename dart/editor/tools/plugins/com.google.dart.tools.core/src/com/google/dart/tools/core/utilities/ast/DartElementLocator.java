@@ -19,33 +19,18 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
-import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
-import com.google.dart.compiler.ast.DartField;
-import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
-import com.google.dart.compiler.ast.DartMethodDefinition;
-import com.google.dart.compiler.ast.DartMethodInvocation;
-import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartParameterizedTypeNode;
-import com.google.dart.compiler.ast.DartPropertyAccess;
-import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
-import com.google.dart.compiler.ast.DartSuperConstructorInvocation;
-import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
-import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
-import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.VariableElement;
-import com.google.dart.compiler.type.Type;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -286,97 +271,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
       int end = start + length;
       if (start <= startOffset && endOffset <= end) {
         wordRegion = new Region(start, length);
-        DartNode parent = node.getParent();
-        Element targetElement = node.getElement();
-        // target of "new X()" or "new X.a()" is not just a type, it is a constructor
-        if (parent instanceof DartTypeNode || parent instanceof DartPropertyAccess) {
-          DartNode grandparent = parent.getParent();
-          if (grandparent instanceof DartNewExpression) {
-            targetElement = ((DartNewExpression) grandparent).getElement();
-          }
-        } else if (parent instanceof DartRedirectConstructorInvocation
-            || parent instanceof DartSuperConstructorInvocation) {
-          targetElement = parent.getElement();
-        }
-        // analyze "targetElement"
-        if (targetElement == null) {
-          if (parent instanceof DartTypeNode) {
-            DartNode grandparent = parent.getParent();
-            if (grandparent instanceof DartNewExpression) {
-              targetElement = ((DartNewExpression) grandparent).getElement();
-            }
-            if (targetElement == null) {
-              Type type = DartAstUtilities.getType((DartTypeNode) parent);
-              if (type != null) {
-                targetElement = type.getElement();
-              }
-            }
-          } else if (parent instanceof DartMethodInvocation) {
-            DartMethodInvocation invocation = (DartMethodInvocation) parent;
-            if (node == invocation.getFunctionName()) {
-              targetElement = invocation.getElement();
-            }
-          } else if (parent instanceof DartPropertyAccess) {
-            DartPropertyAccess access = (DartPropertyAccess) parent;
-            if (node == access.getName()) {
-              targetElement = access.getElement();
-            }
-          } else if (parent instanceof DartUnqualifiedInvocation) {
-            DartUnqualifiedInvocation invocation = (DartUnqualifiedInvocation) parent;
-            if (node == invocation.getTarget()) {
-              targetElement = invocation.getElement();
-            }
-          } else if (parent instanceof DartParameterizedTypeNode) {
-            DartParameterizedTypeNode typeNode = (DartParameterizedTypeNode) parent;
-            DartNode grandparent = typeNode.getParent();
-            if (grandparent instanceof DartClass) {
-              DartClass classDef = (DartClass) grandparent;
-              if (typeNode == classDef.getDefaultClass()) {
-                targetElement = classDef.getElement().getDefaultClass().getElement();
-              }
-            }
-          } else if (includeDeclarations) {
-            DartNode nameNode = node;
-            if (parent instanceof DartPropertyAccess) {
-              nameNode = parent;
-              parent = nameNode.getParent();
-            }
-            if (parent instanceof DartClass) {
-              DartClass classDefinition = (DartClass) parent;
-              if (nameNode == classDefinition.getName()) {
-                targetElement = classDefinition.getElement();
-              }
-            } else if (parent instanceof DartField) {
-              DartField field = (DartField) parent;
-              if (nameNode == field.getName()) {
-                targetElement = field.getElement();
-              }
-            } else if (parent instanceof DartMethodDefinition) {
-              DartMethodDefinition method = (DartMethodDefinition) parent;
-              if (nameNode == method.getName()) {
-                targetElement = method.getElement();
-              }
-            } else if (parent instanceof DartParameter) {
-              DartParameter parameter = (DartParameter) parent;
-              if (nameNode == parameter.getName()) {
-                targetElement = parameter.getElement();
-              }
-            } else if (parent instanceof DartVariable) {
-              DartVariable variable = (DartVariable) parent;
-              if (nameNode == variable.getName()) {
-                targetElement = variable.getElement();
-              }
-            } else if (parent instanceof DartFunctionTypeAlias) {
-              DartFunctionTypeAlias alias = (DartFunctionTypeAlias) parent;
-              if (nameNode == alias.getName()) {
-                targetElement = alias.getElement();
-              }
-            }
-          }
-          if (targetElement == null) {
-            targetElement = node.getElement();
-          }
-        }
+        Element targetElement = DartAstUtilities.getElement(node, includeDeclarations);
         if (targetElement == null) {
           foundElement = null;
         } else {
