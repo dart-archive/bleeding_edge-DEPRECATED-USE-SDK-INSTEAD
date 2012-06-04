@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IDebugUIConstants;
@@ -45,6 +46,8 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 
 import java.util.ArrayList;
@@ -61,6 +64,8 @@ import java.util.Set;
  * A utility class for launching and launch configurations.
  */
 public class LaunchUtils {
+
+  public static final String DARTIUM_LAUNCH_NAME = "Dartium launch";
 
   private static List<ILaunchShortcut> shortcuts;
 
@@ -106,6 +111,17 @@ public class LaunchUtils {
     }
 
     return latestLaunch;
+  }
+
+  public static void clearDartiumConsoles() {
+    IConsole[] consoles = ConsolePlugin.getDefault().getConsoleManager().getConsoles();
+    for (IConsole console : consoles) {
+      if (console instanceof ProcessConsole) {
+        if (console.getName().contains(DARTIUM_LAUNCH_NAME)) {
+          ((ProcessConsole) console).clearConsole();
+        }
+      }
+    }
   }
 
   public static List<ILaunchConfiguration> getAllLaunches() {

@@ -159,6 +159,14 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
   }
 
+  /**
+   * @return the connection
+   */
+  @Override
+  public WebkitConnection getConnection() {
+    return connection;
+  }
+
   @Override
   public IDebugTarget getDebugTarget() {
     return this;
@@ -211,6 +219,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   @Override
   public boolean isTerminated() {
     return process.isTerminated();
+  }
+
+  public void navigateToUrl(String url) throws IOException {
+    getConnection().getPage().navigate(url);
   }
 
   public void openConnection(String url) throws IOException {

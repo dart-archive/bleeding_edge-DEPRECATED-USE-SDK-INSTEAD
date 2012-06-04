@@ -14,7 +14,10 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
+import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.ui.actions.AbstractInstrumentedAction;
 
 import org.eclipse.core.runtime.CoreException;
@@ -110,16 +113,28 @@ public abstract class DartAbstractAction extends AbstractInstrumentedAction impl
   protected void launch(ILaunchConfiguration config) {
     boolean supportsDebug = false;
 
+    String mode = ILaunchManager.RUN_MODE;
+    ILaunchConfiguration configCopy = null;
+
     try {
-      supportsDebug = config.supportsMode(ILaunchManager.DEBUG_MODE);
+      if (config.supportsMode(ILaunchManager.DEBUG_MODE)) {
+        mode = ILaunchManager.DEBUG_MODE;
+      }
+
+      if (config.getType().getIdentifier().equals(DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID)) {
+        configCopy = config.copy(LaunchUtils.DARTIUM_LAUNCH_NAME);
+        DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(config);
+        launchConfig.markAsLaunched();
+        LaunchUtils.clearDartiumConsoles();
+      }
+
+      if (configCopy != null) {
+        DebugUITools.launch(configCopy, mode);
+      } else {
+        DebugUITools.launch(config, mode);
+      }
     } catch (CoreException e) {
-
-    }
-
-    if (supportsDebug) {
-      DebugUITools.launch(config, ILaunchManager.DEBUG_MODE);
-    } else {
-      DebugUITools.launch(config, ILaunchManager.RUN_MODE);
+      DartDebugCorePlugin.logError(e);
     }
   }
 

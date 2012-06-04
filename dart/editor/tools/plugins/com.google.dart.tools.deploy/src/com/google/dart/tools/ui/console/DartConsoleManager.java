@@ -143,12 +143,15 @@ public class DartConsoleManager implements IConsoleListener {
     } else {
       // Else create a new console.
       try {
-        view = (DartConsoleView) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(
-            DartConsoleView.VIEW_ID, createViewId(console), IWorkbenchPage.VIEW_VISIBLE);
+        if (PlatformUI.getWorkbench() != null) {
+          view = (DartConsoleView) PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+              .getActivePage().showView(
+                  DartConsoleView.VIEW_ID, createViewId(console), IWorkbenchPage.VIEW_VISIBLE);
 
-        view.display(console);
+          view.display(console);
 
-        view.warnOfContentChange(console);
+          view.warnOfContentChange(console);
+        }
       } catch (PartInitException e) {
         Activator.logError(e);
       }

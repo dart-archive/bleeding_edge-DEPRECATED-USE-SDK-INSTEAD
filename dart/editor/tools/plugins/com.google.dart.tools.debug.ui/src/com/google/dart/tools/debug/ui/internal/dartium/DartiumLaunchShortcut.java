@@ -90,36 +90,49 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILa
 
     // Launch an existing configuration if one exists
     ILaunchConfiguration config = findConfig(resource);
-    if (config != null) {
-      DebugUITools.launch(config, mode);
-      return;
+
+    if (config == null) {
+
+      // Create and launch a new configuration
+      ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
+      ILaunchConfigurationType type = manager.getLaunchConfigurationType(
+          DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID);
+      ILaunchConfigurationWorkingCopy launchConfig = null;
+      try {
+        launchConfig = type.newInstance(null, resource.getName());
+      } catch (CoreException ce) {
+        DartUtil.logError(ce);
+        return;
+      }
+
+      DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(launchConfig);
+
+      launchWrapper.setApplicationName(resource.getFullPath().toString());
+      launchWrapper.setProjectName(resource.getProject().getName());
+      launchConfig.setMappedResources(new IResource[] {resource});
+
+      try {
+        config = launchConfig.doSave();
+      } catch (CoreException e) {
+        DartUtil.logError(e);
+        return;
+      }
     }
 
-    // Create and launch a new configuration
-    ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
-    ILaunchConfigurationType type = manager.getLaunchConfigurationType(DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID);
-    ILaunchConfigurationWorkingCopy launchConfig = null;
     try {
-      launchConfig = type.newInstance(null, resource.getName());
-    } catch (CoreException ce) {
-      DartUtil.logError(ce);
-      return;
-    }
+      ILaunchConfiguration configCopy = config.copy(LaunchUtils.DARTIUM_LAUNCH_NAME);
+      DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
+      launchWrapper.markAsLaunched();
+      LaunchUtils.clearDartiumConsoles();
 
-    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(launchConfig);
-
-    launchWrapper.setApplicationName(resource.getFullPath().toString());
-    launchWrapper.setProjectName(resource.getProject().getName());
-    launchConfig.setMappedResources(new IResource[] {resource});
-
-    try {
-      config = launchConfig.doSave();
+      if (configCopy != null) {
+        DebugUITools.launch(configCopy, mode);
+      } else {
+        DebugUITools.launch(config, mode);
+      }
     } catch (CoreException e) {
       DartUtil.logError(e);
-      return;
     }
-
-    DebugUITools.launch(config, mode);
 
   }
 
