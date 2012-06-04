@@ -13,10 +13,12 @@
  */
 package com.google.dart.tools.core.analysis;
 
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Map.Entry;
 
 /**
  * Analyze a library
@@ -25,8 +27,10 @@ class AnalyzeLibraryTask extends Task {
 
   private final AnalysisServer server;
   private final Context context;
-  private final File libraryFile;
+  private final File rootLibraryFile;
   private final ResolveCallback callback;
+  private final HashSet<File> parsed;
+  private final ArrayList<Library> toAnalyze;
 
   private long start = 0;
 
@@ -34,8 +38,10 @@ class AnalyzeLibraryTask extends Task {
       ResolveCallback callback) {
     this.server = server;
     this.context = context;
-    this.libraryFile = libraryFile;
+    this.rootLibraryFile = libraryFile;
     this.callback = callback;
+    this.parsed = new HashSet<File>(100);
+    this.toAnalyze = new ArrayList<Library>(100);
   }
 
   @Override
@@ -50,39 +56,28 @@ class AnalyzeLibraryTask extends Task {
 
   @Override
   void perform() {
-
     if (start == 0) {
       start = System.currentTimeMillis();
     }
 
-    // Parse the library file
+    // Recursively parse the library and its imports
 
-    Library library = context.getCachedLibrary(libraryFile);
-    DartUnit unit = context.getCachedUnit(library, libraryFile);
-    if (library == null || unit == null) {
-      server.queueSubTask(new ParseLibraryTask(server, context, libraryFile));
+    parsed.clear();
+    toAnalyze.clear();
+    boolean subTasksQueued = parse(rootLibraryFile);
+    if (subTasksQueued) {
       server.queueSubTask(this);
       return;
     }
 
-    // Parse imported libraries
+    // Resolve each library
 
-    boolean found = false;
-    for (File file : library.getImportedFiles()) {
-      if (context.getCachedLibrary(file) == null && file.exists()) {
-        server.queueSubTask(new ParseLibraryTask(server, context, file));
-        found = true;
+    for (Library library : toAnalyze) {
+      if (resolve(library)) {
+        subTasksQueued = true;
       }
     }
-    if (found) {
-      server.queueSubTask(this);
-      return;
-    }
-
-    // Resolve the library
-
-    if (library.getLibraryUnit() == null) {
-      server.queueSubTask(new ResolveLibraryTask(server, context, library));
+    if (subTasksQueued) {
       server.queueSubTask(this);
       return;
     }
@@ -91,14 +86,59 @@ class AnalyzeLibraryTask extends Task {
 
     PerformanceListener listener = AnalysisServer.getPerformanceListener();
     if (listener != null) {
-      listener.analysisComplete(start, libraryFile);
+      listener.analysisComplete(start, rootLibraryFile);
     }
     if (callback != null) {
       try {
-        callback.resolved(library.getLibraryUnit());
+        callback.resolved(context.getCachedLibrary(rootLibraryFile).getLibraryUnit());
       } catch (Throwable e) {
         DartCore.logError("Exception during resolution notification", e);
       }
     }
+  }
+
+  /**
+   * Recursively parse the library and its imports, building the list of libraries to be analyzed
+   * 
+   * @param libraryFile the library file (not <code>null</code>)
+   * @return <code>true</code> if sub tasks were queued
+   */
+  private boolean parse(File libraryFile) {
+    if (parsed.contains(libraryFile)) {
+      return false;
+    }
+    parsed.add(libraryFile);
+    Library library = context.getCachedLibrary(libraryFile);
+    if (library == null) {
+      server.queueSubTask(new ParseLibraryFileTask(server, context, libraryFile, null));
+      return true;
+    }
+    boolean subTasksQueued = false;
+    for (File importedFile : library.getImportedFiles()) {
+      if (parse(importedFile)) {
+        subTasksQueued = true;
+      }
+    }
+    toAnalyze.add(library);
+    return subTasksQueued;
+  }
+
+  /**
+   * Resolve the library
+   * 
+   * @param libraryFile the library file (not <code>null</code>)
+   * @return <code>true</code> if sub tasks were queued
+   */
+  private boolean resolve(Library library) {
+    if (library.getLibraryUnit() != null) {
+      return false;
+    }
+    for (Entry<String, File> entry : library.getRelativeSourcePathsAndFiles()) {
+      String relPath = entry.getKey();
+      File file = entry.getValue();
+      server.queueSubTask(new ParseFileTask(server, context, library.getFile(), relPath, file, null));
+    }
+    server.queueSubTask(new ResolveLibraryTask(server, context, library));
+    return true;
   }
 }

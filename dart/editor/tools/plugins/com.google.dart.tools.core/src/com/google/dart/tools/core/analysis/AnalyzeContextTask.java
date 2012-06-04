@@ -39,25 +39,8 @@ class AnalyzeContextTask extends Task {
 
   @Override
   void perform() {
-
-    // Parse library files
-
-    boolean found = false;
-    for (File libFile : server.getTrackedLibraryFiles()) {
-      if (context.getCachedLibrary(libFile) == null) {
-        server.queueSubTask(new ParseLibraryFileTask(server, context, libFile, null));
-        found = true;
-      }
-    }
-    if (found) {
-      server.queueSubTask(this);
-      return;
-    }
-
-    // Analyze all libraries
-
-    for (File libFile : server.getTrackedLibraryFiles()) {
-      server.queueSubTask(new AnalyzeLibraryTask(server, context, libFile, null));
+    for (File libraryFile : server.getTrackedLibraryFiles()) {
+      server.queueSubTask(new AnalyzeLibraryTask(server, context, libraryFile, null));
     }
   }
 }
