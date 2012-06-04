@@ -6,21 +6,10 @@
   'targets': [
     {
       'target_name': 'frog',
-      'conditions': [
-        ['OS!="win"', {
-          'dependencies': [
-            '../runtime/dart-runtime.gyp:dart',
-            '../third_party/v8/src/d8.gyp:d8',
-          ],
-        }],
-        ['OS=="win"', {
-          'dependencies': [
-            # TODO(efortuna): Currently the Windows build only runs using the
-            # dart VM, so we don't depend on d8 because of v8 build issues. Fix
-            # this so that Windows can also run with d8.
-            '../runtime/dart-runtime.gyp:dart',
-          ],
-       }]],
+      'dependencies': [
+        '../runtime/dart-runtime.gyp:dart',
+        '../third_party/v8/src/d8.gyp:d8',
+      ],
       'type': 'none',
       'actions': [
         {
