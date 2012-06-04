@@ -32,6 +32,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -143,6 +144,7 @@ class ResourceServerHandler implements Runnable {
   private static final String TYPE_PNG = "image/png";
 
   private static Map<String, String> contentMappings = new HashMap<String, String>();
+  private static Map<String, String> extraMappings;
 
   static {
     contentMappings.put("htm", TYPE_HTML);
@@ -158,6 +160,8 @@ class ResourceServerHandler implements Runnable {
     contentMappings.put("jpg", TYPE_JPEG);
     contentMappings.put("gif", TYPE_GIF);
     contentMappings.put("png", TYPE_PNG);
+
+    setupExtraMappings();
   }
 
   private static final String CRLF = "\r\n";
@@ -183,6 +187,29 @@ class ResourceServerHandler implements Runnable {
     }
 
     return AGENT_CONTENT;
+  }
+
+  private static void setupExtraMappings() {
+    extraMappings = new HashMap<String, String>();
+
+    try {
+      BufferedReader reader = new BufferedReader(new InputStreamReader(
+          ResourceServerHandler.class.getResourceAsStream("mime.txt")));
+
+      String line = reader.readLine();
+
+      while (line != null) {
+        String[] strs = line.split(" ");
+
+        extraMappings.put(strs[0], strs[1]);
+
+        line = reader.readLine();
+      }
+
+      reader.close();
+    } catch (IOException ioe) {
+      DartDebugCorePlugin.logError(ioe);
+    }
   }
 
   private ResourceServer resourceServer;
@@ -475,6 +502,10 @@ class ResourceServerHandler implements Runnable {
 
       if (contentMappings.containsKey(extension)) {
         return contentMappings.get(extension);
+      }
+
+      if (extraMappings.containsKey(extension)) {
+        return extraMappings.get(extension);
       }
     }
 
