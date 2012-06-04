@@ -107,47 +107,17 @@ public class FrogCompiler {
     final IPath inputPath = library.getCorrespondingResource().getLocation();
     final IPath outputPath = DartBuilder.getJsAppArtifactPath(path);
 
-    FrogCompiler compiler;
-
-    final CountDownLatch latch;
-
-    if (DartCoreDebug.ENABLE_DOUBLE_COMPILATION) {
-      latch = new CountDownLatch(1);
-    } else {
-      latch = new CountDownLatch(0);
-    }
-
-    compiler = new Dart2JSCompiler();
+    FrogCompiler compiler = new Dart2JSCompiler();
 
     console.clear();
     console.println("Generating JavaScript...");
 
     try {
-      if (DartCoreDebug.ENABLE_DOUBLE_COMPILATION) {
-        new Thread(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              runFrogCompile(inputPath, outputPath, console);
-            } finally {
-              latch.countDown();
-            }
-          }
-        }).start();
-      }
-
       CompilationResult result = compiler.compile(inputPath, outputPath, monitor);
 
       refreshResources(library.getCorrespondingResource());
 
       displayCompilationResult(compiler, result, outputPath, startTime, console);
-
-      try {
-        latch.await();
-      } catch (InterruptedException ex) {
-
-      }
-
       return result;
     } catch (IOException ioe) {
       throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, ioe.toString(), ioe));
