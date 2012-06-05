@@ -588,6 +588,7 @@ public class VmConnection {
     StringBuilder builder = new StringBuilder();
 
     boolean inQuote = false;
+    boolean ignoreLast = false;
     int curlyCount = 0;
 
     int c = in.read();
@@ -599,27 +600,37 @@ public class VmConnection {
 
       builder.append((char) c);
 
-      if (c == '"') {
-        inQuote = !inQuote;
+      if (!ignoreLast) {
+        if (c == '"') {
+          inQuote = !inQuote;
+        }
       }
 
-      if (c == '{' && !inQuote) {
-        curlyCount++;
-      } else if (c == '}' && !inQuote) {
-        curlyCount--;
+      if (inQuote && c == '\\') {
+        ignoreLast = true;
+      } else {
+        ignoreLast = false;
+      }
 
-        if (curlyCount == 0) {
-          try {
-            String str = builder.toString();
+      if (!inQuote) {
+        if (c == '{') {
+          curlyCount++;
+        } else if (c == '}') {
+          curlyCount--;
 
-            if (DartDebugCorePlugin.LOGGING) {
-              // Print the event / response from the VM.
-              System.out.println("<== " + str);
+          if (curlyCount == 0) {
+            try {
+              String str = builder.toString();
+
+              if (DartDebugCorePlugin.LOGGING) {
+                // Print the event / response from the VM.
+                System.out.println("<== " + str);
+              }
+
+              return new JSONObject(str);
+            } catch (JSONException e) {
+              throw new IOException(e);
             }
-
-            return new JSONObject(str);
-          } catch (JSONException e) {
-            throw new IOException(e);
           }
         }
       }
