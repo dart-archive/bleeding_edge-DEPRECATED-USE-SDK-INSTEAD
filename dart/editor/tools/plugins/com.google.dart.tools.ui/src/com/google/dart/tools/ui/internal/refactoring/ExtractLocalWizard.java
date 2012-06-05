@@ -105,8 +105,6 @@ public class ExtractLocalWizard extends RefactoringWizard {
       boolean defaultValue = getExtractLocalRefactoring().replaceAllOccurrences();
       final Button checkBox = createCheckbox(result, title, defaultValue, layouter);
       getExtractLocalRefactoring().setReplaceAllOccurrences(checkBox.getSelection());
-      // TODO(scheglov) enable and support
-      checkBox.setEnabled(false);
       checkBox.addSelectionListener(new SelectionAdapter() {
         @Override
         public void widgetSelected(SelectionEvent e) {

@@ -44,7 +44,8 @@ public class ExtractLocalAction extends SelectionDispatchAction {
         new ExtractLocalWizard(refactoring),
         getShell(),
         RefactoringMessages.ExtractLocalAction_dialog_title,
-        RefactoringSaveHelper.SAVE_NOTHING);
+        RefactoringSaveHelper.SAVE_ALL);
+    // TODO(scheglov) replace with SAVE_NOTHING, when parsing working copy will be fixed by Dan
   }
 
   @Override

@@ -42,6 +42,10 @@ public class SourceRangeFactory {
     return new SourceRangeImpl(start, end - start);
   }
 
+  public static SourceRange forStartLength(int start, int length) {
+    return new SourceRangeImpl(start, length);
+  }
+
   /**
    * @return the {@link SourceRange} which start at start of "a" and ends at start of "b".
    */

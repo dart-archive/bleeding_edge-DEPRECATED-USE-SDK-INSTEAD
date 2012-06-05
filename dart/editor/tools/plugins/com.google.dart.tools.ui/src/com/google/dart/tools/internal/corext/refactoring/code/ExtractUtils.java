@@ -13,15 +13,21 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.code;
 
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.tools.core.buffer.Buffer;
+import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -29,12 +35,16 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.internal.corext.SourceRangeFactory;
+import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
+
+import java.util.List;
 
 /**
  * Extract Local Variable (from selected expression inside method or initializer).
@@ -122,6 +132,25 @@ public class ExtractUtils {
         || operator == Token.AND;
   }
 
+  /**
+   * @return {@link com.google.dart.engine.scanner.Token}s of the given Dart source.
+   */
+  private static List<com.google.dart.engine.scanner.Token> tokenizeSource(final String s) {
+    final List<com.google.dart.engine.scanner.Token> tokens = Lists.newArrayList();
+    ExecutionUtils.runIgnore(new RunnableEx() {
+      @Override
+      public void run() throws Exception {
+        StringScanner scanner = new StringScanner(null, s, null);
+        com.google.dart.engine.scanner.Token token = scanner.tokenize();
+        while (token.getType() != TokenType.EOF) {
+          tokens.add(token);
+          token = token.getNext();
+        }
+      }
+    });
+    return tokens;
+  }
+
   @SuppressWarnings("unused")
   private final CompilationUnit unit;
 
@@ -170,6 +199,59 @@ public class ExtractUtils {
     int endIndex = node.getSourceInfo().getOffset();
     int startIndex = getNodePrefixStartIndex(node);
     return buffer.getText(startIndex, endIndex - startIndex);
+  }
+
+  /**
+   * @return all occurrences of the source which matches given selection, sorted by offset. First
+   *         {@link SourceRange} is same as the given selection. May be empty, but not
+   *         <code>null</code>.
+   */
+  public List<SourceRange> getOccurrences(int selectionStart, int selectionLength)
+      throws DartModelException {
+    List<SourceRange> occurrences = Lists.newArrayList();
+    // prepare selection
+    SourceRange selectionRange = SourceRangeFactory.forStartLength(selectionStart, selectionLength);
+    String selectionSource = getText(selectionStart, selectionLength);
+    List<com.google.dart.engine.scanner.Token> selectionTokens = tokenizeSource(selectionSource);
+    selectionSource = StringUtils.join(selectionTokens, ' ');
+    // prepare enclosing function
+    DartNode selectionNode = NodeFinder.perform(unitNode, selectionStart, 0);
+    DartFunction function = ASTNodes.getAncestor(selectionNode, DartFunction.class);
+    // ...we need function
+    if (function != null) {
+      SourceInfo functionSourceInfo = function.getBody().getSourceInfo();
+      int functionOffset = functionSourceInfo.getOffset();
+      String functionSource = getText(functionOffset, functionSourceInfo.getLength());
+      // prepare function tokens
+      List<com.google.dart.engine.scanner.Token> functionTokens = tokenizeSource(functionSource);
+      functionSource = StringUtils.join(functionTokens, ' ');
+      // find "selection" in "function" tokens
+      int lastIndex = 0;
+      while (true) {
+        // find next occurrence
+        int index = functionSource.indexOf(selectionSource, lastIndex);
+        if (index == -1) {
+          break;
+        }
+        lastIndex = index + selectionSource.length();
+        // find start/end tokens
+        int startTokenIndex = StringUtils.countMatches(functionSource.substring(0, index), " ");
+        int endTokenIndex = StringUtils.countMatches(functionSource.substring(0, lastIndex), " ");
+        com.google.dart.engine.scanner.Token startToken = functionTokens.get(startTokenIndex);
+        com.google.dart.engine.scanner.Token endToken = functionTokens.get(endTokenIndex);
+        // add occurrence range
+        int occuStart = functionOffset + startToken.getOffset();
+        int occuEnd = functionOffset + endToken.getOffset() + endToken.getLength();
+        SourceRange occuRange = SourceRangeFactory.forStartEnd(occuStart, occuEnd);
+        if (SourceRangeUtils.intersects(occuRange, selectionRange)) {
+          occurrences.add(selectionRange);
+        } else {
+          occurrences.add(occuRange);
+        }
+      }
+    }
+    // done
+    return occurrences;
   }
 
   /**

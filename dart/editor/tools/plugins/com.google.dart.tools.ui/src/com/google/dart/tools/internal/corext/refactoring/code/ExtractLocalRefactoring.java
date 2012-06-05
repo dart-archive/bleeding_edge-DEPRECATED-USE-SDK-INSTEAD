@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.code;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.ASTVisitor;
@@ -31,6 +32,7 @@ import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.refactoring.CompilationUnitChange;
+import com.google.dart.tools.internal.corext.SourceRangeFactory;
 import com.google.dart.tools.internal.corext.dom.ASTNodes;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
@@ -164,6 +166,7 @@ public class ExtractLocalRefactoring extends Refactoring {
   private DartExpression rootExpression;
 
   private Set<String> excludedVariableNames;
+  private boolean replaceAllOccurrences;
 
   public ExtractLocalRefactoring(CompilationUnit unit, int selectionStart, int selectionLength) {
     Assert.isTrue(selectionStart >= 0);
@@ -187,10 +190,18 @@ public class ExtractLocalRefactoring extends Refactoring {
             RefactoringCoreMessages.ExtractTempRefactoring_another_variable,
             localName));
       }
-      // XXX
-      MultiTextEdit rootEdit = new MultiTextEdit();
-      change.setEdit(rootEdit);
+      // configure Change
+      change.setEdit(new MultiTextEdit());
       change.setKeepPreviewEdits(true);
+      // prepare occurrences
+      List<SourceRange> occurences;
+      if (replaceAllOccurrences) {
+        occurences = utils.getOccurrences(selectionStart, selectionLength);
+      } else {
+        occurences = ImmutableList.of(SourceRangeFactory.forStartLength(
+            selectionStart,
+            selectionLength));
+      }
       // add variable declaration
       {
         // prepare expression type
@@ -202,7 +213,8 @@ public class ExtractLocalRefactoring extends Refactoring {
         String initializerSource = utils.getText(selectionStart, selectionLength);
         String declarationSource = typeSource + " " + localName + " = " + initializerSource + ";";
         // prepare location for declaration
-        DartStatement parentStatement = ASTNodes.getParent(rootExpression, DartStatement.class);
+        DartNode firstOccuNode = NodeFinder.perform(unitNode, occurences.get(0).getOffset(), 0);
+        DartStatement parentStatement = ASTNodes.getParent(firstOccuNode, DartStatement.class);
         String prefix = utils.getNodePrefix(parentStatement);
         // insert variable declaration
         String eol = utils.getEndOfLine();
@@ -210,15 +222,15 @@ public class ExtractLocalRefactoring extends Refactoring {
             parentStatement.getSourceInfo().getOffset(),
             0,
             declarationSource + eol + prefix);
-        rootEdit.addChild(edit);
+        change.addEdit(edit);
         change.addTextEditGroup(new TextEditGroup(
             RefactoringCoreMessages.ExtractLocalRefactoring_declare_local_variable,
             edit));
       }
-      // replace selection with variable reference
-      {
-        TextEdit edit = new ReplaceEdit(selectionStart, selectionLength, localName);
-        rootEdit.addChild(edit);
+      // replace occurrences with variable reference
+      for (SourceRange range : occurences) {
+        TextEdit edit = new ReplaceEdit(range.getOffset(), range.getLength(), localName);
+        change.addEdit(edit);
         change.addTextEditGroup(new TextEditGroup(
             RefactoringCoreMessages.ExtractLocalRefactoring_replace,
             edit));
@@ -280,30 +292,13 @@ public class ExtractLocalRefactoring extends Refactoring {
   public String[] guessNames() {
     if (guessedNames == null) {
       // TODO(scheglov)
-//      try {
-//        DartExpression expression = getSelectedExpression().getAssociatedExpression();
-//        if (expression != null) {
-//          ITypeBinding binding = guessBindingForReference(expression);
-//          fGuessedTempNames = StubUtility.getVariableNameSuggestions(
-//              NamingConventions.VK_LOCAL,
-//              fCu.getDartProject(),
-//              binding,
-//              expression,
-//              Arrays.asList(getExcludedVariableNames()));
-//        }
-//      } catch (DartModelException e) {
-//      }
-      if (guessedNames == null) {
-        guessedNames = new String[0];
-      }
+      guessedNames = new String[0];
     }
     return guessedNames;
   }
 
   public boolean replaceAllOccurrences() {
-    // TODO(scheglov)
-    return false;
-//    return fReplaceAllOccurrences;
+    return replaceAllOccurrences;
   }
 
   /**
@@ -314,8 +309,7 @@ public class ExtractLocalRefactoring extends Refactoring {
   }
 
   public void setReplaceAllOccurrences(boolean replaceAllOccurrences) {
-    // TODO(scheglov)
-    //fReplaceAllOccurrences = replaceAllOccurrences;
+    this.replaceAllOccurrences = replaceAllOccurrences;
   }
 
   /**

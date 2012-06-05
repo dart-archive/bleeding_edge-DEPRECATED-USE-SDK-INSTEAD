@@ -26,6 +26,8 @@ import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.PerformChangeOperation;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 /**
  * Test for {@link ExtractLocalRefactoring}.
  */
@@ -34,8 +36,17 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
 
   private int selectionStart;
   private int selectionEnd;
+  private boolean replaceAllOccurences = true;
   private ExtractLocalRefactoring refactoring;
   private RefactoringStatus refactoringStatus;
+
+  public void test_access() throws Exception {
+    setTestUnitContent();
+    createRefactoring("res");
+    assertEquals("Extract Local Variable", refactoring.getName());
+    assertThat(refactoring.guessNames()).isEmpty();
+    assertEquals(true, refactoring.replaceAllOccurrences());
+  }
 
   public void test_bad_sameVariable_after() throws Exception {
     setTestUnitContent(
@@ -198,6 +209,91 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
         "f() {",
         "  int res = 2 + 3 ;",
         "  int a = 1 + res+ 4;",
+        "}");
+  }
+
+  public void test_occurences_disableOccurences() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int foo() => 42;",
+        "main() {",
+        "  int a = 1 + foo();",
+        "  int b = 2 +  foo(); // marker",
+        "}");
+    selectionStart = findOffset("  foo();") + 2;
+    selectionEnd = findOffset("; // marker");
+    replaceAllOccurences = false;
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int foo() => 42;",
+        "main() {",
+        "  int a = 1 + foo();",
+        "  int res = foo();",
+        "  int b = 2 +  res; // marker",
+        "}");
+  }
+
+  public void test_occurences_fragmentExpression() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int foo() => 42;",
+        "main() {",
+        "  int a = 1 + 2 + foo() + 3;",
+        "  int b = 1 +  2 + foo() + 3; // marker",
+        "}");
+    selectionStart = findOffset("  2 +") + 2;
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int foo() => 42;",
+        "main() {",
+        "  int res = 2 + foo() + 3;",
+        "  int a = 1 + res;",
+        "  int b = 1 +  res; // marker",
+        "}");
+  }
+
+  public void test_occurences_singleExpression() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int foo() => 42;",
+        "main() {",
+        "  int a = 1 + foo();",
+        "  int b = 2 +  foo(); // marker",
+        "}");
+    selectionStart = findOffset("  foo();") + 2;
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int foo() => 42;",
+        "main() {",
+        "  int res = foo();",
+        "  int a = 1 + res;",
+        "  int b = 2 +  res; // marker",
+        "}");
+  }
+
+  public void test_occurences_whenComment() throws Exception {
+    setTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int foo() => 42;",
+        "main() {",
+        "  /*int a = 1 + foo();*/",
+        "  int b = 2 +  foo(); // marker",
+        "}");
+    selectionStart = findOffset("  foo();") + 2;
+    selectionEnd = findOffset("; // marker");
+    doSuccessfullRefactoring();
+    assertTestUnitContent(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int foo() => 42;",
+        "main() {",
+        "  /*int a = 1 + foo();*/",
+        "  int res = foo();",
+        "  int b = 2 +  res; // marker",
         "}");
   }
 
@@ -385,6 +481,7 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
     int selectionLength = selectionEnd - selectionStart;
     refactoring = new ExtractLocalRefactoring(testUnit, selectionStart, selectionLength);
     refactoring.setLocalName(tempName);
+    refactoring.setReplaceAllOccurrences(replaceAllOccurences);
     refactoringStatus = refactoring.checkAllConditions(pm);
   }
 
