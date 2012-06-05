@@ -20,6 +20,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(DartElementLocatorTest.class);
+    suite.addTestSuite(RefinableTypesFinderTest.class);
     suite.addTestSuite(NameOccurrencesFinderTest.class);
     return suite;
   }
