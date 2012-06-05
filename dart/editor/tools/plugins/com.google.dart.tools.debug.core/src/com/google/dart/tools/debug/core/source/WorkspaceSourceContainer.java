@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.debug.core.dartium;
+package com.google.dart.tools.debug.core.source;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;

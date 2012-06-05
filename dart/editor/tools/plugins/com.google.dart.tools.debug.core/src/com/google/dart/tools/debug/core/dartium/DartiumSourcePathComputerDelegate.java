@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.debug.core.dartium;
 
+import com.google.dart.tools.debug.core.source.WorkspaceSourceContainer;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -23,9 +25,9 @@ import org.eclipse.debug.core.sourcelookup.ISourcePathComputerDelegate;
  * Compute and return the default source lookup path (set of source containers that should be
  * considered) for a launch configuration.
  */
-public class DartSourcePathComputerDelegate implements ISourcePathComputerDelegate {
+public class DartiumSourcePathComputerDelegate implements ISourcePathComputerDelegate {
 
-  public DartSourcePathComputerDelegate() {
+  public DartiumSourcePathComputerDelegate() {
 
   }
 
@@ -34,7 +36,7 @@ public class DartSourcePathComputerDelegate implements ISourcePathComputerDelega
       IProgressMonitor monitor) throws CoreException {
 
     return new ISourceContainer[] {
-        new WorkspaceSourceContainer(), new RemoteScriptSourceContainer()};
+        new WorkspaceSourceContainer(), new DartiumRemoteScriptSourceContainer()};
   }
 
 }

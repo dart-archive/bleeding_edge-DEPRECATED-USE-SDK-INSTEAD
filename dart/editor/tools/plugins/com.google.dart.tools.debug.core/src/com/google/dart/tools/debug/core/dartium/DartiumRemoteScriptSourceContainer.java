@@ -35,13 +35,13 @@ import java.nio.charset.Charset;
 /**
  * An ISourceContainer that searches in active debug connections and returns remote script objects.
  */
-public class RemoteScriptSourceContainer extends AbstractSourceContainer {
+public class DartiumRemoteScriptSourceContainer extends AbstractSourceContainer {
   public static final String TYPE_ID = DebugPlugin.getUniqueIdentifier()
       + ".containerType.workspace"; //$NON-NLS-1$
 
   private static final Object[] EMPTY_COLLECTION = new Object[0];
 
-  public RemoteScriptSourceContainer() {
+  public DartiumRemoteScriptSourceContainer() {
 
   }
 

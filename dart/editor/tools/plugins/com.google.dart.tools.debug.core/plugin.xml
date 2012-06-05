@@ -9,17 +9,8 @@
             modes="run,debug"
             name="%launchconfig.server.name"
             sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
-            sourcePathComputerId="com.google.dart.tools.debug.core.sourcePathComputer">
+            sourcePathComputerId="com.google.dart.tools.debug.core.serverSourcePathComputer">
       </launchConfigurationType>
-
-      <!--launchConfigurationType
-            delegate="com.google.dart.tools.debug.core.configs.DartRemoteLaunchConfigurationDelegate"
-            id="com.google.dart.tools.debug.core.remoteLaunchConfig"
-            modes="debug"
-            name="%launchconfig.remote.name"
-            sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
-            sourcePathComputerId="com.google.dart.tools.debug.core.sourcePathComputer">
-      </launchConfigurationType-->
 
       <launchConfigurationType
             delegate="com.google.dart.tools.debug.core.configs.DartiumLaunchConfigurationDelegate"
@@ -27,7 +18,7 @@
             modes="run,debug"
             name="%launchconfig.chrome.name"
             sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
-            sourcePathComputerId="com.google.dart.tools.debug.core.sourcePathComputer">
+            sourcePathComputerId="com.google.dart.tools.debug.core.dartiumSourcePathComputer">
       </launchConfigurationType>
    </extension>
 
@@ -62,8 +53,12 @@
 
    <extension point="org.eclipse.debug.core.sourcePathComputers">
       <sourcePathComputer
-         class="com.google.dart.tools.debug.core.dartium.DartSourcePathComputerDelegate"
-         id="com.google.dart.tools.debug.core.sourcePathComputer">
+         class="com.google.dart.tools.debug.core.server.ServerSourcePathComputerDelegate"
+         id="com.google.dart.tools.debug.core.serverSourcePathComputer">
+       </sourcePathComputer>
+      <sourcePathComputer
+         class="com.google.dart.tools.debug.core.dartium.DartiumSourcePathComputerDelegate"
+         id="com.google.dart.tools.debug.core.dartiumSourcePathComputer">
        </sourcePathComputer>
    </extension>
    

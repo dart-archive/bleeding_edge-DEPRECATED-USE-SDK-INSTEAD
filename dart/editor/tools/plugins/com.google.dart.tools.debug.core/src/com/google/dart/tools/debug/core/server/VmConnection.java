@@ -34,8 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-// TODO(devoncarew): implement the getLibraries command
+import java.util.concurrent.CountDownLatch;
 
 // TODO(devoncarew): implement getLibraryProperties
 
@@ -64,6 +63,8 @@ public class VmConnection {
   private OutputStream out;
 
   private List<VmBreakpoint> breakpoints = Collections.synchronizedList(new ArrayList<VmBreakpoint>());
+
+  private Map<String, String> sourceCache = new HashMap<String, String>();
 
   public VmConnection(int port) {
     this.port = port;
@@ -98,8 +99,10 @@ public class VmConnection {
       public void run() {
         try {
           processVmEvents(in);
-        } catch (IOException e) {
+        } catch (EOFException e) {
 
+        } catch (IOException e) {
+          DartDebugCorePlugin.logError(e);
         } finally {
           socket = null;
         }
@@ -134,6 +137,15 @@ public class VmConnection {
     }
   }
 
+  public void getLibraries(final VmCallback<List<VmLibrary>> callback) throws IOException {
+    sendSimpleCommand("getLibraries", new Callback() {
+      @Override
+      public void handleResult(JSONObject result) throws JSONException {
+        callback.handleResult(convertGetLibrariesResult(result));
+      }
+    });
+  }
+
   public void getObjectProperties(final int objectId, final VmCallback<VmObject> callback)
       throws IOException {
     if (callback == null) {
@@ -155,6 +167,92 @@ public class VmConnection {
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
+  }
+
+  public void getScriptSource(int libraryId, String url, final VmCallback<String> callback)
+      throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "getScriptSource");
+      request.put("params", new JSONObject().put("libraryId", libraryId).put("url", url));
+
+      sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          callback.handleResult(convertGetScriptSourceResult(result));
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
+  /**
+   * This synchronous, potentially long-running call returns the cached source for the given script
+   * url, if any.
+   * 
+   * @param url
+   * @return
+   */
+  public String getScriptSource(final String url) {
+    if (!sourceCache.containsKey(url)) {
+      try {
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        getLibraries(new VmCallback<List<VmLibrary>>() {
+          @Override
+          public void handleResult(VmResult<List<VmLibrary>> result) {
+            if (result.isError()) {
+              sourceCache.put(url, null);
+              latch.countDown();
+            } else {
+              for (VmLibrary library : result.getResult()) {
+                if (url.equals(library.getUrl())) {
+                  try {
+                    getScriptSource(library.getId(), url, new VmCallback<String>() {
+                      @Override
+                      public void handleResult(VmResult<String> result) {
+                        if (result.isError()) {
+                          sourceCache.put(url, null);
+                          latch.countDown();
+                        } else {
+                          sourceCache.put(url, result.getResult());
+                          latch.countDown();
+                        }
+                      }
+                    });
+                  } catch (IOException e) {
+                    sourceCache.put(url, null);
+                    latch.countDown();
+                  }
+
+                  return;
+                }
+              }
+
+              // No matches found.
+              sourceCache.put(url, null);
+              latch.countDown();
+            }
+          }
+        });
+
+        try {
+          latch.await();
+        } catch (InterruptedException e) {
+
+        }
+      } catch (IOException ioe) {
+        sourceCache.put(url, null);
+      }
+    }
+
+    return sourceCache.get(url);
   }
 
   public void getScriptURLs(int libraryId, final VmCallback<List<String>> callback)
@@ -245,10 +343,8 @@ public class VmConnection {
         @Override
         public void handleResult(JSONObject object) throws JSONException {
           if (object.has("error")) {
-            String error = JsonUtils.getString(object, "error");
-
-            DartDebugCorePlugin.logWarning("error setting breakpoint at " + url + ", " + line
-                + ": " + error);
+            DartDebugCorePlugin.logInfo("error setting breakpoint at " + url + ", " + line + ": "
+                + JsonUtils.getString(object, "error"));
           } else {
             int breakpointId = JsonUtils.getInt(object.getJSONObject("result"), "breakpointId");
 
@@ -339,6 +435,17 @@ public class VmConnection {
     return result;
   }
 
+  private VmResult<List<VmLibrary>> convertGetLibrariesResult(JSONObject object)
+      throws JSONException {
+    VmResult<List<VmLibrary>> result = VmResult.createFrom(object);
+
+    if (object.has("result")) {
+      result.setResult(VmLibrary.createFrom(object.getJSONObject("result").optJSONArray("libraries")));
+    }
+
+    return result;
+  }
+
   private VmResult<VmObject> convertGetObjectPropertiesResult(int objectId, JSONObject object)
       throws JSONException {
     VmResult<VmObject> result = VmResult.createFrom(object);
@@ -346,6 +453,16 @@ public class VmConnection {
     if (object.has("result")) {
       result.setResult(VmObject.createFrom(object.getJSONObject("result")));
       result.getResult().setObjectId(objectId);
+    }
+
+    return result;
+  }
+
+  private VmResult<String> convertGetScriptSourceResult(JSONObject object) throws JSONException {
+    VmResult<String> result = VmResult.createFrom(object);
+
+    if (object.has("result")) {
+      result.setResult(object.getJSONObject("result").getString("text"));
     }
 
     return result;

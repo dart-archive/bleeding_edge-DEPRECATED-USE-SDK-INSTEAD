@@ -38,8 +38,19 @@ import java.util.List;
  * An implementation of IDebugTarget for Dart VM debug connections.
  */
 public class ServerDebugTarget extends ServerDebugElement implements IDebugTarget, VmListener {
+  private static ServerDebugTarget activeTarget;
+
+  public static ServerDebugTarget getActiveTarget() {
+    return activeTarget;
+  }
+
+  private static void setActiveTarget(ServerDebugTarget target) {
+    activeTarget = target;
+  }
+
   private ILaunch launch;
   private IProcess process;
+
   private int connectionPort;
 
   private VmConnection connection;
@@ -49,9 +60,13 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   public ServerDebugTarget(ILaunch launch, IProcess process, int connectionPort) {
     super(null);
 
+    setActiveTarget(this);
+
     this.launch = launch;
     this.process = process;
     this.connectionPort = connectionPort;
+
+    monitor(process);
   }
 
   @Override
@@ -158,6 +173,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
     DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
 
+    // TODO(devoncarew): handle the case where we're currently stopped on a breakpoint (i.e. main() line 1).
+
     resume();
   }
 
@@ -178,11 +195,18 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public void fireTerminateEvent() {
+    setActiveTarget(null);
+
     dispose();
 
     debugThread = null;
 
     super.fireTerminateEvent();
+  }
+
+  @Override
+  public IDebugTarget getDebugTarget() {
+    return this;
   }
 
   @Override
@@ -207,7 +231,11 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public IThread[] getThreads() throws DebugException {
-    return new IThread[] {debugThread};
+    if (debugThread == null) {
+      return new IThread[0];
+    } else {
+      return new IThread[] {debugThread};
+    }
   }
 
   public VmConnection getVmConnection() {
@@ -317,6 +345,34 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private String getUrlForResource(IFile file) {
     return file.getLocation().toFile().toURI().toString();
+  }
+
+  private void monitor(final IProcess process) {
+    Thread t = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        boolean terminated = false;
+
+        while (!terminated) {
+
+          try {
+            process.getExitValue();
+
+            terminated = true;
+
+            fireTerminateEvent();
+          } catch (DebugException e) {
+            try {
+              Thread.sleep(50);
+            } catch (InterruptedException e1) {
+
+            }
+          }
+        }
+      }
+    });
+
+    t.start();
   }
 
   private void sleep(int millis) {
