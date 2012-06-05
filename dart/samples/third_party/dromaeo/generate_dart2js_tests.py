@@ -70,11 +70,10 @@ def HtmlConvert(infile, compiler):
   if head == 'tests':
     os.chdir('..')
 
-# Frog compile individual dom and html tests into tests/frog.
+# Compile individual dom and html tests.
 tests = glob.glob('tests/dom-*-*.html')
 
 for test in tests:
-  HtmlConvert(test, 'frog')
   HtmlConvert(test, 'dart2js')
 
 # Compile driver to index-js.html.
