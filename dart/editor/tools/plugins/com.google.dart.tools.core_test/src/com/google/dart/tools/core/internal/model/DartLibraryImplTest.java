@@ -37,6 +37,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -530,20 +531,23 @@ public class DartLibraryImplTest extends TestCase {
   }
 
   public void test_DartLibraryImpl_getElementName_lib1() throws Exception {
+    // expected:<file:[E:\tmp\build_root\tmp\build\workspace-test\]DartLibraryImplTest....>
+    // but was: <file:[/E:/tmp/build_root/tmp/build/workspace-test/]DartLibraryImplTest....>
+
     assertEquals(
-        "file:" + getTempDir().getAbsolutePath() + "/lib1/lib1.dart",
+        getTempDirPath().append("lib1").append("lib1.dart").toFile().toURI().toString(),
         getDartLib1().getElementName());
   }
 
   public void test_DartLibraryImpl_getElementName_lib2() throws Exception {
     assertEquals(
-        "file:" + getTempDir().getAbsolutePath() + "/lib2/lib2.dart",
+        getTempDirPath().append("lib2").append("lib2.dart").toFile().toURI().toString(),
         getDartLib2().getElementName());
   }
 
   public void test_DartLibraryImpl_getElementName_lib3() throws Exception {
     assertEquals(
-        "file:" + getTempDir().getAbsolutePath() + "/lib3/lib3.dart",
+        getTempDirPath().append("lib3").append("lib3.dart").toFile().toURI().toString(),
         getDartLib3().getElementName());
   }
 
@@ -561,13 +565,13 @@ public class DartLibraryImplTest extends TestCase {
 
   public void test_DartLibraryImpl_getElementName_libEmpty() throws Exception {
     assertEquals(
-        "file:" + getTempDir().getAbsolutePath() + "/empty/empty.dart",
+        getTempDirPath().append("empty").append("empty.dart").toFile().toURI().toString(),
         getDartLibEmpty().getElementName());
   }
 
   public void test_DartLibraryImpl_getElementName_libExternal() throws Exception {
     assertEquals(
-        "file:" + getTempDir().getAbsolutePath() + "/libExternal/libExternal.dart",
+        getTempDirPath().append("libExternal").append("libExternal.dart").toFile().toURI().toString(),
         getDartLibExternal().getElementName());
   }
 
@@ -1165,4 +1169,9 @@ public class DartLibraryImplTest extends TestCase {
     }
     return libFile;
   }
+
+  private IPath getTempDirPath() throws IOException {
+    return Path.fromOSString(getTempDir().getAbsolutePath());
+  }
+
 }
