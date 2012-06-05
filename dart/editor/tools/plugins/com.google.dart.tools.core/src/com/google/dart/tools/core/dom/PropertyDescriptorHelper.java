@@ -15,7 +15,6 @@ package com.google.dart.tools.core.dom;
 
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
-import com.google.dart.compiler.ast.DartAssertion;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -132,16 +131,6 @@ public class PropertyDescriptorHelper {
       "expressions",
       DartExpression.class,
       StructuralPropertyDescriptor.CYCLE_RISK);
-
-  /**
-   * The expression in an assertion statement.
-   */
-  public static final StructuralPropertyDescriptor DART_ASSERTION_EXPRESSION = new ChildPropertyDescriptor(
-      DartAssertion.class,
-      "expression",
-      DartExpression.class,
-      StructuralPropertyDescriptor.MANDATORY,
-      StructuralPropertyDescriptor.NO_CYCLE_RISK);
 
   /**
    * The expression computing the left operand of the binary operator.
@@ -1322,8 +1311,6 @@ public class PropertyDescriptorHelper {
         properties.add(DART_ARRAY_ACCESS_TARGET);
       } else if (type == DartArrayLiteral.class) {
         properties.add(DART_ARRAY_LITERAL_EXPRESSIONS);
-      } else if (type == DartAssertion.class) {
-        properties.add(DART_ASSERTION_EXPRESSION);
       } else if (type == DartBinaryExpression.class) {
         properties.add(DART_BINARY_EXPRESSION_LEFT_OPERAND);
         properties.add(DART_BINARY_EXPRESSION_OPERATOR);

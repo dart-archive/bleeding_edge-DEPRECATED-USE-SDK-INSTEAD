@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal.dom.rewrite;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
-import com.google.dart.compiler.ast.DartAssertion;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -739,23 +738,6 @@ public final class ASTRewriteAnalyzer {
           PropertyDescriptorHelper.DART_ARRAY_LITERAL_EXPRESSIONS,
           startPos,
           "", ", "); //$NON-NLS-1$ //$NON-NLS-2$
-      return null;
-    }
-
-    @Override
-    public Object visitAssertion(DartAssertion node) {
-      try {
-        beforeRequiredSpaceIndex = getScanner().getNextEndOffset(
-            node.getSourceInfo().getOffset(),
-            true);
-        if (!hasChildrenChanges(node)) {
-          return doVisitUnchangedChildren(node);
-        }
-        ensureSpaceBeforeReplace(node);
-        int offset = rewriteRequiredNode(node, PropertyDescriptorHelper.DART_ASSERTION_EXPRESSION);
-      } catch (CoreException e) {
-        handleException(e);
-      }
       return null;
     }
 

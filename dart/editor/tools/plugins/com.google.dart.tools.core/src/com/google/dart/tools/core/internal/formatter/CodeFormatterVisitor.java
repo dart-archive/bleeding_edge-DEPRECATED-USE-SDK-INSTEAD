@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal.formatter;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
-import com.google.dart.compiler.ast.DartAssertion;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -462,22 +461,6 @@ public class CodeFormatterVisitor extends ASTVisitor<DartNode> {
     }
 
     printCloseParens(arrayInitializer, numberOfParens);
-    return null;
-  }
-
-  @Override
-  public DartNode visitAssertion(DartAssertion node) {
-    scribe.printNextToken(Token.IDENTIFIER);
-    scribe.printNextToken(
-        Token.LPAREN,
-        preferences.insert_space_before_opening_bracket_in_array_reference);
-    if (preferences.insert_space_after_opening_paren_in_annotation) {
-      scribe.space();
-    }
-    node.getExpression().accept(this);
-    scribe.printNextToken(Token.RPAREN, preferences.insert_space_before_closing_paren_in_annotation);
-    scribe.printNextToken(Token.SEMICOLON, preferences.insert_space_before_semicolon);
-    scribe.printComment(CodeFormatter.K_UNKNOWN, Scribe.BASIC_TRAILING_COMMENT);
     return null;
   }
 

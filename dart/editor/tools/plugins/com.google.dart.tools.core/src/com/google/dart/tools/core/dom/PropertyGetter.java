@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -15,7 +15,6 @@ package com.google.dart.tools.core.dom;
 
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
-import com.google.dart.compiler.ast.DartAssertion;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -123,15 +122,6 @@ public class PropertyGetter extends PropertyVisitor {
       return node.getExpressions();
     } else {
       return visitExpression(node);
-    }
-  }
-
-  @Override
-  public Object visitAssertion(DartAssertion node) {
-    if (property == PropertyDescriptorHelper.DART_ASSERTION_EXPRESSION) {
-      return node.getExpression();
-    } else {
-      return visitStatement(node);
     }
   }
 

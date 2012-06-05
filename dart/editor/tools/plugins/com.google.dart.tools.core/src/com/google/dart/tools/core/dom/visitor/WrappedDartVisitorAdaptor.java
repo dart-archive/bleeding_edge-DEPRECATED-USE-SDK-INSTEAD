@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.core.dom.visitor;
 
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
-import com.google.dart.compiler.ast.DartAssertion;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -54,7 +54,6 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
@@ -127,14 +126,6 @@ public class WrappedDartVisitorAdaptor<R> extends ASTVisitor<R> {
   public R visitArrayLiteral(DartArrayLiteral node) {
     baseVisitor.preVisit(node);
     R result = baseVisitor.visitArrayLiteral(node);
-    baseVisitor.postVisit(node);
-    return result;
-  }
-
-  @Override
-  public R visitAssertion(DartAssertion node) {
-    baseVisitor.preVisit(node);
-    R result = baseVisitor.visitAssertion(node);
     baseVisitor.postVisit(node);
     return result;
   }

@@ -15,7 +15,6 @@ package com.google.dart.tools.core.dom;
 
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
-import com.google.dart.compiler.ast.DartAssertion;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
@@ -95,8 +94,6 @@ public class AST {
       return (N) new DartArrayAccess(null, null);
     } else if (nodeClass == DartArrayLiteral.class) {
       return (N) new DartArrayLiteral(false, null, new ArrayList<DartExpression>());
-    } else if (nodeClass == DartAssertion.class) {
-      return (N) new DartAssertion(null);
     } else if (nodeClass == DartBinaryExpression.class) {
       return (N) new DartBinaryExpression(null, null, null);
     } else if (nodeClass == DartBlock.class) {
