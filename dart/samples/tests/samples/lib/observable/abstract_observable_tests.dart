@@ -8,8 +8,8 @@ testAbstractObservable() {
       final target = new AbstractObservable();
       final listener = (e) { };
 
-      expect(target.addChangeListener(listener)).isTrue();
-      expect(target.addChangeListener(listener)).isFalse();
+      expect(target.addChangeListener(listener), isTrue);
+      expect(target.addChangeListener(listener), isFalse);
     });
 
     test('modifies listeners list', () {
@@ -20,29 +20,29 @@ testAbstractObservable() {
       final l3 = (e) { };
       final l4 = (e) { };
 
-      expect(target.listeners).equalsCollection([]);
+      expect(target.listeners, orderedEquals([]));
 
       target.addChangeListener(l1);
-      expect(target.listeners).equalsCollection([l1]);
+      expect(target.listeners, orderedEquals([l1]));
 
       target.addChangeListener(l2);
-      expect(target.listeners).equalsCollection([l1, l2]);
+      expect(target.listeners, orderedEquals([l1, l2]));
 
       target.addChangeListener(l3);
       target.addChangeListener(l4);
-      expect(target.listeners).equalsCollection([l1, l2, l3, l4]);
+      expect(target.listeners, orderedEquals([l1, l2, l3, l4]));
 
       target.removeChangeListener(l4);
-      expect(target.listeners).equalsCollection([l1, l2, l3]);
+      expect(target.listeners, orderedEquals([l1, l2, l3]));
 
       target.removeChangeListener(l2);
-      expect(target.listeners).equalsCollection([l1, l3]);
+      expect(target.listeners, orderedEquals([l1, l3]));
 
       target.removeChangeListener(l1);
-      expect(target.listeners).equalsCollection([l3]);
+      expect(target.listeners, orderedEquals([l3]));
 
       target.removeChangeListener(l3);
-      expect(target.listeners).equalsCollection([]);
+      expect(target.listeners, orderedEquals([]));
     });
   });
 
@@ -52,22 +52,22 @@ testAbstractObservable() {
     final target = new AbstractObservable();
     EventSummary res = null;
     target.addChangeListener((summary) {
-      expect(res).isNull();
+      expect(res, isNull);
       res = summary;
-      expect(res).isNotNull();
+      expect(res, isNotNull);
     });
 
     target.recordPropertyUpdate('pM', 10, 11);
 
-    expect(res).isNotNull();
-    expect(res.events.length).equals(1);
+    expect(res, isNotNull);
+    expect(res.events, hasLength(1));
     validateUpdate(res.events[0], target, 'pM', null, 10, 11);
     res = null;
 
     target.recordPropertyUpdate('pL', '11', '13');
 
-    expect(res).isNotNull();
-    expect(res.events.length).equals(1);
+    expect(res, isNotNull);
+    expect(res.events, hasLength(1));
     validateUpdate(res.events[0], target, 'pL', null, '11', '13');
   });
 }

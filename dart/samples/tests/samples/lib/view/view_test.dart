@@ -14,17 +14,17 @@ void main() {
   useHtmlConfiguration();
   test('does not render immediately', () {
     final view = new TestView();
-    expect(view.isRendered).isFalse();
+    expect(view.isRendered, isFalse);
 
     view.addToDocument(document.body);
-    expect(view.isRendered).isTrue();
+    expect(view.isRendered, isTrue);
   });
 
   group('addToDocument()', () {
     test('causes view to render', () {
       final view = new TestView();
       view.addToDocument(document.body);
-      expect(view.isRendered).isTrue();
+      expect(view.isRendered, isTrue);
     });
 
     test('calls afterRender()', () {
@@ -39,7 +39,7 @@ void main() {
 
 
       view.addToDocument(document.body);
-      expect(result).equals('renderafter');
+      expect(result, equals('renderafter'));
     });
 
     test('calls enterDocument()', () {
@@ -48,7 +48,7 @@ void main() {
       view.enterDocumentFn = () { entered = true; };
 
       view.addToDocument(document.body);
-      expect(entered).isTrue();
+      expect(entered, isTrue);
     });
   });
 
@@ -57,7 +57,7 @@ void main() {
       final rendered = new Element.html('<div class="node"></div>');
       final view = new TestView();
       view.renderFn = () => rendered;
-      view.afterRenderFn = (node) { expect(node).equals(rendered); };
+      view.afterRenderFn = (node) { expect(node, equals(rendered)); };
 
       view.addToDocument(document.body);
     });
@@ -76,7 +76,7 @@ void main() {
       parent.childViews = [child];
       parent.childViewAdded(child);
 
-      expect(entered).isTrue();
+      expect(entered, isTrue);
     });
 
     test('does not call enterDocument() if parent is not in document', () {
@@ -90,7 +90,7 @@ void main() {
       parent.childViews = [child];
       parent.childViewAdded(child);
 
-      expect(entered).isFalse();
+      expect(entered, isFalse);
     });
 
     test('calls enterDocument() each time added', () {
@@ -110,7 +110,7 @@ void main() {
       parent.childViewAdded(child);
       parent.childViewRemoved(child);
 
-      expect(entered).equals(3);
+      expect(entered, equals(3));
     });
   });
 
@@ -127,7 +127,7 @@ void main() {
       parent.childViews = [];
       parent.childViewRemoved(child);
 
-      expect(exited).isTrue();
+      expect(exited, isTrue);
     });
 
     test('does not call exitDocument() if parent is not in document', () {
@@ -141,7 +141,7 @@ void main() {
       parent.childViews = [];
       parent.childViewRemoved(child);
 
-      expect(exited).isFalse();
+      expect(exited, isFalse);
     });
 
     test('calls exitDocument() each time removed', () {
@@ -161,7 +161,7 @@ void main() {
       parent.childViewAdded(child);
       parent.childViewRemoved(child);
 
-      expect(exited).equals(3);
+      expect(exited, equals(3));
     });
   });
 
@@ -178,7 +178,7 @@ void main() {
       parent.childViews = [child];
 
       parent.addToDocument(document.body);
-      expect(result).equals('childparent');
+      expect(result, equals('childparent'));
     });
   });
 }

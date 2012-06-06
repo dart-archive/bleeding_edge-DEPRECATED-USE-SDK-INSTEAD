@@ -9,9 +9,9 @@ testEventBatch() {
     final target = new AbstractObservable();
     EventSummary res = null;
     target.addChangeListener((summary) {
-      expect(res).isNull();
+      expect(res, isNull);
       res = summary;
-      expect(res).isNotNull();
+      expect(res, isNotNull);
     });
 
     final f = EventBatch.wrap((e) {
@@ -23,11 +23,11 @@ testEventBatch() {
       target.recordGlobalChange();
     });
 
-    expect(res).isNull();
+    expect(res, isNull);
     f(null);
-    expect(res).isNotNull();
+    expect(res, isNotNull);
 
-    expect(res.events.length).equals(6);
+    expect(res.events, hasLength(6));
     validateUpdate(res.events[0], target, 'pM', null, 10, 11);
     validateUpdate(res.events[1], target, 'pL', null, '11', '13');
     validateUpdate(res.events[2], target, null, 2, 'a', 'b');

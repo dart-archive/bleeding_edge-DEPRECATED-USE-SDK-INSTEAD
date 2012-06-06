@@ -25,12 +25,12 @@ void main() {
 }
 
 void validateEvent(ChangeEvent e, target, pName, index, type, newVal, oldVal) {
-  expect(e.target).equals(target);
-  expect(e.propertyName).equals(pName);
-  expect(e.index).equals(index);
-  expect(e.type).equals(type);
-  expect(e.newValue).equals(newVal);
-  expect(e.oldValue).equals(oldVal);
+  expect(e.target, equals(target));
+  expect(e.propertyName, equals(pName));
+  expect(e.index, equals(index));
+  expect(e.type, equals(type));
+  expect(e.newValue, equals(newVal));
+  expect(e.oldValue, equals(oldVal));
 }
 
 void validateGlobal(ChangeEvent e, target) {
