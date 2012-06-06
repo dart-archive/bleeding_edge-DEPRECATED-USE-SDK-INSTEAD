@@ -48,12 +48,12 @@ final String DEFAULT_INTERCEPTORSLIB = @'''
 
 final String DEFAULT_CORELIB = @'''
   print(var obj) {}
-  class int {}
-  class double {}
+  interface int extends num {}
+  interface double extends num {}
   class bool {}
   class String {}
   class Object {}
-  class num {}
+  interface num {}
   class Function {}
   class List {}
   class Closure {}
