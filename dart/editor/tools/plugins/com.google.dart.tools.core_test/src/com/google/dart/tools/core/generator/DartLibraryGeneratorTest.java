@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -33,7 +33,7 @@ public class DartLibraryGeneratorTest extends DartFileGeneratorTest {
     assertTrue(file.exists());
     String expected = readExpectedContent("SomeLib.txt");
     String actual = TestFileUtil.readFile(file);
-    assertEquals(expected, actual);
+    assertEquals(expected.trim(), actual.trim());
   }
 
   public void test_DartLibraryGenerator_getSuggestedClassName_empty() throws Exception {
