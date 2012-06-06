@@ -253,8 +253,10 @@ public class InMemoryIndex implements Index {
     Resource indexerResource;
     if (SystemLibraryManager.isDartUri(unitUri)) {
       indexerResource = new Resource(ResourceFactory.composeResourceId(
-          librarySource.getUri().toString(),
-          unitUri.toString()));
+          librarySource.getUri().toString(), unitUri.toString()));
+    } else if (SystemLibraryManager.isPackageUri(unitUri)) {
+      indexerResource = new Resource(ResourceFactory.composeResourceId(
+          libraryFile.toURI().toString(), sourceFile.toURI().toString()));
     } else {
       indexerResource = ResourceFactory.getResource(compilationUnit);
     }

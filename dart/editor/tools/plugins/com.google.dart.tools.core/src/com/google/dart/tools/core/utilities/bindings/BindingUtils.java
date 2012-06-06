@@ -38,6 +38,7 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
@@ -727,6 +728,9 @@ public class BindingUtils {
     URI uri = librarySource.getUri();
     if (SystemLibraryManager.isDartUri(uri)) {
       return new DartLibraryImpl(librarySource);
+    }
+    if (SystemLibraryManager.isPackageUri(uri)) {
+      uri = SystemLibraryManagerProvider.getSystemLibraryManager().resolveDartUri(uri);
     }
     String targetUri = uri.toString();
     IResource file = com.google.dart.tools.core.internal.util.ResourceUtil.getResource(uri);
