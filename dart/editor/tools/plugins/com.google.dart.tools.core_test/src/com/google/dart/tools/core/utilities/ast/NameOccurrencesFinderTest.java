@@ -143,6 +143,7 @@ public class NameOccurrencesFinderTest extends TestCase {
     */
     test(
         compose(
+            "var y = 0;",
             "class S {",
             "  S();",
             "  S.s(x);",

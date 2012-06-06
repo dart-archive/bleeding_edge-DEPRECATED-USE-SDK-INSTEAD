@@ -839,7 +839,8 @@ public class DartCompilerUtilities {
 
     long start = System.currentTimeMillis();
     LibraryUnit unit;
-    if (DartCoreDebug.ANALYSIS_SERVER && parsedUnits == null) {
+    if (DartCoreDebug.ANALYSIS_SERVER && parsedUnits == null
+        && !(librarySource instanceof LibraryWithSuppliedSources)) {
 
       // Resolve dart:<libname> to file URI before calling AnalysisServer
       EditorLibraryManager manager = SystemLibraryManagerProvider.getSystemLibraryManager();
