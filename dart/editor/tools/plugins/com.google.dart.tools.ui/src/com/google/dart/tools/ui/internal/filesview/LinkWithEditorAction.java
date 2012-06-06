@@ -130,17 +130,7 @@ public class LinkWithEditorAction extends PartEventAction implements ISelectionC
     }
   }
 
-  private Object getCurrentSelection() {
-    ISelection sel = treeViewer.getSelection();
-
-    if (sel instanceof IStructuredSelection) {
-      return ((IStructuredSelection) sel).getFirstElement();
-    } else {
-      return null;
-    }
-  }
-
-  private void syncEditorToSelection(Object element) {
+  protected void syncEditorToSelection(Object element) {
     if (!getLinkWithEditor()) {
       return;
     }
@@ -176,7 +166,7 @@ public class LinkWithEditorAction extends PartEventAction implements ISelectionC
     }
   }
 
-  private void syncSelectionToEditor(IFile file) {
+  protected void syncSelectionToEditor(Object file) {
     Object currentSelection = getCurrentSelection();
 
     if (file != null && !file.equals(currentSelection)) {
@@ -184,11 +174,13 @@ public class LinkWithEditorAction extends PartEventAction implements ISelectionC
     }
   }
 
-  private void syncSelectionToEditor(IFileStore fileStore) {
-    Object currentSelection = getCurrentSelection();
+  private Object getCurrentSelection() {
+    ISelection sel = treeViewer.getSelection();
 
-    if (fileStore != null && !fileStore.equals(currentSelection)) {
-      treeViewer.setSelection(new StructuredSelection(fileStore), true);
+    if (sel instanceof IStructuredSelection) {
+      return ((IStructuredSelection) sel).getFirstElement();
+    } else {
+      return null;
     }
   }
 

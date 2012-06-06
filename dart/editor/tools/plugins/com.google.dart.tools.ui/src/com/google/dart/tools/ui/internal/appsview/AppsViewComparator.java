@@ -13,20 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.appsview;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartProject;
-
 import org.eclipse.jface.viewers.ViewerComparator;
 
 import java.util.Comparator;
 
 public class AppsViewComparator extends ViewerComparator {
-
-  private static final int PROJECT_SORT = 3;
-  private static final int LIBRARY_SORT = 2;
-  private static final int COMPUNIT_SORT = 1;
-  private static final int DEFAULT_SORT = 0;
 
   public AppsViewComparator() {
     super(new Comparator<String>() {
@@ -41,14 +32,11 @@ public class AppsViewComparator extends ViewerComparator {
 
   @Override
   public int category(Object element) {
-    if (element instanceof DartProject) {
-      return PROJECT_SORT;
-    } else if (element instanceof DartLibrary) {
-      return LIBRARY_SORT;
-    } else if (element instanceof CompilationUnit) {
-      return COMPUNIT_SORT;
+    if (element instanceof ElementTreeNode) {
+      ElementTreeNode treeNode = (ElementTreeNode) element;
+      return treeNode.getSortCategory();
     } else {
-      return DEFAULT_SORT;
+      return super.category(element);
     }
   }
 

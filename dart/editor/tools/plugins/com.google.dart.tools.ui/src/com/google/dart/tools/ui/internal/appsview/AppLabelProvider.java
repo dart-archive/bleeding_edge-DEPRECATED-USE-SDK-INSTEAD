@@ -27,7 +27,7 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 public class AppLabelProvider implements IStyledLabelProvider, ILabelProvider {
 
-  private WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
+  public WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
 
   AppLabelProvider(Font font) {
   }
@@ -44,6 +44,9 @@ public class AppLabelProvider implements IStyledLabelProvider, ILabelProvider {
 
   @Override
   public Image getImage(Object element) {
+    if (element instanceof ElementTreeNode) {
+      element = ((ElementTreeNode) element).getModelElement();
+    }
     return workbenchLabelProvider.getImage(element);
   }
 
@@ -54,6 +57,9 @@ public class AppLabelProvider implements IStyledLabelProvider, ILabelProvider {
 
   @Override
   public String getText(Object element) {
+    if (element instanceof ElementTreeNode) {
+      element = ((ElementTreeNode) element).getModelElement();
+    }
     if (element instanceof DartProject) {
       return ((DartProject) element).getElementName();
     } else if (element instanceof DartLibrary) {

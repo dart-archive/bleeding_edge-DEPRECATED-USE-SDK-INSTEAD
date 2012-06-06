@@ -203,7 +203,7 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
   protected void fillInToolbar(IToolBarManager toolbar) {
     // Link with Editor
-    linkWithEditorAction = new LinkWithEditorAction(getViewSite().getPage(), treeViewer);
+    linkWithEditorAction = new LinkAppsViewWithEditorAction(getViewSite().getPage(), treeViewer);
 
     if (memento != null && memento.getBoolean(LINK_WITH_EDITOR_ID) != null) {
       linkWithEditorAction.setLinkWithEditor(memento.getBoolean(LINK_WITH_EDITOR_ID).booleanValue());
@@ -224,6 +224,9 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
       treeViewer.setExpandedState(element, !treeViewer.getExpandedState(element));
     }
 
+    if (element instanceof ElementTreeNode) {
+      element = ((ElementTreeNode) element).getModelElement();
+    }
     if (element instanceof CompilationUnit) {
       try {
         CompilationUnit cu = (CompilationUnit) element;
