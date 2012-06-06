@@ -20,6 +20,7 @@ import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchException;
 import com.google.dart.tools.core.search.SearchFilter;
+import com.google.dart.tools.core.search.SearchListener;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.search.SearchPatternFactory;
 import com.google.dart.tools.core.search.SearchScope;
@@ -35,7 +36,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ui.dialogs.SearchPattern;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Provider for type elements.
@@ -60,6 +60,12 @@ public class TypeProvider extends OmniProposalProvider {
 
   //TODO (pquitslund): support additional scopes
   private final SearchScope searchScope = SearchScopeFactory.createWorkspaceScope();
+
+  private final ArrayList<OmniElement> results = new ArrayList<OmniElement>();
+
+  protected boolean searchComplete;
+
+  private boolean searchStarted;
 
   public TypeProvider(IProgressMonitor progressMonitor) {
     this.progressMonitor = progressMonitor;
@@ -97,17 +103,7 @@ public class TypeProvider extends OmniProposalProvider {
     }
 
     try {
-      SearchEngine engine = SearchEngineFactory.createSearchEngine((WorkingCopyOwner) null);
-      List<SearchMatch> matches = engine.searchTypeDeclarations(getSearchScope(), searchPattern,
-          IGNORE_FILTER, progressMonitor);
-      List<OmniElement> results = new ArrayList<OmniElement>(matches.size());
-      for (SearchMatch match : matches) {
-        DartElement element = match.getElement();
-        if (element instanceof Type) {
-          results.add(new TypeElement(TypeProvider.this, (Type) element));
-        }
-      }
-      return results.toArray(new OmniElement[results.size()]);
+      return doSearch(searchPattern, pattern);
     } catch (SearchException e) {
       DartToolsPlugin.log(e);
     }
@@ -122,6 +118,40 @@ public class TypeProvider extends OmniProposalProvider {
   @Override
   public String getName() {
     return OmniBoxMessages.OmniBox_Types;
+  }
+
+  /**
+   * Check if search is complete.
+   */
+  public boolean isSearchComplete() {
+    return searchComplete;
+  }
+
+  private OmniElement[] doSearch(com.google.dart.tools.core.search.SearchPattern searchPattern,
+      final String filterText) throws SearchException {
+
+    if (!searchStarted) {
+      searchStarted = true;
+      SearchEngine engine = SearchEngineFactory.createSearchEngine((WorkingCopyOwner) null);
+      engine.searchTypeDeclarations(getSearchScope(), searchPattern, IGNORE_FILTER,
+          new SearchListener() {
+
+            @Override
+            public void matchFound(SearchMatch match) {
+              DartElement element = match.getElement();
+              if (element instanceof Type) {
+                results.add(new TypeElement(TypeProvider.this, (Type) element));
+              }
+            }
+
+            @Override
+            public void searchComplete() {
+              searchComplete = true;
+            }
+          }, progressMonitor);
+    }
+
+    return results.toArray(new OmniElement[results.size()]);
   }
 
   private SearchScope getSearchScope() {

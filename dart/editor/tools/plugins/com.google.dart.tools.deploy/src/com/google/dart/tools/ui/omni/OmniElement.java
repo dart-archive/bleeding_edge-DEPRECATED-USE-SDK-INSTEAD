@@ -134,9 +134,25 @@ public abstract class OmniElement {
   }
 
   /**
-   * @param filter
-   * @return
+   * Tests for equivalency ("equalness" without the contract of {@link Object#equals(Object)}.
+   * 
+   * @param that the element to test against
+   * @return <code>true</code> if this element is the "same as" or "equivalent to" the other,
+   *         <code>false</code> otherwise
    */
+  public boolean isSameAs(OmniElement that) {
+    if (that == null) {
+      return false;
+    }
+    if (this == that) {
+      return true;
+    }
+    if (this.getProvider() == that.getProvider()) {
+      return this.getLabel() == that.getLabel();
+    }
+    return false;
+  }
+
   public OmniEntry match(String filter, OmniProposalProvider providerForMatching) {
 
     String sortLabel = getMatchText();

@@ -135,11 +135,15 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   }
 
+  /**
+   * Refresh interval (in ms) for asynchronous search results.
+   */
+  private static final int REFRESH_INTERVAL = 500;
+
   private static final int INITIAL_COUNT_PER_PROVIDER = 5;
 
   private static final int MAX_COUNT_TOTAL = 20;
 
-//  protected Text filterText;
   private OmniProposalProvider[] providers;
 
   private final IWorkbenchWindow window;
@@ -164,7 +168,6 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   private LinkedList<OmniElement> previousPicksList = new LinkedList<OmniElement>();
   protected Map<String, OmniProposalProvider> providerMap;
-  // private Font italicsFont;
   private TextLayout textLayout;
   private TriggerSequence[] invokingCommandKeySequences;
   private Command invokingCommand;
@@ -182,6 +185,12 @@ public class OmniBoxPopup extends BasePopupDialog {
   private int searchItemCount;
 
   private String searchText;
+
+  //used to restore selection post table refresh
+  private TableItem cachedSelection;
+
+  //flag to indicate whether asynchronous search results require a refresh
+  private boolean needsRefresh = true;
 
   public OmniBoxPopup(IWorkbenchWindow window, final Command invokingCommand) {
     super(ProgressManagerUtil.getDefaultParent(), SWT.NONE, true, false, /* persist size */
@@ -224,6 +233,8 @@ public class OmniBoxPopup extends BasePopupDialog {
         }
       }
     });
+
+    startRefreshTimer();
   }
 
   @Override
@@ -285,6 +296,15 @@ public class OmniBoxPopup extends BasePopupDialog {
         break;
     }
 
+  }
+
+  @Override
+  protected void adjustBounds() {
+    //calculate a new height (in case new table items have been added), but leave width alone
+    int width = getShell().getSize().x;
+    int maxHeight = (int) (window.getShell().getBounds().height * .66);
+    int height = Math.min(maxHeight, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT, true).y);
+    getShell().setSize(width, height);
   }
 
   @Override
@@ -746,6 +766,14 @@ public class OmniBoxPopup extends BasePopupDialog {
     };
   }
 
+  private OmniEntry getCurrentSelection() {
+    TableItem[] selection = table.getSelection();
+    if (selection.length > 0) {
+      return (OmniEntry) selection[0].getData();
+    }
+    return null;
+  }
+
   private String getFilterText() {
     return getFilterTextExactCase().toLowerCase();
   }
@@ -826,6 +854,17 @@ public class OmniBoxPopup extends BasePopupDialog {
         provider.reset();
       }
     }
+
+    //TODO (pquitslund): the type provider generates results asynchronously, requiring a reset
+    //to ensure a refresh --- if/when other provides go async, this special casing should 
+    //get generalized
+    for (OmniProposalProvider provider : providers) {
+      if (provider instanceof TypeProvider) {
+        needsRefresh = !((TypeProvider) provider).isSearchComplete();
+        provider.reset();
+      }
+    }
+
     // perfect match, to be selected in the table if not null
     final OmniElement perfectMatch = (OmniElement) elementMap.get(filter);
     final List<OmniEntry>[] entries = computeMatchingEntries(filter, perfectMatch, searchItemCount);
@@ -855,7 +894,11 @@ public class OmniBoxPopup extends BasePopupDialog {
     }
 
     if (table.getItemCount() > 0) {
-      table.setSelection(selectionIndex);
+      if (cachedSelection != null) {
+        table.setSelection(cachedSelection);
+      } else {
+        table.setSelection(selectionIndex);
+      }
     } else if (filter.length() == 0) {
       {
         TableItem item = new TableItem(table, SWT.NONE);
@@ -888,12 +931,14 @@ public class OmniBoxPopup extends BasePopupDialog {
     }
   }
 
-  @SuppressWarnings("rawtypes")
   private int refreshTable(OmniElement perfectMatch, List<OmniEntry>[] entries) {
 
     if (table.isDisposed()) {
       return 0;
     }
+
+    //used to restore selection post-refresh
+    OmniEntry previousSelection = getCurrentSelection();
 
     //TODO (pquitslund): clearing to force a complete redraw; prime for future optimization
     //if (table.getItemCount() > entries.length && table.getItemCount() - entries.length > 20) {
@@ -907,11 +952,11 @@ public class OmniBoxPopup extends BasePopupDialog {
     TableItem[] items = table.getItems();
     int selectionIndex = -1;
     int index = 0;
+    TableItem item = null;
     for (int i = 0; i < providers.length; i++) {
       if (entries[i] != null) {
 
-        Iterator iterator = entries[i].iterator();
-        TableItem item;
+        Iterator<OmniEntry> iterator = entries[i].iterator();
 
         //create headers for non-empty categories
         if (iterator.hasNext()) {
@@ -920,8 +965,8 @@ public class OmniBoxPopup extends BasePopupDialog {
               new int[0][0]));
         }
         //create entries
-        for (Iterator it = entries[i].iterator(); it.hasNext();) {
-          OmniEntry entry = (OmniEntry) it.next();
+        for (Iterator<OmniEntry> it = entries[i].iterator(); it.hasNext();) {
+          OmniEntry entry = it.next();
           if (!it.hasNext()) {
             entry.lastInCategory = true;
           }
@@ -933,6 +978,12 @@ public class OmniBoxPopup extends BasePopupDialog {
           }
           if (perfectMatch == entry.element && selectionIndex == -1) {
             selectionIndex = index;
+            cachedSelection = null;
+          } else if (previousSelection != null) {
+            if (entry.element.isSameAs(previousSelection.element)) {
+              //NOTE: with async table updates, selection index is not sufficient
+              cachedSelection = item;
+            }
           }
           item.setData(entry);
           item.setText(0, entry.provider.getName());
@@ -948,6 +999,14 @@ public class OmniBoxPopup extends BasePopupDialog {
     if (index < items.length) {
       table.remove(index, items.length - 1);
     }
+
+    //last entry should not be flagged since that will produce a trailing separator
+    if (item != null) {
+      ((OmniEntry) item.getData()).lastInCategory = false;
+    }
+
+    adjustBounds();
+
     if (selectionIndex == -1) {
       selectionIndex = 0;
     }
@@ -993,6 +1052,30 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   private void setFilterFocus() {
 //    filterText.setFocus();
+  }
+
+  private void startRefreshTimer() {
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        while (!isDisposed() && needsRefresh) {
+          try {
+            Thread.sleep(REFRESH_INTERVAL);
+          } catch (Exception e) {
+          }
+          Display.getDefault().asyncExec(new Runnable() {
+            @Override
+            public void run() {
+              try {
+                refresh(getFilterText());
+              } catch (SWTException e) {
+                //ignore dispose
+              }
+            }
+          });
+        }
+      }
+    }).start();
   }
 
   private void storeDialog(IDialogSettings dialogSettings) {
