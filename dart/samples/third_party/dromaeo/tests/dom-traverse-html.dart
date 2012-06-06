@@ -36,7 +36,7 @@ void main() {
 
       for (int i = 0; i < num; i++) {
         for (int j = 0; j < nl; j++) {
-          Node cur = nodes.item(j);
+          Node cur = nodes[j];
           while (cur !== null) {
             cur = cur.$dom_firstChild;
           }
@@ -50,7 +50,7 @@ void main() {
 
       for (int i = 0; i < num; i++) {
         for (int j = 0; j < nl; j++) {
-          Node cur = nodes.item(j);
+          Node cur = nodes[j];
           while (cur !== null) {
             cur = cur.$dom_lastChild;
           }
@@ -80,7 +80,7 @@ void main() {
       for (int i = 0; i < num; i++) {
         final nodes = document.body.$dom_childNodes;
         for (int j = 0; j < nodes.length; j++) {
-          ret = nodes.item(j);
+          ret = nodes[j];
         }
       }
     })
