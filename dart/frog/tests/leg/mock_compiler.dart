@@ -34,8 +34,7 @@ final String DEFAULT_HELPERLIB = @'''
   indexSet(a, index, value) {}
   setRuntimeTypeInfo(a, b) {}
   getRuntimeTypeInfo(a) {}
-  stringConcat() {}
-  stringToString() {}''';
+  S() {}''';
 
 final String DEFAULT_INTERCEPTORSLIB = @'''
   add$1(receiver, value) {}
