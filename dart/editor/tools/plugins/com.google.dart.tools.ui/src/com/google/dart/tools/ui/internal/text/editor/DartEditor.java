@@ -3974,7 +3974,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private boolean isSemanticHighlightingEnabled() {
     DartX.todo();
-    return false;
+    return DartCoreDebug.ENABLE_TYPE_ANNOTATIONS;
 //    return SemanticHighlightings.isEnabled(getPreferenceStore());
   }
 
