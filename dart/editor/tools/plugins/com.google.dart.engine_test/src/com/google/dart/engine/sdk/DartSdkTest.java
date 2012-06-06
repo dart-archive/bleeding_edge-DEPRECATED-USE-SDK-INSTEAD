@@ -86,7 +86,7 @@ public class DartSdkTest extends TestCase {
     DartSdk sdk = createDartSdk();
     Platform[] platforms = sdk.getSupportedPlatforms();
     assertNotNull(platforms);
-    assertEquals(5, platforms.length);
+    assertEquals(4, platforms.length);
   }
 
   public void test_DartSdk_getVmExecutable() {

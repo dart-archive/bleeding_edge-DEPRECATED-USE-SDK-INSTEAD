@@ -228,6 +228,10 @@ public abstract class AbstractScannerTest extends TestCase {
     assertKeywordToken("abstract");
   }
 
+  public void test_AbstractScanner_keyword_as() throws Exception {
+    assertKeywordToken("as");
+  }
+
   public void test_AbstractScanner_keyword_assert() throws Exception {
     assertKeywordToken("assert");
   }

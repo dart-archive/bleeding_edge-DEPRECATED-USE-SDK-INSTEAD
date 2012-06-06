@@ -52,6 +52,7 @@ public enum Keyword {
 
   // Pseudo keywords:
   ABSTRACT("abstract", true),
+  AS("as", true),
   ASSERT("assert", true),
   CALL("call", true),
   //DYNAMIC("Dynamic", true),
