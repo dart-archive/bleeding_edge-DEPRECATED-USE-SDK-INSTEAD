@@ -8,10 +8,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "119442",
+  "webkit_revision": "119550",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8774",
+  "nacl_revision": "8806",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "8673",  # native_client/DEPS: tools_rev
@@ -44,18 +44,18 @@ vars = {
   "nacl_toolchain_revision": "8715",
   "pnacl_toolchain_revision": "8751",
 
-  "libjingle_revision": "145",
+  "libjingle_revision": "151",
   "libphonenumber_revision": "456",
   "libvpx_revision": "134182",
   "lss_revision": "9",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "139693",
-  "ffmpeg_hash": "2f1df8e260506e962880128d8ada14032aa9058a",
+  "ffmpeg_revision": "140400",
+  "ffmpeg_hash": "69cc855282d18ff77e4e0a6c0de0abd539572bc8",
 
   "sfntly_revision": "128",
-  "skia_revision": "4138",
+  "skia_revision": "4156",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
@@ -189,7 +189,7 @@ deps = {
 
   # We should use the same software_rendering_list.json for all branches.
   "src/chrome/browser/resources/software_rendering_list":
-    "/trunk/deps/gpu/software_rendering_list@139585",
+    "/trunk/deps/gpu/software_rendering_list@140650",
 
   # We run these layout tests as UI tests. Since many of the buildbots that
   # run layout tests do NOT have access to the LayoutTest directory, we need
