@@ -81,10 +81,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Instances of the class <code>DartLibraryImpl</code> implement an object that represents a Dart library.
+ * Instances of the class <code>DartLibraryImpl</code> implement an object that represents a Dart
+ * library.
  */
-public class DartLibraryImpl extends OpenableElementImpl
-    implements DartLibrary, CompilationUnitContainer {
+public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
+    CompilationUnitContainer {
   public static final DartLibraryImpl[] EMPTY_LIBRARY_ARRAY = new DartLibraryImpl[0];
 
   /**
@@ -615,8 +616,8 @@ public class DartLibraryImpl extends OpenableElementImpl
   }
 
   /**
-   * Answer <code>true</code> if the receiver directly or indirectly imports the dart:dom_deprecated or
-   * dart:html libraries
+   * Answer <code>true</code> if the receiver directly or indirectly imports the dart:dom_deprecated
+   * or dart:html libraries
    */
   public boolean isOrImportsBrowserLibrary() {
     List<DartLibrary> visited = new ArrayList<DartLibrary>(10);
@@ -865,7 +866,11 @@ public class DartLibraryImpl extends OpenableElementImpl
           return null;
         }
         URI uri = URIUtilities.makeAbsolute(source.getUri());
-        children.add(new DartResourceImpl(DartLibraryImpl.this, uri));
+        try {
+          children.add(new DartResourceImpl(DartLibraryImpl.this, uri));
+        } catch (Exception exception) {
+          // Ignore invalid directives
+        }
         return null;
       }
 
