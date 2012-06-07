@@ -15,8 +15,8 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisListener;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.IdleListener;
 import com.google.dart.tools.core.index.NotifyCallback;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -234,7 +234,7 @@ public class DartUIStartup implements IStartup {
     private void waitForIdle(AnalysisServer server, long milliseconds) {
       final Object waitForIdleLock = new Object();
 
-      AnalysisListener listener = new AnalysisListener.Empty() {
+      IdleListener listener = new IdleListener() {
         @Override
         public void idle(boolean idle) {
           if (idle) {
@@ -245,7 +245,7 @@ public class DartUIStartup implements IStartup {
         }
       };
 
-      server.addAnalysisListener(listener);
+      server.addIdleListener(listener);
       try {
 
         // Ensure ResourceChangeListener background scanning gets time to run
@@ -275,7 +275,7 @@ public class DartUIStartup implements IStartup {
           }
         }
       } finally {
-        server.removeAnalysisListener(listener);
+        server.removeIdleListener(listener);
       }
     }
 

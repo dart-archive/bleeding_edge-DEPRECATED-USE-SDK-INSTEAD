@@ -87,8 +87,8 @@ public class AnalysisEvent {
     units.put(file, unit);
   }
 
-  void notifyParsed(AnalysisServer server) {
-    for (AnalysisListener listener : server.getAnalysisListeners()) {
+  void notifyParsed(Context context) {
+    for (AnalysisListener listener : context.getAnalysisListeners()) {
       try {
         listener.parsed(this);
       } catch (Throwable e) {
@@ -97,8 +97,8 @@ public class AnalysisEvent {
     }
   }
 
-  void notifyResolved(AnalysisServer server) {
-    for (AnalysisListener listener : server.getAnalysisListeners()) {
+  void notifyResolved(Context context) {
+    for (AnalysisListener listener : context.getAnalysisListeners()) {
       try {
         listener.resolved(this);
       } catch (Throwable e) {

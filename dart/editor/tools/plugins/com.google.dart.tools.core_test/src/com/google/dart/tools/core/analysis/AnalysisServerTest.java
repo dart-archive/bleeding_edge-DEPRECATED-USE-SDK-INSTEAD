@@ -148,7 +148,7 @@ public class AnalysisServerTest extends TestCase {
         final int[] count = new int[] {0};
         final File libFile = setupMoneyLibrary(tempDir);
         setupServer();
-        server.addAnalysisListener(new AnalysisListener.Empty() {
+        server.addIdleListener(new IdleListener() {
           @Override
           public void idle(boolean idle) {
             if (idle) {
@@ -175,9 +175,10 @@ public class AnalysisServerTest extends TestCase {
         File currencyFile = new File(libFile.getParent(), "currency.dart");
         File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
         setupServer();
+        SavedContext savedContext = server.getSavedContext();
 
         listener.reset();
-        DartUnit unit = server.parse(libFile, libFile, FIVE_MINUTES_MS);
+        DartUnit unit = savedContext.parse(libFile, libFile, FIVE_MINUTES_MS);
         assertTopDeclarationExists(unit, "Money");
         listener.assertWasParsed(libFile, libFile);
         assertEquals(1, listener.getParsedCount());
@@ -187,7 +188,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = server.parse(libFile, currencyFile, FIVE_MINUTES_MS);
+        unit = savedContext.parse(libFile, currencyFile, FIVE_MINUTES_MS);
         assertTopDeclarationExists(unit, "Currency");
         listener.assertWasParsed(libFile, currencyFile);
         assertEquals(1, listener.getParsedCount());
@@ -197,7 +198,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = server.parse(libFile, fileDoesNotExist, FIVE_MINUTES_MS);
+        unit = savedContext.parse(libFile, fileDoesNotExist, FIVE_MINUTES_MS);
         assertNoTopDeclaration(unit);
         listener.assertWasParsed(libFile, fileDoesNotExist);
         assertEquals(1, listener.getParsedCount());
@@ -207,7 +208,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = server.parse(libFile, libFile, FIVE_MINUTES_MS);
+        unit = savedContext.parse(libFile, libFile, FIVE_MINUTES_MS);
         assertTopDeclarationExists(unit, "Money");
         assertEquals(0, listener.getParsedCount());
         assertEquals(0, listener.getResolved().size());
@@ -216,7 +217,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = server.parse(libFile, currencyFile, FIVE_MINUTES_MS);
+        unit = savedContext.parse(libFile, currencyFile, FIVE_MINUTES_MS);
         assertTopDeclarationExists(unit, "Currency");
         assertEquals(0, listener.getParsedCount());
         assertEquals(0, listener.getResolved().size());
@@ -225,7 +226,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = server.parse(libFile, fileDoesNotExist, FIVE_MINUTES_MS);
+        unit = savedContext.parse(libFile, fileDoesNotExist, FIVE_MINUTES_MS);
         assertNoTopDeclaration(unit);
         assertEquals(0, listener.getParsedCount());
         assertEquals(0, listener.getResolved().size());
@@ -243,9 +244,10 @@ public class AnalysisServerTest extends TestCase {
         File libFile = setupMoneyLibrary(tempDir);
         File currencyFile = new File(libFile.getParent(), "currency.dart");
         setupServer();
+        SavedContext savedContext = server.getSavedContext();
 
         listener.reset();
-        DartUnit unit = server.parse(libFile, currencyFile, FIVE_MINUTES_MS);
+        DartUnit unit = savedContext.parse(libFile, currencyFile, FIVE_MINUTES_MS);
         assertTopDeclarationExists(unit, "Currency");
         listener.assertWasParsed(libFile, currencyFile);
         listener.assertWasParsed(libFile, libFile);
@@ -256,7 +258,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = server.parse(libFile, currencyFile, FIVE_MINUTES_MS);
+        unit = savedContext.parse(libFile, currencyFile, FIVE_MINUTES_MS);
         assertTopDeclarationExists(unit, "Currency");
         assertEquals(0, listener.getParsedCount());
         assertEquals(0, listener.getResolved().size());
@@ -275,9 +277,10 @@ public class AnalysisServerTest extends TestCase {
         File currencyFile = new File(libFile.getParent(), "currency.dart");
         File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
         setupServer();
+        SavedContext savedContext = server.getSavedContext();
 
         listener.reset();
-        DartUnit unit = server.parse(fileDoesNotExist, fileDoesNotExist, FIVE_MINUTES_MS);
+        DartUnit unit = savedContext.parse(fileDoesNotExist, fileDoesNotExist, FIVE_MINUTES_MS);
         assertNoTopDeclaration(unit);
         listener.assertWasParsed(fileDoesNotExist, fileDoesNotExist);
         assertEquals(1, listener.getParsedCount());
@@ -287,7 +290,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = server.parse(fileDoesNotExist, libFile, FIVE_MINUTES_MS);
+        unit = savedContext.parse(fileDoesNotExist, libFile, FIVE_MINUTES_MS);
         assertTopDeclarationExists(unit, "Money");
         listener.assertWasParsed(fileDoesNotExist, libFile);
         assertEquals(1, listener.getParsedCount());
@@ -297,7 +300,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = server.parse(fileDoesNotExist, currencyFile, FIVE_MINUTES_MS);
+        unit = savedContext.parse(fileDoesNotExist, currencyFile, FIVE_MINUTES_MS);
         assertTopDeclarationExists(unit, "Currency");
         listener.assertWasParsed(fileDoesNotExist, currencyFile);
         assertEquals(1, listener.getParsedCount());
@@ -307,7 +310,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = server.parse(fileDoesNotExist, fileDoesNotExist, FIVE_MINUTES_MS);
+        unit = savedContext.parse(fileDoesNotExist, fileDoesNotExist, FIVE_MINUTES_MS);
         assertNoTopDeclaration(unit);
         assertEquals(0, listener.getParsedCount());
         assertEquals(0, listener.getResolved().size());
@@ -316,7 +319,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = server.parse(fileDoesNotExist, libFile, FIVE_MINUTES_MS);
+        unit = savedContext.parse(fileDoesNotExist, libFile, FIVE_MINUTES_MS);
         assertTopDeclarationExists(unit, "Money");
         assertEquals(0, listener.getParsedCount());
         assertEquals(0, listener.getResolved().size());
@@ -337,13 +340,14 @@ public class AnalysisServerTest extends TestCase {
         File bFile = new File(tempDir, "b.dart");
         FileUtilities.setContents(bFile, "class B { D f1; E f2; F f3; G f4; }");
         setupServer();
+        SavedContext savedContext = server.getSavedContext();
 
         listener.reset();
-        server.resolve(aFile, FIVE_MINUTES_MS);
+        server.getSavedContext().resolve(aFile, FIVE_MINUTES_MS);
         assertEquals(7, listener.getErrors().size());
 
         listener.reset();
-        DartUnit unit = server.parse(aFile, aFile, FIVE_MINUTES_MS);
+        DartUnit unit = savedContext.parse(aFile, aFile, FIVE_MINUTES_MS);
         assertTopDeclarationExists(unit, "A");
         assertEquals(0, listener.getParsedCount());
         assertEquals(0, listener.getResolved().size());
@@ -352,7 +356,7 @@ public class AnalysisServerTest extends TestCase {
         listener.assertNoDiscards();
 
         listener.reset();
-        unit = server.parse(aFile, bFile, FIVE_MINUTES_MS);
+        unit = savedContext.parse(aFile, bFile, FIVE_MINUTES_MS);
         assertTopDeclarationExists(unit, "B");
         assertEquals(0, listener.getParsedCount());
         assertEquals(0, listener.getResolved().size());
@@ -371,7 +375,7 @@ public class AnalysisServerTest extends TestCase {
         setupServer();
 
         listener.reset();
-        LibraryUnit libUnit = server.resolve(libFile, FIVE_MINUTES_MS);
+        LibraryUnit libUnit = server.getSavedContext().resolve(libFile, FIVE_MINUTES_MS);
         assertNotNull(libUnit);
         listener.assertWasParsed(libFile, libFile);
         listener.assertWasResolved(libFile);
@@ -383,7 +387,7 @@ public class AnalysisServerTest extends TestCase {
 
         // assert that resolved unit has been cached
         listener.reset();
-        LibraryUnit libUnit2 = server.resolve(libFile, FIVE_MINUTES_MS);
+        LibraryUnit libUnit2 = server.getSavedContext().resolve(libFile, FIVE_MINUTES_MS);
         assertTrue(libUnit == libUnit2);
         assertEquals(0, listener.getResolved().size());
         assertEquals(0, listener.getErrors().size());
@@ -392,7 +396,7 @@ public class AnalysisServerTest extends TestCase {
 
         listener.reset();
         File fileDoesNotExist = new File(libFile.getParent(), "doesNotExist.dart");
-        libUnit = server.resolve(fileDoesNotExist, FIVE_MINUTES_MS);
+        libUnit = server.getSavedContext().resolve(fileDoesNotExist, FIVE_MINUTES_MS);
         assertNotNull(libUnit);
         listener.assertWasParsed(fileDoesNotExist, fileDoesNotExist);
         listener.assertWasResolved(fileDoesNotExist);
@@ -412,7 +416,7 @@ public class AnalysisServerTest extends TestCase {
         File libFile = setupMoneyLibrary(tempDir);
         setupServer();
 
-        DartUnit unit = server.resolve(libFile, FIVE_MINUTES_MS).getSelfDartUnit();
+        DartUnit unit = server.getSavedContext().resolve(libFile, FIVE_MINUTES_MS).getSelfDartUnit();
         assertEquals("Money", unit.getTopDeclarationNames().iterator().next());
 
         // Simulate a busy system
@@ -420,7 +424,7 @@ public class AnalysisServerTest extends TestCase {
         synchronized (getServerQueue()) {
           FileUtilities.setContents(libFile, "class A { }");
           server.changed(libFile);
-          server.resolve(libFile, callback);
+          server.getSavedContext().resolve(libFile, callback);
         }
         unit = callback.waitForResolve(FIVE_MINUTES_MS).getSelfDartUnit();
         assertEquals("A", unit.getTopDeclarationNames().iterator().next());
@@ -439,7 +443,7 @@ public class AnalysisServerTest extends TestCase {
 
     TestProject proj = new TestProject(projName);
     File libFile = proj.setFileContent(libFileName, "class A { }").getLocation().toFile();
-    DartUnit unit = server.resolve(libFile, FIVE_MINUTES_MS).getSelfDartUnit();
+    DartUnit unit = server.getSavedContext().resolve(libFile, FIVE_MINUTES_MS).getSelfDartUnit();
     assertEquals("A", unit.getTopDeclarationNames().iterator().next());
 
     // Simulate a very busy system
@@ -448,7 +452,7 @@ public class AnalysisServerTest extends TestCase {
       proj.dispose();
       proj = new TestProject(projName);
       libFile = proj.setFileContentWithoutWaitingForAnalysis(libFileName, "class B { }").getLocation().toFile();
-      server.resolve(libFile, callback);
+      server.getSavedContext().resolve(libFile, callback);
     }
     unit = callback.waitForResolve(FIVE_MINUTES_MS).getSelfDartUnit();
     assertEquals("B", unit.getTopDeclarationNames().iterator().next());
@@ -537,7 +541,7 @@ public class AnalysisServerTest extends TestCase {
         setupServer();
 
         final boolean[] latch = new boolean[1];
-        server.resolve(libFile, new ResolveCallback() {
+        server.getSavedContext().resolve(libFile, new ResolveCallback() {
           @Override
           public void resolved(LibraryUnit libraryUnit) {
             try {

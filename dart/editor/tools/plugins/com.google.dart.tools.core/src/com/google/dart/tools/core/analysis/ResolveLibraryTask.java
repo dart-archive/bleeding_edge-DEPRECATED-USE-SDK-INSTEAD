@@ -150,9 +150,9 @@ class ResolveLibraryTask extends Task {
         resolutionEvent.addFileAndDartUnit(dartFile, dartUnit);
       }
       if (parseEvent != null) {
-        parseEvent.notifyParsed(server);
+        parseEvent.notifyParsed(context);
       }
-      resolutionEvent.notifyResolved(server);
+      resolutionEvent.notifyResolved(context);
     }
 
     // If the expected library was not resolved then log an error and insert a placeholder

@@ -20,6 +20,8 @@ import com.google.dart.tools.core.analysis.AnalysisDebug;
 import com.google.dart.tools.core.analysis.AnalysisIndexManager;
 import com.google.dart.tools.core.analysis.AnalysisMarkerManager;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.EditContext;
+import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.model.DartSdk;
 
 import org.eclipse.core.resources.IProject;
@@ -37,7 +39,8 @@ public class SystemLibraryManagerProvider {
 
   private static AnalysisServer defaultAnalysisServer;
   private static AnalysisMarkerManager markerManager;
-  private static AnalysisDebug analysisDebug;
+  private static AnalysisDebug analysisDebugSaved;
+  private static AnalysisDebug analysisDebugEdit;
 
   //private static ResourceChangeListener defaultAnalysisChangeListener;
 
@@ -82,12 +85,17 @@ public class SystemLibraryManagerProvider {
     synchronized (lock) {
       if (defaultAnalysisServer == null) {
         defaultAnalysisServer = new AnalysisServer(getAnyLibraryManager());
-        defaultAnalysisServer.addAnalysisListener(new AnalysisIndexManager());
+        SavedContext savedContext = defaultAnalysisServer.getSavedContext();
+        EditContext editContext = defaultAnalysisServer.getEditContext();
+        savedContext.addAnalysisListener(new AnalysisIndexManager());
         markerManager = new AnalysisMarkerManager();
-        defaultAnalysisServer.addAnalysisListener(markerManager);
+        savedContext.addAnalysisListener(markerManager);
         if (DartCoreDebug.DEBUG_ANALYSIS) {
-          analysisDebug = new AnalysisDebug();
-          defaultAnalysisServer.addAnalysisListener(analysisDebug);
+          analysisDebugSaved = new AnalysisDebug("Saved");
+          defaultAnalysisServer.addIdleListener(analysisDebugSaved);
+          savedContext.addAnalysisListener(analysisDebugSaved);
+          analysisDebugEdit = new AnalysisDebug("Edit");
+          editContext.addAnalysisListener(analysisDebugEdit);
         }
         if (!defaultAnalysisServer.readCache()) {
           for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
@@ -113,9 +121,13 @@ public class SystemLibraryManagerProvider {
   public static void stop() {
     synchronized (lock) {
       if (defaultAnalysisServer != null) {
-        if (analysisDebug != null) {
-          analysisDebug.stop();
-          analysisDebug = null;
+        if (analysisDebugSaved != null) {
+          analysisDebugSaved.stop();
+          analysisDebugSaved = null;
+        }
+        if (analysisDebugEdit != null) {
+          analysisDebugEdit.stop();
+          analysisDebugEdit = null;
         }
         markerManager.stop();
         markerManager = null;

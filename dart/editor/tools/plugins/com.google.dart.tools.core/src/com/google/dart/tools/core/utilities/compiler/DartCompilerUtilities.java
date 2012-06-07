@@ -849,7 +849,7 @@ public class DartCompilerUtilities {
       File libraryFile = new File(libraryUri.getPath());
       AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
 
-      unit = server.resolve(libraryFile, 30000);
+      unit = server.getSavedContext().resolve(libraryFile, 30000);
     } else {
       // All calls to DartC must be synchronized
       synchronized (compilerLock) {

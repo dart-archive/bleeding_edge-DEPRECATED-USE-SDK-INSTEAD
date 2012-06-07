@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
-class Listener implements AnalysisListener {
+class Listener implements AnalysisListener, IdleListener {
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
   private final HashMap<String, HashSet<String>> parsed = new HashMap<String, HashSet<String>>();
@@ -36,7 +36,9 @@ class Listener implements AnalysisListener {
   private final ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
 
   public Listener(AnalysisServer server) {
-    server.addAnalysisListener(this);
+    server.addIdleListener(this);
+    server.getSavedContext().addAnalysisListener(this);
+    server.getEditContext().addAnalysisListener(this);
   }
 
   @Override

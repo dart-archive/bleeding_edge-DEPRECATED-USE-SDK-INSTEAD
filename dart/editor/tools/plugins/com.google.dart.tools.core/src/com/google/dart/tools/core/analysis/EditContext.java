@@ -14,25 +14,14 @@
 package com.google.dart.tools.core.analysis;
 
 /**
- * Notified when analysis is performed
- * 
- * @see AnalysisServer#addIdleListener(AnalysisListener)
- * @see AnalysisServer#removeIdleListener(AnalysisListener)
+ * Analysis of Dart source currently being edited
  */
-public interface AnalysisListener {
+public class EditContext extends Context {
 
-  /**
-   * Called when the server is no longer analyzing a library
-   */
-  void discarded(AnalysisEvent event);
+  private final Context savedContext;
 
-  /**
-   * Called after files are parsed regardless of whether there were errors.
-   */
-  void parsed(AnalysisEvent event);
-
-  /**
-   * Called after a library has been resolved regardless of whether there were errors.
-   */
-  void resolved(AnalysisEvent event);
+  EditContext(AnalysisServer server, Context savedContext) {
+    super(server);
+    this.savedContext = savedContext;
+  }
 }

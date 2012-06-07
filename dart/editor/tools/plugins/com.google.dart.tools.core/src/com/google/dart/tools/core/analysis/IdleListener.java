@@ -14,25 +14,15 @@
 package com.google.dart.tools.core.analysis;
 
 /**
- * Notified when analysis is performed
+ * Notified when the idle state of analysis server changes
  * 
- * @see AnalysisServer#addIdleListener(AnalysisListener)
- * @see AnalysisServer#removeIdleListener(AnalysisListener)
+ * @see AnalysisServer#addIdleListener(IdleListener)
+ * @see AnalysisServer#removeIdleListener(IdleListener)
  */
-public interface AnalysisListener {
+public interface IdleListener {
 
   /**
-   * Called when the server is no longer analyzing a library
+   * Called when the server's background thread transitions from busy to idle or idle to busy
    */
-  void discarded(AnalysisEvent event);
-
-  /**
-   * Called after files are parsed regardless of whether there were errors.
-   */
-  void parsed(AnalysisEvent event);
-
-  /**
-   * Called after a library has been resolved regardless of whether there were errors.
-   */
-  void resolved(AnalysisEvent event);
+  void idle(boolean idle);
 }

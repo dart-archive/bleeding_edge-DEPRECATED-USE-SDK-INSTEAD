@@ -39,7 +39,7 @@ public class AnalysisTestUtilities {
   public static void waitForIdle(AnalysisServer server, long milliseconds) {
     final Object waitForIdleLock = new Object();
 
-    AnalysisListener listener = new AnalysisListener.Empty() {
+    IdleListener listener = new IdleListener() {
       @Override
       public void idle(boolean idle) {
         if (idle) {
@@ -50,7 +50,7 @@ public class AnalysisTestUtilities {
       }
     };
 
-    server.addAnalysisListener(listener);
+    server.addIdleListener(listener);
     try {
       long endTime = System.currentTimeMillis() + milliseconds;
       synchronized (waitForIdleLock) {
@@ -67,7 +67,7 @@ public class AnalysisTestUtilities {
         }
       }
     } finally {
-      server.removeAnalysisListener(listener);
+      server.removeIdleListener(listener);
     }
   }
 

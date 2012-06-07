@@ -22,6 +22,8 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.index.Attribute;
 import com.google.dart.tools.core.index.AttributeCallback;
 import com.google.dart.tools.core.index.Element;
@@ -430,13 +432,15 @@ public class InMemoryIndex implements Index {
     ArrayList<DartUnit> contributedUnits = new ArrayList<DartUnit>();
     ArrayList<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
     HashSet<URI> initializedLibraries = new HashSet<URI>();
+    AnalysisServer analysisServer = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+    SavedContext savedContext = analysisServer.getSavedContext();
     for (String urlSpec : librarySpecs) {
       try {
         URI libraryUri = new URI(urlSpec);
         UrlLibrarySource librarySource = new UrlLibrarySource(libraryUri, libraryManager);
         if (DartCoreDebug.ANALYSIS_SERVER) {
           File libraryFile = new File(libraryManager.resolveDartUri(libraryUri));
-          SystemLibraryManagerProvider.getDefaultAnalysisServer().resolve(libraryFile, null);
+          savedContext.resolve(libraryFile, null);
         } else {
           LibraryUnit libraryUnit = DartCompilerUtilities.resolveLibrary(
               librarySource,

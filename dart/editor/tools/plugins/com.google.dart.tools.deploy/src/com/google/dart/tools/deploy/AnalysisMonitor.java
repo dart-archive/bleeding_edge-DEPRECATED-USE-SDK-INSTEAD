@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.deploy;
 
-import com.google.dart.tools.core.analysis.AnalysisListener;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.IdleListener;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -29,7 +29,7 @@ public class AnalysisMonitor {
   /**
    * Listen for the {@link AnalysisServer} idle state
    */
-  private class Listener extends AnalysisListener.Empty {
+  private class Listener implements IdleListener {
     @Override
     public void idle(boolean idle) {
       synchronized (lock) {
@@ -83,7 +83,7 @@ public class AnalysisMonitor {
     synchronized (lock) {
       job = new NotificationJob();
       job.schedule(3000);
-      server.addAnalysisListener(new Listener());
+      server.addIdleListener(new Listener());
     }
   }
 

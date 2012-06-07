@@ -58,7 +58,7 @@ class DiscardLibraryTask extends Task {
     // If any analysis has been performed on the library
     // then notify others that the library is no longer being analyzed
     if (event != null) {
-      for (AnalysisListener listener : server.getAnalysisListeners()) {
+      for (AnalysisListener listener : context.getAnalysisListeners()) {
         try {
           listener.discarded(event);
         } catch (Throwable e) {

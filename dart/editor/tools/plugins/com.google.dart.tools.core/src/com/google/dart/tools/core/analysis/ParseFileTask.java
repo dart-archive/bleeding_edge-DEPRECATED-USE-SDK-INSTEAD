@@ -90,7 +90,7 @@ class ParseFileTask extends Task {
       if (library.shouldNotify) {
         AnalysisEvent event = new AnalysisEvent(libraryFile, errorListener.getErrors());
         event.addFileAndDartUnit(dartFile, unit);
-        event.notifyParsed(server);
+        event.notifyParsed(context);
       }
     }
 

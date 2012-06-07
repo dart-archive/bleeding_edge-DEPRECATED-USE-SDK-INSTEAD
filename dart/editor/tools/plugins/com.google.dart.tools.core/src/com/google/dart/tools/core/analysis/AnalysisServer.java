@@ -14,8 +14,6 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.SystemLibraryManager;
-import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 
@@ -49,7 +47,7 @@ public class AnalysisServer {
     AnalysisServer.performanceListener = performanceListener;
   }
 
-  private AnalysisListener[] analysisListeners = new AnalysisListener[0];
+  private IdleListener[] idleListeners = new IdleListener[0];
 
   /**
    * The target (VM, Dartium, JS) against which user libraries are resolved. Targets are immutable
@@ -86,7 +84,13 @@ public class AnalysisServer {
    * A context representing what is "saved on disk". Contents of this object should only be accessed
    * on the background thread.
    */
-  private final Context savedContext = new Context(this);
+  private final SavedContext savedContext = new SavedContext(this);
+
+  /**
+   * A context representing what is "currently being edited". Contents of this object should only be
+   * accessed on the background thread.
+   */
+  private final EditContext editContext = new EditContext(this, savedContext);
 
   /**
    * <code>true</code> if the background thread should continue executing analysis tasks
@@ -111,22 +115,22 @@ public class AnalysisServer {
     this.libraryManager = libraryManager;
   }
 
-  public void addAnalysisListener(AnalysisListener listener) {
-    for (int i = 0; i < analysisListeners.length; i++) {
-      if (analysisListeners[i] == listener) {
+  public void addIdleListener(IdleListener listener) {
+    for (int i = 0; i < idleListeners.length; i++) {
+      if (idleListeners[i] == listener) {
         return;
       }
     }
-    int oldLen = analysisListeners.length;
-    AnalysisListener[] newListeners = new AnalysisListener[oldLen + 1];
-    System.arraycopy(analysisListeners, 0, newListeners, 0, oldLen);
+    int oldLen = idleListeners.length;
+    IdleListener[] newListeners = new IdleListener[oldLen + 1];
+    System.arraycopy(idleListeners, 0, newListeners, 0, oldLen);
     newListeners[oldLen] = listener;
-    analysisListeners = newListeners;
+    idleListeners = newListeners;
   }
 
   /**
    * Analyze the specified library, and keep that analysis current by tracking any changes. Also see
-   * {@link #resolve(File, ResolveCallback)}.
+   * {@link Context#resolve(File, ResolveCallback)}.
    * 
    * @param file the library file (not <code>null</code>)
    */
@@ -186,6 +190,20 @@ public class AnalysisServer {
   }
 
   /**
+   * Answer the context containing analysis of Dart source currently being edited
+   */
+  public EditContext getEditContext() {
+    return editContext;
+  }
+
+  /**
+   * Answer the context containing analysis of Dart source on disk
+   */
+  public SavedContext getSavedContext() {
+    return savedContext;
+  }
+
+  /**
    * Answer <code>true</code> if the receiver does not have any queued tasks and the receiver's
    * background thread is waiting for new tasks to be queued.
    */
@@ -193,41 +211,6 @@ public class AnalysisServer {
     synchronized (queue) {
       return isBackgroundThreadIdle && queue.isEmpty();
     }
-  }
-
-  /**
-   * Parse the specified file, without adding the library to the list of libraries to be tracked.
-   * 
-   * @param libraryFile the library containing the dart file to be parsed (not <code>null</code>)
-   * @param dartFile the dart file to be parsed (not <code>null</code>). This may be the same as the
-   *          libraryFile.
-   * @param milliseconds the number of milliseconds to wait for the file to be parsed.
-   * @return the parsed dart unit or <code>null</code> if the file was not parsed within the
-   *         specified amount of time. This unit may or may not be resolved.
-   * @throws RuntimeException if the parse takes longer than the specified time
-   */
-  public DartUnit parse(File libraryFile, File dartFile, long milliseconds) {
-    ParseCallback.Sync callback = new ParseCallback.Sync();
-    parse(libraryFile, dartFile, callback);
-    DartUnit result = callback.waitForParse(milliseconds);
-    if (result == null) {
-      throw new RuntimeException("Timed out waiting for parse: " + dartFile + " in " + libraryFile);
-    }
-    return result;
-  }
-
-  /**
-   * Parse the specified file, without adding the library to the list of libraries to be tracked.
-   * 
-   * @param libraryFile the library containing the dart file to be parsed (not <code>null</code>)
-   * @param dartFile the dart file to be parsed (not <code>null</code>). This may be the same as the
-   *          libraryFile
-   * @param callback a listener that will be notified when the library file has been parsed or
-   *          <code>null</code> if none
-   */
-  public void parse(File libraryFile, File dartFile, ParseCallback callback) {
-    String relPath = libraryFile.toURI().relativize(dartFile.toURI()).getPath();
-    queueNewTask(new ParseFileTask(this, savedContext, libraryFile, relPath, dartFile, callback));
   }
 
   /**
@@ -254,50 +237,16 @@ public class AnalysisServer {
     queueNewTask(new EverythingChangedTask(this, savedContext));
   }
 
-  public void removeAnalysisListener(AnalysisListener listener) {
-    int oldLen = analysisListeners.length;
+  public void removeIdleListener(IdleListener listener) {
+    int oldLen = idleListeners.length;
     for (int i = 0; i < oldLen; i++) {
-      if (analysisListeners[i] == listener) {
-        AnalysisListener[] newListeners = new AnalysisListener[oldLen - 1];
-        System.arraycopy(analysisListeners, 0, newListeners, 0, i);
-        System.arraycopy(analysisListeners, i + 1, newListeners, i, oldLen - 1 - i);
+      if (idleListeners[i] == listener) {
+        IdleListener[] newListeners = new IdleListener[oldLen - 1];
+        System.arraycopy(idleListeners, 0, newListeners, 0, i);
+        System.arraycopy(idleListeners, i + 1, newListeners, i, oldLen - 1 - i);
         return;
       }
     }
-  }
-
-  /**
-   * Resolve the specified library. Similar to {@link #analyze(File)}, but does not add the library
-   * to the list of libraries to be tracked.
-   * 
-   * @param milliseconds the number of milliseconds to wait for the library to be resolved.
-   * @param file the library file (not <code>null</code>).
-   * @return the resolved library (not <code>null</code>)
-   * @throws RuntimeException if the resolution takes longer than the specified time
-   */
-  public LibraryUnit resolve(File libraryFile, long milliseconds) {
-    ResolveCallback.Sync callback = new ResolveCallback.Sync();
-    resolve(libraryFile, callback);
-    LibraryUnit result = callback.waitForResolve(milliseconds);
-    if (result == null) {
-      throw new RuntimeException("Timed out waiting for library to be resolved: " + libraryFile);
-    }
-    return result;
-  }
-
-  /**
-   * Resolve the specified library. Similar to {@link #analyze(File)}, but does not add the library
-   * to the list of libraries to be tracked.
-   * 
-   * @param file the library file (not <code>null</code>)
-   * @param callback a listener that will be notified when the library has been resolved or
-   *          <code>null</code> if none
-   */
-  public void resolve(File file, ResolveCallback callback) {
-    if (!file.isAbsolute()) {
-      throw new IllegalArgumentException("File path must be absolute: " + file);
-    }
-    queueNewTask(new AnalyzeLibraryTask(this, savedContext, file, callback));
   }
 
   /**
@@ -440,8 +389,8 @@ public class AnalysisServer {
     }
   }
 
-  AnalysisListener[] getAnalysisListeners() {
-    return analysisListeners;
+  IdleListener[] getIdleListeners() {
+    return idleListeners;
   }
 
   EditorLibraryManager getLibraryManager() {
@@ -590,7 +539,7 @@ public class AnalysisServer {
   }
 
   private void notifyIdle(boolean idle) {
-    for (AnalysisListener listener : getAnalysisListeners()) {
+    for (IdleListener listener : getIdleListeners()) {
       try {
         listener.idle(idle);
       } catch (Throwable e) {

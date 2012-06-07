@@ -44,12 +44,8 @@ public class AnalysisIndexManager implements AnalysisListener {
   }
 
   @Override
-  public void idle(boolean idle) {
-    // ignored
-  }
-
-  @Override
   public void parsed(AnalysisEvent event) {
+    // ignored
   }
 
   /**

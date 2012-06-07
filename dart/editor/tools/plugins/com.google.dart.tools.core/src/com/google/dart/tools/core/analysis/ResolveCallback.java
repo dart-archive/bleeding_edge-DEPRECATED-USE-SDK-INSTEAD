@@ -16,15 +16,14 @@ package com.google.dart.tools.core.analysis;
 import com.google.dart.compiler.ast.LibraryUnit;
 
 /**
- * Used by {@link AnalysisServer#resolve(java.io.File, ResolveCallback)} to provide asynchronous
- * results.
+ * Used by {@link Context#resolve(java.io.File, ResolveCallback)} to provide asynchronous results.
  */
 public interface ResolveCallback {
 
   /**
    * Utility class for synchronously obtaining a resolved library.
    * 
-   * @see AnalysisServer#resolve(java.io.File, int)
+   * @see Context#resolve(java.io.File, int)
    */
   public static class Sync implements ResolveCallback {
     private final Object lock = new Object();

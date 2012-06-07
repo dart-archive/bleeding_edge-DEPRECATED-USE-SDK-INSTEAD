@@ -18,15 +18,14 @@ import com.google.dart.compiler.ast.DartUnit;
 import java.io.File;
 
 /**
- * Used by {@link AnalysisServer#parse(java.io.File, File, ParseCallback)} to provide asynchronous
- * results.
+ * Used by {@link Context#parse(java.io.File, File, ParseCallback)} to provide asynchronous results.
  */
 public interface ParseCallback {
 
   /**
    * Utility class for synchronously obtaining a resolved library.
    * 
-   * @see AnalysisServer#resolve(java.io.File, int)
+   * @see Context#resolve(java.io.File, int)
    */
   public static class Sync implements ParseCallback {
     private final Object lock = new Object();

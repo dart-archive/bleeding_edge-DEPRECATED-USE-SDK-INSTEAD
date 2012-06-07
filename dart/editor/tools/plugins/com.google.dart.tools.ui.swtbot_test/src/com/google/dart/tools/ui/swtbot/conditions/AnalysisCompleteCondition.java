@@ -13,9 +13,8 @@
  */
 package com.google.dart.tools.ui.swtbot.conditions;
 
-import com.google.dart.tools.core.analysis.AnalysisEvent;
-import com.google.dart.tools.core.analysis.AnalysisListener;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.IdleListener;
 import com.google.dart.tools.core.analysis.PerformanceListener;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.ui.swtbot.performance.SwtBotPerformance;
@@ -53,26 +52,11 @@ public class AnalysisCompleteCondition implements ICondition {
         return simpleName;
       }
     });
-    server.addAnalysisListener(new AnalysisListener() {
-
-      @Override
-      public void discarded(AnalysisEvent event) {
-        // ignored
-      }
+    server.addIdleListener(new IdleListener() {
 
       @Override
       public void idle(boolean idle) {
         isIdle = idle;
-      }
-
-      @Override
-      public void parsed(AnalysisEvent event) {
-        //Performance.PARSE.log(event.getStartTime());
-      }
-
-      @Override
-      public void resolved(AnalysisEvent event) {
-        //Performance.RESOLVE.log(event.getStartTime());
       }
     });
   }
