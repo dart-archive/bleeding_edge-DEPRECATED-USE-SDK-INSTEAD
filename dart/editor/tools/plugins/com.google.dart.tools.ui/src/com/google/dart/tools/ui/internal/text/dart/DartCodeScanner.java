@@ -25,6 +25,7 @@ import com.google.dart.tools.ui.internal.text.functions.ISourceVersionDependent;
 import com.google.dart.tools.ui.text.IColorManager;
 import com.google.dart.tools.ui.text.IDartColorConstants;
 
+import static com.google.dart.compiler.parser.Token.AS;
 import static com.google.dart.compiler.parser.Token.BREAK;
 import static com.google.dart.compiler.parser.Token.ELLIPSIS;
 import static com.google.dart.compiler.parser.Token.IS;
@@ -193,8 +194,8 @@ public final class DartCodeScanner extends AbstractDartScanner {
   }
 
   @SuppressWarnings("unused")
-  private static class VersionedWordMatcher extends CombinedWordRule.WordMatcher implements
-      ISourceVersionDependent {
+  private static class VersionedWordMatcher extends CombinedWordRule.WordMatcher
+      implements ISourceVersionDependent {
 
     private final IToken fDefaultToken;
     private final String fVersion;
@@ -235,15 +236,16 @@ public final class DartCodeScanner extends AbstractDartScanner {
     com.google.dart.compiler.parser.Token[] tokens = com.google.dart.compiler.parser.Token.values();
     for (int i = 0; i < tokens.length; i++) {
       com.google.dart.compiler.parser.Token token = tokens[i];
-      if ((BREAK.ordinal() <= token.ordinal() && token.ordinal() <= WHILE.ordinal())
-          || (token.ordinal() == IS.ordinal())) {
+      if ((BREAK.ordinal() <= token.ordinal() && token.ordinal() <= WHILE.ordinal()) ||
+          token.ordinal() == AS.ordinal() || token.ordinal() == IS.ordinal()) {
         keywords.add(token.getSyntax());
       } else if ((LIBRARY.ordinal() <= token.ordinal()) && (token.ordinal() <= NATIVE.ordinal())) {
         String name = token.getSyntax();
         directives.add(name.substring(1));
       }
-      if (token.isBinaryOperator() || token.isUnaryOperator()
-          || (token.ordinal() == ELLIPSIS.ordinal()) && (token.ordinal() != IS.ordinal())) {
+      if (token.isBinaryOperator() || token.isUnaryOperator() || token.ordinal()
+          == ELLIPSIS.ordinal() && token.ordinal() != AS.ordinal() && token.ordinal()
+          != IS.ordinal()) {
         operators.add(token.getSyntax());
       }
     }
@@ -259,8 +261,8 @@ public final class DartCodeScanner extends AbstractDartScanner {
 
   private static String[] fgConstants = {"false", "null", "true"}; //$NON-NLS-3$ //$NON-NLS-2$ //$NON-NLS-1$
 
-  private static final String ANNOTATION_BASE_KEY = PreferenceConstants.EDITOR_SEMANTIC_HIGHLIGHTING_PREFIX
-      + SemanticHighlightings.ANNOTATION;
+  private static final String ANNOTATION_BASE_KEY =
+      PreferenceConstants.EDITOR_SEMANTIC_HIGHLIGHTING_PREFIX + SemanticHighlightings.ANNOTATION;
   private static final String ANNOTATION_COLOR_KEY = ANNOTATION_BASE_KEY
       + PreferenceConstants.EDITOR_SEMANTIC_HIGHLIGHTING_COLOR_SUFFIX;
 
