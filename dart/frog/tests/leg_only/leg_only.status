@@ -48,3 +48,8 @@ naming_test: Fail # BUG(3305)
 
 [ $compiler == dart2js && $runtime == safari ]
 naming_test: Fail # BUG(3305)
+
+[ $checked ]
+parameter_bailout_test: Fail, OK
+variable_type_test/03: Fail, OK
+variable_type_test/01: Fail, OK
