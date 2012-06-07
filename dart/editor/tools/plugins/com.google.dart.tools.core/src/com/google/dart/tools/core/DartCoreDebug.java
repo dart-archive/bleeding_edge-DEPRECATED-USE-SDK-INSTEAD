@@ -36,7 +36,7 @@ public class DartCoreDebug {
   public static final boolean TRACE_INDEX_PROCESSOR = isOptionTrue("trace/index/processor");
 
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
-  public static final boolean ENABLE_MARK_OCCURRENCES = isOptionTrue("debug/markOccurrences");
+  public static final boolean ENABLE_MARK_OCCURRENCES = true; //isOptionTrue("debug/markOccurrences");
   public static final boolean ENABLE_APPS_VIEW = isOptionTrue("debug/appsView");
 
   // Performance measurement and reporting options.
@@ -47,7 +47,6 @@ public class DartCoreDebug {
   // Experimental functionality options.
 
   public static final boolean ANALYSIS_SERVER = true; //isOptionTrue("experimental/analysis/server");
-  public static final boolean ENABLE_CALL_GRAPH = true; //NEW_INDEXER && isOptionTrue("experimental/callHierarchy");
   public static final boolean ENABLE_UPDATE = isOptionTrue("experimental/update");
   public static final boolean ENABLE_ALT_KEY_BINDINGS = isOptionTrue("experimental/altKeyBindings");
   public static final boolean ENABLE_TYPE_ANNOTATIONS = isOptionTrue("experimental/typeAnnotations");
