@@ -60,7 +60,7 @@ main() {
   Expect.isTrue(generated.contains('print(a);'));
 
   generated = compile(TEST_TWO, 'main');
-  Regexp regexp = new RegExp("t \\+= 10");
+  RegExp regexp = new RegExp("t \\+= 10");
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = new RegExp("\\+\\+i");
