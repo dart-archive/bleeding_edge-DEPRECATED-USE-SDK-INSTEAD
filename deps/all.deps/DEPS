@@ -4,7 +4,7 @@
 
 vars = {
   "gyp_rev": "@937",
-  "co19_rev": "@164",
+  "co19_rev": "@290",
   "co19_repo": "http://co19.googlecode.com/svn/trunk/co19/",
   "chromium_url": "http://src.chromium.org/svn",
 }
