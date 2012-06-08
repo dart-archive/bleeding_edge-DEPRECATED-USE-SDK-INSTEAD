@@ -44,9 +44,7 @@ main() {
   RegExp regexp = new RegExp(getIntTypeCheck(anyIdentifier));
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 0);
-
-  regexp = const RegExp("return c;");
-  Expect.isTrue(regexp.hasMatch(generated));
+  Expect.isTrue(generated.contains(@'return a === true ? $.foo(2) : c;'));
 
   generated = compile(TEST_TWO, 'foo');
   regexp = const RegExp("foo\\(1\\)");

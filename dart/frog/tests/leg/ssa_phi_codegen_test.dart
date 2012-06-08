@@ -56,17 +56,11 @@ foo() {
 
 main() {
   String generated = compile(TEST_ONE, 'foo');
-  RegExp regexp = const RegExp(@"a = 2");
-  Expect.isTrue(regexp.hasMatch(generated));
-
-  regexp = const RegExp(@"a = 3");
-  Expect.isTrue(regexp.hasMatch(generated));
-
-  regexp = const RegExp(@"print\(a\)");
-  Expect.isTrue(regexp.hasMatch(generated));
+  Expect.isTrue(generated.contains('var a = bar === true ? 2 : 3;'));
+  Expect.isTrue(generated.contains('print(a);'));
 
   generated = compile(TEST_TWO, 'main');
-  regexp = new RegExp("t \\+= 10");
+  Regexp regexp = new RegExp("t \\+= 10");
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = new RegExp("\\+\\+i");
