@@ -20,7 +20,6 @@ import com.google.dart.tools.ui.text.IColorManager;
 import com.google.dart.tools.ui.text.IColorManagerExtension;
 
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.StringConverter;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
@@ -62,9 +61,6 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
       fKey = key;
     }
 
-    /*
-     * @see org.eclipse.jface.text.Region#equals(java.lang.Object)
-     */
     @Override
     public boolean equals(Object o) {
       return super.equals(o) && o instanceof HighlightedRange
@@ -78,9 +74,6 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
       return fKey;
     }
 
-    /*
-     * @see org.eclipse.jface.text.Region#hashCode()
-     */
     @Override
     public int hashCode() {
       return super.hashCode() | fKey.hashCode();
@@ -132,9 +125,6 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
       return styleRange;
     }
 
-    /*
-     * @see org.eclipse.jface.text.Position#delete()
-     */
     @Override
     public void delete() {
       synchronized (fLock) {
@@ -177,9 +167,6 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
       }
     }
 
-    /*
-     * @see org.eclipse.jface.text.Position#setLength(int)
-     */
     @Override
     public void setLength(int length) {
       synchronized (fLock) {
@@ -187,9 +174,6 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
       }
     }
 
-    /*
-     * @see org.eclipse.jface.text.Position#setOffset(int)
-     */
     @Override
     public void setOffset(int offset) {
       synchronized (fLock) {
@@ -197,9 +181,6 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
       }
     }
 
-    /*
-     * @see org.eclipse.jface.text.Position#undelete()
-     */
     @Override
     public void undelete() {
       synchronized (fLock) {
@@ -344,10 +325,6 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
     install(null, sourceViewer, colorManager, preferenceStore);
   }
 
-  /*
-   * @see org.eclipse.jface.util.IPropertyChangeListener#propertyChange(org.eclipse
-   * .jface.util.PropertyChangeEvent)
-   */
   @Override
   public void propertyChange(PropertyChangeEvent event) {
     handlePropertyChangeEvent(event);
@@ -434,16 +411,17 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
     }
   }
 
-  private void addColor(String colorKey) {
-    if (fColorManager != null && colorKey != null && fColorManager.getColor(colorKey) == null) {
-      RGB rgb = PreferenceConverter.getColor(fPreferenceStore, colorKey);
-      if (fColorManager instanceof IColorManagerExtension) {
-        IColorManagerExtension ext = (IColorManagerExtension) fColorManager;
-        ext.unbindColor(colorKey);
-        ext.bindColor(colorKey, rgb);
-      }
-    }
-  }
+//TODO (pquitslund): consider supporting color override preferences
+//  private void addColor(String colorKey) {
+//    if (fColorManager != null && colorKey != null && fColorManager.getColor(colorKey) == null) {
+//      RGB rgb = PreferenceConverter.getColor(fPreferenceStore, colorKey);
+//      if (fColorManager instanceof IColorManagerExtension) {
+//        IColorManagerExtension ext = (IColorManagerExtension) fColorManager;
+//        ext.unbindColor(colorKey);
+//        ext.bindColor(colorKey, rgb);
+//      }
+//    }
+//  }
 
   /**
    * Computes the hard-coded positions from the hard-coded ranges
@@ -512,7 +490,11 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
 
     if (fEditor != null) {
       fReconciler = new SemanticHighlightingReconciler();
-      fReconciler.install(fEditor, fSourceViewer, fPresenter, fSemanticHighlightings,
+      fReconciler.install(
+          fEditor,
+          fSourceViewer,
+          fPresenter,
+          fSemanticHighlightings,
           fHighlightings);
     } else {
       fPresenter.updatePresentation(null, createHardcodedPositions(), new HighlightedPosition[0]);
@@ -629,32 +611,37 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
 
     for (int i = 0, n = fSemanticHighlightings.length; i < n; i++) {
       SemanticHighlighting semanticHighlighting = fSemanticHighlightings[i];
-      String colorKey = SemanticHighlightings.getColorPreferenceKey(semanticHighlighting);
-      addColor(colorKey);
 
-      String boldKey = SemanticHighlightings.getBoldPreferenceKey(semanticHighlighting);
-      int style = fPreferenceStore.getBoolean(boldKey) ? SWT.BOLD : SWT.NORMAL;
+//TODO (pquitslund): consider supporting preference lookups for values
+//      String colorKey = SemanticHighlightings.getColorPreferenceKey(semanticHighlighting);
+//      if (colorKey != null) {
+//        addColor(colorKey);
+//      }
+//
+//      String boldKey = SemanticHighlightings.getBoldPreferenceKey(semanticHighlighting);
+//      int style = fPreferenceStore.getBoolean(boldKey) ? SWT.BOLD : SWT.NORMAL;
+//
+//      String italicKey = SemanticHighlightings.getItalicPreferenceKey(semanticHighlighting);
+//      if (fPreferenceStore.getBoolean(italicKey)) {
+//        style |= SWT.ITALIC;
+//      }
+//
+//      String strikethroughKey = SemanticHighlightings.getStrikethroughPreferenceKey(semanticHighlighting);
+//      if (fPreferenceStore.getBoolean(strikethroughKey)) {
+//        style |= TextAttribute.STRIKETHROUGH;
+//      }
+//
+//      String underlineKey = SemanticHighlightings.getUnderlinePreferenceKey(semanticHighlighting);
+//      if (fPreferenceStore.getBoolean(underlineKey)) {
+//        style |= TextAttribute.UNDERLINE;
+//      }
 
-      String italicKey = SemanticHighlightings.getItalicPreferenceKey(semanticHighlighting);
-      if (fPreferenceStore.getBoolean(italicKey)) {
-        style |= SWT.ITALIC;
-      }
-
-      String strikethroughKey = SemanticHighlightings.getStrikethroughPreferenceKey(semanticHighlighting);
-      if (fPreferenceStore.getBoolean(strikethroughKey)) {
-        style |= TextAttribute.STRIKETHROUGH;
-      }
-
-      String underlineKey = SemanticHighlightings.getUnderlinePreferenceKey(semanticHighlighting);
-      if (fPreferenceStore.getBoolean(underlineKey)) {
-        style |= TextAttribute.UNDERLINE;
-      }
-
-      boolean isEnabled = fPreferenceStore.getBoolean(SemanticHighlightings.getEnabledPreferenceKey(semanticHighlighting));
+      int style = semanticHighlighting.getDefaultStyle();
+      boolean isEnabled = isEnabled(semanticHighlighting);
 
       fHighlightings[i] = new Highlighting(new TextAttribute(
-          fColorManager.getColor(PreferenceConverter.getColor(fPreferenceStore, colorKey)), null,
-          style), isEnabled);
+          fColorManager.getColor(semanticHighlighting.getDefaultDefaultTextColor()), null, style),
+          isEnabled);
     }
   }
 
@@ -662,8 +649,13 @@ public class SemanticHighlightingManager implements IPropertyChangeListener {
    * @return <code>true</code> iff semantic highlighting is enabled in the preferences
    */
   private boolean isEnabled() {
-    return DartCoreDebug.ENABLE_TYPE_ANNOTATIONS;
-//    return SemanticHighlightings.isEnabled(fPreferenceStore);
+//  return SemanticHighlightings.isEnabled(fPreferenceStore);
+    return DartCoreDebug.ENABLE_SEMANTIC_HIGHLIGHTING;
+  }
+
+  private boolean isEnabled(SemanticHighlighting semanticHighlighting) {
+//  return fPreferenceStore.getBoolean(SemanticHighlightings.getEnabledPreferenceKey(semanticHighlighting));
+    return DartCoreDebug.ENABLE_SEMANTIC_HIGHLIGHTING;
   }
 
   private void removeColor(String colorKey) {

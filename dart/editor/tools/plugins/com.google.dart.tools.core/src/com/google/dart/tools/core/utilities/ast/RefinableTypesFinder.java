@@ -15,8 +15,15 @@ package com.google.dart.tools.core.utilities.ast;
 
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.ASTVisitor;
+import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartVariable;
+import com.google.dart.compiler.ast.DartVariableStatement;
+import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.Type;
 
 import java.util.List;
@@ -27,14 +34,53 @@ import java.util.List;
  */
 public class RefinableTypesFinder extends ASTVisitor<Void> {
 
-  private final List<DartNode> matches = Lists.newArrayList();
+  /**
+   * Test to see if the given identifier's type is refinable (e.g., "var" or Dynamic).
+   * 
+   * @param node the identifier to test
+   * @return <code>true</code> if the identifier has a refinable type, <code>false</code> otherwise
+   */
+  public static boolean isRefinable(DartIdentifier node) {
+    Type type = node.getType();
+    if (type == null) {
+      
+      DartNode parent = node.getParent();
+      
+      if (parent instanceof DartField) {
+
+        //skip getters/setters
+        Modifiers modifiers = ((DartField) parent).getModifiers();
+        if (modifiers.isGetter() || modifiers.isSetter()) {
+          return false;
+        }
+
+        parent = parent.getParent();
+        if (parent instanceof DartFieldDefinition) {
+          DartTypeNode typeNode = ((DartFieldDefinition) parent).getTypeNode();
+          return typeNode == null || typeNode.getType() instanceof DynamicType;
+        }
+      }
+      
+      if (parent instanceof DartVariable) {
+        parent = parent.getParent();
+        if (parent instanceof DartVariableStatement) {
+          DartTypeNode typeNode = ((DartVariableStatement) parent).getTypeNode();
+          return typeNode == null || typeNode.getType() instanceof DynamicType;
+        }
+      }
+      
+    }
+    return type != null && type.isInferred() || type instanceof DynamicType;
+  }
+
+  private final List<DartIdentifier> matches = Lists.newArrayList();
 
   /**
    * Get matched AST nodes.
    * 
    * @return matched AST nodes.
    */
-  public Iterable<DartNode> getMatches() {
+  public Iterable<DartIdentifier> getMatches() {
     return matches;
   }
 
@@ -55,10 +101,5 @@ public class RefinableTypesFinder extends ASTVisitor<Void> {
     }
 
     return super.visitIdentifier(node);
-  }
-
-  private boolean isRefinable(DartNode node) {
-    Type type = node.getType();
-    return type != null && type.isInferred();
   }
 }

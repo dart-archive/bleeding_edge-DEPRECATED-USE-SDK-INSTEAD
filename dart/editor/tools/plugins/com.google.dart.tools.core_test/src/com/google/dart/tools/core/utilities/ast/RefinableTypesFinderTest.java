@@ -16,6 +16,7 @@ package com.google.dart.tools.core.utilities.ast;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -32,7 +33,19 @@ import java.util.List;
  */
 public class RefinableTypesFinderTest extends TestCase {
 
-  public void testLocal1() throws Exception {
+  public void testGetterSetter() throws Exception {
+    assertMatches(
+        join(
+            "class Foo {",
+            "    String _foo;",
+            "    String get !1fooBar() => _foo == null ? 'none' : _foo;",
+            "           set !2fooBar(String foo) => _foo = foo;",
+            "}"),
+        "1-fooBar",
+        "2-fooBar");
+  }
+
+  public void testLocals() throws Exception {
     assertMatches(
         join(
             "class Foo {",
@@ -40,10 +53,16 @@ public class RefinableTypesFinderTest extends TestCase {
             "    new Foo().foo();",
             "  }",
             "  void foo(){",
-            "    var !1x = 'foo';",
+            "    var !1x;",
+            "    !2x = 3;",
+            "    int !3y = 3;",
+            "    var !4z = 'foo';",
             "  }",
             "}"),
-        "1+x");
+        "1+x",
+        "2+x",
+        "3-y",
+        "4+z");
   }
 
   /**
@@ -67,7 +86,7 @@ public class RefinableTypesFinderTest extends TestCase {
     }
     RefinableTypesFinder finder = new RefinableTypesFinder();
     finder.searchWithin(astRoot);
-    Iterable<DartNode> matches = finder.getMatches();
+    Iterable<DartIdentifier> matches = finder.getMatches();
 
     for (LocationSpec test : locationTests) {
       try {
@@ -89,7 +108,7 @@ public class RefinableTypesFinderTest extends TestCase {
     return src.replaceAll("![\\d]", "");
   }
 
-  private void verifyLocations(LocationSpec test, Iterable<DartNode> matches) {
+  private void verifyLocations(LocationSpec test, Iterable<DartIdentifier> matches) {
     for (String result : test.positiveResults) {
       // verify that result is present in matches
       int start = test.source.indexOf(result);

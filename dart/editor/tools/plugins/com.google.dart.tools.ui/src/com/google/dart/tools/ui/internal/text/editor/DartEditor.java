@@ -393,8 +393,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         try {
           viewer.setRedraw(false);
 
-          final String type = TextUtilities.getContentType(viewer.getDocument(),
-              DartPartitions.DART_PARTITIONING, selection.x, true);
+          final String type = TextUtilities.getContentType(
+              viewer.getDocument(),
+              DartPartitions.DART_PARTITIONING,
+              selection.x,
+              true);
           if (type.equals(IDocument.DEFAULT_CONTENT_TYPE) && selection.y == 0) {
 
             try {
@@ -774,7 +777,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
       String type = IDocument.DEFAULT_CONTENT_TYPE;
       try {
-        type = TextUtilities.getContentType(document, DartPartitions.DART_PARTITIONING, offset,
+        type = TextUtilities.getContentType(
+            document,
+            DartPartitions.DART_PARTITIONING,
+            offset,
             true);
       } catch (BadLocationException exception) {
         // Should not happen
@@ -884,7 +890,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
       synchronized (getLockObject(annotationModel)) {
         if (annotationModel instanceof IAnnotationModelExtension) {
-          ((IAnnotationModelExtension) annotationModel).replaceAnnotations(fOccurrenceAnnotations,
+          ((IAnnotationModelExtension) annotationModel).replaceAnnotations(
+              fOccurrenceAnnotations,
               annotationMap);
         } else {
           removeOccurrenceAnnotations();
@@ -1018,7 +1025,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           if (input != null) {
             updateOccurrenceAnnotations(
                 (ITextSelection) fForcedMarkOccurrencesSelection,
-                DartToolsPlugin.getDefault().getASTProvider().getAST(input, ASTProvider.WAIT_NO,
+                DartToolsPlugin.getDefault().getASTProvider().getAST(
+                    input,
+                    ASTProvider.WAIT_NO,
                     getProgressMonitor()));
           }
         } catch (Exception ex) {
@@ -1915,7 +1924,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.PASTE);
 
     // Revert action
-    addAction(menu, ITextEditorActionConstants.GROUP_RESTORE,
+    addAction(
+        menu,
+        ITextEditorActionConstants.GROUP_RESTORE,
         ITextEditorActionConstants.REVERT_TO_SAVED);
 
   }
@@ -2397,28 +2408,32 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     openCallHierarchy = new OpenCallHierarchyAction(this);
     openCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY);
     setAction(DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY, openCallHierarchy); //$NON-NLS-1$
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        action,
         DartHelpContextIds.CALL_HIERARCHY_VIEW);
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "ShowOutline.", this, DartSourceViewer.SHOW_OUTLINE, true); //$NON-NLS-1$
     action.setActionDefinitionId(DartEditorActionDefinitionIds.SHOW_OUTLINE);
     setAction(DartEditorActionDefinitionIds.SHOW_OUTLINE, action);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        action,
         DartHelpContextIds.SHOW_OUTLINE_ACTION);
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "OpenStructure.", this, DartSourceViewer.OPEN_STRUCTURE, true); //$NON-NLS-1$
     action.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_STRUCTURE);
     setAction(DartEditorActionDefinitionIds.OPEN_STRUCTURE, action);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        action,
         DartHelpContextIds.OPEN_STRUCTURE_ACTION);
 
     action = new TextOperationAction(DartEditorMessages.getBundleForConstructedKeys(),
         "OpenHierarchy.", this, DartSourceViewer.SHOW_HIERARCHY, true); //$NON-NLS-1$
     action.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
     setAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY, action);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(action,
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(
+        action,
         DartHelpContextIds.OPEN_HIERARCHY_ACTION);
 
     fSelectionHistory = new SelectionHistory(this);
@@ -2617,8 +2632,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       int styles) {
 
     IPreferenceStore store = getPreferenceStore();
-    ISourceViewer viewer = createDartSourceViewer(parent, verticalRuler, getOverviewRuler(),
-        isOverviewRulerVisible(), styles, store);
+    ISourceViewer viewer = createDartSourceViewer(
+        parent,
+        verticalRuler,
+        getOverviewRuler(),
+        isOverviewRulerVisible(),
+        styles,
+        store);
 
     DartUIHelp.setHelp(this, viewer.getTextWidget(), DartHelpContextIds.JAVA_EDITOR);
 
@@ -2725,8 +2745,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return;
     }
 
-    DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(inputElement,
-        ASTProvider.WAIT_NO, getProgressMonitor());
+    DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(
+        inputElement,
+        ASTProvider.WAIT_NO,
+        getProgressMonitor());
     if (ast != null) {
       fForcedMarkOccurrencesSelection = textSelection;
       updateOccurrenceAnnotations((ITextSelection) textSelection, ast);
@@ -3241,8 +3263,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (input != null) {
         updateOccurrenceAnnotations(
             (ITextSelection) fForcedMarkOccurrencesSelection,
-            DartToolsPlugin.getDefault().getASTProvider().getAST(getInputDartElement(),
-                ASTProvider.WAIT_NO, getProgressMonitor()));
+            DartToolsPlugin.getDefault().getASTProvider().getAST(
+                getInputDartElement(),
+                ASTProvider.WAIT_NO,
+                getProgressMonitor()));
       }
     }
 
@@ -3264,8 +3288,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     fOverrideIndicatorManager = new OverrideIndicatorManager(model, inputElement, null);
 
     if (provideAST) {
-      DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(inputElement,
-          ASTProvider.WAIT_ACTIVE_ONLY, getProgressMonitor());
+      DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(
+          inputElement,
+          ASTProvider.WAIT_ACTIVE_ONLY,
+          getProgressMonitor());
       fOverrideIndicatorManager.reconciled(ast, true, getProgressMonitor());
     }
   }
@@ -3547,7 +3573,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
 
     if (fPostSelectionListenerWithAST != null) {
-      SelectionListenerWithASTManager.getDefault().removeListener(this,
+      SelectionListenerWithASTManager.getDefault().removeListener(
+          this,
           fPostSelectionListenerWithAST);
       fPostSelectionListenerWithAST = null;
     }
@@ -3800,7 +3827,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     synchronized (getLockObject(annotationModel)) {
       if (annotationModel instanceof IAnnotationModelExtension) {
-        ((IAnnotationModelExtension) annotationModel).replaceAnnotations(fOccurrenceAnnotations,
+        ((IAnnotationModelExtension) annotationModel).replaceAnnotations(
+            fOccurrenceAnnotations,
             null);
       } else {
         for (int i = 0, length = fOccurrenceAnnotations.length; i < length; i++) {
@@ -3894,8 +3922,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private void installSemanticHighlighting() {
     if (fSemanticManager == null) {
       fSemanticManager = new SemanticHighlightingManager();
-      fSemanticManager.install(this, (DartSourceViewer) getSourceViewer(),
-          DartToolsPlugin.getDefault().getJavaTextTools().getColorManager(), getPreferenceStore());
+      fSemanticManager.install(
+          this,
+          (DartSourceViewer) getSourceViewer(),
+          DartToolsPlugin.getDefault().getJavaTextTools().getColorManager(),
+          getPreferenceStore());
     }
   }
 
@@ -3974,7 +4005,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private boolean isSemanticHighlightingEnabled() {
     DartX.todo();
-    return DartCoreDebug.ENABLE_TYPE_ANNOTATIONS;
+    return DartCoreDebug.ENABLE_SEMANTIC_HIGHLIGHTING;
 //    return SemanticHighlightings.isEnabled(getPreferenceStore());
   }
 
@@ -4024,7 +4055,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           }
         } else {
           ITextHover textHover = configuration.getTextHover(sourceViewer, t);
-          ((ITextViewerExtension2) sourceViewer).setTextHover(textHover, t,
+          ((ITextViewerExtension2) sourceViewer).setTextHover(
+              textHover,
+              t,
               ITextViewerExtension2.DEFAULT_HOVER_STATE_MASK);
         }
       } else {

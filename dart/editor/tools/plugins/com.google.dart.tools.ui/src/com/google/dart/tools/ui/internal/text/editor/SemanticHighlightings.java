@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.tools.core.utilities.ast.RefinableTypesFinder;
 import com.google.dart.tools.ui.PreferenceConstants;
 
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -24,6 +26,56 @@ import org.eclipse.swt.graphics.RGB;
  * Semantic highlightings
  */
 public class SemanticHighlightings {
+
+  /**
+   * Semantic highlighting for variables with refinable types.
+   */
+  private static final class RefinableTypeHighlighting extends SemanticHighlighting {
+
+    @Override
+    public boolean consumes(SemanticToken token) {
+      DartIdentifier node = token.getNode();
+      return RefinableTypesFinder.isRefinable(node);
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+//      return new RGB(237, 145, 33); //carrot
+//      return new RGB(184, 115, 51); //copper
+//      return new RGB(0xd7, 0x96, 0x7d); //taupe
+      return new RGB(0x67, 0x4C, 0x47); //dark taupe
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_refinableType;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return REFINABLE_TYPE;
+    }
+
+    @Override
+    public boolean isBoldByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isItalicByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isUnderlineByDefault() {
+      return false;
+    }
+  }
 
   /**
    * A named preference part that controls the highlighting of static final fields.
@@ -76,6 +128,11 @@ public class SemanticHighlightings {
   public static final String PARAMETER_VARIABLE = "parameterVariable"; //$NON-NLS-1$
 
   /**
+   * A named preference part that controls the highlighting of refinable types.
+   */
+  public static final String REFINABLE_TYPE = "refinableType"; //$NON-NLS-1$
+
+  /**
    * A named preference part that controls the highlighting of type parameters.
    */
   public static final String TYPE_VARIABLE = "typeParameter"; //$NON-NLS-1$
@@ -116,7 +173,7 @@ public class SemanticHighlightings {
   /**
    * Semantic highlightings
    */
-  private static SemanticHighlighting[] fgSemanticHighlightings;
+  private static SemanticHighlighting[] SEMANTIC_HIGHTLIGHTINGS;
 
   /**
    * Tests whether <code>event</code> in <code>store</code> affects the enablement of semantic
@@ -209,10 +266,10 @@ public class SemanticHighlightings {
    *         match wins.
    */
   public static SemanticHighlighting[] getSemanticHighlightings() {
-    if (fgSemanticHighlightings == null) {
-      fgSemanticHighlightings = new SemanticHighlighting[] {};
+    if (SEMANTIC_HIGHTLIGHTINGS == null) {
+      SEMANTIC_HIGHTLIGHTINGS = new SemanticHighlighting[] {new RefinableTypeHighlighting()};
     }
-    return fgSemanticHighlightings;
+    return SEMANTIC_HIGHTLIGHTINGS;
   }
 
   /**
@@ -250,18 +307,24 @@ public class SemanticHighlightings {
     SemanticHighlighting[] semanticHighlightings = getSemanticHighlightings();
     for (int i = 0, n = semanticHighlightings.length; i < n; i++) {
       SemanticHighlighting semanticHighlighting = semanticHighlightings[i];
-      setDefaultAndFireEvent(store,
+      setDefaultAndFireEvent(
+          store,
           SemanticHighlightings.getColorPreferenceKey(semanticHighlighting),
           semanticHighlighting.getDefaultTextColor());
-      store.setDefault(SemanticHighlightings.getBoldPreferenceKey(semanticHighlighting),
+      store.setDefault(
+          SemanticHighlightings.getBoldPreferenceKey(semanticHighlighting),
           semanticHighlighting.isBoldByDefault());
-      store.setDefault(SemanticHighlightings.getItalicPreferenceKey(semanticHighlighting),
+      store.setDefault(
+          SemanticHighlightings.getItalicPreferenceKey(semanticHighlighting),
           semanticHighlighting.isItalicByDefault());
-      store.setDefault(SemanticHighlightings.getStrikethroughPreferenceKey(semanticHighlighting),
+      store.setDefault(
+          SemanticHighlightings.getStrikethroughPreferenceKey(semanticHighlighting),
           semanticHighlighting.isStrikethroughByDefault());
-      store.setDefault(SemanticHighlightings.getUnderlinePreferenceKey(semanticHighlighting),
+      store.setDefault(
+          SemanticHighlightings.getUnderlinePreferenceKey(semanticHighlighting),
           semanticHighlighting.isUnderlineByDefault());
-      store.setDefault(SemanticHighlightings.getEnabledPreferenceKey(semanticHighlighting),
+      store.setDefault(
+          SemanticHighlightings.getEnabledPreferenceKey(semanticHighlighting),
           semanticHighlighting.isEnabledByDefault());
     }
   }
@@ -312,17 +375,6 @@ public class SemanticHighlightings {
   private SemanticHighlightings() {
   }
 
-  /**
-   * Semantic highlighting for annotation types.
-   */
-  /*
-   * private static final class TypeArgumentHighlighting extends SemanticHighlighting {
-   * 
-   * @see com.google.dart.tools.ui.editor.SemanticHighlighting#getPreferenceKey() public String
-   * getPreferenceKey() { return TYPE_ARGUMENT; }
-   * 
-   * @see com.google.dart.tools.ui.editor.ISemanticHighlighting#getDefaultTextColor()
-   */
   public RGB getDefaultDefaultTextColor() {
     return new RGB(13, 100, 0);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,16 +14,11 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.ASTVisitor;
-import com.google.dart.compiler.ast.DartBooleanLiteral;
-import com.google.dart.compiler.ast.DartDoubleLiteral;
-import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.HighlightedPosition;
 import com.google.dart.tools.ui.internal.text.editor.SemanticHighlightingManager.Highlighting;
@@ -57,21 +52,8 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     /** The semantic token */
     private SemanticToken fToken = new SemanticToken();
 
-    /*
-     * TODO In the previous version of this class the visit methods were never invoked, but I don't
-     * know whether that is the correct behavior (in which case they should be removed) or whether
-     * that was a bug (in which case they should be renamed).
-     */
-
-    public boolean visit(DartBooleanLiteral node) {
-      return visitLiteralNode(node);
-    }
-
-    public boolean visit(DartDoubleLiteral node) {
-      return visitLiteralNode(node);
-    }
-
-    public boolean visit(DartIdentifier node) {
+    @Override
+    public Void visitIdentifier(DartIdentifier node) {
       fToken.update(node);
       for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
         SemanticHighlighting semanticHighlighting = fJobSemanticHighlightings[i];
@@ -85,22 +67,7 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
         }
       }
       fToken.clear();
-      return false;
-    }
-
-    public boolean visit(DartIntegerLiteral node) {
-      return visitLiteralNode(node);
-    }
-
-    @Override
-    public Void visitNode(DartNode node) {
-      DartX.todo();
-      // if ((node.getFlags() & DartNode.MALFORMED) == DartNode.MALFORMED) {
-      // retainPositions(node.getStartPosition(), node.getLength());
-      // return false;
-      // }
-      node.visitChildren(this);
-      return null;
+      return super.visitIdentifier(node);
     }
 
     /**
@@ -132,39 +99,39 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
       }
     }
 
-    /**
-     * Retain the positions completely contained in the given range.
-     * 
-     * @param offset The range offset
-     * @param length The range length
-     */
-    private void retainPositions(int offset, int length) {
-      // TODO: use binary search
-      for (int i = 0, n = fRemovedPositions.size(); i < n; i++) {
-        HighlightedPosition position = (HighlightedPosition) fRemovedPositions.get(i);
-        if (position != null && position.isContained(offset, length)) {
-          fRemovedPositions.set(i, null);
-          fNOfRemovedPositions--;
-        }
-      }
-    }
+//    /**
+//     * Retain the positions completely contained in the given range.
+//     * 
+//     * @param offset The range offset
+//     * @param length The range length
+//     */
+//    private void retainPositions(int offset, int length) {
+//      // TODO: use binary search
+//      for (int i = 0, n = fRemovedPositions.size(); i < n; i++) {
+//        HighlightedPosition position = (HighlightedPosition) fRemovedPositions.get(i);
+//        if (position != null && position.isContained(offset, length)) {
+//          fRemovedPositions.set(i, null);
+//          fNOfRemovedPositions--;
+//        }
+//      }
+//    }
 
-    private boolean visitLiteralNode(DartExpression node) {
-      fToken.update(node);
-      for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
-        SemanticHighlighting semanticHighlighting = fJobSemanticHighlightings[i];
-        if (fJobHighlightings[i].isEnabled() && semanticHighlighting.consumesLiteral(fToken)) {
-          int offset = node.getSourceInfo().getOffset();
-          int length = node.getSourceInfo().getLength();
-          if (offset > -1 && length > 0) {
-            addPosition(offset, length, fJobHighlightings[i]);
-          }
-          break;
-        }
-      }
-      fToken.clear();
-      return false;
-    }
+//    private boolean visitLiteralNode(DartExpression node) {
+//      fToken.update(node);
+//      for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
+//        SemanticHighlighting semanticHighlighting = fJobSemanticHighlightings[i];
+//        if (fJobHighlightings[i].isEnabled() && semanticHighlighting.consumesLiteral(fToken)) {
+//          int offset = node.getSourceInfo().getOffset();
+//          int length = node.getSourceInfo().getLength();
+//          if (offset > -1 && length > 0) {
+//            addPosition(offset, length, fJobHighlightings[i]);
+//          }
+//          break;
+//        }
+//      }
+//      fToken.clear();
+//      return false;
+//    }
   }
 
   /** Position collector */
@@ -429,8 +396,10 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
             if (monitor.isCanceled()) {
               return Status.CANCEL_STATUS;
             }
-            DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(element,
-                ASTProvider.WAIT_YES, monitor);
+            DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(
+                element,
+                ASTProvider.WAIT_YES,
+                monitor);
             reconciled(ast, false, monitor);
             synchronized (fJobLock) {
               // allow the job to be gc'ed
@@ -474,7 +443,9 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
    */
   private void updatePresentation(TextPresentation textPresentation, List<Position> addedPositions,
       List<Position> removedPositions) {
-    Runnable runnable = fJobPresenter.createUpdateRunnable(textPresentation, addedPositions,
+    Runnable runnable = fJobPresenter.createUpdateRunnable(
+        textPresentation,
+        addedPositions,
         removedPositions);
     if (runnable == null) {
       return;
