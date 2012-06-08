@@ -19,8 +19,8 @@ class DateImplementation implements Date {
     return new DateImplementation.withTimeZone(
         years, month, day,
         hours, minutes, seconds, milliseconds,
-        isUtc ? const TimeZone.utc()
-              : new TimeZone.local());
+        isUtc ? const TimeZoneImplementation.utc()
+              : new TimeZoneImplementation.local());
   }
 
   DateImplementation.withTimeZone(int years,
@@ -99,7 +99,8 @@ class DateImplementation implements Date {
   }
 
   DateImplementation.fromEpoch(this.value, [bool isUtc = false])
-      : this.timeZone = isUtc ? const TimeZone.utc() : new TimeZone.local();
+      : this.timeZone = isUtc ? const TimeZoneImplementation.utc()
+                              : new TimeZoneImplementation.local();
 
   bool operator ==(other) {
     if (other is !DateImplementation) return false;
@@ -123,18 +124,18 @@ class DateImplementation implements Date {
   }
 
   Date toLocal() {
-    if (isUtc()) return changeTimeZone(new TimeZone.local());
+    if (isUtc()) return changeTimeZone(new TimeZoneImplementation.local());
     return this;
   }
 
   Date toUtc() {
     if (isUtc()) return this;
-    return changeTimeZone(const TimeZone.utc());
+    return changeTimeZone(const TimeZoneImplementation.utc());
   }
 
   Date changeTimeZone(TimeZone targetTimeZone) {
     if (targetTimeZone == null) {
-      targetTimeZone = new TimeZone.local();
+      targetTimeZone = new TimeZoneImplementation.local();
     }
     return new Date.fromEpoch(value, targetTimeZone.isUtc);
   }
@@ -283,12 +284,13 @@ class DateImplementation implements Date {
   return this.date;''';
 }
 
-class TimeZone {
-  const TimeZone.utc() : this.isUtc = true;
-  const TimeZone.local() : this.isUtc = false;
+// Trivial implementation of TimeZone
+class TimeZoneImplementation implements TimeZone {
+  const TimeZoneImplementation.utc() : this.isUtc = true;
+  const TimeZoneImplementation.local() : this.isUtc = false;
 
   bool operator ==(other) {
-    if (other is !TimeZone) return false;
+    if (other is !TimeZoneImplementation) return false;
     return isUtc == other.isUtc;
   }
 
