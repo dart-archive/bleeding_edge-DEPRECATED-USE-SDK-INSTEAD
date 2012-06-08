@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sample name="Solar" file="solar.dart">
+    <description>A solar system simulator.</description>
+</sample>

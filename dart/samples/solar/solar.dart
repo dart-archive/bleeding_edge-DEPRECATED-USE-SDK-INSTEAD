@@ -10,7 +10,7 @@
  * The entry point to the application.
  */
 void main() {
-  final solarSystem = new SolarSystem(document.query("#canvas"));
+  SolarSystem solarSystem = new SolarSystem(document.query("#canvas"));
   
   solarSystem.start();
 }
@@ -75,7 +75,7 @@ class SolarSystem {
     sun.addPlanet(
         new PlanetaryBody(this, "Venus", "green", 0.949, 0.723, 0.615));
     
-    final earth = new PlanetaryBody(this, "Earth", "#33f", 1.0, 1.0, 1.0);
+    var earth = new PlanetaryBody(this, "Earth", "#33f", 1.0, 1.0, 1.0);
     sun.addPlanet(earth);
     earth.addPlanet(new PlanetaryBody(this, "Moon", "gray", 0.2, 0.14, 0.075));
 
@@ -87,7 +87,7 @@ class SolarSystem {
     final h = 1 / 1500.0;
     final g = 1 / 72.0;
     
-    final jupiter = new PlanetaryBody(
+    var jupiter = new PlanetaryBody(
         this, "Jupiter", "gray", 4.0, 5.203, 11.86);
     sun.addPlanet(jupiter);
     jupiter.addPlanet(new PlanetaryBody(
