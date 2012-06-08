@@ -199,11 +199,11 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets028() throws Exception {
-    test("typedef T Y<T extends !1>(List input);", "1+TimeZone", "1+String");
+    test("typedef T Y<T extends !1>(List input);", "1+Date", "1+String");
   }
 
   public void testCommentSnippets029() throws Exception {
-    test("interface A<X> default B<X extends !1List!2> {}", "1+TimeZone", "2+List");
+    test("interface A<X> default B<X extends !1List!2> {}", "1+Date", "2+List");
   }
 
   public void testCommentSnippets030() throws Exception {
