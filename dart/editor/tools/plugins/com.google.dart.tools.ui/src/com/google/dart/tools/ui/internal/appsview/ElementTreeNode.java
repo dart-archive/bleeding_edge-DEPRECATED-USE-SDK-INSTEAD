@@ -20,6 +20,7 @@ import com.google.dart.tools.core.model.DartLibrary;
 import java.util.List;
 
 public class ElementTreeNode {
+  private static final int SDK_LIBRARY_SORT = 3;
   private static final int LIBRARY_SORT = 2;
   private static final int COMPUNIT_SORT = 1;
   private static final int DEFAULT_SORT = 0;
@@ -47,12 +48,32 @@ public class ElementTreeNode {
 
   public int getSortCategory() {
     if (modelElement instanceof DartLibrary) {
+      String name = ((DartLibrary) modelElement).getDisplayName();
+      if (name.indexOf(':') >= 0) {
+        return SDK_LIBRARY_SORT;
+      }
       return LIBRARY_SORT;
     } else if (modelElement instanceof CompilationUnit) {
       return COMPUNIT_SORT;
     } else {
       return DEFAULT_SORT;
     }
+  }
+
+  public boolean hasChildren() {
+    return childNodes != null && childNodes.size() > 0;
+  }
+
+  public boolean isApp() {
+    return parentNode == null;
+  }
+
+  public boolean isLeaf() {
+    return childNodes != null && childNodes.size() == 0;
+  }
+
+  public boolean isLib() {
+    return !isApp() && !isLeaf();
   }
 
   public void setChildNodes(List<ElementTreeNode> childNodes) {

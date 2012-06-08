@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.appsview;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -26,6 +27,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 public class AppLabelProvider implements IStyledLabelProvider, ILabelProvider {
+  private static final String LIBRARY_ICON = "icons/full/dart16/dart_library.png";
+  private static final String APP_ICON = "icons/full/obj16/empty_pack_obj.gif";
 
   public WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
 
@@ -45,13 +48,38 @@ public class AppLabelProvider implements IStyledLabelProvider, ILabelProvider {
   @Override
   public Image getImage(Object element) {
     if (element instanceof ElementTreeNode) {
-      element = ((ElementTreeNode) element).getModelElement();
+      ElementTreeNode treeNode = (ElementTreeNode) element;
+      if (treeNode.isApp()) {
+        return DartToolsPlugin.getImage(APP_ICON);
+      }
+      element = treeNode.getModelElement();
+    }
+    // Return a different icon for library units.
+    if (element instanceof CompilationUnit) {
+      if (((CompilationUnit) element).definesLibrary()) {
+        return DartToolsPlugin.getImage(LIBRARY_ICON);
+      }
     }
     return workbenchLabelProvider.getImage(element);
   }
 
   @Override
   public StyledString getStyledText(Object element) {
+    if (element instanceof ElementTreeNode) {
+      element = ((ElementTreeNode) element).getModelElement();
+    }
+    if (element instanceof DartProject) {
+      return new StyledString(((DartProject) element).getElementName());
+    } else if (element instanceof DartLibrary) {
+      return new StyledString(((DartLibrary) element).getDisplayName());
+    } else if (element instanceof CompilationUnit) {
+      CompilationUnit cu = (CompilationUnit) element;
+      StyledString name = new StyledString(cu.getElementName());
+      if (cu.definesLibrary()) {
+        name = name.append(" - " + cu.getLibrary().getDisplayName(), StyledString.QUALIFIER_STYLER);
+      }
+      return name;
+    }
     return workbenchLabelProvider.getStyledText(element);
   }
 
@@ -65,7 +93,12 @@ public class AppLabelProvider implements IStyledLabelProvider, ILabelProvider {
     } else if (element instanceof DartLibrary) {
       return ((DartLibrary) element).getDisplayName();
     } else if (element instanceof CompilationUnit) {
-      return ((CompilationUnit) element).getElementName();
+      CompilationUnit cu = (CompilationUnit) element;
+      String name = cu.getElementName();
+      if (cu.definesLibrary()) {
+        name = name + " - " + cu.getLibrary().getDisplayName();
+      }
+      return name;
     }
     return workbenchLabelProvider.getText(element);
   }

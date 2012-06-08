@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.appsview;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.filesview.FilesViewDragAdapter;
@@ -66,8 +67,16 @@ import org.eclipse.ui.part.ViewPart;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO Unify this with Files View -- we should only have one view on files
-// TODO Change icon on editor tab to be the same as used in Files view (and possibly use that here)
+/**
+ * Provide a structured view of applications. The content is organized in a three-level tree. The
+ * top level is a list of application names. For each application, the next level is a list of files
+ * defined by that application along with imported libraries. The library list contains all
+ * libraries used by the application from both direct and indirect imports. The final level of the
+ * tree is a list of files defined by each library.
+ * <p>
+ * TODO Unify this with Files View -- we should only have one view on files TODO Change icon on
+ * editor tab to be the same as used in Files view (and possibly use that here)
+ */
 public class AppsView extends ViewPart implements ISetSelectionTarget {
 
   private class FontPropertyChangeListener implements IPropertyChangeListener {
@@ -104,7 +113,9 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new AppsViewContentProvider());
     appLabelProvider = new AppLabelProvider(treeViewer.getTree().getFont());
-    treeViewer.setLabelProvider(appLabelProvider);
+    treeViewer.setLabelProvider(new LabelProviderWrapper(appLabelProvider,
+        new ProblemsLabelDecorator(), null));
+//    treeViewer.setLabelProvider(appLabelProvider);
     treeViewer.setComparator(new AppsViewComparator());
     treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.appsview;
 
+import com.google.dart.compiler.util.Lists;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -34,13 +35,24 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Display;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+/**
+ * Provide a structured view of applications. The content is organized in a three-level tree. The
+ * top level is a list of application names. For each application, the next level is a list of files
+ * defined by that application along with imported libraries. The library list contains all
+ * libraries used by the application from both direct and indirect imports. The final level of the
+ * tree is a list of files defined by each library.
+ */
 public class AppsViewContentProvider implements ITreeContentProvider, IResourceChangeListener {
 
   private static final IResource[] NO_CHILDREN = new IResource[0];
+  private static final List<ElementTreeNode> TREE_LEAF = Collections.emptyList();
   private Viewer viewer;
   private Map<DartElement, ElementTreeNode> map;
 
@@ -67,15 +79,21 @@ public class AppsViewContentProvider implements ITreeContentProvider, IResourceC
         DartToolsPlugin.log(e);
       }
     }
-    return elementNode; // return the library or null or not found
+    return elementNode; // return the library or null if not found
   }
 
   @Override
   public Object[] getChildren(Object element) {
     if (element instanceof ElementTreeNode) {
       ElementTreeNode node = (ElementTreeNode) element;
-      if (node.getChildNodes() != null) {
-        return node.getChildNodes().toArray();
+      if (node.isLeaf()) {
+        return NO_CHILDREN;
+      }
+      if (node.isLib()) {
+        return collectFiles(node).toArray();
+      }
+      if (node.isApp()) {
+        return collectLibraries(node).toArray();
       }
       element = node.getModelElement();
     }
@@ -86,7 +104,8 @@ public class AppsViewContentProvider implements ITreeContentProvider, IResourceC
         return makeTreeNodes(topLibs, element).toArray();
       } else if (element instanceof DartLibrary) {
         List<DartElement> children = getChildren((DartLibrary) element);
-        return makeTreeNodes(children, element).toArray();
+        makeTreeNodes(children, element).toArray();
+        return getChildren(findNode(element));
       }
     } catch (CoreException ce) {
       //fall through
@@ -108,16 +127,14 @@ public class AppsViewContentProvider implements ITreeContentProvider, IResourceC
     if (element instanceof ElementTreeNode) {
       return ((ElementTreeNode) element).getParentNode();
     }
-    return findNode(element);
+    return findNode(element).getParentNode();
   }
 
   @Override
   public boolean hasChildren(Object element) {
     if (element instanceof ElementTreeNode) {
       ElementTreeNode node = (ElementTreeNode) element;
-      if (node.getChildNodes() != null) {
-        return !node.getChildNodes().isEmpty();
-      }
+      return node.hasChildren();
     }
     return getChildren(element).length > 0;
   }
@@ -139,6 +156,36 @@ public class AppsViewContentProvider implements ITreeContentProvider, IResourceC
         }
       }
     });
+  }
+
+  private List<ElementTreeNode> collectFiles(ElementTreeNode node) {
+    Set<ElementTreeNode> children = new HashSet<ElementTreeNode>();
+    collectFiles(node, children);
+    return Lists.create(children);
+  }
+
+  private void collectFiles(ElementTreeNode node, Set<ElementTreeNode> children) {
+    for (ElementTreeNode child : node.getChildNodes()) {
+      if (child.isLeaf()) {
+        children.add(child);
+      }
+    }
+  }
+
+  private List<ElementTreeNode> collectLibraries(ElementTreeNode node) {
+    Set<ElementTreeNode> children = new HashSet<ElementTreeNode>();
+    collectLibraries(node, children); // get all libraries at any depth
+    collectFiles(node, children); // get files define by the library
+    return Lists.create(children);
+  }
+
+  private void collectLibraries(ElementTreeNode node, Set<ElementTreeNode> children) {
+    for (ElementTreeNode child : node.getChildNodes()) {
+      if (child.isLib()) {
+        children.add(child);
+        collectLibraries(child, children);
+      }
+    }
   }
 
   private List<DartLibrary> findAllLibraries(IWorkspaceRoot root) throws CoreException {
@@ -172,6 +219,11 @@ public class AppsViewContentProvider implements ITreeContentProvider, IResourceC
       if (node == null) {
         node = new ElementTreeNode(child, parentNode);
         map.put(child, node);
+        if (getChildren(child).length == 0) {
+          if (node.getChildNodes() == null) {
+            node.setChildNodes(TREE_LEAF);
+          }
+        }
       }
       result.add(node);
     }
