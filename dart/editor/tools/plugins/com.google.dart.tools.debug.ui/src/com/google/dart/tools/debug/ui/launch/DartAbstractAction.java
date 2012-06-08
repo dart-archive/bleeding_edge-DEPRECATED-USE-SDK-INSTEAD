@@ -111,8 +111,6 @@ public abstract class DartAbstractAction extends AbstractInstrumentedAction impl
   }
 
   protected void launch(ILaunchConfiguration config) {
-    boolean supportsDebug = false;
-
     String mode = ILaunchManager.RUN_MODE;
     ILaunchConfiguration configCopy = null;
 

@@ -63,6 +63,7 @@ import java.util.Set;
 /**
  * A utility class for launching and launch configurations.
  */
+@SuppressWarnings("restriction")
 public class LaunchUtils {
 
   public static final String DARTIUM_LAUNCH_NAME = "Dartium launch";
