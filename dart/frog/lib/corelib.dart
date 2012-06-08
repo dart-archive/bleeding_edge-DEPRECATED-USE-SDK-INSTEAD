@@ -34,7 +34,6 @@
 #source("../../corelib/src/string.dart");
 #source("../../corelib/src/strings.dart");
 #source("../../corelib/src/string_buffer.dart");
-#source("../../corelib/src/time_zone.dart");
 
 // TODO(jimhug): Ad-hoc cut-paste-and-edit from compiler/lib below:
 // Conceptual change is moving to more true natives.
