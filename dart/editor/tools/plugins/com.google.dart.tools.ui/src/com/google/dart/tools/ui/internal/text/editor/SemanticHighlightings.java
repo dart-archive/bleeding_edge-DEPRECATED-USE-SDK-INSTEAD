@@ -14,6 +14,8 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.resolver.FieldElement;
+import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.tools.core.utilities.ast.RefinableTypesFinder;
 import com.google.dart.tools.ui.PreferenceConstants;
 
@@ -26,6 +28,54 @@ import org.eclipse.swt.graphics.RGB;
  * Semantic highlightings
  */
 public class SemanticHighlightings {
+
+  /**
+   * Semantic highlighting for fields.
+   */
+  private static class FieldHighlighting extends SemanticHighlighting {
+
+    @Override
+    public boolean consumes(SemanticToken token) {
+      DartIdentifier node = token.getNode();
+      NodeElement element = node.getElement();
+      return element instanceof FieldElement;
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+      return new RGB(0, 0, 192);
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_field;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return FIELD;
+    }
+
+    @Override
+    public boolean isBoldByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isItalicByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isUnderlineByDefault() {
+      return false;
+    }
+  }
 
   /**
    * Semantic highlighting for variables with refinable types.
@@ -75,6 +125,37 @@ public class SemanticHighlightings {
     public boolean isUnderlineByDefault() {
       return false;
     }
+  }
+
+  /**
+   * Semantic highlighting for static fields.
+   */
+  private static class StaticFieldHighlighting extends FieldHighlighting {
+    @Override
+    public boolean consumes(SemanticToken token) {
+      DartIdentifier node = token.getNode();
+      NodeElement element = node.getElement();
+      if (element instanceof FieldElement) {
+        return ((FieldElement) element).isStatic();
+      }
+      return false;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_staticField;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return STATIC_FIELD;
+    }
+
+    @Override
+    public boolean isItalicByDefault() {
+      return true;
+    }
+
   }
 
   /**
@@ -267,7 +348,8 @@ public class SemanticHighlightings {
    */
   public static SemanticHighlighting[] getSemanticHighlightings() {
     if (SEMANTIC_HIGHTLIGHTINGS == null) {
-      SEMANTIC_HIGHTLIGHTINGS = new SemanticHighlighting[] {new RefinableTypeHighlighting()};
+      SEMANTIC_HIGHTLIGHTINGS = new SemanticHighlighting[] {
+          new StaticFieldHighlighting(), new FieldHighlighting(), new RefinableTypeHighlighting()};
     }
     return SEMANTIC_HIGHTLIGHTINGS;
   }

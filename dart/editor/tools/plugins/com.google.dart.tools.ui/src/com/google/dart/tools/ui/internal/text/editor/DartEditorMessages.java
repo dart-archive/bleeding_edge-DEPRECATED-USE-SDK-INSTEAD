@@ -95,6 +95,7 @@ final class DartEditorMessages extends NLS {
   public static String OverrideIndicatorManager_open_error_title;
   public static String OverrideIndicatorManager_open_error_message;
   public static String OverrideIndicatorManager_open_error_messageHasLogEntry;
+  public static String SemanticHighlighting_field;
   public static String SemanticHighlighting_job;
   public static String SemanticHighlighting_methodDeclaration;
   public static String SemanticHighlighting_localVariableDeclaration;
@@ -104,6 +105,7 @@ final class DartEditorMessages extends NLS {
   public static String SemanticHighlighting_deprecatedMember;
   public static String SemanticHighlighting_method;
   public static String SemanticHighlighting_objectInitializer;
+  public static String SemanticHighlighting_staticField;
   public static String JavaEditor_markOccurrences_job_name;
   public static String Editor_OpenPropertiesFile_error_keyNotFound;
   public static String Editor_OpenPropertiesFile_error_fileNotFound_dialogMessage;
