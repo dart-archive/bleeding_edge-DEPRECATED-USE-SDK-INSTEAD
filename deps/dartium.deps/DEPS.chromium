@@ -8,7 +8,7 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "119675",
+  "webkit_revision": "119743",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
   "nacl_revision": "8829",
@@ -44,7 +44,7 @@ vars = {
   "nacl_toolchain_revision": "8715",
   "pnacl_toolchain_revision": "8751",
 
-  "libjingle_revision": "151",
+  "libjingle_revision": "152",
   "libphonenumber_revision": "456",
   "libvpx_revision": "134182",
   "lss_revision": "9",
@@ -60,9 +60,9 @@ vars = {
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
   "v8_revision": "11689",
-  "webrtc_revision": "2356",
+  "webrtc_revision": "2379",
   "jsoncpp_revision": "248",
-  "nss_revision": "138140",
+  "nss_revision": "141064",
   "rlz_revision": "130",
 }
 
