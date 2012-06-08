@@ -16,7 +16,7 @@ main() {
 
 main() {
   String generated = compileAll(CODE);
-  RegExp regexp = new RegExp(@'Isolate.\$defineClass\("A"');
+  RegExp regexp = new RegExp(@'\$.A = {"":');
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
 }

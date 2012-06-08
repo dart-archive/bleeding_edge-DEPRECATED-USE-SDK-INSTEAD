@@ -17,6 +17,5 @@ main() {
 
 main() {
   String generated = compileAll(TEST);
-  Expect.isTrue(generated.contains(
-      'Isolate.\$defineClass("A", "Object", [], {\n});'));
+  Expect.isTrue(generated.contains('\$.A = {"":\n [],\n super: "Object"\n};'));
 }

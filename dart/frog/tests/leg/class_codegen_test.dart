@@ -64,14 +64,14 @@ main() {
 
 twoClasses() {
   String generated = compileAll(TEST_ONE);
-  Expect.isTrue(generated.contains(@'Isolate.$defineClass("A", "Object"'));
-  Expect.isTrue(generated.contains(@'Isolate.$defineClass("B", "Object"'));
+  Expect.isTrue(generated.contains('\$.A = {"":\n [],\n super: "Object"'));
+  Expect.isTrue(generated.contains('\$.B = {"":\n [],\n super: "Object"'));
 }
 
 subClass() {
   checkOutput(String generated) {
-    Expect.isTrue(generated.contains(@'Isolate.$defineClass("A", "Object"'));
-    Expect.isTrue(generated.contains(@'Isolate.$defineClass("B", "A"'));
+    Expect.isTrue(generated.contains('\$.A = {"":\n [],\n super: "Object"'));
+    Expect.isTrue(generated.contains('\$.B = {"":\n [],\n super: "A"'));
   }
 
   checkOutput(compileAll(TEST_TWO));
@@ -81,7 +81,10 @@ subClass() {
 fieldTest() {
   String generated = compileAll(TEST_FOUR);
   Expect.isTrue(generated.contains(@"""
-Isolate.$defineClass("B", "A", ["z", "y", "x"],"""));
+$.B = {"":
+ ["z", "y", "x"],
+ super: "A"
+}"""));
 }
 
 constructor1() {
