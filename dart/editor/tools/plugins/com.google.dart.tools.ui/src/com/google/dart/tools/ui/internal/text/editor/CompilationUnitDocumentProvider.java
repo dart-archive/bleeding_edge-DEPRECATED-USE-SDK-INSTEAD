@@ -140,6 +140,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
     /**
      * The layer in which task problem annotations are located.
      */
+    @SuppressWarnings("unused")
     private static final int TASK_LAYER;
     /**
      * The layer in which info problem annotations are located.
@@ -182,7 +183,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
     }
 
     private CompilationUnit fCompilationUnit;
-    private List fOverlaids;
+    private List<IJavaAnnotation> fOverlaids;
     private Problem fProblem;
     private Image fImage;
     private boolean fImageInitialized = false;
@@ -217,7 +218,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
     @Override
     public void addOverlaid(IJavaAnnotation annotation) {
       if (fOverlaids == null) {
-        fOverlaids = new ArrayList(1);
+        fOverlaids = new ArrayList<IJavaAnnotation>(1);
       }
       fOverlaids.add(annotation);
     }
@@ -256,7 +257,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
     }
 
     @Override
-    public Iterator getOverlaidIterator() {
+    public Iterator<IJavaAnnotation> getOverlaidIterator() {
       if (fOverlaids != null) {
         return fOverlaids.iterator();
       }
@@ -321,6 +322,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       fIsQuickFixableStateSet = true;
     }
 
+    @SuppressWarnings("unused")
     private boolean indicateQuixFixableProblems() {
       return PreferenceConstants.getPreferenceStore().getBoolean(
           PreferenceConstants.EDITOR_CORRECTION_INDICATION);
@@ -384,21 +386,21 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
     private static class ProblemRequestorState {
       boolean fInsideReportingSequence = false;
-      List fReportedProblems;
+      List<Problem> fReportedProblems;
     }
 
-    private ThreadLocal fProblemRequestorState = new ThreadLocal();
+    private ThreadLocal<ProblemRequestorState> fProblemRequestorState = new ThreadLocal<ProblemRequestorState>();
     private int fStateCount = 0;
 
     private CompilationUnit fCompilationUnit;
-    private List fGeneratedAnnotations = new ArrayList();
+    private List<IJavaAnnotation> fGeneratedAnnotations = new ArrayList<IJavaAnnotation>();
     private IProgressMonitor fProgressMonitor;
     private boolean fIsActive = false;
     private boolean fIsHandlingTemporaryProblems;
 
     private ReverseMap fReverseMap = new ReverseMap();
-    private List fPreviouslyOverlaid = null;
-    private List fCurrentlyOverlaid = new ArrayList();
+    private List<IJavaAnnotation> fPreviouslyOverlaid = null;
+    private List<IJavaAnnotation> fCurrentlyOverlaid = new ArrayList<IJavaAnnotation>();
     private Thread fActiveThread;
 
     public CompilationUnitAnnotationModel(IResource resource) {
@@ -409,7 +411,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
     public void acceptProblem(Problem problem) {
       if (fIsHandlingTemporaryProblems
           || problem.getID() == DartSpellingReconcileStrategy.SPELLING_PROBLEM_ID) {
-        ProblemRequestorState state = (ProblemRequestorState) fProblemRequestorState.get();
+        ProblemRequestorState state = fProblemRequestorState.get();
         if (state != null) {
           state.fReportedProblems.add(problem);
         }
@@ -418,7 +420,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
     @Override
     public void beginReporting() {
-      ProblemRequestorState state = (ProblemRequestorState) fProblemRequestorState.get();
+      ProblemRequestorState state = fProblemRequestorState.get();
       if (state == null) {
         internalBeginReporting(false);
       }
@@ -426,7 +428,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
     @Override
     public void beginReportingSequence() {
-      ProblemRequestorState state = (ProblemRequestorState) fProblemRequestorState.get();
+      ProblemRequestorState state = fProblemRequestorState.get();
       if (state == null) {
         internalBeginReporting(true);
       }
@@ -434,7 +436,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
     @Override
     public void endReporting() {
-      ProblemRequestorState state = (ProblemRequestorState) fProblemRequestorState.get();
+      ProblemRequestorState state = fProblemRequestorState.get();
       if (state != null && !state.fInsideReportingSequence) {
         internalEndReporting(state);
       }
@@ -442,7 +444,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
     @Override
     public void endReportingSequence() {
-      ProblemRequestorState state = (ProblemRequestorState) fProblemRequestorState.get();
+      ProblemRequestorState state = fProblemRequestorState.get();
       if (state != null && state.fInsideReportingSequence) {
         internalEndReporting(state);
       }
@@ -459,9 +461,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
     @Override
     public synchronized void setIsActive(boolean isActive) {
-      Assert.isLegal(!isActive || Display.getCurrent() == null); // must not be
-                                                                 // enabled from
-                                                                 // UI threads
+      Assert.isLegal(!isActive || Display.getCurrent() == null); // must not be enabled from UI threads
       fIsActive = isActive;
       if (fIsActive) {
         fActiveThread = Thread.currentThread();
@@ -498,10 +498,11 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
         if (cached == null) {
           fReverseMap.put(position, annotation);
         } else if (cached instanceof List) {
-          List list = (List) cached;
+          @SuppressWarnings("unchecked")
+          List<Object> list = (List<Object>) cached;
           list.add(annotation);
         } else if (cached instanceof Annotation) {
-          List list = new ArrayList(2);
+          List<Object> list = new ArrayList<Object>(2);
           list.add(cached);
           list.add(annotation);
           fReverseMap.put(position, list);
@@ -551,7 +552,8 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       synchronized (getLockObject()) {
         Object cached = fReverseMap.get(position);
         if (cached instanceof List) {
-          List list = (List) cached;
+          @SuppressWarnings("unchecked")
+          List<Object> list = (List<Object>) cached;
           list.remove(annotation);
           if (list.size() == 1) {
             fReverseMap.put(position, list.get(0));
@@ -578,12 +580,13 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
      */
     private void internalBeginReporting(boolean insideReportingSequence) {
       if (fCompilationUnit != null /*
-                                    * && fCompilationUnit.getJavaProject().
-                                    * isOnClasspath(fCompilationUnit)
+                                    * &&
+                                    * fCompilationUnit.getJavaProject().isOnClasspath(fCompilationUnit
+                                    * )
                                     */) {
         ProblemRequestorState state = new ProblemRequestorState();
         state.fInsideReportingSequence = insideReportingSequence;
-        state.fReportedProblems = new ArrayList();
+        state.fReportedProblems = new ArrayList<Problem>();
         synchronized (getLockObject()) {
           fProblemRequestorState.set(state);
           ++fStateCount;
@@ -607,8 +610,9 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
     private void overlayMarkers(Position position, ProblemAnnotation problemAnnotation) {
       Object value = getAnnotations(position);
       if (value instanceof List) {
-        List list = (List) value;
-        for (Iterator e = list.iterator(); e.hasNext();) {
+        @SuppressWarnings("unchecked")
+        List<Object> list = (List<Object>) value;
+        for (Iterator<Object> e = list.iterator(); e.hasNext();) {
           setOverlay(e.next(), problemAnnotation);
         }
       } else {
@@ -620,7 +624,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       if (isCanceled) {
         fCurrentlyOverlaid.addAll(fPreviouslyOverlaid);
       } else if (fPreviouslyOverlaid != null) {
-        Iterator e = fPreviouslyOverlaid.iterator();
+        Iterator<IJavaAnnotation> e = fPreviouslyOverlaid.iterator();
         while (e.hasNext()) {
           DartMarkerAnnotation annotation = (DartMarkerAnnotation) e.next();
           annotation.setOverlay(null);
@@ -633,7 +637,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
      * 
      * @param reportedProblems the problems to report
      */
-    private void reportProblems(List reportedProblems) {
+    private void reportProblems(List<Problem> reportedProblems) {
       if (fProgressMonitor != null && fProgressMonitor.isCanceled()) {
         return;
       }
@@ -645,7 +649,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
         boolean isCanceled = false;
 
         fPreviouslyOverlaid = fCurrentlyOverlaid;
-        fCurrentlyOverlaid = new ArrayList();
+        fCurrentlyOverlaid = new ArrayList<IJavaAnnotation>();
 
         if (fGeneratedAnnotations.size() > 0) {
           temporaryProblemsChanged = true;
@@ -655,7 +659,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
         if (reportedProblems != null && reportedProblems.size() > 0) {
 
-          Iterator e = reportedProblems.iterator();
+          Iterator<Problem> e = reportedProblems.iterator();
           while (e.hasNext()) {
 
             if (fProgressMonitor != null && fProgressMonitor.isCanceled()) {
@@ -663,7 +667,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
               break;
             }
 
-            Problem problem = (Problem) e.next();
+            Problem problem = e.next();
             Position position = createPositionFromProblem(problem);
             if (position != null) {
 
@@ -781,7 +785,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       Object fValue;
     }
 
-    private List fList = new ArrayList(2);
+    private List<Entry> fList = new ArrayList<Entry>(2);
     private int fAnchor = 0;
 
     public ReverseMap() {
@@ -798,7 +802,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       // behind anchor
       int length = fList.size();
       for (int i = fAnchor; i < length; i++) {
-        entry = (Entry) fList.get(i);
+        entry = fList.get(i);
         if (entry.fPosition.equals(position)) {
           fAnchor = i;
           return entry.fValue;
@@ -807,7 +811,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
       // before anchor
       for (int i = 0; i < fAnchor; i++) {
-        entry = (Entry) fList.get(i);
+        entry = fList.get(i);
         if (entry.fPosition.equals(position)) {
           fAnchor = i;
           return entry.fValue;
@@ -825,7 +829,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
         entry.fValue = value;
         fList.add(entry);
       } else {
-        Entry entry = (Entry) fList.get(index);
+        Entry entry = fList.get(index);
         entry.fValue = value;
       }
     }
@@ -841,7 +845,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       Entry entry;
       int length = fList.size();
       for (int i = 0; i < length; i++) {
-        entry = (Entry) fList.get(i);
+        entry = fList.get(i);
         if (entry.fPosition.equals(position)) {
           return i;
         }
@@ -864,7 +868,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
   /**
    * Element information of all connected elements with a fake CU but no file info.
    */
-  private final Map fFakeCUMapForMissingInfo = new HashMap();
+  private final Map<Object, CompilationUnitInfo> fFakeCUMapForMissingInfo = new HashMap<Object, CompilationUnitInfo>();
 
   /**
    * Constructor
@@ -900,7 +904,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       return;
     }
 
-    CompilationUnitInfo info = (CompilationUnitInfo) fFakeCUMapForMissingInfo.get(element);
+    CompilationUnitInfo info = fFakeCUMapForMissingInfo.get(element);
     if (info == null) {
       CompilationUnit cu = createFakeCompiltationUnit(element, true);
       if (cu == null) {
@@ -928,7 +932,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
 
   @Override
   public void disconnect(Object element) {
-    CompilationUnitInfo info = (CompilationUnitInfo) fFakeCUMapForMissingInfo.get(element);
+    CompilationUnitInfo info = fFakeCUMapForMissingInfo.get(element);
     if (info != null) {
       if (info.fCount == 1) {
         fFakeCUMapForMissingInfo.remove(element);
@@ -953,7 +957,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       return model;
     }
 
-    FileInfo info = (FileInfo) fFakeCUMapForMissingInfo.get(element);
+    FileInfo info = fFakeCUMapForMissingInfo.get(element);
     if (info != null) {
       if (info.fModel != null) {
         return info.fModel;
@@ -973,7 +977,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
       CompilationUnitInfo info = (CompilationUnitInfo) fileInfo;
       return info.fCopy;
     }
-    CompilationUnitInfo cuInfo = (CompilationUnitInfo) fFakeCUMapForMissingInfo.get(element);
+    CompilationUnitInfo cuInfo = fFakeCUMapForMissingInfo.get(element);
     if (cuInfo != null) {
       return cuInfo.fCopy;
     }
@@ -1028,7 +1032,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
   public void shutdown() {
     DartToolsPlugin.getDefault().getPreferenceStore().removePropertyChangeListener(
         fPropertyListener);
-    Iterator e = getConnectedElementsIterator();
+    Iterator<?> e = getConnectedElementsIterator();
     while (e.hasNext()) {
       disconnect(e.next());
     }
@@ -1296,7 +1300,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
    */
   protected void enableHandlingTemporaryProblems() {
     boolean enable = isHandlingTemporaryProblems();
-    for (Iterator iter = getFileInfosIterator(); iter.hasNext();) {
+    for (Iterator<?> iter = getFileInfosIterator(); iter.hasNext();) {
       FileInfo info = (FileInfo) iter.next();
       if (info.fModel instanceof IProblemRequestorExtension) {
         IProblemRequestorExtension extension = (IProblemRequestorExtension) info.fModel;
@@ -1664,6 +1668,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
    * @param path the path to match
    * @return the matching Java project or <code>null</code>
    */
+  @SuppressWarnings("unused")
   private DartProject findJavaProject(IPath path) {
     if (path == null) {
       return null;

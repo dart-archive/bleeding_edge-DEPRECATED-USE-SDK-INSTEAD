@@ -37,6 +37,8 @@ public class BasicCompilationUnitEditorActionContributor extends BasicDartEditor
   private final class MenuListener implements IMenuListener {
     private final IMenuManager fMenu;
 
+    @SuppressWarnings("unused")
+    // likely to be used with quick assist
     public MenuListener(IMenuManager menu) {
       fMenu = menu;
     }
@@ -66,29 +68,25 @@ public class BasicCompilationUnitEditorActionContributor extends BasicDartEditor
 
   public BasicCompilationUnitEditorActionContributor() {
 
-    fRetargetContentAssist = new RetargetAction(
-        JdtActionConstants.CONTENT_ASSIST,
+    fRetargetContentAssist = new RetargetAction(JdtActionConstants.CONTENT_ASSIST,
         DartEditorMessages.ContentAssistProposal_label);
     fRetargetContentAssist.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
     fRetargetContentAssist.setImageDescriptor(DartPluginImages.DESC_ELCL_CODE_ASSIST);
     fRetargetContentAssist.setDisabledImageDescriptor(DartPluginImages.DESC_DLCL_CODE_ASSIST);
     markAsPartListener(fRetargetContentAssist);
 
-    fContentAssist = new RetargetTextEditorAction(
-        DartEditorMessages.getBundleForConstructedKeys(),
+    fContentAssist = new RetargetTextEditorAction(DartEditorMessages.getBundleForConstructedKeys(),
         "ContentAssistProposal."); //$NON-NLS-1$
     fContentAssist.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
     fContentAssist.setImageDescriptor(DartPluginImages.DESC_ELCL_CODE_ASSIST);
     fContentAssist.setDisabledImageDescriptor(DartPluginImages.DESC_DLCL_CODE_ASSIST);
 
     fContextInformation = new RetargetTextEditorAction(
-        DartEditorMessages.getBundleForConstructedKeys(),
-        "ContentAssistContextInformation."); //$NON-NLS-1$
+        DartEditorMessages.getBundleForConstructedKeys(), "ContentAssistContextInformation."); //$NON-NLS-1$
     fContextInformation.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
 
     fQuickAssistAction = new RetargetTextEditorAction(
-        DartEditorMessages.getBundleForConstructedKeys(),
-        "CorrectionAssistProposal."); //$NON-NLS-1$
+        DartEditorMessages.getBundleForConstructedKeys(), "CorrectionAssistProposal."); //$NON-NLS-1$
     fQuickAssistAction.setActionDefinitionId(ITextEditorActionDefinitionIds.QUICK_ASSIST);
 
     //fChangeEncodingAction = new RetargetTextEditorAction(
@@ -190,18 +188,14 @@ public class BasicCompilationUnitEditorActionContributor extends BasicDartEditor
     //    ITextEditorActionConstants.CHANGE_ENCODING));
 
     IActionBars actionBars = getActionBars();
-    actionBars.setGlobalActionHandler(
-        JdtActionConstants.SHIFT_RIGHT,
+    actionBars.setGlobalActionHandler(JdtActionConstants.SHIFT_RIGHT,
         getAction(textEditor, "ShiftRight")); //$NON-NLS-1$
-    actionBars.setGlobalActionHandler(
-        JdtActionConstants.SHIFT_LEFT,
+    actionBars.setGlobalActionHandler(JdtActionConstants.SHIFT_LEFT,
         getAction(textEditor, "ShiftLeft")); //$NON-NLS-1$
 
-    actionBars.setGlobalActionHandler(
-        IDEActionFactory.ADD_TASK.getId(),
+    actionBars.setGlobalActionHandler(IDEActionFactory.ADD_TASK.getId(),
         getAction(textEditor, IDEActionFactory.ADD_TASK.getId()));
-    actionBars.setGlobalActionHandler(
-        IDEActionFactory.BOOKMARK.getId(),
+    actionBars.setGlobalActionHandler(IDEActionFactory.BOOKMARK.getId(),
         getAction(textEditor, IDEActionFactory.BOOKMARK.getId()));
   }
 }

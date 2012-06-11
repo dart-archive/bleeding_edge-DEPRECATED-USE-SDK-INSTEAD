@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.viewsupport;
@@ -71,7 +69,7 @@ public class ColoredDartElementLabels {
 
   /**
    * Appends the label for a class file to a {@link ColoredString}. Considers the CF_* flags.
-   *
+   * 
    * @param classFile The element to render.
    * @param flags The rendering flags. Flags with names starting with 'CF_' are considered.
    * @param result The buffer to append the resulting label to.
@@ -100,7 +98,7 @@ public class ColoredDartElementLabels {
 
   /**
    * Appends the label for a compilation unit to a {@link ColoredString}. Considers the CU_* flags.
-   *
+   * 
    * @param cu The element to render.
    * @param flags The rendering flags. Flags with names starting with 'CU_' are considered.
    * @param result The buffer to append the resulting label to.
@@ -173,7 +171,7 @@ public class ColoredDartElementLabels {
   /**
    * Appends the label for a import container, import or package declaration to a
    * {@link ColoredString}. Considers the D_* flags.
-   *
+   * 
    * @param declaration The element to render.
    * @param flags The rendering flags. Flags with names starting with 'D_' are considered.
    * @param result The buffer to append the resulting label to.
@@ -209,7 +207,7 @@ public class ColoredDartElementLabels {
 
   /**
    * Returns the label for a Java element with the flags as defined by this class.
-   *
+   * 
    * @param element The element to render.
    * @param flags The rendering flags.
    * @return the label of the Java element
@@ -222,7 +220,7 @@ public class ColoredDartElementLabels {
 
   /**
    * Returns the label for a Java element with the flags as defined by this class.
-   *
+   * 
    * @param element The element to render.
    * @param flags The rendering flags.
    * @param result The buffer to append the resulting label to.
@@ -293,7 +291,7 @@ public class ColoredDartElementLabels {
 
   /**
    * Appends the label for a field to a {@link ColoredString}. Considers the F_* flags.
-   *
+   * 
    * @param field The element to render.
    * @param flags The rendering flags. Flags with names starting with 'F_' are considered.
    * @param result The buffer to append the resulting label to.
@@ -430,7 +428,7 @@ public class ColoredDartElementLabels {
 
   /**
    * Appends the label for a local variable to a {@link ColoredString}.
-   *
+   * 
    * @param localVariable The element to render.
    * @param flags The rendering flags. Flags with names starting with 'F_' are considered.
    * @param result The buffer to append the resulting label to.
@@ -471,7 +469,7 @@ public class ColoredDartElementLabels {
 
   /**
    * Appends the label for a method to a {@link ColoredString}. Considers the M_* flags.
-   *
+   * 
    * @param method The element to render.
    * @param flags The rendering flags. Flags with names starting with 'M_' are considered.
    * @param result The buffer to append the resulting label to.
@@ -599,7 +597,7 @@ public class ColoredDartElementLabels {
   /**
    * Appends the label for a package fragment root to a {@link ColoredString}. Considers the ROOT_*
    * flags.
-   *
+   * 
    * @param root The element to render.
    * @param flags The rendering flags. Flags with names starting with ROOT_' are considered.
    * @param result The buffer to append the resulting label to.
@@ -617,7 +615,7 @@ public class ColoredDartElementLabels {
    * Returns the label of the given object. The object must be of type {@link DartElement} or adapt
    * to {@link org.eclipse.ui.model.IWorkbenchAdapter}. The empty string is returned if the element
    * type is not known.
-   *
+   * 
    * @param obj Object to get the label from.
    * @param flags The rendering flags
    * @return Returns the label or the empty string if the object type is not supported.
@@ -637,7 +635,7 @@ public class ColoredDartElementLabels {
 
   /**
    * Appends the label for a type to a {@link ColoredString}. Considers the T_* flags.
-   *
+   * 
    * @param type The element to render.
    * @param flags The rendering flags. Flags with names starting with 'T_' are considered.
    * @param result The buffer to append the resulting label to.
@@ -771,22 +769,22 @@ public class ColoredDartElementLabels {
           names = method.getParameterNames();
           if (types == null) {
             nParams = names.length;
-          } else { // types != null
-            if (nParams != names.length) {
-              String resolvedSig = null;
-              if (resolvedSig != null && types.length > names.length) {
-                // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=99137
-                nParams = names.length;
-                String[] typesWithoutSyntheticParams = new String[nParams];
-                System.arraycopy(types, types.length - nParams, typesWithoutSyntheticParams, 0,
-                    nParams);
-                types = typesWithoutSyntheticParams;
-              } else {
-                // https://bugs.eclipse.org/bugs/show_bug.cgi?id=101029
-                // DartToolsPlugin.logErrorMessage("DartElementLabels: Number of param types(" + nParams + ") != number of names(" + names.length + "): " + method.getElementName());   //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
-                names = null; // no names rendered
-              }
-            }
+//          } else { // types != null
+//            if (nParams != names.length) {
+//              String resolvedSig = null;
+//              if (resolvedSig != null && types.length > names.length) {
+//                // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=99137
+//                nParams = names.length;
+//                String[] typesWithoutSyntheticParams = new String[nParams];
+//                System.arraycopy(types, types.length - nParams, typesWithoutSyntheticParams, 0,
+//                    nParams);
+//                types = typesWithoutSyntheticParams;
+//              } else {
+//                // https://bugs.eclipse.org/bugs/show_bug.cgi?id=101029
+//                // DartToolsPlugin.logErrorMessage("DartElementLabels: Number of param types(" + nParams + ") != number of names(" + names.length + "): " + method.getElementName());   //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
+//                names = null; // no names rendered
+//              }
+//            }
           }
         }
 

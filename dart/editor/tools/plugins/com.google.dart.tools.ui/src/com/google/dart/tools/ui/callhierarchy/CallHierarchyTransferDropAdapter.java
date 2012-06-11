@@ -25,6 +25,7 @@ import java.util.List;
 
 class CallHierarchyTransferDropAdapter /* extends ViewerInputDropAdapter */{
 
+  @SuppressWarnings("unused")
   private CallHierarchyViewPart fCallHierarchyViewPart;
 
   public CallHierarchyTransferDropAdapter(CallHierarchyViewPart viewPart, StructuredViewer viewer) {

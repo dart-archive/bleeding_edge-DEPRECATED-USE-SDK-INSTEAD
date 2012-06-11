@@ -106,7 +106,7 @@ public class CallHierarchyImageDescriptor extends CompositeImageDescriptor {
   public void setImageSize(Point size) {
     Assert.isNotNull(size);
     Assert.isTrue(size.x >= 0 && size.y >= 0);
-    size = size;
+    this.size = size;
   }
 
   @Override

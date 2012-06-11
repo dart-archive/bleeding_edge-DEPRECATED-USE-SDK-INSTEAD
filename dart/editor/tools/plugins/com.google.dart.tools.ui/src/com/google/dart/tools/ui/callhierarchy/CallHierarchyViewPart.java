@@ -713,6 +713,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
     setContentDescription(getIncludeMask());
   }
 
+  @SuppressWarnings("unused")
   private void addDragAdapters(StructuredViewer viewer) {
 //    int ops = DND.DROP_COPY | DND.DROP_LINK;
 //
@@ -739,6 +740,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
 //    viewer.addDragSupport(ops, transfers, dragAdapter);
   }
 
+  @SuppressWarnings("unused")
   private void addDropAdapters(StructuredViewer viewer) {
 //    Transfer[] transfers = new Transfer[] {
 //        LocalSelectionTransfer.getTransfer(), PluginTransfer.getInstance()};

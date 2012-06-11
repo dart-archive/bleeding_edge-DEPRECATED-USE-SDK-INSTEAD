@@ -110,7 +110,7 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
   }
 
   private void setDebugPreferences() {
-    IEclipsePreferences prefs = new InstanceScope().getNode("org.eclipse.debug.ui"); //$NON-NLS-N$
+    IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("org.eclipse.debug.ui"); //$NON-NLS-N$
     if (prefs != null) {
       prefs.put("org.eclipse.debug.ui.switch_to_perspective", "never"); //$NON-NLS-N$
       prefs.put("org.eclipse.debug.ui.switch_to_perspective_on_suspend", "never"); //$NON-NLS-N$

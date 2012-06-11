@@ -374,12 +374,6 @@ public class DartLibraryImplTest extends TestCase {
     assertTrue(children.length > 10);
   }
 
-  public void test_DartLibraryImpl_getChildren_libDom() throws Exception {
-    DartElement[] children = getDartLibDom().getChildren();
-    assertContainsCompUnit(children, "dom_frog.dart", false, false);
-    assertTrue(children.length > 0);
-  }
-
   public void test_DartLibraryImpl_getChildren_libEmpty() throws Exception {
     DartElement[] children = getDartLibEmpty().getChildren();
     assertContainsCompUnit(children, "empty.dart", false, false);

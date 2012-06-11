@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui.internal.text.functions;
@@ -166,7 +164,7 @@ public abstract class AbstractDartScanner extends BufferedRuleBasedScanner {
   /**
    * Creates the list of rules controlling this scanner.
    */
-  abstract protected List createRules();
+  abstract protected List<? extends IRule> createRules();
 
   protected String getBoldKey(String colorKey) {
     return colorKey + PreferenceConstants.EDITOR_BOLD_SUFFIX;
@@ -358,7 +356,7 @@ public abstract class AbstractDartScanner extends BufferedRuleBasedScanner {
   }
 
   private void initializeRules() {
-    List rules = createRules();
+    List<? extends IRule> rules = createRules();
     if (rules != null) {
       IRule[] result = new IRule[rules.size()];
       rules.toArray(result);
