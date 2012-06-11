@@ -118,8 +118,7 @@ public class BrowserManager {
     // avg: 55ms
     timer.startTask(browserName + " startup");
 
-    resourceResolver = null;
-    url = startEmbeddedServer(file, url);
+    url = resolveLaunchUrl(file, url);
 
     // for now, check if browser is open, and connection is alive
     boolean restart = browserProcess == null || isProcessTerminated(browserProcess)
@@ -155,8 +154,8 @@ public class BrowserManager {
             + getProcessStreamMessage()));
       }
 
-      connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, browserProcess,
-          resourceResolver, timer, enableBreakpoints, devToolsPortNumber);
+      connectToChromiumDebug(browserName, launch, launchConfig, url, monitor, browserProcess, timer,
+          enableBreakpoints, devToolsPortNumber);
     }
 
     stdout = readFromProcessPipes(browserName, browserProcess.getInputStream());
@@ -174,8 +173,8 @@ public class BrowserManager {
    */
   void connectToChromiumDebug(String browserName, ILaunch launch,
       DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
-      Process runtimeProcess, IResourceResolver resourceResolver, LogTimer timer,
-      boolean enableBreakpoints, int devToolsPortNumber) throws CoreException {
+      Process runtimeProcess, LogTimer timer, boolean enableBreakpoints, int devToolsPortNumber)
+      throws CoreException {
     monitor.worked(1);
 
     try {
@@ -210,11 +209,11 @@ public class BrowserManager {
       WebkitConnection connection = new WebkitConnection(chromiumTab.getWebSocketDebuggerUrl());
 
       DartiumDebugTarget debugTarget = new DartiumDebugTarget(
-          browserName,
-          connection,
-          launch,
-          runtimeProcess,
-          resourceResolver,
+          browserName, 
+          connection, 
+          launch, 
+          runtimeProcess, 
+          getResourceServer(), 
           enableBreakpoints);
 
       monitor.worked(1);
@@ -413,6 +412,13 @@ public class BrowserManager {
     return msg.toString();
   }
 
+  private IResourceResolver getResourceServer() throws IOException {
+    if (resourceResolver == null) {
+      resourceResolver = ResourceServerManager.getServer();
+    }
+    return resourceResolver;
+  }
+
   private boolean isProcessTerminated(Process process) {
     try {
       if (process != null) {
@@ -473,19 +479,14 @@ public class BrowserManager {
    * @param file
    * @throws CoreException
    */
-  private String startEmbeddedServer(IFile file, String url) throws CoreException {
-    // Start the embedded web server. It is used to serve files from our workspace.
-    if (file != null) {
-      String fileUrl = null;
-      try {
-        resourceResolver = ResourceServerManager.getServer();
-
-        fileUrl = resourceResolver.getUrlForResource(file);
-      } catch (IOException exception) {
-        throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
-            "Could not launch browser - unable to start embedded server", exception));
+  private String resolveLaunchUrl(IFile file, String url) throws CoreException {
+   try{
+      if (file != null) {
+        return getResourceServer().getUrlForResource(file);
       }
-      return fileUrl;
+    } catch (IOException exception) {
+      throw new CoreException(new Status(IStatus.ERROR, DartDebugCorePlugin.PLUGIN_ID,
+          "Could not launch browser - unable to start embedded server", exception));
     }
     return url;
   }
@@ -521,9 +522,15 @@ public class BrowserManager {
     //pass in pref value for --package-root if set
     String packageRoot = DartCore.getPlugin().getPackageRootPref();
     // TODO (keertip): if using default "packages" directory, do not set env variable
-    if (packageRoot != null) {
-      String packageRootUri = resourceResolver.getUrlForFile(new Path(packageRoot).toFile());
-      env.put("DART_PACKAGE_ROOT", packageRootUri);
+    if (packageRoot != null && launchConfig.getShouldLaunchFile()) {
+      String packageRootUri;
+      try {
+        packageRootUri = getResourceServer().getUrlForFile(new Path(packageRoot).toFile());
+        env.put("DART_PACKAGE_ROOT", packageRootUri);
+      } catch (IOException e) {
+        DartDebugCorePlugin.logError(e);
+      }
+
     }
 
     devToolsPortNumber = DEVTOOLS_PORT_NUMBER;
