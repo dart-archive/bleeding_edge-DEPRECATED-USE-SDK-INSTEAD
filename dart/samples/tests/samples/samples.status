@@ -82,7 +82,4 @@ swarm/swarm_test: Fail # BUG(3304)
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
 
 [ $compiler == dart2js && $runtime == safari ]
-lib/layout/layout_test: Fail
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
-lib/view/view_test: Fail
-swarm/swarm_test: Fail # Expectation: BackButton. Caught Instance of 'TypeError'
