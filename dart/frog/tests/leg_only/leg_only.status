@@ -27,23 +27,23 @@ cascade_precedence_test: Fail
 naming_test: Fail # BUG(3305)
 
 [ $compiler == dart2js && $runtime == ie ]
-12_test: Skip # BUG(3304): Times out.
-33_test: Skip # BUG(3304): Times out.
-43_test: Skip # BUG(3304): Times out.
-7_test: Skip # BUG(3304): Times out.
-bailout_test: Skip # BUG(3304): Times out.
-break_test: Skip # BUG(3304): Times out.
-class_test: Skip # BUG(3304): Times out.
-equals_test: Skip # BUG(3304): Times out.
-foo7_test: Skip # BUG(3304): Times out.
-function_parameters_test: Skip # BUG(3304): Times out.
-literals_test: Skip # BUG(3304): Times out.
-locals_test: Skip # BUG(3304): Times out.
-not_equals_test: Skip # BUG(3304): Times out.
-phi_test: Skip # BUG(3304): Times out.
-regression_2913_test: Skip # BUG(3304): Times out.
-send_test: Skip # BUG(3304): Times out.
-to_string_test: Skip # BUG(3304): Times out.
+12_test: Fail # BUG(3304): Maybe this doesn't time out?
+33_test: Fail # BUG(3304): Maybe this doesn't time out?
+43_test: Fail # BUG(3304): Maybe this doesn't time out?
+7_test: Fail # BUG(3304): Maybe this doesn't time out?
+bailout_test: Fail # BUG(3304): Maybe this doesn't time out?
+break_test: Fail # BUG(3304): Maybe this doesn't time out?
+class_test: Fail # BUG(3304): Maybe this doesn't time out?
+equals_test: Fail # BUG(3304): Maybe this doesn't time out?
+foo7_test: Fail # BUG(3304): Maybe this doesn't time out?
+function_parameters_test: Fail # BUG(3304): Maybe this doesn't time out?
+literals_test: Fail # BUG(3304): Maybe this doesn't time out?
+locals_test: Fail # BUG(3304): Maybe this doesn't time out?
+not_equals_test: Fail # BUG(3304): Maybe this doesn't time out?
+phi_test: Fail # BUG(3304): Maybe this doesn't time out?
+regression_2913_test: Fail # BUG(3304): Maybe this doesn't time out?
+send_test: Fail # BUG(3304): Maybe this doesn't time out?
+to_string_test: Fail # BUG(3304): Maybe this doesn't time out?
 naming_test: Fail # BUG(3305)
 
 [ $compiler == dart2js && $runtime == safari ]
