@@ -19,6 +19,7 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import org.eclipse.core.resources.IResource;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -69,27 +70,15 @@ public class ResourceServer implements IResourceResolver {
   }
 
   @Override
+  public String getUrlForFile(File file) {
+    return getUrlForUri(file.toURI());
+  }
+
+  @Override
   public String getUrlForResource(IResource resource) {
-    try {
-      URI fileUri = resource.getLocation().toFile().toURI();
 
-      String pathSegment = fileUri.getPath();
-
-      // localhost? 127.0.0.1? serverSocket.getInetAddress().getHostAddress()?
-      URI uri = new URI(
-          "http",
-          null,
-          "127.0.0.1",
-          serverSocket.getLocalPort(),
-          pathSegment,
-          null,
-          null);
-      return uri.toString();
-    } catch (URISyntaxException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return null;
-    }
+    URI fileUri = resource.getLocation().toFile().toURI();
+    return getUrlForUri(fileUri);
   }
 
   /**
@@ -109,6 +98,27 @@ public class ResourceServer implements IResourceResolver {
 
       DartCore.getConsole().println(
           "Remote connection from " + hostAddress + " [" + userAgent + "]");
+    }
+  }
+
+  private String getUrlForUri(URI fileUri) {
+    try {
+      String pathSegment = fileUri.getPath();
+
+      // localhost? 127.0.0.1? serverSocket.getInetAddress().getHostAddress()?
+      URI uri = new URI(
+          "http", 
+           null, 
+           "127.0.0.1", 
+           serverSocket.getLocalPort(), 
+           pathSegment, 
+           null, 
+           null);
+      return uri.toString();
+    } catch (URISyntaxException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return null;
     }
   }
 

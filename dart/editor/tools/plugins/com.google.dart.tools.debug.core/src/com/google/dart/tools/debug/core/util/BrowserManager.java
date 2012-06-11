@@ -518,11 +518,13 @@ public class BrowserManager {
       env.put("DART_FLAGS", "--enable-checked-mode");
     }
 
-    // TODO(keertip): pass in pref value for --package-root if set, when supported
-//      String packageRoot = DartCore.getPlugin().getPackageRootPref();
-//      if (packageRoot != null) {
-//        env.put("DART_PACKAGE_ROOT",packageRoot);
-//      }
+    //pass in pref value for --package-root if set
+    String packageRoot = DartCore.getPlugin().getPackageRootPref();
+    // TODO (keertip): if using default "packages" directory, do not set env variable
+    if (packageRoot != null) {
+      String packageRootUri = resourceResolver.getUrlForFile(new Path(packageRoot).toFile());
+      env.put("DART_PACKAGE_ROOT", packageRootUri);
+    }
 
     devToolsPortNumber = DEVTOOLS_PORT_NUMBER;
 
