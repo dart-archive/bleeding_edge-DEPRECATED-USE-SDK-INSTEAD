@@ -14,19 +14,11 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.internal.builder.DartcBuildHandler;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
-import com.google.dart.tools.ui.DartToolsPlugin;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
@@ -40,34 +32,6 @@ import java.util.Iterator;
  * Action to add (or remove) resources from the dart ignore list.
  */
 public class IgnoreResourceAction extends SelectionListenerAction {
-
-  class AnalyzeProjectJob extends WorkspaceJob {
-
-    IProject project;
-
-    public AnalyzeProjectJob(IProject project) {
-      super("Analyzing source");
-      this.project = project;
-
-    }
-
-    @Override
-    public IStatus runInWorkspace(IProgressMonitor monitor) {
-      try {
-        monitor.beginTask("Analyzing...", IProgressMonitor.UNKNOWN);
-
-        new DartcBuildHandler().buildLibrariesIn(project, resource, monitor);
-      } catch (CoreException e) {
-        DartToolsPlugin.log(e);
-
-        return Status.CANCEL_STATUS;
-      } finally {
-        monitor.done();
-      }
-
-      return Status.OK_STATUS;
-    }
-  }
 
   private static boolean allElementsAreResources(IStructuredSelection selection) {
     for (Iterator<?> iterator = selection.iterator(); iterator.hasNext();) {
@@ -94,19 +58,12 @@ public class IgnoreResourceAction extends SelectionListenerAction {
       try {
         if (DartCore.isAnalyzed(resource)) {
           DartModelManager.getInstance().addToIgnores(resource);
-          if (DartCoreDebug.ANALYSIS_SERVER) {
-            SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(
-                resource.getLocation().toFile());
-          }
+          SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(
+              resource.getLocation().toFile());
         } else {
           DartModelManager.getInstance().removeFromIgnores(resource);
-          if (DartCoreDebug.ANALYSIS_SERVER) {
-            File file = resource.getLocation().toFile();
-            SystemLibraryManagerProvider.getDefaultAnalysisServer().scan(file, true);
-          } else {
-            AnalyzeProjectJob analyzeProjectJob = new AnalyzeProjectJob(resource.getProject());
-            analyzeProjectJob.schedule();
-          }
+          File file = resource.getLocation().toFile();
+          SystemLibraryManagerProvider.getDefaultAnalysisServer().scan(file, true);
         }
       } catch (IOException e) {
         MessageDialog.openError(shell, "Error Ignoring Resource", e.getMessage());

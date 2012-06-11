@@ -16,7 +16,6 @@ package com.google.dart.tools.core.frog;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
-import com.google.dart.tools.core.internal.builder.DartBuilder;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartSdk;
 
@@ -28,6 +27,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 
@@ -103,7 +103,7 @@ public class Dart2JSCompiler {
     IPath path = library.getCorrespondingResource().getLocation();
 
     final IPath inputPath = library.getCorrespondingResource().getLocation();
-    final IPath outputPath = DartBuilder.getJsAppArtifactPath(path);
+    final IPath outputPath = getJsAppArtifactPath(path);
 
     Dart2JSCompiler compiler = new Dart2JSCompiler();
 
@@ -120,6 +120,36 @@ public class Dart2JSCompiler {
     } catch (IOException ioe) {
       throw new CoreException(new Status(IStatus.ERROR, DartCore.PLUGIN_ID, ioe.toString(), ioe));
     }
+  }
+
+  /**
+   * Answer the JavaScript application file for the specified source.
+   * 
+   * @param source the application source file (not <code>null</code>)
+   * @return the application file (may not exist)
+   */
+  public static File getJsAppArtifactFile(IPath sourceLocation) {
+    return sourceLocation.addFileExtension(DartCore.EXTENSION_JS).toFile();
+  }
+
+  /**
+   * Answer the JavaScript application file for the specified source.
+   * 
+   * @param source the application source file (not <code>null</code>)
+   * @return the application file (may not exist)
+   */
+  public static File getJsAppArtifactFile(IResource source) {
+    return getJsAppArtifactFile(source.getLocation());
+  }
+
+  /**
+   * Answer the JavaScript application file path for the specified source.
+   * 
+   * @param source the application source file (not <code>null</code>)
+   * @return the application file path (may not exist)
+   */
+  public static IPath getJsAppArtifactPath(IPath libraryPath) {
+    return Path.fromOSString(getJsAppArtifactFile(libraryPath).getAbsolutePath());
   }
 
   private static void displayCompilationResult(Dart2JSCompiler compiler, CompilationResult result,

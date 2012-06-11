@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.internal.model.SystemLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.Extensions;
 
 import org.eclipse.core.resources.IProject;
@@ -25,8 +25,6 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.SubMonitor;
 
 import java.io.File;
 import java.util.Map;
@@ -37,130 +35,64 @@ import java.util.Map;
  */
 public class DartBuilder extends IncrementalProjectBuilder {
 
-  /**
-   * Answer the JavaScript application file for the specified source.
-   * 
-   * @param source the application source file (not <code>null</code>)
-   * @return the application file (may not exist)
-   */
-  public static File getJsAppArtifactFile(IPath sourceLocation) {
-    return sourceLocation.addFileExtension(DartCore.EXTENSION_JS).toFile();
-  }
-
-  /**
-   * Answer the JavaScript application file for the specified source.
-   * 
-   * @param source the application source file (not <code>null</code>)
-   * @return the application file (may not exist)
-   */
-  public static File getJsAppArtifactFile(IResource source) {
-    return getJsAppArtifactFile(source.getLocation());
-  }
-
-  /**
-   * Answer the JavaScript application file path for the specified source.
-   * 
-   * @param source the application source file (not <code>null</code>)
-   * @return the application file path (may not exist)
-   */
-  public static IPath getJsAppArtifactPath(IPath libraryPath) {
-    return Path.fromOSString(getJsAppArtifactFile(libraryPath).getAbsolutePath());
-  }
-
-  private final DartcBuildHandler dartcBuildHandler = new DartcBuildHandler();
-
-  private boolean firstBuildThisSession = true;
-
   @SuppressWarnings("rawtypes")
   @Override
   protected IProject[] build(int kind, Map args, IProgressMonitor monitor) throws CoreException {
 
-    // Use AnalysisServer instead
-    if (DartCoreDebug.ANALYSIS_SERVER) {
-      return new IProject[] {};
+    IResourceDelta delta = getDelta(getProject());
+
+    if (delta == null) { // add project     
+      analyze(getProject(), IResourceDelta.ADDED);
+    } else {
+
+      delta.accept(new IResourceDeltaVisitor() {
+        @Override
+        public boolean visit(IResourceDelta delta) {
+          IResource resource = delta.getResource();
+          if (resource.getType() != IResource.FILE) {
+            switch (delta.getKind()) {
+              case IResourceDelta.ADDED:
+              case IResourceDelta.REMOVED:
+                analyze(resource, delta.getKind());
+                return false;
+              case IResourceDelta.CHANGED:
+                return true;
+            }
+            return false;
+          }
+          String name = resource.getName();
+          if (name.endsWith(Extensions.DOT_DART)) {
+            analyze(resource, delta.getKind());
+          }
+          return false;
+        }
+      });
+
     }
 
-    boolean compileWithFrog = DartCore.getPlugin().getCompileWithFrog();
-
-    // TODO(keertip) : remove call to dartc if frog is being used, once indexer is independent
-    // If building using frog, then dartc does not produce any js files
-    if (firstBuildThisSession || hasDartSourceChanged()) {
-      dartcBuildHandler.buildAllApplications(getProject(), !compileWithFrog, monitor);
-
-      if (firstBuildThisSession) {
-        firstBuildThisSession = false;
-        dartcBuildHandler.triggerDependentBuilds(getProject(), SubMonitor.convert(monitor, 100));
-      }
-
-      monitor.done();
-    }
-
-    // Return the projects upon which this project depends
-    return dartcBuildHandler.getPrerequisiteProjects();
+    return null;
   }
 
   @Override
   protected void clean(IProgressMonitor monitor) throws CoreException {
-    dartcBuildHandler.clean(getProject(), monitor);
+    AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+    server.reanalyze();
   }
 
-  /**
-   * Obtain the current resource changed delta(s) to determine if any of the resources that have
-   * changed were Dart related source files.
-   * 
-   * @return <code>true</code> if at least one Dart related source file has changed.
-   */
-  protected boolean hasDartSourceChanged() throws CoreException {
-    if (hasDartSourceChanged(getDelta(getProject()))) {
-      return true;
+  private void analyze(IResource resource, int kind) {
+    AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
+    IPath location = resource.getLocation();
+    if (location == null) {
+      return;
     }
-    // TODO(keertip): fix this once dartc is no longer being called
-    for (IProject project : dartcBuildHandler.getPrerequisiteProjects()) {
-      if (hasDartSourceChanged(getDelta(project))) {
-        return true;
-      }
+    File file = location.toFile();
+    server.changed(file);
+    if (kind == IResourceDelta.ADDED) {
+      server.scan(file, false);
+    } else if (kind == IResourceDelta.REMOVED) {
+      server.discard(file);
     }
-    return false;
+
   }
 
-  private boolean hasDartSourceChanged(IResourceDelta delta) throws CoreException {
-    if (delta == null) {
-      return true;
-    }
-    final boolean shouldBuild[] = new boolean[1];
-    delta.accept(new IResourceDeltaVisitor() {
-      @Override
-      public boolean visit(IResourceDelta delta) {
-        IResource resource = delta.getResource();
-        if (resource.getType() != IResource.FILE) {
-          // Visit children only if we have not already found a changed source file
-          return !shouldBuild[0];
-        }
-        String name = resource.getName();
-        if (name.endsWith(Extensions.DOT_DART)) {
-          shouldBuild[0] = true;
-        }
-        return false;
-      }
-    });
-    return shouldBuild[0];
-  }
-
-//  private void queueFilesForIndexer(Collection<LibraryUnit> libraries) {
-//    ArrayList<IndexingTarget> targets = new ArrayList<IndexingTarget>();
-//    for (LibraryUnit libraryUnit : libraries) {
-//      DartLibrary library = null; //DartModelManager.getInstance().getLibraryWithUri(libraryUnit.getSource().getUri());
-//      if (library != null) {
-//        // TODO(brianwilkerson) Remove the enclosing test once the indexer is no longer tied to
-//        // resources.
-//        for (DartUnit unit : libraryUnit.getUnits()) {
-//          if (!unit.isDiet()) {
-//            CompilationUnit compilationUnit = library.getCompilationUnit(unit.getSourceName());
-//            targets.add(new CompilationUnitIndexingTarget(compilationUnit, unit));
-//          }
-//        }
-//      }
-//    }
-//    StandardDriver.getInstance().enqueueTargets(targets.toArray(new IndexingTarget[targets.size()]));
-//  }
 }

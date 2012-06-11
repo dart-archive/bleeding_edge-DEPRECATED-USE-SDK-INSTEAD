@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.model.delta;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.model.DartElementImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -44,7 +43,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 
@@ -267,6 +265,8 @@ public class DeltaProcessor {
           if (resource.getType() == IResource.PROJECT) {
             IProject project = (IProject) resource;
             if (project.hasNature(DartCore.DART_PROJECT_NATURE)) {
+              File projDir = project.getLocation().toFile();
+              SystemLibraryManagerProvider.getDefaultAnalysisServer().discard(projDir);
               DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
               dartProject.clearLibraryInfo();
             }
@@ -993,12 +993,6 @@ public class DeltaProcessor {
     OpenableElementImpl element;
     switch (delta.getKind()) {
       case IResourceDelta.ADDED:
-        if (DartCoreDebug.ANALYSIS_SERVER) {
-          File file = deltaRes.getLocation().toFile();
-          AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-          server.changed(file);
-          server.scan(file, false);
-        }
         element = createElement(deltaRes, elementType);
         if (DartCore.isHTMLLikeFileName(deltaRes.getName())) {
           buildStructure = updateHtmlMapping(deltaRes);
@@ -1022,16 +1016,6 @@ public class DeltaProcessor {
 //        }
         return false;
       case IResourceDelta.REMOVED:
-        if (DartCoreDebug.ANALYSIS_SERVER) {
-          IPath location = deltaRes.getLocation();
-          if (location == null) {
-            return false;
-          }
-          File file = location.toFile();
-          AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-          server.changed(file);
-          server.discard(file);
-        }
         element = createElement(deltaRes, elementType);
         if (element == null) {
           return true;
@@ -1061,10 +1045,6 @@ public class DeltaProcessor {
       case IResourceDelta.CHANGED:
         int flags = delta.getFlags();
         if ((flags & IResourceDelta.CONTENT) != 0 || (flags & IResourceDelta.ENCODING) != 0) {
-          if (DartCoreDebug.ANALYSIS_SERVER) {
-            AnalysisServer server = SystemLibraryManagerProvider.getDefaultAnalysisServer();
-            server.changed(deltaRes.getLocation().toFile());
-          }
           // content or encoding has changed
           if (DartCore.isHTMLLikeFileName(deltaRes.getName())) {
             buildStructure = updateHtmlMapping(deltaRes);
