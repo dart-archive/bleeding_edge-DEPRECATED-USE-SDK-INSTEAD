@@ -348,12 +348,9 @@ public class DartCorrectionAssistant extends QuickAssistAssistant {
     return new IInformationControlCreator() {
       @Override
       public IInformationControl createInformationControl(Shell parent) {
-        // TODO(scheglov) not sure what exactly message
         return new DefaultInformationControl(
             parent,
-            "DartToolsPlugin.getAdditionalInfoAffordanceString()");
-//        return new DefaultInformationControl(parent,
-//            DartToolsPlugin.getAdditionalInfoAffordanceString());
+            DartToolsPlugin.getAdditionalInfoAffordanceString());
       }
     };
   }

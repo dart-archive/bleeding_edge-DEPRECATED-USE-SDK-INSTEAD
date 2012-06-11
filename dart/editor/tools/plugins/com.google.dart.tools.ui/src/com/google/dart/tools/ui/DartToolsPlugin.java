@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -61,6 +61,7 @@ import org.eclipse.ui.editors.text.templates.ContributionTemplateStore;
 import org.eclipse.ui.forms.FormColors;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -98,7 +99,9 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   private static final String CODE_TEMPLATES_MIGRATION_KEY = "com.google.dart.tools.ui.text.code_templates_migrated"; //$NON-NLS-1$
 
   private static LinkedHashMap<String, Long> fgRepeatedMessages = new LinkedHashMap<String, Long>(
-      20, 0.75f, true) {
+      20,
+      0.75f,
+      true) {
     private static final long serialVersionUID = 1L;
 
     @Override
@@ -164,7 +167,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     final IPath p = new Path(path);
 
     if (p.isAbsolute() && p.segmentCount() > 1) {
-      return AbstractUIPlugin.imageDescriptorFromPlugin(p.segment(0),
+      return AbstractUIPlugin.imageDescriptorFromPlugin(
+          p.segment(0),
           p.removeFirstSegments(1).makeAbsolute().toString());
     } else {
       return getBundledImageDescriptor(p.makeAbsolute().toString());
@@ -330,7 +334,10 @@ public class DartToolsPlugin extends AbstractUIPlugin {
       logErrorMessage(message);
       return;
     }
-    MultiStatus multi = new MultiStatus(getPluginId(), DartStatusConstants.INTERNAL_ERROR, message,
+    MultiStatus multi = new MultiStatus(
+        getPluginId(),
+        DartStatusConstants.INTERNAL_ERROR,
+        message,
         null);
     multi.add(status);
     log(multi);
@@ -407,6 +414,14 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     DartX.todo();
   }
 
+  public static final String getAdditionalInfoAffordanceString() {
+    if (!EditorsUI.getPreferenceStore().getBoolean(
+        AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SHOW_TEXT_HOVER_AFFORDANCE)) {
+      return null;
+    }
+    return DartUIMessages.JavaPlugin_additionalInfo_affordance;
+  }
+
   private DartTextTools dartTextTools;
 
   private ProblemMarkerManager problemMarkerManager;
@@ -418,24 +433,24 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   }
 
   private MembersOrderPreferenceCache membersOrderPreferenceCache;
-
   /**
    * Property change listener on this plugin's preference store.
    */
   private IPropertyChangeListener propertyChangeListener;
+
+  //private IPropertyChangeListener fFontPropertyChangeListener;
+
   static {
     DartX.todo("hover");
   }
 
-  //private IPropertyChangeListener fFontPropertyChangeListener;
-
   @SuppressWarnings("unused")
   private/* JavaEditorTextHoverDescriptor */Object[] dartEditorTextHoverDescriptors;
-
   /**
    * The AST provider.
    */
   private ASTProvider astProvider;
+
   /**
    * The combined preference store.
    */
@@ -527,7 +542,9 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   public TemplateStore getCodeTemplateStore() {
     if (codeTemplateStore == null) {
       IPreferenceStore store = getPreferenceStore();
-      codeTemplateStore = new ContributionTemplateStore(getCodeTemplateContextRegistry(), store,
+      codeTemplateStore = new ContributionTemplateStore(
+          getCodeTemplateContextRegistry(),
+          store,
           CODE_TEMPLATES_KEY);
       try {
         codeTemplateStore.load();
@@ -550,7 +567,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
       IPreferenceStore generalTextStore = EditorsUI.getPreferenceStore();
       combinedPreferenceStore = new ChainedPreferenceStore(new IPreferenceStore[] {
           getPreferenceStore(),
-          new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()), generalTextStore});
+          new PreferencesAdapter(DartCore.getPlugin().getPluginPreferences()),
+          generalTextStore});
     }
     return combinedPreferenceStore;
   }
@@ -571,7 +589,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   public ContentAssistHistory getContentAssistHistory() {
     if (contentAssistHistory == null) {
       try {
-        contentAssistHistory = ContentAssistHistory.load(getPluginPreferences(),
+        contentAssistHistory = ContentAssistHistory.load(
+            getPluginPreferences(),
             PreferenceConstants.CODEASSIST_LRU_HISTORY);
       } catch (CoreException x) {
         log(x);
@@ -669,7 +688,8 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   @SuppressWarnings("deprecation")
   public synchronized DartTextTools getJavaTextTools() {
     if (dartTextTools == null) {
-      dartTextTools = new DartTextTools(getPreferenceStore(),
+      dartTextTools = new DartTextTools(
+          getPreferenceStore(),
           DartCore.getPlugin().getPluginPreferences());
     }
     return dartTextTools;
@@ -730,7 +750,9 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   public TemplateStore getTemplateStore() {
     if (templateStore == null) {
       final IPreferenceStore store = getPreferenceStore();
-      templateStore = new ContributionTemplateStore(getTemplateContextRegistry(), store,
+      templateStore = new ContributionTemplateStore(
+          getTemplateContextRegistry(),
+          store,
           TEMPLATES_KEY);
 
       try {
@@ -841,7 +863,9 @@ public class DartToolsPlugin extends AbstractUIPlugin {
       }
 
       if (contentAssistHistory != null) {
-        ContentAssistHistory.store(contentAssistHistory, getPluginPreferences(),
+        ContentAssistHistory.store(
+            contentAssistHistory,
+            getPluginPreferences(),
             PreferenceConstants.CODEASSIST_LRU_HISTORY);
         contentAssistHistory = null;
       }
@@ -887,21 +911,6 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     } finally {
       super.stop(context);
     }
-  }
-
-  /**
-   * @deprecated Indirection added to avoid deprecated warning on file
-   */
-  // private org.eclipse.wst.jsdt.internal.corext.template.java.CodeTemplates
-  // getOldCodeTemplateStoreInstance() {
-  // return
-  // org.eclipse.wst.jsdt.internal.corext.template.java.CodeTemplates.getInstance();
-  // }
-
-  @Deprecated
-  @Override
-  protected ImageRegistry createImageRegistry() {
-    return DartPluginImages.getImageRegistry();
   }
 
 //  /**
@@ -1022,6 +1031,21 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   /**
    * @deprecated Indirection added to avoid deprecated warning on file
    */
+  // private org.eclipse.wst.jsdt.internal.corext.template.java.CodeTemplates
+  // getOldCodeTemplateStoreInstance() {
+  // return
+  // org.eclipse.wst.jsdt.internal.corext.template.java.CodeTemplates.getInstance();
+  // }
+
+  @Deprecated
+  @Override
+  protected ImageRegistry createImageRegistry() {
+    return DartPluginImages.getImageRegistry();
+  }
+
+  /**
+   * @deprecated Indirection added to avoid deprecated warning on file
+   */
   // private org.eclipse.wst.jsdt.internal.corext.template.java.Templates
   // getOldTemplateStoreInstance() {
   // return
@@ -1054,5 +1078,4 @@ public class DartToolsPlugin extends AbstractUIPlugin {
       getPreferenceStore().removePropertyChangeListener(propertyChangeListener);
     }
   }
-
 }
