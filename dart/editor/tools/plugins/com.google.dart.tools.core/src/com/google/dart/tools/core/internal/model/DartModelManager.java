@@ -443,7 +443,16 @@ public class DartModelManager {
     if (parent == null) {
       return null;
     }
-    return findChild(create(parent), file);
+    DartElementImpl child = findChild(create(parent), file);
+    if (child instanceof DartLibrary) {
+      try {
+        return (DartElementImpl) ((DartLibrary) child).getDefiningCompilationUnit();
+      } catch (DartModelException exception) {
+        // Cannot access the defining compilation unit, so we return the library as the only
+        // alternative.
+      }
+    }
+    return child;
   }
 
   /**
