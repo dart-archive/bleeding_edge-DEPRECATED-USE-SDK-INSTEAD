@@ -108,7 +108,7 @@ class View implements Positionable {
    * document or not.
    */
   bool get isInDocument() {
-    return _node !== null && node.document.contains(node);
+    return _node !== null && node.document.body.contains(node);
   }
 
   /**

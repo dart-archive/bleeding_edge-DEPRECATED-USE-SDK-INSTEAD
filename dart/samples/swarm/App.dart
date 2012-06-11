@@ -101,7 +101,7 @@ class App {
       //   * How do we authenticate against the server?
       //   * How do we talk to a server other than thump?
       assert(url.startsWith('/'));
-      return 'http://thump.googleplex.com' + url;
+      return 'http://thump.googleplex.com$url';
     } else {
       return url;
     }

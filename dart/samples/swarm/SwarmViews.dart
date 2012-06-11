@@ -235,7 +235,7 @@ class FrontView extends CompositeView {
   void _onSectionSelected(String sectionTitle) {
     final section = swarm.sections.findSection(sectionTitle);
     // Find the view for this section.
-    for (final view in sections.childViews) {
+    for (SectionView view in sections.childViews) {
       if (view.section == section) {
         // Have the conveyor show it.
         sections.selectView(view);
@@ -810,10 +810,10 @@ class ArticleView extends View {
 
   String getDataUriForImage(final img) {
     // TODO(hiltonc,jimhug) eval perf of this vs. reusing one canvas element
-    final canvas = new Element.html(
-        '<canvas width="${img.width}" height="${img.height}"></canvas>');
+    final CanvasElement canvas = new CanvasElement(
+      height: img.height, width: img.width);
 
-    final ctx = canvas.getContext("2d");
+    final CanvasRenderingContext2D ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0, img.width, img.height);
 
     return canvas.toDataURL("image/png");
@@ -862,7 +862,7 @@ class StoryContentView extends View {
     // Modify all links to open in new windows....
     // TODO(jacobr): would it be better to add an event listener on click that
     // intercepts these instead?
-    for (final anchor in storyContent.queryAll('a')) {
+    for (AnchorElement anchor in storyContent.queryAll('a')) {
       anchor.target = '_blank';
     }
 

@@ -39,7 +39,7 @@ class Sections implements Collection<Section> {
   static String get home() {
     // TODO(jmesserly): window.location.origin not available on Safari 4.
     // Move this workaround to the DOM code. See bug 5389503.
-    return window.location.protocol + '//' + window.location.host;
+    return '${window.location.protocol}//${window.location.host}';
   }
 
   // This method is exposed for tests.
@@ -59,7 +59,7 @@ class Sections implements Collection<Section> {
       initializeFromData(CannedData.data['user.data'], callback);
     } else {
       // TODO(jmesserly): display an error if we fail here! Silent failure bad.
-      new XMLHttpRequest.get('$home/data/user.data',
+      new XMLHttpRequest.get('data/user.data',
           EventBatch.wrap((request) {
         // TODO(jimhug): Nice response if get error back from server.
         // TODO(jimhug): Might be more efficient to parse request in sections.
@@ -195,8 +195,8 @@ class Article {
   }
 
   String get dataUri() {
-    return Uri.encodeComponent(id).replaceAll(
-          ',', '%2C').replaceAll('%2F', '/');
+    return Uri.encodeComponent(id).replaceAll('%2F', '/').
+        replaceAll('%253A', '%3A');
   }
 
   String get thumbUrl() {
@@ -212,7 +212,7 @@ class Article {
     // Bump the version flag if you change the thumbnail size, and you want to
     // get the new images. Our server ignores the query params but it gets
     // around appengine server side caching and the client side cache.
-    return '$home/data/$dataUri.jpg?v=0';
+    return 'data/$dataUri.jpg';
   }
 
   // TODO(jimhug): need to return a lazy Observable<String> and also
@@ -226,7 +226,7 @@ class Article {
     } else {
       // TODO(jimhug): Remove this truly evil synchronoush xhr.
       final req = new XMLHttpRequest();
-      req.open('GET', '${Sections.home}/data/$name', false);
+      req.open('GET', 'data/$name', false);
       req.send();
       _htmlBody = req.responseText;
     }
