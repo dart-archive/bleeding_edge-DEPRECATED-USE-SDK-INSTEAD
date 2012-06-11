@@ -29,10 +29,6 @@ public class ASTVisitor<R> {
     return visitExpression(node);
   }
 
-  public R visitAssertStatement(AssertStatement node) {
-    return visitStatement(node);
-  }
-
   public R visitAssignmentExpression(AssignmentExpression node) {
     return visitExpression(node);
   }
