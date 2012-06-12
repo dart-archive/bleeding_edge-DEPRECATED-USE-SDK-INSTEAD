@@ -80,7 +80,7 @@ public class NameOccurrencesFinder extends ASTVisitor<Void> {
   public Void visitMethodInvocation(DartMethodInvocation node) {
     if (node.getElement() == target) {
       DartIdentifier name = node.getFunctionName();
-      if (name.getName().equals(targetName)) {
+      if (name != null && name.getName().equals(targetName)) {
         addMatch(name);
         return null;
       }
@@ -122,7 +122,7 @@ public class NameOccurrencesFinder extends ASTVisitor<Void> {
   public Void visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
     if (node.getElement() == target) {
       DartIdentifier name = node.getName();
-      if (name.getName().equals(targetName)) {
+      if (name != null && name.getName().equals(targetName)) {
         addMatch(name);
         return null;
       }
@@ -134,7 +134,7 @@ public class NameOccurrencesFinder extends ASTVisitor<Void> {
   public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation node) {
     if (node.getElement() == target) {
       DartIdentifier name = node.getName();
-      if (name.getName().equals(targetName)) {
+      if (name != null && name.getName().equals(targetName)) {
         addMatch(name);
         return null;
       }
