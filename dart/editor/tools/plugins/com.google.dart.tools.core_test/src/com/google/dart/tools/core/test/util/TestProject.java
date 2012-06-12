@@ -32,6 +32,8 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.jobs.IJobManager;
+import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -48,17 +50,17 @@ public class TestProject {
    * Wait for auto-build notification to occur, that is for the auto-build to finish.
    */
   public static void waitForAutoBuild() {
-//    while (true) {
-//      try {
-//        IJobManager jobManager = Job.getJobManager();
-//        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
-//        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
-//        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
-//        jobManager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
-//        break;
-//      } catch (Throwable e) {
-//      }
-//    }
+    while (true) {
+      try {
+        IJobManager jobManager = Job.getJobManager();
+        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
+        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
+        jobManager.wakeUp(ResourcesPlugin.FAMILY_AUTO_BUILD);
+        jobManager.join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+        break;
+      } catch (Throwable e) {
+      }
+    }
     AnalysisTestUtilities.waitForAnalysis();
     try {
       final CountDownLatch latch = new CountDownLatch(1);
@@ -70,7 +72,6 @@ public class TestProject {
       });
       latch.await();
     } catch (Throwable e) {
-      e.printStackTrace();
     }
   }
 
