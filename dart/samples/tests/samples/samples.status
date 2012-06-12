@@ -34,7 +34,7 @@ dartcombat_test: Skip
 [ $runtime == safari ]
 promise_based_test: Skip
 
-[ $runtime == vm]
+[ $runtime == vm ]
 dartcombat/dartcombat_test: Skip
 dartcombat_test: Skip
 swarm_test: Skip
