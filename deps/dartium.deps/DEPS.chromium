@@ -8,10 +8,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "119743",
+  "webkit_revision": "120025",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8829",
+  "nacl_revision": "8846",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "8673",  # native_client/DEPS: tools_rev
@@ -28,21 +28,21 @@ vars = {
   "nacl_toolchain_mac_x86_newlib_hash":
       "4f072a30b55ce9088ed6c6a0033dffa3a8ae301b",
   "nacl_toolchain_pnacl_linux_x86_32_hash":
-      "36d1121c16b249fe11c24b3f149a75a9da906517",
+      "5b56a39c2bb63f35c731c76fb0a28d9039f18126",
   "nacl_toolchain_pnacl_linux_x86_64_hash":
-      "01aed2db78ee87cccf7599931c87fea244e8bd54",
+      "02fb84aaf805eb33774e85de34adc1906df3c81f",
   "nacl_toolchain_pnacl_mac_x86_32_hash":
-      "333538f719ddd7742cda120cc1b70ced4d1d72ed",
+      "28fdc9843cc2c920ba5a252c8884037903daa19c",
   "nacl_toolchain_pnacl_translator_hash":
-      "6d8c5b8c0613556f39e5132d1a7b9b65e020e01e",
+      "4be9f32463a1687a385b072071c0cd8c36a69aac",
   "nacl_toolchain_pnacl_win_x86_32_hash":
-      "32c786bb095acfa0a0c5942e355af2ef03dec9dd",
+      "9f276642818cb92a2ffb63988d346376b66d3b7b",
   "nacl_toolchain_win_x86_hash":
       "85d9b16cb503a10963654803c4a4f90ea6edfff2",
   "nacl_toolchain_win_x86_newlib_hash":
       "cd4f8209a6f87d8baf21d1610928a3def4306764",
   "nacl_toolchain_revision": "8715",
-  "pnacl_toolchain_revision": "8751",
+  "pnacl_toolchain_revision": "8847",
 
   "libjingle_revision": "152",
   "libphonenumber_revision": "456",
@@ -51,16 +51,16 @@ vars = {
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "140400",
-  "ffmpeg_hash": "69cc855282d18ff77e4e0a6c0de0abd539572bc8",
+  "ffmpeg_revision": "141467",
+  "ffmpeg_hash": "425c0ec6975cba904785e4277454c2ecdd694fbf",
 
   "sfntly_revision": "128",
-  "skia_revision": "4156",
+  "skia_revision": "4172",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "11689",
-  "webrtc_revision": "2379",
+  "v8_revision": "11759",
+  "webrtc_revision": "2388",
   "jsoncpp_revision": "248",
   "nss_revision": "141064",
   "rlz_revision": "130",
@@ -118,10 +118,10 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@37",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@45",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@46",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1409",
+    (Var("googlecode_url") % "gyp") + "/trunk@1415",
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -189,7 +189,7 @@ deps = {
 
   # We should use the same software_rendering_list.json for all branches.
   "src/chrome/browser/resources/software_rendering_list":
-    "/trunk/deps/gpu/software_rendering_list@140906",
+    "/trunk/deps/gpu/software_rendering_list@141323",
 
   # We run these layout tests as UI tests. Since many of the buildbots that
   # run layout tests do NOT have access to the LayoutTest directory, we need
