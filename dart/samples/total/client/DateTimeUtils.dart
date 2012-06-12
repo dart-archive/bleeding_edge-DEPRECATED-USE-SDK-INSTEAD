@@ -65,8 +65,8 @@ class DateUtils {
   static double now() {
     Date nowDate = new Date.now();
     int milliseconds = nowDate.difference(EPOCH).inMilliseconds;
-    milliseconds += MILLISECONDS_PER_HOUR; // FIXME - something is one hour behind
-    double days = milliseconds / MILLISECONDS_PER_DAY;
+    // We round the result to get rid of daylight saving differences.
+    double days = (milliseconds / MILLISECONDS_PER_DAY).round();
     return days;
   }
 
@@ -82,8 +82,8 @@ class DateUtils {
       int thisYear = nowDate.year;
       Date dateTime = new Date(thisYear, month, day, 0, 0, 0, 0);
       int milliseconds = dateTime.difference(EPOCH).inMilliseconds;
-      milliseconds += MILLISECONDS_PER_HOUR; // FIXME - something is one hour behind
-      double days = milliseconds / MILLISECONDS_PER_DAY;
+      // We round the result to get rid of daylight saving differences.
+      double days = (milliseconds / MILLISECONDS_PER_DAY).round();
       return days;
     }
 
@@ -101,8 +101,8 @@ class DateUtils {
       }
       Date dateTime = new Date(year, month, day, 0, 0, 0, 0);
       int milliseconds = dateTime.difference(EPOCH).inMilliseconds;
-      milliseconds += MILLISECONDS_PER_HOUR; // FIXME - something is one hour behind
-      double days = milliseconds / MILLISECONDS_PER_DAY;
+      // We round the result to get rid of daylight saving differences.
+      double days = (milliseconds / MILLISECONDS_PER_DAY).round();
       return days;
     }
 
