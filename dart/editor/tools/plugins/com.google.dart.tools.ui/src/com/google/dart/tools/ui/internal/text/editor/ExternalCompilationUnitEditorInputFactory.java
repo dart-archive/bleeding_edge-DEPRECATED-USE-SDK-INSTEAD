@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 
 import org.eclipse.core.filesystem.EFS;
@@ -49,6 +51,11 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
   private static final String KEY_UNIT_URI = "unitUri"; //$NON-NLS-1$
 
   /**
+   * Tag for the identifier string.
+   */
+  private static final String KEY_UNIT_ID = "unitId"; //$NON-NLS-1$
+
+  /**
    * Save the state of the given editor input into the given memento.
    * 
    * @param memento the storage area for element state
@@ -57,6 +64,7 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
   static void saveState(IMemento memento, ExternalCompilationUnitEditorInput input) {
     memento.putString(KEY_FILE_URI, input.getURI().toString());
     memento.putString(KEY_UNIT_URI, input.getCompilationUnit().getUri().toString());
+    memento.putString(KEY_UNIT_ID, input.getCompilationUnit().getHandleIdentifier());
   }
 
   @Override
@@ -75,8 +83,21 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
       try {
         ExternalCompilationUnitImpl unit = DartModelManager.getInstance().getDartModel().getBundledCompilationUnit(
             unitUri);
-        // if we can't find a bundled compilation unit, fall back to a filestore
+        // if we can't find a bundled compilation unit, attempt to reconstitue the external CU from its handle
         if (unit == null) {
+
+          String id = memento.getString(KEY_UNIT_ID);
+
+          if (id != null) {
+            DartElement element = DartCore.create(id);
+            if (element instanceof ExternalCompilationUnitImpl) {
+              return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri),
+                  (ExternalCompilationUnitImpl) element);
+            }
+
+          }
+
+          //if we have no handle, fall back on a filestore
           return new FileStoreEditorInput(EFS.getStore(fileUri));
         }
         return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri), unit);
