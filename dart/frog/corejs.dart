@@ -459,6 +459,7 @@ $defProp(Object.prototype, '$typeNameOf', (function() {
     if (name == 'MSStyleCSSProperties') return 'CSSStyleDeclaration';
     if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
     if (name == 'HTMLPhraseElement') return 'HTMLElement';
+    if (name == 'MouseWheelEvent') return 'WheelEvent';
     return name;
   }
 
