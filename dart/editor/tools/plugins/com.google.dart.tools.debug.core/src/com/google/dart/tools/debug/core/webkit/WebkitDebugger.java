@@ -55,9 +55,10 @@ public class WebkitDebugger extends WebkitDomain {
      * 
      * @param reason
      * @param frames
-     * @param data
+     * @param exception
      */
-    public void debuggerPaused(PausedReasonType reason, List<WebkitCallFrame> frames, Object data);
+    public void debuggerPaused(PausedReasonType reason, List<WebkitCallFrame> frames,
+        WebkitRemoteObject exception);
 
     /**
      * Fired when the virtual machine resumed execution.
@@ -85,7 +86,8 @@ public class WebkitDebugger extends WebkitDomain {
     }
 
     @Override
-    public void debuggerPaused(PausedReasonType reason, List<WebkitCallFrame> frames, Object data) {
+    public void debuggerPaused(PausedReasonType reason, List<WebkitCallFrame> frames,
+        WebkitRemoteObject exception) {
 
     }
 
@@ -561,14 +563,16 @@ public class WebkitDebugger extends WebkitDomain {
 
       List<WebkitCallFrame> frames = WebkitCallFrame.createFrom(params.getJSONArray("callFrames"));
 
-      Object data = null;
+      WebkitRemoteObject exception = null;
 
-      if (params.has("data")) {
-        data = params.get("data");
+      // The data field contains exception info.
+      if (reason == PausedReasonType.exception && params.has("data")) {
+        // {"value":"ssdfsdfd","type":"string"}
+        exception = WebkitRemoteObject.createFrom(params.getJSONObject("data"));
       }
 
       for (DebuggerListener listener : listeners) {
-        listener.debuggerPaused(reason, frames, data);
+        listener.debuggerPaused(reason, frames, exception);
       }
     } else {
       DartDebugCorePlugin.logInfo("unhandled notification: " + method);

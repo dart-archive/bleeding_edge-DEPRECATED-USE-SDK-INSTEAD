@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
 import com.google.dart.tools.debug.core.util.NetUtils;
 
 import org.eclipse.core.resources.IFile;
@@ -173,19 +174,28 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
     DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
 
+    try {
+      // Turn on break-on-exceptions.
+      connection.setPauseOnExceptions(BreakOnExceptionsType.uncaught);
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
+    }
+
     // TODO(devoncarew): handle the case where we're currently stopped on a breakpoint (i.e. main() line 1).
 
     resume();
   }
 
   @Override
-  public void debuggerPaused(List<VmCallFrame> frames) {
-    debugThread.handleDebuggerPaused(frames);
+  public void debuggerPaused(PausedReason reason, List<VmCallFrame> frames, VmValue exception) {
+    debugThread.handleDebuggerPaused(reason, frames, exception);
   }
 
   @Override
   public void debuggerResumed() {
-    debugThread.handleDebuggerResumed();
+    if (debugThread != null) {
+      debugThread.handleDebuggerResumed();
+    }
   }
 
   @Override

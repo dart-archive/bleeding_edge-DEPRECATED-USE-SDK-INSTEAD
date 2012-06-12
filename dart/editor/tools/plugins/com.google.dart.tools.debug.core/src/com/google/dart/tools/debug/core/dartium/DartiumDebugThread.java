@@ -17,6 +17,7 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
+import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -217,7 +218,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
   }
 
   protected void handleDebuggerSuspended(PausedReasonType pausedReason,
-      List<WebkitCallFrame> webkitFrames) {
+      List<WebkitCallFrame> webkitFrames, WebkitRemoteObject exception) {
     int reason = DebugEvent.BREAKPOINT;
 
     if (expectedSuspendReason != DebugEvent.UNSPECIFIED) {
@@ -234,7 +235,7 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
     suspended = true;
 
-    suspendedFrames = createFrames(webkitFrames);
+    suspendedFrames = createFrames(webkitFrames, exception);
 
     fireSuspendEvent(reason);
   }
@@ -260,11 +261,20 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
         exception));
   }
 
-  private IStackFrame[] createFrames(List<WebkitCallFrame> webkitFrames) {
+  private IStackFrame[] createFrames(List<WebkitCallFrame> webkitFrames,
+      WebkitRemoteObject exception) {
     List<IStackFrame> frames = new ArrayList<IStackFrame>();
 
-    for (WebkitCallFrame webkitFrame : webkitFrames) {
-      DartiumDebugStackFrame frame = new DartiumDebugStackFrame(getTarget(), this, webkitFrame);
+    for (int i = 0; i < webkitFrames.size(); i++) {
+      WebkitCallFrame webkitFrame = webkitFrames.get(0);
+
+      DartiumDebugStackFrame frame;
+
+      if (i == 0 && exception != null) {
+        frame = new DartiumDebugStackFrame(getTarget(), this, webkitFrame, exception);
+      } else {
+        frame = new DartiumDebugStackFrame(getTarget(), this, webkitFrame);
+      }
 
       frames.add(frame);
     }

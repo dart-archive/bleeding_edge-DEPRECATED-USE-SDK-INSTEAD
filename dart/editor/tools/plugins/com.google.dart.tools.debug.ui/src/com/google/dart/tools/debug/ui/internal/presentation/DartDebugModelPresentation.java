@@ -145,7 +145,9 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
     if (element instanceof DartiumDebugVariable) {
       DartiumDebugVariable variable = (DartiumDebugVariable) element;
 
-      if (variable.isThisObject()) {
+      if (variable.isThrownException()) {
+        return DartDebugUIPlugin.getImage("obj16/object_exception.png");
+      } else if (variable.isThisObject()) {
         return DartDebugUIPlugin.getImage("obj16/this_obj.gif");
       } else if (variable.isPrimitiveValue()) {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");
@@ -158,7 +160,9 @@ public class DartDebugModelPresentation implements IDebugModelPresentation {
     } else if (element instanceof ServerDebugVariable) {
       ServerDebugVariable variable = (ServerDebugVariable) element;
 
-      if (variable.isThisObject()) {
+      if (variable.isThrownException()) {
+        return DartDebugUIPlugin.getImage("obj16/object_exception.png");
+      } else if (variable.isThisObject()) {
         return DartDebugUIPlugin.getImage("obj16/this_obj.gif");
       } else if (variable.isListValue()) {
         return DartDebugUIPlugin.getImage("obj16/object_obj.png");

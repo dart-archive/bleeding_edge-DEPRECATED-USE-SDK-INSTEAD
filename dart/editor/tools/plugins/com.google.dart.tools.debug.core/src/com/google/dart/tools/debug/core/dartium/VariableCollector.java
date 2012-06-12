@@ -60,12 +60,22 @@ class VariableCollector {
 
   public static VariableCollector createCollector(DartiumDebugTarget target,
       List<WebkitRemoteObject> remoteObjects) {
-    return createCollector(target, (WebkitRemoteObject) null, remoteObjects);
+    return createCollector(target, (WebkitRemoteObject) null, remoteObjects, null);
   }
 
   public static VariableCollector createCollector(DartiumDebugTarget target,
       WebkitRemoteObject thisObject, List<WebkitRemoteObject> remoteObjects) {
+    return createCollector(target, (WebkitRemoteObject) null, remoteObjects, null);
+  }
+
+  public static VariableCollector createCollector(DartiumDebugTarget target,
+      WebkitRemoteObject thisObject, List<WebkitRemoteObject> remoteObjects,
+      WebkitRemoteObject exception) {
     final VariableCollector collector = new VariableCollector(target, remoteObjects.size());
+
+    if (exception != null) {
+      collector.createExceptionVariable(exception);
+    }
 
     if (thisObject != null) {
       collector.createThisVariable(thisObject);
@@ -135,6 +145,16 @@ class VariableCollector {
     }
 
     latch.countDown();
+  }
+
+  private void createExceptionVariable(WebkitRemoteObject thisObject) {
+    DartiumDebugVariable variable = new DartiumDebugVariable(
+        target,
+        WebkitPropertyDescriptor.createExceptionObjectDescriptor(thisObject));
+
+    variable.setThrownException(true);
+
+    variables.add(variable);
   }
 
   private void createThisVariable(WebkitRemoteObject thisObject) {

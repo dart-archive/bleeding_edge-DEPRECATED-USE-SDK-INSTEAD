@@ -50,12 +50,28 @@ public class VmVariable {
     return var;
   }
 
+  static VmVariable createFromException(VmValue exception) {
+    VmVariable variable = new VmVariable();
+
+    variable.name = "<exception>";
+    variable.value = exception;
+    variable.isException = true;
+
+    return variable;
+  }
+
   private VmValue value;
 
   private String name;
 
+  private boolean isException;
+
   private VmVariable() {
 
+  }
+
+  public boolean getIsException() {
+    return isException;
   }
 
   public String getName() {

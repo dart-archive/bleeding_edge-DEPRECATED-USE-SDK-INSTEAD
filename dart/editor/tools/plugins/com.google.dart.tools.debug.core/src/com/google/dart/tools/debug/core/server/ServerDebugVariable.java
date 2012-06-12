@@ -71,6 +71,10 @@ public class ServerDebugVariable extends ServerDebugElement implements IVariable
     return "this".equals(getName());
   }
 
+  public boolean isThrownException() {
+    return vmVariable.getIsException();
+  }
+
   @Override
   public void setValue(IValue value) throws DebugException {
     // TODO Auto-generated method stub

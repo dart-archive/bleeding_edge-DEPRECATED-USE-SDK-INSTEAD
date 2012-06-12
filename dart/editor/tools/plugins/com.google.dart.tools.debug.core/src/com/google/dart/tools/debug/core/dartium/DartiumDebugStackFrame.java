@@ -45,12 +45,17 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   private VariableCollector variableCollector = VariableCollector.empty();
 
   public DartiumDebugStackFrame(IDebugTarget target, IThread thread, WebkitCallFrame webkitFrame) {
+    this(target, thread, webkitFrame, null);
+  }
+
+  public DartiumDebugStackFrame(IDebugTarget target, IThread thread, WebkitCallFrame webkitFrame,
+      WebkitRemoteObject exception) {
     super(target);
 
     this.thread = thread;
     this.webkitFrame = webkitFrame;
 
-    fillInDartiumVariables();
+    fillInDartiumVariables(exception);
   }
 
   @Override
@@ -84,8 +89,8 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   public DartiumDebugVariable findVariable(String varName) throws DebugException {
-
     IVariable[] variables = getVariables();
+
     for (int i = 0; i < variables.length; i++) {
       DartiumDebugVariable var = (DartiumDebugVariable) variables[i];
       if (var.getName().equals(varName)) {
@@ -95,7 +100,6 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     }
 
     return null;
-
   }
 
   @Override
@@ -219,7 +223,12 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     getThread().terminate();
   }
 
-  private void fillInDartiumVariables() {
+  /**
+   * Fill in the IVariables from the Webkit variables.
+   * 
+   * @param exception can be null
+   */
+  private void fillInDartiumVariables(WebkitRemoteObject exception) {
     List<WebkitRemoteObject> remoteObjects = new ArrayList<WebkitRemoteObject>();
 
     WebkitRemoteObject thisObject = null;
@@ -234,7 +243,11 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
       }
     }
 
-    variableCollector = VariableCollector.createCollector(getTarget(), thisObject, remoteObjects);
+    variableCollector = VariableCollector.createCollector(
+        getTarget(),
+        thisObject,
+        remoteObjects,
+        exception);
   }
 
 }

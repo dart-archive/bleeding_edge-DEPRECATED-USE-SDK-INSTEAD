@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
+import com.google.dart.tools.debug.core.server.VmListener.PausedReason;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -197,7 +198,8 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     getTarget().terminate();
   }
 
-  protected void handleDebuggerPaused(List<VmCallFrame> frames) {
+  protected void handleDebuggerPaused(PausedReason dbgReason, List<VmCallFrame> frames,
+      VmValue exception) {
     int reason = DebugEvent.BREAKPOINT;
 
     if (expectedSuspendReason != DebugEvent.UNSPECIFIED) {
@@ -214,7 +216,7 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
 
     suspended = true;
 
-    suspendedFrames = createFrames(frames);
+    suspendedFrames = createFrames(frames, exception);
 
     fireSuspendEvent(reason);
   }
@@ -240,11 +242,15 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
         exception));
   }
 
-  private ServerDebugStackFrame[] createFrames(List<VmCallFrame> frames) {
+  private ServerDebugStackFrame[] createFrames(List<VmCallFrame> frames, VmValue exception) {
     ServerDebugStackFrame[] result = new ServerDebugStackFrame[frames.size()];
 
     for (int i = 0; i < result.length; i++) {
       result[i] = new ServerDebugStackFrame(getTarget(), this, frames.get(i));
+
+      if (i == 0 && exception != null) {
+        result[i].addException(exception);
+      }
     }
 
     return result;

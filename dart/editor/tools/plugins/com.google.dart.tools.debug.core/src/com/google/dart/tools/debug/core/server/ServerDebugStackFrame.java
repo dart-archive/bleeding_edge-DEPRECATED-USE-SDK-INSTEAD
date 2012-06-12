@@ -176,6 +176,18 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     getThread().terminate();
   }
 
+  protected void addException(VmValue exception) {
+    List<ServerDebugVariable> newLocals = new ArrayList<ServerDebugVariable>();
+
+    VmVariable exceptionVariable = VmVariable.createFromException(exception);
+
+    // Create a copy of the list, add the exception variable to the beginning.
+    newLocals.add(new ServerDebugVariable(getTarget(), exceptionVariable));
+    newLocals.addAll(locals);
+
+    locals = newLocals;
+  }
+
   private List<ServerDebugVariable> createFrom(VmCallFrame frame) {
     if (frame.getLocals() == null) {
       return Collections.emptyList();
@@ -195,4 +207,5 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
       return variables;
     }
   }
+
 }

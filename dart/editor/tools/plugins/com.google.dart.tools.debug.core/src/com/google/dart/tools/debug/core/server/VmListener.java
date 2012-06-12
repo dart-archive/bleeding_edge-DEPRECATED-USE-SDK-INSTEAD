@@ -21,8 +21,32 @@ import java.util.List;
  */
 public interface VmListener {
 
-  public void debuggerPaused(List<VmCallFrame> frames);
+  public static enum PausedReason {
+    breakpoint,
+    exception,
+    unknown;
 
+    public static PausedReason parse(String str) {
+      try {
+        return valueOf(str);
+      } catch (Throwable t) {
+        return unknown;
+      }
+    }
+  }
+
+  /**
+   * Handle the debugger paused event.
+   * 
+   * @param reason possible values are "breakpoint" and "exception"
+   * @param frames
+   * @param exception can be null
+   */
+  public void debuggerPaused(PausedReason reason, List<VmCallFrame> frames, VmValue exception);
+
+  /**
+   * Handle the debugger resumed event.
+   */
   public void debuggerResumed();
 
 }

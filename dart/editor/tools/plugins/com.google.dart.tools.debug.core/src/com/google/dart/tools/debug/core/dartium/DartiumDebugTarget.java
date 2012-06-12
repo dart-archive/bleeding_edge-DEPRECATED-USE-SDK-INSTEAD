@@ -23,8 +23,10 @@ import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.WebkitConnectionListener;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.DebuggerListenerAdapter;
+import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PauseOnExceptionsType;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
 import com.google.dart.tools.debug.core.webkit.WebkitPage;
+import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
 
 import org.eclipse.core.resources.IMarkerDelta;
@@ -47,7 +49,6 @@ import java.util.List;
 public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTarget {
   private static DartiumDebugTarget activeTarget;
 
-  // TODO(devoncarew): replace this singleton with a more sophisticated architecture.
   public static DartiumDebugTarget getActiveTarget() {
     return activeTarget;
   }
@@ -266,8 +267,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       }
 
       @Override
-      public void debuggerPaused(PausedReasonType reason, List<WebkitCallFrame> frames, Object data) {
-        debugThread.handleDebuggerSuspended(reason, frames);
+      public void debuggerPaused(PausedReasonType reason, List<WebkitCallFrame> frames,
+          WebkitRemoteObject exception) {
+        debugThread.handleDebuggerSuspended(reason, frames, exception);
       }
 
       @Override
@@ -294,9 +296,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       breakpointManager.connect();
     }
 
-    // TODO(devoncarew): the VM does not yet support this, and we'd want a way to expose this in
-    // the UI as an toggle.
-    //connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
+    // Turn on break-on-exceptions.
+    connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.uncaught);
 
     connection.getPage().navigate(url);
   }

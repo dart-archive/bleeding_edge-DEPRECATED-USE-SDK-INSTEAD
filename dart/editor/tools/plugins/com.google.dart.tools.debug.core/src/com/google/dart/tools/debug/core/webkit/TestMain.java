@@ -95,7 +95,8 @@ class TestMain {
       }
 
       @Override
-      public void debuggerPaused(PausedReasonType reason, List<WebkitCallFrame> frames, Object data) {
+      public void debuggerPaused(PausedReasonType reason, List<WebkitCallFrame> frames,
+          WebkitRemoteObject exception) {
         System.out.println("debugger paused: " + reason);
 
         for (WebkitCallFrame frame : frames) {

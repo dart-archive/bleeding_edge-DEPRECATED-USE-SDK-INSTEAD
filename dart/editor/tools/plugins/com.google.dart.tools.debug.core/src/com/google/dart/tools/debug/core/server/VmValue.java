@@ -22,6 +22,10 @@ import org.json.JSONObject;
 public class VmValue {
 
   static VmValue createFrom(JSONObject obj) {
+    if (obj == null) {
+      return null;
+    }
+
     // {"objectId":4,"kind":"object","text":"Instance of '_HttpServer@14117cc4'"}
 
     VmValue value = new VmValue();

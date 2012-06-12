@@ -29,6 +29,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
   private DartiumDebugVariable parent;
   private DartiumDebugValue value;
   private boolean isThisObject;
+  private boolean thrownException;
 
   /**
    * Create a new Dartium Debug Variable
@@ -104,6 +105,10 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
     return isThisObject;
   }
 
+  public boolean isThrownException() {
+    return thrownException;
+  }
+
   @Override
   public void setValue(IValue value) throws DebugException {
     setValue(value.getValueString());
@@ -146,6 +151,10 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IVariab
 
   protected void setParent(DartiumDebugVariable parent) {
     this.parent = parent;
+  }
+
+  protected void setThrownException(boolean value) {
+    thrownException = value;
   }
 
   private boolean isListMember() {

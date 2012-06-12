@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.server.VmListener.PausedReason;
 import com.google.dart.tools.debug.core.webkit.JsonUtils;
 
 import org.json.JSONArray;
@@ -42,6 +43,12 @@ import java.util.concurrent.CountDownLatch;
  * A low level interface to the Dart VM debugger protocol.
  */
 public class VmConnection {
+
+  public static enum BreakOnExceptionsType {
+    all,
+    none,
+    uncaught
+  }
 
   static interface Callback {
     public void handleResult(JSONObject result) throws JSONException;
@@ -357,6 +364,26 @@ public class VmConnection {
     }
   }
 
+  /**
+   * Set the VM to pause on exceptions.
+   * 
+   * @param kind
+   * @throws IOException
+   */
+  public void setPauseOnExceptions(BreakOnExceptionsType kind) throws IOException {
+    // pauseOnException
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "setPauseOnException");
+      request.put("params", new JSONObject().put("exceptions", kind.toString()));
+
+      sendRequest(request, null);
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
   public void stepInto() throws IOException {
     sendSimpleCommand("stepInto", resumeOnSuccess());
   }
@@ -531,10 +558,12 @@ public class VmConnection {
       if (eventName.equals(EVENT_PAUSED)) {
         // { "event": "paused", "params": { "callFrames" : [  { "functionName": "main" , "location": { "url": "file:///Users/devoncarew/tools/eclipse_37/eclipse/samples/time/time_server.dart", "lineNumber": 15 }}]}}
 
+        String reason = params.optString("reason", null);
+        VmValue exception = VmValue.createFrom(params.optJSONObject("exception"));
         List<VmCallFrame> frames = VmCallFrame.createFrom(params.getJSONArray("callFrames"));
 
         for (VmListener listener : listeners) {
-          listener.debuggerPaused(frames);
+          listener.debuggerPaused(PausedReason.parse(reason), frames, exception);
         }
       } else if (eventName.equals(EVENT_BREAKPOINTRESOLVED)) {
         // { "event": "breakpointResolved", "params": {"breakpointId": 2, "url": "file:///Users/devoncarew/tools/eclipse_37/eclipse/samples/time/time_server.dart", "line": 19 }}

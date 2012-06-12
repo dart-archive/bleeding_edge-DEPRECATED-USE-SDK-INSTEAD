@@ -226,7 +226,7 @@ public class DebuggerViewManager implements ILaunchListener, ISuspendTriggerList
           IWorkbenchPage[] pages = windows[0].getPages();
 
           if (pages.length > 0) {
-            pages[0].showView(DebuggerView.ID);
+            pages[0].showView(DebuggerView.ID, null, IWorkbenchPage.VIEW_ACTIVATE);
           }
         }
       } else {
