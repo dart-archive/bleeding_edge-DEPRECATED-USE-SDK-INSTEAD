@@ -31,8 +31,8 @@ import java.util.Iterator;
  * files found to the {@link AnalysisServer}.
  */
 public class LibraryScanTask extends Task {
-  private static final long SCAN_BYTE_THRESHOLD = 2 * 1000 * 1000;
-  private static final long SCAN_TIME_THRESHOLD = 1000;
+  private static final long SCAN_BYTE_THRESHOLD = 10 * 1000 * 1024; // 10 MB
+  private static final long SCAN_TIME_THRESHOLD = 10 * 1000; // ten seconds
 
   private final AnalysisServer server;
   private final Context context;
