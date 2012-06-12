@@ -176,7 +176,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
     try {
       // Turn on break-on-exceptions.
-      connection.setPauseOnExceptions(BreakOnExceptionsType.uncaught);
+      connection.setPauseOnException(BreakOnExceptionsType.unhandled);
     } catch (IOException e) {
       DartDebugCorePlugin.logError(e);
     }

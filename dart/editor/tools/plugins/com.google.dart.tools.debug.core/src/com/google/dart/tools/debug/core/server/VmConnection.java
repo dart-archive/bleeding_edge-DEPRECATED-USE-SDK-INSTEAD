@@ -37,8 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-// TODO(devoncarew): implement getLibraryProperties
-
 /**
  * A low level interface to the Dart VM debugger protocol.
  */
@@ -47,7 +45,7 @@ public class VmConnection {
   public static enum BreakOnExceptionsType {
     all,
     none,
-    uncaught
+    unhandled
   }
 
   static interface Callback {
@@ -370,7 +368,7 @@ public class VmConnection {
    * @param kind
    * @throws IOException
    */
-  public void setPauseOnExceptions(BreakOnExceptionsType kind) throws IOException {
+  public void setPauseOnException(BreakOnExceptionsType kind) throws IOException {
     // pauseOnException
     try {
       JSONObject request = new JSONObject();
