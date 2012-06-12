@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.tools.core.utilities.ast.RefinableTypesFinder;
@@ -38,7 +39,13 @@ public class SemanticHighlightings {
     public boolean consumes(SemanticToken token) {
       DartIdentifier node = token.getNode();
       NodeElement element = node.getElement();
-      return element instanceof FieldElement;
+      if (element instanceof FieldElement) {
+        FieldElement field = (FieldElement) element;
+        //skip getters/setters
+        Modifiers modifiers = field.getModifiers();
+        return !modifiers.isGetter() && !modifiers.isSetter();
+      }
+      return false;
     }
 
     @Override
