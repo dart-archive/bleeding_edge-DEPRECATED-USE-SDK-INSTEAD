@@ -208,6 +208,10 @@ module core {
         CSSStyleDeclaration createCSSStyleDeclaration();
 #endif
 
+#if defined(LANGUAGE_JAVASCRIPT) && LANGUAGE_JAVASCRIPT
+        readonly attribute [Conditional=UNDO_MANAGER] UndoManager undoManager;
+#endif
+
 #if defined(LANGUAGE_OBJECTIVE_C) && LANGUAGE_OBJECTIVE_C
         // DOM Level 2 Style Interface
         [ObjCLegacyUnnamedParameters, ObjCUseDefaultView] CSSStyleDeclaration getComputedStyle(in Element element,
@@ -330,6 +334,8 @@ module core {
         attribute [NotEnumerable,Conditional=TOUCH_EVENTS,V8EnabledAtRuntime] EventListener ontouchcancel;
         attribute [NotEnumerable, Conditional=FULLSCREEN_API] EventListener onwebkitfullscreenchange;
         attribute [NotEnumerable, Conditional=FULLSCREEN_API] EventListener onwebkitfullscreenerror;
+        attribute [NotEnumerable, Conditional=POINTER_LOCK] EventListener onwebkitpointerlockchange;
+        attribute [NotEnumerable, Conditional=POINTER_LOCK] EventListener onwebkitpointerlockerror;
 #endif
 
 #if defined(ENABLE_TOUCH_EVENTS) && ENABLE_TOUCH_EVENTS

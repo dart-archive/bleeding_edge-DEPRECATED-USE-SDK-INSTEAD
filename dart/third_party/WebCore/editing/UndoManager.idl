@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Google Inc.  All rights reserved.
+ * Copyright (C) 2012 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,21 +28,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-module html {
-    exception [
-        Conditional=BLOB,
-        DoNotCheckConstants,
-        JSNoStaticTables
-    ] OperationNotAllowedException {
-        readonly attribute unsigned short   code;
-        readonly attribute DOMString        name;
-        readonly attribute DOMString        message;
+module core {
 
-#if defined(LANGUAGE_JAVASCRIPT) && LANGUAGE_JAVASCRIPT
-        // Override in a Mozilla compatible format
-        [NotEnumerable] DOMString toString();
-#endif
+    interface [
+        Conditional=UNDO_MANAGER
+    ] UndoManager {
+        void undo();
+        void redo();
 
-        const unsigned short NOT_ALLOWED_ERR = 1;
+        void clearUndo();
+        void clearRedo();
     };
+
 }
