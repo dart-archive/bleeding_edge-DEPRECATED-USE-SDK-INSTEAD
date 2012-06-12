@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.feedback;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.ui.util.PrintStringWriter;
 
@@ -56,9 +55,9 @@ public class FeedbackReport {
    * 
    * @return a detail string suitable for preview
    */
-  public String getDetailString() {
+  public String getDetailString(boolean sendAdditionalData) {
     PrintStringWriter writer = new PrintStringWriter();
-    new FeedbackWriter(this).writeDetails(writer);
+    new FeedbackWriter(this, sendAdditionalData).writeDetails(writer);
     writer.flush();
     return writer.toString();
   }
@@ -71,13 +70,11 @@ public class FeedbackReport {
   public String getOptionsText() {
     StringBuilder msg = new StringBuilder();
 
-    msg.append("SDK installed = " + DartSdk.isInstalled() + "\n");
+    msg.append("SDK installed: " + DartSdk.isInstalled() + "\n");
 
     if (DartSdk.isInstalled()) {
-      msg.append("Dartium installed = " + DartSdk.getInstance().isDartiumInstalled() + "\n");
+      msg.append("Dartium installed: " + DartSdk.getInstance().isDartiumInstalled() + "\n");
     }
-
-    msg.append("AnalysisServer enabled = " + DartCoreDebug.ANALYSIS_SERVER);
 
     return msg.toString().trim();
   }

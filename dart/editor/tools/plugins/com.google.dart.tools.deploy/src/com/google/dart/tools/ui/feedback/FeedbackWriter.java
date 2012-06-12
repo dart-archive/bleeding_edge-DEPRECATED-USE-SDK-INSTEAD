@@ -65,10 +65,15 @@ public class FeedbackWriter {
    * @param writer the writer
    */
   void writeDetails(PrintWriter writer) {
+    writer.println("Editor: " + feedback.getEditorVersion()); //$NON-NLS-1$
     writer.println("OS: " + feedback.getOsDetails()); //$NON-NLS-1$
+    writer.println("JVM: " + System.getProperties().getProperty("java.version")); //$NON-NLS-1$
+    writer.println();
     writer.println(feedback.getOptionsText());
-    writeGroupDelim(writer);
-    writer.println(feedback.getLogContents());
+    if (sendAdditionData) {
+      writeGroupDelim(writer);
+      writer.println(feedback.getLogContents());
+    }
   }
 
   /**
@@ -83,11 +88,7 @@ public class FeedbackWriter {
   private void doWrite(PrintWriter writer) {
     writeFeedbackText(writer);
     writeGroupDelim(writer);
-    writer.println("Editor Version: " + feedback.getEditorVersion()); //$NON-NLS-1$
-    if (sendAdditionData) {
-      writeGroupDelim(writer);
-      writeDetails(writer);
-    }
+    writeDetails(writer);
   }
 
   private void writeGroupDelim(PrintWriter writer) {

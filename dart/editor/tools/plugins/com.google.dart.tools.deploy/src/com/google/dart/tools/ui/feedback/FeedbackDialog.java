@@ -267,7 +267,8 @@ public class FeedbackDialog extends Dialog implements IRunnableContext {
       @Override
       public void widgetSelected(SelectionEvent e) {
         try {
-          LogViewer logViewer = new LogViewer(getShell(), feedbackReport.getDetailString());
+          LogViewer logViewer = new LogViewer(getShell(),
+              feedbackReport.getDetailString(sendAdditionData()));
 
           logViewer.open();
         } catch (Throwable th) {
