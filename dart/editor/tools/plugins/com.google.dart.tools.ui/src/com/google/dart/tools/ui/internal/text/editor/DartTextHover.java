@@ -109,7 +109,7 @@ public class DartTextHover extends DefaultTextHover {
       if (documentable != null) {
         StringBuffer docs = new StringBuffer();
 
-        docs.append("<b>" + DartDocUtilities.getTextSummary(documentable) + "</b>");
+        docs.append("<b>" + DartDocUtilities.getTextSummaryAsHtml(documentable) + "</b>");
 
         String dartdoc = DartDocUtilities.getDartDocAsHtml(documentable);
 

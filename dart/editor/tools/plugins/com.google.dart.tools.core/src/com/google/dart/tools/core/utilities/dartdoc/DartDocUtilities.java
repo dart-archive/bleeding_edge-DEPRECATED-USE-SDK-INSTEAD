@@ -245,6 +245,13 @@ public final class DartDocUtilities {
     }
   }
 
+  /**
+   * @return a one-line description of the given documentable DartElement
+   */
+  public static String getTextSummaryAsHtml(DartDocumentable documentable) {
+    return convertToHtml(getTextSummary(documentable));
+  }
+
   private static String convertListItems(String[] lines) {
     StringBuffer buf = new StringBuffer();
 
@@ -262,6 +269,10 @@ public final class DartDocUtilities {
   }
 
   private static String convertToHtml(String str) {
+    if (str == null) {
+      return null;
+    }
+
     // escape html entities
     str = str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 
