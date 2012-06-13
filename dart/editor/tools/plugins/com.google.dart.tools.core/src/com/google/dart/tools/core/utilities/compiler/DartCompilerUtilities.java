@@ -481,7 +481,7 @@ public class DartCompilerUtilities {
       libraryResult = secureAnalyzeLibrary(librarySource, parsedUnits, config, provider, this);
       if (libraryResult != null && unitUri != null) {
         for (DartUnit unit : libraryResult.getUnits()) {
-          DartSource source = (DartSource) unit.getSourceInfo().getSource();
+          Source source = unit.getSourceInfo().getSource();
           if (source != null) {
             if (equalUris(libraryManager, unitUri, source.getUri())) {
               unitResult = unit;
