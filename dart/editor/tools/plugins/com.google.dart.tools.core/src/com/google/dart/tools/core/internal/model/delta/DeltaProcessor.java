@@ -47,7 +47,6 @@ import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.SafeRunner;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -1132,9 +1131,7 @@ public class DeltaProcessor {
     } catch (DartModelException e) {
       DartCore.logError(e);
       resetThisProjectCache((DartProjectImpl) DartCore.create(htmlFile.getProject()));
-    } catch (CoreException e) {
-      DartCore.logError(e);
-    } catch (IOException e) {
+    } catch (Exception e) {
       DartCore.logError(e);
     }
     return false;
