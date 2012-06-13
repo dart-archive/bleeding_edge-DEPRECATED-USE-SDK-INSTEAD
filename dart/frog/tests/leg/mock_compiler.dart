@@ -34,6 +34,7 @@ final String DEFAULT_HELPERLIB = @'''
   indexSet(a, index, value) {}
   setRuntimeTypeInfo(a, b) {}
   getRuntimeTypeInfo(a) {}
+  interface JavaScriptIndexingBehavior {}
   S() {}''';
 
 final String DEFAULT_INTERCEPTORSLIB = @'''
