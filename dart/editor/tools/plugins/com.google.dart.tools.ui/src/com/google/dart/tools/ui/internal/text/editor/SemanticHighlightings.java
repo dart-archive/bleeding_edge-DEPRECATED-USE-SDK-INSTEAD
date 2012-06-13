@@ -39,7 +39,7 @@ public class SemanticHighlightings {
     public boolean consumes(SemanticToken token) {
       DartIdentifier node = token.getNode();
       NodeElement element = node.getElement();
-      if (element.isDynamic()) {
+      if (element == null || element.isDynamic()) {
         return false;
       }
       if (element instanceof FieldElement) {
@@ -145,7 +145,7 @@ public class SemanticHighlightings {
     public boolean consumes(SemanticToken token) {
       DartIdentifier node = token.getNode();
       NodeElement element = node.getElement();
-      if (element.isDynamic()) {
+      if (element == null || element.isDynamic()) {
         return false;
       }
       if (element instanceof FieldElement) {
