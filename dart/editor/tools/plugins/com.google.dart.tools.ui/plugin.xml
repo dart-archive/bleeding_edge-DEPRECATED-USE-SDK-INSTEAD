@@ -401,7 +401,7 @@
             allowMultiple="false"
             category="com.google.dart.tools.ui.dart"
             class="com.google.dart.tools.ui.internal.appsview.AppsView"
-            icon="icons/full/obj16/file_folder.gif"
+            icon="icons/full/dart16/app_icon.png"
             id="com.google.dart.tools.ui.AppsView"
             name="Apps"
             restorable="true">

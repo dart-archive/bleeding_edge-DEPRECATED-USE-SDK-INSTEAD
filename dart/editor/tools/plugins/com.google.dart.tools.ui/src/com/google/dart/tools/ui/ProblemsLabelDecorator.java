@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
+ * Copyright (c) 2012, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
 package com.google.dart.tools.ui;
@@ -308,6 +306,36 @@ public class ProblemsLabelDecorator implements ILabelDecorator, ILightweightLabe
     return 0;
   }
 
+  protected int getErrorTicksFromMarkers(IResource res, int depth, SourceReference sourceElement)
+      throws CoreException {
+    if (res == null || !res.isAccessible()) {
+      return 0;
+    }
+    int severity = 0;
+    if (sourceElement == null) {
+      severity = res.findMaxProblemSeverity(IMarker.PROBLEM, true, depth);
+    } else {
+      IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, depth);
+      if (markers != null && markers.length > 0) {
+        for (int i = 0; i < markers.length && (severity != IMarker.SEVERITY_ERROR); i++) {
+          IMarker curr = markers[i];
+          if (isMarkerInRange(curr, sourceElement)) {
+            int val = curr.getAttribute(IMarker.SEVERITY, -1);
+            if (val == IMarker.SEVERITY_WARNING || val == IMarker.SEVERITY_ERROR) {
+              severity = val;
+            }
+          }
+        }
+      }
+    }
+    if (severity == IMarker.SEVERITY_ERROR) {
+      return ERRORTICK_ERROR;
+    } else if (severity == IMarker.SEVERITY_WARNING) {
+      return ERRORTICK_WARNING;
+    }
+    return 0;
+  }
+
   /**
    * Tests if a position is inside the source range of an element.
    * 
@@ -356,36 +384,6 @@ public class ProblemsLabelDecorator implements ILabelDecorator, ILightweightLabe
       }
     }
     return info;
-  }
-
-  private int getErrorTicksFromMarkers(IResource res, int depth, SourceReference sourceElement)
-      throws CoreException {
-    if (res == null || !res.isAccessible()) {
-      return 0;
-    }
-    int severity = 0;
-    if (sourceElement == null) {
-      severity = res.findMaxProblemSeverity(IMarker.PROBLEM, true, depth);
-    } else {
-      IMarker[] markers = res.findMarkers(IMarker.PROBLEM, true, depth);
-      if (markers != null && markers.length > 0) {
-        for (int i = 0; i < markers.length && (severity != IMarker.SEVERITY_ERROR); i++) {
-          IMarker curr = markers[i];
-          if (isMarkerInRange(curr, sourceElement)) {
-            int val = curr.getAttribute(IMarker.SEVERITY, -1);
-            if (val == IMarker.SEVERITY_WARNING || val == IMarker.SEVERITY_ERROR) {
-              severity = val;
-            }
-          }
-        }
-      }
-    }
-    if (severity == IMarker.SEVERITY_ERROR) {
-      return ERRORTICK_ERROR;
-    } else if (severity == IMarker.SEVERITY_WARNING) {
-      return ERRORTICK_WARNING;
-    }
-    return 0;
   }
 
   private ImageDescriptorRegistry getRegistry() {

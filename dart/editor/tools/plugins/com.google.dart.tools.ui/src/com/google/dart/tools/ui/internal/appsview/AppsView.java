@@ -14,8 +14,9 @@
 package com.google.dart.tools.ui.internal.appsview;
 
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.filesview.FilesViewDragAdapter;
@@ -32,8 +33,10 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.LocalSelectionTransfer;
@@ -50,6 +53,7 @@ import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
@@ -114,8 +118,7 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     treeViewer.setContentProvider(new AppsViewContentProvider());
     appLabelProvider = new AppLabelProvider(treeViewer.getTree().getFont());
     treeViewer.setLabelProvider(new LabelProviderWrapper(appLabelProvider,
-        new ProblemsLabelDecorator(), null));
-//    treeViewer.setLabelProvider(appLabelProvider);
+        new AppProblemsDecorator(), null));
     treeViewer.setComparator(new AppsViewComparator());
     treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
@@ -175,9 +178,17 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     if (expandedElements.length > 0) {
       IMemento expandedMem = memento.createChild(TAG_EXPANDED);
       for (Object element : expandedElements) {
-        if (element instanceof IResource) {
+        ElementTreeNode node = (ElementTreeNode) element;
+        DartElement dartElement = node.getModelElement();
+        IResource resource = null;
+        try {
+          resource = dartElement.getCorrespondingResource();
+        } catch (DartModelException ex) {
+          // ignore it
+        }
+        if (resource != null) {
           IMemento elementMem = expandedMem.createChild(TAG_ELEMENT);
-          elementMem.putString(TAG_PATH, ((IResource) element).getFullPath().toString());
+          elementMem.putString(TAG_PATH, resource.getFullPath().toString());
         }
       }
     }
@@ -187,9 +198,17 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     if (elements.length > 0) {
       IMemento selectionMem = memento.createChild(TAG_SELECTION);
       for (Object element : elements) {
-        if (element instanceof IResource) {
+        ElementTreeNode node = (ElementTreeNode) element;
+        DartElement dartElement = node.getModelElement();
+        IResource resource = null;
+        try {
+          resource = dartElement.getCorrespondingResource();
+        } catch (DartModelException ex) {
+          // ignore it
+        }
+        if (resource != null) {
           IMemento elementMem = selectionMem.createChild(TAG_ELEMENT);
-          elementMem.putString(TAG_PATH, ((IResource) element).getFullPath().toString());
+          elementMem.putString(TAG_PATH, resource.getFullPath().toString());
         }
       }
     }
@@ -206,6 +225,17 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
   }
 
   protected void createContextMenu() {
+    MenuManager menuMgr = new MenuManager("#PopupMenu"); //$NON-NLS-1$
+    menuMgr.setRemoveAllWhenShown(true);
+    menuMgr.addMenuListener(new IMenuListener() {
+      @Override
+      public void menuAboutToShow(IMenuManager manager) {
+        fillContextMenu(manager);
+      }
+    });
+    Menu menu = menuMgr.createContextMenu(treeViewer.getTree());
+    treeViewer.getTree().setMenu(menu);
+    getSite().registerContextMenu(menuMgr, treeViewer);
   }
 
   protected void fillContextMenu(IMenuManager manager) {
@@ -264,12 +294,19 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     IContainer container = ResourcesPlugin.getWorkspace().getRoot();
     //restore expansion
     IMemento childMem = memento.getChild(TAG_EXPANDED);
+    AppsViewContentProvider contentProvider = (AppsViewContentProvider) treeViewer.getContentProvider();
     if (childMem != null) {
       List<Object> elements = new ArrayList<Object>();
       for (IMemento mem : childMem.getChildren(TAG_ELEMENT)) {
         Object element = container.findMember(mem.getString(TAG_PATH));
         if (element != null) {
-          elements.add(element);
+          ElementTreeNode node = contentProvider.findNode(element);
+          if (node.isLeaf()) {
+            node = node.getParentNode();
+          }
+          if (node != null) {
+            elements.add(node);
+          }
         }
       }
       treeViewer.setExpandedElements(elements.toArray());
@@ -281,7 +318,7 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
       for (IMemento mem : childMem.getChildren(TAG_ELEMENT)) {
         Object element = container.findMember(mem.getString(TAG_PATH));
         if (element != null) {
-          list.add(element);
+          list.add(contentProvider.findNode(element));
         }
       }
       treeViewer.setSelection(new StructuredSelection(list));

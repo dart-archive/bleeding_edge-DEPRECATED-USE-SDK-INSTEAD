@@ -28,7 +28,7 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 public class AppLabelProvider implements IStyledLabelProvider, ILabelProvider {
   private static final String LIBRARY_ICON = "icons/full/dart16/dart_library.png";
-  private static final String APP_ICON = "icons/full/obj16/empty_pack_obj.gif";
+  private static final String APP_ICON = "icons/full/dart16/app_icon.png";
 
   public WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
 

@@ -53,7 +53,39 @@ public class AppsViewContentProvider implements ITreeContentProvider, IResourceC
 
   private static final IResource[] NO_CHILDREN = new IResource[0];
   private static final List<ElementTreeNode> TREE_LEAF = Collections.emptyList();
+
+  public static List<ElementTreeNode> collectFiles(ElementTreeNode node) {
+    Set<ElementTreeNode> children = new HashSet<ElementTreeNode>();
+    collectFiles(node, children);
+    return Lists.create(children);
+  }
+
+  public static List<ElementTreeNode> collectLibraries(ElementTreeNode node) {
+    Set<ElementTreeNode> children = new HashSet<ElementTreeNode>();
+    collectLibraries(node, children); // get all libraries at any depth
+    collectFiles(node, children); // get files define by the library
+    return Lists.create(children);
+  }
+
+  private static void collectFiles(ElementTreeNode node, Set<ElementTreeNode> children) {
+    for (ElementTreeNode child : node.getChildNodes()) {
+      if (child.isLeaf()) {
+        children.add(child);
+      }
+    }
+  }
+
+  private static void collectLibraries(ElementTreeNode node, Set<ElementTreeNode> children) {
+    for (ElementTreeNode child : node.getChildNodes()) {
+      if (child.isLib()) {
+        children.add(child);
+        collectLibraries(child, children);
+      }
+    }
+  }
+
   private Viewer viewer;
+
   private Map<DartElement, ElementTreeNode> map;
 
   public AppsViewContentProvider() {
@@ -156,36 +188,6 @@ public class AppsViewContentProvider implements ITreeContentProvider, IResourceC
         }
       }
     });
-  }
-
-  private List<ElementTreeNode> collectFiles(ElementTreeNode node) {
-    Set<ElementTreeNode> children = new HashSet<ElementTreeNode>();
-    collectFiles(node, children);
-    return Lists.create(children);
-  }
-
-  private void collectFiles(ElementTreeNode node, Set<ElementTreeNode> children) {
-    for (ElementTreeNode child : node.getChildNodes()) {
-      if (child.isLeaf()) {
-        children.add(child);
-      }
-    }
-  }
-
-  private List<ElementTreeNode> collectLibraries(ElementTreeNode node) {
-    Set<ElementTreeNode> children = new HashSet<ElementTreeNode>();
-    collectLibraries(node, children); // get all libraries at any depth
-    collectFiles(node, children); // get files define by the library
-    return Lists.create(children);
-  }
-
-  private void collectLibraries(ElementTreeNode node, Set<ElementTreeNode> children) {
-    for (ElementTreeNode child : node.getChildNodes()) {
-      if (child.isLib()) {
-        children.add(child);
-        collectLibraries(child, children);
-      }
-    }
   }
 
   private List<DartLibrary> findAllLibraries(IWorkspaceRoot root) throws CoreException {
