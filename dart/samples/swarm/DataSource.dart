@@ -186,8 +186,8 @@ class Article {
 
   Article(this.dataSource, this.id, this.date, this.title, this.author,
       this.srcUrl, this.hasThumbnail, this.textBody,
-      [this._htmlBody = null, bool unread = true, this.error = false])
-    : unread = new ObservableValue<bool>(unread);
+      [htmlBody = null, bool unread = true, this.error = false])
+    : unread = new ObservableValue<bool>(unread), this._htmlBody = htmlBody;
 
   String get htmlBody() {
     _ensureLoaded();
