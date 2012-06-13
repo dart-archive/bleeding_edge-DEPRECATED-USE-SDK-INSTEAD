@@ -355,11 +355,12 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
   }
 
   private void updateContentDescription() {
-    if (console == null) {
-      setContentDescription("");
-    } else {
-      setContentDescription(console.getName());
-    }
+    // Commented out so that more horizontal space is available for the console's contents.
+//    if (console == null) {
+//      setContentDescription("");
+//    } else {
+//      setContentDescription(console.getName());
+//    }
 
     if (console instanceof ProcessConsole) {
       IProcess process = ((ProcessConsole) console).getProcess();
