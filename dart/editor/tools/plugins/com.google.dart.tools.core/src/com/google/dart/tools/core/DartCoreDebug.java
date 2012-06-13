@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core;
 
+import com.google.dart.compiler.util.apache.StringUtils;
+
 import org.eclipse.core.runtime.Platform;
 
 /**
@@ -50,9 +52,21 @@ public class DartCoreDebug {
   public static final boolean ENABLE_UPDATE = isOptionTrue("experimental/update");
   public static final boolean ENABLE_ALT_KEY_BINDINGS = isOptionTrue("experimental/altKeyBindings");
   public static final boolean ENABLE_SEMANTIC_HIGHLIGHTING = true; //isOptionTrue("experimental/semanticHighlighting");
+  public static final boolean HIDE_SHADOW_WARNINGS = isOptionTrue("experimental/hideShadowWarnings");
 
+  /**
+   * @return <code>true</code> if option has value "true".
+   */
   private static boolean isOptionTrue(String optionSuffix) {
-    return "true".equalsIgnoreCase(Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix));
+    return isOptionValue(optionSuffix, "true");
+  }
+
+  /**
+   * @return <code>true</code> if option has "expected" value.
+   */
+  private static boolean isOptionValue(String optionSuffix, String expected) {
+    String value = Platform.getDebugOption(DartCore.PLUGIN_ID + "/" + optionSuffix);
+    return StringUtils.equalsIgnoreCase(value, expected);
   }
 
 }

@@ -50,6 +50,7 @@
 	    <super type="org.eclipse.core.resources.taskmarker"/> 
 	    <persistent value="true"/>
 	</extension>
+
  <extension
        id="refinableType"
        name="%dart.marker.refinableType.name"

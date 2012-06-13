@@ -14,9 +14,12 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.SubSystem;
+import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 
 import org.eclipse.core.resources.IMarker;
@@ -40,6 +43,7 @@ public class AnalysisMarkerManager implements AnalysisListener {
    * Adds markers for the specified errors and warnings
    */
   private class AddMarkersOp extends MarkerOp {
+
     private final Collection<AnalysisError> errors;
 
     AddMarkersOp(Collection<AnalysisError> errors) {
@@ -50,6 +54,10 @@ public class AnalysisMarkerManager implements AnalysisListener {
      * Create an error marker for the specified file
      */
     void createMarker(File file, DartCompilationError error) {
+      if (DartCoreDebug.HIDE_SHADOW_WARNINGS && isShadowWarning(error)) {
+        return;
+      }
+
       if (file == null || error == null) {
         return;
       }
@@ -137,6 +145,18 @@ public class AnalysisMarkerManager implements AnalysisListener {
         DartCore.logError("Failed to clear markers for " + res, e);
       }
     }
+  }
+
+  /**
+   * @return if given {@link DartCompilationError} is warning that some element shadows other
+   *         element.
+   */
+  private static boolean isShadowWarning(DartCompilationError error) {
+    ErrorCode errorCode = error.getErrorCode();
+    return errorCode == ResolverErrorCode.DUPLICATE_FUNCTION_EXPRESSION_WARNING
+        || errorCode == ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING
+        || errorCode == ResolverErrorCode.DUPLICATE_PARAMETER_WARNING
+        || errorCode == ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING;
   }
 
   /**
