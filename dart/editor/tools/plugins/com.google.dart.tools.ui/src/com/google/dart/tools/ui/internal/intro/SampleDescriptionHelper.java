@@ -84,6 +84,7 @@ public final class SampleDescriptionHelper {
           private StringBuilder sb = new StringBuilder();
           private String name;
           private String filePath;
+          private String keywordText;
           private String descriptionText;
 
           @Override
@@ -99,7 +100,7 @@ public final class SampleDescriptionHelper {
             if (qName.equals("sample") && filePath != null && name != null
                 && descriptionText != null) {
               descriptions.add(new SampleDescription(directory, filePath, name, descriptionText,
-                  logoFile));
+                  keywordText, logoFile));
             }
           }
 
@@ -110,6 +111,7 @@ public final class SampleDescriptionHelper {
             if (qName.equals("sample")) {
               name = attributes.getValue("name");
               filePath = attributes.getValue("file");
+              keywordText = attributes.getValue("keywords");
             }
           }
         };

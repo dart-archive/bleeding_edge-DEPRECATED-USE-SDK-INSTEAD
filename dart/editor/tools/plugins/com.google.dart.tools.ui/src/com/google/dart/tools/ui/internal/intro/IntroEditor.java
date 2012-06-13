@@ -163,6 +163,7 @@ public class IntroEditor extends EditorPart {
           sampleHtml = sampleHtml.replace("${name}", description.name); //$NON-NLS-1$
           sampleHtml = sampleHtml.replace("${logo}", description.logo.toURI().toString()); //$NON-NLS-1$
           sampleHtml = sampleHtml.replace("${description}", description.description); //$NON-NLS-1$
+          sampleHtml = sampleHtml.replace("${keywords}", description.getKeywords()); //$NON-NLS-1$
           sb.append(sampleHtml);
         }
         // apply "samples" into template
