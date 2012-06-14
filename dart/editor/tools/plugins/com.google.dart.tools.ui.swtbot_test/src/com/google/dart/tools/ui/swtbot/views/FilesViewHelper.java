@@ -40,7 +40,7 @@ public class FilesViewHelper {
 
   public static String SDK_TEXT = "SDK Libraries";
 
-  public static String REMOVE_FROM_EDITOR_TEXT = "Remove from Editor";
+  public static String CLOSE_FOLDER_TEXT = "Close Folder";
   public static String RUN_TEXT = "Run";
 
   private SWTBotTree tree;
@@ -79,7 +79,7 @@ public class FilesViewHelper {
    * @param projectLabel the name of the top level directory in the Files view that will get this
    *          context menu click
    * @param commandLabel the name of the action on the context menu for the specified project, an
-   *          example is {@link #REMOVE_FROM_EDITOR_TEXT}
+   *          example is {@link #CLOSE_FOLDER_TEXT}
    * @return <code>true</code> if the click action was successful
    */
   public boolean contextClick(String projectLabel, String commandLabel) {
@@ -126,7 +126,7 @@ public class FilesViewHelper {
   public boolean contextClick_removeFromEditor(String projectLabel) {
     int beforeCount = getItems().length;
     // Click the Remove action, if successful, wait for dialog
-    if (contextClick(projectLabel, REMOVE_FROM_EDITOR_TEXT)) {
+    if (contextClick(projectLabel, CLOSE_FOLDER_TEXT)) {
       // assert that the item disappears from the view within 200 ms
       bot.sleep(200);
       assertEquals("After removing " + projectLabel
@@ -178,7 +178,7 @@ public class FilesViewHelper {
     assertTrue(filePaths.length > 0);
     SWTBotTreeItem[] items = parent.getItems();
     for (SWTBotTreeItem childTreeItem : items) {
-      if (childTreeItem.getText().equals(filePaths[0])) {
+      if (childTreeItem.getText().startsWith(filePaths[0])) {
         if (filePaths.length == 1) {
           //base case:
           return childTreeItem;
