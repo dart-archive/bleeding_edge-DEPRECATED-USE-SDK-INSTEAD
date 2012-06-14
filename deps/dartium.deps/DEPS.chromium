@@ -8,10 +8,10 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "120155",
+  "webkit_revision": "120277",
   "chromium_git": "http://git.chromium.org/git",
   "swig_revision": "69281",
-  "nacl_revision": "8907",
+  "nacl_revision": "8913",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "8673",  # native_client/DEPS: tools_rev
@@ -44,7 +44,7 @@ vars = {
   "nacl_toolchain_revision": "8715",
   "pnacl_toolchain_revision": "8847",
 
-  "libjingle_revision": "152",
+  "libjingle_revision": "153",
   "libphonenumber_revision": "456",
   "libvpx_revision": "134182",
   "lss_revision": "9",
@@ -121,7 +121,7 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@37",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@48",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@49",
 
   "src/tools/gyp":
     (Var("googlecode_url") % "gyp") + "/trunk@1415",
@@ -336,7 +336,7 @@ deps = {
     "/trunk/tools/deps2git@139377",
 
   "src/third_party/webpagereplay":
-    (Var("googlecode_url") % "web-page-replay") + "/trunk@468",
+    (Var("googlecode_url") % "web-page-replay") + "/trunk@476",
 }
 
 
