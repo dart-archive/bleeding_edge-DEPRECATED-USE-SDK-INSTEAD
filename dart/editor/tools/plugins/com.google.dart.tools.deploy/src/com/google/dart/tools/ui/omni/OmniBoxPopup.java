@@ -198,7 +198,8 @@ public class OmniBoxPopup extends BasePopupDialog {
     false, false, null, null /* OmniBoxMessages.OmniBox_StartTypingToFindMatches */);
 
     this.window = window;
-    BusyIndicator.showWhile(window.getShell() == null ? null : window.getShell().getDisplay(),
+    BusyIndicator.showWhile(
+        window.getShell() == null ? null : window.getShell().getDisplay(),
         new Runnable() {
           @Override
           public void run() {
@@ -338,9 +339,11 @@ public class OmniBoxPopup extends BasePopupDialog {
     }
 
     //TODO (pquitslund): just a placeholder column for now
-    tableColumnLayout.setColumnData(new TableColumn(table, SWT.NONE),
+    tableColumnLayout.setColumnData(
+        new TableColumn(table, SWT.NONE),
         new ColumnWeightData(0, 3 /* maxProviderWidth) */));
-    tableColumnLayout.setColumnData(new TableColumn(table, SWT.NONE),
+    tableColumnLayout.setColumnData(
+        new TableColumn(table, SWT.NONE),
         new ColumnWeightData(100, 100));
 
 //TODO (pquitslund): and with this goes the ability to resize...
@@ -834,14 +837,16 @@ public class OmniBoxPopup extends BasePopupDialog {
     OmniElement current;
 
     for (List<OmniEntry> entrySets : entries) {
-      for (OmniEntry entry : entrySets) {
-        current = entry.element;
-        OmniElement previous = seen.get(current.getLabel());
-        if (previous != null) {
-          previous.setIsDuplicate(true);
-          current.setIsDuplicate(true);
-        } else {
-          seen.put(current.getLabel(), current);
+      if (entrySets != null) {
+        for (OmniEntry entry : entrySets) {
+          current = entry.element;
+          OmniElement previous = seen.get(current.getLabel());
+          if (previous != null) {
+            previous.setIsDuplicate(true);
+            current.setIsDuplicate(true);
+          } else {
+            seen.put(current.getLabel(), current);
+          }
         }
       }
     }
@@ -919,10 +924,12 @@ public class OmniBoxPopup extends BasePopupDialog {
       TriggerSequence[] sequences = getInvokingCommandKeySequences();
       if (sequences != null && sequences.length != 0) {
         if (showAllMatches) {
-          setInfoText(NLS.bind(OmniBoxMessages.OmniBox_PressKeyToShowInitialMatches,
+          setInfoText(NLS.bind(
+              OmniBoxMessages.OmniBox_PressKeyToShowInitialMatches,
               sequences[0].format()));
         } else {
-          setInfoText(NLS.bind(OmniBoxMessages.OmniBox_PressKeyToShowAllMatches,
+          setInfoText(NLS.bind(
+              OmniBoxMessages.OmniBox_PressKeyToShowAllMatches,
               sequences[0].format()));
         }
       } else {
