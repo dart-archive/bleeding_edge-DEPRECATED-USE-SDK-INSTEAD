@@ -17,6 +17,12 @@ testGenericTypes() {
   testUnparse('var x=new List<List<List<List<List<int>>>>>();');
 }
 
+testForLoop() {
+  testUnparse('for(;i<100;i++){}');
+  testUnparse('for(i=0;i<100;i++){}');
+}
+
 main() {
   testGenericTypes();
+  testForLoop();
 }
