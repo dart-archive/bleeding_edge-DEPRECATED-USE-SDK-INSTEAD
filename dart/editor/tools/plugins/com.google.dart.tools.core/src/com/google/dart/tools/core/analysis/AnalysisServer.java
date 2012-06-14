@@ -18,12 +18,13 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.EditorLibraryManager;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.LineNumberReader;
-import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -34,7 +35,6 @@ import java.util.Iterator;
  */
 public class AnalysisServer {
 
-  private static final String CACHE_FILE_VERSION_TAG = "v1";
   private static final String END_LIBRARIES_TAG = "</end-libraries>";
 
   private static PerformanceListener performanceListener;
@@ -221,13 +221,27 @@ public class AnalysisServer {
    *         <code>false</code>
    */
   public boolean readCache() {
-    try {
-      return readCache(getAnalysisStateFile());
-    } catch (IOException e) {
-      DartCore.logError("Failed to read analysis cache: " + getAnalysisStateFile(), e);
-      reanalyze();
-      return false;
+    File cacheFile = getAnalysisStateFile();
+    if (cacheFile.exists()) {
+      try {
+        BufferedReader reader = new BufferedReader(new FileReader(cacheFile));
+        try {
+          readCache(reader);
+        } finally {
+          try {
+            reader.close();
+          } catch (IOException e) {
+            DartCore.logError("Failed to close analysis cache: " + cacheFile, e);
+          }
+        }
+        return true;
+      } catch (IOException e) {
+        DartCore.logError("Failed to read analysis cache: " + cacheFile, e);
+        //$FALL-THROUGH$
+      }
     }
+    reanalyze();
+    return false;
   }
 
   /**
@@ -380,11 +394,21 @@ public class AnalysisServer {
    * @return <code>true</code> if successful, else false
    */
   public boolean writeCache() {
+    File cacheFile = getAnalysisStateFile();
     try {
-      writeCache(getAnalysisStateFile());
+      BufferedWriter writer = new BufferedWriter(new FileWriter(cacheFile));
+      try {
+        writeCache(writer);
+      } finally {
+        try {
+          writer.close();
+        } catch (IOException e) {
+          DartCore.logError("Failed to close analysis cache: " + cacheFile, e);
+        }
+      }
       return true;
     } catch (IOException e) {
-      DartCore.logError("Failed to write analysis cache: " + getAnalysisStateFile(), e);
+      DartCore.logError("Failed to write analysis cache: " + cacheFile, e);
       return false;
     }
   }
@@ -551,68 +575,27 @@ public class AnalysisServer {
   /**
    * Reload the cached information from the specified file. This method must be called before
    * {@link #start()} has been called when the server is not yet running.
-   * 
-   * @return <code>true</code> if the cached information was successfully loaded, else
-   *         <code>false</code>
    */
-  private boolean readCache(File cacheFile) throws IOException {
+  private void readCache(Reader reader) throws IOException {
     if (analyze) {
       throw new IllegalStateException();
     }
-    if (cacheFile == null || !cacheFile.isFile()) {
-      return false;
-    }
-    LineNumberReader reader;
-    try {
-      reader = new LineNumberReader(new BufferedReader(new FileReader(cacheFile)));
-    } catch (FileNotFoundException e) {
-      DartCore.logError("Failed to open analysis cache: " + cacheFile);
-      return false;
-    }
-    try {
-      if (!CACHE_FILE_VERSION_TAG.equals(reader.readLine())) {
-        return false;
-      }
-      while (true) {
-        String path = reader.readLine();
-        if (path == null) {
-          throw new IOException("Expected " + END_LIBRARIES_TAG + " but found EOF");
-        }
-        if (path.equals(END_LIBRARIES_TAG)) {
-          break;
-        }
-        libraryFiles.add(new File(path));
-      }
-      savedContext.readCache(reader);
-      queueAnalyzeContext();
-    } finally {
-      try {
-        reader.close();
-      } catch (IOException e) {
-        DartCore.logError("Failed to close analysis cache: " + cacheFile);
-      }
-    }
-    return true;
+    CacheReader cacheReader = new CacheReader(reader);
+    cacheReader.readFilePaths(libraryFiles, END_LIBRARIES_TAG);
+    savedContext.readCache(cacheReader);
+    queueAnalyzeContext();
   }
 
   /**
    * Write the cached information to the specified file. This method must be called after
    * {@link #stop()} has been called when the server is not running.
    */
-  private void writeCache(File cacheFile) throws IOException {
+  private void writeCache(Writer writer) {
     if (analyze) {
       throw new IllegalStateException();
     }
-    PrintWriter writer = new PrintWriter(cacheFile);
-    try {
-      writer.println(CACHE_FILE_VERSION_TAG);
-      for (File libFile : libraryFiles) {
-        writer.println(libFile.getPath());
-      }
-      writer.println(END_LIBRARIES_TAG);
-      savedContext.writeCache(writer);
-    } finally {
-      writer.close();
-    }
+    CacheWriter cacheWriter = new CacheWriter(writer);
+    cacheWriter.writeFilePaths(libraryFiles, END_LIBRARIES_TAG);
+    savedContext.writeCache(cacheWriter);
   }
 }

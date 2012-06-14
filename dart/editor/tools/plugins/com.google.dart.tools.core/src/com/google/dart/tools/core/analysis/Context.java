@@ -19,8 +19,6 @@ import com.google.dart.tools.core.DartCore;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.LineNumberReader;
-import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -263,9 +261,9 @@ class Context {
   /**
    * Reload cached libraries
    */
-  void readCache(LineNumberReader reader) throws IOException {
+  void readCache(CacheReader reader) throws IOException {
     while (true) {
-      String filePath = reader.readLine();
+      String filePath = reader.readString();
       if (filePath == null) {
         throw new IOException("Expected " + END_CACHE_TAG + " but found EOF");
       }
@@ -282,15 +280,15 @@ class Context {
    * Write information for each cached library. Don't include unresolved libraries so that listeners
    * will be notified when the cache is reloaded.
    */
-  void writeCache(PrintWriter writer) {
+  void writeCache(CacheWriter writer) {
     for (Entry<File, Library> entry : libraryCache.entrySet()) {
       Library library = entry.getValue();
       if (library.hasBeenResolved()) {
-        writer.println(entry.getKey().getPath());
+        writer.writeString(entry.getKey().getPath());
         library.writeCache(writer);
       }
     }
-    writer.println(END_CACHE_TAG);
+    writer.writeString(END_CACHE_TAG);
   }
 
   private Library[] append(Library[] oldArray, Library library) {

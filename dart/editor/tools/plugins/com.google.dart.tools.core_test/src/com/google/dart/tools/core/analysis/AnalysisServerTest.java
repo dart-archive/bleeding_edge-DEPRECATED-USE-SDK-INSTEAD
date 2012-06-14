@@ -26,6 +26,10 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,6 +39,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class AnalysisServerTest extends TestCase {
+
+  private static final String EMPTY_CACHE_CONTENT = "v2\n</end-libraries>\n</end-cache>";
 
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -366,6 +372,11 @@ public class AnalysisServerTest extends TestCase {
     });
   }
 
+  public void test_AnalysisServer_read() throws Exception {
+    setupServer(new StringReader(EMPTY_CACHE_CONTENT));
+    assertEquals(0, getTrackedLibraryFiles().length);
+  }
+
   public void test_AnalysisServer_resolve() throws Exception {
     TestUtilities.runWithTempDirectory(new FileOperation() {
       @Override
@@ -582,11 +593,10 @@ public class AnalysisServerTest extends TestCase {
         assertTrackedLibraryFiles();
         assertFalse(isLibraryFileCached(libFile));
 
-        File cacheFile = new File(libFile.getParentFile(), "analysis.cache");
-
+        StringWriter writer = new StringWriter(5000);
         server.stop();
-        writeCache(cacheFile);
-        setupServer(cacheFile);
+        writeCache(writer);
+        setupServer(new StringReader(writer.toString()));
 
         assertTrackedLibraryFiles();
         assertFalse(isLibraryFileCached(libFile));
@@ -603,60 +613,85 @@ public class AnalysisServerTest extends TestCase {
         assertTrackedLibraryFiles(libFile);
         assertTrue(isLibraryFileCached(libFile));
 
-        File cacheFile = new File(libFile.getParentFile(), "analysis.cache");
-
+        StringWriter writer = new StringWriter(5000);
         server.stop();
-        writeCache(cacheFile);
-        setupServer(cacheFile);
+        writeCache(writer);
+        setupServer(new StringReader(writer.toString()));
 
         assertTrackedLibraryFiles(libFile);
         assertTrue(isLibraryFileCached(libFile));
+
+//        String contents = FileUtilities.getContents(libFile);
+//        String libraryDirective = "#library(\"Money\");";
+//        int start = contents.indexOf(libraryDirective);
+//        assertTrue(start >= 0);
+//        contents = Joiner.on("\n").join(
+//            contents.substring(0, start),
+//            "#library('Bad\\",
+//            "Na\"me');",
+//            "#import('Bad\\",
+//            "Import.dart');",
+//            "#import('BadPrefix.dart', prefix:'Bad\\",
+//            "prefix');",
+//            "#source('Bad\\",
+//            "Source.dart');",
+//            contents.substring(start + libraryDirective.length()));
+//        FileUtilities.setContents(libFile, contents);
+//        server.changed(libFile);
+//        waitForIdle();
+//
+//        writer = new StringWriter(5000);
+//        server.stop();
+//        writeCache(writer);
+//        setupServer(new StringReader(writer.toString()));
+//
+//        LibraryUnit libUnit = server.getSavedContext().resolve(libFile, FIVE_MINUTES_MS);
+//        List<DartDirective> directives = libUnit.getSelfDartUnit().getDirectives();
+//        for (int index = 0; index < 3; index++) {
+//          assertTrue(directives.get(index).toSource().contains("Bad"));
+//        }
       }
     });
   }
 
   public void test_AnalysisServer_write_read_bad() throws Exception {
-    TestUtilities.runWithTempDirectory(new FileOperation() {
-      @Override
-      public void run(File tempDir) throws Exception {
-        File libFile = setupMoneyLibrary(tempDir);
-        setupServer();
+    setupServer();
 
-        // Cannot write cache while server is still running
+    // Cannot write cache while server is still running
 
-        File cacheFile = new File(libFile.getParentFile(), "analysis.cache");
-        try {
-          writeCache(cacheFile);
-          fail("should not be able to write cache while server is still running");
-        } catch (IllegalStateException e) {
-          //$FALL-THROUGH$
-        }
+    StringWriter writer = new StringWriter(5000);
+    try {
+      writeCache(writer);
+      fail("should not be able to write cache while server is still running");
+    } catch (IllegalStateException e) {
+      //$FALL-THROUGH$
+    }
 
-        // Cannot read cache while server is still running
+    // Cannot read cache while server is still running
 
-        try {
-          readCache(cacheFile);
-          fail("should not be able to read cache while server is still running");
-        } catch (IllegalStateException e) {
-          //$FALL-THROUGH$
-        }
+    try {
+      readCache(new StringReader(EMPTY_CACHE_CONTENT));
+      fail("should not be able to read cache while server is still running");
+    } catch (IllegalStateException e) {
+      //$FALL-THROUGH$
+    }
 
-        server.stop();
+    server.stop();
 
-        // Cannot read null or non-existant cache file... returns false
+    // Cannot read empty or incomptable version cache file
 
-        assertFalse(readCache(null));
-        assertFalse(cacheFile.exists());
-        assertFalse(readCache(cacheFile));
-
-        // Cannot read empty or incomptable version cache file... returns false
-
-        FileUtilities.setContents(cacheFile, "");
-        assertFalse(readCache(cacheFile));
-        FileUtilities.setContents(cacheFile, "nothing");
-        assertFalse(readCache(cacheFile));
-      }
-    });
+    try {
+      readCache(new StringReader(""));
+      fail("should not be able to read cache with missing version number");
+    } catch (IOException e) {
+      //$FALL-THROUGH$
+    }
+    try {
+      readCache(new StringReader("nothing"));
+      fail("should not be able to read cache with invalid version number");
+    } catch (IOException e) {
+      //$FALL-THROUGH$
+    }
   }
 
   @Override
@@ -730,17 +765,15 @@ public class AnalysisServerTest extends TestCase {
     return result instanceof Boolean && ((Boolean) result).booleanValue();
   }
 
-  private boolean readCache(File cacheFile) throws Exception {
+  private void readCache(Reader reeader) throws Exception {
     // server.readCache(cacheFile)
-    Method method = server.getClass().getDeclaredMethod("readCache", File.class);
+    Method method = server.getClass().getDeclaredMethod("readCache", Reader.class);
     method.setAccessible(true);
-    Object result;
     try {
-      result = method.invoke(server, cacheFile);
+      method.invoke(server, reeader);
     } catch (InvocationTargetException e) {
       throw (Exception) e.getCause();
     }
-    return (Boolean) result;
   }
 
   private void setupDefaultServer() throws Exception {
@@ -767,13 +800,11 @@ public class AnalysisServerTest extends TestCase {
     setupServer(null);
   }
 
-  private void setupServer(File cacheFile) throws Exception {
+  private void setupServer(Reader reader) throws Exception {
     EditorLibraryManager libraryManager = SystemLibraryManagerProvider.getAnyLibraryManager();
     server = new AnalysisServer(libraryManager);
-    if (cacheFile != null) {
-      if (!readCache(cacheFile)) {
-        fail("Failed to read cached from " + cacheFile);
-      }
+    if (reader != null) {
+      readCache(reader);
     }
     listener = new Listener(server);
     server.start();
@@ -791,12 +822,12 @@ public class AnalysisServerTest extends TestCase {
     return System.currentTimeMillis() - start;
   }
 
-  private void writeCache(File cacheFile) throws Exception {
+  private void writeCache(Writer writer) throws Exception {
     // server.writeCache(cacheFile);
-    Method method = server.getClass().getDeclaredMethod("writeCache", File.class);
+    Method method = server.getClass().getDeclaredMethod("writeCache", Writer.class);
     method.setAccessible(true);
     try {
-      method.invoke(server, cacheFile);
+      method.invoke(server, writer);
     } catch (InvocationTargetException e) {
       throw (Exception) e.getCause();
     }
