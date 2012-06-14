@@ -1,20 +1,18 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #library('spirodraw');
 
 #import('dart:html');
+
 #source("ColorPicker.dart");
-// TODO(732): Reenable when this works in the VM.
-// #resource("spirodraw.css");
 
 void main() {
   new Spirodraw().go();
 }
 
 class Spirodraw {
-
   static double PI2 = Math.PI * 2;
   Document doc;
   // Scale factor used to scale wheel radius from 1-10 to pixels
@@ -53,9 +51,9 @@ class Spirodraw {
     numTurns = doc.query("#num_turns");
     mainDiv = doc.query("#main");
     frontCanvas = doc.query("#canvas");
-    front = frontCanvas.getContext("2d");
+    front = frontCanvas.context2d;
     backCanvas = new Element.tag("canvas");
-    back = backCanvas.getContext("2d");
+    back = backCanvas.context2d;
     paletteElement = doc.query("#palette");
     window.on.resize.add((event) => onResize(), true);
     initControlPanel();
@@ -103,7 +101,7 @@ class Spirodraw {
   }
   
   void onPenWidthChange() {
-    penWidth = penWidthSlider.valueAsNumber;
+    penWidth = penWidthSlider.valueAsNumber.toInt();
     drawFrame(rad);
   }
   
@@ -115,18 +113,18 @@ class Spirodraw {
     // based on starting diameter == min / 2, fixed radius == 10 units
     int min = Math.min(height, width);
     double pixelsPerUnit = min / 40;
-    RUnits = fixedRadiusSlider.valueAsNumber;
+    RUnits = fixedRadiusSlider.valueAsNumber.toInt();
     R = RUnits * pixelsPerUnit;
     // Scale inner radius and pen distance in units of fixed radius
-    rUnits = wheelRadiusSlider.valueAsNumber;
+    rUnits = wheelRadiusSlider.valueAsNumber.toInt();
     r = rUnits * R/RUnits * Math.parseInt(inOrOut.value);
-    dUnits = penRadiusSlider.valueAsNumber;
+    dUnits = penRadiusSlider.valueAsNumber.toInt();
     d = dUnits * R/RUnits;
     numPoints = calcNumPoints();
     maxTurns = calcTurns();
     onSpeedChange();
-    numTurns.text = "0" + "/" + maxTurns;
-    penWidth = penWidthSlider.valueAsNumber;
+    numTurns.text = "0 / ${maxTurns}";
+    penWidth = penWidthSlider.valueAsNumber.toInt();
     drawFrame(0.0);
   }
 
@@ -158,7 +156,7 @@ class Spirodraw {
     drawWheel(theta);
   }
 
-  void animate(int time) {
+  bool animate(int time) {
     if (run && rad <= maxTurns * PI2) {
       rad+=stepSize;
       drawFrame(rad);
@@ -211,7 +209,7 @@ class Spirodraw {
     wheelRadiusSlider.valueAsNumber = Math.random() * 9;
     penRadiusSlider.valueAsNumber = Math.random() * 9;
     penWidthSlider.valueAsNumber = 1 + Math.random() * 9;
-    colorPicker.selectedColor = Math.random() * 215;
+    colorPicker.selectedColor = colorPicker.getHexString(Math.random() * 215);
     start();
   }
 

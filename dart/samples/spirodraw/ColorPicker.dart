@@ -1,11 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 typedef void PickerListener(String selectedColor);
 
 class ColorPicker {
-
   static final hexValues = const ['00', '33', '66', '99', 'CC', 'FF'];
   static final COLS = 18;
   // Block height, width, padding
@@ -22,7 +21,7 @@ class ColorPicker {
   ColorPicker(this.canvasElement) :
     _listeners = []
   {
-    ctx = canvasElement.getContext("2d");
+    ctx = canvasElement.context2d;
     drawPalette();
     addHandlers();
     showSelected();
@@ -30,8 +29,9 @@ class ColorPicker {
   
   String get selectedColor() => _selectedColor;
   
-  void set selectedColor(num i) {
-    _selectedColor = getHexString(i.floor().toInt());
+  void set selectedColor(String color) {
+    _selectedColor = color;
+    
     showSelected();
     fireSelected();
   }
@@ -53,7 +53,7 @@ class ColorPicker {
     int y = event.offsetY - 40;
     if ((y < 0) || (x >= width))
       return;
-    selectedColor = getColorIndex(x, y);
+    selectedColor = getHexString(getColorIndex(x, y));
   }
 
   /**
@@ -68,7 +68,7 @@ class ColorPicker {
     canvasElement.on.mouseDown.add((e) => onMouseDown(e), true);
   }
 
-   void drawPalette() {
+  void drawPalette() {
     int i=0;
     for (int r=0; r < 256; r+=51) {
       for (int g=0; g < 256; g+=51) {
@@ -103,10 +103,13 @@ class ColorPicker {
     ctx.fillRect(0, 0, width / 2, 30);
   }
   
-  String getHexString(int i) {
-    int r = i ~/ 36;
+  String getHexString(num value) {
+    int i = value.floor().toInt();
+    
+    int r = (i ~/ 36) % 6;
     int g = (i % 36) ~/ 6;
     int b = i % 6;
+    
     return '#${hexValues[r]}${hexValues[g]}${hexValues[b]}';
   }
   
