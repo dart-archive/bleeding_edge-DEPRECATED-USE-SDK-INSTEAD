@@ -206,7 +206,7 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
       reason = expectedSuspendReason;
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
     } else {
-      DartBreakpoint breakpoint = getBreakpointFor(frames);
+      DartBreakpoint breakpoint = getTarget().getBreakpointFor(frames);
 
       if (breakpoint != null) {
         suspendedBreakpoints = new IBreakpoint[] {breakpoint};
@@ -254,12 +254,6 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     }
 
     return result;
-  }
-
-  private DartBreakpoint getBreakpointFor(List<VmCallFrame> frames) {
-    // TODO(devoncarew): implement
-
-    return null;
   }
 
   private boolean isDisconnected() {

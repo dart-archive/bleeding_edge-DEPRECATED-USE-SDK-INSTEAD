@@ -58,6 +58,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private ServerDebugThread debugThread = new ServerDebugThread(this);
 
+  private boolean firstBreak = true;
+
   public ServerDebugTarget(ILaunch launch, IProcess process, int connectionPort) {
     super(null);
 
@@ -136,6 +138,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     long startTime = System.currentTimeMillis();
 
     try {
+      sleep(50);
+
       while (true) {
         try {
           connection.connect();
@@ -180,14 +184,28 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     } catch (IOException e) {
       DartDebugCorePlugin.logError(e);
     }
-
-    // TODO(devoncarew): handle the case where we're currently stopped on a breakpoint (i.e. main() line 1).
-
-    resume();
   }
 
   @Override
   public void debuggerPaused(PausedReason reason, List<VmCallFrame> frames, VmValue exception) {
+    if (firstBreak) {
+      firstBreak = false;
+
+      if (PausedReason.breakpoint == reason) {
+        DartBreakpoint breakpoint = getBreakpointFor(frames);
+
+        // If this is our first break, and there is no user breakpoint here, and the stop is on the
+        // main() method, then resume.
+        if (breakpoint == null && frames.size() > 0 && frames.get(0).isMain()) {
+          try {
+            getVmConnection().resume();
+          } catch (IOException ioe) {
+            DartDebugCorePlugin.logError(ioe);
+          }
+        }
+      }
+    }
+
     debugThread.handleDebuggerPaused(reason, frames, exception);
   }
 
@@ -305,6 +323,18 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     process.terminate();
   }
 
+  protected DartBreakpoint getBreakpointFor(List<VmCallFrame> frames) {
+    if (frames.size() == 0) {
+      return null;
+    }
+
+    return getBreakpointFor(frames.get(0));
+  }
+
+  protected DartBreakpoint getBreakpointFor(VmCallFrame frame) {
+    return getBreakpointFor(frame.getLocation());
+  }
+
   @Override
   protected ServerDebugTarget getTarget() {
     return this;
@@ -347,6 +377,30 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
       if (line == bp.getLocation().getLineNumber()
           && NetUtils.compareUrls(url, bp.getLocation().getUrl())) {
         return bp;
+      }
+    }
+
+    return null;
+  }
+
+  private DartBreakpoint getBreakpointFor(VmLocation location) {
+    IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
+        DartDebugCorePlugin.DEBUG_MODEL_ID);
+
+    String url = location.getUrl();
+    int line = location.getLineNumber();
+
+    for (IBreakpoint bp : breakpoints) {
+      if (getTarget().supportsBreakpoint(bp)) {
+        DartBreakpoint breakpoint = (DartBreakpoint) bp;
+
+        if (breakpoint.getLine() == line) {
+          String bpUrl = breakpoint.getFile().getLocationURI().toString();
+
+          if (bpUrl.equals(url)) {
+            return breakpoint;
+          }
+        }
       }
     }
 

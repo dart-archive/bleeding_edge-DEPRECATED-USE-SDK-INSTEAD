@@ -1,4 +1,5 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
+
 <html>
 <head>
     <title>Dart Editor</title>
@@ -9,16 +10,6 @@
           background-color: #fff;
           color: #444;
         }
-        h2 {
-          color: #15C;
-          display: block;
-          font-size: 26px;
-          font-style: normal;
-          font-variant: normal;
-          font-weight: bold;
-          height: 32px;
-          margin-bottom: 10px;
-        }
         h3 {
           color: #15C;
           font-size: 18px;
@@ -27,8 +18,11 @@
           font-weight: bold;
           display: inline;
         }
+        img {
+          border: 0px;
+        }
         .app {
-          margin: 5px 0px 5px 0px;
+          margin: 5px 0px 5px 10px;
           padding: 3px;
         }
         .app:hover {
@@ -36,19 +30,15 @@
           -moz-border-radius: 3px;
           border-radius: 3px;
         }
-        .subheader {
-          margin-top: 0;
-        }
         .footer {
           text-align: center;
         }
     </style>
 <head>
 <body>
-  <h3>Dart Editor - available applications</h3>
-  <p class="subheader">Choose from the list of available applications to run:</p>
+  <h3>Dart Editor</h3>
+  <p>Available applications:</p>
   ${apps}
-  <!-- hr/>
-  <div class="footer"><a href="http://www.dartlang.org/">www.dartlang.org</a></div -->
+  <!-- div class="footer"><a href="http://www.dartlang.org/">www.dartlang.org</a></div -->
 </body>
 </html>

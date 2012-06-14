@@ -72,6 +72,10 @@ public class VmCallFrame {
     return location;
   }
 
+  public boolean isMain() {
+    return "main".equals(functionName);
+  }
+
   @Override
   public String toString() {
     return "[" + functionName + "]";
