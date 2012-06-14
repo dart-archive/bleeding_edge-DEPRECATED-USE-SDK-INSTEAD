@@ -707,6 +707,11 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
+            name="%analysisPrefName"
+            class="com.google.dart.tools.ui.internal.preferences.DartAnalysisPreferencePage"
+            id="com.google.dart.tools.ui.preferences.DartAnalysisPreferencePage">
+      </page>
+      <page
             name="%dartPrefName"
             class="com.google.dart.tools.ui.internal.preferences.DartBasePreferencePage"
             id="com.google.dart.tools.ui.preferences.DartBasePreferencePage">

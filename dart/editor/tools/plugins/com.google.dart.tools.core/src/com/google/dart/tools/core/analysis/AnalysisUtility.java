@@ -48,7 +48,14 @@ import java.util.Set;
  */
 class AnalysisUtility {
   private static final CompilerConfiguration config = new DefaultCompilerConfiguration(
-      new CompilerOptions(),
+      new CompilerOptions() {
+        @Override
+        public boolean suppressNoMemberWarningForInferredTypes() {
+          return DartCore.getPlugin().getPrefs().getBoolean(
+              DartCore.SUPPRESS_NO_MEMBER_FOR_INFERRED_TYPES,
+              false);
+        }
+      },
       SystemLibraryManagerProvider.getSystemLibraryManager()) {
     @Override
     public boolean incremental() {

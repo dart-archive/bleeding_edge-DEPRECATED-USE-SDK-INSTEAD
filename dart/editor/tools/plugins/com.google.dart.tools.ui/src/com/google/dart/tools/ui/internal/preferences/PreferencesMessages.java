@@ -746,6 +746,8 @@ public final class PreferencesMessages extends NLS {
   public static String ComplianceConfigurationBlock_jrecompliance_info_project;
   public static String ProblemSeveritiesConfigurationBlock_section_generics;
 
+  public static String DartAnalysisPreferencePage_suppressNoMemberWarningForInferredTypes;
+
   public static String DartBasePreferencePage_dialogs;
   public static String DartBasePreferencePage_do_not_hide_description;
   public static String DartBasePreferencePage_do_not_hide_button;

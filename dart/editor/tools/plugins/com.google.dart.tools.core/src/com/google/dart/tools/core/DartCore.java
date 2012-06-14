@@ -117,6 +117,11 @@ public class DartCore extends Plugin {
   public static final String PACKAGE_ROOT_DIR_PREFERENCE = "package root";
 
   /**
+   * Preference to control if "not a member" warnings should be suppressed for inferred types.
+   */
+  public static final String SUPPRESS_NO_MEMBER_FOR_INFERRED_TYPES = "suppressNoMemberWarningForInferredTypes";
+
+  /**
    * Cached extensions for CSS files.
    */
   private static final String[] CSS_FILE_EXTENSIONS = {"css"};
