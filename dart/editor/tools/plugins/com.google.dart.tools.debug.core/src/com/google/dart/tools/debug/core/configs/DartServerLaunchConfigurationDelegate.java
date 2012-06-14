@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -165,9 +166,16 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
     if (enableDebugging && DartCore.isMac()) {
       ServerDebugTarget debugTarget = new ServerDebugTarget(launch, eclipseProcess, connectionPort);
 
-      launch.addDebugTarget(debugTarget);
+      try {
+        debugTarget.connect();
 
-      debugTarget.connect();
+        launch.addDebugTarget(debugTarget);
+      } catch (DebugException ex) {
+        // We don't throw an exception if the process died before we could connect.
+        if (!isProcessDead(runtimeProcess)) {
+          throw ex;
+        }
+      }
     }
 
     monitor.done();
@@ -203,7 +211,18 @@ public class DartServerLaunchConfigurationDelegate extends LaunchConfigurationDe
         return resource.getProject().getLocation().toFile();
       }
     }
+
     return null;
+  }
+
+  private boolean isProcessDead(Process process) {
+    try {
+      process.exitValue();
+
+      return true;
+    } catch (IllegalThreadStateException ex) {
+      return false;
+    }
   }
 
   private String translateToFilePath(String scriptPath) {
