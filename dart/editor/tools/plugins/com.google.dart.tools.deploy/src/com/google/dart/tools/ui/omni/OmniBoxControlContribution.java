@@ -165,6 +165,9 @@ public class OmniBoxControlContribution {
 
   private final WorkbenchWindowControlContribution controlContribution;
 
+  //used to force popup refresh in case text was selected and replaced
+  private String previousFilterText;
+
   public OmniBoxControlContribution(WorkbenchWindowControlContribution controlContribution) {
     this.controlContribution = controlContribution;
   }
@@ -310,7 +313,17 @@ public class OmniBoxControlContribution {
       return;
     }
     String filterText = getFilterText();
+
+    //we need to re-search if the leading char has changed ('a' -> HOME -> 'x')
+    boolean needsResearch = hasLeadingFilterCharChanged();
+
+    //cache for next time around
+    previousFilterText = filterText;
+
     if (filterText.length() > 0) {
+      if (needsResearch && !popupClosed()) {
+        popup.simpleClose();
+      }
       if (popupClosed()) {
         openPopup();
       }
@@ -338,6 +351,21 @@ public class OmniBoxControlContribution {
 
   private void handleSelection() {
     clearWatermark();
+  }
+
+  /**
+   * Tests if the leading character of the filter text has changed since the last recorded text
+   * modification.
+   */
+  private boolean hasLeadingFilterCharChanged() {
+    if (previousFilterText != null && !previousFilterText.isEmpty()) {
+      String filterText = getFilterText();
+      if (filterText == null || filterText.isEmpty()) {
+        return false;
+      }
+      return previousFilterText.charAt(0) != filterText.charAt(0);
+    }
+    return false;
   }
 
   private void hookupListeners() {

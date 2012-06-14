@@ -252,7 +252,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   }
 
   public String getFilterTextExactCase() {
-    return searchText; // this should be private
+    return searchText != null ? searchText : ""; // this should be private
   }
 
   public boolean isDisposed() {
