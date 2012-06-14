@@ -101,6 +101,16 @@ class ResourceServerHandler implements Runnable {
     public String toString() {
       return "[" + method + " " + file + " " + version + "]";
     }
+
+    void parseGetParams() {
+      // Check for a GET request that contains getter parameters.
+      if (file != null && file.indexOf('?') != -1) {
+        @SuppressWarnings("unused")
+        String params = file.substring(file.indexOf('?') + 1);
+
+        file = file.substring(0, file.indexOf('?'));
+      }
+    }
   }
 
   private static class HttpResponse {
@@ -224,9 +234,6 @@ class ResourceServerHandler implements Runnable {
   @Override
   public void run() {
     try {
-//      BufferedReader reader = new BufferedReader(new InputStreamReader(
-//          socket.getInputStream(),
-//          ISO_8859_1));
       DataInputStream in = new DataInputStream(socket.getInputStream());
 
       HttpHeader header = parseHeader(in);
@@ -647,6 +654,8 @@ class ResourceServerHandler implements Runnable {
 
       if (header.file != null) {
         header.file = URLDecoder.decode(header.file, ISO_8859_1);
+
+        header.parseGetParams();
       }
     }
 
