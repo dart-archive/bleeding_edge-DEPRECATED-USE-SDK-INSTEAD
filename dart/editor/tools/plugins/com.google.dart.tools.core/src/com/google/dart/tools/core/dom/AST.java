@@ -95,7 +95,7 @@ public class AST {
     } else if (nodeClass == DartArrayLiteral.class) {
       return (N) new DartArrayLiteral(false, null, new ArrayList<DartExpression>());
     } else if (nodeClass == DartBinaryExpression.class) {
-      return (N) new DartBinaryExpression(null, null, null);
+      return (N) new DartBinaryExpression(null, 0, null, null);
     } else if (nodeClass == DartBlock.class) {
       return (N) new DartBlock(new ArrayList<DartStatement>());
     } else if (nodeClass == DartBooleanLiteral.class) {
