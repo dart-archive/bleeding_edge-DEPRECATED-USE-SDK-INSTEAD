@@ -102,6 +102,9 @@ public class DartProjectInfo extends OpenableElementInfo {
    * @param libraries list of library references
    */
   public void updateHtmlMapping(String htmlFileName, List<String> libraries, boolean add) {
+    if (htmlMapping == null) {
+      return;
+    }
     if (add) {
       htmlMapping.put(htmlFileName, libraries);
     } else {
