@@ -10,4 +10,4 @@ type_inference4_test: Fail # Issue 2665.
 type_inference5_test: Fail # Issue 2665.
 
 [ $compiler == dartc || $compiler == frog || $compiler == dart2js || $runtime == ie || $runtime == opera || $runtime == ff || $runtime == chrome || $runtime == safari ]
-*: Skip # Leg uses #import('dart:io'); and Leg is not self-hosted (yet).
+*: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
