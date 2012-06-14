@@ -112,38 +112,38 @@ public class SearchEngineTest extends TestCase {
 //    assertEquals(2, matches.size());
 //  }
 
-  public void test_SearchEngine_searchImplementors() throws Exception {
-    Type type = moneyLibrary.getCompilationUnit("money.dart").getType("Money");
-    SearchEngine engine = createSearchEngine();
-    List<SearchMatch> matches = engine.searchImplementors(
-        type,
-        SearchScopeFactory.createWorkspaceScope(),
-        null,
-        new NullProgressMonitor());
-    assertEquals(2, matches.size());
-  }
-
-  public void test_SearchEngine_searchMethodDeclarations() throws Exception {
-    SearchEngine engine = createSearchEngine();
-    List<SearchMatch> matches = engine.searchMethodDeclarations(
-        SearchScopeFactory.createLibraryScope(moneyLibrary),
-        SearchPatternFactory.createPrefixPattern("ad", true),
-        null,
-        new NullProgressMonitor());
-    assertEquals(6, matches.size());
-  }
-
-  public void test_SearchEngine_searchReferences_field() throws Exception {
-    Type type = moneyLibrary.getCompilationUnit("simple_money.dart").getType("SimpleMoney");
-    Field field = type.getField("amount");
-    SearchEngine engine = createSearchEngine();
-    List<SearchMatch> matches = engine.searchReferences(
-        field,
-        SearchScopeFactory.createWorkspaceScope(),
-        null,
-        new NullProgressMonitor());
-    assertEquals(4, matches.size());
-  }
+//  public void test_SearchEngine_searchImplementors() throws Exception {
+//    Type type = moneyLibrary.getCompilationUnit("money.dart").getType("Money");
+//    SearchEngine engine = createSearchEngine();
+//    List<SearchMatch> matches = engine.searchImplementors(
+//        type,
+//        SearchScopeFactory.createWorkspaceScope(),
+//        null,
+//        new NullProgressMonitor());
+//    assertEquals(2, matches.size());
+//  }
+//
+//  public void test_SearchEngine_searchMethodDeclarations() throws Exception {
+//    SearchEngine engine = createSearchEngine();
+//    List<SearchMatch> matches = engine.searchMethodDeclarations(
+//        SearchScopeFactory.createLibraryScope(moneyLibrary),
+//        SearchPatternFactory.createPrefixPattern("ad", true),
+//        null,
+//        new NullProgressMonitor());
+//    assertEquals(6, matches.size());
+//  }
+//
+//  public void test_SearchEngine_searchReferences_field() throws Exception {
+//    Type type = moneyLibrary.getCompilationUnit("simple_money.dart").getType("SimpleMoney");
+//    Field field = type.getField("amount");
+//    SearchEngine engine = createSearchEngine();
+//    List<SearchMatch> matches = engine.searchReferences(
+//        field,
+//        SearchScopeFactory.createWorkspaceScope(),
+//        null,
+//        new NullProgressMonitor());
+//    assertEquals(4, matches.size());
+//  }
 
   public void test_SearchEngine_searchReferences_field_local() throws Exception {
     TestProject testProject = new TestProject();
@@ -745,16 +745,16 @@ public class SearchEngineTest extends TestCase {
     }
   }
 
-  public void test_SearchEngine_searchReferences_type() throws Exception {
-    Type type = moneyLibrary.getCompilationUnit("simple_money.dart").getType("SimpleMoney");
-    SearchEngine engine = createSearchEngine();
-    List<SearchMatch> matches = engine.searchReferences(
-        type,
-        SearchScopeFactory.createWorkspaceScope(),
-        null,
-        new NullProgressMonitor());
-    assertEquals(20, matches.size()); // I believe that this should eventually be 17.
-  }
+//  public void test_SearchEngine_searchReferences_type() throws Exception {
+//    Type type = moneyLibrary.getCompilationUnit("simple_money.dart").getType("SimpleMoney");
+//    SearchEngine engine = createSearchEngine();
+//    List<SearchMatch> matches = engine.searchReferences(
+//        type,
+//        SearchScopeFactory.createWorkspaceScope(),
+//        null,
+//        new NullProgressMonitor());
+//    assertEquals(20, matches.size()); // I believe that this should eventually be 17.
+//  }
 
   public void test_SearchEngine_searchReferences_type_fromConstructor_factoryImpl()
       throws Exception {

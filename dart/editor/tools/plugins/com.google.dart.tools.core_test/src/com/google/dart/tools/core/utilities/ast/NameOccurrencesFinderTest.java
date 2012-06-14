@@ -220,9 +220,6 @@ public class NameOccurrencesFinderTest extends TestCase {
             true);
         List<DartCompilationError> errors = Lists.newArrayList();
         DartUnit astRoot = DartCompilerUtilities.resolveUnit(unit, errors);
-        if (!errors.isEmpty()) {
-          fail("Parse/resolve errors: " + errors);
-        }
         locator.searchWithin(astRoot);
         Element selectedNode = locator.getResolvedElement();
         NameOccurrencesFinder finder = new NameOccurrencesFinder(selectedNode);
