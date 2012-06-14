@@ -255,10 +255,12 @@ public class InMemoryIndex implements Index {
     Resource indexerResource;
     if (SystemLibraryManager.isDartUri(unitUri)) {
       indexerResource = new Resource(ResourceFactory.composeResourceId(
-          librarySource.getUri().toString(), unitUri.toString()));
+          librarySource.getUri().toString(),
+          unitUri.toString()));
     } else if (SystemLibraryManager.isPackageUri(unitUri)) {
       indexerResource = new Resource(ResourceFactory.composeResourceId(
-          libraryFile.toURI().toString(), sourceFile.toURI().toString()));
+          libraryFile.toURI().toString(),
+          sourceFile.toURI().toString()));
     } else {
       indexerResource = ResourceFactory.getResource(compilationUnit);
     }
@@ -497,7 +499,7 @@ public class InMemoryIndex implements Index {
       long endTime = System.currentTimeMillis();
       initIndexingTime += endTime - startTime;
     }
-    for (LibraryUnit importedLibrary : libraryUnit.getImports()) {
+    for (LibraryUnit importedLibrary : libraryUnit.getImportedLibraries()) {
       indexBundledLibrary(importedLibrary, initializedLibraries);
     }
   }
@@ -559,7 +561,7 @@ public class InMemoryIndex implements Index {
       long endTime = System.currentTimeMillis();
       initIndexingTime += endTime - startTime;
     }
-    for (LibraryUnit importedLibrary : libraryUnit.getImports()) {
+    for (LibraryUnit importedLibrary : libraryUnit.getImportedLibraries()) {
       // library.getImportedLibrary(importedLibrary.getSource().getUri());
       indexUserLibrary(importedLibrary, initializedLibraries);
     }

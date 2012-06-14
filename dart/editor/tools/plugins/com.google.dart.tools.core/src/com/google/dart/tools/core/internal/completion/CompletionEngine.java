@@ -1180,7 +1180,7 @@ public class CompletionEngine {
       unit.accept(visitor);
     }
     Set<Element> elements = visitor.getElements();
-    for (LibraryUnit lib : library.getImports()) {
+    for (LibraryUnit lib : library.getImportedLibraries()) {
       elements.addAll(findAllElements(lib, prefix, libs));
     }
     return elements;
