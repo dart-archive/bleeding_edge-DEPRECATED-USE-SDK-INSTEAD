@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sample name="Sunflower" file="Sunflower.dart">
-    <description>Canvas 2D app with HTML5 range input and event handler.</description>
+
+<sample name="Sunflower" file="sunflower.dart" keywords="canvas 2D">
+    <description>A canvas 2D app with HTML5 range input and event handler</description>
 </sample>

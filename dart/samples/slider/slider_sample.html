@@ -1,25 +1,36 @@
 <!DOCTYPE html>
 
-<!-- Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+<!-- Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
      for details. All rights reserved. Use of this source code is governed by a
      BSD-style license that can be found in the LICENSE file. -->
 
 <html>
   <head>
-    <title>Slider Menu Sample App</title>
-    <link rel="stylesheet" type="text/css" href="../ui_lib/view/resources/view.css"/>
-    <link rel="stylesheet" type="text/css" href="slider_sample.css"/>
-
-    <script type="application/dart" src="slider_sample.dart"></script>
+    <meta charset="utf-8">
+    <title>Slider Menu Demo</title>
+    <link rel="stylesheet" type="text/css" href="../ui_lib/view/resources/view.css">
+    <link rel="stylesheet" type="text/css" href="slider_sample.css">
   </head>
   <body>
-    <h2 id="status">
-      dart is not running
-    </h2>
-    <div id="menu"></div>
-    <div id="message"></div>
-    <div id="next">Next</div>
-    <div id="prev">Prev</div>
+    <h1>Slider</h1>
+    
+    <p>A simple app showing use of the SliderMenu view and DOM queries.</p>
+    
+    <div id="container">
+      <div id="menu"></div>
+    </div>
+    
+    <br/>
+
+    <footer>
+      <div id="summary">
+        <button id="prev">Prev</button>
+        <button id="next">Next</button>
+      </div>
+      <p id="notes"> </p>
+    </footer>
+
+    <script type="application/dart" src="slider_sample.dart"></script>
     <script src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script>
   </body>
 </html>

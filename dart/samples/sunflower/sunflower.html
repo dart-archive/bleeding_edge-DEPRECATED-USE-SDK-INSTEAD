@@ -1,30 +1,35 @@
 <!DOCTYPE html>
 
-<!-- Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+<!-- Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
      for details. All rights reserved. Use of this source code is governed by a
      BSD-style license that can be found in the LICENSE file. -->
 
 <html>
   <head>
-    <title>sunflower</title>
+    <meta charset="utf-8">
+    <title>Sunflower Demo</title>
     <link type="text/css" rel="stylesheet" href="sunflower.css">
   </head>
   <body>
-    <h1>drfibonacci's* Sunflower Spectacular</h1>
-    <h2>* Count the clockwise and counter-clockwise spiral arms at the edges</h2>
-    <div class="image"></div>
-    <div>
-        <canvas id="canvas" width="300" height="300"></canvas>
+    <h1>drfibonacci's Sunflower Spectacular</h1>
+    
+    <p>A canvas 2D demo.</p>
+    
+    <div id="container">
+      <canvas id="canvas" width="300" height="300" class="center"></canvas>
+      <form class="center">
+        <input id="slider" type="range" max="1000" value="500"/>
+      </form>
+      <br/>
+      <img src="math.png" width="350px" height="42px" class="center">
     </div>
-    <div>
-        <label># seeds (n):</label>
-    </div>
-    <div class="rangeOption">
-      <input id="slider" type="range" max="1000" value="500" />
-      <label class="minLabel">0</label>
-      <label class="maxLabel">1000</label>
-    </div>
-    <script type="application/dart" src="Sunflower.dart"></script>
-    <script src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script>
+
+    <footer>
+      <p id="summary"> </p>
+      <p id="notes"> </p>
+    </footer>
+
+    <script type="application/dart" src="sunflower.dart"></script>
+    <script src="http://dart.googlecode.com/svn/trunk/dart/client/dart.js"></script>
   </body>
 </html>
