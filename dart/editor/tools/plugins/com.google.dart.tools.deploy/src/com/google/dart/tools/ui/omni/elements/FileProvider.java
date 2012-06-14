@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -61,9 +61,6 @@ public class FileProvider extends OmniProposalProvider {
       }
     }
 
-    /**
-     * @return
-     */
     public OmniElement[] getFiles() {
       return matches.toArray(EMPTY_ARRAY);
     }
@@ -130,7 +127,7 @@ public class FileProvider extends OmniProposalProvider {
         matches.add(new FileElement(FileProvider.this, (IFile) resource));
       }
 
-      if (resource.getType() == IResource.FOLDER && resource.isDerived()) {
+      if (resource.getType() == IResource.FOLDER && !shouldTraverseFolder(resource)) {
         return false;
       }
 
@@ -161,6 +158,15 @@ public class FileProvider extends OmniProposalProvider {
         }
       }
       return matches(name);
+    }
+
+    private boolean shouldTraverseFolder(IResource resource) {
+      if (resource.isDerived()) {
+        return false;
+      }
+
+      String name = resource.getName();
+      return name != null && !name.startsWith(".");
     }
   }
 
