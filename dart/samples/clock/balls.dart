@@ -1,48 +1,63 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+int clientWidth() => window.innerWidth;
+
+int clientHeight() => window.innerHeight;
 
 class Balls {
   static final double RADIUS2 = Ball.RADIUS * Ball.RADIUS;
 
-  // TODO: "static const Array<String> PNGS" doesn't parse
-  static final List<String> PNGS = const ["images/ball-d9d9d9.png",
-      "images/ball-009a49.png", "images/ball-13acfa.png",
-      "images/ball-265897.png", "images/ball-b6b4b5.png",
-      "images/ball-c0000b.png", "images/ball-c9c9c9.png"];
+  static final int LT_GRAY_BALL_INDEX = 0;
+  static final int GREEN_BALL_INDEX = 1;
+  static final int BLUE_BALL_INDEX = 2;
+  
+  static final int DK_GRAY_BALL_INDEX = 4;
+  static final int RED_BALL_INDEX = 5;
+  static final int MD_GRAY_BALL_INDEX = 6;
+  
+  static final List<String> PNGS = const [
+      "images/ball-d9d9d9.png", "images/ball-009a49.png",
+      "images/ball-13acfa.png", "images/ball-265897.png",
+      "images/ball-b6b4b5.png", "images/ball-c0000b.png",
+      "images/ball-c9c9c9.png"
+  ];
 
   DivElement root;
   int lastTime;
   List<Ball> balls;
 
   Balls() :
-      lastTime = Util.currentTimeMillis(),
+      lastTime = new Date.now().value,
       balls = new List<Ball>() {
-    root = new Element.tag('div');
+    root = new DivElement();
     document.body.nodes.add(root);
-    //root.style.zIndex = 100;
-    Util.abs(root);
-    Util.posSize(root, 0.0, 0.0, 0.0, 0.0);
+    makeAbsolute(root);
+    setElementSize(root, 0.0, 0.0, 0.0, 0.0);
   }
 
   void tick() {
-    int now = Util.currentTimeMillis();
+    int now = new Date.now().value;
+    
+    showFps(1000.0 / (now - lastTime + 0.01));
+    
     double delta = Math.min((now - lastTime) / 1000.0, 0.1);
     lastTime = now;
+    
     // incrementally move each ball, removing balls that are offscreen
     balls = balls.filter((ball) => ball.tick(delta));
     collideBalls(delta);
   }
 
   void collideBalls(double delta) {
-    // TODO: Make this nasty O(n^2) stuff better.
     balls.forEach((b0) {
       balls.forEach((b1) {
-
         // See if the two balls are intersecting.
         double dx = (b0.x - b1.x).abs();
         double dy = (b0.y - b1.y).abs();
         double d2 = dx * dx + dy * dy;
+        
         if (d2 < RADIUS2) {
           // Make sure they're actually on a collision path
           // (not intersecting while moving apart).
@@ -54,10 +69,13 @@ class Balls {
 
           // They've collided. Normalize the collision vector.
           double d = Math.sqrt(d2);
+          
           if (d == 0) {
             // TODO: move balls apart.
+            
             return;
           }
+          
           dx /= d;
           dy /= d;
 
@@ -89,5 +107,64 @@ class Balls {
 
   void add(double x, double y, int color) {
     balls.add(new Ball(root, x, y, color));
+  }
+}
+
+class Ball {
+  static final double GRAVITY = 400.0;
+  static final double RESTITUTION = 0.8;
+  static final double MIN_VELOCITY = 100.0;
+  static final double INIT_VELOCITY = 800.0;
+  static final double RADIUS = 14.0;
+
+  static double randomVelocity() {
+    return (Math.random() - 0.5) * INIT_VELOCITY;
+  }
+
+  Element root;
+  ImageElement elem;
+  double x, y;
+  double vx, vy;
+  double ax, ay;
+  double age;
+
+  Ball(this.root, this.x, this.y, int color) {
+    elem = new ImageElement(Balls.PNGS[color]);
+    makeAbsolute(elem);
+    setElementPosition(elem, x, y);
+    root.nodes.add(elem);
+
+    ax = 0.0;
+    ay = GRAVITY;
+
+    vx = randomVelocity();
+    vy = randomVelocity();
+  }
+
+  // return false => remove me
+  bool tick(double delta) {
+    // Update velocity and position.
+    vx += ax * delta;
+    vy += ay * delta;
+
+    x += vx * delta;
+    y += vy * delta;
+
+    // Handle falling off the edge.
+    if ((x < RADIUS) || (x > clientWidth())) {
+      elem.remove();
+      return false;
+    }
+
+    // Handle ground collisions.
+    if (y > clientHeight()) {
+      y = clientHeight().toDouble();
+      vy *= -RESTITUTION;
+    }
+
+    // Position the element.
+    setElementPosition(elem, x - RADIUS, y - RADIUS);
+    
+    return true;
   }
 }

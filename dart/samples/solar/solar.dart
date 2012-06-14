@@ -10,16 +10,24 @@
  * The entry point to the application.
  */
 void main() {
-  SolarSystem solarSystem = new SolarSystem(document.query("#canvas"));
+  var solarSystem = new SolarSystem(query("#container"));
   
   solarSystem.start();
 }
+
+double fpsAverage;
 
 /**
  * Display the animation's FPS in a div.
  */
 void showFps(num fps) {
-  document.query('#fps').text = "${fps.toStringAsPrecision(2)} fps";
+  if (fpsAverage == null) {
+    fpsAverage = fps;
+  }
+  
+  fpsAverage = fps * 0.05 + fpsAverage * 0.95;
+  
+  query("#notes").text = "${fpsAverage.round().toInt()} fps";
 }
 
 /**
@@ -39,8 +47,6 @@ class SolarSystem {
   
   num renderTime;
   
-  var _backgroundColor;
-  
   SolarSystem(this.canvas) {
     
   }
@@ -50,19 +56,16 @@ class SolarSystem {
   num get height() => _height;
   
   start() {
-    // Get the background color.
-    canvas.computedStyle.then((CSSStyleDeclaration style) {
-      _backgroundColor = style.backgroundColor;
-    });
-    
     // Measure the canvas element.
-    canvas.rect.then((ElementRect rect) {
+    canvas.parent.rect.then((ElementRect rect) {
       _width = rect.client.width;
       _height = rect.client.height;
       
+      canvas.width = _width;
+          
       // Initialize the planets and start the simulation.
       _start();
-    });    
+    });
   }
   
   _start() {
@@ -104,13 +107,18 @@ class SolarSystem {
   }
   
   bool draw(int time) {
+    if (time == null) {
+      // time can be null for some implementations of requestAnimationFrame
+      time = new Date.now().value;
+    }
+    
+    if (renderTime != null) {
+      showFps((1000 / (time - renderTime)).round());
+    }
+    
     renderTime = time;
     
-    canvas.computedStyle.then((CSSStyleDeclaration style) {
-      _backgroundColor = style.backgroundColor;
-    });
-    
-    CanvasRenderingContext2D context = canvas.getContext("2d");
+    var context = canvas.context2d;
     
     drawBackground(context);
     drawPlanets(context);
@@ -119,7 +127,7 @@ class SolarSystem {
   }
   
   void drawBackground(CanvasRenderingContext2D context) {
-    context.fillStyle = _backgroundColor;
+    context.fillStyle = "white";
     context.rect(0, 0, width, height);
     context.fill();
   }

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<sample name="Clock" file="Clock.dart">
-    <description>Google IO style countdown clock.</description>
+
+<sample name="Clock" file="clock.dart" keywords="absolute positioning, requestAnimationFrame, #sourceing files">
+    <description>A Google I/O style clock</description>
 </sample>
