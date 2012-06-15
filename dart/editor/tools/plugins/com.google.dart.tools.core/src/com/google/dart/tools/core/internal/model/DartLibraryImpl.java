@@ -728,7 +728,6 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       libraryInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
       return true;
     }
-    final ArrayList<IResource> resourceList = new ArrayList<IResource>();
     final DartModelManager modelManager = DartModelManager.getInstance();
     unit.accept(new SafeDartNodeTraverser<Void>() {
       @Override
@@ -927,7 +926,7 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
           List<String> libraries = mapping.get(key);
           if (libraries.contains(libraryName) || libraries.contains(elementName)) {
             IResource htmlFile = ResourceUtil.getResource(new File(key));
-            if (htmlFile != null & htmlFile.exists()) {
+            if (htmlFile != null && htmlFile.exists()) {
               children.add(new HTMLFileImpl(DartLibraryImpl.this, (IFile) htmlFile));
             }
           }
