@@ -104,7 +104,7 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
         if (((CompilationUnit) dartElement).definesLibrary()) {
           DartLibrary library = ((CompilationUnit) dartElement).getLibrary();
 
-          string.append(" - " + library.getDisplayName(), StyledString.QUALIFIER_STYLER);
+          string.append(" [" + library.getDisplayName() + "]", StyledString.QUALIFIER_STYLER);
         }
       }
 
