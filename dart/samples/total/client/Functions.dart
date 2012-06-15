@@ -203,9 +203,7 @@ class Functions {
       });
     _newFunc("DAY", 1, void _(CellLocation location, List<Value> stack, int top, int nargs) {
         double x = stack[top].asDouble(location);
-        int days = x.floor().toInt();
-        Duration t = new Duration(days: days);
-        Date dateTime = DateUtils.EPOCH.add(t);
+        Date dateTime = DateUtils.getDateTime(x);
         stack[top] = new DoubleValue(dateTime.day.toDouble());
       });
     _newFunc("DEGREES", 1, void _(CellLocation location, List<Value> stack, int top, int nargs) {
@@ -289,9 +287,7 @@ class Functions {
       });
     _newFunc("MONTH", 1, void _(CellLocation location, List<Value> stack, int top, int nargs) {
         double x = stack[top].asDouble(location);
-        int days = x.floor().toInt();
-        Duration t = new Duration(days: days);
-        Date dateTime = DateUtils.EPOCH.add(t);
+        Date dateTime = DateUtils.getDateTime(x);
         stack[top] = new DoubleValue(dateTime.month.toDouble());
       });
     _newFunc("NOT", 1, void _(CellLocation location, List<Value> stack, int top, int nargs) {
@@ -385,9 +381,7 @@ class Functions {
     });
     _newFunc("YEAR", 1, void _(CellLocation location, List<Value> stack, int top, int nargs) {
         double x = stack[top].asDouble(location);
-        int days = x.floor().toInt();
-        Duration t = new Duration(days: days);
-        Date dateTime = DateUtils.EPOCH.add(t);
+        Date dateTime = DateUtils.getDateTime(x);
         stack[top] = new DoubleValue(dateTime.year.toDouble());
       });
 
