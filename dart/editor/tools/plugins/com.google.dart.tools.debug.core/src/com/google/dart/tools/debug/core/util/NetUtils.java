@@ -50,16 +50,6 @@ public class NetUtils {
    */
   public static int findUnusedPort(int preferredPort) {
     try {
-      ServerSocket ss = new ServerSocket(preferredPort);
-
-      ss.close();
-
-      return preferredPort;
-    } catch (IOException ioe) {
-
-    }
-
-    try {
       // Bind to any free port.
       ServerSocket ss = new ServerSocket(0);
 
