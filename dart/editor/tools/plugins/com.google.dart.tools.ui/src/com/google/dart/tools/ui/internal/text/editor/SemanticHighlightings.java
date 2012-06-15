@@ -17,7 +17,7 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.NodeElement;
-import com.google.dart.tools.core.utilities.ast.RefinableTypesFinder;
+import com.google.dart.tools.core.utilities.ast.DynamicTypesFinder;
 import com.google.dart.tools.ui.PreferenceConstants;
 
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -29,6 +29,56 @@ import org.eclipse.swt.graphics.RGB;
  * Semantic highlightings
  */
 public class SemanticHighlightings {
+
+  /**
+   * Semantic highlighting for variables with dynamic types.
+   */
+  private static final class DynamicTypeHighlighting extends SemanticHighlighting {
+
+    @Override
+    public boolean consumes(SemanticToken token) {
+      DartIdentifier node = token.getNode();
+      return DynamicTypesFinder.isDynamic(node);
+    }
+
+    @Override
+    public RGB getDefaultDefaultTextColor() {
+//      return new RGB(237, 145, 33); //carrot
+//      return new RGB(184, 115, 51); //copper
+//      return new RGB(0xd7, 0x96, 0x7d); //taupe
+      return new RGB(0x67, 0x4C, 0x47); //dark taupe
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_refinableType;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return DYNAMIC_TYPE;
+    }
+
+    @Override
+    public boolean isBoldByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isItalicByDefault() {
+      return false;
+    }
+
+    @Override
+    public boolean isUnderlineByDefault() {
+      return false;
+    }
+  }
 
   /**
    * Semantic highlighting for fields.
@@ -64,56 +114,6 @@ public class SemanticHighlightings {
     @Override
     public String getPreferenceKey() {
       return FIELD;
-    }
-
-    @Override
-    public boolean isBoldByDefault() {
-      return false;
-    }
-
-    @Override
-    public boolean isEnabledByDefault() {
-      return false;
-    }
-
-    @Override
-    public boolean isItalicByDefault() {
-      return false;
-    }
-
-    @Override
-    public boolean isUnderlineByDefault() {
-      return false;
-    }
-  }
-
-  /**
-   * Semantic highlighting for variables with refinable types.
-   */
-  private static final class RefinableTypeHighlighting extends SemanticHighlighting {
-
-    @Override
-    public boolean consumes(SemanticToken token) {
-      DartIdentifier node = token.getNode();
-      return RefinableTypesFinder.isRefinable(node);
-    }
-
-    @Override
-    public RGB getDefaultDefaultTextColor() {
-//      return new RGB(237, 145, 33); //carrot
-//      return new RGB(184, 115, 51); //copper
-//      return new RGB(0xd7, 0x96, 0x7d); //taupe
-      return new RGB(0x67, 0x4C, 0x47); //dark taupe
-    }
-
-    @Override
-    public String getDisplayName() {
-      return DartEditorMessages.SemanticHighlighting_refinableType;
-    }
-
-    @Override
-    public String getPreferenceKey() {
-      return REFINABLE_TYPE;
     }
 
     @Override
@@ -222,9 +222,9 @@ public class SemanticHighlightings {
   public static final String PARAMETER_VARIABLE = "parameterVariable"; //$NON-NLS-1$
 
   /**
-   * A named preference part that controls the highlighting of refinable types.
+   * A named preference part that controls the highlighting of dynamic types.
    */
-  public static final String REFINABLE_TYPE = "refinableType"; //$NON-NLS-1$
+  public static final String DYNAMIC_TYPE = "dynamicType"; //$NON-NLS-1$
 
   /**
    * A named preference part that controls the highlighting of type parameters.
@@ -362,7 +362,7 @@ public class SemanticHighlightings {
   public static SemanticHighlighting[] getSemanticHighlightings() {
     if (SEMANTIC_HIGHTLIGHTINGS == null) {
       SEMANTIC_HIGHTLIGHTINGS = new SemanticHighlighting[] {
-          new StaticFieldHighlighting(), new FieldHighlighting(), new RefinableTypeHighlighting()};
+          new StaticFieldHighlighting(), new FieldHighlighting(), new DynamicTypeHighlighting()};
     }
     return SEMANTIC_HIGHTLIGHTINGS;
   }

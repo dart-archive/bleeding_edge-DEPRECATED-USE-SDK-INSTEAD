@@ -29,9 +29,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Test for {@link RefinableTypesFinder}.
+ * Test for {@link DynamicTypesFinder}.
  */
-public class RefinableTypesFinderTest extends TestCase {
+public class DynamicTypesFinderTest extends TestCase {
 
   public void testGetterSetter() throws Exception {
     assertMatches(
@@ -54,15 +54,15 @@ public class RefinableTypesFinderTest extends TestCase {
             "  }",
             "  void foo(){",
             "    var !1x;",
-            "    !2x = 3;",
+            //"    !2x = 3;",
             "    int !3y = 3;",
             "    var !4z = 'foo';",
             "  }",
             "}"),
         "1+x",
-        "2+x",
+        //"2+x",
         "3-y",
-        "4+z");
+        "4-z");
   }
 
   /**
@@ -84,7 +84,7 @@ public class RefinableTypesFinderTest extends TestCase {
     if (!errors.isEmpty()) {
       fail("Parse/resolve errors: " + errors);
     }
-    RefinableTypesFinder finder = new RefinableTypesFinder();
+    DynamicTypesFinder finder = new DynamicTypesFinder();
     finder.searchWithin(astRoot);
     Iterable<DartIdentifier> matches = finder.getMatches();
 

@@ -29,23 +29,22 @@ import com.google.dart.compiler.type.Type;
 import java.util.List;
 
 /**
- * Instances of the class <code>RefinableTypesFinder</code> find AST nodes whose type is refinable
- * (e.g., dynamic or inferred).
+ * Instances of the class <code>DynamicTypesFinder</code> find AST nodes whose type is dynamic.
  */
-public class RefinableTypesFinder extends ASTVisitor<Void> {
+public class DynamicTypesFinder extends ASTVisitor<Void> {
 
   /**
-   * Test to see if the given identifier's type is refinable (e.g., "var" or Dynamic).
+   * Test to see if the given identifier's type is dynamic.
    * 
    * @param node the identifier to test
-   * @return <code>true</code> if the identifier has a refinable type, <code>false</code> otherwise
+   * @return <code>true</code> if the identifier has a dynamic type, <code>false</code> otherwise
    */
-  public static boolean isRefinable(DartIdentifier node) {
+  public static boolean isDynamic(DartIdentifier node) {
     Type type = node.getType();
     if (type == null) {
-      
+
       DartNode parent = node.getParent();
-      
+
       if (parent instanceof DartField) {
 
         //skip getters/setters
@@ -60,7 +59,7 @@ public class RefinableTypesFinder extends ASTVisitor<Void> {
           return typeNode == null || typeNode.getType() instanceof DynamicType;
         }
       }
-      
+
       if (parent instanceof DartVariable) {
         parent = parent.getParent();
         if (parent instanceof DartVariableStatement) {
@@ -68,9 +67,10 @@ public class RefinableTypesFinder extends ASTVisitor<Void> {
           return typeNode == null || typeNode.getType() instanceof DynamicType;
         }
       }
-      
+
     }
-    return type != null && type.isInferred() || type instanceof DynamicType;
+    //to match inferred types as well, comment out the isInferred() test
+    return type != null && /*type.isInferred() ||*/type instanceof DynamicType;
   }
 
   private final List<DartIdentifier> matches = Lists.newArrayList();
@@ -96,7 +96,7 @@ public class RefinableTypesFinder extends ASTVisitor<Void> {
   @Override
   public Void visitIdentifier(DartIdentifier node) {
 
-    if (isRefinable(node)) {
+    if (isDynamic(node)) {
       matches.add(node);
     }
 
