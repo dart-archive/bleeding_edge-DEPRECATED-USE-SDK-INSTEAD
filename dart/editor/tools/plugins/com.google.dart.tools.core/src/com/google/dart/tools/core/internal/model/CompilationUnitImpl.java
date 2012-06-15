@@ -242,7 +242,10 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
               + fieldNode.getSourceInfo().getLength());
           captureDartDoc(fieldNode, variableInfo);
           variableInfo.setNameRange(new SourceRangeImpl(fieldNode.getName()));
-          variableInfo.setTypeName(extractTypeName(node.getTypeNode(), false));
+          char[] typeName = extractTypeName(node.getTypeNode(), false);
+          typeName = typeName == null ? CharOperation.NO_CHAR : typeName;
+          variableInfo.setTypeName(typeName);
+          variableInfo.setFullTypeName(typeName);
           variableInfo.setModifiers(modifiers);
 
           FunctionGatherer functionGatherer = new FunctionGatherer(
@@ -602,7 +605,9 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
             variableName.getSourceInfo().getLength()));
         variableInfo.setParameter(false);
         char[] typeName = extractTypeName(node.getTypeNode(), true);
-        variableInfo.setTypeName(typeName == null ? CharOperation.NO_CHAR : typeName);
+        typeName = typeName == null ? CharOperation.NO_CHAR : typeName;
+        variableInfo.setTypeName(typeName);
+        variableInfo.setFullTypeName(typeName);
         variableInfo.setVisibleStart(variableName.getSourceInfo().getOffset());
         variableInfo.setVisibleEnd(blockEnd);
 
@@ -701,12 +706,16 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         variableInfo.setVisibleStart(parameterName.getSourceInfo().getOffset());
         variableInfo.setVisibleEnd(visibleEnd);
         char[] typeName = extractTypeName(parameter.getTypeNode(), true);
+        char[] fullTypeName = typeName;
         // If function parameters are defined, then append the parameters to the type name.
         List<DartParameter> functionParameters = parameter.getFunctionParameters();
         if (functionParameters != null) {
-          typeName = getParameterTypes(typeName, functionParameters);
+          char[][] typeNames = getParameterTypes(typeName, functionParameters);
+          typeName = typeNames[0];
+          fullTypeName = typeNames[1];
         }
         variableInfo.setTypeName(typeName == null ? CharOperation.NO_CHAR : typeName);
+        variableInfo.setFullTypeName(fullTypeName == null ? CharOperation.NO_CHAR : fullTypeName);
 
         FunctionGatherer functionGatherer = new FunctionGatherer(
             parameter,
@@ -832,32 +841,43 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
     return file;
   }
 
-  private static char[] getParameterTypes(char[] typeName, List<DartParameter> parameters) {
-    StringBuilder builder = new StringBuilder(16);
-    builder.append(typeName);
-    getParameterTypes(builder, parameters);
-    return builder.toString().toCharArray();
+  private static char[][] getParameterTypes(char[] typeName, List<DartParameter> parameters) {
+    StringBuilder typeNameBuilder = new StringBuilder(32);
+    StringBuilder fullTypeNameBuilder = new StringBuilder(64);
+    typeNameBuilder.append(typeName);
+    fullTypeNameBuilder.append(typeName);
+    getParameterTypes(typeNameBuilder, fullTypeNameBuilder, parameters);
+    return new char[][] {
+        typeNameBuilder.toString().toCharArray(), fullTypeNameBuilder.toString().toCharArray()};
   }
 
-  private static void getParameterTypes(StringBuilder builder, List<DartParameter> parameters) {
-    builder.append('(');
+  private static void getParameterTypes(StringBuilder typeNameBuilder,
+      StringBuilder fullTypeNameBuilder, List<DartParameter> parameters) {
+    typeNameBuilder.append('(');
+    fullTypeNameBuilder.append('(');
     for (Iterator<DartParameter> iterator = parameters.iterator(); iterator.hasNext();) {
       DartParameter dartParameter = iterator.next();
       List<DartParameter> functionParameters = dartParameter.getFunctionParameters();
       char[] typeName = extractTypeName(dartParameter.getTypeNode(), true);
-      // append the type name
-      builder.append(typeName);
+      String parameterName = extractName(dartParameter.getName());
+      // append the type name and/or parameter name
+      typeNameBuilder.append(typeName);
+      fullTypeNameBuilder.append(typeName);
+      fullTypeNameBuilder.append(" ");
+      fullTypeNameBuilder.append(parameterName);
       if (functionParameters != null) {
         // If there are nested function parameters, then recursively append the
         // functionParameters to the builder.
-        getParameterTypes(builder, functionParameters);
+        getParameterTypes(typeNameBuilder, fullTypeNameBuilder, functionParameters);
       }
       // if this is not the last dartParameter in the list, append ", "
       if (iterator.hasNext()) {
-        builder.append(", ");
+        typeNameBuilder.append(", ");
+        fullTypeNameBuilder.append(", ");
       }
     }
-    builder.append(')');
+    typeNameBuilder.append(')');
+    fullTypeNameBuilder.append(')');
   }
 
   /**

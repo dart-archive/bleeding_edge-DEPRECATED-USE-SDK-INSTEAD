@@ -63,6 +63,13 @@ public class DartVariableImpl extends SourceReferenceImpl implements DartVariabl
   }
 
   @Override
+  public String getFullTypeName() throws DartModelException {
+    DartVariableInfo info = (DartVariableInfo) getElementInfo();
+    char[] chars = info.getFullTypeName();
+    return chars == null ? null : new String(chars);
+  }
+
+  @Override
   public SourceRange getNameRange() throws DartModelException {
     DartVariableInfo info = (DartVariableInfo) getElementInfo();
     return info.getNameRange();

@@ -223,7 +223,7 @@ public final class DartDocUtilities {
 
         StringBuffer buf = new StringBuffer();
 
-        String[] typeNames = method.getParameterTypeNames();
+        String[] typeNames = method.getFullParameterTypeNames();
         String[] parameterNames = method.getParameterNames();
 
         for (int i = 0; i < parameterNames.length; i++) {

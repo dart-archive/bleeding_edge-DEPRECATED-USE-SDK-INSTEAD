@@ -24,6 +24,17 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
   public static String MAIN = "main";
 
   /**
+   * Return an array containing the full names of the parameter types for this function, or an empty
+   * array if this function does not have any parameters. In the case where the type of a parameter
+   * is a function type, this method will return a string that contains both the types and names of
+   * the function's parameters.
+   * 
+   * @return an array containing the full names of the parameter types for this function
+   * @throws DartModelException if the names of the parameter types cannot be accessed
+   */
+  public String[] getFullParameterTypeNames() throws DartModelException;
+
+  /**
    * Return an array containing all of the local variables and parameters defined for this function,
    * or an empty array if this function does not have any local variables or parameters.
    * 
@@ -43,7 +54,9 @@ public interface DartFunction extends CompilationUnitElement, ParentElement, Sou
 
   /**
    * Return an array containing the names of the parameter types for this function, or an empty
-   * array if this function does not have any parameters.
+   * array if this function does not have any parameters. In the case where the type of a parameter
+   * is a function type, this method will return a string that contains only the types of the
+   * function's parameters and not the parameter names.
    * 
    * @return an array containing the names of the parameter types for this function
    * @throws DartModelException if the names of the parameter types cannot be accessed

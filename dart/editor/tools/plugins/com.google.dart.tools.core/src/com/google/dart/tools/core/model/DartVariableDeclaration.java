@@ -22,7 +22,18 @@ package com.google.dart.tools.core.model;
 public interface DartVariableDeclaration extends CompilationUnitElement, SourceReference {
   /**
    * Return the name of the type of this variable, or <code>null</code> if this variable does not
-   * have a declared type.
+   * have a declared type. In the case where the type is a function type, this method will return a
+   * string that contains both the types and names of the function's parameters.
+   * 
+   * @return the name of the type of this variable
+   * @throws DartModelException if the type of this variable cannot be accessed
+   */
+  public String getFullTypeName() throws DartModelException;
+
+  /**
+   * Return the name of the type of this variable, or <code>null</code> if this variable does not
+   * have a declared type. In the case where the type is a function type, this method will return a
+   * string that contains only the types of the function's parameters and not the parameter names.
    * 
    * @return the name of the type of this variable
    * @throws DartModelException if the type of this variable cannot be accessed

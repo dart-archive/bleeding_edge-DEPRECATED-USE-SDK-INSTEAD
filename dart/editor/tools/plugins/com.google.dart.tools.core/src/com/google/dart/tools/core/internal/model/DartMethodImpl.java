@@ -52,6 +52,17 @@ public class DartMethodImpl extends NamedTypeMemberImpl implements Method {
   }
 
   @Override
+  public String[] getFullParameterTypeNames() throws DartModelException {
+    ArrayList<String> typeNames = new ArrayList<String>();
+    for (DartVariableDeclaration variable : getChildrenOfType(DartVariableDeclaration.class)) {
+      if (variable.isParameter()) {
+        typeNames.add(variable.getFullTypeName());
+      }
+    }
+    return typeNames.toArray(new String[typeNames.size()]);
+  }
+
+  @Override
   public DartVariableDeclaration[] getLocalVariables() throws DartModelException {
     List<DartVariableDeclaration> variables = getChildrenOfType(DartVariableDeclaration.class);
     return variables.toArray(new DartVariableDeclaration[variables.size()]);
