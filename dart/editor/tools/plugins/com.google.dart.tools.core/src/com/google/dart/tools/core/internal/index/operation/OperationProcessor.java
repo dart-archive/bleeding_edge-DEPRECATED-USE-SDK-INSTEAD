@@ -170,7 +170,7 @@ public class OperationProcessor {
     int queueSize = queue.size();
     synchronized (this) {
       return state == ProcessorState.RUNNING
-          || (state == ProcessorState.STOP_REQESTED && queueSize == 0);
+          || (state == ProcessorState.STOP_REQESTED && queueSize > 0);
     }
   }
 }
