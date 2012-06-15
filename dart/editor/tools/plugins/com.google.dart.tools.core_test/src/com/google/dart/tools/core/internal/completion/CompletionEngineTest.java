@@ -384,6 +384,16 @@ public class CompletionEngineTest extends TestCase {
     test(source, "1+toUpperCase");
   }
 
+  public void testCommentSnippets057() throws Exception {
+    String source = Joiner.on("\n").join(
+        "void f(var v) {",
+        "  if ((v as String).length == 0) {",
+        "    v.!1toUpperCase;",
+        "  }",
+        "}");
+    test(source, "1+toUpperCase");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test
