@@ -201,7 +201,6 @@ public final class DartDocUtilities {
       if (documentable instanceof Field) {
         Field field = (Field) documentable;
 
-        // TODO(devoncarew): why/when is this null?
         if (field.getTypeName() != null) {
           return field.getTypeName() + " " + field.getElementName();
         } else {
@@ -224,12 +223,28 @@ public final class DartDocUtilities {
 
         StringBuffer buf = new StringBuffer();
 
-        for (int i = 0; i < method.getParameterNames().length; i++) {
+        String[] typeNames = method.getParameterTypeNames();
+        String[] parameterNames = method.getParameterNames();
+
+        for (int i = 0; i < parameterNames.length; i++) {
           if (i > 0) {
             buf.append(", ");
           }
 
-          buf.append(method.getParameterTypeNames()[i] + " " + method.getParameterNames()[i]);
+          String typeName = typeNames[i];
+          String paramName = parameterNames[i];
+
+          if (typeName.indexOf('(') != -1) {
+            // Instead of returning "void(var) callback", return "void callback(var)".
+            int index = typeName.indexOf('(');
+
+            buf.append(typeName.substring(0, index));
+            buf.append(" ");
+            buf.append(paramName);
+            buf.append(typeName.substring(index));
+          } else {
+            buf.append(typeName + " " + paramName);
+          }
         }
 
         if (method.getReturnTypeName() != null) {
