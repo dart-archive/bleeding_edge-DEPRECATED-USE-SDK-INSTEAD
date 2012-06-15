@@ -70,7 +70,7 @@ public class DynamicTypesFinder extends ASTVisitor<Void> {
 
     }
     //to match inferred types as well, comment out the isInferred() test
-    return type != null && /*type.isInferred() ||*/type instanceof DynamicType;
+    return /* type != null && type.isInferred() ||*/type instanceof DynamicType;
   }
 
   private final List<DartIdentifier> matches = Lists.newArrayList();

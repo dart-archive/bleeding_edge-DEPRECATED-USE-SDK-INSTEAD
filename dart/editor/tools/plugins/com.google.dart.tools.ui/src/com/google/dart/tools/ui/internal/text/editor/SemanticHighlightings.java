@@ -51,7 +51,7 @@ public class SemanticHighlightings {
 
     @Override
     public String getDisplayName() {
-      return DartEditorMessages.SemanticHighlighting_refinableType;
+      return DartEditorMessages.SemanticHighlighting_dynamicType;
     }
 
     @Override
