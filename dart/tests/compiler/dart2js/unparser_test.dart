@@ -7,7 +7,7 @@
 
 testUnparse(String statement) {
   Node node = parseStatement(statement);
-  Expect.equals(statement, node.unparse(false));
+  Expect.equals(statement, node.unparse());
 }
 
 testGenericTypes() {

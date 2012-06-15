@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# Run frogc.dart on the Dart VM with its libdir set correctly.
-
-SCRIPTPATH=`dirname $0`
-LIBPATH=`dirname $SCRIPTPATH`/lib
-$SCRIPTPATH/dart $SCRIPTPATH/frogc.dart --libdir=$LIBPATH $@
