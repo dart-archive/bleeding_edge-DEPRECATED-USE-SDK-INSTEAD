@@ -105,10 +105,7 @@ public class DartCore extends Plugin {
 
   /**
    * Extension for single unit compiled into JavaScript.
-   * 
-   * @deprecated inline this constant or keep it, if still needed for frog
    */
-  @Deprecated
   public static final String EXTENSION_JS = "js";
 
   /**
@@ -806,7 +803,13 @@ public class DartCore extends Plugin {
    * Return the package root preference
    */
   public String getPackageRootPref() {
-    return DartCore.getPlugin().getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, null);
+    String pref = DartCore.getPlugin().getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, null);
+
+    if (pref != null && pref.length() == 0) {
+      return null;
+    } else {
+      return pref;
+    }
   }
 
   public IEclipsePreferences getPrefs() {
