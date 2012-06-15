@@ -174,7 +174,11 @@ build system.  The PDE build system has to run under Eclipse.
 
                 <include name="slider/**"/>
 
+                <include name="solar/**"/>
+
                 <include name="sunflower/**"/>
+
+                <include name="swipe/**"/>
 
                 <include name="time/**"/>
 

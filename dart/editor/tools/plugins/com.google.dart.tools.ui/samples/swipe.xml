@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<sample name="Swipe" file="swipe.dart" keywords="css 3D transforms, touch gestures">
+    <description>A 3D, touch-enabled palindrome</description>
+</sample>
